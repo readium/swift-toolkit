@@ -7,12 +7,23 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		595D8EFF1E130BFA00E0B0F7 /* SpineViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595D8EFE1E130BFA00E0B0F7 /* SpineViewController.swift */; };
+		595D8F011E14541100E0B0F7 /* LibraryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595D8F001E14541100E0B0F7 /* LibraryViewController.swift */; };
+		595D8F031E15A0B900E0B0F7 /* Samples in Resources */ = {isa = PBXBuildFile; fileRef = 595D8F021E15A0B900E0B0F7 /* Samples */; };
+		5962E8BC1E0ADD6B0045D1EF /* RDEpubFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5962E8BB1E0ADD6B0045D1EF /* RDEpubFetcher.swift */; };
+		5962E8BF1E0B1FA90045D1EF /* RDEpubServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5962E8BE1E0B1FA90045D1EF /* RDEpubServer.swift */; };
+		5962E8C11E0B28810045D1EF /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5962E8C01E0B28810045D1EF /* GCDWebServers.framework */; };
+		596397821E09DDD6005A7147 /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 596397811E09DDD6005A7147 /* ObjectMapper.framework */; };
 		59B27E711E01E8F5002EE2FE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59B27E701E01E8F5002EE2FE /* AppDelegate.swift */; };
-		59B27E731E01E8F5002EE2FE /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59B27E721E01E8F5002EE2FE /* ViewController.swift */; };
+		59B27E731E01E8F5002EE2FE /* SpineItemViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59B27E721E01E8F5002EE2FE /* SpineItemViewController.swift */; };
 		59B27E761E01E8F5002EE2FE /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 59B27E741E01E8F5002EE2FE /* Main.storyboard */; };
 		59B27E781E01E8F5002EE2FE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 59B27E771E01E8F5002EE2FE /* Assets.xcassets */; };
 		59B27E7B1E01E8F5002EE2FE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 59B27E791E01E8F5002EE2FE /* LaunchScreen.storyboard */; };
 		59B27E861E01E8F5002EE2FE /* R2StreamerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59B27E851E01E8F5002EE2FE /* R2StreamerTests.swift */; };
+		59B27E951E01EE90002EE2FE /* RDContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59B27E911E01EE90002EE2FE /* RDContainer.swift */; };
+		59B27E961E01EE90002EE2FE /* RDPublication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59B27E921E01EE90002EE2FE /* RDPublication.swift */; };
+		59B27E971E01EE90002EE2FE /* RDEpubParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59B27E941E01EE90002EE2FE /* RDEpubParser.swift */; };
+		59B27E9A1E01F0E3002EE2FE /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59B27E991E01F0E3002EE2FE /* AEXML.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -26,9 +37,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		595D8EFE1E130BFA00E0B0F7 /* SpineViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SpineViewController.swift; sourceTree = "<group>"; };
+		595D8F001E14541100E0B0F7 /* LibraryViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LibraryViewController.swift; sourceTree = "<group>"; };
+		595D8F021E15A0B900E0B0F7 /* Samples */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Samples; sourceTree = "<group>"; };
+		5962E8BB1E0ADD6B0045D1EF /* RDEpubFetcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RDEpubFetcher.swift; path = Sources/fetcher/RDEpubFetcher.swift; sourceTree = SOURCE_ROOT; };
+		5962E8BE1E0B1FA90045D1EF /* RDEpubServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RDEpubServer.swift; path = Sources/server/RDEpubServer.swift; sourceTree = SOURCE_ROOT; };
+		5962E8C01E0B28810045D1EF /* GCDWebServers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDWebServers.framework; path = Carthage/Build/iOS/GCDWebServers.framework; sourceTree = "<group>"; };
+		5962E8C21E0B28DB0045D1EF /* R2Streamer-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "R2Streamer-Bridging-Header.h"; path = "Sources/R2Streamer-Bridging-Header.h"; sourceTree = SOURCE_ROOT; };
+		596397811E09DDD6005A7147 /* ObjectMapper.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ObjectMapper.framework; path = Carthage/Build/iOS/ObjectMapper.framework; sourceTree = "<group>"; };
 		59B27E6D1E01E8F5002EE2FE /* R2Streamer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = R2Streamer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		59B27E701E01E8F5002EE2FE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		59B27E721E01E8F5002EE2FE /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		59B27E721E01E8F5002EE2FE /* SpineItemViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpineItemViewController.swift; sourceTree = "<group>"; };
 		59B27E751E01E8F5002EE2FE /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		59B27E771E01E8F5002EE2FE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		59B27E7A1E01E8F5002EE2FE /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -36,6 +55,10 @@
 		59B27E811E01E8F5002EE2FE /* R2StreamerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = R2StreamerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		59B27E851E01E8F5002EE2FE /* R2StreamerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2StreamerTests.swift; sourceTree = "<group>"; };
 		59B27E871E01E8F5002EE2FE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		59B27E911E01EE90002EE2FE /* RDContainer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RDContainer.swift; sourceTree = "<group>"; };
+		59B27E921E01EE90002EE2FE /* RDPublication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RDPublication.swift; sourceTree = "<group>"; };
+		59B27E941E01EE90002EE2FE /* RDEpubParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RDEpubParser.swift; sourceTree = "<group>"; };
+		59B27E991E01F0E3002EE2FE /* AEXML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AEXML.framework; path = Carthage/Build/iOS/AEXML.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -43,6 +66,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5962E8C11E0B28810045D1EF /* GCDWebServers.framework in Frameworks */,
+				596397821E09DDD6005A7147 /* ObjectMapper.framework in Frameworks */,
+				59B27E9A1E01F0E3002EE2FE /* AEXML.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -56,12 +82,29 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5962E8BA1E0ADD530045D1EF /* fetcher */ = {
+			isa = PBXGroup;
+			children = (
+				5962E8BB1E0ADD6B0045D1EF /* RDEpubFetcher.swift */,
+			);
+			name = fetcher;
+			sourceTree = "<group>";
+		};
+		5962E8BD1E0B1F880045D1EF /* server */ = {
+			isa = PBXGroup;
+			children = (
+				5962E8BE1E0B1FA90045D1EF /* RDEpubServer.swift */,
+			);
+			name = server;
+			sourceTree = "<group>";
+		};
 		59B27E641E01E8F5002EE2FE = {
 			isa = PBXGroup;
 			children = (
 				59B27E6F1E01E8F5002EE2FE /* R2Streamer */,
 				59B27E841E01E8F5002EE2FE /* R2StreamerTests */,
 				59B27E6E1E01E8F5002EE2FE /* Products */,
+				59B27E981E01F0E3002EE2FE /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -77,9 +120,17 @@
 		59B27E6F1E01E8F5002EE2FE /* R2Streamer */ = {
 			isa = PBXGroup;
 			children = (
+				5962E8BD1E0B1F880045D1EF /* server */,
+				5962E8BA1E0ADD530045D1EF /* fetcher */,
+				59B27E901E01EE90002EE2FE /* model */,
+				59B27E931E01EE90002EE2FE /* parser */,
 				59B27E701E01E8F5002EE2FE /* AppDelegate.swift */,
-				59B27E721E01E8F5002EE2FE /* ViewController.swift */,
+				59B27E721E01E8F5002EE2FE /* SpineItemViewController.swift */,
+				595D8EFE1E130BFA00E0B0F7 /* SpineViewController.swift */,
+				595D8F001E14541100E0B0F7 /* LibraryViewController.swift */,
+				5962E8C21E0B28DB0045D1EF /* R2Streamer-Bridging-Header.h */,
 				59B27E741E01E8F5002EE2FE /* Main.storyboard */,
+				595D8F021E15A0B900E0B0F7 /* Samples */,
 				59B27E771E01E8F5002EE2FE /* Assets.xcassets */,
 				59B27E791E01E8F5002EE2FE /* LaunchScreen.storyboard */,
 				59B27E7C1E01E8F5002EE2FE /* Info.plist */,
@@ -96,6 +147,35 @@
 			path = R2StreamerTests;
 			sourceTree = "<group>";
 		};
+		59B27E901E01EE90002EE2FE /* model */ = {
+			isa = PBXGroup;
+			children = (
+				59B27E911E01EE90002EE2FE /* RDContainer.swift */,
+				59B27E921E01EE90002EE2FE /* RDPublication.swift */,
+			);
+			name = model;
+			path = Sources/model;
+			sourceTree = SOURCE_ROOT;
+		};
+		59B27E931E01EE90002EE2FE /* parser */ = {
+			isa = PBXGroup;
+			children = (
+				59B27E941E01EE90002EE2FE /* RDEpubParser.swift */,
+			);
+			name = parser;
+			path = Sources/parser;
+			sourceTree = SOURCE_ROOT;
+		};
+		59B27E981E01F0E3002EE2FE /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5962E8C01E0B28810045D1EF /* GCDWebServers.framework */,
+				596397811E09DDD6005A7147 /* ObjectMapper.framework */,
+				59B27E991E01F0E3002EE2FE /* AEXML.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -106,6 +186,7 @@
 				59B27E691E01E8F5002EE2FE /* Sources */,
 				59B27E6A1E01E8F5002EE2FE /* Frameworks */,
 				59B27E6B1E01E8F5002EE2FE /* Resources */,
+				59B27E9B1E01F106002EE2FE /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -141,7 +222,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0810;
-				LastUpgradeCheck = 0810;
+				LastUpgradeCheck = 0820;
 				ORGANIZATIONNAME = Readium;
 				TargetAttributes = {
 					59B27E6C1E01E8F5002EE2FE = {
@@ -181,6 +262,7 @@
 			files = (
 				59B27E7B1E01E8F5002EE2FE /* LaunchScreen.storyboard in Resources */,
 				59B27E781E01E8F5002EE2FE /* Assets.xcassets in Resources */,
+				595D8F031E15A0B900E0B0F7 /* Samples in Resources */,
 				59B27E761E01E8F5002EE2FE /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -194,12 +276,38 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		59B27E9B1E01F106002EE2FE /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/Carthage/Build/iOS/AEXML.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/ObjectMapper.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/GCDWebServers.framework",
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/local/bin/carthage copy-frameworks";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		59B27E691E01E8F5002EE2FE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				59B27E731E01E8F5002EE2FE /* ViewController.swift in Sources */,
+				59B27E731E01E8F5002EE2FE /* SpineItemViewController.swift in Sources */,
+				5962E8BC1E0ADD6B0045D1EF /* RDEpubFetcher.swift in Sources */,
+				595D8F011E14541100E0B0F7 /* LibraryViewController.swift in Sources */,
+				595D8EFF1E130BFA00E0B0F7 /* SpineViewController.swift in Sources */,
+				59B27E971E01EE90002EE2FE /* RDEpubParser.swift in Sources */,
+				59B27E951E01EE90002EE2FE /* RDContainer.swift in Sources */,
+				5962E8BF1E0B1FA90045D1EF /* RDEpubServer.swift in Sources */,
+				59B27E961E01EE90002EE2FE /* RDPublication.swift in Sources */,
 				59B27E711E01E8F5002EE2FE /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -260,6 +368,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -282,7 +391,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -310,6 +419,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -326,7 +436,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
@@ -339,6 +449,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = R2Streamer/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2Streamer;
@@ -351,6 +465,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = R2Streamer/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2Streamer;
@@ -406,6 +524,7 @@
 				59B27E8C1E01E8F5002EE2FE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		59B27E8D1E01E8F5002EE2FE /* Build configuration list for PBXNativeTarget "R2StreamerTests" */ = {
 			isa = XCConfigurationList;
@@ -414,6 +533,7 @@
 				59B27E8F1E01E8F5002EE2FE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

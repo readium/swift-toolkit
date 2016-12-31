@@ -12,10 +12,36 @@ import UIKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-
+    var epubServer: RDEpubServer?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        
+        epubServer = RDEpubServer()
+        
+        let epubPaths = fetchContainerPaths()
+        var publications = [RDPublication]()
+        
+        for path in epubPaths {
+            let container = RDDirectoryContainer(directory: Bundle.main.path(forResource: "Samples/\(path)", ofType: nil)!)
+            let parser = RDEpubParser(container: container!)
+            do {
+                let pub = try parser.parse()
+                if let pubURL = epubServer!.baseURL?.appendingPathComponent("\(path)/manifest.json", isDirectory: false) {
+                    pub!.links.append(RDLink(href: pubURL.absoluteString, typeLink: "application/webpub+json", rel: "self"))
+                }
+                publications.append(pub!)
+                let json = pub?.toJSONString(prettyPrint: true)
+                NSLog(json!)
+                epubServer!.addEpub(container: container!, withPrefix: path)
+            } catch {
+                NSLog("Error parsing publication at path '\(path)': \(error)")
+            }
+        }
+        
+        let navigationViewController = window?.rootViewController as! UINavigationController
+        let libraryViewController = LibraryViewController(publications: publications)
+        navigationViewController.viewControllers = [libraryViewController]
+        
         return true
     }
 
@@ -41,6 +67,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
 
+    /// Get the list of EPUBs in the app bundle
+    func fetchContainerPaths() -> [String] {
+        if let samplesPath = Bundle.main.path(forResource: "Samples", ofType: nil) {
+            let containerPaths = try! FileManager.default.contentsOfDirectory(atPath: samplesPath)
+            return containerPaths
+        }
+        return [String]()
+    }
 
 }
 
