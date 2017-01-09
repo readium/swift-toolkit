@@ -10,24 +10,28 @@ import Foundation
 
 
 /**
- 
  Error thrown by the `RDEpubFetcher`
  
  - missingFile
  - decryptionFailed
-
- */
+*/
 enum RDEpubFetcherError: Error {
     case missingFile(path: String)
     case decryptionFailed
 }
 
 
+struct RDResourceData {
+    var mediaType: String
+    var data: Data
+    var dataRange: Range<UInt64>
+    var dataTotalLength: UInt64
+}
+
+
 /**
- 
  A RDEpubFetcher object lets you get the data from the assets in the EPUB container.
  It will fetch the data in the container and apply content filters (decryption for example).
- 
 */
 class RDEpubFetcher {
     
@@ -41,6 +45,7 @@ class RDEpubFetcher {
     var rootFileDirectory: String
     
     // TODO: Content filters
+    //var contentFilters: [RDContentFilter]
     
     init?(publication: RDPublication, container: RDContainer) {
         
@@ -58,14 +63,12 @@ class RDEpubFetcher {
     }
     
     /**
- 
     Gets all the data from an asset file in a publication's container.
  
     - parameter path: The relative path to the asset in the publication.
     
     - returns: a tuple with the data and the media type if the asset was found.
     - throws: `RDEpubFetcherError.missingFile` if the file is missing from the container
- 
     */
     func data(forRelativePath path: String) throws -> (data: Data, mediaType: String?)? {
         
@@ -74,13 +77,16 @@ class RDEpubFetcher {
         if assetLink == nil {
             throw RDEpubFetcherError.missingFile(path: path)
         }
-        // Get the media type from the link
-        let mediaType = assetLink!.typeLink
         
         // Build the path relative to the container and get the data from the container
         let pubRelativePath = (rootFileDirectory as NSString).appendingPathComponent(path)
         do {
+            // Get the data from the container
             let data = try container.data(relativePath: pubRelativePath)
+            
+            // Get the media type from the link
+            let mediaType = assetLink!.typeLink
+            
             return (data!, mediaType)
         } catch {
             throw RDEpubFetcherError.missingFile(path: pubRelativePath)
@@ -88,7 +94,6 @@ class RDEpubFetcher {
     }
     
     /**
-     
      Gets the data from range in an asset file in a publication's container.
      
      - parameter path: The relative path to the asset in the publication.
@@ -96,10 +101,49 @@ class RDEpubFetcher {
      
      - returns: a tuple with the data and the media type if the asset was found.
      - throws: `RDEpubFetcherError.missingFile` if the file is missing from the container
-     
     */
-    func data(forRelativePath path: String, range: Range<CUnsignedLongLong>) -> (Data, String?)? {
-        // TODO: implement range access
-        return nil
+    func data(forRelativePath path: String, range: Range<UInt64>) throws -> (data: Data, mediaType: String?)? {
+        
+        // Get the link information from the publication
+        let assetLink = publication.resource(withRelativePath: path)
+        if assetLink == nil {
+            throw RDEpubFetcherError.missingFile(path: path)
+        }
+        
+        // Build the path relative to the container and get the data from the container
+        let pubRelativePath = (rootFileDirectory as NSString).appendingPathComponent(path)
+        do {
+            // Get the data from the container
+            let data = try container.data(relativePath: pubRelativePath, byteRange: range)
+            
+            // Get the media type from the link
+            let mediaType = assetLink!.typeLink
+            
+            return (data!, mediaType)
+        } catch {
+            throw RDEpubFetcherError.missingFile(path: pubRelativePath)
+        }
+    }
+    
+    /**
+     Get the total length of the data in an asset file
+    */
+    func dataLength(forRelativePath path: String) throws -> UInt64 {
+        
+        // Get the link information from the publication
+        let assetLink = publication.resource(withRelativePath: path)
+        if assetLink == nil {
+            throw RDEpubFetcherError.missingFile(path: path)
+        }
+        
+        // Build the path relative to the container and get the data from the container
+        let pubRelativePath = (rootFileDirectory as NSString).appendingPathComponent(path)
+        do {
+            // Get the data from the container
+            let length = try container.dataLength(relativePath: pubRelativePath)
+            return length!
+        } catch {
+            throw RDEpubFetcherError.missingFile(path: pubRelativePath)
+        }
     }
 }

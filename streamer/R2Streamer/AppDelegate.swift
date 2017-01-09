@@ -32,7 +32,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 publications.append(pub!)
                 let json = pub?.toJSONString(prettyPrint: true)
                 NSLog(json!)
-                epubServer!.addEpub(container: container!, withPrefix: path)
+                epubServer!.addEpub(container: container!, withEndpoint: path)
             } catch {
                 NSLog("Error parsing publication at path '\(path)': \(error)")
             }

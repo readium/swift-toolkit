@@ -11,9 +11,7 @@ import GCDWebServers
 
 
 /**
- 
  The HTTP server for the publication's manifests and assets
- 
 */
 class RDEpubServer {
     
@@ -53,47 +51,66 @@ class RDEpubServer {
     }
     
     /**
-    
      Add an EPUB container to the list of EPUBS being served.
      
      - parameter container: The EPUB container of the publication
      - parameter prefix: The URI prefix to use to fetch assets from the publication `/{prefix}/{assetRelativePath}`
- 
     */
-    func addEpub(container: RDContainer, withPrefix prefix: String) {
-        if containers[prefix] == nil {
+    func addEpub(container: RDContainer, withEndpoint endpoint: String) {
+        if containers[endpoint] == nil {
             let parser = RDEpubParser(container: container)
             if let publication = try? parser.parse() {
                 
                 // Add self link
-                if let pubURL = baseURL?.appendingPathComponent("\(prefix)/manifest.json", isDirectory: false) {
+                if let pubURL = baseURL?.appendingPathComponent("\(endpoint)/manifest.json", isDirectory: false) {
                     publication?.links.append(RDLink(href: pubURL.absoluteString, typeLink: "application/webpub+json", rel: "self"))
                 }
                 
                 // Are these dictionaries really necessary?
-                containers[prefix] = container
-                publications[prefix] = publication
+                containers[endpoint] = container
+                publications[endpoint] = publication
                 
                 let fetcher = RDEpubFetcher(publication: publication!, container: container)
                 
                 // Add the handler for the resources
                 webServer.addHandler(
                     forMethod: "GET",
-                    pathRegex: "/\(prefix)/.*",
+                    pathRegex: "/\(endpoint)/.*",
                     request: GCDWebServerRequest.self,
                     processBlock: { request in
-                        // TODO: check for partial range
+
+                        // Check for partial range
+                        var byteRange: Range<UInt64>
+                        if request!.hasByteRange() {
+                            let upperBound = request!.byteRange.location + request!.byteRange.length
+                            byteRange = Range<UInt64>(uncheckedBounds: (lower: UInt64(request!.byteRange.location), upper: UInt64(upperBound)))
+                        } else {
+                            byteRange = Range<UInt64>(uncheckedBounds: (lower: 0, upper: UInt64.max))
+                        }
                         
                         guard let path = request?.path else {
                             return GCDWebServerErrorResponse(statusCode: 500)
                         }
                         
                         // Remove the prefix from the URI
-                        let relativePath = path.substring(from: path.index(prefix.endIndex, offsetBy: 3))
+                        let relativePath = path.substring(from: path.index(endpoint.endIndex, offsetBy: 3))
                         
                         do {
-                            let typedData = try fetcher?.data(forRelativePath: relativePath)
-                            return GCDWebServerDataResponse(data: typedData!.data, contentType: typedData!.mediaType)
+                            let typedData = try fetcher?.data(forRelativePath: relativePath, range: byteRange)
+                            let response = GCDWebServerDataResponse(data: typedData!.data, contentType: typedData!.mediaType)
+                            
+                            // Add content range header
+                            if request!.hasByteRange() {
+                                response?.statusCode = 206 // Partial content
+                                let rangeStart = byteRange.lowerBound
+                                let rangeEnd = rangeStart + UInt64(typedData!.data.count)
+                                let totalLength = try fetcher?.dataLength(forRelativePath: relativePath)
+                                response?.setValue("bytes \(rangeStart)-\(rangeEnd)/\(totalLength)", forAdditionalHeader: "Content-Range")
+                            }
+                            
+                            // Add cache-related header(s)
+                            response?.cacheControlMaxAge = UInt(60 * 60 * 2)
+                            return response
                             
                         } catch RDEpubFetcherError.missingFile {
                             return GCDWebServerErrorResponse(statusCode: 404)
@@ -106,12 +123,12 @@ class RDEpubServer {
                 // Add the handler for the manifest
                 webServer.addHandler(
                     forMethod: "GET",
-                    pathRegex: "/\(prefix)/manifest.json",
+                    pathRegex: "/\(endpoint)/manifest.json",
                     request: GCDWebServerRequest.self,
                     processBlock: { request in
                         let manifestJSON = publication?.toJSONString()
                         let manifestData = manifestJSON?.data(using: .utf8)
-                        return GCDWebServerDataResponse(data: manifestData, contentType: "application/json; charset=utf-8"/*"application/webpub+json; charset=utf-8"*/)
+                        return GCDWebServerDataResponse(data: manifestData, contentType: "application/webpub+json; charset=utf-8")
                 })
                 
             }
@@ -119,11 +136,9 @@ class RDEpubServer {
     }
     
     /**
-    
      Remove an EPUB container from the server
      
      - parameter prefix: The URI prefix associated with the container (by `addEpub`)
- 
     */
     func removeEpub(withPrefix prefix: String) {
         if containers[prefix] != nil {
