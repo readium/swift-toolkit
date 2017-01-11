@@ -74,22 +74,44 @@ class RDEpubServer {
                 
                 // Add the handler for the resources
                 webServer.addHandler(
+                    forMethod: "OPTIONS",
+                    pathRegex: "/\(endpoint)/.*",
+                    request: GCDWebServerRequest.self,
+                    processBlock: { request in
+                        
+                        guard let path = request?.path else {
+                            NSLog("no path in options request")
+                            return GCDWebServerErrorResponse(statusCode: 500)
+                        }
+                        
+                        NSLog("options request \(path)")
+                        
+                        return GCDWebServerDataResponse()
+                })
+                
+                // Add the handler for the resources
+                webServer.addHandler(
                     forMethod: "GET",
                     pathRegex: "/\(endpoint)/.*",
                     request: GCDWebServerRequest.self,
                     processBlock: { request in
 
+                        guard let path = request?.path else {
+                            NSLog("no path in request")
+                            return GCDWebServerErrorResponse(statusCode: 500)
+                        }
+                        
+                        NSLog("request \(path)")
+                        
                         // Check for partial range
                         var byteRange: Range<UInt64>
                         if request!.hasByteRange() {
+                            let byteRange2 = request!.byteRange
+                            NSLog("\(byteRange2)")
                             let upperBound = request!.byteRange.location + request!.byteRange.length
                             byteRange = Range<UInt64>(uncheckedBounds: (lower: UInt64(request!.byteRange.location), upper: UInt64(upperBound)))
                         } else {
                             byteRange = Range<UInt64>(uncheckedBounds: (lower: 0, upper: UInt64.max))
-                        }
-                        
-                        guard let path = request?.path else {
-                            return GCDWebServerErrorResponse(statusCode: 500)
                         }
                         
                         // Remove the prefix from the URI
@@ -103,9 +125,11 @@ class RDEpubServer {
                             if request!.hasByteRange() {
                                 response?.statusCode = 206 // Partial content
                                 let rangeStart = byteRange.lowerBound
-                                let rangeEnd = rangeStart + UInt64(typedData!.data.count)
+                                let rangeEnd = rangeStart + UInt64(typedData!.data.count) - 1
                                 let totalLength = try fetcher?.dataLength(forRelativePath: relativePath)
-                                response?.setValue("bytes \(rangeStart)-\(rangeEnd)/\(totalLength)", forAdditionalHeader: "Content-Range")
+                                NSLog("Partial content \(path) bytes \(rangeStart)-\(rangeEnd)/\(totalLength!)")
+                                response?.setValue("bytes \(rangeStart)-\(rangeEnd)/\(totalLength!)", forAdditionalHeader: "Content-Range")
+                                //response?.contentLength = UInt(totalLength!)
                             }
                             
                             // Add cache-related header(s)

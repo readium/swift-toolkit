@@ -103,7 +103,7 @@ class RDDirectoryContainer: RDContainer {
         return nil
     }
     
-    func dataLength(relativePath: String) -> UInt64? {
+    func dataLength(relativePath: String) throws -> UInt64? {
         let fullPath = (rootPath as NSString).appendingPathComponent(relativePath)
         if let attrs = try? FileManager.default.attributesOfItem(atPath: fullPath) {
             let fileSize = attrs[FileAttributeKey.size] as! UInt64
@@ -120,23 +120,26 @@ class RDDirectoryContainer: RDContainer {
 class RDEpubContainer: RDContainer {
     
     var epubFilePath: String
+    var zipArchive: ZipArchive
     
     init?(path: String) {
         epubFilePath = path
+        if let arc = ZipArchive(url: URL(fileURLWithPath: path)) {
+            zipArchive = arc
+        } else {
+            return nil
+        }
     }
     
     func data(relativePath: String) throws -> Data? {
-        // TODO
-        return nil
+        return try zipArchive.readData(path: relativePath)
     }
     
     func data(relativePath: String, byteRange: Range<UInt64>) throws -> Data? {
-        // TODO
-        return nil
+        return try zipArchive.readData(path: relativePath, range: byteRange)
     }
     
     func dataLength(relativePath: String) throws -> UInt64? {
-        // TODO
-        return nil
+        return try zipArchive.fileSize(path: relativePath)
     }
 }
