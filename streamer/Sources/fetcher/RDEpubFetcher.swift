@@ -146,4 +146,24 @@ class RDEpubFetcher {
             throw RDEpubFetcherError.missingFile(path: pubRelativePath)
         }
     }
+    
+    /**
+     Get an input stream with the data of the asset
+    */
+    func inputStream(forRelativePath path: String) throws -> (inputStream: RDSeekableInputStream, mediaType: String?) {
+        
+        // Get the link information from the publication
+        let assetLink = publication.resource(withRelativePath: path)
+        if assetLink == nil {
+            throw RDEpubFetcherError.missingFile(path: path)
+        }
+        
+        // Build the path relative to the container and get the data from the container
+        let pubRelativePath = (rootFileDirectory as NSString).appendingPathComponent(path)
+
+        let mediaType = assetLink!.typeLink
+        let inputStream = try container.dataInputStream(relativePath: pubRelativePath)
+        
+        return (inputStream: inputStream, mediaType: mediaType)
+    }
 }

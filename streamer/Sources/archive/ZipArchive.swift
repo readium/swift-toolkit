@@ -190,10 +190,11 @@ public class ZipArchive {
         var buffer = Array<CUnsignedChar>(repeating: 0, count: bufferLength)
         var data = Data(capacity: Int(length))
         
-        // Read the current file
+        // Read the current file to the desired offset
         var offsetBytesRead:Int64 = 0
         while offsetBytesRead < offset {
             let bytesToRead = min(bufferLength, offset - offsetBytesRead)
+            // Data is discarded
             let bytesRead = unzReadCurrentFile(unzFile, &buffer, UInt32(bytesToRead))
             if bytesRead == 0 {
                 break
@@ -204,6 +205,7 @@ public class ZipArchive {
             offsetBytesRead += Int64(bytesRead)
         }
         
+        // Read the current file and add it to the data
         var totalBytesRead:Int32 = 0
         while totalBytesRead < length {
             let bytesToRead = min(bufferLength, length - totalBytesRead)
@@ -223,6 +225,8 @@ public class ZipArchive {
     }
     
     public func readData(path: String) throws -> Data {
+        // TODO: find a cleaner and faster solution to prevent concurrent access to the zip file
+        // https://www.cocoawithlove.com/blog/2016/06/02/threads-and-mutexes.html
         objc_sync_enter(self)
         defer {
             objc_sync_exit(self)
@@ -236,6 +240,8 @@ public class ZipArchive {
     }
     
     public func readData(path: String, range: Range<UInt64>) throws -> Data {
+        // TODO: find a cleaner and faster solution to prevent concurrent access to the zip file
+        // https://www.cocoawithlove.com/blog/2016/06/02/threads-and-mutexes.html
         objc_sync_enter(self)
         defer {
             objc_sync_exit(self)
@@ -253,6 +259,49 @@ public class ZipArchive {
             return zipFileInfo.length
         }
         throw ZipError.fileNotFound
+    }
+    
+    // MARK: Stream-like methods (experimental)
+    
+    /// note: the caller has to handle lock to access these methods
+    
+    public func openFile(path: String) throws {
+        if try locateFile(path: path) {
+            let err = unzOpenCurrentFile(unzFile)
+            if err != UNZ_OK {
+                throw ZipError.unzipFail
+            }
+        } else {
+            throw ZipError.fileNotFound
+        }
+    }
+    
+    public func seekCurrentFile(offset: UInt64) throws {
+        let bufferLength = 1024 * 64
+        let ioffset = Int64(offset)
+        var buffer = Array<CUnsignedChar>(repeating: 0, count: bufferLength)
+        
+        // Read the current file to the desired offset
+        var offsetBytesRead:Int64 = 0
+        while offsetBytesRead < ioffset {
+            let bytesToRead = min(bufferLength, ioffset - offsetBytesRead)
+            // Data is discarded
+            let bytesRead = unzReadCurrentFile(unzFile, &buffer, UInt32(bytesToRead))
+            if bytesRead == 0 {
+                break
+            }
+            if bytesRead != UNZ_OK {
+                throw ZipError.unzipFail
+            }
+            offsetBytesRead += Int64(bytesRead)
+        }
+    }
+    
+    public func readDataFromCurrentFile(length: UInt64) throws -> Data {
+        
+    }
+    
+    public func closeFile(path: String) {
     }
     
 }

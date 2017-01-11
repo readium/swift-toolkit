@@ -10,6 +10,34 @@ import Foundation
 import GCDWebServers
 
 
+class RDWebServerResourceResponse: GCDWebServerFileResponse {
+    
+    var container: RDContainer
+    var relativePath: String
+    var range: Range<UInt64>
+    var offset: Int64
+    var length: UInt64
+    let bufferSize = 32 * 1024
+    
+    init(container: RDContainer, relativePath: String, range: Range<UInt64>) {
+        self.container = container
+        self.relativePath = relativePath
+        self.range = range
+        self.length = UInt64(range.count)
+    }
+    
+    override func open() throws {
+        container.openFile(relativePath)
+    }
+    override func readData() throws -> Data {
+        <#code#>
+    }
+    override func close() {
+        <#code#>
+    }
+}
+
+
 /**
  The HTTP server for the publication's manifests and assets
 */

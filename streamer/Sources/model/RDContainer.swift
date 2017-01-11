@@ -41,6 +41,8 @@ protocol RDContainer {
      - returns: The size of the asset.
     */
     func dataLength(relativePath: String) throws -> UInt64?
+    
+    func dataInputStream(relativePath: String) throws -> RDSeekableInputStream
 }
 
 
@@ -110,6 +112,14 @@ class RDDirectoryContainer: RDContainer {
             return fileSize
         }
         return nil
+    }
+    
+    func dataInputStream(relativePath: String) throws -> RDSeekableInputStream {
+        let fullPath = (rootPath as NSString).appendingPathComponent(relativePath)
+        if let inputStream = InputStream(fileAtPath: fullPath) {
+            return inputStream as! RDSeekableInputStream
+        }
+    
     }
 }
 
