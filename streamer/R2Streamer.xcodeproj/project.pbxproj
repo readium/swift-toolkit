@@ -15,8 +15,8 @@
 		595BBCA31E252CF7000477DA /* ZipError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595BBC9C1E252CF7000477DA /* ZipError.swift */; };
 		595BBCA41E252CF7000477DA /* ZipUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595BBC9D1E252CF7000477DA /* ZipUtilities.swift */; };
 		595BBCA61E252DAC000477DA /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 595BBCA51E252DAC000477DA /* libz.tbd */; };
-		595C0D2E1E264E3E00CB9DD8 /* RDUnzipStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595C0D2D1E264E3E00CB9DD8 /* RDUnzipStream.swift */; };
-		595C0D301E2657A000CB9DD8 /* RDSeekableInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595C0D2F1E2657A000CB9DD8 /* RDSeekableInputStream.swift */; };
+		595C0D2E1E264E3E00CB9DD8 /* UnzipStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595C0D2D1E264E3E00CB9DD8 /* UnzipStream.swift */; };
+		595C0D301E2657A000CB9DD8 /* Seekable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595C0D2F1E2657A000CB9DD8 /* Seekable.swift */; };
 		595D8EFF1E130BFA00E0B0F7 /* SpineViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595D8EFE1E130BFA00E0B0F7 /* SpineViewController.swift */; };
 		595D8F011E14541100E0B0F7 /* LibraryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595D8F001E14541100E0B0F7 /* LibraryViewController.swift */; };
 		595D8F031E15A0B900E0B0F7 /* Samples in Resources */ = {isa = PBXBuildFile; fileRef = 595D8F021E15A0B900E0B0F7 /* Samples */; };
@@ -61,8 +61,8 @@
 		595BBC9C1E252CF7000477DA /* ZipError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZipError.swift; sourceTree = "<group>"; };
 		595BBC9D1E252CF7000477DA /* ZipUtilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZipUtilities.swift; sourceTree = "<group>"; };
 		595BBCA51E252DAC000477DA /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
-		595C0D2D1E264E3E00CB9DD8 /* RDUnzipStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RDUnzipStream.swift; sourceTree = "<group>"; };
-		595C0D2F1E2657A000CB9DD8 /* RDSeekableInputStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RDSeekableInputStream.swift; path = Sources/RDSeekableInputStream.swift; sourceTree = SOURCE_ROOT; };
+		595C0D2D1E264E3E00CB9DD8 /* UnzipStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnzipStream.swift; sourceTree = "<group>"; };
+		595C0D2F1E2657A000CB9DD8 /* Seekable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Seekable.swift; path = Sources/Seekable.swift; sourceTree = SOURCE_ROOT; };
 		595D8EFE1E130BFA00E0B0F7 /* SpineViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SpineViewController.swift; sourceTree = "<group>"; };
 		595D8F001E14541100E0B0F7 /* LibraryViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LibraryViewController.swift; sourceTree = "<group>"; };
 		595D8F021E15A0B900E0B0F7 /* Samples */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Samples; sourceTree = "<group>"; };
@@ -118,7 +118,8 @@
 				595BBC9B1E252CF7000477DA /* ZipArchive.swift */,
 				595BBC9C1E252CF7000477DA /* ZipError.swift */,
 				595BBC9D1E252CF7000477DA /* ZipUtilities.swift */,
-				595C0D2D1E264E3E00CB9DD8 /* RDUnzipStream.swift */,
+				595C0D2F1E2657A000CB9DD8 /* Seekable.swift */,
+				595C0D2D1E264E3E00CB9DD8 /* UnzipStream.swift */,
 			);
 			name = archive;
 			path = Sources/archive;
@@ -177,7 +178,6 @@
 		59B27E6F1E01E8F5002EE2FE /* R2Streamer */ = {
 			isa = PBXGroup;
 			children = (
-				595C0D2F1E2657A000CB9DD8 /* RDSeekableInputStream.swift */,
 				595BBC8F1E252CF7000477DA /* archive */,
 				5962E8BD1E0B1F880045D1EF /* server */,
 				5962E8BA1E0ADD530045D1EF /* fetcher */,
@@ -364,9 +364,9 @@
 				595BBC9F1E252CF7000477DA /* unzip.c in Sources */,
 				5962E8BC1E0ADD6B0045D1EF /* RDEpubFetcher.swift in Sources */,
 				595BBCA31E252CF7000477DA /* ZipError.swift in Sources */,
-				595C0D301E2657A000CB9DD8 /* RDSeekableInputStream.swift in Sources */,
+				595C0D301E2657A000CB9DD8 /* Seekable.swift in Sources */,
 				595D8F011E14541100E0B0F7 /* LibraryViewController.swift in Sources */,
-				595C0D2E1E264E3E00CB9DD8 /* RDUnzipStream.swift in Sources */,
+				595C0D2E1E264E3E00CB9DD8 /* UnzipStream.swift in Sources */,
 				595D8EFF1E130BFA00E0B0F7 /* SpineViewController.swift in Sources */,
 				595BBC9E1E252CF7000477DA /* ioapi.c in Sources */,
 				595BBCA21E252CF7000477DA /* ZipArchive.swift in Sources */,
