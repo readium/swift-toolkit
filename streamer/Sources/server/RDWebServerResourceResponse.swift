@@ -40,7 +40,7 @@ open class RDWebServerResourceResponse: GCDWebServerFileResponse {
                 self.range = Range<UInt64>(uncheckedBounds: (lower: 0, upper: totalLength))
             } else {
                 let o = min(UInt64(r.location), totalLength)
-                let l = (r.length == -1) ? totalLength : min(UInt64(r.length), totalLength)
+                let l = (r.length == -1) ? (totalLength - o) : min(UInt64(r.length), totalLength - o)
                 self.range = Range<UInt64>(uncheckedBounds: (lower: o, upper: o + l))
             }
             
