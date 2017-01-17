@@ -11,9 +11,7 @@ import GCDWebServers
 
 
 /**
- 
  The HTTP server for the publication's manifests and assets
- 
 */
 class RDEpubServer {
     
@@ -41,6 +39,7 @@ class RDEpubServer {
     }
     
     init?() {
+        GCDWebServer.setLogLevel(0)
         webServer = GCDWebServer()
         do {
             try webServer.start(options: [
@@ -53,65 +52,105 @@ class RDEpubServer {
     }
     
     /**
-    
      Add an EPUB container to the list of EPUBS being served.
      
      - parameter container: The EPUB container of the publication
      - parameter prefix: The URI prefix to use to fetch assets from the publication `/{prefix}/{assetRelativePath}`
- 
     */
-    func addEpub(container: RDContainer, withPrefix prefix: String) {
-        if containers[prefix] == nil {
+    func addEpub(container: RDContainer, withEndpoint endpoint: String) {
+        if containers[endpoint] == nil {
             let parser = RDEpubParser(container: container)
             if let publication = try? parser.parse() {
                 
                 // Add self link
-                if let pubURL = baseURL?.appendingPathComponent("\(prefix)/manifest.json", isDirectory: false) {
+                if let pubURL = baseURL?.appendingPathComponent("\(endpoint)/manifest.json", isDirectory: false) {
                     publication?.links.append(RDLink(href: pubURL.absoluteString, typeLink: "application/webpub+json", rel: "self"))
                 }
                 
                 // Are these dictionaries really necessary?
-                containers[prefix] = container
-                publications[prefix] = publication
+                containers[endpoint] = container
+                publications[endpoint] = publication
                 
                 let fetcher = RDEpubFetcher(publication: publication!, container: container)
+                
+                // Add the handler for the resources OPTIONS
+                /*
+                webServer.addHandler(
+                    forMethod: "OPTIONS",
+                    pathRegex: "/\(endpoint)/.*",
+                    request: GCDWebServerRequest.self,
+                    processBlock: { request in
+                        
+                        guard let path = request?.path else {
+                            NSLog("no path in options request")
+                            return GCDWebServerErrorResponse(statusCode: 500)
+                        }
+                        
+                        NSLog("options request \(path)")
+                        
+                        return GCDWebServerDataResponse()
+                })
+                */
                 
                 // Add the handler for the resources
                 webServer.addHandler(
                     forMethod: "GET",
-                    pathRegex: "/\(prefix)/.*",
+                    pathRegex: "/\(endpoint)/.*",
                     request: GCDWebServerRequest.self,
                     processBlock: { request in
-                        // TODO: check for partial range
+
+                        guard request != nil else {
+                            NSLog("no request")
+                            return GCDWebServerErrorResponse(statusCode: 500)
+                        }
+                        
+                        //NSLog("request \(request)")
+                        //NSLog("request headers \(request!.headers)")
                         
                         guard let path = request?.path else {
+                            NSLog("no path in request")
                             return GCDWebServerErrorResponse(statusCode: 500)
                         }
+                        
+                        NSLog("request \(path)")
                         
                         // Remove the prefix from the URI
-                        let relativePath = path.substring(from: path.index(prefix.endIndex, offsetBy: 3))
+                        let relativePath = path.substring(from: path.index(endpoint.endIndex, offsetBy: 3))
+                        let resource = publication?.resource(withRelativePath: relativePath)
+                        let contentType = resource?.typeLink ?? "application/octet-stream"
                         
+                        var response: GCDWebServerResponse
                         do {
-                            let typedData = try fetcher?.data(forRelativePath: relativePath)
-                            return GCDWebServerDataResponse(data: typedData!.data, contentType: typedData!.mediaType)
+                            if let dataStream = try fetcher?.dataStream(forRelativePath: relativePath) {
+                                let range: NSRange? = request!.hasByteRange() ? request!.byteRange : nil
+                                let r = RDWebServerResourceResponse(inputStream: dataStream, range: range, contentType: contentType)
+                                
+                                // Add cache-related header(s)
+                                r.cacheControlMaxAge = UInt(60 * 60 * 2)
+                                response = r
+                            } else {
+                                response = GCDWebServerErrorResponse(statusCode: 500)
+                            }
                             
                         } catch RDEpubFetcherError.missingFile {
-                            return GCDWebServerErrorResponse(statusCode: 404)
+                            response = GCDWebServerErrorResponse(statusCode: 404)
                             
                         } catch {
-                            return GCDWebServerErrorResponse(statusCode: 500)
+                            response = GCDWebServerErrorResponse(statusCode: 500)
                         }
+                        
+                        return response
                 })
                 
                 // Add the handler for the manifest
                 webServer.addHandler(
                     forMethod: "GET",
-                    pathRegex: "/\(prefix)/manifest.json",
+                    pathRegex: "/\(endpoint)/manifest.json",
                     request: GCDWebServerRequest.self,
                     processBlock: { request in
                         let manifestJSON = publication?.toJSONString()
                         let manifestData = manifestJSON?.data(using: .utf8)
-                        return GCDWebServerDataResponse(data: manifestData, contentType: "application/json; charset=utf-8"/*"application/webpub+json; charset=utf-8"*/)
+                        return GCDWebServerDataResponse(data: manifestData, contentType: "application/webpub+json; charset=utf-8")
                 })
                 
             }
@@ -119,11 +158,9 @@ class RDEpubServer {
     }
     
     /**
-    
      Remove an EPUB container from the server
      
      - parameter prefix: The URI prefix associated with the container (by `addEpub`)
- 
     */
     func removeEpub(withPrefix prefix: String) {
         if containers[prefix] != nil {

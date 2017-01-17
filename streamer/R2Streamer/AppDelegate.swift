@@ -22,19 +22,32 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         var publications = [RDPublication]()
         
         for path in epubPaths {
-            let container = RDDirectoryContainer(directory: Bundle.main.path(forResource: "Samples/\(path)", ofType: nil)!)
-            let parser = RDEpubParser(container: container!)
-            do {
-                let pub = try parser.parse()
-                if let pubURL = epubServer!.baseURL?.appendingPathComponent("\(path)/manifest.json", isDirectory: false) {
-                    pub!.links.append(RDLink(href: pubURL.absoluteString, typeLink: "application/webpub+json", rel: "self"))
+            let fullPath = Bundle.main.path(forResource: "Samples/\(path)", ofType: nil)
+            var isDirectory: ObjCBool = false
+            
+            if FileManager.default.fileExists(atPath: fullPath!, isDirectory: &isDirectory) {
+                
+                var container: RDContainer?
+                if isDirectory.boolValue {
+                    container = RDDirectoryContainer(directory: fullPath!)
+                } else {
+                    container = RDEpubContainer(path: fullPath!)
                 }
-                publications.append(pub!)
-                let json = pub?.toJSONString(prettyPrint: true)
-                NSLog(json!)
-                epubServer!.addEpub(container: container!, withPrefix: path)
-            } catch {
-                NSLog("Error parsing publication at path '\(path)': \(error)")
+                
+                let parser = RDEpubParser(container: container!)
+                do {
+                    let pub = try parser.parse()
+                    if let pubURL = epubServer!.baseURL?.appendingPathComponent("\(path)/manifest.json", isDirectory: false) {
+                        pub!.links.append(RDLink(href: pubURL.absoluteString, typeLink: "application/webpub+json", rel: "self"))
+                    }
+                    publications.append(pub!)
+                    let json = pub?.toJSONString(prettyPrint: true)
+                    NSLog(json!)
+                    epubServer!.addEpub(container: container!, withEndpoint: path)
+                    NSLog("Adding endpoint \(path) for publication \(pub!.metadata.title)")
+                } catch {
+                    NSLog("Error parsing publication at path '\(path)': \(error)")
+                }
             }
         }
         
