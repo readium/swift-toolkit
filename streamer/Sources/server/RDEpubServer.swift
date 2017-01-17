@@ -42,8 +42,15 @@ class RDEpubServer {
         GCDWebServer.setLogLevel(0)
         webServer = GCDWebServer()
         do {
+            #if DEBUG
+                // Debug
+                let port = 8080
+            #else
+                // Default: random port
+                let port = 0
+            #endif
             try webServer.start(options: [
-                GCDWebServerOption_Port: 0,
+                GCDWebServerOption_Port: port,
                 GCDWebServerOption_BindToLocalhost: true])
         } catch {
             NSLog("Failed to start the HTTP server: \(error)")
@@ -121,21 +128,24 @@ class RDEpubServer {
                         
                         var response: GCDWebServerResponse
                         do {
+                            // Get a data input stream from the fetcher
                             if let dataStream = try fetcher?.dataStream(forRelativePath: relativePath) {
                                 let range: NSRange? = request!.hasByteRange() ? request!.byteRange : nil
                                 let r = RDWebServerResourceResponse(inputStream: dataStream, range: range, contentType: contentType)
-                                
-                                // Add cache-related header(s)
-                                r.cacheControlMaxAge = UInt(60 * 60 * 2)
                                 response = r
                             } else {
+                                // Error getting the data stream
+                                NSLog("Unable to get a data stream from the fetcher")
                                 response = GCDWebServerErrorResponse(statusCode: 500)
                             }
                             
                         } catch RDEpubFetcherError.missingFile {
+                            // File not found
                             response = GCDWebServerErrorResponse(statusCode: 404)
                             
                         } catch {
+                            // Any other error
+                            NSLog("General error creating the response \(error)")
                             response = GCDWebServerErrorResponse(statusCode: 500)
                         }
                         

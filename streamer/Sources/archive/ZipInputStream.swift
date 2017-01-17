@@ -89,7 +89,7 @@ public class ZipInputStream: SeekableInputStream {
     }
     
     override public func open() {
-        objc_sync_enter(zipArchive)
+        //objc_sync_enter(zipArchive)
         do {
             try zipArchive.openCurrentFile(path: fileInZipPath)
             _streamStatus = .open
@@ -123,7 +123,7 @@ public class ZipInputStream: SeekableInputStream {
     override public func close() {
         //NSLog("ZipInputStream \(fileInZipPath) close")
         zipArchive.closeCurrentFile()
-        objc_sync_exit(zipArchive)
+        //objc_sync_exit(zipArchive)
         _streamStatus = .closed
     }
     

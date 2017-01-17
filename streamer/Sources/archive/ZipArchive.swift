@@ -272,7 +272,8 @@ public class ZipArchive {
     
     // MARK: Stream-like methods (experimental)
     
-    /// note: the caller has to handle lock to access these methods
+    // note: the caller has to handle lock to access these methods
+    // if concurrent access to the resource is made
     
     public func openCurrentFile(path: String) throws {
         if try locateFile(path: path) {
@@ -287,6 +288,7 @@ public class ZipArchive {
     }
     
     public func seekCurrentFile(offset: UInt64) throws {
+        // TODO: Check if you can seek directly to offset in minizip instead of reading the bytes
         let ioffset = Int64(offset)
         var buffer = Array<CUnsignedChar>(repeating: 0, count: bufferLength)
         
@@ -299,10 +301,11 @@ public class ZipArchive {
             if bytesRead == 0 {
                 break
             }
-            if bytesRead != UNZ_OK {
+            if bytesRead > 0 {
+                offsetBytesRead += Int64(bytesRead)
+            } else {
                 throw ZipError.unzipFail
             }
-            offsetBytesRead += Int64(bytesRead)
         }
         currentFileOffset! += UInt64(offsetBytesRead)
     }

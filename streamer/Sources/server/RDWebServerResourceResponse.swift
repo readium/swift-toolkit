@@ -65,6 +65,7 @@ open class RDWebServerResourceResponse: GCDWebServerFileResponse {
         self.contentType = contentType
         contentLength = UInt(self.range.count)
         
+        cacheControlMaxAge = UInt(60 * 60 * 2)
         // TODO: lastModifiedDate = ...
         // TODO: setValue("", forAdditionalHeader: "Cache-Control")
     }
