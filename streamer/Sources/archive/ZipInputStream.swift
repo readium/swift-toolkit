@@ -106,7 +106,7 @@ public class ZipInputStream: SeekableInputStream {
     
     override public func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) -> Int {
         do {
-            NSLog("ZipInputStream \(fileInZipPath) read \(maxLength) bytes")
+            //NSLog("ZipInputStream \(fileInZipPath) read \(maxLength) bytes")
             let bytesRead = try zipArchive.readDataFromCurrentFile(buffer, maxLength: UInt64(maxLength))
             if Int(bytesRead) < maxLength {
                 _streamStatus = .atEnd
@@ -121,7 +121,7 @@ public class ZipInputStream: SeekableInputStream {
     }
     
     override public func close() {
-        NSLog("ZipInputStream \(fileInZipPath) close")
+        //NSLog("ZipInputStream \(fileInZipPath) close")
         zipArchive.closeCurrentFile()
         objc_sync_exit(zipArchive)
         _streamStatus = .closed

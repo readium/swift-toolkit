@@ -29,6 +29,8 @@ open class RDWebServerResourceResponse: GCDWebServerFileResponse {
         
         let totalLength = inputStream.length
         if let r = range {
+            NSLog("Request range \(r.location)-\(r.length)")
+            
             if r.location == Int.max {
                 let l = min(UInt64(r.length), totalLength)
                 self.range = Range<UInt64>(uncheckedBounds: (lower: totalLength - l, upper: totalLength))
@@ -68,7 +70,6 @@ open class RDWebServerResourceResponse: GCDWebServerFileResponse {
     }
     
     override open func open() throws {
-        NSLog("ResourceResponse \(self)")
         inputStream.open()
         if (inputStream.streamStatus == .open) {
             try inputStream.seek(offset: Int64(range.lowerBound), whence: .startOfFile)
@@ -83,8 +84,8 @@ open class RDWebServerResourceResponse: GCDWebServerFileResponse {
         let numberOfBytesRead = inputStream.read(&buffer, maxLength: len)
         if numberOfBytesRead > 0 {
             totalNumberOfBytesRead += UInt64(numberOfBytesRead)
-            NSLog("ResourceResponse read \(numberOfBytesRead) bytes")
-            NSLog("ResourceResponse \(range.lowerBound)-\(range.upperBound) / \(inputStream.length) : bytes read \(totalNumberOfBytesRead)")
+            //NSLog("ResourceResponse read \(numberOfBytesRead) bytes")
+            //NSLog("ResourceResponse \(range.lowerBound)-\(range.upperBound) / \(inputStream.length) : bytes read \(totalNumberOfBytesRead)")
             return Data(bytes: buffer, count: numberOfBytesRead)
         }
         return Data()

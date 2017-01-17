@@ -73,7 +73,8 @@ class RDEpubServer {
                 
                 let fetcher = RDEpubFetcher(publication: publication!, container: container)
                 
-                // Add the handler for the resources
+                // Add the handler for the resources OPTIONS
+                /*
                 webServer.addHandler(
                     forMethod: "OPTIONS",
                     pathRegex: "/\(endpoint)/.*",
@@ -89,6 +90,7 @@ class RDEpubServer {
                         
                         return GCDWebServerDataResponse()
                 })
+                */
                 
                 // Add the handler for the resources
                 webServer.addHandler(
@@ -102,8 +104,8 @@ class RDEpubServer {
                             return GCDWebServerErrorResponse(statusCode: 500)
                         }
                         
-                        NSLog("request \(request)")
-                        NSLog("request headers \(request!.headers)")
+                        //NSLog("request \(request)")
+                        //NSLog("request headers \(request!.headers)")
                         
                         guard let path = request?.path else {
                             NSLog("no path in request")
