@@ -108,7 +108,7 @@ class RDEpubParser {
     */
     func isMimeTypeValid() -> Bool {
         if let mimeTypeData = try? container.data(relativePath: "mimetype") {
-            let mimetype = String(data: mimeTypeData!, encoding: .ascii)
+            let mimetype = String(data: mimeTypeData, encoding: .ascii)
             return (mimetype == "application/epub+zip")
         }
         return false
@@ -124,13 +124,16 @@ class RDEpubParser {
     */
     func parseContainer() throws {
         let containerPath = "META-INF/container.xml"
-        guard let containerData = try container.data(relativePath: containerPath) else {
+        var containerData:Data?
+        do {
+            containerData = try container.data(relativePath: containerPath)
+        } catch {
             throw RDEpubParserError.missingFile(path: containerPath)
         }
         
         var containerXml: AEXMLDocument
         do {
-            containerXml = try AEXMLDocument(xml: containerData)
+            containerXml = try AEXMLDocument(xml: containerData!)
         }
         catch {
             throw RDEpubParserError.xmlParse(underlyingError: error)
@@ -163,14 +166,17 @@ class RDEpubParser {
     */
     func parseOPF(_ path: String) throws -> RDPublication? {
         // Get OPF document data from the container
-        guard let data = try container.data(relativePath: rootFile!) else {
+        var data:Data?
+        do {
+            data = try container.data(relativePath: rootFile!)
+        } catch {
             throw RDEpubParserError.missingFile(path: rootFile!)
         }
         
         // Create an XML document from the data
         var doc: AEXMLDocument
         do {
-            doc = try AEXMLDocument(xml: data)
+            doc = try AEXMLDocument(xml: data!)
         } catch {
             throw RDEpubParserError.xmlParse(underlyingError: error)
         }

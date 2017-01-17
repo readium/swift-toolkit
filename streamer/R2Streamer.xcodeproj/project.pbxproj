@@ -15,8 +15,9 @@
 		595BBCA31E252CF7000477DA /* ZipError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595BBC9C1E252CF7000477DA /* ZipError.swift */; };
 		595BBCA41E252CF7000477DA /* ZipUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595BBC9D1E252CF7000477DA /* ZipUtilities.swift */; };
 		595BBCA61E252DAC000477DA /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 595BBCA51E252DAC000477DA /* libz.tbd */; };
-		595C0D2E1E264E3E00CB9DD8 /* UnzipStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595C0D2D1E264E3E00CB9DD8 /* UnzipStream.swift */; };
+		595C0D2E1E264E3E00CB9DD8 /* ZipInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595C0D2D1E264E3E00CB9DD8 /* ZipInputStream.swift */; };
 		595C0D301E2657A000CB9DD8 /* Seekable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595C0D2F1E2657A000CB9DD8 /* Seekable.swift */; };
+		595CF57E1E2919B5007AEDB8 /* RDWebServerResourceResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595CF57D1E2919B5007AEDB8 /* RDWebServerResourceResponse.swift */; };
 		595D8EFF1E130BFA00E0B0F7 /* SpineViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595D8EFE1E130BFA00E0B0F7 /* SpineViewController.swift */; };
 		595D8F011E14541100E0B0F7 /* LibraryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595D8F001E14541100E0B0F7 /* LibraryViewController.swift */; };
 		595D8F031E15A0B900E0B0F7 /* Samples in Resources */ = {isa = PBXBuildFile; fileRef = 595D8F021E15A0B900E0B0F7 /* Samples */; };
@@ -24,6 +25,7 @@
 		5962E8BF1E0B1FA90045D1EF /* RDEpubServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5962E8BE1E0B1FA90045D1EF /* RDEpubServer.swift */; };
 		5962E8C11E0B28810045D1EF /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5962E8C01E0B28810045D1EF /* GCDWebServers.framework */; };
 		596397821E09DDD6005A7147 /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 596397811E09DDD6005A7147 /* ObjectMapper.framework */; };
+		5975E2C41E2BCB2F003684A6 /* FileInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5975E2C31E2BCB2F003684A6 /* FileInputStream.swift */; };
 		59B27E711E01E8F5002EE2FE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59B27E701E01E8F5002EE2FE /* AppDelegate.swift */; };
 		59B27E731E01E8F5002EE2FE /* SpineItemViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59B27E721E01E8F5002EE2FE /* SpineItemViewController.swift */; };
 		59B27E761E01E8F5002EE2FE /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 59B27E741E01E8F5002EE2FE /* Main.storyboard */; };
@@ -61,8 +63,9 @@
 		595BBC9C1E252CF7000477DA /* ZipError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZipError.swift; sourceTree = "<group>"; };
 		595BBC9D1E252CF7000477DA /* ZipUtilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZipUtilities.swift; sourceTree = "<group>"; };
 		595BBCA51E252DAC000477DA /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
-		595C0D2D1E264E3E00CB9DD8 /* UnzipStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnzipStream.swift; sourceTree = "<group>"; };
+		595C0D2D1E264E3E00CB9DD8 /* ZipInputStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZipInputStream.swift; sourceTree = "<group>"; };
 		595C0D2F1E2657A000CB9DD8 /* Seekable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Seekable.swift; path = Sources/Seekable.swift; sourceTree = SOURCE_ROOT; };
+		595CF57D1E2919B5007AEDB8 /* RDWebServerResourceResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RDWebServerResourceResponse.swift; path = Sources/server/RDWebServerResourceResponse.swift; sourceTree = SOURCE_ROOT; };
 		595D8EFE1E130BFA00E0B0F7 /* SpineViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SpineViewController.swift; sourceTree = "<group>"; };
 		595D8F001E14541100E0B0F7 /* LibraryViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LibraryViewController.swift; sourceTree = "<group>"; };
 		595D8F021E15A0B900E0B0F7 /* Samples */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Samples; sourceTree = "<group>"; };
@@ -71,6 +74,7 @@
 		5962E8C01E0B28810045D1EF /* GCDWebServers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDWebServers.framework; path = Carthage/Build/iOS/GCDWebServers.framework; sourceTree = "<group>"; };
 		5962E8C21E0B28DB0045D1EF /* R2Streamer-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "R2Streamer-Bridging-Header.h"; path = "Sources/R2Streamer-Bridging-Header.h"; sourceTree = SOURCE_ROOT; };
 		596397811E09DDD6005A7147 /* ObjectMapper.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ObjectMapper.framework; path = Carthage/Build/iOS/ObjectMapper.framework; sourceTree = "<group>"; };
+		5975E2C31E2BCB2F003684A6 /* FileInputStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileInputStream.swift; sourceTree = "<group>"; };
 		59B27E6D1E01E8F5002EE2FE /* R2Streamer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = R2Streamer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		59B27E701E01E8F5002EE2FE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		59B27E721E01E8F5002EE2FE /* SpineItemViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpineItemViewController.swift; sourceTree = "<group>"; };
@@ -119,7 +123,8 @@
 				595BBC9C1E252CF7000477DA /* ZipError.swift */,
 				595BBC9D1E252CF7000477DA /* ZipUtilities.swift */,
 				595C0D2F1E2657A000CB9DD8 /* Seekable.swift */,
-				595C0D2D1E264E3E00CB9DD8 /* UnzipStream.swift */,
+				595C0D2D1E264E3E00CB9DD8 /* ZipInputStream.swift */,
+				5975E2C31E2BCB2F003684A6 /* FileInputStream.swift */,
 			);
 			name = archive;
 			path = Sources/archive;
@@ -152,6 +157,7 @@
 			isa = PBXGroup;
 			children = (
 				5962E8BE1E0B1FA90045D1EF /* RDEpubServer.swift */,
+				595CF57D1E2919B5007AEDB8 /* RDWebServerResourceResponse.swift */,
 			);
 			name = server;
 			sourceTree = "<group>";
@@ -366,8 +372,9 @@
 				595BBCA31E252CF7000477DA /* ZipError.swift in Sources */,
 				595C0D301E2657A000CB9DD8 /* Seekable.swift in Sources */,
 				595D8F011E14541100E0B0F7 /* LibraryViewController.swift in Sources */,
-				595C0D2E1E264E3E00CB9DD8 /* UnzipStream.swift in Sources */,
+				595C0D2E1E264E3E00CB9DD8 /* ZipInputStream.swift in Sources */,
 				595D8EFF1E130BFA00E0B0F7 /* SpineViewController.swift in Sources */,
+				5975E2C41E2BCB2F003684A6 /* FileInputStream.swift in Sources */,
 				595BBC9E1E252CF7000477DA /* ioapi.c in Sources */,
 				595BBCA21E252CF7000477DA /* ZipArchive.swift in Sources */,
 				59B27E971E01EE90002EE2FE /* RDEpubParser.swift in Sources */,
@@ -378,6 +385,7 @@
 				595BBCA01E252CF7000477DA /* zip.c in Sources */,
 				59B27E961E01EE90002EE2FE /* RDPublication.swift in Sources */,
 				59B27E711E01E8F5002EE2FE /* AppDelegate.swift in Sources */,
+				595CF57E1E2919B5007AEDB8 /* RDWebServerResourceResponse.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

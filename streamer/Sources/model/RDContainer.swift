@@ -9,10 +9,17 @@
 import Foundation
 
 
+public enum RDContainerError: Error {
+    case streamInitFailed
+    case fileNotFound
+    case fileError
+}
+
+
 /**
  EPUB container protocol, for access to raw data from the files in the container.
 */
-protocol RDContainer {
+public protocol RDContainer {
     
     /**
      Get the raw (possibly encrypted) data of an asset in the container.
@@ -21,18 +28,8 @@ protocol RDContainer {
 
      - returns: The data of the asset.
     */
-    func data(relativePath: String) throws -> Data?
+    func data(relativePath: String) throws -> Data
 
-    /**
-     Get the raw (possibly encrypted) data bytes within a certain range of an asset in the container.
-     
-     - parameter relativePath: The relative path to the asset.
-     - parameter byteRange: The range of the bytes to fetch.
-     
-     - returns: The data of the asset.
-     */
-    func data(relativePath: String, byteRange: Range<UInt64>) throws -> Data?
-    
     /**
      Get the size of an asset in the container.
      
@@ -40,86 +37,54 @@ protocol RDContainer {
      
      - returns: The size of the asset.
     */
-    func dataLength(relativePath: String) throws -> UInt64?
+    func dataLength(relativePath: String) throws -> UInt64
     
-    func dataInputStream(relativePath: String) throws -> RDSeekableInputStream
+    /**
+     Get an seekable input stream with the bytes of the asset in the container.
+ 
+     - parameter relativePath: The relative path to the asset.
+ 
+     - returns: A seekable input stream.
+    */
+    func dataInputStream(relativePath: String) throws -> SeekableInputStream
 }
 
 
 /**
  EPUB Container protocol implementation for EPUBs unzipped in a directory.
 */
-class RDDirectoryContainer: RDContainer {
+open class RDDirectoryContainer: RDContainer {
     
     /// The root directory path
     var rootPath: String
     
-    init?(directory dirPath: String) {
+    public init?(directory dirPath: String) {
         rootPath = dirPath
         if !FileManager.default.fileExists(atPath: rootPath) {
             return nil
         }
     }
     
-    func data(relativePath: String) throws -> Data? {
+    open func data(relativePath: String) throws -> Data {
         let fullPath = (rootPath as NSString).appendingPathComponent(relativePath)
         return try Data(contentsOf: URL(fileURLWithPath: fullPath), options: [.mappedIfSafe])
     }
     
-    func data(relativePath: String, byteRange: Range<UInt64>) throws -> Data? {
-        let fullPath = (rootPath as NSString).appendingPathComponent(relativePath)
-        if let fileHandle = FileHandle(forReadingAtPath: fullPath) {
-            defer {
-                fileHandle.closeFile()
-            }
-            
-            // Get file length
-            fileHandle.seekToEndOfFile()
-            let fileLength = fileHandle.offsetInFile
-            
-            // Check bounds
-            var rangeOffset = byteRange.lowerBound
-            var rangeLength = (byteRange.upperBound == UInt64.max) ? fileLength : UInt64(byteRange.count)
-            
-            if rangeLength == 0 {
-                return nil
-            }
-            
-            if rangeOffset > fileLength {
-                rangeOffset = fileLength
-            }
-            if rangeOffset + rangeLength > fileLength {
-                rangeLength = fileLength - rangeOffset
-            }
-            
-            // Check the length is a valid Int
-            if rangeLength > UInt64(Int.max) {
-                rangeLength = UInt64(Int.max)
-            }
-            
-            // Get the data
-            fileHandle.seek(toFileOffset: rangeOffset)
-            let data = fileHandle.readData(ofLength: Int(rangeLength))
-            return data
-        }
-        return nil
-    }
-    
-    func dataLength(relativePath: String) throws -> UInt64? {
+    open func dataLength(relativePath: String) throws -> UInt64 {
         let fullPath = (rootPath as NSString).appendingPathComponent(relativePath)
         if let attrs = try? FileManager.default.attributesOfItem(atPath: fullPath) {
             let fileSize = attrs[FileAttributeKey.size] as! UInt64
             return fileSize
         }
-        return nil
+        throw RDContainerError.fileError
     }
     
-    func dataInputStream(relativePath: String) throws -> RDSeekableInputStream {
+    open func dataInputStream(relativePath: String) throws -> SeekableInputStream {
         let fullPath = (rootPath as NSString).appendingPathComponent(relativePath)
-        if let inputStream = InputStream(fileAtPath: fullPath) {
-            return inputStream as! RDSeekableInputStream
+        if let inputStream = FileInputStream(fileAtPath: fullPath) {
+            return inputStream
         }
-    
+        throw RDContainerError.streamInitFailed
     }
 }
 
@@ -127,12 +92,12 @@ class RDDirectoryContainer: RDContainer {
 /**
  EPUB Container protocol implementation for EPUB files
 */
-class RDEpubContainer: RDContainer {
+open class RDEpubContainer: RDContainer {
     
     var epubFilePath: String
     var zipArchive: ZipArchive
     
-    init?(path: String) {
+    public init?(path: String) {
         epubFilePath = path
         if let arc = ZipArchive(url: URL(fileURLWithPath: path)) {
             zipArchive = arc
@@ -141,15 +106,20 @@ class RDEpubContainer: RDContainer {
         }
     }
     
-    func data(relativePath: String) throws -> Data? {
+    open func data(relativePath: String) throws -> Data {
         return try zipArchive.readData(path: relativePath)
     }
     
-    func data(relativePath: String, byteRange: Range<UInt64>) throws -> Data? {
-        return try zipArchive.readData(path: relativePath, range: byteRange)
+    open func dataLength(relativePath: String) throws -> UInt64 {
+        return try zipArchive.fileSize(path: relativePath)
     }
     
-    func dataLength(relativePath: String) throws -> UInt64? {
-        return try zipArchive.fileSize(path: relativePath)
+    open func dataInputStream(relativePath: String) throws -> SeekableInputStream {
+        let inputStream = ZipInputStream(zipFilePath: epubFilePath, path: relativePath)
+        //let inputStream = ZipInputStream(zipArchive: zipArchive, path: relativePath)
+        if inputStream == nil {
+            throw RDContainerError.streamInitFailed
+        }
+        return inputStream!
     }
 }

@@ -27,7 +27,9 @@ public class ZipArchive {
     
     internal var unzFile: unzFile
     internal var fileInfos: [String: ZipFileInfo] = [String: ZipFileInfo]()
-    internal var readQueue: DispatchQueue
+    internal var currentFileOffset:UInt64?
+    
+    let bufferLength = 64 * 1024
     
     public var numberOfFiles: UInt64 {
         get {
@@ -52,13 +54,17 @@ public class ZipArchive {
             return nil
         }
         
-        readQueue = DispatchQueue(label: "org.readium.streamer.archive_read.\(path)")
-
-        unzFile = unzOpen64(path)
-        
-        do {
-            try buildFilesList()
-        } catch {
+        if let unzFile = unzOpen64(path) {
+            self.unzFile = unzFile
+            
+            /* Not needed for basic data reading operations
+            do {
+                try buildFilesList()
+            } catch {
+                return nil
+            }
+            */
+        } else {
             return nil
         }
     }
@@ -239,6 +245,7 @@ public class ZipArchive {
         }
     }
     
+    /*
     public func readData(path: String, range: Range<UInt64>) throws -> Data {
         // TODO: find a cleaner and faster solution to prevent concurrent access to the zip file
         // https://www.cocoawithlove.com/blog/2016/06/02/threads-and-mutexes.html
@@ -253,10 +260,12 @@ public class ZipArchive {
             throw ZipError.fileNotFound
         }
     }
+    */
     
     public func fileSize(path: String) throws -> UInt64 {
-        if let zipFileInfo = fileInfos[path] {
-            return zipFileInfo.length
+        if try locateFile(path: path) {
+            let info = try infoOfCurrentFile()
+            return info.length
         }
         throw ZipError.fileNotFound
     }
@@ -265,19 +274,19 @@ public class ZipArchive {
     
     /// note: the caller has to handle lock to access these methods
     
-    public func openFile(path: String) throws {
+    public func openCurrentFile(path: String) throws {
         if try locateFile(path: path) {
             let err = unzOpenCurrentFile(unzFile)
             if err != UNZ_OK {
                 throw ZipError.unzipFail
             }
+            currentFileOffset = 0
         } else {
             throw ZipError.fileNotFound
         }
     }
     
     public func seekCurrentFile(offset: UInt64) throws {
-        let bufferLength = 1024 * 64
         let ioffset = Int64(offset)
         var buffer = Array<CUnsignedChar>(repeating: 0, count: bufferLength)
         
@@ -295,13 +304,25 @@ public class ZipArchive {
             }
             offsetBytesRead += Int64(bytesRead)
         }
+        currentFileOffset! += UInt64(offsetBytesRead)
     }
     
-    public func readDataFromCurrentFile(length: UInt64) throws -> Data {
+    public func readDataFromCurrentFile(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: UInt64) throws -> UInt64 {
         
+        assert(maxLength < UInt64(UInt32.max), "maxLength must be less than \(UInt32.max)")
+        
+        let bytesRead = unzReadCurrentFile(unzFile, buffer, UInt32(maxLength))
+        if bytesRead >= 0 {
+            currentFileOffset! += UInt64(bytesRead)
+        } else {
+            throw ZipError.unzipFail
+        }
+        return UInt64(bytesRead)
     }
     
-    public func closeFile(path: String) {
+    public func closeCurrentFile() {
+        unzCloseCurrentFile(unzFile)
+        currentFileOffset = nil
     }
     
 }

@@ -10,34 +10,6 @@ import Foundation
 import GCDWebServers
 
 
-class RDWebServerResourceResponse: GCDWebServerFileResponse {
-    
-    var container: RDContainer
-    var relativePath: String
-    var range: Range<UInt64>
-    var offset: Int64
-    var length: UInt64
-    let bufferSize = 32 * 1024
-    
-    init(container: RDContainer, relativePath: String, range: Range<UInt64>) {
-        self.container = container
-        self.relativePath = relativePath
-        self.range = range
-        self.length = UInt64(range.count)
-    }
-    
-    override func open() throws {
-        container.openFile(relativePath)
-    }
-    override func readData() throws -> Data {
-        <#code#>
-    }
-    override func close() {
-        <#code#>
-    }
-}
-
-
 /**
  The HTTP server for the publication's manifests and assets
 */
@@ -67,6 +39,7 @@ class RDEpubServer {
     }
     
     init?() {
+        GCDWebServer.setLogLevel(0)
         webServer = GCDWebServer()
         do {
             try webServer.start(options: [
@@ -124,6 +97,14 @@ class RDEpubServer {
                     request: GCDWebServerRequest.self,
                     processBlock: { request in
 
+                        guard request != nil else {
+                            NSLog("no request")
+                            return GCDWebServerErrorResponse(statusCode: 500)
+                        }
+                        
+                        NSLog("request \(request)")
+                        NSLog("request headers \(request!.headers)")
+                        
                         guard let path = request?.path else {
                             NSLog("no path in request")
                             return GCDWebServerErrorResponse(statusCode: 500)
@@ -131,45 +112,32 @@ class RDEpubServer {
                         
                         NSLog("request \(path)")
                         
-                        // Check for partial range
-                        var byteRange: Range<UInt64>
-                        if request!.hasByteRange() {
-                            let byteRange2 = request!.byteRange
-                            NSLog("\(byteRange2)")
-                            let upperBound = request!.byteRange.location + request!.byteRange.length
-                            byteRange = Range<UInt64>(uncheckedBounds: (lower: UInt64(request!.byteRange.location), upper: UInt64(upperBound)))
-                        } else {
-                            byteRange = Range<UInt64>(uncheckedBounds: (lower: 0, upper: UInt64.max))
-                        }
-                        
                         // Remove the prefix from the URI
                         let relativePath = path.substring(from: path.index(endpoint.endIndex, offsetBy: 3))
+                        let resource = publication?.resource(withRelativePath: relativePath)
+                        let contentType = resource?.typeLink ?? "application/octet-stream"
                         
+                        var response: GCDWebServerResponse
                         do {
-                            let typedData = try fetcher?.data(forRelativePath: relativePath, range: byteRange)
-                            let response = GCDWebServerDataResponse(data: typedData!.data, contentType: typedData!.mediaType)
-                            
-                            // Add content range header
-                            if request!.hasByteRange() {
-                                response?.statusCode = 206 // Partial content
-                                let rangeStart = byteRange.lowerBound
-                                let rangeEnd = rangeStart + UInt64(typedData!.data.count) - 1
-                                let totalLength = try fetcher?.dataLength(forRelativePath: relativePath)
-                                NSLog("Partial content \(path) bytes \(rangeStart)-\(rangeEnd)/\(totalLength!)")
-                                response?.setValue("bytes \(rangeStart)-\(rangeEnd)/\(totalLength!)", forAdditionalHeader: "Content-Range")
-                                //response?.contentLength = UInt(totalLength!)
+                            if let dataStream = try fetcher?.dataStream(forRelativePath: relativePath) {
+                                let range: NSRange? = request!.hasByteRange() ? request!.byteRange : nil
+                                let r = RDWebServerResourceResponse(inputStream: dataStream, range: range, contentType: contentType)
+                                
+                                // Add cache-related header(s)
+                                r.cacheControlMaxAge = UInt(60 * 60 * 2)
+                                response = r
+                            } else {
+                                response = GCDWebServerErrorResponse(statusCode: 500)
                             }
                             
-                            // Add cache-related header(s)
-                            response?.cacheControlMaxAge = UInt(60 * 60 * 2)
-                            return response
-                            
                         } catch RDEpubFetcherError.missingFile {
-                            return GCDWebServerErrorResponse(statusCode: 404)
+                            response = GCDWebServerErrorResponse(statusCode: 404)
                             
                         } catch {
-                            return GCDWebServerErrorResponse(statusCode: 500)
+                            response = GCDWebServerErrorResponse(statusCode: 500)
                         }
+                        
+                        return response
                 })
                 
                 // Add the handler for the manifest
