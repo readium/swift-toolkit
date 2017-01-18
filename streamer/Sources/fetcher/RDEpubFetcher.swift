@@ -15,13 +15,13 @@ import Foundation
  - missingFile
  - decryptionFailed
 */
-enum RDEpubFetcherError: Error {
+public enum RDEpubFetcherError: Error {
     case missingFile(path: String)
     case decryptionFailed
 }
 
 
-struct RDResourceData {
+public struct RDResourceData {
     var mediaType: String
     var data: Data
     var dataRange: Range<UInt64>
@@ -33,7 +33,7 @@ struct RDResourceData {
  A RDEpubFetcher object lets you get the data from the assets in the EPUB container.
  It will fetch the data in the container and apply content filters (decryption for example).
 */
-class RDEpubFetcher {
+open class RDEpubFetcher {
     
     /// The publication to fetch from
     var publication: RDPublication

@@ -11,19 +11,19 @@ import minizip
 
 
 
-public class ZipInputStream: SeekableInputStream {
+open class ZipInputStream: SeekableInputStream {
     
     var zipArchive: ZipArchive
     var fileInZipPath: String
     
     private var _streamError: Error?
-    override public var streamError: Error? {
+    override open var streamError: Error? {
         get {
             return _streamError
         }
     }
     private var _streamStatus: Stream.Status = .notOpen
-    override public var streamStatus: Stream.Status {
+    override open var streamStatus: Stream.Status {
         get {
             return _streamStatus
         }
@@ -45,7 +45,7 @@ public class ZipInputStream: SeekableInputStream {
         }
     }
     
-    override public var hasBytesAvailable: Bool {
+    override open var hasBytesAvailable: Bool {
         get {
             return offset < _length
         }
@@ -88,7 +88,7 @@ public class ZipInputStream: SeekableInputStream {
         }
     }
     
-    override public func open() {
+    override open func open() {
         //objc_sync_enter(zipArchive)
         do {
             try zipArchive.openCurrentFile(path: fileInZipPath)
@@ -100,11 +100,11 @@ public class ZipInputStream: SeekableInputStream {
         }
     }
     
-    override public func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>, length len: UnsafeMutablePointer<Int>) -> Bool {
+    override open func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>, length len: UnsafeMutablePointer<Int>) -> Bool {
         return false
     }
     
-    override public func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) -> Int {
+    override open func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) -> Int {
         do {
             //NSLog("ZipInputStream \(fileInZipPath) read \(maxLength) bytes")
             let bytesRead = try zipArchive.readDataFromCurrentFile(buffer, maxLength: UInt64(maxLength))
@@ -120,7 +120,7 @@ public class ZipInputStream: SeekableInputStream {
         return -1
     }
     
-    override public func close() {
+    override open func close() {
         //NSLog("ZipInputStream \(fileInZipPath) close")
         zipArchive.closeCurrentFile()
         //objc_sync_exit(zipArchive)

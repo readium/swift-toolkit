@@ -20,7 +20,7 @@ import AEXML
  - missingElement: An XML element is missing.
  
 */
-enum RDEpubParserError: Error {
+public enum RDEpubParserError: Error {
     
     case wrongMimeType
     
@@ -47,7 +47,7 @@ enum RDEpubParserError: Error {
  - It parses the OPF file of the default rendition for the metadata, the assets and the spine.
  
 */
-class RDEpubParser {
+open class RDEpubParser {
     
     /// The EPUB container to parse.
     var container: RDContainer
@@ -74,7 +74,7 @@ class RDEpubParser {
      - parameter container: a `RDContainer` instance.
      
     */
-    init(container: RDContainer) {
+    public init(container: RDContainer) {
         self.container = container
     }
     
@@ -89,7 +89,7 @@ class RDEpubParser {
         `RDEpubParserError.missingFile`
      
     */
-    func parse() throws -> RDPublication? {
+    open func parse() throws -> RDPublication? {
         if isMimeTypeValid() {
             try parseContainer()
             publication = try parseOPF(rootFile!)

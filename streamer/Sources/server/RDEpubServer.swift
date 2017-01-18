@@ -13,7 +13,7 @@ import GCDWebServers
 /**
  The HTTP server for the publication's manifests and assets
 */
-class RDEpubServer {
+open class RDEpubServer {
     
     /// The HTTP server
     var webServer: GCDWebServer
@@ -25,20 +25,20 @@ class RDEpubServer {
     var publications: [String: RDPublication] = [:]
     
     /// The running HTTP server listening port
-    var port: UInt? {
+    public var port: UInt? {
         get {
             return webServer.port
         }
     }
     
     /// The base URL of the server
-    var baseURL: URL? {
+    public var baseURL: URL? {
         get {
             return webServer.serverURL
         }
     }
     
-    init?() {
+    public init?() {
         GCDWebServer.setLogLevel(0)
         webServer = GCDWebServer()
         do {
@@ -62,9 +62,9 @@ class RDEpubServer {
      Add an EPUB container to the list of EPUBS being served.
      
      - parameter container: The EPUB container of the publication
-     - parameter prefix: The URI prefix to use to fetch assets from the publication `/{prefix}/{assetRelativePath}`
+     - parameter endpoint: The URI prefix to use to fetch assets from the publication `/{prefix}/{assetRelativePath}`
     */
-    func addEpub(container: RDContainer, withEndpoint endpoint: String) {
+    open func addEpub(container: RDContainer, withEndpoint endpoint: String) {
         if containers[endpoint] == nil {
             let parser = RDEpubParser(container: container)
             if let publication = try? parser.parse() {
@@ -172,10 +172,10 @@ class RDEpubServer {
      
      - parameter prefix: The URI prefix associated with the container (by `addEpub`)
     */
-    func removeEpub(withPrefix prefix: String) {
-        if containers[prefix] != nil {
-            containers[prefix] = nil
-            publications[prefix] = nil
+    open func removeEpub(withEndpoint endpoint: String) {
+        if containers[endpoint] != nil {
+            containers[endpoint] = nil
+            publications[endpoint] = nil
             // TODO: remove handlers
         }
     }

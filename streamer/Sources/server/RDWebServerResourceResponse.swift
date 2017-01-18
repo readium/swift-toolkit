@@ -9,7 +9,7 @@
 import GCDWebServers
 
 
-enum RDWebServerResponseError: Error {
+public enum RDWebServerResponseError: Error {
     case streamFailed
     case invalidRange
 }

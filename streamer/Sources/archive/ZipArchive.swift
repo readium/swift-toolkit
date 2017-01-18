@@ -23,7 +23,7 @@ public struct ZipFileInfo {
 }
 
 
-public class ZipArchive {
+open class ZipArchive {
     
     internal var unzFile: unzFile
     internal var fileInfos: [String: ZipFileInfo] = [String: ZipFileInfo]()
@@ -180,7 +180,7 @@ public class ZipArchive {
             return try readDataOfCurrentFile()
         }
         
-        assert(range.count < UInt64.Stride(UInt32.max), "Zip read data range too long")
+        //assert(range.count < UInt64.Stride(UInt32.max), "Zip read data range too long")
         
         let err = unzOpenCurrentFile(unzFile)
         if err != UNZ_OK {
