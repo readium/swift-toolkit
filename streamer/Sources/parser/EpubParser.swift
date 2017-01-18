@@ -463,6 +463,7 @@ open class EpubParser {
                 // Look for properties
                 if let propAttr = item.attributes["properties"] {
                     let props = propAttr.components(separatedBy: CharacterSet.whitespaces)
+                    
                     if props.contains("nav") {
                         link.rel.append("contents")
                     }
@@ -472,6 +473,11 @@ open class EpubParser {
                         link.rel.append("cover")
                         publication.links.append(link)
                     }
+                    
+                    let otherProps = props.filter({ (prop) -> Bool in
+                        return (prop != "nav" && prop != "cover-image")
+                    })
+                    link.properties.append(contentsOf: otherProps)
                     
                     // TODO: rendition properties
                 }

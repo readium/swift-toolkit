@@ -246,6 +246,7 @@ open class Link: Mappable {
         width <- map["width"]
         duration <- map["duration"]
         title <- map["title"]
+        properties <- map["properties"]
     }
 }
 
