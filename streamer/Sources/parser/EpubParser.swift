@@ -500,6 +500,12 @@ open class EpubParser {
             // add it to the spine and remove it from manifestLinks.
             for item in spineItems {
                 if let id = item.attributes["idref"] {
+                    
+                    // Only linear items are added to the spine
+                    guard item.attributes["linear"]?.lowercased() != "no" else {
+                        continue
+                    }
+                    
                     if let link = manifestLinks[id] {
                         // Found the link in the manifest items, add it to the spine
                         publication.spine.append(link)
