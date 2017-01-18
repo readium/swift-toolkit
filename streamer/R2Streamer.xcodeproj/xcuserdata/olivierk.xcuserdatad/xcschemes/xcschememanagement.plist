@@ -4,7 +4,7 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
-		<key>R2Streamer.xcscheme</key>
+		<key>R2Streamer.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>
@@ -12,12 +12,12 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>59B27E6C1E01E8F5002EE2FE</key>
+		<key>59501DCC1E2FB0D700D1B4BF</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>59B27E801E01E8F5002EE2FE</key>
+		<key>59501DD51E2FB0D700D1B4BF</key>
 		<dict>
 			<key>primary</key>
 			<true/>
