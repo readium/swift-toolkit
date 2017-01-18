@@ -157,22 +157,6 @@ open class ZipArchive {
         
         let range = Range<UInt64>(uncheckedBounds: (lower: 0, upper: fileInfo.length))
         return try readDataOfCurrentFile(range: range)
-        
-        let err = unzOpenCurrentFile(unzFile)
-        if err != UNZ_OK {
-            throw ZipError.unzipFail
-        }
-        defer {
-            unzCloseCurrentFile(unzFile)
-        }
-        
-        //var buffer = Data(capacity: Int(fileInfo.length))
-        var buffer = Array<CUnsignedChar>(repeating: 0, count: Int(fileInfo.length))
-        let err2 = unzReadCurrentFile(unzFile, &buffer, UInt32(fileInfo.length))
-        if err2 >= 0 {
-            return Data(bytes: buffer)
-        }
-        throw ZipError.unzipFail
     }
     
     func readDataOfCurrentFile(range: Range<UInt64>) throws -> Data {

@@ -46,14 +46,12 @@ open class SeekableInputStream: InputStream, Seekable {
     public var length: UInt64 {
         get {
             fatalError("This getter must be overriden")
-            return 0
         }
     }
     
     public var offset: UInt64 {
         get {
             fatalError("This getter must be overriden")
-            return 0
         }
     }
     
