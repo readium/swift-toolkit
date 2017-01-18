@@ -11,10 +11,10 @@ import UIKit
 
 class SpineViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
-    var publication: RDPublication?
+    var publication: Publication?
     var tableView: UITableView?
     
-    init(publication: RDPublication) {
+    init(publication: Publication) {
         super.init(nibName: nil, bundle: nil)
         self.publication = publication
         title = publication.metadata.title

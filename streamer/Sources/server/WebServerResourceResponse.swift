@@ -9,13 +9,13 @@
 import GCDWebServers
 
 
-public enum RDWebServerResponseError: Error {
+public enum WebServerResponseError: Error {
     case streamFailed
     case invalidRange
 }
 
 
-open class RDWebServerResourceResponse: GCDWebServerFileResponse {
+open class WebServerResourceResponse: GCDWebServerFileResponse {
     
     var inputStream: SeekableInputStream
     var range: Range<UInt64>
@@ -76,7 +76,7 @@ open class RDWebServerResourceResponse: GCDWebServerFileResponse {
             try inputStream.seek(offset: Int64(range.lowerBound), whence: .startOfFile)
         } else {
             inputStream.close()
-            throw RDWebServerResponseError.streamFailed
+            throw WebServerResponseError.streamFailed
         }
     }
     

@@ -1,5 +1,5 @@
 //
-//  RDEpubServer.swift
+//  EpubServer.swift
 //  R2Streamer
 //
 //  Created by Olivier Körner on 21/12/2016.
@@ -13,16 +13,16 @@ import GCDWebServers
 /**
  The HTTP server for the publication's manifests and assets
 */
-open class RDEpubServer {
+open class EpubServer {
     
     /// The HTTP server
     var webServer: GCDWebServer
     
     /// The dictionary of EPUB containers keyed by prefix
-    var containers: [String: RDContainer] = [:]
+    var containers: [String: Container] = [:]
     
     /// The dictionaty of publications keyed by prefix
-    var publications: [String: RDPublication] = [:]
+    var publications: [String: Publication] = [:]
     
     /// The running HTTP server listening port
     public var port: UInt? {
@@ -64,21 +64,21 @@ open class RDEpubServer {
      - parameter container: The EPUB container of the publication
      - parameter endpoint: The URI prefix to use to fetch assets from the publication `/{prefix}/{assetRelativePath}`
     */
-    open func addEpub(container: RDContainer, withEndpoint endpoint: String) {
+    open func addEpub(container: Container, withEndpoint endpoint: String) {
         if containers[endpoint] == nil {
-            let parser = RDEpubParser(container: container)
+            let parser = EpubParser(container: container)
             if let publication = try? parser.parse() {
                 
                 // Add self link
                 if let pubURL = baseURL?.appendingPathComponent("\(endpoint)/manifest.json", isDirectory: false) {
-                    publication?.links.append(RDLink(href: pubURL.absoluteString, typeLink: "application/webpub+json", rel: "self"))
+                    publication?.links.append(Link(href: pubURL.absoluteString, typeLink: "application/webpub+json", rel: "self"))
                 }
                 
                 // Are these dictionaries really necessary?
                 containers[endpoint] = container
                 publications[endpoint] = publication
                 
-                let fetcher = RDEpubFetcher(publication: publication!, container: container)
+                let fetcher = EpubFetcher(publication: publication!, container: container)
                 
                 // Add the handler for the resources OPTIONS
                 /*
@@ -131,7 +131,7 @@ open class RDEpubServer {
                             // Get a data input stream from the fetcher
                             if let dataStream = try fetcher?.dataStream(forRelativePath: relativePath) {
                                 let range: NSRange? = request!.hasByteRange() ? request!.byteRange : nil
-                                let r = RDWebServerResourceResponse(inputStream: dataStream, range: range, contentType: contentType)
+                                let r = WebServerResourceResponse(inputStream: dataStream, range: range, contentType: contentType)
                                 response = r
                             } else {
                                 // Error getting the data stream
@@ -139,7 +139,7 @@ open class RDEpubServer {
                                 response = GCDWebServerErrorResponse(statusCode: 500)
                             }
                             
-                        } catch RDEpubFetcherError.missingFile {
+                        } catch EpubFetcherError.missingFile {
                             // File not found
                             response = GCDWebServerErrorResponse(statusCode: 404)
                             

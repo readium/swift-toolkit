@@ -1,5 +1,5 @@
 //
-//  RDEpubFetcher.swift
+//  EpubFetcher.swift
 //  R2Streamer
 //
 //  Created by Olivier Körner on 21/12/2016.
@@ -10,36 +10,28 @@ import Foundation
 
 
 /**
- Error thrown by the `RDEpubFetcher`
+ Error thrown by the `EpubFetcher`
  
  - missingFile
  - decryptionFailed
 */
-public enum RDEpubFetcherError: Error {
+public enum EpubFetcherError: Error {
     case missingFile(path: String)
     case decryptionFailed
 }
 
 
-public struct RDResourceData {
-    var mediaType: String
-    var data: Data
-    var dataRange: Range<UInt64>
-    var dataTotalLength: UInt64
-}
-
-
 /**
- A RDEpubFetcher object lets you get the data from the assets in the EPUB container.
+ A EpubFetcher object lets you get the data from the assets in the EPUB container.
  It will fetch the data in the container and apply content filters (decryption for example).
 */
-open class RDEpubFetcher {
+open class EpubFetcher {
     
     /// The publication to fetch from
-    var publication: RDPublication
+    var publication: Publication
     
     /// The container to access the resources from
-    var container: RDContainer
+    var container: Container
     
     /// The relative path to the directory holding the resources in the container
     var rootFileDirectory: String
@@ -47,7 +39,7 @@ open class RDEpubFetcher {
     // TODO: Content filters
     //var contentFilters: [RDContentFilter]
     
-    init?(publication: RDPublication, container: RDContainer) {
+    init?(publication: Publication, container: Container) {
         
         // Shouldn't the publication have a property with the container?
         self.container = container
@@ -68,14 +60,14 @@ open class RDEpubFetcher {
      - parameter path: The relative path to the asset in the publication.
     
      - returns: The decrypted data of the asset.
-     - throws: `RDEpubFetcherError.missingFile` if the file is missing from the container
+     - throws: `EpubFetcherError.missingFile` if the file is missing from the container
     */
     func data(forRelativePath path: String) throws -> Data? {
         
         // Get the link information from the publication
         let assetLink = publication.resource(withRelativePath: path)
         if assetLink == nil {
-            throw RDEpubFetcherError.missingFile(path: path)
+            throw EpubFetcherError.missingFile(path: path)
         }
         
         // Build the path relative to the container and get the data from the container
@@ -88,7 +80,7 @@ open class RDEpubFetcher {
             return data
             
         } catch {
-            throw RDEpubFetcherError.missingFile(path: pubRelativePath)
+            throw EpubFetcherError.missingFile(path: pubRelativePath)
         }
     }
     
@@ -98,14 +90,14 @@ open class RDEpubFetcher {
      - parameter path: The relative path to the asset in the publication.
      
      - returns: The length of the data.
-     - throws: `RDEpubFetcherError.missingFile` if the file is missing from the container
+     - throws: `EpubFetcherError.missingFile` if the file is missing from the container
     */
     func dataLength(forRelativePath path: String) throws -> UInt64 {
         
         // Get the link information from the publication
         let assetLink = publication.resource(withRelativePath: path)
         if assetLink == nil {
-            throw RDEpubFetcherError.missingFile(path: path)
+            throw EpubFetcherError.missingFile(path: path)
         }
         
         // Build the path relative to the container and get the data from the container
@@ -116,7 +108,7 @@ open class RDEpubFetcher {
             return length
             
         } catch {
-            throw RDEpubFetcherError.missingFile(path: pubRelativePath)
+            throw EpubFetcherError.missingFile(path: pubRelativePath)
         }
     }
     
@@ -126,14 +118,14 @@ open class RDEpubFetcher {
      - parameter path: The relative path to the asset in the publication.
      
      - returns: A seekable input stream with the decrypted data if the resource.
-     - throws: `RDEpubFetcherError.missingFile` if the file is missing from the container
+     - throws: `EpubFetcherError.missingFile` if the file is missing from the container
     */
     func dataStream(forRelativePath path: String) throws -> SeekableInputStream {
         
         // Get the link information from the publication
         let assetLink = publication.resource(withRelativePath: path)
         if assetLink == nil {
-            throw RDEpubFetcherError.missingFile(path: path)
+            throw EpubFetcherError.missingFile(path: path)
         }
         
         // Build the path relative to the container and get the data from the container

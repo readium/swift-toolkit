@@ -12,14 +12,14 @@ import UIKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-    var epubServer: RDEpubServer?
+    var epubServer: EpubServer?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         
-        epubServer = RDEpubServer()
+        epubServer = EpubServer()
         
         let epubPaths = fetchContainerPaths()
-        var publications = [RDPublication]()
+        var publications = [Publication]()
         
         for path in epubPaths {
             let fullPath = Bundle.main.path(forResource: "Samples/\(path)", ofType: nil)
@@ -27,18 +27,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             if FileManager.default.fileExists(atPath: fullPath!, isDirectory: &isDirectory) {
                 
-                var container: RDContainer?
+                var container: Container?
                 if isDirectory.boolValue {
-                    container = RDDirectoryContainer(directory: fullPath!)
+                    container = DirectoryContainer(directory: fullPath!)
                 } else {
-                    container = RDEpubContainer(path: fullPath!)
+                    container = EpubContainer(path: fullPath!)
                 }
                 
-                let parser = RDEpubParser(container: container!)
+                let parser = EpubParser(container: container!)
                 do {
                     let pub = try parser.parse()
                     if let pubURL = epubServer!.baseURL?.appendingPathComponent("\(path)/manifest.json", isDirectory: false) {
-                        pub!.links.append(RDLink(href: pubURL.absoluteString, typeLink: "application/webpub+json", rel: "self"))
+                        pub!.links.append(Link(href: pubURL.absoluteString, typeLink: "application/webpub+json", rel: "self"))
                     }
                     publications.append(pub!)
                     let json = pub?.toJSONString(prettyPrint: true)

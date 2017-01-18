@@ -1,5 +1,5 @@
 //
-//  RDContainer.swift
+//  Container.swift
 //  R2Streamer
 //
 //  Created by Olivier Körner on 14/12/2016.
@@ -9,7 +9,7 @@
 import Foundation
 
 
-public enum RDContainerError: Error {
+public enum ContainerError: Error {
     case streamInitFailed
     case fileNotFound
     case fileError
@@ -19,7 +19,7 @@ public enum RDContainerError: Error {
 /**
  EPUB container protocol, for access to raw data from the files in the container.
 */
-public protocol RDContainer {
+public protocol Container {
     
     /**
      Get the raw (possibly encrypted) data of an asset in the container.
@@ -53,7 +53,7 @@ public protocol RDContainer {
 /**
  EPUB Container protocol implementation for EPUBs unzipped in a directory.
 */
-open class RDDirectoryContainer: RDContainer {
+open class DirectoryContainer: Container {
     
     /// The root directory path
     var rootPath: String
@@ -76,7 +76,7 @@ open class RDDirectoryContainer: RDContainer {
             let fileSize = attrs[FileAttributeKey.size] as! UInt64
             return fileSize
         }
-        throw RDContainerError.fileError
+        throw ContainerError.fileError
     }
     
     open func dataInputStream(relativePath: String) throws -> SeekableInputStream {
@@ -84,7 +84,7 @@ open class RDDirectoryContainer: RDContainer {
         if let inputStream = FileInputStream(fileAtPath: fullPath) {
             return inputStream
         }
-        throw RDContainerError.streamInitFailed
+        throw ContainerError.streamInitFailed
     }
 }
 
@@ -92,7 +92,7 @@ open class RDDirectoryContainer: RDContainer {
 /**
  EPUB Container protocol implementation for EPUB files
 */
-open class RDEpubContainer: RDContainer {
+open class EpubContainer: Container {
     
     var epubFilePath: String
     var zipArchive: ZipArchive
@@ -118,7 +118,7 @@ open class RDEpubContainer: RDContainer {
         let inputStream = ZipInputStream(zipFilePath: epubFilePath, path: relativePath)
         //let inputStream = ZipInputStream(zipArchive: zipArchive, path: relativePath)
         if inputStream == nil {
-            throw RDContainerError.streamInitFailed
+            throw ContainerError.streamInitFailed
         }
         return inputStream!
     }

@@ -10,10 +10,10 @@ import UIKit
 
 class LibraryViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
-    var publications: [RDPublication] = [RDPublication]()
+    var publications: [Publication] = [Publication]()
     var tableView: UITableView?
     
-    init(publications: [RDPublication]) {
+    init(publications: [Publication]) {
         super.init(nibName: nil, bundle: nil)
         self.publications = publications
     }
