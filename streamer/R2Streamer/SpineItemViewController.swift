@@ -7,10 +7,12 @@
 //
 
 import UIKit
+import WebKit
 
-class SpineItemViewController: UIViewController, UIWebViewDelegate {
+
+class SpineItemViewController: UIViewController {
     
-    var webView: UIWebView?
+    var webView: WKWebView?
     var spineItemURL: URL?
     
     init(spineItemURL: URL) {
@@ -26,8 +28,9 @@ class SpineItemViewController: UIViewController, UIWebViewDelegate {
     override func loadView() {
         super.loadView()
         
-        webView = UIWebView(frame: view.bounds)
-        webView?.delegate = self
+        let config = WKWebViewConfiguration()
+        webView = WKWebView(frame: view.bounds, configuration: config)
+        webView?.navigationDelegate = self
         view.addSubview(webView!)
     }
 
@@ -35,16 +38,17 @@ class SpineItemViewController: UIViewController, UIWebViewDelegate {
         super.viewDidLoad()
         
         NSLog("webView loading \(spineItemURL)")
-        webView?.loadRequest(URLRequest(url: spineItemURL!))
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-
-    func webView(_ webView: UIWebView, didFailLoadWithError error: Error) {
-        NSLog("webView didFailLoadWithError \(error)")
+        let _ = webView?.load(URLRequest(url: spineItemURL!))
     }
 }
 
+
+extension SpineItemViewController: WKNavigationDelegate {
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        NSLog("SpineItemWebView navigation failed \(error)")
+    }
+    
+    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        NSLog("SpineItemWebView provisional navigation failed \(error)")
+    }
+}
