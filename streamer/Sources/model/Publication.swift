@@ -1,5 +1,5 @@
 //
-//  RDPublication.swift
+//  Publication.swift
 //  R2Streamer
 //
 //  Created by Olivier Körner on 08/12/2016.
@@ -13,36 +13,36 @@ import ObjectMapper
 /**
  The representation of EPUB publication, with its metadata, its spine and other resources.
 
- It is created by the `RDEpubParser` from an EPUB file or directory.
+ It is created by the `EpubParser` from an EPUB file or directory.
  As it is extended by `Mappable`, it can be deserialized to `JSON`.
 */
-class RDPublication: Mappable {
+open class Publication: Mappable {
     
     /// The metadata (title, identifier, contributors, etc.)
-    var metadata: RDMetadata = RDMetadata()
+    public var metadata: Metadata = Metadata()
     
-    var links: [RDLink] = [RDLink]()
+    public var links: [Link] = [Link]()
     
     /// The spine of the publication
-    var spine: [RDLink] = [RDLink]()
+    public var spine: [Link] = [Link]()
     
     /// The resources, not including the links already present in the spine
-    var resources: [RDLink] = [RDLink]()
+    public var resources: [Link] = [Link]()
     
     /// The table of contents
-    var TOC: [RDLink] = [RDLink]()
-    var pageList: [RDLink] = [RDLink]()
-    var landmarks: [RDLink] = [RDLink]()
-    var LOI: [RDLink] = [RDLink]()
-    var LOA: [RDLink] = [RDLink]()
-    var LOV: [RDLink] = [RDLink]()
-    var LOT: [RDLink] = [RDLink]()
+    public var TOC: [Link] = [Link]()
+    public var pageList: [Link] = [Link]()
+    public var landmarks: [Link] = [Link]()
+    public var LOI: [Link] = [Link]()
+    public var LOA: [Link] = [Link]()
+    public var LOV: [Link] = [Link]()
+    public var LOT: [Link] = [Link]()
     
-    var internalData: [String: String] = [String: String]()
+    public var internalData: [String: String] = [String: String]()
 
-    var otherLinks: [RDLink] = [RDLink]()
+    public var otherLinks: [Link] = [Link]()
     // TODO: other collections
-    //var otherCollections: [RDPublicationCollection]
+    //var otherCollections: [PublicationCollection]
 
     /**
      A link to the publication's cover.
@@ -50,17 +50,17 @@ class RDPublication: Mappable {
      The implementation scans the `links` for a link where `rel` is `cover`.
      If none is found, it is `nil`.
     */
-    var coverLink: RDLink? {
+    public var coverLink: Link? {
         get {
             return link(withRel: "cover")
         }
     }
     
-    init() {
+    public init() {
     }
     
     /// Mappable JSON protocol initializer
-    required init?(map: Map) {
+    required public init?(map: Map) {
         // TODO
     }
     
@@ -70,7 +70,7 @@ class RDPublication: Mappable {
      - parameter path: The relative path to match
      - returns: a link with its `href` equal to the path if any was found, else `nil`
     */
-    func resource(withRelativePath path: String) -> RDLink? {
+    open func resource(withRelativePath path: String) -> Link? {
         let matchingLinks = (spine + resources).filter { $0.href == path }
         if matchingLinks.count > 0 {
             return matchingLinks.first!
@@ -84,8 +84,8 @@ class RDPublication: Mappable {
      - parameter rel: The `rel` to match
      - returns: The first link with a matching `rel` found uf any, else nil
     */
-    func link(withRel rel: String) -> RDLink? {
-        let matchingLinks = links.filter { (link: RDLink) -> Bool in
+    open func link(withRel rel: String) -> Link? {
+        let matchingLinks = links.filter { (link: Link) -> Bool in
             let coverRel = link.rel.filter { $0 == rel }
             return coverRel.count > 0
         }
@@ -96,7 +96,7 @@ class RDPublication: Mappable {
     }
     
     /// Mapping declaration
-    func mapping(map: Map) {
+    open func mapping(map: Map) {
         metadata <- map["metadata"]
         spine <- map["spine"]
         resources <- map["resources"]
@@ -105,52 +105,52 @@ class RDPublication: Mappable {
 }
 
 
-class RDMetadata: Mappable {
+open class Metadata: Mappable {
     
     /// The title of the publication
-    var title: String?
+    public var title: String?
     
     /// The unique identifier
-    var identifier: String?
+    public var identifier: String?
     
     // Authors, translators and other contributors
-    var authors: [RDContributor] = [RDContributor]()
-    var translators: [RDContributor] = [RDContributor]()
-    var editors: [RDContributor] = [RDContributor]()
-    var artists: [RDContributor] = [RDContributor]()
-    var illustrators: [RDContributor] = [RDContributor]()
-    var letterers: [RDContributor] = [RDContributor]()
-    var pencilers: [RDContributor] = [RDContributor]()
-    var colorists: [RDContributor] = [RDContributor]()
-    var inkers: [RDContributor] = [RDContributor]()
-    var narrators: [RDContributor] = [RDContributor]()
-    var contributors: [RDContributor] = [RDContributor]()
-    var publishers: [RDContributor] = [RDContributor]()
-    var imprints: [RDContributor] = [RDContributor]()
+    public var authors: [Contributor] = [Contributor]()
+    public var translators: [Contributor] = [Contributor]()
+    public var editors: [Contributor] = [Contributor]()
+    public var artists: [Contributor] = [Contributor]()
+    public var illustrators: [Contributor] = [Contributor]()
+    public var letterers: [Contributor] = [Contributor]()
+    public var pencilers: [Contributor] = [Contributor]()
+    public var colorists: [Contributor] = [Contributor]()
+    public var inkers: [Contributor] = [Contributor]()
+    public var narrators: [Contributor] = [Contributor]()
+    public var contributors: [Contributor] = [Contributor]()
+    public var publishers: [Contributor] = [Contributor]()
+    public var imprints: [Contributor] = [Contributor]()
     
-    var languages: [String] = [String]()
-    var modified: NSDate?
-    var publicationDate: NSDate?
-    var description: String?
-    var direction: String
-    var rendition: RDRendition = RDRendition()
-    var source: String?
-    var epubType: [String] = [String]()
-    var rights: String?
-    var subjects: [RDSubject] = [RDSubject]()
+    public var languages: [String] = [String]()
+    public var modified: NSDate?
+    public var publicationDate: NSDate?
+    public var description: String?
+    public var direction: String
+    public var rendition: Rendition = Rendition()
+    public var source: String?
+    public var epubType: [String] = [String]()
+    public var rights: String?
+    public var subjects: [Subject] = [Subject]()
 
-    var otherMetadata: [RDMetadataItem] = [RDMetadataItem]()
+    public var otherMetadata: [MetadataItem] = [MetadataItem]()
     
-    init() {
+    public init() {
         direction = "default"
     }
     
-    required init?(map: Map) {
+    required public init?(map: Map) {
         direction = "default"
         // TODO
     }
     
-    func mapping(map: Map) {
+    open func mapping(map: Map) {
         identifier <- map["identifier"]
         title <- map["title"]
         languages <- map["languages"]
@@ -175,27 +175,27 @@ class RDMetadata: Mappable {
     }
 }
 
-class RDMetadataItem {
+open class MetadataItem {
     
-    var property: String?
-    var value: String?
-    var children: [RDMetadataItem] = [RDMetadataItem]()
+    public var property: String?
+    public var value: String?
+    public var children: [MetadataItem] = [MetadataItem]()
     
-    init() {}
+    public init() {}
 }
 
-class RDContributor: Mappable {
+open class Contributor: Mappable {
     
-    var name: String
-    var sortAs: String?
-    var identifier: String?
-    var role: String?
+    public var name: String
+    public var sortAs: String?
+    public var identifier: String?
+    public var role: String?
     
-    init(name: String) {
+    public init(name: String) {
         self.name = name
     }
     
-    required init?(map: Map) {
+    public required init?(map: Map) {
         if map.JSON["name"] == nil {
             return nil
         }
@@ -206,7 +206,7 @@ class RDContributor: Mappable {
         role = try? map.value("role")
     }
     
-    func mapping(map: Map) {
+    open func mapping(map: Map) {
         name <- map["name"]
         sortAs <- map["sortAs"]
         identifier <- map["identifier"]
@@ -214,31 +214,31 @@ class RDContributor: Mappable {
     }
 }
 
-class RDLink: Mappable {
+open class Link: Mappable {
     
-    var href: String?
-    var typeLink: String?
-    var rel: [String] = [String]()
-    var height: Int?
-    var width: Int?
-    var title: String?
-    var properties: [String] = [String]()
-    var duration: TimeInterval?
-    var templated: Bool?
+    public var href: String?
+    public var typeLink: String?
+    public var rel: [String] = [String]()
+    public var height: Int?
+    public var width: Int?
+    public var title: String?
+    public var properties: [String] = [String]()
+    public var duration: TimeInterval?
+    public var templated: Bool?
     
-    init() {}
+    public init() {}
     
-    init(href: String, typeLink: String, rel: String) {
+    public init(href: String, typeLink: String, rel: String) {
         self.href = href
         self.typeLink = typeLink
         self.rel.append(rel)
     }
     
-    required init?(map: Map) {
+    public required init?(map: Map) {
         // TODO
     }
     
-    func mapping(map: Map) {
+    open func mapping(map: Map) {
         href <- map["href"]
         typeLink <- map["type"]
         rel <- map["rel"]
@@ -246,6 +246,7 @@ class RDLink: Mappable {
         width <- map["width"]
         duration <- map["duration"]
         title <- map["title"]
+        properties <- map["properties"]
     }
 }
 
@@ -255,7 +256,7 @@ class RDLink: Mappable {
  - Reflowable: not pre-paginated, apply dynamic pagination when rendering
  - Prepaginated: pre-paginated, one page per spine item
 */
-enum RDRenditionLayout: String {
+public enum RenditionLayout: String {
     case Reflowable = "reflowable"
     case Prepaginated = "pre-paginated"
 }
@@ -268,7 +269,7 @@ enum RDRenditionLayout: String {
  - Document
  - Fixed
 */
-enum RDRenditionFlow: String {
+public enum RenditionFlow: String {
     case Paginated = "paginated"
     case Continuous = "continuous"
     case Document = "document"
@@ -282,7 +283,7 @@ enum RDRenditionFlow: String {
  - Landscape
  - Portrait
 */
-enum RDRenditionOrientation: String {
+public enum RenditionOrientation: String {
     case Auto = "auto"
     case Landscape = "landscape"
     case Portrait = "portrait"
@@ -297,7 +298,7 @@ enum RDRenditionOrientation: String {
  - Both
  - None
 */
-enum RDRenditionSpread: String {
+public enum RenditionSpread: String {
     case Auto = "auto"
     case Landscape = "landscape"
     case Portrait = "portrait"
@@ -312,30 +313,30 @@ enum RDRenditionSpread: String {
  behaviour and if the content flow should be scrolled, continuous or paginated.
  
 */
-class RDRendition: Mappable {
+open class Rendition: Mappable {
     
     /// The rendition layout (reflowable or pre-paginated)
-    var layout: RDRenditionLayout?
+    public var layout: RenditionLayout?
     
     /// The rendition flow
-    var flow: RDRenditionFlow?
+    public var flow: RenditionFlow?
     
     /// The rendition orientation
-    var orientation: RDRenditionOrientation?
+    public var orientation: RenditionOrientation?
     
     /// The synthetic spread behaviour
-    var spread: RDRenditionSpread?
+    public var spread: RenditionSpread?
     
     /// The rendering viewport size
-    var viewport: String?
+    public var viewport: String?
     
-    init() {}
+    public init() {}
     
-    required init?(map: Map) {
+    required public init?(map: Map) {
         // TODO
     }
     
-    func mapping(map: Map) {
+    open func mapping(map: Map) {
         layout <- map["layout"]
         flow <- map["flow"]
         orientation <- map["orientation"]
@@ -344,19 +345,20 @@ class RDRendition: Mappable {
     }
 }
 
-class RDSubject: Mappable {
-    var name: String?
-    var sortAs: String?
-    var scheme: String?
-    var code: String?
+open class Subject: Mappable {
     
-    init() {}
+    public var name: String?
+    public var sortAs: String?
+    public var scheme: String?
+    public var code: String?
     
-    required init?(map: Map) {
+    public init() {}
+    
+    required public init?(map: Map) {
         // TODO
     }
     
-    func mapping(map: Map) {
+    open func mapping(map: Map) {
         name <- map["name"]
         sortAs <- map["sortAs"]
         scheme <- map["scheme"]

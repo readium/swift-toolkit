@@ -14,8 +14,8 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "59B27E6C1E01E8F5002EE2FE"
-               BuildableName = "R2Streamer.app"
+               BlueprintIdentifier = "59501DCC1E2FB0D700D1B4BF"
+               BuildableName = "R2Streamer.framework"
                BlueprintName = "R2Streamer"
                ReferencedContainer = "container:R2Streamer.xcodeproj">
             </BuildableReference>
@@ -32,7 +32,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "59B27E801E01E8F5002EE2FE"
+               BlueprintIdentifier = "59501DD51E2FB0D700D1B4BF"
                BuildableName = "R2StreamerTests.xctest"
                BlueprintName = "R2StreamerTests"
                ReferencedContainer = "container:R2Streamer.xcodeproj">
@@ -42,8 +42,8 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "59B27E6C1E01E8F5002EE2FE"
-            BuildableName = "R2Streamer.app"
+            BlueprintIdentifier = "59501DCC1E2FB0D700D1B4BF"
+            BuildableName = "R2Streamer.framework"
             BlueprintName = "R2Streamer"
             ReferencedContainer = "container:R2Streamer.xcodeproj">
          </BuildableReference>
@@ -61,16 +61,15 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "59B27E6C1E01E8F5002EE2FE"
-            BuildableName = "R2Streamer.app"
+            BlueprintIdentifier = "59501DCC1E2FB0D700D1B4BF"
+            BuildableName = "R2Streamer.framework"
             BlueprintName = "R2Streamer"
             ReferencedContainer = "container:R2Streamer.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -80,16 +79,15 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "59B27E6C1E01E8F5002EE2FE"
-            BuildableName = "R2Streamer.app"
+            BlueprintIdentifier = "59501DCC1E2FB0D700D1B4BF"
+            BuildableName = "R2Streamer.framework"
             BlueprintName = "R2Streamer"
             ReferencedContainer = "container:R2Streamer.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

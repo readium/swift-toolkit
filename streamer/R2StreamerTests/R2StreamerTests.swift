@@ -2,8 +2,8 @@
 //  R2StreamerTests.swift
 //  R2StreamerTests
 //
-//  Created by Olivier Körner on 14/12/2016.
-//  Copyright © 2016 Readium. All rights reserved.
+//  Created by Olivier Körner on 18/01/2017.
+//  Copyright © 2017 Readium. All rights reserved.
 //
 
 import XCTest

@@ -1,5 +1,5 @@
 //
-//  RDEpubServer.swift
+//  EpubServer.swift
 //  R2Streamer
 //
 //  Created by Olivier Körner on 21/12/2016.
@@ -13,36 +13,44 @@ import GCDWebServers
 /**
  The HTTP server for the publication's manifests and assets
 */
-class RDEpubServer {
+open class EpubServer {
     
     /// The HTTP server
     var webServer: GCDWebServer
     
     /// The dictionary of EPUB containers keyed by prefix
-    var containers: [String: RDContainer] = [:]
+    var containers: [String: Container] = [:]
     
     /// The dictionaty of publications keyed by prefix
-    var publications: [String: RDPublication] = [:]
+    var publications: [String: Publication] = [:]
     
     /// The running HTTP server listening port
-    var port: UInt? {
+    public var port: UInt? {
         get {
             return webServer.port
         }
     }
     
     /// The base URL of the server
-    var baseURL: URL? {
+    public var baseURL: URL? {
         get {
             return webServer.serverURL
         }
     }
     
-    init?() {
+    public init?() {
+        GCDWebServer.setLogLevel(0)
         webServer = GCDWebServer()
         do {
+            #if DEBUG
+                // Debug
+                let port = 8080
+            #else
+                // Default: random port
+                let port = 0
+            #endif
             try webServer.start(options: [
-                GCDWebServerOption_Port: 0,
+                GCDWebServerOption_Port: port,
                 GCDWebServerOption_BindToLocalhost: true])
         } catch {
             NSLog("Failed to start the HTTP server: \(error)")
@@ -54,25 +62,26 @@ class RDEpubServer {
      Add an EPUB container to the list of EPUBS being served.
      
      - parameter container: The EPUB container of the publication
-     - parameter prefix: The URI prefix to use to fetch assets from the publication `/{prefix}/{assetRelativePath}`
+     - parameter endpoint: The URI prefix to use to fetch assets from the publication `/{prefix}/{assetRelativePath}`
     */
-    func addEpub(container: RDContainer, withEndpoint endpoint: String) {
+    open func addEpub(container: Container, withEndpoint endpoint: String) {
         if containers[endpoint] == nil {
-            let parser = RDEpubParser(container: container)
+            let parser = EpubParser(container: container)
             if let publication = try? parser.parse() {
                 
                 // Add self link
                 if let pubURL = baseURL?.appendingPathComponent("\(endpoint)/manifest.json", isDirectory: false) {
-                    publication?.links.append(RDLink(href: pubURL.absoluteString, typeLink: "application/webpub+json", rel: "self"))
+                    publication?.links.append(Link(href: pubURL.absoluteString, typeLink: "application/webpub+json", rel: "self"))
                 }
                 
                 // Are these dictionaries really necessary?
                 containers[endpoint] = container
                 publications[endpoint] = publication
                 
-                let fetcher = RDEpubFetcher(publication: publication!, container: container)
+                let fetcher = EpubFetcher(publication: publication!, container: container)
                 
-                // Add the handler for the resources
+                // Add the handler for the resources OPTIONS
+                /*
                 webServer.addHandler(
                     forMethod: "OPTIONS",
                     pathRegex: "/\(endpoint)/.*",
@@ -88,6 +97,7 @@ class RDEpubServer {
                         
                         return GCDWebServerDataResponse()
                 })
+                */
                 
                 // Add the handler for the resources
                 webServer.addHandler(
@@ -96,6 +106,14 @@ class RDEpubServer {
                     request: GCDWebServerRequest.self,
                     processBlock: { request in
 
+                        guard request != nil else {
+                            NSLog("no request")
+                            return GCDWebServerErrorResponse(statusCode: 500)
+                        }
+                        
+                        //NSLog("request \(request)")
+                        //NSLog("request headers \(request!.headers)")
+                        
                         guard let path = request?.path else {
                             NSLog("no path in request")
                             return GCDWebServerErrorResponse(statusCode: 500)
@@ -103,45 +121,35 @@ class RDEpubServer {
                         
                         NSLog("request \(path)")
                         
-                        // Check for partial range
-                        var byteRange: Range<UInt64>
-                        if request!.hasByteRange() {
-                            let byteRange2 = request!.byteRange
-                            NSLog("\(byteRange2)")
-                            let upperBound = request!.byteRange.location + request!.byteRange.length
-                            byteRange = Range<UInt64>(uncheckedBounds: (lower: UInt64(request!.byteRange.location), upper: UInt64(upperBound)))
-                        } else {
-                            byteRange = Range<UInt64>(uncheckedBounds: (lower: 0, upper: UInt64.max))
-                        }
-                        
                         // Remove the prefix from the URI
                         let relativePath = path.substring(from: path.index(endpoint.endIndex, offsetBy: 3))
+                        let resource = publication?.resource(withRelativePath: relativePath)
+                        let contentType = resource?.typeLink ?? "application/octet-stream"
                         
+                        var response: GCDWebServerResponse
                         do {
-                            let typedData = try fetcher?.data(forRelativePath: relativePath, range: byteRange)
-                            let response = GCDWebServerDataResponse(data: typedData!.data, contentType: typedData!.mediaType)
-                            
-                            // Add content range header
-                            if request!.hasByteRange() {
-                                response?.statusCode = 206 // Partial content
-                                let rangeStart = byteRange.lowerBound
-                                let rangeEnd = rangeStart + UInt64(typedData!.data.count) - 1
-                                let totalLength = try fetcher?.dataLength(forRelativePath: relativePath)
-                                NSLog("Partial content \(path) bytes \(rangeStart)-\(rangeEnd)/\(totalLength!)")
-                                response?.setValue("bytes \(rangeStart)-\(rangeEnd)/\(totalLength!)", forAdditionalHeader: "Content-Range")
-                                //response?.contentLength = UInt(totalLength!)
+                            // Get a data input stream from the fetcher
+                            if let dataStream = try fetcher?.dataStream(forRelativePath: relativePath) {
+                                let range: NSRange? = request!.hasByteRange() ? request!.byteRange : nil
+                                let r = WebServerResourceResponse(inputStream: dataStream, range: range, contentType: contentType)
+                                response = r
+                            } else {
+                                // Error getting the data stream
+                                NSLog("Unable to get a data stream from the fetcher")
+                                response = GCDWebServerErrorResponse(statusCode: 500)
                             }
                             
-                            // Add cache-related header(s)
-                            response?.cacheControlMaxAge = UInt(60 * 60 * 2)
-                            return response
-                            
-                        } catch RDEpubFetcherError.missingFile {
-                            return GCDWebServerErrorResponse(statusCode: 404)
+                        } catch EpubFetcherError.missingFile {
+                            // File not found
+                            response = GCDWebServerErrorResponse(statusCode: 404)
                             
                         } catch {
-                            return GCDWebServerErrorResponse(statusCode: 500)
+                            // Any other error
+                            NSLog("General error creating the response \(error)")
+                            response = GCDWebServerErrorResponse(statusCode: 500)
                         }
+                        
+                        return response
                 })
                 
                 // Add the handler for the manifest
@@ -164,10 +172,10 @@ class RDEpubServer {
      
      - parameter prefix: The URI prefix associated with the container (by `addEpub`)
     */
-    func removeEpub(withPrefix prefix: String) {
-        if containers[prefix] != nil {
-            containers[prefix] = nil
-            publications[prefix] = nil
+    open func removeEpub(withEndpoint endpoint: String) {
+        if containers[endpoint] != nil {
+            containers[endpoint] = nil
+            publications[endpoint] = nil
             // TODO: remove handlers
         }
     }

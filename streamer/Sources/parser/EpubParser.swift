@@ -20,7 +20,7 @@ import AEXML
  - missingElement: An XML element is missing.
  
 */
-enum RDEpubParserError: Error {
+public enum EpubParserError: Error {
     
     case wrongMimeType
     
@@ -40,23 +40,23 @@ enum RDEpubParserError: Error {
 /**
 
  An EPUB container parser that extracts the information from the relevant files
- and builds an `RDPublication` instance with it.
+ and builds an `Publication` instance with it.
 
  - It checks for a `mimetype` file with the proper contents.
  - It parses `container.xml` to look for the default rendition.
  - It parses the OPF file of the default rendition for the metadata, the assets and the spine.
  
 */
-class RDEpubParser {
+open class EpubParser {
     
     /// The EPUB container to parse.
-    var container: RDContainer
+    var container: Container
     
     /// The path to the default package document (OPF) to parse.
     var rootFile: String?
     
     /// The publication resulting from the parsing, if it is successful.
-    var publication: RDPublication?
+    var publication: Publication?
     
     /// The EPUB specification version to which the publication conforms.
     var epubVersion: Int?
@@ -68,33 +68,33 @@ class RDEpubParser {
     
     /**
      
-     The `RDEpubParser` is initialized with a `RDContainer`, through which it can access
+     The `RDEpubParser` is initialized with a `Container`, through which it can access
      to the files in the EPUB container.
 
-     - parameter container: a `RDContainer` instance.
+     - parameter container: a `Container` instance.
      
     */
-    init(container: RDContainer) {
+    public init(container: Container) {
         self.container = container
     }
     
     /**
      
-     Parses the EPUB container files and builds a `RDPublication` representation.
+     Parses the EPUB container files and builds a `Publication` representation.
 
      - returns: the resulting publication or nil.
      - throws:
-        `RDEpubParserError.wrongMimeType`, 
-        `RDEpubParserError.xmlParse`, 
-        `RDEpubParserError.missingFile`
+        `EpubParserError.wrongMimeType`, 
+        `EpubParserError.xmlParse`, 
+        `EpubParserError.missingFile`
      
     */
-    func parse() throws -> RDPublication? {
+    open func parse() throws -> Publication? {
         if isMimeTypeValid() {
             try parseContainer()
             publication = try parseOPF(rootFile!)
         } else {
-            throw RDEpubParserError.wrongMimeType
+            throw EpubParserError.wrongMimeType
         }
         return publication
     }
@@ -108,7 +108,7 @@ class RDEpubParser {
     */
     func isMimeTypeValid() -> Bool {
         if let mimeTypeData = try? container.data(relativePath: "mimetype") {
-            let mimetype = String(data: mimeTypeData!, encoding: .ascii)
+            let mimetype = String(data: mimeTypeData, encoding: .ascii)
             return (mimetype == "application/epub+zip")
         }
         return false
@@ -119,21 +119,24 @@ class RDEpubParser {
      Parses the container.xml file of the container.
      It extracts the root file (the default one for now, not handling multiple renditions).
      
-     - throws: `RDEpubParserError.xmlParse`, `RDEpubParserError.missingFile`
+     - throws: `EpubParserError.xmlParse`, `EpubParserError.missingFile`
      
     */
     func parseContainer() throws {
         let containerPath = "META-INF/container.xml"
-        guard let containerData = try container.data(relativePath: containerPath) else {
-            throw RDEpubParserError.missingFile(path: containerPath)
+        var containerData:Data?
+        do {
+            containerData = try container.data(relativePath: containerPath)
+        } catch {
+            throw EpubParserError.missingFile(path: containerPath)
         }
         
         var containerXml: AEXMLDocument
         do {
-            containerXml = try AEXMLDocument(xml: containerData)
+            containerXml = try AEXMLDocument(xml: containerData!)
         }
         catch {
-            throw RDEpubParserError.xmlParse(underlyingError: error)
+            throw EpubParserError.xmlParse(underlyingError: error)
         }
 
         // Look for the first `<roofile>` element
@@ -141,7 +144,7 @@ class RDEpubParser {
         if let p = rootFileElement.attributes["full-path"] {
             rootFile = p
         } else {
-            throw RDEpubParserError.missingElement(msg: "Missing rootfile element in container.xml")
+            throw EpubParserError.missingElement(msg: "Missing rootfile element in container.xml")
         }
         
         // Get the specifications version the EPUB conforms to
@@ -158,21 +161,24 @@ class RDEpubParser {
      - parameter path: The relative path to OPF package file
  
      - returns: The optional publication resulting from the parsing.
-     - throws: `RDEpubParserError.xmlParse`, `RDEpubParserError.missingFile`
+     - throws: `EpubParserError.xmlParse`, `EpubParserError.missingFile`
      
     */
-    func parseOPF(_ path: String) throws -> RDPublication? {
+    func parseOPF(_ path: String) throws -> Publication? {
         // Get OPF document data from the container
-        guard let data = try container.data(relativePath: rootFile!) else {
-            throw RDEpubParserError.missingFile(path: rootFile!)
+        var data:Data?
+        do {
+            data = try container.data(relativePath: rootFile!)
+        } catch {
+            throw EpubParserError.missingFile(path: rootFile!)
         }
         
         // Create an XML document from the data
         var doc: AEXMLDocument
         do {
-            doc = try AEXMLDocument(xml: data)
+            doc = try AEXMLDocument(xml: data!)
         } catch {
-            throw RDEpubParserError.xmlParse(underlyingError: error)
+            throw EpubParserError.xmlParse(underlyingError: error)
         }
         
         // Get EPUB version from <package> element if it was not set from container
@@ -182,16 +188,16 @@ class RDEpubParser {
             }
         }
         
-        publication = RDPublication()
+        publication = Publication()
         publication!.internalData["type"] = "epub"
         publication!.internalData["rootfile"] = rootFile
         
         // Add self to links
         // MARK: we don't know the self URL here
-        //publication!.links.append(RDLink(href: "TODO", typeLink: "application/webpub+json", rel: "self"))
+        //publication!.links.append(Link(href: "TODO", typeLink: "application/webpub+json", rel: "self"))
         
         // Get the metadata from the <metadata> element
-        let metadata = RDMetadata()
+        let metadata = Metadata()
         
         // Get the main title
         metadata.title = parseMainTitle(doc)
@@ -220,7 +226,7 @@ class RDEpubParser {
         // Get the publishers
         if let publishers = doc.root["metadata"]["dc:publisher"].all {
             for pub in publishers {
-                metadata.publishers.append(RDContributor(name: pub.string))
+                metadata.publishers.append(Contributor(name: pub.string))
             }
         }
         
@@ -241,22 +247,22 @@ class RDEpubParser {
         // Get the rendition properties
         if let renditionLayouts = doc.root["metadata"]["meta"].all(withAttributes: ["property" : "rendition:layout"]) {
             if renditionLayouts.count > 0 {
-                metadata.rendition.layout = RDRenditionLayout(rawValue: renditionLayouts[0].string)
+                metadata.rendition.layout = RenditionLayout(rawValue: renditionLayouts[0].string)
             }
         }
         if let renditionFlows = doc.root["metadata"]["meta"].all(withAttributes: ["property" : "rendition:flow"]) {
             if renditionFlows.count > 0 {
-                metadata.rendition.flow = RDRenditionFlow(rawValue: renditionFlows[0].string)
+                metadata.rendition.flow = RenditionFlow(rawValue: renditionFlows[0].string)
             }
         }
         if let renditionOrientations = doc.root["metadata"]["meta"].all(withAttributes: ["property" : "rendition:orientation"]) {
             if renditionOrientations.count > 0 {
-                metadata.rendition.orientation = RDRenditionOrientation(rawValue: renditionOrientations[0].string)
+                metadata.rendition.orientation = RenditionOrientation(rawValue: renditionOrientations[0].string)
             }
         }
         if let renditionSpreads = doc.root["metadata"]["meta"].all(withAttributes: ["property" : "rendition:spread"]) {
             if renditionSpreads.count > 0 {
-                metadata.rendition.spread = RDRenditionSpread(rawValue: renditionSpreads[0].string)
+                metadata.rendition.spread = RenditionSpread(rawValue: renditionSpreads[0].string)
             }
         }
         if let renditionViewports = doc.root["metadata"]["meta"].all(withAttributes: ["property" : "rendition:viewport"]) {
@@ -350,7 +356,7 @@ class RDEpubParser {
     
     /**
      
-     Builds a `RDContributor` instance from a `<dc:creator>` or `<dc:contributor>` element.
+     Builds a `Contributor` instance from a `<dc:creator>` or `<dc:contributor>` element.
 
      - parameter element: The XML element to parse.
      - parameter fromDocument: The OPF XML document being parsed (necessary to look for `refines`).
@@ -358,8 +364,8 @@ class RDEpubParser {
      - returns: The contributor instance filled with its name and optionally its `role` and `sortAs` attributes.
      
     */
-    func createContributorFromElement(element: AEXMLElement, fromDocument doc: AEXMLDocument) -> RDContributor {
-        let contributor = RDContributor(name: element.string)
+    func createContributorFromElement(element: AEXMLElement, fromDocument doc: AEXMLDocument) -> Contributor {
+        let contributor = Contributor(name: element.string)
         
         // Get role from role attribute
         if let role = element.attributes["opf:role"] {
@@ -387,7 +393,7 @@ class RDEpubParser {
     
     /**
  
-     Parse a `creator` or `contributor` element from the OPF XML document, then builds and adds a RDContributor
+     Parse a `creator` or `contributor` element from the OPF XML document, then builds and adds a Contributor
      to the metadata, to an array according to its role (authors, translators, etc.)
  
      - parameter element: The XML element to parse
@@ -395,7 +401,7 @@ class RDEpubParser {
      - parameter metadata: The metadata to which to add the contributor
  
     */
-    func parseContributor(_ element: AEXMLElement, fromDocument doc: AEXMLDocument, toMetadata metadata: RDMetadata) {
+    func parseContributor(_ element: AEXMLElement, fromDocument doc: AEXMLDocument, toMetadata metadata: Metadata) {
         let contributor = createContributorFromElement(element: element, fromDocument: doc)
         
         // Add the contributor to the proper property according to the its `role`
@@ -439,24 +445,25 @@ class RDEpubParser {
      - parameter coverItemId: The id of the cover item in the manifest.
      
     */
-    func parseSpineAndResources(fromDocument doc: AEXMLDocument, toPublication publication: RDPublication, coverItemId: String?) {
+    func parseSpineAndResources(fromDocument doc: AEXMLDocument, toPublication publication: Publication, coverItemId: String?) {
         // Create a dictionary for all the manifest items keyed by their id
-        var manifestLinks = [String: RDLink]()
+        var manifestLinks = [String: Link]()
         
         // Find all the manifest items
         if let manifestItems = doc.root["manifest"]["item"].all {
             
-            // Create an RDLink for each of them
+            // Create an Link for each of them
             for item in manifestItems {
                 
                 // Build a link for the manifest item
-                let link = RDLink()
+                let link = Link()
                 link.href = item.attributes["href"]
                 link.typeLink = item.attributes["media-type"]
                 
                 // Look for properties
                 if let propAttr = item.attributes["properties"] {
                     let props = propAttr.components(separatedBy: CharacterSet.whitespaces)
+                    
                     if props.contains("nav") {
                         link.rel.append("contents")
                     }
@@ -466,6 +473,11 @@ class RDEpubParser {
                         link.rel.append("cover")
                         publication.links.append(link)
                     }
+                    
+                    let otherProps = props.filter({ (prop) -> Bool in
+                        return (prop != "nav" && prop != "cover-image")
+                    })
+                    link.properties.append(contentsOf: otherProps)
                     
                     // TODO: rendition properties
                 }
@@ -494,6 +506,12 @@ class RDEpubParser {
             // add it to the spine and remove it from manifestLinks.
             for item in spineItems {
                 if let id = item.attributes["idref"] {
+                    
+                    // Only linear items are added to the spine
+                    guard item.attributes["linear"]?.lowercased() != "no" else {
+                        continue
+                    }
+                    
                     if let link = manifestLinks[id] {
                         // Found the link in the manifest items, add it to the spine
                         publication.spine.append(link)
@@ -507,7 +525,7 @@ class RDEpubParser {
         
         // Those links that were not in the spine are the resources,
         // they've already been removed from the manifestLinks dictionary
-        publication.resources = [RDLink](manifestLinks.values)
+        publication.resources = [Link](manifestLinks.values)
     }
     
 }
