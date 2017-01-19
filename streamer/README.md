@@ -7,6 +7,8 @@ You need to run `carthage update --platform ios` to fetch the dependencies and b
 
 ## TODO
 
-- Add a target for an iOS framework
-- Make it a carthage module
-- Handle unexploded EPUBs
+- Add support for content filters in the fetcher
+- Add content filters for deobfuscation and decryption
+
+
+[![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
