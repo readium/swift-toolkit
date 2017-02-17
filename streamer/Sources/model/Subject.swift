@@ -7,3 +7,27 @@
 //
 
 import Foundation
+import ObjectMapper
+
+// TODO: desentrelace model with JSON mapper library
+/// <#Description#>
+open class Subject: Mappable {
+
+    public var name: String?
+    public var sortAs: String?
+    public var scheme: String?
+    public var code: String?
+
+    public init() {}
+
+    required public init?(map: Map) {
+        // TODO
+    }
+
+    open func mapping(map: Map) {
+        name <- map["name"]
+        sortAs <- map["sortAs"]
+        scheme <- map["scheme"]
+        code <- map["code"]
+    }
+}

@@ -8,42 +8,39 @@
 
 import Foundation
 
-/// Container Protocol's Errors
+/// EpubDataContainer Protocol's Errors
+///
+/// - streamInitFailed:
+/// - fileNotFound:
+/// - fileError:
 public enum EpubDataContainerError: Error {
-    //TODO: document
     case streamInitFailed
     case fileNotFound
     case fileError
 }
 
-//TODO: rename protocol, current name not clear
+//TODO: naming
 /// EPUB container protocol, for accessing raw data from container's files
 public protocol EpubDataContainer {
 
-    /**
-     Get the raw (possibly encrypted) data of an asset in the container.
-     
-     - parameter relativePath: The relative path to the asset.
-
-     - returns: The data of the asset.
-    */
+    /// Get the raw (possibly encrypted) data of an asset in the container
+    ///
+    /// - Parameter relativePath: The relative path to the asset.
+    /// - Returns: The data of the asset.
+    /// - Throws: An error from EpubDataContainerError enum.
     func data(relativePath: String) throws -> Data
 
-    /**
-     Get the size of an asset in the container.
-     
-     - parameter relativePath: The relative path to the asset.
-     
-     - returns: The size of the asset.
-    */
+    /// Get the size of an asset in the container.
+    ///
+    /// - Parameter relativePath: The relative path to the asset.
+    /// - Returns: The size of the asset.
+    /// - Throws: An error from EpubDataContainerError enum.
     func dataLength(relativePath: String) throws -> UInt64
-    
-    /**
-     Get an seekable input stream with the bytes of the asset in the container.
- 
-     - parameter relativePath: The relative path to the asset.
- 
-     - returns: A seekable input stream.
-    */
+
+    /// Get an seekable input stream with the bytes of the asset in the container.
+    ///
+    /// - Parameter relativePath: The relative path to the asset.
+    /// - Returns: A seekable input stream.
+    /// - Throws: An error from EpubDataContainerError enum.
     func dataInputStream(relativePath: String) throws -> SeekableInputStream
 }

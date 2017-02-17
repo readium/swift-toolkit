@@ -11,7 +11,7 @@
 		59501DDC1E2FB0D700D1B4BF /* R2StreamerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DDB1E2FB0D700D1B4BF /* R2StreamerTests.swift */; };
 		59501DDE1E2FB0D700D1B4BF /* R2Streamer.h in Headers */ = {isa = PBXBuildFile; fileRef = 59501DD01E2FB0D700D1B4BF /* R2Streamer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		59501E031E2FB16600D1B4BF /* EpubFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DE81E2FB16600D1B4BF /* EpubFetcher.swift */; };
-		59501E041E2FB16600D1B4BF /* Container.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DEA1E2FB16600D1B4BF /* Container.swift */; };
+		59501E041E2FB16600D1B4BF /* EpubDataContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DEA1E2FB16600D1B4BF /* EpubDataContainer.swift */; };
 		59501E051E2FB16600D1B4BF /* Publication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DEB1E2FB16600D1B4BF /* Publication.swift */; };
 		59501E061E2FB16600D1B4BF /* EpubParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DED1E2FB16600D1B4BF /* EpubParser.swift */; };
 		59501E071E2FB16600D1B4BF /* R2Streamer-Bridging-Header.h in Headers */ = {isa = PBXBuildFile; fileRef = 59501DEE1E2FB16600D1B4BF /* R2Streamer-Bridging-Header.h */; };
@@ -34,6 +34,14 @@
 		59501E1C1E2FB1F500D1B4BF /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E191E2FB1F500D1B4BF /* GCDWebServers.framework */; };
 		59501E1D1E2FB1F500D1B4BF /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */; };
 		59501E201E2FB2AD00D1B4BF /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E1F1E2FB2AD00D1B4BF /* libz.tbd */; };
+		F351DB721E54B6DB00D84BDF /* DirectoryContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F351DB711E54B6DB00D84BDF /* DirectoryContainer.swift */; };
+		F351DB741E54B71A00D84BDF /* EpubContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F351DB731E54B71A00D84BDF /* EpubContainer.swift */; };
+		F351DB761E55E2BE00D84BDF /* Metadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = F351DB751E55E2BE00D84BDF /* Metadata.swift */; };
+		F351DB7A1E55EDD100D84BDF /* MetadataItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F351DB791E55EDD100D84BDF /* MetadataItem.swift */; };
+		F351DB7C1E55EE7800D84BDF /* Contributor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F351DB7B1E55EE7800D84BDF /* Contributor.swift */; };
+		F3AF6BF91E57275900D90E5A /* Link.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3AF6BF81E57275900D90E5A /* Link.swift */; };
+		F3AF6BFB1E57282D00D90E5A /* Rendition.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3AF6BFA1E57282D00D90E5A /* Rendition.swift */; };
+		F3AF6BFD1E57285700D90E5A /* Subject.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3AF6BFC1E57285700D90E5A /* Subject.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,7 +62,7 @@
 		59501DDB1E2FB0D700D1B4BF /* R2StreamerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2StreamerTests.swift; sourceTree = "<group>"; };
 		59501DDD1E2FB0D700D1B4BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		59501DE81E2FB16600D1B4BF /* EpubFetcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpubFetcher.swift; sourceTree = "<group>"; };
-		59501DEA1E2FB16600D1B4BF /* Container.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Container.swift; sourceTree = "<group>"; };
+		59501DEA1E2FB16600D1B4BF /* EpubDataContainer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpubDataContainer.swift; sourceTree = "<group>"; };
 		59501DEB1E2FB16600D1B4BF /* Publication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Publication.swift; sourceTree = "<group>"; };
 		59501DED1E2FB16600D1B4BF /* EpubParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpubParser.swift; sourceTree = "<group>"; };
 		59501DEE1E2FB16600D1B4BF /* R2Streamer-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "R2Streamer-Bridging-Header.h"; path = "Sources/R2Streamer-Bridging-Header.h"; sourceTree = SOURCE_ROOT; };
@@ -78,6 +86,14 @@
 		59501E191E2FB1F500D1B4BF /* GCDWebServers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDWebServers.framework; path = Carthage/Build/iOS/GCDWebServers.framework; sourceTree = "<group>"; };
 		59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ObjectMapper.framework; path = Carthage/Build/iOS/ObjectMapper.framework; sourceTree = "<group>"; };
 		59501E1F1E2FB2AD00D1B4BF /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
+		F351DB711E54B6DB00D84BDF /* DirectoryContainer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DirectoryContainer.swift; path = Sources/model/DirectoryContainer.swift; sourceTree = SOURCE_ROOT; };
+		F351DB731E54B71A00D84BDF /* EpubContainer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpubContainer.swift; sourceTree = "<group>"; };
+		F351DB751E55E2BE00D84BDF /* Metadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Metadata.swift; sourceTree = "<group>"; };
+		F351DB791E55EDD100D84BDF /* MetadataItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MetadataItem.swift; sourceTree = "<group>"; };
+		F351DB7B1E55EE7800D84BDF /* Contributor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Contributor.swift; sourceTree = "<group>"; };
+		F3AF6BF81E57275900D90E5A /* Link.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Link.swift; sourceTree = "<group>"; };
+		F3AF6BFA1E57282D00D90E5A /* Rendition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Rendition.swift; sourceTree = "<group>"; };
+		F3AF6BFC1E57285700D90E5A /* Subject.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Subject.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -159,8 +175,8 @@
 		59501DE91E2FB16600D1B4BF /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				59501DEA1E2FB16600D1B4BF /* Container.swift */,
-				59501DEB1E2FB16600D1B4BF /* Publication.swift */,
+				F351DB701E54B43400D84BDF /* Containers */,
+				F351DB771E55ED7000D84BDF /* Publication */,
 			);
 			name = Model;
 			path = Sources/Model;
@@ -232,6 +248,38 @@
 				59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		F351DB701E54B43400D84BDF /* Containers */ = {
+			isa = PBXGroup;
+			children = (
+				59501DEA1E2FB16600D1B4BF /* EpubDataContainer.swift */,
+				F351DB711E54B6DB00D84BDF /* DirectoryContainer.swift */,
+				F351DB731E54B71A00D84BDF /* EpubContainer.swift */,
+			);
+			name = Containers;
+			sourceTree = "<group>";
+		};
+		F351DB771E55ED7000D84BDF /* Publication */ = {
+			isa = PBXGroup;
+			children = (
+				59501DEB1E2FB16600D1B4BF /* Publication.swift */,
+				F351DB751E55E2BE00D84BDF /* Metadata.swift */,
+				F351DB781E55EDB600D84BDF /* MetadataTypes */,
+				F3AF6BF81E57275900D90E5A /* Link.swift */,
+			);
+			name = Publication;
+			sourceTree = "<group>";
+		};
+		F351DB781E55EDB600D84BDF /* MetadataTypes */ = {
+			isa = PBXGroup;
+			children = (
+				F351DB7B1E55EE7800D84BDF /* Contributor.swift */,
+				F3AF6BFA1E57282D00D90E5A /* Rendition.swift */,
+				F3AF6BFC1E57285700D90E5A /* Subject.swift */,
+				F351DB791E55EDD100D84BDF /* MetadataItem.swift */,
+			);
+			name = MetadataTypes;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -375,15 +423,23 @@
 				59501E051E2FB16600D1B4BF /* Publication.swift in Sources */,
 				59501E0C1E2FB16600D1B4BF /* ZipInputStream.swift in Sources */,
 				59501E0A1E2FB16600D1B4BF /* FileInputStream.swift in Sources */,
+				F351DB761E55E2BE00D84BDF /* Metadata.swift in Sources */,
 				59501E0E1E2FB16600D1B4BF /* ioapi.c in Sources */,
 				59501E091E2FB16600D1B4BF /* WebServerResourceResponse.swift in Sources */,
 				59501E081E2FB16600D1B4BF /* EpubServer.swift in Sources */,
 				59501E0B1E2FB16600D1B4BF /* Seekable.swift in Sources */,
 				59501E121E2FB16600D1B4BF /* zip.c in Sources */,
+				F351DB7A1E55EDD100D84BDF /* MetadataItem.swift in Sources */,
+				F3AF6BFD1E57285700D90E5A /* Subject.swift in Sources */,
 				59501E151E2FB16600D1B4BF /* ZipArchive.swift in Sources */,
 				59501E031E2FB16600D1B4BF /* EpubFetcher.swift in Sources */,
 				59501E161E2FB16600D1B4BF /* ZipError.swift in Sources */,
-				59501E041E2FB16600D1B4BF /* Container.swift in Sources */,
+				F351DB741E54B71A00D84BDF /* EpubContainer.swift in Sources */,
+				F351DB7C1E55EE7800D84BDF /* Contributor.swift in Sources */,
+				59501E041E2FB16600D1B4BF /* EpubDataContainer.swift in Sources */,
+				F3AF6BF91E57275900D90E5A /* Link.swift in Sources */,
+				F351DB721E54B6DB00D84BDF /* DirectoryContainer.swift in Sources */,
+				F3AF6BFB1E57282D00D90E5A /* Rendition.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -596,6 +652,7 @@
 				59501DE31E2FB0D700D1B4BF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		59501DE41E2FB0D700D1B4BF /* Build configuration list for PBXNativeTarget "R2StreamerTests" */ = {
 			isa = XCConfigurationList;
@@ -604,6 +661,7 @@
 				59501DE61E2FB0D700D1B4BF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

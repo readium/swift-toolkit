@@ -9,49 +9,38 @@
 import Foundation
 import AEXML
 
-
-/**
- 
- Errors thrown during the parsing of the EPUB
-
- - wrongMimeType: The mimetype file is missing or its content differs from `application/epub+zip`.
- - missingFile: A file is missing from the container.
- - xmlParse: An XML parsing error occurred.
- - missingElement: An XML element is missing.
- 
-*/
+/// Errors thrown during the parsing of the EPUB
+///
+/// - wrongMimeType: The mimetype file is missing or its content differs from 
+///                 `application/epub+zip`.
+/// - missingFile: A file is missing from the container.
+/// - xmlParse: An XML parsing error occurred.
+/// - missingElement: An XML element is missing.
 public enum EpubParserError: Error {
-    
+
     case wrongMimeType
-    
+
     /// A file is missing from the container at relative path **path**.
     case missingFile(path: String)
-    
-    /**
-        An XML parsing error occurred.
-     
-        - parameter underlyingError: The XML error thrown by the XML parser.
-    */
+
+    /// An XML parsing error occurred, **underlyingError** thrown by the parser.
     case xmlParse(underlyingError: Error)
+
     case missingElement(msg: String)
 }
 
-
-/**
-
- An EPUB container parser that extracts the information from the relevant files
- and builds an `Publication` instance with it.
-
- - It checks for a `mimetype` file with the proper contents.
- - It parses `container.xml` to look for the default rendition.
- - It parses the OPF file of the default rendition for the metadata, the assets and the spine.
- 
-*/
+/// An EPUB container parser that extracts the information from the relevant
+/// files and builds a `Publication` instance with it.
+///
+/// - It checks for a `mimetype` file with the proper contents.
+/// - It parses `container.xml` to look for the default rendition.
+/// - It parses the OPF file of the default rendition for the metadata, 
+///   the assets and the spine.
 open class EpubParser {
     
     /// The EPUB container to parse.
-    var container: Container
-    
+    var container: EpubDataContainer
+
     /// The path to the default package document (OPF) to parse.
     var rootFile: String?
     
@@ -65,63 +54,49 @@ open class EpubParser {
     // TODO: media overlays
     // TODO: TOC, LOI, etc.
     // TODO: encryption info
-    
-    /**
-     
-     The `RDEpubParser` is initialized with a `Container`, through which it can access
-     to the files in the EPUB container.
 
-     - parameter container: a `Container` instance.
-     
-    */
-    public init(container: Container) {
+    /// The `RDEpubParser` is initialized with a `Container`, through which it
+    /// can access to the files in the EPUB container.
+    ///
+    /// - Parameter container: a `Container` instance.
+    public init(container: EpubDataContainer) {
         self.container = container
+        // TODO: (ACA) initialize the `self.publication` here, so we dont have
+        //       sto force unwrap stuff later
     }
-    
-    /**
-     
-     Parses the EPUB container files and builds a `Publication` representation.
 
-     - returns: the resulting publication or nil.
-     - throws:
-        `EpubParserError.wrongMimeType`, 
-        `EpubParserError.xmlParse`, 
-        `EpubParserError.missingFile`
-     
-    */
+    /// Parses the EPUB container files and builds a `Publication` representation.
+    ///
+    /// - Returns: the resulting publication or nil.
+    /// - Throws: `EpubParserError.wrongMimeType`, `EpubParserError.xmlParse`,
+    ///           `EpubParserError.missingFile`
     open func parse() throws -> Publication? {
-        if isMimeTypeValid() {
-            try parseContainer()
-            publication = try parseOPF(rootFile!)
-        } else {
+        guard isMimeTypeValid() else {
             throw EpubParserError.wrongMimeType
         }
+        try parseContainer()
+        publication = try parseOPF(rootFile!)
         return publication
     }
-    
-    /** 
-     
-     Checks if the mimetype file is present and contains `application/epub+zip`.
-    
-     - returns: boolean result of the check
-     
-    */
-    func isMimeTypeValid() -> Bool {
-        if let mimeTypeData = try? container.data(relativePath: "mimetype") {
-            let mimetype = String(data: mimeTypeData, encoding: .ascii)
-            return (mimetype == "application/epub+zip")
+
+    /// Checks if the mimetype file is present and contains 
+    /// `application/epub+zip`.
+    ///
+    /// - Returns: boolean result of the check
+    private func isMimeTypeValid() -> Bool {
+        guard let mimeTypeData = try? container.data(relativePath: "mimetype") else {
+            return false
         }
-        return false
+        let mimetype = String(data: mimeTypeData, encoding: .ascii)
+
+        return (mimetype == "application/epub+zip")
     }
-    
-    /** 
-     
-     Parses the container.xml file of the container.
-     It extracts the root file (the default one for now, not handling multiple renditions).
-     
-     - throws: `EpubParserError.xmlParse`, `EpubParserError.missingFile`
-     
-    */
+
+    /// Parses the container.xml file of the container.
+    /// It extracts the root file (the default one for now, not handling
+    /// multiple renditions)
+    ///
+    /// - Throws: `EpubParserError.xmlParse`, `EpubParserError.missingFile`
     func parseContainer() throws {
         let containerPath = "META-INF/container.xml"
         var containerData:Data?
@@ -130,7 +105,7 @@ open class EpubParser {
         } catch {
             throw EpubParserError.missingFile(path: containerPath)
         }
-        
+
         var containerXml: AEXMLDocument
         do {
             containerXml = try AEXMLDocument(xml: containerData!)
@@ -146,27 +121,46 @@ open class EpubParser {
         } else {
             throw EpubParserError.missingElement(msg: "Missing rootfile element in container.xml")
         }
-        
+
         // Get the specifications version the EPUB conforms to
         if let v = rootFileElement.attributes["version"] {
             epubVersion = Int(v)
         }
-        
+//        let containerPath = "META-INF/container.xml"
+//        let containerXml: AEXMLDocument
+//        let rootFileElement: AEXMLElement
+//
+//        guard let containerData = try? container.data(relativePath: containerPath) else {
+//            throw EpubParserError.missingFile(path: containerPath)
+//        }
+//        // TODO: (ACA) pass this as a guard...catch {} when implemented...
+//        do {
+//            containerXml = try AEXMLDocument(xml: containerData)
+//        } catch {
+//            throw EpubParserError.xmlParse(underlyingError: error)
+//        }
+//        // Look for the first `<roofile>` element
+//        rootFileElement = containerXml.root["rootfiles"]["rootfile"]
+//        guard let fullPath = rootFileElement.attributes["full-path"] else {
+//            throw EpubParserError.missingElement(msg: "Missing rootfile element in container.xml")
+//        }
+//        rootFile = fullPath
+//        // TODO: (ACA) Is that ok if it fails?
+//        // Get the specifications version the EPUB conforms to
+//        if let version = rootFileElement.attributes["version"] {
+//            epubVersion = Int(version)
+//        }
     }
 
-    /** 
-     
-     Parses a OPF package document in the container.
-
-     - parameter path: The relative path to OPF package file
- 
-     - returns: The optional publication resulting from the parsing.
-     - throws: `EpubParserError.xmlParse`, `EpubParserError.missingFile`
-     
-    */
+    /// Parses an OPF package document in the container.
+    ///
+    /// - Parameter path: The relative path to OPF package file
+    /// - Returns: The optional publication resulting from the parsing.
+    /// - Throws: `EpubParserError.xmlParse`, `EpubParserError.missingFile`
     func parseOPF(_ path: String) throws -> Publication? {
         // Get OPF document data from the container
         var data:Data?
+
         do {
             data = try container.data(relativePath: rootFile!)
         } catch {
@@ -288,16 +282,11 @@ open class EpubParser {
         
         return publication
     }
-    
-    /**
-    
-     Get the main title of the publication
- 
-     - parameter doc: The OPF XML document to parse
- 
-     - returns: The title if it was found, else `nil`
- 
-    */
+
+    /// Get the main title of the publication
+    ///
+    /// - Parameter doc: The OPF XML document to parse
+    /// - Returns: The title if it was found, else `nil`
     func parseMainTitle(_ doc: AEXMLDocument) -> String? {
         // Return if there isn't any `<dc:title>` element
         guard let titles = doc.root["metadata"]["dc:title"].all else {
@@ -324,16 +313,11 @@ open class EpubParser {
         // As a fallback and default, return the first `<dc:title>` content
         return doc.root["metadata"]["dc:title"].string
     }
-    
-    /**
-     
-     Get the unique identifer of the publication
-     
-     - parameter doc: The OPF XML document to parse
-     
-     - returns: The identifier if it was found, else `nil`
-     
-     */
+
+    /// Get the unique identifer of the publication
+    ///
+    /// - Parameter doc: The OPF XML document to parse
+    /// - Returns: The identifier if it was found, else `nil`
     func parseUniqueIdentifier(_ doc: AEXMLDocument) -> String? {
         // Look for `<dc:identifier>` elements
         guard let identifiers = doc.root["metadata"]["dc:identifier"].all else {
@@ -353,17 +337,15 @@ open class EpubParser {
         // As a fallback and default, return the first `<dc:identifier>` content
         return doc.root["metadata"]["dc:identifier"].string
     }
-    
-    /**
-     
-     Builds a `Contributor` instance from a `<dc:creator>` or `<dc:contributor>` element.
 
-     - parameter element: The XML element to parse.
-     - parameter fromDocument: The OPF XML document being parsed (necessary to look for `refines`).
- 
-     - returns: The contributor instance filled with its name and optionally its `role` and `sortAs` attributes.
-     
-    */
+    /// Builds a `Contributor` instance from a `<dc:creator>` or
+    /// `<dc:contributor>` element.
+    ///
+    /// - Parameters:
+    ///   - element: The XML element to parse.
+    ///   - doc: The OPF XML document being parsed (necessary to look for `refines`).
+    /// - Returns: The contributor instance filled with its name and optionally 
+    ///            its `role` and `sortAs` attributes.
     func createContributorFromElement(element: AEXMLElement, fromDocument doc: AEXMLDocument) -> Contributor {
         let contributor = Contributor(name: element.string)
         
@@ -390,19 +372,18 @@ open class EpubParser {
         
         return contributor
     }
-    
-    /**
- 
-     Parse a `creator` or `contributor` element from the OPF XML document, then builds and adds a Contributor
-     to the metadata, to an array according to its role (authors, translators, etc.)
- 
-     - parameter element: The XML element to parse
-     - parameter doc: The OPF XML document being parsed
-     - parameter metadata: The metadata to which to add the contributor
- 
-    */
+
+    /// Parse a `creator` or `contributor` element from the OPF XML document, 
+    /// then builds and adds a Contributor to the metadata, to an array 
+    /// according to its role (authors, translators, etc.)
+    ///
+    /// - Parameters:
+    ///   - element: The XML element to parse
+    ///   - doc: The OPF XML document being parsed
+    ///   - metadata: The metadata to which to add the contributor
     func parseContributor(_ element: AEXMLElement, fromDocument doc: AEXMLDocument, toMetadata metadata: Metadata) {
-        let contributor = createContributorFromElement(element: element, fromDocument: doc)
+        let contributor = createContributorFromElement(element: element,
+                                                       fromDocument: doc)
         
         // Add the contributor to the proper property according to the its `role`
         if let role = contributor.role {
@@ -435,16 +416,14 @@ open class EpubParser {
             }
         }
     }
-    
-    /**
-     
-     Parses the manifest and spine elements to build the document's spine and it resources list.
-     
-     - parameter doc: The OPF XML document being parsed.
-     - parameter publication: The publication whose spine and resources will be built.
-     - parameter coverItemId: The id of the cover item in the manifest.
-     
-    */
+
+    /// Parses the manifest and spine elements to build the document's spine and
+    /// it resources list.
+    ///
+    /// - Parameters:
+    ///   - doc: The OPF XML document being parsed.
+    ///   - publication: The publication whose spine and resources will be built.
+    ///   - coverItemId: The id of the cover item in the manifest.
     func parseSpineAndResources(fromDocument doc: AEXMLDocument, toPublication publication: Publication, coverItemId: String?) {
         // Create a dictionary for all the manifest items keyed by their id
         var manifestLinks = [String: Link]()

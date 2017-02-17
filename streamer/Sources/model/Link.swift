@@ -1,5 +1,5 @@
 //
-//  Mapable.swift
+//  Link.swift
 //  R2Streamer
 //
 //  Created by Alexandre Camilleri on 2/17/17.
@@ -7,9 +7,9 @@
 //
 
 import Foundation
+import ObjectMapper
 
 // TODO: desentrelace model with JSON mapper library
-// TODO: naming - not a class name
 /// <#Description#>
 open class Link: Mappable {
 

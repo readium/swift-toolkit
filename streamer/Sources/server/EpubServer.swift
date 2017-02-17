@@ -19,7 +19,7 @@ open class EpubServer {
     var webServer: GCDWebServer
     
     /// The dictionary of EPUB containers keyed by prefix
-    var containers: [String: Container] = [:]
+    var containers: [String: EpubDataContainer] = [:]
     
     /// The dictionaty of publications keyed by prefix
     var publications: [String: Publication] = [:]
@@ -64,7 +64,7 @@ open class EpubServer {
      - parameter container: The EPUB container of the publication
      - parameter endpoint: The URI prefix to use to fetch assets from the publication `/{prefix}/{assetRelativePath}`
     */
-    open func addEpub(container: Container, withEndpoint endpoint: String) {
+    open func addEpub(container: EpubDataContainer, withEndpoint endpoint: String) {
         if containers[endpoint] == nil {
             let parser = EpubParser(container: container)
             if let publication = try? parser.parse() {

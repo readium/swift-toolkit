@@ -31,7 +31,7 @@ open class EpubFetcher {
     var publication: Publication
     
     /// The container to access the resources from
-    var container: Container
+    var container: EpubDataContainer
     
     /// The relative path to the directory holding the resources in the container
     var rootFileDirectory: String
@@ -39,7 +39,7 @@ open class EpubFetcher {
     // TODO: Content filters
     //var contentFilters: [RDContentFilter]
     
-    init?(publication: Publication, container: Container) {
+    init?(publication: Publication, container: EpubDataContainer) {
         
         // Shouldn't the publication have a property with the container?
         self.container = container
