@@ -26,7 +26,7 @@ public enum EpubParserError: Error {
     /// An XML parsing error occurred, **underlyingError** thrown by the parser.
     case xmlParse(underlyingError: Error)
 
-    case missingElement(msg: String)
+    case missingElement(messagge: String)
 }
 
 /// An EPUB container parser that extracts the information from the relevant
@@ -62,7 +62,7 @@ open class EpubParser {
     public init(container: EpubDataContainer) {
         self.container = container
         // TODO: (ACA) initialize the `self.publication` here, so we dont have
-        //       sto force unwrap stuff later
+        //       to force unwrap anything later?
     }
 
     /// Parses the EPUB container files and builds a `Publication` representation.
@@ -99,16 +99,15 @@ open class EpubParser {
     /// - Throws: `EpubParserError.xmlParse`, `EpubParserError.missingFile`
     func parseContainer() throws {
         let containerPath = "META-INF/container.xml"
-        var containerData:Data?
-        do {
-            containerData = try container.data(relativePath: containerPath)
-        } catch {
+
+        guard let containerData = try container.data(relativePath: containerPath) else {
             throw EpubParserError.missingFile(path: containerPath)
         }
 
         var containerXml: AEXMLDocument
+        // TODO: when a guard ... catch is implemented
         do {
-            containerXml = try AEXMLDocument(xml: containerData!)
+            containerXml = try AEXMLDocument(xml: containerData)
         }
         catch {
             throw EpubParserError.xmlParse(underlyingError: error)
@@ -116,40 +115,15 @@ open class EpubParser {
 
         // Look for the first `<roofile>` element
         let rootFileElement = containerXml.root["rootfiles"]["rootfile"]
-        if let p = rootFileElement.attributes["full-path"] {
-            rootFile = p
-        } else {
+
+        guard rootFile = rootFileElement.attributes["full-path"] else {
             throw EpubParserError.missingElement(msg: "Missing rootfile element in container.xml")
         }
 
         // Get the specifications version the EPUB conforms to
-        if let v = rootFileElement.attributes["version"] {
-            epubVersion = Int(v)
-        }
-//        let containerPath = "META-INF/container.xml"
-//        let containerXml: AEXMLDocument
-//        let rootFileElement: AEXMLElement
-//
-//        guard let containerData = try? container.data(relativePath: containerPath) else {
-//            throw EpubParserError.missingFile(path: containerPath)
-//        }
-//        // TODO: (ACA) pass this as a guard...catch {} when implemented...
-//        do {
-//            containerXml = try AEXMLDocument(xml: containerData)
-//        } catch {
-//            throw EpubParserError.xmlParse(underlyingError: error)
-//        }
-//        // Look for the first `<roofile>` element
-//        rootFileElement = containerXml.root["rootfiles"]["rootfile"]
-//        guard let fullPath = rootFileElement.attributes["full-path"] else {
-//            throw EpubParserError.missingElement(msg: "Missing rootfile element in container.xml")
-//        }
-//        rootFile = fullPath
-//        // TODO: (ACA) Is that ok if it fails?
-//        // Get the specifications version the EPUB conforms to
-//        if let version = rootFileElement.attributes["version"] {
-//            epubVersion = Int(version)
-//        }
+        if let version = rootFileElement.attributes["version"] {
+            epubVersion = Int(version)
+        } // TODO: (ACA) no else?
     }
 
     /// Parses an OPF package document in the container.
