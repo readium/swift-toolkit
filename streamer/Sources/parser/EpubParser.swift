@@ -18,6 +18,7 @@ import AEXML
 /// - missingElement: An XML element is missing.
 public enum EpubParserError: Error {
 
+    /// MimeType is not my
     case wrongMimeType
 
     /// A file is missing from the container at relative path **path**.
@@ -26,7 +27,7 @@ public enum EpubParserError: Error {
     /// An XML parsing error occurred, **underlyingError** thrown by the parser.
     case xmlParse(underlyingError: Error)
 
-    case missingElement(messagge: String)
+    case missingElement(message: String)
 }
 
 /// An EPUB container parser that extracts the information from the relevant
@@ -43,10 +44,13 @@ open class EpubParser {
 
     /// The path to the default package document (OPF) to parse.
     var rootFile: String?
-    
-    /// The publication resulting from the parsing, if it is successful.
-    var publication: Publication?
-    
+
+    // FIXME: This is a parsing class, and the data shoudln't be stored here?
+    //       The functions returns/take as parameter the publication so i guess we 
+    //       can get ride of the member variable
+    //    /// The publication resulting from the parsing, if it is successful.
+    //    var publication: Publication?
+
     /// The EPUB specification version to which the publication conforms.
     var epubVersion: Int?
     
@@ -55,14 +59,16 @@ open class EpubParser {
     // TODO: TOC, LOI, etc.
     // TODO: encryption info
 
+    // MARK: - Public/Open methods
+
     /// The `RDEpubParser` is initialized with a `Container`, through which it
     /// can access to the files in the EPUB container.
     ///
     /// - Parameter container: a `Container` instance.
     public init(container: EpubDataContainer) {
         self.container = container
-        // TODO: (ACA) initialize the `self.publication` here, so we dont have
-        //       to force unwrap anything later?
+        // FIXME: Could we parse the container here so that we don't deal with
+        //          rootFile being optional afterward? see parseOPF()
     }
 
     /// Parses the EPUB container files and builds a `Publication` representation.
@@ -70,17 +76,115 @@ open class EpubParser {
     /// - Returns: the resulting publication or nil.
     /// - Throws: `EpubParserError.wrongMimeType`, `EpubParserError.xmlParse`,
     ///           `EpubParserError.missingFile`
-    open func parse() throws -> Publication? {
+    public func parse() throws -> Publication? {
         guard isMimeTypeValid() else {
             throw EpubParserError.wrongMimeType
         }
         try parseContainer()
-        publication = try parseOPF(rootFile!)
+        let publication = try parseOPF(at: rootFile!)
         return publication
     }
 
-    /// Checks if the mimetype file is present and contains 
-    /// `application/epub+zip`.
+    /// Parses the container.xml file of the container.
+    /// It extracts the root file (the default one for now, not handling
+    /// multiple renditions)
+    ///
+    /// - Throws: `EpubParserError.xmlParse`, `EpubParserError.missingFile`
+    public func parseContainer() throws {
+        let containerPath = "META-INF/container.xml"
+
+        guard let containerData = try? container.data(relativePath: containerPath) else {
+            throw EpubParserError.missingFile(path: containerPath)
+        }
+
+        let containerXml: AEXMLDocument
+        // FIXME when a guard ... catch is implemented
+        // or simply don't rethrow ou own error and let the AEXML error flow?
+        // I guess it would be better. If we don't catch it it will just rethrow
+        do {
+            containerXml = try AEXMLDocument(xml: containerData)
+        }
+        catch {
+            throw EpubParserError.xmlParse(underlyingError: error)
+        }
+
+        // Look for the first `<roofile>` element
+        let rootFileElement = containerXml.root["rootfiles"]["rootfile"]
+
+        guard let fullPath = rootFileElement.attributes["full-path"] else {
+            throw EpubParserError.missingElement(message: "Missing rootfile element in container.xml")
+        }
+        rootFile = fullPath
+
+        // Get the specifications version the EPUB conforms to
+        // If not set in the container, it will be retrieved in the OPF
+        if let version = rootFileElement.attributes["version"] {
+            epubVersion = Int(version)
+        }
+    }
+
+    /// Parses an OPF package document in the container.
+    ///
+    /// - Parameter path: The relative path to OPF package file
+    /// - Returns: The optional publication resulting from the parsing.
+    /// - Throws: `EpubParserError.xmlParse`, `EpubParserError.missingFile`
+    public func parseOPF(at path: String) throws -> Publication? {
+        let publication = Publication()
+        let metadata: Metadata
+
+        // Get OPF document data from the container
+        // FIXME: make rootFile non optional
+        guard let data = try? container.data(relativePath: rootFile!) else {
+            throw EpubParserError.missingFile(path: rootFile!)
+        }
+        
+        // Create an XML document from the data
+        let document: AEXMLDocument
+        // FIXME: same as in the parseContainer function
+        do {
+            document = try AEXMLDocument(xml: data)
+        } catch {
+            throw EpubParserError.xmlParse(underlyingError: error)
+        }
+
+        // FIXME: we are not sure to retrieve it, again. Is that ok?
+        // Try to get EPUB version from the <package> element if it was not set in
+        // the container
+        if epubVersion == nil, let version = document.root.attributes["version"] {
+            epubVersion = Int(version)
+        }
+        publication.internalData["type"] = "epub"
+        publication.internalData["rootfile"] = rootFile
+
+        // Add self to links
+        // MARK: we don't know the self URL here
+        //publication!.links.append(Link(href: "TODO", typeLink: "application/webpub+json", rel: "self"))
+
+        metadata = parseMetadata(from: document) //HERE1
+
+        // Get the page progression direction
+        if let dir = document.root["spine"].attributes["page-progression-direction"] {
+            metadata.direction = dir
+        }
+        
+        publication.metadata = metadata
+        
+        // Look for the manifest item id of the cover
+        var coverId: String?
+        let metadataElement = document.root["metadata"]
+
+        if let coverMetas = metadataElement["meta"].all(withAttributes: ["name" : "cover"]) {
+            coverId = coverMetas.first?.string
+        }
+        
+        parseSpineAndResources(fromDocument: document, toPublication: publication, coverItemId: coverId)
+        
+        return publication
+    }
+
+    // MARK: - Private methods
+
+    /// Checks if the mimetype file is present and contains `application/epub+zip`.
     ///
     /// - Returns: boolean result of the check
     private func isMimeTypeValid() -> Bool {
@@ -92,188 +196,106 @@ open class EpubParser {
         return (mimetype == "application/epub+zip")
     }
 
-    /// Parses the container.xml file of the container.
-    /// It extracts the root file (the default one for now, not handling
-    /// multiple renditions)
+    /// Parse the Metadata in the XML <metadata> element
     ///
-    /// - Throws: `EpubParserError.xmlParse`, `EpubParserError.missingFile`
-    func parseContainer() throws {
-        let containerPath = "META-INF/container.xml"
-
-        guard let containerData = try container.data(relativePath: containerPath) else {
-            throw EpubParserError.missingFile(path: containerPath)
-        }
-
-        var containerXml: AEXMLDocument
-        // TODO: when a guard ... catch is implemented
-        do {
-            containerXml = try AEXMLDocument(xml: containerData)
-        }
-        catch {
-            throw EpubParserError.xmlParse(underlyingError: error)
-        }
-
-        // Look for the first `<roofile>` element
-        let rootFileElement = containerXml.root["rootfiles"]["rootfile"]
-
-        guard rootFile = rootFileElement.attributes["full-path"] else {
-            throw EpubParserError.missingElement(msg: "Missing rootfile element in container.xml")
-        }
-
-        // Get the specifications version the EPUB conforms to
-        if let version = rootFileElement.attributes["version"] {
-            epubVersion = Int(version)
-        } // TODO: (ACA) no else?
-    }
-
-    /// Parses an OPF package document in the container.
-    ///
-    /// - Parameter path: The relative path to OPF package file
-    /// - Returns: The optional publication resulting from the parsing.
-    /// - Throws: `EpubParserError.xmlParse`, `EpubParserError.missingFile`
-    func parseOPF(_ path: String) throws -> Publication? {
-        // Get OPF document data from the container
-        var data:Data?
-
-        do {
-            data = try container.data(relativePath: rootFile!)
-        } catch {
-            throw EpubParserError.missingFile(path: rootFile!)
-        }
-        
-        // Create an XML document from the data
-        var doc: AEXMLDocument
-        do {
-            doc = try AEXMLDocument(xml: data!)
-        } catch {
-            throw EpubParserError.xmlParse(underlyingError: error)
-        }
-        
-        // Get EPUB version from <package> element if it was not set from container
-        if epubVersion == nil {
-            if let v = doc.root.attributes["version"] {
-                epubVersion = Int(v)
-            }
-        }
-        
-        publication = Publication()
-        publication!.internalData["type"] = "epub"
-        publication!.internalData["rootfile"] = rootFile
-        
-        // Add self to links
-        // MARK: we don't know the self URL here
-        //publication!.links.append(Link(href: "TODO", typeLink: "application/webpub+json", rel: "self"))
-        
-        // Get the metadata from the <metadata> element
+    /// - Parameter document: Parse the Metadata in the XML <metadata> element
+    /// - Returns: The Metadata object representing the XML <metadata> element
+    private func parseMetadata(from document: AEXMLDocument) -> Metadata {
         let metadata = Metadata()
-        
-        // Get the main title
-        metadata.title = parseMainTitle(doc)
-        
-        // Get the publication unique identifier
-        metadata.identifier = parseUniqueIdentifier(doc)
-        
-        // Get the description
-        if let desc = doc.root["metadata"]["dc:description"].value {
-            metadata.description = desc
+        let metadataElement = document.root["metadata"]
+        let documentAttributes = document.root.attributes
+
+        metadata.title = parseMainTitle(from: metadataElement)
+        metadata.identifier = parseUniqueIdentifier(from: metadataElement,
+                                                    withAttributes: documentAttributes)
+        // Description
+        if let description = metadataElement["dc:description"].value {
+            metadata.description = description
         }
-        
+
         // TODO: modified date
+
         // TODO: subjects
-        
-        // Get the languages
-        if let languages = doc.root["metadata"]["dc:language"].all {
+        // Languages
+        if let languages = metadataElement["dc:language"].all {
             metadata.languages = languages.map { return $0.string }
         }
-        
-        // Get the rights 
-        if let rights = doc.root["metadata"]["dc:rights"].all {
+
+        // Rights
+        if let rights = metadataElement["dc:rights"].all {
             metadata.rights = rights.map({ return $0.string }).joined(separator: " ")
         }
-        
-        // Get the publishers
-        if let publishers = doc.root["metadata"]["dc:publisher"].all {
-            for pub in publishers {
-                metadata.publishers.append(Contributor(name: pub.string))
+
+        // Publishers
+        if let publishers = metadataElement["dc:publisher"].all {
+            for publisher in publishers {
+                metadata.publishers.append(Contributor(name: publisher.string))
             }
         }
-        
-        // Get the authors
-        if let creators = doc.root["metadata"]["dc:creator"].all {
-            for c in creators {
-                parseContributor(c, fromDocument: doc, toMetadata: metadata)
+
+        // Authors
+        if let creators = metadataElement["dc:creator"].all {
+            for creator in creators {
+                parseContributor(creator, fromDocument: document, toMetadata: metadata)
             }
         }
-        
+
         // Get the contributors
-        if let contributors = doc.root["metadata"]["dc:contributor"].all {
-            for c in contributors {
-                parseContributor(c, fromDocument: doc, toMetadata: metadata)
+        if let contributors = metadataElement["dc:contributor"].all {
+            for contributor in contributors {
+                parseContributor(contributor, fromDocument: document, toMetadata: metadata)
             }
         }
-        
-        // Get the rendition properties
-        if let renditionLayouts = doc.root["metadata"]["meta"].all(withAttributes: ["property" : "rendition:layout"]) {
+
+        // Rendition properties
+        if let renditionLayouts = metadataElement["meta"].all(withAttributes: ["property" : "rendition:layout"]) {
             if renditionLayouts.count > 0 {
                 metadata.rendition.layout = RenditionLayout(rawValue: renditionLayouts[0].string)
             }
         }
-        if let renditionFlows = doc.root["metadata"]["meta"].all(withAttributes: ["property" : "rendition:flow"]) {
+        if let renditionFlows = metadataElement["meta"].all(withAttributes: ["property" : "rendition:flow"]) {
             if renditionFlows.count > 0 {
                 metadata.rendition.flow = RenditionFlow(rawValue: renditionFlows[0].string)
             }
         }
-        if let renditionOrientations = doc.root["metadata"]["meta"].all(withAttributes: ["property" : "rendition:orientation"]) {
+        if let renditionOrientations = metadataElement["meta"].all(withAttributes: ["property" : "rendition:orientation"]) {
             if renditionOrientations.count > 0 {
                 metadata.rendition.orientation = RenditionOrientation(rawValue: renditionOrientations[0].string)
             }
         }
-        if let renditionSpreads = doc.root["metadata"]["meta"].all(withAttributes: ["property" : "rendition:spread"]) {
+        if let renditionSpreads = metadataElement["meta"].all(withAttributes: ["property" : "rendition:spread"]) {
             if renditionSpreads.count > 0 {
                 metadata.rendition.spread = RenditionSpread(rawValue: renditionSpreads[0].string)
             }
         }
-        if let renditionViewports = doc.root["metadata"]["meta"].all(withAttributes: ["property" : "rendition:viewport"]) {
+        if let renditionViewports = metadataElement["meta"].all(withAttributes: ["property" : "rendition:viewport"]) {
             if renditionViewports.count > 0 {
                 metadata.rendition.viewport = renditionViewports[0].string
             }
         }
-                
-        // Get the page progression direction
-        if let dir = doc.root["spine"].attributes["page-progression-direction"] {
-            metadata.direction = dir
-        }
-        
-        publication!.metadata = metadata
-        
-        // Look for the manifest item id of the cover
-        var coverId: String?
-        if let coverMetas = doc.root["metadata"]["meta"].all(withAttributes: ["name" : "cover"]) {
-            coverId = coverMetas.first?.string
-        }
-        
-        parseSpineAndResources(fromDocument: doc, toPublication: publication!, coverItemId: coverId)
-        
-        return publication
+        return metadata
     }
 
-    /// Get the main title of the publication
+    /// Get the main title of the publication from the from the OPF XML document
+    /// `<metadata>` element
     ///
-    /// - Parameter doc: The OPF XML document to parse
-    /// - Returns: The title if it was found, else `nil`
-    func parseMainTitle(_ doc: AEXMLDocument) -> String? {
+    /// - Parameter metadata: The `<metadata>` element
+    /// - Returns: The content of the `<dc:title>` element, `nil` if the element
+    ///             wasn't found
+    private func parseMainTitle(from metadata: AEXMLElement) -> String? {
         // Return if there isn't any `<dc:title>` element
-        guard let titles = doc.root["metadata"]["dc:title"].all else {
+        guard let titles = metadata["dc:title"].all else {
             return nil
         }
-        
+
+        // TODO: refactor this
         // If there's more than one, look for the `main` one as defined by `refines`
         if titles.count > 1 && epubVersion == 3 {
             let mainTitles = titles.filter { (element: AEXMLElement) in
                 guard let eid = element.attributes["id"] else {
                     return false
                 }
-                let metas = doc.root["metadata"]["meta"].all(withAttributes: ["property": "title-type", "refines": "#" + eid])
+                let metas = metadata["meta"].all(withAttributes: ["property": "title-type", "refines": "#" + eid])
                 if let mainMetas = metas?.filter({ $0.string == "main" }) {
                     return mainMetas.count > 0
                 }
@@ -285,23 +307,30 @@ open class EpubParser {
         }
         
         // As a fallback and default, return the first `<dc:title>` content
-        return doc.root["metadata"]["dc:title"].string
+        return metadata["dc:title"].string
     }
 
-    /// Get the unique identifer of the publication
+    /// Get the unique identifer of the publication from the from the OPF XML
+    /// document `<metadata>` element
     ///
-    /// - Parameter doc: The OPF XML document to parse
-    /// - Returns: The identifier if it was found, else `nil`
-    func parseUniqueIdentifier(_ doc: AEXMLDocument) -> String? {
+    /// - Parameters:
+    ///   - metadata: The `<metadata>` element
+    ///   - Attributes: The XML document attributes
+    /// - Returns: The content of the `<dc:identifier>` element, `nil` if the
+    ///             element wasn't found
+    private func parseUniqueIdentifier(from metadata: AEXMLElement,
+                               withAttributes attributes: [String : String]) -> String? {
         // Look for `<dc:identifier>` elements
-        guard let identifiers = doc.root["metadata"]["dc:identifier"].all else {
+        guard let identifiers = metadata["dc:identifier"].all else {
             return nil
         }
-        
-        // Get the one defined as unique by the `<package>` attribute `unique-identifier`
+        // Get the one defined as unique by the `<package>` attribute 
+        // `unique-identifier`
+        // TODO: refactor this part to something more readable
         if identifiers.count > 1 {
-            if let uniqueId = doc.root.attributes["unique-identifier"] {
+            if let uniqueId = attributes["unique-identifier"] {
                 let uniqueIdentifiers = identifiers.filter { $0.attributes["id"] == uniqueId }
+
                 if uniqueIdentifiers.count > 0 {
                     return uniqueIdentifiers.first!.string
                 }
@@ -309,7 +338,7 @@ open class EpubParser {
         }
         
         // As a fallback and default, return the first `<dc:identifier>` content
-        return doc.root["metadata"]["dc:identifier"].string
+        return metadata["dc:identifier"].string
     }
 
     /// Builds a `Contributor` instance from a `<dc:creator>` or

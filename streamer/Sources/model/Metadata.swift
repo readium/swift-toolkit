@@ -53,7 +53,7 @@ open class Metadata: Mappable {
 
     required public init?(map: Map) {
         direction = "default"
-        // TODO
+        // TODO: init
     }
 
     open func mapping(map: Map) {

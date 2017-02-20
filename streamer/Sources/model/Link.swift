@@ -39,7 +39,7 @@ open class Link: Mappable {
     }
 
     public required init?(map: Map) {
-        // TODO
+        // TODO: init
     }
 
     open func mapping(map: Map) {

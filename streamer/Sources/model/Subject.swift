@@ -21,7 +21,7 @@ open class Subject: Mappable {
     public init() {}
 
     required public init?(map: Map) {
-        // TODO
+        // TODO: init
     }
 
     open func mapping(map: Map) {

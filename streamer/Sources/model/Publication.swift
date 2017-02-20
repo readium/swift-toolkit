@@ -53,7 +53,7 @@ open class Publication: Mappable {
     
     /// Mappable JSON protocol initializer
     required public init?(map: Map) {
-        // TODO
+        // TODO: init
     }
 
     /// Finds a resource (asset or spine item) with a matching relative path
