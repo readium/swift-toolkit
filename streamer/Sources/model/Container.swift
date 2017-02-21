@@ -8,20 +8,19 @@
 
 import Foundation
 
-/// EpubDataContainer Protocol's Errors
+/// Container Protocol's Errors
 ///
 /// - streamInitFailed:
 /// - fileNotFound:
 /// - fileError:
-public enum EpubDataContainerError: Error {
+public enum ContainerError: Error {
     case streamInitFailed
     case fileNotFound
     case fileError
 }
 
-//TODO: naming
-/// EPUB container protocol, for accessing raw data from container's files
-public protocol EpubDataContainer {
+/// Container protocol, for accessing raw data from container's files
+public protocol Container {
 
     /// Get the raw (possibly encrypted) data of an asset in the container
     ///

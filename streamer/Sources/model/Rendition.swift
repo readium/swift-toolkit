@@ -57,7 +57,6 @@ public enum RenditionSpread: String {
     case None = "none"
 }
 
-// TODO: desentrelace model with JSON mapper library
 /// The information relative to the rendering of the publication.
 /// It includes if it's reflowable or pre-paginated, the orientation, the synthetic spread
 /// behaviour and if the content flow should be scrolled, continuous or paginated.

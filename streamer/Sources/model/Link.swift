@@ -9,7 +9,6 @@
 import Foundation
 import ObjectMapper
 
-// TODO: desentrelace model with JSON mapper library
 /// <#Description#>
 open class Link: Mappable {
 

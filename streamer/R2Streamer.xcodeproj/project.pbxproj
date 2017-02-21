@@ -11,7 +11,7 @@
 		59501DDC1E2FB0D700D1B4BF /* R2StreamerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DDB1E2FB0D700D1B4BF /* R2StreamerTests.swift */; };
 		59501DDE1E2FB0D700D1B4BF /* R2Streamer.h in Headers */ = {isa = PBXBuildFile; fileRef = 59501DD01E2FB0D700D1B4BF /* R2Streamer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		59501E031E2FB16600D1B4BF /* EpubFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DE81E2FB16600D1B4BF /* EpubFetcher.swift */; };
-		59501E041E2FB16600D1B4BF /* EpubDataContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DEA1E2FB16600D1B4BF /* EpubDataContainer.swift */; };
+		59501E041E2FB16600D1B4BF /* Container.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DEA1E2FB16600D1B4BF /* Container.swift */; };
 		59501E051E2FB16600D1B4BF /* Publication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DEB1E2FB16600D1B4BF /* Publication.swift */; };
 		59501E061E2FB16600D1B4BF /* EpubParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DED1E2FB16600D1B4BF /* EpubParser.swift */; };
 		59501E071E2FB16600D1B4BF /* R2Streamer-Bridging-Header.h in Headers */ = {isa = PBXBuildFile; fileRef = 59501DEE1E2FB16600D1B4BF /* R2Streamer-Bridging-Header.h */; };
@@ -42,6 +42,7 @@
 		F3AF6BF91E57275900D90E5A /* Link.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3AF6BF81E57275900D90E5A /* Link.swift */; };
 		F3AF6BFB1E57282D00D90E5A /* Rendition.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3AF6BFA1E57282D00D90E5A /* Rendition.swift */; };
 		F3AF6BFD1E57285700D90E5A /* Subject.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3AF6BFC1E57285700D90E5A /* Subject.swift */; };
+		F3DEE6E21E5C5A53007FE63D /* OPFParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -62,7 +63,7 @@
 		59501DDB1E2FB0D700D1B4BF /* R2StreamerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2StreamerTests.swift; sourceTree = "<group>"; };
 		59501DDD1E2FB0D700D1B4BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		59501DE81E2FB16600D1B4BF /* EpubFetcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpubFetcher.swift; sourceTree = "<group>"; };
-		59501DEA1E2FB16600D1B4BF /* EpubDataContainer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpubDataContainer.swift; sourceTree = "<group>"; };
+		59501DEA1E2FB16600D1B4BF /* Container.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Container.swift; sourceTree = "<group>"; };
 		59501DEB1E2FB16600D1B4BF /* Publication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Publication.swift; sourceTree = "<group>"; };
 		59501DED1E2FB16600D1B4BF /* EpubParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpubParser.swift; sourceTree = "<group>"; };
 		59501DEE1E2FB16600D1B4BF /* R2Streamer-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "R2Streamer-Bridging-Header.h"; path = "Sources/R2Streamer-Bridging-Header.h"; sourceTree = SOURCE_ROOT; };
@@ -94,6 +95,7 @@
 		F3AF6BF81E57275900D90E5A /* Link.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Link.swift; sourceTree = "<group>"; };
 		F3AF6BFA1E57282D00D90E5A /* Rendition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Rendition.swift; sourceTree = "<group>"; };
 		F3AF6BFC1E57285700D90E5A /* Subject.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Subject.swift; sourceTree = "<group>"; };
+		F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = OPFParser.swift; path = Sources/parser/OPFParser.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -141,15 +143,16 @@
 		59501DCF1E2FB0D700D1B4BF /* R2Streamer */ = {
 			isa = PBXGroup;
 			children = (
-				59501DE71E2FB16600D1B4BF /* Fetcher */,
+				59501DD11E2FB0D700D1B4BF /* Info.plist */,
+				59501DD01E2FB0D700D1B4BF /* R2Streamer.h */,
+				59501DEE1E2FB16600D1B4BF /* R2Streamer-Bridging-Header.h */,
 				59501DE91E2FB16600D1B4BF /* Model */,
 				59501DEC1E2FB16600D1B4BF /* Parser */,
-				59501DEE1E2FB16600D1B4BF /* R2Streamer-Bridging-Header.h */,
+				F351DB701E54B43400D84BDF /* Containers */,
+				59501DE71E2FB16600D1B4BF /* Fetcher */,
 				59501DEF1E2FB16600D1B4BF /* Server */,
 				59501DF21E2FB16600D1B4BF /* Streams */,
 				59501DF61E2FB16600D1B4BF /* ZipArchive */,
-				59501DD01E2FB0D700D1B4BF /* R2Streamer.h */,
-				59501DD11E2FB0D700D1B4BF /* Info.plist */,
 			);
 			path = R2Streamer;
 			sourceTree = "<group>";
@@ -175,7 +178,6 @@
 		59501DE91E2FB16600D1B4BF /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				F351DB701E54B43400D84BDF /* Containers */,
 				F351DB771E55ED7000D84BDF /* Publication */,
 			);
 			name = Model;
@@ -186,6 +188,7 @@
 			isa = PBXGroup;
 			children = (
 				59501DED1E2FB16600D1B4BF /* EpubParser.swift */,
+				F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */,
 			);
 			name = Parser;
 			path = Sources/Parser;
@@ -253,11 +256,12 @@
 		F351DB701E54B43400D84BDF /* Containers */ = {
 			isa = PBXGroup;
 			children = (
-				59501DEA1E2FB16600D1B4BF /* EpubDataContainer.swift */,
+				59501DEA1E2FB16600D1B4BF /* Container.swift */,
 				F351DB711E54B6DB00D84BDF /* DirectoryContainer.swift */,
 				F351DB731E54B71A00D84BDF /* EpubContainer.swift */,
 			);
 			name = Containers;
+			path = ../Sources/Model;
 			sourceTree = "<group>";
 		};
 		F351DB771E55ED7000D84BDF /* Publication */ = {
@@ -448,9 +452,10 @@
 				59501E151E2FB16600D1B4BF /* ZipArchive.swift in Sources */,
 				59501E031E2FB16600D1B4BF /* EpubFetcher.swift in Sources */,
 				59501E161E2FB16600D1B4BF /* ZipError.swift in Sources */,
+				F3DEE6E21E5C5A53007FE63D /* OPFParser.swift in Sources */,
 				F351DB741E54B71A00D84BDF /* EpubContainer.swift in Sources */,
 				F351DB7C1E55EE7800D84BDF /* Contributor.swift in Sources */,
-				59501E041E2FB16600D1B4BF /* EpubDataContainer.swift in Sources */,
+				59501E041E2FB16600D1B4BF /* Container.swift in Sources */,
 				F3AF6BF91E57275900D90E5A /* Link.swift in Sources */,
 				F351DB721E54B6DB00D84BDF /* DirectoryContainer.swift in Sources */,
 				F3AF6BFB1E57282D00D90E5A /* Rendition.swift in Sources */,

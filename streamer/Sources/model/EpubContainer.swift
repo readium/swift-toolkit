@@ -9,7 +9,7 @@
 import Foundation
 
 /// EPUB Container for EPUB files
-open class EpubContainer: EpubDataContainer {
+open class EpubContainer: Container {
     var epubFilePath: String
     var zipArchive: ZipArchive
 
@@ -32,9 +32,8 @@ open class EpubContainer: EpubDataContainer {
     open func dataInputStream(relativePath: String) throws -> SeekableInputStream {
         // let inputStream = ZipInputStream(zipArchive: zipArchive, path: relativePath)
         guard let inputStream = ZipInputStream(zipFilePath: epubFilePath, path: relativePath) else {
-            throw EpubDataContainerError.streamInitFailed
+            throw ContainerError.streamInitFailed
         }
-
         return inputStream
     }
 }

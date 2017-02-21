@@ -9,7 +9,6 @@
 import Foundation
 import ObjectMapper
 
-// TODO: desentrelace model with JSON mapper library
 /// The representation of EPUB publication, with its metadata, its spine and 
 /// other resources.
 /// It is created by the `EpubParser` from an EPUB file or directory.
@@ -30,6 +29,7 @@ open class Publication: Mappable {
     public var TOC = [Link]()
     public var pageList = [Link]()
     public var landmarks = [Link]()
+    // FIXME: Epub spec / rename to explicit full names
     public var LOI = [Link]()
     public var LOA = [Link]()
     public var LOV = [Link]()
@@ -86,7 +86,7 @@ open class Publication: Mappable {
     
     /// Mapping declaration
     open func mapping(map: Map) {
-        metadata <- map["metadata"]
+        metadata <- map["metadata"]//, ignoreNil: true]
         spine <- map["spine"]
         resources <- map["resources"]
         links <- map["links"]

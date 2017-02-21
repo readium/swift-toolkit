@@ -9,7 +9,6 @@
 import Foundation
 import ObjectMapper
 
-// TODO: desentrelace model with JSON mapper library
 /// <#Description#>
 open class Contributor: Mappable {
     
@@ -27,6 +26,7 @@ open class Contributor: Mappable {
             return nil
         }
 
+        // FIXME: try!
         name = try! map.value("name")
         sortAs = try? map.value("sortAs")
         identifier = try? map.value("identifier")
