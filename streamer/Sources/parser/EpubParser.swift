@@ -327,17 +327,13 @@ open class EpubParser {
         }
         // Get the one defined as unique by the `<package>` attribute
         // `unique-identifier`
-        // TODO: refactor this part to something more readable
-        if identifiers.count > 1 {
-            if let uniqueId = attributes["unique-identifier"] {
-                let uniqueIdentifiers = identifiers.filter { $0.attributes["id"] == uniqueId }
+        if identifiers.count > 1, let uniqueId = attributes["unique-identifier"] {
+            let uniqueIdentifiers = identifiers.filter { $0.attributes["id"] == uniqueId }
 
-                if !uniqueIdentifiers.isEmpty {
-                    return uniqueIdentifiers.first!.string
-                }
+            if !uniqueIdentifiers.isEmpty, let uid = uniqueIdentifiers.first {
+                return uid.string
             }
         }
-
         // Returns the first `<dc:identifier>` content or an empty String
         return metadata["dc:identifier"].string
     }
@@ -363,11 +359,10 @@ open class EpubParser {
         }
         // Look up for possible meta refines for role
         if epubVersion == 3, let eid = element.attributes["id"] {
-            let attributes = ["property": "role", "refines": "#" + eid]
+            let attributes = ["property": "role", "refines": "#\(eid)"]
 
             if let metas = metadata["meta"].all(withAttributes: attributes),
-                !metas.isEmpty,
-                let first = metas.first {
+                !metas.isEmpty, let first = metas.first {
                 let role = first.string
 
                 contributor.role = role
@@ -384,7 +379,8 @@ open class EpubParser {
     ///   - element: The XML element to parse
     ///   - doc: The OPF XML document being parsed
     ///   - metadata: The metadata to which to add the contributor
-    func parseContributor(from element: AEXMLElement, in document: AEXMLDocument, to metadata: Metadata) {
+    func parseContributor(from element: AEXMLElement, in document: AEXMLDocument,
+                          to metadata: Metadata) {
         let metadataElement = document.root["metadata"]
         let contributor = createContributor(from: element, metadata: metadataElement)
 
