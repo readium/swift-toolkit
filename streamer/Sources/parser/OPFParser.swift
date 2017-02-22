@@ -30,6 +30,8 @@ open class OPFParser {
         self.epubVersion = epubVersion
     }
 
+    // MARK: - Internal methods
+
     /// Parses an OPF package document from the container.
     ///
     /// - Parameter rootFilePath: The relative path to OPF package file.
@@ -88,13 +90,11 @@ open class OPFParser {
         return publication
     }
 
-    // MARK: - Private methods
-
     /// Parse the Metadata in the XML <metadata> element
     ///
     /// - Parameter document: Parse the Metadata in the XML <metadata> element
     /// - Returns: The Metadata object representing the XML <metadata> element
-    private func parseMetadata(from document: AEXMLDocument) -> Metadata {
+    internal func parseMetadata(from document: AEXMLDocument) -> Metadata {
         let metadata = Metadata()
         let metadataElement = document.root["metadata"]
         let documentAttributes = document.root.attributes
@@ -143,32 +143,57 @@ open class OPFParser {
         }
 
         // Rendition properties
-        if let renditionLayouts = metadataElement["meta"].all(withAttributes: ["property" : "rendition:layout"]) {
-            if !renditionLayouts.isEmpty {
-                metadata.rendition.layout = RenditionLayout(rawValue: renditionLayouts[0].string)
-            }
-        }
-        if let renditionFlows = metadataElement["meta"].all(withAttributes: ["property" : "rendition:flow"]) {
-            if !renditionFlows.isEmpty {
-                metadata.rendition.flow = RenditionFlow(rawValue: renditionFlows[0].string)
-            }
-        }
-        if let renditionOrientations = metadataElement["meta"].all(withAttributes: ["property" : "rendition:orientation"]) {
-            if !renditionOrientations.isEmpty {
-                metadata.rendition.orientation = RenditionOrientation(rawValue: renditionOrientations[0].string)
-            }
-        }
-        if let renditionSpreads = metadataElement["meta"].all(withAttributes: ["property" : "rendition:spread"]) {
-            if !renditionSpreads.isEmpty {
-                metadata.rendition.spread = RenditionSpread(rawValue: renditionSpreads[0].string)
-            }
-        }
-        if let renditionViewports = metadataElement["meta"].all(withAttributes: ["property" : "rendition:viewport"]) {
-            if !renditionViewports.isEmpty {
-                metadata.rendition.viewport = renditionViewports[0].string
-            }
-        }
+        setRenditionProperties(from: metadataElement["meta"], to: metadata)
+
         return metadata
+    }
+
+    /// Extracts the Rendition properties from the XML element metadata and fill
+    /// then into the Metadata object instance.
+    ///
+    /// - Parameters:
+    ///   - metadataElement: The XML element containing the metadatas
+    ///   - metadata: The `Metadata` object.
+    internal func setRenditionProperties(from metadataElement: AEXMLElement, to metadata: Metadata) {
+        var attribute: [String: String]
+
+        attribute = ["property" : "rendition:layout"]
+        if let renditionLayouts = metadataElement.all(withAttributes: attribute),
+            !renditionLayouts.isEmpty {
+            let layouts = renditionLayouts[0].string
+
+            metadata.rendition.layout = RenditionLayout(rawValue: layouts)
+        }
+
+        attribute = ["property" : "rendition:flow"]
+        if let renditionFlows = metadataElement.all(withAttributes: attribute),
+            !renditionFlows.isEmpty {
+            let flows = renditionFlows[0].string
+
+            metadata.rendition.flow = RenditionFlow(rawValue: flows)
+        }
+
+        attribute = ["property" : "rendition:orientation"]
+        if let renditionOrientations = metadataElement.all(withAttributes: attribute),
+            !renditionOrientations.isEmpty {
+            let orientation = renditionOrientations[0].string
+
+            metadata.rendition.orientation = RenditionOrientation(rawValue: orientation)
+        }
+
+        attribute = ["property" : "rendition:spread"]
+        if let renditionSpreads = metadataElement.all(withAttributes: attribute),
+            !renditionSpreads.isEmpty {
+            let spread = renditionSpreads[0].string
+
+            metadata.rendition.spread = RenditionSpread(rawValue: spread)
+        }
+
+        attribute = ["property" : "rendition:viewport"]
+        if let renditionViewports = metadataElement.all(withAttributes: attribute),
+            !renditionViewports.isEmpty {
+            metadata.rendition.viewport = renditionViewports[0].string
+        }
     }
 
     /// Get the main title of the publication from the from the OPF XML document
@@ -177,7 +202,7 @@ open class OPFParser {
     /// - Parameter metadata: The `<metadata>` element
     /// - Returns: The content of the `<dc:title>` element, `nil` if the element
     ///             wasn't found
-    private func parseMainTitle(from metadata: AEXMLElement) -> String? {
+    internal func parseMainTitle(from metadata: AEXMLElement) -> String? {
         // Return if there isn't any `<dc:title>` element
         guard let titles = metadata["dc:title"].all else {
             return nil
@@ -190,7 +215,9 @@ open class OPFParser {
                 guard let eid = element.attributes["id"] else {
                     return false
                 }
-                let metas = metadata["meta"].all(withAttributes: ["property": "title-type", "refines": "#" + eid])
+                let attributes = ["property": "title-type", "refines": "#" + eid]
+                let metas = metadata["meta"].all(withAttributes: attributes)
+
                 if let mainMetas = metas?.filter({ $0.string == "main" }) {
                     return !mainMetas.isEmpty
                 }
@@ -213,7 +240,7 @@ open class OPFParser {
     ///   - Attributes: The XML document attributes
     /// - Returns: The content of the `<dc:identifier>` element, `nil` if the
     ///             element wasn't found
-    private func parseUniqueIdentifier(from metadata: AEXMLElement,
+    internal func parseUniqueIdentifier(from metadata: AEXMLElement,
                                        withAttributes attributes: [String : String]) -> String? {
         // Look for `<dc:identifier>` elements
         guard let identifiers = metadata["dc:identifier"].all else {
@@ -240,7 +267,7 @@ open class OPFParser {
     ///   - doc: The OPF XML document being parsed (necessary to look for `refines`).
     /// - Returns: The contributor instance filled with its name and optionally
     ///            its `role` and `sortAs` attributes.
-    private func createContributor(from element: AEXMLElement,
+    internal func createContributor(from element: AEXMLElement,
                                    metadata: AEXMLElement) -> Contributor {
         let contributor = Contributor(name: element.string)
 
@@ -274,7 +301,7 @@ open class OPFParser {
     ///   - element: The XML element to parse
     ///   - doc: The OPF XML document being parsed
     ///   - metadata: The metadata to which to add the contributor
-    private func parseContributor(from element: AEXMLElement,
+    internal func parseContributor(from element: AEXMLElement,
                                   in document: AEXMLDocument,
                                   to metadata: Metadata) {
         let metadataElement = document.root["metadata"]
@@ -319,7 +346,7 @@ open class OPFParser {
     ///   - document: The OPF XML document being parsed.
     ///   - publication: The publication whose spine and resources will be built.
     ///   - coverItemId: The id of the cover item in the manifest.
-    private func parseSpineAndResources(from document: AEXMLDocument,
+    internal func parseSpineAndResources(from document: AEXMLDocument,
                                         to publication: Publication,
                                         with coverItemId: String?) {
         // Create a dictionary for all the manifest items keyed by their id
@@ -358,11 +385,10 @@ open class OPFParser {
         publication.resources = [Link](manifestLinks.values)
     }
 
-
     /// Parses the differents manifest items from the XML <manifest> element.
     ///
     /// - Parameter manifest: The XML <manifest> element.
-    private func parseManifestItems(from manifest: AEXMLElement,
+    internal func parseManifestItems(from manifest: AEXMLElement,
                                     to publication: Publication,
                                     and manifestLinks: inout [String: Link],
                                     with coverItemId: String?) {
@@ -398,7 +424,7 @@ open class OPFParser {
         }
     }
 
-    private func parseItemProperties(from properties: [String],
+    internal func parseItemProperties(from properties: [String],
                                      to link: Link,
                                      and publication: Publication) {
         if properties.contains("nav") {
@@ -410,8 +436,8 @@ open class OPFParser {
             publication.links.append(link)
         }
         // FIXME: wait SO answer
-        let remainingProperties = properties.filter{$0 != "cover-image" && $0 != "nav"}
-        
+        let remainingProperties = properties.filter { $0 != "cover-image" && $0 != "nav" }
+
         link.properties.append(contentsOf: remainingProperties)
         // TODO: rendition properties
     }
