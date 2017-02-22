@@ -241,7 +241,7 @@ open class OPFParser {
     /// - Returns: The content of the `<dc:identifier>` element, `nil` if the
     ///             element wasn't found
     internal func parseUniqueIdentifier(from metadata: AEXMLElement,
-                                       withAttributes attributes: [String : String]) -> String? {
+                                        withAttributes attributes: [String : String]) -> String? {
         // Look for `<dc:identifier>` elements
         guard let identifiers = metadata["dc:identifier"].all else {
             return nil
@@ -268,7 +268,7 @@ open class OPFParser {
     /// - Returns: The contributor instance filled with its name and optionally
     ///            its `role` and `sortAs` attributes.
     internal func createContributor(from element: AEXMLElement,
-                                   metadata: AEXMLElement) -> Contributor {
+                                    metadata: AEXMLElement) -> Contributor {
         let contributor = Contributor(name: element.string)
 
         // Get role from role attribute
@@ -302,12 +302,34 @@ open class OPFParser {
     ///   - doc: The OPF XML document being parsed
     ///   - metadata: The metadata to which to add the contributor
     internal func parseContributor(from element: AEXMLElement,
-                                  in document: AEXMLDocument,
-                                  to metadata: Metadata) {
+                                   in document: AEXMLDocument,
+                                   to metadata: Metadata) {
         let metadataElement = document.root["metadata"]
         let contributor = createContributor(from: element, metadata: metadataElement)
+        // FIXME: Could replace below code for lowering cyclomatic complexity
+        //          not sure is cleaner. Need advice
+        //        var roles = [("aut", metadata.authors),
+        //                     ("trl", metadata.translators),
+        //                     ("art", metadata.artists),
+        //                     ("edt", metadata.editors),
+        //                     ("ill", metadata.illustrators),
+        //                     ("clr", metadata.colorists),
+        //                     ("nrt", metadata.narrators),
+        //                     ("pbl", metadata.publishers)]
+        //
+        //        // Add the contributor to the proper property according to the its `role`
+        //        if let role = contributor.role,
+        //            let index = roles.index(where: { element in element.0 == role }) {
+        //            roles[index].1.append(contributor)
+        //        }
+        //            // No role, so add the creators to the authors and the others to the contributors
+        //        else if element.name == "dc:creator" {
+        //            metadata.authors.append(contributor)
+        //        } else {
+        //            metadata.contributors.append(contributor)
+        //        }
 
-        // Add the contributor to the proper property according to the its `role`
+        //         Add the contributor to the proper property according to the its `role`
         if let role = contributor.role {
             switch role {
             case "aut":
@@ -347,8 +369,8 @@ open class OPFParser {
     ///   - publication: The publication whose spine and resources will be built.
     ///   - coverItemId: The id of the cover item in the manifest.
     internal func parseSpineAndResources(from document: AEXMLDocument,
-                                        to publication: Publication,
-                                        with coverItemId: String?) {
+                                         to publication: Publication,
+                                         with coverItemId: String?) {
         // Create a dictionary for all the manifest items keyed by their id
         var manifestLinks = [String: Link]()
         let manifest = document.root["manifest"]
@@ -389,9 +411,9 @@ open class OPFParser {
     ///
     /// - Parameter manifest: The XML <manifest> element.
     internal func parseManifestItems(from manifest: AEXMLElement,
-                                    to publication: Publication,
-                                    and manifestLinks: inout [String: Link],
-                                    with coverItemId: String?) {
+                                     to publication: Publication,
+                                     and manifestLinks: inout [String: Link],
+                                     with coverItemId: String?) {
         guard let manifestItems = manifest["item"].all else {
             return
         }
@@ -425,8 +447,8 @@ open class OPFParser {
     }
 
     internal func parseItemProperties(from properties: [String],
-                                     to link: Link,
-                                     and publication: Publication) {
+                                      to link: Link,
+                                      and publication: Publication) {
         if properties.contains("nav") {
             link.rel.append("contents")
         }
@@ -437,9 +459,9 @@ open class OPFParser {
         }
         // FIXME: wait SO answer
         let remainingProperties = properties.filter { $0 != "cover-image" && $0 != "nav" }
-
+        
         link.properties.append(contentsOf: remainingProperties)
         // TODO: rendition properties
     }
-
+    
 }
