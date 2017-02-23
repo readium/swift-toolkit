@@ -68,7 +68,8 @@ open class EpubDirectoryContainer: Container {
     internal func generateFullPath(with relativePath: String) -> String {
         let fullPath: String
 
-        fullPath = (relativePath as NSString).appendingPathComponent(relativePath)
+        fullPath = (rootPath as NSString).appendingPathComponent(relativePath)
+        NSLog("generated fullpath=\(fullPath)")
         return fullPath
     }
 }
