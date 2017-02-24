@@ -668,7 +668,7 @@
 				59501DE01E2FB0D700D1B4BF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		59501DE11E2FB0D700D1B4BF /* Build configuration list for PBXNativeTarget "R2Streamer" */ = {
 			isa = XCConfigurationList;
@@ -677,7 +677,7 @@
 				59501DE31E2FB0D700D1B4BF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		59501DE41E2FB0D700D1B4BF /* Build configuration list for PBXNativeTarget "R2StreamerTests" */ = {
 			isa = XCConfigurationList;
@@ -686,7 +686,7 @@
 				59501DE61E2FB0D700D1B4BF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
