@@ -129,6 +129,8 @@ open class EpubParser {
         if let version = rootFileElement.attributes["version"],
             let versionNumber = Double(version) {
             epubVersion = versionNumber
+        } else {
+            epubVersion = EPUBConstant.defaultEpubVersion
         }
     }
 
