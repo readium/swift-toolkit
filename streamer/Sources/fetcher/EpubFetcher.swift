@@ -12,11 +12,15 @@ import Foundation
 ///
 /// - missingFile: The file is missing from the container.
 /// - container: An Container error occurred.
+/// - missingRootFile: The rootFile is missing from internalData
 public enum EpubFetcherError: Error {
     case missingFile(path: String)
 
     /// An Container error occurred, **underlyingError** thrown.
     case container(underlyingError: Error)
+
+    /// No rootFile in internalData, unable to get path to publication
+    case missingRootFile()
 }
 
 /// A EpubFetcher object lets you get the data from the assets in the EPUB
@@ -38,15 +42,14 @@ internal class EpubFetcher {
 
     // MARK: - Internal methods
 
-    internal init?(publication: Publication, container: Container) {
+    internal init(publication: Publication, container: Container) throws {
         self.container = container
         self.publication = publication
         
         // Get the path of the directory of the rootFile, to access resources
         // relative to the rootFile
         guard let rootfilePath = publication.internalData["rootfile"] as NSString? else {
-            NSLog("No rootFile in internalData, unable to get path to publication")
-            return nil
+            throw EpubFetcherError.missingRootFile()
         }
         rootFileDirectory = rootfilePath.deletingLastPathComponent
     }
