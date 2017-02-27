@@ -9,7 +9,6 @@
 import Foundation
 import GCDWebServers
 
-
 /// Errors thrown during the serving of the EPUB
 ///
 /// - epubParser: An error thrown by the EpubParser object

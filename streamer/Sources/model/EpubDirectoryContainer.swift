@@ -45,7 +45,6 @@ open class EpubDirectoryContainer: Container {
         return fileSize
     }
 
-
     /// <#Description#>
     ///
     /// - Parameter relativePath: <#relativePath description#>
@@ -60,15 +59,13 @@ open class EpubDirectoryContainer: Container {
         return inputStream
     }
 
-
     /// Generate an absolute path to a ressource from a given relative path.
     ///
     /// - Parameter relativePath: The 'directory-relative' path to the ressource.
     /// - Returns: The absolute path to the ressource
     internal func generateFullPath(with relativePath: String) -> String {
-        let fullPath: String
-
-        fullPath = (rootPath as NSString).appendingPathComponent(relativePath)
+        let fullPath = String().appending(pathComponent: relativePath)
+        
         return fullPath
     }
 }

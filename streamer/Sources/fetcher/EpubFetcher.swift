@@ -57,7 +57,7 @@ internal class EpubFetcher {
     /// - Throws: `EpubFetcherError.missingFile`.
     internal func data(forRelativePath path: String) throws -> Data? {
         // Build the path relative to the container
-        let pubRelativePath = (rootFileDirectory as NSString).appendingPathComponent(path)
+        let pubRelativePath = rootFileDirectory.appending(pathComponent: path)
 
         // Get the link information from the publication
         guard let _ = publication.resource(withRelativePath: path) else {
@@ -78,7 +78,7 @@ internal class EpubFetcher {
     /// - Throws: `EpubFetcherError.missingFile`.
     internal func dataLength(forRelativePath path: String) throws -> UInt64 {
         // Build the path relative to the container
-        let pubRelativePath = (rootFileDirectory as NSString).appendingPathComponent(path)
+        let pubRelativePath = rootFileDirectory.appending(pathComponent: path)
 
         // Get the link information from the publication
         guard let _ = publication.resource(withRelativePath: path) else {
@@ -98,7 +98,7 @@ internal class EpubFetcher {
     /// - Throws: `EpubFetcherError.missingFile`.
     internal func dataStream(forRelativePath path: String) throws -> SeekableInputStream {
         // Build the path relative to the container
-        let pubRelativePath = (rootFileDirectory as NSString).appendingPathComponent(path)
+        let pubRelativePath = rootFileDirectory.appending(pathComponent: path)
 
         // Get the link information from the publication
         guard let _ = publication.resource(withRelativePath: path) else {
