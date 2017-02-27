@@ -36,6 +36,7 @@ internal class EpubFetcher {
     // TODO: Content filters
     //var contentFilters: [ContentFilter]
 
+    // MARK: - Internal methods
 
     internal init?(publication: Publication, container: Container) {
         self.container = container
