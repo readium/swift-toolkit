@@ -14,19 +14,24 @@ open class EpubDirectoryContainer: Container {
     /// The root directory path
     var rootPath: String
 
+    // MARK: - Public methods
+
     public init?(directory dirPath: String) {
         guard FileManager.default.fileExists(atPath: dirPath) else {
             return nil
         }
         rootPath = dirPath
     }
-    
+
+    // MARK: - Open methods
+
     open func data(relativePath: String) throws -> Data {
         let fullPath = generateFullPath(with: relativePath)
 
         return try Data(contentsOf: URL(fileURLWithPath: fullPath), options: [.mappedIfSafe])
     }
 
+    // MARK: - Open methods
 
     /// <#Description#>
     ///
@@ -58,6 +63,8 @@ open class EpubDirectoryContainer: Container {
         }
         return inputStream
     }
+
+    // MARK: - Internal methods
 
     /// Generate an absolute path to a ressource from a given relative path.
     ///
