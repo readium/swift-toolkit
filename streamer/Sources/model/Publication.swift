@@ -64,7 +64,7 @@ open class Publication: Mappable {
     open func resource(withRelativePath path: String) -> Link? {
         let matchingLinks = (spine + resources).filter { $0.href == path }
         if !matchingLinks.isEmpty {
-            return matchingLinks.first!
+            return matchingLinks.first?
         }
         return nil
     }
