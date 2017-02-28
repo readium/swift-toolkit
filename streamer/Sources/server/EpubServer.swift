@@ -22,6 +22,9 @@ public enum EpubServerError: Error {
 open class EpubServer {
     /// The HTTP server
     var webServer: GCDWebServer
+
+    // FIXME: probably get rid of the server serving multiple epub at a given time
+    //          better to implement indexing for multibook search etc
     /// The dictionary of EPUB containers keyed by prefix
     var containers: [String: Container] = [:]
     /// The dictionaty of publications keyed by prefix
@@ -116,10 +119,10 @@ open class EpubServer {
             do {
                 let dataStream = try fetcher.dataStream(forRelativePath: relativePath)
                 let range = request.hasByteRange() ? request.byteRange : nil
-                let r = WebServerResourceResponse(inputStream: dataStream,
-                                                  range: range,
-                                                  contentType: contentType)
-                response = r
+
+                response = WebServerResourceResponse(inputStream: dataStream,
+                                                     range: range,
+                                                     contentType: contentType)
             } catch EpubFetcherError.missingFile {
                 NSLog("Error file not found, couldn't create stream")
                 response = GCDWebServerErrorResponse(statusCode: 404)
