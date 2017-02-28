@@ -11,28 +11,25 @@ import GCDWebServers
 
 /// Errors thrown during the serving of the EPUB
 ///
-/// - epubParser: An error thrown by the EpubParser object
+/// - epubParser: An error thrown by the EpubParser
+/// - epubFetcher: An error thrown by the EpubFetcher
 public enum EpubServerError: Error {
     case epubParser(underlayingError: Error)
+    case epubFetcher(underlayingError: Error)
 }
 
 /// The HTTP server for the publication's manifests and assets
 open class EpubServer {
-
     /// The HTTP server
     var webServer: GCDWebServer
-
     /// The dictionary of EPUB containers keyed by prefix
     var containers: [String: Container] = [:]
-
     /// The dictionaty of publications keyed by prefix
     var publications: [String: Publication] = [:]
-
     /// The running HTTP server listening port
     public var port: UInt? {
         get { return webServer.port }
     }
-
     /// The base URL of the server
     public var baseURL: URL? {
         get { return webServer.serverURL }
@@ -73,223 +70,118 @@ open class EpubServer {
     public func addEpub(container: Container, withEndpoint endpoint: String) throws {
         let parser: EpubParser
         let publication: Publication
+        let fetcher: EpubFetcher
 
         guard containers[endpoint] == nil else {
-            // FIXME: Mabe throw instead? Is that fine to just return? Tocheck
             return
         }
+        // Parser + Publication initialisation
         do {
             parser = try EpubParser(container: container)
             publication = try parser.parse()
         } catch {
             throw EpubServerError.epubParser(underlayingError: error)
         }
-        // newverstart
-        // Add self link
         addSelfLinkTo(publication: publication, endpoint: endpoint)
-
-        // Are these dictionaries really necessary?
+        // FIXME: Are these dictionaries really necessary?
         containers[endpoint] = container
         publications[endpoint] = publication
+        // Initialize the Fetcher
+        do {
+            fetcher = try EpubFetcher(publication: publication, container: container)
+        } catch {
+            throw EpubServerError.epubFetcher(underlayingError: error)
+        }
+        /// Webserver HTTP GET ressources request handler
+        func ressourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
+            let response: GCDWebServerResponse
+            let relativePath: String
+            let resource: Link?
+            let contentType: String
 
-        let fetcher = EpubFetcher(publication: publication, container: container)
-
-        // Add the handler for the resources OPTIONS
-        /*
-         webServer.addHandler(
-         forMethod: "OPTIONS",
-         pathRegex: "/\(endpoint)/.*",
-         request: GCDWebServerRequest.self,
-         processBlock: { request in
-
-         guard let path = request?.path else {
-         NSLog("no path in options request")
-         return GCDWebServerErrorResponse(statusCode: 500)
-         }
-
-         NSLog("options request \(path)")
-
-         return GCDWebServerDataResponse()
-         })
-         */
-
-        // Add the handler for the resources
+            guard let request = request else {
+                NSLog("No request (nil)")
+                return GCDWebServerErrorResponse(statusCode: 500)
+            }
+            guard let path = request.path else {
+                NSLog("no path in request")
+                return GCDWebServerErrorResponse(statusCode: 500)
+            }
+            NSLog("request \(path)")
+            // Remove the prefix from the URI
+            relativePath = path.substring(from: path.index(endpoint.endIndex, offsetBy: 3))
+            resource = publication.resource(withRelativePath: relativePath)
+            contentType = resource?.typeLink ?? "application/octet-stream"
+            // Get a data input stream from the fetcher
+            do {
+                let dataStream = try fetcher.dataStream(forRelativePath: relativePath)
+                let range = request.hasByteRange() ? request.byteRange : nil
+                let r = WebServerResourceResponse(inputStream: dataStream,
+                                                  range: range,
+                                                  contentType: contentType)
+                response = r
+            } catch EpubFetcherError.missingFile {
+                NSLog("Error file not found, couldn't create stream")
+                response = GCDWebServerErrorResponse(statusCode: 404)
+            } catch EpubFetcherError.container {
+                NSLog("Error while getting data stream from container")
+                response = GCDWebServerErrorResponse(statusCode: 500)
+            } catch {
+                NSLog("Error \(error) occured")
+                response = GCDWebServerErrorResponse(statusCode: 500)
+            }
+            return response
+        }
         webServer.addHandler(
             forMethod: "GET",
             pathRegex: "/\(endpoint)/.*",
             request: GCDWebServerRequest.self,
-            processBlock: { request in
+            processBlock: ressourcesHandler)
+        /// The webserver handler to process the HTTP GET
+        func manifestHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
+            let manifestJSON = publication.toJSONString()
+            let manifestData = manifestJSON?.data(using: .utf8)
+            let type = "application/webpub+json; charset=utf-8"
 
-                guard request != nil else {
-                    NSLog("no request")
-                    return GCDWebServerErrorResponse(statusCode: 500)
-                }
-
-                //NSLog("request \(request)")
-                //NSLog("request headers \(request!.headers)")
-
-                guard let path = request?.path else {
-                    NSLog("no path in request")
-                    return GCDWebServerErrorResponse(statusCode: 500)
-                }
-
-                NSLog("request \(path)")
-
-                // Remove the prefix from the URI
-                let relativePath = path.substring(from: path.index(endpoint.endIndex, offsetBy: 3))
-                let resource = publication.resource(withRelativePath: relativePath)
-                let contentType = resource?.typeLink ?? "application/octet-stream"
-
-                var response: GCDWebServerResponse
-                do {
-                    // Get a data input stream from the fetcher
-                    if let dataStream = try fetcher?.dataStream(forRelativePath: relativePath) {
-                        let range: NSRange? = request!.hasByteRange() ? request!.byteRange : nil
-                        let r = WebServerResourceResponse(inputStream: dataStream, range: range, contentType: contentType)
-                        response = r
-                    } else {
-                        // Error getting the data stream
-                        NSLog("Unable to get a data stream from the fetcher")
-                        response = GCDWebServerErrorResponse(statusCode: 500)
-                    }
-
-                } catch EpubFetcherError.missingFile {
-                    // File not found
-                    response = GCDWebServerErrorResponse(statusCode: 404)
-
-                } catch {
-                    // Any other error
-                    NSLog("General error creating the response \(error)")
-                    response = GCDWebServerErrorResponse(statusCode: 500)
-                }
-
-                return response
-        })
-
-        // Add the handler for the manifest
+            return GCDWebServerDataResponse(data: manifestData, contentType: type)
+        }
         webServer.addHandler(
             forMethod: "GET",
             pathRegex: "/\(endpoint)/manifest.json",
             request: GCDWebServerRequest.self,
-            processBlock: { request in
-                let manifestJSON = publication.toJSONString()
-                let manifestData = manifestJSON?.data(using: .utf8)
-                return GCDWebServerDataResponse(data: manifestData, contentType: "application/webpub+json; charset=utf-8")
-        })
+            processBlock: manifestHandler)
 
-
-        // newverend
-
-//        if let publication = try? parser.parse() {
-//
-//            // Add self link
-//            if let pubURL = baseURL?.appendingPathComponent("\(endpoint)/manifest.json", isDirectory: false) {
-//                publication.links.append(Link(href: pubURL.absoluteString, typeLink: "application/webpub+json", rel: "self"))
-//            }
-//
-//            // Are these dictionaries really necessary?
-//            containers[endpoint] = container
-//            publications[endpoint] = publication
-//
-//            let fetcher = EpubFetcher(publication: publication, container: container)
-//
-//            // Add the handler for the resources OPTIONS
-//            /*
-//             webServer.addHandler(
-//             forMethod: "OPTIONS",
-//             pathRegex: "/\(endpoint)/.*",
-//             request: GCDWebServerRequest.self,
-//             processBlock: { request in
-//
-//             guard let path = request?.path else {
-//             NSLog("no path in options request")
-//             return GCDWebServerErrorResponse(statusCode: 500)
-//             }
-//
-//             NSLog("options request \(path)")
-//
-//             return GCDWebServerDataResponse()
-//             })
-//             */
-//
-//            // Add the handler for the resources
-//            webServer.addHandler(
-//                forMethod: "GET",
-//                pathRegex: "/\(endpoint)/.*",
-//                request: GCDWebServerRequest.self,
-//                processBlock: { request in
-//
-//                    guard request != nil else {
-//                        NSLog("no request")
-//                        return GCDWebServerErrorResponse(statusCode: 500)
-//                    }
-//
-//                    //NSLog("request \(request)")
-//                    //NSLog("request headers \(request!.headers)")
-//
-//                    guard let path = request?.path else {
-//                        NSLog("no path in request")
-//                        return GCDWebServerErrorResponse(statusCode: 500)
-//                    }
-//
-//                    NSLog("request \(path)")
-//
-//                    // Remove the prefix from the URI
-//                    let relativePath = path.substring(from: path.index(endpoint.endIndex, offsetBy: 3))
-//                    let resource = publication.resource(withRelativePath: relativePath)
-//                    let contentType = resource?.typeLink ?? "application/octet-stream"
-//
-//                    var response: GCDWebServerResponse
-//                    do {
-//                        // Get a data input stream from the fetcher
-//                        if let dataStream = try fetcher?.dataStream(forRelativePath: relativePath) {
-//                            let range: NSRange? = request!.hasByteRange() ? request!.byteRange : nil
-//                            let r = WebServerResourceResponse(inputStream: dataStream, range: range, contentType: contentType)
-//                            response = r
-//                        } else {
-//                            // Error getting the data stream
-//                            NSLog("Unable to get a data stream from the fetcher")
-//                            response = GCDWebServerErrorResponse(statusCode: 500)
-//                        }
-//
-//                    } catch EpubFetcherError.missingFile {
-//                        // File not found
-//                        response = GCDWebServerErrorResponse(statusCode: 404)
-//
-//                    } catch {
-//                        // Any other error
-//                        NSLog("General error creating the response \(error)")
-//                        response = GCDWebServerErrorResponse(statusCode: 500)
-//                    }
-//
-//                    return response
-//            })
-//
-//            // Add the handler for the manifest
-//            webServer.addHandler(
-//                forMethod: "GET",
-//                pathRegex: "/\(endpoint)/manifest.json",
-//                request: GCDWebServerRequest.self,
-//                processBlock: { request in
-//                    let manifestJSON = publication.toJSONString()
-//                    let manifestData = manifestJSON?.data(using: .utf8)
-//                    return GCDWebServerDataResponse(data: manifestData, contentType: "application/webpub+json; charset=utf-8")
-//            })
-//
-//        }
+        // FIXME: Add the handler for the resources OPTIONS
+        //         webServer.addHandler(
+        //         forMethod: "OPTIONS",
+        //         pathRegex: "/\(endpoint)/.*",
+        //         request: GCDWebServerRequest.self,
+        //         processBlock: { request in
+        //
+        //         guard let path = request?.path else {
+        //         NSLog("no path in options request")
+        //         return GCDWebServerErrorResponse(statusCode: 500)
+        //         }
+        //
+        //         NSLog("options request \(path)")
+        //
+        //         return GCDWebServerDataResponse()
+        //         })
     }
 
-    /**
-     Remove an EPUB container from the server
-
-     - parameter prefix: The URI prefix associated with the container (by `addEpub`)
-     */
-    public func removeEpub(withEndpoint endpoint: String) {
-        if containers[endpoint] != nil {
-            containers[endpoint] = nil
-            publications[endpoint] = nil
-            // TODO: remove handlers
+    /// Remove an EPUB container from the server.
+    ///
+    /// - Parameter endpoint: The URI postfix of the ressource
+    public func removeEpub(at endpoint: String) {
+        guard containers[endpoint] != nil else {
+            return
         }
+        containers[endpoint] = nil
+        publications[endpoint] = nil
+        // TOFO: Remove associated handlers
+        // Only method available with GCDWebServer is
+        //webServer.removeAllHandlers()
+
     }
 
     // MARK: - Internal methods
@@ -300,16 +192,19 @@ open class EpubServer {
     ///   - publication: The targeted publication.
     ///   - endPoint: The URI prefix to use to fetch assets from the publication.
     internal func addSelfLinkTo(publication: Publication, endpoint: String) {
+        let publicationURL: URL
+        let link: Link
+        let manifestPath = "\(endpoint)/manifest.json"
+
         guard let baseURL = baseURL else {
             return
         }
-        let manifestPath = "\(endpoint)/manifest.json"
-        let publicationURL = baseURL.appendingPathComponent(manifestPath,
-                                                            isDirectory: false)
-        let link = Link(href: publicationURL.absoluteString,
-                        typeLink: "application/webpub+json", rel: "self")
-
+        publicationURL = baseURL.appendingPathComponent(manifestPath,
+                                                        isDirectory: false)
+        link = Link(href: publicationURL.absoluteString,
+                    typeLink: "application/webpub+json",
+                    rel: "self")
         publication.links.append(link)
     }
-
+    
 }
