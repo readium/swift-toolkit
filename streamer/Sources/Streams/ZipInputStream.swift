@@ -10,9 +10,8 @@ import UIKit
 import minizip
 
 
-
+/// <#Description#>
 open class ZipInputStream: SeekableInputStream {
-    
     var zipArchive: ZipArchive
     var fileInZipPath: String
     
@@ -22,6 +21,7 @@ open class ZipInputStream: SeekableInputStream {
             return _streamError
         }
     }
+    
     private var _streamStatus: Stream.Status = .notOpen
     override open var streamStatus: Stream.Status {
         get {
