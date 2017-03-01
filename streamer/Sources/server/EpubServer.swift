@@ -9,27 +9,27 @@
 import Foundation
 import GCDWebServers
 
-/// Errors thrown during the serving of the EPUB
+/// Errors thrown by the `EpubServer`.
 ///
-/// - epubParser: An error thrown by the EpubParser
-/// - epubFetcher: An error thrown by the EpubFetcher
+/// - epubParser: An error thrown by the EpubParser.
+/// - epubFetcher: An error thrown by the EpubFetcher.
 public enum EpubServerError: Error {
     case epubParser(underlayingError: Error)
     case epubFetcher(underlayingError: Error)
 }
 
-/// The HTTP server for the publication's manifests and assets
+/// The HTTP server for the publication's manifests and assets. Serves Epubs.
 open class EpubServer {
     /// The HTTP server
     var webServer: GCDWebServer
 
     // FIXME: probably get rid of the server serving multiple epub at a given time
     //          better to implement indexing for multibook search etc
-    /// The dictionary of EPUB containers keyed by prefix
+    /// The dictionary of EPUB containers keyed by prefix.
     var containers: [String: Container] = [:]
-    /// The dictionaty of publications keyed by prefix
+    /// The dictionaty of publications keyed by prefix.
     var publications: [String: Publication] = [:]
-    /// The running HTTP server listening port
+    /// The running HTTP server listening port.
     public var port: UInt? {
         get { return webServer.port }
     }
