@@ -80,6 +80,7 @@ open class Publication: Mappable {
     open func link(withRel rel: String) -> Link? {
         let matchingLinks = links.filter { (link: Link) -> Bool in
             let coverRel = link.rel.filter { $0 == rel }
+
             return !coverRel.isEmpty
         }
         if !matchingLinks.isEmpty {
