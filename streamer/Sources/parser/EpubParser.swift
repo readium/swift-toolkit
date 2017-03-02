@@ -78,12 +78,13 @@ open class EpubParser {
     ///           `EpubParserError.xmlParse`,
     ///           `EpubParserError.missingElement`
     required public init(container: Container) throws {
+        let mimetype: String?
+
         self.container = container
         guard let mimeTypeData = try? container.data(relativePath: "mimetype") else {
             throw EpubParserError.wrongMimeType
         }
-        let mimetype = String(data: mimeTypeData, encoding: .ascii)
-
+        mimetype = String(data: mimeTypeData, encoding: .ascii)
         guard mimetype == EPUBConstant.mimetype else {
             throw EpubParserError.wrongMimeType
         }
@@ -115,6 +116,7 @@ open class EpubParser {
     internal func parseContainer() throws {
         let containerPath = "META-INF/container.xml"
         let containerXml: AEXMLDocument
+        let rootFileElement: AEXMLElement
 
         guard let containerData = try? container.data(relativePath: containerPath) else {
             throw EpubParserError.missingFile(path: containerPath)
@@ -125,7 +127,7 @@ open class EpubParser {
             throw EpubParserError.xmlParse(underlyingError: error)
         }
         // Look for the first `<roofile>` element
-        let rootFileElement = containerXml.root["rootfiles"]["rootfile"]
+        rootFileElement = containerXml.root["rootfiles"]["rootfile"]
 
         rootFilePath = try getRootFilePath(from: rootFileElement)
         // Get the specifications version the EPUB conforms to

@@ -20,13 +20,13 @@ public enum WebServerResponseError: Error {
 /// The object containing the response's ressource data.
 /// If the ressource to be served is too big, multiple responses will be created.
 open class WebServerResourceResponse: GCDWebServerFileResponse {
-    var inputStream: SeekableInputStream
+
     // The range of data served on this response (?)
     var range: Range<UInt64>?
-    var totalNumberOfBytesRead = UInt64(0)
+    var inputStream: SeekableInputStream
+    lazy var totalNumberOfBytesRead = UInt64(0)
     let bufferSize = 32 * 1024
     var buffer: Array<UInt8>
-
 
     /// Initialise the WebServerRessourceResponse object, defining what will be
     /// served.
@@ -123,19 +123,22 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
     /// - Returns: The data that have been read.
     /// - Throws: `WebServerResponseError.invalidRange`.
     override open func readData() throws -> Data {
+        let len: Int
+        let numberOfBytesRead: Int
+
         guard let range = range else {
             throw WebServerResponseError.invalidRange
         }
-        let len = min(bufferSize, Int64(range.count) - Int64(totalNumberOfBytesRead))
-        let numberOfBytesRead = inputStream.read(&buffer, maxLength: len)
-
-        if numberOfBytesRead > 0 {
-            totalNumberOfBytesRead += UInt64(numberOfBytesRead)
-            //NSLog("ResourceResponse read \(numberOfBytesRead) bytes")
-            //NSLog("ResourceResponse \(range.lowerBound)-\(range.upperBound) / \(inputStream.length) : bytes read \(totalNumberOfBytesRead)")
-            return Data(bytes: buffer, count: numberOfBytesRead)
+        len = min(bufferSize, Int64(range.count) - Int64(totalNumberOfBytesRead))
+        // Read
+        numberOfBytesRead = inputStream.read(&buffer, maxLength: len)
+        guard numberOfBytesRead > 0 else {
+            return Data()
         }
-        return Data()
+        totalNumberOfBytesRead += UInt64(numberOfBytesRead)
+        //NSLog("ResourceResponse read \(numberOfBytesRead) bytes")
+        //NSLog("ResourceResponse \(range.lowerBound)-\(range.upperBound) / \(inputStream.length) : bytes read \(totalNumberOfBytesRead)")
+        return Data(bytes: buffer, count: numberOfBytesRead)
     }
 
     /// Closes the inputStream.

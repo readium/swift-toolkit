@@ -103,14 +103,13 @@ internal class EpubFetcher {
     internal func dataStream(forRelativePath path: String) throws -> SeekableInputStream {
         // Build the path relative to the container
         let pubRelativePath = rootFileDirectory.appending(pathComponent: path)
+        let inputStream: SeekableInputStream
 
         // Get the link information from the publication
         guard let _ = publication.resource(withRelativePath: path) else {
             throw EpubFetcherError.missingFile(path: path)
         }
         // Get an input stream from the container
-        let inputStream: SeekableInputStream
-
         do {
             inputStream = try container.dataInputStream(relativePath: pubRelativePath)
         } catch {

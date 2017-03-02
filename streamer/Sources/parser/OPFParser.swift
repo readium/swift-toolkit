@@ -205,33 +205,33 @@ open class OPFParser {
     /// - Returns: The content of the `<dc:title>` element, `nil` if the element
     ///            wasn't found.
     internal func parseMainTitle(from metadata: AEXMLElement) -> String? {
+        let mainTitles: [AEXMLElement]
+
         // Return if there isn't any `<dc:title>` element
         guard let titles = metadata["dc:title"].all else {
             return nil
         }
-
-        // TODO: refactor this
-        // If there's more than one, look for the `main` one as defined by `refines`
-        if titles.count > 1 && epubVersion == 3 {
-            let mainTitles = titles.filter { (element: AEXMLElement) in
-                guard let eid = element.attributes["id"] else {
-                    return false
-                }
-                let attributes = ["property": "title-type", "refines": "#" + eid]
-                let metas = metadata["meta"].all(withAttributes: attributes)
-
-                if let mainMetas = metas?.filter({ $0.string == "main" }) {
-                    return !mainMetas.isEmpty
-                }
+        // If there's more than one, look for the `main` one as defined by 
+        // `refines`.
+        // Else, as a fallback and default, return the first `<dc:title>` 
+        // content.
+        guard titles.count > 1, epubVersion == 3 else {
+            return metadata["dc:title"].string
+        }
+        // Filter mainTitles from titles
+        mainTitles = titles.filter { (element: AEXMLElement) in
+            guard let eid = element.attributes["id"] else {
                 return false
             }
-            if !mainTitles.isEmpty {
-                return mainTitles.first!.string
-            }
-        }
+            let attributes = ["property": "title-type", "refines": "#" + eid]
+            let metas = metadata["meta"].all(withAttributes: attributes)
 
-        // As a fallback and default, return the first `<dc:title>` content
-        return metadata["dc:title"].string
+            if let mainMetas = metas?.filter({ $0.string == "main" }) {
+                return !mainMetas.isEmpty
+            }
+            return false
+        }
+        return mainTitles.first?.string
     }
 
     /// Get the unique identifer of the publication from the from the OPF XML
@@ -374,39 +374,38 @@ open class OPFParser {
     internal func parseSpineAndResources(from document: AEXMLDocument,
                                          to publication: Publication,
                                          with coverItemId: String?) {
+        let manifest = document.root["manifest"]
         // Create a dictionary for all the manifest items keyed by their id
         var manifestLinks = [String: Link]()
-        let manifest = document.root["manifest"]
+        defer {
+            // Those links that were not in the spine are the resources,
+            // they've already been removed from the manifestLinks dictionary
+            publication.resources = [Link](manifestLinks.values)
+        }
 
         parseManifestItems(from: manifest, to: publication, and: &manifestLinks,
                            with: coverItemId)
         // Parse the `<spine>` element children
-        if let spineItems = document.root["spine"]["itemref"].all {
-
-            // For each spine item, look for the link in manifestLinks dictionary,
-            // add it to the spine and remove it from manifestLinks.
-            for item in spineItems {
-                if let id = item.attributes["idref"] {
-
-                    // Only linear items are added to the spine
-                    guard item.attributes["linear"]?.lowercased() != "no" else {
-                        continue
-                    }
-
-                    if let link = manifestLinks[id] {
-                        // Found the link in the manifest items, add it to the spine
-                        publication.spine.append(link)
-
-                        // Then remove it from the manifest
-                        manifestLinks.removeValue(forKey: id)
-                    }
-                }
+        guard let spineItems = document.root["spine"]["itemref"].all else {
+            return
+        }
+        // For each spine item, look for the link in manifestLinks dictionary,
+        // add it to the spine and remove it from manifestLinks.
+        for item in spineItems {
+            guard let id = item.attributes["idref"] else {
+                continue
+            }
+            // Only linear items are added to the spine
+            guard item.attributes["linear"]?.lowercased() != "no" else {
+                continue
+            }
+            if let link = manifestLinks[id] {
+                // Found the link in the manifest items, add it to the spine
+                publication.spine.append(link)
+                // Then remove it from the manifest
+                manifestLinks.removeValue(forKey: id)
             }
         }
-
-        // Those links that were not in the spine are the resources,
-        // they've already been removed from the manifestLinks dictionary
-        publication.resources = [Link](manifestLinks.values)
     }
 
     /// Parses the differents manifest items from the XML <manifest> element.
@@ -428,22 +427,24 @@ open class OPFParser {
             link.typeLink = item.attributes["media-type"]
             // Look for properties
             if let properties = item.attributes["properties"] {
-                let propertiesArray = properties.components(separatedBy: CharacterSet.whitespaces)
+                let ws = CharacterSet.whitespaces
+                let propertiesArray = properties.components(separatedBy: ws)
 
-                parseItemProperties(from: propertiesArray, to: link, and: publication)
+                parseItemProperties(from: propertiesArray, to: link,
+                                    and: publication)
             }
             // Add it to the manifest items dict if it has an id
-            if let id = item.attributes["id"] {
-                // If it's the cover's item id, set the rel to cover and add the link to `links`
-                if id == coverItemId {
-                    link.rel.append("cover")
-                    publication.links.append(link)
-                }
-                manifestLinks[id] = link
-            } else {
-                // Manifest item MUST have an id, ignore it
+            guard let id = item.attributes["id"] else {
                 NSLog("Manifest item has no \"id\" attribute")
+                return
             }
+            // If it's the cover's item id, set the rel to cover and add the
+            // link to `links`
+            if id == coverItemId {
+                link.rel.append("cover")
+                publication.links.append(link)
+            }
+            manifestLinks[id] = link
         }
     }
 
@@ -457,6 +458,8 @@ open class OPFParser {
     internal func parseItemProperties(from properties: [String],
                                       to link: Link,
                                       and publication: Publication) {
+        let remainingProperties: [String]
+
         if properties.contains("nav") {
             link.rel.append("contents")
         }
@@ -465,9 +468,9 @@ open class OPFParser {
             link.rel.append("cover")
             publication.links.append(link)
         }
-        // FIXME: wait SO answer
-        let remainingProperties = properties.filter { $0 != "cover-image" && $0 != "nav" }
-        
+        remainingProperties = properties.filter {
+            $0 != "cover-image" && $0 != "nav"
+        }
         link.properties.append(contentsOf: remainingProperties)
         // TODO: rendition properties
     }
