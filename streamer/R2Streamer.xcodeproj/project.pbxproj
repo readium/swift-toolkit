@@ -43,6 +43,7 @@
 		F3AF6BF91E57275900D90E5A /* Link.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3AF6BF81E57275900D90E5A /* Link.swift */; };
 		F3AF6BFB1E57282D00D90E5A /* Rendition.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3AF6BFA1E57282D00D90E5A /* Rendition.swift */; };
 		F3AF6BFD1E57285700D90E5A /* Subject.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3AF6BFC1E57285700D90E5A /* Subject.swift */; };
+		F3D551451E68658C0065A0BE /* CleanroomLogger.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3D551441E68658C0065A0BE /* CleanroomLogger.framework */; };
 		F3DEE6E21E5C5A53007FE63D /* OPFParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */; };
 /* End PBXBuildFile section */
 
@@ -97,6 +98,7 @@
 		F3AF6BF81E57275900D90E5A /* Link.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Link.swift; sourceTree = "<group>"; };
 		F3AF6BFA1E57282D00D90E5A /* Rendition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Rendition.swift; sourceTree = "<group>"; };
 		F3AF6BFC1E57285700D90E5A /* Subject.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Subject.swift; sourceTree = "<group>"; };
+		F3D551441E68658C0065A0BE /* CleanroomLogger.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CleanroomLogger.framework; path = Carthage/Build/iOS/CleanroomLogger.framework; sourceTree = "<group>"; };
 		F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = OPFParser.swift; path = Sources/parser/OPFParser.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -107,6 +109,7 @@
 			files = (
 				59501E201E2FB2AD00D1B4BF /* libz.tbd in Frameworks */,
 				59501E1B1E2FB1F500D1B4BF /* AEXML.framework in Frameworks */,
+				F3D551451E68658C0065A0BE /* CleanroomLogger.framework in Frameworks */,
 				59501E1C1E2FB1F500D1B4BF /* GCDWebServers.framework in Frameworks */,
 				59501E1D1E2FB1F500D1B4BF /* ObjectMapper.framework in Frameworks */,
 			);
@@ -249,6 +252,7 @@
 			isa = PBXGroup;
 			children = (
 				59501E1F1E2FB2AD00D1B4BF /* libz.tbd */,
+				F3D551441E68658C0065A0BE /* CleanroomLogger.framework */,
 				59501E181E2FB1F500D1B4BF /* AEXML.framework */,
 				59501E191E2FB1F500D1B4BF /* GCDWebServers.framework */,
 				59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */,
