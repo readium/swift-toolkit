@@ -417,6 +417,7 @@
 				"$(SRCROOT)/Carthage/Build/iOS/AEXML.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/ObjectMapper.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/GCDWebServers.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/CleanroomLogger.framework",
 			);
 			outputPaths = (
 			);
