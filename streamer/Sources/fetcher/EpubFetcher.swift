@@ -8,7 +8,7 @@
 
 import Foundation
 
-/// Error throw by the `EpubFetcher`
+/// Error throw by the `EpubFetcher`.
 ///
 /// - missingFile: The file is missing from the container.
 /// - container: An Container error occurred.

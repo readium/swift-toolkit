@@ -11,7 +11,7 @@ import GCDWebServers
 /// Errors thrown by the `WebServerResourceResponse`
 ///
 /// - streamOpenFailed: The stream is not open, stream.open() failed.
-/// - invalidRange: <#invalidRange description#>
+/// - invalidRange: The range queried is invalid.
 public enum WebServerResponseError: Error {
     case streamOpenFailed
     case invalidRange
@@ -40,13 +40,12 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
                 range: NSRange?,
                 contentType: String) {
         let streamLength = inputStream.length
-        print("lolilol")
 
         // Initialize buffer
         buffer = Array<UInt8>(repeating: 0, count: bufferSize)
         // Set inputStream
         self.inputStream = inputStream
-        // If range is non nil - means it's not the first part
+        // If range is non nil - means it's not the first part (?)
         if let range = range {
             NSLog("Request range \(range.location)-\(range.length)")
             /// Return a range of what to read next (nothing, next part,

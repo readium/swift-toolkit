@@ -9,6 +9,9 @@
 import Foundation
 import AEXML
 
+
+/// EpubParser support class, parsing the OPF package document in the container.
+/// OPF (Open Packaging Format)
 open class OPFParser {
 
     /// The EPUB container.
@@ -19,6 +22,7 @@ open class OPFParser {
     /// The version of the EPUB file.
     internal var epubVersion: Double
 
+    // Mark: - Public methods.
 
     /// Initialise an OPFParser instance.
     ///
@@ -30,14 +34,14 @@ open class OPFParser {
         self.epubVersion = epubVersion
     }
 
-    // MARK: - Internal methods
+    // MARK: - Internal methods.
 
     /// Parses an OPF package document from the container.
     ///
     /// - Parameter rootFilePath: The relative path to OPF package file.
     /// - Returns: The `Publication` object resulting from the parsing.
     /// - Throws: `EpubParserError.missingFile`,
-    ///           `EpubParserError.xmlParse`
+    ///           `EpubParserError.xmlParse`.
     internal func parseOPF(at rootFilePath: String) throws -> Publication {
         let publication = Publication()
         let metadata: Metadata
@@ -54,7 +58,6 @@ open class OPFParser {
         } catch {
             throw EpubParserError.xmlParse(underlyingError: error)
         }
-
         // Try to get EPUB version from the <package> element in case it was
         // not set in the container.
         if epubVersion == EPUBConstant.defaultEpubVersion,
@@ -66,19 +69,15 @@ open class OPFParser {
         }
         publication.internalData["type"] = "epub"
         publication.internalData["rootfile"] = rootFilePath
-
         // Add self to links
         // MARK: we don't know the self URL here
         //publication!.links.append(Link(href: "TODO", typeLink: "application/webpub+json", rel: "self"))
-
         metadata = parseMetadata(from: document)
-
         // Get the page progression direction
         if let dir = document.root["spine"].attributes["page-progression-direction"] {
             metadata.direction = dir
         }
         publication.metadata = metadata
-
         // Look for the manifest item id of the cover
         var coverId: String?
         let metadataElement = document.root["metadata"]
@@ -90,10 +89,10 @@ open class OPFParser {
         return publication
     }
 
-    /// Parse the Metadata in the XML <metadata> element
+    /// Parse the Metadata in the XML <metadata> element.
     ///
-    /// - Parameter document: Parse the Metadata in the XML <metadata> element
-    /// - Returns: The Metadata object representing the XML <metadata> element
+    /// - Parameter document: Parse the Metadata in the XML <metadata> element.
+    /// - Returns: The Metadata object representing the XML <metadata> element.
     internal func parseMetadata(from document: AEXMLDocument) -> Metadata {
         let metadata = Metadata()
         let metadataElement = document.root["metadata"]
@@ -141,10 +140,8 @@ open class OPFParser {
                 parseContributor(from: contributorElement, in: document, to: metadata)
             }
         }
-
         // Rendition properties
         setRenditionProperties(from: metadataElement["meta"], to: metadata)
-
         return metadata
     }
 
@@ -152,11 +149,12 @@ open class OPFParser {
     /// then into the Metadata object instance.
     ///
     /// - Parameters:
-    ///   - metadataElement: The XML element containing the metadatas
+    ///   - metadataElement: The XML element containing the metadatas.
     ///   - metadata: The `Metadata` object.
     internal func setRenditionProperties(from metadataElement: AEXMLElement, to metadata: Metadata) {
         var attribute: [String: String]
 
+        // Layout
         attribute = ["property" : "rendition:layout"]
         if let renditionLayouts = metadataElement.all(withAttributes: attribute),
             !renditionLayouts.isEmpty {
@@ -165,6 +163,7 @@ open class OPFParser {
             metadata.rendition.layout = RenditionLayout(rawValue: layouts)
         }
 
+        // Flow
         attribute = ["property" : "rendition:flow"]
         if let renditionFlows = metadataElement.all(withAttributes: attribute),
             !renditionFlows.isEmpty {
@@ -173,6 +172,7 @@ open class OPFParser {
             metadata.rendition.flow = RenditionFlow(rawValue: flows)
         }
 
+        // Orientation
         attribute = ["property" : "rendition:orientation"]
         if let renditionOrientations = metadataElement.all(withAttributes: attribute),
             !renditionOrientations.isEmpty {
@@ -181,6 +181,7 @@ open class OPFParser {
             metadata.rendition.orientation = RenditionOrientation(rawValue: orientation)
         }
 
+        // Spread
         attribute = ["property" : "rendition:spread"]
         if let renditionSpreads = metadataElement.all(withAttributes: attribute),
             !renditionSpreads.isEmpty {
@@ -189,6 +190,7 @@ open class OPFParser {
             metadata.rendition.spread = RenditionSpread(rawValue: spread)
         }
 
+        // Viewport
         attribute = ["property" : "rendition:viewport"]
         if let renditionViewports = metadataElement.all(withAttributes: attribute),
             !renditionViewports.isEmpty {
@@ -197,11 +199,11 @@ open class OPFParser {
     }
 
     /// Get the main title of the publication from the from the OPF XML document
-    /// `<metadata>` element
+    /// `<metadata>` element.
     ///
-    /// - Parameter metadata: The `<metadata>` element
+    /// - Parameter metadata: The `<metadata>` element.
     /// - Returns: The content of the `<dc:title>` element, `nil` if the element
-    ///             wasn't found
+    ///            wasn't found.
     internal func parseMainTitle(from metadata: AEXMLElement) -> String? {
         // Return if there isn't any `<dc:title>` element
         guard let titles = metadata["dc:title"].all else {
@@ -233,13 +235,13 @@ open class OPFParser {
     }
 
     /// Get the unique identifer of the publication from the from the OPF XML
-    /// document `<metadata>` element
+    /// document `<metadata>` element.
     ///
     /// - Parameters:
-    ///   - metadata: The `<metadata>` element
-    ///   - Attributes: The XML document attributes
+    ///   - metadata: The `<metadata>` element.
+    ///   - Attributes: The XML document attributes.
     /// - Returns: The content of the `<dc:identifier>` element, `nil` if the
-    ///             element wasn't found
+    ///             element wasn't found.
     internal func parseUniqueIdentifier(from metadata: AEXMLElement,
                                         withAttributes attributes: [String : String]) -> String? {
         // Look for `<dc:identifier>` elements
@@ -295,18 +297,19 @@ open class OPFParser {
 
     /// Parse a `creator` or `contributor` element from the OPF XML document,
     /// then builds and adds a Contributor to the metadata, to an array
-    /// according to its role (authors, translators, etc.)
+    /// according to its role (authors, translators, etc.).
     ///
     /// - Parameters:
-    ///   - element: The XML element to parse
-    ///   - doc: The OPF XML document being parsed
-    ///   - metadata: The metadata to which to add the contributor
+    ///   - element: The XML element to parse.
+    ///   - doc: The OPF XML document being parsed.
+    ///   - metadata: The metadata to which to add the contributor.
     internal func parseContributor(from element: AEXMLElement,
                                    in document: AEXMLDocument,
                                    to metadata: Metadata) {
         let metadataElement = document.root["metadata"]
         let contributor = createContributor(from: element, metadata: metadataElement)
-        // FIXME: Could replace below code for lowering cyclomatic complexity
+        // FIXME: Could replace below code for lowering cyclomatic complexity?
+        //        (Swiftlint error, but idk if really pertinent
         //          not sure is cleaner. Need advice
         //        var roles = [("aut", metadata.authors),
         //                     ("trl", metadata.translators),
@@ -377,7 +380,6 @@ open class OPFParser {
 
         parseManifestItems(from: manifest, to: publication, and: &manifestLinks,
                            with: coverItemId)
-
         // Parse the `<spine>` element children
         if let spineItems = document.root["spine"]["itemref"].all {
 
@@ -430,7 +432,6 @@ open class OPFParser {
 
                 parseItemProperties(from: propertiesArray, to: link, and: publication)
             }
-
             // Add it to the manifest items dict if it has an id
             if let id = item.attributes["id"] {
                 // If it's the cover's item id, set the rel to cover and add the link to `links`
@@ -446,6 +447,13 @@ open class OPFParser {
         }
     }
 
+    // TODO: Refine description
+    /// Parse the items misc properties (?).
+    ///
+    /// - Parameters:
+    ///   - properties: The remaining properties array.
+    ///   - link: The link which will be included into the Publication Object.
+    ///   - publication: The concerned Publication.
     internal func parseItemProperties(from properties: [String],
                                       to link: Link,
                                       and publication: Publication) {

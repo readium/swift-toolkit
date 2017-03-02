@@ -21,8 +21,10 @@ public enum FileInputStreamError: Error {
 
 /// <#Description#>
 open class FileInputStream: SeekableInputStream {
+
     /// The path to the file opened by the stream
     private var filePath: String
+    
     /// The file handle (== fd) of the file at path `filePath`
     private var fileHandle: FileHandle?
 

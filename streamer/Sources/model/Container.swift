@@ -11,7 +11,7 @@ import Foundation
 /// Container Protocol's Errors
 ///
 /// - streamInitFailed:
-/// - fileNotFound:
+/// - fileNotFound: File couldn't be found.
 /// - fileError:
 public enum ContainerError: Error {
     case streamInitFailed

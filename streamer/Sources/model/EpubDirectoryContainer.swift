@@ -25,19 +25,14 @@ open class EpubDirectoryContainer: Container {
 
     // MARK: - Open methods
 
+    // Implements Container protocol
     open func data(relativePath: String) throws -> Data {
         let fullPath = generateFullPath(with: relativePath)
 
         return try Data(contentsOf: URL(fileURLWithPath: fullPath), options: [.mappedIfSafe])
     }
 
-    // MARK: - Open methods
-
-    /// <#Description#>
-    ///
-    /// - Parameter relativePath: <#relativePath description#>
-    /// - Returns: <#return value description#>
-    /// - Throws: <#throws value description#>
+    // Implements Container protocol
     open func dataLength(relativePath: String) throws -> UInt64 {
         let fullPath = generateFullPath(with: relativePath)
 
@@ -50,11 +45,7 @@ open class EpubDirectoryContainer: Container {
         return fileSize
     }
 
-    /// <#Description#>
-    ///
-    /// - Parameter relativePath: <#relativePath description#>
-    /// - Returns: <#return value description#>
-    /// - Throws: <#throws value description#>
+    // Implements Container protocol
     open func dataInputStream(relativePath: String) throws -> SeekableInputStream {
         let fullPath = generateFullPath(with: relativePath)
 

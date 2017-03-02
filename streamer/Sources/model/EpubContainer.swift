@@ -8,9 +8,13 @@
 
 import Foundation
 
-/// EPUB Container for EPUB files
+/// EPUB Container for EPUB files.
 open class EpubContainer: Container {
+
+    /// Path to the Epub file.
     var epubFilePath: String
+
+    /// The zip archive object containing the Epub.
     var zipArchive: ZipArchive
 
     public init?(path: String) {
@@ -21,14 +25,17 @@ open class EpubContainer: Container {
         epubFilePath = path
     }
 
+    // Implements Container protocol
     open func data(relativePath: String) throws -> Data {
         return try zipArchive.readData(path: relativePath)
     }
 
+    // Implements Container protocol
     open func dataLength(relativePath: String) throws -> UInt64 {
         return try zipArchive.fileSize(path: relativePath)
     }
 
+    // Implements Container protocol
     open func dataInputStream(relativePath: String) throws -> SeekableInputStream {
         // let inputStream = ZipInputStream(zipArchive: zipArchive, path: relativePath)
         guard let inputStream = ZipInputStream(zipFilePath: epubFilePath, path: relativePath) else {

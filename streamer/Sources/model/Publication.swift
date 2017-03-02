@@ -15,17 +15,17 @@ import ObjectMapper
 /// As it is extended by `Mappable`, it can be deserialized to `JSON`.
 open class Publication: Mappable {
 
-    /// The metadata (title, identifier, contributors, etc.)
+    /// The metadata (title, identifier, contributors, etc.).
     public var metadata = Metadata()
     public var links = [Link]()
 
-    /// The spine of the publication
+    /// The spine of the publication.
     public var spine = [Link]()
 
-    /// The resources, not including the links already present in the spine
+    /// The resources, not including the links already present in the spine.
     public var resources = [Link]()
 
-    /// The table of contents
+    /// The table of contents.
     public var TOC = [Link]()
     public var pageList = [Link]()
     public var landmarks = [Link]()
@@ -36,8 +36,11 @@ open class Publication: Mappable {
     public var LOT = [Link]()
     public var internalData = [String: String]()
     public var otherLinks = [Link]()
+
     // TODO: other collections
     // var otherCollections: [PublicationCollection]
+
+    // MARK: - Public methods.
 
     /// A link to the publication's cover.
     /// The implementation scans the `links` for a link where `rel` is `cover`.
@@ -56,6 +59,8 @@ open class Publication: Mappable {
         // TODO: init
     }
 
+    // MARK: - Open methods.
+
     /// Finds a resource (asset or spine item) with a matching relative path
     ///
     /// - Parameter path: The relative path to match
@@ -63,6 +68,7 @@ open class Publication: Mappable {
     ///            else `nil`
     open func resource(withRelativePath path: String) -> Link? {
         let matchingLinks = (spine + resources).filter { $0.href == path }
+
         if !matchingLinks.isEmpty {
             return matchingLinks.first
         }

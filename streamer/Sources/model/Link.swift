@@ -22,6 +22,8 @@ open class Link: Mappable {
     public var duration: TimeInterval?
     public var templated: Bool?
 
+    // MARK: - Public methods
+
     public init() {}
 
 
@@ -40,6 +42,8 @@ open class Link: Mappable {
     public required init?(map: Map) {
         // TODO: init
     }
+
+    // MARK: - Open methods
 
     open func mapping(map: Map) {
         href <- map["href"]

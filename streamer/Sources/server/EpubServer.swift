@@ -20,6 +20,7 @@ public enum EpubServerError: Error {
 
 /// The HTTP server for the publication's manifests and assets. Serves Epubs.
 open class EpubServer {
+
     /// The HTTP server
     var webServer: GCDWebServer
 
@@ -27,12 +28,15 @@ open class EpubServer {
     //          better to implement indexing for multibook search etc
     /// The dictionary of EPUB containers keyed by prefix.
     var containers: [String: Container] = [:]
+
     /// The dictionaty of publications keyed by prefix.
     var publications: [String: Publication] = [:]
+
     /// The running HTTP server listening port.
     public var port: UInt? {
         get { return webServer.port }
     }
+
     /// The base URL of the server
     public var baseURL: URL? {
         get { return webServer.serverURL }
@@ -61,7 +65,6 @@ open class EpubServer {
             return nil
         }
     }
-
 
     /// Add an EPUB container to the list of EPUBS being served.
     ///
@@ -174,7 +177,7 @@ open class EpubServer {
 
     /// Remove an EPUB container from the server.
     ///
-    /// - Parameter endpoint: The URI postfix of the ressource
+    /// - Parameter endpoint: The URI postfix of the ressource.
     public func removeEpub(at endpoint: String) {
         guard containers[endpoint] != nil else {
             return
@@ -189,7 +192,7 @@ open class EpubServer {
 
     // MARK: - Internal methods
 
-    /// Append a link to self in the given Publication links
+    /// Append a link to self in the given Publication links.
     ///
     /// - Parameters:
     ///   - publication: The targeted publication.

@@ -32,7 +32,7 @@ open class Metadata: Mappable {
     public var contributors = [Contributor]()
     public var publishers = [Contributor]()
     public var imprints = [Contributor]()
-    // -
+
     public var languages = [String]()
     public var modified: NSDate?
     public var publicationDate: NSDate?
@@ -43,8 +43,10 @@ open class Metadata: Mappable {
     public var epubType = [String]()
     public var rights: String?
     public var subjects = [Subject]()
-    // -
+
     public var otherMetadata = [MetadataItem]()
+
+    // MARK: - Public methods.
 
     public init() {
         direction = "default"
@@ -54,6 +56,8 @@ open class Metadata: Mappable {
         direction = "default"
         // TODO: init
     }
+
+    // MARK: - Open methods
 
     open func mapping(map: Map) {
         identifier <- map["identifier"]
