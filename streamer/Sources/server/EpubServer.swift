@@ -58,9 +58,6 @@ open class EpubServer {
             GCDWebServer.setLogLevel(3)
             Log.enable(minimumSeverity: .warning)
         #endif
-
-        Log.error?.message("TESTING ERROR MESSAGE")
-
         webServer = GCDWebServer()
         do {
             try webServer.start(options: [GCDWebServerOption_Port: port,
