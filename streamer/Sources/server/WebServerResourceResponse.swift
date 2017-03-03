@@ -7,6 +7,7 @@
 //
 
 import GCDWebServers
+import CleanroomLogger
 
 /// Errors thrown by the `WebServerResourceResponse`
 ///
@@ -47,7 +48,7 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
         self.inputStream = inputStream
         // If range is non nil - means it's not the first part (?)
         if let range = range {
-            NSLog("Request range \(range.location)-\(range.length)")
+            Log.debug?.message("Request range \(range.location)-\(range.length).")
             /// Return a range of what to read next (nothing, next part,
             /// whole data).
             func getNextRange(after range: NSRange,
@@ -136,8 +137,8 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
             return Data()
         }
         totalNumberOfBytesRead += UInt64(numberOfBytesRead)
-        //NSLog("ResourceResponse read \(numberOfBytesRead) bytes")
-        //NSLog("ResourceResponse \(range.lowerBound)-\(range.upperBound) / \(inputStream.length) : bytes read \(totalNumberOfBytesRead)")
+        //Log.debug?.message("ResourceResponse read \(numberOfBytesRead) bytes")
+        //Log.debug?.message("ResourceResponse \(range.lowerBound)-\(range.upperBound) / \(inputStream.length) : bytes read \(totalNumberOfBytesRead)")
         return Data(bytes: buffer, count: numberOfBytesRead)
     }
 

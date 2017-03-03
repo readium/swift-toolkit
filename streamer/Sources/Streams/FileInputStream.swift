@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import CleanroomLogger
 
 /// FileInputStream errors
 ///
@@ -73,9 +74,9 @@ open class FileInputStream: SeekableInputStream {
     public init?(fileAtPath: String) {
         let attributes: [FileAttributeKey : Any]
 
-        // Does the file `atFilePath` exists
+        // Does file `atFilePath` exists
         guard FileManager.default.fileExists(atPath: fileAtPath) else {
-            NSLog("File not found: \(fileAtPath)")
+            Log.error?.message("File not found: \(fileAtPath).")
             return nil
         }
         filePath = fileAtPath
@@ -83,12 +84,13 @@ open class FileInputStream: SeekableInputStream {
         do {
             attributes = try FileManager.default.attributesOfItem(atPath: filePath)
         } catch {
-            NSLog("Exception retrieving attrs for item at path \(filePath) (\(error)) ")
+            Log.error?.message("Exception retrieving attrs for \(filePath).")
+            Log.error?.value(error)
             return nil
         }
         // Verify the size attribute of the file at `fileAtPath`
         guard let fileSize = attributes[FileAttributeKey.size] as? UInt64 else {
-            NSLog("Error accessing size attribute")
+            Log.error?.message("Error accessing size attribute.")
             return nil
         }
         _length = fileSize
@@ -150,7 +152,8 @@ open class FileInputStream: SeekableInputStream {
         assert(whence == .startOfFile, "Only seek from start of stream is supported for now.")
         assert(offset >= 0, "Since only seek from start of stream if supported, offset must be >= 0")
         
-        NSLog("FileInputStream \(filePath) offset \(offset)")
+        Log.debug?.value(filePath)
+        Log.debug?.value(offset)
         guard let fileHandle = fileHandle else {
             _streamStatus = .error
             _streamError = FileInputStreamError.fileHandleUnset

@@ -8,7 +8,7 @@
 
 import Foundation
 import AEXML
-
+import CleanroomLogger
 
 /// EpubParser support class, parsing the OPF package document in the container.
 /// OPF (Open Packaging Format)
@@ -435,7 +435,7 @@ open class OPFParser {
             }
             // Add it to the manifest items dict if it has an id
             guard let id = item.attributes["id"] else {
-                NSLog("Manifest item has no \"id\" attribute")
+                Log.error?.message("Manifest item has no \"id\" attribute")
                 return
             }
             // If it's the cover's item id, set the rel to cover and add the

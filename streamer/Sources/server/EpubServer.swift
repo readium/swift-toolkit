@@ -49,7 +49,7 @@ open class EpubServer {
         #if DEBUG
             let port = 8080
 
-            GCDWebServer.setLogLevel(0)
+            GCDWebServer.setLogLevel(2)
             Log.enable(minimumSeverity: .debug, debugMode: true)
         #else
             // Default: random port
@@ -69,6 +69,7 @@ open class EpubServer {
         }
     }
 
+    // TODO: Github issue #3
     /// Add an EPUB container to the list of EPUBS being served.
     ///
     /// - Parameters:
@@ -171,15 +172,14 @@ open class EpubServer {
         //         processBlock: { request in
         //
         //         guard let path = request?.path else {
-        //         NSLog("no path in options request")
+        //         Log.error?.message("no path in options request")
         //         return GCDWebServerErrorResponse(statusCode: 500)
         //         }
         //
-        //         NSLog("options request \(path)")
+        //         Log.debug?.message("options request \(path)")
         //
         //         return GCDWebServerDataResponse()
         //         })
-
         Log.info?.message("Epub at \(endpoint) has been successfully added.")
     }
 

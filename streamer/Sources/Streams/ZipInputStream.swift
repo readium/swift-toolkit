@@ -8,7 +8,7 @@
 
 import UIKit
 import minizip
-
+import CleanroomLogger
 
 /// <#Description#>
 open class ZipInputStream: SeekableInputStream {
@@ -106,14 +106,14 @@ open class ZipInputStream: SeekableInputStream {
     
     override open func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) -> Int {
         do {
-            //NSLog("ZipInputStream \(fileInZipPath) read \(maxLength) bytes")
+            //Log.debug?.message("ZipInputStream \(fileInZipPath) read \(maxLength) bytes")
             let bytesRead = try zipArchive.readDataFromCurrentFile(buffer, maxLength: UInt64(maxLength))
             if Int(bytesRead) < maxLength {
                 _streamStatus = .atEnd
             }
             return Int(bytesRead)
         } catch {
-            NSLog("ZipInputStream error \(error)")
+            Log.error?.message("ZipInputStream error \(error)")
             _streamStatus = .error
             _streamError = error
         }
@@ -121,7 +121,7 @@ open class ZipInputStream: SeekableInputStream {
     }
     
     override open func close() {
-        //NSLog("ZipInputStream \(fileInZipPath) close")
+        //Log.debug?.message("ZipInputStream \(fileInZipPath) close")
         zipArchive.closeCurrentFile()
         //objc_sync_exit(zipArchive)
         _streamStatus = .closed
@@ -132,7 +132,7 @@ open class ZipInputStream: SeekableInputStream {
         assert(whence == .startOfFile, "Only seek from start of stream is supported for now.")
         assert(offset >= 0, "Since only seek from start of stream if supported, offset must be >= 0")
         
-        NSLog("ZipInputStream \(fileInZipPath) offset \(offset)")
+        Log.debug?.message("ZipInputStream \(fileInZipPath) offset \(offset)")
         do {
             try zipArchive.seekCurrentFile(offset: UInt64(offset))
         } catch {
