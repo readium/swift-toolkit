@@ -35,6 +35,10 @@
 		59501E1D1E2FB1F500D1B4BF /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */; };
 		59501E201E2FB2AD00D1B4BF /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E1F1E2FB2AD00D1B4BF /* libz.tbd */; };
 		F309BBDD1E696F660002F800 /* EpubServerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F309BBDC1E696F660002F800 /* EpubServerTest.swift */; };
+		F309BBDF1E6970C30002F800 /* CleanroomLogger.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = F3D551441E68658C0065A0BE /* CleanroomLogger.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		F309BBE01E6970C30002F800 /* AEXML.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 59501E181E2FB1F500D1B4BF /* AEXML.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		F309BBE11E6970C30002F800 /* GCDWebServers.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 59501E191E2FB1F500D1B4BF /* GCDWebServers.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		F309BBE21E6970C30002F800 /* ObjectMapper.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F351DB721E54B6DB00D84BDF /* EpubDirectoryContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F351DB711E54B6DB00D84BDF /* EpubDirectoryContainer.swift */; };
 		F351DB741E54B71A00D84BDF /* EpubContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F351DB731E54B71A00D84BDF /* EpubContainer.swift */; };
 		F351DB761E55E2BE00D84BDF /* Metadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = F351DB751E55E2BE00D84BDF /* Metadata.swift */; };
@@ -45,6 +49,10 @@
 		F3AF6BFB1E57282D00D90E5A /* Rendition.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3AF6BFA1E57282D00D90E5A /* Rendition.swift */; };
 		F3AF6BFD1E57285700D90E5A /* Subject.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3AF6BFC1E57285700D90E5A /* Subject.swift */; };
 		F3D551451E68658C0065A0BE /* CleanroomLogger.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3D551441E68658C0065A0BE /* CleanroomLogger.framework */; };
+		F3DE1D851E6971A800D05F74 /* CleanroomLogger.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3D551441E68658C0065A0BE /* CleanroomLogger.framework */; };
+		F3DE1D861E6971A800D05F74 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E181E2FB1F500D1B4BF /* AEXML.framework */; };
+		F3DE1D871E6971A800D05F74 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E191E2FB1F500D1B4BF /* GCDWebServers.framework */; };
+		F3DE1D881E6971A800D05F74 /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */; };
 		F3DEE6E21E5C5A53007FE63D /* OPFParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */; };
 /* End PBXBuildFile section */
 
@@ -57,6 +65,22 @@
 			remoteInfo = R2Streamer;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		F309BBDE1E6970A40002F800 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				F309BBDF1E6970C30002F800 /* CleanroomLogger.framework in CopyFiles */,
+				F309BBE01E6970C30002F800 /* AEXML.framework in CopyFiles */,
+				F309BBE11E6970C30002F800 /* GCDWebServers.framework in CopyFiles */,
+				F309BBE21E6970C30002F800 /* ObjectMapper.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		59501DCD1E2FB0D700D1B4BF /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -122,6 +146,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				59501DD71E2FB0D700D1B4BF /* R2Streamer.framework in Frameworks */,
+				F3DE1D851E6971A800D05F74 /* CleanroomLogger.framework in Frameworks */,
+				F3DE1D861E6971A800D05F74 /* AEXML.framework in Frameworks */,
+				F3DE1D871E6971A800D05F74 /* GCDWebServers.framework in Frameworks */,
+				F3DE1D881E6971A800D05F74 /* ObjectMapper.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -169,8 +197,8 @@
 			isa = PBXGroup;
 			children = (
 				59501DDB1E2FB0D700D1B4BF /* R2StreamerTests.swift */,
-				59501DDD1E2FB0D700D1B4BF /* Info.plist */,
 				F309BBDC1E696F660002F800 /* EpubServerTest.swift */,
+				59501DDD1E2FB0D700D1B4BF /* Info.plist */,
 			);
 			path = R2StreamerTests;
 			sourceTree = "<group>";
@@ -343,6 +371,7 @@
 				59501DD21E2FB0D700D1B4BF /* Sources */,
 				59501DD31E2FB0D700D1B4BF /* Frameworks */,
 				59501DD41E2FB0D700D1B4BF /* Resources */,
+				F309BBDE1E6970A40002F800 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -371,6 +400,7 @@
 					};
 					59501DD51E2FB0D700D1B4BF = {
 						CreatedOnToolsVersion = 8.2;
+						DevelopmentTeam = 327YA3JNGT;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -651,6 +681,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				DEVELOPMENT_TEAM = 327YA3JNGT;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = R2StreamerTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2StreamerTests;
@@ -663,6 +698,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				DEVELOPMENT_TEAM = 327YA3JNGT;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = R2StreamerTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2StreamerTests;
