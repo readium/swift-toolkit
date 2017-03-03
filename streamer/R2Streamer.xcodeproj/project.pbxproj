@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		59501DD71E2FB0D700D1B4BF /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501DCD1E2FB0D700D1B4BF /* R2Streamer.framework */; };
-		59501DDC1E2FB0D700D1B4BF /* R2StreamerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DDB1E2FB0D700D1B4BF /* R2StreamerTests.swift */; };
 		59501DDE1E2FB0D700D1B4BF /* R2Streamer.h in Headers */ = {isa = PBXBuildFile; fileRef = 59501DD01E2FB0D700D1B4BF /* R2Streamer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		59501E031E2FB16600D1B4BF /* EpubFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DE81E2FB16600D1B4BF /* EpubFetcher.swift */; };
 		59501E041E2FB16600D1B4BF /* Container.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DEA1E2FB16600D1B4BF /* Container.swift */; };
@@ -53,6 +52,8 @@
 		F3DE1D861E6971A800D05F74 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E181E2FB1F500D1B4BF /* AEXML.framework */; };
 		F3DE1D871E6971A800D05F74 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E191E2FB1F500D1B4BF /* GCDWebServers.framework */; };
 		F3DE1D881E6971A800D05F74 /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */; };
+		F3DE1D8A1E69757100D05F74 /* EpubParsingTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3DE1D891E69757100D05F74 /* EpubParsingTest.swift */; };
+		F3DE1ECC1E6980E100D05F74 /* Samples in Resources */ = {isa = PBXBuildFile; fileRef = F3DE1EC91E69801D00D05F74 /* Samples */; };
 		F3DEE6E21E5C5A53007FE63D /* OPFParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */; };
 /* End PBXBuildFile section */
 
@@ -87,7 +88,6 @@
 		59501DD01E2FB0D700D1B4BF /* R2Streamer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = R2Streamer.h; sourceTree = "<group>"; };
 		59501DD11E2FB0D700D1B4BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		59501DD61E2FB0D700D1B4BF /* R2StreamerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = R2StreamerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		59501DDB1E2FB0D700D1B4BF /* R2StreamerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2StreamerTests.swift; sourceTree = "<group>"; };
 		59501DDD1E2FB0D700D1B4BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		59501DE81E2FB16600D1B4BF /* EpubFetcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpubFetcher.swift; sourceTree = "<group>"; };
 		59501DEA1E2FB16600D1B4BF /* Container.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Container.swift; sourceTree = "<group>"; };
@@ -125,6 +125,8 @@
 		F3AF6BFA1E57282D00D90E5A /* Rendition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Rendition.swift; sourceTree = "<group>"; };
 		F3AF6BFC1E57285700D90E5A /* Subject.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Subject.swift; sourceTree = "<group>"; };
 		F3D551441E68658C0065A0BE /* CleanroomLogger.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CleanroomLogger.framework; path = Carthage/Build/iOS/CleanroomLogger.framework; sourceTree = "<group>"; };
+		F3DE1D891E69757100D05F74 /* EpubParsingTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpubParsingTest.swift; sourceTree = "<group>"; };
+		F3DE1EC91E69801D00D05F74 /* Samples */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Samples; sourceTree = "<group>"; };
 		F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = OPFParser.swift; path = Sources/parser/OPFParser.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -183,8 +185,8 @@
 				59501DEE1E2FB16600D1B4BF /* R2Streamer-Bridging-Header.h */,
 				F36B18F31E64638E005E22B4 /* StringExtension.swift */,
 				59501DE91E2FB16600D1B4BF /* Model */,
-				59501DEC1E2FB16600D1B4BF /* Parser */,
 				F351DB701E54B43400D84BDF /* Containers */,
+				59501DEC1E2FB16600D1B4BF /* Parser */,
 				59501DE71E2FB16600D1B4BF /* Fetcher */,
 				59501DEF1E2FB16600D1B4BF /* Server */,
 				59501DF21E2FB16600D1B4BF /* Streams */,
@@ -196,8 +198,9 @@
 		59501DDA1E2FB0D700D1B4BF /* R2StreamerTests */ = {
 			isa = PBXGroup;
 			children = (
-				59501DDB1E2FB0D700D1B4BF /* R2StreamerTests.swift */,
+				F3DE1EC91E69801D00D05F74 /* Samples */,
 				F309BBDC1E696F660002F800 /* EpubServerTest.swift */,
+				F3DE1D891E69757100D05F74 /* EpubParsingTest.swift */,
 				59501DDD1E2FB0D700D1B4BF /* Info.plist */,
 			);
 			path = R2StreamerTests;
@@ -435,6 +438,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F3DE1ECC1E6980E100D05F74 /* Samples in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -510,7 +514,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F309BBDD1E696F660002F800 /* EpubServerTest.swift in Sources */,
-				59501DDC1E2FB0D700D1B4BF /* R2StreamerTests.swift in Sources */,
+				F3DE1D8A1E69757100D05F74 /* EpubParsingTest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
