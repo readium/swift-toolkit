@@ -19,7 +19,7 @@ public struct EpubConstant {
     /// Path of the EPUB's container.xml file
     static let containerDotXmlPath = "META-INF/container.xml"
 
-    /// Epub+zip mime-type
+    /// Epub mime-type
     static let mimetypeEPUB = "application/epub+zip"
 
     /// http://www.idpf.org/oebps/
