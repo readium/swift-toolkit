@@ -12,13 +12,11 @@ import CleanroomLogger
 
 /// EpubParser support class, parsing the OPF package document in the container.
 /// OPF (Open Packaging Format)
-open class OPFParser {
-
-    // Mark: - Public methods.
-
-    public init() {}
+public class OPFParser {
 
     // MARK: - Internal methods.
+
+    internal init() {}
 
     /// Parse the OPF file of the Epub container and return a `Publication`.
     ///
@@ -27,6 +25,7 @@ open class OPFParser {
     /// - Throws: `EpubParserError.missingFile`,
     ///           `EpubParserError.xmlParse`.
     internal func parseOPF(from container: inout Container) throws -> Publication {
+        /// The 'to be built' Publication.
         let publication = Publication()
         /// The XML document object representation of the package.OPF file.
         let document: AEXMLDocument
@@ -36,47 +35,30 @@ open class OPFParser {
         ///     Relative path to the package.opf file.
         let rootFilePath = container.metadata.rootFilePath
 
-        // Get `Data` from the Container/OPFFile
-        guard let opfData = try? container.data(relativePath: rootFilePath) else {
-            throw EpubParserError.missingFile(path: rootFilePath)
-        }
-        // Create an XML document from the OPF Data
-        do {
-            document = try AEXMLDocument(xml: opfData)
-        } catch {
-            throw EpubParserError.xmlParse(underlyingError: error)
-        }
+        // Get the package.opf XML document from the container.
+        document = try getXmlDocumentForFile(in: container,
+                                             atPath: rootFilePath)
+        // Try to get EPUB version from the <package> element.
+        // Else set it to default value.
+        container.metadata.epubVersion = getEpubVersion(from: document)
 
-        // Try to get EPUB version from the <package> element. Else set to
-        // default value.
-        if let version = document.root.attributes["version"],
-            let versionNumber = Double(version) {
-            container.metadata.epubVersion = versionNumber
-        } else {
-            container.metadata.epubVersion = EpubConstant.defaultEpubVersion
-        }
-        
-        publication.internalData["type"] = "epub"
-        publication.internalData["rootfile"] = rootFilePath
-        // Add self to links
-        // MARK: we don't know the self URL here
-        //publication!.links.append(Link(href: "TODO", typeLink: "application/webpub+json", rel: "self"))
+        // TODO: Add self to links
+        // But we don't know the self URL here
+        //publication.links.append(Link(href: "TODO", typeLink: "application/webpub+json", rel: "self"))
+
+        // Parse Metadata from the XML document.
         metadata = parseMetadata(from: document,
                                  with: container.metadata.epubVersion)
-        // Get the page progression direction
+        // Get the page progression direction.
         if let dir = document.root["spine"].attributes["page-progression-direction"] {
             metadata.direction = dir
         }
+        // Look for the manifest item id of the cover.
+        parseSpineAndResources(from: document, to: publication)
+        //
         publication.metadata = metadata
-
-        // Look for the manifest item id of the cover
-        var coverId: String?
-        let metadataElement = document.root["metadata"]
-
-        if let coverMetas = metadataElement["meta"].all(withAttributes: ["name" : "cover"]) {
-            coverId = coverMetas.first?.string
-        }
-        parseSpineAndResources(from: document, to: publication, with: coverId)
+        publication.internalData["type"] = "epub"
+        publication.internalData["rootfile"] = rootFilePath
         return publication
     }
 
@@ -380,19 +362,26 @@ open class OPFParser {
     ///   - publication: The publication whose spine and resources will be built.
     ///   - coverItemId: The id of the cover item in the manifest.
     internal func parseSpineAndResources(from document: AEXMLDocument,
-                                         to publication: Publication,
-                                         with coverItemId: String?) {
+                                         to publication: Publication
+        ) {
+        /// XML shortcuts
+        let metadataElement = document.root["metadata"]
         let manifest = document.root["manifest"]
         // Create a dictionary for all the manifest items keyed by their id
         var manifestLinks = [String: Link]()
+        var coverId: String?
+
         defer {
             // Those links that were not in the spine are the resources,
             // they've already been removed from the manifestLinks dictionary
             publication.resources = [Link](manifestLinks.values)
         }
 
-        parseManifestItems(from: manifest, to: publication, and: &manifestLinks,
-                           with: coverItemId)
+        if let coverMetas = metadataElement["meta"].all(withAttributes: ["name" : "cover"]) {
+            coverId = coverMetas.first?.string
+        }
+        parseManifestItems(from: manifest, to: publication,
+                           and: &manifestLinks, with: coverId)
         // Parse the `<spine>` element children
         guard let spineItems = document.root["spine"]["itemref"].all else {
             return
@@ -481,6 +470,49 @@ open class OPFParser {
         }
         link.properties.append(contentsOf: remainingProperties)
         // TODO: rendition properties
+    }
+
+    // MARK: - Private methods.
+
+    /// Takes a Container and the path to one of it's ressource and returns an
+    /// XML document.
+    ///
+    /// - Parameters:
+    ///   - container: The Container containing the XML file.
+    ///   - path: The path to the XML file.
+    /// - Returns: The XML document Object generated.
+    /// - Throws: EpubParserError.missingFile(),
+    ///           EpubParserError.xmlParse().
+    private func getXmlDocumentForFile(in container: Container,
+                                       atPath path: String
+        ) throws -> AEXMLDocument {
+        // The 'to be built' XML Document
+        var document: AEXMLDocument
+
+        // Get `Data` from the Container/OPFFile
+        guard let data = try? container.data(relativePath: path) else {
+            throw EpubParserError.missingFile(path: path)
+        }
+        // Transforms `Data` into an AEXML Document object
+        do {
+            document = try AEXMLDocument(xml: data)
+        } catch {
+            throw EpubParserError.xmlParse(underlyingError: error)
+        }
+        return document
+    }
+
+    /// Retrieve the EPUB version from the package.opf XML document.
+    private func getEpubVersion(from document: AEXMLDocument) -> Double {
+        var version: Double
+
+        if let version = document.root.attributes["version"],
+            let versionNumber = Double(version) {
+            version = versionNumber
+        } else {
+            version = EpubConstant.defaultEpubVersion
+        }
+        return version
     }
     
 }
