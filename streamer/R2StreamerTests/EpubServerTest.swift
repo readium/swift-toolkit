@@ -10,15 +10,9 @@ import XCTest
 @testable import R2Streamer
 
 class EpubServerTest: XCTestCase {
-    var epubServer: EpubServer!
+    var epubServer = EpubServer()
 
     // Mark: - test
-
-    func testInitialization() {
-        epubServer = EpubServer()
-
-        XCTAssertNotNil(epubServer)
-    }
 
     func testAddEpub() {
         
