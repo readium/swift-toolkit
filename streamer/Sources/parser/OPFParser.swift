@@ -14,70 +14,61 @@ import CleanroomLogger
 /// OPF (Open Packaging Format)
 open class OPFParser {
 
-    /// The EPUB container.
-    internal var container: Container
-
-    // private var publication = Publication()
-
-    /// The version of the EPUB file.
-    internal var epubVersion: Double
-
     // Mark: - Public methods.
 
-    /// Initialise an OPFParser instance.
-    ///
-    /// - Parameters:
-    ///   - container: The EPUB container who whom OPF file will be parse.
-    ///   - epubVersion: The EPUB version of the related EPUB file.
-    public init(for container: Container, with epubVersion: Double) {
-        self.container = container
-        self.epubVersion = epubVersion
-    }
+    public init() {}
 
     // MARK: - Internal methods.
 
-    /// Parses an OPF package document from the container.
+    /// Parse the OPF file of the Epub container and return a `Publication`.
     ///
-    /// - Parameter rootFilePath: The relative path to OPF package file.
+    /// - Parameter container: The EPUB container whom OPF file will be parsed.
     /// - Returns: The `Publication` object resulting from the parsing.
     /// - Throws: `EpubParserError.missingFile`,
     ///           `EpubParserError.xmlParse`.
-    internal func parseOPF(at rootFilePath: String) throws -> Publication {
+    internal func parseOPF(from container: inout Container) throws -> Publication {
         let publication = Publication()
-        let metadata: Metadata
+        /// The XML document object representation of the package.OPF file.
         let document: AEXMLDocument
+        /// The Publication metadata.
+        let metadata: Metadata
+        /// Shortcuts to ContainerMetadata elements.
+        ///     Relative path to the package.opf file.
+        let rootFilePath = container.metadata.rootFilePath
 
-        // Get OPF document data from the container
-        // FIXME: make rootFile non optional
-        guard let data = try? container.data(relativePath: rootFilePath) else {
+        // Get `Data` from the Container/OPFFile
+        guard let opfData = try? container.data(relativePath: rootFilePath) else {
             throw EpubParserError.missingFile(path: rootFilePath)
         }
-        // Create an XML document from the data
+        // Create an XML document from the OPF Data
         do {
-            document = try AEXMLDocument(xml: data)
+            document = try AEXMLDocument(xml: opfData)
         } catch {
             throw EpubParserError.xmlParse(underlyingError: error)
         }
-        // Try to get EPUB version from the <package> element in case it was
-        // not set in the container.
-        if epubVersion == EPUBConstant.defaultEpubVersion,
-            let version = document.root.attributes["version"],
+
+        // Try to get EPUB version from the <package> element. Else set to
+        // default value.
+        if let version = document.root.attributes["version"],
             let versionNumber = Double(version) {
-            epubVersion = versionNumber
+            container.metadata.epubVersion = versionNumber
         } else {
-            epubVersion = EPUBConstant.defaultEpubVersion
+            container.metadata.epubVersion = EpubConstant.defaultEpubVersion
         }
+        
         publication.internalData["type"] = "epub"
         publication.internalData["rootfile"] = rootFilePath
         // Add self to links
         // MARK: we don't know the self URL here
         //publication!.links.append(Link(href: "TODO", typeLink: "application/webpub+json", rel: "self"))
-        metadata = parseMetadata(from: document)
+        metadata = parseMetadata(from: document,
+                                 with: container.metadata.epubVersion)
         // Get the page progression direction
         if let dir = document.root["spine"].attributes["page-progression-direction"] {
             metadata.direction = dir
         }
         publication.metadata = metadata
+
         // Look for the manifest item id of the cover
         var coverId: String?
         let metadataElement = document.root["metadata"]
@@ -93,12 +84,16 @@ open class OPFParser {
     ///
     /// - Parameter document: Parse the Metadata in the XML <metadata> element.
     /// - Returns: The Metadata object representing the XML <metadata> element.
-    internal func parseMetadata(from document: AEXMLDocument) -> Metadata {
+    internal func parseMetadata(
+        from document: AEXMLDocument,
+        with epubVersion: Double?
+        ) -> Metadata {
         let metadata = Metadata()
         let metadataElement = document.root["metadata"]
         let documentAttributes = document.root.attributes
 
-        metadata.title = parseMainTitle(from: metadataElement)
+        metadata.title = parseMainTitle(from: metadataElement,
+                                        epubVersion: epubVersion)
         metadata.identifier = parseUniqueIdentifier(from: metadataElement,
                                                     withAttributes: documentAttributes)
         // Description
@@ -130,14 +125,20 @@ open class OPFParser {
         // Authors
         if let creators = metadataElement["dc:creator"].all {
             for creatorElement in creators {
-                parseContributor(from: creatorElement, in: document, to: metadata)
+                parseContributor(from: creatorElement,
+                                 in: document,
+                                 to: metadata,
+                                 with: epubVersion)
             }
         }
 
         // Contributors
         if let contributors = metadataElement["dc:contributor"].all {
             for contributorElement in contributors {
-                parseContributor(from: contributorElement, in: document, to: metadata)
+                parseContributor(from: contributorElement,
+                                 in: document,
+                                 to: metadata,
+                                 with: epubVersion)
             }
         }
         // Rendition properties
@@ -204,16 +205,19 @@ open class OPFParser {
     /// - Parameter metadata: The `<metadata>` element.
     /// - Returns: The content of the `<dc:title>` element, `nil` if the element
     ///            wasn't found.
-    internal func parseMainTitle(from metadata: AEXMLElement) -> String? {
+    internal func parseMainTitle(
+        from metadata: AEXMLElement,
+        epubVersion: Double?
+        ) -> String? {
         let mainTitles: [AEXMLElement]
 
         // Return if there isn't any `<dc:title>` element
         guard let titles = metadata["dc:title"].all else {
             return nil
         }
-        // If there's more than one, look for the `main` one as defined by 
+        // If there's more than one, look for the `main` one as defined by
         // `refines`.
-        // Else, as a fallback and default, return the first `<dc:title>` 
+        // Else, as a fallback and default, return the first `<dc:title>`
         // content.
         guard titles.count > 1, epubVersion == 3 else {
             return metadata["dc:title"].string
@@ -270,7 +274,8 @@ open class OPFParser {
     /// - Returns: The contributor instance filled with its name and optionally
     ///            its `role` and `sortAs` attributes.
     internal func createContributor(from element: AEXMLElement,
-                                    metadata: AEXMLElement) -> Contributor {
+                                    metadata: AEXMLElement,
+                                    epubVersion: Double?) -> Contributor {
         let contributor = Contributor(name: element.string)
 
         // Get role from role attribute
@@ -305,9 +310,12 @@ open class OPFParser {
     ///   - metadata: The metadata to which to add the contributor.
     internal func parseContributor(from element: AEXMLElement,
                                    in document: AEXMLDocument,
-                                   to metadata: Metadata) {
+                                   to metadata: Metadata,
+                                   with epubVersion: Double?) {
         let metadataElement = document.root["metadata"]
-        let contributor = createContributor(from: element, metadata: metadataElement)
+        let contributor = createContributor(from: element,
+                                            metadata: metadataElement,
+                                            epubVersion: epubVersion)
         // FIXME: Could replace below code for lowering cyclomatic complexity?
         //        (Swiftlint error, but idk if really pertinent
         //          not sure is cleaner. Need advice

@@ -11,19 +11,26 @@ import Foundation
 /// EPUB Container for EPUB files.
 open class EpubContainer: Container {
 
-    /// Path to the Epub file.
-    var epubFilePath: String
+    /// Struct containing meta information about the Container
+    public var metadata: ContainerMetadata
 
     /// The zip archive object containing the Epub.
     var zipArchive: ZipArchive
 
+    // MARK: - Public methods.
+
+    /// Public failable initializer for the EpubContainer class.
+    ///
+    /// - Parameter path: Path to the epub file.
     public init?(path: String) {
         guard let arc = ZipArchive(url: URL(fileURLWithPath: path)) else {
             return nil
         }
+        metadata = ContainerMetadata.init(rootPath: path)
         zipArchive = arc
-        epubFilePath = path
     }
+
+    // MARK: - Open methods.
 
     // Implements Container protocol
     open func data(relativePath: String) throws -> Data {
@@ -38,7 +45,8 @@ open class EpubContainer: Container {
     // Implements Container protocol
     open func dataInputStream(relativePath: String) throws -> SeekableInputStream {
         // let inputStream = ZipInputStream(zipArchive: zipArchive, path: relativePath)
-        guard let inputStream = ZipInputStream(zipFilePath: epubFilePath, path: relativePath) else {
+        guard let inputStream = ZipInputStream(zipFilePath: metadata.rootPath,
+                                               path: relativePath) else {
             throw ContainerError.streamInitFailed
         }
         return inputStream

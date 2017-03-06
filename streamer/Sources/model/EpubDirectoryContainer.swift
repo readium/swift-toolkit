@@ -10,20 +10,23 @@ import Foundation
 
 /// EPUB Container for EPUBs unzipped in a directory.
 open class EpubDirectoryContainer: Container {
-    
-    /// The root directory path
-    var rootPath: String
+
+    /// Struct containing meta information about the Container
+    public var metadata: ContainerMetadata
 
     // MARK: - Public methods
 
+    /// Public failable initializer for the EpubDirectoryContainer class.
+    ///
+    /// - Parameter dirPath: The root directory path.
     public init?(directory dirPath: String) {
         guard FileManager.default.fileExists(atPath: dirPath) else {
             return nil
         }
-        rootPath = dirPath
+        metadata = ContainerMetadata.init(rootPath: dirPath)
     }
 
-    // MARK: - Open methods
+    // MARK: - Open methods.
 
     // Implements Container protocol
     open func data(relativePath: String) throws -> Data {

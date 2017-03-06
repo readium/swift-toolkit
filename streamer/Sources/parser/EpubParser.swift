@@ -10,11 +10,14 @@ import Foundation
 import AEXML
 
 /// Epub related constants.
-public struct EPUBConstant {
+public struct EpubConstant {
 
     /// Default EPUB Version value, used when no version hes been specified.
     /// (see OPF_2.0.1_draft 1.3.2)
     static let defaultEpubVersion = 1.2
+
+    /// Path of the EPUB's container.xml file
+    static let containerDotXmlPath = "META-INF/container.xml"
 
     /// Epub+zip mime-type
     static let mimetype = "application/epub+zip"
@@ -50,17 +53,8 @@ public enum EpubParserError: Error {
 ///   the assets and the spine.
 open class EpubParser {
 
-    /// The EPUB container to parse.
-    public var container: Container
-
-    /// The EPUB specification version to which the publication conforms.
-    internal var epubVersion: Double!
-
     /// The OPF parser object.
-    internal var opfParser: OPFParser!
-
-    /// The path to the default package document (OPF) to parse.
-    internal var rootFilePath: String!
+    public var opfParser = OPFParser()
 
     // TODO: multiple renditions
     // TODO: media overlays
@@ -68,87 +62,69 @@ open class EpubParser {
     // TODO: encryption info
 
     // MARK: - Public methods
+    public init() {}
 
-    /// The `EpubParser` is initialized with a `Container`, through which it
-    /// can access to the raw data of the files in the EPUB container.
+    /// Parses the EPUB Container and builds a `Publication`.
     ///
-    /// - Parameter container: A `Container` instance.
-    /// - Throws: `EpubParserError.wrongMimeType`,
-    ///           `EpubParserError.missingFile`,
-    ///           `EpubParserError.xmlParse`,
-    ///           `EpubParserError.missingElement`
-    required public init(container: Container) throws {
-        let mimetype: String?
-
-        self.container = container
-        guard let mimeTypeData = try? container.data(relativePath: "mimetype") else {
-            throw EpubParserError.wrongMimeType
-        }
-        mimetype = String(data: mimeTypeData, encoding: .ascii)
-        guard mimetype == EPUBConstant.mimetype else {
-            throw EpubParserError.wrongMimeType
-        }
-        try parseContainer()
-        self.opfParser = OPFParser(for: self.container, with: epubVersion)
-    }
-
-    /// Parses the EPUB container files and builds a `Publication` representation.
-    ///
+    /// - Parameter container: The Container containing the epub.
     /// - Returns: the resulting publication.
     /// - Throws: `EpubParserError.wrongMimeType`,
     ///           `EpubParserError.xmlParse`,
     ///           `EpubParserError.missingFile`
-    public func parse() throws -> Publication {
-        let publication = try opfParser.parseOPF(at: rootFilePath)
-
-        return publication
+    public func parse(container: inout Container) throws -> Publication {
+        // Retrieve mimetype data from container, convert data to string,
+        // then check if valid mimetype
+        guard let mimeTypeData = try? container.data(relativePath: "mimetype"),
+              let mimetype = String(data: mimeTypeData, encoding: .ascii),
+              mimetype == EpubConstant.mimetype else {
+            throw EpubParserError.wrongMimeType
+        }
+        // Retrieve container.xml data from the Container
+        guard let data = try? container.data(relativePath: EpubConstant.containerDotXmlPath) else {
+            throw EpubParserError.missingFile(path: EpubConstant.containerDotXmlPath)
+        }
+        // Parse the container.xml Data and fill the ContainerMetadata object
+        // of the container
+        try parseContainerDotXml(from: data, to: &(container.metadata))
+        // Parse the opf file and return the Publication.
+        return try opfParser.parseOPF(from: &container)
     }
 
     // MARK: - Internal methods.
 
-    /// Parses the container.xml file of the container.
-    /// It extracts the root file (the default one for now, not handling
-    /// multiple renditions).
+    /// Parses the container.xml file and retrieve the relative path to the opf
+    /// file (the default one for now, not handling multiple renditions).
     ///
+    /// - Parameter data: The containerDotXml `Data` representation.
     /// - Throws: `EpubParserError.xmlParse`,
     ///           `EpubParserError.missingFile`,
     ///           `EpubParserError.missingElement`.
-    internal func parseContainer() throws {
-        let containerPath = "META-INF/container.xml"
-        let containerXml: AEXMLDocument
+    func parseContainerDotXml(from data: Data, to metadata: inout ContainerMetadata) throws {
+        let containerDotXml: AEXMLDocument
         let rootFileElement: AEXMLElement
 
-        guard let containerData = try? container.data(relativePath: containerPath) else {
-            throw EpubParserError.missingFile(path: containerPath)
-        }
         do {
-            containerXml = try AEXMLDocument(xml: containerData)
+            containerDotXml = try AEXMLDocument(xml: data)
         } catch {
             throw EpubParserError.xmlParse(underlyingError: error)
         }
         // Look for the first `<roofile>` element
-        rootFileElement = containerXml.root["rootfiles"]["rootfile"]
-
-        rootFilePath = try getRootFilePath(from: rootFileElement)
-        // Get the specifications version the EPUB conforms to
-        // If not set in the container, it will be retrieved during OPF parsing
-        if let version = rootFileElement.attributes["version"],
-            let versionNumber = Double(version) {
-            epubVersion = versionNumber
-        } else {
-            epubVersion = EPUBConstant.defaultEpubVersion
+        rootFileElement = containerDotXml.root["rootfiles"]["rootfile"]
+        // Get the path of the OPF file, relative to the metadata.rootPath.
+        guard let opfFilePath = try getRelativePathToOPF(from: rootFileElement) else {
+            throw EpubParserError.missingElement(message: "Missing rootfile in `container.xml`.")
         }
+        metadata.rootFilePath = opfFilePath
     }
-
 
     /// Retrieves the OPF file path from the fisrt <rootfile> element.
     ///
     /// - Parameter containerXml: The XML container instance.
     /// - Returns: The OPF file path.
     /// - Throws: `EpubParserError.missingElement`.
-    internal func getRootFilePath(from rootFileElement: AEXMLElement) throws -> String {
+    func getRelativePathToOPF(from rootFileElement: AEXMLElement) -> String? {
         guard let fullPath = rootFileElement.attributes["full-path"] else {
-            throw EpubParserError.missingElement(message: "Missing rootfile element in container.xml")
+            return nil
         }
         return fullPath
     }

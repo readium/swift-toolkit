@@ -25,6 +25,8 @@ open class EpubServer {
     /// The HTTP server
     var webServer: GCDWebServer
 
+    let parser = EpubParser()
+
     // FIXME: probably get rid of the server serving multiple epub at a given time
     //          better to implement indexing for multibook search etc
     /// The dictionary of EPUB containers keyed by prefix.
@@ -77,8 +79,8 @@ open class EpubServer {
     ///   - endpoint: The URI prefix to use to fetch assets from the publication
     ///               `/{prefix}/{assetRelativePath}`
     /// - Throws: `EpubServerError.epubParser`
-    public func addEpub(container: Container, withEndpoint endpoint: String) throws {
-        let parser: EpubParser
+    public func addEpub(container: inout Container, withEndpoint endpoint: String) throws {
+
         let publication: Publication
         let fetcher: EpubFetcher
 
@@ -86,10 +88,9 @@ open class EpubServer {
             Log.warning?.message("\(endpoint) is already in use.")
             return
         }
-        // Parser + Publication initialisation
+        // Publication initialisation
         do {
-            parser = try EpubParser(container: container)
-            publication = try parser.parse()
+            publication = try parser.parse(container: &container)
         } catch {
             Log.error?.message("The publication parsing failed.")
             throw EpubServerError.epubParser(underlayingError: error)
