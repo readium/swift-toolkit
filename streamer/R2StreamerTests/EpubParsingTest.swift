@@ -7,116 +7,53 @@
 //
 
 import XCTest
-import CleanroomLogger
 @testable import R2Streamer
-
-/// Testing constants
-fileprivate struct TC {
-    /// The total number epub in Samples
-    static let numberOfEpubSamples = 2
-    /// The total number epubDirectory in Samples
-    static let numberOfEpubDirectorySamples = 2
-    /// Name of test epubs contained in the Samples directory
-    static let epub1 = "cc-shared-culture"
-    static let epub2 = "Le_tournant_hostile_extrait"
-}
+import CleanroomLogger
 
 class EpubParsingTest: XCTestCase {
-    lazy var epubPaths = [String]()
-    lazy var epubDirectoryPaths = [String]()
-    // Epub Containers array
-    lazy var epubContainers = [Container]()
-    // EpubDirectorie Containers array
-    lazy var epubDirectoryContainers = [Container]()
+    let sg = SampleGenerator()
 
     override func setUp() {
-        getSampleEpubsRessourcePaths()
-        epubContainerCreation()
-        epubDirectoryContainerCreation()
+        sg.getSampleEpubsRessourcePaths()
+        sg.epubContainerCreation()
+        sg.epubDirectoryContainerCreation()
     }
 
     // Mark: - Test methods
 
-    /// Container -> publication
+    /// EpubContainer -> publication
     func testParseEpubContainerToPublication() {
         // The epub parser
         let epubParser = EpubParser()
 
-        for container in epubContainers {
+        for container in sg.epubContainers {
             var mutableContainer = container
-            let publication = try? epubParser.parse(container: &mutableContainer)
 
-            XCTAssertTrue(publication != nil)
+            do {
+                _ = try epubParser.parse(container: &mutableContainer)
+            } catch {
+                Log.error?.value(error)
+                XCTFail("Publication init thrown \(error)")
+            }
+            // TODO: Define what to add as unit test.
         }
     }
 
-    // Mark: - Support methods
+    /// EpubDirectoryContainer -> publication
+    func testParseEpubDirectoryContainerToPublication() {
+        // The epub parser
+        let epubParser = EpubParser()
 
-    /// Check that the bundle ressources Samples are accessibles
-    func getSampleEpubsRessourcePaths() {
-        // epubDirectories
-        epubPaths.append(getSamplesRessourcePath(named: TC.epub1, ofType: "epub"))
-        epubPaths.append(getSamplesRessourcePath(named: TC.epub2, ofType: "epub"))
-        XCTAssertTrue(epubPaths.count == TC.numberOfEpubSamples)
+        for container in sg.epubDirectoryContainers {
+            var mutableContainer = container
 
-        // epubs
-        epubDirectoryPaths.append(getSamplesRessourcePath(named: TC.epub1, ofType: nil))
-        epubDirectoryPaths.append(getSamplesRessourcePath(named: TC.epub2, ofType: nil))
-        XCTAssertTrue(epubDirectoryPaths.count == TC.numberOfEpubDirectorySamples)
-    }
-
-    // Create Containers for the epub at epubPaths
-    func epubContainerCreation() {
-        let fileManager = FileManager.default
-
-        for path in epubPaths {
-            guard fileManager.fileExists(atPath: path) else {
-                XCTFail("File at \(path) does not exist.")
-                break
+            do {
+                _ = try epubParser.parse(container: &mutableContainer)
+            } catch {
+                Log.error?.value(error)
+                XCTFail("Publication init thrown \(error)")
             }
-            guard let container = EpubContainer(path: path) else {
-                XCTFail("Couldn't create container for \(path)")
-                return
-            }
-            Log.error?.value(container)
-            epubContainers.append(container)
-            Log.error?.value(epubContainers.count)
+            // TODO: Define what to add as unit test.
         }
-        Log.error?.value(epubContainers.count)
-        XCTAssertTrue(epubContainers.count == TC.numberOfEpubSamples)
     }
-
-    // Create Containers for the epubDirectories at epubDirectoryPaths
-    func epubDirectoryContainerCreation() {
-        let fileManager = FileManager.default
-
-        for path in epubDirectoryPaths {
-            guard fileManager.fileExists(atPath: path) else {
-                XCTFail("File at \(path) does not exist.")
-                break
-            }
-            guard let container = EpubDirectoryContainer(directory: path) else {
-                XCTFail("Couldn't create container for \(path)")
-                return
-            }
-            epubDirectoryContainers.append(container)
-        }
-        XCTAssertTrue(epubDirectoryContainers.count == TC.numberOfEpubSamples)
-    }
-
-    /// Return the absolute path to a ressource from the bundle/Samples.
-    ///
-    /// - Parameters:
-    ///   - named: The name of the ressource.
-    ///   - ofType: The type of the ressource. "" if directory.
-    /// - Returns: The fullpath to the ressource.
-    private func getSamplesRessourcePath(named: String, ofType: String?) -> String {
-        let bundle = Bundle(for: type(of: self))
-        guard let path = bundle.path(forResource: "Samples/\(named)", ofType: ofType) else {
-            XCTFail("Couldn't fine ressource name \(named) in Samples/")
-            return ""
-        }
-        return path
-    }
-
 }

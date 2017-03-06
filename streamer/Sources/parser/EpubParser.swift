@@ -20,7 +20,10 @@ public struct EpubConstant {
     static let containerDotXmlPath = "META-INF/container.xml"
 
     /// Epub+zip mime-type
-    static let mimetype = "application/epub+zip"
+    static let mimetypeEPUB = "application/epub+zip"
+
+    /// http://www.idpf.org/oebps/
+    static let mimetypeOEBPS = "application/oebps-package+xml" // TODO: support?
 }
 
 /// Errors thrown during the parsing of the EPUB
@@ -79,7 +82,7 @@ open class EpubParser {
         // then check if valid mimetype
         guard let mimeTypeData = try? container.data(relativePath: "mimetype"),
               let mimetype = String(data: mimeTypeData, encoding: .ascii),
-              mimetype == EpubConstant.mimetype else {
+              mimetype == EpubConstant.mimetypeEPUB else {
             throw EpubParserError.wrongMimeType
         }
         // Retrieve container.xml data from the Container

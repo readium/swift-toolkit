@@ -10,8 +10,14 @@ import XCTest
 @testable import R2Streamer
 
 class EpubServerTest: XCTestCase {
-    var epubServer = EpubServer()
+    let sg = SampleGenerator()
+    let epubServer = EpubServer()
 
+    override func setUp() {
+        sg.getSampleEpubsRessourcePaths()
+        sg.epubContainerCreation()
+        sg.epubDirectoryContainerCreation()
+    }
     // Mark: - test
 
     func testAddEpub() {
