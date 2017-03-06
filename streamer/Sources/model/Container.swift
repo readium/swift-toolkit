@@ -8,7 +8,7 @@
 
 import Foundation
 
-/// Container Protocol's Errors
+/// Container Protocol's Errors.
 ///
 /// - streamInitFailed:
 /// - fileNotFound: File couldn't be found.
@@ -19,8 +19,11 @@ public enum ContainerError: Error {
     case fileError
 }
 
-/// Container protocol, for accessing raw data from container's files
+/// Container protocol, for accessing raw data from container's files.
 public protocol Container {
+
+    /// Meta-informations about the Container. See ContainerMetadata struct for
+    /// more details.
     var metadata: ContainerMetadata { get set }
 
     /// Get the raw (possibly encrypted) data of an asset in the container

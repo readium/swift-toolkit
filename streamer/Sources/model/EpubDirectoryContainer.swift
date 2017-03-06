@@ -11,10 +11,10 @@ import Foundation
 /// EPUB Container for EPUBs unzipped in a directory.
 open class EpubDirectoryContainer: Container {
 
-    /// Struct containing meta information about the Container
+    /// Struct containing meta information about the Container.
     public var metadata: ContainerMetadata
 
-    // MARK: - Public methods
+    // MARK: - Public methods.
 
     /// Public failable initializer for the EpubDirectoryContainer class.
     ///
