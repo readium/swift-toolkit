@@ -8,7 +8,8 @@
 
 import UIKit
 import minizip
-import CleanroomLogger
+
+extension ZipInputStream: Loggable {}
 
 /// <#Description#>
 open class ZipInputStream: SeekableInputStream {
@@ -113,7 +114,7 @@ open class ZipInputStream: SeekableInputStream {
             }
             return Int(bytesRead)
         } catch {
-            Log.error?.message("ZipInputStream error \(error)")
+            log(level: .error, "ZipInputStream error \(error)")
             _streamStatus = .error
             _streamError = error
         }
@@ -132,7 +133,7 @@ open class ZipInputStream: SeekableInputStream {
         assert(whence == .startOfFile, "Only seek from start of stream is supported for now.")
         assert(offset >= 0, "Since only seek from start of stream if supported, offset must be >= 0")
         
-        Log.debug?.message("ZipInputStream \(fileInZipPath) offset \(offset)")
+        log(level: .debug, "ZipInputStream \(fileInZipPath) offset \(offset)")
         do {
             try zipArchive.seekCurrentFile(offset: UInt64(offset))
         } catch {

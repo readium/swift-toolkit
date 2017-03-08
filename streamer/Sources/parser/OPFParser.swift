@@ -8,7 +8,8 @@
 
 import Foundation
 import AEXML
-import CleanroomLogger
+
+extension OPFParser: Loggable {}
 
 /// EpubParser support class, able to parse the OPF package document.
 /// OPF: Open Packaging Format.
@@ -298,31 +299,8 @@ public class OPFParser {
         let contributor = createContributor(from: element,
                                             metadata: metadataElement,
                                             epubVersion: epubVersion)
-        // FIXME: Could replace below code for lowering cyclomatic complexity?
-        //        (Swiftlint error, but idk if really pertinent
-        //          not sure is cleaner. Need advice
-        //        var roles = [("aut", metadata.authors),
-        //                     ("trl", metadata.translators),
-        //                     ("art", metadata.artists),
-        //                     ("edt", metadata.editors),
-        //                     ("ill", metadata.illustrators),
-        //                     ("clr", metadata.colorists),
-        //                     ("nrt", metadata.narrators),
-        //                     ("pbl", metadata.publishers)]
-        //
-        //        // Add the contributor to the proper property according to the its `role`
-        //        if let role = contributor.role,
-        //            let index = roles.index(where: { element in element.0 == role }) {
-        //            roles[index].1.append(contributor)
-        //        }
-        //            // No role, so add the creators to the authors and the others to the contributors
-        //        else if element.name == "dc:creator" {
-        //            metadata.authors.append(contributor)
-        //        } else {
-        //            metadata.contributors.append(contributor)
-        //        }
 
-        //         Add the contributor to the proper property according to the its `role`
+        // Add the contributor to the proper property according to the its `role`
         if let role = contributor.role {
             switch role {
             case "aut":
@@ -434,7 +412,7 @@ public class OPFParser {
             }
             // Add it to the manifest items dict if it has an id
             guard let id = item.attributes["id"] else {
-                Log.error?.message("Manifest item has no \"id\" attribute")
+                log(level: .error, "Manifest item has no \"id\" attribute")
                 return
             }
             // If it's the cover's item id, set the rel to cover and add the

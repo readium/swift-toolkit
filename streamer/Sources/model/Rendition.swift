@@ -49,6 +49,7 @@ public enum RenditionOrientation: String {
 /// - Portrait:
 /// - Both:
 /// - None:
+// TODO: remove caps.
 public enum RenditionSpread: String {
     case Auto = "auto"
     case Landscape = "landscape"

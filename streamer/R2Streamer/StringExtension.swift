@@ -14,4 +14,8 @@ extension String {
     func appending(pathComponent: String) -> String {
         return (self as NSString).appendingPathComponent(pathComponent)
     }
+
+    func lastPathComponent() -> String {
+        return (self as NSString).lastPathComponent
+    }
 }

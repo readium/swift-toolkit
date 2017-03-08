@@ -8,7 +8,8 @@
 
 import XCTest
 @testable import R2Streamer
-import CleanroomLogger
+
+extension EpubParsingTest: Loggable {}
 
 class EpubParsingTest: XCTestCase {
     let sg = SampleGenerator()
@@ -32,7 +33,7 @@ class EpubParsingTest: XCTestCase {
             do {
                 _ = try epubParser.parse(container: &mutableContainer)
             } catch {
-                Log.error?.value(error)
+                logValue(error)
                 XCTFail("Publication init thrown \(error)")
             }
             // TODO: Define what to add as unit test.
@@ -50,7 +51,7 @@ class EpubParsingTest: XCTestCase {
             do {
                 _ = try epubParser.parse(container: &mutableContainer)
             } catch {
-                Log.error?.value(error)
+                logValue(level: .error, error)
                 XCTFail("Publication init thrown \(error)")
             }
             // TODO: Define what to add as unit test.

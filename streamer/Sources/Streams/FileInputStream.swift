@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import CleanroomLogger
 
 /// FileInputStream errors
 ///
@@ -19,6 +18,8 @@ public enum FileInputStreamError: Error {
     case fileHandleInitialisation
     case fileHandleUnset
 }
+
+extension FileInputStream: Loggable {}
 
 /// <#Description#>
 open class FileInputStream: SeekableInputStream {
@@ -76,7 +77,7 @@ open class FileInputStream: SeekableInputStream {
 
         // Does file `atFilePath` exists
         guard FileManager.default.fileExists(atPath: fileAtPath) else {
-            Log.error?.message("File not found: \(fileAtPath).")
+            FileInputStream.log(level: .error, "File not found: \(fileAtPath).")
             return nil
         }
         filePath = fileAtPath
@@ -84,13 +85,13 @@ open class FileInputStream: SeekableInputStream {
         do {
             attributes = try FileManager.default.attributesOfItem(atPath: filePath)
         } catch {
-            Log.error?.message("Exception retrieving attrs for \(filePath).")
-            Log.error?.value(error)
+            FileInputStream.log(level: .error, "Exception retrieving attrs for \(filePath).")
+            FileInputStream.logValue(level: .error, error)
             return nil
         }
         // Verify the size attribute of the file at `fileAtPath`
         guard let fileSize = attributes[FileAttributeKey.size] as? UInt64 else {
-            Log.error?.message("Error accessing size attribute.")
+            FileInputStream.log(level: .error, "Error accessing size attribute.")
             return nil
         }
         _length = fileSize
@@ -152,8 +153,8 @@ open class FileInputStream: SeekableInputStream {
         assert(whence == .startOfFile, "Only seek from start of stream is supported for now.")
         assert(offset >= 0, "Since only seek from start of stream if supported, offset must be >= 0")
         
-        Log.debug?.value(filePath)
-        Log.debug?.value(offset)
+        logValue(level: .debug, filePath)
+        logValue(level: .debug, offset)
         guard let fileHandle = fileHandle else {
             _streamStatus = .error
             _streamError = FileInputStreamError.fileHandleUnset

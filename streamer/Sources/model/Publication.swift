@@ -17,28 +17,29 @@ open class Publication: Mappable {
 
     /// The metadata (title, identifier, contributors, etc.).
     public var metadata = Metadata()
+    //
     public var links = [Link]()
-
-    /// The spine of the publication.
     public var spine = [Link]()
-
     /// The resources, not including the links already present in the spine.
     public var resources = [Link]()
-
     /// The table of contents.
     public var TOC = [Link]()
     public var pageList = [Link]()
     public var landmarks = [Link]()
-    // FIXME: Epub spec / rename to explicit full names
+    /// List of Illustrations.
     public var LOI = [Link]()
+    /// List of Audio files.
     public var LOA = [Link]()
+    /// List of Videos.
     public var LOV = [Link]()
+    /// List of Tables.
     public var LOT = [Link]()
-    public var internalData = [String: String]()
-    public var otherLinks = [Link]()
 
+    /// Extension point for links that shouldn't show up in the manifest
+    public var otherLinks = [Link]()
     // TODO: other collections
     // var otherCollections: [PublicationCollection]
+    public var internalData = [String: String]()
 
     // MARK: - Public methods.
 

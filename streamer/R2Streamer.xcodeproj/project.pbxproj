@@ -46,6 +46,7 @@
 		F36B18F41E64638E005E22B4 /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F36B18F31E64638E005E22B4 /* StringExtension.swift */; };
 		F3723DD51E69D91F0036A075 /* ContainerMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3723DD41E69D91F0036A075 /* ContainerMetadata.swift */; };
 		F37B63551E6DC44300C6A3AC /* GenerateContainersFromSamples.swift in Sources */ = {isa = PBXBuildFile; fileRef = F37B63541E6DC44300C6A3AC /* GenerateContainersFromSamples.swift */; };
+		F37B635E1E6EDC6300C6A3AC /* Loggable.swift in Sources */ = {isa = PBXBuildFile; fileRef = F37B635D1E6EDC6300C6A3AC /* Loggable.swift */; };
 		F3AF6BF91E57275900D90E5A /* Link.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3AF6BF81E57275900D90E5A /* Link.swift */; };
 		F3AF6BFB1E57282D00D90E5A /* Rendition.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3AF6BFA1E57282D00D90E5A /* Rendition.swift */; };
 		F3AF6BFD1E57285700D90E5A /* Subject.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3AF6BFC1E57285700D90E5A /* Subject.swift */; };
@@ -57,6 +58,8 @@
 		F3DE1D8A1E69757100D05F74 /* EpubParsingTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3DE1D891E69757100D05F74 /* EpubParsingTest.swift */; };
 		F3DE1ECC1E6980E100D05F74 /* Samples in Resources */ = {isa = PBXBuildFile; fileRef = F3DE1EC91E69801D00D05F74 /* Samples */; };
 		F3DEE6E21E5C5A53007FE63D /* OPFParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */; };
+		F3E6A2D61E70111500BBD81C /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E6A2D51E70111500BBD81C /* Logger.swift */; };
+		F3E6A2D81E70113600BBD81C /* LoggerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E6A2D71E70113600BBD81C /* LoggerStub.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -125,6 +128,7 @@
 		F36B18F31E64638E005E22B4 /* StringExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		F3723DD41E69D91F0036A075 /* ContainerMetadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContainerMetadata.swift; path = Sources/model/ContainerMetadata.swift; sourceTree = SOURCE_ROOT; };
 		F37B63541E6DC44300C6A3AC /* GenerateContainersFromSamples.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GenerateContainersFromSamples.swift; sourceTree = "<group>"; };
+		F37B635D1E6EDC6300C6A3AC /* Loggable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Loggable.swift; sourceTree = "<group>"; };
 		F3AF6BF81E57275900D90E5A /* Link.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Link.swift; sourceTree = "<group>"; };
 		F3AF6BFA1E57282D00D90E5A /* Rendition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Rendition.swift; sourceTree = "<group>"; };
 		F3AF6BFC1E57285700D90E5A /* Subject.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Subject.swift; sourceTree = "<group>"; };
@@ -132,6 +136,8 @@
 		F3DE1D891E69757100D05F74 /* EpubParsingTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpubParsingTest.swift; sourceTree = "<group>"; };
 		F3DE1EC91E69801D00D05F74 /* Samples */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Samples; sourceTree = "<group>"; };
 		F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = OPFParser.swift; path = Sources/parser/OPFParser.swift; sourceTree = SOURCE_ROOT; };
+		F3E6A2D51E70111500BBD81C /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		F3E6A2D71E70113600BBD81C /* LoggerStub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoggerStub.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -188,6 +194,7 @@
 				59501DD01E2FB0D700D1B4BF /* R2Streamer.h */,
 				59501DEE1E2FB16600D1B4BF /* R2Streamer-Bridging-Header.h */,
 				F36B18F31E64638E005E22B4 /* StringExtension.swift */,
+				F3E6A2D31E7010E600BBD81C /* Logger */,
 				59501DE91E2FB16600D1B4BF /* Model */,
 				F351DB701E54B43400D84BDF /* Containers */,
 				59501DEC1E2FB16600D1B4BF /* Parser */,
@@ -331,6 +338,16 @@
 				F351DB791E55EDD100D84BDF /* MetadataItem.swift */,
 			);
 			name = MetadataTypes;
+			sourceTree = "<group>";
+		};
+		F3E6A2D31E7010E600BBD81C /* Logger */ = {
+			isa = PBXGroup;
+			children = (
+				F37B635D1E6EDC6300C6A3AC /* Loggable.swift */,
+				F3E6A2D51E70111500BBD81C /* Logger.swift */,
+				F3E6A2D71E70113600BBD81C /* LoggerStub.swift */,
+			);
+			name = Logger;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -492,17 +509,20 @@
 				59501E101E2FB16600D1B4BF /* unzip.c in Sources */,
 				59501E051E2FB16600D1B4BF /* Publication.swift in Sources */,
 				59501E0C1E2FB16600D1B4BF /* ZipInputStream.swift in Sources */,
+				F3E6A2D61E70111500BBD81C /* Logger.swift in Sources */,
 				59501E0A1E2FB16600D1B4BF /* FileInputStream.swift in Sources */,
 				F351DB761E55E2BE00D84BDF /* Metadata.swift in Sources */,
 				59501E0E1E2FB16600D1B4BF /* ioapi.c in Sources */,
 				59501E091E2FB16600D1B4BF /* WebServerResourceResponse.swift in Sources */,
 				59501E081E2FB16600D1B4BF /* EpubServer.swift in Sources */,
 				59501E0B1E2FB16600D1B4BF /* Seekable.swift in Sources */,
+				F37B635E1E6EDC6300C6A3AC /* Loggable.swift in Sources */,
 				59501E121E2FB16600D1B4BF /* zip.c in Sources */,
 				F351DB7A1E55EDD100D84BDF /* MetadataItem.swift in Sources */,
 				F3AF6BFD1E57285700D90E5A /* Subject.swift in Sources */,
 				59501E151E2FB16600D1B4BF /* ZipArchive.swift in Sources */,
 				59501E031E2FB16600D1B4BF /* EpubFetcher.swift in Sources */,
+				F3E6A2D81E70113600BBD81C /* LoggerStub.swift in Sources */,
 				59501E161E2FB16600D1B4BF /* ZipError.swift in Sources */,
 				F3DEE6E21E5C5A53007FE63D /* OPFParser.swift in Sources */,
 				F351DB741E54B71A00D84BDF /* EpubContainer.swift in Sources */,

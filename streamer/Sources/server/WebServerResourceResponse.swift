@@ -7,7 +7,8 @@
 //
 
 import GCDWebServers
-import CleanroomLogger
+
+extension GCDWebServerResponse: Loggable {}
 
 /// Errors thrown by the `WebServerResourceResponse`
 ///
@@ -48,7 +49,7 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
         self.inputStream = inputStream
         // If range is non nil - means it's not the first part (?)
         if let range = range {
-            Log.debug?.message("Request range \(range.location)-\(range.length).")
+            WebServerResourceResponse.log(level: .debug, "Request range \(range.location)-\(range.length).")
             /// Return a range of what to read next (nothing, next part,
             /// whole data).
             func getNextRange(after range: NSRange,

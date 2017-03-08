@@ -8,13 +8,14 @@
 
 import Foundation
 import GCDWebServers
-import CleanroomLogger
+
+extension EpubServer: Loggable {}
 
 /// Errors thrown by the `EpubServer`.
 ///
 /// - epubParser: An error thrown by the EpubParser.
 /// - epubFetcher: An error thrown by the EpubFetcher.
-public enum EpubServerError: Error {
+public enum EpubServerError: Error{
     case epubParser(underlayingError: Error)
     case epubFetcher(underlayingError: Error)
 }
@@ -52,21 +53,20 @@ open class EpubServer {
             let port = 8080
 
             GCDWebServer.setLogLevel(2)
-            Log.enable(minimumSeverity: .debug, debugMode: true)
         #else
             // Default: random port
             let port = 0
 
             GCDWebServer.setLogLevel(3)
-            Log.enable(minimumSeverity: .warning)
         #endif
         webServer = GCDWebServer()
         do {
+            // TODO: Check if we can use unix socket instead of tcp.
             try webServer.start(options: [GCDWebServerOption_Port: port,
                                           GCDWebServerOption_BindToLocalhost: true])
         } catch {
-            Log.error?.message("Failed to start the HTTP server.")
-            Log.error?.value(error)
+            log(level: .error, "Failed to start the HTTP server.")
+            logValue(level: .error, error)
             return nil
         }
     }
@@ -85,14 +85,14 @@ open class EpubServer {
         let fetcher: EpubFetcher
 
         guard containers[endpoint] == nil else {
-            Log.warning?.message("\(endpoint) is already in use.")
+            log(level: .warning, "\(endpoint) is already in use.")
             return
         }
         // Publication initialisation
         do {
             publication = try parser.parse(container: &container)
         } catch {
-            Log.error?.message("The publication parsing failed.")
+            log(level: .error, "The publication parsing failed.")
             throw EpubServerError.epubParser(underlayingError: error)
         }
         addSelfLinkTo(publication: publication, endpoint: endpoint)
@@ -103,9 +103,10 @@ open class EpubServer {
         do {
             fetcher = try EpubFetcher(publication: publication, container: container)
         } catch {
-            Log.error?.message("Fetcher initialisation failed.")
+            log(level: .error, "Fetcher initialisation failed.")
             throw EpubServerError.epubFetcher(underlayingError: error)
         }
+
         /// Webserver HTTP GET ressources request handler
         func ressourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
             let response: GCDWebServerResponse
@@ -114,14 +115,14 @@ open class EpubServer {
             let contentType: String
 
             guard let request = request else {
-                Log.error?.message("The request received is nil.")
+                log(level: .error, "The request received is nil.")
                 return GCDWebServerErrorResponse(statusCode: 500)
             }
             guard let path = request.path else {
-                Log.error?.message("The request's path to the ressource is empty.")
+                log(level: .error, "The request's path to the ressource is empty.")
                 return GCDWebServerErrorResponse(statusCode: 500)
             }
-            Log.debug?.value(path)
+            logValue(level: .debug, path)
             // Remove the prefix from the URI
             relativePath = path.substring(from: path.index(endpoint.endIndex, offsetBy: 3))
             resource = publication.resource(withRelativePath: relativePath)
@@ -135,13 +136,13 @@ open class EpubServer {
                                                      range: range,
                                                      contentType: contentType)
             } catch EpubFetcherError.missingFile {
-                Log.error?.message("File not found, couldn't create stream.")
+                log(level: .error, "File not found, couldn't create stream.")
                 response = GCDWebServerErrorResponse(statusCode: 404)
             } catch EpubFetcherError.container {
-                Log.error?.message("Error while getting data stream from container.")
+                log(level: .error, "Error while getting data stream from container.")
                 response = GCDWebServerErrorResponse(statusCode: 500)
             } catch {
-                Log.error?.value(error)
+                logValue(level: .error, error)
                 response = GCDWebServerErrorResponse(statusCode: 500)
             }
             return response
@@ -151,6 +152,7 @@ open class EpubServer {
             pathRegex: "/\(endpoint)/.*",
             request: GCDWebServerRequest.self,
             processBlock: ressourcesHandler)
+
         /// The webserver handler to process the HTTP GET
         func manifestHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
             let manifestJSON = publication.toJSONString()
@@ -181,7 +183,7 @@ open class EpubServer {
         //
         //         return GCDWebServerDataResponse()
         //         })
-        Log.info?.message("Epub at \(endpoint) has been successfully added.")
+        log(level: .info, "Epub at \(endpoint) has been successfully added.")
     }
 
     /// Remove an EPUB container from the server.
@@ -189,15 +191,15 @@ open class EpubServer {
     /// - Parameter endpoint: The URI postfix of the ressource.
     public func removeEpub(at endpoint: String) {
         guard containers[endpoint] != nil else {
-            Log.error?.message("Container endpoint is nil.")
+            log(level: .error, "Container endpoint is nil.")
             return
         }
         containers[endpoint] = nil
         publications[endpoint] = nil
-        // TOFO: Remove associated handlers
+        // TODO: Remove associated handlers
         // Only method available with GCDWebServer is
         //webServer.removeAllHandlers()
-        Log.info?.message("Epub at \(endpoint) has been successfully removed.")
+        log(level: .info, "Epub at \(endpoint) has been successfully removed.")
     }
 
     // MARK: - Internal methods
@@ -213,7 +215,7 @@ open class EpubServer {
         let manifestPath = "\(endpoint)/manifest.json"
 
         guard let baseURL = baseURL else {
-            Log.warning?.message("Base URL is nil.")
+            log(level: .warning, "Base URL is nil.")
             return
         }
         publicationURL = baseURL.appendingPathComponent(manifestPath,
