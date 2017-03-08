@@ -15,6 +15,7 @@ class EpubParsingTest: XCTestCase {
     let sg = SampleGenerator()
 
     override func setUp() {
+        R2StreamerEnableLog(withMinimumSeverityLevel: .verbose)
         sg.getSampleEpubsRessourcePaths()
         sg.epubContainerCreation()
         sg.epubDirectoryContainerCreation()
@@ -33,7 +34,7 @@ class EpubParsingTest: XCTestCase {
             do {
                 _ = try epubParser.parse(container: &mutableContainer)
             } catch {
-                logValue(error)
+                logValue(level: .error, error)
                 XCTFail("Publication init thrown \(error)")
             }
             // TODO: Define what to add as unit test.

@@ -34,7 +34,6 @@
 		59501E1D1E2FB1F500D1B4BF /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */; };
 		59501E201E2FB2AD00D1B4BF /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E1F1E2FB2AD00D1B4BF /* libz.tbd */; };
 		F309BBDD1E696F660002F800 /* EpubServerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F309BBDC1E696F660002F800 /* EpubServerTest.swift */; };
-		F309BBDF1E6970C30002F800 /* CleanroomLogger.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = F3D551441E68658C0065A0BE /* CleanroomLogger.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F309BBE01E6970C30002F800 /* AEXML.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 59501E181E2FB1F500D1B4BF /* AEXML.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F309BBE11E6970C30002F800 /* GCDWebServers.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 59501E191E2FB1F500D1B4BF /* GCDWebServers.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F309BBE21E6970C30002F800 /* ObjectMapper.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -50,8 +49,6 @@
 		F3AF6BF91E57275900D90E5A /* Link.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3AF6BF81E57275900D90E5A /* Link.swift */; };
 		F3AF6BFB1E57282D00D90E5A /* Rendition.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3AF6BFA1E57282D00D90E5A /* Rendition.swift */; };
 		F3AF6BFD1E57285700D90E5A /* Subject.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3AF6BFC1E57285700D90E5A /* Subject.swift */; };
-		F3D551451E68658C0065A0BE /* CleanroomLogger.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3D551441E68658C0065A0BE /* CleanroomLogger.framework */; };
-		F3DE1D851E6971A800D05F74 /* CleanroomLogger.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3D551441E68658C0065A0BE /* CleanroomLogger.framework */; };
 		F3DE1D861E6971A800D05F74 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E181E2FB1F500D1B4BF /* AEXML.framework */; };
 		F3DE1D871E6971A800D05F74 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E191E2FB1F500D1B4BF /* GCDWebServers.framework */; };
 		F3DE1D881E6971A800D05F74 /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */; };
@@ -79,7 +76,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				F309BBDF1E6970C30002F800 /* CleanroomLogger.framework in CopyFiles */,
 				F309BBE01E6970C30002F800 /* AEXML.framework in CopyFiles */,
 				F309BBE11E6970C30002F800 /* GCDWebServers.framework in CopyFiles */,
 				F309BBE21E6970C30002F800 /* ObjectMapper.framework in CopyFiles */,
@@ -132,7 +128,6 @@
 		F3AF6BF81E57275900D90E5A /* Link.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Link.swift; sourceTree = "<group>"; };
 		F3AF6BFA1E57282D00D90E5A /* Rendition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Rendition.swift; sourceTree = "<group>"; };
 		F3AF6BFC1E57285700D90E5A /* Subject.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Subject.swift; sourceTree = "<group>"; };
-		F3D551441E68658C0065A0BE /* CleanroomLogger.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CleanroomLogger.framework; path = Carthage/Build/iOS/CleanroomLogger.framework; sourceTree = "<group>"; };
 		F3DE1D891E69757100D05F74 /* EpubParsingTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpubParsingTest.swift; sourceTree = "<group>"; };
 		F3DE1EC91E69801D00D05F74 /* Samples */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Samples; sourceTree = "<group>"; };
 		F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = OPFParser.swift; path = Sources/parser/OPFParser.swift; sourceTree = SOURCE_ROOT; };
@@ -147,7 +142,6 @@
 			files = (
 				59501E201E2FB2AD00D1B4BF /* libz.tbd in Frameworks */,
 				59501E1B1E2FB1F500D1B4BF /* AEXML.framework in Frameworks */,
-				F3D551451E68658C0065A0BE /* CleanroomLogger.framework in Frameworks */,
 				59501E1C1E2FB1F500D1B4BF /* GCDWebServers.framework in Frameworks */,
 				59501E1D1E2FB1F500D1B4BF /* ObjectMapper.framework in Frameworks */,
 			);
@@ -158,7 +152,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				59501DD71E2FB0D700D1B4BF /* R2Streamer.framework in Frameworks */,
-				F3DE1D851E6971A800D05F74 /* CleanroomLogger.framework in Frameworks */,
 				F3DE1D861E6971A800D05F74 /* AEXML.framework in Frameworks */,
 				F3DE1D871E6971A800D05F74 /* GCDWebServers.framework in Frameworks */,
 				F3DE1D881E6971A800D05F74 /* ObjectMapper.framework in Frameworks */,
@@ -298,7 +291,6 @@
 			isa = PBXGroup;
 			children = (
 				59501E1F1E2FB2AD00D1B4BF /* libz.tbd */,
-				F3D551441E68658C0065A0BE /* CleanroomLogger.framework */,
 				59501E181E2FB1F500D1B4BF /* AEXML.framework */,
 				59501E191E2FB1F500D1B4BF /* GCDWebServers.framework */,
 				59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */,
@@ -477,7 +469,6 @@
 				"$(SRCROOT)/Carthage/Build/iOS/AEXML.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/ObjectMapper.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/GCDWebServers.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/CleanroomLogger.framework",
 			);
 			outputPaths = (
 			);

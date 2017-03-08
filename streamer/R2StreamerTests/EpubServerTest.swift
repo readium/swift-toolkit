@@ -14,6 +14,7 @@ class EpubServerTest: XCTestCase {
     let epubServer = EpubServer()
 
     override func setUp() {
+        R2StreamerEnableLog(withMinimumSeverityLevel: .verbose)
         sg.getSampleEpubsRessourcePaths()
         sg.epubContainerCreation()
         sg.epubDirectoryContainerCreation()

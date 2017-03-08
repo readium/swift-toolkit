@@ -9,7 +9,6 @@
 import Foundation
 import XCTest
 import R2Streamer
-import CleanroomLogger
 
 /// Testing constants
 fileprivate struct TC {
@@ -87,6 +86,7 @@ class SampleGenerator: XCTest {
     /// - Returns: The fullpath to the ressource.
     private func getSamplesRessourcePath(named: String, ofType: String?) -> String {
         let bundle = Bundle(for: type(of: self))
+
         guard let path = bundle.path(forResource: "Samples/\(named)", ofType: ofType) else {
             XCTFail("Couldn't fine ressource name \(named) in Samples/")
             return ""
