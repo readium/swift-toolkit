@@ -64,7 +64,7 @@ internal class EpubFetcher {
         let pubRelativePath = rootFileDirectory.appending(pathComponent: path)
 
         // Get the link information from the publication
-        guard let _ = publication.resource(withRelativePath: path) else {
+        guard publication.resource(withRelativePath: path) != nil else {
             throw EpubFetcherError.missingFile(path: path)
         }
         // Get the data from the container
