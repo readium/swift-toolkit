@@ -117,8 +117,8 @@ open class ZipInputStream: SeekableInputStream {
             log(level: .error, "ZipInputStream error \(error)")
             _streamStatus = .error
             _streamError = error
+            return -1
         }
-        return -1
     }
     
     override open func close() {
