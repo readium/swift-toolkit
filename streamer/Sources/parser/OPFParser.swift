@@ -86,11 +86,11 @@ public class OPFParser {
 
         // Languages
         if let languages = metadataElement["dc:language"].all {
-            metadata.languages = languages.map { return $0.string }
+            metadata.languages = languages.map { $0.string }
         }
         // Rights
         if let rights = metadataElement["dc:rights"].all {
-            metadata.rights = rights.map({ return $0.string }).joined(separator: " ")
+            metadata.rights = rights.map({ $0.string }).joined(separator: " ")
         }
         // Publishers
         if let publishers = metadataElement["dc:publisher"].all {
