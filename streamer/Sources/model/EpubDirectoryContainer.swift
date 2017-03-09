@@ -65,7 +65,7 @@ open class EpubDirectoryContainer: Container {
     /// - Parameter relativePath: The 'directory-relative' path to the ressource.
     /// - Returns: The absolute path to the ressource
     internal func generateFullPath(with relativePath: String) -> String {
-        let fullPath = String().appending(pathComponent: relativePath)
+        let fullPath = metadata.rootPath.appending(pathComponent: relativePath)
         
         return fullPath
     }
