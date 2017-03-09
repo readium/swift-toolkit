@@ -66,28 +66,17 @@ open class Publication: Mappable {
     /// - Returns: a link with its `href` equal to the path if any was found,
     ///            else `nil`
     open func resource(withRelativePath path: String) -> Link? {
-        let matchingLinks = (spine + resources).filter { $0.href == path }
+        let matchingLinks = (spine + resources)
 
-        if !matchingLinks.isEmpty {
-            return matchingLinks.first
-        }
-        return nil
+        return matchingLinks.first(where: { $0.href == path })
     }
 
     /// Finds the first link with a specific rel
     ///
     /// - Parameter rel: The `rel` to match
-    /// - Returns: The first link with a matching `rel` found uf any, else nil
+    /// - Returns: The first link with a matching `rel` found if any, else nil
     open func link(withRel rel: String) -> Link? {
-        let matchingLinks = links.filter { (link: Link) -> Bool in
-            let coverRel = link.rel.filter { $0 == rel }
-
-            return !coverRel.isEmpty
-        }
-        if !matchingLinks.isEmpty {
-            return matchingLinks.first
-        }
-        return nil
+        return links.first(where: { $0.rel.contains(rel) })
     }
     
     /// Mapping declaration
