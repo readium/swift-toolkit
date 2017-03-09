@@ -73,8 +73,6 @@ open class FileInputStream: SeekableInputStream {
     /// Initialize the object and the input stream meta data for file at 
     /// `fileAtPath`.
     public init?(fileAtPath: String) {
-        let attributes: [FileAttributeKey : Any]
-
         // Does file `atFilePath` exists
         guard FileManager.default.fileExists(atPath: fileAtPath) else {
             FileInputStream.log(level: .error, "File not found: \(fileAtPath).")
@@ -82,6 +80,7 @@ open class FileInputStream: SeekableInputStream {
         }
         filePath = fileAtPath
         // Try to retrieve attributes of `fileAtPath`
+        let attributes: [FileAttributeKey : Any]
         do {
             attributes = try FileManager.default.attributesOfItem(atPath: filePath)
         } catch {
@@ -131,12 +130,11 @@ open class FileInputStream: SeekableInputStream {
     /// - Returns: Return the number of bytes read.
     override open func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) -> Int {
         let readError = -1
-        let data: Data
 
         guard let fileHandle = fileHandle else {
             return readError
         }
-        data = fileHandle.readData(ofLength: maxLength)
+        let data = fileHandle.readData(ofLength: maxLength)
         if data.count < maxLength {
             _streamStatus = .atEnd
         }
