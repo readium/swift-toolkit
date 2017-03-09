@@ -196,20 +196,18 @@ public class OPFParser {
         guard titles.count > 1, epubVersion == 3 else {
             return metadata["dc:title"].string
         }
-        //
-        mainTitles = titles.filter { (element: AEXMLElement) in
+        /// Used in the closure below.
+        func isMainTitle(element: AEXMLElement) -> Bool {
             guard let eid = element.attributes["id"] else {
                 return false
             }
             let attributes = ["property": "title-type", "refines": "#" + eid]
             let metas = metadata["meta"].all(withAttributes: attributes)
 
-            if let mainMetas = metas?.filter({ $0.string == "main" }) {
-                return !mainMetas.isEmpty
-            }
-            return false
+            return metas?.contains(where: { $0.string == "main" }) ?? false
         }
-        return mainTitles.first?.string
+        // Returns the first main title encountered
+        return titles.first(where: { isMainTitle(element: $0)})?.string
     }
 
     /// Get the unique identifer of the publication from the from the OPF XML
