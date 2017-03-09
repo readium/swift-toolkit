@@ -94,9 +94,7 @@ public class OPFParser {
         }
         // Publishers
         if let publishers = metadataElement["dc:publisher"].all {
-            for publisher in publishers {
-                metadata.publishers.append(Contributor(name: publisher.string))
-            }
+            metadata.publishers.append(contentsOf: publishers.map({ Contributor(name: $0.string) }))
         }
         // TODO: - Refactor pattern bellow.
         // Authors
