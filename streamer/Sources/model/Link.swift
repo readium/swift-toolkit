@@ -36,7 +36,7 @@ open class Link: Mappable {
     public init(href: String, typeLink: String, rel: String) {
         self.href = href
         self.typeLink = typeLink
-        self.rel.append(rel)
+        self.rel = [rel]
     }
 
     public required init?(map: Map) {
