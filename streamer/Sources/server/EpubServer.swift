@@ -80,20 +80,14 @@ open class EpubServer {
     ///   - endpoint: The URI prefix to use to fetch assets from the publication
     ///               `/{prefix}/{assetRelativePath}`
     /// - Throws: `EpubServerError.epubParser`
-    public func addEpub(container: inout Container, withEndpoint endpoint: String) throws {
-        let publication: Publication
+    public func addEpub(forPublication publication: Publication,
+                        withContainer container: Container,
+                        atEndpoint endpoint: String) throws {
         let fetcher: EpubFetcher
 
         guard containers[endpoint] == nil else {
             log(level: .warning, "\(endpoint) is already in use.")
             return
-        }
-        // Publication initialisation
-        do {
-            publication = try parser.parse(container: &container)
-        } catch {
-            log(level: .error, "The publication parsing failed.")
-            throw EpubServerError.epubParser(underlyingError: error)
         }
         addSelfLinkTo(publication: publication, endpoint: endpoint)
         // FIXME: Are these dictionaries really necessary?

@@ -26,19 +26,13 @@ public class OPFParser {
     /// - Returns: The `Publication` object resulting from the parsing.
     /// - Throws: `EpubParserError.missingFile`,
     ///           `EpubParserError.xmlParse`.
-    internal func parseOPF(from container: inout Container) throws -> Publication {
+    internal func parseOPF(from document: AEXMLDocument,
+                           with containerMetadata: ContainerMetadata) throws -> Publication {
         /// The 'to be built' Publication.
         let publication = Publication()
         /// Shortcuts to ContainerMetadata elements.
         ///     Relative path to the package.opf file.
-        let rootFilePath = container.metadata.rootFilePath
-
-        // Get the package.opf XML document from the container.
-        let document = try getXmlDocumentForFile(in: container,
-                                             atPath: rootFilePath)
-        // Try to get EPUB version from the <package> element.
-        // Else set it to default value.
-        container.metadata.epubVersion = getEpubVersion(from: document)
+        let rootFilePath = containerMetadata.rootFilePath
 
         // TODO: Add self to links.
         // But we don't know the self URL here
@@ -46,7 +40,7 @@ public class OPFParser {
 
         // Parse Metadata from the XML document.
         let metadata = parseMetadata(from: document,
-                                     with: container.metadata.epubVersion)
+                                     with: containerMetadata.epubVersion)
         // Look for the manifest item id of the cover.
         parseSpineAndResources(from: document, to: publication)
         //
@@ -424,50 +418,5 @@ public class OPFParser {
         }
         link.properties.append(contentsOf: remainingProperties)
         // TODO: rendition properties
-    }
-
-    // MARK: - Private methods.
-
-    /// Takes a Container and the path to one of it's ressource and returns an
-    /// XML document.
-    ///
-    /// - Parameters:
-    ///   - container: The Container containing the XML file.
-    ///   - path: The path to the XML file.
-    /// - Returns: The XML document Object generated.
-    /// - Throws: EpubParserError.missingFile(),
-    ///           EpubParserError.xmlParse().
-    private func getXmlDocumentForFile(
-        in container: Container,
-        atPath path: String) throws -> AEXMLDocument {
-        // The 'to be built' XML Document
-        var document: AEXMLDocument
-
-        // Get `Data` from the Container/OPFFile
-        guard let data = try? container.data(relativePath: path) else {
-            throw EpubParserError.missingFile(path: path)
-        }
-        // Transforms `Data` into an AEXML Document object
-        do {
-            document = try AEXMLDocument(xml: data)
-        } catch {
-            throw EpubParserError.xmlParse(underlyingError: error)
-        }
-        return document
-    }
-
-    /// Retrieve the EPUB version from the package.opf XML document.
-    private func getEpubVersion(from document: AEXMLDocument) -> Double {
-        let version: Double
-
-        if let versionAttribute = document.root.attributes["version"],
-            let versionNumber = Double(versionAttribute) {
-            
-            version = versionNumber
-        } else {
-            version = EpubConstant.defaultEpubVersion
-        }
-        return version
-    }
-    
+    }    
 }

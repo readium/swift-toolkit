@@ -20,6 +20,7 @@ public class EpubDirectoryContainer: Container {
     ///
     /// - Parameter dirPath: The root directory path.
     public init?(directory dirPath: String) {
+        // FIXME: useless check probably. Always made before hand.
         guard FileManager.default.fileExists(atPath: dirPath) else {
             return nil
         }

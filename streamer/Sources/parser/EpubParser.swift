@@ -78,13 +78,36 @@ open class EpubParser {
     /// - Throws: `EpubParserError.wrongMimeType`,
     ///           `EpubParserError.xmlParse`,
     ///           `EpubParserError.missingFile`
-    public func parse(container: inout Container) throws -> Publication {
+    //    public func parse(container: inout Container) throws -> Publication {
+    //        // Retrieve mimetype data from container, convert data to string,
+    //        // then check if valid mimetype
+    //        guard let mimeTypeData = try? container.data(relativePath: "mimetype"),
+    //              let mimetype = String(data: mimeTypeData, encoding: .ascii),
+    //              mimetype == EpubConstant.mimetypeEPUB else {
+    //            throw EpubParserError.wrongMimeType
+    //        }
+    //        // Retrieve container.xml data from the Container
+    //        guard let data = try? container.data(relativePath: EpubConstant.containerDotXmlPath) else {
+    //            throw EpubParserError.missingFile(path: EpubConstant.containerDotXmlPath)
+    //        }
+    //        // Parse the container.xml Data and fill the ContainerMetadata object
+    //        // of the container
+    //        try parseContainerDotXml(from: data, to: &(container.metadata))
+    //        // Parse the opf file and return the Publication.
+    //        return try opfParser.parseOPF(from: &container)
+    //    }
+
+    public typealias parsingResult = (publication: Publication, associatedContainer: Container)
+
+    public func parse(fileAtPath path: String) throws -> parsingResult {
+        var container = try generateContainerFrom(fileAtPath: path)
+
         // Retrieve mimetype data from container, convert data to string,
-        // then check if valid mimetype
+        // then check if mimetype's valid.
         guard let mimeTypeData = try? container.data(relativePath: "mimetype"),
-              let mimetype = String(data: mimeTypeData, encoding: .ascii),
-              mimetype == EpubConstant.mimetypeEPUB else {
-            throw EpubParserError.wrongMimeType
+            let mimetype = String(data: mimeTypeData, encoding: .ascii),
+            mimetype == EpubConstant.mimetypeEPUB else {
+                throw EpubParserError.wrongMimeType
         }
         // Retrieve container.xml data from the Container
         guard let data = try? container.data(relativePath: EpubConstant.containerDotXmlPath) else {
@@ -92,21 +115,32 @@ open class EpubParser {
         }
         // Parse the container.xml Data and fill the ContainerMetadata object
         // of the container
-        try parseContainerDotXml(from: data, to: &(container.metadata))
+        container.metadata.rootFilePath =  try getRootFilePath(from: data)
+
+
+        // Get the package.opf XML document from the container.
+        let document = try getXmlDocumentForFile(in: container,
+                                                 atPath: container.metadata.rootFilePath)
+        // Try to get EPUB version from the <package> element.
+        // Else set it to default value.
+        container.metadata.epubVersion = getEpubVersion(from: document)
+
         // Parse the opf file and return the Publication.
-        return try opfParser.parseOPF(from: &container)
+        let publication = try opfParser.parseOPF(from: document, with: container.metadata)
+        return (publication, container)
     }
 
     // MARK: - Private methods.
 
     /// Parses the container.xml file and retrieve the relative path to the opf
-    /// file (the default one for now, not handling multiple renditions).
+    /// file(rootFilePath) (the default one for now, not handling multiple
+    /// renditions).
     ///
     /// - Parameter data: The containerDotXml `Data` representation.
     /// - Throws: `EpubParserError.xmlParse`,
     ///           `EpubParserError.missingFile`,
     ///           `EpubParserError.missingElement`.
-    private func parseContainerDotXml(from data: Data, to metadata: inout ContainerMetadata) throws {
+    fileprivate func getRootFilePath(from data: Data) throws -> String {
         let containerDotXml: AEXMLDocument
 
         do {
@@ -120,7 +154,7 @@ open class EpubParser {
         guard let opfFilePath = getRelativePathToOPF(from: rootFileElement) else {
             throw EpubParserError.missingElement(message: "Missing rootfile in `container.xml`.")
         }
-        metadata.rootFilePath = opfFilePath
+        return opfFilePath
     }
 
     /// Retrieves the OPF file path from the fisrt <rootfile> element.
@@ -128,10 +162,73 @@ open class EpubParser {
     /// - Parameter containerXml: The XML container instance.
     /// - Returns: The OPF file path.
     /// - Throws: `EpubParserError.missingElement`.
-    private func getRelativePathToOPF(from rootFileElement: AEXMLElement) -> String? {
+    fileprivate func getRelativePathToOPF(from rootFileElement: AEXMLElement) -> String? {
         guard let fullPath = rootFileElement.attributes["full-path"] else {
             return nil
         }
         return fullPath
+    }
+
+    /// Takes a Container and the path to one of it's ressource and returns an
+    /// XML document.
+    ///
+    /// - Parameters:
+    ///   - container: The Container containing the XML file.
+    ///   - path: The path to the XML file.
+    /// - Returns: The XML document Object generated.
+    /// - Throws: EpubParserError.missingFile(),
+    ///           EpubParserError.xmlParse().
+    fileprivate func getXmlDocumentForFile(in container: Container,
+                                           atPath path: String) throws -> AEXMLDocument {
+        // The 'to be built' XML Document
+        var document: AEXMLDocument
+
+        // Get `Data` from the Container/OPFFile
+        guard let data = try? container.data(relativePath: path) else {
+            throw EpubParserError.missingFile(path: path)
+        }
+        // Transforms `Data` into an AEXML Document object
+        do {
+            document = try AEXMLDocument(xml: data)
+        } catch {
+            throw EpubParserError.xmlParse(underlyingError: error)
+        }
+        return document
+    }
+
+    /// Retrieve the EPUB version from the package.opf XML document.
+    fileprivate func getEpubVersion(from document: AEXMLDocument) -> Double {
+        let version: Double
+
+        if let versionAttribute = document.root.attributes["version"],
+            let versionNumber = Double(versionAttribute) {
+
+            version = versionNumber
+        } else {
+            version = EpubConstant.defaultEpubVersion
+        }
+        return version
+    }
+
+
+    /// Generate a Container instance for the file at `fileAtPath`. It handle
+    /// 2 cases, epub files and unwrapped epub directories.
+    ///
+    /// - Parameter path: The absolute path of the file.
+    /// - Returns: The generated Container.
+    /// - Throws: `EpubParserError.missingFile`.
+    fileprivate func generateContainerFrom(fileAtPath path: String) throws -> Container {
+        var isDirectory: ObjCBool = false
+        var container: Container?
+
+        if isDirectory.boolValue {
+            container = EpubDirectoryContainer(directory: path)
+        } else {
+            container = EpubContainer(path: path)
+        }
+        guard let containerUnwrapped = container else {
+            throw EpubParserError.missingFile(path: path)
+        }
+        return containerUnwrapped
     }
 }
