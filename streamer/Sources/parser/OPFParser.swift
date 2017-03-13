@@ -28,16 +28,12 @@ public class OPFParser {
     internal func parseOPF(from container: inout Container) throws -> Publication {
         /// The 'to be built' Publication.
         let publication = Publication()
-        /// The XML document object representation of the package.OPF file.
-        let document: AEXMLDocument
-        /// The Publication metadata.
-        let metadata: Metadata
         /// Shortcuts to ContainerMetadata elements.
         ///     Relative path to the package.opf file.
         let rootFilePath = container.metadata.rootFilePath
 
         // Get the package.opf XML document from the container.
-        document = try getXmlDocumentForFile(in: container,
+        let document = try getXmlDocumentForFile(in: container,
                                              atPath: rootFilePath)
         // Try to get EPUB version from the <package> element.
         // Else set it to default value.
@@ -48,7 +44,7 @@ public class OPFParser {
         //publication.links.append(Link(href: "TODO", typeLink: "application/webpub+json", rel: "self"))
 
         // Parse Metadata from the XML document.
-        metadata = parseMetadata(from: document,
+        let metadata = parseMetadata(from: document,
                                  with: container.metadata.epubVersion)
         // Look for the manifest item id of the cover.
         parseSpineAndResources(from: document, to: publication)
@@ -63,16 +59,13 @@ public class OPFParser {
     ///
     /// - Parameter document: Parse the Metadata in the XML <metadata> element.
     /// - Returns: The Metadata object representing the XML <metadata> element.
-    internal func parseMetadata(
-        from document: AEXMLDocument,
-        with epubVersion: Double?) -> Metadata {
+    internal func parseMetadata(from document: AEXMLDocument, with epubVersion: Double?) -> Metadata {
         /// The 'to be returned' Metadata object.
         var metadata = Metadata()
         let metadataElement = document.root["metadata"]
         let documentAttributes = document.root.attributes
 
-        metadata.title = parseMainTitle(from: metadataElement,
-                                        epubVersion: epubVersion)
+        metadata.title = parseMainTitle(from: metadataElement, epubVersion: epubVersion)
         metadata.identifier = parseUniqueIdentifier(from: metadataElement,
                                                     withAttributes: documentAttributes)
         // Description
@@ -94,7 +87,9 @@ public class OPFParser {
         }
         // Publishers
         if let publishers = metadataElement["dc:publisher"].all {
-            metadata.publishers.append(contentsOf: publishers.map({ Contributor(name: $0.string) }))
+            metadata.publishers.append(contentsOf:publishers.map({
+                Contributor(name: $0.string)
+            }))
         }
         // TODO: - Refactor pattern bellow.
         // Authors
@@ -130,11 +125,11 @@ public class OPFParser {
     /// - Parameters:
     ///   - metadataElement: The XML element containing the metadatas.
     ///   - metadata: The `Metadata` object.
-    internal func setRenditionProperties(
-        from metadataElement: AEXMLElement,
-        to metadata: inout Metadata) {
+    internal func setRenditionProperties(from metadataElement: AEXMLElement,
+                                         to metadata: inout Metadata) {
         // Layout
         var attribute = ["property" : "rendition:layout"]
+
         if let renditionLayouts = metadataElement.all(withAttributes: attribute),
             !renditionLayouts.isEmpty {
             let layouts = renditionLayouts[0].string
@@ -179,12 +174,7 @@ public class OPFParser {
     /// - Parameter metadata: The `<metadata>` element.
     /// - Returns: The content of the `<dc:title>` element, `nil` if the element
     ///            wasn't found.
-    internal func parseMainTitle(
-        from metadata: AEXMLElement,
-        epubVersion: Double?) -> String? {
-        //
-        let mainTitles: [AEXMLElement]
-
+    internal func parseMainTitle(from metadata: AEXMLElement, epubVersion: Double?) -> String? {
         // Return if there isn't any `<dc:title>` element
         guard let titles = metadata["dc:title"].all else {
             return nil
@@ -218,9 +208,8 @@ public class OPFParser {
     ///   - Attributes: The XML document attributes.
     /// - Returns: The content of the `<dc:identifier>` element, `nil` if the
     ///             element wasn't found.
-    internal func parseUniqueIdentifier(
-        from metadata: AEXMLElement,
-        withAttributes attributes: [String : String]) -> String? {
+    internal func parseUniqueIdentifier(from metadata: AEXMLElement,
+                                        withAttributes attributes: [String : String]) -> String? {
         // Look for `<dc:identifier>` elements
         guard let identifiers = metadata["dc:identifier"].all else {
             return nil
@@ -249,10 +238,8 @@ public class OPFParser {
     ///          `refines`).
     /// - Returns: The contributor instance filled with its name and optionally
     ///            its `role` and `sortAs` attributes.
-    internal func createContributor(
-        from element: AEXMLElement,
-        metadata: AEXMLElement,
-        epubVersion: Double?) -> Contributor {
+    internal func createContributor(from element: AEXMLElement, metadata: AEXMLElement,
+                                    epubVersion: Double?) -> Contributor {
         // The 'to be returned' Contributor object.
         let contributor = Contributor(name: element.string)
 

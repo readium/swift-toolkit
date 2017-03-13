@@ -42,9 +42,7 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
     ///                  serve in the response.
     ///   - range: The range of ressource's data served previously, if any.
     ///   - contentType: The content-type of the response's ressource.
-    public init(inputStream: SeekableInputStream,
-                range: NSRange?,
-                contentType: String) {
+    public init(inputStream: SeekableInputStream, range: NSRange?, contentType: String) {
         let streamLength = inputStream.length
 
         // Initialize buffer
@@ -129,15 +127,12 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
     /// - Returns: The data that have been read.
     /// - Throws: `WebServerResponseError.invalidRange`.
     override open func readData() throws -> Data {
-        let len: Int
-        let numberOfBytesRead: Int
-
         guard let range = range else {
             throw WebServerResponseError.invalidRange
         }
-        len = min(bufferSize, Int64(range.count) - Int64(totalNumberOfBytesRead))
+        let len = min(bufferSize, Int64(range.count) - Int64(totalNumberOfBytesRead))
         // Read
-        numberOfBytesRead = inputStream.read(&buffer, maxLength: len)
+        let numberOfBytesRead = inputStream.read(&buffer, maxLength: len)
         guard numberOfBytesRead > 0 else {
             return Data()
         }

@@ -107,12 +107,11 @@ open class EpubServer {
             throw EpubServerError.epubFetcher(underlayingError: error)
         }
 
+        // TODO: Change the handlers so that they avec generic (instead of X 
+        //       handlers pet Epub.
         /// Webserver HTTP GET ressources request handler
         func ressourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
             let response: GCDWebServerResponse
-            let relativePath: String
-            let resource: Link?
-            let contentType: String
 
             guard let request = request else {
                 log(level: .error, "The request received is nil.")
@@ -124,9 +123,9 @@ open class EpubServer {
             }
             logValue(level: .debug, path)
             // Remove the prefix from the URI
-            relativePath = path.substring(from: path.index(endpoint.endIndex, offsetBy: 3))
-            resource = publication.resource(withRelativePath: relativePath)
-            contentType = resource?.typeLink ?? "application/octet-stream"
+            let relativePath = path.substring(from: path.index(endpoint.endIndex, offsetBy: 3))
+            let resource = publication.resource(withRelativePath: relativePath)
+            let contentType = resource?.typeLink ?? "application/octet-stream"
             // Get a data input stream from the fetcher
             do {
                 let dataStream = try fetcher.dataStream(forRelativePath: relativePath)

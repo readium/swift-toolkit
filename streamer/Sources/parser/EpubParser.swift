@@ -106,11 +106,8 @@ open class EpubParser {
     /// - Throws: `EpubParserError.xmlParse`,
     ///           `EpubParserError.missingFile`,
     ///           `EpubParserError.missingElement`.
-    private func parseContainerDotXml(
-        from data: Data,
-        to metadata: inout ContainerMetadata) throws {
+    private func parseContainerDotXml(from data: Data, to metadata: inout ContainerMetadata) throws {
         let containerDotXml: AEXMLDocument
-        let rootFileElement: AEXMLElement
 
         do {
             containerDotXml = try AEXMLDocument(xml: data)
@@ -118,7 +115,7 @@ open class EpubParser {
             throw EpubParserError.xmlParse(underlyingError: error)
         }
         // Look for the first `<roofile>` element
-        rootFileElement = containerDotXml.root["rootfiles"]["rootfile"]
+        let rootFileElement = containerDotXml.root["rootfiles"]["rootfile"]
         // Get the path of the OPF file, relative to the metadata.rootPath.
         guard let opfFilePath = getRelativePathToOPF(from: rootFileElement) else {
             throw EpubParserError.missingElement(message: "Missing rootfile in `container.xml`.")
