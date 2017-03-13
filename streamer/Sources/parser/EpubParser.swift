@@ -49,6 +49,7 @@ public enum EpubParserError: Error {
 
 /// An EPUB container parser that extracts the information from the relevant
 /// files and builds a `Publication` instance with it.
+/// The container store the state information and is modified along the process.
 ///
 /// - It checks for a `mimetype` file with the proper contents.
 /// - It parses `container.xml` to look for the default rendition.

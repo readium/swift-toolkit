@@ -62,6 +62,7 @@ open class EpubServer {
         webServer = GCDWebServer()
         do {
             // TODO: Check if we can use unix socket instead of tcp.
+            //       Check if it's supported by WKWebView first.
             try webServer.start(options: [GCDWebServerOption_Port: port,
                                           GCDWebServerOption_BindToLocalhost: true])
         } catch {
@@ -80,7 +81,6 @@ open class EpubServer {
     ///               `/{prefix}/{assetRelativePath}`
     /// - Throws: `EpubServerError.epubParser`
     public func addEpub(container: inout Container, withEndpoint endpoint: String) throws {
-
         let publication: Publication
         let fetcher: EpubFetcher
 

@@ -232,7 +232,6 @@ public class OPFParser {
             let uniqueIdentifiers = identifiers.filter {
                 $0.attributes["id"] == uniqueId
             }
-
             if !uniqueIdentifiers.isEmpty, let uid = uniqueIdentifiers.first {
                 return uid.string
             }

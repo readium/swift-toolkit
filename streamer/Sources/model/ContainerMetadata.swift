@@ -8,6 +8,8 @@
 
 import Foundation
 
+// TODO: support multiple renditions in the future, hence multiple rootFiles?
+
 /// RootFile (as called in Go).
 /// Contains meta-informations about the Container containing the EPUB.
 public struct ContainerMetadata {

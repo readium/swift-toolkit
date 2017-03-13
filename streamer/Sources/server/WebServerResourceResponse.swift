@@ -25,9 +25,13 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
 
     // The range of data served on this response (?)
     var range: Range<UInt64>?
+
     var inputStream: SeekableInputStream
+
     lazy var totalNumberOfBytesRead = UInt64(0)
+
     let bufferSize = 32 * 1024
+    
     var buffer: Array<UInt8>
 
     /// Initialise the WebServerRessourceResponse object, defining what will be
