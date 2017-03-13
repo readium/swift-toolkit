@@ -16,8 +16,8 @@ extension EpubServer: Loggable {}
 /// - epubParser: An error thrown by the EpubParser.
 /// - epubFetcher: An error thrown by the EpubFetcher.
 public enum EpubServerError: Error{
-    case epubParser(underlayingError: Error)
-    case epubFetcher(underlayingError: Error)
+    case epubParser(underlyingError: Error)
+    case epubFetcher(underlyingError: Error)
 }
 
 /// The HTTP server for the publication's manifests and assets. Serves Epubs.
@@ -93,7 +93,7 @@ open class EpubServer {
             publication = try parser.parse(container: &container)
         } catch {
             log(level: .error, "The publication parsing failed.")
-            throw EpubServerError.epubParser(underlayingError: error)
+            throw EpubServerError.epubParser(underlyingError: error)
         }
         addSelfLinkTo(publication: publication, endpoint: endpoint)
         // FIXME: Are these dictionaries really necessary?
@@ -104,7 +104,7 @@ open class EpubServer {
             fetcher = try EpubFetcher(publication: publication, container: container)
         } catch {
             log(level: .error, "Fetcher initialisation failed.")
-            throw EpubServerError.epubFetcher(underlayingError: error)
+            throw EpubServerError.epubFetcher(underlyingError: error)
         }
 
         // TODO: Change the handlers so that they avec generic (instead of X 
