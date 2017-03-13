@@ -20,6 +20,7 @@ public class OPFParser {
     internal init() {}
 
     /// Parse the OPF file of the Epub container and return a `Publication`.
+    /// It also complete the informations stored in the container.
     ///
     /// - Parameter container: The EPUB container whom OPF file will be parsed.
     /// - Returns: The `Publication` object resulting from the parsing.
@@ -39,13 +40,13 @@ public class OPFParser {
         // Else set it to default value.
         container.metadata.epubVersion = getEpubVersion(from: document)
 
-        // TODO: Add self to links
+        // TODO: Add self to links.
         // But we don't know the self URL here
         //publication.links.append(Link(href: "TODO", typeLink: "application/webpub+json", rel: "self"))
 
         // Parse Metadata from the XML document.
         let metadata = parseMetadata(from: document,
-                                 with: container.metadata.epubVersion)
+                                     with: container.metadata.epubVersion)
         // Look for the manifest item id of the cover.
         parseSpineAndResources(from: document, to: publication)
         //
