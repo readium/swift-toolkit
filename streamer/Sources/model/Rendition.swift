@@ -37,9 +37,9 @@ public enum RenditionFlow: String {
 /// - Landscape:
 /// - Portrait:
 public enum RenditionOrientation: String {
-    case Auto = "auto"
-    case Landscape = "landscape"
-    case Portrait = "portrait"
+    case auto = "auto"
+    case landscape = "landscape"
+    case portrait = "portrait"
 }
 
 /// The rendition spread property of an EPUB publication
@@ -51,11 +51,11 @@ public enum RenditionOrientation: String {
 /// - None:
 // TODO: remove caps.
 public enum RenditionSpread: String {
-    case Auto = "auto"
-    case Landscape = "landscape"
-    case Portrait = "portrait"
-    case Both = "both"
-    case None = "none"
+    case auto = "auto"
+    case landscape = "landscape"
+    case portrait = "portrait"
+    case both = "both"
+    case none = "none"
 }
 
 /// The information relative to the rendering of the publication.
