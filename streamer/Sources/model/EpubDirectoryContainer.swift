@@ -9,7 +9,7 @@
 import Foundation
 
 /// EPUB Container for EPUBs unzipped in a directory.
-open class EpubDirectoryContainer: Container {
+public class EpubDirectoryContainer: Container {
 
     /// Struct containing meta information about the Container.
     public var metadata: ContainerMetadata
@@ -28,15 +28,20 @@ open class EpubDirectoryContainer: Container {
 
     // MARK: - Open methods.
 
+    /// Set the containerMetadata property.
+    public func setContainerMetadata(_ metadata: ContainerMetadata) {
+        self.metadata = metadata
+    }
+
     // Implements Container protocol
-    open func data(relativePath: String) throws -> Data {
+    public func data(relativePath: String) throws -> Data {
         let fullPath = generateFullPath(with: relativePath)
 
         return try Data(contentsOf: URL(fileURLWithPath: fullPath), options: [.mappedIfSafe])
     }
 
     // Implements Container protocol
-    open func dataLength(relativePath: String) throws -> UInt64 {
+    public func dataLength(relativePath: String) throws -> UInt64 {
         let fullPath = generateFullPath(with: relativePath)
 
         guard let attributes = try? FileManager.default.attributesOfItem(atPath: fullPath) else {
@@ -49,7 +54,7 @@ open class EpubDirectoryContainer: Container {
     }
 
     // Implements Container protocol
-    open func dataInputStream(relativePath: String) throws -> SeekableInputStream {
+    public func dataInputStream(relativePath: String) throws -> SeekableInputStream {
         let fullPath = generateFullPath(with: relativePath)
 
         guard let inputStream = FileInputStream(fileAtPath: fullPath) else {

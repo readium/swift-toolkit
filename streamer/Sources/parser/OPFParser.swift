@@ -341,8 +341,39 @@ public class OPFParser {
         if let coverMetas = metadataElement["meta"].all(withAttributes: ["name" : "cover"]) {
             coverId = coverMetas.first?.string
         }
-        parseManifestItems(from: manifest, to: publication,
-                           and: &manifestLinks, with: coverId)
+        guard let manifestItems = manifest["item"].all else {
+            return
+        }
+
+        /// Parses the differents manifest items from the XML <manifest> element.
+        /// Creates an Link for each item in the <manifest>
+        for item in manifestItems {
+            // Build a link for the manifest item
+            let link = Link()
+
+            link.href = item.attributes["href"]
+            link.typeLink = item.attributes["media-type"]
+            // Look for properties
+            if let properties = item.attributes["properties"] {
+                let ws = CharacterSet.whitespaces
+                let propertiesArray = properties.components(separatedBy: ws)
+
+                parseItemProperties(from: propertiesArray, to: link, and: publication)
+            }
+            // Add it to the manifest items dict if it has an id
+            guard let id = item.attributes["id"] else {
+                log(level: .error, "Manifest item has no \"id\" attribute")
+                return
+            }
+            // If it's the cover's item id, set the rel to cover and add the
+            // link to `links`
+            if id == coverId {
+                link.rel.append("cover")
+                publication.links.append(link)
+            }
+            manifestLinks[id] = link
+        }
+
         // Parse the `<spine>` element children
         guard let spineItems = document.root["spine"]["itemref"].all else {
             return
@@ -363,48 +394,6 @@ public class OPFParser {
                 // Then remove it from the manifest
                 manifestLinks.removeValue(forKey: id)
             }
-        }
-    }
-
-    /// Parses the differents manifest items from the XML <manifest> element.
-    ///
-    /// - Parameter manifest: The XML <manifest> element.
-    internal func parseManifestItems(
-        from manifest: AEXMLElement,
-        to publication: Publication,
-        and manifestLinks: inout [String: Link],
-        with coverItemId: String?) {
-
-        guard let manifestItems = manifest["item"].all else {
-            return
-        }
-        // Create an Link for each item in the <manifest>
-        for item in manifestItems {
-            // Build a link for the manifest item
-            let link = Link()
-
-            link.href = item.attributes["href"]
-            link.typeLink = item.attributes["media-type"]
-            // Look for properties
-            if let properties = item.attributes["properties"] {
-                let ws = CharacterSet.whitespaces
-                let propertiesArray = properties.components(separatedBy: ws)
-
-                parseItemProperties(from: propertiesArray, to: link,
-                                    and: publication)
-            }
-            // Add it to the manifest items dict if it has an id
-            guard let id = item.attributes["id"] else {
-                log(level: .error, "Manifest item has no \"id\" attribute")
-                return
-            }
-            // If it's the cover's item id, set the rel to cover and add the
-            // link to `links`
-            if id == coverItemId {
-                link.rel.append("cover")
-                publication.links.append(link)
-            }
-            manifestLinks[id] = link
         }
     }
 
@@ -470,7 +459,7 @@ public class OPFParser {
     /// Retrieve the EPUB version from the package.opf XML document.
     private func getEpubVersion(from document: AEXMLDocument) -> Double {
         let version: Double
-        
+
         if let versionAttribute = document.root.attributes["version"],
             let versionNumber = Double(versionAttribute) {
             

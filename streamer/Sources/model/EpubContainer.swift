@@ -9,7 +9,7 @@
 import Foundation
 
 /// EPUB Container for EPUB files.
-open class EpubContainer: Container {
+public class EpubContainer: Container {
 
     /// Struct containing meta information about the Container
     public var metadata: ContainerMetadata
@@ -33,17 +33,17 @@ open class EpubContainer: Container {
     // MARK: - Open methods.
 
     // Implements Container protocol
-    open func data(relativePath: String) throws -> Data {
+    public func data(relativePath: String) throws -> Data {
         return try zipArchive.readData(path: relativePath)
     }
 
     // Implements Container protocol
-    open func dataLength(relativePath: String) throws -> UInt64 {
+    public func dataLength(relativePath: String) throws -> UInt64 {
         return try zipArchive.fileSize(path: relativePath)
     }
 
     // Implements Container protocol
-    open func dataInputStream(relativePath: String) throws -> SeekableInputStream {
+    public func dataInputStream(relativePath: String) throws -> SeekableInputStream {
         // let inputStream = ZipInputStream(zipArchive: zipArchive, path: relativePath)
         guard let inputStream = ZipInputStream(zipFilePath: metadata.rootPath,
                                                path: relativePath) else {

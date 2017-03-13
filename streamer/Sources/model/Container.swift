@@ -50,3 +50,4 @@ public protocol Container {
     ///           overrding method's implementation.
     func dataInputStream(relativePath: String) throws -> SeekableInputStream
 }
+
