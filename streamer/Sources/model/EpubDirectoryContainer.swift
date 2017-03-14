@@ -29,11 +29,6 @@ public class EpubDirectoryContainer: Container {
 
     // MARK: - Open methods.
 
-    /// Set the containerMetadata property.
-    public func setContainerMetadata(_ metadata: ContainerMetadata) {
-        self.metadata = metadata
-    }
-
     // Implements Container protocol
     public func data(relativePath: String) throws -> Data {
         let fullPath = generateFullPath(with: relativePath)

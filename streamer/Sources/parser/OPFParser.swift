@@ -24,8 +24,7 @@ public class OPFParser {
     ///
     /// - Parameter container: The EPUB container whom OPF file will be parsed.
     /// - Returns: The `Publication` object resulting from the parsing.
-    /// - Throws: `EpubParserError.missingFile`,
-    ///           `EpubParserError.xmlParse`.
+    /// - Throws: `EpubParserError.xmlParse`.
     internal func parseOPF(from document: AEXMLDocument,
                            with containerMetadata: ContainerMetadata) throws -> Publication {
         /// The 'to be built' Publication.
@@ -350,9 +349,7 @@ public class OPFParser {
     ///   - document: The OPF XML document being parsed.
     ///   - publication: The publication whose spine and resources will be built.
     ///   - coverItemId: The id of the cover item in the manifest.
-    internal func parseSpineAndResources(
-        from document: AEXMLDocument,
-        to publication: Publication) {
+    internal func parseSpineAndResources(from document: AEXMLDocument, to publication: Publication) {
         /// XML shortcuts
         let metadataElement = document.root["metadata"]
         let manifest = document.root["manifest"]
@@ -365,7 +362,6 @@ public class OPFParser {
             // they've already been removed from the manifestLinks dictionary
             publication.resources = [Link](manifestLinks.values)
         }
-
         if let coverMetas = metadataElement["meta"].all(withAttributes: ["name" : "cover"]) {
             coverId = coverMetas.first?.string
         }
@@ -432,13 +428,8 @@ public class OPFParser {
     ///   - properties: The remaining properties array.
     ///   - link: The link which will be included into the Publication Object.
     ///   - publication: The concerned Publication.
-    internal func parseItemProperties(
-        from properties: [String],
-        to link: Link,
-        and publication: Publication) {
-
-        let remainingProperties: [String]
-
+    internal func parseItemProperties(from properties: [String], to link: Link,
+                                      and publication: Publication) {
         if properties.contains("nav") {
             link.rel.append("contents")
         }
@@ -447,7 +438,7 @@ public class OPFParser {
             link.rel.append("cover")
             publication.links.append(link)
         }
-        remainingProperties = properties.filter {
+        let remainingProperties = properties.filter {
             $0 != "cover-image" && $0 != "nav"
         }
         link.properties.append(contentsOf: remainingProperties)
