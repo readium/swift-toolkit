@@ -9,16 +9,6 @@
 import Foundation
 import AEXML
 
-public enum OPFParserError: Error {
-
-    /// The natvigation link couldn't not be found in the publication.
-    case missingNavLink
-
-    /// The natvigation link have no/empty Href property.
-    case missingNavLinkHref
-
-}
-
 extension OPFParser: Loggable {}
 
 /// EpubParser support class, able to parse the OPF package document.
@@ -42,8 +32,6 @@ public class OPFParser {
     {
         /// The 'to be built' Publication.
         let publication = Publication()
-        /// Relative path to the package.opf file.
-        let rootFilePath = container.rootFile.rootFilePath
 
         // TODO: Add self to links.
         // But we don't know the self URL here
@@ -55,37 +43,57 @@ public class OPFParser {
 
         /// WIP -------------
 
-        // Fill ToC publication
-//        guard let navLink = publication.spine.first(where: { $0.rel.contains("contents") }) else {
-//            log(level: .error, "Couldn't find the `nav link` in Publication.")
-//            throw OPFParserError.missingNavLink
-//        }
-//        // Get the path of the folder containing the .opf file
-//        let rootDirPath = rootFilePath.deletingLastPathComponent()
-//        print(rootDirPath) //DEBUG
-//
-//        guard let navLinkHref = navLink.href else {
-//            throw OPFParserError.missingNavLinkHref
-//        }
-//        let navigationDocumentPath = rootDirPath.appending(pathComponent: navLinkHref)
-//        let navigationDocument = try container.xmlDocumentForFile(atPath: navigationDocumentPath)
-//
-//        fillTOC(from: navigationDocument, to: publication)
-//        if publication.TOC.isEmpty {
-//            fillTOCFromNCX(from: document, to: publication/*&publication, book*/)
-//            fillPageListFromNCX(from: document, to: publication/*&publication, book*/)
-//        }
+        // Get navLink then generate navigation document
+        var navLink = publication.spine.first(where: { $0.rel.contains("contents") })
+        let navigationDocument = generateNavigationDocument(navigationLink: navLink,
+                                                            in: container)
+        if let nd = navigationDocument {
+            fillTOC(from: nd, to: publication)
+            if publication.TOC.isEmpty {
+                fillTOCFromNCX(from: nd, to: publication)
+                fillPageListFromNCX(from: nd, to: publication)
+            }
+        }
 
         // ENDWIP -----------
         publication.internalData["type"] = "epub"
-        publication.internalData["rootfile"] = rootFilePath
+        publication.internalData["rootfile"] = container.rootFile.rootFilePath
         return publication
     }
 
-    internal func fillTOC(from navigationDocument: AEXMLDocument, to publication: Publication)
+
+    /// Return an XML Document representing the navigation document pointed by
+    /// the first manifest item navigationLink( id == nav)
+    ///
+    /// - Parameters:
+    ///   - navLink: The Link generated from the manifest id='nav' element.
+    ///   - container: The epub container.
+    /// - Returns: The XML Document.
+    fileprivate func generateNavigationDocument(navigationLink navLink: Link?,
+                                                in container: Container) -> AEXMLDocument?
     {
+        let rootFilePath = container.rootFile.rootFilePath
+        let rootDirPath = rootFilePath.deletingLastPathComponent()
 
+        guard let navLinkHref = navLink?.href else {
+            log(level: .error, "Couldn't find the `nav link` in Publication.")
+            return nil
+        }
 
+        // Get the path of the folder containing the .opf file
+        let navigationDocumentPath = rootDirPath.appending(pathComponent: navLinkHref)
+        var navigationDocument: AEXMLDocument? = nil
+
+        do {
+            navigationDocument = try container.xmlDocumentForFile(atPath: navigationDocumentPath)
+        } catch {
+            log(level: .error, "Error generating the XML document: \(error)")
+        }
+        return navigationDocument
+    }
+
+    internal func fillTOC(from navigationDocument: AEXMLDocument, to publication: Publication) {
+        
 
     }
 
@@ -410,7 +418,7 @@ public class OPFParser {
             guard let id = item.attributes["id"] else {
                 // Manifest item MUST have an id, ignore it
                 log(level: .error, "Manifest item has no \"id\" attribute.")
-                return
+                continue
             }
             // If it's the cover's item id, set the rel to cover and add the
             // link to `links`
