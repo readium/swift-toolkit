@@ -14,7 +14,9 @@ import ObjectMapper
 /// It is created by the `EpubParser` from an EPUB file or directory.
 /// As it is extended by `Mappable`, it can be deserialized to `JSON`.
 open class Publication: Mappable {
-
+    
+    /// The epubVersion of the publication
+    public var epubVersion = 0.0
     /// The metadata (title, identifier, contributors, etc.).
     public var metadata = Metadata()
     //

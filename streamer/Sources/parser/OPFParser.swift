@@ -24,25 +24,26 @@ public class OPFParser {
     ///
     /// - Parameter container: The EPUB container whom OPF file will be parsed.
     /// - Returns: The `Publication` object resulting from the parsing.
-    /// - Throws: `EpubParserError.xmlParse`.
-    internal func parseOPF(from document: AEXMLDocument,
-                           with containerMetadata: ContainerMetadata) throws -> Publication {
+    /// - Throws: `EpubParserError.xmlParse`,
+    ///           `OPFParserError.missingNavLink`,
+    ///           `throw OPFParserError.missingNavLinkHref`.
+    internal func parseOPF(from document: AEXMLDocument, with container: Container,
+                           and epubVersion: Double) throws -> Publication
+    {
         /// The 'to be built' Publication.
         let publication = Publication()
-        /// Shortcuts to ContainerMetadata elements.
-        ///     Relative path to the package.opf file.
-        let rootFilePath = containerMetadata.rootFilePath
+        /// Relative path to the package.opf file.
+        let rootFilePath = container.rootFile.rootFilePath
 
         // TODO: Add self to links.
         // But we don't know the self URL here
         //publication.links.append(Link(href: "TODO", typeLink: "application/webpub+json", rel: "self"))
 
-        // Parse Metadata from the XML document.
-        let metadata = parseMetadata(from: document, with: containerMetadata.epubVersion)
-        // Look for the manifest item id of the cover.
+        publication.epubVersion = epubVersion
+        publication.metadata = parseMetadata(from: document, with: epubVersion)
         parseSpineAndResources(from: document, to: publication)
 
-        /// WIP
+        /// WIP -------------
 
         // Fill ToC publication
 //        fillTOCfromNavigationDocument(from: document, to: publication/*&publication, book*/)
@@ -52,26 +53,16 @@ public class OPFParser {
 //            fillPageListFromNCX(from: document, to: publication/*&publication, book*/)
 //        }
 
-
-
-        publication.metadata = metadata
+        // ENDWIP -----------
         publication.internalData["type"] = "epub"
         publication.internalData["rootfile"] = rootFilePath
         return publication
     }
 
-    internal func fillTOCfromNavigationDocument(from document: AEXMLDocument,
-                                                to publication: Publication) {
-        guard let navigationLink = publication.link(withRel: "contents") else {
-            log(level: .error, "Couldn't find the `nav link` in Publication.")
-            return
-        }
-        let manifest = document.root["manifest"]
+    internal func fillTOC(from navigationDocument: AEXMLDocument, to publication: Publication)
+    {
 
-        let navElements = manifest.all(withValue: "nav")
-       // navElements = manifest. [""]
 
-        
 
     }
 
@@ -246,9 +237,7 @@ public class OPFParser {
         // `unique-identifier`
         if identifiers.count > 1,
             let uniqueId = attributes["unique-identifier"] {
-            let uniqueIdentifiers = identifiers.filter {
-                $0.attributes["id"] == uniqueId
-            }
+            let uniqueIdentifiers = identifiers.filter { $0.attributes["id"] == uniqueId }
             if !uniqueIdentifiers.isEmpty, let uid = uniqueIdentifiers.first {
                 return uid.string
             }
@@ -343,7 +332,7 @@ public class OPFParser {
     }
 
     /// Parses the manifest and spine elements to build the document's spine and
-    /// it resources list.
+    /// its resources list.
     ///
     /// - Parameters:
     ///   - document: The OPF XML document being parsed.
@@ -378,15 +367,26 @@ public class OPFParser {
             link.href = item.attributes["href"]
             link.typeLink = item.attributes["media-type"]
             // Look for properties
-            if let properties = item.attributes["properties"] {
+            if let propertyAttribute = item.attributes["properties"] {
                 let ws = CharacterSet.whitespaces
-                let propertiesArray = properties.components(separatedBy: ws)
+                let properties = propertyAttribute.components(separatedBy: ws)
 
-                parseItemProperties(from: propertiesArray, to: link, and: publication)
+                if properties.contains("nav") {
+                    link.rel.append("contents")
+                }
+                // If it's a cover, set the rel to cover and add the link to `links`
+                if properties.contains("cover-image") {
+                    link.rel.append("cover")
+                    publication.links.append(link)
+                }
+                let otherProperties = properties.filter { $0 != "cover-image" && $0 != "nav" }
+                link.properties.append(contentsOf: otherProperties)
+                // TODO: rendition properties
             }
             // Add it to the manifest items dict if it has an id
             guard let id = item.attributes["id"] else {
-                log(level: .error, "Manifest item has no \"id\" attribute")
+                // Manifest item MUST have an id, ignore it
+                log(level: .error, "Manifest item has no \"id\" attribute.")
                 return
             }
             // If it's the cover's item id, set the rel to cover and add the
@@ -420,28 +420,4 @@ public class OPFParser {
             }
         }
     }
-
-    // TODO: Refine description
-    /// Parse the items misc properties (?).
-    ///
-    /// - Parameters:
-    ///   - properties: The remaining properties array.
-    ///   - link: The link which will be included into the Publication Object.
-    ///   - publication: The concerned Publication.
-    internal func parseItemProperties(from properties: [String], to link: Link,
-                                      and publication: Publication) {
-        if properties.contains("nav") {
-            link.rel.append("contents")
-        }
-        // If it's a cover, set the rel to cover and add the link to `links`
-        if properties.contains("cover-image") {
-            link.rel.append("cover")
-            publication.links.append(link)
-        }
-        let remainingProperties = properties.filter {
-            $0 != "cover-image" && $0 != "nav"
-        }
-        link.properties.append(contentsOf: remainingProperties)
-        // TODO: rendition properties
-    }    
 }

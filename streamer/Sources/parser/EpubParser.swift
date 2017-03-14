@@ -99,17 +99,17 @@ open class EpubParser {
         }
         // Parse the container.xml Data and fill the ContainerMetadata object
         // of the container
-        container.metadata.rootFilePath =  try getRootFilePath(from: data)
+        container.rootFile.rootFilePath =  try getRootFilePath(from: data)
 
         // Get the package.opf XML document from the container.
-        let document = try getXmlDocumentForFile(in: container,
-                                                 atPath: container.metadata.rootFilePath)
+        let document = try container.xmlDocumentForFile(atPath: container.rootFile.rootFilePath)
         // Try to get EPUB version from the <package> element.
         // Else set it to default value.
-        container.metadata.epubVersion = getEpubVersion(from: document)
+        let epubVersion = getEpubVersion(from: document)
 
         // Parse the opf file and return the Publication.
-        let publication = try opfParser.parseOPF(from: document, with: container.metadata)
+        let publication = try opfParser.parseOPF(from: document, with: container, and: epubVersion)
+        publication.epubVersion = epubVersion
         return (publication, container)
     }
 

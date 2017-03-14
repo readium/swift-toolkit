@@ -24,7 +24,7 @@ public protocol Container {
 
     /// Meta-informations about the Container. See ContainerMetadata struct for
     /// more details.
-    var metadata: ContainerMetadata { get set }
+    var rootFile: RootFile { get set }
 
     /// Get the raw (possibly encrypted) data of an asset in the container
     ///

@@ -12,7 +12,7 @@ import Foundation
 public class EpubDirectoryContainer: Container {
 
     /// Struct containing meta information about the Container.
-    public var metadata: ContainerMetadata
+    public var rootFile: RootFile
 
     // MARK: - Public methods.
 
@@ -24,7 +24,7 @@ public class EpubDirectoryContainer: Container {
         guard FileManager.default.fileExists(atPath: dirPath) else {
             return nil
         }
-        metadata = ContainerMetadata.init(rootPath: dirPath)
+        rootFile = RootFile.init(rootPath: dirPath)
     }
 
     // MARK: - Open methods.
@@ -66,7 +66,7 @@ public class EpubDirectoryContainer: Container {
     /// - Parameter relativePath: The 'directory-relative' path to the ressource.
     /// - Returns: The absolute path to the ressource
     internal func generateFullPath(with relativePath: String) -> String {
-        let fullPath = metadata.rootPath.appending(pathComponent: relativePath)
+        let fullPath = rootFile.rootPath.appending(pathComponent: relativePath)
         
         return fullPath
     }

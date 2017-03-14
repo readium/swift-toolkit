@@ -12,7 +12,7 @@ import Foundation
 public class EpubContainer: Container {
 
     /// Struct containing meta information about the Container
-    public var metadata: ContainerMetadata
+    public var rootFile: RootFile
 
     /// The zip archive object containing the Epub.
     var zipArchive: ZipArchive
@@ -26,7 +26,7 @@ public class EpubContainer: Container {
         guard let arc = ZipArchive(url: URL(fileURLWithPath: path)) else {
             return nil
         }
-        metadata = ContainerMetadata.init(rootPath: path)
+        rootFile = RootFile.init(rootPath: path)
         zipArchive = arc
     }
 
@@ -45,7 +45,7 @@ public class EpubContainer: Container {
     // Implements Container protocol
     public func dataInputStream(relativePath: String) throws -> SeekableInputStream {
         // let inputStream = ZipInputStream(zipArchive: zipArchive, path: relativePath)
-        guard let inputStream = ZipInputStream(zipFilePath: metadata.rootPath,
+        guard let inputStream = ZipInputStream(zipFilePath: rootFile.rootPath,
                                                path: relativePath) else {
             throw ContainerError.streamInitFailed
         }
