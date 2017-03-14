@@ -49,5 +49,35 @@ public protocol Container {
     /// - Throws: An error from EpubDataContainerError enum depending of the
     ///           overrding method's implementation.
     func dataInputStream(relativePath: String) throws -> SeekableInputStream
+
+    /// Takes the path to one of the ressources and returns an XML document.
+    ///
+    /// - Parameters:
+    ///   - path: The path to the ressource inside the container.
+    /// - Returns: The XML document Object generated.
+    /// - Throws: EpubParserError.missingFile(),
+    ///           EpubParserError.xmlParse().
+    func xmlDocumentForFile(atPath path: String) throws -> AEXMLDocument
+}
+
+extension Container {
+
+    public func xmlDocumentForFile(atPath path: String) throws -> AEXMLDocument {
+        // The 'to be built' XML Document
+        var document: AEXMLDocument
+
+        // Get `Data` from the Container/OPFFile
+        guard let data = try? data(relativePath: path) else {
+            throw EpubParserError.missingFile(path: path)
+        }
+        // Transforms `Data` into an AEXML Document object
+        do {
+            document = try AEXMLDocument(xml: data)
+        } catch {
+            throw EpubParserError.xmlParse(underlyingError: error)
+        }
+        return document
+    }
+
 }
 

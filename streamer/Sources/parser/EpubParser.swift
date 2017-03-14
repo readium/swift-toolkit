@@ -151,33 +151,6 @@ open class EpubParser {
         return fullPath
     }
 
-    /// Takes a Container and the path to one of it's ressource and returns an
-    /// XML document.
-    ///
-    /// - Parameters:
-    ///   - container: The Container containing the XML file.
-    ///   - path: The path to the XML file.
-    /// - Returns: The XML document Object generated.
-    /// - Throws: EpubParserError.missingFile(),
-    ///           EpubParserError.xmlParse().
-    fileprivate func getXmlDocumentForFile(in container: Container,
-                                           atPath path: String) throws -> AEXMLDocument {
-        // The 'to be built' XML Document
-        var document: AEXMLDocument
-
-        // Get `Data` from the Container/OPFFile
-        guard let data = try? container.data(relativePath: path) else {
-            throw EpubParserError.missingFile(path: path)
-        }
-        // Transforms `Data` into an AEXML Document object
-        do {
-            document = try AEXMLDocument(xml: data)
-        } catch {
-            throw EpubParserError.xmlParse(underlyingError: error)
-        }
-        return document
-    }
-
     /// Retrieve the EPUB version from the package.opf XML document.
     fileprivate func getEpubVersion(from document: AEXMLDocument) -> Double {
         let version: Double
