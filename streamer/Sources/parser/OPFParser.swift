@@ -39,15 +39,49 @@ public class OPFParser {
         //publication.links.append(Link(href: "TODO", typeLink: "application/webpub+json", rel: "self"))
 
         // Parse Metadata from the XML document.
-        let metadata = parseMetadata(from: document,
-                                     with: containerMetadata.epubVersion)
+        let metadata = parseMetadata(from: document, with: containerMetadata.epubVersion)
         // Look for the manifest item id of the cover.
         parseSpineAndResources(from: document, to: publication)
-        //
+
+        /// WIP
+
+        // Fill ToC publication
+//        fillTOCfromNavigationDocument(from: document, to: publication/*&publication, book*/)
+//        if publication.TOC.isEmpty {
+//
+//            fillTOCFromNCX(from: document, to: publication/*&publication, book*/)
+//            fillPageListFromNCX(from: document, to: publication/*&publication, book*/)
+//        }
+
+
+
         publication.metadata = metadata
         publication.internalData["type"] = "epub"
         publication.internalData["rootfile"] = rootFilePath
         return publication
+    }
+
+    internal func fillTOCfromNavigationDocument(from document: AEXMLDocument,
+                                                to publication: Publication) {
+        guard let navigationLink = publication.link(withRel: "contents") else {
+            log(level: .error, "Couldn't find the `nav link` in Publication.")
+            return
+        }
+        let manifest = document.root["manifest"]
+
+        let navElements = manifest.all(withValue: "nav")
+       // navElements = manifest. [""]
+
+        
+
+    }
+
+    internal func fillTOCFromNCX(from document: AEXMLDocument, to publication: Publication) {
+
+    }
+
+    internal func fillPageListFromNCX(from document: AEXMLDocument, to publication: Publication) {
+
     }
 
     /// Parse the Metadata in the XML <metadata> element.

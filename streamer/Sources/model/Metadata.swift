@@ -12,12 +12,9 @@ import ObjectMapper
 /// <#Description#>
 open class Metadata: Mappable {
 
-    /// The title of the publication
     public var title: String?
-
-    /// The unique identifier
+    public var languages = [String]()
     public var identifier: String?
-
     // Authors, translators and other contributors
     public var authors = [Contributor]()
     public var translators = [Contributor]()
@@ -29,11 +26,12 @@ open class Metadata: Mappable {
     public var colorists = [Contributor]()
     public var inkers = [Contributor]()
     public var narrators = [Contributor]()
-    public var contributors = [Contributor]()
-    public var publishers = [Contributor]()
     public var imprints = [Contributor]()
+    //
+    public var subjects = [Subject]()
+    public var publishers = [Contributor]()
+    public var contributors = [Contributor]()
 
-    public var languages = [String]()
     public var modified: NSDate?
     public var publicationDate: NSDate?
     public var description: String?
@@ -42,7 +40,6 @@ open class Metadata: Mappable {
     public var source: String?
     public var epubType = [String]()
     public var rights: String?
-    public var subjects = [Subject]()
 
     public var otherMetadata = [MetadataItem]()
 
