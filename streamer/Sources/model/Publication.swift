@@ -49,7 +49,9 @@ open class Publication: Mappable {
     /// The implementation scans the `links` for a link where `rel` is `cover`.
     /// If none is found, it is `nil`.
     public var coverLink: Link? {
-        get { return link(withRel: "cover") }
+        get {
+            return link(withRel: "cover")
+        }
     }
 
     public init() {

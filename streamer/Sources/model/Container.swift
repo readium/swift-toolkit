@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import AEXML
 
 /// Container Protocol's Errors.
 ///

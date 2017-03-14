@@ -9,6 +9,16 @@
 import Foundation
 import AEXML
 
+public enum OPFParserError: Error {
+
+    /// The natvigation link couldn't not be found in the publication.
+    case missingNavLink
+
+    /// The natvigation link have no/empty Href property.
+    case missingNavLinkHref
+
+}
+
 extension OPFParser: Loggable {}
 
 /// EpubParser support class, able to parse the OPF package document.
@@ -46,9 +56,22 @@ public class OPFParser {
         /// WIP -------------
 
         // Fill ToC publication
-//        fillTOCfromNavigationDocument(from: document, to: publication/*&publication, book*/)
-//        if publication.TOC.isEmpty {
+//        guard let navLink = publication.spine.first(where: { $0.rel.contains("contents") }) else {
+//            log(level: .error, "Couldn't find the `nav link` in Publication.")
+//            throw OPFParserError.missingNavLink
+//        }
+//        // Get the path of the folder containing the .opf file
+//        let rootDirPath = rootFilePath.deletingLastPathComponent()
+//        print(rootDirPath) //DEBUG
 //
+//        guard let navLinkHref = navLink.href else {
+//            throw OPFParserError.missingNavLinkHref
+//        }
+//        let navigationDocumentPath = rootDirPath.appending(pathComponent: navLinkHref)
+//        let navigationDocument = try container.xmlDocumentForFile(atPath: navigationDocumentPath)
+//
+//        fillTOC(from: navigationDocument, to: publication)
+//        if publication.TOC.isEmpty {
 //            fillTOCFromNCX(from: document, to: publication/*&publication, book*/)
 //            fillPageListFromNCX(from: document, to: publication/*&publication, book*/)
 //        }
