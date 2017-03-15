@@ -21,6 +21,7 @@ open class Link: Mappable {
     public var properties: [String] = [String]()
     public var duration: TimeInterval?
     public var templated: Bool?
+    public var children = [Link]()
 
     // MARK: - Public methods
 
