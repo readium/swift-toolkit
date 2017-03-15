@@ -43,66 +43,19 @@ public class OPFParser {
 
         /// WIP -------------
 
-        // Get navLink then generate navigation document
-        var navLink = publication.spine.first(where: { $0.rel.contains("contents") })
-        let navigationDocument = generateNavigationDocument(navigationLink: navLink,
-                                                            in: container)
-        if let nd = navigationDocument {
-            fillTOC(from: nd, to: publication)
-            if publication.TOC.isEmpty {
-                fillTOCFromNCX(from: nd, to: publication)
-                fillPageListFromNCX(from: nd, to: publication)
-            }
+        // Attempt to fill Publication.TOC using the navigation document.
+        fillTocUsingNavigationDocument(from: container, into: publication)
+
+        // If the TOC couldn't be filled from the navigation document
+        if publication.TOC.isEmpty {
+            fillTOCUsingNCX(from: container, into: publication)
+            //fillPageListFromNCX(from: container, into: publication)
         }
 
         // ENDWIP -----------
         publication.internalData["type"] = "epub"
         publication.internalData["rootfile"] = container.rootFile.rootFilePath
         return publication
-    }
-
-
-    /// Return an XML Document representing the navigation document pointed by
-    /// the first manifest item navigationLink( id == nav)
-    ///
-    /// - Parameters:
-    ///   - navLink: The Link generated from the manifest id='nav' element.
-    ///   - container: The epub container.
-    /// - Returns: The XML Document.
-    fileprivate func generateNavigationDocument(navigationLink navLink: Link?,
-                                                in container: Container) -> AEXMLDocument?
-    {
-        let rootFilePath = container.rootFile.rootFilePath
-        let rootDirPath = rootFilePath.deletingLastPathComponent()
-
-        guard let navLinkHref = navLink?.href else {
-            log(level: .error, "Couldn't find the `nav link` in Publication.")
-            return nil
-        }
-
-        // Get the path of the folder containing the .opf file
-        let navigationDocumentPath = rootDirPath.appending(pathComponent: navLinkHref)
-        var navigationDocument: AEXMLDocument? = nil
-
-        do {
-            navigationDocument = try container.xmlDocumentForFile(atPath: navigationDocumentPath)
-        } catch {
-            log(level: .error, "Error generating the XML document: \(error)")
-        }
-        return navigationDocument
-    }
-
-    internal func fillTOC(from navigationDocument: AEXMLDocument, to publication: Publication) {
-        
-
-    }
-
-    internal func fillTOCFromNCX(from document: AEXMLDocument, to publication: Publication) {
-
-    }
-
-    internal func fillPageListFromNCX(from document: AEXMLDocument, to publication: Publication) {
-
     }
 
     /// Parse the Metadata in the XML <metadata> element.
@@ -390,7 +343,7 @@ public class OPFParser {
         }
 
         /// Parses the differents manifest items from the XML <manifest> element.
-        /// Creates an Link for each item in the <manifest>
+        /// Creates an Link for each item in the <manifest>.
         for item in manifestItems {
             // Build a link for the manifest item
             let link = Link()
@@ -417,7 +370,7 @@ public class OPFParser {
             // Add it to the manifest items dict if it has an id
             guard let id = item.attributes["id"] else {
                 // Manifest item MUST have an id, ignore it
-                log(level: .error, "Manifest item has no \"id\" attribute.")
+                log(level: .debug, "Manifest item has no \"id\" attribute.")
                 continue
             }
             // If it's the cover's item id, set the rel to cover and add the
@@ -452,3 +405,129 @@ public class OPFParser {
         }
     }
 }
+
+// MARK: - Table Of Content filling related methods (being from the Navigation
+//         Document or the NXC)
+extension OPFParser {
+    
+    /// Generate XML Document from Navigation Document then use it to fill the
+    /// `Publication` TOC, `landmarks` and `pageList`.
+    ///
+    /// - Parameters:
+    ///   - container: The Epub container.
+    ///   - publication: The Epub Publication.
+    internal func fillTocUsingNavigationDocument(from container: Container, into publication: Publication) {
+        // Get the link in the spine pointing to the navigation document.
+        var navLink = publication.spine.first(where: { $0.rel.contains("contents") })
+
+        // Generate the XML navigationDocument out of it.
+        guard let navigationDocument = try? container.xmlDocument(forRessourceReferencedByLink: navLink) else {
+            log(level: .debug, "Error while generating xml document referenced by navDoc link")
+            return
+        }
+        // Fill the `Publication`'s `TOC`, `PageList`, `Landmarks` from the XML
+        // navigation Document.
+        fillNavigationRelatedProperties(of: publication, withElementsFrom: navigationDocument)
+    }
+
+    internal func fillTOCUsingNCX(from container: Container, into publication: Publication) {
+        // Get the link in the spine pointing to the NCX document.
+        let ncxLink = publication.resources.first(where: { $0.typeLink == "application/x-dtbncx+xml" })
+
+        // Generate the XML ncx document out of it.
+        guard let ncxDocument = try? container.xmlDocument(forRessourceReferencedByLink: ncxLink) else {
+            log(level: .debug, "Error while generating xml document referenced by ncxLink link")
+            return
+        }
+
+        // TODO HERE
+    }
+
+    //    /// <#Description#>
+    //    ///
+    //    /// - Parameters:
+    //    ///   - container: <#container description#>
+    //    ///   - publication: <#publication description#>
+    //    internal func fillPageListUsingNCX(from container: Container, into publication: Publication) {
+    //
+    //    }
+
+    // Mark: - Fileprivate methods.
+
+    /// Fill the Table Of Content (TOC) contained in the Publication using the
+    /// data contained in the `<nav>` element of the navigation document.
+    /// (`PageList` and `Landmarks`)
+    ///
+    /// - Parameters:
+    ///   - toc: The Table Of Content (TOC) to fill.
+    ///   - navigationDocument: The navigation document containing the
+    ///     navigation informations.
+    fileprivate func fillNavigationRelatedProperties(of publication: Publication,
+                                                     withElementsFrom navigationDocument: AEXMLDocument)
+    {
+        let section = navigationDocument.root["body"]["section"]
+
+        // Retrieve all the `<nav>` elements from the document.
+        guard let navElements = section["nav"].all else {
+            log(level: .debug, "No `<nav>` elements have been found in the navigation document.")
+            return
+        }
+        // For each `<nav>` element contained in the document.
+        for navElement in navElements {
+            // Retrieve the `epub:type` property of the <nav> element.
+            guard let navType = navElement.attributes["epub:type"] else { continue }
+            // Retrieve the children <ol> element of the given <nav>.
+            guard let olElement = navElement["ol"].first else { break }
+            // Fill the information to the correct property of the publication.
+            switch navType {
+            case "toc":
+                publication.TOC = insert(olElement, into: publication.TOC)
+            case "page-list":
+                publication.pageList = insert(olElement, into: publication.pageList)
+            case "landmarks":
+                publication.landmarks = insert(olElement, into: publication.landmarks)
+            default:
+                break
+            }
+        }
+    }
+
+    /// Create a tree of node recursively from the data contained in the <ol>.
+    ///
+    /// - Parameters:
+    ///   - olElement: The Link list.
+    ///   - node: The parent node.
+    /// - Returns: The new parent node.
+    fileprivate func insert(_ olElement: AEXMLElement, into node: [Link]) -> [Link] {
+        var newNode = node
+
+        // Retrieve the children <li> elements of the <ol>.
+        guard let liElements = olElement["li"].all else { return newNode }
+        // For each <li>.
+        for liElement in liElements {
+            // Check if the <li> contains a <span> whom text value is not empty.
+            if let spanText = liElement["span"].value, !spanText.isEmpty {
+                // Retrieve the <ol> inside the <span> and do a recursive call.
+                if let nextOlElement = liElement["ol"].first {
+                    insert(nextOlElement, into: newNode)
+                }
+            } else {
+                // Get the <a> informations and generate a Link from them.
+                let href = liElement["a"].attributes["href"]
+                let title = liElement["a"].attributes["title"]
+                let link = Link()
+
+                link.href = href
+                link.title = title
+                // If a nested <ol> is found, insert is into the current Link
+                // childrens' Links.
+                if let nextOlElement = liElement["ol"].first {
+                    insert(nextOlElement, into: link.children)
+                }
+                newNode.append(link)
+            }
+        }
+        return newNode
+    }
+}
+

@@ -102,7 +102,7 @@ open class EpubParser {
         container.rootFile.rootFilePath =  try getRootFilePath(from: data)
 
         // Get the package.opf XML document from the container.
-        let document = try container.xmlDocumentForFile(atPath: container.rootFile.rootFilePath)
+        let document = try container.xmlDocument(ForFileAtRelativePath: container.rootFile.rootFilePath)
         // Try to get EPUB version from the <package> element.
         // Else set it to default value.
         let epubVersion = getEpubVersion(from: document)
