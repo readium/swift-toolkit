@@ -19,23 +19,19 @@ open class Publication: Mappable {
     public var epubVersion = 0.0
     /// The metadata (title, identifier, contributors, etc.).
     public var metadata = Metadata()
-    //
     public var links = [Link]()
     public var spine = [Link]()
     /// The resources, not including the links already present in the spine.
     public var resources = [Link]()
-    /// The table of contents.
-    public var TOC = [Link]()
+    /// <=> TOC
+    public var tableOfContents = [Link]()
     public var pageList = [Link]()
     public var landmarks = [Link]()
-    /// List of Illustrations.
-    public var LOI = [Link]()
-    /// List of Audio files.
-    public var LOA = [Link]()
-    /// List of Videos.
-    public var LOV = [Link]()
-    /// List of Tables.
-    public var LOT = [Link]()
+    /// <=> LOI, LOA LOV, LOT
+    public var listOfIllustrations = [Link]()
+    public var listOfAudioFiles = [Link]()
+    public var listOfVideos = [Link]()
+    public var listOfTables = [Link]()
 
     /// Extension point for links that shouldn't show up in the manifest
     public var otherLinks = [Link]()

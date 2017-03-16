@@ -55,7 +55,7 @@ public enum EpubParserError: Error {
 /// - It parses `container.xml` to look for the default rendition.
 /// - It parses the OPF file of the default rendition for the metadata,
 ///   the assets and the spine.
-open class EpubParser {
+public class EpubParser {
 
     /// The OPF parser object, used to parse the 'package.opf' file of the
     /// container.

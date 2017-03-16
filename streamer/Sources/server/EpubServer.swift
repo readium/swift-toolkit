@@ -204,18 +204,17 @@ open class EpubServer {
     ///   - endPoint: The URI prefix to use to fetch assets from the publication.
     internal func addSelfLinkTo(publication: Publication, endpoint: String) {
         let publicationURL: URL
-        let link: Link
+        let link = Link()
         let manifestPath = "\(endpoint)/manifest.json"
 
         guard let baseURL = baseURL else {
             log(level: .warning, "Base URL is nil.")
             return
         }
-        publicationURL = baseURL.appendingPathComponent(manifestPath,
-                                                        isDirectory: false)
-        link = Link(href: publicationURL.absoluteString,
-                    typeLink: "application/webpub+json",
-                    rel: "self")
+        publicationURL = baseURL.appendingPathComponent(manifestPath, isDirectory: false)
+        link.href = publicationURL.absoluteString
+        link.typeLink = "application/webpub+json"
+        link.rel.append("self")
         publication.links.append(link)
     }
     

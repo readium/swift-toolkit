@@ -27,36 +27,158 @@ public class OPFParser {
     /// - Throws: `EpubParserError.xmlParse`,
     ///           `OPFParserError.missingNavLink`,
     ///           `throw OPFParserError.missingNavLinkHref`.
-    internal func parseOPF(from document: AEXMLDocument, with container: Container,
+    internal func parseOPF(from document: AEXMLDocument,
+                           with container: Container,
                            and epubVersion: Double) throws -> Publication
     {
         /// The 'to be built' Publication.
         let publication = Publication()
 
+        publication.epubVersion = epubVersion
+        publication.internalData["type"] = "epub"
+        publication.internalData["rootfile"] = container.rootFile.rootFilePath
         // TODO: Add self to links.
         // But we don't know the self URL here
         //publication.links.append(Link(href: "TODO", typeLink: "application/webpub+json", rel: "self"))
-
-        publication.epubVersion = epubVersion
-        publication.metadata = parseMetadata(from: document, with: epubVersion)
+        publication.metadata = parseMetadata(from: document, with: epubVersion) // TODO format to: publiation
         parseSpineAndResources(from: document, to: publication)
-
-        /// WIP -------------
-
-        // Attempt to fill Publication.TOC using the navigation document.
-        fillTocUsingNavigationDocument(from: container, into: publication)
-
-        // If the TOC couldn't be filled from the navigation document
-        if publication.TOC.isEmpty {
-            fillTOCUsingNCX(from: container, into: publication)
-            //fillPageListFromNCX(from: container, into: publication)
-        }
-
-        // ENDWIP -----------
-        publication.internalData["type"] = "epub"
-        publication.internalData["rootfile"] = container.rootFile.rootFilePath
+        parseNavigationDocumentAndNcx(from: container, to: publication)
         return publication
     }
+
+    /// Parses the manifest and spine elements to build the document's spine and
+    /// its resources list.
+    ///
+    /// - Parameters:
+    ///   - document: The OPF XML document being parsed.
+    ///   - publication: The publication whose spine and resources will be built.
+    ///   - coverItemId: The id of the cover item in the manifest.
+    internal func parseSpineAndResources(from document: AEXMLDocument, to publication: Publication) {
+        /// XML shortcuts
+        let metadataElement = document.root["metadata"]
+        let manifest = document.root["manifest"]
+        // Create a dictionary for all the manifest items keyed by their id
+        var manifestLinks = [String: Link]()
+        var coverId: String?
+
+        defer {
+            // Those links that were not in the spine are the resources,
+            // they've already been removed from the manifestLinks dictionary
+            publication.resources = [Link](manifestLinks.values)
+        }
+        if let coverMetas = metadataElement["meta"].all(withAttributes: ["name" : "cover"]) {
+            coverId = coverMetas.first?.string
+        }
+        guard let manifestItems = manifest["item"].all else {
+            return
+        }
+
+        /// Parses the differents manifest items from the XML <manifest> element.
+        /// Creates an Link for each item in the <manifest>.
+        for item in manifestItems {
+            // Build a link for the manifest item
+            let link = Link()
+
+            link.href = item.attributes["href"]
+            link.typeLink = item.attributes["media-type"]
+            // Look for properties
+            if let propertyAttribute = item.attributes["properties"] {
+                let ws = CharacterSet.whitespaces
+                let properties = propertyAttribute.components(separatedBy: ws)
+
+                if properties.contains("nav") {
+                    link.rel.append("contents")
+                }
+                // If it's a cover, set the rel to cover and add the link to `links`
+                if properties.contains("cover-image") {
+                    link.rel.append("cover")
+                    publication.links.append(link)
+                }
+                let otherProperties = properties.filter { $0 != "cover-image" && $0 != "nav" }
+                link.properties.append(contentsOf: otherProperties)
+                // TODO: rendition properties
+            }
+            // Add it to the manifest items dict if it has an id
+            guard let id = item.attributes["id"] else {
+                // Manifest item MUST have an id, ignore it
+                log(level: .debug, "Manifest item has no \"id\" attribute.")
+                continue
+            }
+            // If it's the cover's item id, set the rel to cover and add the
+            // link to `links`
+            if id == coverId {
+                link.rel.append("cover")
+                publication.links.append(link)
+            }
+            manifestLinks[id] = link
+        }
+
+        // Parse the `<spine>` element children
+        guard let spineItems = document.root["spine"]["itemref"].all else {
+            return
+        }
+        // For each spine item, look for the link in manifestLinks dictionary,
+        // add it to the spine and remove it from manifestLinks.
+        for item in spineItems {
+            guard let id = item.attributes["idref"] else {
+                continue
+            }
+            // Only linear items are added to the spine
+            guard item.attributes["linear"]?.lowercased() != "no" else {
+                continue
+            }
+            if let link = manifestLinks[id] {
+                // Found the link in the manifest items, add it to the spine
+                publication.spine.append(link)
+                // Then remove it from the manifest
+                manifestLinks.removeValue(forKey: id)
+            }
+        }
+    }
+
+    /// Attempt to fill `Publication.tableOfContent`/`.landmarks`/`.pageList`
+    /// using the navigation document. If it cannot be found or access, try with
+    /// the NCX document.
+    /// NOTE: Navigation Document was introduced for Epub3+.
+    ///
+    /// - Parameters:
+    ///   - container: The Epub container.
+    ///   - publication: The Epub publication.
+    internal func parseNavigationDocumentAndNcx(from container: Container,
+                                                to publication: Publication)
+    {
+        // Get the link in the spine pointing to the Navigation Document.
+        if var navLink = publication.spine.first(where: { $0.rel.contains("contents") }),
+            let navDocument = try? container.xmlDocument(forRessourceReferencedByLink: navLink)
+        {
+            let newTableOfContentsItems = tableOfContent(fromNavigationDocument: navDocument)
+            let newPageListItems = pageList(fromNavigationDocument: navDocument)
+            let newLandmarksItems = landmarks(fromNavigationDocument: navDocument)
+
+            publication.tableOfContents.append(contentsOf:  newTableOfContentsItems)
+            publication.pageList.append(contentsOf: newPageListItems)
+            publication.landmarks.append(contentsOf: newLandmarksItems)
+        }
+        // If the TOC has been filled using the Navigation Document, return.
+        guard publication.tableOfContents.isEmpty else {
+            return
+        }
+        // Else try to fill it using the NCX document.
+        // Get the link in the spine pointing to the NCX document.
+        if let ncxLink = publication.resources.first(where: { $0.typeLink == "application/x-dtbncx+xml" }),
+            let ncxDocument = try? container.xmlDocument(forRessourceReferencedByLink: ncxLink)
+        {
+            let newTableOfContentItems = tableOfContents(fromNcxDocument: ncxDocument)
+            //let newPageListItems = pageList(fromNavigationDocument: <#T##AEXMLDocument#>)
+
+            publication.tableOfContents.append(contentsOf: newTableOfContentItems)
+        }
+        // TODO: fillPageListFromNCX(from: container, into: publication)
+    }
+}
+
+// MARK: - Metadata Parsing.
+extension OPFParser {
 
     /// Parse the Metadata in the XML <metadata> element.
     ///
@@ -314,217 +436,184 @@ public class OPFParser {
             }
         }
     }
+}
 
-    /// Parses the manifest and spine elements to build the document's spine and
-    /// its resources list.
+// MARK: - Navigation Document Parsing
+extension OPFParser {
+
+    /// [SUGAR]
+    /// Return the data representation of the toc informations
+    /// contained in the Navigation Document.
+    ///
+    /// - Parameter document: The Navigation Document.
+    /// - Returns: The data representation of the toc.
+    internal func tableOfContent(fromNavigationDocument document: AEXMLDocument) -> [Link] {
+        let newTableOfContents = nodeArray(forNavigationDocument: document, havingNavType: "toc")
+
+        return newTableOfContents
+    }
+
+    /// [SUGAR]
+    /// Return the data representation of the page-list informations
+    /// contained in the Navigation Document.
+    ///
+    /// - Parameter document: The Navigation Document.
+    /// - Returns: The data representation of the landmarks.
+    internal func pageList(fromNavigationDocument document: AEXMLDocument) -> [Link] {
+        let newPageList = nodeArray(forNavigationDocument: document, havingNavType: "page-list")
+
+        return newPageList
+    }
+
+    /// [SUGAR]
+    /// Return the data representation of the landmarks informations
+    /// contained in the Navigation Document.
+    ///
+    /// - Parameter document: The Navigation Document.
+    /// - Returns: The data representation of the landmarks.
+    internal func landmarks(fromNavigationDocument document: AEXMLDocument) -> [Link] {
+        let newLandmarks = nodeArray(forNavigationDocument: document, havingNavType: "landmarks")
+
+        return newLandmarks
+    }
+
+    /// Generate an array of Link elements representing the XML structure of the
+    /// navigation document. Each of them possibly having children.
     ///
     /// - Parameters:
-    ///   - document: The OPF XML document being parsed.
-    ///   - publication: The publication whose spine and resources will be built.
-    ///   - coverItemId: The id of the cover item in the manifest.
-    internal func parseSpineAndResources(from document: AEXMLDocument, to publication: Publication) {
-        /// XML shortcuts
-        let metadataElement = document.root["metadata"]
-        let manifest = document.root["manifest"]
-        // Create a dictionary for all the manifest items keyed by their id
-        var manifestLinks = [String: Link]()
-        var coverId: String?
+    ///   - navigationDocument: The navigation document XML Object.
+    ///   - navType: The navType of the items to fetch.
+    ///              (eg "toc" for epub:type="toc").
+    /// - Returns: The Object representation of the data contained in the
+    ///            `navigationDocument` for the element of epub:type==`navType`.
+    fileprivate func nodeArray(forNavigationDocument document: AEXMLDocument,
+                               havingNavType navType: String) -> [Link]
+    {
+        var nodeTree = Link()
+        let section = document.root["body"]["section"]
 
-        defer {
-            // Those links that were not in the spine are the resources,
-            // they've already been removed from the manifestLinks dictionary
-            publication.resources = [Link](manifestLinks.values)
+        // Retrieve the <nav> elements from the document with "epub:type"
+        // property being equal to `navType`.
+        // Then generate the nodeTree array from the <ol> nested in the <nav>, 
+        // if any.
+        guard let navPoint = section["nav"].all?.first(where: { $0.attributes["epub:type"] == navType }),
+            let olElement = navPoint["ol"].first else
+        {
+            return []
         }
-        if let coverMetas = metadataElement["meta"].all(withAttributes: ["name" : "cover"]) {
-            coverId = coverMetas.first?.string
+        // Convert the XML element to a `Link` object. Recursive.
+        nodeTree = node(usingNavigationDocumentOl: olElement)
+
+        return nodeTree.children
+    }
+
+    /// [RECURSIVE]
+    /// Create a node(`Link`) from a <ol> element, filling the node
+    /// children with nested <li> elements if any.
+    /// If there are nested <ol> elements, recursively handle them.
+    ///
+    /// - Parameter element: The <ol> from the Navigation Document.
+    /// - Returns: The generated node(`Link`).
+    fileprivate func node(usingNavigationDocumentOl element: AEXMLElement) -> Link {
+        var newOlNode = Link()
+
+        // Retrieve the children <li> elements of the <ol>.
+        guard let liElements = element["li"].all else {
+            return newOlNode
         }
-        guard let manifestItems = manifest["item"].all else {
-            return
-        }
-
-        /// Parses the differents manifest items from the XML <manifest> element.
-        /// Creates an Link for each item in the <manifest>.
-        for item in manifestItems {
-            // Build a link for the manifest item
-            let link = Link()
-
-            link.href = item.attributes["href"]
-            link.typeLink = item.attributes["media-type"]
-            // Look for properties
-            if let propertyAttribute = item.attributes["properties"] {
-                let ws = CharacterSet.whitespaces
-                let properties = propertyAttribute.components(separatedBy: ws)
-
-                if properties.contains("nav") {
-                    link.rel.append("contents")
+        // For each <li>.
+        for li in liElements {
+            // Check if the <li> contains a <span> whom text value is not empty.
+            if let spanText = li["span"].value, !spanText.isEmpty {
+                // Retrieve the <ol> inside the <span> and do a recursive call.
+                if let nextOl = li["ol"].first {
+                    newOlNode.children.append(node(usingNavigationDocumentOl: nextOl))
                 }
-                // If it's a cover, set the rel to cover and add the link to `links`
-                if properties.contains("cover-image") {
-                    link.rel.append("cover")
-                    publication.links.append(link)
-                }
-                let otherProperties = properties.filter { $0 != "cover-image" && $0 != "nav" }
-                link.properties.append(contentsOf: otherProperties)
-                // TODO: rendition properties
-            }
-            // Add it to the manifest items dict if it has an id
-            guard let id = item.attributes["id"] else {
-                // Manifest item MUST have an id, ignore it
-                log(level: .debug, "Manifest item has no \"id\" attribute.")
-                continue
-            }
-            // If it's the cover's item id, set the rel to cover and add the
-            // link to `links`
-            if id == coverId {
-                link.rel.append("cover")
-                publication.links.append(link)
-            }
-            manifestLinks[id] = link
-        }
+            } else {
+                let childLiNode = node(usingNavigationDocumentLi: li)
 
-        // Parse the `<spine>` element children
-        guard let spineItems = document.root["spine"]["itemref"].all else {
-            return
-        }
-        // For each spine item, look for the link in manifestLinks dictionary,
-        // add it to the spine and remove it from manifestLinks.
-        for item in spineItems {
-            guard let id = item.attributes["idref"] else {
-                continue
-            }
-            // Only linear items are added to the spine
-            guard item.attributes["linear"]?.lowercased() != "no" else {
-                continue
-            }
-            if let link = manifestLinks[id] {
-                // Found the link in the manifest items, add it to the spine
-                publication.spine.append(link)
-                // Then remove it from the manifest
-                manifestLinks.removeValue(forKey: id)
+                newOlNode.children.append(childLiNode)
             }
         }
+        return newOlNode
+    }
+
+    /// [RECURSIVE]
+    /// Create a node(`Link`) from a <li> element.
+    /// If there is a nested <ol> element, recursively handle it.
+    ///
+    /// - Parameter element: The <ol> from the Navigation Document.
+    /// - Returns: The generated node(`Link`).
+    fileprivate func node(usingNavigationDocumentLi element: AEXMLElement) -> Link {
+        var newLiNode = Link ()
+
+        newLiNode.href = element["a"].attributes["href"]
+        newLiNode.title = element["a"]["span"].value
+        // If the <li> have a child <ol>.
+        if let nextOl = element["ol"].first {
+            // If a nested <ol> is found, insert it into the newNode childrens.
+            newLiNode.children.append(node(usingNavigationDocumentOl: nextOl))
+        }
+        return newLiNode
     }
 }
 
-// MARK: - Table Of Content filling related methods (being from the Navigation
-//         Document or the NXC)
+// MARK: - NCX Parsing
+/// The NCX is been replaced but the Navigation Document in Epub3.
 extension OPFParser {
-    
-    /// Generate XML Document from Navigation Document then use it to fill the
-    /// `Publication` TOC, `landmarks` and `pageList`.
-    ///
-    /// - Parameters:
-    ///   - container: The Epub container.
-    ///   - publication: The Epub Publication.
-    internal func fillTocUsingNavigationDocument(from container: Container, into publication: Publication) {
-        // Get the link in the spine pointing to the navigation document.
-        var navLink = publication.spine.first(where: { $0.rel.contains("contents") })
 
-        // Generate the XML navigationDocument out of it.
-        guard let navigationDocument = try? container.xmlDocument(forRessourceReferencedByLink: navLink) else {
-            log(level: .debug, "Error while generating xml document referenced by navDoc link")
-            return
-        }
-        // Fill the `Publication`'s `TOC`, `PageList`, `Landmarks` from the XML
-        // navigation Document.
-        fillNavigationRelatedProperties(of: publication, withElementsFrom: navigationDocument)
+    /// [SUGAR]
+    /// Return the data representation of the toc informations contained in the
+    /// NCX Document.
+    ///
+    /// - Parameter document: The NCX Document.
+    /// - Returns: The data representation of the toc.
+    fileprivate func tableOfContents(fromNcxDocument document: AEXMLDocument) -> [Link] {
+        let tableOfContentsNodes = nodeArray(forNcxDocument: document)
+
+        return tableOfContentsNodes
     }
 
-    internal func fillTOCUsingNCX(from container: Container, into publication: Publication) {
-        // Get the link in the spine pointing to the NCX document.
-        let ncxLink = publication.resources.first(where: { $0.typeLink == "application/x-dtbncx+xml" })
-
-        // Generate the XML ncx document out of it.
-        guard let ncxDocument = try? container.xmlDocument(forRessourceReferencedByLink: ncxLink) else {
-            log(level: .debug, "Error while generating xml document referenced by ncxLink link")
-            return
-        }
-
-        // TODO HERE
-    }
-
-    //    /// <#Description#>
-    //    ///
-    //    /// - Parameters:
-    //    ///   - container: <#container description#>
-    //    ///   - publication: <#publication description#>
-    //    internal func fillPageListUsingNCX(from container: Container, into publication: Publication) {
-    //
-    //    }
-
-    // Mark: - Fileprivate methods.
-
-    /// Fill the Table Of Content (TOC) contained in the Publication using the
-    /// data contained in the `<nav>` element of the navigation document.
-    /// (`PageList` and `Landmarks`)
+    /// Generate an array of Link elements representing the XML structure of the
+    /// NCX document. Each of them possibly having children.
     ///
     /// - Parameters:
-    ///   - toc: The Table Of Content (TOC) to fill.
-    ///   - navigationDocument: The navigation document containing the
-    ///     navigation informations.
-    fileprivate func fillNavigationRelatedProperties(of publication: Publication,
-                                                     withElementsFrom navigationDocument: AEXMLDocument)
-    {
-        let section = navigationDocument.root["body"]["section"]
+    ///   - ncxDocument: The NCX document XML Object.
+    /// - Returns: The Object representation of the data contained in the
+    ///            `ncxDocument` XML.
+    fileprivate func nodeArray(forNcxDocument document : AEXMLDocument) -> [Link] {
+        let navMap = document.root["navMap"]
+        var newNodeArray = [Link]()
 
-        // Retrieve all the `<nav>` elements from the document.
-        guard let navElements = section["nav"].all else {
-            log(level: .debug, "No `<nav>` elements have been found in the navigation document.")
-            return
+        guard let navPoints = navMap["navPoint"].all else {
+            return []
         }
-        // For each `<nav>` element contained in the document.
-        for navElement in navElements {
-            // Retrieve the `epub:type` property of the <nav> element.
-            guard let navType = navElement.attributes["epub:type"] else { continue }
-            // Retrieve the children <ol> element of the given <nav>.
-            guard let olElement = navElement["ol"].first else { break }
-            // Fill the information to the correct property of the publication.
-            switch navType {
-            case "toc":
-                publication.TOC = insert(olElement, into: publication.TOC)
-            case "page-list":
-                publication.pageList = insert(olElement, into: publication.pageList)
-            case "landmarks":
-                publication.landmarks = insert(olElement, into: publication.landmarks)
-            default:
-                break
-            }
+        // For each navPoint found, add them with their children to the TOC.
+        for navPoint in navPoints {
+            let newNode = node(usingNavPoint: navPoint)
+
+            newNodeArray.append(newNode)
         }
+        return newNodeArray
     }
 
-    /// Create a tree of node recursively from the data contained in the <ol>.
+    /// [RECURSIVE]
+    /// Create a node(`Link`) from a <navPoint> element.
+    /// If there is a nested <navPoint> element, recursively handle it.
     ///
-    /// - Parameters:
-    ///   - olElement: The Link list.
-    ///   - node: The parent node.
-    /// - Returns: The new parent node.
-    fileprivate func insert(_ olElement: AEXMLElement, into node: [Link]) -> [Link] {
-        var newNode = node
+    /// - Parameter element: The <navPoint> from the NCX Document.
+    /// - Returns: The generated node(`Link`).
+    fileprivate func node(usingNavPoint element: AEXMLElement) -> Link {
+        var newNode = Link()
 
-        // Retrieve the children <li> elements of the <ol>.
-        guard let liElements = olElement["li"].all else { return newNode }
-        // For each <li>.
-        for liElement in liElements {
-            // Check if the <li> contains a <span> whom text value is not empty.
-            if let spanText = liElement["span"].value, !spanText.isEmpty {
-                // Retrieve the <ol> inside the <span> and do a recursive call.
-                if let nextOlElement = liElement["ol"].first {
-                    insert(nextOlElement, into: newNode)
-                }
-            } else {
-                // Get the <a> informations and generate a Link from them.
-                let href = liElement["a"].attributes["href"]
-                let title = liElement["a"].attributes["title"]
-                let link = Link()
-
-                link.href = href
-                link.title = title
-                // If a nested <ol> is found, insert is into the current Link
-                // childrens' Links.
-                if let nextOlElement = liElement["ol"].first {
-                    insert(nextOlElement, into: link.children)
-                }
-                newNode.append(link)
+        // Get current node informations.
+        newNode.href = element["content"].attributes["src"]
+        newNode.title = element["navLabel"]["text"].value
+        // Retrieve the children of the current node.
+        if let childrenNodes = element["navPoint"].all {
+            // Add current node children recursively.
+            for childNode in childrenNodes {
+                newNode.children.append(node(usingNavPoint: childNode))
             }
         }
         return newNode

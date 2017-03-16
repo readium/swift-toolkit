@@ -27,19 +27,6 @@ open class Link: Mappable {
 
     public init() {}
 
-
-    /// <#Description#>
-    ///
-    /// - Parameters:
-    ///   - href:
-    ///   - typeLink:
-    ///   - rel:
-    public init(href: String, typeLink: String, rel: String) {
-        self.href = href
-        self.typeLink = typeLink
-        self.rel = [rel]
-    }
-
     public required init?(map: Map) {
         // TODO: init
     }
