@@ -15,8 +15,6 @@ extension OPFParser: Loggable {}
 /// OPF: Open Packaging Format.
 public class OPFParser {
 
-    // MARK: - Internal methods.
-
     internal init() {}
 
     /// Parse the OPF file of the Epub container and return a `Publication`.

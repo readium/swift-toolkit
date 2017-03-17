@@ -73,6 +73,8 @@ public class NavigationDocumentParser {
         return newListOfTables
     }
 
+    // MARK: Fileprivate Methods.
+
     /// Generate an array of Link elements representing the XML structure of the
     /// navigation document. Each of them possibly having children.
     ///

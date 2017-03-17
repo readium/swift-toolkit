@@ -43,6 +43,8 @@ public class NCXParser {
         return pageListNodes
     }
 
+    // MARK: Fileprivate Methods.
+
     /// Generate an array of Link elements representing the XML structure of the
     /// given NCX element. Each of them possibly having children.
     ///
