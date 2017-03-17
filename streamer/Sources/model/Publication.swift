@@ -92,13 +92,29 @@ public class Publication: Mappable {
     /// Mapping declaration
     public func mapping(map: Map) {
         metadata <- map["metadata", ignoreNil: true]
-        links <- map["links", ignoreNil: true]
-        spine <- map["spine", ignoreNil: true]
-        resources <- map["resources", ignoreNil: true]
-        tableOfContents <- map["toc", ignoreNil: true]
-        pageList <- map["page-list", ignoreNil: true]
-        landmarks <- map["landmarks", ignoreNil: true]
-        listOfIllustrations <- map["loi", ignoreNil: true]
-        listOfTables <- map["lot", ignoreNil: true]
+        if !links.isEmpty {
+            links <- map["links", ignoreNil: true]
+        }
+        if !spine.isEmpty {
+            spine <- map["spine", ignoreNil: true]
+        }
+        if !resources.isEmpty {
+            resources <- map["resources", ignoreNil: true]
+        }
+        if !tableOfContents.isEmpty {
+            tableOfContents <- map["toc", ignoreNil: true]
+        }
+        if !pageList.isEmpty {
+            pageList <- map["page-list", ignoreNil: true]
+        }
+        if !landmarks.isEmpty {
+            landmarks <- map["landmarks", ignoreNil: true]
+        }
+        if !listOfIllustrations.isEmpty {
+            listOfIllustrations <- map["loi", ignoreNil: true]
+        }
+        if !listOfTables.isEmpty {
+            listOfTables <- map["lot", ignoreNil: true]
+        }
     }
 }

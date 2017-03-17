@@ -60,23 +60,51 @@ open class Metadata: Mappable {
         identifier <- map["identifier", ignoreNil: true]
         title <- map["title", ignoreNil: true]
         languages <- map["languages", ignoreNil: true]
-        authors <- map["authors", ignoreNil: true]
-        translators <- map["translators", ignoreNil: true]
-        editors <- map["editors", ignoreNil: true]
-        artists <- map["artists", ignoreNil: true]
-        illustrators <- map["illustrators", ignoreNil: true]
-        letterers <- map["letterers", ignoreNil: true]
-        pencilers <- map["pencilers", ignoreNil: true]
-        colorists <- map["colorists", ignoreNil: true]
-        inkers <- map["inkers", ignoreNil: true]
-        narrators <- map["narrators", ignoreNil: true]
-        contributors <- map["contributors", ignoreNil: true]
-        publishers <- map["publishers", ignoreNil: true]
-        imprints <- map["imprints", ignoreNil: true]
+        if !authors.isEmpty {
+            authors <- map["authors", ignoreNil: true]
+        }
+        if !translators.isEmpty {
+            translators <- map["translators", ignoreNil: true]
+        }
+        if !editors.isEmpty {
+            editors <- map["editors", ignoreNil: true]
+        }
+        if !artists.isEmpty {
+            artists <- map["artists", ignoreNil: true]
+        }
+        if !illustrators.isEmpty {
+            illustrators <- map["illustrators", ignoreNil: true]
+        }
+        if !letterers.isEmpty {
+            letterers <- map["letterers", ignoreNil: true]
+        }
+        if !pencilers.isEmpty {
+            pencilers <- map["pencilers", ignoreNil: true]
+        }
+        if !colorists.isEmpty {
+            colorists <- map["colorists", ignoreNil: true]
+        }
+        if !inkers.isEmpty {
+            inkers <- map["inkers", ignoreNil: true]
+        }
+        if !narrators.isEmpty {
+            narrators <- map["narrators", ignoreNil: true]
+        }
+        if !contributors.isEmpty {
+            contributors <- map["contributors", ignoreNil: true]
+        }
+        if !publishers.isEmpty {
+            publishers <- map["publishers", ignoreNil: true]
+        }
+        if !imprints.isEmpty {
+            imprints <- map["imprints", ignoreNil: true]
+        }
         modified <- map["modified", ignoreNil: true]
         publicationDate <- map["publicationDate", ignoreNil: true]
         rendition <- map["rendition", ignoreNil: true]
         rights <- map["rights", ignoreNil: true]
-        subjects <- map["subjects", ignoreNil: true]
+        if !subjects.isEmpty {
+            subjects <- map["subjects", ignoreNil: true]
+        }
     }
 }
