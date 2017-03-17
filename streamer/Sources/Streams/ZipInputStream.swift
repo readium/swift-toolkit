@@ -9,10 +9,10 @@
 import UIKit
 import minizip
 
+extension ZipInputStream: Loggable {}
 
-
+/// <#Description#>
 open class ZipInputStream: SeekableInputStream {
-    
     var zipArchive: ZipArchive
     var fileInZipPath: String
     
@@ -22,6 +22,7 @@ open class ZipInputStream: SeekableInputStream {
             return _streamError
         }
     }
+    
     private var _streamStatus: Stream.Status = .notOpen
     override open var streamStatus: Stream.Status {
         get {
@@ -106,22 +107,22 @@ open class ZipInputStream: SeekableInputStream {
     
     override open func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) -> Int {
         do {
-            //NSLog("ZipInputStream \(fileInZipPath) read \(maxLength) bytes")
+            //Log.debug?.message("ZipInputStream \(fileInZipPath) read \(maxLength) bytes")
             let bytesRead = try zipArchive.readDataFromCurrentFile(buffer, maxLength: UInt64(maxLength))
             if Int(bytesRead) < maxLength {
                 _streamStatus = .atEnd
             }
             return Int(bytesRead)
         } catch {
-            NSLog("ZipInputStream error \(error)")
+            log(level: .error, "ZipInputStream error \(error)")
             _streamStatus = .error
             _streamError = error
+            return -1
         }
-        return -1
     }
     
     override open func close() {
-        //NSLog("ZipInputStream \(fileInZipPath) close")
+        //Log.debug?.message("ZipInputStream \(fileInZipPath) close")
         zipArchive.closeCurrentFile()
         //objc_sync_exit(zipArchive)
         _streamStatus = .closed
@@ -132,7 +133,7 @@ open class ZipInputStream: SeekableInputStream {
         assert(whence == .startOfFile, "Only seek from start of stream is supported for now.")
         assert(offset >= 0, "Since only seek from start of stream if supported, offset must be >= 0")
         
-        NSLog("ZipInputStream \(fileInZipPath) offset \(offset)")
+        log(level: .debug, "ZipInputStream \(fileInZipPath) offset \(offset)")
         do {
             try zipArchive.seekCurrentFile(offset: UInt64(offset))
         } catch {

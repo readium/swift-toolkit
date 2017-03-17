@@ -8,105 +8,156 @@
 
 import Foundation
 
+/// FileInputStream errors
+///
+/// - read: An error while reading data from the fileHandle occured.
+/// - fileHandleInitialisation: An error occured while initializing the fileHandle
+/// - fileHandle: The fileHandle is not set or invalid.
+public enum FileInputStreamError: Error {
+    case read
+    case fileHandleInitialisation
+    case fileHandleUnset
+}
 
+extension FileInputStream: Loggable {}
+
+/// <#Description#>
 open class FileInputStream: SeekableInputStream {
-    
+
+    /// The path to the file opened by the stream
     private var filePath: String
-    private var fileHandle: FileHandle?
     
+    /// The file handle (== fd) of the file at path `filePath`
+    private var fileHandle: FileHandle?
+
+    ///
     private var _streamError: Error?
     override open var streamError: Error? {
         get {
             return _streamError
         }
     }
+
+    /// The status of the fileHandle
     private var _streamStatus: Stream.Status = .notOpen
     override open var streamStatus: Stream.Status {
         get {
             return _streamStatus
         }
     }
-    
-    override public var offset: UInt64 {
-        get {
-            return fileHandle?.offsetInFile ?? 0
-        }
-    }
-    
+
+    /// The size attribute of the file at `filePath`
     private var _length: UInt64
     override public var length: UInt64 {
         get {
             return _length
         }
     }
-    
+
+    /// Current position in the stream.
+    override public var offset: UInt64 {
+        get {
+            return fileHandle?.offsetInFile ?? 0
+        }
+    }
+
+    /// True when the current offset is not arrived the the end of the stream.
     override open var hasBytesAvailable: Bool {
         get {
             return offset < _length
         }
     }
-    
-    init?(fileAtPath: String) {
+
+    // MARK: - Public methods.
+
+    /// Initialize the object and the input stream meta data for file at 
+    /// `fileAtPath`.
+    public init?(fileAtPath: String) {
+        // Does file `atFilePath` exists
         guard FileManager.default.fileExists(atPath: fileAtPath) else {
+            FileInputStream.log(level: .error, "File not found: \(fileAtPath).")
             return nil
         }
         filePath = fileAtPath
-        if let attrs = try? FileManager.default.attributesOfItem(atPath: filePath) {
-            let fileSize = attrs[FileAttributeKey.size] as! UInt64
-            _length = fileSize
-        } else {
-            // Something went wrong when getting the file size
+        // Try to retrieve attributes of `fileAtPath`
+        let attributes: [FileAttributeKey : Any]
+        do {
+            attributes = try FileManager.default.attributesOfItem(atPath: filePath)
+        } catch {
+            FileInputStream.log(level: .error, "Exception retrieving attrs for \(filePath).")
+            FileInputStream.logValue(level: .error, error)
             return nil
         }
-        
+        // Verify the size attribute of the file at `fileAtPath`
+        guard let fileSize = attributes[FileAttributeKey.size] as? UInt64 else {
+            FileInputStream.log(level: .error, "Error accessing size attribute.")
+            return nil
+        }
+        _length = fileSize
         super.init()
     }
-    
+
+    // MARK: - Open methods.
+
+    /// Open a file handle (<=>fd) for file at path `filePath`.
     override open func open() {
         fileHandle = FileHandle(forReadingAtPath: filePath)
         _streamStatus = .open
     }
-    
+
+    /// Close the file handle.
     override open func close() {
-        fileHandle?.closeFile()
+        guard let fileHandle = fileHandle else {
+            return
+        }
+        fileHandle.closeFile()
         _streamStatus = .closed
     }
 
-    override open func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>, length len: UnsafeMutablePointer<Int>) -> Bool {
+    // TODO: to implement or delete ?
+    override open func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>,
+                                 length len: UnsafeMutablePointer<Int>) -> Bool {
         return false
     }
-    
-    override open func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) -> Int {
-        //NSLog("FileInputStream \(filePath) read \(maxLength) bytes")
-        
-        if let dataRead = fileHandle?.readData(ofLength: maxLength) {
-            
-            if dataRead.count < maxLength {
-                _streamStatus = .atEnd
-            }
-            dataRead.copyBytes(to: buffer, count: dataRead.count)
-            return Int(dataRead.count)
-            
-        } else {
-            NSLog("FileInputStream error reading data")
-            _streamStatus = .error
-            _streamError = nil // TODO: Find proper error code
-        }
 
-        return -1
+
+    // FIXME: Shouldn't we have smaller read in a loop?
+    /// Read up to `maxLength` bytes from `fileHandle` and write them into `buffer`.
+    ///
+    /// - Parameters:
+    ///   - buffer: The destination buffer.
+    ///   - maxLength: The maximum number of bytes read.
+    /// - Returns: Return the number of bytes read.
+    override open func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) -> Int {
+        let readError = -1
+
+        guard let fileHandle = fileHandle else {
+            return readError
+        }
+        let data = fileHandle.readData(ofLength: maxLength)
+        if data.count < maxLength {
+            _streamStatus = .atEnd
+        }
+        data.copyBytes(to: buffer, count: data.count)
+        return Int(data.count)
     }
-    
-    public override func seek(offset: Int64, whence: SeekWhence) throws {
-        
+
+    /// Moves the file pointer to the specified offset within the file.
+    ///
+    /// - Parameters:
+    ///   - offset: The offset.
+    ///   - whence: From which position.
+    override public func seek(offset: Int64, whence: SeekWhence) {
         assert(whence == .startOfFile, "Only seek from start of stream is supported for now.")
         assert(offset >= 0, "Since only seek from start of stream if supported, offset must be >= 0")
         
-        NSLog("FileInputStream \(filePath) offset \(offset)")
-        do {
-            fileHandle?.seek(toFileOffset: UInt64(offset))
-        } catch {
+        logValue(level: .debug, filePath)
+        logValue(level: .debug, offset)
+        guard let fileHandle = fileHandle else {
             _streamStatus = .error
-            _streamError = error
+            _streamError = FileInputStreamError.fileHandleUnset
+            return
         }
+        fileHandle.seek(toFileOffset: UInt64(offset))
     }
 }

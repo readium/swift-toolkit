@@ -97,7 +97,7 @@ open class ZipArchive {
         }
         
         let path = String(cString: fileName)
-        guard path.characters.count > 0 else {
+        guard !path.characters.isEmpty else {
             throw ZipError.unzipFail
         }
         
