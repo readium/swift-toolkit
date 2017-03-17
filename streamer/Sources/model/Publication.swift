@@ -13,7 +13,7 @@ import ObjectMapper
 /// other resources.
 /// It is created by the `EpubParser` from an EPUB file or directory.
 /// As it is extended by `Mappable`, it can be deserialized to `JSON`.
-open class Publication: Mappable {
+public class Publication: Mappable {
     
     /// The epubVersion of the publication
     public var epubVersion = 0.0
@@ -58,29 +58,39 @@ open class Publication: Mappable {
         // TODO: init
     }
 
-    // MARK: - Open methods.
+    // MARK: - Public methods.
 
     /// Finds a resource (asset or spine item) with a matching relative path
     ///
     /// - Parameter path: The relative path to match
     /// - Returns: a link with its `href` equal to the path if any was found,
     ///            else `nil`
-    open func resource(withRelativePath path: String) -> Link? {
+    public func resource(withRelativePath path: String) -> Link? {
         let matchingLinks = (spine + resources)
 
         return matchingLinks.first(where: { $0.href == path })
     }
 
-    /// Finds the first link with a specific rel
+    /// Find the first Link having the given `rel` in the publication [Link]
+    /// properties: `resources`, `spine`, `links`.
     ///
-    /// - Parameter rel: The `rel` to match
-    /// - Returns: The first link with a matching `rel` found if any, else nil
-    open func link(withRel rel: String) -> Link? {
-        return links.first(where: { $0.rel.contains(rel) })
+    /// - Parameter rel: The `rel` being searched.
+    /// - Returns: The corresponding `Link`, if any.
+    public func link(withRel rel: String) -> Link? {
+        if let link = resources.first(where: { $0.rel.contains(rel) }) {
+            return link
+        }
+        if let link = spine.first(where: { $0.rel.contains(rel) }) {
+            return link
+        }
+        if let link = links.first(where: { $0.rel.contains(rel) }) {
+            return link
+        }
+        return nil
     }
     
     /// Mapping declaration
-    open func mapping(map: Map) {
+    public func mapping(map: Map) {
         metadata <- map["metadata"]//, ignoreNil: true]
         spine <- map["spine"]
         resources <- map["resources"]
