@@ -2,10 +2,12 @@
 
 ## Testing the project with the r2-launcher-swift (iOS)
 
-- Clone this project (r2-streamer-swift) and the launcher (r2-launcher-swift)
+- Clone this project (r2-streamer-swift) and the launcher ([r2-launcher-swift](https://github.com/readium/r2-launcher-swift))
 - In each project directories run : `$> carthage update --platform ios` 
 - Create a new XCode workspace and drag the two aforementioned project's `.xcodeproj` in the navigator panel on the left.
 - Select the `R2-Launcher-Development` target and `Run` it on navigator or device.
+
+NB: Choose the same branches on both r2-streamer/launcher repositories. E.g: `r2-streamer-swift/feature/X with r2-launcher-swift/feature/X`
 
 ## UnitTesting framework included in it (Work in progress)
 
