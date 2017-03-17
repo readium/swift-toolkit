@@ -1,4 +1,5 @@
 # r2-streamer-swift
+[![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
 
 ## Testing the project with the r2-launcher-swift (iOS)
 
@@ -30,5 +31,3 @@ So far the project use :
 - Add support Media Overlay.
 - Fonts deobfuscation.
 - Add support for content filters in the fetcher.
-
-[![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
