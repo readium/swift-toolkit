@@ -24,9 +24,9 @@ open class Subject: Mappable {
     }
 
     open func mapping(map: Map) {
-        name <- map["name"]
-        sortAs <- map["sortAs"]
-        scheme <- map["scheme"]
-        code <- map["code"]
+        name <- map["name", ignoreNil: true]
+        sortAs <- map["sortAs", ignoreNil: true]
+        scheme <- map["scheme", ignoreNil: true]
+        code <- map["code", ignoreNil: true]
     }
 }

@@ -23,15 +23,15 @@ public class Publication: Mappable {
     public var spine = [Link]()
     /// The resources, not including the links already present in the spine.
     public var resources = [Link]()
-    /// <=> TOC
+    /// <=> TOC, pageList, landmarks && <=> LOI, LOT | (LOA, LOV [?])
     public var tableOfContents = [Link]()
     public var pageList = [Link]()
     public var landmarks = [Link]()
-    /// <=> LOI, LOA LOV, LOT
     public var listOfIllustrations = [Link]()
-    public var listOfAudioFiles = [Link]()
-    public var listOfVideos = [Link]()
     public var listOfTables = [Link]()
+    // FIXME: commented because not even on the ipdf documentation page?
+    //    public var listOfAudioFiles = [Link]()
+    //    public var listOfVideos = [Link]()
 
     /// Extension point for links that shouldn't show up in the manifest
     public var otherLinks = [Link]()
@@ -91,9 +91,14 @@ public class Publication: Mappable {
     
     /// Mapping declaration
     public func mapping(map: Map) {
-        metadata <- map["metadata"]//, ignoreNil: true]
-        spine <- map["spine"]
-        resources <- map["resources"]
-        links <- map["links"]
+        metadata <- map["metadata", ignoreNil: true]
+        links <- map["links", ignoreNil: true]
+        spine <- map["spine", ignoreNil: true]
+        resources <- map["resources", ignoreNil: true]
+        tableOfContents <- map["toc", ignoreNil: true]
+        pageList <- map["page-list", ignoreNil: true]
+        landmarks <- map["landmarks", ignoreNil: true]
+        listOfIllustrations <- map["loi", ignoreNil: true]
+        listOfTables <- map["lot", ignoreNil: true]
     }
 }

@@ -62,19 +62,14 @@ public enum RenditionSpread: String {
 /// It includes if it's reflowable or pre-paginated, the orientation, the synthetic spread
 /// behaviour and if the content flow should be scrolled, continuous or paginated.
 open class Rendition: Mappable {
-
     /// The rendition layout (reflowable or pre-paginated)
     public var layout: RenditionLayout?
-
     /// The rendition flow
     public var flow: RenditionFlow?
-
     /// The rendition orientation
     public var orientation: RenditionOrientation?
-
     /// The synthetic spread behaviour
     public var spread: RenditionSpread?
-
     /// The rendering viewport size
     public var viewport: String?
 
@@ -85,10 +80,10 @@ open class Rendition: Mappable {
     }
 
     open func mapping(map: Map) {
-        layout <- map["layout"]
-        flow <- map["flow"]
-        orientation <- map["orientation"]
-        spread <- map["spread"]
-        viewport <- map["viewport"]
+        layout <- map["layout", ignoreNil: true]
+        flow <- map["flow", ignoreNil: true]
+        orientation <- map["orientation", ignoreNil: true]
+        spread <- map["spread", ignoreNil: true]
+        viewport <- map["viewport", ignoreNil: true]
     }
 }

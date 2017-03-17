@@ -34,9 +34,9 @@ open class Contributor: Mappable {
     }
 
     open func mapping(map: Map) {
-        name <- map["name"]
-        sortAs <- map["sortAs"]
-        identifier <- map["identifier"]
-        role <- map["role"]
+        name <- map["name", ignoreNil: true]
+        sortAs <- map["sortAs", ignoreNil: true]
+        identifier <- map["identifier", ignoreNil: true]
+        role <- map["role", ignoreNil: true]
     }
 }
