@@ -15,8 +15,6 @@ extension OPFParser: Loggable {}
 /// OPF: Open Packaging Format.
 public class OPFParser {
 
-    // MARK: - Internal methods.
-
     internal init() {}
 
     /// Parse the OPF file of the Epub container and return a `Publication`.
@@ -24,28 +22,26 @@ public class OPFParser {
     ///
     /// - Parameter container: The EPUB container whom OPF file will be parsed.
     /// - Returns: The `Publication` object resulting from the parsing.
-    /// - Throws: `EpubParserError.xmlParse`.
+    /// - Throws: `EpubParserError.xmlParse`,
+    ///           `OPFParserError.missingNavLink`,
+    ///           `throw OPFParserError.missingNavLinkHref`.
     internal func parseOPF(from document: AEXMLDocument,
-                           with containerMetadata: ContainerMetadata) throws -> Publication {
+                           with container: Container,
+                           and epubVersion: Double) throws -> Publication
+    {
         /// The 'to be built' Publication.
         let publication = Publication()
-        /// Shortcuts to ContainerMetadata elements.
-        ///     Relative path to the package.opf file.
-        let rootFilePath = containerMetadata.rootFilePath
 
+        publication.epubVersion = epubVersion
+        publication.internalData["type"] = "epub"
+        publication.internalData["rootfile"] = container.rootFile.rootFilePath
         // TODO: Add self to links.
         // But we don't know the self URL here
         //publication.links.append(Link(href: "TODO", typeLink: "application/webpub+json", rel: "self"))
-
-        // Parse Metadata from the XML document.
-        let metadata = parseMetadata(from: document,
-                                     with: containerMetadata.epubVersion)
-        // Look for the manifest item id of the cover.
+        parseMetadata(from: document, to: publication)
         parseSpineAndResources(from: document, to: publication)
-        //
-        publication.metadata = metadata
-        publication.internalData["type"] = "epub"
-        publication.internalData["rootfile"] = rootFilePath
+        parseNavigationDocument(from: container, to: publication)
+        parseNcxDocument(from: container, to: publication)
         return publication
     }
 
@@ -53,15 +49,15 @@ public class OPFParser {
     ///
     /// - Parameter document: Parse the Metadata in the XML <metadata> element.
     /// - Returns: The Metadata object representing the XML <metadata> element.
-    internal func parseMetadata(from document: AEXMLDocument, with epubVersion: Double?) -> Metadata {
+    internal func parseMetadata(from document: AEXMLDocument, to publication: Publication) {
+        let mp = MetadataParser()
         /// The 'to be returned' Metadata object.
         var metadata = Metadata()
         let metadataElement = document.root["metadata"]
         let documentAttributes = document.root.attributes
 
-        metadata.title = parseMainTitle(from: metadataElement, epubVersion: epubVersion)
-        metadata.identifier = parseUniqueIdentifier(from: metadataElement,
-                                                    withAttributes: documentAttributes)
+        metadata.title = mp.parseMainTitle(from: metadataElement, epubVersion: publication.epubVersion)
+        metadata.identifier = mp.parseUniqueIdentifier(from: metadataElement, withAttributes: documentAttributes)
         // Description
         if let description = metadataElement["dc:description"].value {
             metadata.description = description
@@ -73,7 +69,7 @@ public class OPFParser {
 
         // Languages
         if let languages = metadataElement["dc:language"].all {
-            metadata.languages = languages.map { $0.string }
+            metadata.languages = languages.map({ $0.string })
         }
         // Rights
         if let rights = metadataElement["dc:rights"].all {
@@ -89,19 +85,19 @@ public class OPFParser {
         // Authors
         if let creators = metadataElement["dc:creator"].all {
             for creatorElement in creators {
-                parseContributor(from: creatorElement,
+                mp.parseContributor(from: creatorElement,
                                  in: document,
                                  to: metadata,
-                                 with: epubVersion)
+                                 with: publication.epubVersion)
             }
         }
         // Contributors
         if let contributors = metadataElement["dc:contributor"].all {
             for contributorElement in contributors {
-                parseContributor(from: contributorElement,
+                mp.parseContributor(from: contributorElement,
                                  in: document,
                                  to: metadata,
-                                 with: epubVersion)
+                                 with: publication.epubVersion)
             }
         }
         // Get the page progression direction.
@@ -109,207 +105,13 @@ public class OPFParser {
             metadata.direction = direction
         }
         // Rendition properties
-        setRenditionProperties(from: metadataElement["meta"], to: &metadata)
-        return metadata
+        mp.setRenditionProperties(from: metadataElement["meta"], to: &metadata)
+        publication.metadata = metadata
     }
 
-    /// Extracts the Rendition properties from the XML element metadata and fill
-    /// then into the Metadata object instance.
-    ///
-    /// - Parameters:
-    ///   - metadataElement: The XML element containing the metadatas.
-    ///   - metadata: The `Metadata` object.
-    internal func setRenditionProperties(from metadataElement: AEXMLElement,
-                                         to metadata: inout Metadata) {
-        // Layout
-        var attribute = ["property" : "rendition:layout"]
-
-        if let renditionLayouts = metadataElement.all(withAttributes: attribute),
-            !renditionLayouts.isEmpty {
-            let layouts = renditionLayouts[0].string
-
-            metadata.rendition.layout = RenditionLayout(rawValue: layouts)
-        }
-        // Flow
-        attribute = ["property" : "rendition:flow"]
-        if let renditionFlows = metadataElement.all(withAttributes: attribute),
-            !renditionFlows.isEmpty {
-            let flows = renditionFlows[0].string
-
-            metadata.rendition.flow = RenditionFlow(rawValue: flows)
-        }
-        // Orientation
-        attribute = ["property" : "rendition:orientation"]
-        if let renditionOrientations = metadataElement.all(withAttributes: attribute),
-            !renditionOrientations.isEmpty {
-            let orientation = renditionOrientations[0].string
-
-            metadata.rendition.orientation = RenditionOrientation(rawValue: orientation)
-        }
-        // Spread
-        attribute = ["property" : "rendition:spread"]
-        if let renditionSpreads = metadataElement.all(withAttributes: attribute),
-            !renditionSpreads.isEmpty {
-            let spread = renditionSpreads[0].string
-
-            metadata.rendition.spread = RenditionSpread(rawValue: spread)
-        }
-        // Viewport
-        attribute = ["property" : "rendition:viewport"]
-        if let renditionViewports = metadataElement.all(withAttributes: attribute),
-            !renditionViewports.isEmpty {
-            metadata.rendition.viewport = renditionViewports[0].string
-        }
-    }
-
-    /// Get the main title of the publication from the from the OPF XML document
-    /// `<metadata>` element.
-    ///
-    /// - Parameter metadata: The `<metadata>` element.
-    /// - Returns: The content of the `<dc:title>` element, `nil` if the element
-    ///            wasn't found.
-    internal func parseMainTitle(from metadata: AEXMLElement, epubVersion: Double?) -> String? {
-        // Return if there isn't any `<dc:title>` element
-        guard let titles = metadata["dc:title"].all else {
-            return nil
-        }
-        // If there's more than one, look for the `main` one as defined by
-        // `refines`.
-        // Else, as a fallback and default, return the first `<dc:title>`
-        // content.
-        guard titles.count > 1, epubVersion == 3 else {
-            return metadata["dc:title"].string
-        }
-        /// Used in the closure below.
-        func isMainTitle(element: AEXMLElement) -> Bool {
-            guard let eid = element.attributes["id"] else {
-                return false
-            }
-            let attributes = ["property": "title-type", "refines": "#" + eid]
-            let metas = metadata["meta"].all(withAttributes: attributes)
-
-            return metas?.contains(where: { $0.string == "main" }) ?? false
-        }
-        // Returns the first main title encountered
-        return titles.first(where: { isMainTitle(element: $0)})?.string
-    }
-
-    /// Get the unique identifer of the publication from the from the OPF XML
-    /// document `<metadata>` element.
-    ///
-    /// - Parameters:
-    ///   - metadata: The `<metadata>` element.
-    ///   - Attributes: The XML document attributes.
-    /// - Returns: The content of the `<dc:identifier>` element, `nil` if the
-    ///             element wasn't found.
-    internal func parseUniqueIdentifier(from metadata: AEXMLElement,
-                                        withAttributes attributes: [String : String]) -> String? {
-        // Look for `<dc:identifier>` elements
-        guard let identifiers = metadata["dc:identifier"].all else {
-            return nil
-        }
-        // Get the one defined as unique by the `<package>` attribute
-        // `unique-identifier`
-        if identifiers.count > 1,
-            let uniqueId = attributes["unique-identifier"] {
-            let uniqueIdentifiers = identifiers.filter {
-                $0.attributes["id"] == uniqueId
-            }
-            if !uniqueIdentifiers.isEmpty, let uid = uniqueIdentifiers.first {
-                return uid.string
-            }
-        }
-        // Returns the first `<dc:identifier>` content or an empty String
-        return metadata["dc:identifier"].string
-    }
-
-    /// Builds a `Contributor` instance from a `<dc:creator>` or
-    /// `<dc:contributor>` element.
-    ///
-    /// - Parameters:
-    ///   - element: The XML element to parse.
-    ///   - doc: The OPF XML document being parsed (necessary to look for
-    ///          `refines`).
-    /// - Returns: The contributor instance filled with its name and optionally
-    ///            its `role` and `sortAs` attributes.
-    internal func createContributor(from element: AEXMLElement, metadata: AEXMLElement,
-                                    epubVersion: Double?) -> Contributor {
-        // The 'to be returned' Contributor object.
-        let contributor = Contributor(name: element.string)
-
-        // Get role from role attribute
-        if let role = element.attributes["opf:role"] {
-            contributor.role = role
-        }
-        // Get sort name from file-as attribute
-        if let sortAs = element.attributes["opf:file-as"] {
-            contributor.sortAs = sortAs
-        }
-        // Look up for possible meta refines for role
-        if epubVersion == 3, let eid = element.attributes["id"] {
-            let attributes = ["property": "role", "refines": "#\(eid)"]
-
-            if let metas = metadata["meta"].all(withAttributes: attributes),
-                !metas.isEmpty, let first = metas.first {
-                let role = first.string
-
-                contributor.role = role
-            }
-        }
-        return contributor
-    }
-
-    /// Parse a `creator` or `contributor` element from the OPF XML document,
-    /// then builds and adds a Contributor to the metadata, to an array
-    /// according to its role (authors, translators, etc.).
-    ///
-    /// - Parameters:
-    ///   - element: The XML element to parse.
-    ///   - doc: The OPF XML document being parsed.
-    ///   - metadata: The metadata to which to add the contributor.
-    internal func parseContributor(from element: AEXMLElement,
-                                   in document: AEXMLDocument,
-                                   to metadata: Metadata,
-                                   with epubVersion: Double?) {
-        let metadataElement = document.root["metadata"]
-        let contributor = createContributor(from: element,
-                                            metadata: metadataElement,
-                                            epubVersion: epubVersion)
-
-        // Add the contributor to the proper property according to the its `role`
-        if let role = contributor.role {
-            switch role {
-            case "aut":
-                metadata.authors.append(contributor)
-            case "trl":
-                metadata.translators.append(contributor)
-            case "art":
-                metadata.artists.append(contributor)
-            case "edt":
-                metadata.editors.append(contributor)
-            case "ill":
-                metadata.illustrators.append(contributor)
-            case "clr":
-                metadata.colorists.append(contributor)
-            case "nrt":
-                metadata.narrators.append(contributor)
-            case "pbl":
-                metadata.publishers.append(contributor)
-            default:
-                metadata.contributors.append(contributor)
-            }
-        } else {
-            // No role, so add the creators to the authors and the others to the contributors
-            if element.name == "dc:creator" {
-                metadata.authors.append(contributor)
-            } else {
-                metadata.contributors.append(contributor)
-            }
-        }
-    }
 
     /// Parses the manifest and spine elements to build the document's spine and
-    /// it resources list.
+    /// its resources list.
     ///
     /// - Parameters:
     ///   - document: The OPF XML document being parsed.
@@ -324,8 +126,8 @@ public class OPFParser {
         var coverId: String?
 
         defer {
-            // Those links that were not in the spine are the resources,
-            // they've already been removed from the manifestLinks dictionary
+            // Those links that were not in the spine are the resources have
+            // already been removed from the `manifestLinks` dictionary.
             publication.resources = [Link](manifestLinks.values)
         }
         if let coverMetas = metadataElement["meta"].all(withAttributes: ["name" : "cover"]) {
@@ -336,24 +138,35 @@ public class OPFParser {
         }
 
         /// Parses the differents manifest items from the XML <manifest> element.
-        /// Creates an Link for each item in the <manifest>
+        /// Creates an Link for each item in the <manifest>.
         for item in manifestItems {
-            // Build a link for the manifest item
+            // The "to be built" link representing the manifest item.
             let link = Link()
 
             link.href = item.attributes["href"]
             link.typeLink = item.attributes["media-type"]
-            // Look for properties
-            if let properties = item.attributes["properties"] {
+            // Look if item have any properties.
+            if let propertyAttribute = item.attributes["properties"] {
                 let ws = CharacterSet.whitespaces
-                let propertiesArray = properties.components(separatedBy: ws)
+                let properties = propertyAttribute.components(separatedBy: ws)
 
-                parseItemProperties(from: propertiesArray, to: link, and: publication)
+                if properties.contains("nav") {
+                    link.rel.append("contents")
+                }
+                // If it's a cover, set the rel to cover and add the link to `links`
+                if properties.contains("cover-image") {
+                    link.rel.append("cover")
+                    publication.links.append(link)
+                }
+                let otherProperties = properties.filter { $0 != "cover-image" && $0 != "nav" }
+                link.properties.append(contentsOf: otherProperties)
+                // TODO: rendition properties
             }
             // Add it to the manifest items dict if it has an id
             guard let id = item.attributes["id"] else {
-                log(level: .error, "Manifest item has no \"id\" attribute")
-                return
+                // Manifest item MUST have an id, ignore it
+                log(level: .debug, "Manifest item has no \"id\" attribute.")
+                continue
             }
             // If it's the cover's item id, set the rel to cover and add the
             // link to `links`
@@ -387,27 +200,54 @@ public class OPFParser {
         }
     }
 
-    // TODO: Refine description
-    /// Parse the items misc properties (?).
+    /// Attempt to fill `Publication.tableOfContent`/`.landmarks`/`.pageList`/
+    ///                              `.listOfIllustration`/`.listOftables`
+    /// using the navigation document.
     ///
     /// - Parameters:
-    ///   - properties: The remaining properties array.
-    ///   - link: The link which will be included into the Publication Object.
-    ///   - publication: The concerned Publication.
-    internal func parseItemProperties(from properties: [String], to link: Link,
-                                      and publication: Publication) {
-        if properties.contains("nav") {
-            link.rel.append("contents")
+    ///   - container: The Epub container.
+    ///   - publication: The Epub publication.
+    internal func parseNavigationDocument(from container: Container, to publication: Publication) {
+        let ndp = NavigationDocumentParser()
+
+        // Get the link in the spine pointing to the Navigation Document.
+        guard var navLink = publication.link(withRel: "contents"),
+            let navDocument = try? container.xmlDocument(forRessourceReferencedByLink: navLink) else {
+                return
         }
-        // If it's a cover, set the rel to cover and add the link to `links`
-        if properties.contains("cover-image") {
-            link.rel.append("cover")
-            publication.links.append(link)
+        let newTableOfContentsItems = ndp.tableOfContent(fromNavigationDocument: navDocument)
+        let newPageListItems = ndp.pageList(fromNavigationDocument: navDocument)
+        let newLandmarksItems = ndp.landmarks(fromNavigationDocument: navDocument)
+
+        publication.tableOfContents.append(contentsOf:  newTableOfContentsItems)
+        publication.pageList.append(contentsOf: newPageListItems)
+        publication.landmarks.append(contentsOf: newLandmarksItems)
+    }
+
+    /// Attempt to fill `Publication.tableOfContent`/`.pageList` using the NCX 
+    /// document. Will only modify the Publication if it has not be filled 
+    /// previously (using the Navigation Document).
+    ///
+    /// - Parameters:
+    ///   - container: The Epub container.
+    ///   - publication: The Epub publication.
+    internal func parseNcxDocument(from container: Container, to publication: Publication) {
+        let ncxp = NCXParser()
+
+        // Get the link in the spine pointing to the NCX document.
+        guard let ncxLink = publication.resources.first(where: { $0.typeLink == "application/x-dtbncx+xml" }),
+            let ncxDocument = try? container.xmlDocument(forRessourceReferencedByLink: ncxLink) else {
+                return
         }
-        let remainingProperties = properties.filter {
-            $0 != "cover-image" && $0 != "nav"
+        if publication.tableOfContents.isEmpty {
+            let newTableOfContentItems = ncxp.tableOfContents(fromNcxDocument: ncxDocument)
+
+            publication.tableOfContents.append(contentsOf: newTableOfContentItems)
         }
-        link.properties.append(contentsOf: remainingProperties)
-        // TODO: rendition properties
-    }    
+        if publication.pageList.isEmpty {
+            let newPageListItems = ncxp.pageList(fromNcxDocument: ncxDocument)
+
+            publication.pageList.append(contentsOf: newPageListItems)
+        }
+    }
 }

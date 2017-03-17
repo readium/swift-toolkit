@@ -15,6 +15,10 @@ extension String {
         return (self as NSString).appendingPathComponent(pathComponent)
     }
 
+    func deletingLastPathComponent() -> String {
+        return (self as NSString).deletingLastPathComponent
+    }
+
     func lastPathComponent() -> String {
         return (self as NSString).lastPathComponent
     }

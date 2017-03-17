@@ -12,12 +12,9 @@ import ObjectMapper
 /// <#Description#>
 open class Metadata: Mappable {
 
-    /// The title of the publication
     public var title: String?
-
-    /// The unique identifier
+    public var languages = [String]()
     public var identifier: String?
-
     // Authors, translators and other contributors
     public var authors = [Contributor]()
     public var translators = [Contributor]()
@@ -29,11 +26,12 @@ open class Metadata: Mappable {
     public var colorists = [Contributor]()
     public var inkers = [Contributor]()
     public var narrators = [Contributor]()
-    public var contributors = [Contributor]()
-    public var publishers = [Contributor]()
     public var imprints = [Contributor]()
+    //
+    public var subjects = [Subject]()
+    public var publishers = [Contributor]()
+    public var contributors = [Contributor]()
 
-    public var languages = [String]()
     public var modified: NSDate?
     public var publicationDate: NSDate?
     public var description: String?
@@ -42,7 +40,6 @@ open class Metadata: Mappable {
     public var source: String?
     public var epubType = [String]()
     public var rights: String?
-    public var subjects = [Subject]()
 
     public var otherMetadata = [MetadataItem]()
 
@@ -60,26 +57,54 @@ open class Metadata: Mappable {
     // MARK: - Open methods
 
     open func mapping(map: Map) {
-        identifier <- map["identifier"]
-        title <- map["title"]
-        languages <- map["languages"]
-        authors <- map["authors"]
-        translators <- map["translators"]
-        editors <- map["editors"]
-        artists <- map["artists"]
-        illustrators <- map["illustrators"]
-        letterers <- map["letterers"]
-        pencilers <- map["pencilers"]
-        colorists <- map["colorists"]
-        inkers <- map["inkers"]
-        narrators <- map["narrators"]
-        contributors <- map["contributors"]
-        publishers <- map["publishers"]
-        imprints <- map["imprints"]
-        modified <- map["modified"]
-        publicationDate <- map["publicationDate"]
-        rendition <- map["rendition"]
-        rights <- map["rights"]
-        subjects <- map["subjects"]
+        identifier <- map["identifier", ignoreNil: true]
+        title <- map["title", ignoreNil: true]
+        languages <- map["languages", ignoreNil: true]
+        if !authors.isEmpty {
+            authors <- map["authors", ignoreNil: true]
+        }
+        if !translators.isEmpty {
+            translators <- map["translators", ignoreNil: true]
+        }
+        if !editors.isEmpty {
+            editors <- map["editors", ignoreNil: true]
+        }
+        if !artists.isEmpty {
+            artists <- map["artists", ignoreNil: true]
+        }
+        if !illustrators.isEmpty {
+            illustrators <- map["illustrators", ignoreNil: true]
+        }
+        if !letterers.isEmpty {
+            letterers <- map["letterers", ignoreNil: true]
+        }
+        if !pencilers.isEmpty {
+            pencilers <- map["pencilers", ignoreNil: true]
+        }
+        if !colorists.isEmpty {
+            colorists <- map["colorists", ignoreNil: true]
+        }
+        if !inkers.isEmpty {
+            inkers <- map["inkers", ignoreNil: true]
+        }
+        if !narrators.isEmpty {
+            narrators <- map["narrators", ignoreNil: true]
+        }
+        if !contributors.isEmpty {
+            contributors <- map["contributors", ignoreNil: true]
+        }
+        if !publishers.isEmpty {
+            publishers <- map["publishers", ignoreNil: true]
+        }
+        if !imprints.isEmpty {
+            imprints <- map["imprints", ignoreNil: true]
+        }
+        modified <- map["modified", ignoreNil: true]
+        publicationDate <- map["publicationDate", ignoreNil: true]
+        rendition <- map["rendition", ignoreNil: true]
+        rights <- map["rights", ignoreNil: true]
+        if !subjects.isEmpty {
+            subjects <- map["subjects", ignoreNil: true]
+        }
     }
 }

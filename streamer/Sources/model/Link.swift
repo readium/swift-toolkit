@@ -14,30 +14,18 @@ open class Link: Mappable {
 
     public var href: String?
     public var typeLink: String?
-    public var rel: [String] = [String]()
+    public var rel = [String]()
     public var height: Int?
     public var width: Int?
     public var title: String?
-    public var properties: [String] = [String]()
+    public var properties = [String]()
     public var duration: TimeInterval?
     public var templated: Bool?
+    public var children = [Link]()
 
     // MARK: - Public methods
 
     public init() {}
-
-
-    /// <#Description#>
-    ///
-    /// - Parameters:
-    ///   - href:
-    ///   - typeLink:
-    ///   - rel:
-    public init(href: String, typeLink: String, rel: String) {
-        self.href = href
-        self.typeLink = typeLink
-        self.rel = [rel]
-    }
 
     public required init?(map: Map) {
         // TODO: init
@@ -46,13 +34,17 @@ open class Link: Mappable {
     // MARK: - Open methods
 
     open func mapping(map: Map) {
-        href <- map["href"]
-        typeLink <- map["type"]
-        rel <- map["rel"]
-        height <- map["height"]
-        width <- map["width"]
-        duration <- map["duration"]
-        title <- map["title"]
-        properties <- map["properties"]
+        href <- map["href", ignoreNil: true]
+        typeLink <- map["type", ignoreNil: true]
+        if !rel.isEmpty {
+            rel <- map["rel", ignoreNil: true]
+        }
+        height <- map["height", ignoreNil: true]
+        width <- map["width", ignoreNil: true]
+        duration <- map["duration", ignoreNil: true]
+        title <- map["title", ignoreNil: true]
+        if !properties.isEmpty {
+            properties <- map["properties", ignoreNil: true]
+        }
     }
 }

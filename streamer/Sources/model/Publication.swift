@@ -13,27 +13,25 @@ import ObjectMapper
 /// other resources.
 /// It is created by the `EpubParser` from an EPUB file or directory.
 /// As it is extended by `Mappable`, it can be deserialized to `JSON`.
-open class Publication: Mappable {
-
+public class Publication: Mappable {
+    
+    /// The epubVersion of the publication
+    public var epubVersion = 0.0
     /// The metadata (title, identifier, contributors, etc.).
     public var metadata = Metadata()
-    //
     public var links = [Link]()
     public var spine = [Link]()
     /// The resources, not including the links already present in the spine.
     public var resources = [Link]()
-    /// The table of contents.
-    public var TOC = [Link]()
+    /// <=> TOC, pageList, landmarks && <=> LOI, LOT | (LOA, LOV [?])
+    public var tableOfContents = [Link]()
     public var pageList = [Link]()
     public var landmarks = [Link]()
-    /// List of Illustrations.
-    public var LOI = [Link]()
-    /// List of Audio files.
-    public var LOA = [Link]()
-    /// List of Videos.
-    public var LOV = [Link]()
-    /// List of Tables.
-    public var LOT = [Link]()
+    public var listOfIllustrations = [Link]()
+    public var listOfTables = [Link]()
+    // FIXME: commented because not even on the ipdf documentation page?
+    //    public var listOfAudioFiles = [Link]()
+    //    public var listOfVideos = [Link]()
 
     /// Extension point for links that shouldn't show up in the manifest
     public var otherLinks = [Link]()
@@ -47,7 +45,9 @@ open class Publication: Mappable {
     /// The implementation scans the `links` for a link where `rel` is `cover`.
     /// If none is found, it is `nil`.
     public var coverLink: Link? {
-        get { return link(withRel: "cover") }
+        get {
+            return link(withRel: "cover")
+        }
     }
 
     public init() {
@@ -58,32 +58,63 @@ open class Publication: Mappable {
         // TODO: init
     }
 
-    // MARK: - Open methods.
+    // MARK: - Public methods.
 
     /// Finds a resource (asset or spine item) with a matching relative path
     ///
     /// - Parameter path: The relative path to match
     /// - Returns: a link with its `href` equal to the path if any was found,
     ///            else `nil`
-    open func resource(withRelativePath path: String) -> Link? {
+    public func resource(withRelativePath path: String) -> Link? {
         let matchingLinks = (spine + resources)
 
         return matchingLinks.first(where: { $0.href == path })
     }
 
-    /// Finds the first link with a specific rel
+    /// Find the first Link having the given `rel` in the publication [Link]
+    /// properties: `resources`, `spine`, `links`.
     ///
-    /// - Parameter rel: The `rel` to match
-    /// - Returns: The first link with a matching `rel` found if any, else nil
-    open func link(withRel rel: String) -> Link? {
-        return links.first(where: { $0.rel.contains(rel) })
+    /// - Parameter rel: The `rel` being searched.
+    /// - Returns: The corresponding `Link`, if any.
+    public func link(withRel rel: String) -> Link? {
+        if let link = resources.first(where: { $0.rel.contains(rel) }) {
+            return link
+        }
+        if let link = spine.first(where: { $0.rel.contains(rel) }) {
+            return link
+        }
+        if let link = links.first(where: { $0.rel.contains(rel) }) {
+            return link
+        }
+        return nil
     }
     
     /// Mapping declaration
-    open func mapping(map: Map) {
-        metadata <- map["metadata"]//, ignoreNil: true]
-        spine <- map["spine"]
-        resources <- map["resources"]
-        links <- map["links"]
+    public func mapping(map: Map) {
+        metadata <- map["metadata", ignoreNil: true]
+        if !links.isEmpty {
+            links <- map["links", ignoreNil: true]
+        }
+        if !spine.isEmpty {
+            spine <- map["spine", ignoreNil: true]
+        }
+        if !resources.isEmpty {
+            resources <- map["resources", ignoreNil: true]
+        }
+        if !tableOfContents.isEmpty {
+            tableOfContents <- map["toc", ignoreNil: true]
+        }
+        if !pageList.isEmpty {
+            pageList <- map["page-list", ignoreNil: true]
+        }
+        if !landmarks.isEmpty {
+            landmarks <- map["landmarks", ignoreNil: true]
+        }
+        if !listOfIllustrations.isEmpty {
+            listOfIllustrations <- map["loi", ignoreNil: true]
+        }
+        if !listOfTables.isEmpty {
+            listOfTables <- map["lot", ignoreNil: true]
+        }
     }
 }
