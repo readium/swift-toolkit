@@ -73,8 +73,8 @@ public class EpubParser {
     /// The tuple returned by the parse function.
     public typealias parsingResult = (publication: Publication, associatedContainer: Container)
 
-    /// Parses the EPUB (file/directory) at `fileAtPath` and generate a
-    ///`Publication` and a `Container`.
+    /// Parses the EPUB (file/directory) at `fileAtPath` and generate
+    /// `Publication` and `Container`.
     ///
     /// - Parameter container: The Container containing the epub.
     /// - Returns: the resulting publication.
@@ -130,7 +130,7 @@ public class EpubParser {
         } catch {
             throw EpubParserError.xmlParse(underlyingError: error)
         }
-        // Look for the first `<roofile>` element
+        // Look for the first `<roofile>` element.
         let rootFileElement = containerDotXml.root["rootfiles"]["rootfile"]
         // Get the path of the OPF file, relative to the metadata.rootPath.
         guard let opfFilePath = getRelativePathToOPF(from: rootFileElement) else {
@@ -165,8 +165,7 @@ public class EpubParser {
         return version
     }
 
-
-    /// Generate a Container instance for the file at `fileAtPath`. It handle
+    /// Generate a Container instance for the file at `fileAtPath`. It handles
     /// 2 cases, epub files and unwrapped epub directories.
     ///
     /// - Parameter path: The absolute path of the file.
