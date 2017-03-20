@@ -15,47 +15,26 @@ class EpubParsingTest: XCTestCase {
     let sg = SampleGenerator()
 
     override func setUp() {
-        R2StreamerEnableLog(withMinimumSeverityLevel: .verbose)
-        sg.getSampleEpubsRessourcePaths()
-        sg.epubContainerCreation()
-        sg.epubDirectoryContainerCreation()
+        R2StreamerEnableLog(withMinimumSeverityLevel: .debug)
+        // Retrieve the samples URLs.
+        sg.getSampleEpubsUrl()
     }
 
-    // Mark: - Test methods
+    // Mark: - Tests methods.
 
-    /// EpubContainer -> publication
-    func testParseEpubContainerToPublication() {
-        // The epub parser
-        let epubParser = EpubParser()
-
-        for container in sg.epubContainers {
-            var mutableContainer = container
-
-            do {
-                _ = try epubParser.parse(container: &mutableContainer)
-            } catch {
-                logValue(level: .error, error)
-                XCTFail("Publication init thrown \(error)")
-            }
-            // TODO: Define what to add as unit test.
+    /// Try to parse the .epub samples.
+    func testParseEpub() {
+        for url in sg.epubUrls {
+            // Parse the epub at URL and assert if failure.
+            _ = sg.parseEpub(at: url)
         }
     }
 
-    /// EpubDirectoryContainer -> publication
-    func testParseEpubDirectoryContainerToPublication() {
-        // The epub parser
-        let epubParser = EpubParser()
-
-        for container in sg.epubDirectoryContainers {
-            var mutableContainer = container
-
-            do {
-                _ = try epubParser.parse(container: &mutableContainer)
-            } catch {
-                logValue(level: .error, error)
-                XCTFail("Publication init thrown \(error)")
-            }
-            // TODO: Define what to add as unit test.
+    /// Attemp to parse the Epub directories samples.
+    func testParseEpubDirectory() {
+        for url in sg.epubDirectoryUrls {
+            // Parse the epub at URL and assert if failure.
+            _ = sg.parseEpub(at: url)
         }
     }
 }
