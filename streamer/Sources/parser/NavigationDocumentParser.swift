@@ -111,7 +111,7 @@ public class NavigationDocumentParser {
     /// - Parameter element: The <ol> from the Navigation Document.
     /// - Returns: The generated node(`Link`).
     fileprivate func node(usingNavigationDocumentOl element: AEXMLElement) -> Link {
-        var newOlNode = Link()
+        let newOlNode = Link()
 
         // Retrieve the children <li> elements of the <ol>.
         guard let liElements = element["li"].all else {
@@ -141,7 +141,7 @@ public class NavigationDocumentParser {
     /// - Parameter element: The <ol> from the Navigation Document.
     /// - Returns: The generated node(`Link`).
     fileprivate func node(usingNavigationDocumentLi element: AEXMLElement) -> Link {
-        var newLiNode = Link ()
+        let newLiNode = Link ()
         var title = element["a"]["span"].value
 
         if title == nil {

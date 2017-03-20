@@ -211,7 +211,7 @@ public class OPFParser {
         let ndp = NavigationDocumentParser()
 
         // Get the link in the spine pointing to the Navigation Document.
-        guard var navLink = publication.link(withRel: "contents"),
+        guard let navLink = publication.link(withRel: "contents"),
             let navDocument = try? container.xmlDocument(forRessourceReferencedByLink: navLink) else {
                 return
         }

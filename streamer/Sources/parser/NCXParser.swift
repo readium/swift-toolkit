@@ -78,7 +78,7 @@ public class NCXParser {
     /// - Parameter element: The <navPoint> from the NCX Document.
     /// - Returns: The generated node(`Link`).
     fileprivate func node(using element: AEXMLElement, ofType type: String) -> Link {
-        var newNode = Link()
+        let newNode = Link()
 
         // Get current node informations.
         newNode.href = element["content"].attributes["src"]
