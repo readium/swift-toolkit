@@ -63,7 +63,6 @@ public class EpubParser {
 
     // TODO: multiple renditions
     // TODO: media overlays
-    // TODO: TOC, LOI, etc.
     // TODO: encryption info
 
     // MARK: - Public methods
@@ -76,7 +75,7 @@ public class EpubParser {
     /// Parses the EPUB (file/directory) at `fileAtPath` and generate
     /// `Publication` and `Container`.
     ///
-    /// - Parameter container: The Container containing the epub.
+    /// - Parameter fileAtPath: The path to the epub file.
     /// - Returns: the resulting publication.
     /// - Throws: `EpubParserError.wrongMimeType`,
     ///           `EpubParserError.xmlParse`,
