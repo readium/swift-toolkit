@@ -13,12 +13,13 @@ import R2Streamer
 /// Testing constants
 fileprivate struct TC {
     /// The total number epub in Samples
-    static let numberOfEpubSamples = 2
+    static let numberOfEpubSamples = 3
     /// The total number epubDirectory in Samples
-    static let numberOfEpubDirectorySamples = 2
+    static let numberOfEpubDirectorySamples = 3
     /// Name of test epubs contained in the Samples directory
     static let epub1 = "cc-shared-culture"
     static let epub2 = "Le_tournant_hostile_extrait"
+    static let epub3 = "SmokeTestFXL"
 }
 
 extension SampleGenerator: Loggable {}
@@ -77,6 +78,9 @@ internal class SampleGenerator: XCTest {
         if let epubUrl = getSamplesUrl(named: TC.epub2, ofType: "epub") {
             epubUrls.append(epubUrl)
         }
+        if let epubUrl = getSamplesUrl(named: TC.epub3, ofType: "epub") {
+            epubUrls.append(epubUrl)
+        }
         XCTAssertTrue(epubUrls.count == TC.numberOfEpubSamples)
 
         // epubDirectories
@@ -84,6 +88,9 @@ internal class SampleGenerator: XCTest {
             epubDirectoryUrls.append(epubUrl)
         }
         if let epubUrl = getSamplesUrl(named: TC.epub2, ofType: nil) {
+            epubDirectoryUrls.append(epubUrl)
+        }
+        if let epubUrl = getSamplesUrl(named: TC.epub3, ofType: nil) {
             epubDirectoryUrls.append(epubUrl)
         }
         XCTAssertTrue(epubDirectoryUrls.count == TC.numberOfEpubDirectorySamples)
