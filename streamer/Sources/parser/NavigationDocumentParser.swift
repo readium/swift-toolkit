@@ -13,7 +13,6 @@ import AEXML
 /// https://idpf.github.io/a11y-guidelines/
 public class NavigationDocumentParser {
 
-    /// [SUGAR] on top of nodeArray.
     /// Return the data representation of the table of contents informations
     /// contained in the Navigation Document (toc).
     ///
@@ -25,7 +24,6 @@ public class NavigationDocumentParser {
         return newTableOfContents
     }
 
-    /// [SUGAR] on top of nodeArray.
     /// Return the data representation of the page-list informations
     /// contained in the Navigation Document.
     ///
@@ -37,7 +35,6 @@ public class NavigationDocumentParser {
         return newPageList
     }
 
-    /// [SUGAR] on top of nodeArray.
     /// Return the data representation of the landmarks informations
     /// contained in the Navigation Document.
     ///
@@ -49,7 +46,6 @@ public class NavigationDocumentParser {
         return newLandmarks
     }
 
-    /// [SUGAR] on top of nodeArray.
     /// Return the data representation of the list of illustrations informations
     /// contained in the Navigation Document (loi).
     ///
@@ -61,7 +57,6 @@ public class NavigationDocumentParser {
         return newListOfIllustrations
     }
 
-    /// [SUGAR] on top of nodeArray.
     /// Return the data representation of the list of tables informations
     /// contained in the Navigation Document (lot).
     ///

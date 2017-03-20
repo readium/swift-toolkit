@@ -17,7 +17,6 @@ import AEXML
 /// content, or if you aren't targeting cross-compatibility."
 public class NCXParser {
 
-    /// [SUGAR] on top of nodeArray.
     /// Return the data representation of the table of contents (toc)
     /// informations contained in the NCX Document.
     ///
@@ -30,7 +29,6 @@ public class NCXParser {
         return tableOfContentsNodes
     }
 
-    /// [SUGAR] on top of nodeArray.
     /// Return the data representation of the pageList informations contained in
     /// the NCX Document.
     ///
