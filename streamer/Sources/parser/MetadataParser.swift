@@ -76,7 +76,7 @@ public class MetadataParser {
         // `refines`.
         // Else, as a fallback and default, return the first `<dc:title>`
         // content.
-        guard titles.count > 1, epubVersion == 3 else {
+        guard titles.count > 1, epubVersion >= 3 else {
             return metadata["dc:title"].string
         }
         /// Used in the closure below.
@@ -144,17 +144,17 @@ public class MetadataParser {
         if let sortAs = element.attributes["opf:file-as"] {
             contributor.sortAs = sortAs
         }
-        // Look up for possible meta refines for role
-        if epubVersion == 3, let eid = element.attributes["id"] {
-            let attributes = ["property": "role", "refines": "#\(eid)"]
+        // Look up for possible meta refines for role, else return.
+        guard epubVersion >= 3, let eid = element.attributes["id"] else {
+            return contributor
+        }
+        // Meta refines for roles.
+        let attributes = ["property": "role", "refines": "#\(eid)"]
 
-            if let metas = metadata["meta"].all(withAttributes: attributes),
-                !metas.isEmpty, let first = metas.first
-            {
-                let role = first.string
-
-                contributor.role = role
-            }
+        if let metas = metadata["meta"].all(withAttributes: attributes),
+            !metas.isEmpty, let first = metas.first
+        {
+            contributor.role = first.string
         }
         return contributor
     }
@@ -199,8 +199,8 @@ public class MetadataParser {
                 metadata.contributors.append(contributor)
             }
         } else {
-            // No role, so do the branching using the element.name
-            // The remainings go to to the contributors
+            // No role, so do the branching using the element.name.
+            // The remaining ones go to to the contributors.
             if element.name == "dc:creator" {
                 metadata.authors.append(contributor)
             } else if element.name == "dc:publisher"{
