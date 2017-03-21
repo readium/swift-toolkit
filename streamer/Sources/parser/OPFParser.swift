@@ -57,7 +57,8 @@ public class OPFParser {
         let documentAttributes = document.root.attributes
 
         metadata.title = mp.parseMainTitle(from: metadataElement, epubVersion: publication.epubVersion)
-        metadata.identifier = mp.parseUniqueIdentifier(from: metadataElement, withAttributes: documentAttributes)
+        metadata.identifier = mp.parseUniqueIdentifier(from: metadataElement,
+                                                       withAttributes: documentAttributes)
         // Description
         if let description = metadataElement["dc:description"].value {
             metadata.description = description
@@ -75,17 +76,19 @@ public class OPFParser {
         if let rights = metadataElement["dc:rights"].all {
             metadata.rights = rights.map({ $0.string }).joined(separator: " ")
         }
-        // Publishers
+        // Contributors
         if let publishers = metadataElement["dc:publisher"].all {
-            metadata.publishers.append(contentsOf:publishers.map({
-                Contributor(name: $0.string)
-            }))
+            for publisher in publishers {
+                mp.parseContributor(from: publisher,
+                                    in: document,
+                                    to: metadata,
+                                    with: publication.epubVersion)
+            }
         }
-        // TODO: - Refactor pattern bellow.
         // Authors
         if let creators = metadataElement["dc:creator"].all {
-            for creatorElement in creators {
-                mp.parseContributor(from: creatorElement,
+            for creator in creators {
+                mp.parseContributor(from: creator,
                                  in: document,
                                  to: metadata,
                                  with: publication.epubVersion)
@@ -93,8 +96,8 @@ public class OPFParser {
         }
         // Contributors
         if let contributors = metadataElement["dc:contributor"].all {
-            for contributorElement in contributors {
-                mp.parseContributor(from: contributorElement,
+            for contributor in contributors {
+                mp.parseContributor(from: contributor,
                                  in: document,
                                  to: metadata,
                                  with: publication.epubVersion)

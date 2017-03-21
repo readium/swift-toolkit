@@ -129,8 +129,10 @@ public class MetadataParser {
     ///          `refines`).
     /// - Returns: The contributor instance filled with its name and optionally
     ///            its `role` and `sortAs` attributes.
-    internal func createContributor(from element: AEXMLElement, metadata: AEXMLElement,
-                                    epubVersion: Double?) -> Contributor {
+    internal func createContributor(from element: AEXMLElement,
+                                    metadata: AEXMLElement,
+                                    epubVersion: Double?) -> Contributor
+    {
         // The 'to be returned' Contributor object.
         let contributor = Contributor(name: element.string)
 
@@ -147,7 +149,8 @@ public class MetadataParser {
             let attributes = ["property": "role", "refines": "#\(eid)"]
 
             if let metas = metadata["meta"].all(withAttributes: attributes),
-                !metas.isEmpty, let first = metas.first {
+                !metas.isEmpty, let first = metas.first
+            {
                 let role = first.string
 
                 contributor.role = role
@@ -156,9 +159,9 @@ public class MetadataParser {
         return contributor
     }
 
-    /// Parse a `creator` or `contributor` element from the OPF XML document,
-    /// then builds and adds a Contributor to the metadata, to an array
-    /// according to its role (authors, translators, etc.).
+    /// Parse a `creator`, `contributor`, `publisher`.. element from the OPF XML
+    /// document, then builds and adds a Contributor to the metadata, to an
+    /// array according to its role (authors, translators, etc.).
     ///
     /// - Parameters:
     ///   - element: The XML element to parse.
@@ -196,10 +199,13 @@ public class MetadataParser {
                 metadata.contributors.append(contributor)
             }
         } else {
-            // No role, so add the creators to the authors and the others to the contributors
+            // No role, so do the branching using the element.name
+            // The remainings go to to the contributors
             if element.name == "dc:creator" {
                 metadata.authors.append(contributor)
-            } else {
+            } else if element.name == "dc:publisher"{
+                metadata.publishers.append(contributor)
+            }else{
                 metadata.contributors.append(contributor)
             }
         }
