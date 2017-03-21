@@ -50,68 +50,41 @@ public class OPFParser {
     /// - Parameter document: Parse the Metadata in the XML <metadata> element.
     /// - Returns: The Metadata object representing the XML <metadata> element.
     internal func parseMetadata(from document: AEXMLDocument, to publication: Publication) {
-        let mp = MetadataParser()
         /// The 'to be returned' Metadata object.
         var metadata = Metadata()
+        let mp = MetadataParser()
         let metadataElement = document.root["metadata"]
-        let documentAttributes = document.root.attributes
 
         metadata.title = mp.parseMainTitle(from: metadataElement, epubVersion: publication.epubVersion)
         metadata.identifier = mp.parseUniqueIdentifier(from: metadataElement,
-                                                       withAttributes: documentAttributes)
-        // Description
+                                                       withAttributes: document.root.attributes)
+        // Description.
         if let description = metadataElement["dc:description"].value {
             metadata.description = description
         }
 
-        // TODO: modified date
+        // TODO: modified date.
 
-        // TODO: subjects
+        // TODO: subjects.
 
-        // Languages
+        // Languages.
         if let languages = metadataElement["dc:language"].all {
             metadata.languages = languages.map({ $0.string })
         }
-        // Rights
+        // Rights.
         if let rights = metadataElement["dc:rights"].all {
             metadata.rights = rights.map({ $0.string }).joined(separator: " ")
         }
-        // Contributors
-        if let publishers = metadataElement["dc:publisher"].all {
-            for publisher in publishers {
-                mp.parseContributor(from: publisher,
-                                    in: document,
-                                    to: metadata,
-                                    with: publication.epubVersion)
-            }
-        }
-        // Authors
-        if let creators = metadataElement["dc:creator"].all {
-            for creator in creators {
-                mp.parseContributor(from: creator,
-                                 in: document,
-                                 to: metadata,
-                                 with: publication.epubVersion)
-            }
-        }
-        // Contributors
-        if let contributors = metadataElement["dc:contributor"].all {
-            for contributor in contributors {
-                mp.parseContributor(from: contributor,
-                                 in: document,
-                                 to: metadata,
-                                 with: publication.epubVersion)
-            }
-        }
-        // Get the page progression direction.
+        // Publishers, Creators, Contributors.
+        mp.parseContributors(from: metadataElement, to: &metadata, with: publication.epubVersion)
+        // Page progression direction.
         if let direction = document.root["spine"].attributes["page-progression-direction"] {
             metadata.direction = direction
         }
-        // Rendition properties
+        // Rendition properties.
         mp.setRenditionProperties(from: metadataElement["meta"], to: &metadata)
         publication.metadata = metadata
     }
-
 
     /// Parses the manifest and spine elements to build the document's spine and
     /// its resources list.
