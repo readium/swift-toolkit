@@ -50,6 +50,11 @@ public class Publication: Mappable {
         }
     }
 
+    /// Return the serialized JSON for the Publication object: the WebPubManifest.
+    public var serialized: String {
+        return self.toJSONString(prettyPrint: true) ?? ""
+    }
+
     public init() {
     }
     
