@@ -103,25 +103,23 @@ public class MetadataParser {
     ///             element wasn't found.
     internal func parseUniqueIdentifier(from metadata: AEXMLElement,
                                         withAttributes attributes: [String : String]) -> String? {
-        // Look for `<dc:identifier>` elements
+        // Look for `<dc:identifier>` elements.
         guard let identifiers = metadata["dc:identifier"].all else {
             return nil
         }
-        // Get the one defined as unique by the `<package>` attribute
-        // `unique-identifier`
-        if identifiers.count > 1,
-            let uniqueId = attributes["unique-identifier"] {
+        // Get the one defined as unique by the `<package>` attribute `unique-identifier`.
+        if identifiers.count > 1, let uniqueId = attributes["unique-identifier"] {
             let uniqueIdentifiers = identifiers.filter { $0.attributes["id"] == uniqueId }
             if !uniqueIdentifiers.isEmpty, let uid = uniqueIdentifiers.first {
                 return uid.string
             }
         }
-        // Returns the first `<dc:identifier>` content or an empty String
+        // Returns the first `<dc:identifier>` content or an empty String.
         return metadata["dc:identifier"].string
     }
 
-    /// Builds a `Contributor` instance from a `<dc:creator>` or
-    /// `<dc:contributor>` element.
+    /// Builds a `Contributor` instance from a `<dc:creator>`, `<dc:contributor>`
+    /// or `element.
     ///
     /// - Parameters:
     ///   - element: The XML element to parse.
