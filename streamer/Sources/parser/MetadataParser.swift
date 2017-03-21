@@ -76,7 +76,7 @@ public class MetadataParser {
         // `refines`.
         // Else, as a fallback and default, return the first `<dc:title>`
         // content.
-        guard titles.count > 1, epubVersion >= 3 else {
+        guard titles.count > 1, epubVersion != nil, epubVersion! >= 3.0 else {
             return metadata["dc:title"].string
         }
         /// Used in the closure below.
@@ -93,11 +93,10 @@ public class MetadataParser {
         return titles.first(where: { isMainTitle(element: $0)})?.string
     }
 
-    /// Get the unique identifer of the publication from the from the OPF XML
-    /// document `<metadata>` element.
+    /// Parse the Epub unique identifier.
     ///
     /// - Parameters:
-    ///   - metadata: The `<metadata>` element.
+    ///   - metadata: The metadata XML element.
     ///   - Attributes: The XML document attributes.
     /// - Returns: The content of the `<dc:identifier>` element, `nil` if the
     ///             element wasn't found.
@@ -118,62 +117,57 @@ public class MetadataParser {
         return metadata["dc:identifier"].string
     }
 
-    /// Builds a `Contributor` instance from a `<dc:creator>`, `<dc:contributor>`
-    /// or `element.
+    /// Parse all the Contributors objects of the model (`creator`, `contributor`,
+    /// `publisher`) then add them to the metadata.
     ///
     /// - Parameters:
-    ///   - element: The XML element to parse.
-    ///   - doc: The OPF XML document being parsed (necessary to look for
-    ///          `refines`).
-    /// - Returns: The contributor instance filled with its name and optionally
-    ///            its `role` and `sortAs` attributes.
-    internal func createContributor(from element: AEXMLElement,
-                                    metadata: AEXMLElement,
-                                    epubVersion: Double?) -> Contributor
+    ///   - metadataElement: The XML element representing the metadata.
+    ///   - metadata: The Metadata object to fill (inout).
+    ///   - epubVersion: The version of the epub document being parsed.
+    internal func parseContributors(from metadataElement: AEXMLElement,
+                                    to metadata: inout Metadata, with epubVersion: Double?)
     {
-        // The 'to be returned' Contributor object.
-        let contributor = Contributor(name: element.string)
+        var allContributors = [AEXMLElement]()
 
-        // Get role from role attribute
-        if let role = element.attributes["opf:role"] {
-            contributor.role = role
+        // Publishers.
+        if let publishers = metadataElement["dc:publisher"].all {
+            allContributors.append(contentsOf: publishers)
         }
-        // Get sort name from file-as attribute
-        if let sortAs = element.attributes["opf:file-as"] {
-            contributor.sortAs = sortAs
+        // Creators.
+        if let creators = metadataElement["dc:creator"].all {
+            allContributors.append(contentsOf: creators)
         }
-        // Look up for possible meta refines for role, else return.
-        guard epubVersion >= 3, let eid = element.attributes["id"] else {
-            return contributor
+        // Contributors.
+        if let contributors = metadataElement["dc:contributor"].all {
+            allContributors.append(contentsOf: contributors)
         }
-        // Meta refines for roles.
-        let attributes = ["property": "role", "refines": "#\(eid)"]
-
-        if let metas = metadata["meta"].all(withAttributes: attributes),
-            !metas.isEmpty, let first = metas.first
-        {
-            contributor.role = first.string
+        // Heavy lifting.
+        for contributor in allContributors {
+            parseContributor(from: contributor, in: metadataElement, to: &metadata, with: epubVersion)
         }
-        return contributor
     }
 
-    /// Parse a `creator`, `contributor`, `publisher`.. element from the OPF XML
+    /// Parse a `creator`, `contributor`, `publisher` element from the OPF XML
     /// document, then builds and adds a Contributor to the metadata, to an
     /// array according to its role (authors, translators, etc.).
     ///
     /// - Parameters:
     ///   - element: The XML element to parse.
-    ///   - doc: The OPF XML document being parsed.
-    ///   - metadata: The metadata to which to add the contributor.
-    internal func parseContributor(from element: AEXMLElement,
-                                   in document: AEXMLDocument,
-                                   to metadata: Metadata,
-                                   with epubVersion: Double?) {
-        let metadataElement = document.root["metadata"]
-        let contributor = createContributor(from: element,
-                                            metadata: metadataElement,
-                                            epubVersion: epubVersion)
+    ///   - metadataElement: The XML element containing the metadata informations.
+    ///   - metadata: The Metadata object.
+    ///   - epubVersion: The version of the epub being parsed.
+    internal func parseContributor(from element: AEXMLElement, in metadataElement: AEXMLElement,
+                                   to metadata: inout Metadata, with epubVersion: Double?)
+    {
+        let contributor = createContributor(from: element)
 
+        // Look up for possible meta refines for contributor's role.
+        if epubVersion != nil, epubVersion! >= 3.0, let eid = element.attributes["id"] {
+            let attributes = ["property": "role", "refines": "#\(eid)"]
+            let metas = metadataElement["meta"].all(withAttributes: attributes)
+
+            contributor.role = metas?.first?.string
+        }
         // Add the contributor to the proper property according to the its `role`
         if let role = contributor.role {
             switch role {
@@ -201,11 +195,33 @@ public class MetadataParser {
             // The remaining ones go to to the contributors.
             if element.name == "dc:creator" {
                 metadata.authors.append(contributor)
-            } else if element.name == "dc:publisher"{
+            } else if element.name == "dc:publisher" {
                 metadata.publishers.append(contributor)
-            }else{
+            }else {
                 metadata.contributors.append(contributor)
             }
         }
+    }
+
+    /// Builds a `Contributor` instance from a `<dc:creator>`, `<dc:contributor>`
+    /// or <dc:publisher> element.
+    ///
+    /// - Parameters:
+    ///   - element: The XML element reprensenting the contributor.
+    /// - Returns: The newly created Contributor instance.
+    internal func createContributor(from element: AEXMLElement) -> Contributor
+    {
+        // The 'to be returned' Contributor object.
+        let contributor = Contributor(name: element.string)
+
+        // Get role from role attribute
+        if let role = element.attributes["opf:role"] {
+            contributor.role = role
+        }
+        // Get sort name from file-as attribute
+        if let sortAs = element.attributes["opf:file-as"] {
+            contributor.sortAs = sortAs
+        }
+        return contributor
     }
 }
