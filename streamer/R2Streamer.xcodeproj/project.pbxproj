@@ -40,6 +40,7 @@
 		F309BBE01E6970C30002F800 /* AEXML.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 59501E181E2FB1F500D1B4BF /* AEXML.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F309BBE11E6970C30002F800 /* GCDWebServers.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 59501E191E2FB1F500D1B4BF /* GCDWebServers.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F309BBE21E6970C30002F800 /* ObjectMapper.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		F31D64D41E811EF5007BEA81 /* SmokeTestReferenceManifest.json in Resources */ = {isa = PBXBuildFile; fileRef = F31D64D31E811EF5007BEA81 /* SmokeTestReferenceManifest.json */; };
 		F351DB721E54B6DB00D84BDF /* EpubDirectoryContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F351DB711E54B6DB00D84BDF /* EpubDirectoryContainer.swift */; };
 		F351DB741E54B71A00D84BDF /* EpubContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F351DB731E54B71A00D84BDF /* EpubContainer.swift */; };
 		F351DB761E55E2BE00D84BDF /* Metadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = F351DB751E55E2BE00D84BDF /* Metadata.swift */; };
@@ -122,6 +123,7 @@
 		F3098E721E7BFF9B002358A1 /* NavigationDocumentParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavigationDocumentParser.swift; sourceTree = "<group>"; };
 		F3098E741E7C02AD002358A1 /* MetadataParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MetadataParser.swift; sourceTree = "<group>"; };
 		F309BBDC1E696F660002F800 /* EpubServerTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpubServerTest.swift; sourceTree = "<group>"; };
+		F31D64D31E811EF5007BEA81 /* SmokeTestReferenceManifest.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = SmokeTestReferenceManifest.json; sourceTree = "<group>"; };
 		F351DB711E54B6DB00D84BDF /* EpubDirectoryContainer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = EpubDirectoryContainer.swift; path = Sources/model/EpubDirectoryContainer.swift; sourceTree = SOURCE_ROOT; };
 		F351DB731E54B71A00D84BDF /* EpubContainer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpubContainer.swift; sourceTree = "<group>"; };
 		F351DB751E55E2BE00D84BDF /* Metadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Metadata.swift; sourceTree = "<group>"; };
@@ -209,6 +211,7 @@
 			isa = PBXGroup;
 			children = (
 				F3DE1EC91E69801D00D05F74 /* Samples */,
+				F31D64D31E811EF5007BEA81 /* SmokeTestReferenceManifest.json */,
 				F309BBDC1E696F660002F800 /* EpubServerTest.swift */,
 				F3DE1D891E69757100D05F74 /* EpubParsingTest.swift */,
 				F37B63541E6DC44300C6A3AC /* SampleGenerator.swift */,
@@ -462,6 +465,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F31D64D41E811EF5007BEA81 /* SmokeTestReferenceManifest.json in Resources */,
 				F3DE1ECC1E6980E100D05F74 /* Samples in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -721,6 +725,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/**";
 				INFOPLIST_FILE = R2StreamerTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2StreamerTests;
@@ -738,6 +743,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/**";
 				INFOPLIST_FILE = R2StreamerTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2StreamerTests;
