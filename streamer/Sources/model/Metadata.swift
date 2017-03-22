@@ -102,6 +102,7 @@ open class Metadata: Mappable {
         modified <- map["modified", ignoreNil: true]
         publicationDate <- map["publicationDate", ignoreNil: true]
         rendition <- map["rendition", ignoreNil: true]
+        source <- map["source", ignoreNil: true]
         rights <- map["rights", ignoreNil: true]
         if !subjects.isEmpty {
             subjects <- map["subjects", ignoreNil: true]
