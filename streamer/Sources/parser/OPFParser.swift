@@ -66,8 +66,16 @@ public class OPFParser {
         if let description = metadataElement["dc:description"].value {
             metadata.description = description
         }
+        // Date. (year?)
+        if let date = metadataElement["dc:date"].value {
+            metadata.publicationDate = date
+        }
         // Last modification date.
         metadata.modified = mp.modifiedDate(from: metadataElement)
+        // Source.
+        if let source = metadataElement["dc:source"].value {
+            metadata.source = source
+        }
 
         // TODO: subjects.
 

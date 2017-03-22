@@ -33,7 +33,7 @@ open class Metadata: Mappable {
     public var contributors = [Contributor]()
 
     public var modified: Date?
-    public var publicationDate: Date?
+    public var publicationDate: String?
     public var description: String?
     public var direction: String
     public var rendition = Rendition()
@@ -57,8 +57,7 @@ open class Metadata: Mappable {
     // MARK: - Open methods
 
     open func mapping(map: Map) {
-        var modifiedDate = modified?.iso8601
-        var pubDate = publicationDate?.iso8601
+        var modified = self.modified?.iso8601
 
         identifier <- map["identifier", ignoreNil: true]
         title <- map["title", ignoreNil: true]
@@ -102,8 +101,8 @@ open class Metadata: Mappable {
         if !imprints.isEmpty {
             imprints <- map["imprints", ignoreNil: true]
         }
-        modifiedDate <- map["modified", ignoreNil: true]
-        pubDate <- map["publicationDate", ignoreNil: true]
+        modified <- map["modified", ignoreNil: true]
+        publicationDate <- map["publicationDate", ignoreNil: true]
         rendition <- map["rendition", ignoreNil: true]
         source <- map["source", ignoreNil: true]
         rights <- map["rights", ignoreNil: true]
