@@ -8,8 +8,6 @@
 
 import Foundation
 
-/// Replace `s = (myString as NSString).appendingPathComponent(otherString)`
-/// by      `s.appending(pathComponent: path)`
 extension String {
     func appending(pathComponent: String) -> String {
         return (self as NSString).appendingPathComponent(pathComponent)
@@ -21,5 +19,10 @@ extension String {
 
     func lastPathComponent() -> String {
         return (self as NSString).lastPathComponent
+    }
+
+    /// Date string (ISO8601) to Date object.
+    var dateFromISO8601: Date? {
+        return Formatter.iso8601.date(from: self)   //  2012-01-20T12:47:00Z -> "Mar 22, 2017, 10:22 AM"
     }
 }

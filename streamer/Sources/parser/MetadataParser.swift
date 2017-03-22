@@ -9,6 +9,8 @@
 import Foundation
 import AEXML
 
+extension MetadataParser: Loggable {}
+
 public class MetadataParser {
 
     /// Extracts the Rendition properties from the XML element metadata and fill
@@ -114,6 +116,30 @@ public class MetadataParser {
         }
         // Returns the first `<dc:identifier>` content or an empty String.
         return metadata["dc:identifier"].string
+    }
+
+    /// Parse the modifiedDate (date of last modification of the EPUB).
+    ///
+    /// - Parameters:
+    ///   - metadataElement: The XML element representing the Publication Metadata.
+    /// - Returns: The date generated from the <dcterms:modified> meta element,
+    ///            or nil if not found.
+    internal func modifiedDate(from metadataElement: AEXMLElement) -> Date? {
+        let modifiedAttribute = ["property" : "dcterms:modified"]
+
+        // Search if the XML element is present, else return.
+        guard let modified = metadataElement["meta"].all(withAttributes: modifiedAttribute) else {
+            return nil
+        }
+        let iso8601DateString = modified[0].string
+
+        // Convert the XML element ISO8601DateString into a Date.
+        // See Formatter/Date/String extensions for details.
+        guard let dateFromString = iso8601DateString.dateFromISO8601 else {
+            log(level: .warning, "Error converting the modifiedDate to a Date object")
+            return nil
+        }
+        return dateFromString
     }
 
     /// Parse all the Contributors objects of the model (`creator`, `contributor`,
