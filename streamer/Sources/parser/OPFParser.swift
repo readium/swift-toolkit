@@ -30,7 +30,7 @@ public class OPFParser {
                            and epubVersion: Double) throws -> Publication
     {
         /// The 'to be built' Publication.
-        let publication = Publication()
+        var publication = Publication()
 
         publication.epubVersion = epubVersion
         publication.internalData["type"] = "epub"
@@ -38,10 +38,14 @@ public class OPFParser {
         // TODO: Add self to links.
         // But we don't know the self URL here
         //publication.links.append(Link(href: "TODO", typeLink: "application/webpub+json", rel: "self"))
-        parseMetadata(from: document, to: publication)
-        parseSpineAndResources(from: document, to: publication)
-        parseNavigationDocument(from: container, to: publication)
-        parseNcxDocument(from: container, to: publication)
+
+        var coverId: String?
+        if let coverMetas = document.root["metadata"]["meta"].all(withAttributes: ["name" : "cover"]) {
+            coverId = coverMetas.first?.string
+        }
+        parseMetadata(from: document, to: &publication)
+        parseRessources(from: document.root["manifest"], to: &publication, coverId: coverId)
+        parseSpine(from: document.root["spine"], to: &publication)
         return publication
     }
 
@@ -49,7 +53,7 @@ public class OPFParser {
     ///
     /// - Parameter document: Parse the Metadata in the XML <metadata> element.
     /// - Returns: The Metadata object representing the XML <metadata> element.
-    internal func parseMetadata(from document: AEXMLDocument, to publication: Publication) {
+    internal func parseMetadata(from document: AEXMLDocument, to publication: inout Publication) {
         /// The 'to be returned' Metadata object.
         var metadata = Metadata()
         let mp = MetadataParser()
@@ -62,7 +66,6 @@ public class OPFParser {
         if let description = metadataElement["dc:description"].value {
             metadata.description = description
         }
-
         // TODO: modified date.
 
         // TODO: subjects.
@@ -86,144 +89,114 @@ public class OPFParser {
         publication.metadata = metadata
     }
 
-    /// Parses the manifest and spine elements to build the document's spine and
-    /// its resources list.
+    /// Parse XML elements of the <Manifest> in the package.opf file.
+    /// Temporarily store the XML elements ids into the `.title` property of the
+    /// `Link` created for each element.
     ///
     /// - Parameters:
-    ///   - document: The OPF XML document being parsed.
-    ///   - publication: The publication whose spine and resources will be built.
-    ///   - coverItemId: The id of the cover item in the manifest.
-    internal func parseSpineAndResources(from document: AEXMLDocument, to publication: Publication) {
-        /// XML shortcuts
-        let metadataElement = document.root["metadata"]
-        let manifest = document.root["manifest"]
-        // Create a dictionary for all the manifest items keyed by their id
-        var manifestLinks = [String: Link]()
-        var coverId: String?
-
-        defer {
-            // Those links that were not in the spine are the resources have
-            // already been removed from the `manifestLinks` dictionary.
-            publication.resources = [Link](manifestLinks.values)
-        }
-        if let coverMetas = metadataElement["meta"].all(withAttributes: ["name" : "cover"]) {
-            coverId = coverMetas.first?.string
-        }
+    ///   - manifest: The Manifest XML element.
+    ///   - publication: The `Publication` object with `.resource` properties to 
+    ///                  fill.
+    ///   - coverId: The coverId to identify the cover ressource and tag it.
+    internal func parseRessources(from manifest: AEXMLElement,
+                                  to publication: inout Publication,
+                                  coverId: String?)
+    {
+        // Get the manifest children items
         guard let manifestItems = manifest["item"].all else {
+            log(level: .warning, "Manifest have no children elements.")
             return
         }
-
-        /// Parses the differents manifest items from the XML <manifest> element.
-        /// Creates an Link for each item in the <manifest>.
+        /// Creates an Link for each of them and add it to the ressources.
         for item in manifestItems {
-            // The "to be built" link representing the manifest item.
-            let link = Link()
-
-            link.href = item.attributes["href"]
-            link.typeLink = item.attributes["media-type"]
-            // Look if item have any properties.
-            if let propertyAttribute = item.attributes["properties"] {
-                let ws = CharacterSet.whitespaces
-                let properties = propertyAttribute.components(separatedBy: ws)
-
-                if properties.contains("nav") {
-                    link.rel.append("contents")
-                }
-                // If it's a cover, set the rel to cover and add the link to `links`
-                if properties.contains("cover-image") {
-                    link.rel.append("cover")
-                    publication.links.append(link)
-                }
-                let otherProperties = properties.filter { $0 != "cover-image" && $0 != "nav" }
-                link.properties.append(contentsOf: otherProperties)
-                // TODO: rendition properties
-            }
-            // Add it to the manifest items dict if it has an id
+            // Add it to the manifest items dict if it has an id.
             guard let id = item.attributes["id"] else {
-                // Manifest item MUST have an id, ignore it
-                log(level: .debug, "Manifest item has no \"id\" attribute.")
+                log(level: .info, "Manifest item MUST have an id, item ignored.")
                 continue
             }
-            // If it's the cover's item id, set the rel to cover and add the
-            // link to `links`
+            let link = linkFromManifest(item)
+            // If it's the cover's item id, set the rel to cover and add the link to `links`.
             if id == coverId {
                 link.rel.append("cover")
+            }
+            // If the link's rel contains the cover tag, append it to the publication link
+            if link.rel.contains("cover") {
                 publication.links.append(link)
             }
-            manifestLinks[id] = link
+            publication.resources.append(link)
         }
+    }
 
-        // Parse the `<spine>` element children
-        guard let spineItems = document.root["spine"]["itemref"].all else {
+    /// Parse XML elements of the <Spine> in the package.opf file.
+    /// They are only composed of an `idref` referencing one of the previously 
+    /// parsed resource (XML: idref -> id). Since we normally don't keep
+    /// the resource id, we store it in the `.title` property, temporarily.
+    ///
+    /// - Parameters:
+    ///   - spine: The Spine XML element.
+    ///   - publication: The `Publication` object with `.resource` and `.spine`
+    ///                  properties to fill.
+    internal func parseSpine(from spine: AEXMLElement, to publication: inout Publication) {
+        // Get the spine children items.
+        guard let spineItems = spine["itemref"].all else {
+            log(level: .warning, "Spine have no children elements.")
             return
         }
-        // For each spine item, look for the link in manifestLinks dictionary,
-        // add it to the spine and remove it from manifestLinks.
+        // Create a `Link` for each spine item and add it to `Publication.spine`.
         for item in spineItems {
-            guard let id = item.attributes["idref"] else {
+            // Retrieve `idref`, referencing a resource id.
+            // Only linear items are added to the spine.
+            guard let idref = item.attributes["idref"],
+                item.attributes["linear"]?.lowercased() != "no" else {
                 continue
             }
-            // Only linear items are added to the spine
-            guard item.attributes["linear"]?.lowercased() != "no" else {
+            let link = Link()
+
+            // Find the ressource `idref` is referencing to.
+            guard let index = publication.resources.index(where: { $0.title == idref }) else {
+                log(level: .warning, "Referenced ressource for spine item with \(idref) not found.")
                 continue
             }
-            if let link = manifestLinks[id] {
-                // Found the link in the manifest items, add it to the spine
-                publication.spine.append(link)
-                // Then remove it from the manifest
-                manifestLinks.removeValue(forKey: id)
-            }
+            // Clean the title - used as a holder for the `idref`.
+            publication.resources[index].title = nil
+            // Move ressource to `.spine` and remove it from `.ressources`.
+            publication.spine.append(publication.resources[index])
+            publication.resources.remove(at: index)
         }
     }
 
-    /// Attempt to fill `Publication.tableOfContent`/`.landmarks`/`.pageList`/
-    ///                              `.listOfIllustration`/`.listOftables`
-    /// using the navigation document.
+    // MARK: - Fileprivate Methods.
+
+    /// Generate a `Link` form the given manifest's XML element.
     ///
-    /// - Parameters:
-    ///   - container: The Epub container.
-    ///   - publication: The Epub publication.
-    internal func parseNavigationDocument(from container: Container, to publication: Publication) {
-        let ndp = NavigationDocumentParser()
+    /// - Parameter item: The XML element, or manifest XML item.
+    /// - Returns: The `Link` representing the manifest XML item.
+    fileprivate func linkFromManifest(_ item: AEXMLElement) -> Link {
+        // The "to be built" link representing the manifest item.
+        let link = Link()
 
-        // Get the link in the spine pointing to the Navigation Document.
-        guard let navLink = publication.link(withRel: "contents"),
-            let navDocument = try? container.xmlDocument(forRessourceReferencedByLink: navLink) else {
-                return
+        // TMP used for storing the id (associated to the idref of the spine items).
+        // Will be cleared after the spine parsing.
+        link.title = item.attributes["id"]
+        //
+        link.href = item.attributes["href"]
+        link.typeLink = item.attributes["media-type"]
+        // Look if item have any properties.
+        if let propertyAttribute = item.attributes["properties"] {
+            let ws = CharacterSet.whitespaces
+            let properties = propertyAttribute.components(separatedBy: ws)
+
+            if properties.contains("nav") {
+                link.rel.append("contents")
+            }
+            // If it's a cover, set the rel to cover and add the link to `links`
+            if properties.contains("cover-image") {
+                link.rel.append("cover")
+            }
+            let otherProperties = properties.filter { $0 != "cover-image" && $0 != "nav" }
+            link.properties.append(contentsOf: otherProperties)
+            // TODO: rendition properties
         }
-        let newTableOfContentsItems = ndp.tableOfContent(fromNavigationDocument: navDocument)
-        let newPageListItems = ndp.pageList(fromNavigationDocument: navDocument)
-        let newLandmarksItems = ndp.landmarks(fromNavigationDocument: navDocument)
-
-        publication.tableOfContents.append(contentsOf:  newTableOfContentsItems)
-        publication.pageList.append(contentsOf: newPageListItems)
-        publication.landmarks.append(contentsOf: newLandmarksItems)
-    }
-
-    /// Attempt to fill `Publication.tableOfContent`/`.pageList` using the NCX 
-    /// document. Will only modify the Publication if it has not be filled 
-    /// previously (using the Navigation Document).
-    ///
-    /// - Parameters:
-    ///   - container: The Epub container.
-    ///   - publication: The Epub publication.
-    internal func parseNcxDocument(from container: Container, to publication: Publication) {
-        let ncxp = NCXParser()
-
-        // Get the link in the spine pointing to the NCX document.
-        guard let ncxLink = publication.resources.first(where: { $0.typeLink == "application/x-dtbncx+xml" }),
-            let ncxDocument = try? container.xmlDocument(forRessourceReferencedByLink: ncxLink) else {
-                return
-        }
-        if publication.tableOfContents.isEmpty {
-            let newTableOfContentItems = ncxp.tableOfContents(fromNcxDocument: ncxDocument)
-
-            publication.tableOfContents.append(contentsOf: newTableOfContentItems)
-        }
-        if publication.pageList.isEmpty {
-            let newPageListItems = ncxp.pageList(fromNcxDocument: ncxDocument)
-
-            publication.pageList.append(contentsOf: newPageListItems)
-        }
+        return link
     }
 }

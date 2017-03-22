@@ -41,6 +41,8 @@ public class NCXParser {
         return pageListNodes
     }
 
+    // TODO: Navlist parsing (all the remaining elements, landmarks etc).
+
     // MARK: Fileprivate Methods.
 
     /// Generate an array of Link elements representing the XML structure of the

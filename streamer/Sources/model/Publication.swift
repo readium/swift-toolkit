@@ -25,13 +25,12 @@ public class Publication: Mappable {
     public var resources = [Link]()
     /// <=> TOC, pageList, landmarks && <=> LOI, LOT | (LOA, LOV [?])
     public var tableOfContents = [Link]()
-    public var pageList = [Link]()
     public var landmarks = [Link]()
+    public var listOfAudioFiles = [Link]()
     public var listOfIllustrations = [Link]()
     public var listOfTables = [Link]()
-    // FIXME: commented because not even on the ipdf documentation page?
-    //    public var listOfAudioFiles = [Link]()
-    //    public var listOfVideos = [Link]()
+    public var listOfVideos = [Link]()
+    public var pageList = [Link]()
 
     /// Extension point for links that shouldn't show up in the manifest
     public var otherLinks = [Link]()

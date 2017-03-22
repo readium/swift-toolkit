@@ -9,7 +9,6 @@
 import Foundation
 import AEXML
 
-// MARK: - Metadata Parsing.
 public class MetadataParser {
 
     /// Extracts the Rendition properties from the XML element metadata and fill
@@ -18,8 +17,7 @@ public class MetadataParser {
     /// - Parameters:
     ///   - metadataElement: The XML element containing the metadatas.
     ///   - metadata: The `Metadata` object.
-    internal func setRenditionProperties(from metadataElement: AEXMLElement,
-                                         to metadata: inout Metadata) {
+    internal func setRenditionProperties(from metadataElement: AEXMLElement, to metadata: inout Metadata) {
         // Layout
         var attribute = ["property" : "rendition:layout"]
 
@@ -61,8 +59,8 @@ public class MetadataParser {
         }
     }
 
-    /// Get the main title of the publication from the from the OPF XML document
-    /// `<metadata>` element.
+    /// Parse and return the main title of the publication from the from the OPF
+    /// XML document `<metadata>` element.
     ///
     /// - Parameter metadata: The `<metadata>` element.
     /// - Returns: The content of the `<dc:title>` element, `nil` if the element
@@ -93,7 +91,7 @@ public class MetadataParser {
         return titles.first(where: { isMainTitle(element: $0)})?.string
     }
 
-    /// Parse the Epub unique identifier.
+    /// Parse and return the Epub unique identifier.
     ///
     /// - Parameters:
     ///   - metadata: The metadata XML element.
@@ -101,7 +99,8 @@ public class MetadataParser {
     /// - Returns: The content of the `<dc:identifier>` element, `nil` if the
     ///             element wasn't found.
     internal func parseUniqueIdentifier(from metadata: AEXMLElement,
-                                        withAttributes attributes: [String : String]) -> String? {
+                                        withAttributes attributes: [String : String]) -> String?
+    {
         // Look for `<dc:identifier>` elements.
         guard let identifiers = metadata["dc:identifier"].all else {
             return nil

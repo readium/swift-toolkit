@@ -62,10 +62,32 @@ public class NavigationDocumentParser {
     ///
     /// - Parameter document: The Navigation Document.
     /// - Returns: The data representation of the list of illustrations (lot).
-    internal func listOfTables(fromNavigation document: AEXMLDocument) -> [Link] {
+    internal func listOfTables(fromNavigationDocument document: AEXMLDocument) -> [Link] {
         let newListOfTables = nodeArray(forNavigationDocument: document, havingNavType: "lot")
 
         return newListOfTables
+    }
+
+    /// Return the data representation of the list of tables informations
+    /// contained in the Navigation Document (lot).
+    ///
+    /// - Parameter document: The Navigation Document.
+    /// - Returns: The data representation of the list of illustrations (lot).
+    internal func listOfAudiofiles(fromNavigationDocument document: AEXMLDocument) -> [Link] {
+        let newListOfAudiofiles = nodeArray(forNavigationDocument: document, havingNavType: "loa")
+
+        return newListOfAudiofiles
+    }
+
+    /// Return the data representation of the list of tables informations
+    /// contained in the Navigation Document (lot).
+    ///
+    /// - Parameter document: The Navigation Document.
+    /// - Returns: The data representation of the list of illustrations (lot).
+    internal func listOfVideos(fromNavigationDocument document: AEXMLDocument) -> [Link] {
+        let newListOfVideos = nodeArray(forNavigationDocument: document, havingNavType: "lov")
+
+        return newListOfVideos
     }
 
     // MARK: Fileprivate Methods.
