@@ -26,8 +26,8 @@ So far the project use :
 - [tadija/AEXML](https://github.com/tadija/AEXML) Simple and lightweight XML parser written in Swift.
 
 ## TODO
-- NCX and Navigation Document parsing.
-- Exhaustive metadata parsing.
-- Add support Media Overlay.
-- Fonts deobfuscation.
-- Add support for content filters in the fetcher.
+- NCX and Navigation Document parsing
+- Exhaustive metadata parsing
+- Add support Media Overlay
+- Fonts deobfuscation
+- Add support for content filters in the fetcher
