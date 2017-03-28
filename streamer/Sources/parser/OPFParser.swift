@@ -162,8 +162,6 @@ public class OPFParser {
                 item.attributes["linear"]?.lowercased() != "no" else {
                     continue
             }
-            let link = Link()
-
             // Find the ressource `idref` is referencing to.
             guard let index = publication.resources.index(where: { $0.title == idref }) else {
                 log(level: .warning, "Referenced ressource for spine item with \(idref) not found.")

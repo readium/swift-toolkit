@@ -9,8 +9,7 @@
 import Foundation
 import ObjectMapper
 
-/// <#Description#>
-open class Link: Mappable {
+public class Link: Mappable {
 
     public var href: String?
     public var typeLink: String?
@@ -28,7 +27,6 @@ open class Link: Mappable {
     public init() {}
 
     public required init?(map: Map) {
-        // TODO: init
     }
 
     // MARK: - Open methods

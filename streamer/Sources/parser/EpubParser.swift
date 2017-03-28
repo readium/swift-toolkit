@@ -54,7 +54,7 @@ public typealias ParsingResult = (publication: Publication, associatedContainer:
 /// An EPUB container parser that extracts the information from the relevant
 /// files and builds a `Publication` instance with it.
 public class EpubParser {
-    public let opfParser = OPFParser()
+    public let opfp = OPFParser()
     public let ndp = NavigationDocumentParser()
     public let ncxp = NCXParser()
 
@@ -96,7 +96,7 @@ public class EpubParser {
         let document = try container.xmlDocument(ForFileAtRelativePath: container.rootFile.rootFilePath)
         let epubVersion = getEpubVersion(from: document)
         // Parse OPF file (Metadata, Spine, Resource) and return the Publication.
-        var publication = try opfParser.parseOPF(from: document, with: container, and: epubVersion)
+        var publication = try opfp.parseOPF(from: document, with: container, and: epubVersion)
         // TODO: Define when to parse which one (github issue #25)
         // Parse Navigation Document.
         parseNavigationDocument(from: container, to: &publication)
