@@ -59,9 +59,9 @@ public class OPFParser {
         let mp = MetadataParser()
         let metadataElement = document.root["metadata"]
 
-        metadata.title = mp.parseMainTitle(from: metadataElement, epubVersion: publication.epubVersion)
-        metadata.identifier = mp.parseUniqueIdentifier(from: metadataElement,
-                                                       withAttributes: document.root.attributes)
+        metadata.title = mp.mainTitle(from: metadataElement, epubVersion: publication.epubVersion)
+        metadata.identifier = mp.uniqueIdentifier(from: metadataElement,
+                                                  withAttributes: document.root.attributes)
         // Description.
         if let description = metadataElement["dc:description"].value {
             metadata.description = description
@@ -77,7 +77,10 @@ public class OPFParser {
             metadata.source = source
         }
 
-        // TODO: subjects.
+        // Subject.
+        if let subject = mp.subject(from: metadataElement) {
+            metadata.subjects.append(subject)
+        }
 
         // Languages.
         if let languages = metadataElement["dc:language"].all {
@@ -94,7 +97,7 @@ public class OPFParser {
             metadata.direction = direction
         }
         // Rendition properties.
-        mp.setRenditionProperties(from: metadataElement["meta"], to: &metadata)
+        mp.parseRenditionProperties(from: metadataElement["meta"], to: &metadata)
         publication.metadata = metadata
     }
 
@@ -104,7 +107,7 @@ public class OPFParser {
     ///
     /// - Parameters:
     ///   - manifest: The Manifest XML element.
-    ///   - publication: The `Publication` object with `.resource` properties to 
+    ///   - publication: The `Publication` object with `.resource` properties to
     ///                  fill.
     ///   - coverId: The coverId to identify the cover ressource and tag it.
     internal func parseRessources(from manifest: AEXMLElement,
@@ -137,7 +140,7 @@ public class OPFParser {
     }
 
     /// Parse XML elements of the <Spine> in the package.opf file.
-    /// They are only composed of an `idref` referencing one of the previously 
+    /// They are only composed of an `idref` referencing one of the previously
     /// parsed resource (XML: idref -> id). Since we normally don't keep
     /// the resource id, we store it in the `.title` property, temporarily.
     ///
@@ -157,7 +160,7 @@ public class OPFParser {
             // Only linear items are added to the spine.
             guard let idref = item.attributes["idref"],
                 item.attributes["linear"]?.lowercased() != "no" else {
-                continue
+                    continue
             }
             let link = Link()
 

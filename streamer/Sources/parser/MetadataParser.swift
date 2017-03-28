@@ -19,7 +19,9 @@ public class MetadataParser {
     /// - Parameters:
     ///   - metadataElement: The XML element containing the metadatas.
     ///   - metadata: The `Metadata` object.
-    internal func setRenditionProperties(from metadataElement: AEXMLElement, to metadata: inout Metadata) {
+    internal func parseRenditionProperties(from metadataElement: AEXMLElement,
+                                           to metadata: inout Metadata)
+    {
         // Layout
         var attribute = ["property" : "rendition:layout"]
 
@@ -67,7 +69,7 @@ public class MetadataParser {
     /// - Parameter metadata: The `<metadata>` element.
     /// - Returns: The content of the `<dc:title>` element, `nil` if the element
     ///            wasn't found.
-    internal func parseMainTitle(from metadata: AEXMLElement, epubVersion: Double?) -> String? {
+    internal func mainTitle(from metadata: AEXMLElement, epubVersion: Double?) -> String? {
         // Return if there isn't any `<dc:title>` element
         guard let titles = metadata["dc:title"].all else {
             return nil
@@ -100,8 +102,8 @@ public class MetadataParser {
     ///   - Attributes: The XML document attributes.
     /// - Returns: The content of the `<dc:identifier>` element, `nil` if the
     ///             element wasn't found.
-    internal func parseUniqueIdentifier(from metadata: AEXMLElement,
-                                        withAttributes attributes: [String : String]) -> String?
+    internal func uniqueIdentifier(from metadata: AEXMLElement,
+                                   withAttributes attributes: [String : String]) -> String?
     {
         // Look for `<dc:identifier>` elements.
         guard let identifiers = metadata["dc:identifier"].all else {
@@ -140,6 +142,30 @@ public class MetadataParser {
             return nil
         }
         return dateFromString
+    }
+
+    /// Parse the <dc:subject> XML element from the metadata
+    ///
+    /// - Parameters:
+    ///   - metadataElement: The XML element representing the metadata.
+    ///   - metadata: The Metadata object to fill (inout).
+    internal func subject(from metadataElement: AEXMLElement) -> Subject?
+    {
+        /// Find the first <dc:subject> (Epub 3.1)
+        guard let subjectElement = metadataElement["dc:subject"].first else {
+            return nil
+        }
+        /// Check if there is a value, mandatory field.
+        guard let name = subjectElement.value else {
+            log(level: .warning, "Invalid Epub, no value for <dc:subject>")
+            return nil
+        }
+        let subject = Subject()
+
+        subject.name = name
+        subject.scheme = subjectElement.attributes["opf:authority"]
+        subject.code = subjectElement.attributes["opf:term"]
+        return subject
     }
 
     /// Parse all the Contributors objects of the model (`creator`, `contributor`,
