@@ -9,10 +9,27 @@
 import Foundation
 import ObjectMapper
 
-/// The data representation of the <metadata> element of the "*.opf" file.
-open class Metadata: Mappable {
+/// `MultilangString` is designed to containe : else a `singleString` (the
+/// mainTitle) or a `multiString` (the mainTitle + the altTitles).
+/// It has 2 properties because of the JSON serialisation, we need an simple
+/// String or an array depending of the situation.
+public class MultilangString {
+    public var singleString: String?
+    public var multiString =  [String: String]()
+}
 
-    public var title: String?
+/// The data representation of the <metadata> element of the "*.opf" file.
+public class Metadata: Mappable {
+
+    /// The structure used for the serialisation.
+    internal var _title: MultilangString?
+    /// The publicly accessible publication title (mainTitle).
+    public var title: String? {
+        get {
+            return _title?.singleString
+        }
+    }
+    //
     public var languages = [String]()
     public var identifier: String?
     // Authors, translators and other contributors
@@ -54,13 +71,28 @@ open class Metadata: Mappable {
         // TODO: init
     }
 
-    // MARK: - Open methods
+    /// Get the title for the given `lang`, if it exists in the dictionnary.
+    ///
+    /// - Parameter lang: The string representing the lang e.g. "en", "fr"..
+    /// - Returns: The corresponding title String in the `lang`language.
+    public func titleForLang(_ lang: String) -> String? {
+        return _title?.multiString[lang]
+    }
 
-    open func mapping(map: Map) {
+    public func mapping(map: Map) {
         var modified = self.modified?.iso8601
 
         identifier <- map["identifier", ignoreNil: true]
-        title <- map["title", ignoreNil: true]
+        // If multiString is not empty, then serialize it.
+        if var titlesFromMultistring = _title?.multiString,
+            !titlesFromMultistring.isEmpty {
+            titlesFromMultistring <- map["title"]
+            return
+        } else {
+            var titleForSinglestring = _title?.singleString ?? ""
+
+             titleForSinglestring <- map["title"]
+        }
         languages <- map["languages", ignoreNil: true]
         if !authors.isEmpty {
             authors <- map["authors", ignoreNil: true]

@@ -59,7 +59,13 @@ public class OPFParser {
         let mp = MetadataParser()
         let metadataElement = document.root["metadata"]
 
-        metadata.title = mp.mainTitle(from: metadataElement, epubVersion: publication.epubVersion)
+        // Title.
+        guard let multilangTitle = mp.mainTitle(from: metadataElement) else {
+            log(level: .error, "Error: no title could be found for the publication. Metadata parsing aborted.")
+            return
+        }
+        metadata._title = multilangTitle
+        // Identifier.
         metadata.identifier = mp.uniqueIdentifier(from: metadataElement,
                                                   withAttributes: document.root.attributes)
         // Description.

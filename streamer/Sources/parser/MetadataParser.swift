@@ -63,36 +63,70 @@ public class MetadataParser {
         }
     }
 
-    /// Parse and return the main title of the publication from the from the OPF
-    /// XML document `<metadata>` element.
+    /// Parse and return the main title informations of the publication the from
+    /// the OPF XML document `<metadata>` element.
+    /// In the simplest cases it just return the value of the <dc:title> XML 
+    /// element, but sometimes there are alternative titles (titles in other
+    /// languages).
+    /// See `MultilangString` for complementary informations.
     ///
     /// - Parameter metadata: The `<metadata>` element.
     /// - Returns: The content of the `<dc:title>` element, `nil` if the element
     ///            wasn't found.
-    internal func mainTitle(from metadata: AEXMLElement, epubVersion: Double?) -> String? {
+    internal func mainTitle(from metadata: AEXMLElement) -> MultilangString? {
         // Return if there isn't any `<dc:title>` element
         guard let titles = metadata["dc:title"].all else {
+            log(level: .error, "Error: Publication have no title")
             return nil
         }
-        // If there's more than one, look for the `main` one as defined by
-        // `refines`.
-        // Else, as a fallback and default, return the first `<dc:title>`
-        // content.
-        guard titles.count > 1, epubVersion != nil, epubVersion! >= 3.0 else {
-            return metadata["dc:title"].string
-        }
-        /// Used in the closure below.
-        func isMainTitle(element: AEXMLElement) -> Bool {
-            guard let eid = element.attributes["id"] else {
-                return false
-            }
-            let attributes = ["property": "title-type", "refines": "#" + eid]
-            let metas = metadata["meta"].all(withAttributes: attributes)
+        let multilangTitle = MultilangString()
 
-            return metas?.contains(where: { $0.string == "main" }) ?? false
+        /// The default title to be returned, the first one, singleString.
+        multilangTitle.singleString = metadata["dc:title"].string
+        /// Now: trying to see if multiString title (multi lang).
+
+        // Get main title ID
+        // else return `metadata["dc:title"].string`
+        func getMainTitleElement(from titles: [AEXMLElement]) -> AEXMLElement? {
+            return titles.first(where: {
+                guard let eid = $0.attributes["id"] else {
+                    return false
+                }
+                let attributes = ["refines": "#\(eid)", "property": "title-type"]
+                let metas = metadata["meta"].all(withAttributes: attributes)
+
+                return metas?.contains(where: { $0.string == "main" }) ?? false
+            })
         }
-        // Returns the first main title encountered
-        return titles.first(where: { isMainTitle(element: $0)})?.string
+        guard let mainTitle = getMainTitleElement(from: titles) else {
+            // There is only a single title to be returned            
+            return multilangTitle
+        }
+        let mainTitleId = mainTitle.attributes["id"]! // We checked it above.
+        let altTitleAttributes = ["refines": "#\(mainTitleId)", "property": "alternate-script"]
+
+        // Find the <meta refines="mainTitleId" property="alternate-script">
+        // in order to find the alternative titles, if any.
+        guard let altTitleMetas = metadata["meta"].all(withAttributes: altTitleAttributes) else {
+            return multilangTitle
+        }
+        // For each alt meta element referencing to the title found, fills it in
+        // the multilangTitle.
+        for altTitleMeta in altTitleMetas {
+            guard let title = altTitleMeta.value,
+                let lang = altTitleMeta.attributes["xml:lang"] else {
+                continue
+            }
+            multilangTitle.multiString[lang] = title
+        }
+        // If we have alternate titles...
+        if !multilangTitle.multiString.isEmpty {
+            let lang = mainTitle.attributes["xml:lang"] ?? ""
+            let title = mainTitle.value
+            // Add the main title to the dictionnary.
+            multilangTitle.multiString[lang] = title
+        }
+        return multilangTitle
     }
 
     /// Parse and return the Epub unique identifier.
@@ -101,7 +135,7 @@ public class MetadataParser {
     ///   - metadata: The metadata XML element.
     ///   - Attributes: The XML document attributes.
     /// - Returns: The content of the `<dc:identifier>` element, `nil` if the
-    ///             element wasn't found.
+    ///            element wasn't found.
     internal func uniqueIdentifier(from metadata: AEXMLElement,
                                    withAttributes attributes: [String : String]) -> String?
     {
