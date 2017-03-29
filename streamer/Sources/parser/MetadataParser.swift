@@ -83,49 +83,11 @@ public class MetadataParser {
 
         /// The default title to be returned, the first one, singleString.
         multilangTitle.singleString = metadata["dc:title"].string
-        /// Now: trying to see if multiString title (multi lang).
-
-        // Get main title ID
-        // else return `metadata["dc:title"].string`
-        func getMainTitleElement(from titles: [AEXMLElement]) -> AEXMLElement? {
-            return titles.first(where: {
-                guard let eid = $0.attributes["id"] else {
-                    return false
-                }
-                let attributes = ["refines": "#\(eid)", "property": "title-type"]
-                let metas = metadata["meta"].all(withAttributes: attributes)
-
-                return metas?.contains(where: { $0.string == "main" }) ?? false
-            })
-        }
-        guard let mainTitle = getMainTitleElement(from: titles) else {
-            // There is only a single title to be returned            
+        /// Now trying to see if multiString title (multi lang).
+        guard let mainTitle = getMainTitleElement(from: titles, metadata) else {
             return multilangTitle
         }
-        let mainTitleId = mainTitle.attributes["id"]! // We checked it above.
-        let altTitleAttributes = ["refines": "#\(mainTitleId)", "property": "alternate-script"]
-
-        // Find the <meta refines="mainTitleId" property="alternate-script">
-        // in order to find the alternative titles, if any.
-        guard let altTitleMetas = metadata["meta"].all(withAttributes: altTitleAttributes) else {
-            return multilangTitle
-        }
-        // For each alt meta element referencing to the title found, fills it in
-        // the multilangTitle.
-        for altTitleMeta in altTitleMetas {
-            guard let title = altTitleMeta.value,
-                let lang = altTitleMeta.attributes["xml:lang"] else {
-                continue
-            }
-            multilangTitle.multiString[lang] = title
-        }
-        // If we have alternate titles...
-        if !multilangTitle.multiString.isEmpty {
-            let lang = mainTitle.attributes["xml:lang"] ?? ""
-            let title = mainTitle.value
-            // Add the main title to the dictionnary.
-            multilangTitle.multiString[lang] = title
-        }
+        multilangTitle.fill(forElement: mainTitle, metadata)
         return multilangTitle
     }
 
@@ -308,5 +270,28 @@ public class MetadataParser {
             contributor.sortAs = sortAs
         }
         return contributor
+    }
+
+    // Mark: - Private Methods.
+
+    /// Return the XML element corresponding to the main title (title having
+    /// `<meta refines="#.." property="title-type" id="title-type">main</meta>`
+    ///
+    /// - Parameters:
+    ///   - titles: The titles XML elements array.
+    ///   - metadata: The Publication Metadata XML object.
+    /// - Returns: The main title XML element.
+    private func getMainTitleElement(from titles: [AEXMLElement],
+                                     _ metadata: AEXMLElement) -> AEXMLElement?
+    {
+        return titles.first(where: {
+            guard let eid = $0.attributes["id"] else {
+                return false
+            }
+            let attributes = ["refines": "#\(eid)", "property": "title-type"]
+            let metas = metadata["meta"].all(withAttributes: attributes)
+
+            return metas?.contains(where: { $0.string == "main" }) ?? false
+        })
     }
 }
