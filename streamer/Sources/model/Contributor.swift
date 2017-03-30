@@ -9,32 +9,36 @@
 import Foundation
 import ObjectMapper
 
-/// <#Description#>
 open class Contributor: Mappable {
     
-    public var name: String
+    internal var _name = MultilangString()
+    public var name: String? {
+        get {
+            return _name.singleString
+        }
+    }
     public var sortAs: String?
     public var identifier: String?
     public var role: String?
 
-    public init(name: String) {
-        self.name = name
-    }
+    public init() {}
 
     public required init?(map: Map) {
-        guard map.JSON["name"] != nil else {
-            return nil
-        }
-
-        // FIXME: try!
-        name = try! map.value("name")
+        _name.singleString = try? map.value("name")
         sortAs = try? map.value("sortAs")
         identifier = try? map.value("identifier")
         role = try? map.value("role")
     }
 
     open func mapping(map: Map) {
-        name <- map["name", ignoreNil: true]
+        // If multiString is not empty, then serialize it.
+        if !_name.multiString.isEmpty {
+            _name.multiString <- map["name"]
+        } else {
+            var nameForSinglestring = _name.singleString ?? ""
+
+            nameForSinglestring <- map["name"]
+        }
         sortAs <- map["sortAs", ignoreNil: true]
         identifier <- map["identifier", ignoreNil: true]
         role <- map["role", ignoreNil: true]

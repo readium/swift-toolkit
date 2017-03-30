@@ -87,7 +87,7 @@ public class MetadataParser {
         guard let mainTitle = getMainTitleElement(from: titles, metadata) else {
             return multilangTitle
         }
-        multilangTitle.fill(forElement: mainTitle, metadata)
+        multilangTitle.fillMultiString(forElement: mainTitle, metadata)
         return multilangTitle
     }
 
@@ -172,25 +172,41 @@ public class MetadataParser {
     ///   - metadata: The Metadata object to fill (inout).
     ///   - epubVersion: The version of the epub document being parsed.
     internal func parseContributors(from metadataElement: AEXMLElement,
-                                    to metadata: inout Metadata, with epubVersion: Double?)
+                                    to metadata: inout Metadata)
     {
         var allContributors = [AEXMLElement]()
 
-        // Publishers.
+        // Get the Publishers XML elements.
+        let publisherAttributes = ["property": "dcterms:publisher"]
+        if let publishersFromMeta = metadataElement["meta"].all(withAttributes: publisherAttributes),
+            !publishersFromMeta.isEmpty
+        {
+            allContributors.append(contentsOf: publishersFromMeta)
+        }
         if let publishers = metadataElement["dc:publisher"].all {
             allContributors.append(contentsOf: publishers)
         }
-        // Creators.
+        // Get the Creators XML elements.
+        let creatorAttributes = ["property": "dcterms:creator"]
+        if let creatorsFromMeta = metadataElement["meta"].all(withAttributes: creatorAttributes),
+            !creatorsFromMeta.isEmpty {
+            allContributors.append(contentsOf: creatorsFromMeta)
+        }
         if let creators = metadataElement["dc:creator"].all {
             allContributors.append(contentsOf: creators)
         }
-        // Contributors.
+        // Get the Contributors XML elements.
+        let contributorAttributes = ["property": "dcterms:contributor"]
+        if let contributorsFromMeta = metadataElement["meta"].all(withAttributes: contributorAttributes),
+            !contributorsFromMeta.isEmpty {
+            allContributors.append(contentsOf: contributorsFromMeta)
+        }
         if let contributors = metadataElement["dc:contributor"].all {
             allContributors.append(contentsOf: contributors)
         }
-        // Heavy lifting.
+        // Parse XML elements and fill the metadata object.
         for contributor in allContributors {
-            parseContributor(from: contributor, in: metadataElement, to: &metadata, with: epubVersion)
+            parseContributor(from: contributor, in: metadataElement, to: &metadata)
         }
     }
 
@@ -204,13 +220,13 @@ public class MetadataParser {
     ///   - metadata: The Metadata object.
     ///   - epubVersion: The version of the epub being parsed.
     internal func parseContributor(from element: AEXMLElement, in metadataElement: AEXMLElement,
-                                   to metadata: inout Metadata, with epubVersion: Double?)
+                                   to metadata: inout Metadata)
     {
-        let contributor = createContributor(from: element)
+        let contributor = createContributor(from: element, metadataElement)
 
         // Look up for possible meta refines for contributor's role.
-        if epubVersion != nil, epubVersion! >= 3.0, let eid = element.attributes["id"] {
-            let attributes = ["property": "role", "refines": "#\(eid)"]
+        if let eid = element.attributes["id"] {
+            let attributes = ["refines": "#\(eid)", "property": "role"]
             let metas = metadataElement["meta"].all(withAttributes: attributes)
 
             contributor.role = metas?.first?.string
@@ -240,27 +256,31 @@ public class MetadataParser {
         } else {
             // No role, so do the branching using the element.name.
             // The remaining ones go to to the contributors.
-            if element.name == "dc:creator" {
+            if element.name == "dc:creator" || element.attributes["property"] == "dcterms:contributor" {
                 metadata.authors.append(contributor)
-            } else if element.name == "dc:publisher" {
+            } else if element.name == "dc:publisher" || element.attributes["property"] == "dcterms:publisher" {
                 metadata.publishers.append(contributor)
-            }else {
+            } else {
                 metadata.contributors.append(contributor)
             }
         }
     }
 
     /// Builds a `Contributor` instance from a `<dc:creator>`, `<dc:contributor>`
-    /// or <dc:publisher> element.
+    /// or <dc:publisher> element, or <meta> element with property == "dcterms:
+    /// creator", "dcterms:publisher", "dcterms:contributor".
     ///
     /// - Parameters:
     ///   - element: The XML element reprensenting the contributor.
     /// - Returns: The newly created Contributor instance.
-    internal func createContributor(from element: AEXMLElement) -> Contributor
+    internal func createContributor(from element: AEXMLElement, _ metadata: AEXMLElement) -> Contributor
     {
         // The 'to be returned' Contributor object.
-        let contributor = Contributor(name: element.string)
+        let contributor = Contributor()
 
+        /// The default title to be returned, the first one, singleString.
+        contributor._name.singleString = element.value
+        contributor._name.fillMultiString(forElement: element, metadata)
         // Get role from role attribute
         if let role = element.attributes["opf:role"] {
             contributor.role = role

@@ -97,7 +97,7 @@ public class OPFParser {
             metadata.rights = rights.map({ $0.string }).joined(separator: " ")
         }
         // Publishers, Creators, Contributors.
-        mp.parseContributors(from: metadataElement, to: &metadata, with: publication.epubVersion)
+        mp.parseContributors(from: metadataElement, to: &metadata)
         // Page progression direction.
         if let direction = document.root["spine"].attributes["page-progression-direction"] {
             metadata.direction = direction
@@ -202,6 +202,8 @@ public class OPFParser {
             let ws = CharacterSet.whitespaces
             let properties = propertyAttribute.components(separatedBy: ws)
 
+            // TODO: The contains "math/js" like in the Go streamer.
+            // + refactor below.
             if properties.contains("nav") {
                 link.rel.append("contents")
             }

@@ -8,53 +8,6 @@
 
 import Foundation
 import ObjectMapper
-import AEXML
-
-extension MultilangString: Loggable {}
-
-/// `MultilangString` is designed to containe : else a `singleString` (the
-/// mainTitle) or a `multiString` (the mainTitle + the altTitles).
-/// It has 2 properties because of the JSON serialisation, we need an simple
-/// String or an array depending of the situation.
-public class MultilangString {
-    public var singleString: String?
-    public var multiString =  [String: String]()
-
-    public func fill(forElement element: AEXMLElement, _ metadata: AEXMLElement) {
-        guard let elementId = element.attributes["id"] else {
-            log(level: .error, "The passed element have no id")
-            return
-        }
-        let altScriptAttribute = ["refines": "#\(elementId)", "property": "alternate-script"]
-
-        // Find the <meta refines="elementId" property="alternate-script">
-        // in order to find the alternative strings, if any.
-        guard let altScriptMetas = metadata["meta"].all(withAttributes: altScriptAttribute) else {
-            return
-        }
-        // For each alt meta element.
-        for altScriptMeta in altScriptMetas {
-            // If it have a value then add it to the multiString dictionnary.
-            guard let title = altScriptMeta.value,
-                let lang = altScriptMeta.attributes["xml:lang"] else {
-                    continue
-            }
-            multiString[lang] = title
-        }
-        // If we have 'alternates'...
-        if !multiString.isEmpty {
-            // TODO: is that ok "functionnaly"? (it is for contributors, the
-            // question is about the titles)
-            guard let lang = element.attributes["xml:lang"] else {
-                return
-            }
-            let value = element.value
-
-            // Add the main element to the dictionnary.
-            multiString[lang] = value
-        }
-    }
-}
 
 /// The data representation of the <metadata> element of the "*.opf" file.
 public class Metadata: Mappable {
@@ -125,7 +78,6 @@ public class Metadata: Mappable {
         if var titlesFromMultistring = _title?.multiString,
             !titlesFromMultistring.isEmpty {
             titlesFromMultistring <- map["title"]
-            return
         } else {
             var titleForSinglestring = _title?.singleString ?? ""
 
