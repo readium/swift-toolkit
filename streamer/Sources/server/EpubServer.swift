@@ -29,13 +29,8 @@ open class EpubServer {
 
     let parser = EpubParser()
 
-    // FIXME: probably get rid of the server serving multiple epub at a given time
-    //          better to implement indexing for multibook search etc
-    /// The dictionary of EPUB containers keyed by prefix.
-    var containers = [String: Container]()
-
-    /// The dictionaty of publications keyed by prefix.
-    var publications = [String: Publication]()
+    // Dictionnary of the (container, publication) tuples keyed by endpoints.
+    var epubs = [String: (Container, Publication)]()
 
     /// The running HTTP server listening port.
     public var port: UInt? {
@@ -43,7 +38,7 @@ open class EpubServer {
     }
 
     /// The base URL of the server
-    public var baseURL: URL? {
+    public var baseUrl: URL? {
         get { return webServer.serverURL }
     }
 
@@ -86,14 +81,16 @@ open class EpubServer {
                         atEndpoint endpoint: String) throws {
         let fetcher: EpubFetcher
 
-        guard containers[endpoint] == nil else {
+        guard epubs[endpoint] == nil else {
             log(level: .warning, "\(endpoint) is already in use.")
             return
         }
-        addSelfLinkTo(publication: publication, endpoint: endpoint)
-        // FIXME: Are these dictionaries really necessary?
-        containers[endpoint] = container
-        publications[endpoint] = publication
+        guard let baseUrl = baseUrl else {
+            log(level: .error, "Base URL is nil.")
+            throw EpubServerError.nilBaseUrl
+        }
+        publication.addSelfLink(endpoint: endpoint, for: baseUrl)
+        epubs[endpoint] = (container, publication)
         // Initialize the Fetcher
         do {
             fetcher = try EpubFetcher(publication: publication, container: container)
@@ -102,8 +99,6 @@ open class EpubServer {
             throw EpubServerError.epubFetcher(underlyingError: error)
         }
 
-        // TODO: Change the handlers so that they avec generic (instead of X 
-        //       handlers pet Epub.
         /// Webserver HTTP GET ressources request handler
         func ressourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
             let response: GCDWebServerResponse
@@ -184,39 +179,11 @@ open class EpubServer {
     ///
     /// - Parameter endpoint: The URI postfix of the ressource.
     public func removeEpub(at endpoint: String) {
-        guard containers[endpoint] != nil else {
-            log(level: .error, "Container endpoint is nil.")
+        guard epubs[endpoint] != nil else {
+            log(level: .warning, "Nothing at endpoint \(endpoint).")
             return
         }
-        containers[endpoint] = nil
-        publications[endpoint] = nil
-        // TODO: Remove associated handlers
-        // Only method available with GCDWebServer is
-        //webServer.removeAllHandlers()
+        epubs[endpoint] = nil
         log(level: .info, "Epub at \(endpoint) has been successfully removed.")
     }
-
-    // MARK: - Internal methods
-
-    /// Append a link to self in the given Publication links.
-    ///
-    /// - Parameters:
-    ///   - publication: The targeted publication.
-    ///   - endPoint: The URI prefix to use to fetch assets from the publication.
-    internal func addSelfLinkTo(publication: Publication, endpoint: String) {
-        let publicationURL: URL
-        let link = Link()
-        let manifestPath = "\(endpoint)/manifest.json"
-
-        guard let baseURL = baseURL else {
-            log(level: .warning, "Base URL is nil.")
-            return
-        }
-        publicationURL = baseURL.appendingPathComponent(manifestPath, isDirectory: false)
-        link.href = publicationURL.absoluteString
-        link.typeLink = "application/webpub+json"
-        link.rel.append("self")
-        publication.links.append(link)
-    }
-    
 }
