@@ -11,6 +11,11 @@ import AEXML
 
 extension OPFParser: Loggable {}
 
+enum OPFParserError: Error {
+    /// The Epub have no title. Title is mandatory.
+    case missingPublicationTitle
+}
+
 /// EpubParser support class, able to parse the OPF package document.
 /// OPF: Open Packaging Format.
 public class OPFParser {
@@ -22,9 +27,7 @@ public class OPFParser {
     ///
     /// - Parameter container: The EPUB container whom OPF file will be parsed.
     /// - Returns: The `Publication` object resulting from the parsing.
-    /// - Throws: `EpubParserError.xmlParse`,
-    ///           `OPFParserError.missingNavLink`,
-    ///           `throw OPFParserError.missingNavLinkHref`.
+    /// - Throws: `EpubParserError.xmlParse`.
     internal func parseOPF(from document: AEXMLDocument,
                            with container: Container,
                            and epubVersion: Double) throws -> Publication
@@ -43,7 +46,7 @@ public class OPFParser {
         if let coverMetas = document.root["metadata"]["meta"].all(withAttributes: ["name" : "cover"]) {
             coverId = coverMetas.first?.string
         }
-        parseMetadata(from: document, to: &publication)
+        try parseMetadata(from: document, to: &publication)
         parseRessources(from: document.root["manifest"], to: &publication, coverId: coverId)
         parseSpine(from: document.root["spine"], to: &publication)
         return publication
@@ -53,7 +56,7 @@ public class OPFParser {
     ///
     /// - Parameter document: Parse the Metadata in the XML <metadata> element.
     /// - Returns: The Metadata object representing the XML <metadata> element.
-    internal func parseMetadata(from document: AEXMLDocument, to publication: inout Publication) {
+    internal func parseMetadata(from document: AEXMLDocument, to publication: inout Publication) throws {
         /// The 'to be returned' Metadata object.
         var metadata = Metadata()
         let mp = MetadataParser()
@@ -61,8 +64,7 @@ public class OPFParser {
 
         // Title.
         guard let multilangTitle = mp.mainTitle(from: metadataElement) else {
-            log(level: .error, "Error: no title could be found for the publication. Metadata parsing aborted.")
-            return
+            throw OPFParserError.missingPublicationTitle
         }
         metadata._title = multilangTitle
         // Identifier.
@@ -82,12 +84,10 @@ public class OPFParser {
         if let source = metadataElement["dc:source"].value {
             metadata.source = source
         }
-
         // Subject.
         if let subject = mp.subject(from: metadataElement) {
             metadata.subjects.append(subject)
         }
-
         // Languages.
         if let languages = metadataElement["dc:language"].all {
             metadata.languages = languages.map({ $0.string })
@@ -130,7 +130,7 @@ public class OPFParser {
         for item in manifestItems {
             // Add it to the manifest items dict if it has an id.
             guard let id = item.attributes["id"] else {
-                log(level: .info, "Manifest item MUST have an id, item ignored.")
+                log(level: .warning, "Manifest item MUST have an id, item ignored.")
                 continue
             }
             let link = linkFromManifest(item)
