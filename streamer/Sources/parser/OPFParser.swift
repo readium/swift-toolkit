@@ -67,7 +67,7 @@ public class OPFParser {
         metadata._title = multilangTitle
         // Identifier.
         metadata.identifier = mp.uniqueIdentifier(from: metadataElement,
-                                                  withAttributes: document.root.attributes)
+                                                  with: document.root.attributes)
         // Description.
         if let description = metadataElement["dc:description"].value {
             metadata.description = description
@@ -97,7 +97,8 @@ public class OPFParser {
             metadata.rights = rights.map({ $0.string }).joined(separator: " ")
         }
         // Publishers, Creators, Contributors.
-        mp.parseContributors(from: metadataElement, to: &metadata)
+        let epubVersion = publication.epubVersion
+        mp.parseContributors(from: metadataElement, to: &metadata, epubVersion)
         // Page progression direction.
         if let direction = document.root["spine"].attributes["page-progression-direction"] {
             metadata.direction = direction

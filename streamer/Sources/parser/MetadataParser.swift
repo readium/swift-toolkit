@@ -99,21 +99,21 @@ public class MetadataParser {
     /// - Returns: The content of the `<dc:identifier>` element, `nil` if the
     ///            element wasn't found.
     internal func uniqueIdentifier(from metadata: AEXMLElement,
-                                   withAttributes attributes: [String : String]) -> String?
+                                   with documentattributes: [String : String]) -> String?
     {
         // Look for `<dc:identifier>` elements.
         guard let identifiers = metadata["dc:identifier"].all else {
             return nil
         }
         // Get the one defined as unique by the `<package>` attribute `unique-identifier`.
-        if identifiers.count > 1, let uniqueId = attributes["unique-identifier"] {
+        if identifiers.count > 1, let uniqueId = documentattributes["unique-identifier"] {
             let uniqueIdentifiers = identifiers.filter { $0.attributes["id"] == uniqueId }
             if !uniqueIdentifiers.isEmpty, let uid = uniqueIdentifiers.first {
                 return uid.string
             }
         }
         // Returns the first `<dc:identifier>` content or an empty String.
-        return metadata["dc:identifier"].string
+        return identifiers[0].string
     }
 
     /// Parse the modifiedDate (date of last modification of the EPUB).
@@ -165,44 +165,23 @@ public class MetadataParser {
     }
 
     /// Parse all the Contributors objects of the model (`creator`, `contributor`,
-    /// `publisher`) then add them to the metadata.
+    /// `publisher`) and add them to the metadata.
     ///
     /// - Parameters:
     ///   - metadataElement: The XML element representing the metadata.
     ///   - metadata: The Metadata object to fill (inout).
     ///   - epubVersion: The version of the epub document being parsed.
     internal func parseContributors(from metadataElement: AEXMLElement,
-                                    to metadata: inout Metadata)
+                                    to metadata: inout Metadata,
+                                    _ epubVersion: Double?)
     {
         var allContributors = [AEXMLElement]()
 
-        // Get the Publishers XML elements.
-        let publisherAttributes = ["property": "dcterms:publisher"]
-        if let publishersFromMeta = metadataElement["meta"].all(withAttributes: publisherAttributes),
-            !publishersFromMeta.isEmpty
-        {
-            allContributors.append(contentsOf: publishersFromMeta)
-        }
-        if let publishers = metadataElement["dc:publisher"].all {
-            allContributors.append(contentsOf: publishers)
-        }
-        // Get the Creators XML elements.
-        let creatorAttributes = ["property": "dcterms:creator"]
-        if let creatorsFromMeta = metadataElement["meta"].all(withAttributes: creatorAttributes),
-            !creatorsFromMeta.isEmpty {
-            allContributors.append(contentsOf: creatorsFromMeta)
-        }
-        if let creators = metadataElement["dc:creator"].all {
-            allContributors.append(contentsOf: creators)
-        }
-        // Get the Contributors XML elements.
-        let contributorAttributes = ["property": "dcterms:contributor"]
-        if let contributorsFromMeta = metadataElement["meta"].all(withAttributes: contributorAttributes),
-            !contributorsFromMeta.isEmpty {
-            allContributors.append(contentsOf: contributorsFromMeta)
-        }
-        if let contributors = metadataElement["dc:contributor"].all {
-            allContributors.append(contentsOf: contributors)
+
+        allContributors.append(contentsOf: findContributorsXmlElements(in: metadataElement))
+        // <meta> DCTERMS parsing if epubVersion == 3.0
+        if epubVersion == 3.0 {
+            allContributors.append(contentsOf: findContributorsMetaXmlElements(in: metadataElement))
         }
         // Parse XML elements and fill the metadata object.
         for contributor in allContributors {
@@ -313,5 +292,59 @@ public class MetadataParser {
 
             return metas?.contains(where: { $0.string == "main" }) ?? false
         })
+    }
+
+    /// [EPUB 2.0 & 3.1+]
+    /// Return the XML elements about the contributors.
+    /// E.g.: `<dc:publisher "property"=".." >value<\>`.
+    ///
+    /// - Parameter metadata: The XML metadata element.
+    /// - Returns: The array of XML element representing the contributors.
+    private func findContributorsXmlElements(in metadata: AEXMLElement) -> [AEXMLElement] {
+        var allContributors = [AEXMLElement]()
+
+        // Get the Publishers XML elements.
+        if let publishers = metadata["dc:publisher"].all {
+            allContributors.append(contentsOf: publishers)
+        }
+        // Get the Creators XML elements.
+        if let creators = metadata["dc:creator"].all {
+            allContributors.append(contentsOf: creators)
+        }
+        // Get the Contributors XML elements.
+        if let contributors = metadata["dc:contributor"].all {
+            allContributors.append(contentsOf: contributors)
+        }
+        return allContributors
+    }
+
+    /// [EPUB 3.0]
+    /// Return the XML elements about the contributors.
+    /// E.g.: `<meta "property"="dcterms:publisher/creator/contributor"`.
+    ///
+    /// - Parameter metadata: The metadata XML element.
+    /// - Returns: The array of XML element representing the <meta> contributors.
+    private func findContributorsMetaXmlElements(in metadata: AEXMLElement) -> [AEXMLElement] {
+        var allContributors = [AEXMLElement]()
+
+        // Get the Publishers XML elements.
+        let publisherAttributes = ["property": "dcterms:publisher"]
+        if let publishersFromMeta = metadata["meta"].all(withAttributes: publisherAttributes),
+            !publishersFromMeta.isEmpty {
+            allContributors.append(contentsOf: publishersFromMeta)
+        }
+        // Get the Creators XML elements.
+        let creatorAttributes = ["property": "dcterms:creator"]
+        if let creatorsFromMeta = metadata["meta"].all(withAttributes: creatorAttributes),
+            !creatorsFromMeta.isEmpty {
+            allContributors.append(contentsOf: creatorsFromMeta)
+        }
+        // Get the Contributors XML elements.
+        let contributorAttributes = ["property": "dcterms:contributor"]
+        if let contributorsFromMeta = metadata["meta"].all(withAttributes: contributorAttributes),
+            !contributorsFromMeta.isEmpty {
+            allContributors.append(contentsOf: contributorsFromMeta)
+        }
+        return allContributors
     }
 }
