@@ -31,10 +31,10 @@ open class EpubServer {
     // FIXME: probably get rid of the server serving multiple epub at a given time
     //          better to implement indexing for multibook search etc
     /// The dictionary of EPUB containers keyed by prefix.
-    var containers: [String: Container] = [:]
+    var containers = [String: Container]()
 
     /// The dictionaty of publications keyed by prefix.
-    var publications: [String: Publication] = [:]
+    var publications = [String: Publication]()
 
     /// The running HTTP server listening port.
     public var port: UInt? {
