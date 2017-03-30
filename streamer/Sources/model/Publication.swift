@@ -92,6 +92,23 @@ public class Publication: Mappable {
         }
         return nil
     }
+
+    /// Append the self link to  links.
+    ///
+    /// - Parameters:
+    ///   - endPoint: The URI prefix to use to fetch assets from the publication.
+    ///   - baseUrl: The base URL of the HTTP server.
+    internal func addSelfLink(endpoint: String, for baseUrl: URL) {
+        let publicationURL: URL
+        let link = Link()
+        let manifestPath = "\(endpoint)/manifest.json"
+
+        publicationURL = baseUrl.appendingPathComponent(manifestPath, isDirectory: false)
+        link.href = publicationURL.absoluteString
+        link.typeLink = "application/webpub+json"
+        link.rel.append("self")
+        links.append(link)
+    }
     
     /// Mapping declaration
     public func mapping(map: Map) {

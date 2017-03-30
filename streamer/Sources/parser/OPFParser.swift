@@ -38,10 +38,8 @@ public class OPFParser {
         publication.epubVersion = epubVersion
         publication.internalData["type"] = "epub"
         publication.internalData["rootfile"] = container.rootFile.rootFilePath
-        // TODO: Add self to links.
-        // But we don't know the self URL here
-        //publication.links.append(Link(href: "TODO", typeLink: "application/webpub+json", rel: "self"))
-
+        // Self link is added when the epub is being served (in the EpubServer).
+        // CoverId.
         var coverId: String?
         if let coverMetas = document.root["metadata"]["meta"].all(withAttributes: ["name" : "cover"]) {
             coverId = coverMetas.first?.string

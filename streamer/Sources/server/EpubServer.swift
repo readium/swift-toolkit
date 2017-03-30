@@ -18,6 +18,7 @@ extension EpubServer: Loggable {}
 public enum EpubServerError: Error{
     case epubParser(underlyingError: Error)
     case epubFetcher(underlyingError: Error)
+    case nilBaseUrl
 }
 
 /// The HTTP server for the publication's manifests and assets. Serves Epubs.
