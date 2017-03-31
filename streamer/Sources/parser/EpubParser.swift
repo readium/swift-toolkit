@@ -111,7 +111,7 @@ public class EpubParser {
     /// - Parameters:
     ///   - container: The Epub container.
     ///   - publication: The Epub publication.
-    internal func parseNavigationDocument(from container: Container, to publication: inout Publication) {
+    internal func parseNavigationDocument(from container: EpubContainer, to publication: inout Publication) {
         // Get the link in the spine pointing to the Navigation Document.
         guard let navLink = publication.link(withRel: "contents"),
             let navDocument = try? container.xmlDocument(forRessourceReferencedByLink: navLink) else {
@@ -141,7 +141,7 @@ public class EpubParser {
     /// - Parameters:
     ///   - container: The Epub container.
     ///   - publication: The Epub publication.
-    internal func parseNcxDocument(from container: Container, to publication: inout Publication) {
+    internal func parseNcxDocument(from container: EpubContainer, to publication: inout Publication) {
         // Get the link in the spine pointing to the NCX document.
         guard let ncxLink = publication.resources.first(where: { $0.typeLink == "application/x-dtbncx+xml" }),
             let ncxDocument = try? container.xmlDocument(forRessourceReferencedByLink: ncxLink) else {
@@ -221,17 +221,17 @@ public class EpubParser {
     /// - Parameter path: The absolute path of the file.
     /// - Returns: The generated Container.
     /// - Throws: `EpubParserError.missingFile`.
-    fileprivate func generateContainerFrom(fileAtPath path: String) throws -> Container {
+    fileprivate func generateContainerFrom(fileAtPath path: String) throws -> EpubContainer {
         var isDirectory: ObjCBool = false
-        var container: Container?
+        var container: EpubContainer?
 
         guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) else {
             throw EpubParserError.missingFile(path: path)
         }
         if isDirectory.boolValue {
-            container = EpubDirectoryContainer(directory: path)
+            container = ContainerEpubDirectory(directory: path)
         } else {
-            container = EpubContainer(path: path)
+            container = ContainerEpub(path: path)
         }
         guard let containerUnwrapped = container else {
             throw EpubParserError.missingFile(path: path)
