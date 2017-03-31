@@ -47,10 +47,7 @@ public enum EpubParserError: Error {
     case missingElement(message: String)
 }
 
-/// The tuple returned by the parse function, containing the generated 
-/// `Publication` and the associated `Container`.
-public typealias ParsingResult = (publication: Publication, associatedContainer: Container)
-
+///
 /// An EPUB container parser that extracts the information from the relevant
 /// files and builds a `Publication` instance with it.
 public class EpubParser {
@@ -74,7 +71,7 @@ public class EpubParser {
     /// - Throws: `EpubParserError.wrongMimeType`,
     ///           `EpubParserError.xmlParse`,
     ///           `EpubParserError.missingFile`
-    public func parse(fileAtPath path: String) throws -> ParsingResult {
+    public func parse(fileAtPath path: String) throws -> Epub {
         // Generate the `Container` for `fileAtPath`
         var container = try generateContainerFrom(fileAtPath: path)
 

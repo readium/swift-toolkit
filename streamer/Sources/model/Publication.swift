@@ -93,7 +93,7 @@ public class Publication: Mappable {
         return nil
     }
 
-    /// Append the self link to  links.
+    /// Append the self/manifest link to  links.
     ///
     /// - Parameters:
     ///   - endPoint: The URI prefix to use to fetch assets from the publication.

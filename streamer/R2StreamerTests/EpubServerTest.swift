@@ -15,7 +15,7 @@ extension EpubServerTest: Loggable {}
 class EpubServerTest: XCTestCase {
     let sg = SampleGenerator()
     var epubServer: EpubServer? = nil
-    var ressources = [String: ParsingResult]()
+    var ressources = [String: Epub]()
 
     override func setUp() {
         R2StreamerEnableLog(withMinimumSeverityLevel: .verbose)
@@ -33,7 +33,7 @@ class EpubServerTest: XCTestCase {
     /// Add Epubs the the server then request the server about their 
     /// 'manifest.json'.
     func testAddEpub() {
-        let results = sg.getParsingResultsForSamplesUrls()
+        let results = sg.getEpubsForSamplesUrls()
 
         for element in results {
             let publication = element.value.publication

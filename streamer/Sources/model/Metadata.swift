@@ -15,9 +15,9 @@ public class Metadata: Mappable {
     /// The structure used for the serialisation.
     internal var _title: MultilangString?
     /// The publicly accessible publication title (mainTitle).
-    public var title: String? {
+    public var title: String {
         get {
-            return _title?.singleString
+            return _title?.singleString ?? ""
         }
     }
     //

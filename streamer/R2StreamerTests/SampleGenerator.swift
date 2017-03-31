@@ -34,8 +34,8 @@ internal class SampleGenerator: XCTest {
     /// Generate a dictionnary of the epubs at samplesUrls.
     ///
     /// - Returns: Dictionnayr of epubs at samplesUrls.
-    internal func getParsingResultsForSamplesUrls() -> [String: ParsingResult] {
-        var ressources = [String: ParsingResult]()
+    internal func getEpubsForSamplesUrls() -> [String: Epub] {
+        var ressources = [String: Epub]()
 
         for url in samplesUrls {
             guard let result = parseEpub(at: url) else {
@@ -52,21 +52,21 @@ internal class SampleGenerator: XCTest {
     /// Parse Epub at the given URL.
     ///
     /// - Parameter url: The URL of the Epub to parse.
-    /// - Returns: The resulting (publication, container) tuple (ParsingResult).
-    internal func parseEpub(at url: URL) -> ParsingResult? {
+    /// - Returns: The resulting (publication, container) tuple (Epub).
+    internal func parseEpub(at url: URL) -> Epub? {
         let parser = EpubParser()
-        let parsingResult: ParsingResult
+        let epub: Epub
 
         do {
-            parsingResult = try parser.parse(fileAtPath: url.path)
+            epub = try parser.parse(fileAtPath: url.path)
         } catch {
             XCTFail("An exception occured while parsing epub at \(url.path)")
             logValue(level: .error, error)
             return nil
         }
-        XCTAssertNotNil(parsingResult.publication)
-        XCTAssertNotNil(parsingResult.associatedContainer)
-        return parsingResult
+        XCTAssertNotNil(epub.publication)
+        XCTAssertNotNil(epub.associatedContainer)
+        return epub
     }
 
     /// Get the URLs of the samples epubs.
