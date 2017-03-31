@@ -12,7 +12,7 @@ import Foundation
 
 /// RootFile (as called in Go).
 /// Contains meta-informations about the Container containing the EPUB.
-public struct ContainerMetadata {
+public struct RootFile {
 
     /// For Epub : Path to the Epub file. (previously epubFilePath)
     /// For EpubDirectory : The root directory path. (Previously rootPath)
@@ -21,21 +21,20 @@ public struct ContainerMetadata {
     /// Path to the OPF file (rootFile).
     public var rootFilePath: String
 
-    /// The mimetype of the container.
+    /// The mimetype.
     public var mimetype: String
 
-    // The Epub version of the Epub Payload.
-    public var epubVersion: Double?
+    // The container version.
+    public var version: Double?
 
     // MARK: - Public methods.
 
-    init(rootPath: String,
-         rootFilePath: String = "",
-         mimetype: String = "",
-         epubVersion: Double? = nil) {
+    init(rootPath: String, rootFilePath: String = "",
+         mimetype: String = "", version: Double? = nil)
+    {
         self.rootPath = rootPath
         self.rootFilePath = rootFilePath
         self.mimetype = mimetype
-        self.epubVersion = epubVersion
+        self.version = version
     }
 }

@@ -18,23 +18,23 @@ extension EpubServer: Loggable {}
 public enum EpubServerError: Error{
     case epubParser(underlyingError: Error)
     case epubFetcher(underlyingError: Error)
+    case nilBaseUrl
+    case usedEndpoint
 }
+
+/// `Publication` and the associated `Container`.
+public typealias Epub = (publication: Publication, associatedContainer: Container)
 
 /// The HTTP server for the publication's manifests and assets. Serves Epubs.
 open class EpubServer {
 
-    /// The HTTP server
+    // TODO: declare an interface, decouple the webserver. ? Not prioritary.
+    /// The HTTP server.
     var webServer: GCDWebServer
+    // Dictionnary of the (container, publication) tuples keyed by endpoints.
+    var epubs = [String: Epub]()
 
-    let parser = EpubParser()
-
-    // FIXME: probably get rid of the server serving multiple epub at a given time
-    //          better to implement indexing for multibook search etc
-    /// The dictionary of EPUB containers keyed by prefix.
-    var containers: [String: Container] = [:]
-
-    /// The dictionaty of publications keyed by prefix.
-    var publications: [String: Publication] = [:]
+    // Computed properties.
 
     /// The running HTTP server listening port.
     public var port: UInt? {
@@ -42,8 +42,22 @@ open class EpubServer {
     }
 
     /// The base URL of the server
-    public var baseURL: URL? {
+    public var baseUrl: URL? {
         get { return webServer.serverURL }
+    }
+
+    /// Return all the `Publications` sorted by title asc. Sugar on top of `epubs`.
+    public var publications: [Publication] {
+        get {
+            let publications = epubs.values.flatMap({ $0.publication })
+
+            return publications.sorted(by: { $0.metadata.title < $1.metadata.title })
+        }
+    }
+
+    /// Return all the `Container` as an array. Sugar on top of `epubs`.
+    public var containers: [Container] {
+        get { return  epubs.values.flatMap({ $0.associatedContainer }) }
     }
 
     // MARK: - Public methods
@@ -73,26 +87,34 @@ open class EpubServer {
     }
 
     // TODO: Github issue #3
-    /// Add an EPUB container to the list of EPUBS being served.
+    /// Add an Epub to the server `Epubs`.
     ///
     /// - Parameters:
     ///   - container: The EPUB container of the publication
     ///   - endpoint: The URI prefix to use to fetch assets from the publication
     ///               `/{prefix}/{assetRelativePath}`
-    /// - Throws: `EpubServerError.epubParser`
-    public func addEpub(forPublication publication: Publication,
-                        withContainer container: Container,
-                        atEndpoint endpoint: String) throws {
+    /// - Throws: `throw EpubServerError.usedEndpoint`,
+    ///           `EpubServerError.nilBaseUrl`,
+    ///           `EpubServerError.epubFetcher`.
+    public func add(_ publication: Publication,
+                    with container: Container,
+                    at endpoint: String) throws {
         let fetcher: EpubFetcher
 
-        guard containers[endpoint] == nil else {
-            log(level: .warning, "\(endpoint) is already in use.")
-            return
+        guard epubs[endpoint] == nil else {
+            log(level: .error, "\(endpoint) is already in use.")
+            throw EpubServerError.usedEndpoint
         }
-        addSelfLinkTo(publication: publication, endpoint: endpoint)
-        // FIXME: Are these dictionaries really necessary?
-        containers[endpoint] = container
-        publications[endpoint] = publication
+        guard let baseUrl = baseUrl else {
+            log(level: .error, "Base URL is nil.")
+            throw EpubServerError.nilBaseUrl
+        }
+
+        // Add the self link to the publication.
+        publication.addSelfLink(endpoint: endpoint, for: baseUrl)
+        // Add the Epub to the epub dictionnary.
+        epubs[endpoint] = (publication, container)
+
         // Initialize the Fetcher
         do {
             fetcher = try EpubFetcher(publication: publication, container: container)
@@ -101,8 +123,6 @@ open class EpubServer {
             throw EpubServerError.epubFetcher(underlyingError: error)
         }
 
-        // TODO: Change the handlers so that they avec generic (instead of X 
-        //       handlers pet Epub.
         /// Webserver HTTP GET ressources request handler
         func ressourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
             let response: GCDWebServerResponse
@@ -183,40 +203,11 @@ open class EpubServer {
     ///
     /// - Parameter endpoint: The URI postfix of the ressource.
     public func removeEpub(at endpoint: String) {
-        guard containers[endpoint] != nil else {
-            log(level: .error, "Container endpoint is nil.")
+        guard epubs[endpoint] != nil else {
+            log(level: .warning, "Nothing at endpoint \(endpoint).")
             return
         }
-        containers[endpoint] = nil
-        publications[endpoint] = nil
-        // TODO: Remove associated handlers
-        // Only method available with GCDWebServer is
-        //webServer.removeAllHandlers()
+        epubs[endpoint] = nil
         log(level: .info, "Epub at \(endpoint) has been successfully removed.")
     }
-
-    // MARK: - Internal methods
-
-    /// Append a link to self in the given Publication links.
-    ///
-    /// - Parameters:
-    ///   - publication: The targeted publication.
-    ///   - endPoint: The URI prefix to use to fetch assets from the publication.
-    internal func addSelfLinkTo(publication: Publication, endpoint: String) {
-        let publicationURL: URL
-        let link: Link
-        let manifestPath = "\(endpoint)/manifest.json"
-
-        guard let baseURL = baseURL else {
-            log(level: .warning, "Base URL is nil.")
-            return
-        }
-        publicationURL = baseURL.appendingPathComponent(manifestPath,
-                                                        isDirectory: false)
-        link = Link(href: publicationURL.absoluteString,
-                    typeLink: "application/webpub+json",
-                    rel: "self")
-        publication.links.append(link)
-    }
-    
 }

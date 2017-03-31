@@ -51,7 +51,7 @@ internal class EpubFetcher {
         guard let rootfilePath = publication.internalData["rootfile"] else {
             throw EpubFetcherError.missingRootFile()
         }
-        rootFileDirectory = (rootfilePath as NSString).deletingLastPathComponent
+        rootFileDirectory = rootfilePath.deletingLastPathComponent()
     }
 
     /// Gets all the data from an resource file in a publication's container.
