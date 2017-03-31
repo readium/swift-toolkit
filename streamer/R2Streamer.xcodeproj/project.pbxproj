@@ -248,10 +248,7 @@
 			isa = PBXGroup;
 			children = (
 				59501DED1E2FB16600D1B4BF /* EpubParser.swift */,
-				F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */,
-				F3098E741E7C02AD002358A1 /* MetadataParser.swift */,
-				F3098E701E7BFF87002358A1 /* NCXParser.swift */,
-				F3098E721E7BFF9B002358A1 /* NavigationDocumentParser.swift */,
+				F3D434221E8E98E9008C379E /* EpubParserSubClasses */,
 			);
 			name = Parser;
 			path = Sources/Parser;
@@ -359,6 +356,17 @@
 				F351DB791E55EDD100D84BDF /* MetadataItem.swift */,
 			);
 			name = MetadataTypes;
+			sourceTree = "<group>";
+		};
+		F3D434221E8E98E9008C379E /* EpubParserSubClasses */ = {
+			isa = PBXGroup;
+			children = (
+				F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */,
+				F3098E741E7C02AD002358A1 /* MetadataParser.swift */,
+				F3098E701E7BFF87002358A1 /* NCXParser.swift */,
+				F3098E721E7BFF9B002358A1 /* NavigationDocumentParser.swift */,
+			);
+			name = EpubParserSubClasses;
 			sourceTree = "<group>";
 		};
 		F3E6A2D31E7010E600BBD81C /* Logger */ = {
