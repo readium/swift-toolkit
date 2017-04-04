@@ -20,7 +20,7 @@ public enum MediaType: String {
 
 
 /// CBZ format parser.
-public class CbzParser {
+public class CbzParser: PublicationParser {
 
     public init() {}
 

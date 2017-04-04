@@ -47,10 +47,9 @@ public enum EpubParserError: Error {
     case missingElement(message: String)
 }
 
-///
 /// An EPUB container parser that extracts the information from the relevant
 /// files and builds a `Publication` instance with it.
-public class EpubParser {
+public class EpubParser: PublicationParser {
     public let opfp = OPFParser()
     public let ndp = NavigationDocumentParser()
     public let ncxp = NCXParser()
