@@ -143,9 +143,11 @@ open class ZipArchive {
     func locateFile(path: String) throws -> Bool {
         try goToFirstFile()
         let err = unzLocateFile(unzFile, path.cString(using: String.Encoding.utf8), nil)
+        // File not found?
         if err == UNZ_END_OF_LIST_OF_FILE {
             return false
         }
+        // Unknown error
         if err != UNZ_OK {
             throw ZipError.unzipFail
         }
