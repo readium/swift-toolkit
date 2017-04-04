@@ -19,11 +19,11 @@ public class ContainerEpubDirectory: EpubContainer, DirectoryContainer {
     /// Public failable initializer for the EpubDirectoryContainer class.
     ///
     /// - Parameter dirPath: The root directory path.
-    public init?(directory dirPath: String) {
+    public init?(directory path: String) {
         // FIXME: useless check probably. Always made before hand.
-        guard FileManager.default.fileExists(atPath: dirPath) else {
+        guard FileManager.default.fileExists(atPath: path) else {
             return nil
         }
-        rootFile = RootFile.init(rootPath: dirPath)
+        rootFile = RootFile.init(rootPath: path)
     }
 }

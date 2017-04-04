@@ -83,6 +83,7 @@ public class EpubParser {
             mimetype == EpubConstant.mimetypeEPUB else {
                 throw EpubParserError.wrongMimeType
         }
+        container.rootFile.mimetype = mimetype
         // Retrieve container.xml data from the Container
         guard let data = try? container.data(relativePath: EpubConstant.containerDotXmlPath) else {
             throw EpubParserError.missingFile(path: EpubConstant.containerDotXmlPath)

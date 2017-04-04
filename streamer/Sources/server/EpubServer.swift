@@ -99,7 +99,7 @@ open class EpubServer {
     public func add(_ publication: Publication,
                     with container: Container,
                     at endpoint: String) throws {
-        let fetcher: EpubFetcher
+        let fetcher: Fetcher
 
         guard epubs[endpoint] == nil else {
             log(level: .error, "\(endpoint) is already in use.")
@@ -117,7 +117,7 @@ open class EpubServer {
 
         // Initialize the Fetcher
         do {
-            fetcher = try EpubFetcher(publication: publication, container: container)
+            fetcher = try Fetcher(publication: publication, container: container)
         } catch {
             log(level: .error, "Fetcher initialisation failed.")
             throw EpubServerError.epubFetcher(underlyingError: error)
@@ -135,7 +135,6 @@ open class EpubServer {
                 log(level: .error, "The request's path to the ressource is empty.")
                 return GCDWebServerErrorResponse(statusCode: 500)
             }
-            logValue(level: .debug, path)
             // Remove the prefix from the URI
             let relativePath = path.substring(from: path.index(endpoint.endIndex, offsetBy: 3))
             let resource = publication.resource(withRelativePath: relativePath)
@@ -148,10 +147,10 @@ open class EpubServer {
                 response = WebServerResourceResponse(inputStream: dataStream,
                                                      range: range,
                                                      contentType: contentType)
-            } catch EpubFetcherError.missingFile {
+            } catch FetcherError.missingFile {
                 log(level: .error, "File not found, couldn't create stream.")
                 response = GCDWebServerErrorResponse(statusCode: 404)
-            } catch EpubFetcherError.container {
+            } catch FetcherError.container {
                 log(level: .error, "Error while getting data stream from container.")
                 response = GCDWebServerErrorResponse(statusCode: 500)
             } catch {

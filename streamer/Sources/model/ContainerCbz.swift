@@ -8,7 +8,10 @@
 
 import Foundation
 
-public class ContainerCbz: ZipArchiveContainer {
+// Logger injection.
+extension ContainerCbz: Loggable {}
+
+public class ContainerCbz: CbzContainer, ZipArchiveContainer {
     public var rootFile: RootFile
 
     /// The zip archive object containing the Epub.
@@ -21,7 +24,22 @@ public class ContainerCbz: ZipArchiveContainer {
         guard let arc = ZipArchive(url: URL(fileURLWithPath: path)) else {
             return nil
         }
-        rootFile = RootFile.init(rootPath: path)
+        rootFile = RootFile.init(rootPath: path, mimetype: "application/x-cbz")
         zipArchive = arc
+        /// Generate file list.
+        do {
+            try zipArchive.buildFilesList()
+        } catch {
+            log(level: .error, "zipArchive error generating file List")
+            return nil
+        }
+    }
+
+    public func getFilesList() -> [String] {
+        let archivedFilesList = zipArchive.fileInfos.map({
+            URL(fileURLWithPath: $0.key).lastPathComponent
+        }).sorted()
+
+        return archivedFilesList
     }
 }

@@ -135,6 +135,12 @@ extension EpubContainer {
 
 }
 
+/// Specializing the container for CBZ.
+protocol CbzContainer: Container {
+    /// Return the array of the filenames contained inside of the CBZ container.
+    func getFilesList() -> [String] 
+}
+
 /// Specializing the container for Directories.
 protocol DirectoryContainer: Container {}
 /// Default implementation.

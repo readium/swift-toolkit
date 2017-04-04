@@ -9,7 +9,7 @@
 import Foundation
 
 /// EPUB Container for EPUB files.
-public class ContainerEpub: ZipArchiveContainer, EpubContainer {
+public class ContainerEpub: EpubContainer, ZipArchiveContainer {
 
     /// Struct containing meta information about the Container
     public var rootFile: RootFile

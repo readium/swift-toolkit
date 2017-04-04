@@ -54,7 +54,7 @@ public class OPFParser {
 //    internal func parseMediaOverlay(from document: AEXMLDocument,
 //                                    to publication: inout Publication)
 //    {
-//        
+//
 //    }
 
     /// Parse the Metadata in the XML <metadata> element.
