@@ -71,7 +71,7 @@ public class EpubParser {
     /// - Throws: `EpubParserError.wrongMimeType`,
     ///           `EpubParserError.xmlParse`,
     ///           `EpubParserError.missingFile`
-    public func parse(fileAtPath path: String) throws -> Epub {
+    public func parse(fileAtPath path: String) throws -> PubBox {
         // Generate the `Container` for `fileAtPath`
         var container = try generateContainerFrom(fileAtPath: path)
 

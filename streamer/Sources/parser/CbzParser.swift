@@ -24,7 +24,7 @@ public class CbzParser {
 
     public init() {}
 
-    public func parse(fileAtPath path: String) throws -> Epub {
+    public func parse(fileAtPath path: String) throws -> PubBox {
         // Generate the `Container` for `fileAtPath`
         let container: CbzContainer = try generateContainerFrom(fileAtPath: path)
         let publication = Publication()
