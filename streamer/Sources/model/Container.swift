@@ -116,7 +116,7 @@ extension EpubContainer {
         // The `to be generated` document.
         var document: AEXMLDocument
         // Path to the rootDir
-        let rootDirPath = rootFile.rootFilePath.deletingLastPathComponent()
+        let rootDirPath = rootFile.rootFilePath.deletingLastPathComponent
 
         // Get the ressource file the link's pointing to, contained in the href.
         guard let href = link?.href else {
