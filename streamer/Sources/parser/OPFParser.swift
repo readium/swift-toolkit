@@ -47,15 +47,15 @@ public class OPFParser {
         try parseMetadata(from: document, to: &publication)
         parseRessources(from: document.root["manifest"], to: &publication, coverId: coverId)
         parseSpine(from: document.root["spine"], to: &publication)
-        //parseMediaOverlay(from: document, to: &publication)
+        parseMediaOverlay(from: document, to: &publication)
         return publication
     }
 
-//    internal func parseMediaOverlay(from document: AEXMLDocument,
-//                                    to publication: inout Publication)
-//    {
-//
-//    }
+    internal func parseMediaOverlay(from document: AEXMLDocument,
+                                    to publication: inout Publication)
+    {
+        
+    }
 
     /// Parse the Metadata in the XML <metadata> element.
     ///

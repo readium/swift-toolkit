@@ -21,6 +21,7 @@ public class Link: Mappable {
     public var duration: TimeInterval?
     public var templated: Bool?
     public var children = [Link]()
+    public var mediaOverlays = [MediaOverlayNode]()
 
     // MARK: - Public methods
 
