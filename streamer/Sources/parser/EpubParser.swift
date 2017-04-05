@@ -24,6 +24,9 @@ public struct EpubConstant {
 
     /// http://www.idpf.org/oebps/
     static let mimetypeOEBPS = "application/oebps-package+xml"
+
+    /// Media Overlays URL
+    static let mediaOverlayURL = "media-overlay?resource="
 }
 
 /// Errors thrown during the parsing of the EPUB

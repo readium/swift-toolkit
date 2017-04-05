@@ -62,7 +62,7 @@ public class Publication: Mappable {
         // TODO: init
     }
 
-    // MARK: - Public methods.
+    // Mark: - Public methods.
 
     /// Finds a resource (asset or spine item) with a matching relative path
     ///
@@ -75,39 +75,29 @@ public class Publication: Mappable {
         return matchingLinks.first(where: { $0.href == path })
     }
 
-    /// Find the first Link having the given `rel` in the publication [Link]
+    /// Find the first Link having the given `rel` in the publications's [Link]
     /// properties: `resources`, `spine`, `links`.
     ///
     /// - Parameter rel: The `rel` being searched.
     /// - Returns: The corresponding `Link`, if any.
     public func link(withRel rel: String) -> Link? {
-        if let link = resources.first(where: { $0.rel.contains(rel) }) {
-            return link
+        let findLinkWithRel: (Link) -> Bool = { link in
+            link.rel.contains(rel)
         }
-        if let link = spine.first(where: { $0.rel.contains(rel) }) {
-            return link
-        }
-        if let link = links.first(where: { $0.rel.contains(rel) }) {
-            return link
-        }
-        return nil
+        return findLinkInPublicationLinks(where: findLinkWithRel)
     }
 
-    /// Append the self/manifest link to  links.
+    /// Find the first Link having the given `href` in the publication's [Link]
+    /// properties: `resources`, `spine`, `links`.
     ///
-    /// - Parameters:
-    ///   - endPoint: The URI prefix to use to fetch assets from the publication.
-    ///   - baseUrl: The base URL of the HTTP server.
-    internal func addSelfLink(endpoint: String, for baseUrl: URL) {
-        let publicationURL: URL
-        let link = Link()
-        let manifestPath = "\(endpoint)/manifest.json"
-
-        publicationURL = baseUrl.appendingPathComponent(manifestPath, isDirectory: false)
-        link.href = publicationURL.absoluteString
-        link.typeLink = "application/webpub+json"
-        link.rel.append("self")
-        links.append(link)
+    /// - Parameter rel: The `href` being searched.
+    /// - Returns: The corresponding `Link`, if any.
+    public func link(withHref href: String) -> Link? {
+        let findLinkWithHref: (Link) -> Bool = { link in
+            guard let href = link.href else { return false }
+            return href.contains(href)
+        }
+        return findLinkInPublicationLinks(where: findLinkWithHref)
     }
     
     /// Mapping declaration
@@ -137,5 +127,44 @@ public class Publication: Mappable {
         if !listOfTables.isEmpty {
             listOfTables <- map["lot", ignoreNil: true]
         }
+    }
+
+    // Mark: - Internal Methods.
+
+    /// Append the self/manifest link to  links.
+    ///
+    /// - Parameters:
+    ///   - endPoint: The URI prefix to use to fetch assets from the publication.
+    ///   - baseUrl: The base URL of the HTTP server.
+    internal func addSelfLink(endpoint: String, for baseUrl: URL) {
+        let publicationURL: URL
+        let link = Link()
+        let manifestPath = "\(endpoint)/manifest.json"
+
+        publicationURL = baseUrl.appendingPathComponent(manifestPath, isDirectory: false)
+        link.href = publicationURL.absoluteString
+        link.typeLink = "application/webpub+json"
+        link.rel.append("self")
+        links.append(link)
+    }
+
+    // Mark: - Fileprivate Methods.
+    
+    /// Find the first link conforming to the passed closure, using `.where()`
+    /// in the publications's [Link] properties: `resources`, `spine`, `links`.
+    ///
+    /// - Parameter closure: The closure to conform to.
+    /// - Returns: The corresponding Link found, if any.
+    fileprivate func findLinkInPublicationLinks(where closure: (Link) -> Bool) -> Link? {
+        if let link = resources.first(where: closure) {
+            return link
+        }
+        if let link = spine.first(where: closure) {
+            return link
+        }
+        if let link = links.first(where: closure) {
+            return link
+        }
+        return nil
     }
 }

@@ -181,41 +181,38 @@ public class OPFParser {
         }
     }
 
-    /// <#Description#>
+    /// Parse the mediaOverlays documents.
     ///
     /// - Parameters:
-    ///   - container: <#container description#>
-    ///   - publication: <#publication description#>
-    /// - Throws: <#throws value description#>
+    ///   - container: The Epub Container.
+    ///   - publication: The Publication object representing the Epub data.
     internal func parseMediaOverlay(from container: EpubContainer,
                                     to publication: inout Publication) throws
     {
         let mediaOverlays = publication.resources.filter({ $0.typeLink ==  "application/smil+xml"})
+
         guard !mediaOverlays.isEmpty else {
             log(level: .debug, "No media-overlays found in the Publication.")
             return
         }
-
         for mediaOverlayLink in mediaOverlays {
             let node = MediaOverlayNode()
             let smilXml = try container.xmlDocument(forRessourceReferencedByLink: mediaOverlayLink)
-            let body = smilXml.root["Body"]
+            let body = smilXml.root["body"]
 
             node.role.append("section")
             node.text = body.attributes["epub:textref"]
             // get body parameters <par>
             parseParameters(in: body, withParent: node)
-            parseSequences(in: body, withParent: node)
-
-            // TO translate
-            //            baseHref := strings.Split(mo.Text, "#")[0]
-            //            link := findLinKByHref(publication, baseHref)
-            //            link.MediaOverlays = append(link.MediaOverlays, mo)
-            //            if link.Properties == nil {
-            //                link.Properties = &models.Properties{MediaOverlay: mediaOverlayURL + link.Href}
-            //            } else {
-            //                link.Properties.MediaOverlay = mediaOverlayURL + link.Href
-            //            }
+            parseSequences(in: body, withParent: node, publicationLinkByHref: publication.link(withHref:))
+            // "../xhtml/mo-002.xhtml#mo-1" => "../xhtml/mo-002.xhtml"
+            guard let baseHref = node.text?.components(separatedBy: "#")[0],
+                let link = publication.link(withHref: baseHref) else
+            {
+                continue
+            }
+            link.mediaOverlays.append(node)
+            link.properties.append(EpubConstant.mediaOverlayURL + link.href!)
         }
     }
 
@@ -293,35 +290,35 @@ extension OPFParser {
     ///   - element: The XML element which should contain <seq>.
     ///   - parent: The parent MediaOverlayNode of the "to be creatred" nodes.
     fileprivate func parseSequences(in element: AEXMLElement,
-                                    withParent parent: MediaOverlayNode)
+                                    withParent parent: MediaOverlayNode,
+                                    publicationLinkByHref findLink: (String)->Link?)
     {
         guard let sequenceElements = element["seq"].all,
             !sequenceElements.isEmpty else
         {
             return
         }
+        // TODO: 2 lines differ from the version used in the parseMediaOverlay
+        //       for loop. Refactor
         for sequence in sequenceElements {
             let newNode = MediaOverlayNode()
 
             newNode.role.append("section")
             newNode.text = sequence.attributes["epub:textref"]
             parseParameters(in: sequence, withParent: newNode)
-            parseSequences(in: sequence, withParent: newNode)
-
-            // TO Translate
-//            baseHref := strings.Split(moc.Text, "#")[0]
-//            baseHrefParent := strings.Split(href, "#")[0]
-//            if baseHref == baseHrefParent {
-//                *mo = append(*mo, moc)
-//            } else {
-//                link := findLinKByHref(publication, baseHref)
-//                link.MediaOverlays = append(link.MediaOverlays, moc)
-//                if link.Properties == nil {
-//                    link.Properties = &models.Properties{MediaOverlay: mediaOverlayURL + link.Href}
-//                } else {
-//                    link.Properties.MediaOverlay = mediaOverlayURL + link.Href
-//                }
-//            }
+            parseSequences(in: sequence, withParent: newNode, publicationLinkByHref: findLink)
+            guard let baseHref = newNode.text?.components(separatedBy: "#")[0],
+                let baseHrefParent = parent.text?.components(separatedBy: "#")[0],
+                baseHref != baseHrefParent else
+            {
+                parent.children.append(newNode)
+                return
+            }
+            guard let link = findLink(baseHref) else {
+                return
+            }
+            link.mediaOverlays.append(newNode)
+            link.properties.append(EpubConstant.mediaOverlayURL + link.href!)
         }
     }
 
