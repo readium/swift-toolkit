@@ -22,44 +22,37 @@ public class MetadataParser {
     internal func parseRenditionProperties(from metadataElement: AEXMLElement,
                                            to metadata: inout Metadata)
     {
+        guard let metas = metadataElement["meta"].all else {
+            return
+        }
+        // TODO: factorize
         // Layout
-        var attribute = ["property" : "rendition:layout"]
+        if let renditionLayout = metas.first(where: { $0.attributes["property"] == "rendition:layout" }) {
+            let layout = renditionLayout.string
 
-        if let renditionLayouts = metadataElement.all(withAttributes: attribute),
-            !renditionLayouts.isEmpty {
-            let layouts = renditionLayouts[0].string
-
-            metadata.rendition.layout = RenditionLayout(rawValue: layouts)
+            metadata.rendition.layout = RenditionLayout(rawValue: layout)
         }
         // Flow
-        attribute = ["property" : "rendition:flow"]
-        if let renditionFlows = metadataElement.all(withAttributes: attribute),
-            !renditionFlows.isEmpty {
-            let flows = renditionFlows[0].string
+        if let renditionFlow = metas.first(where: { $0.attributes["property"] == "rendition:flow" }) {
+            let flow = renditionFlow.string
 
-            metadata.rendition.flow = RenditionFlow(rawValue: flows)
+            metadata.rendition.flow = RenditionFlow(rawValue: flow)
         }
         // Orientation
-        attribute = ["property" : "rendition:orientation"]
-        if let renditionOrientations = metadataElement.all(withAttributes: attribute),
-            !renditionOrientations.isEmpty {
-            let orientation = renditionOrientations[0].string
+        if let renditionOrientation = metas.first(where: { $0.attributes["property"] == "rendition:orientation" }) {
+            let orientation = renditionOrientation.string
 
             metadata.rendition.orientation = RenditionOrientation(rawValue: orientation)
         }
         // Spread
-        attribute = ["property" : "rendition:spread"]
-        if let renditionSpreads = metadataElement.all(withAttributes: attribute),
-            !renditionSpreads.isEmpty {
-            let spread = renditionSpreads[0].string
+        if let renditionSpread = metas.first(where: { $0.attributes["property"] == "rendition:spread" }) {
+            let spread = renditionSpread.string
 
             metadata.rendition.spread = RenditionSpread(rawValue: spread)
         }
         // Viewport
-        attribute = ["property" : "rendition:viewport"]
-        if let renditionViewports = metadataElement.all(withAttributes: attribute),
-            !renditionViewports.isEmpty {
-            metadata.rendition.viewport = renditionViewports[0].string
+        if let renditionViewport = metas.first(where: { $0.attributes["property"] == "rendition:viewport" }) {
+            metadata.rendition.viewport = renditionViewport.string
         }
     }
 
@@ -269,6 +262,33 @@ public class MetadataParser {
             contributor.sortAs = sortAs
         }
         return contributor
+    }
+
+    /// Parse the metadata>meta>property=media:duration elements from the
+    /// metadata. These meta are related to the Media Overlays, they give the
+    /// smil file audio playback time.
+    /// Metadata -> e.g. : ["#smil-1": "00:01:24.687"]
+    ///
+    /// - Parameters:
+    ///   - metadataElement: The Metadata XML element.
+    ///   - otherMetadata: The publication's `otherMetadata` property.
+    internal func parseMediaDurations(from metadataElement: AEXMLElement,
+                                      to otherMetadata: inout [MetadataItem])
+    {
+        guard let metas = metadataElement["meta"].all else {
+            return
+        }
+        let mediaDurationItems = metas.filter({ $0.attributes["property"] == "media:duration" })
+        guard !mediaDurationItems.isEmpty else {
+            return
+        }
+        for mediaDurationItem in mediaDurationItems {
+            let item = MetadataItem()
+
+            item.property = mediaDurationItem.attributes["refines"]
+            item.value = mediaDurationItem.value
+            otherMetadata.append(item)
+        }
     }
 
     // Mark: - Private Methods.

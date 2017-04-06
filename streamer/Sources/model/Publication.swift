@@ -94,8 +94,7 @@ public class Publication: Mappable {
     /// - Returns: The corresponding `Link`, if any.
     public func link(withHref href: String) -> Link? {
         let findLinkWithHref: (Link) -> Bool = { link in
-            guard let href = link.href else { return false }
-            return href.contains(href)
+            href == link.href
         }
         return findLinkInPublicationLinks(where: findLinkWithHref)
     }

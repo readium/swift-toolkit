@@ -103,8 +103,11 @@ public class OPFParser {
             metadata.direction = direction
         }
         // Rendition properties.
-        mp.parseRenditionProperties(from: metadataElement["meta"], to: &metadata)
+        mp.parseRenditionProperties(from: metadataElement, to: &metadata)
         publication.metadata = metadata
+        /// Other Metadata.
+        // Media overlays: media:duration
+        mp.parseMediaDurations(from: metadataElement, to: &metadata.otherMetadata)
     }
 
     /// Parse XML elements of the <Manifest> in the package.opf file.
@@ -133,13 +136,18 @@ public class OPFParser {
                 continue
             }
             let link = linkFromManifest(item)
-            // If it's the cover's item id, set the rel to cover and add the link to `links`.
-            if id == coverId {
-                link.rel.append("cover")
-            }
-            // If the link's rel contains the cover tag, append it to the publication link
+            // If the link's rel contains the cover tag, append it to the publication links.
             if link.rel.contains("cover") {
                 publication.links.append(link)
+            }
+            // If it's a media overlay ressource append it to the publication links.
+            if link.typeLink == "application/smil+xml" {
+                // Retrieve the duration of the smil file
+                if let duration = publication.metadata.otherMetadata.first(where: { $0.property == "#\(id)" })?.value {
+
+                    link.duration = Double(smilTimeToSeconds(duration))
+                }
+                //publication.links.append(link)
             }
             publication.resources.append(link)
         }
@@ -192,9 +200,10 @@ public class OPFParser {
         let mediaOverlays = publication.resources.filter({ $0.typeLink ==  "application/smil+xml"})
 
         guard !mediaOverlays.isEmpty else {
-            log(level: .debug, "No media-overlays found in the Publication.")
+            log(level: .info, "No media-overlays found in the Publication.")
             return
         }
+        print("=++= \(publication.metadata.title)")
         for mediaOverlayLink in mediaOverlays {
             let node = MediaOverlayNode()
             let smilXml = try container.xmlDocument(forRessourceReferencedByLink: mediaOverlayLink)
@@ -204,13 +213,20 @@ public class OPFParser {
             node.text = body.attributes["epub:textref"]
             // get body parameters <par>
             parseParameters(in: body, withParent: node)
-            parseSequences(in: body, withParent: node, publicationLinkByHref: publication.link(withHref:))
+            parseSequences(in: body, withParent: node, publicationSpine: &publication.spine)
             // "../xhtml/mo-002.xhtml#mo-1" => "../xhtml/mo-002.xhtml"
+
             guard let baseHref = node.text?.components(separatedBy: "#")[0],
-                let link = publication.link(withHref: baseHref) else
-            {
+                let link = publication.spine.first(where: {
+                guard let linkRef = $0.href else {
+                    return false
+                }
+                return baseHref.contains(linkRef)
+            }) else {
                 continue
             }
+
+            print("=++= DANS UPPER on ajoute du media overlay a \(String(describing: link.href))")
             link.mediaOverlays.append(node)
             link.properties.append(EpubConstant.mediaOverlayURL + link.href!)
         }
@@ -234,8 +250,7 @@ public class OPFParser {
         link.typeLink = item.attributes["media-type"]
         // Look if item have any properties.
         if let propertyAttribute = item.attributes["properties"] {
-            let ws = CharacterSet.whitespaces
-            let properties = propertyAttribute.components(separatedBy: ws)
+            let properties = propertyAttribute.components(separatedBy: CharacterSet.whitespaces)
 
             // TODO: The contains "math/js" like in the Go streamer.
             // + refactor below.
@@ -256,6 +271,55 @@ public class OPFParser {
 
 // MARK: - Media Overlays.
 extension OPFParser {
+
+    /// [RECURSIVE]
+    /// Parse the <seq> elements at the current XML level. It will recursively
+    /// parse they childrens <par> and <seq>
+    ///
+    /// - Parameters:
+    ///   - element: The XML element which should contain <seq>.
+    ///   - parent: The parent MediaOverlayNode of the "to be creatred" nodes.
+    fileprivate func parseSequences(in element: AEXMLElement,
+                                    withParent parent: MediaOverlayNode,
+                                    publicationSpine spine: inout [Link])
+    {
+        guard let sequenceElements = element["seq"].all,
+            !sequenceElements.isEmpty else
+        {
+            return
+        }
+        // TODO: 2 lines differ from the version used in the parseMediaOverlay
+        //       for loop. Refactor
+        for sequence in sequenceElements {
+            let newNode = MediaOverlayNode()
+
+            newNode.role.append("section")
+            newNode.text = sequence.attributes["epub:textref"]
+            parseParameters(in: sequence, withParent: newNode)
+            parseSequences(in: sequence, withParent: newNode, publicationSpine: &spine)
+
+            let baseHrefParent = parent.text?.components(separatedBy: "#")[0]
+
+            guard let baseHref = newNode.text?.components(separatedBy: "#")[0],
+                baseHref != baseHrefParent else
+            {
+                parent.children.append(newNode)
+                continue
+            }
+            guard let link = spine.first(where: {
+                guard let linkRef = $0.href else {
+                    return false
+                }
+                return linkRef.contains(baseHref) || baseHref.contains(linkRef)
+            }) else {
+                continue
+            }
+            print("=++= LOWER on ajoute du media overlay a \(String(describing: link.href))")
+            link.mediaOverlays.append(newNode)
+            link.properties.append(EpubConstant.mediaOverlayURL + link.href!)
+        }
+    }
+
     /// Parse the <par> elements at the current XML element level.
     ///
     /// - Parameters:
@@ -276,49 +340,11 @@ extension OPFParser {
             guard let audioElement = parameterElement["audio"].first else {
                 return
             }
-            newNode.audio = parse(audioElement: audioElement)
+            let audioFilePath = parse(audioElement: audioElement)
+
+            newNode.audio = audioFilePath
             newNode.text = parameterElement.attributes["src"]
             parent.children.append(newNode)
-        }
-    }
-
-    /// [RECURSIVE]
-    /// Parse the <seq> elements at the current XML level. It will recursively
-    /// parse they childrens <par> and <seq>
-    ///
-    /// - Parameters:
-    ///   - element: The XML element which should contain <seq>.
-    ///   - parent: The parent MediaOverlayNode of the "to be creatred" nodes.
-    fileprivate func parseSequences(in element: AEXMLElement,
-                                    withParent parent: MediaOverlayNode,
-                                    publicationLinkByHref findLink: (String)->Link?)
-    {
-        guard let sequenceElements = element["seq"].all,
-            !sequenceElements.isEmpty else
-        {
-            return
-        }
-        // TODO: 2 lines differ from the version used in the parseMediaOverlay
-        //       for loop. Refactor
-        for sequence in sequenceElements {
-            let newNode = MediaOverlayNode()
-
-            newNode.role.append("section")
-            newNode.text = sequence.attributes["epub:textref"]
-            parseParameters(in: sequence, withParent: newNode)
-            parseSequences(in: sequence, withParent: newNode, publicationLinkByHref: findLink)
-            guard let baseHref = newNode.text?.components(separatedBy: "#")[0],
-                let baseHrefParent = parent.text?.components(separatedBy: "#")[0],
-                baseHref != baseHrefParent else
-            {
-                parent.children.append(newNode)
-                return
-            }
-            guard let link = findLink(baseHref) else {
-                return
-            }
-            link.mediaOverlays.append(newNode)
-            link.properties.append(EpubConstant.mediaOverlayURL + link.href!)
         }
     }
 
@@ -356,6 +382,11 @@ extension OPFParser {
             let clipEnd = audioElement.attributes["clipEnd"] else
         {
             return nil
+        }
+        /// Clean relative path elements "../"
+        let components = audio.components(separatedBy: "/")
+        if components[0] == ".." {
+            audio.removeSubrange(audio.startIndex..<audio.index(audio.startIndex, offsetBy: 3))
         }
         audio += "#t="
         audio += smilTimeToSeconds(clipBegin)
