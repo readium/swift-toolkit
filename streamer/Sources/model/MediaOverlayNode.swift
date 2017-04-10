@@ -8,32 +8,74 @@
 
 import Foundation
 
+/// The fonctionnal object
+public struct Clip {
+    public var relativeUrl: URL!
+    public var start: Double!
+    public var end: Double!
+    public var duration: Double!
+}
+
 /// Represents a single node of a Media Overlay.
 public class MediaOverlayNode {
-    public var text: String?
-    public var audio: String?
-    public var role = [String]()
-    public var children = [MediaOverlayNode]()
+    var text: String?
+    var audio: String?
+    var role = [String]()
+    var children = [MediaOverlayNode]()
+
 
     public init(_ text: String? = nil, audio: String? = nil) {
         self.text = text
         self.audio = audio
     }
 
-    /// OLD trashfunc™ TO REPLACE - below func will do
-    /// Find the first next valid element.
-    public func findParElement() -> MediaOverlayNode? {
-        if role.contains("section") {
-            for child in self.children {
-                if let element = child.findParElement(),
-                    element.audio != nil {
-                    return element
-                }
-            }
-        } else if audio != nil {
-            return self
+//    /// OLD trashfunc™ TO REPLACE - below func will do
+//    /// Find the first next valid element.
+//    public func findParElement() -> MediaOverlayNode? {
+//        if role.contains("section") {
+//            for child in self.children {
+//                if let element = child.findParElement(),
+//                    element.audio != nil {
+//                    return element
+//                }
+//            }
+//        } else if audio != nil {
+//            return self
+//        }
+//        return nil
+//    }
+
+    public func getClip(forFragmentWithId id: String) -> Clip? {
+        var newClip = Clip()
+
+        let audioElementForFragment = findNode(forFragment: id)
+
+        // Retrieve the audioString (containing timers + audiofile url), then
+        // retrieve both.
+        guard let audioString = audioElementForFragment?.audio,
+            let audioFileString = audioString.components(separatedBy: "#").first,
+            let audioFileUrl = URL(string: audioFileString),
+            var times = audioString.components(separatedBy: "#").last else
+        {
+            return nil
         }
-        return nil
+        // Relative audio file URL.
+        newClip.relativeUrl = audioFileUrl
+        
+        // Remove "t=" prefix from times string.
+        times = times.substring(from: times.index(times.startIndex, offsetBy: 2))
+        // Parse start and end times.
+        guard let start = times.components(separatedBy: ",").first,
+            let end = times.components(separatedBy: ",").last,
+            let startTimer = Double(start),
+            let endTimer = Double(end) else
+        {
+            return nil
+        }
+        newClip.start = startTimer
+        newClip.end = endTimer
+        newClip.duration = endTimer - startTimer
+        return newClip
     }
 
     /// <#Description#>
@@ -58,9 +100,12 @@ public class MediaOverlayNode {
         // For each node of the current scope..
         for node in nodes {
             // If the node is a "section" (<seq> sequence element)..
-            guard !role.contains("section") else {
+            if node.role.contains("section") {
                 // Try to find par nodes inside.
-                return _findNode(forFragment: fragment, inNodes: node.children)
+                if let found = _findNode(forFragment: fragment, inNodes: node.children)
+                {
+                    return found
+                }
             }
             // If the node text refer to filename or that filename is nil,
             // return node.

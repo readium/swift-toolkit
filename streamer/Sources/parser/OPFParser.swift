@@ -343,7 +343,7 @@ extension OPFParser {
             let audioFilePath = parse(audioElement: audioElement)
 
             newNode.audio = audioFilePath
-            newNode.text = parameterElement.attributes["src"]
+            newNode.text = parameterElement["text"].attributes["src"]
             parent.children.append(newNode)
         }
     }
