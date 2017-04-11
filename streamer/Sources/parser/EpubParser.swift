@@ -53,9 +53,9 @@ public enum EpubParserError: Error {
 /// An EPUB container parser that extracts the information from the relevant
 /// files and builds a `Publication` instance with it.
 public class EpubParser: PublicationParser {
-    public let opfp = OPFParser()
-    public let ndp = NavigationDocumentParser()
-    public let ncxp = NCXParser()
+    public let opfp: OPFParser!
+    public let ndp: NavigationDocumentParser!
+    public let ncxp: NCXParser!
 
     // TODO: multiple renditions
     // TODO: media overlays
@@ -63,7 +63,11 @@ public class EpubParser: PublicationParser {
 
     // MARK: - Public methods
 
-    public init() {}
+    public init() {
+        opfp = OPFParser()
+        ndp = NavigationDocumentParser()
+        ncxp = NCXParser()
+    }
 
     /// Parses the EPUB (file/directory) at `fileAtPath` and generate
     /// `Publication` and `Container`.

@@ -8,60 +8,79 @@
 
 import Foundation
 
-/// The fonctionnal object
+/// The publicly accessible struct.
+
+/// Clip is the representation of a MediaOverlay file fragment. A clip represent
+/// the synchronized audio for a piece of text, it has a file where its data
+/// belong, start/end times relatives to this file's data and  a duration
+/// calculated from the aforementioned values.
 public struct Clip {
+    /// The relative URL.
     public var relativeUrl: URL!
+    /// Start time in seconds.
     public var start: Double!
+    /// End time in seconds.
     public var end: Double!
+    /// Total clip duration in seconds (end - start).
     public var duration: Double!
 }
 
-/// Represents a single node of a Media Overlay.
-public class MediaOverlayNode {
-    var text: String?
-    var audio: String?
-    var role = [String]()
-    var children = [MediaOverlayNode]()
+/// The Error enumeration of the MediaOverlayNode class.
+///
+/// - audio: Couldn't generate a proper clip due to erroneous audio property.
+/// - timersParsing: Couldn't generate a proper clip due to timersParsing failure.
+public enum MediaOverlayNodeError: Error {
+    case audio
+    case timersParsing
+}
 
+/// Represents a MediaOverlay XML node.
+public class MediaOverlayNode {
+    public var text: String?
+    public var audio: String?
+    public var role = [String]()
+    public var children = [MediaOverlayNode]()
 
     public init(_ text: String? = nil, audio: String? = nil) {
         self.text = text
         self.audio = audio
     }
 
-//    /// OLD trashfunc™ TO REPLACE - below func will do
-//    /// Find the first next valid element.
-//    public func findParElement() -> MediaOverlayNode? {
-//        if role.contains("section") {
-//            for child in self.children {
-//                if let element = child.findParElement(),
-//                    element.audio != nil {
-//                    return element
-//                }
-//            }
-//        } else if audio != nil {
-//            return self
-//        }
-//        return nil
-//    }
+    // Mark: - Internal Methods.
 
-    public func getClip(forFragmentWithId id: String) -> Clip? {
+    /// Generate a `Clip` from self.
+    ///
+    /// - Returns: The generated `Clip`.
+    /// - Throws: `MediaOverlayNodeError.audio`,
+    ///           `MediaOverlayNodeError.timersParsing`.
+    internal func clip() throws -> Clip {
         var newClip = Clip()
-
-        let audioElementForFragment = findNode(forFragment: id)
 
         // Retrieve the audioString (containing timers + audiofile url), then
         // retrieve both.
-        guard let audioString = audioElementForFragment?.audio,
+        guard let audioString = self.audio,
             let audioFileString = audioString.components(separatedBy: "#").first,
-            let audioFileUrl = URL(string: audioFileString),
-            var times = audioString.components(separatedBy: "#").last else
+            let audioFileUrl = URL(string: audioFileString) else
         {
-            return nil
+            throw MediaOverlayNodeError.audio
         }
         // Relative audio file URL.
         newClip.relativeUrl = audioFileUrl
-        
+        guard let times = audioString.components(separatedBy: "#").last else {
+            throw MediaOverlayNodeError.timersParsing
+        }
+        try parseTimer(times, into: &newClip)
+        return newClip
+    }
+
+    /// Parse the time String to fill `clip`.
+    ///
+    /// - Parameters:
+    ///   - times: The time string ("t=S.MS,S.MS")
+    ///   - clip: The Clip instance where to fill the parsed data.
+    /// - Throws: `MediaOverlayNodeError.timersParsing`.
+    fileprivate func parseTimer(_ times: String, into clip: inout Clip) throws {
+        var times = times
         // Remove "t=" prefix from times string.
         times = times.substring(from: times.index(times.startIndex, offsetBy: 2))
         // Parse start and end times.
@@ -70,92 +89,10 @@ public class MediaOverlayNode {
             let startTimer = Double(start),
             let endTimer = Double(end) else
         {
-            return nil
+            throw MediaOverlayNodeError.timersParsing
         }
-        newClip.start = startTimer
-        newClip.end = endTimer
-        newClip.duration = endTimer - startTimer
-        return newClip
-    }
-
-    /// <#Description#>
-    ///
-    /// - Parameter forFragment: <#forFragment description#>
-    /// - Returns: <#return value description#>
-    public func findNode(forFragment fragment: String?) -> MediaOverlayNode? {
-        return _findNode(forFragment: fragment, inNodes: self.children)
-    }
-    /// [RECURISVE]
-    /// Find the node (<par>) corresponding to "fragment" ?? nil.
-    ///
-    /// - Parameters:
-    ///   - fragment: The current fragment name for which we are looking the 
-    ///               associated media overlay node.
-    ///   - nodes: The set of MediaOverlayNodes where to search. Default to 
-    ///            self children.
-    /// - Returns: The node we found ?? nil.
-    fileprivate func _findNode(forFragment fragment: String?,
-                         inNodes nodes: [MediaOverlayNode]) -> MediaOverlayNode?
-    {
-        // For each node of the current scope..
-        for node in nodes {
-            // If the node is a "section" (<seq> sequence element)..
-            if node.role.contains("section") {
-                // Try to find par nodes inside.
-                if let found = _findNode(forFragment: fragment, inNodes: node.children)
-                {
-                    return found
-                }
-            }
-            // If the node text refer to filename or that filename is nil,
-            // return node.
-            if fragment == nil || node.text?.contains(fragment!) ?? false {
-                return node
-            }
-        }
-        // If nothing found, return nil.
-        return nil
-    }
-
-    /// <#Description#>
-    ///
-    /// - Parameter forFragment: <#forFragment description#>
-    /// - Returns: <#return value description#>
-    public func findNextNode(forFragment fragment: String?) -> MediaOverlayNode? {
-        return _findNextNode(forFragment: fragment, inNodes: self.children)
-    }
-    /// [RECURISVE]
-    /// Find the node (<par>) corresponding to the next one after the given 
-    /// "fragment" ?? nil.
-    ///
-    /// - Parameters:
-    ///   - fragment: The fragment name corresponding to the node previous to 
-    ///               the one we want.
-    ///   - nodes: The set of MediaOverlayNodes where to search. Default to
-    ///            self children.
-    /// - Returns: The node we found ?? nil.
-    fileprivate func _findNextNode(forFragment fragment: String?,
-                             inNodes nodes: [MediaOverlayNode]) -> MediaOverlayNode?
-    {
-        var previousNodeFoundFlag = false
-
-        // For each node of the current scope..
-        for node in nodes {
-            guard !previousNodeFoundFlag else {
-                return node
-            }
-            // If the node is a "section" (<seq> sequence element)..
-            guard !role.contains("section") else {
-                // Try to find par nodes inside.
-                return _findNode(forFragment: fragment, inNodes: node.children)
-            }
-            // If the node text refer to filename or that filename is nil,
-            // return node.
-            if fragment == nil || node.text?.contains(fragment!)  ?? false {
-                previousNodeFoundFlag = true
-            }
-        }
-        // If nothing found, return nil.
-        return nil
+        clip.start = startTimer
+        clip.end = endTimer
+        clip.duration = endTimer - startTimer
     }
 }
