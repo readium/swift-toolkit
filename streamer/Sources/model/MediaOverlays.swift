@@ -7,7 +7,12 @@
 //
 
 import Foundation
+import ObjectMapper
 
+
+/// Errors related to MediaOverlays.
+///
+/// - nodeNotFound: Couldn't find any node for the given `forFragmentId`.
 public enum MediaOverlaysError: Error {
     case nodeNotFound(forFragmentId: String?)
 }
@@ -167,3 +172,7 @@ public class MediaOverlays {
         return nil
     }
 }
+
+
+
+
