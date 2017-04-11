@@ -230,7 +230,7 @@ public class OPFParser {
                 continue
             }
             link.mediaOverlays.append(node)
-            link.properties.append(EpubConstant.mediaOverlayURL + link.href!)
+            link.properties.mediaOverlay.append(EpubConstant.mediaOverlayURL + link.href!)
         }
     }
 
@@ -264,7 +264,7 @@ public class OPFParser {
                 link.rel.append("cover")
             }
             let otherProperties = properties.filter { $0 != "cover-image" && $0 != "nav" }
-            link.properties.append(contentsOf: otherProperties)
+            link.properties.mediaOverlay.append(contentsOf: otherProperties)
             // TODO: rendition properties
         }
         return link

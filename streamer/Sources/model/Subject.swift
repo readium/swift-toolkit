@@ -13,8 +13,7 @@ import ObjectMapper
 /// https://github.com/readium/webpub-manifest/blob/master/contexts/default/definitions.md#subjects
 /// Epub 3.1
 /// http://www.idpf.org/epub/31/spec/epub-packages.html#sec-opf-dcsubject
-public class Subject: Mappable {
-
+public class Subject {
     var name: String?
     /// The WebPubManifest elements
     var sortAs: String?
@@ -24,11 +23,11 @@ public class Subject: Mappable {
     var code: String?
 
     public init() {}
+    
+    public required init?(map: Map) {}
+}
 
-    required public init?(map: Map) {
-        // TODO: init
-    }
-
+extension Subject: Mappable {
     open func mapping(map: Map) {
         name <- map["name", ignoreNil: true]
         sortAs <- map["sortAs", ignoreNil: true]

@@ -13,19 +13,17 @@ import AEXML
 public struct EpubConstant {
 
     /// Default EPUB Version value, used when no version hes been specified.
-    /// (see OPF_2.0.1_draft 1.3.2)
+    /// (see OPF_2.0.1_draft 1.3.2).
     static let defaultEpubVersion = 1.2
-
-    /// Path of the EPUB's container.xml file
+    /// Path of the EPUB's container.xml file.
     static let containerDotXmlPath = "META-INF/container.xml"
-
-    /// Epub mime-type
+    /// Path of the EPUB's ecryption file.
+    static let encryptionDotXmlPath = "META-INF/encryption.xml"
+    /// Epub mime-type.
     static let mimetypeEPUB = "application/epub+zip"
-
     /// http://www.idpf.org/oebps/
     static let mimetypeOEBPS = "application/oebps-package+xml"
-
-    /// Media Overlays URL
+    /// Media Overlays URL.
     static let mediaOverlayURL = "media-overlay?resource="
 }
 
@@ -40,15 +38,15 @@ public enum EpubParserError: Error {
 
     /// MimeType "application/epub+zip" expected.
     case wrongMimeType
-
     /// A file is missing from the container at relative path **path**.
     case missingFile(path: String)
-
     /// An XML parsing error occurred, **underlyingError** thrown by the parser.
     case xmlParse(underlyingError: Error)
-
+    /// An XML elemen cannot be found.
     case missingElement(message: String)
 }
+
+extension EpubParser: Loggable {}
 
 /// An EPUB container parser that extracts the information from the relevant
 /// files and builds a `Publication` instance with it.
@@ -58,8 +56,6 @@ public class EpubParser: PublicationParser {
     public let ncxp: NCXParser!
 
     // TODO: multiple renditions
-    // TODO: media overlays
-    // TODO: encryption info
 
     // MARK: - Public methods
 
@@ -97,11 +93,12 @@ public class EpubParser: PublicationParser {
         // Parse the container.xml Data and fill the ContainerMetadata objectof the container
         container.rootFile.rootFilePath =  try getRootFilePath(from: data)
         // Get the package.opf XML document from the container.
-        let document = try container.xmlDocument(ForFileAtRelativePath: container.rootFile.rootFilePath)
+        let document = try container.xmlDocument(forFileAtRelativePath: container.rootFile.rootFilePath)
         let epubVersion = getEpubVersion(from: document)
         // Parse OPF file (Metadata, Spine, Resource) and return the Publication.
         var publication = try opfp.parseOPF(from: document, with: container, and: epubVersion)
-        // TODO: Define when to parse which one (github issue #25)
+        // Parse the META-INF/Encryption.xml.
+        try parseEncryption(from: container, to: &publication)
         // Parse Navigation Document.
         parseNavigationDocument(from: container, to: &publication)
         // Parse the NCX Document (if any).
@@ -110,6 +107,43 @@ public class EpubParser: PublicationParser {
     }
 
     // MARK: - Internal Methods.
+
+    internal func parseEncryption(from container: EpubContainer, to publication: inout Publication) throws {
+        // Get the XML object for encryption.xml.
+        guard let document = try? container.xmlDocument(forFileAtRelativePath: EpubConstant.encryptionDotXmlPath) else {
+            log(level: .info, "No encryption.xml file in publication.")
+            return
+        }
+        guard let encryptedDataElements = document["encryption"]["EncryptedData"].all else {
+            log(level: .info, "No <EncryptedData> elements")
+            return
+        }
+        // Loop through <EncryptedData> elements..
+        for encryptedDataElement in encryptedDataElements {
+            var encryption = Encryption()
+            let encryptionProperties = 
+
+            encryption.algorithm = encryptedDataElement["EncryptionMethod"].attributes["Algorithm"]
+            // TODO: LCP encryption. Profile/Scheme
+
+
+//            if len(encInfo.EncryptionProperties) > 0 {
+//                for _, prop := range encInfo.EncryptionProperties {
+//                    if prop.Compression.OriginalLength != "" {
+//                        encrypted.OriginalLength, _ = strconv.Atoi(prop.Compression.OriginalLength)
+//                        if prop.Compression.Method == "8" {
+//                            encrypted.Compression = "deflate"
+//                        } else {
+//                            encrypted.Compression = "none"
+//                        }
+//                    }
+//                }
+//            }
+        }
+
+
+
+    }
 
     /// Attempt to fill `Publication.tableOfContent`/`.landmarks`/`.pageList`/
     ///                              `.listOfIllustration`/`.listOftables`
