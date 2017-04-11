@@ -11,7 +11,6 @@ import minizip
 
 extension ZipInputStream: Loggable {}
 
-/// <#Description#>
 open class ZipInputStream: SeekableInputStream {
     var zipArchive: ZipArchive
     var fileInZipPath: String

@@ -21,6 +21,8 @@ public class MultilangString {
     /// Contains the alternatives denominations and keyed by language codes, if any.
     public var multiString =  [String: String]()
 
+    public init() {}
+
     /// Fills the `multiString` dictionnary property.
     ///
     ///

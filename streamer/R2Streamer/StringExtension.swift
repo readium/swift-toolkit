@@ -9,16 +9,25 @@
 import Foundation
 
 extension String {
+
+    var ns: NSString {
+        return self as NSString
+    }
+
     func appending(pathComponent: String) -> String {
         return (self as NSString).appendingPathComponent(pathComponent)
     }
 
-    func deletingLastPathComponent() -> String {
-        return (self as NSString).deletingLastPathComponent
+    var deletingLastPathComponent: String {
+        return ns.deletingLastPathComponent
     }
 
-    func lastPathComponent() -> String {
-        return (self as NSString).lastPathComponent
+    var lastPathComponent: String {
+        return ns.lastPathComponent
+    }
+
+    var pathExtension: String {
+        return ns.pathExtension
     }
 
     /// Date string (ISO8601) to Date object.

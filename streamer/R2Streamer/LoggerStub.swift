@@ -16,7 +16,7 @@ public class LoggerStub: LoggerType {
 
     /// Log `message` with a severity of `level`.
     public func log(level: SeverityLevel, message: String, _ path: String, _ function: String, _ className: String, _ line: Int) {
-        let fileName = path.lastPathComponent()
+        let fileName = path.lastPathComponent
         let severity = LoggerStub.getSeverityString(for: level)
 
         print("🔸<\(severity)>[\(fileName)]: at \(className):\(function) (L.\(line)) : \(message)")
@@ -24,7 +24,7 @@ public class LoggerStub: LoggerType {
 
     /// Print `value` with a severity of `level`.
     public func logValue(level: SeverityLevel, value: Any?, _ path: String, _ function: String, _ className: String, _ line: Int) {
-        let fileName =  path.lastPathComponent()
+        let fileName =  path.lastPathComponent
         // FIXME: This only works for objc types.
         let variableName = "" //NSPredicate(format: "%K == %@", #keyPath(value)), "test")
         let severity = LoggerStub.getSeverityString(for: level)
@@ -34,7 +34,7 @@ public class LoggerStub: LoggerType {
 
     /// Log `message` with a severity of `level`.
     static public func log(level: SeverityLevel, message: String, _ path: String, _ function: String, _ className: String, _ line: Int) {
-        let fileName = path.lastPathComponent()
+        let fileName = path.lastPathComponent
         let severity = getSeverityString(for: level)
 
         print("🔸<\(severity)>[\(fileName)]: at \(className):\(function) (L.\(line)) : \(message)")
@@ -42,7 +42,7 @@ public class LoggerStub: LoggerType {
 
     /// Print `value` with a severity of `level`.
     static public func logValue(level: SeverityLevel, value: Any?, _ path: String, _ function: String, _ className: String, _ line: Int) {
-        let fileName =  path.lastPathComponent()
+        let fileName =  path.lastPathComponent
         // FIXME: This only works for objc types.
         let variableName = "" //NSPredicate(format: "%K == %@", #keyPath(value)), "test")
         let severity = getSeverityString(for: level)

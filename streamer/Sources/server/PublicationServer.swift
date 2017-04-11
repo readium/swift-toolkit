@@ -1,5 +1,5 @@
 //
-//  EpubServer.swift
+//  PublicationServer.swift
 //  R2Streamer
 //
 //  Created by Olivier Körner on 21/12/2016.
@@ -9,13 +9,13 @@
 import Foundation
 import GCDWebServers
 
-extension EpubServer: Loggable {}
+extension PublicationServer: Loggable {}
 
 /// Errors thrown by the `EpubServer`.
 ///
 /// - epubParser: An error thrown by the EpubParser.
 /// - epubFetcher: An error thrown by the EpubFetcher.
-public enum EpubServerError: Error{
+public enum PublicationServerError: Error{
     case epubParser(underlyingError: Error)
     case epubFetcher(underlyingError: Error)
     case nilBaseUrl
@@ -23,16 +23,16 @@ public enum EpubServerError: Error{
 }
 
 /// `Publication` and the associated `Container`.
-public typealias Epub = (publication: Publication, associatedContainer: Container)
+public typealias PubBox = (publication: Publication, associatedContainer: Container)
 
 /// The HTTP server for the publication's manifests and assets. Serves Epubs.
-open class EpubServer {
+open class PublicationServer {
 
     // TODO: declare an interface, decouple the webserver. ? Not prioritary.
     /// The HTTP server.
     var webServer: GCDWebServer
     // Dictionnary of the (container, publication) tuples keyed by endpoints.
-    var epubs = [String: Epub]()
+    var pubBoxes = [String: PubBox]()
 
     // Computed properties.
 
@@ -46,18 +46,18 @@ open class EpubServer {
         get { return webServer.serverURL }
     }
 
-    /// Return all the `Publications` sorted by title asc. Sugar on top of `epubs`.
+    /// Return all the `Publications` sorted by title asc. Sugar on top of `pubBoxes`.
     public var publications: [Publication] {
         get {
-            let publications = epubs.values.flatMap({ $0.publication })
+            let publications = pubBoxes.values.flatMap({ $0.publication })
 
             return publications.sorted(by: { $0.metadata.title < $1.metadata.title })
         }
     }
 
-    /// Return all the `Container` as an array. Sugar on top of `epubs`.
+    /// Return all the `Container` as an array. Sugar on top of `pubBoxes`.
     public var containers: [Container] {
-        get { return  epubs.values.flatMap({ $0.associatedContainer }) }
+        get { return  pubBoxes.values.flatMap({ $0.associatedContainer }) }
     }
 
     // MARK: - Public methods
@@ -87,7 +87,7 @@ open class EpubServer {
     }
 
     // TODO: Github issue #3
-    /// Add an Epub to the server `Epubs`.
+    /// Add a publication to the server. Also add it to the `pubBoxes`
     ///
     /// - Parameters:
     ///   - container: The EPUB container of the publication
@@ -99,31 +99,31 @@ open class EpubServer {
     public func add(_ publication: Publication,
                     with container: Container,
                     at endpoint: String) throws {
-        let fetcher: EpubFetcher
+        let fetcher: Fetcher
 
-        guard epubs[endpoint] == nil else {
+        guard pubBoxes[endpoint] == nil else {
             log(level: .error, "\(endpoint) is already in use.")
-            throw EpubServerError.usedEndpoint
+            throw PublicationServerError.usedEndpoint
         }
         guard let baseUrl = baseUrl else {
             log(level: .error, "Base URL is nil.")
-            throw EpubServerError.nilBaseUrl
+            throw PublicationServerError.nilBaseUrl
         }
 
         // Add the self link to the publication.
         publication.addSelfLink(endpoint: endpoint, for: baseUrl)
-        // Add the Epub to the epub dictionnary.
-        epubs[endpoint] = (publication, container)
+        // Add the Publication to the publication boxes dictionnary.
+        pubBoxes[endpoint] = (publication, container)
 
-        // Initialize the Fetcher
+        // Initialize the Fetcher.
         do {
-            fetcher = try EpubFetcher(publication: publication, container: container)
+            fetcher = try Fetcher(publication: publication, container: container)
         } catch {
             log(level: .error, "Fetcher initialisation failed.")
-            throw EpubServerError.epubFetcher(underlyingError: error)
+            throw PublicationServerError.epubFetcher(underlyingError: error)
         }
 
-        /// Webserver HTTP GET ressources request handler
+        /// Webserver HTTP GET ressources request handler.
         func ressourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
             let response: GCDWebServerResponse
 
@@ -135,12 +135,11 @@ open class EpubServer {
                 log(level: .error, "The request's path to the ressource is empty.")
                 return GCDWebServerErrorResponse(statusCode: 500)
             }
-            logValue(level: .debug, path)
-            // Remove the prefix from the URI
+            // Remove the prefix from the URI.
             let relativePath = path.substring(from: path.index(endpoint.endIndex, offsetBy: 3))
             let resource = publication.resource(withRelativePath: relativePath)
             let contentType = resource?.typeLink ?? "application/octet-stream"
-            // Get a data input stream from the fetcher
+            // Get a data input stream from the fetcher.
             do {
                 let dataStream = try fetcher.dataStream(forRelativePath: relativePath)
                 let range = request.hasByteRange() ? request.byteRange : nil
@@ -148,10 +147,10 @@ open class EpubServer {
                 response = WebServerResourceResponse(inputStream: dataStream,
                                                      range: range,
                                                      contentType: contentType)
-            } catch EpubFetcherError.missingFile {
+            } catch FetcherError.missingFile {
                 log(level: .error, "File not found, couldn't create stream.")
                 response = GCDWebServerErrorResponse(statusCode: 404)
-            } catch EpubFetcherError.container {
+            } catch FetcherError.container {
                 log(level: .error, "Error while getting data stream from container.")
                 response = GCDWebServerErrorResponse(statusCode: 500)
             } catch {
@@ -196,18 +195,18 @@ open class EpubServer {
         //
         //         return GCDWebServerDataResponse()
         //         })
-        log(level: .info, "Epub at \(endpoint) has been successfully added.")
+        log(level: .info, "Publication at \(endpoint) has been successfully added.")
     }
 
-    /// Remove an EPUB container from the server.
+    /// Remove a publication from the server.
     ///
     /// - Parameter endpoint: The URI postfix of the ressource.
-    public func removeEpub(at endpoint: String) {
-        guard epubs[endpoint] != nil else {
+    public func remove(at endpoint: String) {
+        guard pubBoxes[endpoint] != nil else {
             log(level: .warning, "Nothing at endpoint \(endpoint).")
             return
         }
-        epubs[endpoint] = nil
-        log(level: .info, "Epub at \(endpoint) has been successfully removed.")
+        pubBoxes[endpoint] = nil
+        log(level: .info, "Publication at \(endpoint) has been successfully removed.")
     }
 }

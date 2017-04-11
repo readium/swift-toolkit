@@ -8,12 +8,12 @@
 
 import Foundation
 
-/// Error throw by the `EpubFetcher`.
+/// Error throw by the `Fetcher`.
 ///
 /// - missingFile: The file is missing from the container.
 /// - container: An Container error occurred.
 /// - missingRootFile: The rootFile is missing from internalData
-public enum EpubFetcherError: Error {
+public enum FetcherError: Error {
     case missingFile(path: String)
 
     /// An Container error occurred, **underlyingError** thrown.
@@ -23,10 +23,10 @@ public enum EpubFetcherError: Error {
     case missingRootFile()
 }
 
-/// A EpubFetcher object lets you get the data from the assets in the EPUB
-/// container. It will fetch the data in the container and apply content filters
+/// The Fetcher object lets you get the data from the assets in the container.
+/// It will fetch the data in the container and apply content filters
 /// (decryption for example).
-internal class EpubFetcher {
+internal class Fetcher {
     
     /// The publication to fetch from
     internal let publication: Publication
@@ -49,9 +49,13 @@ internal class EpubFetcher {
         // Get the path of the directory of the rootFile, to access resources
         // relative to the rootFile
         guard let rootfilePath = publication.internalData["rootfile"] else {
-            throw EpubFetcherError.missingRootFile()
+            throw FetcherError.missingRootFile()
         }
-        rootFileDirectory = rootfilePath.deletingLastPathComponent()
+        if !rootfilePath.isEmpty {
+            rootFileDirectory = rootfilePath.deletingLastPathComponent
+        } else {
+            rootFileDirectory = ""
+        }
     }
 
     /// Gets all the data from an resource file in a publication's container.
@@ -61,15 +65,15 @@ internal class EpubFetcher {
     /// - Throws: `EpubFetcherError.missingFile`.
     internal func data(forRelativePath path: String) throws -> Data? {
         // Build the path relative to the container
-        let pubRelativePath = rootFileDirectory.appending(pathComponent: path)
+        let relativePath = rootFileDirectory.appending(pathComponent: path)
 
         // Get the link information from the publication
         guard publication.resource(withRelativePath: path) != nil else {
-            throw EpubFetcherError.missingFile(path: path)
+            throw FetcherError.missingFile(path: path)
         }
         // Get the data from the container
-        guard let data = try? container.data(relativePath: pubRelativePath) else {
-            throw EpubFetcherError.missingFile(path: pubRelativePath)
+        guard let data = try? container.data(relativePath: relativePath) else {
+            throw FetcherError.missingFile(path: relativePath)
         }
         // TODO: content filters
         return data
@@ -82,15 +86,15 @@ internal class EpubFetcher {
     /// - Throws: `EpubFetcherError.missingFile`.
     internal func dataLength(forRelativePath path: String) throws -> UInt64 {
         // Build the path relative to the container
-        let pubRelativePath = rootFileDirectory.appending(pathComponent: path)
+        let relativePath = rootFileDirectory.appending(pathComponent: path)
 
         // Get the link information from the publication
         guard let _ = publication.resource(withRelativePath: path) else {
-            throw EpubFetcherError.missingFile(path: path)
+            throw FetcherError.missingFile(path: path)
         }
         // Get the data length from the container
-        guard let length = try? container.dataLength(relativePath: pubRelativePath) else {
-            throw EpubFetcherError.missingFile(path: pubRelativePath)
+        guard let length = try? container.dataLength(relativePath: relativePath) else {
+            throw FetcherError.missingFile(path: relativePath)
         }
         return length
     }
@@ -102,18 +106,18 @@ internal class EpubFetcher {
     /// - Throws: `EpubFetcherError.missingFile`.
     internal func dataStream(forRelativePath path: String) throws -> SeekableInputStream {
         // Build the path relative to the container
-        let pubRelativePath = rootFileDirectory.appending(pathComponent: path)
+        let relativePath = rootFileDirectory.appending(pathComponent: path)
         let inputStream: SeekableInputStream
 
         // Get the link information from the publication
         guard let _ = publication.resource(withRelativePath: path) else {
-            throw EpubFetcherError.missingFile(path: path)
+            throw FetcherError.missingFile(path: path)
         }
         // Get an input stream from the container
         do {
-            inputStream = try container.dataInputStream(relativePath: pubRelativePath)
+            inputStream = try container.dataInputStream(relativePath: relativePath)
         } catch {
-            throw EpubFetcherError.container(underlyingError: error)
+            throw FetcherError.container(underlyingError: error)
         }
         // TODO: content filters
         return inputStream
