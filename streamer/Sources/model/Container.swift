@@ -69,7 +69,7 @@ protocol EpubContainer: Container {
     /// - Returns: The generated document.
     /// - Throws: `ContainerError.missingFile`,
     ///           `ContainerError.xmlParse`.
-    func xmlDocument(ForFileAtRelativePath path: String) throws -> AEXMLDocument
+    func xmlDocument(forFileAtRelativePath path: String) throws -> AEXMLDocument
 
     /// Return a XML Document representing the file referenced by `link`.
     ///
@@ -89,7 +89,7 @@ extension EpubContainer {
     /// - Returns: The generated document.
     /// - Throws: `ContainerError.missingFile`,
     ///           `ContainerError.xmlParse`.
-    public func xmlDocument(ForFileAtRelativePath path: String) throws -> AEXMLDocument {
+    public func xmlDocument(forFileAtRelativePath path: String) throws -> AEXMLDocument {
         // The 'to be built' XML Document
         var document: AEXMLDocument
 
@@ -126,7 +126,7 @@ extension EpubContainer {
         let relativeFilePath = rootDirPath.appending(pathComponent: href)
         // Generate the document for the ressource at relativeFilePath.
         do {
-            document = try xmlDocument(ForFileAtRelativePath: relativeFilePath)
+            document = try xmlDocument(forFileAtRelativePath: relativeFilePath)
         } catch {
             throw ContainerError.xmlParse(underlyingError: error)
         }
