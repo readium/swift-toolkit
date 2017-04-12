@@ -16,14 +16,14 @@ import ObjectMapper
 public class Publication {
     
     /// The epubVersion of the publication
-    public var epubVersion: Double!
+    public var epubVersion: Double! // Tofix: epub and publication not related
     /// The metadata (title, identifier, contributors, etc.).
     public var metadata: Metadata!
     public var links = [Link]()
     public var spine = [Link]()
     /// The resources, not including the links already present in the spine.
     public var resources = [Link]()
-    /// <=> TOC, pageList, landmarks && <=> LOI, LOT | (LOA, LOV [?])
+    /// TOC
     public var tableOfContents = [Link]()
     public var landmarks = [Link]()
     public var listOfAudioFiles = [Link]()

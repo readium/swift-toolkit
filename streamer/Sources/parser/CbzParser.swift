@@ -12,12 +12,16 @@ public enum CbzParserError: Error {
     case missingFile(path: String)
 }
 
+/// CBZ related constants.
+public struct CbzConstant {
+    static let mimetype = "application/x-cbr"
+}
+
 public enum MediaType: String {
     case jpeg = "image/jpeg"
     case png = "image/png"
     case invalid = ""
 }
-
 
 /// CBZ format parser.
 public class CbzParser: PublicationParser {

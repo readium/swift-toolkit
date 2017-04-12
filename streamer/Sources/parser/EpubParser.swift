@@ -11,7 +11,6 @@ import AEXML
 
 /// Epub related constants.
 public struct EpubConstant {
-
     /// Default EPUB Version value, used when no version hes been specified.
     /// (see OPF_2.0.1_draft 1.3.2).
     static let defaultEpubVersion = 1.2
@@ -20,8 +19,8 @@ public struct EpubConstant {
     /// Path of the EPUB's ecryption file.
     static let encryptionDotXmlPath = "META-INF/encryption.xml"
     /// Epub mime-type.
-    static let mimetypeEPUB = "application/epub+zip"
-    /// http://www.idpf.org/oebps/
+    static let mimetype = "application/epub+zip"
+    /// http://www.idpf.org/oebps/ (Legacy)
     static let mimetypeOEBPS = "application/oebps-package+xml"
     /// Media Overlays URL.
     static let mediaOverlayURL = "media-overlay?resource="
@@ -84,7 +83,7 @@ public class EpubParser: PublicationParser {
         // + check if mimetype's valid.
         guard let mimeTypeData = try? container.data(relativePath: "mimetype"),
             let mimetype = String(data: mimeTypeData, encoding: .ascii),
-            mimetype == EpubConstant.mimetypeEPUB else {
+            mimetype == EpubConstant.mimetype else {
                 throw EpubParserError.wrongMimeType
         }
         container.rootFile.mimetype = mimetype
@@ -110,12 +109,13 @@ public class EpubParser: PublicationParser {
 
     // MARK: - Internal Methods.
 
-    /// <#Description#>
+    /// Parse the Encryption.xml EPUB file. It contains the informationg about
+    /// encrypted resources and how to decrypt them
     ///
     /// - Parameters:
-    ///   - container: <#container description#>
-    ///   - publication: <#publication description#>
-    /// - Throws: <#throws value description#>
+    ///   - container: The EPUB Container.
+    ///   - publication: The Publication.
+    /// - Throws: 
     internal func parseEncryption(from container: EpubContainer, to publication: inout Publication) throws {
         // Get the XML object for encryption.xml.
         let document: AEXMLDocument

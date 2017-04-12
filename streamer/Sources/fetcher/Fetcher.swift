@@ -15,37 +15,34 @@ import Foundation
 /// - missingRootFile: The rootFile is missing from internalData
 public enum FetcherError: Error {
     case missingFile(path: String)
-
     /// An Container error occurred, **underlyingError** thrown.
     case container(underlyingError: Error)
-
     /// No rootFile in internalData, unable to get path to publication
     case missingRootFile()
+    /// The mimetype of the container is empty.
+    case missingContainerMimetype()
 }
+
 
 /// The Fetcher object lets you get the data from the assets in the container.
 /// It will fetch the data in the container and apply content filters
 /// (decryption for example).
-internal class Fetcher {
-    
-    /// The publication to fetch from
-    internal let publication: Publication
-    
-    /// The container to access the resources from
-    internal let container: Container
-    
-    /// The relative path to the directory holding the resources in the container
-    internal let rootFileDirectory: String
-    
-    // TODO: Content filters
-    //var contentFilters: [ContentFilter]
 
-    // MARK: - Internal methods
+// Default implementation.
+internal class Fetcher {
+    /// The publication to fetch from
+    let publication: Publication
+    /// The container to access the resources from
+    let container: Container
+    /// The relative path to the directory holding the resources in the container
+    let rootFileDirectory: String
+    /// The content filter.
+    let contentFilters: ContentFilters!
 
     internal init(publication: Publication, container: Container) throws {
         self.container = container
         self.publication = publication
-        
+
         // Get the path of the directory of the rootFile, to access resources
         // relative to the rootFile
         guard let rootfilePath = publication.internalData["rootfile"] else {
@@ -56,6 +53,7 @@ internal class Fetcher {
         } else {
             rootFileDirectory = ""
         }
+        contentFilters = try Fetcher.getContentFilters(forMimeType: container.rootFile.mimetype)
     }
 
     /// Gets all the data from an resource file in a publication's container.
@@ -75,8 +73,7 @@ internal class Fetcher {
         guard let data = try? container.data(relativePath: relativePath) else {
             throw FetcherError.missingFile(path: relativePath)
         }
-        // TODO: content filters
-        return data
+        return try contentFilters.apply(to: data, at: relativePath)
     }
 
     /// Get the total length of the data in an resource file.
@@ -119,7 +116,29 @@ internal class Fetcher {
         } catch {
             throw FetcherError.container(underlyingError: error)
         }
-        // TODO: content filters
-        return inputStream
+        return try contentFilters.apply(to: inputStream, at: relativePath)
+    }
+
+    /// Return the right ContentFilter subclass instance depending of the mime
+    /// type.
+    ///
+    /// - Parameter mimeType: The mimetype string.
+    /// - Returns: The corresponding ContentFilters subclass.
+    /// - Throws: In case the mimetype is nil or invalid, throws a
+    ///           `FetcherError.missingContainerMimetype`
+    static func getContentFilters(forMimeType mimeType: String?) throws -> ContentFilters {
+        guard let mimeType = mimeType else {
+            throw FetcherError.missingContainerMimetype()
+        }
+        switch mimeType {
+        case EpubConstant.mimetype :
+            return ContentFiltersEpub()
+        case EpubConstant.mimetypeOEBPS :
+            return ContentFiltersEpub()
+        case CbzConstant.mimetype :
+            return ContentFiltersCbz()
+        default:
+            throw FetcherError.missingContainerMimetype()
+        }
     }
 }

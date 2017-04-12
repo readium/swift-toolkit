@@ -24,7 +24,7 @@ public class ContainerCbz: CbzContainer, ZipArchiveContainer {
         guard let arc = ZipArchive(url: URL(fileURLWithPath: path)) else {
             return nil
         }
-        rootFile = RootFile.init(rootPath: path, mimetype: "application/x-cbz")
+        rootFile = RootFile.init(rootPath: path, mimetype: CbzConstant.mimetype)
         zipArchive = arc
         /// Generate file list.
         do {

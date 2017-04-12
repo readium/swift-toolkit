@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		59501DD71E2FB0D700D1B4BF /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501DCD1E2FB0D700D1B4BF /* R2Streamer.framework */; };
 		59501DDE1E2FB0D700D1B4BF /* R2Streamer.h in Headers */ = {isa = PBXBuildFile; fileRef = 59501DD01E2FB0D700D1B4BF /* R2Streamer.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		59501E031E2FB16600D1B4BF /* EpubFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DE81E2FB16600D1B4BF /* EpubFetcher.swift */; };
+		59501E031E2FB16600D1B4BF /* Fetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DE81E2FB16600D1B4BF /* Fetcher.swift */; };
 		59501E041E2FB16600D1B4BF /* Container.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DEA1E2FB16600D1B4BF /* Container.swift */; };
 		59501E051E2FB16600D1B4BF /* Publication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DEB1E2FB16600D1B4BF /* Publication.swift */; };
 		59501E061E2FB16600D1B4BF /* EpubParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DED1E2FB16600D1B4BF /* EpubParser.swift */; };
@@ -63,6 +63,7 @@
 		F3B8F01E1E9D117D0052D64B /* Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B8F01D1E9D117D0052D64B /* Encryption.swift */; };
 		F3B8F0201E9D13290052D64B /* Properties.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B8F01F1E9D13290052D64B /* Properties.swift */; };
 		F3B8F0221E9E244B0052D64B /* EncryptionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B8F0211E9E244B0052D64B /* EncryptionParser.swift */; };
+		F3B8F0241E9E62A50052D64B /* ContentFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B8F0231E9E62A50052D64B /* ContentFilter.swift */; };
 		F3D434241E8E9DA5008C379E /* CbzParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D434231E8E9DA5008C379E /* CbzParser.swift */; };
 		F3D434261E8E9ED0008C379E /* ContainerCbz.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D434251E8E9ED0008C379E /* ContainerCbz.swift */; };
 		F3DE1D861E6971A800D05F74 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E181E2FB1F500D1B4BF /* AEXML.framework */; };
@@ -107,7 +108,7 @@
 		59501DD11E2FB0D700D1B4BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		59501DD61E2FB0D700D1B4BF /* R2StreamerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = R2StreamerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		59501DDD1E2FB0D700D1B4BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		59501DE81E2FB16600D1B4BF /* EpubFetcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpubFetcher.swift; sourceTree = "<group>"; };
+		59501DE81E2FB16600D1B4BF /* Fetcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Fetcher.swift; sourceTree = "<group>"; };
 		59501DEA1E2FB16600D1B4BF /* Container.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Container.swift; sourceTree = "<group>"; };
 		59501DEB1E2FB16600D1B4BF /* Publication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Publication.swift; sourceTree = "<group>"; };
 		59501DED1E2FB16600D1B4BF /* EpubParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpubParser.swift; sourceTree = "<group>"; };
@@ -159,6 +160,7 @@
 		F3B8F01D1E9D117D0052D64B /* Encryption.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Encryption.swift; path = Sources/model/Encryption.swift; sourceTree = SOURCE_ROOT; };
 		F3B8F01F1E9D13290052D64B /* Properties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Properties.swift; sourceTree = "<group>"; };
 		F3B8F0211E9E244B0052D64B /* EncryptionParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = EncryptionParser.swift; path = Sources/parser/EncryptionParser.swift; sourceTree = SOURCE_ROOT; };
+		F3B8F0231E9E62A50052D64B /* ContentFilter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContentFilter.swift; path = Sources/fetcher/ContentFilter.swift; sourceTree = SOURCE_ROOT; };
 		F3D434231E8E9DA5008C379E /* CbzParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CbzParser.swift; path = Sources/parser/CbzParser.swift; sourceTree = SOURCE_ROOT; };
 		F3D434251E8E9ED0008C379E /* ContainerCbz.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContainerCbz.swift; path = Sources/model/ContainerCbz.swift; sourceTree = SOURCE_ROOT; };
 		F3DE1D891E69757100D05F74 /* EpubParsingTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpubParsingTest.swift; sourceTree = "<group>"; };
@@ -249,7 +251,8 @@
 		59501DE71E2FB16600D1B4BF /* Fetcher */ = {
 			isa = PBXGroup;
 			children = (
-				59501DE81E2FB16600D1B4BF /* EpubFetcher.swift */,
+				59501DE81E2FB16600D1B4BF /* Fetcher.swift */,
+				F3B8F0231E9E62A50052D64B /* ContentFilter.swift */,
 			);
 			name = Fetcher;
 			path = Sources/Fetcher;
@@ -600,8 +603,9 @@
 				F3AF6BFD1E57285700D90E5A /* Subject.swift in Sources */,
 				59501E151E2FB16600D1B4BF /* ZipArchive.swift in Sources */,
 				F3B8F01C1E9CD76A0052D64B /* SMILParser.swift in Sources */,
+				F3B8F0241E9E62A50052D64B /* ContentFilter.swift in Sources */,
 				F3098E731E7BFF9B002358A1 /* NavigationDocumentParser.swift in Sources */,
-				59501E031E2FB16600D1B4BF /* EpubFetcher.swift in Sources */,
+				59501E031E2FB16600D1B4BF /* Fetcher.swift in Sources */,
 				F3E6A2D81E70113600BBD81C /* LoggerStub.swift in Sources */,
 				59501E161E2FB16600D1B4BF /* ZipError.swift in Sources */,
 				F3DEE6E21E5C5A53007FE63D /* OPFParser.swift in Sources */,
