@@ -64,7 +64,7 @@ public class Publication {
 
     // Mark: - Public methods.
 
-    /// Finds a resource (asset or spine item) with a matching relative path
+    /// Finds a resource (asset or spine item) with a matching relative path.
     ///
     /// - Parameter path: The relative path to match
     /// - Returns: a link with its `href` equal to the path if any was found,

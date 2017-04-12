@@ -51,9 +51,10 @@ extension EpubParser: Loggable {}
 /// An EPUB container parser that extracts the information from the relevant
 /// files and builds a `Publication` instance with it.
 public class EpubParser: PublicationParser {
-    public let opfp: OPFParser!
-    public let ndp: NavigationDocumentParser!
-    public let ncxp: NCXParser!
+    internal let opfp: OPFParser!
+    internal let ndp: NavigationDocumentParser!
+    internal let ncxp: NCXParser!
+    internal let encp: EncryptionParser!
 
     // TODO: multiple renditions
 
@@ -63,6 +64,7 @@ public class EpubParser: PublicationParser {
         opfp = OPFParser()
         ndp = NavigationDocumentParser()
         ncxp = NCXParser()
+        encp = EncryptionParser()
     }
 
     /// Parses the EPUB (file/directory) at `fileAtPath` and generate
@@ -108,10 +110,20 @@ public class EpubParser: PublicationParser {
 
     // MARK: - Internal Methods.
 
+    /// <#Description#>
+    ///
+    /// - Parameters:
+    ///   - container: <#container description#>
+    ///   - publication: <#publication description#>
+    /// - Throws: <#throws value description#>
     internal func parseEncryption(from container: EpubContainer, to publication: inout Publication) throws {
         // Get the XML object for encryption.xml.
-        guard let document = try? container.xmlDocument(forFileAtRelativePath: EpubConstant.encryptionDotXmlPath) else {
-            log(level: .info, "No encryption.xml file in publication.")
+        let document: AEXMLDocument
+        
+        do {
+            document = try container.xmlDocument(forFileAtRelativePath: EpubConstant.encryptionDotXmlPath)
+        } catch {
+            log(level: .error, "Can't open Encryption file\(error.localizedDescription) (\(error))")
             return
         }
         guard let encryptedDataElements = document["encryption"]["EncryptedData"].all else {
@@ -121,28 +133,14 @@ public class EpubParser: PublicationParser {
         // Loop through <EncryptedData> elements..
         for encryptedDataElement in encryptedDataElements {
             var encryption = Encryption()
-            let encryptionProperties = 
 
             encryption.algorithm = encryptedDataElement["EncryptionMethod"].attributes["Algorithm"]
-            // TODO: LCP encryption. Profile/Scheme
-
-
-//            if len(encInfo.EncryptionProperties) > 0 {
-//                for _, prop := range encInfo.EncryptionProperties {
-//                    if prop.Compression.OriginalLength != "" {
-//                        encrypted.OriginalLength, _ = strconv.Atoi(prop.Compression.OriginalLength)
-//                        if prop.Compression.Method == "8" {
-//                            encrypted.Compression = "deflate"
-//                        } else {
-//                            encrypted.Compression = "none"
-//                        }
-//                    }
-//                }
-//            }
+            // TODO: LCP encryption. Profile/Scheme if lcp.id != nil
+            encp.parseEncryptionProperties(from: encryptedDataElement, to: &encryption)
+            encp.add(encryption: encryption, toLinkInPublication: &publication,
+                     encryptedDataElement)
         }
-
-
-
+        // TODO: LCP
     }
 
     /// Attempt to fill `Publication.tableOfContent`/`.landmarks`/`.pageList`/

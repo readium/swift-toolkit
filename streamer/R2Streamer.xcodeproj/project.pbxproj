@@ -62,6 +62,7 @@
 		F3B8F01C1E9CD76A0052D64B /* SMILParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B8F01B1E9CD76A0052D64B /* SMILParser.swift */; };
 		F3B8F01E1E9D117D0052D64B /* Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B8F01D1E9D117D0052D64B /* Encryption.swift */; };
 		F3B8F0201E9D13290052D64B /* Properties.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B8F01F1E9D13290052D64B /* Properties.swift */; };
+		F3B8F0221E9E244B0052D64B /* EncryptionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B8F0211E9E244B0052D64B /* EncryptionParser.swift */; };
 		F3D434241E8E9DA5008C379E /* CbzParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D434231E8E9DA5008C379E /* CbzParser.swift */; };
 		F3D434261E8E9ED0008C379E /* ContainerCbz.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D434251E8E9ED0008C379E /* ContainerCbz.swift */; };
 		F3DE1D861E6971A800D05F74 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E181E2FB1F500D1B4BF /* AEXML.framework */; };
@@ -157,6 +158,7 @@
 		F3B8F01B1E9CD76A0052D64B /* SMILParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SMILParser.swift; sourceTree = "<group>"; };
 		F3B8F01D1E9D117D0052D64B /* Encryption.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Encryption.swift; path = Sources/model/Encryption.swift; sourceTree = SOURCE_ROOT; };
 		F3B8F01F1E9D13290052D64B /* Properties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Properties.swift; sourceTree = "<group>"; };
+		F3B8F0211E9E244B0052D64B /* EncryptionParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = EncryptionParser.swift; path = Sources/parser/EncryptionParser.swift; sourceTree = SOURCE_ROOT; };
 		F3D434231E8E9DA5008C379E /* CbzParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CbzParser.swift; path = Sources/parser/CbzParser.swift; sourceTree = SOURCE_ROOT; };
 		F3D434251E8E9ED0008C379E /* ContainerCbz.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContainerCbz.swift; path = Sources/model/ContainerCbz.swift; sourceTree = SOURCE_ROOT; };
 		F3DE1D891E69757100D05F74 /* EpubParsingTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpubParsingTest.swift; sourceTree = "<group>"; };
@@ -400,6 +402,7 @@
 				F3098E701E7BFF87002358A1 /* NCXParser.swift */,
 				F3098E721E7BFF9B002358A1 /* NavigationDocumentParser.swift */,
 				F3B8F01B1E9CD76A0052D64B /* SMILParser.swift */,
+				F3B8F0211E9E244B0052D64B /* EncryptionParser.swift */,
 			);
 			name = EpubParserSubClasses;
 			sourceTree = "<group>";
@@ -586,6 +589,7 @@
 				F3B8F0201E9D13290052D64B /* Properties.swift in Sources */,
 				F3D434261E8E9ED0008C379E /* ContainerCbz.swift in Sources */,
 				59501E091E2FB16600D1B4BF /* WebServerResourceResponse.swift in Sources */,
+				F3B8F0221E9E244B0052D64B /* EncryptionParser.swift in Sources */,
 				59501E081E2FB16600D1B4BF /* PublicationServer.swift in Sources */,
 				F3770CD41E8CE92E009BBA4D /* MultilangString.swift in Sources */,
 				59501E0B1E2FB16600D1B4BF /* Seekable.swift in Sources */,

@@ -264,7 +264,7 @@ public class OPFParser {
                 link.rel.append("cover")
             }
             let otherProperties = properties.filter { $0 != "cover-image" && $0 != "nav" }
-            link.properties.mediaOverlay.append(contentsOf: otherProperties)
+            link.properties.contains.append(contentsOf: otherProperties)
             // TODO: rendition properties
         }
         return link

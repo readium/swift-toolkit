@@ -20,22 +20,24 @@ public struct Properties {
     public var page: String?
     public var spread: String?
     public var encryption: Encryption?
-
-    init() {}
 }
-
-extension Properties: Mappable {
-
-    public init?(map: Map) {}
-
-    public mutating func mapping(map: Map) {
-        contains <- map["contains", ignoreNil: true]
-        layout <- map["layout", ignoreNil: true]
-        mediaOverlay <- map["mediaOverlay", ignoreNil: true]
-        orientation <- map["orientation", ignoreNil: true]
-        overflow <- map["overflow", ignoreNil: true]
-        page <- map["page", ignoreNil: true]
-        spread <- map["spread", ignoreNil: true]
-        encryption <- map["encryption", ignoreNil: true]
-    }    
-}
+//
+//extension Properties: Mappable {
+//
+//    public init?(map: Map) {}
+//
+//    public mutating func mapping(map: Map) {
+//        if !contains.isEmpty {
+//            contains <- map["contains", ignoreNil: true]
+//        }
+//        layout <- map["layout", ignoreNil: true]
+//        if !mediaOverlay.isEmpty {
+//            mediaOverlay <- map["mediaOverlay", ignoreNil: true]
+//        }
+//        orientation <- map["orientation", ignoreNil: true]
+//        overflow <- map["overflow", ignoreNil: true]
+//        page <- map["page", ignoreNil: true]
+//        spread <- map["spread", ignoreNil: true]
+//        encryption <- map["encryption", ignoreNil: true]
+//    }    
+//}

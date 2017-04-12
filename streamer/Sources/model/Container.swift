@@ -87,22 +87,12 @@ extension EpubContainer {
     ///
     /// - Parameter path: The 'container relative' path to the ressource.
     /// - Returns: The generated document.
-    /// - Throws: `ContainerError.missingFile`,
-    ///           `ContainerError.xmlParse`.
+    /// - Throws: ZipArchive and AEXML errors.
     public func xmlDocument(forFileAtRelativePath path: String) throws -> AEXMLDocument {
-        // The 'to be built' XML Document
-        var document: AEXMLDocument
-
-        // Get `Data` from the Container/OPFFile
-        guard let data = try? data(relativePath: path) else {
-            throw ContainerError.missingFile(path: path)
-        }
+        // Get `Data` from the Container.
+        let containerData = try data(relativePath: path)
         // Transforms `Data` into an AEXML Document object
-        do {
-            document = try AEXMLDocument(xml: data)
-        } catch {
-            throw ContainerError.xmlParse(underlyingError: error)
-        }
+        let document = try AEXMLDocument(xml: containerData)
         return document
     }
 
@@ -112,9 +102,8 @@ extension EpubContainer {
     ///   - link: The `Link` to the ressource from the manifest.
     ///   - container: The epub container.
     /// - Returns: The XML Document.
+    /// - Throws: `ContainerError.missingLink()`, AEXML and ZipArchive errors.
     public func xmlDocument(forRessourceReferencedByLink link: Link?) throws -> AEXMLDocument {
-        // The `to be generated` document.
-        var document: AEXMLDocument
         // Path to the rootDir
         let rootDirPath = rootFile.rootFilePath.deletingLastPathComponent
 
@@ -125,11 +114,7 @@ extension EpubContainer {
         // Generate the relative path to the ressource pointed to by `link`.
         let relativeFilePath = rootDirPath.appending(pathComponent: href)
         // Generate the document for the ressource at relativeFilePath.
-        do {
-            document = try xmlDocument(forFileAtRelativePath: relativeFilePath)
-        } catch {
-            throw ContainerError.xmlParse(underlyingError: error)
-        }
+        let document = try xmlDocument(forFileAtRelativePath: relativeFilePath)
         return document
     }
 
