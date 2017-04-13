@@ -53,9 +53,7 @@ extension Link: Mappable {
             properties.contains <- map["properties.contains", ignoreNil: true]
         }
         properties.layout <- map["properties.layout", ignoreNil: true]
-        if !properties.mediaOverlay.isEmpty {
-            properties.mediaOverlay <- map["properties.mediaOverlay", ignoreNil: true]
-        }
+        properties.mediaOverlay <- map["properties.mediaOverlay", ignoreNil: true]
         properties.orientation <- map["properties.orientation", ignoreNil: true]
         properties.overflow <- map["properties.overflow", ignoreNil: true]
         properties.page <- map["properties.page", ignoreNil: true]

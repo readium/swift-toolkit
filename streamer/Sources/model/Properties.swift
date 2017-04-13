@@ -14,7 +14,7 @@ import ObjectMapper
 public struct Properties {
     public var contains = [String]()
     public var layout: String?
-    public var mediaOverlay = [String]()
+    public var mediaOverlay: String?
     public var orientation: String?
     public var overflow: String?
     public var page: String?

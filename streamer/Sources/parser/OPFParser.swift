@@ -219,7 +219,6 @@ public class OPFParser {
             smilp.parseParameters(in: body, withParent: node)
             smilp.parseSequences(in: body, withParent: node, publicationSpine: &publication.spine)
             // "../xhtml/mo-002.xhtml#mo-1" => "../xhtml/mo-002.xhtml"
-
             guard let baseHref = node.text?.components(separatedBy: "#")[0],
                 let link = publication.spine.first(where: {
                 guard let linkRef = $0.href else {
@@ -230,7 +229,7 @@ public class OPFParser {
                 continue
             }
             link.mediaOverlays.append(node)
-            link.properties.mediaOverlay.append(EpubConstant.mediaOverlayURL + link.href!)
+            link.properties.mediaOverlay = EpubConstant.mediaOverlayURL + link.href!
         }
     }
 

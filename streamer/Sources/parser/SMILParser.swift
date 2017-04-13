@@ -55,7 +55,7 @@ internal class SMILParser {
                 continue
             }
             link.mediaOverlays.append(newNode)
-            link.properties.mediaOverlay.append(EpubConstant.mediaOverlayURL + link.href!)
+            link.properties.mediaOverlay = EpubConstant.mediaOverlayURL + link.href!
         }
     }
 
