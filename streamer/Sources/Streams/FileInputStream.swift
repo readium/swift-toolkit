@@ -94,7 +94,6 @@ open class FileInputStream: SeekableInputStream {
             return nil
         }
         _length = fileSize
-        super.init()
     }
 
     // MARK: - Open methods.

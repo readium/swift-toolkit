@@ -33,6 +33,17 @@ public class Link {
     }
 
     public required init?(map: Map) {}
+
+    /// Check wether a link's resource is encrypted by checking is 
+    /// properties.encrypted is set.
+    ///
+    /// - Returns: True if encrypted.
+    fileprivate func isEncrypted() -> Bool {
+        guard let properties = properties, let _ = properties.encryption else {
+            return false
+        }
+        return true
+    }
 }
 
 extension Link: Mappable {

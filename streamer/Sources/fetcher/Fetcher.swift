@@ -73,7 +73,33 @@ internal class Fetcher {
         guard let data = try? container.data(relativePath: relativePath) else {
             throw FetcherError.missingFile(path: relativePath)
         }
-        return try contentFilters.apply(to: data, at: relativePath)
+//        try contentFilters.apply(to: data, of: publication, at: relativePath)
+        return data
+    }
+
+    /// Get an input stream with the data of the resource.
+    ///
+    /// - Parameter path: The relative path to the asset in the publication.
+    /// - Returns: A seekable input stream with the decrypted data if the resource.
+    /// - Throws: `EpubFetcherError.missingFile`.
+    internal func dataStream(forRelativePath path: String) throws -> SeekableInputStream {
+        // Build the path relative to the container
+        let relativePath = rootFileDirectory.appending(pathComponent: path)
+        var inputStream: SeekableInputStream
+
+        // Get the link information from the publication
+        guard let _ = publication.resource(withRelativePath: path) else {
+            throw FetcherError.missingFile(path: path)
+        }
+        // Get an input stream from the container
+        do {
+            inputStream = try container.dataInputStream(relativePath: relativePath)
+        } catch {
+            throw FetcherError.container(underlyingError: error)
+        }
+        // Apply content filters to inputStream data.
+        inputStream = try contentFilters.apply(to: inputStream, of: publication, at: relativePath)
+        return inputStream
     }
 
     /// Get the total length of the data in an resource file.
@@ -94,29 +120,6 @@ internal class Fetcher {
             throw FetcherError.missingFile(path: relativePath)
         }
         return length
-    }
-
-    /// Get an input stream with the data of the resource.
-    ///
-    /// - Parameter path: The relative path to the asset in the publication.
-    /// - Returns: A seekable input stream with the decrypted data if the resource.
-    /// - Throws: `EpubFetcherError.missingFile`.
-    internal func dataStream(forRelativePath path: String) throws -> SeekableInputStream {
-        // Build the path relative to the container
-        let relativePath = rootFileDirectory.appending(pathComponent: path)
-        let inputStream: SeekableInputStream
-
-        // Get the link information from the publication
-        guard let _ = publication.resource(withRelativePath: path) else {
-            throw FetcherError.missingFile(path: path)
-        }
-        // Get an input stream from the container
-        do {
-            inputStream = try container.dataInputStream(relativePath: relativePath)
-        } catch {
-            throw FetcherError.container(underlyingError: error)
-        }
-        return try contentFilters.apply(to: inputStream, at: relativePath)
     }
 
     /// Return the right ContentFilter subclass instance depending of the mime

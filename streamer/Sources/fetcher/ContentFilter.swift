@@ -8,31 +8,47 @@
 
 import Foundation
 
+/// Protocol defining the content filters. They are implemented below and used
+/// in the fetcher. They come in different flavors depending of the container
+/// data mimetype.
 internal protocol ContentFilters {
+    var decoder: Decoder! { get set }
 
     init()
 
-    func apply(to data: Data, at path: String) throws -> Data
-
-    func apply(to inputStream: SeekableInputStream, at path: String) throws -> SeekableInputStream
+    func apply(to input: SeekableInputStream, of publication: Publication, at path: String) throws -> SeekableInputStream
 }
-// Default implementation
+// Default implementation. Do nothing.
 internal extension ContentFilters {
 
-    internal func apply(to data: Data, at path: String) throws -> Data {
+    internal func apply(to input: SeekableInputStream,
+                        of publication: Publication, at path: String) throws -> SeekableInputStream {
+        // Do nothing.
+        return input
+    }
+}
+
+/// Content filter specialization for EPUB.
+internal class ContentFiltersEpub: ContentFilters {
+    var decoder: Decoder!
+
+    required init() {
+        decoder = Decoder()
+    }
+
+    internal func apply(to input: SeekableInputStream, of publication: Publication, at path: String) throws -> SeekableInputStream {
+        let data = decoder.decode(input, of: publication, at: path)
+        // var data
+        // other transformations...
         return data
     }
-
-    internal func apply(to inputStream: SeekableInputStream, at path: String) throws -> SeekableInputStream {
-        return inputStream
-    }
 }
 
-internal class ContentFiltersEpub: ContentFilters {
-    required init() {}
-    
-}
-
+/// Content filter specialization for CBZ.
 internal class ContentFiltersCbz: ContentFilters {
-    required init() {}
+    var decoder: Decoder!
+
+    required init() {
+        decoder = Decoder()
+    }
 }

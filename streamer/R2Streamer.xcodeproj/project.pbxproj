@@ -75,6 +75,7 @@
 		F3E0214F1E9277A80094CFF7 /* ContainerCbzDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E0214E1E9277A80094CFF7 /* ContainerCbzDirectory.swift */; };
 		F3E6A2D61E70111500BBD81C /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E6A2D51E70111500BBD81C /* Logger.swift */; };
 		F3E6A2D81E70113600BBD81C /* LoggerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E6A2D71E70113600BBD81C /* LoggerStub.swift */; };
+		F3ED92D61E9F702E00E15C8F /* Decoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3ED92D51E9F702E00E15C8F /* Decoder.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -169,6 +170,7 @@
 		F3E0214E1E9277A80094CFF7 /* ContainerCbzDirectory.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContainerCbzDirectory.swift; path = Sources/model/ContainerCbzDirectory.swift; sourceTree = SOURCE_ROOT; };
 		F3E6A2D51E70111500BBD81C /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		F3E6A2D71E70113600BBD81C /* LoggerStub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoggerStub.swift; sourceTree = "<group>"; };
+		F3ED92D51E9F702E00E15C8F /* Decoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Decoder.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -253,6 +255,7 @@
 			children = (
 				59501DE81E2FB16600D1B4BF /* Fetcher.swift */,
 				F3B8F0231E9E62A50052D64B /* ContentFilter.swift */,
+				F3ED92D51E9F702E00E15C8F /* Decoder.swift */,
 			);
 			name = Fetcher;
 			path = Sources/Fetcher;
@@ -292,8 +295,8 @@
 		59501DF21E2FB16600D1B4BF /* Streams */ = {
 			isa = PBXGroup;
 			children = (
-				59501DF31E2FB16600D1B4BF /* FileInputStream.swift */,
 				59501DF41E2FB16600D1B4BF /* Seekable.swift */,
+				59501DF31E2FB16600D1B4BF /* FileInputStream.swift */,
 				59501DF51E2FB16600D1B4BF /* ZipInputStream.swift */,
 			);
 			name = Streams;
@@ -368,9 +371,7 @@
 				59501DEB1E2FB16600D1B4BF /* Publication.swift */,
 				F351DB751E55E2BE00D84BDF /* Metadata.swift */,
 				F351DB781E55EDB600D84BDF /* MetadataTypes */,
-				F3AF6BF81E57275900D90E5A /* Link.swift */,
-				F3B8F01F1E9D13290052D64B /* Properties.swift */,
-				F3B8F01D1E9D117D0052D64B /* Encryption.swift */,
+				F3ED92D41E9F6F1300E15C8F /* Link */,
 				F3B8F01A1E9CD0FA0052D64B /* MediaOverlays */,
 			);
 			name = Publication;
@@ -418,6 +419,16 @@
 				F3E6A2D71E70113600BBD81C /* LoggerStub.swift */,
 			);
 			name = Logger;
+			sourceTree = "<group>";
+		};
+		F3ED92D41E9F6F1300E15C8F /* Link */ = {
+			isa = PBXGroup;
+			children = (
+				F3AF6BF81E57275900D90E5A /* Link.swift */,
+				F3B8F01F1E9D13290052D64B /* Properties.swift */,
+				F3B8F01D1E9D117D0052D64B /* Encryption.swift */,
+			);
+			name = Link;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -589,6 +600,7 @@
 				59501E0E1E2FB16600D1B4BF /* ioapi.c in Sources */,
 				F3B8F0191E9CC4B40052D64B /* MediaOverlays.swift in Sources */,
 				F34328271E82B12900E3C5F0 /* DateExtension.swift in Sources */,
+				F3ED92D61E9F702E00E15C8F /* Decoder.swift in Sources */,
 				F3B8F0201E9D13290052D64B /* Properties.swift in Sources */,
 				F3D434261E8E9ED0008C379E /* ContainerCbz.swift in Sources */,
 				59501E091E2FB16600D1B4BF /* WebServerResourceResponse.swift in Sources */,
