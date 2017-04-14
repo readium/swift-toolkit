@@ -50,8 +50,8 @@ open class SeekableInputStream: InputStream, Seekable {
         setProperty(offset, forKey: Stream.PropertyKey.fileCurrentOffsetKey)
         fatalError("This getter must be overriden")
     }
-    
-    init() {
-        super.init(data: Data())
+
+    public override init(data: Data = Data()) {
+        super.init(data: data)
     }
 }

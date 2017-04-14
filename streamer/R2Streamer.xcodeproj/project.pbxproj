@@ -76,6 +76,7 @@
 		F3E6A2D61E70111500BBD81C /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E6A2D51E70111500BBD81C /* Logger.swift */; };
 		F3E6A2D81E70113600BBD81C /* LoggerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E6A2D71E70113600BBD81C /* LoggerStub.swift */; };
 		F3ED92D61E9F702E00E15C8F /* Decoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3ED92D51E9F702E00E15C8F /* Decoder.swift */; };
+		F3ED92DA1EA0AF0000E15C8F /* DataInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3ED92D91EA0AF0000E15C8F /* DataInputStream.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -171,6 +172,7 @@
 		F3E6A2D51E70111500BBD81C /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		F3E6A2D71E70113600BBD81C /* LoggerStub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoggerStub.swift; sourceTree = "<group>"; };
 		F3ED92D51E9F702E00E15C8F /* Decoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Decoder.swift; sourceTree = "<group>"; };
+		F3ED92D91EA0AF0000E15C8F /* DataInputStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataInputStream.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -298,6 +300,7 @@
 				59501DF41E2FB16600D1B4BF /* Seekable.swift */,
 				59501DF31E2FB16600D1B4BF /* FileInputStream.swift */,
 				59501DF51E2FB16600D1B4BF /* ZipInputStream.swift */,
+				F3ED92D91EA0AF0000E15C8F /* DataInputStream.swift */,
 			);
 			name = Streams;
 			path = Sources/Streams;
@@ -627,6 +630,7 @@
 				59501E041E2FB16600D1B4BF /* Container.swift in Sources */,
 				F34510C41E9395B10071C12C /* MediaOverlayNode.swift in Sources */,
 				F3723DD51E69D91F0036A075 /* RootFile.swift in Sources */,
+				F3ED92DA1EA0AF0000E15C8F /* DataInputStream.swift in Sources */,
 				F36B18F41E64638E005E22B4 /* StringExtension.swift in Sources */,
 				F34510C21E938CAE0071C12C /* PublicationParser.swift in Sources */,
 				F3AF6BF91E57275900D90E5A /* Link.swift in Sources */,
