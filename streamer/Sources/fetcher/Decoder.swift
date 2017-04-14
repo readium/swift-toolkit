@@ -48,12 +48,26 @@ internal class Decoder {
     }
 
     fileprivate func decodeIdpfFont(_ input: SeekableInputStream, _ publication: Publication) -> SeekableInputStream {
-        //let key = getHashKey()
+        guard let publicationIdentifier = publication.metadata.identifier else {
+            log(level: .error, "Couldn't get the publication identifier")
+            return input
+        }
+        let key = getPublicationHashKey(fromIdentifier: publicationIdentifier)
+
+
         return input
     }
 
     fileprivate func decodeAbobeFont(_ input: SeekableInputStream, _ publication: Publication) -> SeekableInputStream {
         return input
+    }
+
+    fileprivate func getPublicationHashKey(fromIdentifier id: String) -> [UInt8] {
+        var keyString = id.replacingOccurrences(of: " ", with: "")
+
+        // Sha 1 keystring
+        // return sum
+        return [UInt8]()
     }
 
 }

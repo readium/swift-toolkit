@@ -36,11 +36,12 @@ internal class ContentFiltersEpub: ContentFilters {
         decoder = Decoder()
     }
 
-    internal func apply(to input: SeekableInputStream, of publication: Publication, at path: String) throws -> SeekableInputStream {
-        let data = decoder.decode(input, of: publication, at: path)
+    internal func apply(to input: SeekableInputStream,
+                        of publication: Publication, at path: String) throws -> SeekableInputStream {
+        let inputStream = decoder.decode(input, of: publication, at: path)
         // var data
         // other transformations...
-        return data
+        return inputStream
     }
 }
 
