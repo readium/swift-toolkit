@@ -33,7 +33,7 @@ internal class DataInputStream: SeekableInputStream {
             _streamStatus = .error
             return
         }
-            _offset = UInt64(offset)
+        _offset = UInt64(offset)
     }
 
     //
@@ -44,15 +44,39 @@ internal class DataInputStream: SeekableInputStream {
         super.init(data: data)
     }
 
+    // Mark - `InputStream` overrides
+
     /// The status of the fileHandle
-    private var _streamStatus: Stream.Status = .open
+    private var _streamStatus: Stream.Status = .notOpen
     override internal var streamStatus: Stream.Status {
         get {
             return _streamStatus
         }
     }
 
-    // Mark - `InputStream` overrides
+    /// to remove, useless.
+    private var _streamError: Error?
+    override internal var streamError: Error? {
+        get {
+            return _streamError
+        }
+    }
+
+    override internal var hasBytesAvailable: Bool {
+        get {
+            return offset < length
+        }
+    }
+
+    override internal func open() {
+        _streamStatus = .open
+    }
+
+    override internal func close() {
+        _offset = 0
+        _streamStatus = .notOpen
+    }
+
     override internal func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>,
                                      length len: UnsafeMutablePointer<Int>) -> Bool
     {
@@ -75,10 +99,4 @@ internal class DataInputStream: SeekableInputStream {
         return readSize
     }
     
-    override internal var hasBytesAvailable: Bool {
-        get {
-            return offset < length
-        }
-    }
-
 }

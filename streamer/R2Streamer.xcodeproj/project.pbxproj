@@ -77,6 +77,9 @@
 		F3E6A2D81E70113600BBD81C /* LoggerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E6A2D71E70113600BBD81C /* LoggerStub.swift */; };
 		F3ED92D61E9F702E00E15C8F /* Decoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3ED92D51E9F702E00E15C8F /* Decoder.swift */; };
 		F3ED92DA1EA0AF0000E15C8F /* DataInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3ED92D91EA0AF0000E15C8F /* DataInputStream.swift */; };
+		F3ED92DC1EA0C93F00E15C8F /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3ED92DB1EA0C93F00E15C8F /* CryptoSwift.framework */; };
+		F3ED92DD1EA0C9DD00E15C8F /* CryptoSwift.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = F3ED92DB1EA0C93F00E15C8F /* CryptoSwift.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		F3ED92DE1EA0C9E400E15C8F /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3ED92DB1EA0C93F00E15C8F /* CryptoSwift.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -96,6 +99,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				F3ED92DD1EA0C9DD00E15C8F /* CryptoSwift.framework in CopyFiles */,
 				F309BBE01E6970C30002F800 /* AEXML.framework in CopyFiles */,
 				F309BBE11E6970C30002F800 /* GCDWebServers.framework in CopyFiles */,
 				F309BBE21E6970C30002F800 /* ObjectMapper.framework in CopyFiles */,
@@ -173,6 +177,7 @@
 		F3E6A2D71E70113600BBD81C /* LoggerStub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoggerStub.swift; sourceTree = "<group>"; };
 		F3ED92D51E9F702E00E15C8F /* Decoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Decoder.swift; sourceTree = "<group>"; };
 		F3ED92D91EA0AF0000E15C8F /* DataInputStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataInputStream.swift; sourceTree = "<group>"; };
+		F3ED92DB1EA0C93F00E15C8F /* CryptoSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoSwift.framework; path = Carthage/Build/iOS/CryptoSwift.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -184,6 +189,7 @@
 				59501E1B1E2FB1F500D1B4BF /* AEXML.framework in Frameworks */,
 				59501E1C1E2FB1F500D1B4BF /* GCDWebServers.framework in Frameworks */,
 				59501E1D1E2FB1F500D1B4BF /* ObjectMapper.framework in Frameworks */,
+				F3ED92DC1EA0C93F00E15C8F /* CryptoSwift.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -195,6 +201,7 @@
 				F3DE1D861E6971A800D05F74 /* AEXML.framework in Frameworks */,
 				F3DE1D871E6971A800D05F74 /* GCDWebServers.framework in Frameworks */,
 				F3DE1D881E6971A800D05F74 /* ObjectMapper.framework in Frameworks */,
+				F3ED92DE1EA0C9E400E15C8F /* CryptoSwift.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -336,6 +343,7 @@
 		59501E171E2FB1F500D1B4BF /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				F3ED92DB1EA0C93F00E15C8F /* CryptoSwift.framework */,
 				59501E1F1E2FB2AD00D1B4BF /* libz.tbd */,
 				59501E181E2FB1F500D1B4BF /* AEXML.framework */,
 				59501E191E2FB1F500D1B4BF /* GCDWebServers.framework */,
@@ -562,6 +570,7 @@
 				"$(SRCROOT)/Carthage/Build/iOS/AEXML.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/ObjectMapper.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/GCDWebServers.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/CryptoSwift.framework",
 			);
 			outputPaths = (
 			);

@@ -99,6 +99,8 @@ internal class Fetcher {
         }
         // Apply content filters to inputStream data.
         inputStream = try contentFilters.apply(to: inputStream, of: publication, at: relativePath)
+
+
         return inputStream
     }
 
