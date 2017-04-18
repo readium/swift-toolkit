@@ -12,15 +12,15 @@ import Foundation
 
 extension EpubServerTest: Loggable {}
 
-class EpubServerTest: XCTestCase {
+class PublicationServerTest: XCTestCase {
     let sg = SampleGenerator()
-    var epubServer: EpubServer? = nil
-    var ressources = [String: Epub]()
+    var publicationServer: PublicationServer? = nil
+    var ressources = [String: PubBox]()
 
     override func setUp() {
         R2StreamerEnableLog(withMinimumSeverityLevel: .verbose)
-        epubServer = EpubServer()
-        guard epubServer != nil else {
+        publicationServer = PublicationServer()
+        guard publicationServer != nil else {
             log(level: .error, "Error instanciating the epubServer")
             XCTFail()
             return
@@ -57,7 +57,7 @@ class EpubServerTest: XCTestCase {
     // MARK: - Fileprivate methods.
 
     fileprivate func verifyManifestJson(atEndpoint endPoint: String) {
-        guard var epubUrl = epubServer?.baseURL else {
+        guard var epubUrl = publicationServer?.baseURL else {
             XCTFail("EpubServer baseURL not found")
             return
         }
@@ -88,7 +88,7 @@ class EpubServerTest: XCTestCase {
         // Wait for task{ expect.fulfill() } to be called with 2 seconds timeout
         // for requesting JSON manifest.
         waitForExpectations(timeout: 2) { error in
-            XCTAssertNil(error, "Expectation failed: \(error)")
+            XCTAssertNil(error, "Expectation failed: \(String(describing: error))")
             guard let httpResponse = task.response as? HTTPURLResponse else {
                 XCTFail("Invalid HTTP response.")
                 return
