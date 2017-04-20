@@ -11,6 +11,7 @@ import minizip
 
 extension ZipInputStream: Loggable {}
 
+/// Create a InputStream related to ONE file in the ZipArchive.
 internal class ZipInputStream: SeekableInputStream {
     var zipArchive: ZipArchive
     var fileInZipPath: String
@@ -38,10 +39,7 @@ internal class ZipInputStream: SeekableInputStream {
 
     override internal var offset: UInt64 {
         get {
-            if let o = zipArchive.currentFileOffset {
-                return o
-            }
-            return 0
+            return UInt64(zipArchive.currentFileOffset)
         }
     }
 
@@ -52,43 +50,40 @@ internal class ZipInputStream: SeekableInputStream {
     }
 
     init?(zipFilePath: String, path: String) {
-        // New ZipArchive for `zipFilePath`.
+        // New ZipArchive for archive at `zipFilePath`.
         guard let zipArchive = ZipArchive(url: URL(fileURLWithPath: zipFilePath)) else {
             return nil
         }
         self.zipArchive = zipArchive
         fileInZipPath = path
         // Check if the file exists in the archive.
-        guard (try? zipArchive.locateFile(path: fileInZipPath)) ?? false else {
+        guard (try? zipArchive.locateFile(path: fileInZipPath)) ?? false,
+            let fileInfo = try? zipArchive.informationsOfCurrentFile() else
+        {
             return nil
         }
-        guard let info = try? zipArchive.infoOfCurrentFile() else {
-            return nil
-        }
-        _length = info.length
+        _length = fileInfo.length
         super.init()
     }
 
     init?(zipArchive: ZipArchive, path: String) {
         self.zipArchive = zipArchive
         fileInZipPath = path
-        do {
-            if try zipArchive.locateFile(path: fileInZipPath) {
-                let info = try zipArchive.infoOfCurrentFile()
-                _length = info.length
-            } else {
-                return nil
-            }
-        } catch {
+        // Check if the file exists in the archive.
+        guard (try? zipArchive.locateFile(path: fileInZipPath)) ?? false,
+            let fileInfo = try? zipArchive.informationsOfCurrentFile() else
+        {
             return nil
         }
+
+        _length = fileInfo.length
         super.init()
     }
 
     override internal func open() {
         //objc_sync_enter(zipArchive)
         do {
-            try zipArchive.openCurrentFile()//path: fileInZipPath)
+            try zipArchive.openCurrentFile()
             _streamStatus = .open
         } catch {
             print("ERROR: could not ZipArchive.openCurrentFile()")
@@ -105,6 +100,10 @@ internal class ZipInputStream: SeekableInputStream {
     }
 
     override internal func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) -> Int {
+        guard _streamStatus == .open else  {
+            print("Stream not open")
+            return -1
+        }
         do {
             //log(level: .debug, "ZipInputStream \(fileInZipPath) read \(maxLength) bytes")
             let bytesRead = try zipArchive.readDataFromCurrentFile(buffer, maxLength: UInt64(maxLength))
@@ -133,7 +132,7 @@ internal class ZipInputStream: SeekableInputStream {
 
         //log(level: .debug, "ZipInputStream \(fileInZipPath) offset \(offset)")
         do {
-            try zipArchive.seekCurrentFile(offset: UInt64(offset))
+            try zipArchive.advanceOffsetBy(Int(offset))
         } catch {
             _streamStatus = .error
             _streamError = error

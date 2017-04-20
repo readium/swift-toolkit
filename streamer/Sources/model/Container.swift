@@ -189,7 +189,7 @@ extension ZipArchiveContainer {
 
     // Override default imp. from Container protocol.
     public func dataLength(relativePath: String) throws -> UInt64 {
-        return try zipArchive.fileSize(path: relativePath)
+        return try zipArchive.sizeOfCurrentFile()
     }
 
 
