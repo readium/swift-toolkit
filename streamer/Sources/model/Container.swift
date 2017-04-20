@@ -130,12 +130,15 @@ protocol CbzContainer: Container {
 protocol DirectoryContainer: Container {}
 /// Default implementation.
 extension DirectoryContainer {
+
+    // Override default imp. from Container protocol.
     public func data(relativePath: String) throws -> Data {
         let fullPath = generateFullPath(with: relativePath)
 
         return try Data(contentsOf: URL(fileURLWithPath: fullPath), options: [.mappedIfSafe])
     }
 
+    // Override default imp. from Container protocol.
     public func dataLength(relativePath: String) throws -> UInt64 {
         let fullPath = generateFullPath(with: relativePath)
 
@@ -148,6 +151,7 @@ extension DirectoryContainer {
         return fileSize
     }
 
+    // Override default imp. from Container protocol.
     public func dataInputStream(relativePath: String) throws -> SeekableInputStream {
         let fullPath = generateFullPath(with: relativePath)
 
@@ -178,24 +182,23 @@ protocol ZipArchiveContainer: Container {
 /// Default implementation.
 extension ZipArchiveContainer {
 
+    // Override default imp. from Container protocol.
     public func data(relativePath: String) throws -> Data {
         return try zipArchive.readData(path: relativePath)
     }
 
-    // Implements Container protocol
+    // Override default imp. from Container protocol.
     public func dataLength(relativePath: String) throws -> UInt64 {
         return try zipArchive.fileSize(path: relativePath)
     }
 
-    // Implements Container protocol
+
+    // Override default imp. from Container protocol.
     public func dataInputStream(relativePath: String) throws -> SeekableInputStream {
         // One zipArchive instance per inputstream... for multithreading.
         guard let inputStream = ZipInputStream(zipFilePath: rootFile.rootPath, path: relativePath) else {
             throw ContainerError.streamInitFailed
         }
-//        guard let inputStream = ZipInputStream(zipArchive: zipArchive, path: relativePath) else {
-//            throw ContainerError.streamInitFailed
-//        }
         return inputStream
     }
 }

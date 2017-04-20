@@ -17,6 +17,9 @@ internal protocol ContentFilters {
     init()
 
     func apply(to input: SeekableInputStream, of publication: Publication, at path: String) throws -> SeekableInputStream
+
+
+    func apply(to input: Data, of publication: Publication, at path: String) throws -> Data
 }
 // Default implementation. Do nothing.
 internal extension ContentFilters {
@@ -26,10 +29,17 @@ internal extension ContentFilters {
         // Do nothing.
         return input
     }
+
+    internal func apply(to input: Data,
+                        of publication: Publication, at path: String) throws -> Data {
+        // Do nothing.
+        return input
+    }
 }
 
 /// Content filter specialization for EPUB.
 internal class ContentFiltersEpub: ContentFilters {
+
     var decoder: Decoder!
 
     required init() {
@@ -38,10 +48,21 @@ internal class ContentFiltersEpub: ContentFilters {
 
     internal func apply(to input: SeekableInputStream,
                         of publication: Publication, at path: String) throws -> SeekableInputStream {
-        let inputStream = decoder.decode(input, of: publication, at: path)
+        let inputStream = try decoder.decode(input, of: publication, at: path)
         // var data
         // other transformations...
         return inputStream
+    }
+
+    internal func apply(to input: Data,
+                        of publication: Publication, at path: String) throws -> Data {
+        let inputStream = DataInputStream(data: input)
+        let decodedInputStream = decoder.decode(inputStream, of: publication, at: path)
+
+        guard let dataInputstream = decodedInputStream as? DataInputStream else {
+            return input
+        }
+        return dataInputstream.data
     }
 }
 

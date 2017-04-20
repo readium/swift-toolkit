@@ -32,6 +32,16 @@ internal class Decoder {
         case idpf = 1040
     }
 
+
+    /// Decode obfuscated font from a SeekableInputStream, if the encryption is 
+    /// known.
+    ///
+    /// - Parameters:
+    ///   - input: The InputStream containing the encrypted resource.
+    ///   - publication: The publication where the encrypted resource does 
+    ///                  originate from.
+    ///   - path: The relative path of the resource inside of the publication.
+    /// - Returns: The Inpustream containing the unencrypted resource.
     internal func decode(_ input: SeekableInputStream,
                          of publication: Publication, at path: String) -> SeekableInputStream
     {
@@ -70,7 +80,7 @@ internal class Decoder {
     /// - Returns: The Deobfuscated SeekableInputStream.
     internal func decodeFont(_ input: SeekableInputStream,
                              _ pubId: String,
-                             _ length: ObfuscationLength) -> SeekableInputStream
+                             _ length: ObfuscationLength) -> DataInputStream
     {
         let publicationKey: [UInt8]
         

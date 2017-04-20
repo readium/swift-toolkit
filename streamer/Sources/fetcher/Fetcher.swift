@@ -56,7 +56,7 @@ internal class Fetcher {
         contentFilters = try Fetcher.getContentFilters(forMimeType: container.rootFile.mimetype)
     }
 
-    /// Gets all the data from an resource file in a publication's container.
+    /// Gets the data from an resource file in a publication's container.
     ///
     /// - Parameter path: The relative path to the asset in the publication.
     /// - Returns: The decrypted data of the asset.
@@ -70,8 +70,8 @@ internal class Fetcher {
             throw FetcherError.missingFile(path: path)
         }
         // Get the data from the container
-        let data = try container.data(relativePath: relativePath)
-//        try contentFilters.apply(to: data, of: publication, at: relativePath)
+        var data = try container.data(relativePath: relativePath)
+        data = try contentFilters.apply(to: data, of: publication, at: relativePath)
         return data
     }
 
@@ -97,7 +97,7 @@ internal class Fetcher {
         return inputStream
     }
 
-    /// Get the total length of the data in an resource file.
+    /// Get the total length of the data in a resource file.
     ///
     /// - Parameter path: The relative path to the asset in the publication.
     /// - Returns: The length of the data.
