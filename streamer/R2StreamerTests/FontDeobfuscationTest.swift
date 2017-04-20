@@ -9,10 +9,11 @@
 import XCTest
 @testable import R2Streamer
 
-class DecoderTest: XCTestCase {
-    var testFontBytes: [UInt8]!
+class FontDeobfuscationTest: XCTestCase {
     var testPublication: Publication!
-    var obfuscatedFontStream: SeekableInputStream!
+    var testFontBytes: [UInt8]!
+    var obfuscatedFontStreamIdpf: SeekableInputStream!
+    var obfuscatedFontStreamAdobe: SeekableInputStream!
 
     override func setUp() {
         super.setUp()
@@ -22,40 +23,110 @@ class DecoderTest: XCTestCase {
         testPublication = Publication()
         testPublication.metadata.identifier = "urn:uuid:36d5078e-ff7d-468e-a5f3-f47c14b91f2f"
         // Setup the testFontBytes.
-        guard let testFontUrl = sg.getSamplesUrl(named: "SmokeTestFXL/fonts/cut-cut.woff", ofType: ".woff"),
-            let testFontData = try? Data(contentsOf: testFontUrl) else
-        {
-            XCTFail("Couldn't open the clear font file.")
+        guard var testFontUrl = sg.getSamplesUrl(named: "SmokeTestFXL/fonts/cut-cut", ofType: ".woff") else {
+            XCTFail("Couldn't generate the test font URL.")
+            return
+        }
+        testFontUrl = URL(string: "file://\(testFontUrl.absoluteString)")!
+        guard let testFontData = try? Data(contentsOf: testFontUrl) else {
+            XCTFail("Couldn't get the data from the test font file at \(testFontUrl).")
             return
         }
         testFontBytes = testFontData.bytes
+
         // Setup obfuscated font seekable input stream.
         guard let epubArchiveUrl = sg.getSamplesUrl(named: "SmokeTestFXL", ofType: ".epub"),
             let zipArchive = ZipArchive(url: epubArchiveUrl) else {
-            XCTFail("Couldn't instanciate the .epub obfuscated font archive url")
+                XCTFail("Couldn't instanciate the .epub obfuscated font archive url")
+                return
         }
+        obfuscatedFontStreamIdpf = ZipInputStream(zipArchive: zipArchive, path: "fonts/cut-cut.obf.woff")
 
-
-        obfuscatedFontStream = ZipInputStream(zipArchive: zipArchive, path: "fonts/cut-cut.obf.woff")
+        // Setup Directory font seekable input stream
+        guard let adobeFontUrl = sg.getSamplesUrl(named: "SmokeTestFXL/fonts/cut-cut.adb", ofType: ".woff") else {
+            XCTFail("Couldn't generate the adobe font URL.")
+            return
+        }
+        obfuscatedFontStreamAdobe = FileInputStream(fileAtPath: adobeFontUrl.absoluteString)
     }
 
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-        super.tearDown()
-    }
-
-    func testExample() {
+    func testIdpfFontDeobfuscation() {
         let decoder = Decoder()
-        let testFontStream =
-        let fontBytes = decoder.decode(<#T##input: SeekableInputStream##SeekableInputStream#>, of: <#T##Publication#>, at: <#T##String#>)
 
+        obfuscatedFontStreamIdpf = decoder.decodeFont(obfuscatedFontStreamIdpf,
+                                                      testPublication.metadata.identifier!,
+                                                      Decoder.ObfuscationLength.idpf)
+        let obfuscatedFontBytes = toData(inputStream: obfuscatedFontStreamIdpf).bytes
+
+        XCTAssertTrue(containSameElements(testFontBytes, obfuscatedFontBytes))
     }
 
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
+    /// Test deobfuscation time.
+    func testIdpfFontDeobfuscationDuration() {
+        let decoder = Decoder()
+
         self.measure {
-            // Put the code you want to measure the time of here.
+            let _ = decoder.decodeFont(self.obfuscatedFontStreamIdpf,
+                               self.testPublication.metadata.identifier!,
+                               Decoder.ObfuscationLength.idpf)
         }
     }
-    
+
+    func testAdobeFontDeobfuscation() {
+        let decoder = Decoder()
+
+        obfuscatedFontStreamAdobe = decoder.decodeFont(obfuscatedFontStreamAdobe,
+                                                  testPublication.metadata.identifier!,
+                                                  Decoder.ObfuscationLength.adobe)
+        let obfuscatedFontBytes = toData(inputStream: obfuscatedFontStreamAdobe).bytes
+
+        XCTAssertTrue(containSameElements(testFontBytes, obfuscatedFontBytes))
+    }
+
+    /// Test deobfuscation time.
+    func testAdobeFontDeobfuscationDuration() {
+        let decoder = Decoder()
+
+        self.measure {
+            let _ = decoder.decodeFont(self.obfuscatedFontStreamAdobe,
+                               self.testPublication.metadata.identifier!,
+                               Decoder.ObfuscationLength.adobe)
+        }
+    }
+
+    /// Check if two arrays contains the same elements.
+    ///
+    /// - Parameters:
+    ///   - array1: The first array to compare.
+    ///   - array2: The second array to compare.
+    /// - Returns: A boolean indicating if the arrays contains the same elements
+    fileprivate func containSameElements<T: Comparable>(_ array1: [T], _ array2: [T]) -> Bool {
+        guard array1.count == array2.count else {
+            return false // No need to sorting if they already have different counts
+        }
+        var i = 0
+
+        while i < 1040 {
+            i += 1
+        }
+
+        return array1.sorted() == array2.sorted()
+    }
+
+    /// Convert an InputStream into Data.
+    ///
+    /// - Parameter input: The `SeekableInputStream` to convert.
+    /// - Returns: The converted `Data`.
+    fileprivate func toData(inputStream input: SeekableInputStream) -> Data {
+        let bufferSize = 1024
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+        var data = Data()
+
+        while input.hasBytesAvailable {
+            let read = input.read(buffer, maxLength: bufferSize)
+            data.append(buffer, count: read)
+        }
+        buffer.deallocate(capacity: bufferSize)
+        return data
+    }
 }

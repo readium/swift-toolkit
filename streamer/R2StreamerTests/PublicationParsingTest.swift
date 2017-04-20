@@ -17,24 +17,24 @@ class EpubParsingTest: XCTestCase {
     override func setUp() {
         R2StreamerEnableLog(withMinimumSeverityLevel: .debug)
         // Retrieve the samples URLs.
-        sg.getSampleEpubsUrl()
+        sg.getSamplePublicationsUrl()
     }
 
     // Mark: - Tests methods.
 
     /// Try to parse the .epub samples.
     func testParseEpub() {
-        for url in sg.epubUrls {
+        for url in sg.pubUrls {
             // Parse the epub at URL and assert if failure.
-            _ = sg.parseEpub(at: url)
+            _ = sg.parsePub(at: url)
         }
     }
 
     /// Attemp to parse the Epub directories samples.
     func testParseEpubDirectory() {
-        for url in sg.epubDirectoryUrls {
+        for url in sg.pubDirectoryUrls {
             // Parse the epub at URL and assert if failure.
-            _ = sg.parseEpub(at: url)
+            _ = sg.parsePub(at: url)
         }
     }
 }
