@@ -9,9 +9,7 @@
 import Foundation
 import minizip
 
-
 public struct ZipFileInfo {
-    
     let path: String
     let length: UInt64
     let compressionLevel: Int
@@ -19,24 +17,22 @@ public struct ZipFileInfo {
     let compressedLength: UInt64
     let date: Date?
     let crc32: UInt32
-    
 }
 
-
-open class ZipArchive {
+internal class ZipArchive {
     
     internal var unzFile: unzFile
-    internal var fileInfos: [String: ZipFileInfo] = [String: ZipFileInfo]()
-    internal var currentFileOffset:UInt64?
+    internal var fileInfos = [String: ZipFileInfo]()
+    internal var currentFileOffset: UInt64?
     
-    let bufferLength = 64 * 1024
+    static let bufferLength = 64 * 1024
     
     public var numberOfFiles: UInt64 {
         get {
             var globalInfo = unz_global_info64()
+
             memset(&globalInfo, 0, MemoryLayout<unz_global_info64>.size)
-            let err = unzGetGlobalInfo64(unzFile, &globalInfo)
-            if err != UNZ_OK {
+            guard unzGetGlobalInfo64(unzFile, &globalInfo) == UNZ_OK else {
                 return 0
             }
             return globalInfo.number_entry
@@ -44,35 +40,22 @@ open class ZipArchive {
     }
 
     public init?(url: URL) {
-        // File manager
         let fileManager = FileManager.default
-        
-        // Check whether a zip file exists at path.
-        let path = url.path
-        
-        if fileManager.fileExists(atPath: path) == false {
+
+        // Check that file exists at path and open it.
+        guard fileManager.fileExists(atPath: url.path) != false,
+            let unzFile = unzOpen64(url.path) else
+        {
             return nil
         }
-        
-        if let unzFile = unzOpen64(path) {
-            self.unzFile = unzFile
-            
-            /* Not needed for basic data reading operations
-            do {
-                try buildFilesList()
-            } catch {
-                return nil
-            }
-            */
-        } else {
-            return nil
-        }
+        self.unzFile = unzFile
     }
     
     deinit {
         unzClose(unzFile)
     }
 
+    // Only used for CBZ so far.
     func buildFilesList() throws {
         try goToFirstFile()
         repeat {
@@ -82,17 +65,15 @@ open class ZipArchive {
     }
     
     func infoOfCurrentFile() throws -> ZipFileInfo {
-        
-        let fileNameMaxSize:UInt = 1024
+        let fileNameMaxSize = 1024
         var fileInfo = unz_file_info64()
-        let fileName = UnsafeMutablePointer<CChar>.allocate(capacity: Int(fileNameMaxSize))
+        let fileName = UnsafeMutablePointer<CChar>.allocate(capacity: fileNameMaxSize)
         defer {
             free(fileName)
         }
+
         memset(&fileInfo, 0, MemoryLayout<unz_file_info64>.size)
-        
-        let err = unzGetCurrentFileInfo64(unzFile, &fileInfo, fileName, fileNameMaxSize, nil, 0, nil, 0)
-        if err != UNZ_OK {
+        guard unzGetCurrentFileInfo64(unzFile, &fileInfo, fileName, UInt(fileNameMaxSize), nil, 0, nil, 0) == UNZ_OK else {
             throw ZipError.unzipFail
         }
         
@@ -100,7 +81,7 @@ open class ZipArchive {
         guard !path.characters.isEmpty else {
             throw ZipError.unzipFail
         }
-        
+
         let crypted = ((fileInfo.flag & 1) != 0)
         let dateComponents = DateComponents(calendar: Calendar.autoupdatingCurrent,
                                             timeZone: TimeZone.autoupdatingCurrent,
@@ -121,30 +102,44 @@ open class ZipArchive {
                                       crc32: UInt32(fileInfo.crc))
         return zipFileInfo
     }
-    
+
+    /// Set the current file to the first file of the archive.
     func goToFirstFile() throws {
-        let err = unzGoToFirstFile(unzFile)
-        if err != UNZ_OK {
+        let ret = unzGoToFirstFile(unzFile)
+
+        guard ret == UNZ_OK else {
+            print("   > Error while going to first file.")
             throw ZipError.unzipFail
         }
     }
-    
+
+    /// Set the current file to next file.
+    ///
+    /// - Returns: True is there is a next file ?? false.
     func goToNextFile() throws -> Bool {
-        let err = unzGoToNextFile(unzFile)
-        if err == UNZ_END_OF_LIST_OF_FILE {
+        let ret = unzGoToNextFile(unzFile)
+
+        if ret == UNZ_END_OF_LIST_OF_FILE {
             return false
         }
-        if err != UNZ_OK {
+        guard ret == UNZ_OK else {
+            print("   > Error while going to next file.")
             throw ZipError.unzipFail
         }
         return true
     }
     
     func locateFile(path: String) throws -> Bool {
+//        print("--< LOCATINGFILE \(path)... in \(unsafeBitCast(self, to: Int.self))")
+//        defer {
+//            print(" --> Done (for \(path)).")
+//        }
         try goToFirstFile()
+
         let err = unzLocateFile(unzFile, path.cString(using: String.Encoding.utf8), nil)
-        // File not found?
+        // File not found? file not accessible?
         if err == UNZ_END_OF_LIST_OF_FILE {
+            print("locateFile -> File not found \(path)")
             return false
         }
         // Unknown error
@@ -177,13 +172,13 @@ open class ZipArchive {
         }
         
         let bufferLength = 1024 * 64
-        let length = Int32(range.count)
-        let offset = Int64(range.lowerBound)
+        let length = range.count
+        let offset = Int(range.lowerBound)
         var buffer = Array<CUnsignedChar>(repeating: 0, count: bufferLength)
         var data = Data(capacity: Int(length))
         
         // Read the current file to the desired offset
-        var offsetBytesRead:Int64 = 0
+        var offsetBytesRead = 0
         while offsetBytesRead < offset {
             let bytesToRead = min(bufferLength, offset - offsetBytesRead)
             // Data is discarded
@@ -194,16 +189,16 @@ open class ZipArchive {
             if bytesRead != UNZ_OK {
                 throw ZipError.unzipFail
             }
-            offsetBytesRead += Int64(bytesRead)
+            offsetBytesRead += Int(bytesRead)
         }
         
         // Read the current file and add it to the data
-        var totalBytesRead:Int32 = 0
+        var totalBytesRead = 0
         while totalBytesRead < length {
             let bytesToRead = min(bufferLength, length - totalBytesRead)
             let bytesRead = unzReadCurrentFile(unzFile, &buffer, UInt32(bytesToRead))
             if bytesRead > 0 {
-                totalBytesRead += bytesRead
+                totalBytesRead += Int(bytesRead)
                 data.append(buffer, count: Int(bytesRead))
             }
             else if bytesRead == 0 {
@@ -230,7 +225,7 @@ open class ZipArchive {
             throw ZipError.fileNotFound
         }
     }
-    
+
     /*
     public func readData(path: String, range: Range<UInt64>) throws -> Data {
         // TODO: find a cleaner and faster solution to prevent concurrent access to the zip file
@@ -247,7 +242,7 @@ open class ZipArchive {
         }
     }
     */
-    
+
     public func fileSize(path: String) throws -> UInt64 {
         if try locateFile(path: path) {
             let info = try infoOfCurrentFile()
@@ -255,15 +250,21 @@ open class ZipArchive {
         }
         throw ZipError.fileNotFound
     }
-    
+
+    public func fileSize() throws -> UInt64 {
+        let info = try infoOfCurrentFile()
+        return info.length
+    }
+
     // MARK: Stream-like methods (experimental)
-    
+
     // note: the caller has to handle lock to access these methods
     // if concurrent access to the resource is made
-    
+
     public func openCurrentFile(path: String) throws {
         if try locateFile(path: path) {
             let err = unzOpenCurrentFile(unzFile)
+            
             if err != UNZ_OK {
                 throw ZipError.unzipFail
             }
@@ -272,23 +273,32 @@ open class ZipArchive {
             throw ZipError.fileNotFound
         }
     }
-    
+
+    public func openCurrentFile() throws {
+            let err = unzOpenCurrentFile(unzFile)
+
+            if err != UNZ_OK {
+                throw ZipError.unzipFail
+            }
+            currentFileOffset = 0
+    }
+
     public func seekCurrentFile(offset: UInt64) throws {
         // TODO: Check if you can seek directly to offset in minizip instead of reading the bytes
-        let ioffset = Int64(offset)
-        var buffer = Array<CUnsignedChar>(repeating: 0, count: bufferLength)
+        let ioffset = Int(offset)
+        var buffer = Array<CUnsignedChar>(repeating: 0, count: ZipArchive.bufferLength)
         
         // Read the current file to the desired offset
-        var offsetBytesRead:Int64 = 0
+        var offsetBytesRead: Int = 0
         while offsetBytesRead < ioffset {
-            let bytesToRead = min(bufferLength, ioffset - offsetBytesRead)
+            let bytesToRead = min(ZipArchive.bufferLength, ioffset - offsetBytesRead)
             // Data is discarded
             let bytesRead = unzReadCurrentFile(unzFile, &buffer, UInt32(bytesToRead))
             if bytesRead == 0 {
                 break
             }
             if bytesRead > 0 {
-                offsetBytesRead += Int64(bytesRead)
+                offsetBytesRead += Int(bytesRead)
             } else {
                 throw ZipError.unzipFail
             }

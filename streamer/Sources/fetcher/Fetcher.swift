@@ -70,9 +70,7 @@ internal class Fetcher {
             throw FetcherError.missingFile(path: path)
         }
         // Get the data from the container
-        guard let data = try? container.data(relativePath: relativePath) else {
-            throw FetcherError.missingFile(path: relativePath)
-        }
+        let data = try container.data(relativePath: relativePath)
 //        try contentFilters.apply(to: data, of: publication, at: relativePath)
         return data
     }
@@ -92,14 +90,9 @@ internal class Fetcher {
             throw FetcherError.missingFile(path: path)
         }
         // Get an input stream from the container
-        do {
-            inputStream = try container.dataInputStream(relativePath: relativePath)
-        } catch {
-            throw FetcherError.container(underlyingError: error)
-        }
+        inputStream = try container.dataInputStream(relativePath: relativePath)
         // Apply content filters to inputStream data.
         inputStream = try contentFilters.apply(to: inputStream, of: publication, at: relativePath)
-
 
         return inputStream
     }

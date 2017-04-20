@@ -13,86 +13,147 @@ extension Decoder: Loggable {}
 
 /// Deobfuscation/Deencryption of resources.
 internal class Decoder {
+
     /// Then algorythms handled by the Decoder.
     public var decodableAlgorithms = [
         "fontIdpf": "http://www.idpf.org/2008/embedding",
         "fontAdobe": "http://ns.adobe.com/pdf/enc#RC"
     ]
 
+    /// Algorithm name and associated decoding function.
     fileprivate var decoders = [
-        "http://www.idpf.org/2008/embedding": decodeIdpfFont,
-        "http://ns.adobe.com/pdf/enc#RC": decodeAbobeFont
+        "http://www.idpf.org/2008/embedding": ObfuscationLength.idpf,
+        "http://ns.adobe.com/pdf/enc#RC": ObfuscationLength.adobe
     ]
 
-    // TODO: is that ok to ignore if the decoder can't handler? as in go.
-    /// If the data is Encrypted, see if the decoder can handle it, else ignore.
+    /// The number of characters obfuscated at the beggining of the font file.
+    internal enum ObfuscationLength: Int {
+        case adobe = 1024
+        case idpf = 1040
+    }
+
     internal func decode(_ input: SeekableInputStream,
-                         of publication: Publication, at path: String) -> SeekableInputStream {
+                         of publication: Publication, at path: String) -> SeekableInputStream
+    {
+        // If the publicationIdentifier is not accessible, no deobfuscation is
+        // possible.
+        guard let publicationIdentifier = publication.metadata.identifier else {
+            log(level: .error, "Couldn't get the publication identifier.")
+            return input
+        }
         // Check if the resource is encrypted.
         guard let link = publication.link(withHref: path),
             let encryption = link.properties.encryption,
             let algorithm = encryption.algorithm else
         {
-            log(level: .info, "\(path) is not encrypted.")
-            // FIXME: Throw error? or just ignore it?
             return input
         }
         // Check if the decoder can handle the encryption.
         guard decodableAlgorithms.values.contains(algorithm),
-            let decodingFunction = decoders[link.properties.encryption!.algorithm!] else
+            let type = decoders[link.properties.encryption!.algorithm!] else
         {
-            log(level: .warning, "\(path)'s encrypted but decoder can't handle it")
+            log(level: .error, "\(path)'s encrypted but decoder can't handle it")
             return input
         }
-
-        // Decode data using the appropriate function found above.
-        let nis = decodingFunction(self)(input, publication)
-        // DBG
-        if path == "fonts/sandome.obf.ttf" {
-            print("TESTING")
-        }
-        return
+        // Decode the data and return a seekable input stream.
+        return decodeFont(input, publicationIdentifier, type)
     }
 
-    fileprivate func decodeIdpfFont(_ input: SeekableInputStream, _ publication: Publication) -> SeekableInputStream {
-
-        print("\(String(describing: publication.metadata.identifier))")
-        guard let publicationIdentifier = publication.metadata.identifier else {
-            log(level: .error, "Couldn't get the publication hashKey from identifier.")
-            return input
-        }
+    /// Decode the given inputStream first X characters, depending of the obfu-
+    /// -scation type.
+    ///
+    /// - Parameters:
+    ///   - input: The input stream containing the data of an obfuscated font
+    ///file.
+    ///   - pubId: The associated publication Identifier.
+    ///   - length: The ObfuscationLength depending of the obfuscation type.
+    /// - Returns: The Deobfuscated SeekableInputStream.
+    internal func decodeFont(_ input: SeekableInputStream,
+                             _ pubId: String,
+                             _ length: ObfuscationLength) -> SeekableInputStream
+    {
+        let publicationKey: [UInt8]
+        
         // Generate the hashKey from the publicationIdentifier and store it into
         // a byte array.
-        let publicationHashKey = publicationIdentifier.sha1().utf8.map{ UInt8($0) }
-        // Fill a buffer with the inputStream data (content == the font file).
-        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(input.length))
-        input.open()
-        let read = input.read(buffer, maxLength: Int(input.length))
-        input.close()
-        // We only need to deobfuscate the 1040 first characters, or less
-        // depending of the file. Unlikely to be smaller than 1040 though.
-        let count = (read > 1040 ? 1040 : read)
-
-        // Deobfuscate the first 1040 chars.
-        var i = 0, j = 0
-        while i < count {
-            buffer[i] = buffer[i] ^ publicationHashKey[j]
-            i += 1
-            j += 1
-            if j == 20 {
-                j = 0
-            }
+        switch length {
+        case .adobe:
+            publicationKey = getHashKeyAdobe(publicationIdentifier: pubId)
+        case .idpf:
+            publicationKey = hexaToBytes(pubId.sha1())
         }
+        // Create a buffer object.
+        // Deobfuscate the first X characters, depending of the type of obf..
+        let buffer = deobfuscate(input,
+                                 publicationKey: publicationKey,
+                                 obfuscationLength: length)
         // Create a Data object with the UInt8 buffer.
-        let t = UnsafeBufferPointer.init(start: buffer, count: Int(input.length))
-        let data = Data.init(buffer: t)
-        print("\(data.description) and data count == \(data.count)")
+        let data = Data.init(buffer: buffer)
         // Return a new Seekable InputStream created from the data.
         return DataInputStream.init(data: data)
     }
 
-    fileprivate func decodeAbobeFont(_ input: SeekableInputStream, _ publication: Publication) -> SeekableInputStream {
-        return input
+    /// Receive an obfuscated InputStream and return a deabfuscated buffer of 
+    /// UInt8.
+    ///
+    /// - Parameters:
+    ///   - input: The Obfuscated `InputStream`.
+    ///   - publicationKey: The publicationKey used to decode the X first
+    ///                     characters.
+    ///   - obfuscationLength: The number of characters obfuscated at the first
+    ///                        of the file.
+    /// - Returns: The UInt8 buffer containing the déobfuscated data.
+    fileprivate func deobfuscate(_ input: SeekableInputStream,
+                                 publicationKey: [UInt8],
+                                 obfuscationLength: ObfuscationLength) -> UnsafeBufferPointer<UInt8>
+    {
+        // Allocate a buffer with the inputStream data at pointer.
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(input.length))
+
+        // Fill the buffer with the font file content.
+        input.open()
+        let readSize = input.read(buffer, maxLength: Int(input.length))
+        input.close()
+        // TODO: Add a verif that read is > 0 or throw, then change the bottom line input.length to readsize.
+
+        // We only need to deobfuscate the 1024 first characters, or less
+        // depending of the file. Unlikely to be smaller than 1024 though.
+        let count = (readSize > obfuscationLength.rawValue ? obfuscationLength.rawValue : readSize)
+        // Deobfuscate the first x chars.
+        let pubKeyLength = publicationKey.count
+        var i = 0
+
+        while i < count {
+            buffer[i] = buffer[i] ^ publicationKey[i % pubKeyLength]
+            i += 1
+        }
+        return UnsafeBufferPointer.init(start: buffer, count: Int(input.length))//readsize) // TODO: change that
     }
 
+    /// Generate the Hashkey used to salt the 1024 starting character of the
+    /// Adobe font files.
+    ///
+    /// - Parameter pubId: The publication Identifier.
+    /// - Returns: The key's bytes array.
+    fileprivate func getHashKeyAdobe(publicationIdentifier pubId: String) -> [UInt8] {
+        // Clean the publicationIdentifier.
+        var cleanPubId = pubId.replacingOccurrences(of: "urn:uuid:", with: "")
+        cleanPubId = cleanPubId.replacingOccurrences(of: "-", with: "")
+
+        return hexaToBytes(cleanPubId)
+    }
+
+    /// Convert hexadecimal String to Bytes (UInt8) array.
+    ///
+    /// - Parameter hexa: The hexadecimal String.
+    /// - Returns: The key's bytes array.
+    fileprivate func hexaToBytes(_ hexa: String) -> [UInt8] {
+        var position = hexa.startIndex
+
+        return (0..<hexa.characters.count / 2).flatMap { _ in
+            defer { position = hexa.index(position, offsetBy: 2) }
+
+            return UInt8(hexa[position...hexa.index(after: position)], radix: 16)
+        }
+    }
 }

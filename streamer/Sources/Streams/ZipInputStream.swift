@@ -52,25 +52,21 @@ internal class ZipInputStream: SeekableInputStream {
     }
 
     init?(zipFilePath: String, path: String) {
-        if let zipArchive = ZipArchive(url: URL(fileURLWithPath: zipFilePath)) {
-
-            self.zipArchive = zipArchive
-            fileInZipPath = path
-
-            do {
-                if try zipArchive.locateFile(path: fileInZipPath) {
-                    let info = try zipArchive.infoOfCurrentFile()
-                    _length = info.length
-                } else {
-                    return nil
-                }
-            } catch {
-                return nil
-            }
-
-        } else {
+        // New ZipArchive for `zipFilePath`.
+        guard let zipArchive = ZipArchive(url: URL(fileURLWithPath: zipFilePath)) else {
             return nil
         }
+        self.zipArchive = zipArchive
+        fileInZipPath = path
+        // Check if the file exists in the archive.
+        guard (try? zipArchive.locateFile(path: fileInZipPath)) ?? false else {
+            return nil
+        }
+        guard let info = try? zipArchive.infoOfCurrentFile() else {
+            return nil
+        }
+        _length = info.length
+        super.init()
     }
 
     init?(zipArchive: ZipArchive, path: String) {
@@ -92,9 +88,10 @@ internal class ZipInputStream: SeekableInputStream {
     override internal func open() {
         //objc_sync_enter(zipArchive)
         do {
-            try zipArchive.openCurrentFile(path: fileInZipPath)
+            try zipArchive.openCurrentFile()//path: fileInZipPath)
             _streamStatus = .open
         } catch {
+            print("ERROR: could not ZipArchive.openCurrentFile()")
             _streamStatus = .error
             _streamError = error
             //objc_sync_exit(zipArchive)
@@ -109,7 +106,7 @@ internal class ZipInputStream: SeekableInputStream {
 
     override internal func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) -> Int {
         do {
-            //Log.debug?.message("ZipInputStream \(fileInZipPath) read \(maxLength) bytes")
+            //log(level: .debug, "ZipInputStream \(fileInZipPath) read \(maxLength) bytes")
             let bytesRead = try zipArchive.readDataFromCurrentFile(buffer, maxLength: UInt64(maxLength))
             if Int(bytesRead) < maxLength {
                 _streamStatus = .atEnd
@@ -124,7 +121,6 @@ internal class ZipInputStream: SeekableInputStream {
     }
 
     override internal func close() {
-        //Log.debug?.message("ZipInputStream \(fileInZipPath) close")
         zipArchive.closeCurrentFile()
         //objc_sync_exit(zipArchive)
         _streamStatus = .closed
@@ -135,7 +131,7 @@ internal class ZipInputStream: SeekableInputStream {
         assert(whence == .startOfFile, "Only seek from start of stream is supported for now.")
         assert(offset >= 0, "Since only seek from start of stream if supported, offset must be >= 0")
 
-        log(level: .debug, "ZipInputStream \(fileInZipPath) offset \(offset)")
+        //log(level: .debug, "ZipInputStream \(fileInZipPath) offset \(offset)")
         do {
             try zipArchive.seekCurrentFile(offset: UInt64(offset))
         } catch {

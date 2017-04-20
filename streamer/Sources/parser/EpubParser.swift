@@ -99,7 +99,7 @@ public class EpubParser: PublicationParser {
         // Parse OPF file (Metadata, Spine, Resource) and return the Publication.
         var publication = try opfp.parseOPF(from: document, with: container, and: epubVersion)
         // Parse the META-INF/Encryption.xml.
-        try parseEncryption(from: container, to: &publication)
+        parseEncryption(from: container, to: &publication)
         // Parse Navigation Document.
         parseNavigationDocument(from: container, to: &publication)
         // Parse the NCX Document (if any).
@@ -116,14 +116,10 @@ public class EpubParser: PublicationParser {
     ///   - container: The EPUB Container.
     ///   - publication: The Publication.
     /// - Throws: 
-    internal func parseEncryption(from container: EpubContainer, to publication: inout Publication) throws {
-        // Get the XML object for encryption.xml.
-        let document: AEXMLDocument
-        
-        do {
-            document = try container.xmlDocument(forFileAtRelativePath: EpubConstant.encryptionDotXmlPath)
-        } catch {
-            log(level: .error, "Can't open Encryption file\(error.localizedDescription) (\(error))")
+    internal func parseEncryption(from container: EpubContainer, to publication: inout Publication) {
+        // Check if there is an encryption file.
+        guard let document = try? container.xmlDocument(forFileAtRelativePath: EpubConstant.encryptionDotXmlPath) else {
+            log(level: .warning, "The file “encryption.xml” couldn’t be opened")
             return
         }
         guard let encryptedDataElements = document["encryption"]["EncryptedData"].all else {

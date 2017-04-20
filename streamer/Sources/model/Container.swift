@@ -189,11 +189,13 @@ extension ZipArchiveContainer {
 
     // Implements Container protocol
     public func dataInputStream(relativePath: String) throws -> SeekableInputStream {
-        // let inputStream = ZipInputStream(zipArchive: zipArchive, path: relativePath)
-        guard let inputStream = ZipInputStream(zipFilePath: rootFile.rootPath,
-                                               path: relativePath) else {
-                                                throw ContainerError.streamInitFailed
+        // One zipArchive instance per inputstream... for multithreading.
+        guard let inputStream = ZipInputStream(zipFilePath: rootFile.rootPath, path: relativePath) else {
+            throw ContainerError.streamInitFailed
         }
+//        guard let inputStream = ZipInputStream(zipArchive: zipArchive, path: relativePath) else {
+//            throw ContainerError.streamInitFailed
+//        }
         return inputStream
     }
 }
