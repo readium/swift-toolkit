@@ -19,8 +19,11 @@ enum OPFParserError: Error {
 /// EpubParser support class, able to parse the OPF package document.
 /// OPF: Open Packaging Format.
 public class OPFParser {
+    let smilp: SMILParser!
 
-    internal init() {}
+    internal init() {
+        smilp = SMILParser()
+    }
 
     /// Parse the OPF file of the Epub container and return a `Publication`.
     /// It also complete the informations stored in the container.
@@ -29,7 +32,7 @@ public class OPFParser {
     /// - Returns: The `Publication` object resulting from the parsing.
     /// - Throws: `EpubParserError.xmlParse`.
     internal func parseOPF(from document: AEXMLDocument,
-                           with container: Container,
+                           with container: EpubContainer,
                            and epubVersion: Double) throws -> Publication
     {
         /// The 'to be built' Publication.
@@ -47,15 +50,9 @@ public class OPFParser {
         try parseMetadata(from: document, to: &publication)
         parseRessources(from: document.root["manifest"], to: &publication, coverId: coverId)
         parseSpine(from: document.root["spine"], to: &publication)
-        //parseMediaOverlay(from: document, to: &publication)
+        try parseMediaOverlay(from: container, to: &publication)
         return publication
     }
-
-//    internal func parseMediaOverlay(from document: AEXMLDocument,
-//                                    to publication: inout Publication)
-//    {
-//
-//    }
 
     /// Parse the Metadata in the XML <metadata> element.
     ///
@@ -109,8 +106,11 @@ public class OPFParser {
             metadata.direction = direction
         }
         // Rendition properties.
-        mp.parseRenditionProperties(from: metadataElement["meta"], to: &metadata)
+        mp.parseRenditionProperties(from: metadataElement, to: &metadata)
         publication.metadata = metadata
+        /// Other Metadata.
+        // Media overlays: media:duration
+        mp.parseMediaDurations(from: metadataElement, to: &metadata.otherMetadata)
     }
 
     /// Parse XML elements of the <Manifest> in the package.opf file.
@@ -139,13 +139,18 @@ public class OPFParser {
                 continue
             }
             let link = linkFromManifest(item)
-            // If it's the cover's item id, set the rel to cover and add the link to `links`.
-            if id == coverId {
-                link.rel.append("cover")
-            }
-            // If the link's rel contains the cover tag, append it to the publication link
+            // If the link's rel contains the cover tag, append it to the publication links.
             if link.rel.contains("cover") {
                 publication.links.append(link)
+            }
+            // If it's a media overlay ressource append it to the publication links.
+            if link.typeLink == "application/smil+xml" {
+                // Retrieve the duration of the smil file
+                if let duration = publication.metadata.otherMetadata.first(where: { $0.property == "#\(id)" })?.value {
+
+                    link.duration = Double(smilp.smilTimeToSeconds(duration))
+                }
+                //publication.links.append(link)
             }
             publication.resources.append(link)
         }
@@ -187,6 +192,48 @@ public class OPFParser {
         }
     }
 
+    /// Parse the mediaOverlays informations contained in the ressources then
+    /// parse the associted SMIL files to populate the MediaOverlays objects 
+    /// in each of the Spine's Links.
+    ///
+    /// - Parameters:
+    ///   - container: The Epub Container.
+    ///   - publication: The Publication object representing the Epub data.
+    internal func parseMediaOverlay(from container: EpubContainer,
+                                    to publication: inout Publication) throws
+    {
+        let mediaOverlays = publication.resources.filter({ $0.typeLink ==  "application/smil+xml"})
+
+        guard !mediaOverlays.isEmpty else {
+            log(level: .info, "No media-overlays found in the Publication.")
+            return
+        }
+        for mediaOverlayLink in mediaOverlays {
+            let node = MediaOverlayNode()
+            let smilXml = try container.xmlDocument(forRessourceReferencedByLink: mediaOverlayLink)
+            let body = smilXml.root["body"]
+
+            node.role.append("section")
+            node.text = body.attributes["epub:textref"]
+            // get body parameters <par>
+            smilp.parseParameters(in: body, withParent: node)
+            smilp.parseSequences(in: body, withParent: node, publicationSpine: &publication.spine)
+            // "../xhtml/mo-002.xhtml#mo-1" => "../xhtml/mo-002.xhtml"
+
+            guard let baseHref = node.text?.components(separatedBy: "#")[0],
+                let link = publication.spine.first(where: {
+                guard let linkRef = $0.href else {
+                    return false
+                }
+                return baseHref.contains(linkRef)
+            }) else {
+                continue
+            }
+            link.mediaOverlays.append(node)
+            link.properties.append(EpubConstant.mediaOverlayURL + link.href!)
+        }
+    }
+
     // MARK: - Fileprivate Methods.
 
     /// Generate a `Link` form the given manifest's XML element.
@@ -205,8 +252,7 @@ public class OPFParser {
         link.typeLink = item.attributes["media-type"]
         // Look if item have any properties.
         if let propertyAttribute = item.attributes["properties"] {
-            let ws = CharacterSet.whitespaces
-            let properties = propertyAttribute.components(separatedBy: ws)
+            let properties = propertyAttribute.components(separatedBy: CharacterSet.whitespaces)
 
             // TODO: The contains "math/js" like in the Go streamer.
             // + refactor below.
@@ -224,3 +270,15 @@ public class OPFParser {
         return link
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
