@@ -42,7 +42,7 @@ internal class Decoder {
     ///                  originate from.
     ///   - path: The relative path of the resource inside of the publication.
     /// - Returns: The Inpustream containing the unencrypted resource.
-    internal func decode(_ input: SeekableInputStream,
+    internal func decoding(_ input: SeekableInputStream,
                          of publication: Publication, at path: String) -> SeekableInputStream
     {
         // If the publicationIdentifier is not accessible, no deobfuscation is
@@ -66,7 +66,7 @@ internal class Decoder {
             return input
         }
         // Decode the data and return a seekable input stream.
-        return decodeFont(input, publicationIdentifier, type)
+        return decodingFont(input, publicationIdentifier, type)
     }
 
     /// Decode the given inputStream first X characters, depending of the obfu-
@@ -78,7 +78,7 @@ internal class Decoder {
     ///   - pubId: The associated publication Identifier.
     ///   - length: The ObfuscationLength depending of the obfuscation type.
     /// - Returns: The Deobfuscated SeekableInputStream.
-    internal func decodeFont(_ input: SeekableInputStream,
+    internal func decodingFont(_ input: SeekableInputStream,
                              _ pubId: String,
                              _ length: ObfuscationLength) -> DataInputStream
     {

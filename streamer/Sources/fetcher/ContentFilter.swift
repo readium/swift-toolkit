@@ -48,7 +48,7 @@ internal class ContentFiltersEpub: ContentFilters {
 
     internal func apply(to input: SeekableInputStream,
                         of publication: Publication, at path: String) throws -> SeekableInputStream {
-        let inputStream = try decoder.decode(input, of: publication, at: path)
+        let inputStream = decoder.decoding(input, of: publication, at: path)
         // var data
         // other transformations...
         return inputStream
@@ -57,7 +57,7 @@ internal class ContentFiltersEpub: ContentFilters {
     internal func apply(to input: Data,
                         of publication: Publication, at path: String) throws -> Data {
         let inputStream = DataInputStream(data: input)
-        let decodedInputStream = decoder.decode(inputStream, of: publication, at: path)
+        let decodedInputStream = decoder.decoding(inputStream, of: publication, at: path)
 
         guard let dataInputstream = decodedInputStream as? DataInputStream else {
             return input

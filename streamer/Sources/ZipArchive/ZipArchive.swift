@@ -40,6 +40,7 @@ internal class ZipArchive {
     internal var unzFile: unzFile
     /// The informations about the Archive.
     internal var fileInfos = [String: ZipFileInfo]()
+    internal let bufferLength = 1024 * 64
 
     /// The current offset position in the archive.
     internal var currentFileOffset: Int {
@@ -109,13 +110,12 @@ internal class ZipArchive {
     /// - Returns: <#return value description#>
     /// - Throws: <#throws value description#>
     fileprivate func readDataOfCurrentFile(range: Range<UInt64>) throws -> Data {
-        let bufferLength = 1024 * 64
         let length = range.count
         var buffer = Array<CUnsignedChar>(repeating: 0, count: bufferLength)
         var data = Data(capacity: Int(length))
 
         /// Skip the first bytes of the file until lowerBound is reached.
-        try advanceOffsetBy(Int(range.lowerBound))
+        try seek(Int(range.lowerBound))
         // Read the current file and add it to the data
         var totalBytesRead = 0
         while totalBytesRead < length {
@@ -161,10 +161,10 @@ internal class ZipArchive {
     public func readData(path: String) throws -> Data {
         // TODO: find a cleaner and faster solution to prevent concurrent access to the zip file
         // https://www.cocoawithlove.com/blog/2016/06/02/threads-and-mutexes.html
-        objc_sync_enter(self)
-        defer {
-            objc_sync_exit(self)
-        }
+//        objc_sync_enter(self)
+//        defer {
+//            objc_sync_exit(self)
+//        }
 
         if try locateFile(path: path) {
             try openCurrentFile()
@@ -176,22 +176,6 @@ internal class ZipArchive {
             throw ZipArchiveError.fileNotFound
         }
     }
-    //
-    //    /*
-    //    public func readData(path: String, range: Range<UInt64>) throws -> Data {
-    //        // TODO: find a cleaner and faster solution to prevent concurrent access to the zip file
-    //        // https://www.cocoawithlove.com/blog/2016/06/02/threads-and-mutexes.html
-    //        objc_sync_enter(self)
-    //        defer {
-    //            objc_sync_exit(self)
-    //        }
-    //
-    //        if (try locateFile(path: path)) {
-    //            return try readDataOfCurrentFile(range: range)
-    //        } else {
-    //            throw ZipError.fileNotFound
-    //        }
-    //    }
 
     // Mark: - Fileprivate Methods.
 
@@ -202,11 +186,13 @@ internal class ZipArchive {
     /// - Throws: `ZipArchiveError.archiveNotUsable`,
     ///           `ZipArchiveError.paramError`.
     internal func locateFile(path: String) throws -> Bool {
+        try goToFirstFile()
+
         let ret = unzLocateFile(unzFile, path.cString(using: String.Encoding.utf8), nil)
 
         switch ret {
         case UNZ_END_OF_LIST_OF_FILE:
-            throw ZipArchiveError.archiveNotUsable
+            throw ZipArchiveError.fileNotFound
         case UNZ_PARAMERROR:
             throw ZipArchiveError.paramError
         case UNZ_OK:
@@ -219,7 +205,7 @@ internal class ZipArchive {
     /// Moves offset to the first file of the archive.
     fileprivate func goToFirstFile() throws {
         guard unzGoToFirstFile(unzFile) == UNZ_OK else {
-            throw ZipError.unzipFail
+            throw ZipArchiveError.minizipError
         }
     }
 
@@ -240,23 +226,54 @@ internal class ZipArchive {
         }
     }
 
-    /// Advance the current offsetPosition by x.
+    /// UNZ Enum for the unzSeek function. Determining the offset reference.
+    ///
+    /// - set: Seek from beginning of file.
+    /// - current: Seek from current position.
+    /// - end: Set file pointer to EOF plus "offset"
+    enum Origin: Int32 {
+        case set = 0
+        case current
+        case end
+    }
+
+    /// Seek position x.
     ///
     /// - Parameter x: The number of bytes to advance the current offset to.
-    internal func advanceOffsetBy(_ x: Int) throws {
-        guard x > 0 else {
-            return
-        }
-        let ret = unzSetOffset(unzFile, uLong(x))
+    internal func seek(_ offset: Int) throws {
+        // TODO: Check if you can seek directly to offset in minizip instead of reading the bytes
+        let ioffset = Int(offset)
+        var buffer = Array<CUnsignedChar>(repeating: 0, count: bufferLength)
 
-        switch ret {
-        case UNZ_OK:
-            break
-        case UNZ_PARAMERROR:
-            throw ZipArchiveError.paramError
-        default:
-            throw ZipArchiveError.minizipError
+        // Read the current file to the desired offset
+        var offsetBytesRead: Int = 0
+        while offsetBytesRead < ioffset {
+            let bytesToRead = min(bufferLength, ioffset - offsetBytesRead)
+            // Data is discarded
+            let bytesRead = unzReadCurrentFile(unzFile, &buffer, UInt32(bytesToRead))
+            if bytesRead == 0 {
+                break
+            }
+            if bytesRead > 0 {
+                offsetBytesRead += Int(bytesRead)
+            } else {
+                throw ZipArchiveError.minizipError
+            }
         }
+        //currentFileOffset! += UInt64(offsetBytesRead)
+//        guard x > 0 else {
+//            return
+//        }
+//        let ret = unzseek(unzFile, x, Origin.set.rawValue)//(unzFile, uLong(x))
+//
+//        switch ret {
+//        case UNZ_OK:
+//            break
+//        case UNZ_PARAMERROR:
+//            throw ZipArchiveError.paramError
+//        default:
+//            throw ZipArchiveError.minizipError
+//        }
     }
 
     /// Open the file at offset.
@@ -333,6 +350,25 @@ internal class ZipArchive {
     }
 }
 
+
+///// Zip error type
+//public enum ZipError: Error {
+//    /// File not found
+//    case fileNotFound
+//    /// Unzip fail
+//    case unzipFail
+//    /// Zip fail
+//    case zipFail
+//
+//    /// User readable description
+//    public var description: String {
+//        switch self {
+//        case .fileNotFound: return NSLocalizedString("File not found.", comment: "")
+//        case .unzipFail: return NSLocalizedString("Failed to unzip file.", comment: "")
+//        case .zipFail: return NSLocalizedString("Failed to zip file.", comment: "")
+//        }
+//    }
+//}
 
 //internal class ZipArchive {
 //    

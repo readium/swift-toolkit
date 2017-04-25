@@ -126,13 +126,12 @@ internal class ZipInputStream: SeekableInputStream {
     }
 
     override internal func seek(offset: Int64, whence: SeekWhence) throws {
-
         assert(whence == .startOfFile, "Only seek from start of stream is supported for now.")
         assert(offset >= 0, "Since only seek from start of stream if supported, offset must be >= 0")
 
         //log(level: .debug, "ZipInputStream \(fileInZipPath) offset \(offset)")
         do {
-            try zipArchive.advanceOffsetBy(Int(offset))
+            try zipArchive.seek(Int(offset))
         } catch {
             _streamStatus = .error
             _streamError = error
