@@ -24,20 +24,20 @@ public class ContainerCbz: CbzContainer, ZipArchiveContainer {
         guard let arc = ZipArchive(url: URL(fileURLWithPath: path)) else {
             return nil
         }
-        rootFile = RootFile.init(rootPath: path, mimetype: CbzConstant.mimetype)
         zipArchive = arc
-        /// Generate file list.
+        rootFile = RootFile.init(rootPath: path,
+                                 mimetype: CbzConstant.mimetype)
         do {
             try zipArchive.buildFilesList()
         } catch {
-            log(level: .error, "zipArchive error generating file List")
+            ContainerCbz.log(level: .error, "zipArchive error generating file List")
             return nil
         }
     }
 
     public func getFilesList() -> [String] {
         let archivedFilesList = zipArchive.fileInfos.map({
-            URL(fileURLWithPath: $0.key).lastPathComponent
+            $0.key
         }).sorted()
 
         return archivedFilesList
