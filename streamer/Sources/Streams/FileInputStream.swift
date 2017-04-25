@@ -151,8 +151,6 @@ internal class FileInputStream: SeekableInputStream {
         assert(whence == .startOfFile, "Only seek from start of stream is supported for now.")
         assert(offset >= 0, "Since only seek from start of stream if supported, offset must be >= 0")
 
-        logValue(level: .debug, filePath)
-        logValue(level: .debug, offset)
         guard let fileHandle = fileHandle else {
             _streamStatus = .error
             _streamError = FileInputStreamError.fileHandleUnset
