@@ -28,7 +28,6 @@
 		59501E131E2FB16600D1B4BF /* zip.h in Headers */ = {isa = PBXBuildFile; fileRef = 59501DFF1E2FB16600D1B4BF /* zip.h */; };
 		59501E141E2FB16600D1B4BF /* Zip.h in Headers */ = {isa = PBXBuildFile; fileRef = 59501E001E2FB16600D1B4BF /* Zip.h */; };
 		59501E151E2FB16600D1B4BF /* ZipArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501E011E2FB16600D1B4BF /* ZipArchive.swift */; };
-		59501E161E2FB16600D1B4BF /* ZipError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501E021E2FB16600D1B4BF /* ZipError.swift */; };
 		59501E1B1E2FB1F500D1B4BF /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E181E2FB1F500D1B4BF /* AEXML.framework */; };
 		59501E1C1E2FB1F500D1B4BF /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E191E2FB1F500D1B4BF /* GCDWebServers.framework */; };
 		59501E1D1E2FB1F500D1B4BF /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */; };
@@ -135,7 +134,6 @@
 		59501DFF1E2FB16600D1B4BF /* zip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = zip.h; sourceTree = "<group>"; };
 		59501E001E2FB16600D1B4BF /* Zip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Zip.h; sourceTree = "<group>"; };
 		59501E011E2FB16600D1B4BF /* ZipArchive.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZipArchive.swift; sourceTree = "<group>"; };
-		59501E021E2FB16600D1B4BF /* ZipError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZipError.swift; sourceTree = "<group>"; };
 		59501E181E2FB1F500D1B4BF /* AEXML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AEXML.framework; path = Carthage/Build/iOS/AEXML.framework; sourceTree = "<group>"; };
 		59501E191E2FB1F500D1B4BF /* GCDWebServers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDWebServers.framework; path = Carthage/Build/iOS/GCDWebServers.framework; sourceTree = "<group>"; };
 		59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ObjectMapper.framework; path = Carthage/Build/iOS/ObjectMapper.framework; sourceTree = "<group>"; };
@@ -322,7 +320,6 @@
 				59501DF71E2FB16600D1B4BF /* minizip */,
 				59501E001E2FB16600D1B4BF /* Zip.h */,
 				59501E011E2FB16600D1B4BF /* ZipArchive.swift */,
-				59501E021E2FB16600D1B4BF /* ZipError.swift */,
 			);
 			name = ZipArchive;
 			path = Sources/ZipArchive;
@@ -634,7 +631,6 @@
 				F3098E731E7BFF9B002358A1 /* NavigationDocumentParser.swift in Sources */,
 				59501E031E2FB16600D1B4BF /* Fetcher.swift in Sources */,
 				F3E6A2D81E70113600BBD81C /* LoggerStub.swift in Sources */,
-				59501E161E2FB16600D1B4BF /* ZipError.swift in Sources */,
 				F3DEE6E21E5C5A53007FE63D /* OPFParser.swift in Sources */,
 				F351DB741E54B71A00D84BDF /* ContainerEpub.swift in Sources */,
 				F351DB7C1E55EE7800D84BDF /* Contributor.swift in Sources */,
