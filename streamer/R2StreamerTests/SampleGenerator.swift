@@ -37,7 +37,7 @@ internal class SampleGenerator: XCTest {
         var ressources = [String: PubBox]()
 
         for url in samplesUrls {
-            guard let result = parsePub(at: url) else {
+            guard let result = parseEpub(at: url) else {
                 XCTFail()
                 continue
             }
@@ -51,25 +51,46 @@ internal class SampleGenerator: XCTest {
     /// Parse Epub at the given URL.
     ///
     /// - Parameter url: The URL of the Epub to parse.
-    /// - Returns: The resulting (publication, container) tuple (Epub).
-    internal func parsePub(at url: URL) -> PubBox? {
+    /// - Returns: The resulting (publication, container) tuple (PubBox).
+    internal func parseEpub(at url: URL) -> PubBox? {
         let parser = EpubParser()
-        let publication: PubBox
+        let pubBox: PubBox
 
         do {
-            publication = try parser.parse(fileAtPath: url.path)
+            pubBox = try parser.parse(fileAtPath: url.path)
         } catch {
             XCTFail("An exception occured while parsing publication at \(url.path)")
             logValue(level: .error, error)
             return nil
         }
-        XCTAssertNotNil(publication.publication)
-        XCTAssertNotNil(publication.associatedContainer)
-        return publication
+        XCTAssertNotNil(pubBox.publication)
+        XCTAssertNotNil(pubBox.associatedContainer)
+        return pubBox
+    }
+
+
+    /// Parse CBZ at the given URL
+    ///
+    /// - Parameter url: The url of the CBZ to parse.
+    /// - Returns: The resultint (publication, container) tuple (PubBox)
+    internal func parseCbz(at url: URL) -> PubBox? {
+        let parser = CbzParser()
+        let pubBox: PubBox
+
+        do {
+            pubBox = try parser.parse(fileAtPath: url.path)
+        } catch {
+            XCTFail("An exception occured while parsing publication at \(url.path)")
+            logValue(level: .error, error)
+            return nil
+        }
+        XCTAssertNotNil(pubBox.publication)
+        XCTAssertNotNil(pubBox.associatedContainer)
+        return pubBox
     }
 
     /// Get the URLs of the samples Publications.
-    internal func getSamplePublicationsUrl() {
+    internal func getSampleEpubUrl() {
         // epubs
         if let pubUrl = getSamplesUrl(named: TC.epub1, ofType: "epub") {
             pubUrls.append(pubUrl)

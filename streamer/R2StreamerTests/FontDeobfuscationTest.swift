@@ -53,7 +53,7 @@ class FontDeobfuscationTest: XCTestCase {
     func testIdpfFontDeobfuscation() {
         let decoder = Decoder()
 
-        obfuscatedFontStreamIdpf = decoder.decodeFont(obfuscatedFontStreamIdpf,
+        obfuscatedFontStreamIdpf = decoder.decodingFont(obfuscatedFontStreamIdpf,
                                                       testPublication.metadata.identifier!,
                                                       Decoder.ObfuscationLength.idpf)
         let obfuscatedFontBytes = toData(inputStream: obfuscatedFontStreamIdpf).bytes
@@ -66,7 +66,7 @@ class FontDeobfuscationTest: XCTestCase {
         let decoder = Decoder()
 
         self.measure {
-            let _ = decoder.decodeFont(self.obfuscatedFontStreamIdpf,
+            let _ = decoder.decodingFont(self.obfuscatedFontStreamIdpf,
                                self.testPublication.metadata.identifier!,
                                Decoder.ObfuscationLength.idpf)
         }
@@ -75,7 +75,7 @@ class FontDeobfuscationTest: XCTestCase {
     func testAdobeFontDeobfuscation() {
         let decoder = Decoder()
 
-        obfuscatedFontStreamAdobe = decoder.decodeFont(obfuscatedFontStreamAdobe,
+        obfuscatedFontStreamAdobe = decoder.decodingFont(obfuscatedFontStreamAdobe,
                                                   testPublication.metadata.identifier!,
                                                   Decoder.ObfuscationLength.adobe)
         let obfuscatedFontBytes = toData(inputStream: obfuscatedFontStreamAdobe).bytes
@@ -88,7 +88,7 @@ class FontDeobfuscationTest: XCTestCase {
         let decoder = Decoder()
 
         self.measure {
-            let _ = decoder.decodeFont(self.obfuscatedFontStreamAdobe,
+            let _ = decoder.decodingFont(self.obfuscatedFontStreamAdobe,
                                self.testPublication.metadata.identifier!,
                                Decoder.ObfuscationLength.adobe)
         }

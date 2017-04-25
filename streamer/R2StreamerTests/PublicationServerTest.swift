@@ -25,7 +25,7 @@ class PublicationServerTest: XCTestCase {
             XCTFail()
             return
         }
-        sg.getSamplePublicationsUrl()
+        sg.getSampleEpubUrl()
     }
 
     // Mark: - Tests methods.
