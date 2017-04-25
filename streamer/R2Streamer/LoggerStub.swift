@@ -19,7 +19,7 @@ public class LoggerStub: LoggerType {
         let fileName = path.lastPathComponent
         let severity = LoggerStub.getSeverityString(for: level)
 
-        print("🔸<\(severity)>[\(fileName)]: at \(className):\(function) (L.\(line)) : \(message)")
+        print("🔸<\(severity)>[\(fileName)]: at \(function) \(line) : \(message)")
     }
 
     /// Print `value` with a severity of `level`.
@@ -29,7 +29,7 @@ public class LoggerStub: LoggerType {
         let variableName = "" //NSPredicate(format: "%K == %@", #keyPath(value)), "test")
         let severity = LoggerStub.getSeverityString(for: level)
 
-        print("🔸<\(severity)>[\(fileName)]: at \(className):\(function) (L.\(line)) : \(variableName) = \(value.debugDescription)")
+        print("🔸<\(severity)>[\(fileName)]: at \(function) \(line) : \(variableName) = \(value.debugDescription)")
     }
 
     /// Log `message` with a severity of `level`.
@@ -37,7 +37,7 @@ public class LoggerStub: LoggerType {
         let fileName = path.lastPathComponent
         let severity = getSeverityString(for: level)
 
-        print("🔸<\(severity)>[\(fileName)]: at \(className):\(function) (L.\(line)) : \(message)")
+        print("🔸<\(severity)>[\(fileName)]: at \(function) \(line) : \(message)")
     }
 
     /// Print `value` with a severity of `level`.
@@ -47,7 +47,7 @@ public class LoggerStub: LoggerType {
         let variableName = "" //NSPredicate(format: "%K == %@", #keyPath(value)), "test")
         let severity = getSeverityString(for: level)
 
-        print("🔸<\(severity)>[\(fileName)]: at \(className):\(function) (L.\(line)) : \(variableName) = \(value.debugDescription)")
+        print("🔸<\(severity)>[\(fileName)]: at \(function) (L.\(line) : \(variableName) = \(value.debugDescription)")
     }
 
     static private func getSeverityString(for level: SeverityLevel) -> String {
