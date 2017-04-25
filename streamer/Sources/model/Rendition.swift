@@ -77,6 +77,16 @@ public class Rendition {
 
     required public init?(map: Map) {}
 
+    public func isEmpty() -> Bool {
+        guard layout != nil || flow != nil
+            || orientation != nil || spread != nil
+            || viewport != nil else
+        {
+            return true
+        }
+        return false
+    }
+
 }
 
 extension Rendition: Mappable {

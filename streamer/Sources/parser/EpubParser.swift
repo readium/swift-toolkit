@@ -24,6 +24,10 @@ public struct EpubConstant {
     static let mimetypeOEBPS = "application/oebps-package+xml"
     /// Media Overlays URL.
     static let mediaOverlayURL = "media-overlay?resource="
+    // PageSpread
+    static let autoMeta = "auto"
+    static let noneMeta = "none"
+    static let reflowableMeta = "reflowable"
 }
 
 /// Errors thrown during the parsing of the EPUB

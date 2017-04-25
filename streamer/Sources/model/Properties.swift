@@ -10,34 +10,41 @@ import Foundation
 import ObjectMapper
 
 /// Properties object used for `Link`s properties.
-/// -- TOVERIF/IMPL [Used also in Rendition for fxl]
 public struct Properties {
     public var contains = [String]()
-    public var layout: String?
     public var mediaOverlay: String?
+    public var encryption: Encryption?
+    public var layout: String?
     public var orientation: String?
     public var overflow: String?
     public var page: String?
     public var spread: String?
-    public var encryption: Encryption?
 }
-//
-//extension Properties: Mappable {
-//
-//    public init?(map: Map) {}
-//
-//    public mutating func mapping(map: Map) {
-//        if !contains.isEmpty {
-//            contains <- map["contains", ignoreNil: true]
-//        }
-//        layout <- map["layout", ignoreNil: true]
-//        if !mediaOverlay.isEmpty {
-//            mediaOverlay <- map["mediaOverlay", ignoreNil: true]
-//        }
-//        orientation <- map["orientation", ignoreNil: true]
-//        overflow <- map["overflow", ignoreNil: true]
-//        page <- map["page", ignoreNil: true]
-//        spread <- map["spread", ignoreNil: true]
-//        encryption <- map["encryption", ignoreNil: true]
-//    }    
-//}
+
+extension Properties: Mappable {
+
+    public init?(map: Map) {}
+
+    public func isEmpty() -> Bool {
+        guard !contains.isEmpty || layout != nil || mediaOverlay != nil
+            || orientation != nil || overflow != nil || page != nil
+            || spread != nil || encryption != nil else
+        {
+            return true
+        }
+        return false
+    }
+
+    public mutating func mapping(map: Map) {
+        if !contains.isEmpty {
+            contains <- map["contains", ignoreNil: true]
+        }
+        mediaOverlay <- map["mediaOverlay", ignoreNil: true]
+        encryption <- map["encryption", ignoreNil: true]
+        layout <- map["layout", ignoreNil: true]
+        orientation <- map["orientation", ignoreNil: true]
+        overflow <- map["overflow", ignoreNil: true]
+        page <- map["page", ignoreNil: true]
+        spread <- map["spread", ignoreNil: true]
+    }    
+}

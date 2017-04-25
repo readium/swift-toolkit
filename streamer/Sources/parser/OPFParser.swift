@@ -173,16 +173,22 @@ public class OPFParser {
         }
         // Create a `Link` for each spine item and add it to `Publication.spine`.
         for item in spineItems {
+            // Find the ressource `idref` is referencing to.
+            guard let idref = item.attributes["idref"],
+                let index = publication.resources.index(where: { $0.title == idref }) else
+            {
+                continue
+            }
+            // Parse the ressource properties and add it to the corresponding resource.
+            if let propertyAttribute = item.attributes["properties"] {
+                let properties = propertyAttribute.components(separatedBy: CharacterSet.whitespaces)
+
+                publication.resources[index].properties = parse(propertiesArray: properties)
+            }
             // Retrieve `idref`, referencing a resource id.
             // Only linear items are added to the spine.
-            guard let idref = item.attributes["idref"],
-                item.attributes["linear"]?.lowercased() != "no" else {
+            guard isLinear(item.attributes["linear"]) else {
                     continue
-            }
-            // Find the ressource `idref` is referencing to.
-            guard let index = publication.resources.index(where: { $0.title == idref }) else {
-                log(level: .warning, "Referenced ressource for spine item with \(idref) not found.")
-                continue
             }
             // Clean the title - used as a holder for the `idref`.
             publication.resources[index].title = nil
@@ -192,8 +198,19 @@ public class OPFParser {
         }
     }
 
+    /// Determine if the xml attribute correspond to the linear one.
+    ///
+    /// - Parameter linear: The linear attribute value, if any.
+    /// - Returns: True if it's linear, false if not.
+    fileprivate func isLinear(_ linear: String?) -> Bool {
+        if linear != nil, linear?.lowercased() == "no" {
+            return false
+        }
+        return true
+    }
+
     /// Parse the mediaOverlays informations contained in the ressources then
-    /// parse the associted SMIL files to populate the MediaOverlays objects 
+    /// parse the associted SMIL files to populate the MediaOverlays objects
     /// in each of the Spine's Links.
     ///
     /// - Parameters:
@@ -221,12 +238,12 @@ public class OPFParser {
             // "../xhtml/mo-002.xhtml#mo-1" => "../xhtml/mo-002.xhtml"
             guard let baseHref = node.text?.components(separatedBy: "#")[0],
                 let link = publication.spine.first(where: {
-                guard let linkRef = $0.href else {
-                    return false
-                }
-                return baseHref.contains(linkRef)
-            }) else {
-                continue
+                    guard let linkRef = $0.href else {
+                        return false
+                    }
+                    return baseHref.contains(linkRef)
+                }) else {
+                    continue
             }
             link.mediaOverlays.append(node)
             link.properties.mediaOverlay = EpubConstant.mediaOverlayURL + link.href!
@@ -249,24 +266,88 @@ public class OPFParser {
         //
         link.href = item.attributes["href"]
         link.typeLink = item.attributes["media-type"]
-        // Look if item have any properties.
         if let propertyAttribute = item.attributes["properties"] {
             let properties = propertyAttribute.components(separatedBy: CharacterSet.whitespaces)
-
-            // TODO: The contains "math/js" like in the Go streamer.
-            // + refactor below.
+            /// Rels.
             if properties.contains("nav") {
                 link.rel.append("contents")
             }
-            // If it's a cover, set the rel to cover and add the link to `links`
             if properties.contains("cover-image") {
                 link.rel.append("cover")
             }
-            let otherProperties = properties.filter { $0 != "cover-image" && $0 != "nav" }
-            link.properties.contains.append(contentsOf: otherProperties)
-            // TODO: rendition properties
+            /// Properties.
+            link.properties = parse(propertiesArray: properties)
         }
         return link
+    }
+
+    /// Parse properties string array and return a Properties object.
+    ///
+    /// - Parameter propertiesArray: The array of properties strings.
+    /// - Returns: The Properties instance created from the strings array info.
+    fileprivate func parse(propertiesArray: [String]) -> Properties {
+        var properties = Properties()
+
+        // Look if item have any properties.
+        for property in propertiesArray {
+            switch property {
+            /// Contains
+            case "scripted":
+                properties.contains.append("js")
+            case "mathml":
+                properties.contains.append("mathml")
+            case "onix-record":
+                properties.contains.append("onix")
+            case "svg":
+                properties.contains.append("svg")
+            case "xmp-record":
+                properties.contains.append("xmp")
+            case "remote-resources":
+                properties.contains.append("remote-resources")
+            /// Page
+            case "page-spread-left":
+                properties.page = "left"
+            case "page-spread-right":
+                properties.page = "right"
+            case "page-spread-center":
+                properties.page = "center"
+            /// Spread
+            case "rendition:spread-none":
+                properties.spread = EpubConstant.noneMeta
+            case "rendition:spread-auto":
+                properties.spread = EpubConstant.noneMeta
+            case "rendition:spread-landscape":
+                properties.spread = "landscape"
+            case "rendition:spread-portrait":
+                properties.spread = "portrait"
+            case "rendition:spread-both":
+                properties.spread = "both"
+            /// Layout
+            case "rendition:layout-reflowable":
+                properties.layout = EpubConstant.reflowableMeta
+            case "rendition:layout-pre-paginated":
+                properties.layout = "fixed"
+            /// Orientation
+            case "rendition:orientation-auto":
+                properties.orientation = "auto"
+            case "rendition:orientation-landscape":
+                properties.orientation = "landscape"
+            case "rendition:orientation-portrait":
+                properties.orientation = "portrait"
+            /// Rendition
+            case "rendition:flow-auto":
+                properties.overflow = EpubConstant.autoMeta
+            case "rendition:flow-paginated":
+                properties.overflow = "paginated"
+            case "rendition:flow-scrolled-continuous":
+                properties.overflow = "scrolled-continuous"
+            case "rendition:flow-scrolled-doc":
+                properties.overflow = "scrolled"
+            default:
+                continue
+            }
+        }
+        return properties
     }
 }
 

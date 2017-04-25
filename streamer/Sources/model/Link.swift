@@ -58,19 +58,9 @@ extension Link: Mappable {
         width <- map["width", ignoreNil: true]
         duration <- map["duration", ignoreNil: true]
         title <- map["title", ignoreNil: true]
-        //properties <- map["properties", ignoreNil: true]
-        /// Properties mapping
-        if !properties.contains.isEmpty {
-            properties.contains <- map["properties.contains", ignoreNil: true]
+        if !properties.isEmpty() {
+            properties <- map["properties", ignoreNil: true]
         }
-        properties.layout <- map["properties.layout", ignoreNil: true]
-        properties.mediaOverlay <- map["properties.mediaOverlay", ignoreNil: true]
-        properties.orientation <- map["properties.orientation", ignoreNil: true]
-        properties.overflow <- map["properties.overflow", ignoreNil: true]
-        properties.page <- map["properties.page", ignoreNil: true]
-        properties.spread <- map["properties.spread", ignoreNil: true]
-        properties.encryption <- map["properties.encryption", ignoreNil: true]
-        /// Properties mapping end
     }
 }
 
