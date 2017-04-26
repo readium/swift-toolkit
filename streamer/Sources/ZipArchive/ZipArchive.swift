@@ -187,8 +187,7 @@ internal class ZipArchive {
     ///           `ZipArchiveError.paramError`.
     internal func locateFile(path: String) throws -> Bool {
         try goToFirstFile()
-
-        let ret = unzLocateFile(unzFile, path.cString(using: String.Encoding.utf8), nil)
+        let ret = unzLocateFile(unzFile, path, nil)
 
         switch ret {
         case UNZ_END_OF_LIST_OF_FILE:
