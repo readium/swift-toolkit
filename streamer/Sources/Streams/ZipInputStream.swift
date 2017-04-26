@@ -57,7 +57,7 @@ internal class ZipInputStream: SeekableInputStream {
         self.zipArchive = zipArchive
         fileInZipPath = path
         // Check if the file exists in the archive.
-        guard (try? zipArchive.locateFile(path: fileInZipPath)) ?? false,
+        guard zipArchive.locateFile(path: fileInZipPath),
             let fileInfo = try? zipArchive.informationsOfCurrentFile() else
         {
             return nil
@@ -70,7 +70,7 @@ internal class ZipInputStream: SeekableInputStream {
         self.zipArchive = zipArchive
         fileInZipPath = path
         // Check if the file exists in the archive.
-        guard (try? zipArchive.locateFile(path: fileInZipPath)) ?? false,
+        guard zipArchive.locateFile(path: fileInZipPath),
             let fileInfo = try? zipArchive.informationsOfCurrentFile() else
         {
             return nil

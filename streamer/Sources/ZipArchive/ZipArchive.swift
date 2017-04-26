@@ -166,7 +166,7 @@ internal class ZipArchive {
 //            objc_sync_exit(self)
 //        }
 
-        if try locateFile(path: path) {
+        if locateFile(path: path) {
             try openCurrentFile()
             defer {
                 closeCurrentFile()
@@ -185,20 +185,11 @@ internal class ZipArchive {
     /// - Returns: Return true if found, else false.
     /// - Throws: `ZipArchiveError.archiveNotUsable`,
     ///           `ZipArchiveError.paramError`.
-    internal func locateFile(path: String) throws -> Bool {
-        try goToFirstFile()
-        let ret = unzLocateFile(unzFile, path, nil)
-
-        switch ret {
-        case UNZ_END_OF_LIST_OF_FILE:
-            throw ZipArchiveError.fileNotFound
-        case UNZ_PARAMERROR:
-            throw ZipArchiveError.paramError
-        case UNZ_OK:
-            return true
-        default:
+    internal func locateFile(path: String) -> Bool {
+        guard unzLocateFile(unzFile, path, nil) == UNZ_OK else {
             return false
         }
+        return true
     }
 
     /// Moves offset to the first file of the archive.
