@@ -11,22 +11,23 @@ import AEXML
 
 /// Epub related constants.
 public struct EpubConstant {
-
     /// Default EPUB Version value, used when no version hes been specified.
-    /// (see OPF_2.0.1_draft 1.3.2)
+    /// (see OPF_2.0.1_draft 1.3.2).
     static let defaultEpubVersion = 1.2
-
-    /// Path of the EPUB's container.xml file
+    /// Path of the EPUB's container.xml file.
     static let containerDotXmlPath = "META-INF/container.xml"
-
-    /// Epub mime-type
-    static let mimetypeEPUB = "application/epub+zip"
-
-    /// http://www.idpf.org/oebps/
+    /// Path of the EPUB's ecryption file.
+    static let encryptionDotXmlPath = "META-INF/encryption.xml"
+    /// Epub mime-type.
+    static let mimetype = "application/epub+zip"
+    /// http://www.idpf.org/oebps/ (Legacy)
     static let mimetypeOEBPS = "application/oebps-package+xml"
-
-    /// Media Overlays URL
+    /// Media Overlays URL.
     static let mediaOverlayURL = "media-overlay?resource="
+    // PageSpread
+    static let autoMeta = "auto"
+    static let noneMeta = "none"
+    static let reflowableMeta = "reflowable"
 }
 
 /// Errors thrown during the parsing of the EPUB
@@ -40,26 +41,25 @@ public enum EpubParserError: Error {
 
     /// MimeType "application/epub+zip" expected.
     case wrongMimeType
-
     /// A file is missing from the container at relative path **path**.
     case missingFile(path: String)
-
     /// An XML parsing error occurred, **underlyingError** thrown by the parser.
     case xmlParse(underlyingError: Error)
-
+    /// An XML elemen cannot be found.
     case missingElement(message: String)
 }
+
+extension EpubParser: Loggable {}
 
 /// An EPUB container parser that extracts the information from the relevant
 /// files and builds a `Publication` instance with it.
 public class EpubParser: PublicationParser {
-    public let opfp: OPFParser!
-    public let ndp: NavigationDocumentParser!
-    public let ncxp: NCXParser!
+    internal let opfp: OPFParser!
+    internal let ndp: NavigationDocumentParser!
+    internal let ncxp: NCXParser!
+    internal let encp: EncryptionParser!
 
     // TODO: multiple renditions
-    // TODO: media overlays
-    // TODO: encryption info
 
     // MARK: - Public methods
 
@@ -67,6 +67,7 @@ public class EpubParser: PublicationParser {
         opfp = OPFParser()
         ndp = NavigationDocumentParser()
         ncxp = NCXParser()
+        encp = EncryptionParser()
     }
 
     /// Parses the EPUB (file/directory) at `fileAtPath` and generate
@@ -86,7 +87,7 @@ public class EpubParser: PublicationParser {
         // + check if mimetype's valid.
         guard let mimeTypeData = try? container.data(relativePath: "mimetype"),
             let mimetype = String(data: mimeTypeData, encoding: .ascii),
-            mimetype == EpubConstant.mimetypeEPUB else {
+            mimetype == EpubConstant.mimetype else {
                 throw EpubParserError.wrongMimeType
         }
         container.rootFile.mimetype = mimetype
@@ -97,11 +98,12 @@ public class EpubParser: PublicationParser {
         // Parse the container.xml Data and fill the ContainerMetadata objectof the container
         container.rootFile.rootFilePath =  try getRootFilePath(from: data)
         // Get the package.opf XML document from the container.
-        let document = try container.xmlDocument(ForFileAtRelativePath: container.rootFile.rootFilePath)
+        let document = try container.xmlDocument(forFileAtRelativePath: container.rootFile.rootFilePath)
         let epubVersion = getEpubVersion(from: document)
         // Parse OPF file (Metadata, Spine, Resource) and return the Publication.
         var publication = try opfp.parseOPF(from: document, with: container, and: epubVersion)
-        // TODO: Define when to parse which one (github issue #25)
+        // Parse the META-INF/Encryption.xml.
+        parseEncryption(from: container, to: &publication)
         // Parse Navigation Document.
         parseNavigationDocument(from: container, to: &publication)
         // Parse the NCX Document (if any).
@@ -110,6 +112,36 @@ public class EpubParser: PublicationParser {
     }
 
     // MARK: - Internal Methods.
+
+    /// Parse the Encryption.xml EPUB file. It contains the informationg about
+    /// encrypted resources and how to decrypt them
+    ///
+    /// - Parameters:
+    ///   - container: The EPUB Container.
+    ///   - publication: The Publication.
+    /// - Throws: 
+    internal func parseEncryption(from container: EpubContainer, to publication: inout Publication) {
+        // Check if there is an encryption file.
+        guard let document = try? container.xmlDocument(forFileAtRelativePath: EpubConstant.encryptionDotXmlPath) else {
+            log(level: .warning, "The file “encryption.xml” couldn’t be opened")
+            return
+        }
+        guard let encryptedDataElements = document["encryption"]["EncryptedData"].all else {
+            log(level: .info, "No <EncryptedData> elements")
+            return
+        }
+        // Loop through <EncryptedData> elements..
+        for encryptedDataElement in encryptedDataElements {
+            var encryption = Encryption()
+
+            encryption.algorithm = encryptedDataElement["EncryptionMethod"].attributes["Algorithm"]
+            // TODO: LCP encryption. Profile/Scheme if lcp.id != nil
+            encp.parseEncryptionProperties(from: encryptedDataElement, to: &encryption)
+            encp.add(encryption: encryption, toLinkInPublication: &publication,
+                     encryptedDataElement)
+        }
+        // TODO: LCP
+    }
 
     /// Attempt to fill `Publication.tableOfContent`/`.landmarks`/`.pageList`/
     ///                              `.listOfIllustration`/`.listOftables`
@@ -183,7 +215,7 @@ public class EpubParser: PublicationParser {
         } catch {
             throw EpubParserError.xmlParse(underlyingError: error)
         }
-        // Look for the first `<roofile>` element.
+        // Look for the `<roofile>` element.
         let rootFileElement = containerDotXml.root["rootfiles"]["rootfile"]
         // Get the path of the OPF file, relative to the metadata.rootPath.
         guard let opfFilePath = getRelativePathToOPF(from: rootFileElement) else {

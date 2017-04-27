@@ -13,38 +13,37 @@ import R2Streamer
 /// Testing constants
 fileprivate struct TC {
     /// The total number epub in Samples
-    static let numberOfEpubSamples = 3
+    static let numberOfPubSamples = 2
     /// The total number epubDirectory in Samples
-    static let numberOfEpubDirectorySamples = 3
+    static let numberOfPubDirectorySamples = 2
     /// Name of test epubs contained in the Samples directory
     static let epub1 = "cc-shared-culture"
-    static let epub2 = "Le_tournant_hostile_extrait"
-    static let epub3 = "SmokeTestFXL"
+    static let epub2 = "SmokeTestFXL"
 }
 
 extension SampleGenerator: Loggable {}
 
 internal class SampleGenerator: XCTest {
-    lazy var epubUrls = [URL]()
-    lazy var epubDirectoryUrls = [URL]()
+    lazy var pubUrls = [URL]()
+    lazy var pubDirectoryUrls = [URL]()
     var samplesUrls: [URL] {
-        return epubUrls + epubDirectoryUrls
+        return pubUrls + pubDirectoryUrls
     }
 
     /// Generate a dictionnary of the epubs at samplesUrls.
     ///
     /// - Returns: Dictionnayr of epubs at samplesUrls.
-    internal func getEpubsForSamplesUrls() -> [String: Epub] {
-        var ressources = [String: Epub]()
+    internal func getEpubsForSamplesUrls() -> [String: PubBox] {
+        var ressources = [String: PubBox]()
 
         for url in samplesUrls {
             guard let result = parseEpub(at: url) else {
                 XCTFail()
                 continue
             }
-            let epubTitle = result.publication.metadata.title ?? ""
+            let pubTitle = result.publication.metadata.title 
 
-            ressources[epubTitle] = result
+            ressources[pubTitle] = result
         }
         return ressources
     }
@@ -52,48 +51,63 @@ internal class SampleGenerator: XCTest {
     /// Parse Epub at the given URL.
     ///
     /// - Parameter url: The URL of the Epub to parse.
-    /// - Returns: The resulting (publication, container) tuple (Epub).
-    internal func parseEpub(at url: URL) -> Epub? {
+    /// - Returns: The resulting (publication, container) tuple (PubBox).
+    internal func parseEpub(at url: URL) -> PubBox? {
         let parser = EpubParser()
-        let epub: Epub
+        let pubBox: PubBox
 
         do {
-            epub = try parser.parse(fileAtPath: url.path)
+            pubBox = try parser.parse(fileAtPath: url.path)
         } catch {
-            XCTFail("An exception occured while parsing epub at \(url.path)")
+            XCTFail("An exception occured while parsing publication at \(url.path)")
             logValue(level: .error, error)
             return nil
         }
-        XCTAssertNotNil(epub.publication)
-        XCTAssertNotNil(epub.associatedContainer)
-        return epub
+        XCTAssertNotNil(pubBox.publication)
+        XCTAssertNotNil(pubBox.associatedContainer)
+        return pubBox
     }
 
-    /// Get the URLs of the samples epubs.
-    internal func getSampleEpubsUrl() {
+
+    /// Parse CBZ at the given URL
+    ///
+    /// - Parameter url: The url of the CBZ to parse.
+    /// - Returns: The resultint (publication, container) tuple (PubBox)
+    internal func parseCbz(at url: URL) -> PubBox? {
+        let parser = CbzParser()
+        let pubBox: PubBox
+
+        do {
+            pubBox = try parser.parse(fileAtPath: url.path)
+        } catch {
+            XCTFail("An exception occured while parsing publication at \(url.path)")
+            logValue(level: .error, error)
+            return nil
+        }
+        XCTAssertNotNil(pubBox.publication)
+        XCTAssertNotNil(pubBox.associatedContainer)
+        return pubBox
+    }
+
+    /// Get the URLs of the samples Publications.
+    internal func getSampleEpubUrl() {
         // epubs
-        if let epubUrl = getSamplesUrl(named: TC.epub1, ofType: "epub") {
-            epubUrls.append(epubUrl)
+        if let pubUrl = getSamplesUrl(named: TC.epub1, ofType: "epub") {
+            pubUrls.append(pubUrl)
         }
-        if let epubUrl = getSamplesUrl(named: TC.epub2, ofType: "epub") {
-            epubUrls.append(epubUrl)
+        if let pubUrl = getSamplesUrl(named: TC.epub2, ofType: "epub") {
+            pubUrls.append(pubUrl)
         }
-        if let epubUrl = getSamplesUrl(named: TC.epub3, ofType: "epub") {
-            epubUrls.append(epubUrl)
-        }
-        XCTAssertTrue(epubUrls.count == TC.numberOfEpubSamples)
+        XCTAssertTrue(pubUrls.count == TC.numberOfPubSamples)
 
         // epubDirectories
-        if let epubUrl = getSamplesUrl(named: TC.epub1, ofType: nil) {
-            epubDirectoryUrls.append(epubUrl)
+        if let pubUrl = getSamplesUrl(named: TC.epub1, ofType: nil) {
+            pubDirectoryUrls.append(pubUrl)
         }
-        if let epubUrl = getSamplesUrl(named: TC.epub2, ofType: nil) {
-            epubDirectoryUrls.append(epubUrl)
+        if let pubUrl = getSamplesUrl(named: TC.epub2, ofType: nil) {
+            pubDirectoryUrls.append(pubUrl)
         }
-        if let epubUrl = getSamplesUrl(named: TC.epub3, ofType: nil) {
-            epubDirectoryUrls.append(epubUrl)
-        }
-        XCTAssertTrue(epubDirectoryUrls.count == TC.numberOfEpubDirectorySamples)
+        XCTAssertTrue(pubDirectoryUrls.count == TC.numberOfPubDirectorySamples)
     }
 
     /// Return the absolute path to a ressource from the bundle/Samples.
@@ -102,7 +116,7 @@ internal class SampleGenerator: XCTest {
     ///   - named: The name of the ressource.
     ///   - ofType: The type of the ressource. nil/"" if directory.
     /// - Returns: The fullpath to the ressource.
-    private func getSamplesUrl(named: String, ofType: String?) -> URL? {
+    internal func getSamplesUrl(named: String, ofType: String?) -> URL? {
         let bundle = Bundle(for: type(of: self))
 
         guard let path = bundle.path(forResource: "Samples/\(named)", ofType: ofType) else {

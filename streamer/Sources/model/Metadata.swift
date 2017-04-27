@@ -10,8 +10,7 @@ import Foundation
 import ObjectMapper
 
 /// The data representation of the <metadata> element of the "*.opf" file.
-public class Metadata: Mappable {
-
+public class Metadata {
     /// The structure used for the serialisation.
     internal var _title: MultilangString?
     /// The publicly accessible publication title (mainTitle).
@@ -39,7 +38,6 @@ public class Metadata: Mappable {
     public var subjects = [Subject]()
     public var publishers = [Contributor]()
     public var contributors = [Contributor]()
-
     public var modified: Date?
     public var publicationDate: String?
     public var description: String?
@@ -48,10 +46,7 @@ public class Metadata: Mappable {
     public var source: String?
     public var epubType = [String]()
     public var rights: String?
-
     public var otherMetadata = [MetadataItem]()
-
-    // MARK: - Public methods.
 
     public init() {
         direction = "default"
@@ -59,7 +54,6 @@ public class Metadata: Mappable {
 
     required public init?(map: Map) {
         direction = "default"
-        // TODO: init
     }
 
     /// Get the title for the given `lang`, if it exists in the dictionnary.
@@ -69,7 +63,9 @@ public class Metadata: Mappable {
     public func titleForLang(_ lang: String) -> String? {
         return _title?.multiString[lang]
     }
+}
 
+extension Metadata: Mappable {
     public func mapping(map: Map) {
         var modified = self.modified?.iso8601
 
@@ -81,7 +77,7 @@ public class Metadata: Mappable {
         } else {
             var titleForSinglestring = _title?.singleString ?? ""
 
-             titleForSinglestring <- map["title"]
+            titleForSinglestring <- map["title"]
         }
         languages <- map["languages", ignoreNil: true]
         if !authors.isEmpty {
@@ -125,7 +121,9 @@ public class Metadata: Mappable {
         }
         modified <- map["modified", ignoreNil: true]
         publicationDate <- map["publicationDate", ignoreNil: true]
-        rendition <- map["rendition", ignoreNil: true]
+        if !rendition.isEmpty() {
+            rendition <- map["rendition", ignoreNil: true]
+        }
         source <- map["source", ignoreNil: true]
         rights <- map["rights", ignoreNil: true]
         if !subjects.isEmpty {

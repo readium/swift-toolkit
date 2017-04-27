@@ -11,13 +11,15 @@ import GCDWebServers
 
 extension PublicationServer: Loggable {}
 
-/// Errors thrown by the `EpubServer`.
+/// Errors thrown by the `PublicationServer`.
 ///
-/// - epubParser: An error thrown by the EpubParser.
-/// - epubFetcher: An error thrown by the EpubFetcher.
+/// - parser: An error thrown by the Parser.
+/// - fetcher: An error thrown by the Fetcher.
+/// - nilBaseUrl: <#nilBaseUrl description#>
+/// - usedEndpoint: <#usedEndpoint description#>
 public enum PublicationServerError: Error{
-    case epubParser(underlyingError: Error)
-    case epubFetcher(underlyingError: Error)
+    case parser(underlyingError: Error)
+    case fetcher(underlyingError: Error)
     case nilBaseUrl
     case usedEndpoint
 }
@@ -26,13 +28,11 @@ public enum PublicationServerError: Error{
 public typealias PubBox = (publication: Publication, associatedContainer: Container)
 
 /// The HTTP server for the publication's manifests and assets. Serves Epubs.
-open class PublicationServer {
-
-    // TODO: declare an interface, decouple the webserver. ? Not prioritary.
+public class PublicationServer {
     /// The HTTP server.
     var webServer: GCDWebServer
     // Dictionnary of the (container, publication) tuples keyed by endpoints.
-    var pubBoxes = [String: PubBox]()
+    public var pubBoxes = [String: PubBox]()
 
     // Computed properties.
 
@@ -90,12 +90,12 @@ open class PublicationServer {
     /// Add a publication to the server. Also add it to the `pubBoxes`
     ///
     /// - Parameters:
-    ///   - container: The EPUB container of the publication
-    ///   - endpoint: The URI prefix to use to fetch assets from the publication
-    ///               `/{prefix}/{assetRelativePath}`
-    /// - Throws: `throw EpubServerError.usedEndpoint`,
-    ///           `EpubServerError.nilBaseUrl`,
-    ///           `EpubServerError.epubFetcher`.
+    ///   - publication: The `Publication` object containing the publication data.
+    ///   - container: The `Container` object giving access to the resources.
+    ///   - endpoint: The relative URL to access the resource on the server.
+    /// - Throws: `PublicationServerError.usedEndpoint`,
+    ///           `PublicationServerError.nilBaseUrl`,
+    ///           `PublicationServerError.fetcher`.
     public func add(_ publication: Publication,
                     with container: Container,
                     at endpoint: String) throws {
@@ -120,7 +120,7 @@ open class PublicationServer {
             fetcher = try Fetcher(publication: publication, container: container)
         } catch {
             log(level: .error, "Fetcher initialisation failed.")
-            throw PublicationServerError.epubFetcher(underlyingError: error)
+            throw PublicationServerError.fetcher(underlyingError: error)
         }
 
         /// Webserver HTTP GET ressources request handler.

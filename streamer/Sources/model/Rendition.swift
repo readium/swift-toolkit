@@ -61,7 +61,7 @@ public enum RenditionSpread: String {
 /// The information relative to the rendering of the publication.
 /// It includes if it's reflowable or pre-paginated, the orientation, the synthetic spread
 /// behaviour and if the content flow should be scrolled, continuous or paginated.
-open class Rendition: Mappable {
+public class Rendition {
     /// The rendition layout (reflowable or pre-paginated)
     public var layout: RenditionLayout?
     /// The rendition flow
@@ -75,11 +75,22 @@ open class Rendition: Mappable {
 
     public init() {}
 
-    required public init?(map: Map) {
-        // TODO: init
+    required public init?(map: Map) {}
+
+    public func isEmpty() -> Bool {
+        guard layout != nil || flow != nil
+            || orientation != nil || spread != nil
+            || viewport != nil else
+        {
+            return true
+        }
+        return false
     }
 
-    open func mapping(map: Map) {
+}
+
+extension Rendition: Mappable {
+    public func mapping(map: Map) {
         layout <- map["layout", ignoreNil: true]
         flow <- map["flow", ignoreNil: true]
         orientation <- map["orientation", ignoreNil: true]

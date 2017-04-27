@@ -10,10 +10,7 @@ import Foundation
 
 /// <#Description#>
 open class MetadataItem {
-    
     public var property: String?
     public var value: String?
     public var children = [MetadataItem]()
-
-    public init() {}
 }

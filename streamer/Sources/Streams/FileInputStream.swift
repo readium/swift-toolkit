@@ -22,17 +22,17 @@ public enum FileInputStreamError: Error {
 extension FileInputStream: Loggable {}
 
 /// <#Description#>
-open class FileInputStream: SeekableInputStream {
+internal class FileInputStream: SeekableInputStream {
 
     /// The path to the file opened by the stream
     private var filePath: String
-    
+
     /// The file handle (== fd) of the file at path `filePath`
     private var fileHandle: FileHandle?
 
     ///
     private var _streamError: Error?
-    override open var streamError: Error? {
+    override internal var streamError: Error? {
         get {
             return _streamError
         }
@@ -40,7 +40,7 @@ open class FileInputStream: SeekableInputStream {
 
     /// The status of the fileHandle
     private var _streamStatus: Stream.Status = .notOpen
-    override open var streamStatus: Stream.Status {
+    override internal var streamStatus: Stream.Status {
         get {
             return _streamStatus
         }
@@ -48,21 +48,21 @@ open class FileInputStream: SeekableInputStream {
 
     /// The size attribute of the file at `filePath`
     private var _length: UInt64
-    override public var length: UInt64 {
+    override internal var length: UInt64 {
         get {
             return _length
         }
     }
 
     /// Current position in the stream.
-    override public var offset: UInt64 {
+    override internal var offset: UInt64 {
         get {
             return fileHandle?.offsetInFile ?? 0
         }
     }
 
     /// True when the current offset is not arrived the the end of the stream.
-    override open var hasBytesAvailable: Bool {
+    override internal var hasBytesAvailable: Bool {
         get {
             return offset < _length
         }
@@ -70,9 +70,9 @@ open class FileInputStream: SeekableInputStream {
 
     // MARK: - Public methods.
 
-    /// Initialize the object and the input stream meta data for file at 
+    /// Initialize the object and the input stream meta data for file at
     /// `fileAtPath`.
-    public init?(fileAtPath: String) {
+    internal init?(fileAtPath: String) {
         // Does file `atFilePath` exists
         guard FileManager.default.fileExists(atPath: fileAtPath) else {
             FileInputStream.log(level: .error, "File not found: \(fileAtPath).")
@@ -100,13 +100,13 @@ open class FileInputStream: SeekableInputStream {
     // MARK: - Open methods.
 
     /// Open a file handle (<=>fd) for file at path `filePath`.
-    override open func open() {
+    override internal func open() {
         fileHandle = FileHandle(forReadingAtPath: filePath)
         _streamStatus = .open
     }
 
     /// Close the file handle.
-    override open func close() {
+    override internal func close() {
         guard let fileHandle = fileHandle else {
             return
         }
@@ -115,8 +115,8 @@ open class FileInputStream: SeekableInputStream {
     }
 
     // TODO: to implement or delete ?
-    override open func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>,
-                                 length len: UnsafeMutablePointer<Int>) -> Bool {
+    override internal func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>,
+                                     length len: UnsafeMutablePointer<Int>) -> Bool {
         return false
     }
 
@@ -128,7 +128,7 @@ open class FileInputStream: SeekableInputStream {
     ///   - buffer: The destination buffer.
     ///   - maxLength: The maximum number of bytes read.
     /// - Returns: Return the number of bytes read.
-    override open func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) -> Int {
+    override internal func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) -> Int {
         let readError = -1
 
         guard let fileHandle = fileHandle else {
@@ -147,12 +147,10 @@ open class FileInputStream: SeekableInputStream {
     /// - Parameters:
     ///   - offset: The offset.
     ///   - whence: From which position.
-    override public func seek(offset: Int64, whence: SeekWhence) {
+    override internal func seek(offset: Int64, whence: SeekWhence) {
         assert(whence == .startOfFile, "Only seek from start of stream is supported for now.")
         assert(offset >= 0, "Since only seek from start of stream if supported, offset must be >= 0")
-        
-        logValue(level: .debug, filePath)
-        logValue(level: .debug, offset)
+
         guard let fileHandle = fileHandle else {
             _streamStatus = .error
             _streamError = FileInputStreamError.fileHandleUnset

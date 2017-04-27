@@ -26,7 +26,8 @@ public class ContainerEpub: EpubContainer, ZipArchiveContainer {
         guard let arc = ZipArchive(url: URL(fileURLWithPath: path)) else {
             return nil
         }
-        rootFile = RootFile.init(rootPath: path)
+
+        rootFile = RootFile.init(rootPath: path, mimetype: EpubConstant.mimetype)
         zipArchive = arc
     }
 }

@@ -11,130 +11,127 @@ import minizip
 
 extension ZipInputStream: Loggable {}
 
-open class ZipInputStream: SeekableInputStream {
+/// Create a InputStream related to ONE file in the ZipArchive.
+internal class ZipInputStream: SeekableInputStream {
     var zipArchive: ZipArchive
     var fileInZipPath: String
-    
+
     private var _streamError: Error?
-    override open var streamError: Error? {
+    override internal var streamError: Error? {
         get {
             return _streamError
         }
     }
-    
+
     private var _streamStatus: Stream.Status = .notOpen
-    override open var streamStatus: Stream.Status {
+    override internal var streamStatus: Stream.Status {
         get {
             return _streamStatus
         }
     }
-    
-    override public var offset: UInt64 {
-        get {
-            if let o = zipArchive.currentFileOffset {
-                return o
-            }
-            return 0
-        }
-    }
-    
+
     private var _length: UInt64
-    override public var length: UInt64 {
+    override internal var length: UInt64 {
         get {
             return _length
         }
     }
-    
-    override open var hasBytesAvailable: Bool {
+
+    override internal var offset: UInt64 {
+        get {
+            return UInt64(zipArchive.currentFileOffset)
+        }
+    }
+
+    override internal var hasBytesAvailable: Bool {
         get {
             return offset < _length
         }
     }
-    
+
     init?(zipFilePath: String, path: String) {
-        if let zipArchive = ZipArchive(url: URL(fileURLWithPath: zipFilePath)) {
-            
-            self.zipArchive = zipArchive
-            fileInZipPath = path
-            
-            do {
-                if try zipArchive.locateFile(path: fileInZipPath) {
-                    let info = try zipArchive.infoOfCurrentFile()
-                    _length = info.length
-                } else {
-                    return nil
-                }
-            } catch {
-                return nil
-            }
-            
-        } else {
+        // New ZipArchive for archive at `zipFilePath`.
+        guard let zipArchive = ZipArchive(url: URL(fileURLWithPath: zipFilePath)) else {
             return nil
         }
+        self.zipArchive = zipArchive
+        fileInZipPath = path
+        // Check if the file exists in the archive.
+        guard zipArchive.locateFile(path: fileInZipPath),
+            let fileInfo = try? zipArchive.informationsOfCurrentFile() else
+        {
+            return nil
+        }
+        _length = fileInfo.length
+        super.init()
     }
-    
+
     init?(zipArchive: ZipArchive, path: String) {
         self.zipArchive = zipArchive
         fileInZipPath = path
-        do {
-            if try zipArchive.locateFile(path: fileInZipPath) {
-                let info = try zipArchive.infoOfCurrentFile()
-                _length = info.length
-            } else {
-                return nil
-            }
-        } catch {
+        // Check if the file exists in the archive.
+        guard zipArchive.locateFile(path: fileInZipPath),
+            let fileInfo = try? zipArchive.informationsOfCurrentFile() else
+        {
             return nil
         }
+
+        _length = fileInfo.length
+        super.init()
     }
-    
-    override open func open() {
+
+    override internal func open() {
         //objc_sync_enter(zipArchive)
         do {
-            try zipArchive.openCurrentFile(path: fileInZipPath)
+            try zipArchive.openCurrentFile()
             _streamStatus = .open
         } catch {
+            print("ERROR: could not ZipArchive.openCurrentFile()")
             _streamStatus = .error
             _streamError = error
             //objc_sync_exit(zipArchive)
         }
     }
-    
-    override open func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>, length len: UnsafeMutablePointer<Int>) -> Bool {
+
+    override internal func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>,
+                                     length len: UnsafeMutablePointer<Int>) -> Bool
+    {
         return false
     }
-    
-    override open func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) -> Int {
+
+    override internal func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) -> Int {
+//        guard _streamStatus == .open else  {
+//            print("Stream not open")
+//            return -1
+//        }
         do {
-            //Log.debug?.message("ZipInputStream \(fileInZipPath) read \(maxLength) bytes")
+            //log(level: .debug, "\(fileInZipPath) read \(maxLength) bytes")
             let bytesRead = try zipArchive.readDataFromCurrentFile(buffer, maxLength: UInt64(maxLength))
             if Int(bytesRead) < maxLength {
                 _streamStatus = .atEnd
             }
             return Int(bytesRead)
         } catch {
-            log(level: .error, "ZipInputStream error \(error)")
+            log(level: .error, "ERROR \(error)")
             _streamStatus = .error
             _streamError = error
             return -1
         }
     }
-    
-    override open func close() {
-        //Log.debug?.message("ZipInputStream \(fileInZipPath) close")
+
+    override internal func close() {
         zipArchive.closeCurrentFile()
         //objc_sync_exit(zipArchive)
         _streamStatus = .closed
     }
-    
-    public override func seek(offset: Int64, whence: SeekWhence) throws {
-        
+
+    override internal func seek(offset: Int64, whence: SeekWhence) throws {
         assert(whence == .startOfFile, "Only seek from start of stream is supported for now.")
         assert(offset >= 0, "Since only seek from start of stream if supported, offset must be >= 0")
-        
-        log(level: .debug, "ZipInputStream \(fileInZipPath) offset \(offset)")
+
+        //log(level: .debug, "ZipInputStream \(fileInZipPath) offset \(offset)")
         do {
-            try zipArchive.seekCurrentFile(offset: UInt64(offset))
+            try zipArchive.seek(Int(offset))
         } catch {
             _streamStatus = .error
             _streamError = error

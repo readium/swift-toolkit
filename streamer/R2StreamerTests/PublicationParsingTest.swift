@@ -9,22 +9,22 @@
 import XCTest
 @testable import R2Streamer
 
-extension EpubParsingTest: Loggable {}
+extension PublicationParsingTest: Loggable {}
 
-class EpubParsingTest: XCTestCase {
+class PublicationParsingTest: XCTestCase {
     let sg = SampleGenerator()
 
     override func setUp() {
         R2StreamerEnableLog(withMinimumSeverityLevel: .debug)
         // Retrieve the samples URLs.
-        sg.getSampleEpubsUrl()
+        sg.getSampleEpubUrl()
     }
 
     // Mark: - Tests methods.
 
     /// Try to parse the .epub samples.
     func testParseEpub() {
-        for url in sg.epubUrls {
+        for url in sg.pubUrls {
             // Parse the epub at URL and assert if failure.
             _ = sg.parseEpub(at: url)
         }
@@ -32,9 +32,25 @@ class EpubParsingTest: XCTestCase {
 
     /// Attemp to parse the Epub directories samples.
     func testParseEpubDirectory() {
-        for url in sg.epubDirectoryUrls {
+        for url in sg.pubDirectoryUrls {
             // Parse the epub at URL and assert if failure.
             _ = sg.parseEpub(at: url)
         }
+    }
+
+    func testParseCbz() {
+        guard let url = sg.getSamplesUrl(named: "Cory_Doctorow_Futuristic_Tales_of_the_Here_and_Now", ofType: "cbz") else {
+            XCTFail()
+            return
+        }
+        _ = sg.parseCbz(at: url)
+    }
+
+    func testParseCbzDirectory() {
+        guard let url = sg.getSamplesUrl(named: "Cory_Doctorow_Futuristic_Tales_of_the_Here_and_Now", ofType: nil) else {
+            XCTFail()
+            return
+        }
+        _ = sg.parseCbz(at: url)
     }
 }

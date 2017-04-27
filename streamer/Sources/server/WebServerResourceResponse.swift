@@ -25,13 +25,9 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
 
     // The range of data served on this response (?)
     var range: Range<UInt64>?
-
     var inputStream: SeekableInputStream
-
     lazy var totalNumberOfBytesRead = UInt64(0)
-
     let bufferSize = 32 * 1024
-    
     var buffer: Array<UInt8>
 
     /// Initialise the WebServerRessourceResponse object, defining what will be
@@ -51,9 +47,8 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
         self.inputStream = inputStream
         // If range is non nil - means it's not the first part (?)
         if let range = range {
-            WebServerResourceResponse.log(level: .debug, "Request range \(range.location)-\(range.length).")
-            /// Return a range of what to read next (nothing, next part,
-            /// whole data).
+            print("Request range  at \(range.location) remaining: \(range.length).")
+            /// Return a range of what to read next (nothing, next part, whole data).
             func getNextRange(after range: NSRange,
                               forStreamOfLength streamLength: UInt64) -> Range<UInt64> {
                 let newRange: Range<UInt64>
@@ -130,7 +125,11 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
         guard let range = range else {
             throw WebServerResponseError.invalidRange
         }
-        let len = min(bufferSize, Int64(range.count) - Int64(totalNumberOfBytesRead))
+        let len = min(bufferSize, range.count - Int(totalNumberOfBytesRead))
+        // If nothing to read, return
+        guard len > 0 else {
+            return Data()
+        }
         // Read
         let numberOfBytesRead = inputStream.read(&buffer, maxLength: len)
         guard numberOfBytesRead > 0 else {

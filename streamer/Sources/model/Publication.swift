@@ -13,17 +13,17 @@ import ObjectMapper
 /// other resources.
 /// It is created by the `EpubParser` from an EPUB file or directory.
 /// As it is extended by `Mappable`, it can be deserialized to `JSON`.
-public class Publication: Mappable {
+public class Publication {
     
     /// The epubVersion of the publication
-    public var epubVersion = 0.0
+    public var epubVersion: Double! // Tofix: epub and publication not related
     /// The metadata (title, identifier, contributors, etc.).
-    public var metadata = Metadata()
+    public var metadata: Metadata!
     public var links = [Link]()
     public var spine = [Link]()
     /// The resources, not including the links already present in the spine.
     public var resources = [Link]()
-    /// <=> TOC, pageList, landmarks && <=> LOI, LOT | (LOA, LOV [?])
+    /// TOC
     public var tableOfContents = [Link]()
     public var landmarks = [Link]()
     public var listOfAudioFiles = [Link]()
@@ -55,16 +55,16 @@ public class Publication: Mappable {
     }
 
     public init() {
+        epubVersion = 0.0
+        metadata = Metadata()
     }
-    
+
     /// Mappable JSON protocol initializer
-    required public init?(map: Map) {
-        // TODO: init
-    }
+    required public init?(map: Map) {}
 
     // Mark: - Public methods.
 
-    /// Finds a resource (asset or spine item) with a matching relative path
+    /// Finds a resource (asset or spine item) with a matching relative path.
     ///
     /// - Parameter path: The relative path to match
     /// - Returns: a link with its `href` equal to the path if any was found,
@@ -98,35 +98,7 @@ public class Publication: Mappable {
         }
         return findLinkInPublicationLinks(where: findLinkWithHref)
     }
-    
-    /// Mapping declaration
-    public func mapping(map: Map) {
-        metadata <- map["metadata", ignoreNil: true]
-        if !links.isEmpty {
-            links <- map["links", ignoreNil: true]
-        }
-        if !spine.isEmpty {
-            spine <- map["spine", ignoreNil: true]
-        }
-        if !resources.isEmpty {
-            resources <- map["resources", ignoreNil: true]
-        }
-        if !tableOfContents.isEmpty {
-            tableOfContents <- map["toc", ignoreNil: true]
-        }
-        if !pageList.isEmpty {
-            pageList <- map["page-list", ignoreNil: true]
-        }
-        if !landmarks.isEmpty {
-            landmarks <- map["landmarks", ignoreNil: true]
-        }
-        if !listOfIllustrations.isEmpty {
-            listOfIllustrations <- map["loi", ignoreNil: true]
-        }
-        if !listOfTables.isEmpty {
-            listOfTables <- map["lot", ignoreNil: true]
-        }
-    }
+
 
     // Mark: - Internal Methods.
 
@@ -165,5 +137,37 @@ public class Publication: Mappable {
             return link
         }
         return nil
+    }
+}
+
+extension Publication: Mappable {
+
+    /// Mapping declaration
+    public func mapping(map: Map) {
+        metadata <- map["metadata", ignoreNil: true]
+        if !links.isEmpty {
+            links <- map["links", ignoreNil: true]
+        }
+        if !spine.isEmpty {
+            spine <- map["spine", ignoreNil: true]
+        }
+        if !resources.isEmpty {
+            resources <- map["resources", ignoreNil: true]
+        }
+        if !tableOfContents.isEmpty {
+            tableOfContents <- map["toc", ignoreNil: true]
+        }
+        if !pageList.isEmpty {
+            pageList <- map["page-list", ignoreNil: true]
+        }
+        if !landmarks.isEmpty {
+            landmarks <- map["landmarks", ignoreNil: true]
+        }
+        if !listOfIllustrations.isEmpty {
+            listOfIllustrations <- map["loi", ignoreNil: true]
+        }
+        if !listOfTables.isEmpty {
+            listOfTables <- map["lot", ignoreNil: true]
+        }
     }
 }

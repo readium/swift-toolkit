@@ -69,7 +69,7 @@ protocol EpubContainer: Container {
     /// - Returns: The generated document.
     /// - Throws: `ContainerError.missingFile`,
     ///           `ContainerError.xmlParse`.
-    func xmlDocument(ForFileAtRelativePath path: String) throws -> AEXMLDocument
+    func xmlDocument(forFileAtRelativePath path: String) throws -> AEXMLDocument
 
     /// Return a XML Document representing the file referenced by `link`.
     ///
@@ -87,22 +87,12 @@ extension EpubContainer {
     ///
     /// - Parameter path: The 'container relative' path to the ressource.
     /// - Returns: The generated document.
-    /// - Throws: `ContainerError.missingFile`,
-    ///           `ContainerError.xmlParse`.
-    public func xmlDocument(ForFileAtRelativePath path: String) throws -> AEXMLDocument {
-        // The 'to be built' XML Document
-        var document: AEXMLDocument
-
-        // Get `Data` from the Container/OPFFile
-        guard let data = try? data(relativePath: path) else {
-            throw ContainerError.missingFile(path: path)
-        }
+    /// - Throws: ZipArchive and AEXML errors.
+    public func xmlDocument(forFileAtRelativePath path: String) throws -> AEXMLDocument {
+        // Get `Data` from the Container.
+        let containerData = try data(relativePath: path)
         // Transforms `Data` into an AEXML Document object
-        do {
-            document = try AEXMLDocument(xml: data)
-        } catch {
-            throw ContainerError.xmlParse(underlyingError: error)
-        }
+        let document = try AEXMLDocument(xml: containerData)
         return document
     }
 
@@ -112,9 +102,8 @@ extension EpubContainer {
     ///   - link: The `Link` to the ressource from the manifest.
     ///   - container: The epub container.
     /// - Returns: The XML Document.
+    /// - Throws: `ContainerError.missingLink()`, AEXML and ZipArchive errors.
     public func xmlDocument(forRessourceReferencedByLink link: Link?) throws -> AEXMLDocument {
-        // The `to be generated` document.
-        var document: AEXMLDocument
         // Path to the rootDir
         let rootDirPath = rootFile.rootFilePath.deletingLastPathComponent
 
@@ -125,11 +114,7 @@ extension EpubContainer {
         // Generate the relative path to the ressource pointed to by `link`.
         let relativeFilePath = rootDirPath.appending(pathComponent: href)
         // Generate the document for the ressource at relativeFilePath.
-        do {
-            document = try xmlDocument(ForFileAtRelativePath: relativeFilePath)
-        } catch {
-            throw ContainerError.xmlParse(underlyingError: error)
-        }
+        let document = try xmlDocument(forFileAtRelativePath: relativeFilePath)
         return document
     }
 
@@ -145,12 +130,15 @@ protocol CbzContainer: Container {
 protocol DirectoryContainer: Container {}
 /// Default implementation.
 extension DirectoryContainer {
+
+    // Override default imp. from Container protocol.
     public func data(relativePath: String) throws -> Data {
         let fullPath = generateFullPath(with: relativePath)
 
         return try Data(contentsOf: URL(fileURLWithPath: fullPath), options: [.mappedIfSafe])
     }
 
+    // Override default imp. from Container protocol.
     public func dataLength(relativePath: String) throws -> UInt64 {
         let fullPath = generateFullPath(with: relativePath)
 
@@ -163,6 +151,7 @@ extension DirectoryContainer {
         return fileSize
     }
 
+    // Override default imp. from Container protocol.
     public func dataInputStream(relativePath: String) throws -> SeekableInputStream {
         let fullPath = generateFullPath(with: relativePath)
 
@@ -193,21 +182,22 @@ protocol ZipArchiveContainer: Container {
 /// Default implementation.
 extension ZipArchiveContainer {
 
+    // Override default imp. from Container protocol.
     public func data(relativePath: String) throws -> Data {
         return try zipArchive.readData(path: relativePath)
     }
 
-    // Implements Container protocol
+    // Override default imp. from Container protocol.
     public func dataLength(relativePath: String) throws -> UInt64 {
-        return try zipArchive.fileSize(path: relativePath)
+        return try zipArchive.sizeOfCurrentFile()
     }
 
-    // Implements Container protocol
+
+    // Override default imp. from Container protocol.
     public func dataInputStream(relativePath: String) throws -> SeekableInputStream {
-        // let inputStream = ZipInputStream(zipArchive: zipArchive, path: relativePath)
-        guard let inputStream = ZipInputStream(zipFilePath: rootFile.rootPath,
-                                               path: relativePath) else {
-                                                throw ContainerError.streamInitFailed
+        // One zipArchive instance per inputstream... for multithreading.
+        guard let inputStream = ZipInputStream(zipFilePath: rootFile.rootPath, path: relativePath) else {
+            throw ContainerError.streamInitFailed
         }
         return inputStream
     }

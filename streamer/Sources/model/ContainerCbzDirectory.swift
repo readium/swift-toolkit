@@ -24,7 +24,7 @@ public class ContainerCbzDirectory: CbzContainer, DirectoryContainer {
         guard FileManager.default.fileExists(atPath: path) else {
             return nil
         }
-        rootFile = RootFile.init(rootPath: path)
+        rootFile = RootFile.init(rootPath: path, mimetype: CbzConstant.mimetype)
     }
 
     public func getFilesList() -> [String] {

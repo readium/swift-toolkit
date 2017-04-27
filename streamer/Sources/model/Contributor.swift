@@ -9,8 +9,7 @@
 import Foundation
 import ObjectMapper
 
-open class Contributor: Mappable {
-    
+open class Contributor {
     internal var _name = MultilangString()
     public var name: String? {
         get {
@@ -24,11 +23,15 @@ open class Contributor: Mappable {
     public init() {}
 
     public required init?(map: Map) {
-        _name.singleString = try? map.value("name")
-        sortAs = try? map.value("sortAs")
-        identifier = try? map.value("identifier")
-        role = try? map.value("role")
+//        _name.singleString = try? map.value("name")
+//        sortAs = try? map.value("sortAs")
+//        identifier = try? map.value("identifier")
+//        role = try? map.value("role")
     }
+
+}
+
+extension Contributor: Mappable {
 
     open func mapping(map: Map) {
         // If multiString is not empty, then serialize it.

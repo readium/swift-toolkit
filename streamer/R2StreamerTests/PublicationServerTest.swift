@@ -1,5 +1,5 @@
 //
-//  EpubServerTest.swift
+//  PublicationServerTest.swift
 //  R2Streamer
 //
 //  Created by Alexandre Camilleri on 3/3/17.
@@ -10,22 +10,22 @@ import XCTest
 import Foundation
 @testable import R2Streamer
 
-extension EpubServerTest: Loggable {}
+extension PublicationServerTest: Loggable {}
 
-class EpubServerTest: XCTestCase {
+class PublicationServerTest: XCTestCase {
     let sg = SampleGenerator()
-    var epubServer: EpubServer? = nil
-    var ressources = [String: Epub]()
+    var publicationServer: PublicationServer? = nil
+    var ressources = [String: PubBox]()
 
     override func setUp() {
         R2StreamerEnableLog(withMinimumSeverityLevel: .verbose)
-        epubServer = EpubServer()
-        guard epubServer != nil else {
-            log(level: .error, "Error instanciating the epubServer")
+        publicationServer = PublicationServer()
+        guard publicationServer != nil else {
+            log(level: .error, "Error instanciating the publicationServer")
             XCTFail()
             return
         }
-        sg.getSampleEpubsUrl()
+        sg.getSampleEpubUrl()
     }
 
     // Mark: - Tests methods.
@@ -42,12 +42,10 @@ class EpubServerTest: XCTestCase {
 
             print("Adding \(element.key)")
             do {
-                try epubServer?.addEpub(forPublication: publication,
-                                        withContainer: container,
-                                        atEndpoint: endPoint)
+                try publicationServer?.add(publication, with: container, at: endPoint)
             } catch {
-                let epubTitle = publication.metadata.title
-                XCTFail("An exception occured while adding epub [\(epubTitle)] to the server")
+                let title = publication.metadata.title
+                XCTFail("An exception occured while adding epub [\(title)] to the server")
                 logValue(level: .error, error)
             }
             verifyManifestJson(atEndpoint: endPoint)
@@ -57,16 +55,16 @@ class EpubServerTest: XCTestCase {
     // MARK: - Fileprivate methods.
 
     fileprivate func verifyManifestJson(atEndpoint endPoint: String) {
-        guard var epubUrl = epubServer?.baseURL else {
-            XCTFail("EpubServer baseURL not found")
+        guard var publicationUrl = publicationServer?.baseUrl else {
+            XCTFail("PublicationServer baseURL not found")
             return
         }
-        epubUrl = epubUrl.appendingPathComponent(endPoint)
-        epubUrl = epubUrl.appendingPathComponent("manifest.json")
+        publicationUrl = publicationUrl.appendingPathComponent(endPoint)
+        publicationUrl = publicationUrl.appendingPathComponent("manifest.json")
         // Create the expectation.
-        let expect = expectation(description: "EpubServer ressource exist at endPoint \(endPoint)/manifest.json")
+        let expect = expectation(description: "PublicationServer ressource exist at endPoint \(endPoint)/manifest.json")
         // Define the request.
-        let task = URLSession.shared.dataTask(with: epubUrl, completionHandler: { (data, response, error) in
+        let task = URLSession.shared.dataTask(with: publicationUrl, completionHandler: { (data, response, error) in
             guard error == nil else {
                 self.logValue(level: .error, error)
                 XCTFail()
@@ -88,7 +86,7 @@ class EpubServerTest: XCTestCase {
         // Wait for task{ expect.fulfill() } to be called with 2 seconds timeout
         // for requesting JSON manifest.
         waitForExpectations(timeout: 2) { error in
-            XCTAssertNil(error, "Expectation failed: \(error)")
+            XCTAssertNil(error, "Expectation failed: \(String(describing: error))")
             guard let httpResponse = task.response as? HTTPURLResponse else {
                 XCTFail("Invalid HTTP response.")
                 return
