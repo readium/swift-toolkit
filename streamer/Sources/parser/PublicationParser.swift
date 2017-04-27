@@ -8,6 +8,7 @@
 
 import Foundation
 
+/// The parsing protocol.
 protocol PublicationParser {
     func parse(fileAtPath: String) throws -> PubBox
 }

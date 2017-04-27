@@ -215,7 +215,7 @@ public class EpubParser: PublicationParser {
         } catch {
             throw EpubParserError.xmlParse(underlyingError: error)
         }
-        // Look for the first `<roofile>` element.
+        // Look for the `<roofile>` element.
         let rootFileElement = containerDotXml.root["rootfiles"]["rootfile"]
         // Get the path of the OPF file, relative to the metadata.rootPath.
         guard let opfFilePath = getRelativePathToOPF(from: rootFileElement) else {

@@ -38,7 +38,6 @@ public class Metadata {
     public var subjects = [Subject]()
     public var publishers = [Contributor]()
     public var contributors = [Contributor]()
-
     public var modified: Date?
     public var publicationDate: String?
     public var description: String?
@@ -47,10 +46,7 @@ public class Metadata {
     public var source: String?
     public var epubType = [String]()
     public var rights: String?
-
     public var otherMetadata = [MetadataItem]()
-
-    // MARK: - Public methods.
 
     public init() {
         direction = "default"

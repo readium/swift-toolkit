@@ -28,13 +28,11 @@ public enum PublicationServerError: Error{
 public typealias PubBox = (publication: Publication, associatedContainer: Container)
 
 /// The HTTP server for the publication's manifests and assets. Serves Epubs.
-open class PublicationServer {
-
-    // TODO: declare an interface, decouple the webserver. ? Not prioritary.
+public class PublicationServer {
     /// The HTTP server.
     var webServer: GCDWebServer
     // Dictionnary of the (container, publication) tuples keyed by endpoints.
-    var pubBoxes = [String: PubBox]()
+    public var pubBoxes = [String: PubBox]()
 
     // Computed properties.
 
