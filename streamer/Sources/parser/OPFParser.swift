@@ -38,7 +38,7 @@ public class OPFParser {
         /// The 'to be built' Publication.
         var publication = Publication()
 
-        publication.epubVersion = epubVersion
+        publication.version = epubVersion
         publication.internalData["type"] = "epub"
         publication.internalData["rootfile"] = container.rootFile.rootFilePath
         // Self link is added when the epub is being served (in the EpubServer).
@@ -99,7 +99,7 @@ public class OPFParser {
             metadata.rights = rights.map({ $0.string }).joined(separator: " ")
         }
         // Publishers, Creators, Contributors.
-        let epubVersion = publication.epubVersion
+        let epubVersion = publication.version
         mp.parseContributors(from: metadataElement, to: &metadata, epubVersion)
         // Page progression direction.
         if let direction = document.root["spine"].attributes["page-progression-direction"] {
