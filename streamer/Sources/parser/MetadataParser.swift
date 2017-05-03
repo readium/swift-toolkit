@@ -119,7 +119,9 @@ public class MetadataParser {
         let modifiedAttribute = ["property" : "dcterms:modified"]
 
         // Search if the XML element is present, else return.
-        guard let modified = metadataElement["meta"].all(withAttributes: modifiedAttribute) else {
+        guard let modified = metadataElement["meta"].all(withAttributes: modifiedAttribute),
+            !modified.isEmpty else
+        {
             return nil
         }
         let iso8601DateString = modified[0].string
