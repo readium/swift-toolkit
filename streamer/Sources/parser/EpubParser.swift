@@ -121,9 +121,13 @@ public class EpubParser: PublicationParser {
     ///   - publication: The Publication.
     /// - Throws: 
     internal func parseEncryption(from container: EpubContainer, to publication: inout Publication) {
+        //if publication.metadata.title ==
         // Check if there is an encryption file.
-        guard let document = try? container.xmlDocument(forFileAtRelativePath: EpubConstant.encryptionDotXmlPath) else {
-            log(level: .warning, "The file “encryption.xml” couldn’t be opened")
+        let document: AEXMLDocument
+        do {
+            document = try container.xmlDocument(forFileAtRelativePath: EpubConstant.encryptionDotXmlPath)
+        } catch {
+            logValue(level: .error, error)
             return
         }
         guard let encryptedDataElements = document["encryption"]["EncryptedData"].all else {

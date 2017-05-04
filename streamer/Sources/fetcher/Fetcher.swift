@@ -48,7 +48,7 @@ internal class Fetcher {
         guard let rootfilePath = publication.internalData["rootfile"] else {
             throw FetcherError.missingRootFile()
         }
-        if !rootfilePath.isEmpty {
+        if !rootfilePath.isEmpty, rootfilePath.contains("/") {
             rootFileDirectory = rootfilePath.deletingLastPathComponent
         } else {
             rootFileDirectory = ""
