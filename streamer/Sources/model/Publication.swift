@@ -50,19 +50,19 @@ public class Publication {
 
     /// Return the serialized JSON for the Publication object: the WebPubManifest
     /// (canonical).
-    public var serialized: String {
+    public var manifest: String {
         return self.toJSONString(prettyPrint: true) ?? ""
     }
 
     /// Return the serialized JSON for the Publication object: the WebPubManifest
     /// (prettyfied).
-    public var serialized: String {
+    public var manifestPretty: String {
         return self.toJSONString(prettyPrint: true) ?? ""
     }
 
     /// Returns the JSON dictionnary.
-    public var jsonDictionnary: [String: Any] {
-        return self.toJSON
+    public var manifestDictionnary: [String: Any] {
+        return self.toJSON()
     }
 
     public init() {
