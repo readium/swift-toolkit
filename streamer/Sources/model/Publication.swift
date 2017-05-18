@@ -48,9 +48,21 @@ public class Publication {
         }
     }
 
-    /// Return the serialized JSON for the Publication object: the WebPubManifest.
+    /// Return the serialized JSON for the Publication object: the WebPubManifest
+    /// (canonical).
     public var serialized: String {
         return self.toJSONString(prettyPrint: true) ?? ""
+    }
+
+    /// Return the serialized JSON for the Publication object: the WebPubManifest
+    /// (prettyfied).
+    public var serialized: String {
+        return self.toJSONString(prettyPrint: true) ?? ""
+    }
+
+    /// Returns the JSON dictionnary.
+    public var jsonDictionnary: [String: Any] {
+        return self.toJSON
     }
 
     public init() {
