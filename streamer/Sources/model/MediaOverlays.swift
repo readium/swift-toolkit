@@ -190,7 +190,7 @@ public class MediaOverlays {
     /// Returns the closest non section children node found.
     ///
     /// - Parameter node: The section node
-    /// - Returns: <#return value description#>
+    /// - Returns: The closest non section node or nil.
     fileprivate func getFirstNonSectionChild(of node: MediaOverlayNode) -> MediaOverlayNode? {
         for node in node.children {
             if node.role.contains("section") {
