@@ -17,6 +17,8 @@ import Foundation
 public struct Clip {
     /// The relative URL.
     public var relativeUrl: URL!
+    /// The relative fragmentId.
+    public var fragmentId: String?
     /// Start time in seconds.
     public var start: Double!
     /// End time in seconds.
@@ -48,6 +50,16 @@ public class MediaOverlayNode {
 
     // Mark: - Internal Methods.
 
+    /// Return the MO node's fragmentId.
+    ///
+    /// - Returns: Node's fragment id.
+    internal func fragmentId() -> String? {
+        guard let text = self.text else {
+            return nil
+        }
+        return text.components(separatedBy: "#").last
+    }
+
     /// Generate a `Clip` from self.
     ///
     /// - Returns: The generated `Clip`.
@@ -70,6 +82,7 @@ public class MediaOverlayNode {
             throw MediaOverlayNodeError.timersParsing
         }
         try parseTimer(times, into: &newClip)
+        newClip.fragmentId = fragmentId()
         return newClip
     }
 
