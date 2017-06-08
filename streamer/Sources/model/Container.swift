@@ -7,119 +7,198 @@
 //
 
 import Foundation
+import AEXML
 
-
+/// Container Protocol's Errors.
+///
+/// - streamInitFailed:
+/// - fileNotFound: File couldn't be found.
+/// - fileError:
 public enum ContainerError: Error {
     case streamInitFailed
     case fileNotFound
     case fileError
+
+    // Extenssion related.
+    /// The file at the given path couldn't not be found.
+    case missingFile(path: String)
+    /// An error occured during the XML parsing.
+    case xmlParse(underlyingError: Error)
+    /// The given link is missing from the
+    case missingLink(title: String?)
+
 }
 
-
-/**
- EPUB container protocol, for access to raw data from the files in the container.
-*/
+/// Container protocol, for accessing raw data from container's files.
 public protocol Container {
-    
-    /**
-     Get the raw (possibly encrypted) data of an asset in the container.
-     
-     - parameter relativePath: The relative path to the asset.
 
-     - returns: The data of the asset.
-    */
+    /// Meta-informations about the Container. See ContainerMetadata struct for
+    /// more details.
+    var rootFile: RootFile { get set }
+
+    /// Get the raw (possibly encrypted) data of an asset in the container
+    ///
+    /// - Parameter relativePath: The relative path to the asset.
+    /// - Returns: The data of the asset.
+    /// - Throws: An error from EpubDataContainerError enum depending of the
+    ///           overriding method's implementation.
     func data(relativePath: String) throws -> Data
 
-    /**
-     Get the size of an asset in the container.
-     
-     - parameter relativePath: The relative path to the asset.
-     
-     - returns: The size of the asset.
-    */
+    /// Get the size of an asset in the container.
+    ///
+    /// - Parameter relativePath: The relative path to the asset.
+    /// - Returns: The size of the asset.
+    /// - Throws: An error from EpubDataContainerError enum depending of the
+    ///           overrding method's implementation.
     func dataLength(relativePath: String) throws -> UInt64
-    
-    /**
-     Get an seekable input stream with the bytes of the asset in the container.
- 
-     - parameter relativePath: The relative path to the asset.
- 
-     - returns: A seekable input stream.
-    */
+
+    /// Get an seekable input stream with the bytes of the asset in the container.
+    ///
+    /// - Parameter relativePath: The relative path to the asset.
+    /// - Returns: A seekable input stream.
+    /// - Throws: An error from EpubDataContainerError enum depending of the
+    ///           overrding method's implementation.
     func dataInputStream(relativePath: String) throws -> SeekableInputStream
 }
 
+/// Specializing the Container for Epubs.
+protocol EpubContainer: Container {
+    /// Return a XML document representing the file at path.
+    ///
+    /// - Parameter path: The 'container relative' path to the ressource.
+    /// - Returns: The generated document.
+    /// - Throws: `ContainerError.missingFile`,
+    ///           `ContainerError.xmlParse`.
+    func xmlDocument(forFileAtRelativePath path: String) throws -> AEXMLDocument
 
-/**
- EPUB Container protocol implementation for EPUBs unzipped in a directory.
-*/
-open class DirectoryContainer: Container {
-    
-    /// The root directory path
-    var rootPath: String
-    
-    public init?(directory dirPath: String) {
-        rootPath = dirPath
-        if !FileManager.default.fileExists(atPath: rootPath) {
-            return nil
-        }
+    /// Return a XML Document representing the file referenced by `link`.
+    ///
+    /// - Parameters:
+    ///   - link: The `Link` to the ressource from the manifest.
+    /// - Returns: The XML Document.
+    /// - Throws: `ContainerError.missingFile`,
+    ///           `ContainerError.xmlParse`.
+    func xmlDocument(forRessourceReferencedByLink link: Link?) throws -> AEXMLDocument
+}
+/// Default Implementation
+extension EpubContainer {
+
+    /// Return a XML document representing the file at path.
+    ///
+    /// - Parameter path: The 'container relative' path to the ressource.
+    /// - Returns: The generated document.
+    /// - Throws: ZipArchive and AEXML errors.
+    public func xmlDocument(forFileAtRelativePath path: String) throws -> AEXMLDocument {
+        // Get `Data` from the Container.
+        let containerData = try data(relativePath: path)
+        // Transforms `Data` into an AEXML Document object
+        let document = try AEXMLDocument(xml: containerData)
+        return document
     }
-    
-    open func data(relativePath: String) throws -> Data {
-        let fullPath = (rootPath as NSString).appendingPathComponent(relativePath)
+
+    /// Return a XML Document representing the file referenced by `link`.
+    ///
+    /// - Parameters:
+    ///   - link: The `Link` to the ressource from the manifest.
+    ///   - container: The epub container.
+    /// - Returns: The XML Document.
+    /// - Throws: `ContainerError.missingLink()`, AEXML and ZipArchive errors.
+    public func xmlDocument(forRessourceReferencedByLink link: Link?) throws -> AEXMLDocument {
+        // Path to the rootDir
+        let rootDirPath = rootFile.rootFilePath.deletingLastPathComponent
+
+        // Get the ressource file the link's pointing to, contained in the href.
+        guard let href = link?.href else {
+            throw ContainerError.missingLink(title: link?.title)
+        }
+        // Generate the relative path to the ressource pointed to by `link`.
+        let relativeFilePath = rootDirPath.appending(pathComponent: href)
+        // Generate the document for the ressource at relativeFilePath.
+        let document = try xmlDocument(forFileAtRelativePath: relativeFilePath)
+        return document
+    }
+
+}
+
+/// Specializing the container for CBZ.
+protocol CbzContainer: Container {
+    /// Return the array of the filenames contained inside of the CBZ container.
+    func getFilesList() -> [String] 
+}
+
+/// Specializing the container for Directories.
+protocol DirectoryContainer: Container {}
+/// Default implementation.
+extension DirectoryContainer {
+
+    // Override default imp. from Container protocol.
+    public func data(relativePath: String) throws -> Data {
+        let fullPath = generateFullPath(with: relativePath)
+
         return try Data(contentsOf: URL(fileURLWithPath: fullPath), options: [.mappedIfSafe])
     }
-    
-    open func dataLength(relativePath: String) throws -> UInt64 {
-        let fullPath = (rootPath as NSString).appendingPathComponent(relativePath)
-        if let attrs = try? FileManager.default.attributesOfItem(atPath: fullPath) {
-            let fileSize = attrs[FileAttributeKey.size] as! UInt64
-            return fileSize
+
+    // Override default imp. from Container protocol.
+    public func dataLength(relativePath: String) throws -> UInt64 {
+        let fullPath = generateFullPath(with: relativePath)
+
+        guard let attributes = try? FileManager.default.attributesOfItem(atPath: fullPath) else {
+            throw ContainerError.fileError
         }
-        throw ContainerError.fileError
+        guard let fileSize = attributes[FileAttributeKey.size] as? UInt64 else {
+            throw ContainerError.fileError
+        }
+        return fileSize
     }
-    
-    open func dataInputStream(relativePath: String) throws -> SeekableInputStream {
-        let fullPath = (rootPath as NSString).appendingPathComponent(relativePath)
-        if let inputStream = FileInputStream(fileAtPath: fullPath) {
-            return inputStream
+
+    // Override default imp. from Container protocol.
+    public func dataInputStream(relativePath: String) throws -> SeekableInputStream {
+        let fullPath = generateFullPath(with: relativePath)
+
+        guard let inputStream = FileInputStream(fileAtPath: fullPath) else {
+            throw ContainerError.streamInitFailed
         }
-        throw ContainerError.streamInitFailed
+        return inputStream
+    }
+
+    // MARK: - Internal methods
+
+    /// Generate an absolute path to a ressource from a given relative path.
+    ///
+    /// - Parameter relativePath: The 'directory-relative' path to the ressource.
+    /// - Returns: The absolute path to the ressource
+    internal func generateFullPath(with relativePath: String) -> String {
+        let fullPath = rootFile.rootPath.appending(pathComponent: relativePath)
+
+        return fullPath
     }
 }
 
+/// Specializing the Container for Arhived files.
+protocol ZipArchiveContainer: Container {
+    /// The zip archive object containing the Epub.
+    var zipArchive: ZipArchive { get set }
+}
+/// Default implementation.
+extension ZipArchiveContainer {
 
-/**
- EPUB Container protocol implementation for EPUB files
-*/
-open class EpubContainer: Container {
-    
-    var epubFilePath: String
-    var zipArchive: ZipArchive
-    
-    public init?(path: String) {
-        epubFilePath = path
-        if let arc = ZipArchive(url: URL(fileURLWithPath: path)) {
-            zipArchive = arc
-        } else {
-            return nil
-        }
-    }
-    
-    open func data(relativePath: String) throws -> Data {
+    // Override default imp. from Container protocol.
+    public func data(relativePath: String) throws -> Data {
         return try zipArchive.readData(path: relativePath)
     }
-    
-    open func dataLength(relativePath: String) throws -> UInt64 {
-        return try zipArchive.fileSize(path: relativePath)
+
+    // Override default imp. from Container protocol.
+    public func dataLength(relativePath: String) throws -> UInt64 {
+        return try zipArchive.sizeOfCurrentFile()
     }
-    
-    open func dataInputStream(relativePath: String) throws -> SeekableInputStream {
-        let inputStream = ZipInputStream(zipFilePath: epubFilePath, path: relativePath)
-        //let inputStream = ZipInputStream(zipArchive: zipArchive, path: relativePath)
-        if inputStream == nil {
+
+
+    // Override default imp. from Container protocol.
+    public func dataInputStream(relativePath: String) throws -> SeekableInputStream {
+        // One zipArchive instance per inputstream... for multithreading.
+        guard let inputStream = ZipInputStream(zipFilePath: rootFile.rootPath, path: relativePath) else {
             throw ContainerError.streamInitFailed
         }
-        return inputStream!
+        return inputStream
     }
 }

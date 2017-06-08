@@ -1,3 +1,4 @@
-github "tadija/AEXML" "4.0.1"
+github "Hearst-DD/ObjectMapper" "2.2.7"
+github "krzyzanowskim/CryptoSwift" "0.6.9"
 github "swisspol/GCDWebServer" "3.3.3"
-github "Hearst-DD/ObjectMapper" "2.2.2"
+github "tadija/AEXML" "4.1.0"
