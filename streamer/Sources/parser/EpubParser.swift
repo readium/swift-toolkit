@@ -13,21 +13,21 @@ import AEXML
 public struct EpubConstant {
     /// Default EPUB Version value, used when no version hes been specified.
     /// (see OPF_2.0.1_draft 1.3.2).
-    static let defaultEpubVersion = 1.2
+    public static let defaultEpubVersion = 1.2
     /// Path of the EPUB's container.xml file.
-    static let containerDotXmlPath = "META-INF/container.xml"
+    public static let containerDotXmlPath = "META-INF/container.xml"
     /// Path of the EPUB's ecryption file.
-    static let encryptionDotXmlPath = "META-INF/encryption.xml"
+    public static let encryptionDotXmlPath = "META-INF/encryption.xml"
     /// Epub mime-type.
-    static let mimetype = "application/epub+zip"
+    public static let mimetype = "application/epub+zip"
     /// http://www.idpf.org/oebps/ (Legacy)
-    static let mimetypeOEBPS = "application/oebps-package+xml"
+    public static let mimetypeOEBPS = "application/oebps-package+xml"
     /// Media Overlays URL.
-    static let mediaOverlayURL = "media-overlay?resource="
+    public static let mediaOverlayURL = "media-overlay?resource="
     // PageSpread
-    static let autoMeta = "auto"
-    static let noneMeta = "none"
-    static let reflowableMeta = "reflowable"
+    public static let autoMeta = "auto"
+    public static let noneMeta = "none"
+    public static let reflowableMeta = "reflowable"
 }
 
 /// Errors thrown during the parsing of the EPUB
@@ -121,9 +121,13 @@ public class EpubParser: PublicationParser {
     ///   - publication: The Publication.
     /// - Throws: 
     internal func parseEncryption(from container: EpubContainer, to publication: inout Publication) {
+        //if publication.metadata.title ==
         // Check if there is an encryption file.
-        guard let document = try? container.xmlDocument(forFileAtRelativePath: EpubConstant.encryptionDotXmlPath) else {
-            log(level: .warning, "The file “encryption.xml” couldn’t be opened")
+        let document: AEXMLDocument
+        do {
+            document = try container.xmlDocument(forFileAtRelativePath: EpubConstant.encryptionDotXmlPath)
+        } catch {
+            logValue(level: .error, error)
             return
         }
         guard let encryptedDataElements = document["encryption"]["EncryptedData"].all else {

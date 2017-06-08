@@ -38,7 +38,7 @@ public class OPFParser {
         /// The 'to be built' Publication.
         var publication = Publication()
 
-        publication.epubVersion = epubVersion
+        publication.version = epubVersion
         publication.internalData["type"] = "epub"
         publication.internalData["rootfile"] = container.rootFile.rootFilePath
         // Self link is added when the epub is being served (in the EpubServer).
@@ -99,7 +99,7 @@ public class OPFParser {
             metadata.rights = rights.map({ $0.string }).joined(separator: " ")
         }
         // Publishers, Creators, Contributors.
-        let epubVersion = publication.epubVersion
+        let epubVersion = publication.version
         mp.parseContributors(from: metadataElement, to: &metadata, epubVersion)
         // Page progression direction.
         if let direction = document.root["spine"].attributes["page-progression-direction"] {
@@ -133,7 +133,7 @@ public class OPFParser {
         }
         /// Creates an Link for each of them and add it to the ressources.
         for item in manifestItems {
-            // Add it to the manifest items dict if it has an id.
+            // Must have an ID.
             guard let id = item.attributes["id"] else {
                 log(level: .warning, "Manifest item MUST have an id, item ignored.")
                 continue
@@ -145,9 +145,10 @@ public class OPFParser {
             }
             // If it's a media overlay ressource append it to the publication links.
             if link.typeLink == "application/smil+xml" {
-                // Retrieve the duration of the smil file
-                if let duration = publication.metadata.otherMetadata.first(where: { $0.property == "#\(id)" })?.value {
-
+                // Retrieve the duration of the smil file in the otherMetadata.
+                if let duration = publication.metadata.otherMetadata.first(where: {
+                    $0.property == "#\(id)" })?.value
+                {
                     link.duration = Double(smilp.smilTimeToSeconds(duration))
                 }
                 //publication.links.append(link)

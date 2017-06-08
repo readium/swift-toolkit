@@ -95,7 +95,9 @@ public class MediaOverlays {
     /// - Parameter forFragment: The SMIL fragment identifier.
     /// - Returns: The node right after the node associated to the fragment.
     public func node(nextAfterFragmentId id: String?) throws -> MediaOverlayNode {
-        guard let node = _findNextNode(forFragment: id, inNodes: self.nodes) else {
+        let ret = _findNextNode(forFragment: id, inNodes: self.nodes)
+
+        guard let node = ret.found else {
             throw MediaOverlaysError.nodeNotFound(forFragmentId: id)
         }
         return node
@@ -147,28 +149,58 @@ public class MediaOverlays {
     ///            self children.
     /// - Returns: The node we found ?? nil.
     fileprivate func _findNextNode(forFragment fragment: String?,
-                                   inNodes nodes: [MediaOverlayNode]) -> MediaOverlayNode?
+                                   inNodes nodes: [MediaOverlayNode]) -> (found: MediaOverlayNode?, prevFound: Bool)
     {
         var previousNodeFoundFlag = false
 
         // For each node of the current scope..
         for node in nodes {
             guard !previousNodeFoundFlag else {
-                return node
+                /// If the node is a section, we get the first non section child.
+                if node.role.contains("section") {
+                    if let validChild = getFirstNonSectionChild(of: node) {
+                        return (validChild, false)
+                    } else {
+                        // Try next nodes.
+                        continue
+                    }
+                }
+                /// Else we just return it.
+                return (node, false)
             }
             // If the node is a "section" (<seq> sequence element)..
             if node.role.contains("section") {
-                if let found = _findNextNode(forFragment: fragment, inNodes: node.children) {
-                    return found
+                let ret = _findNextNode(forFragment: fragment, inNodes: node.children)
+                if let foundNode = ret.found {
+                    return (foundNode, false)
                 }
+                previousNodeFoundFlag = ret.prevFound
             }
             // If the node text refer to filename or that filename is nil,
             // return node.
-            if fragment == nil || node.text?.contains(fragment!)  ?? false {
+            if fragment == nil || node.text?.contains(fragment!) ?? false {
                 previousNodeFoundFlag = true
             }
         }
         // If nothing found, return nil.
+        return (nil, previousNodeFoundFlag)
+    }
+
+
+    /// Returns the closest non section children node found.
+    ///
+    /// - Parameter node: The section node
+    /// - Returns: The closest non section node or nil.
+    fileprivate func getFirstNonSectionChild(of node: MediaOverlayNode) -> MediaOverlayNode? {
+        for node in node.children {
+            if node.role.contains("section") {
+                if let found = getFirstNonSectionChild(of: node) {
+                    return found
+                }
+            } else {
+                return node
+            }
+        }
         return nil
     }
 }

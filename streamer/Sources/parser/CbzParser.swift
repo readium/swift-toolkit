@@ -14,7 +14,7 @@ public enum CbzParserError: Error {
 
 /// CBZ related constants.
 public struct CbzConstant {
-    static let mimetype = "application/x-cbr"
+    public static let mimetype = "application/x-cbr"
 }
 
 public enum MediaType: String {

@@ -14,9 +14,8 @@ import ObjectMapper
 /// It is created by the `EpubParser` from an EPUB file or directory.
 /// As it is extended by `Mappable`, it can be deserialized to `JSON`.
 public class Publication {
-    
-    /// The epubVersion of the publication
-    public var epubVersion: Double! // Tofix: epub and publication not related
+    /// The version of the publication, if the type needs any.
+    public var version: Double!
     /// The metadata (title, identifier, contributors, etc.).
     public var metadata: Metadata!
     public var links = [Link]()
@@ -49,13 +48,25 @@ public class Publication {
         }
     }
 
-    /// Return the serialized JSON for the Publication object: the WebPubManifest.
-    public var serialized: String {
+    /// Return the serialized JSON for the Publication object: the WebPubManifest
+    /// (canonical).
+    public var manifest: String {
         return self.toJSONString(prettyPrint: true) ?? ""
     }
 
+    /// Return the serialized JSON for the Publication object: the WebPubManifest
+    /// (prettyfied).
+    public var manifestPretty: String {
+        return self.toJSONString(prettyPrint: true) ?? ""
+    }
+
+    /// Returns the JSON dictionnary.
+    public var manifestDictionnary: [String: Any] {
+        return self.toJSON()
+    }
+
     public init() {
-        epubVersion = 0.0
+        version = 0.0
         metadata = Metadata()
     }
 
