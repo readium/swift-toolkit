@@ -87,7 +87,7 @@ public class EpubParser: PublicationParser {
         // + check if mimetype's valid.
         guard let mimeTypeData = try? container.data(relativePath: "mimetype"),
             let mimetype = String(data: mimeTypeData, encoding: .ascii),
-            mimetype == EpubConstant.mimetype else {
+            mimetype.contains(EpubConstant.mimetype) else {
                 throw EpubParserError.wrongMimeType
         }
         container.rootFile.mimetype = mimetype
