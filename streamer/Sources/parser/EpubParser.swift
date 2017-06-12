@@ -85,16 +85,18 @@ public class EpubParser: PublicationParser {
         // Retrieve mimetype data from container,
         // + convert data to string,
         // + check if mimetype's valid.
-        guard let mimeTypeData = try? container.data(relativePath: "mimetype"),
-            let mimetype = String(data: mimeTypeData, encoding: .ascii),
-            mimetype.contains(EpubConstant.mimetype) else {
-                throw EpubParserError.wrongMimeType
-        }
-        container.rootFile.mimetype = mimetype
+//        guard let mimeTypeData = try? container.data(relativePath: "mimetype"),
+//            let mimetype = String(data: mimeTypeData, encoding: .ascii),
+//            mimetype.contains(EpubConstant.mimetype) else {
+//                throw EpubParserError.wrongMimeType
+//        }
+//        container.rootFile.mimetype = mimetype
+
         // Retrieve container.xml data from the Container
         guard let data = try? container.data(relativePath: EpubConstant.containerDotXmlPath) else {
             throw EpubParserError.missingFile(path: EpubConstant.containerDotXmlPath)
         }
+        container.rootFile.mimetype = EpubConstant.mimetype
         // Parse the container.xml Data and fill the ContainerMetadata objectof the container
         container.rootFile.rootFilePath =  try getRootFilePath(from: data)
         // Get the package.opf XML document from the container.
