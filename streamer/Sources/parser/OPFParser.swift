@@ -43,8 +43,8 @@ public class OPFParser {
         publication.internalData["rootfile"] = container.rootFile.rootFilePath
         // CoverId.
         var coverId: String?
-        if let coverMetas = document.root["metadata"]["meta"].all(withAttributes: ["name" : "cover"]) {
-            coverId = coverMetas.first?.string
+        if let coverMeta = document.root["metadata"]["meta"].all(withAttributes: ["name" : "cover"])?.first {
+            coverId = coverMeta.attributes["content"]
         }
         try parseMetadata(from: document, to: &publication)
         parseRessources(from: document.root["manifest"], to: &publication, coverId: coverId)
@@ -141,7 +141,10 @@ public class OPFParser {
             // If the link's rel contains the cover tag, append it to the publication links.
             // Also check if the link was referenced as the cover in the meta.
             // (The ids are temporarily stored into the titles at this point)
-            if link.rel.contains("cover") || link.title == coverId {
+            if link.title == coverId {
+                link.rel.append("cover")
+            }
+            if link.rel.contains("cover") {
                 publication.links.append(link)
                 // TODO - add coverLink?
             }
