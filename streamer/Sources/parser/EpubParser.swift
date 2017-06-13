@@ -126,10 +126,11 @@ public class EpubParser: PublicationParser {
         //if publication.metadata.title ==
         // Check if there is an encryption file.
         let document: AEXMLDocument
+
         do {
             document = try container.xmlDocument(forFileAtRelativePath: EpubConstant.encryptionDotXmlPath)
         } catch {
-            logValue(level: .error, error)
+            logValue(level: .info, error)
             return
         }
         guard let encryptedDataElements = document["encryption"]["EncryptedData"].all else {
