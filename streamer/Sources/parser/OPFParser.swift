@@ -41,7 +41,6 @@ public class OPFParser {
         publication.version = epubVersion
         publication.internalData["type"] = "epub"
         publication.internalData["rootfile"] = container.rootFile.rootFilePath
-        // Self link is added when the epub is being served (in the EpubServer).
         // CoverId.
         var coverId: String?
         if let coverMetas = document.root["metadata"]["meta"].all(withAttributes: ["name" : "cover"]) {
@@ -140,8 +139,11 @@ public class OPFParser {
             }
             let link = linkFromManifest(item)
             // If the link's rel contains the cover tag, append it to the publication links.
-            if link.rel.contains("cover") {
+            // Also check if the link was referenced as the cover in the meta.
+            // (The ids are temporarily stored into the titles at this point)
+            if link.rel.contains("cover") || link.title == coverId {
                 publication.links.append(link)
+                // TODO - add coverLink?
             }
             // If it's a media overlay ressource append it to the publication links.
             if link.typeLink == "application/smil+xml" {
