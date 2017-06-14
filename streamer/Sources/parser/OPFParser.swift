@@ -41,13 +41,9 @@ public class OPFParser {
         publication.version = epubVersion
         publication.internalData["type"] = "epub"
         publication.internalData["rootfile"] = container.rootFile.rootFilePath
-        // CoverId.
-        var coverId: String?
-        if let coverMeta = document.root["metadata"]["meta"].all(withAttributes: ["name" : "cover"])?.first {
-            coverId = coverMeta.attributes["content"]
-        }
         try parseMetadata(from: document, to: &publication)
-        parseRessources(from: document.root["manifest"], to: &publication, coverId: coverId)
+        parseRessources(from: document.root["manifest"], to: &publication)
+        coverLinkFromMeta(from: document.root["metadata"], to: &publication)
         parseSpine(from: document.root["spine"], to: &publication)
         try parseMediaOverlay(from: container, to: &publication)
         return publication
@@ -122,8 +118,7 @@ public class OPFParser {
     ///                  fill.
     ///   - coverId: The coverId to identify the cover ressource and tag it.
     internal func parseRessources(from manifest: AEXMLElement,
-                                  to publication: inout Publication,
-                                  coverId: String?)
+                                  to publication: inout Publication)
     {
         // Get the manifest children items
         guard let manifestItems = manifest["item"].all else {
@@ -138,16 +133,6 @@ public class OPFParser {
                 continue
             }
             let link = linkFromManifest(item)
-            // If the link's rel contains the cover tag, append it to the publication links.
-            // Also check if the link was referenced as the cover in the meta.
-            // (The ids are temporarily stored into the titles at this point)
-            if link.title == coverId {
-                link.rel.append("cover")
-            }
-            if link.rel.contains("cover") {
-                publication.links.append(link)
-                // TODO - add coverLink?
-            }
             // If it's a media overlay ressource append it to the publication links.
             if link.typeLink == "application/smil+xml" {
                 // Retrieve the duration of the smil file in the otherMetadata.
@@ -159,6 +144,26 @@ public class OPFParser {
                 //publication.links.append(link)
             }
             publication.resources.append(link)
+        }
+    }
+
+    /// Add the "cover" rel to the link referenced as the cover in the meta 
+    /// property, if any.
+    ///
+    /// - Parameters:
+    ///   - metadata: The metadata XML element.
+    ///   - publication: The publication object with the `coverLink` property to
+    ///                  fill.
+    private func coverLinkFromMeta(from metadata: AEXMLElement, to publication: inout Publication) {
+        var coverId: String?
+
+        // Read meta to see if any Link is referenced as the Cover.
+        if let coverMeta = metadata["meta"].all(withAttributes: ["name" : "cover"])?.first {
+            coverId = coverMeta.attributes["content"]
+            // (The ids are still temporarily stored into the titles at this point).
+            if let coverLink = publication.resources.first(where: {$0.title == coverId}) {
+                coverLink.rel.append("cover")
+            }
         }
     }
 
