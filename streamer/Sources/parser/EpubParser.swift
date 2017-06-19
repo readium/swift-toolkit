@@ -163,6 +163,8 @@ public class EpubParser: PublicationParser {
             let navDocument = try? container.xmlDocument(forRessourceReferencedByLink: navLink) else {
                 return
         }
+        // Set the location of the navigation document in order to normalize href pathes.
+        ndp.navigationDocumentPath = navLink.href
         let newTableOfContentsItems = ndp.tableOfContent(fromNavigationDocument: navDocument)
         let newLandmarksItems = ndp.landmarks(fromNavigationDocument: navDocument)
         let newListOfAudiofiles = ndp.listOfAudiofiles(fromNavigationDocument: navDocument)
@@ -193,6 +195,8 @@ public class EpubParser: PublicationParser {
             let ncxDocument = try? container.xmlDocument(forRessourceReferencedByLink: ncxLink) else {
                 return
         }
+        // Set the location of the NCX document in order to normalize href pathes.
+        ncxp.ncxDocumentPath = ncxLink.href
         if publication.tableOfContents.isEmpty {
             let newTableOfContentItems = ncxp.tableOfContents(fromNcxDocument: ncxDocument)
 

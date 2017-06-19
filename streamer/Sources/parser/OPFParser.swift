@@ -20,6 +20,7 @@ enum OPFParserError: Error {
 /// OPF: Open Packaging Format.
 public class OPFParser {
     let smilp: SMILParser!
+    var rootFilePath: String? // Used for normalisation of href.
 
     internal init() {
         smilp = SMILParser()
@@ -38,6 +39,7 @@ public class OPFParser {
         /// The 'to be built' Publication.
         var publication = Publication()
 
+        rootFilePath = container.rootFile.rootFilePath
         publication.version = epubVersion
         publication.internalData["type"] = "epub"
         publication.internalData["rootfile"] = container.rootFile.rootFilePath
@@ -242,11 +244,11 @@ public class OPFParser {
             let body = smilXml.root["body"]
 
             node.role.append("section")
-            node.text = body.attributes["epub:textref"]
+            node.text = normalize(base: mediaOverlayLink.href!, href: body.attributes["epub:textref"]!)
             // get body parameters <par>
-            smilp.parseParameters(in: body, withParent: node)
-            smilp.parseSequences(in: body, withParent: node, publicationSpine: &publication.spine)
-            // "../xhtml/mo-002.xhtml#mo-1" => "../xhtml/mo-002.xhtml"
+            smilp.parseParameters(in: body, withParent: node, base: mediaOverlayLink.href)
+            smilp.parseSequences(in: body, withParent: node, publicationSpine: &publication.spine, base: mediaOverlayLink.href)
+            // "/??/xhtml/mo-002.xhtml#mo-1" => "/??/xhtml/mo-002.xhtml"
             guard let baseHref = node.text?.components(separatedBy: "#")[0],
                 let link = publication.spine.first(where: {
                     guard let linkRef = $0.href else {
@@ -274,11 +276,12 @@ public class OPFParser {
         // TMP used for storing the id (associated to the idref of the spine items).
         // Will be cleared after the spine parsing.
         link.title = item.attributes["id"]
-        //
-        link.href = item.attributes["href"]
+        link.href = normalize(base: rootFilePath!, href: item.attributes["href"]!)
         link.typeLink = item.attributes["media-type"]
         if let propertyAttribute = item.attributes["properties"] {
             let properties = propertyAttribute.components(separatedBy: CharacterSet.whitespaces)
+
+            link.properties = parse(propertiesArray: properties)
             /// Rels.
             if properties.contains("nav") {
                 link.rel.append("contents")
@@ -286,8 +289,6 @@ public class OPFParser {
             if properties.contains("cover-image") {
                 link.rel.append("cover")
             }
-            /// Properties.
-            link.properties = parse(propertiesArray: properties)
         }
         return link
     }

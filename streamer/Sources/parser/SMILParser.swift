@@ -19,9 +19,12 @@ internal class SMILParser {
     /// - Parameters:
     ///   - element: The XML element which should contain <seq>.
     ///   - parent: The parent MediaOverlayNode of the "to be creatred" nodes.
+    ///   - spine: <#spine description#>
+    ///   - base: The base location of the file for path normalization.
     internal func parseSequences(in element: AEXMLElement,
                                  withParent parent: MediaOverlayNode,
-                                 publicationSpine spine: inout [Link])
+                                 publicationSpine spine: inout [Link],
+                                 base: String?)
     {
         guard let sequenceElements = element["seq"].all,
             !sequenceElements.isEmpty else
@@ -34,9 +37,10 @@ internal class SMILParser {
             let newNode = MediaOverlayNode()
 
             newNode.role.append("section")
-            newNode.text = sequence.attributes["epub:textref"]
-            parseParameters(in: sequence, withParent: newNode)
-            parseSequences(in: sequence, withParent: newNode, publicationSpine: &spine)
+            newNode.text = normalize(base: base!, href: sequence.attributes["epub:textref"]!)
+
+            parseParameters(in: sequence, withParent: newNode, base: base)
+            parseSequences(in: sequence, withParent: newNode, publicationSpine: &spine, base: base)
 
             let baseHrefParent = parent.text?.components(separatedBy: "#")[0]
 
@@ -65,7 +69,8 @@ internal class SMILParser {
     ///   - element: The XML element which should contain <par>.
     ///   - parent: The parent MediaOverlayNode of the "to be creatred" nodes.
     internal func parseParameters(in element: AEXMLElement,
-                                  withParent parent: MediaOverlayNode)
+                                  withParent parent: MediaOverlayNode,
+                                  base: String?)
     {
         guard let parameterElements = element["par"].all,
             !parameterElements.isEmpty else
@@ -81,8 +86,8 @@ internal class SMILParser {
             }
             let audioFilePath = parse(audioElement: audioElement)
 
-            newNode.audio = audioFilePath
-            newNode.text = parameterElement["text"].attributes["src"]
+            newNode.audio = normalize(base: base!, href: audioFilePath!)
+            newNode.text = normalize(base: base!, href: parameterElement["text"].attributes["src"]!)
             parent.children.append(newNode)
         }
     }
@@ -121,11 +126,6 @@ internal class SMILParser {
             let clipEnd = audioElement.attributes["clipEnd"] else
         {
             return nil
-        }
-        /// Clean relative path elements "../"
-        let components = audio.components(separatedBy: "/")
-        if components[0] == ".." {
-            audio.removeSubrange(audio.startIndex..<audio.index(audio.startIndex, offsetBy: 3))
         }
         audio += "#t="
         audio += smilTimeToSeconds(clipBegin)

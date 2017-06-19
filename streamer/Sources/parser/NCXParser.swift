@@ -16,6 +16,7 @@ import AEXML
 /// You can ignore the NCX file if your book won't render properly as EPUB 2 
 /// content, or if you aren't targeting cross-compatibility."
 public class NCXParser {
+    var ncxDocumentPath: String!
 
     /// Return the data representation of the table of contents (toc)
     /// informations contained in the NCX Document.
@@ -83,7 +84,7 @@ public class NCXParser {
         let newNode = Link()
 
         // Get current node informations.
-        newNode.href = element["content"].attributes["src"]
+        newNode.href = normalize(base: ncxDocumentPath, href: element["content"].attributes["src"])
         newNode.title = element["navLabel"]["text"].value
         // Retrieve the children of the current node. // FIXME: really usefull?
         if let childrenNodes = element[type].all {
