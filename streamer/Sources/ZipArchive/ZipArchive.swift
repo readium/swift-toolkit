@@ -148,7 +148,7 @@ internal class ZipArchive {
 
         let bytesRead = unzReadCurrentFile(unzFile, buffer, UInt32(maxLength))
         if bytesRead < 0 {
-            print("ERROR READ NOTHINGGGGGGG")
+            print("ERROR READ NOTHING")
         }
 //        if bytesRead >= 0 {
 //            currentFileOffset += UInt64(bytesRead)

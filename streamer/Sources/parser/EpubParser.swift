@@ -98,7 +98,7 @@ public class EpubParser: PublicationParser {
         }
         container.rootFile.mimetype = EpubConstant.mimetype
         // Parse the container.xml Data and fill the ContainerMetadata objectof the container
-        container.rootFile.rootFilePath =  try getRootFilePath(from: data)
+        container.rootFile.rootFilePath = try getRootFilePath(from: data)
         // Get the package.opf XML document from the container.
         let document = try container.xmlDocument(forFileAtRelativePath: container.rootFile.rootFilePath)
         let epubVersion = getEpubVersion(from: document)
