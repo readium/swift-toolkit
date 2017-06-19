@@ -104,17 +104,16 @@ extension EpubContainer {
     /// - Returns: The XML Document.
     /// - Throws: `ContainerError.missingLink()`, AEXML and ZipArchive errors.
     public func xmlDocument(forRessourceReferencedByLink link: Link?) throws -> AEXMLDocument {
-        // Path to the rootDir
-        let rootDirPath = rootFile.rootFilePath.deletingLastPathComponent
-
-        // Get the ressource file the link's pointing to, contained in the href.
         guard let href = link?.href else {
             throw ContainerError.missingLink(title: link?.title)
         }
-        // Generate the relative path to the ressource pointed to by `link`.
-        let relativeFilePath = rootDirPath.appending(pathComponent: href)
-        // Generate the document for the ressource at relativeFilePath.
-        let document = try xmlDocument(forFileAtRelativePath: relativeFilePath)
+        var pathFile = href
+
+        if pathFile.characters.first == "/" {
+            _ = pathFile.characters.popFirst()
+        }
+
+        let document = try xmlDocument(forFileAtRelativePath: pathFile)
         return document
     }
 
@@ -192,11 +191,15 @@ extension ZipArchiveContainer {
         return try zipArchive.sizeOfCurrentFile()
     }
 
-
     // Override default imp. from Container protocol.
     public func dataInputStream(relativePath: String) throws -> SeekableInputStream {
         // One zipArchive instance per inputstream... for multithreading.
-        guard let inputStream = ZipInputStream(zipFilePath: rootFile.rootPath, path: relativePath) else {
+        var pathFile = relativePath
+
+        if pathFile.characters.first == "/" {
+            _ = pathFile.characters.popFirst()
+        }
+        guard let inputStream = ZipInputStream(zipFilePath: rootFile.rootPath, path: pathFile) else {
             throw ContainerError.streamInitFailed
         }
         return inputStream

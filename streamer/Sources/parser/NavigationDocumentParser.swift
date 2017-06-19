@@ -12,6 +12,7 @@ import AEXML
 /// The navigation document if documented here at Navigation
 /// https://idpf.github.io/a11y-guidelines/
 public class NavigationDocumentParser {
+    var navigationDocumentPath: String!
 
     /// Return the data representation of the table of contents informations
     /// contained in the Navigation Document (toc).
@@ -169,7 +170,7 @@ public class NavigationDocumentParser {
         if title == nil {
             title = element["a"].value
         }
-        newLiNode.href = element["a"].attributes["href"]
+        newLiNode.href = normalize(base: navigationDocumentPath, href: element["a"].attributes["href"])
         newLiNode.title = title
         // If the <li> have a child <ol>.
         if let nextOl = element["ol"].first {
