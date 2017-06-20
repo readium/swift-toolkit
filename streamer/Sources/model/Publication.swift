@@ -18,11 +18,13 @@ public class Publication {
     public var version: Double!
     /// The metadata (title, identifier, contributors, etc.).
     public var metadata: Metadata!
+    /// Link to special ressources which are added to the publication.
     public var links = [Link]()
+    /// Links of the spine items of the publication.
     public var spine = [Link]()
-    /// The resources, not including the links already present in the spine.
+    /// Link to the ressources of the publication.
     public var resources = [Link]()
-    /// TOC
+    /// Table of content of the publication.
     public var tableOfContents = [Link]()
     public var landmarks = [Link]()
     public var listOfAudioFiles = [Link]()
@@ -31,7 +33,7 @@ public class Publication {
     public var listOfVideos = [Link]()
     public var pageList = [Link]()
 
-    /// Extension point for links that shouldn't show up in the manifest
+    /// Extension point for links that shouldn't show up in the manifest.
     public var otherLinks = [Link]()
     // TODO: other collections
     // var otherCollections: [PublicationCollection]
@@ -40,7 +42,7 @@ public class Publication {
     // MARK: - Public methods.
 
     /// A link to the publication's cover.
-    /// The implementation scans the `links` for a link where `rel` is `cover`.
+    /// The implementation scans the `links` for a link (spine/resources/links) where `rel` is `cover`.
     /// If none is found, it is `nil`.
     public var coverLink: Link? {
         get {

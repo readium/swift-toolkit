@@ -11,24 +11,28 @@ import ObjectMapper
 
 /// Contains metadata parsed from Encryption.xml.
 public struct Encryption {
-    public var scheme: String?
-    public var profile: String?
+    /// Identifies the algorithm used to encrypt the resource.
     public var algorithm: String?
+    /// Compression method used on the resource.
     public var compression: String?
+    /// Original length of the resource in bytes before compression and/or encryption.
     public var originalLength: Int?
+    /// Identifies the encryption profile used to encrypt the resource.
+    public var profile: String?
+    /// Identifies the encryption scheme used to encrypt the resource.
+    public var scheme: String?
 
     init() {}
-
 }
 
 extension Encryption: Mappable {
     public init?(map: Map) {}
 
     public mutating func mapping(map: Map) {
-        scheme <- map["scheme", ignoreNil: true]
-        profile <- map["profile", ignoreNil: true]
         algorithm <- map["algorithm", ignoreNil: true]
         compression <- map["compression", ignoreNil: true]
         originalLength <- map["originalLength", ignoreNil: true]
+        profile <- map["profile", ignoreNil: true]
+        scheme <- map["scheme", ignoreNil: true]
     }
 }

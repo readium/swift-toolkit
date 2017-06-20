@@ -9,21 +9,30 @@
 import Foundation
 import ObjectMapper
 
+/// A Link to a resource.
 public class Link {
+    /// The link destination.
     public var href: String?
+    /// MIME type of resource.
     public var typeLink: String?
+    /// Indicates the relationship between the resource and its containing collection.
     public var rel: [String]!
+    /// Indicates the height of the linked resource in pixels.
     public var height: Int?
+    /// Indicates the width of the linked resource in pixels.
     public var width: Int?
     public var title: String?
-    //public var properties = [String]()
+    /// Properties associated to the linked resource.
     public var properties: Properties!
+    /// Indicates the length of the linked resource in seconds.
     public var duration: TimeInterval?
+    /// Indicates that the linked resource is a URI template.
     public var templated: Bool?
-    public var children: [Link]!
-    public var mediaOverlays: MediaOverlays!
 
-    // MARK: - Public methods
+    /// The underlaying nodes in a tree structure of `Link`s.
+    public var children: [Link]!
+    /// The MediaOverlays associated to the resource of the `Link`.
+    public var mediaOverlays: MediaOverlays!
 
     public init() {
         properties = Properties()
@@ -47,7 +56,6 @@ public class Link {
 }
 
 extension Link: Mappable {
-
     public func mapping(map: Map) {
         href <- map["href", ignoreNil: true]
         typeLink <- map["type", ignoreNil: true]
