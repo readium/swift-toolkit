@@ -1,7 +1,8 @@
 # r2-streamer-swift
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
 
-R2Streamer is an numeric publications parsing library. It takes the publication as input, and generates an accessible [WebPubManifest](https://github.com/readium/webpub-manifest)/object as output.
+R2-streamer-swift aims at simplifying the usage of numeric publication by parsing and serving them.
+It takes the publication as input, and generates an accessible [WebPubManifest](https://github.com/readium/webpub-manifest)/object as output.
 
 It also provides helper functions in order to use features like mediaOverlays more conveniently.
 
