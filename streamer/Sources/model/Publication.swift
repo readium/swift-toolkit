@@ -51,13 +51,19 @@ public class Publication {
     /// Return the serialized JSON for the Publication object: the WebPubManifest
     /// (canonical).
     public var manifest: String {
-        return self.toJSONString(prettyPrint: true) ?? ""
+        var jsonString = self.toJSONString(prettyPrint: false) ?? ""
+
+        jsonString = jsonString.replacingOccurrences(of: "\\", with: "")
+        return jsonString
     }
 
     /// Return the serialized JSON for the Publication object: the WebPubManifest
     /// (prettyfied).
     public var manifestPretty: String {
-        return self.toJSONString(prettyPrint: true) ?? ""
+        var jsonString = self.toJSONString(prettyPrint: true) ?? ""
+
+        jsonString = jsonString.replacingOccurrences(of: "\\", with: "")
+        return jsonString
     }
 
     /// Returns the JSON dictionnary.
