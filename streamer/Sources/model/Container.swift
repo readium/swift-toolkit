@@ -9,31 +9,29 @@
 import Foundation
 import AEXML
 
-/// Container Protocol's Errors.
+/// Container protocol associated errors.
 ///
-/// - streamInitFailed:
-/// - fileNotFound: File couldn't be found.
-/// - fileError:
+/// - streamInitFailed: The inputStream initialisation failed.
+/// - fileNotFound: The file could not be found.
+/// - fileError: An error occured while accessing the file attributes.
+/// - missingFile: The file at the given path couldn't not be found.
+/// - xmlParse: An error occured while parsing XML (See underlyingError for more
+///             infos).
+/// - missingLink: The given `Link` ressource couldn't be found in the container.
 public enum ContainerError: Error {
     case streamInitFailed
     case fileNotFound
     case fileError
-
-    // Extenssion related.
-    /// The file at the given path couldn't not be found.
     case missingFile(path: String)
-    /// An error occured during the XML parsing.
     case xmlParse(underlyingError: Error)
-    /// The given link is missing from the
     case missingLink(title: String?)
 
 }
 
-/// Container protocol, for accessing raw data from container's files.
+/// Provide methods for accessing raw data from container's files.
 public protocol Container {
 
-    /// Meta-informations about the Container. See ContainerMetadata struct for
-    /// more details.
+    /// See `RootFile`.
     var rootFile: RootFile { get set }
 
     /// Get the raw (possibly encrypted) data of an asset in the container
@@ -60,6 +58,89 @@ public protocol Container {
     ///           overrding method's implementation.
     func dataInputStream(relativePath: String) throws -> SeekableInputStream
 }
+
+/// Specializing the container for Directories publication.
+protocol DirectoryContainer: Container {}
+/// Default implementation.
+extension DirectoryContainer {
+
+    // Override default imp. from Container protocol.
+    public func data(relativePath: String) throws -> Data {
+        let fullPath = generateFullPath(with: relativePath)
+
+        return try Data(contentsOf: URL(fileURLWithPath: fullPath), options: [.mappedIfSafe])
+    }
+
+    // Override default imp. from Container protocol.
+    public func dataLength(relativePath: String) throws -> UInt64 {
+        let fullPath = generateFullPath(with: relativePath)
+
+        guard let attributes = try? FileManager.default.attributesOfItem(atPath: fullPath) else {
+            throw ContainerError.fileError
+        }
+        guard let fileSize = attributes[FileAttributeKey.size] as? UInt64 else {
+            throw ContainerError.fileError
+        }
+        return fileSize
+    }
+
+    // Override default imp. from Container protocol.
+    public func dataInputStream(relativePath: String) throws -> SeekableInputStream {
+        let fullPath = generateFullPath(with: relativePath)
+
+        guard let inputStream = FileInputStream(fileAtPath: fullPath) else {
+            throw ContainerError.streamInitFailed
+        }
+        return inputStream
+    }
+
+    // MARK: - Internal methods
+
+    /// Generate an absolute path to a ressource from a given relative path.
+    ///
+    /// - Parameter relativePath: The 'directory-relative' path to the ressource.
+    /// - Returns: The absolute path to the ressource
+    internal func generateFullPath(with relativePath: String) -> String {
+        let fullPath = rootFile.rootPath.appending(pathComponent: relativePath)
+        
+        return fullPath
+    }
+}
+
+/// Specializing the Container for Archived files.
+protocol ZipArchiveContainer: Container {
+    /// The zip archive object containing the Epub.
+    var zipArchive: ZipArchive { get set }
+}
+/// Default implementation.
+extension ZipArchiveContainer {
+
+    // Override default imp. from Container protocol.
+    public func data(relativePath: String) throws -> Data {
+        return try zipArchive.readData(path: relativePath)
+    }
+
+    // Override default imp. from Container protocol.
+    public func dataLength(relativePath: String) throws -> UInt64 {
+        return try zipArchive.sizeOfCurrentFile()
+    }
+
+    // Override default imp. from Container protocol.
+    public func dataInputStream(relativePath: String) throws -> SeekableInputStream {
+        // One zipArchive instance per inputstream... for multithreading.
+        var pathFile = relativePath
+
+        if pathFile.characters.first == "/" {
+            _ = pathFile.characters.popFirst()
+        }
+        guard let inputStream = ZipInputStream(zipFilePath: rootFile.rootPath, path: pathFile) else {
+            throw ContainerError.streamInitFailed
+        }
+        return inputStream
+    }
+}
+
+/// ----------------------------------------------------------------------------
 
 /// Specializing the Container for Epubs.
 protocol EpubContainer: Container {
@@ -116,92 +197,11 @@ extension EpubContainer {
         let document = try xmlDocument(forFileAtRelativePath: pathFile)
         return document
     }
-
+    
 }
 
-/// Specializing the container for CBZ.
+/// Specializing the `Container` for CBZ publications.
 protocol CbzContainer: Container {
     /// Return the array of the filenames contained inside of the CBZ container.
     func getFilesList() -> [String] 
-}
-
-/// Specializing the container for Directories.
-protocol DirectoryContainer: Container {}
-/// Default implementation.
-extension DirectoryContainer {
-
-    // Override default imp. from Container protocol.
-    public func data(relativePath: String) throws -> Data {
-        let fullPath = generateFullPath(with: relativePath)
-
-        return try Data(contentsOf: URL(fileURLWithPath: fullPath), options: [.mappedIfSafe])
-    }
-
-    // Override default imp. from Container protocol.
-    public func dataLength(relativePath: String) throws -> UInt64 {
-        let fullPath = generateFullPath(with: relativePath)
-
-        guard let attributes = try? FileManager.default.attributesOfItem(atPath: fullPath) else {
-            throw ContainerError.fileError
-        }
-        guard let fileSize = attributes[FileAttributeKey.size] as? UInt64 else {
-            throw ContainerError.fileError
-        }
-        return fileSize
-    }
-
-    // Override default imp. from Container protocol.
-    public func dataInputStream(relativePath: String) throws -> SeekableInputStream {
-        let fullPath = generateFullPath(with: relativePath)
-
-        guard let inputStream = FileInputStream(fileAtPath: fullPath) else {
-            throw ContainerError.streamInitFailed
-        }
-        return inputStream
-    }
-
-    // MARK: - Internal methods
-
-    /// Generate an absolute path to a ressource from a given relative path.
-    ///
-    /// - Parameter relativePath: The 'directory-relative' path to the ressource.
-    /// - Returns: The absolute path to the ressource
-    internal func generateFullPath(with relativePath: String) -> String {
-        let fullPath = rootFile.rootPath.appending(pathComponent: relativePath)
-
-        return fullPath
-    }
-}
-
-/// Specializing the Container for Arhived files.
-protocol ZipArchiveContainer: Container {
-    /// The zip archive object containing the Epub.
-    var zipArchive: ZipArchive { get set }
-}
-/// Default implementation.
-extension ZipArchiveContainer {
-
-    // Override default imp. from Container protocol.
-    public func data(relativePath: String) throws -> Data {
-        return try zipArchive.readData(path: relativePath)
-    }
-
-    // Override default imp. from Container protocol.
-    public func dataLength(relativePath: String) throws -> UInt64 {
-        return try zipArchive.sizeOfCurrentFile()
-    }
-
-    // Override default imp. from Container protocol.
-    public func dataInputStream(relativePath: String) throws -> SeekableInputStream {
-        // One zipArchive instance per inputstream... for multithreading.
-        var pathFile = relativePath
-
-        if pathFile.characters.first == "/" {
-            _ = pathFile.characters.popFirst()
-        }
-        guard let inputStream = ZipInputStream(zipFilePath: rootFile.rootPath, path: pathFile) else {
-            throw ContainerError.streamInitFailed
-        }
-        return inputStream
-    }
 }

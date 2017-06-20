@@ -8,7 +8,7 @@
 
 import Foundation
 
-/// <#Description#>
+/// Represents a miscellaneous metadata element.
 open class MetadataItem {
     public var property: String?
     public var value: String?

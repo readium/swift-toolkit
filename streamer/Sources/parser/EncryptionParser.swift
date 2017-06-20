@@ -11,6 +11,7 @@ import AEXML
 
 extension EncryptionParser: Loggable {}
 
+/// A parser module which provide methods to parse encrypted XML elements.
 public class EncryptionParser {
 
     /// Parse the <EncryptionProperties> containing <EncryptionProperty> child
@@ -56,8 +57,6 @@ public class EncryptionParser {
             }
         }
     }
-
-    // Mark: - Fileprivate Methods.
 
     /// Parse the <Compression> element.
     ///

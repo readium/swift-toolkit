@@ -9,31 +9,31 @@
 import Foundation
 import ObjectMapper
 
-open class Contributor {
+/// Generated from <dc:contributor>.
+/// An entity responsible for making contributions to the resource.
+public class Contributor {
     internal var _name = MultilangString()
+    /// The name of the contributor.
     public var name: String? {
         get {
             return _name.singleString
         }
     }
+    /// TODO.
     public var sortAs: String?
+    /// An unambiguous reference to this contributor.
     public var identifier: String?
+    /// The role of the contributor in the publication making.
     public var role: String?
 
     public init() {}
 
-    public required init?(map: Map) {
-//        _name.singleString = try? map.value("name")
-//        sortAs = try? map.value("sortAs")
-//        identifier = try? map.value("identifier")
-//        role = try? map.value("role")
-    }
+    public required init?(map: Map) {}
 
 }
-
 extension Contributor: Mappable {
-
-    open func mapping(map: Map) {
+    /// JSON Serialisation function.
+    public func mapping(map: Map) {
         // If multiString is not empty, then serialize it.
         if !_name.multiString.isEmpty {
             _name.multiString <- map["name"]

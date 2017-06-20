@@ -33,35 +33,27 @@ public struct EpubConstant {
 /// Errors thrown during the parsing of the EPUB
 ///
 /// - wrongMimeType: The mimetype file is missing or its content differs from
-///                 `application/epub+zip`.
-/// - missingFile: A file is missing from the container.
+///                 "application/epub+zip" (expected).
+/// - missingFile: A file is missing from the container at `path`.
 /// - xmlParse: An XML parsing error occurred.
 /// - missingElement: An XML element is missing.
 public enum EpubParserError: Error {
-
-    /// MimeType "application/epub+zip" expected.
     case wrongMimeType
-    /// A file is missing from the container at relative path **path**.
     case missingFile(path: String)
-    /// An XML parsing error occurred, **underlyingError** thrown by the parser.
     case xmlParse(underlyingError: Error)
-    /// An XML elemen cannot be found.
     case missingElement(message: String)
 }
 
 extension EpubParser: Loggable {}
 
 /// An EPUB container parser that extracts the information from the relevant
-/// files and builds a `Publication` instance with it.
+/// files and builds a `Publication` instance out of it.
 public class EpubParser: PublicationParser {
+    /// The multiple parsing submodules.
     internal let opfp: OPFParser!
     internal let ndp: NavigationDocumentParser!
     internal let ncxp: NCXParser!
     internal let encp: EncryptionParser!
-
-    // TODO: multiple renditions
-
-    // MARK: - Public methods
 
     public init() {
         opfp = OPFParser()
@@ -70,8 +62,8 @@ public class EpubParser: PublicationParser {
         encp = EncryptionParser()
     }
 
-    /// Parses the EPUB (file/directory) at `fileAtPath` and generate
-    /// `Publication` and `Container`.
+    /// Parses the EPUB (file/directory) at `fileAtPath` and generate the
+    /// corresponding `Publication` and `Container`.
     ///
     /// - Parameter fileAtPath: The path to the epub file.
     /// - Returns: the resulting publication.

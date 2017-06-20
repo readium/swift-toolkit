@@ -8,13 +8,12 @@
 
 import Foundation
 
-/// EPUB Container for EPUBs unzipped in a directory.
+extension ContainerEpubDirectory: Loggable {}
+
+/// Container for expended EPUB publications. (Directory)
 public class ContainerEpubDirectory: EpubContainer, DirectoryContainer {
-
-    /// Struct containing meta information about the Container.
+    /// See `RootFile`.
     public var rootFile: RootFile
-
-    // MARK: - Public methods.
 
     /// Public failable initializer for the EpubDirectoryContainer class.
     ///
@@ -22,6 +21,7 @@ public class ContainerEpubDirectory: EpubContainer, DirectoryContainer {
     public init?(directory path: String) {
         // FIXME: useless check probably. Always made before hand.
         guard FileManager.default.fileExists(atPath: path) else {
+            ContainerEpubDirectory.log(level: .error, "File at \(path) not found.")
             return nil
         }
         rootFile = RootFile.init(rootPath: path)

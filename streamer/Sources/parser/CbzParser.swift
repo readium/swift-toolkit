@@ -8,6 +8,9 @@
 
 import Foundation
 
+/// Errors related to the CBZ publications.
+///
+/// - missingFile: The file at 'path' is missing from the container.
 public enum CbzParserError: Error {
     case missingFile(path: String)
 }
@@ -23,13 +26,19 @@ public enum MediaType: String {
     case invalid = ""
 }
 
-/// CBZ format parser.
+/// CBZ publication parsing class.
 public class CbzParser: PublicationParser {
 
     public init() {}
 
+    /// Parse the file at `fileAtPath` and return a `PubBox` object containing
+    /// the resulting `Publication` and `Container` objects.
+    ///
+    /// - Parameter path: The path of the file to parse.
+    /// - Returns: The resulting `PubBox` object.
+    /// - Throws: Throws `CbzParserError.missingFile`.
     public func parse(fileAtPath path: String) throws -> PubBox {
-        // Generate the `Container` for `fileAtPath`
+        // Generate the `Container` for `fileAtPath`.
         let container: CbzContainer = try generateContainerFrom(fileAtPath: path)
         let publication = Publication()
 
@@ -52,6 +61,10 @@ public class CbzParser: PublicationParser {
         return (publication, container)
     }
 
+    /// Generate a MultilangString title from the publication at `path`.
+    ///
+    /// - Parameter path: The path of the publication.
+    /// - Returns: The resulting MultilangString.
     private func title(from path: String) -> MultilangString {
         let fileUrl = URL(fileURLWithPath: path)
         let multilangString = MultilangString()
@@ -74,7 +87,7 @@ public class CbzParser: PublicationParser {
 
         // TODO add support for CBZ directories
         guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) else {
-            throw  CbzParserError.missingFile(path: path)
+            throw CbzParserError.missingFile(path: path)
         }
         if isDirectory.boolValue {
             container = ContainerCbzDirectory(directory: path)

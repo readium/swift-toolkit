@@ -8,22 +8,21 @@
 
 import Foundation
 
-/// EPUB Container for EPUB files.
+extension ContainerEpub: Loggable {}
+
+/// Container for EPUB publications. (Archived)
 public class ContainerEpub: EpubContainer, ZipArchiveContainer {
-
-    /// Struct containing meta information about the Container
+    /// See `RootFile`.
     public var rootFile: RootFile
-
     /// The zip archive object containing the Epub.
     var zipArchive: ZipArchive
-
-    // MARK: - Public methods.
 
     /// Public failable initializer for the EpubContainer class.
     ///
     /// - Parameter path: Path to the epub file.
     public init?(path: String) {
         guard let arc = ZipArchive(url: URL(fileURLWithPath: path)) else {
+            ContainerEpub.log(level: .error, "File at \(path) not found.")
             return nil
         }
 

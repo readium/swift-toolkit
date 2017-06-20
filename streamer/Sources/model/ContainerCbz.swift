@@ -8,12 +8,12 @@
 
 import Foundation
 
-// Logger injection.
 extension ContainerCbz: Loggable {}
 
+/// Container for archived CBZ publications.
 public class ContainerCbz: CbzContainer, ZipArchiveContainer {
+    /// See `RootFile`.
     public var rootFile: RootFile
-
     /// The zip archive object containing the Epub.
     var zipArchive: ZipArchive
 
@@ -35,11 +35,14 @@ public class ContainerCbz: CbzContainer, ZipArchiveContainer {
         }
     }
 
+    /// Returns an array of the containers contained files names.
+    ///
+    /// - Returns: The array of the container file's names.
     public func getFilesList() -> [String] {
         let archivedFilesList = zipArchive.fileInfos.map({
             $0.key
         }).sorted()
-
+        
         return archivedFilesList
     }
 }

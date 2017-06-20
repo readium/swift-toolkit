@@ -25,7 +25,6 @@ public class MultilangString {
 
     /// Fills the `multiString` dictionnary property.
     ///
-    ///
     /// - Parameters:
     ///   - element: The element to parse (can be a title or a contributor).
     ///   - metadata: The metadata XML element.

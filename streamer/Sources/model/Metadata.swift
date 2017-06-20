@@ -9,20 +9,20 @@
 import Foundation
 import ObjectMapper
 
-/// The data representation of the <metadata> element of the "*.opf" file.
+/// The data representation of the <metadata> element of the ".opf" file.
 public class Metadata {
     /// The structure used for the serialisation.
     internal var _title: MultilangString?
-    /// The publicly accessible publication title (mainTitle).
+    /// The title of the publication.
     public var title: String {
         get {
             return _title?.singleString ?? ""
         }
     }
-    //
+
     public var languages = [String]()
     public var identifier: String?
-    // Authors, translators and other contributors
+    // Contributors.
     public var authors = [Contributor]()
     public var translators = [Contributor]()
     public var editors = [Contributor]()
@@ -34,7 +34,7 @@ public class Metadata {
     public var inkers = [Contributor]()
     public var narrators = [Contributor]()
     public var imprints = [Contributor]()
-    //
+
     public var subjects = [Subject]()
     public var publishers = [Contributor]()
     public var contributors = [Contributor]()
@@ -64,7 +64,7 @@ public class Metadata {
         return _title?.multiString[lang]
     }
 }
-
+// JSON Serialisation extension.
 extension Metadata: Mappable {
     public func mapping(map: Map) {
         var modified = self.modified?.iso8601
