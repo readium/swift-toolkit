@@ -53,19 +53,29 @@ public class Publication {
     /// Return the serialized JSON for the Publication object: the WebPubManifest
     /// (canonical).
     public var manifest: String {
-        var jsonString = self.toJSONString(prettyPrint: false) ?? ""
+        var jsonString = self.toJSONString(prettyPrint: true) ?? ""
 
         jsonString = jsonString.replacingOccurrences(of: "\\", with: "")
         return jsonString
     }
 
-    /// Return the serialized JSON for the Publication object: the WebPubManifest
-    /// (prettyfied).
-    public var manifestPretty: String {
-        var jsonString = self.toJSONString(prettyPrint: true) ?? ""
+    public var manifestCanonical: String {
+        // Not needed so far.
+        let canonicalPublication = self
+
+        // Remove links.
+        canonicalPublication.links = []
+        // Ordered. (Looks like it's already done)
+        // func linkOrderedAscending(_ l1: Link, _ l2: Link) -> Bool {
+        //      return l1.href?.localizedStandardCompare(l2.href!) == ComparisonResult.orderedAscending
+        // }
+        // orderedPublication.links.sort(by: linkOrderedAscending)
+        //  ...
+        var jsonString = canonicalPublication.toJSONString(prettyPrint: false) ?? ""
 
         jsonString = jsonString.replacingOccurrences(of: "\\", with: "")
         return jsonString
+        
     }
 
     /// Returns the JSON dictionnary.
