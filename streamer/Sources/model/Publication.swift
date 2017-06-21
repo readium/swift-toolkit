@@ -52,13 +52,13 @@ public class Publication {
 
     /// Return the publication base URL based on the selfLink.
     /// e.g.: "http://localhost:8000/publicationName/".
-    lazy public var baseUrl: URL? = {
+    lazy var baseUrl: URL? = {
         guard let selfLink = self.link(withRel: "self") else {
             print("Error: no selfLink found in publication.")
             return nil
         }
         guard let selfLinkHref = selfLink.href,
-            let pubBaseUrl = URL(string: selfLinkHref)?.deletingLastPathComponent() else
+            var pubBaseUrl = URL(string: selfLinkHref)?.deletingLastPathComponent() else
         {
             print("Error: invalid publication self link")
             return nil
@@ -144,8 +144,25 @@ public class Publication {
         return findLinkInPublicationLinks(where: findLinkWithHref)
     }
 
-
-    // Mark: - Internal Methods.
+    /// Generate an URI (URL) to a publication Link. Using selfLink.
+    ///
+    /// - Parameter link: The link to generate an URI for.
+    /// - Returns: The generated URI or nil.
+    public func uriTo(link: Link?) -> URL? {
+        guard let link = link,
+            let linkHref = link.href,
+            let publicationBaseUrl = baseUrl else
+        {
+            return nil
+        }
+        // Remove trailing "/" before appending the href (href are absolute
+        // relative to the publication, hence start with a "/".
+        let trimmedBaseUrlString = publicationBaseUrl.absoluteString.trimmingCharacters(in: ["/"])
+        guard let trimmedBaseUrl = URL(string: trimmedBaseUrlString) else {
+            return nil
+        }
+        return trimmedBaseUrl.appendingPathComponent(linkHref)
+    }
 
     /// Append the self/manifest link to  links.
     ///
