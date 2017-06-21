@@ -50,6 +50,22 @@ public class Publication {
         }
     }
 
+    /// Return the publication base URL based on the selfLink.
+    /// e.g.: "http://localhost:8000/publicationName/".
+    lazy public var baseUrl: URL? = {
+        guard let selfLink = self.link(withRel: "self") else {
+            print("Error: no selfLink found in publication.")
+            return nil
+        }
+        guard let selfLinkHref = selfLink.href,
+            let pubBaseUrl = URL(string: selfLinkHref)?.deletingLastPathComponent() else
+        {
+            print("Error: invalid publication self link")
+            return nil
+        }
+        return pubBaseUrl
+    }()
+
     /// Return the serialized JSON for the Publication object: the WebPubManifest
     /// (canonical).
     public var manifest: String {
