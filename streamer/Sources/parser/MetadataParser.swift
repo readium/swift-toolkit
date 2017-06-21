@@ -174,7 +174,7 @@ public class MetadataParser {
 
 
         allContributors.append(contentsOf: findContributorsXmlElements(in: metadataElement))
-        // <meta> DCTERMS parsing if epubVersion == 3.0
+        // <meta> DCTERMS parsing if epubVersion == 3.0.
         if epubVersion == 3.0 {
             allContributors.append(contentsOf: findContributorsMetaXmlElements(in: metadataElement))
         }
@@ -201,31 +201,37 @@ public class MetadataParser {
         // Look up for possible meta refines for contributor's role.
         if let eid = element.attributes["id"] {
             let attributes = ["refines": "#\(eid)", "property": "role"]
-            let metas = metadataElement["meta"].all(withAttributes: attributes)
-
-            contributor.role = metas?.first?.string
+            if let metas = metadataElement["meta"].all(withAttributes: attributes) {
+                for element in metas {
+                    if let role = element.value {
+                        contributor.roles.append(role)
+                    }
+                }
+            }
         }
-        // Add the contributor to the proper property according to the its `role`
-        if let role = contributor.role {
-            switch role {
-            case "aut":
-                metadata.authors.append(contributor)
-            case "trl":
-                metadata.translators.append(contributor)
-            case "art":
-                metadata.artists.append(contributor)
-            case "edt":
-                metadata.editors.append(contributor)
-            case "ill":
-                metadata.illustrators.append(contributor)
-            case "clr":
-                metadata.colorists.append(contributor)
-            case "nrt":
-                metadata.narrators.append(contributor)
-            case "pbl":
-                metadata.publishers.append(contributor)
-            default:
-                metadata.contributors.append(contributor)
+        // Add the contributor to the proper property according to the its `roles`
+        if !contributor.roles.isEmpty {
+            for role in contributor.roles {
+                switch role {
+                case "aut":
+                    metadata.authors.append(contributor)
+                case "trl":
+                    metadata.translators.append(contributor)
+                case "art":
+                    metadata.artists.append(contributor)
+                case "edt":
+                    metadata.editors.append(contributor)
+                case "ill":
+                    metadata.illustrators.append(contributor)
+                case "clr":
+                    metadata.colorists.append(contributor)
+                case "nrt":
+                    metadata.narrators.append(contributor)
+                case "pbl":
+                    metadata.publishers.append(contributor)
+                default:
+                    metadata.contributors.append(contributor)
+                }
             }
         } else {
             // No role, so do the branching using the element.name.
@@ -257,7 +263,7 @@ public class MetadataParser {
         contributor._name.fillMultiString(forElement: element, metadata)
         // Get role from role attribute
         if let role = element.attributes["opf:role"] {
-            contributor.role = role
+            contributor.roles.append(role)
         }
         // Get sort name from file-as attribute
         if let sortAs = element.attributes["opf:file-as"] {

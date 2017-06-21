@@ -24,7 +24,7 @@ public class Contributor {
     /// An unambiguous reference to this contributor.
     public var identifier: String?
     /// The role of the contributor in the publication making.
-    public var role: String?
+    public var roles: [String] = []
 
     public init() {}
 
@@ -44,6 +44,8 @@ extension Contributor: Mappable {
         }
         sortAs <- map["sortAs", ignoreNil: true]
         identifier <- map["identifier", ignoreNil: true]
-        role <- map["role", ignoreNil: true]
+        if !roles.isEmpty {
+            roles <- map["roles", ignoreNil: true]
+        }
     }
 }
