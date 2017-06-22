@@ -62,16 +62,13 @@ internal class Fetcher {
     /// - Returns: The decrypted data of the asset.
     /// - Throws: `EpubFetcherError.missingFile`.
     internal func data(forRelativePath path: String) throws -> Data? {
-        // Build the path relative to the container
-        let relativePath = rootFileDirectory.appending(pathComponent: path)
-
         // Get the link information from the publication
         guard publication.resource(withRelativePath: path) != nil else {
             throw FetcherError.missingFile(path: path)
         }
         // Get the data from the container
-        var data = try container.data(relativePath: relativePath)
-        data = try contentFilters.apply(to: data, of: publication, at: relativePath)
+        var data = try container.data(relativePath: path)
+        data = try contentFilters.apply(to: data, of: publication, at: path)
         return data
     }
 
@@ -81,8 +78,6 @@ internal class Fetcher {
     /// - Returns: A seekable input stream with the decrypted data if the resource.
     /// - Throws: `EpubFetcherError.missingFile`.
     internal func dataStream(forRelativePath path: String) throws -> SeekableInputStream {
-        // Build the path relative to the container
-        let relativePath = rootFileDirectory.appending(pathComponent: path)
         var inputStream: SeekableInputStream
 
         // Get the link information from the publication
@@ -90,9 +85,9 @@ internal class Fetcher {
             throw FetcherError.missingFile(path: path)
         }
         // Get an input stream from the container
-        inputStream = try container.dataInputStream(relativePath: relativePath)
+        inputStream = try container.dataInputStream(relativePath: path)
         // Apply content filters to inputStream data.
-        inputStream = try contentFilters.apply(to: inputStream, of: publication, at: relativePath)
+        inputStream = try contentFilters.apply(to: inputStream, of: publication, at: path)
 
         return inputStream
     }

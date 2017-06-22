@@ -136,7 +136,7 @@ public class PublicationServer {
                 return GCDWebServerErrorResponse(statusCode: 500)
             }
             // Remove the prefix from the URI.
-            let relativePath = path.substring(from: path.index(endpoint.endIndex, offsetBy: 3))
+            let relativePath = path.substring(from: path.index(endpoint.endIndex, offsetBy: 2))
             let resource = publication.resource(withRelativePath: relativePath)
             let contentType = resource?.typeLink ?? "application/octet-stream"
             // Get a data input stream from the fetcher.
@@ -195,6 +195,7 @@ public class PublicationServer {
         //
         //         return GCDWebServerDataResponse()
         //         })
+        
         log(level: .info, "Publication at \(endpoint) has been successfully added.")
     }
 
