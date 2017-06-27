@@ -242,14 +242,108 @@
         <section>
           <section class="section">
             
-            <h1 id='r2-streamer-swift' class='heading'>r2-streamer-swift</h1>
-
-<p><a href="https://github.com/Carthage/Carthage"><img src="https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat" alt="Carthage compatible"></a></p>
+            <p><a href="https://github.com/Carthage/Carthage"><img src="https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat" alt="Carthage compatible"></a></p>
 
 <p>R2-streamer-swift aims at simplifying the usage of numeric publication by parsing and serving them.
 It takes the publication as input, and generates an accessible <a href="https://github.com/readium/webpub-manifest">WebPubManifest</a>/object as output.</p>
+<h1 id='get-started' class='heading'>Get started</h1>
+<h2 id='adding-the-library-to-your-ios-project' class='heading'>Adding the library to your iOS project</h2>
+<h5 id='carthage' class='heading'>Carthage</h5>
 
-<p>It also provides helper functions in order to use features like mediaOverlays more conveniently.</p>
+<p>Add the following line to your Cartfile</p>
+
+<p><code>github &quot;readium/r2-streamer-swift&quot; &quot;master&quot;</code></p>
+
+<p>Then run <code>carthage update --platform ios</code> to fetch and build the dependencies.</p>
+<h5 id='cocoapods' class='heading'>CocoaPods</h5>
+
+<p>//Todo</p>
+<h5 id='import' class='heading'>Import</h5>
+
+<p>In your Swift files :</p>
+<pre class="highlight plaintext"><code>// Swift source file
+
+import R2Streamer
+</code></pre>
+<h1 id='parsing-publications' class='heading'>Parsing publications</h1>
+<h5 id='epub' class='heading'>EPUB</h5>
+
+<p><code>let parser = EpubParser()</code></p>
+<h5 id='cbz' class='heading'>CBZ</h5>
+
+<p><code>let parser = CbzParser()</code></p>
+<h5 id='parsing' class='heading'>Parsing</h5>
+<pre class="highlight plaintext"><code>...
+var parseResult: PubBox
+
+do {
+    parseResult = try parser.parse(fileAtPath: path)
+} catch {
+    // `{Type}ParserError` exception handling
+}
+
+/// Get `Publication` from the `parseResult`
+let publication = parseResult.publication
+
+/// Access `Publication` content
+let metadata = publication.metadata
+let tableOfContent = publication.tableOfContent
+let spineItems = publication.spine
+//...
+</code></pre>
+
+<p>You can now access your publications content programmatically. The <code>Publication</code> object is described in the R2Streamer documentation.</p>
+<h1 id='built-in-http-server' class='heading'>Built in HTTP server</h1>
+<h5 id='initializing-the-server' class='heading'>Initializing the server</h5>
+
+<p>R2Streamer provides a local HTTP server called <code>PublicationSever</code>, this allow access to the resources of the <code>Publication</code>.</p>
+<pre class="highlight plaintext"><code>/// Instantiation of the HTTP server
+guard let publicationServer = PublicationServer() else {
+    // Error
+}
+</code></pre>
+<h5 id='adding-publications-to-the-server' class='heading'>Adding publications to the server</h5>
+
+<p>You can add your parsed publication to the server at the desired endpoints. (The endpoint parameter is optional, an <code>UUID</code> will be generated if let empty as below)</p>
+<pre class="highlight plaintext"><code>/// Adding a publication to the server (Using the above section variables)
+do {
+    try publicationServer.add(publication, with: container/* ,"customEndpoint" */)
+} catch {
+    // `PublicationServerError` exception handling
+}
+</code></pre>
+
+<p>When a Publication is added to the server, a new &lsquo;self&rsquo; <code>Link</code> is added to the <code>Publication</code>&lsquo;s <code>links</code> property.
+The <code>Publication</code> now know how to locate its resources over HTTP. See below for an example.</p>
+<h5 id='accessing-a-code-link-code-resource-from-the-server' class='heading'>Accessing a <code>Link</code> resource from the server</h5>
+
+<p>The <code>Publication</code> is described using <code>Link</code>s. Each link describe a resource from the publication in a Publication-relative way.</p>
+<pre class="highlight plaintext"><code>/// Accessing any `Link` resource over HTTP
+let cover = publication.coverLink // Or `spineItems[x]`...
+
+let coverUri = publication.uri(forLink: cover)
+print(coverUri) // "http://{serverip}:{serverport}/{endpoint}/{`cover.href`}"
+</code></pre>
+<h5 id='removing-a-publication-from-the-server' class='heading'>Removing a publication from the server</h5>
+
+<p>Using the <code>Publication</code> itself:</p>
+
+<p><code>publicationServer.remove(publication)</code></p>
+
+<p>Or it&rsquo;s endpoint:</p>
+
+<p><code>publicationServer.remove(at: &quot;endpoint&quot;)</code></p>
+<h1 id='webpub-manifest' class='heading'>WebPub Manifest</h1>
+
+<p>For further informations see <a href="https://github.com/readium/webpub-manifest">readium/webpub-manifest</a>.</p>
+<h5 id='pretty' class='heading'>Pretty</h5>
+
+<p><code>publication.manifest()</code></p>
+<h5 id='canonical' class='heading'>Canonical</h5>
+
+<p><code>publication.manifestCanonical()</code></p>
+
+<hr>
 
 <p>Supported formats: </p>
 
@@ -274,16 +368,6 @@ There are two script for building either the Public API documentation of the ful
 
 <p>   <code>./generate_doc_public.sh</code>
     <code>./generate_doc_full.sh</code></p>
-<h3 id='old-testing-the-project-with-the-r2-launcher-swift-ios' class='heading'>[Old] Testing the project with the r2-launcher-swift (iOS)</h3>
-
-<ul>
-<li>Clone this project (r2-streamer-swift) and the launcher (<a href="https://github.com/readium/r2-launcher-swift">r2-launcher-swift</a>)</li>
-<li>In each project directories run : <code>$&gt; carthage update --platform ios</code></li>
-<li>Create a new XCode workspace and drag the two aforementioned project&rsquo;s <code>.xcodeproj</code> in the navigator panel on the left.</li>
-<li>Select the <code>R2-Launcher-Development</code> target and <code>Run</code> it on navigator or device.</li>
-</ul>
-
-<p>NB: Choose the same branches on both r2-streamer/launcher repositories. E.g: <code>r2-streamer-swift/feature/X with r2-launcher-swift/feature/X</code></p>
 
           </section>
         </section>
