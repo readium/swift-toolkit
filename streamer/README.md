@@ -58,12 +58,12 @@ let spineItems = publication.spine
 //...
 ```
 
-You can now access your publications content programmatically. The `Publication` object is described in the R2Streamer documentation [LINK].
+You can now access your publications content programmatically. The `Publication` object is described in the R2Streamer documentation.
 
 # Built in HTTP server
 
 ##### Initializing the server
-R2Streamer provides, for convenience, a local HTTP server called `PublicationSever`.
+R2Streamer provides a local HTTP server called `PublicationSever`, this allow access to the resources of the `Publication`.
 
 ```Swift
 /// Instantiation of the HTTP server
@@ -85,7 +85,7 @@ do {
 ```
 
 When a Publication is added to the server, a new 'self' `Link` is added to the `Publication`'s `links` property.
-The `Publication` now know how to locate it's resources over HTTP. See below for an example.
+The `Publication` now know how to locate its resources over HTTP. See below for an example.
 
 ##### Accessing a `Link` resource from the server
 The `Publication` is described using `Link`s. Each link describe a resource from the publication in a Publication-relative way.
