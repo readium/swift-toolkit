@@ -62,7 +62,7 @@ let spineItems = publication.spine
 //...
 ```
 
-You can now access your publications content programmatically. The `Publication` object is described in the R2Streamer documentation.
+You can now access your publications content programmatically. The `Publication` object is described in details [here](https://readium.github.io/r2-streamer-swift/Classes/Publication.html).
 
 # Built in HTTP server
 
