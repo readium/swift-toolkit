@@ -1,0 +1,831 @@
+{
+  "warnings": [
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/R2Streamer/Loggable.swift",
+      "line": 13,
+      "symbol": "SeverityLevel.verbose",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/R2Streamer/Loggable.swift",
+      "line": 14,
+      "symbol": "SeverityLevel.debug",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/R2Streamer/Loggable.swift",
+      "line": 15,
+      "symbol": "SeverityLevel.info",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/R2Streamer/Loggable.swift",
+      "line": 16,
+      "symbol": "SeverityLevel.warning",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/R2Streamer/Loggable.swift",
+      "line": 17,
+      "symbol": "SeverityLevel.error",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/R2Streamer/Loggable.swift",
+      "line": 45,
+      "symbol": "Loggable.log(level:_:_:_:_:_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/R2Streamer/Loggable.swift",
+      "line": 50,
+      "symbol": "Loggable.logValue(level:_:_:_:_:_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/R2Streamer/Loggable.swift",
+      "line": 55,
+      "symbol": "Loggable.log(level:_:_:_:_:_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/R2Streamer/Loggable.swift",
+      "line": 60,
+      "symbol": "Loggable.logValue(level:_:_:_:_:_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/R2Streamer/Logger.swift",
+      "line": 25,
+      "symbol": "LoggerType.log(level:message:_:_:_:_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/R2Streamer/Logger.swift",
+      "line": 27,
+      "symbol": "LoggerType.logValue(level:value:_:_:_:_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/R2Streamer/LoggerStub.swift",
+      "line": 15,
+      "symbol": "LoggerStub.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/Streams/FileInputStream.swift",
+      "line": 17,
+      "symbol": "FileInputStreamError.read",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/Streams/FileInputStream.swift",
+      "line": 18,
+      "symbol": "FileInputStreamError.fileHandleInitialisation",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/Streams/FileInputStream.swift",
+      "line": 19,
+      "symbol": "FileInputStreamError.fileHandleUnset",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/Streams/Seekable.swift",
+      "line": 54,
+      "symbol": "SeekableInputStream.init(data:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/ZipArchive/ZipArchive.swift",
+      "line": 12,
+      "symbol": "ZipFileInfo",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/fetcher/Fetcher.swift",
+      "line": 17,
+      "symbol": "FetcherError.missingFile",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Container.swift",
+      "line": 22,
+      "symbol": "ContainerError.streamInitFailed",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Container.swift",
+      "line": 23,
+      "symbol": "ContainerError.fileNotFound",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Container.swift",
+      "line": 24,
+      "symbol": "ContainerError.fileError",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Container.swift",
+      "line": 25,
+      "symbol": "ContainerError.missingFile",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Container.swift",
+      "line": 26,
+      "symbol": "ContainerError.xmlParse",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Container.swift",
+      "line": 27,
+      "symbol": "ContainerError.missingLink",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Contributor.swift",
+      "line": 29,
+      "symbol": "Contributor.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Link.swift",
+      "line": 24,
+      "symbol": "Link.title",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Link.swift",
+      "line": 37,
+      "symbol": "Link.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/MediaOverlayNode.swift",
+      "line": 35,
+      "symbol": "MediaOverlayNodeError.audio",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/MediaOverlayNode.swift",
+      "line": 36,
+      "symbol": "MediaOverlayNodeError.timersParsing",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/MediaOverlayNode.swift",
+      "line": 41,
+      "symbol": "MediaOverlayNode.text",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/MediaOverlayNode.swift",
+      "line": 42,
+      "symbol": "MediaOverlayNode.audio",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/MediaOverlayNode.swift",
+      "line": 43,
+      "symbol": "MediaOverlayNode.role",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/MediaOverlayNode.swift",
+      "line": 44,
+      "symbol": "MediaOverlayNode.children",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/MediaOverlayNode.swift",
+      "line": 46,
+      "symbol": "MediaOverlayNode.init(_:audio:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/MediaOverlays.swift",
+      "line": 17,
+      "symbol": "MediaOverlaysError.nodeNotFound",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/MediaOverlays.swift",
+      "line": 27,
+      "symbol": "MediaOverlays.nodes",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 23,
+      "symbol": "Metadata.languages",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 24,
+      "symbol": "Metadata.identifier",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 26,
+      "symbol": "Metadata.authors",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 27,
+      "symbol": "Metadata.translators",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 28,
+      "symbol": "Metadata.editors",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 29,
+      "symbol": "Metadata.artists",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 30,
+      "symbol": "Metadata.illustrators",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 31,
+      "symbol": "Metadata.letterers",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 32,
+      "symbol": "Metadata.pencilers",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 33,
+      "symbol": "Metadata.colorists",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 34,
+      "symbol": "Metadata.inkers",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 35,
+      "symbol": "Metadata.narrators",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 36,
+      "symbol": "Metadata.imprints",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 38,
+      "symbol": "Metadata.subjects",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 39,
+      "symbol": "Metadata.publishers",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 40,
+      "symbol": "Metadata.contributors",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 41,
+      "symbol": "Metadata.modified",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 42,
+      "symbol": "Metadata.publicationDate",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 43,
+      "symbol": "Metadata.description",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 44,
+      "symbol": "Metadata.direction",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 45,
+      "symbol": "Metadata.rendition",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 46,
+      "symbol": "Metadata.source",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 47,
+      "symbol": "Metadata.epubType",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 48,
+      "symbol": "Metadata.rights",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 49,
+      "symbol": "Metadata.otherMetadata",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Metadata.swift",
+      "line": 51,
+      "symbol": "Metadata.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/MetadataItem.swift",
+      "line": 13,
+      "symbol": "MetadataItem.property",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/MetadataItem.swift",
+      "line": 14,
+      "symbol": "MetadataItem.value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/MetadataItem.swift",
+      "line": 15,
+      "symbol": "MetadataItem.children",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/MultilangString.swift",
+      "line": 24,
+      "symbol": "MultilangString.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Publication.swift",
+      "line": 29,
+      "symbol": "Publication.landmarks",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Publication.swift",
+      "line": 30,
+      "symbol": "Publication.listOfAudioFiles",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Publication.swift",
+      "line": 31,
+      "symbol": "Publication.listOfIllustrations",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Publication.swift",
+      "line": 32,
+      "symbol": "Publication.listOfTables",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Publication.swift",
+      "line": 33,
+      "symbol": "Publication.listOfVideos",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Publication.swift",
+      "line": 34,
+      "symbol": "Publication.pageList",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Publication.swift",
+      "line": 40,
+      "symbol": "Publication.internalData",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Publication.swift",
+      "line": 78,
+      "symbol": "Publication.manifestCanonical",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Publication.swift",
+      "line": 102,
+      "symbol": "Publication.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Rendition.swift",
+      "line": 17,
+      "symbol": "RenditionLayout.Reflowable",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Rendition.swift",
+      "line": 18,
+      "symbol": "RenditionLayout.Prepaginated",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Rendition.swift",
+      "line": 32,
+      "symbol": "RenditionFlow.Paginated",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Rendition.swift",
+      "line": 33,
+      "symbol": "RenditionFlow.Continuous",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Rendition.swift",
+      "line": 34,
+      "symbol": "RenditionFlow.Document",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Rendition.swift",
+      "line": 35,
+      "symbol": "RenditionFlow.Fixed",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Rendition.swift",
+      "line": 47,
+      "symbol": "RenditionOrientation.auto",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Rendition.swift",
+      "line": 48,
+      "symbol": "RenditionOrientation.landscape",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Rendition.swift",
+      "line": 49,
+      "symbol": "RenditionOrientation.portrait",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Rendition.swift",
+      "line": 65,
+      "symbol": "RenditionSpread.auto",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Rendition.swift",
+      "line": 66,
+      "symbol": "RenditionSpread.landscape",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Rendition.swift",
+      "line": 67,
+      "symbol": "RenditionSpread.portrait",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Rendition.swift",
+      "line": 68,
+      "symbol": "RenditionSpread.both",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Rendition.swift",
+      "line": 69,
+      "symbol": "RenditionSpread.none",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Rendition.swift",
+      "line": 87,
+      "symbol": "Rendition.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Rendition.swift",
+      "line": 91,
+      "symbol": "Rendition.isEmpty()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/RootFile.swift",
+      "line": 26,
+      "symbol": "RootFile.version",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/model/Subject.swift",
+      "line": 25,
+      "symbol": "Subject.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/parser/CbzParser.swift",
+      "line": 15,
+      "symbol": "CbzParserError.missingFile",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/parser/CbzParser.swift",
+      "line": 20,
+      "symbol": "CbzConstant.mimetype",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/parser/CbzParser.swift",
+      "line": 23,
+      "symbol": "MediaType",
+      "symbol_kind": "source.lang.swift.decl.enum",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/parser/CbzParser.swift",
+      "line": 24,
+      "symbol": "MediaType.jpeg",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/parser/CbzParser.swift",
+      "line": 25,
+      "symbol": "MediaType.png",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/parser/CbzParser.swift",
+      "line": 26,
+      "symbol": "MediaType.invalid",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/parser/CbzParser.swift",
+      "line": 32,
+      "symbol": "CbzParser.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/parser/EpubParser.swift",
+      "line": 28,
+      "symbol": "EpubConstant.autoMeta",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/parser/EpubParser.swift",
+      "line": 29,
+      "symbol": "EpubConstant.noneMeta",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/parser/EpubParser.swift",
+      "line": 30,
+      "symbol": "EpubConstant.reflowableMeta",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/parser/EpubParser.swift",
+      "line": 41,
+      "symbol": "EpubParserError.wrongMimeType",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/parser/EpubParser.swift",
+      "line": 42,
+      "symbol": "EpubParserError.missingFile",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/parser/EpubParser.swift",
+      "line": 43,
+      "symbol": "EpubParserError.xmlParse",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/parser/EpubParser.swift",
+      "line": 44,
+      "symbol": "EpubParserError.missingElement",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/parser/EpubParser.swift",
+      "line": 58,
+      "symbol": "EpubParser.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/parser/MetadataParser.swift",
+      "line": 14,
+      "symbol": "MetadataParser",
+      "symbol_kind": "source.lang.swift.decl.class",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/server/PublicationServer.swift",
+      "line": 21,
+      "symbol": "PublicationServerError.parser",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/server/PublicationServer.swift",
+      "line": 22,
+      "symbol": "PublicationServerError.fetcher",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/server/PublicationServer.swift",
+      "line": 23,
+      "symbol": "PublicationServerError.nilBaseUrl",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/server/PublicationServer.swift",
+      "line": 24,
+      "symbol": "PublicationServerError.usedEndpoint",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/server/PublicationServer.swift",
+      "line": 35,
+      "symbol": "PublicationServer.pubBoxes",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/server/PublicationServer.swift",
+      "line": 65,
+      "symbol": "PublicationServer.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/server/PublicationServer.swift",
+      "line": 203,
+      "symbol": "PublicationServer.remove(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/server/WebServerResourceResponse.swift",
+      "line": 18,
+      "symbol": "WebServerResponseError.streamOpenFailed",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/Sources/server/WebServerResourceResponse.swift",
+      "line": 19,
+      "symbol": "WebServerResponseError.invalidRange",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    }
+  ],
+  "source_directory": "/Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift"
+}
