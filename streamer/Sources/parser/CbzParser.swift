@@ -48,9 +48,14 @@ public class CbzParser: PublicationParser {
         publication.internalData["rootfile"] = container.rootFile.rootFilePath
 
         let files = container.getFilesList()
-        for filename in files {
+
+        for (index, filename) in files.enumerated() {
             let link = Link()
 
+            // First resource is cover.
+            if index == 0 {
+                link.rel.append("cover")
+            }
             link.typeLink = getMediaType(from: filename).rawValue
             link.href = filename
             guard link.typeLink != MediaType.invalid.rawValue else {
@@ -85,7 +90,6 @@ public class CbzParser: PublicationParser {
         var container: CbzContainer?
         var isDirectory: ObjCBool = false
 
-        // TODO add support for CBZ directories
         guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) else {
             throw CbzParserError.missingFile(path: path)
         }

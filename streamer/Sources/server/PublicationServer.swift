@@ -46,7 +46,7 @@ public class PublicationServer {
         get { return webServer.serverURL }
     }
 
-    /// Return all the `Publications` sorted by title asc. Sugar on top of `pubBoxes`.
+    /// Return all the `Publications` sorted by title asc.
     public var publications: [Publication] {
         get {
             let publications = pubBoxes.values.flatMap({ $0.publication })
@@ -55,7 +55,7 @@ public class PublicationServer {
         }
     }
 
-    /// Return all the `Container` as an array. Sugar on top of `pubBoxes`.
+    /// Return all the `Container` as an array.
     public var containers: [Container] {
         get { return  pubBoxes.values.flatMap({ $0.associatedContainer }) }
     }
@@ -92,13 +92,14 @@ public class PublicationServer {
     /// - Parameters:
     ///   - publication: The `Publication` object containing the publication data.
     ///   - container: The `Container` object giving access to the resources.
-    ///   - endpoint: The relative URL to access the resource on the server.
+    ///   - endpoint: The relative URL to access the resource on the server. The
+    ///               default value is a unique generated id.
     /// - Throws: `PublicationServerError.usedEndpoint`,
     ///           `PublicationServerError.nilBaseUrl`,
     ///           `PublicationServerError.fetcher`.
     public func add(_ publication: Publication,
                     with container: Container,
-                    at endpoint: String) throws {
+                    at endpoint: String = UUID().uuidString) throws {
         let fetcher: Fetcher
 
         guard pubBoxes[endpoint] == nil else {
@@ -198,6 +199,36 @@ public class PublicationServer {
         
         log(level: .info, "Publication at \(endpoint) has been successfully added.")
     }
+
+    public func remove(_ publication: Publication) {
+        for pubBox in pubBoxes {
+            if pubBox.value.publication.metadata.identifier == publication.metadata.identifier,
+                let index = pubBoxes.index(forKey: pubBox.key)
+            {
+                pubBoxes.remove(at: index)
+                break
+            }
+        }
+    }
+
+//    /// Remove a publication from the server.
+//    ///
+//    /// - Parameter endpoint: The PublicationIdentifier of the Publication to remove.
+//    public func remove(publicationIdentifier: String) {
+//        var keyToRemove: String? = nil
+//
+//        // Find the publication key in pubBoxes.
+//        for pubBoxe in pubBoxes {
+//            if pubBoxe.value.publication.metadata.identifier == publicationIdentifier {
+//                keyToRemove = pubBoxe.key
+//                break
+//            }
+//        }
+//        // Remove the publication from the publicationServer served publications.
+//        if keyToRemove != nil {
+//            remove(at: keyToRemove!)
+//        }
+//    }
 
     /// Remove a publication from the server.
     ///
