@@ -1,7 +1,11 @@
+[![BSD-3](https://img.shields.io/badge/License-BSD--3-brightgreen.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
+[![JazzyDocumentation](https://img.shields.io/badge/Jazzy--Documentation-63%25-lightgrey.svg)](https://readium.github.io/r2-streamer-swift/)
 
 R2-streamer-swift aims at simplifying the usage of numeric publication by parsing and serving them.
 It takes the publication as input, and generates an accessible [WebPubManifest](https://github.com/readium/webpub-manifest)/object as output.
+
+The project documentation is available [here](https://readium.github.io/r2-streamer-swift/)
 
 # Get started
 
@@ -141,3 +145,6 @@ There are two script for building either the Public API documentation of the ful
 
     `./generate_doc_public.sh`
     `./generate_doc_full.sh`
+
+
+The project documentation is available [here](https://readium.github.io/r2-streamer-swift/)
