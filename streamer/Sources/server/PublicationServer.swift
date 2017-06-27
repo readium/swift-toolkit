@@ -206,6 +206,8 @@ public class PublicationServer {
                 let index = pubBoxes.index(forKey: pubBox.key)
             {
                 pubBoxes.remove(at: index)
+                // Remove selfLinks from publication.
+                publication.links = publication.links.filter { !$0.rel.contains("self") }
                 break
             }
         }
@@ -234,10 +236,13 @@ public class PublicationServer {
     ///
     /// - Parameter endpoint: The URI postfix of the ressource.
     public func remove(at endpoint: String) {
-        guard pubBoxes[endpoint] != nil else {
+        guard let pubBox = pubBoxes[endpoint] else {
             log(level: .warning, "Nothing at endpoint \(endpoint).")
             return
         }
+        // Remove self link from publication.
+        pubBox.publication.links = pubBox.publication.links.filter { !$0.rel.contains("self") }
+        // Remove the pubBox from the array.
         pubBoxes[endpoint] = nil
         log(level: .info, "Publication at \(endpoint) has been successfully removed.")
     }
