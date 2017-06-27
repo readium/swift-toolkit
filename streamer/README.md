@@ -29,11 +29,116 @@ There are two script for building either the Public API documentation of the ful
     `./generate_doc_public.sh`
     `./generate_doc_full.sh`
 
-### [Old] Testing the project with the r2-launcher-swift (iOS)
+# Get started with the Readium2 Swift Streamer
 
-- Clone this project (r2-streamer-swift) and the launcher ([r2-launcher-swift](https://github.com/readium/r2-launcher-swift))
-- In each project directories run : `$> carthage update --platform ios` 
-- Create a new XCode workspace and drag the two aforementioned project's `.xcodeproj` in the navigator panel on the left.
-- Select the `R2-Launcher-Development` target and `Run` it on navigator or device.
+## Adding the library to your iOS project
 
-NB: Choose the same branches on both r2-streamer/launcher repositories. E.g: `r2-streamer-swift/feature/X with r2-launcher-swift/feature/X`
+##### Carthage
+
+Add the following line to your Cartfile
+
+`github "readium/r2-streamer-swift" "master"`
+
+Then run `carthage update --platform ios` to fetch and build the dependencies.
+
+##### CocoaPods
+
+//Todo
+
+##### Import
+
+In your Swift files :
+
+```Swift
+// Swift source file
+
+import R2Streamer
+```
+
+# Parsing publications
+
+##### EPUB
+`let parser = EpubParser()`
+
+##### CBZ
+`let parser = CbzParser()`
+
+##### Parsing
+```Swift
+...
+var parseResult: PubBox
+
+do {
+    parseResult = try parser.parse(fileAtPath: path)
+} catch {
+    // `{Type}ParserError` exception handling
+}
+
+/// Get `Publication` from the `parseResult`
+let publication = parseResult.publication
+
+/// Access `Publication` content
+let metadata = publication.metadata
+let tableOfContent = publication.tableOfContent
+let spineItems = publication.spine
+//...
+```
+
+You can now access your publications content programmatically. The `Publication` object is described in the R2Streamer documentation [LINK].
+
+# Built in HTTP server
+
+##### Initializing the server
+R2Streamer provides, for convenience, a local HTTP server called `PublicationSever`.
+
+```Swift
+/// Instantiation of the HTTP server
+guard let publicationServer = PublicationServer() else {
+    // Error
+}
+```
+
+##### Adding publications to the server
+You can add your parsed publication to the server at the desired endpoints. (The endpoint parameter is optional, an `UUID` will be generated if let empty as below)
+
+```Swift
+/// Adding a publication to the server (Using the above section variables)
+do {
+    try publicationServer.add(publication, with: container/* ,"customEndpoint" */)
+} catch {
+    // `PublicationServerError` exception handling
+}
+```
+
+When a Publication is added to the server, a new 'self' `Link` is added to the `Publication`'s `links` property.
+The `Publication` now know how to locate it's resources over HTTP. See below for an example.
+
+##### Accessing a `Link` resource from the server
+The `Publication` is described using `Link`s. Each link describe a resource from the publication in a Publication-relative way.
+
+```Swift
+/// Accessing any `Link` resource over HTTP
+let cover = publication.coverLink // Or `spineItems[x]`...
+
+let coverUri = publication.uri(forLink: cover)
+print(coverUri) // "http://{serverip}:{serverport}/{endpoint}/{`cover.href`}"
+```
+
+##### Removing a publication from the server
+Using the `Publication` itself:
+
+`publicationServer.remove(publication)`
+
+Or it's endpoint:
+
+`publicationServer.remove(at: "endpoint")`
+
+# WebPub Manifest
+
+For further informations see [readium/webpub-manifest](https://github.com/readium/webpub-manifest).
+
+##### Pretty
+`publication.manifest()`
+
+##### Canonical
+`publication.manifestCanonical()`
