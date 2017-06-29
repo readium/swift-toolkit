@@ -1,4 +1,5 @@
 [![BSD-3](https://img.shields.io/badge/License-BSD--3-brightgreen.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![codebeat badge](https://codebeat.co/badges/09d7d037-b6f6-4945-9808-c0bc02b8c36d)](https://codebeat.co/projects/github-com-readium-r2-streamer-swift-master)
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
 [![JazzyDocumentation](https://img.shields.io/badge/Jazzy--Documentation-63%25-lightgrey.svg)](https://readium.github.io/r2-streamer-swift/)
 
