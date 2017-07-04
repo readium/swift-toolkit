@@ -48,19 +48,21 @@ public class CbzParser: PublicationParser {
         publication.internalData["rootfile"] = container.rootFile.rootFilePath
 
         let files = container.getFilesList()
+        var hasCoverLink = false
 
-        for (index, filename) in files.enumerated() {
+        for filename in files {
             let link = Link()
 
-            // First resource is cover.
-            if index == 0 {
-                link.rel.append("cover")
-            }
             link.typeLink = getMediaType(from: filename).rawValue
-            link.href = filename
             guard link.typeLink != MediaType.invalid.rawValue else {
                 continue
             }
+            // First resource is cover.
+            if !hasCoverLink {
+                link.rel.append("cover")
+                hasCoverLink = true
+            }
+            link.href = normalize(base: container.rootFile.rootFilePath, href: filename)
             publication.spine.append(link)
         }
         return (publication, container)

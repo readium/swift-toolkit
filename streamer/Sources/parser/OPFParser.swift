@@ -135,7 +135,7 @@ public class OPFParser {
                 continue
             }
             let link = linkFromManifest(item)
-            // If it's a media overlay ressource append it to the publication links.
+            /// If the link reference a Smil resource, retrieve and fill it's duration.
             if link.typeLink == "application/smil+xml" {
                 // Retrieve the duration of the smil file in the otherMetadata.
                 if let duration = publication.metadata.otherMetadata.first(where: {
@@ -143,13 +143,12 @@ public class OPFParser {
                 {
                     link.duration = Double(smilp.smilTimeToSeconds(duration))
                 }
-                //publication.links.append(link)
             }
             publication.resources.append(link)
         }
     }
 
-    /// Add the "cover" rel to the link referenced as the cover in the meta 
+    /// Add the "cover" rel to the link referenced as the cover in the meta
     /// property, if any.
     ///
     /// - Parameters:
