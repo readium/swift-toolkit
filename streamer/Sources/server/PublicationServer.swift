@@ -87,14 +87,18 @@ public class PublicationServer {
 
         webServer.addHandler(forMethod: "GET",
                              pathRegex: "/Reflow.css", request: GCDWebServerRequest.self, processBlock:  { request in
-//                                request?.path
-                                let styleUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: "Reflow", withExtension: "css")
-                                let data = try! Data.init(contentsOf: styleUrl!)
+                                // request?.path
+                                if let styleUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: "Reflow", withExtension: "css"),
+                                    let data = try? Data.init(contentsOf: styleUrl!)
+                                {
+                                    return GCDWebServerDataResponse(data: data, contentType: "text/css")
+                                } else {
+                                    return GCDWebServerResponse(statusCode: 404)
+                                }
 
-                                return GCDWebServerDataResponse(data: data, contentType: "text/css")
         })
     }
-
+    
     // TODO: Github issue #3
     /// Add a publication to the server. Also add it to the `pubBoxes`
     ///
