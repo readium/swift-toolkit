@@ -34,4 +34,15 @@ extension String {
     var dateFromISO8601: Date? {
         return Formatter.iso8601.date(from: self)   //  2012-01-20T12:47:00Z -> "Mar 22, 2017, 10:22 AM"
     }
+
+    func endIndex(of string: String, options: CompareOptions = .literal) -> Index? {
+        return range(of: string, options: options)?.upperBound
+    }
+
+    func insert(string: String, at index: String.Index) -> String {
+        let prefix = substring(to: index)
+        let suffix = substring(from: index)
+
+        return  prefix + string + suffix
+    }
 }

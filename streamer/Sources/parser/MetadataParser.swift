@@ -31,6 +31,8 @@ public class MetadataParser {
             let layout = renditionLayout.string
 
             metadata.rendition.layout = RenditionLayout(rawValue: layout)
+        } else {
+            metadata.rendition.layout = RenditionLayout.reflowable
         }
         // Flow
         if let renditionFlow = metas.first(where: { $0.attributes["property"] == "rendition:flow" }) {

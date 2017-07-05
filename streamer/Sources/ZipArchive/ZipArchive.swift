@@ -142,7 +142,7 @@ internal class ZipArchive {
     ///   - maxLength: <#maxLength description#>
     /// - Returns: <#return value description#>
     /// - Throws: <#throws value description#>
-    public func readDataFromCurrentFile(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: UInt64) throws -> UInt64 {
+    public func readDataFromCurrentFile(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: UInt64) -> UInt64 {
 
         assert(maxLength < UInt64(UInt32.max), "maxLength must be less than \(UInt32.max)")
 
@@ -155,7 +155,7 @@ internal class ZipArchive {
 //        } else {
 //            throw ZipError.unzipFail
 //        }
-        return UInt64(bytesRead)
+        return bytesRead > 0 ? UInt64(bytesRead) : 0
     }
 
     public func readData(path: String) throws -> Data {

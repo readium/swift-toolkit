@@ -106,7 +106,7 @@ internal class ZipInputStream: SeekableInputStream {
 //        }
         do {
             //log(level: .debug, "\(fileInZipPath) read \(maxLength) bytes")
-            let bytesRead = try zipArchive.readDataFromCurrentFile(buffer, maxLength: UInt64(maxLength))
+            let bytesRead = zipArchive.readDataFromCurrentFile(buffer, maxLength: UInt64(maxLength))
             if Int(bytesRead) < maxLength {
                 _streamStatus = .atEnd
             }

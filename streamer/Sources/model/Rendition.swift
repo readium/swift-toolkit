@@ -14,11 +14,11 @@ import ObjectMapper
 /// - Reflowable: Not pre-paginated, apply dynamic pagination when rendering.
 /// - Prepaginated: Pre-paginated, one page per spine item.
 public enum RenditionLayout: String {
-    case Reflowable = "reflowable"
-    case Prepaginated = "pre-paginated"
+    case reflowable = "reflowable"
+    case prepaginated = "pre-paginated"
 }
 
-/// The rendition flow property of an EPUB publication
+/// The rendition flow property of an EPUB publication.
 ///
 /// - Paginated: Indicates the Author preference is to dynamically paginate content overflow.
 /// - Continuous:Indicates the Author preference is to provide a scrolled view
@@ -29,13 +29,13 @@ public enum RenditionLayout: String {
 ///             be rendered as separate scrollable document.
 /// - Fixed:
 public enum RenditionFlow: String {
-    case Paginated = "paginated"
-    case Continuous = "continuous"
-    case Document = "document"
-    case Fixed = "fixed"
+    case paginated = "paginated"
+    case continuous = "continuous"
+    case document = "document"
+    case fixed = "fixed"
 }
 
-/// The rendition orientation property of an EPUB publication
+/// The rendition orientation property of an EPUB publication.
 ///
 /// - Auto: Specifies that the Reading System can determine the orientation to
 ///         rendered the spine item in.
@@ -49,10 +49,10 @@ public enum RenditionOrientation: String {
     case portrait = "portrait"
 }
 
-/// The rendition spread property of an EPUB publication
+/// The rendition spread property of an EPUB publication.
 ///
 /// - auto: Specifies the Reading System can determine when to render a synthetic
-///         spread for the spine item
+///         spread for the spine item.
 /// - landscape: Specifies the Reading System should render a synthetic spread 
 ///              for the spine item only when in landscape orientation.
 /// - portrait: The spread-portrait property is deprecated in [EPUB3]. Refer to 
@@ -73,15 +73,15 @@ public enum RenditionSpread: String {
 /// It includes if it's reflowable or pre-paginated, the orientation, the synthetic spread
 /// behaviour and if the content flow should be scrolled, continuous or paginated.
 public class Rendition {
-    /// The rendition layout (reflowable or pre-paginated)
+    /// The rendition layout (reflowable or pre-paginated).
     public var layout: RenditionLayout?
-    /// The rendition flow
+    /// The rendition flow.
     public var flow: RenditionFlow?
-    /// The rendition orientation
+    /// The rendition orientation.
     public var orientation: RenditionOrientation?
-    /// The synthetic spread behaviour
+    /// The synthetic spread behaviour.
     public var spread: RenditionSpread?
-    /// The rendering viewport size
+    /// The rendering viewport size.
     public var viewport: String?
 
     public init() {}

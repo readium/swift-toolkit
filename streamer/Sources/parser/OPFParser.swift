@@ -299,6 +299,15 @@ public class OPFParser {
     fileprivate func parse(propertiesArray: [String]) -> Properties {
         var properties = Properties()
 
+        //
+        //// PageSpread
+        //public static let autoMeta = "auto"
+        //public static let noneMeta = "none"
+        //public static let reflowableMeta = "reflowable"
+
+        // pagespread
+
+
         // Look if item have any properties.
         for property in propertiesArray {
             switch property {
@@ -324,9 +333,9 @@ public class OPFParser {
                 properties.page = "center"
             /// Spread
             case "rendition:spread-none":
-                properties.spread = EpubConstant.noneMeta
+                properties.spread = "none"
             case "rendition:spread-auto":
-                properties.spread = EpubConstant.noneMeta
+                properties.spread = "none"
             case "rendition:spread-landscape":
                 properties.spread = "landscape"
             case "rendition:spread-portrait":
@@ -335,7 +344,7 @@ public class OPFParser {
                 properties.spread = "both"
             /// Layout
             case "rendition:layout-reflowable":
-                properties.layout = EpubConstant.reflowableMeta
+                properties.layout = "reflowable"
             case "rendition:layout-pre-paginated":
                 properties.layout = "fixed"
             /// Orientation
@@ -347,7 +356,7 @@ public class OPFParser {
                 properties.orientation = "portrait"
             /// Rendition
             case "rendition:flow-auto":
-                properties.overflow = EpubConstant.autoMeta
+                properties.overflow = "auto"
             case "rendition:flow-paginated":
                 properties.overflow = "paginated"
             case "rendition:flow-scrolled-continuous":
