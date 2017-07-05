@@ -100,23 +100,16 @@ internal class ZipInputStream: SeekableInputStream {
     }
 
     override internal func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) -> Int {
-//        guard _streamStatus == .open else  {
-//            print("Stream not open")
-//            return -1
-//        }
-        do {
-            //log(level: .debug, "\(fileInZipPath) read \(maxLength) bytes")
-            let bytesRead = zipArchive.readDataFromCurrentFile(buffer, maxLength: UInt64(maxLength))
-            if Int(bytesRead) < maxLength {
-                _streamStatus = .atEnd
-            }
-            return Int(bytesRead)
-        } catch {
-            log(level: .error, "ERROR \(error)")
-            _streamStatus = .error
-            _streamError = error
-            return -1
+        //        guard _streamStatus == .open else  {
+        //            print("Stream not open")
+        //            return -1
+        //        }
+        //log(level: .debug, "\(fileInZipPath) read \(maxLength) bytes")
+        let bytesRead = zipArchive.readDataFromCurrentFile(buffer, maxLength: UInt64(maxLength))
+        if Int(bytesRead) < maxLength {
+            _streamStatus = .atEnd
         }
+        return Int(bytesRead)
     }
 
     override internal func close() {

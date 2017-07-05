@@ -89,7 +89,7 @@ public class PublicationServer {
                              pathRegex: "/Reflow.css", request: GCDWebServerRequest.self, processBlock:  { request in
                                 // request?.path
                                 if let styleUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: "Reflow", withExtension: "css"),
-                                    let data = try? Data.init(contentsOf: styleUrl!)
+                                    let data = try? Data.init(contentsOf: styleUrl)
                                 {
                                     return GCDWebServerDataResponse(data: data, contentType: "text/css")
                                 } else {
@@ -145,12 +145,12 @@ public class PublicationServer {
                 log(level: .error, "The request received is nil.")
                 return GCDWebServerErrorResponse(statusCode: 500)
             }
-            guard let path = request.path else {
-                log(level: .error, "The request's path to the ressource is empty.")
-                return GCDWebServerErrorResponse(statusCode: 500)
-            }
+//            guard let path = request.path else {
+//                log(level: .error, "The request's path to the ressource is empty.")
+//                return GCDWebServerErrorResponse(statusCode: 500)
+//            }
             // Remove the prefix from the URI.
-            let relativePath = path.substring(from: path.index(endpoint.endIndex, offsetBy: 2))
+            let relativePath = request.path!.substring(from: request.path!.index(endpoint.endIndex, offsetBy: 2))
             let resource = publication.resource(withRelativePath: relativePath)
             let contentType = resource?.typeLink ?? "application/octet-stream"
             // Get a data input stream from the fetcher.
@@ -182,10 +182,13 @@ public class PublicationServer {
         /// The webserver handler to process the HTTP GET
         func manifestHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
             let manifestJSON = publication.toJSONString()
-            let manifestData = manifestJSON?.data(using: .utf8)
             let type = "application/webpub+json; charset=utf-8"
 
-            return GCDWebServerDataResponse(data: manifestData, contentType: type)
+            if let manifestData = manifestJSON?.data(using: .utf8) {
+                return GCDWebServerDataResponse(data: manifestData, contentType: type)
+            } else {
+                return GCDWebServerResponse(statusCode: 404)
+            }
         }
         webServer.addHandler(
             forMethod: "GET",
