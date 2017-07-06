@@ -71,9 +71,10 @@ internal class ContentFiltersEpub: ContentFilters {
         if let link = publication.link(withHref: path),
             link.typeLink == "application/xhtml+xml" || link.typeLink == "text/html",
             publication.metadata.rendition.layout == .reflowable && link.properties.layout == nil
-                || link.properties.layout == "reflowable"
+                || link.properties.layout == "reflowable",
+            let baseUrl = publication.baseUrl?.deletingLastPathComponent()
         {
-            decodedInputStream = injectHtml(in: decodedInputStream)
+            decodedInputStream = injectHtml(in: decodedInputStream, for: baseUrl)
         }
 
         return decodedInputStream
@@ -90,24 +91,25 @@ internal class ContentFiltersEpub: ContentFilters {
                         of publication: Publication, at path: String)  -> Data
     {
         let inputStream = DataInputStream(data: input)
-        var decodedInputStream = decoder.decoding(inputStream, of: publication, at: path)
+        let decodedInputStream = decoder.decoding(inputStream, of: publication, at: path)
 
-        guard let dataInputstream = decodedInputStream as? DataInputStream else {
+        guard var decodedDataStream = decodedInputStream as? DataInputStream else {
             return input
         }
         // Inject additional content in the resource if test succeed.
         if let link = publication.link(withHref: path),
             link.typeLink == "application/xhtml+xml" || link.typeLink == "text/html",
             publication.metadata.rendition.layout == .reflowable && link.properties.layout == nil
-                || link.properties.layout == "reflowable"
+                || link.properties.layout == "reflowable",
+            let baseUrl = publication.baseUrl?.deletingLastPathComponent()
         {
-            decodedInputStream = injectHtml(in: decodedInputStream)
+            decodedDataStream = injectHtml(in: decodedDataStream, for: baseUrl) as! DataInputStream
         }
 
-        return dataInputstream.data
+        return decodedDataStream.data
     }
 
-    fileprivate func injectHtml(in stream: SeekableInputStream) -> SeekableInputStream {
+    fileprivate func injectHtml(in stream: SeekableInputStream, for baseUrl: URL) -> SeekableInputStream {
 
         let bufferSize = Int(stream.length)
         var buffer = Array<UInt8>(repeating: 0, count: bufferSize)
@@ -122,7 +124,7 @@ internal class ContentFiltersEpub: ContentFilters {
         let headIndex = resourceHtml.endIndex(of: "<head>")
 
         let viewport = "\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n"
-        let style = "<link rel=\"stylesheet\" type=\"text/css\" href=\"http://localhost:8080/Reflow.css\"/>"
+        let style = "<link rel=\"stylesheet\" type=\"text/css\" href=\"\(baseUrl)Reflow.css\"/>"
 
         resourceHtml = resourceHtml.insert(string: style, at: headIndex!)
         resourceHtml = resourceHtml.insert(string: viewport, at: headIndex!)

@@ -115,6 +115,7 @@ public class PublicationServer {
                     at endpoint: String = UUID().uuidString) throws {
         let fetcher: Fetcher
 
+        // TODO: verif that endpoint is a simple string and not a path.
         guard pubBoxes[endpoint] == nil else {
             log(level: .error, "\(endpoint) is already in use.")
             throw PublicationServerError.usedEndpoint
