@@ -2,57 +2,33 @@
  Pagination module
  Repo: https://github.com/readium/readium-css */
 
-/* :root selector has same specificity as a class i.e. 0010
- We might have to change that to html / context
- -> https://css-tricks.com/almanac/selectors/r/root/ */
-
 :root {
-    /* Prevents options pop-up when long tap in webkit */
     -webkit-touch-callout: none;
-
-    /* Column size will depend on this if we want to make it responsive */
     font-size: 100%;
-
-    /* Switch to newer box model (not inherited by authors’ styles) */
     box-sizing: border-box;
     width: 100%;
     height: 100vh;
     margin: 0;
     padding: 0;
-
-    /* If 2 can fit with at least 30em, else 1 > 30em */
     -webkit-columns: 30em 2;
     -moz-columns: 30em 2;
     columns: 30em 2;
-    -webkit-column-gap: 0px; /*40*/
-    -moz-column-gap: 0px; /*40*/
-    column-gap: 0px; /*40*/
+    -webkit-column-gap: 0;
+    -moz-column-gap: 0;
+    column-gap: 0;
     -moz-column-fill: auto;
     column-fill: auto;
-
-    /* Sanitizes line-heights */
     -webkit-line-box-contain: block glyphs replaced;
 }
 
 body {
     box-sizing: border-box;
-
-    /* Easiest way to limit line-length in the proto but
-     it will be a lot better to manage the iframe/webview size
-     If we can have both in sync, it will be a huge win */
     margin: 0 auto;
-    max-width: 35em;
-
     position: relative;
     overflow: hidden;
-
-    /* if iframe we must account for script || italic descendants && ascendants
-     Currently implemented using padding -> we must switch to the new box model.
-     If we can use margin, we won’t mess with the box model authors might expect. */
     padding: 0 10px;
 }
 
-/* wrap long strings if larger than line-length */
 a, h1, h2, h3, h4, h5, h6 {
     word-break: break-word !important;
 }
