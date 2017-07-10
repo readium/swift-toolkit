@@ -91,7 +91,10 @@ public class PublicationServer {
                                 if let styleUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: "Reflow", withExtension: "css"),
                                     let data = try? Data.init(contentsOf: styleUrl)
                                 {
-                                    return GCDWebServerDataResponse(data: data, contentType: "text/css")
+                                    let response = GCDWebServerDataResponse(data: data, contentType: "text/css")
+
+                                    response.cacheControlMaxAge = UInt(60 * 60 * 2)
+                                    return response
                                 } else {
                                     return GCDWebServerResponse(statusCode: 404)
                                 }
