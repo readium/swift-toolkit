@@ -85,20 +85,40 @@ public class PublicationServer {
             return nil
         }
 
+        /// Handler for Style resources.
         webServer.addHandler(forMethod: "GET",
-                             pathRegex: "/Reflow.css", request: GCDWebServerRequest.self, processBlock:  { request in
-                                // request?.path
-                                if let styleUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: "Reflow", withExtension: "css"),
+                             pathRegex: "/styles/*", request: GCDWebServerRequest.self, processBlock:  { request in
+                                let filename = request.path
+                                let resourceName = (filename as NSString).deletingPathExtension.lastPathComponent
+
+                                if let styleUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "css"),
                                     let data = try? Data.init(contentsOf: styleUrl)
                                 {
                                     let response = GCDWebServerDataResponse(data: data, contentType: "text/css")
 
-                                    response.cacheControlMaxAge = UInt(60 * 60 * 2)
                                     return response
                                 } else {
                                     return GCDWebServerResponse(statusCode: 404)
                                 }
 
+        })
+
+        /// Handler for JS resources.
+        webServer.addHandler(forMethod: "GET",
+                             pathRegex: "/scripts/*", request: GCDWebServerRequest.self, processBlock:  { request in
+                                let filename = request.path
+                                let resourceName = (filename as NSString).deletingPathExtension.lastPathComponent
+
+                                if let scriptUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "js"),
+                                    let data = try? Data.init(contentsOf: scriptUrl)
+                                {
+                                    let response = GCDWebServerDataResponse(data: data, contentType: "text/javascript")
+
+                                    return response
+                                } else {
+                                    return GCDWebServerResponse(statusCode: 404)
+                                }
+                                
         })
     }
     

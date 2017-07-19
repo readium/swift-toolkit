@@ -70,6 +70,7 @@
 		F3B8F0241E9E62A50052D64B /* ContentFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B8F0231E9E62A50052D64B /* ContentFilter.swift */; };
 		F3D434241E8E9DA5008C379E /* CbzParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D434231E8E9DA5008C379E /* CbzParser.swift */; };
 		F3D434261E8E9ED0008C379E /* ContainerCbz.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D434251E8E9ED0008C379E /* ContainerCbz.swift */; };
+		F3DCEB251F1CA92300061978 /* TouchHandling.js in Resources */ = {isa = PBXBuildFile; fileRef = F3DCEB241F1CA92300061978 /* TouchHandling.js */; };
 		F3DE1D861E6971A800D05F74 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E181E2FB1F500D1B4BF /* AEXML.framework */; };
 		F3DE1D871E6971A800D05F74 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E191E2FB1F500D1B4BF /* GCDWebServers.framework */; };
 		F3DE1D881E6971A800D05F74 /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */; };
@@ -175,6 +176,7 @@
 		F3B8F0231E9E62A50052D64B /* ContentFilter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContentFilter.swift; path = Sources/fetcher/ContentFilter.swift; sourceTree = SOURCE_ROOT; };
 		F3D434231E8E9DA5008C379E /* CbzParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CbzParser.swift; path = Sources/parser/CbzParser.swift; sourceTree = SOURCE_ROOT; };
 		F3D434251E8E9ED0008C379E /* ContainerCbz.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContainerCbz.swift; path = Sources/model/ContainerCbz.swift; sourceTree = SOURCE_ROOT; };
+		F3DCEB241F1CA92300061978 /* TouchHandling.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = TouchHandling.js; sourceTree = "<group>"; };
 		F3DE1D891E69757100D05F74 /* PublicationParsingTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationParsingTest.swift; sourceTree = "<group>"; };
 		F3DE1EC91E69801D00D05F74 /* Samples */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Samples; sourceTree = "<group>"; };
 		F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; name = OPFParser.swift; path = Sources/parser/OPFParser.swift; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
@@ -363,6 +365,7 @@
 			isa = PBXGroup;
 			children = (
 				F302CA291F0CE4D300835B22 /* Reflow.css */,
+				F3DCEB241F1CA92300061978 /* TouchHandling.js */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -562,6 +565,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F302CA2F1F0D2C0A00835B22 /* Reflow.css in Resources */,
+				F3DCEB251F1CA92300061978 /* TouchHandling.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

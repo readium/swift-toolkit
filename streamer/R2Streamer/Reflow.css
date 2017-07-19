@@ -1,32 +1,185 @@
 /* Readium CSS
  Pagination module
+ A set of styles to paginate ePublications
  Repo: https://github.com/readium/readium-css */
 
+/*
+ Note: implementers feedback greatly appreciated, want to validate this approach before
+ fine-tuning margins, columns, etc. On larger screens, you might want to resize the viewport
+ i.e. the web view / iframe so that you still get 2 columns.
+
+ Tried to make the most out of the multicol’s logic, which is responsive by default,
+ but since columns have a floor but no ceiling, we have to find another way to limit line-length,
+ manage margins, etc.
+
+ I wish something like :nth-column(odd | even) existed to manage padding on body more efficitely
+ but we’ll have to do without it so having evenly-distributed spacing (left, column gap and right)
+ must be implemented in another way if you want that.
+ */
+
+/* Config */
+
+/* Columns are responsive by default, even if column-width is set in pixels,
+ which means two-page spread will switch to single page depending on current font-size.
+ If you want more control, I’m afraid you’ll have to update colWidth/colGap dynamically,
+ which is how a significant amount of RS do at the moment. */
 :root {
+    /* Your columns’ width floor */
+    --RS__colWidth: 30em;
+    /* Ideal number of columns (depending on columns’ width floor) */
+    --RS__colCount: 2; /* Can be undefined */
+    /* Gap between columns (in pixels so that it won’t resize with font-size) */
+    --RS__colGap: 0px;
+    /* Default page horizontal margins (in pixels so that it won’t resize with font-size) */
+    --RS__pageGutter: 20px; /* See if colGap and pageGutter can be the same var */
+    /* Optimal line-length */
+    --RS__maxLineLength: 35em;
+}
+
+/* :root selector has same specificity as a class i.e. 0010
+ We might have to change that to html / context
+ -> https://css-tricks.com/almanac/selectors/r/root/ */
+:root {
+    /* Prevents options pop-up when long tap in webkit */
     -webkit-touch-callout: none;
-    font-size: 100%;
+
+    /* Fix bug for older Chrome */
+    -webkit-perspective: 1;
+
+    /* Column size will depend on this if we want to make it responsive */
+    font-size: 100% !important;
+
+    /* In case you use left position to scroll */
+    position: relative;
+
+    /* Switch to newer box model (not inherited by authors’ styles) */
     box-sizing: border-box;
     width: 100%;
     height: 100vh;
     margin: 0;
     padding: 0;
-    -webkit-columns: 30em 2;
-    -moz-columns: 30em 2;
-    columns: 30em 2;
-    -webkit-column-gap: 0;
-    -moz-column-gap: 0;
-    column-gap: 0;
+
+    /* Init pagination */
+    /* TODO: document columns’ logic cos it might feel weird at first */
+    -webkit-column-width: var(--RS__colWidth);
+    -moz-column-width: var(--RS__colWidth);
+    column-width: var(--RS__colWidth);
+
+    -webkit-column-count: var(--RS__colCount);
+    -moz-column-count: var(--RS__colCount);
+    column-count: var(--RS__colCount);
+
+    -webkit-column-gap: var(--RS__colGap);
+    -moz-column-gap: var(--RS__colGap);
+    column-gap: var(--RS__colGap);
+
+    /* Default is balance and we want columns to be filled entirely (100vh) */
     -moz-column-fill: auto;
     column-fill: auto;
+
     -webkit-text-size-adjust: 100%;
+
+    /* Since columns do their thing at the browser level,
+     provide a variable to check if there is 1 or 2 columns */
+    --RS__currentColNumber: 1;
 }
 
 body {
-    box-sizing: border-box;
-    margin: 0 auto;
     position: relative;
     overflow: hidden;
-    padding: 0 10px;
+    width: 100%;
+    height: 100%;
+
+    /* Limit line-length but we have to reset when 2 columns and control the viewport.
+     By using max-width + margin auto, margins will shrink when font-size increases,
+     which is what would be expected in terms of typography. */
+    /* TODO: some authors might have a max-width declared already, see how we can deal with it. */
+    max-width: var(--RS__maxLineLength) !important;
+    margin: 0 auto !important;
+
+    /* We need a minimum padding on body so that descandants/ascendants in italic/script are not cut-off.
+     It also serves as a margin on small screens.
+     Drawback: we have to use border-box so that it doesn’t screw the box model,
+     which means it impacts colWidth and max-width */
+    box-sizing: border-box;
+    padding: 0 var(--RS__pageGutter) !important;
+}
+
+/* If viewport can fit 2 columns (+ custom colGap) */
+@media screen and (min-width: 61.5em) {
+    :root {
+        --RS__maxLineLength: none; /* Reset max-width */
+        --RS__colGap: 0px;
+        --RS__pageGutter: 40px;
+
+        --RS__currentColNumber: 2;
+    }
+}
+
+/* Anticipating settings */
+
+/* If user forces one column -> redefine colCount (/!\ but not colWidth or scroll is broken) */
+:root[data-rs-userCol="1"] {
+    --RS__colCount: 1;
+
+    --RS__currentColNumber: 1;
+}
+
+/* If user forces two columns -> redefine colWidth */
+/* This user setting should be enabled depending on conditions
+ e.g. iPhone landscape */
+:root[data-rs-userCol="2"] {
+    --RS__colWidth: auto;
+    --RS__colCount: 2;
+
+    --RS__currentColNumber: 2;
+}
+
+/* We could manage margin setting like this */
+/* Can be fine-tuned using media queries (will be varialized later) */
+:root[data-rs-userMargin="small"] body {
+    padding: 0 10px !important;
+}
+
+:root[data-rs-userMargin="medium"] body {
+    padding: 0 20px !important;
+}
+
+:root[data-rs-userMarginLarge="large"] body {
+    padding: 0 30px !important;
+}
+
+/* We could manage font-size setting like this
+ We’d better not tweak html font-size or else
+ columns will be messed up.
+ This has an impact on max-width though
+ but we could compensate by redefining
+ max-width for smaller settings */
+:root[data-rs-userFontSize="x-small"] body {
+    font-size: 12px !important;
+    max-width: 46.67em; /* Could be redefined with the variable */
+}
+
+:root[data-rs-userFontSize="small"] body {
+    font-size: 14px !important;
+    max-width: 40em;
+}
+
+/* This one could also be used to “normalise” publisher’s stylesheet (extra setting) */
+:root[data-rs-userFontSize="medium"] body {
+    font-size: 16px !important;
+}
+
+:root[data-rs-userFontSize="large"] body {
+    font-size: 19px !important;
+}
+
+:root[data-rs-userFontSize="x-large"] body {
+    font-size: 24px !important;
+}
+
+:root[data-rs-userFontSize="xx-large"] body {
+    font-size: 28px !important;
 }
 
 /* Readium CSS
@@ -45,9 +198,6 @@ body {
      Please consider figures might have a figcaption, which is why 95vh in the first place */
     --RS__maxMediaHeight: 95vh;
 
-    /* value for medias’ page-break-inside */
-    --RS__breakMedia: avoid;
-
     /* value for medias’ box-sizing */
     --RS__boxSizingMedia: border-box;
 
@@ -64,7 +214,7 @@ html {
 
 /* Wrap long strings if larger than line-length */
 a, h1, h2, h3, h4, h5, h6 {
-    word-break: break-word;
+    word-wrap: break-word;
 }
 
 /* Size medias */
@@ -85,13 +235,18 @@ img, svg, audio, video {
     /* Object-fit allows us to keep the correct aspect-ratio */
     object-fit: contain;
 
-    /* For page-break, we must use those 3 */
-    -webkit-column-break-inside: var(--RS__breakMedia);
-    page-break-inside: var(--RS__breakMedia);
-    break-inside: var(--RS__breakMedia);
+    /* For page-break, we must use those 3
+     We can’t use a variable there, webkit seems to no support them for those properties */
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+    break-inside: avoid;
 }
 
 /* Try preventing border being cut-off, webkit + blink have content-box by default */
 table {
     box-sizing: var(--RS__boxSizingTable);
+
+    /* We might want to set at least overflow-x to auto in case the table doesn't fit,
+     max-width is not necessarily the best solution there, but maybe we could investigate transform scale */
+    overflow-x: auto;
 }
