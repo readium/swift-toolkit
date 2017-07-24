@@ -299,15 +299,6 @@ public class OPFParser {
     fileprivate func parse(propertiesArray: [String]) -> Properties {
         var properties = Properties()
 
-        //
-        //// PageSpread
-        //public static let autoMeta = "auto"
-        //public static let noneMeta = "none"
-        //public static let reflowableMeta = "reflowable"
-
-        // pagespread
-
-
         // Look if item have any properties.
         for property in propertiesArray {
             switch property {

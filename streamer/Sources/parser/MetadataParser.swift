@@ -20,9 +20,9 @@ public class MetadataParser {
     ///   - metadataElement: The XML element containing the metadatas.
     ///   - metadata: The `Metadata` object.
     internal func parseRenditionProperties(from metadataElement: AEXMLElement,
-                                           to metadata: inout Metadata)
-    {
+                                           to metadata: inout Metadata) {
         guard let metas = metadataElement["meta"].all else {
+            metadata.rendition.layout = RenditionLayout.reflowable
             return
         }
         // TODO: factorize
