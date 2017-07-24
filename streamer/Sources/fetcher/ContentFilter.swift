@@ -121,9 +121,12 @@ internal class ContentFiltersEpub: ContentFilters {
         guard var resourceHtml = String.init(data: data, encoding: String.Encoding.utf8) else {
             return stream
         }
-        let headIndex = resourceHtml.endIndex(of: "<head>")
+        let headIndex = resourceHtml.startIndex(of: "</head>")
 
-        let viewport = "\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n"
+        // TODO: remove viewport if any
+        //        let viewportMetaStartIndex = resourceHtml.startIndex(of: "<meta name=\"viewport\"")
+
+        let viewport = "\n<meta name=\"viewport\" content=\"width=device-width, height=device-height, initial-scale=1.0\"/>\n"
         let style = "<link rel=\"stylesheet\" type=\"text/css\" href=\"\(baseUrl)styles/Reflow.css\"/>\n"
         let script = "<script type=\"text/javascript\" src=\"\(baseUrl)scripts/TouchHandling.js\"></script>\n"
 

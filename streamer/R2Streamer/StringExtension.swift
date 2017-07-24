@@ -39,6 +39,10 @@ extension String {
         return range(of: string, options: options)?.upperBound
     }
 
+    func startIndex(of string: String, options: CompareOptions = .literal) -> Index? {
+        return range(of: string, options: options)?.lowerBound
+    }
+
     func insert(string: String, at index: String.Index) -> String {
         let prefix = substring(to: index)
         let suffix = substring(from: index)
