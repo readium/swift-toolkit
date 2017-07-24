@@ -84,7 +84,7 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
         // Response
         if let range = self.range {
             let lower = range.lowerBound
-            let upper = range.upperBound - 1
+            let upper = (range.upperBound != 0) ? range.upperBound - 1 : range.upperBound
             let contentRange = "bytes \(lower)-\(upper)/\(streamLength)"
             let acceptRange = "bytes"
 
