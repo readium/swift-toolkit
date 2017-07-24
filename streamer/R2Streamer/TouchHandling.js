@@ -49,7 +49,7 @@ var handleTouchEnd = function(event) {
     var touchDistance = Math.max(relativeDistanceX, relativeDistanceY);
 
     // Tap to turn.
-    if(touchDistance < 0.05) {
+    if(touchDistance < 0.01) {
         var position = (touch.screenX % maxScreenX) / maxScreenX;
         if(position <= 0.2) {
             // TAP left.
