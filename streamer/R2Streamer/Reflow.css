@@ -32,8 +32,8 @@
     --RS__colGap: 0px;
     /* Default page horizontal margins (in pixels so that it won’t resize with font-size) */
     --RS__pageGutter: 20px; /* See if colGap and pageGutter can be the same var */
-    /* Optimal line-length */
-    --RS__maxLineLength: 35em;
+    /* Optimal line-length (rem will take :root font-size into account, whatever the body’s font-size) */
+    --RS__maxLineLength: 35rem;
 }
 
 /* :root selector has same specificity as a class i.e. 0010
@@ -105,12 +105,12 @@ body {
     padding: 0 var(--RS__pageGutter) !important;
 }
 
-/* If viewport can fit 2 columns (+ custom colGap) */
+/* If viewport can fit 2 columns (+ colGap) */
 @media screen and (min-width: 61.5em) {
     :root {
         --RS__maxLineLength: none; /* Reset max-width */
         --RS__colGap: 0px;
-        --RS__pageGutter: 40px;
+        --RS__pageGutter: 50px;
 
         --RS__currentColNumber: 2;
     }
@@ -154,18 +154,16 @@ body {
  columns will be messed up.
  This has an impact on max-width though
  but we could compensate by redefining
- max-width for smaller settings */
+ max-width for larger settings */
 :root[data-rs-userFontSize="x-small"] body {
     font-size: 12px !important;
-    max-width: 46.67em; /* Could be redefined with the variable */
 }
 
 :root[data-rs-userFontSize="small"] body {
     font-size: 14px !important;
-    max-width: 40em;
 }
 
-/* This one could also be used to “normalise” publisher’s stylesheet (extra setting) */
+/* This one could also be used to “normalize” publisher’s stylesheet (extra setting) */
 :root[data-rs-userFontSize="medium"] body {
     font-size: 16px !important;
 }
@@ -181,7 +179,6 @@ body {
 :root[data-rs-userFontSize="xx-large"] body {
     font-size: 28px !important;
 }
-
 /* Readium CSS
  Safeguards module
  A set of styles to prevent common issues in pagination
@@ -249,4 +246,118 @@ table {
     /* We might want to set at least overflow-x to auto in case the table doesn't fit,
      max-width is not necessarily the best solution there, but maybe we could investigate transform scale */
     overflow-x: auto;
+}
+/* Readium CSS
+ HTML5 SR Patch stylesheet
+ A set of style to adjust HTML5 Suggested Rendering to paginated content
+ Repo: https://github.com/readium/readium-css */
+
+/* Fragmentation */
+
+body {
+    orphans: 2;
+    widows: 2;
+}
+
+figcaption, th, td {
+    orphans: 1;
+    widows: 1;
+}
+
+h2, h3, h4, h5, h6, dt,
+hr, caption {
+    -webkit-column-break-after: avoid;
+    page-break-after: avoid;
+    break-after: avoid;
+}
+
+h1, h2, h3, h4, h5, h6, dt,
+figure, tr {
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+/* Hyphenation */
+
+body {
+    -webkit-hyphenate-limit-lines: 3;
+    -ms-hyphenate-limit-lines: 3;
+    hyphenate-limit-lines: 3;
+}
+
+h1, h2, h3, h4, h5, h6, dt,
+figcaption, pre, caption, address,
+center {
+    -ms-hyphens: none;
+    -moz-hyphens: none;
+    -webkit-hyphens: none;
+    -epub-hyphens: none;
+    hyphens: none;
+}
+
+/* OTF */
+
+body {
+    font-variant-numeric: oldstyle-nums proportional-nums;
+}
+
+h1, h2, h3, h4, h5, h6, dt {
+    font-variant-numeric: lining-nums proportional-nums;
+}
+
+table {
+    font-variant-numeric: lining-nums tabular-nums;
+}
+
+code, var {
+    font-variant-ligatures: none;
+    font-variant-numeric: lining-nums tabular-nums slashed-zero;
+}
+
+rt {
+    font-variant-east-asian: ruby;
+}
+
+/* Night mode */
+
+hr {
+    color: inherit;
+    border-color: currentColor;
+}
+
+table, th, td {
+    border-color: currentColor;
+}
+
+/* Horizontal Spacing */
+
+figure, blockquote {
+    margin: 1em 5%;
+}
+
+ul, ol {
+    padding-left: 5%;
+}
+
+dd {
+    margin-left: 5%;
+}
+
+pre {
+    white-space: pre-wrap;
+    -ms-tab-size: 2;
+    -moz-tab-size: 2;
+    -webkit-tab-size: 2;
+    tab-size: 2;
+}
+
+/* Normalization */
+
+abbr[title], acronym[title] {
+    text-decoration: dotted underline;
+}
+
+nobr wbr {
+    white-space: normal;
 }
