@@ -48,10 +48,22 @@ var handleTouchEnd = function(event) {
     var relativeDistanceY = Math.abs(((touch.screenY % maxScreenY) - startY) / maxScreenY);
     var touchDistance = Math.max(relativeDistanceX, relativeDistanceY);
 
-    // Tap to turn.
+    // max screenX == max distance
+    var scrollWidth = document.scrollWidth;
+    var screenWidth = maxScreenX;
+    var tapAreaWidth = maxScreenX * 0.2;
+
+    
+    // var bookStartPrevStart = 0; // 0 ~/~ tapAreaWidth
+    // var bookStartPrevEnd = tapAreaWidth;
+    // var bookStartNextStart = maxScreenX - tapAreaWidth; // maxScreenX - tapAreaWidth ~/~ maxScreenX
+    // var bookStartNextEnd = maxScreenX;
+    // var bookEndPrevStart = ; // scrollWidth - maxScreenX ~/~ scrollWidth - maxScreenX + tapAreaWidth
+    // var bookEndNext = ; // scrollWidth - tapAreaWidth ~/~ scrollWidth
+    // // Tap to turn.
     if(touchDistance < 0.01) {
         var position = (touch.screenX % maxScreenX) / maxScreenX;
-        if(position <= 0.2) {
+        if (position <= 0.2) {
             // TAP left.
             webkit.messageHandlers.leftTap.postMessage("");
         } else if(position >= 0.8) {
