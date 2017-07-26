@@ -128,10 +128,12 @@ internal class ContentFiltersEpub: ContentFilters {
 
         let viewport = "\n<meta name=\"viewport\" content=\"width=device-width, height=device-height, initial-scale=1.0\"/>\n"
         let style = "<link rel=\"stylesheet\" type=\"text/css\" href=\"\(baseUrl)styles/Reflow.css\"/>\n"
-        let script = "<script type=\"text/javascript\" src=\"\(baseUrl)scripts/TouchHandling.js\"></script>\n"
+        let touchScript = "<script type=\"text/javascript\" src=\"\(baseUrl)scripts/TouchHandling.js\"></script>\n"
+        let utilsScript = "<script type=\"text/javascript\" src=\"\(baseUrl)scripts/Utils.js\"></script>\n"
 
-// Added in userScript for now, but should be added here.
-        resourceHtml = resourceHtml.insert(string: script, at: headIndex!)
+        // Added in userScript for now, but should be added here.
+        resourceHtml = resourceHtml.insert(string: touchScript, at: headIndex!)
+        resourceHtml = resourceHtml.insert(string: utilsScript, at: headIndex!)
         resourceHtml = resourceHtml.insert(string: style, at: headIndex!)
         resourceHtml = resourceHtml.insert(string: viewport, at: headIndex!)
 
