@@ -28,6 +28,10 @@ window.addEventListener("load", function(){ // on page load
 
 // When a touch is detected records its starting coordinates and if it's a singleTouchGesture.
 var handleTouchStart = function(event) {
+    if (e.target.nodeName.toUpperCase() === 'A') {
+        return;
+        singleTouchGesture = false;
+    }
     singleTouchGesture = event.touches.length == 1;
 
     var touch = event.changedTouches[0];
@@ -48,18 +52,10 @@ var handleTouchEnd = function(event) {
     var relativeDistanceY = Math.abs(((touch.screenY % maxScreenY) - startY) / maxScreenY);
     var touchDistance = Math.max(relativeDistanceX, relativeDistanceY);
 
-    // max screenX == max distance
     var scrollWidth = document.scrollWidth;
     var screenWidth = maxScreenX;
     var tapAreaWidth = maxScreenX * 0.2;
 
-    
-    // var bookStartPrevStart = 0; // 0 ~/~ tapAreaWidth
-    // var bookStartPrevEnd = tapAreaWidth;
-    // var bookStartNextStart = maxScreenX - tapAreaWidth; // maxScreenX - tapAreaWidth ~/~ maxScreenX
-    // var bookStartNextEnd = maxScreenX;
-    // var bookEndPrevStart = ; // scrollWidth - maxScreenX ~/~ scrollWidth - maxScreenX + tapAreaWidth
-    // var bookEndNext = ; // scrollWidth - tapAreaWidth ~/~ scrollWidth
     // // Tap to turn.
     if(touchDistance < 0.01) {
         var position = (touch.screenX % maxScreenX) / maxScreenX;
