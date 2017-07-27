@@ -34,8 +34,8 @@
 		59501E201E2FB2AD00D1B4BF /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E1F1E2FB2AD00D1B4BF /* libz.tbd */; };
 		F302CA271F0CD32800835B22 /* DataExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F302CA261F0CD32800835B22 /* DataExtension.swift */; };
 		F302CA281F0CD32800835B22 /* DataExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F302CA261F0CD32800835B22 /* DataExtension.swift */; };
-		F302CA2B1F0CE4D300835B22 /* Reflow.css in Resources */ = {isa = PBXBuildFile; fileRef = F302CA291F0CE4D300835B22 /* Reflow.css */; };
-		F302CA2F1F0D2C0A00835B22 /* Reflow.css in Resources */ = {isa = PBXBuildFile; fileRef = F302CA291F0CE4D300835B22 /* Reflow.css */; };
+		F302CA2B1F0CE4D300835B22 /* pagination.css in Resources */ = {isa = PBXBuildFile; fileRef = F302CA291F0CE4D300835B22 /* pagination.css */; };
+		F302CA2F1F0D2C0A00835B22 /* pagination.css in Resources */ = {isa = PBXBuildFile; fileRef = F302CA291F0CE4D300835B22 /* pagination.css */; };
 		F3098E711E7BFF87002358A1 /* NCXParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3098E701E7BFF87002358A1 /* NCXParser.swift */; };
 		F3098E731E7BFF9B002358A1 /* NavigationDocumentParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3098E721E7BFF9B002358A1 /* NavigationDocumentParser.swift */; };
 		F3098E751E7C02AD002358A1 /* MetadataParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3098E741E7C02AD002358A1 /* MetadataParser.swift */; };
@@ -70,8 +70,10 @@
 		F3B8F0241E9E62A50052D64B /* ContentFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B8F0231E9E62A50052D64B /* ContentFilter.swift */; };
 		F3D434241E8E9DA5008C379E /* CbzParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D434231E8E9DA5008C379E /* CbzParser.swift */; };
 		F3D434261E8E9ED0008C379E /* ContainerCbz.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D434251E8E9ED0008C379E /* ContainerCbz.swift */; };
-		F3D462F61F28D56C00505E59 /* Utils.js in Resources */ = {isa = PBXBuildFile; fileRef = F3D462F51F28D56C00505E59 /* Utils.js */; };
-		F3DCEB251F1CA92300061978 /* TouchHandling.js in Resources */ = {isa = PBXBuildFile; fileRef = F3DCEB241F1CA92300061978 /* TouchHandling.js */; };
+		F3D462F61F28D56C00505E59 /* utils.js in Resources */ = {isa = PBXBuildFile; fileRef = F3D462F51F28D56C00505E59 /* utils.js */; };
+		F3D462F81F2A081400505E59 /* html5patch.css in Resources */ = {isa = PBXBuildFile; fileRef = F3D462F71F2A081400505E59 /* html5patch.css */; };
+		F3D462FA1F2A082000505E59 /* safeguards.css in Resources */ = {isa = PBXBuildFile; fileRef = F3D462F91F2A082000505E59 /* safeguards.css */; };
+		F3DCEB251F1CA92300061978 /* touchHandling.js in Resources */ = {isa = PBXBuildFile; fileRef = F3DCEB241F1CA92300061978 /* touchHandling.js */; };
 		F3DE1D861E6971A800D05F74 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E181E2FB1F500D1B4BF /* AEXML.framework */; };
 		F3DE1D871E6971A800D05F74 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E191E2FB1F500D1B4BF /* GCDWebServers.framework */; };
 		F3DE1D881E6971A800D05F74 /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */; };
@@ -145,7 +147,7 @@
 		59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ObjectMapper.framework; path = Carthage/Build/iOS/ObjectMapper.framework; sourceTree = "<group>"; };
 		59501E1F1E2FB2AD00D1B4BF /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		F302CA261F0CD32800835B22 /* DataExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataExtension.swift; sourceTree = "<group>"; };
-		F302CA291F0CE4D300835B22 /* Reflow.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = Reflow.css; sourceTree = "<group>"; };
+		F302CA291F0CE4D300835B22 /* pagination.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = pagination.css; sourceTree = "<group>"; };
 		F3098E701E7BFF87002358A1 /* NCXParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = NCXParser.swift; path = Sources/parser/NCXParser.swift; sourceTree = SOURCE_ROOT; };
 		F3098E721E7BFF9B002358A1 /* NavigationDocumentParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavigationDocumentParser.swift; sourceTree = "<group>"; };
 		F3098E741E7C02AD002358A1 /* MetadataParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MetadataParser.swift; sourceTree = "<group>"; };
@@ -177,8 +179,10 @@
 		F3B8F0231E9E62A50052D64B /* ContentFilter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContentFilter.swift; path = Sources/fetcher/ContentFilter.swift; sourceTree = SOURCE_ROOT; };
 		F3D434231E8E9DA5008C379E /* CbzParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CbzParser.swift; path = Sources/parser/CbzParser.swift; sourceTree = SOURCE_ROOT; };
 		F3D434251E8E9ED0008C379E /* ContainerCbz.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContainerCbz.swift; path = Sources/model/ContainerCbz.swift; sourceTree = SOURCE_ROOT; };
-		F3D462F51F28D56C00505E59 /* Utils.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = Utils.js; sourceTree = "<group>"; };
-		F3DCEB241F1CA92300061978 /* TouchHandling.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = TouchHandling.js; sourceTree = "<group>"; };
+		F3D462F51F28D56C00505E59 /* utils.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = utils.js; sourceTree = "<group>"; };
+		F3D462F71F2A081400505E59 /* html5patch.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = html5patch.css; sourceTree = "<group>"; };
+		F3D462F91F2A082000505E59 /* safeguards.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = safeguards.css; sourceTree = "<group>"; };
+		F3DCEB241F1CA92300061978 /* touchHandling.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = touchHandling.js; sourceTree = "<group>"; };
 		F3DE1D891E69757100D05F74 /* PublicationParsingTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationParsingTest.swift; sourceTree = "<group>"; };
 		F3DE1EC91E69801D00D05F74 /* Samples */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Samples; sourceTree = "<group>"; };
 		F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; name = OPFParser.swift; path = Sources/parser/OPFParser.swift; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
@@ -366,9 +370,11 @@
 		F302CA2E1F0D2BD900835B22 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				F302CA291F0CE4D300835B22 /* Reflow.css */,
-				F3DCEB241F1CA92300061978 /* TouchHandling.js */,
-				F3D462F51F28D56C00505E59 /* Utils.js */,
+				F3D462F91F2A082000505E59 /* safeguards.css */,
+				F3D462F71F2A081400505E59 /* html5patch.css */,
+				F302CA291F0CE4D300835B22 /* pagination.css */,
+				F3DCEB241F1CA92300061978 /* touchHandling.js */,
+				F3D462F51F28D56C00505E59 /* utils.js */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -567,9 +573,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F302CA2F1F0D2C0A00835B22 /* Reflow.css in Resources */,
-				F3DCEB251F1CA92300061978 /* TouchHandling.js in Resources */,
-				F3D462F61F28D56C00505E59 /* Utils.js in Resources */,
+				F3D462FA1F2A082000505E59 /* safeguards.css in Resources */,
+				F302CA2F1F0D2C0A00835B22 /* pagination.css in Resources */,
+				F3DCEB251F1CA92300061978 /* touchHandling.js in Resources */,
+				F3D462F61F28D56C00505E59 /* utils.js in Resources */,
+				F3D462F81F2A081400505E59 /* html5patch.css in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -577,7 +585,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F302CA2B1F0CE4D300835B22 /* Reflow.css in Resources */,
+				F302CA2B1F0CE4D300835B22 /* pagination.css in Resources */,
 				F31D64D41E811EF5007BEA81 /* SmokeTestReferenceManifest.json in Resources */,
 				F3DE1ECC1E6980E100D05F74 /* Samples in Resources */,
 			);

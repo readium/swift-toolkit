@@ -121,21 +121,34 @@ internal class ContentFiltersEpub: ContentFilters {
         guard var resourceHtml = String.init(data: data, encoding: String.Encoding.utf8) else {
             return stream
         }
-        let headIndex = resourceHtml.startIndex(of: "</head>")
+        guard let endHeadIndex = resourceHtml.startIndex(of: "</head>") else {
+            print("Invalid resource")
+            abort()
+        }
 
-        // TODO: remove viewport if any
+        // TODO: remove viewport if any -- right now it's override cause added behind
         //        let viewportMetaStartIndex = resourceHtml.startIndex(of: "<meta name=\"viewport\"")
 
-        let viewport = "\n<meta name=\"viewport\" content=\"width=device-width, height=device-height, initial-scale=1.0\"/>\n"
-        let style = "<link rel=\"stylesheet\" type=\"text/css\" href=\"\(baseUrl)styles/Reflow.css\"/>\n"
-        let touchScript = "<script type=\"text/javascript\" src=\"\(baseUrl)scripts/TouchHandling.js\"></script>\n"
-        let utilsScript = "<script type=\"text/javascript\" src=\"\(baseUrl)scripts/Utils.js\"></script>\n"
+        let viewport = "<meta name=\"viewport\" content=\"width=device-width, height=device-height, initial-scale=1.0\"/>\n"
+        /// Readium CSS.
+        // HTML5 patches.
+        let html5patch = "<link rel=\"stylesheet\" type=\"text/css\" href=\"\(baseUrl)styles/html5patch.css\"/>\n"
+        //  Pagination configurations.
+        let pagination = "<link rel=\"stylesheet\" type=\"text/css\" href=\"\(baseUrl)styles/pagination.css\"/>\n"
+        // -
+        let safeguards = "<link rel=\"stylesheet\" type=\"text/css\" href=\"\(baseUrl)styles/safeguards.css\"/>\n"
+        /// Readium JS.
+        // Touch event bubbling.
+        let touchScript = "<script type=\"text/javascript\" src=\"\(baseUrl)scripts/touchHandling.js\"></script>\n"
+        // Misc JS utils.
+        let utilsScript = "/n<script type=\"text/javascript\" src=\"\(baseUrl)scripts/utils.js\"></script>\n"
 
-        // Added in userScript for now, but should be added here.
-        resourceHtml = resourceHtml.insert(string: touchScript, at: headIndex!)
-        resourceHtml = resourceHtml.insert(string: utilsScript, at: headIndex!)
-        resourceHtml = resourceHtml.insert(string: style, at: headIndex!)
-        resourceHtml = resourceHtml.insert(string: viewport, at: headIndex!)
+        resourceHtml = resourceHtml.insert(string: utilsScript, at: endHeadIndex)
+        resourceHtml = resourceHtml.insert(string: touchScript, at: endHeadIndex)
+        resourceHtml = resourceHtml.insert(string: viewport, at: endHeadIndex)
+        resourceHtml = resourceHtml.insert(string: html5patch, at: endHeadIndex)
+        resourceHtml = resourceHtml.insert(string: pagination, at: endHeadIndex)
+        resourceHtml = resourceHtml.insert(string: safeguards, at: endHeadIndex)
 
         let enhancedData = resourceHtml.data(using: String.Encoding.utf8)
         let enhancedStream = DataInputStream(data: enhancedData!)

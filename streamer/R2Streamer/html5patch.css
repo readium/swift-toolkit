@@ -1,0 +1,116 @@
+/* Readium CSS
+ HTML5 SR Patch stylesheet
+
+ A set of style to adjust HTML5 Suggested Rendering to paginated content
+
+ Repo: https://github.com/readium/readium-css */
+
+/* Fragmentation */
+
+body {
+    orphans: 2;
+    widows: 2;
+}
+
+figcaption, th, td {
+    orphans: 1;
+    widows: 1;
+}
+
+h2, h3, h4, h5, h6, dt,
+hr, caption {
+    -webkit-column-break-after: avoid;
+    page-break-after: avoid;
+    break-after: avoid;
+}
+
+h1, h2, h3, h4, h5, h6, dt,
+figure, tr {
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+/* Hyphenation */
+
+body {
+    -webkit-hyphenate-limit-lines: 3;
+    -ms-hyphenate-limit-lines: 3;
+    hyphenate-limit-lines: 3;
+}
+
+h1, h2, h3, h4, h5, h6, dt,
+figcaption, pre, caption, address,
+center {
+    -ms-hyphens: none;
+    -moz-hyphens: none;
+    -webkit-hyphens: none;
+    -epub-hyphens: none;
+    hyphens: none;
+}
+
+/* OTF */
+
+body {
+    font-variant-numeric: oldstyle-nums proportional-nums;
+}
+
+h1, h2, h3, h4, h5, h6, dt {
+    font-variant-numeric: lining-nums proportional-nums;
+}
+
+table {
+    font-variant-numeric: lining-nums tabular-nums;
+}
+
+code, var {
+    font-variant-ligatures: none;
+    font-variant-numeric: lining-nums tabular-nums slashed-zero;
+}
+
+rt {
+    font-variant-east-asian: ruby;
+}
+
+/* Night mode */
+
+hr {
+    color: inherit;
+    border-color: currentColor;
+}
+
+table, th, td {
+    border-color: currentColor;
+}
+
+/* Horizontal Spacing */
+
+figure, blockquote {
+    margin: 1em 5%;
+}
+
+ul, ol {
+    padding-left: 5%;
+}
+
+dd {
+    margin-left: 5%;
+}
+
+pre {
+    white-space: pre-wrap;
+    -ms-tab-size: 2;
+    -moz-tab-size: 2;
+    -webkit-tab-size: 2;
+    tab-size: 2;
+}
+
+/* Normalization */
+
+abbr[title], acronym[title] {
+    text-decoration: dotted underline;
+}
+
+nobr wbr {
+    white-space: normal;
+}
