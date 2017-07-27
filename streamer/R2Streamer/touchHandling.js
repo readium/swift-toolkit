@@ -28,9 +28,8 @@ window.addEventListener("load", function(){ // on page load
 
 // When a touch is detected records its starting coordinates and if it's a singleTouchGesture.
 var handleTouchStart = function(event) {
-    if (e.target.nodeName.toUpperCase() === 'A') {
+    if (event.target.nodeName.toUpperCase() === 'A') {
         return;
-        singleTouchGesture = false;
     }
     singleTouchGesture = event.touches.length == 1;
 
