@@ -4,17 +4,6 @@ var startY = 0;
 var maxScreenX = 0;
 var maxScreenY = 0;
 
-var maxScreenUpdate = function() {
-    console.log("SCREEN ORIENTATION UPDATE >>");
-    if (window.orientation === 0 || window.orientation == 180) {
-        maxScreenX = screen.width;
-        maxScreenY = screen.height;
-    } else {
-        maxScreenX = screen.height;
-        maxScreenY = screen.width;
-    }
-};
-
 window.addEventListener("load", function(){ // on page load
                         // Get screen X and Y sizes.
                         maxScreenUpdate();
@@ -25,6 +14,16 @@ window.addEventListener("load", function(){ // on page load
                         window.addEventListener("orientationchange", maxScreenUpdate);
                         }, false);
 
+// On screen orientation updates.
+var maxScreenUpdate = function() {
+    if (window.orientation === 0 || window.orientation == 180) {
+        maxScreenX = screen.width;
+        maxScreenY = screen.height;
+    } else {
+        maxScreenX = screen.height;
+        maxScreenY = screen.width;
+    }
+};
 
 // When a touch is detected records its starting coordinates and if it's a singleTouchGesture.
 var handleTouchStart = function(event) {

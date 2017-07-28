@@ -52,7 +52,7 @@ public class Publication {
 
     /// Return the publication base URL based on the selfLink.
     /// e.g.: "http://localhost:8000/publicationName/".
-    lazy var baseUrl: URL? = {
+    lazy public var baseUrl: URL? = {
         guard let selfLink = self.link(withRel: "self") else {
             print("Error: no selfLink found in publication.")
             return nil
