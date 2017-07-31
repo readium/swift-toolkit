@@ -28,8 +28,11 @@ var maxScreenUpdate = function() {
 // When a touch is detected records its starting coordinates and if it's a singleTouchGesture.
 var handleTouchStart = function(event) {
     if (event.target.nodeName.toUpperCase() === 'A') {
+        console.log("Touched a link.");
+        // singleTouchGesture = false;
         return;
     }
+    console.log("Touch sent to native code.");
     singleTouchGesture = event.touches.length == 1;
 
     var touch = event.changedTouches[0];
