@@ -243,7 +243,9 @@ public class OPFParser {
             let body = smilXml.root["body"]
 
             node.role.append("section")
-            node.text = normalize(base: mediaOverlayLink.href!, href: body.attributes["epub:textref"]!)
+            if let textRef = body.attributes["epub:textref"] { // Prevent the crash on the japanese book
+                node.text = normalize(base: mediaOverlayLink.href!, href: textRef)
+            }
             // get body parameters <par>
             smilp.parseParameters(in: body, withParent: node, base: mediaOverlayLink.href)
             smilp.parseSequences(in: body, withParent: node, publicationSpine: &publication.spine, base: mediaOverlayLink.href)
