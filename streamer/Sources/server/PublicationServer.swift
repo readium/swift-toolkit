@@ -64,46 +64,52 @@ public class PublicationServer {
 
     public init?() {
         #if DEBUG
-            let port = 8080
-
             GCDWebServer.setLogLevel(2)
         #else
-            // Default: random port
-            let port = 0
-
             GCDWebServer.setLogLevel(3)
         #endif
         webServer = GCDWebServer()
-        do {
-            // TODO: Check if we can use unix socket instead of tcp.
-            //       Check if it's supported by WKWebView first.
-            try webServer.start(options: [GCDWebServerOption_Port: port,
-                                          GCDWebServerOption_BindToLocalhost: true/*,
-                 GCDWebServerOption_AutomaticallySuspendInBackground: false*/])
-        } catch {
-            log(level: .error, "Failed to start the HTTP server.")
-            logValue(level: .error, error)
+        if startWebServer() == false {
             return nil
         }
         addSpecialResourcesHandlers()
     }
 
-    // To be called after leaving background.
-    public func reloadHandlers() throws {
-        // Clean all existing handlers, if any.
-        webServer.removeAllHandlers()
-        // Add the handlers for the static resources.
-        addSpecialResourcesHandlers()
-        // Add the handlers for the publications stored in the pubBoxes.
-        for (endpoint, pubBox) in pubBoxes {
-            do {
-                try addResourcesHandler(for: pubBox, at: endpoint)
-            } catch {
-                throw PublicationServerError.fetcher(underlyingError: error)
-            }
-            addManifestHandler(for: pubBox, at: endpoint)
+    internal func startWebServer() -> Bool {
+        #if DEBUG
+            let port = 8080
+        #else
+            let port = 1337
+        #endif
+        do {
+            // TODO: Check if we can use unix socket instead of tcp.
+            //       Check if it's supported by WKWebView first.
+            try webServer.start(options: [GCDWebServerOption_Port: port,
+                                          GCDWebServerOption_BindToLocalhost: true])
+        } catch {
+            log(level: .error, "Failed to start the HTTP server.")
+            logValue(level: .error, error)
+            return false
         }
+        return true
     }
+
+//    // To be called after leaving background.
+//    internal func reloadHandlers() throws {
+//        // Clean all existing handlers, if any.
+//        webServer.removeAllHandlers()
+//        // Add the handlers for the static resources.
+//        addSpecialResourcesHandlers()
+//        // Add the handlers for the publications stored in the pubBoxes.
+//        for (endpoint, pubBox) in pubBoxes {
+//            do {
+//                try addResourcesHandler(for: pubBox, at: endpoint)
+//            } catch {
+//                throw PublicationServerError.fetcher(underlyingError: error)
+//            }
+//            addManifestHandler(for: pubBox, at: endpoint)
+//        }
+//    }
 
     // Add handlers for the css/js resources.
     public func addSpecialResourcesHandlers() {
