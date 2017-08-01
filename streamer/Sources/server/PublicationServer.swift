@@ -78,51 +78,82 @@ public class PublicationServer {
             // TODO: Check if we can use unix socket instead of tcp.
             //       Check if it's supported by WKWebView first.
             try webServer.start(options: [GCDWebServerOption_Port: port,
-                                          GCDWebServerOption_BindToLocalhost: true])
+                                          GCDWebServerOption_BindToLocalhost: true/*,
+                 GCDWebServerOption_AutomaticallySuspendInBackground: false*/])
         } catch {
             log(level: .error, "Failed to start the HTTP server.")
             logValue(level: .error, error)
             return nil
         }
+        addSpecialResourcesHandlers()
+    }
 
+    // To be called after leaving background.
+    public func reloadHandlers() throws {
+        // Clean all existing handlers, if any.
+        webServer.removeAllHandlers()
+        // Add the handlers for the static resources.
+        addSpecialResourcesHandlers()
+        // Add the handlers for the publications stored in the pubBoxes.
+        for (endpoint, pubBox) in pubBoxes {
+            do {
+                try addResourcesHandler(for: pubBox, at: endpoint)
+            } catch {
+                throw PublicationServerError.fetcher(underlyingError: error)
+            }
+            addManifestHandler(for: pubBox, at: endpoint)
+        }
+    }
+
+    // Add handlers for the css/js resources.
+    public func addSpecialResourcesHandlers() {
+        func styleRessourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
+            guard let request = request else {
+                return GCDWebServerResponse(statusCode: 404)
+            }
+            let filename = request.path
+            let resourceName = (filename as NSString).deletingPathExtension.lastPathComponent
+
+            if let styleUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "css"),
+                let data = try? Data.init(contentsOf: styleUrl)
+            {
+                let response = GCDWebServerDataResponse(data: data, contentType: "text/css")
+
+                return response
+            } else {
+                return GCDWebServerResponse(statusCode: 404)
+            }
+        }
         /// Handler for Style resources.
         webServer.addHandler(forMethod: "GET",
-                             pathRegex: "/styles/*", request: GCDWebServerRequest.self, processBlock:  { request in
-                                let filename = request.path
-                                let resourceName = (filename as NSString).deletingPathExtension.lastPathComponent
+                             pathRegex: "/styles/*",
+                             request: GCDWebServerRequest.self,
+                             processBlock: styleRessourcesHandler)
 
-                                if let styleUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "css"),
-                                    let data = try? Data.init(contentsOf: styleUrl)
-                                {
-                                    let response = GCDWebServerDataResponse(data: data, contentType: "text/css")
+        func scriptRessourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
+            guard let request = request else {
+                return GCDWebServerResponse(statusCode: 404)
+            }
+            let filename = request.path
+            let resourceName = (filename as NSString).deletingPathExtension.lastPathComponent
 
-                                    return response
-                                } else {
-                                    return GCDWebServerResponse(statusCode: 404)
-                                }
+            if let scriptUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "js"),
+                let data = try? Data.init(contentsOf: scriptUrl)
+            {
+                let response = GCDWebServerDataResponse(data: data, contentType: "text/javascript")
 
-        })
-
+                return response
+            } else {
+                return GCDWebServerResponse(statusCode: 404)
+            }
+        }
         /// Handler for JS resources.
         webServer.addHandler(forMethod: "GET",
-                             pathRegex: "/scripts/*", request: GCDWebServerRequest.self, processBlock:  { request in
-                                let filename = request.path
-                                let resourceName = (filename as NSString).deletingPathExtension.lastPathComponent
-
-                                if let scriptUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "js"),
-                                    let data = try? Data.init(contentsOf: scriptUrl)
-                                {
-                                    let response = GCDWebServerDataResponse(data: data, contentType: "text/javascript")
-
-                                    return response
-                                } else {
-                                    return GCDWebServerResponse(statusCode: 404)
-                                }
-                                
-        })
+                             pathRegex: "/scripts/*",
+                             request: GCDWebServerRequest.self,
+                             processBlock: scriptRessourcesHandler)
     }
-    
-    // TODO: Github issue #3
+
     /// Add a publication to the server. Also add it to the `pubBoxes`
     ///
     /// - Parameters:
@@ -136,8 +167,6 @@ public class PublicationServer {
     public func add(_ publication: Publication,
                     with container: Container,
                     at endpoint: String = UUID().uuidString) throws {
-        let fetcher: Fetcher
-
         // TODO: verif that endpoint is a simple string and not a path.
         guard pubBoxes[endpoint] == nil else {
             log(level: .error, "\(endpoint) is already in use.")
@@ -151,7 +180,26 @@ public class PublicationServer {
         // Add the self link to the publication.
         publication.addSelfLink(endpoint: endpoint, for: baseUrl)
         // Add the Publication to the publication boxes dictionnary.
-        pubBoxes[endpoint] = (publication, container)
+        let pubBox = (publication, container)
+
+        pubBoxes[endpoint] = pubBox
+
+        /// Add resources handler.
+        do {
+            try addResourcesHandler(for: pubBox, at: endpoint)
+        } catch {
+            throw PublicationServerError.fetcher(underlyingError: error)
+        }
+        /// Add manifest handler.
+        addManifestHandler(for: pubBox, at: endpoint)
+
+        log(level: .info, "Publication at \(endpoint) has been successfully added.")
+    }
+
+    fileprivate func addResourcesHandler(for pubBox: PubBox, at endpoint: String) throws {
+        let publication = pubBox.publication
+        let container = pubBox.associatedContainer
+        let fetcher: Fetcher
 
         // Initialize the Fetcher.
         do {
@@ -169,10 +217,10 @@ public class PublicationServer {
                 log(level: .error, "The request received is nil.")
                 return GCDWebServerErrorResponse(statusCode: 500)
             }
-//            guard let path = request.path else {
-//                log(level: .error, "The request's path to the ressource is empty.")
-//                return GCDWebServerErrorResponse(statusCode: 500)
-//            }
+            //            guard let path = request.path else {
+            //                log(level: .error, "The request's path to the ressource is empty.")
+            //                return GCDWebServerErrorResponse(statusCode: 500)
+            //            }
             // Remove the prefix from the URI.
             let relativePath = request.path.substring(from: request.path.index(endpoint.endIndex, offsetBy: 2))
             let resource = publication.resource(withRelativePath: relativePath)
@@ -202,6 +250,11 @@ public class PublicationServer {
             pathRegex: "/\(endpoint)/.*",
             request: GCDWebServerRequest.self,
             processBlock: ressourcesHandler)
+    }
+
+    fileprivate func addManifestHandler(for pubBox: PubBox, at endpoint: String) {
+        let publication = pubBox.publication
+        let container = pubBox.associatedContainer
 
         /// The webserver handler to process the HTTP GET
         func manifestHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
@@ -220,24 +273,6 @@ public class PublicationServer {
             request: GCDWebServerRequest.self,
             processBlock: manifestHandler)
 
-        // FIXME: Add the handler for the resources OPTIONS
-        //         webServer.addHandler(
-        //         forMethod: "OPTIONS",
-        //         pathRegex: "/\(endpoint)/.*",
-        //         request: GCDWebServerRequest.self,
-        //         processBlock: { request in
-        //
-        //         guard let path = request?.path else {
-        //         Log.error?.message("no path in options request")
-        //         return GCDWebServerErrorResponse(statusCode: 500)
-        //         }
-        //
-        //         Log.debug?.message("options request \(path)")
-        //
-        //         return GCDWebServerDataResponse()
-        //         })
-
-        log(level: .info, "Publication at \(endpoint) has been successfully added.")
     }
 
     public func remove(_ publication: Publication) {
@@ -252,25 +287,6 @@ public class PublicationServer {
             }
         }
     }
-
-//    /// Remove a publication from the server.
-//    ///
-//    /// - Parameter endpoint: The PublicationIdentifier of the Publication to remove.
-//    public func remove(publicationIdentifier: String) {
-//        var keyToRemove: String? = nil
-//
-//        // Find the publication key in pubBoxes.
-//        for pubBoxe in pubBoxes {
-//            if pubBoxe.value.publication.metadata.identifier == publicationIdentifier {
-//                keyToRemove = pubBoxe.key
-//                break
-//            }
-//        }
-//        // Remove the publication from the publicationServer served publications.
-//        if keyToRemove != nil {
-//            remove(at: keyToRemove!)
-//        }
-//    }
 
     /// Remove a publication from the server.
     ///
