@@ -126,34 +126,47 @@ internal class ContentFiltersEpub: ContentFilters {
             abort()
         }
 
-        // TODO: remove viewport if any -- right now it's override cause added behind
-        //        let viewportMetaStartIndex = resourceHtml.startIndex(of: "<meta name=\"viewport\"")
+        var includes = [String]()
 
-        let viewport = "<meta name=\"viewport\" content=\"width=device-width, height=device-height, initial-scale=1.0\"/>\n"
-        /// Readium CSS.
+        includes.append("<meta name=\"viewport\" content=\"width=device-width, height=device-height, initial-scale=1.0\"/>\n")
+        /// Readium CSS -- Pagination.
         // HTML5 patches.
-        let html5patch = "<link rel=\"stylesheet\" type=\"text/css\" href=\"\(baseUrl)styles/html5patch.css\"/>\n"
+        includes.append(getHtmlLink(forRessource: "\(baseUrl)styles/html5patch.css"))
         //  Pagination configurations.
-        let pagination = "<link rel=\"stylesheet\" type=\"text/css\" href=\"\(baseUrl)styles/pagination.css\"/>\n"
+        includes.append(getHtmlLink(forRessource: "\(baseUrl)styles/pagination.css"))
         // -
-        let safeguards = "<link rel=\"stylesheet\" type=\"text/css\" href=\"\(baseUrl)styles/safeguards.css\"/>\n"
+        includes.append(getHtmlLink(forRessource: "\(baseUrl)styles/safeguards.css"))
+        /// Readium CSS -- Styles.
+        // Base style, active in every resources.
+        includes.append(getHtmlLink(forRessource: "\(baseUrl)styles/readiumCSS-base.css"))
         /// Readium JS.
         // Touch event bubbling.
-        let touchScript = "<script type=\"text/javascript\" src=\"\(baseUrl)scripts/touchHandling.js\"></script>\n"
+        includes.append(getHtmlScript(forRessource: "\(baseUrl)scripts/touchHandling.js"))
         // Misc JS utils.
-        let utilsScript = "/n<script type=\"text/javascript\" src=\"\(baseUrl)scripts/utils.js\"></script>\n"
+        includes.append(getHtmlScript(forRessource: "\(baseUrl)scripts/utils.js"))
 
-        resourceHtml = resourceHtml.insert(string: utilsScript, at: endHeadIndex)
-        resourceHtml = resourceHtml.insert(string: touchScript, at: endHeadIndex)
-        resourceHtml = resourceHtml.insert(string: viewport, at: endHeadIndex)
-        resourceHtml = resourceHtml.insert(string: html5patch, at: endHeadIndex)
-        resourceHtml = resourceHtml.insert(string: pagination, at: endHeadIndex)
-        resourceHtml = resourceHtml.insert(string: safeguards, at: endHeadIndex)
+        for element in includes {
+            resourceHtml = resourceHtml.insert(string: element, at: endHeadIndex) 
+        }
 
         let enhancedData = resourceHtml.data(using: String.Encoding.utf8)
         let enhancedStream = DataInputStream(data: enhancedData!)
         
         return enhancedStream
+    }
+
+    fileprivate func getHtmlLink(forRessource ressourceName: String) -> String {
+        let prefix = "<link rel=\"stylesheet\" type=\"text/css\" href=\""
+        let suffix = "\"/>\n"
+
+        return prefix + ressourceName + suffix
+    }
+
+    fileprivate func getHtmlScript(forRessource ressourceName: String) -> String {
+        let prefix = "<script type=\"text/javascript\" src=\""
+        let suffix = "\"></script>\n"
+
+        return prefix + ressourceName + suffix
     }
 
 }

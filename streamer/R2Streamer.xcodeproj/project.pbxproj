@@ -45,6 +45,7 @@
 		F309BBE21E6970C30002F800 /* ObjectMapper.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F31D64D41E811EF5007BEA81 /* SmokeTestReferenceManifest.json in Resources */ = {isa = PBXBuildFile; fileRef = F31D64D31E811EF5007BEA81 /* SmokeTestReferenceManifest.json */; };
 		F3292B041EA5F452004848DE /* FontDeobfuscationTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3292B031EA5F452004848DE /* FontDeobfuscationTest.swift */; };
+		F340F8741F31F7E70028BDC9 /* readiumCSS-base.css in Resources */ = {isa = PBXBuildFile; fileRef = F340F8731F31F7E70028BDC9 /* readiumCSS-base.css */; };
 		F34328271E82B12900E3C5F0 /* DateExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34328261E82B12900E3C5F0 /* DateExtension.swift */; };
 		F34328291E82B7D300E3C5F0 /* FormatterExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34328281E82B7D300E3C5F0 /* FormatterExtension.swift */; };
 		F34510C21E938CAE0071C12C /* PublicationParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34510C11E938CAE0071C12C /* PublicationParser.swift */; };
@@ -154,6 +155,7 @@
 		F309BBDC1E696F660002F800 /* PublicationServerTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationServerTest.swift; sourceTree = "<group>"; };
 		F31D64D31E811EF5007BEA81 /* SmokeTestReferenceManifest.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = SmokeTestReferenceManifest.json; sourceTree = "<group>"; };
 		F3292B031EA5F452004848DE /* FontDeobfuscationTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FontDeobfuscationTest.swift; sourceTree = "<group>"; };
+		F340F8731F31F7E70028BDC9 /* readiumCSS-base.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = "readiumCSS-base.css"; sourceTree = "<group>"; };
 		F34328261E82B12900E3C5F0 /* DateExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DateExtension.swift; sourceTree = "<group>"; };
 		F34328281E82B7D300E3C5F0 /* FormatterExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FormatterExtension.swift; sourceTree = "<group>"; };
 		F34510C11E938CAE0071C12C /* PublicationParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = PublicationParser.swift; path = Sources/parser/PublicationParser.swift; sourceTree = SOURCE_ROOT; };
@@ -375,6 +377,7 @@
 				F302CA291F0CE4D300835B22 /* pagination.css */,
 				F3DCEB241F1CA92300061978 /* touchHandling.js */,
 				F3D462F51F28D56C00505E59 /* utils.js */,
+				F340F8731F31F7E70028BDC9 /* readiumCSS-base.css */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -577,6 +580,7 @@
 				F302CA2F1F0D2C0A00835B22 /* pagination.css in Resources */,
 				F3DCEB251F1CA92300061978 /* touchHandling.js in Resources */,
 				F3D462F61F28D56C00505E59 /* utils.js in Resources */,
+				F340F8741F31F7E70028BDC9 /* readiumCSS-base.css in Resources */,
 				F3D462F81F2A081400505E59 /* html5patch.css in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

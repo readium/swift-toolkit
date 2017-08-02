@@ -6,7 +6,7 @@
 
 
 var scrollToId = function(id, screenWidth) {
-    var element = document.getElementById(id)
+    var element = document.getElementById(id);
     var rect = element.getBoundingClientRect();
     var offset = window.scrollX + rect.left;
     var snappedOffset = offset - (offset % screenWidth);

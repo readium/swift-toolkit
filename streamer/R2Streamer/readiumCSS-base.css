@@ -1,0 +1,141 @@
+/* Readium CSS
+ Base module
+
+ A minimal stylesheet for all ebooks
+
+ Repo: https://github.com/readium/readium-css */
+
+@namespace url(http://www.w3.org/1999/xhtml);
+@namespace epub url(http://www.idpf.org/2007/ops);
+@namespace m url(http://www.w3.org/1998/Math/MathML/);
+@namespace svg url(http://www.w3.org/2000/svg);
+
+:root {
+    /* Default font-stacks */
+    --RS__oldStyleTf: "Iowan Old Style", "Sitka Text", Palatino, "Book Antiqua", serif;
+    --RS__modernTf: Athelas, Constantia, Georgia, serif;
+    --RS__sansTf: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --RS__humanistTf: Seravek, Calibri, Roboto, Arial, sans-serif;
+    --RS__monospaceTf: "Andale Mono", Consolas, monospace;
+
+    /* Config */
+    --RS__baseFontFamily: var(--RS__oldStyleTf);
+    --RS__textColor: #121212;
+    --RS__backgroundColor: #FFFFFF;
+}
+
+/* Default colors */
+:root {
+    color: var(--RS__textColor) !important;
+    background-color: var(--RS__backgroundColor) !important;
+}
+
+/* Set default font for the doc’s body, it will be overridden by the authors’s stylesheet */
+body {
+    font-family: var(--RS__baseFontFamily);
+}
+
+/* Language Overrides
+ That will only work if either html or body have a (xml:)lang attribute, not for inline overrides */
+
+:lang(am) {
+    --RS__baseFontFamily: Kefa, Nyala, Roboto, Noto, "Noto Sans Ethiopic", serif;
+}
+
+:lang(ar) {
+    --RS__baseFontFamily: "Geeza Pro", "Arabic Typesetting", Roboto, Noto, "Noto Naskh Arabic", "Times New Roman", serif;
+}
+
+:lang(bn) {
+    --RS__baseFontFamily: "Kohinoor Bangla", "Bangla Sangam MN", Vrinda, Roboto, Noto, "Noto Sans Bengali", sans-serif;
+}
+
+:lang(bo) {
+    --RS__baseFontFamily: Kailasa, "Microsoft Himalaya", Roboto, Noto, "Noto Sans Tibetan", sans-serif;
+}
+
+:lang(chr) {
+    --RS__baseFontFamily: "Plantagenet Cherokee", Roboto, Noto, "Noto Sans Cherokee";
+}
+
+:lang(gu) {
+    --RS__baseFontFamily: "Gujarati Sangam MN", "Nirmala UI", Shruti, Roboto, Noto, "Noto Sans Gujarati", sans-serif;
+}
+
+:lang(he) {
+    --RS__baseFontFamily: "New Peninim MT", "Arial Hebrew", Gisha, "Times New Roman", Roboto, Noto, "Noto Sans Hebrew" sans-serif;
+}
+
+:lang(hi) {
+    --RS__baseFontFamily: "Kohinoor Devanagari", "Devanagari Sangam MN", Kokila, "Nirmala UI", Roboto, Noto, "Noto Sans Devanagari", sans-serif;
+}
+
+:lang(hy) {
+    --RS__baseFontFamily: Mshtakan, Sylfaen, Roboto, Noto, "Noto Serif Armenian", serif;
+}
+
+:lang(iu) {
+    --RS__baseFontFamily: "Euphemia UCAS", Euphemia, Roboto, Noto, "Noto Sans Canadian Aboriginal", sans-serif;
+}
+
+:lang(ja) {
+    --RS__baseFontFamily: "游ゴシック体", YuGothic, "ヒラギノ丸ゴ", "Hiragino Sans", "Yu Gothic UI", "Meiryo UI", "MS Gothic", Roboto, Noto, "Noto Sans CJK JP", sans-serif;
+}
+
+:lang(km) {
+    --RS__baseFontFamily: "Khmer Sangam MN", "Leelawadee UI", "Khmer UI", Roboto, Noto, "Noto Sans Khmer", sans-serif;
+}
+
+:lang(kn) {
+    --RS__baseFontFamily: "Kannada Sangam MN", "Nirmala UI", Tunga, Roboto, Noto, "Noto Sans Kannada", sans-serif;
+}
+
+:lang(ko) {
+    --RS__baseFontFamily: "Nanum Gothic", "Apple SD Gothic Neo", "Malgun Gothic", Roboto, Noto, "Noto Sans CJK KR", sans-serif;
+}
+
+:lang(lo) {
+    --RS__baseFontFamily: "Lao Sangam MN", "Leelawadee UI", "Lao UI", Roboto, Noto, "Noto Sans Lao", sans-serif;
+}
+
+:lang(ml) {
+    --RS__baseFontFamily: "Malayalam Sangam MN", "Nirmala UI", Kartika, Roboto, Noto, "Noto Sans Malayalam", sans-serif;
+}
+
+:lang(or) {
+    --RS__baseFontFamily: "Oriya Sangam MN", "Nirmala UI", Kalinga, Roboto, Noto, "Noto Sans Oriya", sans-serif;
+}
+
+:lang(pa) {
+    --RS__baseFontFamily: "Gurmukhi MN", "Nirmala UI", Kartika, Roboto, Noto, "Noto Sans Gurmukhi", sans-serif;
+}
+
+:lang(si) {
+    --RS__baseFontFamily: "Sinhala Sangam MN", "Nirmala UI", "Iskoola Pota", Roboto, Noto, "Noto Sans Sinhala", sans-serif;
+}
+
+:lang(ta) {
+    --RS__baseFontFamily: "Tamil Sangam MN", "Nirmala UI", Latha, Roboto, Noto, "Noto Sans Tamil", sans-serif;
+}
+
+:lang(te) {
+    --RS__baseFontFamily: "Kohinoor Telugu", "Telugu Sangam MN", "Nirmala UI", Gautami, Roboto, Noto, "Noto Sans Telugu", sans-serif;
+}
+
+:lang(th) {
+    --RS__baseFontFamily: "Thonburi", "Leelawadee UI", "Cordia New", Roboto, Noto, "Noto Sans Thai", sans-serif;
+}
+
+/* The following will also work for zh-Hans */
+:lang(zh) {
+    --RS__baseFontFamily: "方体", "PingFang SC", "黑体", "Heiti SC", "Microsoft JhengHei UI", "Microsoft JhengHei", Roboto, Noto, "Noto Sans CJK SC", sans-serif;
+}
+
+:lang(zh-Hant),
+:lang(zh-TW) {
+    --RS__baseFontFamily: "方體", "PingFang TC", "黑體", "Heiti TC", "Microsoft JhengHei UI", "Microsoft JhengHei", Roboto, Noto, "Noto Sans CJK TC", sans-serif;
+}
+
+:lang(zh-HK) {
+    --RS__baseFontFamily: "方體", "PingFang HK", "方體", "PingFang TC", "黑體", "Heiti TC", "Microsoft JhengHei UI", "Microsoft JhengHei", Roboto, Noto, "Noto Sans CJK TC", sans-serif;
+}
