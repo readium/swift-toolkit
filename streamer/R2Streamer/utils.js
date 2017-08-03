@@ -73,7 +73,9 @@ var scrollRight = function() {
 
 // Snap the offset to the screen width (page width).
 var snapOffset = function(offset) {
-    return offset - (offset % maxScreenX);
+    let value = offset + 1;
+
+    return value - (value % maxScreenX);
 };
 
 
