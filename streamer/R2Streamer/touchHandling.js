@@ -23,7 +23,15 @@ var maxScreenUpdate = function() {
         maxScreenX = screen.height;
         maxScreenY = screen.width;
     }
+    // snapCurrentPosition();
 };
+
+// var snapCurrentPosition = function() {
+//     var currentOffset = window.scrollX;
+//     var currentOffsetSnapped = snapOffset(currentOffset + 1);
+//
+//     document.body.scrollLeft = currentOffsetSnapped;
+// };
 
 // When a touch is detected records its starting coordinates and if it's a singleTouchGesture.
 var handleTouchStart = function(event) {
@@ -62,12 +70,15 @@ var handleTouchEnd = function(event) {
         var position = (touch.screenX % maxScreenX) / maxScreenX;
         if (position <= 0.2) {
             // TAP left.
+            console.log("LeftTapped");
             webkit.messageHandlers.leftTap.postMessage("");
         } else if(position >= 0.8) {
             // TAP rigth.
+            console.log("RightTapped");
             webkit.messageHandlers.rightTap.postMessage("");
         } else {
             // TAP center.
+            console.log("CenterTapped");
             webkit.messageHandlers.centerTap.postMessage("");
         }
         event.stopPropagation();

@@ -1,0 +1,96 @@
+/* Readium CSS
+ User settings
+ A stylesheet to manage user overrides
+ Repo: https://github.com/readium/readium-css */
+
+/* If/Else Territory depending on whether a variable is set or not…
+ If/else can be emulated with attributes such as p[style*="family"]
+ p[style] {
+ color: unset !important;
+ background-color: unset !important;
+ font-family: unset !important;
+ line-height: unset !important;
+ -webkit-hyphens: unset !important;
+ -moz-hyphens: unset !important;
+ -ms-hyphens: unset !important;
+ -epub-hyphens: unset !important;
+ hyphens: unset !important;
+ text-align: unset !important;
+ padding: unset !important;
+ margin-top: unset !important;
+ margin-bottom: unset !important;
+ text-align: unset !important;
+ }
+ span[style] {
+ color: unset !important;
+ background-color: unset !important;
+ font-family: unset !important;
+ }
+ */
+
+/* Undefined variables -> declarations won’t impact styling until they are set */
+
+:root {
+    --USER__textColor: ; /* normal / sepia / night + extras */
+    --USER__backgroundColor: ;
+    --USER__fontSize: ; /* 12 = 75%, 14 = 87.5%, 16 = 100%, 18 = 112.5%, 22 = 137.5%, 24 = 150%, 26 = 162.5%, 28 = 175%, 32 = 200%, 36 = 225%, 40 = 250% */
+    --USER__fontFamily: ; /* font stacks */
+    --USER__textAlign: ; /* left, justify */
+    --USER__lineHeight: ; /* may depend on font size? */
+    --USER__pageMargins: ;
+    --USER__paraSpacing: ; /* 0, 0.375rem, 0.75rem, 1.2rem, 1.5rem, 1.65rem, 1.75rem, 2rem */
+    --USER__paraIndent: ; /* 0.5rem, 1rem, 1.25rem, 1.5rem, 2rem, 2.5rem, 3rem */
+    --USER__bodyHyphens: ; /* none, auto */
+    --USER__colNumber: ; /* 1, 2 */
+}
+
+:root {
+    font-size: var(--USER__fontSize) !important;
+    background-color: var(--USER__backgroundColor) !important;
+    color: var(--USER__textColor) !important;
+    -webkit-column-count: var(--USER__colNumber);
+    -moz-column-count: var(--USER__colNumber);
+    column-count: var(--USER__colNumber);
+}
+
+body {
+    font-family: var(--USER__fontFamily) !important;
+    line-height: var(--USER__lineHeight) !important;
+    -webkit-hyphens: var(--USER__bodyHyphens) !important;
+    -moz-hyphens: var(--USER__bodyHyphens) !important;
+    -ms-hyphens: var(--USER__bodyHyphens) !important;
+    -epub-hyphens: var(--USER__bodyHyphens) !important;
+    hyphens: var(--USER__bodyHyphens) !important;
+    padding: 0 var(--USER__pageMargins) !important;
+}
+
+/* This will be redesigned, obviously */
+body *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(figure):not(table):not(pre):not(blockquote):not(math):not([lang]):not([xml\:lang]) {
+    font-family: inherit !important;
+}
+
+/* This will be redesigned too */
+body *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(figure):not(table):not(blockquote):not(math) {
+    line-height: inherit !important;
+}
+
+body *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6) {
+    color: inherit !important;
+}
+
+p {
+    margin-top: var(--USER__paraSpacing) !important;
+    margin-bottom: var(--USER__paraSpacing) !important;
+    text-indent: var(--USER__paraIndent) !important;
+}
+
+*:not(blockquote):not(figcaption) p, li {
+    text-align: var(--USER__textAlign) !important;
+}
+
+/* Example of if/else */
+:root[style*="Open Dyslexic"] body * {
+    color: inherit !important;
+    font-family: inherit !important;
+    line-height: inherit !important;
+}
