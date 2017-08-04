@@ -27,8 +27,8 @@ window.addEventListener('scroll', function(e) {
 // Scroll to the given TagId in document and snap.
 var scrollToId = function(id) {
     var element = document.getElementById(id);
-    var rect = element.getBoundingClientRect();
-    var offset = window.scrollX + rect.left;
+    var elementOffset = element.scrollLeft // element.getBoundingClientRect().left works for Gutenbergs books
+    var offset = window.scrollX + elementOffset;
 
     document.body.scrollLeft = snapOffset(offset);
 };
