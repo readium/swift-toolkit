@@ -11,11 +11,11 @@ import ObjectMapper
 
 /// The rendition layout property of an EPUB publication
 ///
-/// - Reflowable: Not pre-paginated, apply dynamic pagination when rendering.
-/// - Prepaginated: Pre-paginated, one page per spine item.
+/// - Reflowable: Apply dynamic pagination when rendering.
+/// - Fixed: Fixed layout.
 public enum RenditionLayout: String {
     case reflowable = "reflowable"
-    case prepaginated = "pre-paginated"
+    case fixed = "fixed"
 }
 
 /// The rendition flow property of an EPUB publication.
@@ -73,7 +73,7 @@ public enum RenditionSpread: String {
 /// It includes if it's reflowable or pre-paginated, the orientation, the synthetic spread
 /// behaviour and if the content flow should be scrolled, continuous or paginated.
 public class Rendition {
-    /// The rendition layout (reflowable or pre-paginated).
+    /// The rendition layout (reflowable or fixed).
     public var layout: RenditionLayout?
     /// The rendition flow.
     public var flow: RenditionFlow?
