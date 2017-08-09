@@ -120,6 +120,15 @@ public class Publication {
         return matchingLinks.first(where: { $0.href == path })
     }
 
+
+    /// Return a link from the spine having the given Href.
+    ///
+    /// - Parameter href: The `href` being searched.
+    /// - Returns: The corresponding `Link` if any.
+    public func spineLink(withHref href: String) -> Link? {
+        return spine.first(where: { $0.href == href })
+    }
+
     /// Find the first Link having the given `rel` in the publications's [Link]
     /// properties: `resources`, `spine`, `links`.
     ///
