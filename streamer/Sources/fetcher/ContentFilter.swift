@@ -145,8 +145,6 @@ internal class ContentFiltersEpub: ContentFilters {
         /// Readium CSS -- Styles.
         // Base style, active in every resources.
         includes.append(getHtmlLink(forRessource: "\(baseUrl)styles/readiumCSS-base.css"))
-        // User settings.
-        includes.append(getHtmlLink(forRessource: "\(baseUrl)styles/readiumCSS-user_settings.css"))
         /// Readium JS.
         // Touch event bubbling.
         includes.append(getHtmlScript(forRessource: "\(baseUrl)scripts/touchHandling.js"))
