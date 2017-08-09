@@ -70,11 +70,14 @@ internal class ContentFiltersEpub: ContentFilters {
         //       - inject pagination
         if let link = publication.link(withHref: path),
             link.typeLink == "application/xhtml+xml" || link.typeLink == "text/html",
-            publication.metadata.rendition.layout == .reflowable && link.properties.layout == nil
-                || link.properties.layout == "reflowable",
-            let baseUrl = publication.baseUrl?.deletingLastPathComponent()
-        {
-            decodedInputStream = injectHtml(in: decodedInputStream, for: baseUrl)
+            let baseUrl = publication.baseUrl?.deletingLastPathComponent() {
+            if publication.metadata.rendition.layout == .reflowable && link.properties.layout == nil
+                || link.properties.layout == "reflowable"
+            {
+                decodedInputStream = injectReflowableHtml(in: decodedInputStream, for: baseUrl) as! DataInputStream
+            } else {
+                decodedInputStream = injectFixedLayoutHtml(in: decodedInputStream, for: baseUrl) as! DataInputStream
+            }
         }
 
         return decodedInputStream
@@ -99,17 +102,20 @@ internal class ContentFiltersEpub: ContentFilters {
         // Inject additional content in the resource if test succeed.
         if let link = publication.link(withHref: path),
             link.typeLink == "application/xhtml+xml" || link.typeLink == "text/html",
-            publication.metadata.rendition.layout == .reflowable && link.properties.layout == nil
-                || link.properties.layout == "reflowable",
-            let baseUrl = publication.baseUrl?.deletingLastPathComponent()
-        {
-            decodedDataStream = injectHtml(in: decodedDataStream, for: baseUrl) as! DataInputStream
+            let baseUrl = publication.baseUrl?.deletingLastPathComponent() {
+            if publication.metadata.rendition.layout == .reflowable && link.properties.layout == nil
+                    || link.properties.layout == "reflowable"
+            {
+                decodedDataStream = injectReflowableHtml(in: decodedDataStream, for: baseUrl) as! DataInputStream
+            } else {
+                decodedDataStream = injectFixedLayoutHtml(in: decodedDataStream, for: baseUrl) as! DataInputStream
+            }
         }
 
         return decodedDataStream.data
     }
 
-    fileprivate func injectHtml(in stream: SeekableInputStream, for baseUrl: URL) -> SeekableInputStream {
+    fileprivate func injectReflowableHtml(in stream: SeekableInputStream, for baseUrl: URL) -> SeekableInputStream {
 
         let bufferSize = Int(stream.length)
         var buffer = Array<UInt8>(repeating: 0, count: bufferSize)
@@ -128,7 +134,7 @@ internal class ContentFiltersEpub: ContentFilters {
 
         var includes = [String]()
 
-        includes.append("<meta name=\"viewport\" content=\"width=device-width, height=device-height, initial-scale=1.0\"/>\n")
+        includes.append("<meta name=\"viewport\" content=\"width=device-width, height=device-height, initial-scale=1.0;\"/>\n")
         /// Readium CSS -- Pagination.
         // HTML5 patches.
         includes.append(getHtmlLink(forRessource: "\(baseUrl)styles/html5patch.css"))
@@ -149,6 +155,43 @@ internal class ContentFiltersEpub: ContentFilters {
 
         for element in includes {
             resourceHtml = resourceHtml.insert(string: element, at: endHeadIndex) 
+        }
+
+        let enhancedData = resourceHtml.data(using: String.Encoding.utf8)
+        let enhancedStream = DataInputStream(data: enhancedData!)
+        
+        return enhancedStream
+    }
+
+    fileprivate func injectFixedLayoutHtml(in stream: SeekableInputStream, for baseUrl: URL) -> SeekableInputStream {
+
+        let bufferSize = Int(stream.length)
+        var buffer = Array<UInt8>(repeating: 0, count: bufferSize)
+
+        stream.open()
+        let numberOfBytesRead = (stream as InputStream).read(&buffer, maxLength: bufferSize)
+        let data = Data(bytes: buffer, count: numberOfBytesRead)
+
+        guard var resourceHtml = String.init(data: data, encoding: String.Encoding.utf8) else {
+            return stream
+        }
+        guard let endHeadIndex = resourceHtml.startIndex(of: "</head>") else {
+            print("Invalid resource")
+            abort()
+        }
+
+        var includes = [String]()
+
+        includes.append("<meta name=\"viewport\" content=\"width=device-width;\"/>\n")
+        /// Readium CSS -- Pagination.
+        /// Readium JS.
+        // Touch event bubbling.
+        includes.append(getHtmlScript(forRessource: "\(baseUrl)scripts/touchHandling.js"))
+        // Misc JS utils.
+        includes.append(getHtmlScript(forRessource: "\(baseUrl)scripts/utils.js"))
+
+        for element in includes {
+            resourceHtml = resourceHtml.insert(string: element, at: endHeadIndex)
         }
 
         let enhancedData = resourceHtml.data(using: String.Encoding.utf8)
