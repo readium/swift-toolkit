@@ -15,7 +15,7 @@ import ObjectMapper
 /// - Fixed: Fixed layout.
 public enum RenditionLayout: String {
     case reflowable = "reflowable"
-    case fixed = "fixed"
+    case fixed = "pre-paginated"
 }
 
 /// The rendition flow property of an EPUB publication.
@@ -32,7 +32,7 @@ public enum RenditionFlow: String {
     case paginated = "paginated"
     case continuous = "continuous"
     case document = "document"
-    case fixed = "fixed"
+    case fixed = "fixed" // Is that correct?
 }
 
 /// The rendition orientation property of an EPUB publication.
