@@ -223,10 +223,7 @@ public class PublicationServer {
                 log(level: .error, "The request received is nil.")
                 return GCDWebServerErrorResponse(statusCode: 500)
             }
-            //            guard let path = request.path else {
-            //                log(level: .error, "The request's path to the ressource is empty.")
-            //                return GCDWebServerErrorResponse(statusCode: 500)
-            //            }
+
             // Remove the prefix from the URI.
             let relativePath = request.path.substring(from: request.path.index(endpoint.endIndex, offsetBy: 2))
             let resource = publication.resource(withRelativePath: relativePath)
