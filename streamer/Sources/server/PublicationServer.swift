@@ -264,11 +264,10 @@ public class PublicationServer {
             let manifestJSON = publication.toJSONString()
             let type = "application/webpub+json; charset=utf-8"
 
-            if let manifestData = manifestJSON?.data(using: .utf8) {
-                return GCDWebServerDataResponse(data: manifestData, contentType: type)
-            } else {
+            guard let manifestData = manifestJSON?.data(using: .utf8) else {
                 return GCDWebServerResponse(statusCode: 404)
             }
+            return GCDWebServerDataResponse(data: manifestData, contentType: type)
         }
         webServer.addHandler(
             forMethod: "GET",
