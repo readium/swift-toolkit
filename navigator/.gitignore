@@ -27,6 +27,16 @@ xcuserdata/
 # OS X Finder
 .DS_Store
 
+## Obj-C/Swift specific
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+## Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
 # Build products
 build/
 *.o
@@ -39,3 +49,7 @@ build/
 *~
 *.dat
 *.dep
+
+# Carthage
+Carthage/Checkouts
+Carthage/Build
