@@ -26,11 +26,11 @@ public enum MediaOverlaysError: Error {
 public class MediaOverlays {
     public var nodes: [MediaOverlayNode]!
 
-    init(withNodes nodes: [MediaOverlayNode] = [MediaOverlayNode]()) {
+    public init(withNodes nodes: [MediaOverlayNode] = [MediaOverlayNode]()) {
         self.nodes = nodes
     }
     
-    internal func append(_ newNode: MediaOverlayNode) {
+    public func append(_ newNode: MediaOverlayNode) {
         nodes.append(newNode)
     }
 

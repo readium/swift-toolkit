@@ -53,7 +53,7 @@ public class MediaOverlayNode {
     /// Return the MO node's fragmentId.
     ///
     /// - Returns: Node's fragment id.
-    internal func fragmentId() -> String? {
+    public func fragmentId() -> String? {
         guard let text = self.text else {
             return nil
         }
@@ -65,7 +65,7 @@ public class MediaOverlayNode {
     /// - Returns: The generated `Clip`.
     /// - Throws: `MediaOverlayNodeError.audio`,
     ///           `MediaOverlayNodeError.timersParsing`.
-    internal func clip() throws -> Clip {
+    public func clip() throws -> Clip {
         var newClip = Clip()
 
         // Retrieve the audioString (containing timers + audiofile url), then

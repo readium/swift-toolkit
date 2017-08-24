@@ -9,7 +9,7 @@
 import Foundation
 
 /// Represents a miscellaneous metadata element.
-open class MetadataItem {
+public class MetadataItem {
     public var property: String?
     public var value: String?
     public var children = [MetadataItem]()

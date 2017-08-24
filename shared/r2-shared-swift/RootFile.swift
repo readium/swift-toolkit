@@ -27,7 +27,7 @@ public struct RootFile {
 
     // MARK: - Public methods.
 
-    init(rootPath: String, rootFilePath: String = "",
+    public init(rootPath: String, rootFilePath: String = "",
          mimetype: String = "", version: Double? = nil)
     {
         self.rootPath = rootPath

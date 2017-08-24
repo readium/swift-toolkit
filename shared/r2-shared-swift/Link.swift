@@ -47,7 +47,7 @@ public class Link {
     /// properties.encrypted is set.
     ///
     /// - Returns: True if encrypted.
-    fileprivate func isEncrypted() -> Bool {
+    public func isEncrypted() -> Bool {
         guard let properties = properties, let _ = properties.encryption else {
             return false
         }

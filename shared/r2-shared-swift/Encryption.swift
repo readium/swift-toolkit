@@ -22,7 +22,7 @@ public struct Encryption {
     /// Identifies the encryption scheme used to encrypt the resource.
     public var scheme: String?
 
-    init() {}
+    public init() {}
 }
 
 extension Encryption: Mappable {
