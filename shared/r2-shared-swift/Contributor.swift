@@ -12,11 +12,11 @@ import ObjectMapper
 /// Generated from <dc:contributor>.
 /// An entity responsible for making contributions to the resource.
 public class Contributor {
-    internal var _name = MultilangString()
+    public var multilangName = MultilangString()
     /// The name of the contributor.
     public var name: String? {
         get {
-            return _name.singleString
+            return multilangName.singleString
         }
     }
     /// TODO.
@@ -35,10 +35,10 @@ extension Contributor: Mappable {
     /// JSON Serialisation function.
     public func mapping(map: Map) {
         // If multiString is not empty, then serialize it.
-        if !_name.multiString.isEmpty {
-            _name.multiString <- map["name"]
+        if !multilangName.multiString.isEmpty {
+            multilangName.multiString <- map["name"]
         } else {
-            var nameForSinglestring = _name.singleString ?? ""
+            var nameForSinglestring = multilangName.singleString ?? ""
 
             nameForSinglestring <- map["name"]
         }

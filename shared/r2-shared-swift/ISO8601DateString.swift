@@ -10,14 +10,14 @@ import Foundation
 
 extension Date {
     /// Computed property turning an ISO8601 Date to a String?.
-    var iso8601: String {
+    public var iso8601: String {
         return Formatter.iso8601.string(from: self)
     }
 }
 
 extension Formatter {
     /// Format from the ISO8601 format to a Date format.
-    static let iso8601: DateFormatter = {
+    public static let iso8601: DateFormatter = {
         let formatter = DateFormatter()
 
         formatter.calendar = Calendar(identifier: .iso8601)
@@ -30,7 +30,7 @@ extension Formatter {
 
 extension String {
     /// Date string (ISO8601) to Date object.
-    var dateFromISO8601: Date? {
+    public var dateFromISO8601: Date? {
         return Formatter.iso8601.date(from: self)   //  2012-01-20T12:47:00Z -> "Mar 22, 2017, 10:22 AM"
     }
 }
