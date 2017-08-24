@@ -22,7 +22,7 @@ It showcase the use of the differents building blocks of Readium-2
 
 ## [Contributors] Targets
 
-The project have 2 main targets, `r2-testapp-swift` and `r2-testapp-swift-DEBUG`, for release and debug.
+The project has 2 main targets, `r2-testapp-swift` and `r2-testapp-swift-DEBUG`, for release and debug.
 
 The release target `r2-testapp-swift` uses the libraries and frameworks built by **Carthage**, while the debug `r2-testapp-swift-DEBUG` can be modified to use local version of  **r2-shared-swift**, **r2-streamer-swift** and **r2-navigator-swift**. The purpose of this is to develop on the streamer/navigator and be able to see the changes directly in the testapp.
 
