@@ -12,11 +12,11 @@ import ObjectMapper
 /// The data representation of the <metadata> element of the ".opf" file.
 public class Metadata {
     /// The structure used for the serialisation.
-    internal var _title: MultilangString?
+    public var multilangTitle: MultilangString?
     /// The title of the publication.
     public var title: String {
         get {
-            return _title?.singleString ?? ""
+            return multilangTitle?.singleString ?? ""
         }
     }
 
@@ -61,7 +61,7 @@ public class Metadata {
     /// - Parameter lang: The string representing the lang e.g. "en", "fr"..
     /// - Returns: The corresponding title String in the `lang`language.
     public func titleForLang(_ lang: String) -> String? {
-        return _title?.multiString[lang]
+        return multilangTitle?.multiString[lang]
     }
 }
 // JSON Serialisation extension.
@@ -71,11 +71,11 @@ extension Metadata: Mappable {
 
         identifier <- map["identifier", ignoreNil: true]
         // If multiString is not empty, then serialize it.
-        if var titlesFromMultistring = _title?.multiString,
+        if var titlesFromMultistring = multilangTitle?.multiString,
             !titlesFromMultistring.isEmpty {
             titlesFromMultistring <- map["title"]
         } else {
-            var titleForSinglestring = _title?.singleString ?? ""
+            var titleForSinglestring = multilangTitle?.singleString ?? ""
 
             titleForSinglestring <- map["title"]
         }
