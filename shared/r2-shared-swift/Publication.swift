@@ -178,7 +178,7 @@ public class Publication {
     /// - Parameters:
     ///   - endPoint: The URI prefix to use to fetch assets from the publication.
     ///   - baseUrl: The base URL of the HTTP server.
-    internal func addSelfLink(endpoint: String, for baseUrl: URL) {
+    public func addSelfLink(endpoint: String, for baseUrl: URL) {
         let publicationURL: URL
         let link = Link()
         let manifestPath = "\(endpoint)/manifest.json"
