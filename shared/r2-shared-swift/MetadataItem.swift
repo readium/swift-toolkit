@@ -14,5 +14,5 @@ public class MetadataItem {
     public var value: String?
     public var children = [MetadataItem]()
 
-    public init()
+    public init() {}
 }
