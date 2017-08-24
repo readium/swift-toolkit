@@ -31,6 +31,8 @@ public struct Properties {
     /// Indicates the condition to be met for the linked resource to be rendered
     /// within a synthetic spread.
     public var spread: String?
+
+    public init() {}
 }
 
 extension Properties: Mappable {
