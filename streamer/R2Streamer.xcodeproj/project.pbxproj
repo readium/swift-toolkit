@@ -291,6 +291,7 @@
 		59501DE91E2FB16600D1B4BF /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				F3723DD41E69D91F0036A075 /* RootFile.swift */,
 				F351DB771E55ED7000D84BDF /* Publication */,
 			);
 			name = Model;
@@ -397,7 +398,6 @@
 			isa = PBXGroup;
 			children = (
 				59501DEA1E2FB16600D1B4BF /* Container.swift */,
-				F3723DD41E69D91F0036A075 /* RootFile.swift */,
 				F351DB731E54B71A00D84BDF /* ContainerEpub.swift */,
 				F351DB711E54B6DB00D84BDF /* ContainerEpubDirectory.swift */,
 				F3D434251E8E9ED0008C379E /* ContainerCbz.swift */,

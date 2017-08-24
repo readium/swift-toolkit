@@ -82,7 +82,7 @@ public class MetadataParser {
         guard let mainTitle = getMainTitleElement(from: titles, metadata) else {
             return multilangTitle
         }
-        multilangTitle.fillMultiString(forElement: mainTitle, metadata)
+        multilangTitle.multiString = multiString(forElement: mainTitle, metadata)
         return multilangTitle
     }
 
@@ -262,7 +262,7 @@ public class MetadataParser {
 
         /// The default title to be returned, the first one, singleString.
         contributor._name.singleString = element.value
-        contributor._name.fillMultiString(forElement: element, metadata)
+        contributor._name.multiString = multiString(forElement: element, metadata)
         // Get role from role attribute
         if let role = element.attributes["opf:role"] {
             contributor.roles.append(role)
@@ -376,5 +376,46 @@ public class MetadataParser {
             allContributors.append(contentsOf: contributorsFromMeta)
         }
         return allContributors
+    }
+
+    /// Return an array of lang:string, defining the multiple representations of
+    /// a string in different languages.
+    ///
+    /// - Parameters:
+    ///   - element: The element to parse (can be a title or a contributor).
+    ///   - metadata: The metadata XML element.
+    private func multiString(forElement element: AEXMLElement,
+                             _ metadata: AEXMLElement) -> [String: String]
+    {
+        var multiString = [String:String]()
+
+        guard let elementId = element.attributes["id"] else {
+            return multiString
+        }
+        // Find the <meta refines="elementId" property="alternate-script">
+        // in order to find the alternative strings, if any.
+        let attr = ["refines": "#\(elementId)", "property": "alternate-script"]
+        guard let altScriptMetas = metadata["meta"].all(withAttributes: attr) else {
+            return multiString
+        }
+        // For each alt meta element.
+        for altScriptMeta in altScriptMetas {
+            // If it have a value then add it to the multiString dictionnary.
+            guard let title = altScriptMeta.value,
+                let lang = altScriptMeta.attributes["xml:lang"] else {
+                    continue
+            }
+            multiString[lang] = title
+        }
+        // If we have 'alternates'...
+        if !multiString.isEmpty {
+            let publicationDefaultLanguage = metadata["dc:language"].value ?? ""
+            let lang = element.attributes["xml:lang"] ?? publicationDefaultLanguage
+            let value = element.value
+
+            // Add the main element to the dictionnary.
+            multiString[lang] = value
+        }
+        return multiString
     }
 }
