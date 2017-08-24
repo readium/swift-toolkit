@@ -6,7 +6,7 @@
 //  Copyright © 2016 Readium. All rights reserved.
 //
 
-import Foundation
+import R2Shared
 
 /// Error throw by the `Fetcher`.
 ///

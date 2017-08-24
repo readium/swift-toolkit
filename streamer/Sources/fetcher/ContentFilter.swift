@@ -6,7 +6,7 @@
 //  Copyright © 2017 Readium. All rights reserved.
 //
 
-import Foundation
+import R2Shared
 
 /// Protocol defining the content filters. They are implemented below and used
 /// in the fetcher. They come in different flavors depending of the container
@@ -180,7 +180,7 @@ internal class ContentFiltersEpub: ContentFilters {
 
         var includes = [String]()
 
-        includes.append("<meta name=\"viewport\" content=\"width=device-width;\"/>\n")
+        includes.append("<meta name=\"viewport\" content=\"width=1024; height=768; left=50%; top=50%; bottom=auto; right=auto; transform=translate(-50%, -50%);\"/>\n")
         /// Readium CSS -- Pagination.
         /// Readium JS.
         // Touch event bubbling.

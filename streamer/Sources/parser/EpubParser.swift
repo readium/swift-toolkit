@@ -6,7 +6,7 @@
 //  Copyright © 2016 Readium. All rights reserved.
 //
 
-import Foundation
+import R2Shared
 import AEXML
 
 /// Epub related constants.

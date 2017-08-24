@@ -6,7 +6,7 @@
 //  Copyright © 2017 Readium. All rights reserved.
 //
 
-import Foundation
+import R2Shared
 import AEXML
 
 /// From IDPF a11y-guidelines content/nav/toc.html :

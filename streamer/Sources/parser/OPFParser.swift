@@ -6,7 +6,7 @@
 //  Copyright © 2017 Readium. All rights reserved.
 //
 
-import Foundation
+import R2Shared
 import AEXML
 
 extension OPFParser: Loggable {}
@@ -65,7 +65,7 @@ public class OPFParser {
         guard let multilangTitle = mp.mainTitle(from: metadataElement) else {
             throw OPFParserError.missingPublicationTitle
         }
-        metadata._title = multilangTitle
+        metadata.multilangTitle = multilangTitle
         // Identifier.
         metadata.identifier = mp.uniqueIdentifier(from: metadataElement,
                                                   with: document.root.attributes)

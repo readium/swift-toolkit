@@ -6,7 +6,7 @@
 //  Copyright © 2017 Readium. All rights reserved.
 //
 
-import Foundation
+import R2Shared
 import AEXML
 
 extension MetadataParser: Loggable {}
@@ -261,8 +261,8 @@ public class MetadataParser {
         let contributor = Contributor()
 
         /// The default title to be returned, the first one, singleString.
-        contributor._name.singleString = element.value
-        contributor._name.multiString = multiString(forElement: element, metadata)
+        contributor.multilangName.singleString = element.value
+        contributor.multilangName.multiString = multiString(forElement: element, metadata)
         // Get role from role attribute
         if let role = element.attributes["opf:role"] {
             contributor.roles.append(role)

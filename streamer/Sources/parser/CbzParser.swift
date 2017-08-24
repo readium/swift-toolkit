@@ -6,7 +6,7 @@
 //  Copyright © 2017 Readium. All rights reserved.
 //
 
-import Foundation
+import R2Shared
 
 /// Errors related to the CBZ publications.
 ///
@@ -42,7 +42,7 @@ public class CbzParser: PublicationParser {
         let container: CbzContainer = try generateContainerFrom(fileAtPath: path)
         let publication = Publication()
 
-        publication.metadata._title = title(from: path)
+        publication.metadata.multilangTitle = title(from: path)
         publication.metadata.identifier = path
         publication.internalData["type"] = "cbz"
         publication.internalData["rootfile"] = container.rootFile.rootFilePath

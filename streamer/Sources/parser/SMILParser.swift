@@ -6,7 +6,7 @@
 //  Copyright © 2017 Readium. All rights reserved.
 //
 
-import Foundation
+import R2Shared
 import AEXML
 
 /// The object containing the methods used to parse SMIL files.
