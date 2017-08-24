@@ -1,9 +1,16 @@
 # r2-shared-swift
+
 Contains the definitions of the custom types (model) used across the readium-2 Swift projects.
 
-## Add this library to your project
-#### Carthage:
-Add the following line to your `Cartfile` : `github "re-shared-swift" ~> 1.1`
+## Adding the library to your iOS project
+
+##### Carthage
+
+Add the following line to your Cartfile
+
+`github "readium/r2-shared-swift"`
+
+Then run `carthage update --platform ios` to fetch and build the dependencies.
 
 ## Installing dependencies (for developers)
 
