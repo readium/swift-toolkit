@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		F3E7D3CD1F4D83B000DF166D /* r2-navigator-swift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D3C31F4D83B000DF166D /* r2-navigator-swift.framework */; };
+		F3E7D3CD1F4D83B000DF166D /* R2NavigatorSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D3C31F4D83B000DF166D /* R2NavigatorSwift.framework */; };
 		F3E7D3D21F4D83B000DF166D /* r2_navigator_swiftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3D11F4D83B000DF166D /* r2_navigator_swiftTests.swift */; };
 		F3E7D3D41F4D83B000DF166D /* r2-navigator-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F3E7D3DE1F4D845B00DF166D /* BinaryLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3DD1F4D845B00DF166D /* BinaryLocation.swift */; };
@@ -15,6 +15,8 @@
 		F3E7D3E21F4D84A000DF166D /* NavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3E11F4D84A000DF166D /* NavigatorViewController.swift */; };
 		F3E7D3E41F4D84DC00DF166D /* TriptychView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3E31F4D84DC00DF166D /* TriptychView.swift */; };
 		F3E7D3E61F4D84EF00DF166D /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3E51F4D84EF00DF166D /* WebView.swift */; };
+		F3E7D42A1F4EE07D00DF166D /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D4291F4EE07D00DF166D /* R2Shared.framework */; };
+		F3E7D42E1F4EE0FE00DF166D /* CbzNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D42D1F4EE0FE00DF166D /* CbzNavigatorViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,7 +30,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		F3E7D3C31F4D83B000DF166D /* r2-navigator-swift.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = "r2-navigator-swift.framework"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F3E7D3C31F4D83B000DF166D /* R2NavigatorSwift.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = R2NavigatorSwift.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "r2-navigator-swift.h"; sourceTree = "<group>"; };
 		F3E7D3C71F4D83B000DF166D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F3E7D3CC1F4D83B000DF166D /* r2-navigator-swiftTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "r2-navigator-swiftTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -39,6 +41,9 @@
 		F3E7D3E11F4D84A000DF166D /* NavigatorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavigatorViewController.swift; sourceTree = "<group>"; };
 		F3E7D3E31F4D84DC00DF166D /* TriptychView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TriptychView.swift; sourceTree = "<group>"; };
 		F3E7D3E51F4D84EF00DF166D /* WebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
+		F3E7D3E81F4DC40900DF166D /* R2Streamer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Streamer.framework; path = Carthage/Build/iOS/R2Streamer.framework; sourceTree = "<group>"; };
+		F3E7D4291F4EE07D00DF166D /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
+		F3E7D42D1F4EE0FE00DF166D /* CbzNavigatorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CbzNavigatorViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -46,6 +51,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F3E7D42A1F4EE07D00DF166D /* R2Shared.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,7 +59,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F3E7D3CD1F4D83B000DF166D /* r2-navigator-swift.framework in Frameworks */,
+				F3E7D3CD1F4D83B000DF166D /* R2NavigatorSwift.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -66,13 +72,14 @@
 				F3E7D3C51F4D83B000DF166D /* r2-navigator-swift */,
 				F3E7D3D01F4D83B000DF166D /* r2-navigator-swiftTests */,
 				F3E7D3C41F4D83B000DF166D /* Products */,
+				F3E7D3E71F4DC40800DF166D /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
 		F3E7D3C41F4D83B000DF166D /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				F3E7D3C31F4D83B000DF166D /* r2-navigator-swift.framework */,
+				F3E7D3C31F4D83B000DF166D /* R2NavigatorSwift.framework */,
 				F3E7D3CC1F4D83B000DF166D /* r2-navigator-swiftTests.xctest */,
 			);
 			name = Products;
@@ -83,11 +90,8 @@
 			children = (
 				F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */,
 				F3E7D3C71F4D83B000DF166D /* Info.plist */,
-				F3E7D3DD1F4D845B00DF166D /* BinaryLocation.swift */,
-				F3E7D3DF1F4D847E00DF166D /* Disjunction.swift */,
-				F3E7D3E11F4D84A000DF166D /* NavigatorViewController.swift */,
-				F3E7D3E31F4D84DC00DF166D /* TriptychView.swift */,
-				F3E7D3E51F4D84EF00DF166D /* WebView.swift */,
+				F3E7D42C1F4EE0DB00DF166D /* CBZ */,
+				F3E7D42B1F4EE0D200DF166D /* EPUB */,
 			);
 			path = "r2-navigator-swift";
 			sourceTree = "<group>";
@@ -99,6 +103,35 @@
 				F3E7D3D31F4D83B000DF166D /* Info.plist */,
 			);
 			path = "r2-navigator-swiftTests";
+			sourceTree = "<group>";
+		};
+		F3E7D3E71F4DC40800DF166D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F3E7D4291F4EE07D00DF166D /* R2Shared.framework */,
+				F3E7D3E81F4DC40900DF166D /* R2Streamer.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		F3E7D42B1F4EE0D200DF166D /* EPUB */ = {
+			isa = PBXGroup;
+			children = (
+				F3E7D3DD1F4D845B00DF166D /* BinaryLocation.swift */,
+				F3E7D3DF1F4D847E00DF166D /* Disjunction.swift */,
+				F3E7D3E11F4D84A000DF166D /* NavigatorViewController.swift */,
+				F3E7D3E31F4D84DC00DF166D /* TriptychView.swift */,
+				F3E7D3E51F4D84EF00DF166D /* WebView.swift */,
+			);
+			name = EPUB;
+			sourceTree = "<group>";
+		};
+		F3E7D42C1F4EE0DB00DF166D /* CBZ */ = {
+			isa = PBXGroup;
+			children = (
+				F3E7D42D1F4EE0FE00DF166D /* CbzNavigatorViewController.swift */,
+			);
+			name = CBZ;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -130,7 +163,7 @@
 			);
 			name = "r2-navigator-swift";
 			productName = "r2-navigator-swift";
-			productReference = F3E7D3C31F4D83B000DF166D /* r2-navigator-swift.framework */;
+			productReference = F3E7D3C31F4D83B000DF166D /* R2NavigatorSwift.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 		F3E7D3CB1F4D83B000DF166D /* r2-navigator-swiftTests */ = {
@@ -216,6 +249,7 @@
 			files = (
 				F3E7D3E21F4D84A000DF166D /* NavigatorViewController.swift in Sources */,
 				F3E7D3E61F4D84EF00DF166D /* WebView.swift in Sources */,
+				F3E7D42E1F4EE0FE00DF166D /* CbzNavigatorViewController.swift in Sources */,
 				F3E7D3E01F4D847E00DF166D /* Disjunction.swift in Sources */,
 				F3E7D3DE1F4D845B00DF166D /* BinaryLocation.swift in Sources */,
 				F3E7D3E41F4D84DC00DF166D /* TriptychView.swift in Sources */,
@@ -286,6 +320,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -333,6 +368,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_NAME = "";
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -352,11 +388,15 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = "r2-navigator-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-navigator-swift";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = R2NavigatorSwift;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 3.0;
@@ -373,11 +413,15 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = "r2-navigator-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-navigator-swift";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = R2NavigatorSwift;
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 3.0;
 			};
