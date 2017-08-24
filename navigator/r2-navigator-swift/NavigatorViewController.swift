@@ -8,7 +8,7 @@
 //
 
 import UIKit
-import R2Streamer
+import R2Shared
 import WebKit
 
 public protocol NavigatorDelegate: class {
