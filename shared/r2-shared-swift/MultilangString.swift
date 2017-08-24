@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension MultilangString: Loggable {}
+extension MultilangString {}
 
 /// `MultilangString` is designed to containe : a`singleString` (the
 /// mainTitle) and possiby a `multiString` (the mainTitle + the altTitles).
