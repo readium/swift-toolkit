@@ -4,17 +4,21 @@
 A test app for the Swift implementation of Readium-2.
 It showcase the use of the differents building blocks of Readium-2
 
-- [r2-shared-swift](https://github.com/readium/r2-shared-swift)
-- [r2-streamer-swift](https://github.com/readium/r2-streamer-swift/blob/master/README.md)
-- [r2-navigator-swift](https://github.com/readium/r2-navigator-swift/blob/master/README.md)
+- [r2-shared-swift](https://github.com/readium/r2-shared-swift) (Model, shared for both streamer and navigator)
+- [r2-streamer-swift](https://github.com/readium/r2-streamer-swift/blob/master/README.md) (The parser/server)
+- [r2-navigator-swift](https://github.com/readium/r2-navigator-swift/blob/master/README.md) (The bare ViewControllers for displaying parsed resources)
 
-## Install
+## Install and run the testapp
 
 1) Fetch the dependencies using [Carthage](https://github.com/Carthage/Carthage) : 
 
 `$> carthage update --platform ios`
 
-2) Open the `.xcodeproj` file and build the project.
+2) Open the xCode project :
+
+`$> open r2-testapp-swift.xcodeproj`
+
+3) Build the project target named `r2-testapp-swift`.
 
 ## [Contributors] Targets
 
