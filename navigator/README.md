@@ -7,6 +7,6 @@ A Swift implementation of the Readium-2 streamer
 
 The project dependencies are managed with [Carthage](https://github.com/Carthage/Carthage). 
 
-Run `carthage update --platform ios` to fetch and build the dependencies.
+Run `carthage update --platform ios` to fetch and build the dependencies:
 
-- [r2-streamer-swift](https://github.com/readium/r2-streamer-swift) : The Readium2 Swift Server parsing and serving the publications.
+  - [r2-shared-swift](https://github.com/readium/r2-shared-swift) : Contains the definitions of shared custom types used across the readium-2 Swift projects.
