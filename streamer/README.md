@@ -131,11 +131,10 @@ Supported formats:
 ## Dependencies
 
 The project dependencies are managed with [Carthage](https://github.com/Carthage/Carthage).
-You need to run `carthage update (--platform ios)` to install them.
+Run carthage update --platform ios to fetch and build the dependencies:
 
-Using:
+- [r2-shared-swift](https://github.com/readium/r2-shared-swift) : Contains the definitions of shared custom types used across the readium-2 Swift projects.
 - [swisspol/GCDWebServer](https://github.com/swisspol/GCDWebServer) A modern and lightweight GCD based HTTP 1.1 server designed to be embedded in OS X & iOS apps.
-- [Hearst-DD/ObjectMapper](https://github.com/Hearst-DD/ObjectMapper) A framework written in Swift that makes it easy to convert your model objects (classes and structs) to and from JSON.
 - [tadija/AEXML](https://github.com/tadija/AEXML) Simple and lightweight XML parser written in Swift.
 - [krzyzanowskim/CryptoSwift](https://github.com/krzyzanowskim/CryptoSwift) Crypto related functions and helpers for Swift implemented in Swift.
 
