@@ -20,8 +20,6 @@ It showcase the use of the differents building blocks of Readium-2
 
 3) Build the project target named `r2-testapp-swift`.
 
-
-
 ## [@Contributors] Efficient workflow for testing changes on Readium-2
 
 The release target `r2-testapp-swift` uses the libraries and frameworks built by **Carthage**, while the debug `r2-testapp-swift-DEBUG` can be modified to use local version of  **r2-shared-swift**, **r2-streamer-swift** and **r2-navigator-swift** depending of which you want to modify. Doing so will allow you to see the changes directly in the testapp, without the need for a Carthage cycle.
