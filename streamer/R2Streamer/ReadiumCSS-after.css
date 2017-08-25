@@ -1,0 +1,476 @@
+/* Pagination */
+
+:root {
+  /* Your columns’ width floor */
+  --RS__colWidth: 30em;
+  /* Ideal number of columns (depending on columns’ width floor) */
+  --RS__colCount: 2; /* Can be undefined */
+  /* Gap between columns (in pixels so that it won’t resize with font-size) */
+  --RS__colGap: 0px;
+  /* Default page horizontal margins (in pixels so that it won’t resize with font-size) */
+  --RS__pageGutter: 20px; /* See if colGap and pageGutter can be the same var */
+  /* Optimal line-length (rem will take :root font-size into account, whatever the body’s font-size) */
+  --RS__maxLineLength: 40rem;
+}
+
+/* Reset page margins for Forward compatibility */
+@page {
+  margin: 0 !important;
+}
+
+/* :root selector has same specificity as a class i.e. 0010
+   We might have to change that to html / context 
+   -> https://css-tricks.com/almanac/selectors/r/root/ */
+:root {
+  /* Prevents options pop-up when long tap in webkit */
+  -webkit-touch-callout: none;
+
+  /* Fix bug for older Chrome */
+  -webkit-perspective: 1;
+
+  /* Column size will depend on this if we want to make it responsive */
+  font-size: 100% !important;
+
+  /* In case you use left position to scroll, can be removed if using transform: translateX() */
+  position: relative;
+
+  /* Switch to newer box model (not inherited by authors’ styles) */
+  box-sizing: border-box;
+  width: 100%;
+  height: 100vh;
+  margin: 0 !important;
+  padding: 0 !important;
+
+  /* Init pagination */
+  /* TODO: document columns’ logic cos it might feel weird at first */
+  -webkit-column-count: var(--RS__colCount);
+  -moz-column-count: var(--RS__colCount);
+  column-count: var(--RS__colCount);
+
+  -webkit-column-width: var(--RS__colWidth);
+  -moz-column-width: var(--RS__colWidth);
+  column-width: var(--RS__colWidth);
+
+  -webkit-column-gap: var(--RS__colGap);
+  -moz-column-gap: var(--RS__colGap);
+  column-gap: var(--RS__colGap);
+
+  /* Default is balance and we want columns to be filled entirely (100vh) */
+  -moz-column-fill: auto;
+  column-fill: auto;
+
+  -webkit-text-size-adjust: 100%;
+
+  /* Since columns do their thing at the browser level, 
+  provide a variable to check if there is 1 or 2 columns */
+  --RS__currentColNumber: 1;
+}
+
+body {
+/*  overflow: hidden; bugfix: contents won’t paginate in Firefox and one sample in Safari */
+  width: 100%;
+
+  /* Limit line-length but we have to reset when 2 columns and control the viewport.
+     By using max-width + margin auto, margins will shrink when font-size increases,
+     which is what would be expected in terms of typography. */
+  /* TODO: some authors might have a max-width declared already, see how we can deal with it. */
+  max-width: var(--RS__maxLineLength) !important;
+  margin: 0 auto !important;
+
+  /* We need a minimum padding on body so that descandants/ascendants in italic/script are not cut-off.
+     It also serves as a margin on small screens.
+     Drawback: we have to use border-box so that it doesn’t screw the box model,
+     which means it impacts colWidth and max-width */
+  box-sizing: border-box;
+  padding: 0 var(--RS__pageGutter) !important;
+}
+
+/* If viewport can fit 2 columns (+ colGap) */
+@media screen and (min-width: 61.5em) {
+  :root {
+    --RS__maxLineLength: none; /* Reset max-width */
+    --RS__colGap: 0px;
+    --RS__pageGutter: 50px;
+    
+    --RS__currentColNumber: 2;
+  }
+}
+
+/* Scroll */
+
+:root[style*="--USER__scroll"] {
+  /* Reset html size so that the user can scroll */
+  width: auto !important;
+  height: auto !important;
+
+  /* Reset columns, auto + auto = columns can’t be created */
+  -webkit-columns: auto auto !important;
+  -moz-columns: auto auto !important;
+  columns: auto auto !important;
+
+  --RS__currentColNumber: 0;
+}
+
+/* TODO: Enforce max-width for body, no matter which media query overrides it in pagination */
+:root[style*="--USER__scroll"] body {
+  max-width: var(--RS__maxLineLength) !important;
+}
+
+/* Scroll mode horizontal */
+
+/* Vertical writing needs body height set */
+
+/* Do we add a top/bottom margin for body in vertical scroll or not? */
+
+/* Highlights */
+
+.readiumCSS-yellow-highlight {
+  background-color: rgba(255, 255, 0, 0.5);
+}
+
+.readiumCSS-green-highlight {
+  background-color: rgba(0, 255, 0, 0.5);
+}
+
+.readiumCSS-orange-highlight {
+  background-color: rgba(255, 165, 0, 0.5);
+}
+
+.readiumCSS-pink-highlight {
+  background-color: rgba(255, 105, 180, 0.5);
+}
+
+/* Media overlays */
+
+.readiumCSS-mo-active-default {
+  background-color: yellow !important;
+  color: black !important;
+}
+
+/* Modes */
+
+/* Inverted - night */
+
+:root[style*="--USER__night"] {
+  --THEME__backgroundColor: #000000;
+  --THEME__textColor: #FEFEFE;
+
+  --THEME__linkColor: #63caff;
+  --THEME__visitedColor: #0099E5;
+}
+
+:root[style*="--USER__night"] {
+  background-color: var(--THEME__backgroundColor) !important;
+  color: var(--THEME__textColor) !important;
+}
+
+:root[style*="--USER__night"] *:not(a) {
+  background-color: transparent !important;
+  color: inherit !important;
+  border-color: currentColor !important;
+}
+
+:root[style*="--USER__night"] svg text {
+  fill: currentColor !important;
+  stroke: none !important;
+}
+
+:root[style*="--USER__night"] a:link,
+:root[style*="--USER__night"] a:link * {
+  color: var(--THEME__linkColor) !important;
+}
+
+:root[style*="--USER__night"] a:visited,
+:root[style*="--USER__night"] a:visited * {
+  color: var(--THEME__visitedColor) !important;
+}
+
+:root[style*="--USER__night"] img[class*="gaiji"],
+:root[style*="--USER__night"] *[epub\:type~="titlepage"] img {
+  -webkit-filter: invert(100%);
+  filter: invert(100%);
+}
+
+/* Darken all images on user’s demand */
+:root[style*="--USER__night"][style*="--USER__darkenImages"] img {
+  -webkit-filter: brightness(80%);
+  filter: brightness(80%);
+}
+
+/* Invert all images on user’s demand */
+:root[style*="--USER__night"][style*="--USER__invertImages"] img {
+  -webkit-filter: invert(100%);
+  filter: invert(100%);
+}
+
+/* Darken and invert on user’s demand */
+:root[style*="--USER__night"][style*="--USER__darkenImages"][style*="--USER__invertImages"] img {
+  -webkit-filter: brightness(80%) invert(100%);
+  filter: brightness(80%) invert(100%);
+}
+
+/* Light - sepia */
+
+:root[style*="--USER__sepia"] {
+  --THEME__backgroundColor: #faf4e8;
+  --THEME__textColor: #121212;
+
+  --THEME__linkColor: #0000EE;
+  --THEME__visitedColor: #551A8B;
+}
+
+:root[style*="--USER__sepia"] {
+  background: var(--THEME__backgroundColor) !important;
+  color: var(--THEME__textColor) !important;
+}
+
+:root[style*="--USER__sepia"] body {
+  background-color: transparent;
+  color: inherit;
+}
+
+:root[style*="--USER__sepia"] a:link,
+:root[style*="--USER__sepia"] a:link * {
+  color: var(--THEME__linkColor);
+}
+
+:root[style*="--USER__sepia"] a:visited,
+:root[style*="--USER__sepia"] a:visited * {
+  color: var(--THEME__visitedColor);
+}
+
+/* Disable for proto as there are hardware-, platform- and browser-specific bugs (some or all images won’t render in Blink/Webkit)  
+:root[style*="--USER__sepia"] svg,
+:root[style*="--USER__sepia"] img {
+  mix-blend-mode: multiply;
+}
+*/
+
+/* User Settings */
+
+/* Variables are added to html (setProperty -> style) */
+
+/* Number of columns = 1 | 2 */
+
+:root[style*="--USER__colNumber"] {
+  -webkit-column-count: var(--USER__colNumber);
+  -moz-column-count: var(--USER__colNumber);
+  column-count: var(--USER__colNumber);
+}
+
+:root[style*="--USER__colNumber: 1"] body,
+:root[style*="--USER__colNumber:1"] body {
+  max-width: var(--RS__maxLineLength);
+
+  --RS__currentColNumber: 1;
+}
+
+:root[style*="--USER__colNumber: 2"],
+:root[style*="--USER__colNumber:2"] {
+  -webkit-column-width: auto;
+  -moz-column-width: auto;
+  column-width: auto;
+
+  --RS__currentColNumber: 2;
+}
+
+/* Page Margins */
+
+:root[style*="--USER__pageMargins"] body {
+  padding: 0 var(--USER__pageMargins) !important;
+}
+
+/* Colors */
+
+:root[style*="--USER__backgroundColor"] {
+  background-color: var(--USER__backgroundColor) !important;
+}
+
+:root[style*="--USER__backgroundColor"] *,
+:root[style*="background-color"] * {
+  background-color: transparent !important;
+}
+
+:root[style*="--USER__textColor"] {
+  color: var(--USER__textColor) !important;
+}
+
+:root[style*="--USER__textColor"] *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(pre),
+:root[style*="color"] *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(pre) {
+  color: inherit !important;
+}
+
+/* Night mode is another stylesheet */
+
+/* Sepia Mode is another stylesheet */
+
+/* Text Align */
+
+:root[style*="--USER__textAlign"] {
+  text-align: var(--USER__textAlign);
+}
+
+:root[style*="--USER__textAlign"] body, :root[style*="text-align"] body,
+:root[style*="--USER__textAlign"] *:not(blockquote):not(figcaption) p, :root[style*="text-align"] *:not(blockquote):not(figcaption) p, 
+:root[style*="--USER__textAlign"] li, :root[style*="text-align"] li {
+  text-align: inherit !important;
+  -moz-text-align-last: auto !important;
+  -epub-text-align-last: auto !important;
+  text-align-last: auto !important;
+}
+
+/* Hyphens (none | auto) */
+
+:root[style*="--USER__bodyHyphens"] {
+  -webkit-hyphens: var(--USER__bodyHyphens) !important;
+  -moz-hyphens: var(--USER__bodyHyphens) !important;
+  -ms-hyphens: var(--USER__bodyHyphens) !important;
+  -epub-hyphens: var(--USER__bodyHyphens) !important;
+  hyphens: var(--USER__bodyHyphens) !important;
+}
+
+/* Sorry, we can’t use `:matches`, `:-moz-any` or `:-webkit-any` because MS doesn’t support it yet */
+:root[style*="--USER__bodyHyphens"] body, :root[style*="hyphens"] body,
+:root[style*="--USER__bodyHyphens"] p, :root[style*="hyphens"] p,
+:root[style*="--USER__bodyHyphens"] li, :root[style*="hyphens"] li,
+:root[style*="--USER__bodyHyphens"] div, :root[style*="hyphens"] div,
+:root[style*="--USER__bodyHyphens"] dd, :root[style*="hyphens"] dd {
+  -webkit-hyphens: inherit;
+  -moz-hyphens: inherit;
+  -ms-hyphens: inherit;
+  -epub-hyphens: inherit;
+  hyphens: inherit;
+}
+
+/* Prevent hyphens in inline code */
+:root[style*="--USER__bodyHyphens"] code, :root[style*="hyphens"] code,
+:root[style*="--USER__bodyHyphens"] var, :root[style*="hyphens"] var {
+  -webkit-hyphens: none;
+  -moz-hyphens: none;
+  -ms-hyphens: none;
+  -epub-hyphens: none;
+  hyphens: none;
+}
+
+/* Font family (typeface) */
+
+:root[style*="--USER__fontFamily"] {
+  font-family: var(--USER__fontFamily) !important;
+}
+
+:root[style*="--USER__fontFamily"] body, :root[style*="font-family"] body,
+:root[style*="--USER__fontFamily"] p, :root[style*="font-family"] p,
+:root[style*="--USER__fontFamily"] li, :root[style*="font-family"] li,
+:root[style*="--USER__fontFamily"] div, :root[style*="font-family"] div,
+:root[style*="--USER__fontFamily"] dt, :root[style*="font-family"] dt,
+:root[style*="--USER__fontFamily"] dd, :root[style*="font-family"] dd,
+:root[style*="--USER__fontFamily"] i:not(:lang), :root[style*="font-family"] i:not(:lang),
+:root[style*="--USER__fontFamily"] em:not(:lang), :root[style*="font-family"] em:not(:lang),
+:root[style*="--USER__fontFamily"] cite:not(:lang), :root[style*="font-family"] cite:not(:lang),
+:root[style*="--USER__fontFamily"] b:not(:lang), :root[style*="font-family"] b:not(:lang),
+:root[style*="--USER__fontFamily"] strong:not(:lang), :root[style*="font-family"] strong:not(:lang),
+:root[style*="--USER__fontFamily"] span:not(:lang), :root[style*="font-family"] span:not(:lang) {
+  font-family: inherit !important;
+}
+
+/* Font size */
+
+:root[style*="--USER__fontSize"] {
+  font-size: var(--USER__fontSize) !important;
+}
+
+/* Line height */
+
+:root[style*="--USER__lineHeight"] {
+  line-height: var(--USER__lineHeight) !important;
+}
+
+:root[style*="--USER__lineHeight"] body, :root[style*="line-height"] body,
+:root[style*="--USER__lineHeight"] p, :root[style*="line-height"] p,
+:root[style*="--USER__lineHeight"] li, :root[style*="line-height"] li,
+:root[style*="--USER__lineHeight"] div, :root[style*="line-height"] div {
+  line-height: inherit;
+}
+
+/* Para spacing (paragraphs’ vertical margins) */
+
+:root[style*="--USER__paraSpacing"] p {
+  margin-top: var(--USER__paraSpacing) !important;
+  margin-bottom: var(--USER__paraSpacing) !important;
+}
+
+/* Para indent (text indent) */
+
+:root[style*="--USER__paraIndent"] p {
+  text-indent: var(--USER__paraIndent) !important;
+}
+
+/* Word spacing and letter spacing */
+
+:root[style*="--USER__wordSpacing"] h1,
+:root[style*="--USER__wordSpacing"] h2,
+:root[style*="--USER__wordSpacing"] h3,
+:root[style*="--USER__wordSpacing"] h4,
+:root[style*="--USER__wordSpacing"] h5,
+:root[style*="--USER__wordSpacing"] h6,
+:root[style*="--USER__wordSpacing"] p,
+:root[style*="--USER__wordSpacing"] li,
+:root[style*="--USER__wordSpacing"] div {
+  word-spacing: var(--USER__wordSpacing);
+}
+
+:root[style*="--USER__letterSpacing"] h1,
+:root[style*="--USER__letterSpacing"] h2,
+:root[style*="--USER__letterSpacing"] h3,
+:root[style*="--USER__letterSpacing"] h4,
+:root[style*="--USER__letterSpacing"] h5,
+:root[style*="--USER__letterSpacing"] h6,
+:root[style*="--USER__letterSpacing"] p,
+:root[style*="--USER__letterSpacing"] li,
+:root[style*="--USER__letterSpacing"] div {
+  letter-spacing: var(--USER__letterSpacing);
+  font-variant: none;
+}
+
+/* Normalize */
+
+:root[style*="--USER__typeScale"] p,
+:root[style*="--USER__typeScale"] li,
+:root[style*="--USER__typeScale"] div,
+:root[style*="--USER__typeScale"] pre,
+:root[style*="--USER__typeScale"] dd {
+  font-size: 1rem !important;
+}
+
+:root[style*="--USER__typeScale"] h1 {
+  /* Fallback if browser doesn’t support vars */
+  font-size: 1.75rem !important;
+  font-size: calc(((1rem * var(--USER__typeScale, 1.2)) * var(--USER__typeScale, 1.2)) * var(--USER__typeScale, 1.2)) !important;
+}
+
+:root[style*="--USER__typeScale"] h2 {
+  /* Fallback if browser doesn’t support vars */
+  font-size: 1.5rem !important;
+  font-size: calc((1rem * var(--USER__typeScale, 1.2)) * var(--USER__typeScale, 1.2)) !important;
+}
+
+:root[style*="--USER__typeScale"] h3 {
+  /* Fallback if browser doesn’t support vars */
+  font-size: 1.25rem !important;
+  font-size: calc(1rem * var(--USER__typeScale, 1.2)) !important;
+}
+
+:root[style*="--USER__typeScale"] h4,
+:root[style*="--USER__typeScale"] h5,
+:root[style*="--USER__typeScale"] h6 {
+  font-size: 1rem !important;
+}
+
+:root[style*="--USER__typeScale"] small {
+  font-size: smaller !important;
+}
+
+:root[style*="--USER__typeScale"] sub,
+:root[style*="--USER__typeScale"] sup {
+  font-size: 67.5% !important;
+}

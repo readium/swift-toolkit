@@ -127,33 +127,29 @@ internal class ContentFiltersEpub: ContentFilters {
         guard var resourceHtml = String.init(data: data, encoding: String.Encoding.utf8) else {
             return stream
         }
-        guard let endHeadIndex = resourceHtml.startIndex(of: "</head>") else {
+        // Inserting at the start of <HEAD>.
+        guard let headStart = resourceHtml.endIndex(of: "<head>") else {
             print("Invalid resource")
             abort()
         }
+        let cssBefore = getHtmlLink(forRessource: "\(baseUrl)styles/ReadiumCSS-before.css")
+        let viewport = "<meta name=\"viewport\" content=\"width=device-width, height=device-height, initial-scale=1.0;\"/>\n"
 
-        var includes = [String]()
+        resourceHtml = resourceHtml.insert(string: cssBefore, at: headStart)
+        resourceHtml = resourceHtml.insert(string: viewport, at: headStart)
 
-        includes.append("<meta name=\"viewport\" content=\"width=device-width, height=device-height, initial-scale=1.0;\"/>\n")
-        /// Readium CSS -- Pagination.
-        // HTML5 patches.
-        includes.append(getHtmlLink(forRessource: "\(baseUrl)styles/html5patch.css"))
-        //  Pagination configurations.
-        includes.append(getHtmlLink(forRessource: "\(baseUrl)styles/pagination.css"))
-        // -
-        includes.append(getHtmlLink(forRessource: "\(baseUrl)styles/safeguards.css"))
-        /// Readium CSS -- Styles.
-        // Base style, active in every resources.
-        includes.append(getHtmlLink(forRessource: "\(baseUrl)styles/readiumCSS-base.css"))
-        /// Readium JS.
-        // Touch event bubbling.
-        includes.append(getHtmlScript(forRessource: "\(baseUrl)scripts/touchHandling.js"))
-        // Misc JS utils.
-        includes.append(getHtmlScript(forRessource: "\(baseUrl)scripts/utils.js"))
-
-        for element in includes {
-            resourceHtml = resourceHtml.insert(string: element, at: endHeadIndex) 
+        // Inserting at the end of <HEAD>.
+        guard let headEnd = resourceHtml.startIndex(of: "</head>") else {
+            print("Invalid resource")
+            abort()
         }
+        let cssAfter = getHtmlLink(forRessource: "\(baseUrl)styles/ReadiumCSS-after.css")
+        let scriptTouchHandling = getHtmlScript(forRessource: "\(baseUrl)scripts/touchHandling.js")
+        let scriptUtils = getHtmlScript(forRessource: "\(baseUrl)scripts/utils.js")
+
+        resourceHtml = resourceHtml.insert(string: cssAfter, at: headEnd)
+        resourceHtml = resourceHtml.insert(string: scriptTouchHandling, at: headEnd)
+        resourceHtml = resourceHtml.insert(string: scriptUtils, at: headEnd)
 
         let enhancedData = resourceHtml.data(using: String.Encoding.utf8)
         let enhancedStream = DataInputStream(data: enhancedData!)
