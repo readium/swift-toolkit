@@ -107,7 +107,7 @@
 		59501DCD1E2FB0D700D1B4BF /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		59501DD01E2FB0D700D1B4BF /* R2Streamer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = R2Streamer.h; sourceTree = "<group>"; };
 		59501DD11E2FB0D700D1B4BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		59501DD61E2FB0D700D1B4BF /* R2StreamerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = R2StreamerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		59501DD61E2FB0D700D1B4BF /* r2-streamer-swiftTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "r2-streamer-swiftTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		59501DDD1E2FB0D700D1B4BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		59501DE81E2FB16600D1B4BF /* Fetcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Fetcher.swift; sourceTree = "<group>"; };
 		59501DEA1E2FB16600D1B4BF /* Container.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Container.swift; sourceTree = "<group>"; };
@@ -211,7 +211,7 @@
 			isa = PBXGroup;
 			children = (
 				59501DCD1E2FB0D700D1B4BF /* R2Streamer.framework */,
-				59501DD61E2FB0D700D1B4BF /* R2StreamerTests.xctest */,
+				59501DD61E2FB0D700D1B4BF /* r2-streamer-swiftTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -411,9 +411,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		59501DCC1E2FB0D700D1B4BF /* R2Streamer */ = {
+		59501DCC1E2FB0D700D1B4BF /* r2-streamer-swift */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 59501DE11E2FB0D700D1B4BF /* Build configuration list for PBXNativeTarget "R2Streamer" */;
+			buildConfigurationList = 59501DE11E2FB0D700D1B4BF /* Build configuration list for PBXNativeTarget "r2-streamer-swift" */;
 			buildPhases = (
 				59501DC81E2FB0D700D1B4BF /* Sources */,
 				59501DC91E2FB0D700D1B4BF /* Frameworks */,
@@ -425,14 +425,14 @@
 			);
 			dependencies = (
 			);
-			name = R2Streamer;
+			name = "r2-streamer-swift";
 			productName = R2Streamer;
 			productReference = 59501DCD1E2FB0D700D1B4BF /* R2Streamer.framework */;
 			productType = "com.apple.product-type.framework";
 		};
-		59501DD51E2FB0D700D1B4BF /* R2StreamerTests */ = {
+		59501DD51E2FB0D700D1B4BF /* r2-streamer-swiftTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 59501DE41E2FB0D700D1B4BF /* Build configuration list for PBXNativeTarget "R2StreamerTests" */;
+			buildConfigurationList = 59501DE41E2FB0D700D1B4BF /* Build configuration list for PBXNativeTarget "r2-streamer-swiftTests" */;
 			buildPhases = (
 				59501DD21E2FB0D700D1B4BF /* Sources */,
 				59501DD31E2FB0D700D1B4BF /* Frameworks */,
@@ -444,9 +444,9 @@
 			dependencies = (
 				59501DD91E2FB0D700D1B4BF /* PBXTargetDependency */,
 			);
-			name = R2StreamerTests;
+			name = "r2-streamer-swiftTests";
 			productName = R2StreamerTests;
-			productReference = 59501DD61E2FB0D700D1B4BF /* R2StreamerTests.xctest */;
+			productReference = 59501DD61E2FB0D700D1B4BF /* r2-streamer-swiftTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -471,7 +471,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 59501DC71E2FB0D700D1B4BF /* Build configuration list for PBXProject "R2Streamer" */;
+			buildConfigurationList = 59501DC71E2FB0D700D1B4BF /* Build configuration list for PBXProject "r2-streamer-swift" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -483,8 +483,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				59501DCC1E2FB0D700D1B4BF /* R2Streamer */,
-				59501DD51E2FB0D700D1B4BF /* R2StreamerTests */,
+				59501DCC1E2FB0D700D1B4BF /* r2-streamer-swift */,
+				59501DD51E2FB0D700D1B4BF /* r2-streamer-swiftTests */,
 			);
 		};
 /* End PBXProject section */
@@ -592,7 +592,7 @@
 /* Begin PBXTargetDependency section */
 		59501DD91E2FB0D700D1B4BF /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 59501DCC1E2FB0D700D1B4BF /* R2Streamer */;
+			target = 59501DCC1E2FB0D700D1B4BF /* r2-streamer-swift */;
 			targetProxy = 59501DD81E2FB0D700D1B4BF /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -718,7 +718,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2Streamer;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = R2Streamer;
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 3.0;
 			};
@@ -744,7 +744,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2Streamer;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = R2Streamer;
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 3.0;
 			};
@@ -789,7 +789,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		59501DC71E2FB0D700D1B4BF /* Build configuration list for PBXProject "R2Streamer" */ = {
+		59501DC71E2FB0D700D1B4BF /* Build configuration list for PBXProject "r2-streamer-swift" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				59501DDF1E2FB0D700D1B4BF /* Debug */,
@@ -798,7 +798,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		59501DE11E2FB0D700D1B4BF /* Build configuration list for PBXNativeTarget "R2Streamer" */ = {
+		59501DE11E2FB0D700D1B4BF /* Build configuration list for PBXNativeTarget "r2-streamer-swift" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				59501DE21E2FB0D700D1B4BF /* Debug */,
@@ -807,7 +807,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		59501DE41E2FB0D700D1B4BF /* Build configuration list for PBXNativeTarget "R2StreamerTests" */ = {
+		59501DE41E2FB0D700D1B4BF /* Build configuration list for PBXNativeTarget "r2-streamer-swiftTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				59501DE51E2FB0D700D1B4BF /* Debug */,
