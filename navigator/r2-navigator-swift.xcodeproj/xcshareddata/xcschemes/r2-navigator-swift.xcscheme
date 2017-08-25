@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "F3E7D3C21F4D83B000DF166D"
-               BuildableName = "r2-navigator-swift.framework"
+               BuildableName = "R2Navigator.framework"
                BlueprintName = "r2-navigator-swift"
                ReferencedContainer = "container:r2-navigator-swift.xcodeproj">
             </BuildableReference>
@@ -43,7 +43,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "F3E7D3C21F4D83B000DF166D"
-            BuildableName = "r2-navigator-swift.framework"
+            BuildableName = "R2Navigator.framework"
             BlueprintName = "r2-navigator-swift"
             ReferencedContainer = "container:r2-navigator-swift.xcodeproj">
          </BuildableReference>
@@ -65,7 +65,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "F3E7D3C21F4D83B000DF166D"
-            BuildableName = "r2-navigator-swift.framework"
+            BuildableName = "R2Navigator.framework"
             BlueprintName = "r2-navigator-swift"
             ReferencedContainer = "container:r2-navigator-swift.xcodeproj">
          </BuildableReference>
@@ -83,7 +83,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "F3E7D3C21F4D83B000DF166D"
-            BuildableName = "r2-navigator-swift.framework"
+            BuildableName = "R2Navigator.framework"
             BlueprintName = "r2-navigator-swift"
             ReferencedContainer = "container:r2-navigator-swift.xcodeproj">
          </BuildableReference>
