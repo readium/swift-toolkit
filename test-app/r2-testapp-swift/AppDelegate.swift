@@ -80,7 +80,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // When logic is done.
         defer {
             let alert = UIAlertController(title: alertTitle, message: alertMessage, preferredStyle: .alert)
-            let dismissButton = UIAlertAction(title: "dismiss", style: .default)
+            let dismissButton = UIAlertAction(title: "OK", style: .cancel)
 
             alert.addAction(dismissButton)
             // Update library publications.
