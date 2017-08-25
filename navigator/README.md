@@ -14,6 +14,16 @@ Add the following line to your Cartfile
 
 Then run `carthage update --platform ios` to fetch and build the dependencies.
 
+##### Import
+
+In your Swift files :
+
+```Swift
+// Swift source file
+
+import R2Navigator
+```
+
 ## Installing dependencies (for developers)
 
 The project dependencies are managed with [Carthage](https://github.com/Carthage/Carthage). 
