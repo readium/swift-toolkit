@@ -98,7 +98,7 @@ body {
 
 /* Scroll */
 
-:root[style*="--USER__scroll"] {
+:root[style*="--USER__scroll"][style*="readium-scroll-on"] {
   /* Reset html size so that the user can scroll */
   width: auto !important;
   height: auto !important;
@@ -112,7 +112,7 @@ body {
 }
 
 /* TODO: Enforce max-width for body, no matter which media query overrides it in pagination */
-:root[style*="--USER__scroll"] body {
+:root[style*="--USER__scroll"][style*="readium-scroll-on"] body {
   max-width: var(--RS__maxLineLength) !important;
 }
 
@@ -151,7 +151,7 @@ body {
 
 /* Inverted - night */
 
-:root[style*="--USER__night"] {
+:root[style*="--USER__appearance"][style*="readium-night"] {
   --THEME__backgroundColor: #000000;
   --THEME__textColor: #FEFEFE;
 
@@ -159,59 +159,59 @@ body {
   --THEME__visitedColor: #0099E5;
 }
 
-:root[style*="--USER__night"] {
+:root[style*="--USER__appearance"][style*="readium-night"] {
   background-color: var(--THEME__backgroundColor) !important;
   color: var(--THEME__textColor) !important;
 }
 
-:root[style*="--USER__night"] *:not(a) {
+:root[style*="--USER__appearance"][style*="readium-night"] *:not(a) {
   background-color: transparent !important;
   color: inherit !important;
   border-color: currentColor !important;
 }
 
-:root[style*="--USER__night"] svg text {
+:root[style*="--USER__appearance"][style*="readium-night"] svg text {
   fill: currentColor !important;
   stroke: none !important;
 }
 
-:root[style*="--USER__night"] a:link,
-:root[style*="--USER__night"] a:link * {
+:root[style*="--USER__appearance"][style*="readium-night"] a:link,
+:root[style*="--USER__appearance"][style*="readium-night"] a:link * {
   color: var(--THEME__linkColor) !important;
 }
 
-:root[style*="--USER__night"] a:visited,
-:root[style*="--USER__night"] a:visited * {
+:root[style*="--USER__appearance"][style*="readium-night"] a:visited,
+:root[style*="--USER__appearance"][style*="readium-night"] a:visited * {
   color: var(--THEME__visitedColor) !important;
 }
 
-:root[style*="--USER__night"] img[class*="gaiji"],
-:root[style*="--USER__night"] *[epub\:type~="titlepage"] img {
+:root[style*="--USER__appearance"][style*="readium-night"] img[class*="gaiji"],
+:root[style*="--USER__appearance"][style*="readium-night"] *[epub\:type~="titlepage"] img {
   -webkit-filter: invert(100%);
   filter: invert(100%);
 }
 
 /* Darken all images on user’s demand */
-:root[style*="--USER__night"][style*="--USER__darkenImages"] img {
+:root[style*="--USER__appearance"][style*="readium-night"][style*="--USER__darkenFilter"][style*="readium-darken-on"] img {
   -webkit-filter: brightness(80%);
   filter: brightness(80%);
 }
 
 /* Invert all images on user’s demand */
-:root[style*="--USER__night"][style*="--USER__invertImages"] img {
+:root[style*="--USER__appearance"][style*="readium-night"][style*="--USER__invertFilter"][style*="readium-invert-on"] img {
   -webkit-filter: invert(100%);
   filter: invert(100%);
 }
 
 /* Darken and invert on user’s demand */
-:root[style*="--USER__night"][style*="--USER__darkenImages"][style*="--USER__invertImages"] img {
+:root[style*="--USER__appearance"][style*="readium-night"][style*="--USER__darkenFilter"][style*="readium-darken-on"][style*="--USER__invertFilter"][style*="readium-invert-on"] img {
   -webkit-filter: brightness(80%) invert(100%);
   filter: brightness(80%) invert(100%);
 }
 
 /* Light - sepia */
 
-:root[style*="--USER__sepia"] {
+:root[style*="--USER__appearance"][style*="readium-sepia"] {
   --THEME__backgroundColor: #faf4e8;
   --THEME__textColor: #121212;
 
@@ -219,29 +219,29 @@ body {
   --THEME__visitedColor: #551A8B;
 }
 
-:root[style*="--USER__sepia"] {
+:root[style*="--USER__appearance"][style*="readium-sepia"] {
   background: var(--THEME__backgroundColor) !important;
   color: var(--THEME__textColor) !important;
 }
 
-:root[style*="--USER__sepia"] body {
+:root[style*="--USER__appearance"][style*="readium-sepia"] body {
   background-color: transparent;
   color: inherit;
 }
 
-:root[style*="--USER__sepia"] a:link,
-:root[style*="--USER__sepia"] a:link * {
+:root[style*="--USER__appearance"][style*="readium-sepia"] a:link,
+:root[style*="--USER__appearance"][style*="readium-sepia"] a:link * {
   color: var(--THEME__linkColor);
 }
 
-:root[style*="--USER__sepia"] a:visited,
-:root[style*="--USER__sepia"] a:visited * {
+:root[style*="--USER__appearance"][style*="readium-sepia"] a:visited,
+:root[style*="--USER__appearance"][style*="readium-sepia"] a:visited * {
   color: var(--THEME__visitedColor);
 }
 
 /* Disable for proto as there are hardware-, platform- and browser-specific bugs (some or all images won’t render in Blink/Webkit)  
-:root[style*="--USER__sepia"] svg,
-:root[style*="--USER__sepia"] img {
+:root[style*="--USER__appearance"][style*="readium-sepia"] svg,
+:root[style*="--USER__appearance"][style*="readium-sepia"] img {
   mix-blend-mode: multiply;
 }
 */
