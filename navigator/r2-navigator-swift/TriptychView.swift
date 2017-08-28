@@ -28,7 +28,7 @@ final class TriptychView: UIView {
 
     /// The array containing the Views for the current document, and possibly for
     /// the next and previous or other kind of preloading.
-    fileprivate enum Views {
+    internal enum Views {
         case one(view: UIView)
         case two(firstView: UIView, secondView: UIView)
         case many(currentView: UIView, otherViews: Disjunction<UIView, UIView>)
@@ -97,7 +97,7 @@ final class TriptychView: UIView {
 
     public let viewCount: Int
 
-    fileprivate var views: Views?
+    internal var views: Views?
 
     fileprivate var clamping: Clamping = .none
 

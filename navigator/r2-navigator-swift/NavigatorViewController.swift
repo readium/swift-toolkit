@@ -19,6 +19,7 @@ public protocol NavigatorDelegate: class {
 open class NavigatorViewController: UIViewController {
     private let delegatee: Delegatee!
     fileprivate let triptychView: TriptychView
+    public var userSettings: UserSettings
     fileprivate var initialProgression: Double?
     //
     public let publication: Publication
@@ -30,6 +31,7 @@ open class NavigatorViewController: UIViewController {
     public init(for publication: Publication, initialIndex: Int, initialProgression: Double?) {
         self.publication = publication
         self.initialProgression = initialProgression
+        userSettings = UserSettings()
         delegatee = Delegatee()
         var index = initialIndex
 
@@ -106,6 +108,17 @@ extension NavigatorViewController {
     public func getTableOfContents() -> [Link] {
         return publication.tableOfContents
     }
+
+    public func updateUserSettingStyle() {
+        guard let views = triptychView.views?.array else {
+            return
+        }
+        for view in views {
+            let webview = view as? WebView
+
+            webview?.applyUserSettingsStyle()
+        }
+    }
 }
 
 extension NavigatorViewController: ViewDelegate {
@@ -134,6 +147,7 @@ extension NavigatorViewController: ViewDelegate {
     internal func handleCenterTap() {
         delegate?.middleTapHandler()
     }
+
 }
 
 /// Used to hide conformance to package-private delegate protocols.
@@ -154,6 +168,7 @@ extension Delegatee: TriptychViewDelegate {
 
             webView.viewDelegate = parent
             webView.load(urlRequest)
+            webView.userSettings = parent.userSettings
 
             // Load last saved regionIndex for the first view.
             if parent.initialProgression != nil {

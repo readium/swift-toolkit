@@ -2,7 +2,7 @@
 //  WebView.swift
 //  r2-navigator-swift
 //
-//  Created by Winnie Quinn, Alexandre Camilleri on 8/23/17. 
+//  Created by Winnie Quinn, Alexandre Camilleri on 8/23/17.
 //  Copyright © 2017 Readium.
 //  This file is covered by the LICENSE file in the root of this project.
 //
@@ -26,6 +26,7 @@ final class WebView: WKWebView {
 
     public var initialId: String?
     public var progression: Double?
+    internal var userSettings: UserSettings?
 
     public var documentLoaded = false
 
@@ -117,6 +118,7 @@ extension WebView {
     internal func documentDidLoad(body: String) {
         documentLoaded = true
         scrollToInitialPosition()
+        applyUserSettingsStyle()
     }
 }
 
@@ -164,6 +166,17 @@ extension WebView {
             return
         }
         progression = newProgression
+    }
+
+    /// Update webview style to userSettings.
+    internal func applyUserSettingsStyle() {
+        guard let userSettings = userSettings else {
+            return
+        }
+        for property in userSettings.getProperties() {
+            evaluateJavaScript("setProperty(\"\(property.key)\", \"\(property.value)\");",
+                completionHandler: nil)
+        }
     }
 }
 
