@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F341C2601F504BAD005E6758 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F341C25F1F504BAD005E6758 /* R2Shared.framework */; };
+		F341C2611F504BAD005E6758 /* R2Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F341C25F1F504BAD005E6758 /* R2Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		F341C2631F504BB7005E6758 /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F341C2621F504BB7005E6758 /* R2Streamer.framework */; };
+		F341C2641F504BB7005E6758 /* R2Streamer.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F341C2621F504BB7005E6758 /* R2Streamer.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		F341C2681F504BED005E6758 /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F341C2671F504BED005E6758 /* R2Navigator.framework */; };
+		F341C2691F504BED005E6758 /* R2Navigator.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F341C2671F504BED005E6758 /* R2Navigator.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F3E7D43C1F4EF6D400DF166D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D43B1F4EF6D400DF166D /* AppDelegate.swift */; };
 		F3E7D4431F4EF6D400DF166D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4421F4EF6D400DF166D /* Assets.xcassets */; };
 		F3E7D4461F4EF6D400DF166D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */; };
@@ -44,19 +50,13 @@
 		F3E7D4D01F4F0B9300DF166D /* UIImageExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D47B1F4F03B800DF166D /* UIImageExtension.swift */; };
 		F3E7D4D11F4F0B9300DF166D /* TableOfContentsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4841F4F044100DF166D /* TableOfContentsTableViewController.swift */; };
 		F3E7D4D21F4F0B9300DF166D /* PublicationCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4741F4F031B00DF166D /* PublicationCell.swift */; };
-		F3E7D4D41F4F0B9300DF166D /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D4C31F4F0A3E00DF166D /* R2Navigator.framework */; };
-		F3E7D4D51F4F0B9300DF166D /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D46C1F4EFE8B00DF166D /* R2Shared.framework */; };
-		F3E7D4D61F4F0B9300DF166D /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D46A1F4EFE8700DF166D /* R2Streamer.framework */; };
 		F3E7D4D81F4F0B9300DF166D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */; };
 		F3E7D4D91F4F0B9300DF166D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4421F4EF6D400DF166D /* Assets.xcassets */; };
-		F3E7D4DB1F4F0B9300DF166D /* R2Navigator.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D4C31F4F0A3E00DF166D /* R2Navigator.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		F3E7D4DC1F4F0B9300DF166D /* R2Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D46C1F4EFE8B00DF166D /* R2Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F3E7D4DD1F4F0B9300DF166D /* Kingfisher.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D49B1F4F082300DF166D /* Kingfisher.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F3E7D4DE1F4F0B9300DF166D /* GCDWebServers.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D4A01F4F095500DF166D /* GCDWebServers.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F3E7D4DF1F4F0B9300DF166D /* AEXML.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D49E1F4F095500DF166D /* AEXML.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F3E7D4E01F4F0B9300DF166D /* ObjectMapper.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D4A11F4F095500DF166D /* ObjectMapper.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F3E7D4E11F4F0B9300DF166D /* CryptoSwift.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D49F1F4F095500DF166D /* CryptoSwift.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		F3E7D4E21F4F0B9300DF166D /* R2Streamer.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D46A1F4EFE8700DF166D /* R2Streamer.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -101,14 +101,14 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				F3E7D4DB1F4F0B9300DF166D /* R2Navigator.framework in Embed Frameworks */,
-				F3E7D4DC1F4F0B9300DF166D /* R2Shared.framework in Embed Frameworks */,
+				F341C2691F504BED005E6758 /* R2Navigator.framework in Embed Frameworks */,
 				F3E7D4DD1F4F0B9300DF166D /* Kingfisher.framework in Embed Frameworks */,
+				F341C2611F504BAD005E6758 /* R2Shared.framework in Embed Frameworks */,
 				F3E7D4DE1F4F0B9300DF166D /* GCDWebServers.framework in Embed Frameworks */,
 				F3E7D4DF1F4F0B9300DF166D /* AEXML.framework in Embed Frameworks */,
 				F3E7D4E01F4F0B9300DF166D /* ObjectMapper.framework in Embed Frameworks */,
+				F341C2641F504BB7005E6758 /* R2Streamer.framework in Embed Frameworks */,
 				F3E7D4E11F4F0B9300DF166D /* CryptoSwift.framework in Embed Frameworks */,
-				F3E7D4E21F4F0B9300DF166D /* R2Streamer.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -116,6 +116,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		F341C25F1F504BAD005E6758 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		F341C2621F504BB7005E6758 /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		F341C2671F504BED005E6758 /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3E7D4381F4EF6D400DF166D /* r2-testapp-swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3E7D43B1F4EF6D400DF166D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		F3E7D4421F4EF6D400DF166D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -177,9 +180,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F3E7D4D41F4F0B9300DF166D /* R2Navigator.framework in Frameworks */,
-				F3E7D4D51F4F0B9300DF166D /* R2Shared.framework in Frameworks */,
-				F3E7D4D61F4F0B9300DF166D /* R2Streamer.framework in Frameworks */,
+				F341C2681F504BED005E6758 /* R2Navigator.framework in Frameworks */,
+				F341C2601F504BAD005E6758 /* R2Shared.framework in Frameworks */,
+				F341C2631F504BB7005E6758 /* R2Streamer.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -243,6 +246,9 @@
 		F3E7D4691F4EFE8700DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				F341C2671F504BED005E6758 /* R2Navigator.framework */,
+				F341C2621F504BB7005E6758 /* R2Streamer.framework */,
+				F341C25F1F504BAD005E6758 /* R2Shared.framework */,
 				F3E7D46C1F4EFE8B00DF166D /* R2Shared.framework */,
 				F3E7D46A1F4EFE8700DF166D /* R2Streamer.framework */,
 				F3E7D4C31F4F0A3E00DF166D /* R2Navigator.framework */,

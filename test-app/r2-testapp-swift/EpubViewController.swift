@@ -20,6 +20,7 @@ class EpubViewController: UIViewController {
                                                   callWhenDismissed: navigator.displaySpineItem(with:))
     }
     var popoverUserconfigurationAnchor: UIBarButtonItem?
+    var userSettingsViewController: UserSettingsViewController!
 
     init(with publication: Publication, atIndex index: Int, progression: Double?) {
         stackView = UIStackView(frame: UIScreen.main.bounds)
@@ -28,7 +29,10 @@ class EpubViewController: UIViewController {
                                             initialProgression: progression)
         fixedTopBar = BarView()
         fixedBottomBar = BarView()
+        userSettingsViewController = UserSettingsViewController(frame: CGRect.zero,
+                                                                userSettings: navigator.userSettings)
         super.init(nibName: nil, bundle: nil)
+        userSettingsViewController.delegate = self
         fixedTopBar.delegate = self
         fixedBottomBar.delegate = self
         navigator.delegate = self
@@ -89,6 +93,7 @@ class EpubViewController: UIViewController {
     override open func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
 
+        navigator.userSettings.save()
         navigationController?.hidesBarsOnTap = false
     }
 
@@ -115,7 +120,6 @@ extension EpubViewController: UIGestureRecognizerDelegate {
 
 extension EpubViewController: NavigatorDelegate {
 
-
     func middleTapHandler() {
         guard let state = navigationController?.navigationBar.isHidden else {
             return
@@ -139,16 +143,15 @@ extension EpubViewController: NavigatorDelegate {
 extension EpubViewController {
 
     func presentUserSettings() {
-//        let popoverContent = UIViewController()//UserSettingsViewController()
-//        let nav = UINavigationController(rootViewController: popoverContent)
-//
-//        nav.modalPresentationStyle = .popover
-//        
-//        popoverContent.preferredContentSize = CGSize(width: 100, height: 200)
-//        if let popover = nav.popoverPresentationController {
-//            popover.barButtonItem = popoverUserconfigurationAnchor!
-//        }
-//        present(nav, animated: true, completion: nil)
+        userSettingsViewController.modalPresentationStyle = .popover
+        userSettingsViewController.preferredContentSize = CGSize(width: 250, height: 200)
+
+        let popoverPresentationController = userSettingsViewController.popoverPresentationController!
+
+        popoverPresentationController.delegate = self
+        popoverPresentationController.barButtonItem = popoverUserconfigurationAnchor
+
+        present(userSettingsViewController, animated: true, completion: nil)
     }
 
     func presentTableOfContents() {
@@ -157,5 +160,25 @@ extension EpubViewController {
         backItem.title = ""
         navigationItem.backBarButtonItem = backItem
         navigationController?.pushViewController(tableOfContentsTVC, animated: true)
+    }
+}
+
+extension EpubViewController: UserSettingsDelegate {
+    func fontSizeDidChange(toValue: String) {
+        navigator.userSettings.set(value: toValue, forKey: .fontSize)
+        navigator.updateUserSettingStyle()
+    }
+
+    func appearanceDidChange(toValue: String) {
+        navigator.userSettings.set(value: toValue, forKey: .appearance)
+        navigator.updateUserSettingStyle()
+    }
+}
+
+extension EpubViewController: UIPopoverPresentationControllerDelegate {
+    // Prevent the popOver to be presented fullscreen on iPhones.
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    {
+        return .none
     }
 }
