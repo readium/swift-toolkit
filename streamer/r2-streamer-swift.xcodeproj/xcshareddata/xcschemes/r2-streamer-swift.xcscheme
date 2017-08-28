@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "59501DCC1E2FB0D700D1B4BF"
-               BuildableName = "r2-streamer-swift.framework"
+               BuildableName = "R2Streamer.framework"
                BlueprintName = "r2-streamer-swift"
                ReferencedContainer = "container:r2-streamer-swift.xcodeproj">
             </BuildableReference>
@@ -43,7 +43,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "59501DCC1E2FB0D700D1B4BF"
-            BuildableName = "r2-streamer-swift.framework"
+            BuildableName = "R2Streamer.framework"
             BlueprintName = "r2-streamer-swift"
             ReferencedContainer = "container:r2-streamer-swift.xcodeproj">
          </BuildableReference>
@@ -65,7 +65,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "59501DCC1E2FB0D700D1B4BF"
-            BuildableName = "r2-streamer-swift.framework"
+            BuildableName = "R2Streamer.framework"
             BlueprintName = "r2-streamer-swift"
             ReferencedContainer = "container:r2-streamer-swift.xcodeproj">
          </BuildableReference>
@@ -83,7 +83,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "59501DCC1E2FB0D700D1B4BF"
-            BuildableName = "r2-streamer-swift.framework"
+            BuildableName = "R2Streamer.framework"
             BlueprintName = "r2-streamer-swift"
             ReferencedContainer = "container:r2-streamer-swift.xcodeproj">
          </BuildableReference>
