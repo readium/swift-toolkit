@@ -78,10 +78,18 @@ var snapOffset = function(offset) {
     return value - (value % maxScreenX);
 };
 
+/// User Settings.
 
-// var setFontSize = function(value) {
-//     // document.getElementsByTagName("html")[0].style.setProperty('--USER__fontSize', "16px");
-//     var htmlElement = document.getElementsByTagName("html")[0];
-//
-//     htmlElement.style["font-size"] = value.concat('px');//setProperty('--USER__fontSize', value.concat('px'));
-// };
+// For setting user setting.
+var setProperty = function(key, value) {
+    var root = document.documentElement;
+
+    root.style.setProperty(key, value);
+};
+
+// For removing user setting.
+var removeProperty = function(key) {
+    var root = document.documentElement;
+
+    root.style.removeProperty(key);
+};
