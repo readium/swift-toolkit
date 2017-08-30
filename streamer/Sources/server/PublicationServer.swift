@@ -15,8 +15,8 @@ extension PublicationServer: Loggable {}
 ///
 /// - parser: An error thrown by the Parser.
 /// - fetcher: An error thrown by the Fetcher.
-/// - nilBaseUrl: <#nilBaseUrl description#>
-/// - usedEndpoint: <#usedEndpoint description#>
+/// - nilBaseUrl: The base url is nil.
+/// - usedEndpoint: This endpoint is already in use.
 public enum PublicationServerError: Error{
     case parser(underlyingError: Error)
     case fetcher(underlyingError: Error)
@@ -93,23 +93,6 @@ public class PublicationServer {
         }
         return true
     }
-
-//    // To be called after leaving background.
-//    internal func reloadHandlers() throws {
-//        // Clean all existing handlers, if any.
-//        webServer.removeAllHandlers()
-//        // Add the handlers for the static resources.
-//        addSpecialResourcesHandlers()
-//        // Add the handlers for the publications stored in the pubBoxes.
-//        for (endpoint, pubBox) in pubBoxes {
-//            do {
-//                try addResourcesHandler(for: pubBox, at: endpoint)
-//            } catch {
-//                throw PublicationServerError.fetcher(underlyingError: error)
-//            }
-//            addManifestHandler(for: pubBox, at: endpoint)
-//        }
-//    }
 
     // Add handlers for the css/js resources.
     public func addSpecialResourcesHandlers() {
