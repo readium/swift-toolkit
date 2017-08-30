@@ -16,7 +16,8 @@ open class BarView: UIView {
         label = UILabel()
         super.init(frame: CGRect.zero)
         autoresizingMask = [.flexibleWidth]
-        backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
+        isOpaque = false
+        backgroundColor = UIColor.clear
         //
         let fontSize = self.label.font.pointSize;
         label.font = UIFont(name: "HelveticaNeue-Bold", size: fontSize)

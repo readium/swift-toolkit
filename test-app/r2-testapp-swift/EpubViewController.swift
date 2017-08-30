@@ -152,7 +152,7 @@ extension EpubViewController {
 
     func presentUserSettings() {
         userSettingsViewController.modalPresentationStyle = .popover
-        userSettingsViewController.preferredContentSize = CGSize(width: 250, height: 200)
+        userSettingsViewController.preferredContentSize = CGSize(width: 200, height: 200)
 
         let popoverPresentationController = userSettingsViewController.popoverPresentationController!
 
@@ -187,8 +187,8 @@ extension EpubViewController: UserSettingsDelegate {
     fileprivate func setUIColor(for appearance: UserSettings.Appearances) {
         let color = appearance.associatedColor()
 
-        fixedTopBar.backgroundColor = color
-        fixedBottomBar.backgroundColor = color
+        navigator.view.backgroundColor = color
+        view.backgroundColor = color
         navigationController?.navigationBar.backgroundColor = color
     }
 }
