@@ -38,6 +38,10 @@ class EpubViewController: UIViewController {
         navigator.delegate = self
     }
 
+    deinit {
+        navigator.userSettings.save()
+    }
+
     @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -48,7 +52,7 @@ class EpubViewController: UIViewController {
         view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
         stackView.axis = .vertical
         stackView.distribution = .fill //.spacing stuff
-        stackView.spacing = 10
+//        stackView.spacing = 10
         stackView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
 
         stackView.addArrangedSubview(fixedTopBar)
@@ -56,6 +60,11 @@ class EpubViewController: UIViewController {
         stackView.addArrangedSubview(fixedBottomBar)
 
         view.addSubview(stackView)
+
+        /// Set initial UI appearance.
+        if let appearance = navigator.userSettings.appearance {
+            setUIColor(for: appearance)
+        }
     }
 
     override func viewDidLoad() {
@@ -93,7 +102,6 @@ class EpubViewController: UIViewController {
     override open func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
 
-        navigator.userSettings.save()
         navigationController?.hidesBarsOnTap = false
     }
 
@@ -164,14 +172,24 @@ extension EpubViewController {
 }
 
 extension EpubViewController: UserSettingsDelegate {
-    func fontSizeDidChange(toValue: String) {
-        navigator.userSettings.set(value: toValue, forKey: .fontSize)
+    func fontSizeDidChange(to sizeString: String) {
+        navigator.userSettings.set(value: sizeString, forKey: .fontSize)
         navigator.updateUserSettingStyle()
     }
 
-    func appearanceDidChange(toValue: String) {
-        navigator.userSettings.set(value: toValue, forKey: .appearance)
+    func appearanceDidChange(to appearance: UserSettings.Appearances) {
+        navigator.userSettings.set(value: appearance.rawValue, forKey: .appearance)
         navigator.updateUserSettingStyle()
+
+        setUIColor(for: appearance)
+    }
+
+    fileprivate func setUIColor(for appearance: UserSettings.Appearances) {
+        let color = appearance.associatedColor()
+
+        fixedTopBar.backgroundColor = color
+        fixedBottomBar.backgroundColor = color
+        navigationController?.navigationBar.backgroundColor = color
     }
 }
 

@@ -10,8 +10,8 @@ import UIKit
 import R2Navigator
 
 protocol UserSettingsDelegate: class {
-    func fontSizeDidChange(toValue: String)
-    func appearanceDidChange(toValue: String)
+    func fontSizeDidChange(to value: String)
+    func appearanceDidChange(to appearance: UserSettings.Appearances)
 }
 
 class UserSettingsViewController: UIViewController {
@@ -37,6 +37,9 @@ class UserSettingsViewController: UIViewController {
         appearanceSegmentedControl = UISegmentedControl(items: ["Default", "Sepia", "Night"])
         self.userSettings = userSettings
         super.init(nibName: nil, bundle: nil)
+        stackView.spacing = 10
+        stackView.layoutMargins = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
+        stackView.isLayoutMarginsRelativeArrangement = true
         stackView.addArrangedSubview(fontSizeStepper)
         stackView.addArrangedSubview(appearanceSegmentedControl)
     }
@@ -60,22 +63,14 @@ class UserSettingsViewController: UIViewController {
     }
 
     internal func fontSizeChanged(_ sender: UIStepper) {
-        delegate?.fontSizeDidChange(toValue: String(fontSizeStepper.value))
+        delegate?.fontSizeDidChange(to: String(fontSizeStepper.value))
     }
 
     internal func appearanceChanged(_ sender: UISegmentedControl) {
         let index = appearanceSegmentedControl.selectedSegmentIndex
-        let appearance: String
+        let appearance = UserSettings.Appearances(index)
 
-        switch index {
-        case 1:
-            appearance = UserSettings.Appearances.sepia.rawValue
-        case 2:
-            appearance = UserSettings.Appearances.night.rawValue
-        default:
-            appearance = UserSettings.Appearances.default.rawValue
-        }
-        delegate?.appearanceDidChange(toValue: appearance)
+        delegate?.appearanceDidChange(to: appearance)
     }
 
     
