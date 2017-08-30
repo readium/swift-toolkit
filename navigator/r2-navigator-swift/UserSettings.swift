@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import UIKit
 
 public class UserSettings {
     // The different key storing the user settings in the UserDefaults.
@@ -18,12 +19,35 @@ public class UserSettings {
     // The global fontSize in %.
     internal var fontSize: String?
     // Default, night, sepia.
-    internal var appearance: String?
+    public var appearance: Appearances?
 
     public enum Appearances: String {
         case `default` = "readium-default"
         case sepia = "readium-sepia"
         case night = "readium-night"
+
+        public init(_ value: Int) {
+            switch value {
+            case 1:
+                self = .sepia
+            case 2:
+                self = .night
+            default:
+                self = .default
+            }
+        }
+
+        public func associatedColor() -> UIColor {
+            switch self {
+            case .default:
+                return UIColor.white
+            case .sepia:
+                return UIColor.init(red: 250/255, green: 244/255, blue: 232/255, alpha: 1)
+            case .night:
+                return UIColor.black
+
+            }
+        }
     }
 
     internal init() {
@@ -33,8 +57,9 @@ public class UserSettings {
         if isKeyPresentInUserDefaults(key: Keys.fontSize) {
             fontSize = (userDefaults.string(forKey: Keys.fontSize.rawValue))
         }
-        if isKeyPresentInUserDefaults(key: Keys.appearance) {
-            appearance = (userDefaults.string(forKey: Keys.appearance.rawValue))
+        if isKeyPresentInUserDefaults(key: Keys.appearance),
+            let value = userDefaults.string(forKey: Keys.appearance.rawValue) {
+            appearance = Appearances.init(rawValue: value)
         }
     }
 
@@ -44,7 +69,7 @@ public class UserSettings {
         case .fontSize:
             fontSize = value
         case .appearance:
-            appearance = value
+            appearance = Appearances.init(rawValue: value)
         }
 
     }
@@ -54,7 +79,7 @@ public class UserSettings {
         case .fontSize:
             return fontSize
         case .appearance:
-            return appearance
+            return appearance?.rawValue
         }
     }
 
@@ -65,7 +90,7 @@ public class UserSettings {
             properties.append((key: Keys.fontSize.rawValue, "\(fontSize)%"))
         }
         if let appearance = appearance {
-            properties.append((key: Keys.appearance.rawValue, "\(appearance)"))
+            properties.append((key: Keys.appearance.rawValue, "\(appearance.rawValue)"))
         }
         return properties
     }
@@ -78,7 +103,7 @@ public class UserSettings {
             userDefaults.set(fontSize, forKey: Keys.fontSize.rawValue)
         }
         if let appearance = appearance {
-            userDefaults.set(appearance, forKey: Keys.appearance.rawValue)
+            userDefaults.set(appearance.rawValue, forKey: Keys.appearance.rawValue)
         }
     }
 
