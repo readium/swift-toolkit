@@ -64,6 +64,9 @@ final class WebView: WKWebView {
         self.initialLocation = initialLocation
         super.init(frame: frame, configuration: .init())
 
+        isOpaque = false
+        backgroundColor = UIColor.clear
+        scrollView.backgroundColor = UIColor.clear
         scrollView.delegate = self
         scrollView.bounces = false
         scrollView.isPagingEnabled = true
