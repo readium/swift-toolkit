@@ -93,15 +93,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         //// Logic.
         /// Move file to the app's Documents folder.
-        guard url.isFileURL, let newUrl = moveFileToDocuments(at: url) else {
-            alertTitle = "Already loaded"
-            alertMessage = "The publication is already in your library."
+        guard url.isFileURL else {
+            alertTitle = "Error"
+            alertMessage = "The focument isn't valid."
             return false
         }
         /// Add the publication to the publication server.
-        let location = Location(absolutePath: newUrl.path,
-                                relativePath: newUrl.lastPathComponent,
-                                type: getTypeForPublicationAt(url: newUrl))
+        let location = Location(absolutePath: url.path,
+                                relativePath: url.lastPathComponent,
+                                type: getTypeForPublicationAt(url: url))
         if !loadPublication(at: location) {
             alertTitle = "Error"
             alertMessage = "The publication isn't valid."
@@ -114,7 +114,7 @@ extension AppDelegate {
 
     fileprivate func loadPublications() {
         // Parse publication from documents folder.
-        let locations = locationsFromDocumentsDirectory()
+        let locations = locationsFromInboxDirectory()
 
         // Load the publications.
         for location in locations {
@@ -150,31 +150,32 @@ extension AppDelegate {
         return true
     }
 
-    /// Get the locations out of the application Documents directory.
+    /// Get the locations out of the application Documents/inbox directory.
     ///
     /// - Returns: The Locations array.
-    fileprivate func locationsFromDocumentsDirectory() -> [Location] {
+    fileprivate func locationsFromInboxDirectory() -> [Location] {
         let fileManager = FileManager.default
         // Document Directory always exists (hence try!).
-        let docDirUrl = try! fileManager.url(for: .documentDirectory,
+        var inboxUrl = try! fileManager.url(for: .documentDirectory,
                                              in: .userDomainMask,
                                              appropriateFor: nil,
                                              create: true)
+
+        inboxUrl.appendPathComponent("Inbox/")
+
         var files: [String]
-        // Get the array of files from the documents folder.
+
+        print("\(inboxUrl.path)")
+        // Get the array of files from the documents/inbox folder.
         do {
-            files = try fileManager.contentsOfDirectory(atPath: docDirUrl.path)
+            files = try fileManager.contentsOfDirectory(atPath: inboxUrl.path)
         } catch {
-            print("Error while reading content of directory")
+            print("Error while reading content of directory.")
             return []
-        }
-        // Remove inbox if it's there.
-        if let inboxIndex = files.index(of: "Inbox") {
-            files.remove(at: inboxIndex)
         }
         /// Find the types associated to the files, or unknown.
         let locations = files.map({ fileName -> Location in
-            let fileUrl = docDirUrl.appendingPathComponent(fileName)
+            let fileUrl = inboxUrl.appendingPathComponent(fileName)
             let publicationType = getTypeForPublicationAt(url: fileUrl)
 
             return Location(absolutePath: fileUrl.path, relativePath: fileName, type: publicationType)
@@ -182,13 +183,24 @@ extension AppDelegate {
         return locations
     }
 
-    fileprivate func removeFromDocumentDirectory(atPath path: String) {
+    fileprivate func removeFromInboxDirectory(fileName: String) {
         let fileManager = FileManager.default
-
-        do {
-            try fileManager.removeItem(atPath: path)
-        } catch let error {
-            print(error.localizedDescription)
+        // Document Directory always exists (hence `try!`).
+        var inboxDirUrl = try! fileManager.url(for: .documentDirectory,
+                                               in: .userDomainMask,
+                                               appropriateFor: nil,
+                                               create: true)
+        inboxDirUrl.appendPathComponent("Inbox/")
+        // Assemble destination path.
+        let absoluteUrl = inboxDirUrl.appendingPathComponent(fileName)
+        // Check that file don't exist.
+        guard !fileManager.fileExists(atPath: absoluteUrl.path) else {
+            do {
+                try fileManager.removeItem(at: absoluteUrl)
+            } catch {
+                print("Error while deleting file in Documents/Inbox")
+            }
+            return
         }
     }
 
@@ -221,36 +233,6 @@ extension AppDelegate {
         }
         return publicationType
     }
-
-    /// Move the file at `url` to the application `documents` folder.
-    ///
-    /// - Parameter url: The URL of the file to move.
-    /// - Returns: A boolean regarding the status of the operation.
-    /// - Throws: If FileManager fail on copyItem().
-    fileprivate func moveFileToDocuments(at url: URL) -> URL? {
-        let fileManager = FileManager.default
-        let fileName = url.lastPathComponent
-        // Document Directory always exists (hence `try!`).
-        let documentsDirUrl = try! fileManager.url(for: .documentDirectory,
-                                                   in: .userDomainMask,
-                                                   appropriateFor: nil,
-                                                   create: true)
-        // Assemble destination path.
-        let destinationUrl = documentsDirUrl.appendingPathComponent(fileName)
-        // Check that file don't exist.
-        guard !fileManager.fileExists(atPath: destinationUrl.path) else {
-            try? fileManager.removeItem(at: documentsDirUrl.appendingPathComponent("Inbox"))
-            return nil
-        }
-        // Copy item to destination.
-        do {
-            try fileManager.moveItem(at: url, to: destinationUrl)
-        } catch {
-            print("Error while moving file from inbox to documents.")
-            return nil
-        }
-        return destinationUrl
-    }
 }
 
 extension AppDelegate: LibraryViewControllerDelegate {
@@ -262,9 +244,14 @@ extension AppDelegate: LibraryViewControllerDelegate {
         }) else {
             return
         }
-        // Remove publication from Documents folder.
+        // Remove publication from Documents/Inbox folder.
         let path = pubBox.associatedContainer.rootFile.rootPath
-        removeFromDocumentDirectory(atPath: path)
+
+        if let url = URL(string: path) {
+            let filename = url.lastPathComponent
+            
+            removeFromInboxDirectory(fileName: filename)
+        }
         // Remove publication from publicationServer.
         publicationServer.remove(publication)
         libraryViewController?.publications = publicationServer.publications
