@@ -16,6 +16,7 @@ protocol UserSettingsDelegate: class {
 
 class UserSettingsViewController: UIViewController {
     let stackView: UIStackView!
+    let brightnessSlider: UISlider!
     let fontSizeStepper: UIStepper!
     let appearanceSegmentedControl: UISegmentedControl!
     let userSettings: UserSettings!
@@ -32,6 +33,8 @@ class UserSettingsViewController: UIViewController {
 
     init(frame: CGRect, userSettings: UserSettings) {
         stackView = UIStackView()
+        brightnessSlider = UISlider(frame: CGRect(origin: CGPoint.zero,
+                                                  size: CGSize(width: 150, height: 25)))
         fontSizeStepper = UIStepper(frame: CGRect(origin: CGPoint.zero,
                                                   size: CGSize(width: 150, height: 25)))
         appearanceSegmentedControl = UISegmentedControl(items: ["Default", "Sepia", "Night"])
@@ -40,11 +43,19 @@ class UserSettingsViewController: UIViewController {
         stackView.spacing = 10
         stackView.layoutMargins = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
         stackView.isLayoutMarginsRelativeArrangement = true
+        stackView.addArrangedSubview(brightnessSlider)
         stackView.addArrangedSubview(fontSizeStepper)
         stackView.addArrangedSubview(appearanceSegmentedControl)
     }
 
     override func viewDidAppear(_ animated: Bool) {
+        /// Brightness slider.
+        brightnessSlider.value = Float(UIScreen.main.brightness)
+        brightnessSlider.minimumValue = 0.0
+        brightnessSlider.maximumValue = 1.0
+        brightnessSlider.minimumValueImage = #imageLiteral(resourceName: "luminosityLessIcon")
+        brightnessSlider.maximumValueImage = #imageLiteral(resourceName: "luminosityMaxIcon")
+        brightnessSlider.addTarget(self, action: #selector(brightnessChanged(_:)), for: .valueChanged)
         /// Stepper.
         fontSizeStepper.stepValue = 12.5
         fontSizeStepper.minimumValue = 50
@@ -71,6 +82,12 @@ class UserSettingsViewController: UIViewController {
         let appearance = UserSettings.Appearances(index)
 
         delegate?.appearanceDidChange(to: appearance)
+    }
+
+    internal func brightnessChanged(_ sender: UISlider) {
+        let brightness = brightnessSlider.value
+
+        UIScreen.main.brightness = CGFloat(brightness)
     }
 
     
