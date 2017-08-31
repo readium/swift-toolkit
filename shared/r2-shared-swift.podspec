@@ -8,20 +8,19 @@
 
 Pod::Spec.new do |s|
 
- s.name         = "R2Shared"
+ s.name          = "R2Shared"
   s.version      = "0.1.0"
   s.summary      = "Readium2"
   s.description  = <<-DESC
             Shared readium2
                    DESC
   s.homepage     = "http://www.google.com"
-  s.license      = "Apache License, Version 2.0"
-  s.author             = { "Alexandre Camilleri" => "alexandre.camilleri@edrlab.org" }
+  s.license      = "BSD 3-Clause License"
+  s.author       = { "Alexandre Camilleri" => "alexandre.camilleri@edrlab.org" }
   s.platform     = :ios
   s.ios.deployment_target = "9.0"
   s.source       = { :git => "https://github.com/readium/r2-shared-swift.git", :tag => "#{s.version}" }
   s.source_files  = "r2-shared-swift/**/*"
-  s.frameworks = 'UIKit'
   s.dependency 'ObjectMapper', '~> 2.2'
 
 end
