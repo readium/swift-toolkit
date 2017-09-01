@@ -176,8 +176,8 @@ extension WebView {
         guard let userSettings = userSettings else {
             return
         }
-        for property in userSettings.getProperties() {
-            evaluateJavaScript("setProperty(\"\(property.key)\", \"\(property.value)\");",
+        for cssProperty in userSettings.cssProperties() {
+            evaluateJavaScript("setProperty(\"\(cssProperty.key)\", \"\(cssProperty.value)\");",
                 completionHandler: nil)
         }
     }

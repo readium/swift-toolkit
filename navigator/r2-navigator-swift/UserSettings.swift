@@ -10,33 +10,93 @@ import Foundation
 import UIKit
 
 public class UserSettings {
-    // The different key storing the user settings in the UserDefaults.
+    // FontSize in %.
+    public var fontSize: String?
+    public var font: Font?
+    public var appearance: Appearance?
+
+    // The keys in ReadiumCss. Also used for storing UserSettings in UserDefaults.
     public enum Keys: String {
         case fontSize = "--USER__fontSize"
+        case font = "--USER__fontFamily"
         case appearance = "--USER__appearance"
     }
 
-    // The global fontSize in %.
-    internal var fontSize: String?
-    // Default, night, sepia.
-    public var appearance: Appearances?
+    /// Font available in userSettings.
+    public enum Font: Int {
+        case sans
+        case oldStyle
+        case modern
+        case humanist
 
-    public enum Appearances: String {
-        case `default` = "readium-default"
-        case sepia = "readium-sepia"
-        case night = "readium-night"
+        public static let allValues = [sans, oldStyle, modern, humanist]
 
-        public init(_ value: Int) {
-            switch value {
-            case 1:
+        public init(with name: String) {
+            switch name {
+            case Font.oldStyle.name():
+                self = .oldStyle
+            case Font.modern.name():
+                self = .modern
+            case Font.humanist.name():
+                self = .humanist
+            default:
+                self = .sans
+            }
+        }
+
+        /// Return the associated font name, or the CSS version.
+        ///
+        /// - Parameter css: If true, return the precise CSS full name.
+        /// - Returns: The font name.
+        public func name(css: Bool = false) -> String {
+            switch self {
+            case .sans:
+                return (css ? "Helvetica Neue" : "Default")
+            case .oldStyle:
+                return (css ? "Iowan Old Style" : "Iowan")
+            case .modern:
+                return "Athelas"
+            case .humanist:
+                return "Seravek"
+            }
+        }
+    }
+
+
+    /// Appearances available in UserSettings.
+    public enum Appearance: Int {
+        case `default`
+        case sepia
+        case night
+
+        public init(with name: String) {
+            switch name {
+            case Appearance.sepia.name():
                 self = .sepia
-            case 2:
+            case Appearance.night.name():
                 self = .night
             default:
                 self = .default
             }
         }
 
+        /// The associated name for ReadiumCss.
+        ///
+        /// - Returns: Appearance name.
+        public func name() -> String{
+            switch self {
+            case .default:
+                return "readium-default"
+            case .sepia:
+                return "readium-sepia"
+            case .night:
+                return "readium-night"
+            }
+        }
+
+        /// The associated color for the UI.
+        ///
+        /// - Returns: Color.
         public func associatedColor() -> UIColor {
             switch self {
             case .default:
@@ -55,42 +115,58 @@ public class UserSettings {
 
         //load settings from userDefaults.
         if isKeyPresentInUserDefaults(key: Keys.fontSize) {
-            fontSize = (userDefaults.string(forKey: Keys.fontSize.rawValue))
+            fontSize = userDefaults.string(forKey: Keys.fontSize.rawValue)
+        }
+        if isKeyPresentInUserDefaults(key: Keys.font),
+            let value = userDefaults.string(forKey: Keys.font.rawValue) {
+            font = Font.init(with: value)
+        } else {
+            font = Font.sans
         }
         if isKeyPresentInUserDefaults(key: Keys.appearance),
             let value = userDefaults.string(forKey: Keys.appearance.rawValue) {
-            appearance = Appearances.init(rawValue: value)
+            appearance = Appearance.init(with: value)
         }
     }
 
-    //
     public func set(value: String, forKey key: Keys) {
         switch key {
         case .fontSize:
             fontSize = value
+        case .font:
+            font = Font.init(with: value)
         case .appearance:
-            appearance = Appearances.init(rawValue: value)
+            appearance = Appearance.init(with: value)
         }
 
     }
 
-    public func getValue(forKey key: Keys) -> String? {
+    public func value(forKey key: Keys) -> String? {
         switch key {
         case .fontSize:
             return fontSize
+        case .font:
+            return font?.name()
         case .appearance:
-            return appearance?.rawValue
+            return appearance?.name()
         }
     }
 
-    public func getProperties() -> [(key: String, value: String)] {
+
+    /// Generate an array of tuple for setting easily the css properties.
+    ///
+    /// - Returns: Css properties (key, value).
+    public func cssProperties() -> [(key: String, value: String)] {
         var properties = [(key: String, value: String)]()
 
         if let fontSize = fontSize {
             properties.append((key: Keys.fontSize.rawValue, "\(fontSize)%"))
         }
+        if let font = font {
+            properties.append((key: Keys.font.rawValue, "\(font.name(css: true))"))
+        }
         if let appearance = appearance {
-            properties.append((key: Keys.appearance.rawValue, "\(appearance.rawValue)"))
+            properties.append((key: Keys.appearance.rawValue, "\(appearance.name())"))
         }
         return properties
     }
@@ -102,8 +178,11 @@ public class UserSettings {
         if let fontSize = fontSize {
             userDefaults.set(fontSize, forKey: Keys.fontSize.rawValue)
         }
+        if let font =  font {
+            userDefaults.set(font.name(), forKey: Keys.font.rawValue)
+        }
         if let appearance = appearance {
-            userDefaults.set(appearance.rawValue, forKey: Keys.appearance.rawValue)
+            userDefaults.set(appearance.name(), forKey: Keys.appearance.rawValue)
         }
     }
 
