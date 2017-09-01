@@ -140,9 +140,8 @@ extension EpubViewController {
         backItem.title = ""
         navigationItem.backBarButtonItem = backItem
         // Dismiss userSettings if opened.
-        userSettingsViewController.dismiss(animated: true, completion: {
-            self.navigationController?.pushViewController(self.tableOfContentsTVC, animated: true)
-        })
+        userSettingsViewController.dismiss(animated: true, completion: nil)
+        self.navigationController?.pushViewController(self.tableOfContentsTVC, animated: true)
     }
 }
 
@@ -196,6 +195,12 @@ extension EpubViewController: UserSettingsDelegate {
         navigator.updateUserSettingStyle()
         // Change view appearance.
         setUIColor(for: appearance)
+    }
+
+    func scrollDidChange(to scroll: UserSettings.Scroll) {
+        // remove snap in nav TODO -- taps etc, fix all
+        navigator.userSettings.set(value: scroll.name(), forKey: UserSettings.Keys.scroll)
+        navigator.updateUserSettingStyle()
     }
 
     /// Synchronyze the UI appearance to the UserSettings.Appearance.

@@ -14,12 +14,14 @@ protocol UserSettingsDelegate: class {
     func fontSizeDidChange(to value: String)
     func fontDidChange(to font: UserSettings.Font)
     func appearanceDidChange(to appearance: UserSettings.Appearance)
+    func scrollDidChange(to scroll: UserSettings.Scroll)
 }
 
 class UserSettingsViewController: UIViewController {
     @IBOutlet weak var brightnessSlider: UISlider!
     @IBOutlet weak var appearanceSegmentedControl: UISegmentedControl!
     @IBOutlet weak var fontPickerView: UIPickerView!
+    @IBOutlet weak var scrollSwitch: UISwitch!
     weak var delegate: UserSettingsDelegate?
     weak var userSettings: UserSettings?
 
@@ -31,25 +33,12 @@ class UserSettingsViewController: UIViewController {
         initializeControlsValues()
     }
 
-    fileprivate func initializeControlsValues() {
-        /// Appearance SegmentedControl.
-        if let initialAppearance = userSettings?.value(forKey: .appearance) {
-            let appearance = UserSettings.Appearance.init(with: initialAppearance)
-
-            appearanceSegmentedControl.selectedSegmentIndex = appearance.rawValue
-        }
-
-        /// Font  PickerView.
-        fontPickerView.dataSource = self
-        fontPickerView.delegate = self
-        if let initialFont = userSettings?.value(forKey: .font) {
-            let font = UserSettings.Font.init(with: initialFont)
-
-            fontPickerView.selectRow(font.rawValue, inComponent: 0, animated: false)
-        }
+    override func viewDidAppear(_ animated: Bool) {
+        // Update brightness slider in case the user modified it in the OS.
+        brightnessSlider.value = Float(UIScreen.main.brightness)
     }
 
-    @IBAction func brightnessDidChanged(_ sender: UISlider) {
+    @IBAction func brightnessDidChanged() {
         let brightness = brightnessSlider.value
 
         UIScreen.main.brightness = CGFloat(brightness)
@@ -83,6 +72,39 @@ class UserSettingsViewController: UIViewController {
             return
         }
         delegate?.appearanceDidChange(to: appearance)
+    }
+
+    @IBAction func scrollSwitched() {
+        let scroll = (scrollSwitch.isOn ? UserSettings.Scroll.on : UserSettings.Scroll.off)
+
+        delegate?.scrollDidChange(to: scroll)
+    }
+}
+
+extension UserSettingsViewController {
+
+    fileprivate func initializeControlsValues() {
+        /// Appearance SegmentedControl.
+        if let initialAppearance = userSettings?.value(forKey: .appearance) {
+            let appearance = UserSettings.Appearance.init(with: initialAppearance)
+
+            appearanceSegmentedControl.selectedSegmentIndex = appearance.rawValue
+        }
+
+        /// Font  PickerView.
+        fontPickerView.dataSource = self
+        fontPickerView.delegate = self
+        if let initialFont = userSettings?.value(forKey: .font) {
+            let font = UserSettings.Font.init(with: initialFont)
+
+            fontPickerView.selectRow(font.rawValue, inComponent: 0, animated: false)
+        }
+        // Scroll switch.
+        if let initialScroll = userSettings?.value(forKey: .scroll) {
+            let scroll = UserSettings.Scroll.init(with: initialScroll)
+
+            scrollSwitch.setOn(scroll.bool(), animated: false)
+        }
     }
 }
 
