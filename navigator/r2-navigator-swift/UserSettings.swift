@@ -166,6 +166,8 @@ public class UserSettings {
         //load settings from userDefaults.
         if isKeyPresentInUserDefaults(key: Keys.fontSize) {
             fontSize = userDefaults.string(forKey: Keys.fontSize.rawValue)
+        } else {
+            fontSize = "100"
         }
         if isKeyPresentInUserDefaults(key: Keys.font),
             let value = userDefaults.string(forKey: Keys.font.rawValue) {
