@@ -1,9 +1,5 @@
 github "onevcat/Kingfisher" ~> 3.0
-
 github "readium/r2-shared-swift" 
 github "readium/r2-streamer-swift" "master"
 github "readium/r2-navigator-swift" "master" 
-
-# local
-#git "file:///Users/alexandrecamilleri/Desktop/dev/repos_readium/r2-streamer-swift/" "master"
 
