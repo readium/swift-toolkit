@@ -7,6 +7,7 @@
 //
 
 import R2Shared
+import R2Navigator
 import UIKit
 
 class TableOfContentsTableViewController: UITableViewController {
@@ -40,9 +41,6 @@ class TableOfContentsTableViewController: UITableViewController {
         defer {
             tableView.deselectRow(at: indexPath, animated: true)
         }
-//        guard let resourcePath = tableOfContents[indexPath.row].href else {
-//            return
-//        }
         guard let resourcePath = allElements[indexPath.row].href else {
             return
         }
@@ -55,13 +53,17 @@ class TableOfContentsTableViewController: UITableViewController {
         let cell = UITableViewCell(style: .default, reuseIdentifier: "contentCell")
 
         cell.textLabel?.text = allElements[indexPath.row].title
-//        cell.textLabel?.text = tableOfContents[indexPath.row].title
         return cell
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return allElements.count
-//        return tableOfContents.count
+    }
+
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        cell.backgroundColor = tableView.backgroundColor
+        cell.tintColor = tableView.tintColor
+        cell.textLabel?.textColor = tableView.tintColor
     }
 
     open override var prefersStatusBarHidden: Bool {
@@ -70,6 +72,19 @@ class TableOfContentsTableViewController: UITableViewController {
 }
 
 extension TableOfContentsTableViewController {
+
+    /// Synchronyze the UI appearance to the UserSettings.Appearance.
+    ///
+    /// - Parameter appearance: The appearance.
+    public func setUIColor(for appearance: UserSettings.Appearance) {
+        let color = appearance.associatedColor()
+        let textColor = appearance.associatedFontColor()
+
+        tableView.tintColor = textColor
+        tableView.backgroundColor = color
+        tableView.reloadData()
+    }
+
     fileprivate func childsOf(parent: Link) -> [Link] {
         var childs = [Link]()
 

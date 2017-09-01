@@ -15,10 +15,7 @@ class EpubViewController: UIViewController {
     let navigator: NavigatorViewController!
     let fixedTopBar: BarView!
     let fixedBottomBar: BarView!
-    var tableOfContentsTVC: TableOfContentsTableViewController {
-        return TableOfContentsTableViewController(for: navigator.getTableOfContents(),
-                                                  callWhenDismissed: navigator.displaySpineItem(with:))
-    }
+    var tableOfContentsTVC: TableOfContentsTableViewController!
     var popoverUserconfigurationAnchor: UIBarButtonItem?
     var userSettingsViewController: UserSettingsViewController!
 
@@ -29,10 +26,19 @@ class EpubViewController: UIViewController {
                                             initialProgression: progression)
         fixedTopBar = BarView()
         fixedBottomBar = BarView()
-        userSettingsViewController = UserSettingsViewController(frame: CGRect.zero,
-                                                                userSettings: navigator.userSettings)
+        tableOfContentsTVC = TableOfContentsTableViewController(for: navigator.getTableOfContents(),
+                                                                callWhenDismissed: navigator.displaySpineItem(with:))
+        // UserSettingsViewController.
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        userSettingsViewController = storyboard.instantiateViewController(withIdentifier: "UserSettingsViewController") as! UserSettingsViewController
         super.init(nibName: nil, bundle: nil)
         userSettingsViewController.delegate = self
+        userSettingsViewController.userSettings = navigator.userSettings
+        let width = UIScreen.main.bounds.width / 1.618
+        let height = UIScreen.main.bounds.height / 1.618
+        userSettingsViewController.modalPresentationStyle = .popover
+        userSettingsViewController.preferredContentSize = CGSize(width: width, height: height)
+
         fixedTopBar.delegate = self
         fixedBottomBar.delegate = self
         navigator.delegate = self
@@ -51,8 +57,7 @@ class EpubViewController: UIViewController {
         super.loadView()
         view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
         stackView.axis = .vertical
-        stackView.distribution = .fill //.spacing stuff
-//        stackView.spacing = 10
+        stackView.distribution = .fill
         stackView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
 
         stackView.addArrangedSubview(fixedTopBar)
@@ -69,11 +74,10 @@ class EpubViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        ////
+        
         fixedTopBar.setLabel(title: navigator.publication.metadata.title)
         fixedBottomBar.setLabel(title: "")
 
-        ////
         navigationController?.setNavigationBarHidden(true, animated: false)
 
         // SpineItemView button.
@@ -119,6 +123,30 @@ class EpubViewController: UIViewController {
     }
 }
 
+extension EpubViewController {
+
+    func presentUserSettings() {
+        let popoverPresentationController = userSettingsViewController.popoverPresentationController!
+
+        popoverPresentationController.delegate = self
+        popoverPresentationController.barButtonItem = popoverUserconfigurationAnchor
+
+        present(userSettingsViewController, animated: true, completion: nil)
+    }
+
+    func presentTableOfContents() {
+        let backItem = UIBarButtonItem()
+
+        backItem.title = ""
+        navigationItem.backBarButtonItem = backItem
+        // Dismiss userSettings if opened.
+        userSettingsViewController.dismiss(animated: true, completion: {
+            self.navigationController?.pushViewController(self.tableOfContentsTVC, animated: true)
+        })
+    }
+}
+
+
 extension EpubViewController: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
                            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
@@ -126,6 +154,7 @@ extension EpubViewController: UIGestureRecognizerDelegate {
     }
 }
 
+// MARK: - Delegate of the NavigatorViewController (R2Navigator).
 extension EpubViewController: NavigatorDelegate {
 
     func middleTapHandler() {
@@ -141,55 +170,48 @@ extension EpubViewController: NavigatorDelegate {
             return
         }
         let userDefaults = UserDefaults.standard
-        // Save current publication's document's progression.
+        // Save current publication's document's. 
+        // (<=> the spine item)
         userDefaults.set(documentIndex, forKey: "\(publicationIdentifier)-document")
-        // Save current publication's document's progression.
+        // Save current publication's document's progression. 
+        // (<=> the position in the spine item)
         userDefaults.set(progression, forKey: "\(publicationIdentifier)-documentProgression")
     }
 }
 
-extension EpubViewController {
-
-    func presentUserSettings() {
-        userSettingsViewController.modalPresentationStyle = .popover
-        userSettingsViewController.preferredContentSize = CGSize(width: 200, height: 200)
-
-        let popoverPresentationController = userSettingsViewController.popoverPresentationController!
-
-        popoverPresentationController.delegate = self
-        popoverPresentationController.barButtonItem = popoverUserconfigurationAnchor
-
-        present(userSettingsViewController, animated: true, completion: nil)
-    }
-
-    func presentTableOfContents() {
-        let backItem = UIBarButtonItem()
-
-        backItem.title = ""
-        navigationItem.backBarButtonItem = backItem
-        navigationController?.pushViewController(tableOfContentsTVC, animated: true)
-    }
-}
-
+// MARK: - Delegate of the UserSettingsView Controller.
 extension EpubViewController: UserSettingsDelegate {
     func fontSizeDidChange(to sizeString: String) {
         navigator.userSettings.set(value: sizeString, forKey: .fontSize)
         navigator.updateUserSettingStyle()
     }
 
-    func appearanceDidChange(to appearance: UserSettings.Appearances) {
-        navigator.userSettings.set(value: appearance.rawValue, forKey: .appearance)
+    func fontDidChange(to font: UserSettings.Font) {
+        navigator.userSettings.set(value: font.name(), forKey: .font)
         navigator.updateUserSettingStyle()
+    }
 
+    func appearanceDidChange(to appearance: UserSettings.Appearance) {
+        navigator.userSettings.set(value: appearance.name(), forKey: .appearance)
+        navigator.updateUserSettingStyle()
+        // Change view appearance.
         setUIColor(for: appearance)
     }
 
-    fileprivate func setUIColor(for appearance: UserSettings.Appearances) {
+    /// Synchronyze the UI appearance to the UserSettings.Appearance.
+    ///
+    /// - Parameter appearance: The appearance.
+    fileprivate func setUIColor(for appearance: UserSettings.Appearance) {
         let color = appearance.associatedColor()
+        let textColor = appearance.associatedFontColor()
 
         navigator.view.backgroundColor = color
         view.backgroundColor = color
-        navigationController?.navigationBar.backgroundColor = color
+        //
+        navigationController?.navigationBar.barTintColor = color
+        navigationController?.navigationBar.tintColor = textColor
+        //
+        tableOfContentsTVC.setUIColor(for: appearance)
     }
 }
 
