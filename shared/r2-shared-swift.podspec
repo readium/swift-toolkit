@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   s.description  = <<-DESC
             Shared readium2
                    DESC
-  s.homepage     = "http://www.google.com"
+  s.homepage     = "http://readium.github.io"
   s.license      = "BSD 3-Clause License"
   s.author       = { "Alexandre Camilleri" => "alexandre.camilleri@edrlab.org" }
   s.platform     = :ios
