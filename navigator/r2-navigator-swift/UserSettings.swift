@@ -108,6 +108,21 @@ public class UserSettings {
 
             }
         }
+
+        /// The associated color for the fonts.
+        ///
+        /// - Returns: Color.
+        public func associatedFontColor() -> UIColor {
+            switch self {
+            case .default:
+                return UIColor.black
+            case .sepia:
+                return UIColor.init(red: 18/255, green: 18/255, blue: 18/255, alpha: 1)
+            case .night:
+                return UIColor.init(red: 254/255, green: 254/255, blue: 254/255, alpha: 1)
+
+            }
+        }
     }
 
     internal init() {
