@@ -14,12 +14,15 @@ public class UserSettings {
     public var fontSize: String?
     public var font: Font?
     public var appearance: Appearance?
+    public var scroll: Scroll?
 
     // The keys in ReadiumCss. Also used for storing UserSettings in UserDefaults.
     public enum Keys: String {
         case fontSize = "--USER__fontSize"
         case font = "--USER__fontFamily"
         case appearance = "--USER__appearance"
+        case scroll = "--USER__scroll"
+        //--USER__darkenImages --USER__invertImages
     }
 
     /// Font available in userSettings.
@@ -125,6 +128,38 @@ public class UserSettings {
         }
     }
 
+    public enum Scroll {
+        case on
+        case off
+
+        public init(with name: String) {
+            switch name {
+            case Scroll.on.name():
+                self = .on
+            default:
+                self = .off
+            }
+        }
+
+        public func name() -> String {
+            switch self {
+            case .on:
+                return "readium-scroll-on"
+            case .off:
+                return "readium-scroll-off"
+            }
+        }
+
+        public func bool() -> Bool {
+            switch self {
+            case .on:
+                return true
+            default:
+                return false
+            }
+        }
+    }
+
     internal init() {
         let userDefaults = UserDefaults.standard
 
@@ -142,6 +177,13 @@ public class UserSettings {
             let value = userDefaults.string(forKey: Keys.appearance.rawValue) {
             appearance = Appearance.init(with: value)
         }
+        if isKeyPresentInUserDefaults(key: Keys.scroll),
+            let value = userDefaults.string(forKey: Keys.scroll.rawValue) {
+
+            scroll = Scroll.init(with: value)
+        } else {
+            scroll = Scroll.off
+        }
     }
 
     public func set(value: String, forKey key: Keys) {
@@ -152,6 +194,8 @@ public class UserSettings {
             font = Font.init(with: value)
         case .appearance:
             appearance = Appearance.init(with: value)
+        case .scroll:
+            scroll = Scroll.init(with: value)
         }
 
     }
@@ -164,6 +208,8 @@ public class UserSettings {
             return font?.name()
         case .appearance:
             return appearance?.name()
+        case .scroll:
+            return scroll?.name()
         }
     }
 
@@ -183,6 +229,9 @@ public class UserSettings {
         if let appearance = appearance {
             properties.append((key: Keys.appearance.rawValue, "\(appearance.name())"))
         }
+        if let scroll = scroll {
+            properties.append((key: Keys.scroll.rawValue, value: "\(scroll.name())"))
+        }
         return properties
     }
 
@@ -198,6 +247,9 @@ public class UserSettings {
         }
         if let appearance = appearance {
             userDefaults.set(appearance.name(), forKey: Keys.appearance.rawValue)
+        }
+        if let scroll = scroll {
+            userDefaults.set(scroll.name(), forKey: Keys.scroll.rawValue)
         }
     }
 

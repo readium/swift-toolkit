@@ -180,6 +180,10 @@ extension WebView {
             evaluateJavaScript("setProperty(\"\(cssProperty.key)\", \"\(cssProperty.value)\");",
                 completionHandler: nil)
         }
+        // Disable paginated mode if scroll is on.
+        if let scroll = userSettings.scroll {
+            scrollView.isPagingEnabled = !scroll.bool()
+        }
     }
 }
 
