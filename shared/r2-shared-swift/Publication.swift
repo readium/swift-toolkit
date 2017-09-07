@@ -15,9 +15,9 @@ import ObjectMapper
 /// As it is extended by `Mappable`, it can be deserialized to `JSON`.
 public class Publication {
     /// The version of the publication, if the type needs any.
-    public var version: Double!
+    public var version: Double
     /// The metadata (title, identifier, contributors, etc.).
-    public var metadata: Metadata!
+    public var metadata: Metadata
     /// Link to special ressources which are added to the publication.
     public var links = [Link]()
     /// Links of the spine items of the publication.
@@ -105,7 +105,10 @@ public class Publication {
     }
 
     /// Mappable JSON protocol initializer
-    required public init?(map: Map) {}
+    required public init?(map: Map) {
+        version = 0.0
+        metadata = Metadata()
+    }
 
     // Mark: - Public methods.
 
