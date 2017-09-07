@@ -12,7 +12,7 @@ import SwiftyJSON
 /// Event related to the change in status of a License Document.
 public struct Event {
     /// Identifies the type of event.
-    public var type: Int // Type TODO
+    public var type: String // Type TODO
     /// Name of the client, as provided by the client during an interaction.
     public var name: String
     /// Identifies the client, as provided by the client during an interaction.
@@ -34,7 +34,7 @@ public struct Event {
     public init(with json: JSON) throws {
         guard let name = json["name"].string,
             let dateData = json["timestamp"].string,
-            let type = json["type"].int,
+            let type = json["type"].string,
             let id = json["id"].string else
         {
             throw LsdError.json

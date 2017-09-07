@@ -23,7 +23,7 @@ extension Formatter {
         formatter.calendar = Calendar(identifier: .iso8601)
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
         return formatter
     }()
 }
@@ -31,6 +31,9 @@ extension Formatter {
 extension String {
     /// Date string (ISO8601) to Date object.
     public var dateFromISO8601: Date? {
-        return Formatter.iso8601.date(from: self)   //  2012-01-20T12:47:00Z -> "Mar 22, 2017, 10:22 AM"
+//        if #available(iOS 10.0, *) {
+//            let formatter = ISO8601DateFormatter()
+
+        return Formatter.iso8601.date(from: self)   //  2012-01-20T12:47:00.SSSZ -> "Mar 22, 2017, 10:22 AM"
     }
 }

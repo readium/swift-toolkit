@@ -58,14 +58,7 @@ public class StatusDocument {
     public enum Right: String {
         case end
     }
-//
-//    init(id: String, status: Status, message: String, updated: Updated) {
-//        self.id = id
-//        self.status = status
-//        self.message = message
-//        self.updated = updated
-//    }
-
+    
     public init(with data: Data) throws {
         let json = JSON(data: data)
 
@@ -119,7 +112,7 @@ public class StatusDocument {
     /// - Parameter json: The JSON representing the Events.
     /// - Throws: LsdErrors.
     internal func parseEvents(_ json: JSON) throws {
-        guard let jsonEvents = json["links"].array else {
+        guard let jsonEvents = json["events"].array else {
             return
         }
         for jsonEvent in jsonEvents {
@@ -129,12 +122,20 @@ public class StatusDocument {
         }
     }
 
+
+    /// Parses the Potential Rights, if any.
+    ///
+    /// - Parameter json: The JSON representing the Potential Rights
     internal func parsePotentialRights(_ json: JSON) {
-        guard let potentialRights = json["potential_rights"].array else {
+        guard let potentialRights = json["potential_rights"].dictionary else {
             return
         }
         for potentialRight in potentialRights {
-//            let potentialRight
+            if let right = Right.init(rawValue: potentialRight.key),
+                let date = potentialRight.value.string?.dateFromISO8601 {
+
+                self.potentialRights[right] = date
+            }
         }
     }
 }
