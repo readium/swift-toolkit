@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		F341C2711F506ED5005E6758 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F341C2701F506ED5005E6758 /* UserSettings.swift */; };
-		F3B2C86D1F603E79007601E4 /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3B2C86C1F603E79007601E4 /* SwiftyJSON.framework */; };
 		F3E7D3CD1F4D83B000DF166D /* R2NavigatorSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D3C31F4D83B000DF166D /* R2NavigatorSwift.framework */; };
 		F3E7D3D21F4D83B000DF166D /* r2_navigator_swiftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3D11F4D83B000DF166D /* r2_navigator_swiftTests.swift */; };
 		F3E7D3D41F4D83B000DF166D /* r2-navigator-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -55,7 +54,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				F3E7D42A1F4EE07D00DF166D /* R2Shared.framework in Frameworks */,
-				F3B2C86D1F603E79007601E4 /* SwiftyJSON.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
