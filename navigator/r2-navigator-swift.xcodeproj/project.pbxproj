@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		F341C2711F506ED5005E6758 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F341C2701F506ED5005E6758 /* UserSettings.swift */; };
+		F3B2C86D1F603E79007601E4 /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3B2C86C1F603E79007601E4 /* SwiftyJSON.framework */; };
 		F3E7D3CD1F4D83B000DF166D /* R2NavigatorSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D3C31F4D83B000DF166D /* R2NavigatorSwift.framework */; };
 		F3E7D3D21F4D83B000DF166D /* r2_navigator_swiftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3D11F4D83B000DF166D /* r2_navigator_swiftTests.swift */; };
 		F3E7D3D41F4D83B000DF166D /* r2-navigator-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -32,6 +33,7 @@
 
 /* Begin PBXFileReference section */
 		F341C2701F506ED5005E6758 /* UserSettings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
+		F3B2C86C1F603E79007601E4 /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
 		F3E7D3C31F4D83B000DF166D /* R2NavigatorSwift.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = R2NavigatorSwift.framework; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "r2-navigator-swift.h"; sourceTree = "<group>"; };
 		F3E7D3C71F4D83B000DF166D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -53,6 +55,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F3E7D42A1F4EE07D00DF166D /* R2Shared.framework in Frameworks */,
+				F3B2C86D1F603E79007601E4 /* SwiftyJSON.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -109,6 +112,7 @@
 		F3E7D3E71F4DC40800DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				F3B2C86C1F603E79007601E4 /* SwiftyJSON.framework */,
 				F3E7D4291F4EE07D00DF166D /* R2Shared.framework */,
 			);
 			name = Frameworks;
@@ -396,6 +400,7 @@
 				);
 				INFOPLIST_FILE = "r2-navigator-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-navigator-swift";
 				PRODUCT_NAME = R2Navigator;
@@ -421,6 +426,7 @@
 				);
 				INFOPLIST_FILE = "r2-navigator-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-navigator-swift";
 				PRODUCT_NAME = R2Navigator;
