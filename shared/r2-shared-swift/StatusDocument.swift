@@ -66,7 +66,7 @@ public class StatusDocument {
 //        self.updated = updated
 //    }
 
-    init(with data: Data) throws {
+    public init(with data: Data) throws {
         let json = JSON(data: data)
 
         // Retrieves the non optional fields.
@@ -134,7 +134,7 @@ public class StatusDocument {
             return
         }
         for potentialRight in potentialRights {
-            let potentialRight
+//            let potentialRight
         }
     }
 }
