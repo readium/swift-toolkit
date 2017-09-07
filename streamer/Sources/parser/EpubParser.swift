@@ -33,11 +33,13 @@ public struct EpubConstant {
 /// - missingFile: A file is missing from the container at `path`.
 /// - xmlParse: An XML parsing error occurred.
 /// - missingElement: An XML element is missing.
+/// - unsupportedDrm: ACS and URMS.
 public enum EpubParserError: Error {
     case wrongMimeType
     case missingFile(path: String)
     case xmlParse(underlyingError: Error)
     case missingElement(message: String)
+    case unsupportedDrm
 }
 
 extension EpubParser: Loggable {}
@@ -83,7 +85,7 @@ public class EpubParser: PublicationParser {
         // Parse OPF file (Metadata, Spine, Resource) and return the Publication.
         var publication = try opfp.parseOPF(from: document, with: container, and: epubVersion)
         // Parse the META-INF/Encryption.xml.
-        parseEncryption(from: container, to: &publication)
+        try parseEncryption(from: container, to: &publication)
         // Parse Navigation Document.
         parseNavigationDocument(from: container, to: &publication)
         // Parse the NCX Document (if any).
@@ -100,7 +102,7 @@ public class EpubParser: PublicationParser {
     ///   - container: The EPUB Container.
     ///   - publication: The Publication.
     /// - Throws: 
-    internal func parseEncryption(from container: EpubContainer, to publication: inout Publication) {
+    internal func parseEncryption(from container: EpubContainer, to publication: inout Publication) throws {
         //if publication.metadata.title ==
         // Check if there is an encryption file.
         let document: AEXMLDocument
@@ -120,6 +122,11 @@ public class EpubParser: PublicationParser {
             var encryption = Encryption()
 
             encryption.algorithm = encryptedDataElement["EncryptionMethod"].attributes["Algorithm"]
+            // If encryptionMethod != "http://www.idpf.org/2008/embedding" && file .lcpl is not present in folder. then error
+            // clear LCP.
+            if let algorithm = encryption.algorithm, algorithm != "http://www.idpf.org/2008/embedding" {
+                throw EpubParserError.unsupportedDrm
+            }
             // TODO: LCP encryption. Profile/Scheme if lcp.id != nil
             encp.parseEncryptionProperties(from: encryptedDataElement, to: &encryption)
             encp.add(encryption: encryption, toLinkInPublication: &publication,
