@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		F38FB0311F6674E100F9D602 /* ISO8601DateString.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB0301F6674E100F9D602 /* ISO8601DateString.swift */; };
-		F38FB0321F66767800F9D602 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F3B2C88B1F667223007601E4 /* Info.plist */; };
 		F38FB0361F66837800F9D602 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB0351F66837800F9D602 /* User.swift */; };
 		F38FB0381F66839600F9D602 /* Rights.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB0371F66839600F9D602 /* Rights.swift */; };
 		F38FB03A1F6683D800F9D602 /* Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB0391F6683D800F9D602 /* Encryption.swift */; };
@@ -265,7 +264,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F38FB0321F66767800F9D602 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
