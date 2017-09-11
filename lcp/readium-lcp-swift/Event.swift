@@ -48,3 +48,21 @@ public struct Event {
         self.date = date
     }
 }
+
+/// Parses the Events.
+///
+/// - Parameter json: The JSON representing the Events.
+/// - Throws: LsdErrors.
+func parseEvents(_ json: JSON) throws -> [Event] {
+    guard let jsonEvents = json["events"].array else {
+        return []
+    }
+    var events = [Event]()
+
+    for jsonEvent in jsonEvents {
+        let event = try Event.init(with: jsonEvent)
+
+        events.append(event)
+    }
+    return events
+}

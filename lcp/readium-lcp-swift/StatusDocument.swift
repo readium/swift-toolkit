@@ -26,7 +26,7 @@ public class StatusDocument {
     public var potentialRights = [Right: Date]()
     /// Ordered list of events related to the change in status of a License
     /// Document.
-    public var events = [Event]()
+    public var events: [Event]!
 
     /// Describes the status of the license.
     ///
@@ -74,54 +74,10 @@ public class StatusDocument {
         self.status = status
         self.message = message
         self.updated = try Updated.init(with: json["updated"])
-        try parseLinks(json)
-        try parseEvents(json)
+        links = try parseLinks(json)
+        events = try parseEvents(json)
         parsePotentialRights(json)
     }
-
-    /// Parses the Links.
-    ///
-    /// - Parameter json: The JSON object representing the Links.
-    /// - Throws: LsdErrors.
-    internal func parseLinks(_ json: JSON) throws {
-        guard let jsonLinks = json["links"].array else {
-            throw LcpError.json
-        }
-        for jsonLink in jsonLinks {
-            let link = Link()
-
-            /// Should be in the defined in a Link.init(with: JSON), refactor later.
-            guard let rel = jsonLink["rel"].string,
-                let href = jsonLink["href"].string,
-                let type = jsonLink["type"].string else {
-                throw LcpError.link
-            }
-            link.rel.append(rel)
-            link.href = href
-            link.typeLink = type
-
-            if let templated = jsonLink["templated"].bool {
-                link.templated = templated
-            }
-            self.links.append(link)
-        }
-    }
-
-    /// Parses the Events.
-    ///
-    /// - Parameter json: The JSON representing the Events.
-    /// - Throws: LsdErrors.
-    internal func parseEvents(_ json: JSON) throws {
-        guard let jsonEvents = json["events"].array else {
-            return
-        }
-        for jsonEvent in jsonEvents {
-            let event = try Event.init(with: jsonEvent)
-
-            self.events.append(event)
-        }
-    }
-
 
     /// Parses the Potential Rights, if any.
     ///

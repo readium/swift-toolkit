@@ -8,11 +8,15 @@
 
 import Foundation
 
+/// Errors associated to LCP module.
 public enum LcpError: Error {
     case json
     case date
     case link
-    case url
+    case updated
+    case updatedDate
+    case encryption
+    case signature
 
     public var localizedDescription: String {
         switch self {
@@ -22,6 +26,14 @@ public enum LcpError: Error {
             return "Invalid ISO8601 dates found."
         case .link:
             return "Invalid Link found in the JSON."
+        case .encryption:
+            return "Invalid Encryption object."
+        case .signature:
+            return "Invalid License Document Signature."
+        case .updated:
+            return "Invalid Updated object."
+        case .updatedDate:
+            return "Invalid Updated object date."
         }
     }
 }

@@ -1,5 +1,5 @@
 //
-//  Right.swift
+//  Rights.swift
 //  readium-lcp-swift
 //
 //  Created by Alexandre Camilleri on 9/11/17.

@@ -1,5 +1,5 @@
 //
-//  LcpLink.swift
+//  Link.swift
 //  r2-shared-swift
 //
 //  Created by Alexandre Camilleri on 9/8/17.
@@ -10,45 +10,67 @@ import Foundation
 import SwiftyJSON
 
 /// A Link to a resource.
-public class LcpLink {
+public class Link {
     /// The link destination.
-    public var href: String?
-    /// MIME type of resource.
-    public var typeLink: String?
+    public var href: URL
     /// Indicates the relationship between the resource and its containing collection.
-    public var rel: [String]!
-    /// Indicates the height of the linked resource in pixels.
-    public var height: Int?
-    /// Indicates the width of the linked resource in pixels.
-    public var width: Int?
+    public var rel = [String]()
+    /// Title for the Link.
     public var title: String?
-    /// Properties associated to the linked resource.
-    public var properties: Properties!
-    /// Indicates the length of the linked resource in seconds.
-    public var duration: TimeInterval?
+    /// MIME type of resource.
+    public var type: String?
     /// Indicates that the linked resource is a URI template.
     public var templated: Bool?
+    /// Expected profile used to identify the external resource. (URI)
+    public var profile: URL?
+    /// Content length in octets.
+    public var length: Int?
+    /// SHA-256 hash of the resource.
+    public var hash: String?
 
-    /// The underlaying nodes in a tree structure of `Link`s.
-    public var children: [Link]!
-    /// The MediaOverlays associated to the resource of the `Link`.
-    public var mediaOverlays: MediaOverlays!
-
-    public init() {
-        properties = Properties()
-        mediaOverlays = MediaOverlays()
-        rel = [String]()
-        children = [Link]()
-    }
-
-    /// Check wether a link's resource is encrypted by checking is
-    /// properties.encrypted is set.
+    /// Link initializer
     ///
-    /// - Returns: True if encrypted.
-    public func isEncrypted() -> Bool {
-        guard let properties = properties, let _ = properties.encryption else {
-            return false
+    /// - Parameter json: The JSON representation of the Link object.
+    /// - Throws: LcpErrors.
+    public init(with json: JSON) throws {
+        // Retrieves the non optional fields.
+        guard let href = json["href"].url,
+            let rel = json["rel"].array else
+        {
+            throw LcpError.link
         }
-        return true
+        self.href = href
+        for element in rel {
+            if let relation = element.string {
+                self.rel.append(relation)
+            }
+        }
+        guard !self.rel.isEmpty else {
+            throw LcpError.link
+        }
+        title = json["title"].string
+        type = json["type"].string
+        templated = json["templated"].bool
+        profile = json["profile"].url
+        length = json["length"].int
+        hash = json["hash"].string
     }
+}
+
+/// Parses the Links.
+///
+/// - Parameter json: The JSON object representing the Links.
+/// - Throws: LsdErrors.
+func parseLinks(_ json: JSON) throws -> [Link] {
+    guard let jsonLinks = json["links"].array else {
+        throw LcpError.json
+    }
+    var links = [Link]()
+
+    for jsonLink in jsonLinks {
+        let link = try Link.init(with: jsonLink)
+
+        links.append(link)
+    }
+    return links
 }
