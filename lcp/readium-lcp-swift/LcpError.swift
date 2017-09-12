@@ -10,6 +10,9 @@ import Foundation
 
 /// Errors associated to LCP module.
 public enum LcpError: Error {
+    case file
+    case statusLink
+
     case json
     case date
     case link
@@ -20,6 +23,10 @@ public enum LcpError: Error {
 
     public var localizedDescription: String {
         switch self {
+        case .file:
+            return "The LCPL document is not valid."
+        case .statusLink:
+            return "No link to status document in the license document's links."
         case .json:
             return "The JSON is no representing a valid Status Document."
         case .date:

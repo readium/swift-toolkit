@@ -14,6 +14,9 @@
 		F38FB03C1F6683F300F9D602 /* UserKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB03B1F6683F300F9D602 /* UserKey.swift */; };
 		F38FB03E1F66840900F9D602 /* ContentKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB03D1F66840900F9D602 /* ContentKey.swift */; };
 		F38FB0421F66847E00F9D602 /* Signature.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB0411F66847E00F9D602 /* Signature.swift */; };
+		F38FB04D1F66BFA400F9D602 /* LcpLicense.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB04C1F66BFA400F9D602 /* LcpLicense.swift */; };
+		F38FB04F1F67CB2A00F9D602 /* LcpLicenseFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB04E1F67CB2A00F9D602 /* LcpLicenseFactory.swift */; };
+		F38FB0511F67DC2F00F9D602 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB0501F67DC2F00F9D602 /* SQLite.framework */; };
 		F3B2C8911F667223007601E4 /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3B2C8871F667222007601E4 /* ReadiumLCP.framework */; };
 		F3B2C8961F667223007601E4 /* readium_lcp_swiftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B2C8951F667223007601E4 /* readium_lcp_swiftTests.swift */; };
 		F3B2C8981F667223007601E4 /* readium-lcp-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = F3B2C88A1F667223007601E4 /* readium-lcp-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -44,6 +47,9 @@
 		F38FB03B1F6683F300F9D602 /* UserKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserKey.swift; sourceTree = "<group>"; };
 		F38FB03D1F66840900F9D602 /* ContentKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentKey.swift; sourceTree = "<group>"; };
 		F38FB0411F66847E00F9D602 /* Signature.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Signature.swift; sourceTree = "<group>"; };
+		F38FB04C1F66BFA400F9D602 /* LcpLicense.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LcpLicense.swift; sourceTree = "<group>"; };
+		F38FB04E1F67CB2A00F9D602 /* LcpLicenseFactory.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LcpLicenseFactory.swift; sourceTree = "<group>"; };
+		F38FB0501F67DC2F00F9D602 /* SQLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SQLite.framework; path = Carthage/Build/iOS/SQLite.framework; sourceTree = "<group>"; };
 		F3B2C8871F667222007601E4 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3B2C88A1F667223007601E4 /* readium-lcp-swift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "readium-lcp-swift.h"; sourceTree = "<group>"; };
 		F3B2C88B1F667223007601E4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -65,6 +71,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F3B2C8AF1F6672E1007601E4 /* SwiftyJSON.framework in Frameworks */,
+				F38FB0511F67DC2F00F9D602 /* SQLite.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -120,6 +127,15 @@
 			name = lcp;
 			sourceTree = "<group>";
 		};
+		F38FB04B1F66BF8A00F9D602 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				F38FB0341F6678FD00F9D602 /* Documents */,
+				F38FB0331F6678E300F9D602 /* SubParts */,
+			);
+			name = Model;
+			sourceTree = "<group>";
+		};
 		F3B2C87D1F667222007601E4 = {
 			isa = PBXGroup;
 			children = (
@@ -146,8 +162,9 @@
 				F3B2C88A1F667223007601E4 /* readium-lcp-swift.h */,
 				F38FB0301F6674E100F9D602 /* ISO8601DateString.swift */,
 				F3B2C8A51F66727C007601E4 /* LcpError.swift */,
-				F38FB0341F6678FD00F9D602 /* Documents */,
-				F38FB0331F6678E300F9D602 /* SubParts */,
+				F38FB04C1F66BFA400F9D602 /* LcpLicense.swift */,
+				F38FB04E1F67CB2A00F9D602 /* LcpLicenseFactory.swift */,
+				F38FB04B1F66BF8A00F9D602 /* Model */,
 			);
 			path = "readium-lcp-swift";
 			sourceTree = "<group>";
@@ -164,6 +181,7 @@
 		F3B2C8AD1F6672E1007601E4 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				F38FB0501F67DC2F00F9D602 /* SQLite.framework */,
 				F3B2C8AE1F6672E1007601E4 /* SwiftyJSON.framework */,
 			);
 			name = Frameworks;
@@ -284,10 +302,12 @@
 				F38FB0311F6674E100F9D602 /* ISO8601DateString.swift in Sources */,
 				F38FB03C1F6683F300F9D602 /* UserKey.swift in Sources */,
 				F3B2C8AB1F66727C007601E4 /* LcpError.swift in Sources */,
+				F38FB04D1F66BFA400F9D602 /* LcpLicense.swift in Sources */,
 				F3B2C8AA1F66727C007601E4 /* Event.swift in Sources */,
 				F38FB0381F66839600F9D602 /* Rights.swift in Sources */,
 				F3B2C8A81F66727C007601E4 /* StatusDocument.swift in Sources */,
 				F38FB0361F66837800F9D602 /* User.swift in Sources */,
+				F38FB04F1F67CB2A00F9D602 /* LcpLicenseFactory.swift in Sources */,
 				F38FB0421F66847E00F9D602 /* Signature.swift in Sources */,
 				F3B2C8A71F66727C007601E4 /* LicenseDocument.swift in Sources */,
 				F3B2C8A91F66727C007601E4 /* Updated.swift in Sources */,

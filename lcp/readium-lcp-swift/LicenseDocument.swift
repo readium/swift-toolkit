@@ -13,26 +13,26 @@ import SwiftyJSON
 /// external resources, rights and restrictions that are applied to the
 /// Protected Publication, and user information.
 public class LicenseDocument {
-    var id: String
+    public var id: String
     /// Date when the license was first issued.
-    var issued: Date
+    public var issued: Date
     /// Date when the license was last updated.
-    var updated: Date?
+    public var updated: Date?
     /// Unique identifier for the Provider (URI).
-    var provider: URL
+    public var provider: URL
     // Encryption object.
-    var encryption: Encryption
+    public var encryption: Encryption
     /// Used to associate the License Document with resources that are not 
     /// locally available.
-    var links = [Link]()
+    public var links = [Link]()
     ///
-    var rights: Rights
+    public var rights: Rights
     /// The user owning the License.
-    var user: User
+    public var user: User
     /// Used to validate the license integrity.
-    var signature: Signature
+    public var signature: Signature
 
-    init(with data: Data) throws {
+    public init(with data: Data) throws {
         let json = JSON.init(data: data)
 
         guard let id = json["id"].string,
@@ -60,5 +60,15 @@ public class LicenseDocument {
             throw LcpError.link
         }
     }
+
+
+    /// Return the first link containing the given rel.
+    ///
+    /// - Parameter rel: The rel to look for.
+    /// - Returns: The first link containing the rel.
+    public func link(withRel rel: String) -> Link? {
+        return links.first(where: { $0.rel.contains(rel) })
+    }
+
 }
 

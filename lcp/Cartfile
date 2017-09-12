@@ -1,1 +1,2 @@
 github "SwiftyJSON/SwiftyJSON"
+github "stephencelis/SQLite.swift" ~> 0.11.3

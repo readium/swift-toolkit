@@ -34,16 +34,20 @@ public class Link {
     /// - Throws: LcpErrors.
     public init(with json: JSON) throws {
         // Retrieves the non optional fields.
-        guard let href = json["href"].url,
-            let rel = json["rel"].array else
-        {
+        guard let href = json["href"].url else {
             throw LcpError.link
         }
         self.href = href
-        for element in rel {
-            if let relation = element.string {
-                self.rel.append(relation)
+        if let rel = json["rel"].array {
+            for element in rel {
+                if let relation = element.string {
+                    self.rel.append(relation)
+                }
             }
+        } else if let rel = json["rel"].string {
+            self.rel.append(rel)
+        } else {
+            throw LcpError.link
         }
         guard !self.rel.isEmpty else {
             throw LcpError.link
