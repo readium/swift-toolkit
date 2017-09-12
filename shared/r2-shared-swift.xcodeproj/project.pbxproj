@@ -7,9 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		F31668521F5FE238008149C0 /* StatusDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = F31668511F5FE238008149C0 /* StatusDocument.swift */; };
-		F3B2C8691F602ED7007601E4 /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3B2C8681F602ED7007601E4 /* SwiftyJSON.framework */; };
-		F3B2C86B1F603429007601E4 /* LsdError.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B2C86A1F603429007601E4 /* LsdError.swift */; };
 		F3E7D3F91F4EBE2100DF166D /* r2-shared-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = F3E7D3F71F4EBE2100DF166D /* r2-shared-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F3E7D40E1F4EC69100DF166D /* Contributor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4011F4EC69100DF166D /* Contributor.swift */; };
 		F3E7D40F1F4EC69100DF166D /* Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4021F4EC69100DF166D /* Encryption.swift */; };
@@ -26,15 +23,10 @@
 		F3E7D41A1F4EC69100DF166D /* Subject.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D40D1F4EC69100DF166D /* Subject.swift */; };
 		F3E7D4211F4ECA9800DF166D /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D4201F4ECA9800DF166D /* ObjectMapper.framework */; };
 		F3E7D4231F4ECB3D00DF166D /* ISO8601DateString.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4221F4ECB3D00DF166D /* ISO8601DateString.swift */; };
-		F3FA0D3C1F5FE81400CBC647 /* LicenseDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3FA0D3B1F5FE81400CBC647 /* LicenseDocument.swift */; };
-		F3FA0D3E1F5FE82100CBC647 /* Updated.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3FA0D3D1F5FE82100CBC647 /* Updated.swift */; };
-		F3FA0D401F5FE95000CBC647 /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3FA0D3F1F5FE95000CBC647 /* Event.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		F31668511F5FE238008149C0 /* StatusDocument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatusDocument.swift; sourceTree = "<group>"; };
 		F3B2C8681F602ED7007601E4 /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
-		F3B2C86A1F603429007601E4 /* LsdError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LsdError.swift; sourceTree = "<group>"; };
 		F3E7D3F41F4EBE2100DF166D /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3E7D3F71F4EBE2100DF166D /* r2-shared-swift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "r2-shared-swift.h"; sourceTree = "<group>"; };
 		F3E7D3F81F4EBE2100DF166D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -53,9 +45,6 @@
 		F3E7D40D1F4EC69100DF166D /* Subject.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Subject.swift; sourceTree = "<group>"; };
 		F3E7D4201F4ECA9800DF166D /* ObjectMapper.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ObjectMapper.framework; path = Carthage/Build/iOS/ObjectMapper.framework; sourceTree = "<group>"; };
 		F3E7D4221F4ECB3D00DF166D /* ISO8601DateString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ISO8601DateString.swift; sourceTree = "<group>"; };
-		F3FA0D3B1F5FE81400CBC647 /* LicenseDocument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LicenseDocument.swift; sourceTree = "<group>"; };
-		F3FA0D3D1F5FE82100CBC647 /* Updated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Updated.swift; sourceTree = "<group>"; };
-		F3FA0D3F1F5FE95000CBC647 /* Event.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,25 +53,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				F3E7D4211F4ECA9800DF166D /* ObjectMapper.framework in Frameworks */,
-				F3B2C8691F602ED7007601E4 /* SwiftyJSON.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		F31668501F5FE214008149C0 /* LSD */ = {
-			isa = PBXGroup;
-			children = (
-				F3FA0D3B1F5FE81400CBC647 /* LicenseDocument.swift */,
-				F31668511F5FE238008149C0 /* StatusDocument.swift */,
-				F3FA0D3D1F5FE82100CBC647 /* Updated.swift */,
-				F3FA0D3F1F5FE95000CBC647 /* Event.swift */,
-				F3B2C86A1F603429007601E4 /* LsdError.swift */,
-			);
-			name = LSD;
-			sourceTree = "<group>";
-		};
 		F3E7D3EA1F4EBE2100DF166D = {
 			isa = PBXGroup;
 			children = (
@@ -108,7 +84,6 @@
 				F3E7D40C1F4EC69100DF166D /* RootFile.swift */,
 				F3E7D4221F4ECB3D00DF166D /* ISO8601DateString.swift */,
 				F3E7D41B1F4EC69C00DF166D /* Publication */,
-				F31668501F5FE214008149C0 /* LSD */,
 			);
 			path = "r2-shared-swift";
 			sourceTree = "<group>";
@@ -248,16 +223,11 @@
 			files = (
 				F3E7D4161F4EC69100DF166D /* Properties.swift in Sources */,
 				F3E7D4231F4ECB3D00DF166D /* ISO8601DateString.swift in Sources */,
-				F3FA0D3C1F5FE81400CBC647 /* LicenseDocument.swift in Sources */,
-				F31668521F5FE238008149C0 /* StatusDocument.swift in Sources */,
-				F3B2C86B1F603429007601E4 /* LsdError.swift in Sources */,
 				F3E7D41A1F4EC69100DF166D /* Subject.swift in Sources */,
 				F3E7D4191F4EC69100DF166D /* RootFile.swift in Sources */,
-				F3FA0D3E1F5FE82100CBC647 /* Updated.swift in Sources */,
 				F3E7D4141F4EC69100DF166D /* MetadataItem.swift in Sources */,
 				F3E7D4101F4EC69100DF166D /* Link.swift in Sources */,
 				F3E7D4181F4EC69100DF166D /* Rendition.swift in Sources */,
-				F3FA0D401F5FE95000CBC647 /* Event.swift in Sources */,
 				F3E7D4121F4EC69100DF166D /* MediaOverlays.swift in Sources */,
 				F3E7D4111F4EC69100DF166D /* MediaOverlayNode.swift in Sources */,
 				F3E7D4151F4EC69100DF166D /* MultilangString.swift in Sources */,
