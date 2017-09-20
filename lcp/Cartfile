@@ -1,4 +1,4 @@
 github "SwiftyJSON/SwiftyJSON"
 github "mxcl/PromiseKit" ~> 4.3.2
-github "https://github.com/camill-a/ZIPFoundation" ~> 0.9.4
+github "https://github.com/camill-a/ZIPFoundation"
 github "stephencelis/SQLite.swift" ~> 0.11.3
