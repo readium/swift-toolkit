@@ -32,20 +32,19 @@ public class LicenseDocument {
     /// Used to validate the license integrity.
     public var signature: Signature
 
-    public init(with data: Data) throws {
-        let json = JSON.init(data: data)
-
+    public init(with json: JSON) throws {
         guard let id = json["id"].string,
             let issued = json["issued"].string,
             let issuedDate = issued.dateFromISO8601,
             let provider = json["provider"].url else
         {
-            throw LcpError.json
+            throw LcpParsingError.json
         }
         self.id = id
         self.issued = issuedDate
         self.provider = provider
-        encryption = try Encryption.init(with: json["enryption"])
+        //
+        encryption = try Encryption.init(with: json["encryption"])
         links = try parseLinks(json["links"])
         rights = Rights.init(with: json["rights"])
         user = User.init(with: json["user"])
@@ -55,14 +54,20 @@ public class LicenseDocument {
             self.updated = updatedDate
         }
         /// Check that links contains rel for Hint and Publication.
-        guard links.contains(where: { $0.rel.contains("hint") }),
-            links.contains(where: { $0.rel.contains("publication") }) else {
-            throw LcpError.link
+        guard (link(withRel: "hint") != nil) else {
+            throw LcpError.hintLinkNotFound
+        }
+        guard (link(withRel: "publication") != nil) else {
+            throw LcpError.publicationLinkNotFound
         }
     }
 
+    /// Returns the date of last update if any, or issued date.
+    public func dateOfLastUpdate() -> Date {
+        return ((updated != nil) ? updated! : issued)
+    }
 
-    /// Return the first link containing the given rel.
+    /// Returns the first link containing the given rel.
     ///
     /// - Parameter rel: The rel to look for.
     /// - Returns: The first link containing the rel.

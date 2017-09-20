@@ -23,7 +23,7 @@ public class StatusDocument {
 
     public var updated: Updated?
     /// Dictionnary of potential rights associated with Dates.
-    public var potentialRights = [Right: Date]()
+    public var potentialRights: PotentialRights?
     /// Ordered list of events related to the change in status of a License
     /// Document.
     public var events: [Event]!
@@ -52,13 +52,6 @@ public class StatusDocument {
         case expired
     }
 
-    /// List of potential changes allowed for a License Document.
-    ///
-    /// - end: Time and Date when the license ends.
-    public enum Right: String {
-        case end
-    }
-    
     public init(with data: Data) throws {
         let json = JSON(data: data)
 
@@ -68,30 +61,26 @@ public class StatusDocument {
             let status = Status(rawValue: statusData),
             let message = json["message"].string else
         {
-            throw LcpError.json
+            throw LcpParsingError.json
         }
         self.id = id
         self.status = status
         self.message = message
         self.updated = try Updated.init(with: json["updated"])
-        links = try parseLinks(json)
-        events = try parseEvents(json)
-        parsePotentialRights(json)
+        links = try parseLinks(json["links"])
+        events = try parseEvents(json["events"])
+        potentialRights = PotentialRights.init(with: json["potential_rights"])
     }
 
-    /// Parses the Potential Rights, if any.
-    ///
-    /// - Parameter json: The JSON representing the Potential Rights
-    internal func parsePotentialRights(_ json: JSON) {
-        guard let potentialRights = json["potential_rights"].dictionary else {
-            return
-        }
-        for potentialRight in potentialRights {
-            if let right = Right.init(rawValue: potentialRight.key),
-                let date = potentialRight.value.string?.dateFromISO8601 {
+    public func dateOfLatestLicenseDocumentUpdate() -> Date? {
+        return updated?.license
+    }
 
-                self.potentialRights[right] = date
-            }
-        }
+    /// Returns the first link containing the given rel.
+    ///
+    /// - Parameter rel: The rel to look for.
+    /// - Returns: The first link containing the rel.
+    public func link(withRel rel: String) -> Link? {
+        return links.first(where: { $0.rel.contains(rel) })
     }
 }

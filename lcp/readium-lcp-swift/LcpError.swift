@@ -6,41 +6,49 @@
 //  Copyright © 2017 Readium. All rights reserved.
 //
 
-import Foundation
-
-/// Errors associated to LCP module.
 public enum LcpError: Error {
-    case file
-    case statusLink
+    case unknown
+    case invalidPath
+    case invalidLcpl
+    case statusLinkNotFound
+    case licenseLinkNotFound
+    case publicationLinkNotFound
+    case hintLinkNotFound
+    case noStatusDocument
+    case licenseDocumentData
+    case publicationData
 
-    case json
-    case date
-    case link
-    case updated
-    case updatedDate
-    case encryption
-    case signature
+    case licenseStatus
+    case invalidRights
 
     public var localizedDescription: String {
         switch self {
-        case .file:
-            return "The LCPL document is not valid."
-        case .statusLink:
-            return "No link to status document in the license document's links."
-        case .json:
-            return "The JSON is no representing a valid Status Document."
-        case .date:
-            return "Invalid ISO8601 dates found."
-        case .link:
-            return "Invalid Link found in the JSON."
-        case .encryption:
-            return "Invalid Encryption object."
-        case .signature:
-            return "Invalid License Document Signature."
-        case .updated:
-            return "Invalid Updated object."
-        case .updatedDate:
-            return "Invalid Updated object date."
+        case .unknown:
+            return "Unknown error."
+        case .invalidPath:
+            return "The provided license file path is incorrect."
+        case .invalidLcpl:
+            return "The provided license isn't a correctly formatted LCPL file. "
+        case .statusLinkNotFound:
+            return "The status link is missing from the license document."
+        case .licenseLinkNotFound:
+            return "The license link is missing from the status document."
+        case .publicationLinkNotFound:
+            return "The publication link is missing from the license document."
+        case .hintLinkNotFound:
+            return "The hint link is missing from the license document."
+        case .noStatusDocument:
+            return "Updating the license failed, there is no status document."
+        case .licenseDocumentData:
+            return "Updating license failed, the fetche data is invalid."
+        case .publicationData:
+            return "The publication data is invalid."
+        case .licenseStatus:
+            return "This license is not valid anymore."
+        case .invalidRights:
+            return "The rights of this license aren't valid."
         }
     }
 }
+
+

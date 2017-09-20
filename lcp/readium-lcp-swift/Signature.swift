@@ -23,9 +23,9 @@ public struct Signature {
 
     init(with json: JSON) throws {
         guard let algorithm = json["algorithm"].url,
-            let certificate = json["certifiate"].string,
+            let certificate = json["certificate"].string,
             let value = json["value"].string else {
-                throw LcpError.signature
+                throw LcpParsingError.signature
         }
         self.algorithm = algorithm
         self.certificate = certificate

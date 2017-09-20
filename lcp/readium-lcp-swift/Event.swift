@@ -37,10 +37,10 @@ public struct Event {
             let type = json["type"].string,
             let id = json["id"].string else
         {
-            throw LcpError.json
+            throw LcpParsingError.json
         }
         guard let date = dateData.dateFromISO8601 else {
-            throw LcpError.date
+            throw LcpParsingError.date
         }
         self.type = type
         self.name = name
@@ -54,7 +54,7 @@ public struct Event {
 /// - Parameter json: The JSON representing the Events.
 /// - Throws: LsdErrors.
 func parseEvents(_ json: JSON) throws -> [Event] {
-    guard let jsonEvents = json["events"].array else {
+    guard let jsonEvents = json.array else {
         return []
     }
     var events = [Event]()

@@ -29,7 +29,7 @@ public struct UserKey {
         guard let hint = json["text_hint"].string,
             let algorithm = json["algorithm"].url,
             let keyCheck = json["key_check"].string else {
-                throw LcpError.json
+                throw LcpParsingError.json
         }
         self.hint = hint
         self.algorithm = algorithm

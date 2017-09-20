@@ -19,7 +19,7 @@ public struct Encryption {
 
     init(with json: JSON) throws {
         guard let profile = json["profile"].url else {
-            throw LcpError.encryption
+            throw LcpParsingError.encryption
         }
         self.profile = profile
         try contentKey = ContentKey.init(with: json["content_key"])

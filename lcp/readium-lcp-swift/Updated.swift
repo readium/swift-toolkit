@@ -18,11 +18,11 @@ public class Updated {
     init(with json: JSON) throws {
         guard let license = json["license"].string,
             let status = json["status"].string else {
-                throw LcpError.updated
+                throw LcpParsingError.updated
         }
         guard let licenseDate = license.dateFromISO8601,
             let statusDate = status.dateFromISO8601 else {
-                throw LcpError.updatedDate
+                throw LcpParsingError.updatedDate
         }
         self.license = licenseDate
         self.status = statusDate
