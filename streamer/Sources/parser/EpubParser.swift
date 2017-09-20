@@ -18,9 +18,11 @@ public struct EpubConstant {
     public static let containerDotXmlPath = "META-INF/container.xml"
     /// Path of the EPUB's ecryption file.
     public static let encryptionDotXmlPath = "META-INF/encryption.xml"
+    /// Lcpl file path.
+    public static let lcplFilePath = "META-INF/license.lcpl"
     /// Epub mime-type.
     public static let mimetype = "application/epub+zip"
-    /// http://www.idpf.org/oebps/ (Legacy)
+    /// http://www.idpf.org/oebps/ (Legacy).
     public static let mimetypeOEBPS = "application/oebps-package+xml"
     /// Media Overlays URL.
     public static let mediaOverlayURL = "media-overlay?resource="
@@ -40,6 +42,21 @@ public enum EpubParserError: Error {
     case xmlParse(underlyingError: Error)
     case missingElement(message: String)
     case unsupportedDrm
+
+    public var localizedDescription: String {
+        switch self {
+        case .wrongMimeType:
+            return "The mimetype of the Epub is not valid."
+        case .missingFile(let path):
+            return "The file '\(path)' is missing."
+        case .xmlParse(let underlyingError):
+            return "Error while parsing XML (\(underlyingError))."
+        case .missingElement(let message):
+            return "Missing element: \(message)."
+        case .unsupportedDrm:
+            return "This epub is protected by a DRM which cannot be opened."
+        }
+    }
 }
 
 extension EpubParser: Loggable {}
@@ -117,15 +134,18 @@ public class EpubParser: PublicationParser {
             log(level: .info, "No <EncryptedData> elements")
             return
         }
+        let lcpProtectedFile = lcplFilePresent(in: container)
         // Loop through <EncryptedData> elements..
         for encryptedDataElement in encryptedDataElements {
             var encryption = Encryption()
 
             encryption.algorithm = encryptedDataElement["EncryptionMethod"].attributes["Algorithm"]
-            // If encryptionMethod != "http://www.idpf.org/2008/embedding" && file .lcpl is not present in folder. then error
-            // clear LCP.
-            if let algorithm = encryption.algorithm, algorithm != "http://www.idpf.org/2008/embedding" {
-                throw EpubParserError.unsupportedDrm
+            // If encryptionMethod != "http://www.idpf.org/2008/embedding" && 
+            // file .lcpl is not present in folder, then error.
+            if !lcpProtectedFile {
+                if let algorithm = encryption.algorithm, algorithm != "http://www.idpf.org/2008/embedding" {
+                    throw EpubParserError.unsupportedDrm
+                }
             }
             // TODO: LCP encryption. Profile/Scheme if lcp.id != nil
             encp.parseEncryptionProperties(from: encryptedDataElement, to: &encryption)
@@ -133,6 +153,19 @@ public class EpubParser: PublicationParser {
                      encryptedDataElement)
         }
         // TODO: LCP
+    }
+
+
+    /// Check if there is a LCP License Document present in the Archive,
+    /// indicating that the archive is using a LCP DRM.
+    ///
+    /// - Parameter container: The Publication's Container.
+    /// - Returns: Returns true if an LCPL file is found.
+    private func lcplFilePresent(in container: EpubContainer) -> Bool {
+        guard ((try? container.data(relativePath: EpubConstant.lcplFilePath)) != nil) else {
+            return false
+        }
+         return true
     }
 
     /// Attempt to fill `Publication.tableOfContent`/`.landmarks`/`.pageList`/

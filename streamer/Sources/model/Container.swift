@@ -26,6 +26,22 @@ public enum ContainerError: Error {
     case xmlParse(underlyingError: Error)
     case missingLink(title: String?)
 
+    public var localizedDescription: String {
+        switch self {
+        case .streamInitFailed:
+            return "Stream initialization failed."
+        case .fileNotFound:
+            return "The file couldn't be found."
+        case .fileError:
+            return "An error occured while accessing the file attributes."
+        case .missingFile(let path):
+            return "The file at \(path) is missing from the archive."
+        case .xmlParse(let underlyingError):
+            return "Error while parsing XML: \(underlyingError.localizedDescription)"
+        case .missingLink(let title):
+            return "The link, titled \(title ?? "missing"), couldn't be found in the container."
+        }
+    }
 }
 
 /// Provide methods for accessing raw data from container's files.

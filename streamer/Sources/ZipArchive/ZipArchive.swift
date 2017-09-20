@@ -96,7 +96,7 @@ internal class ZipArchive {
     /// Reads the data of the file at offset.
     ///
     /// - Returns: The data of the file at offset.
-    /// - Throws: <#throws value description#>
+    /// - Throws: 
     internal func readDataOfCurrentFile() throws -> Data {
         let fileInfo = try informationsOfCurrentFile()
 
