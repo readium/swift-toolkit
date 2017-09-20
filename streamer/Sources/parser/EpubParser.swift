@@ -178,7 +178,7 @@ public class EpubParser: PublicationParser {
     internal func parseNavigationDocument(from container: EpubContainer, to publication: inout Publication) {
         // Get the link in the spine pointing to the Navigation Document.
         guard let navLink = publication.link(withRel: "contents"),
-            let navDocument = try? container.xmlDocument(forRessourceReferencedByLink: navLink) else {
+            let navDocument = try? container.xmlDocument(forResourceReferencedByLink: navLink) else {
                 return
         }
         // Set the location of the navigation document in order to normalize href pathes.
@@ -210,7 +210,7 @@ public class EpubParser: PublicationParser {
     internal func parseNcxDocument(from container: EpubContainer, to publication: inout Publication) {
         // Get the link in the spine pointing to the NCX document.
         guard let ncxLink = publication.resources.first(where: { $0.typeLink == "application/x-dtbncx+xml" }),
-            let ncxDocument = try? container.xmlDocument(forRessourceReferencedByLink: ncxLink) else {
+            let ncxDocument = try? container.xmlDocument(forResourceReferencedByLink: ncxLink) else {
                 return
         }
         // Set the location of the NCX document in order to normalize href pathes.

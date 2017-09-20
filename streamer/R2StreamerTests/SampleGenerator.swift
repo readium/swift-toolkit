@@ -34,7 +34,7 @@ internal class SampleGenerator: XCTest {
     ///
     /// - Returns: Dictionnayr of epubs at samplesUrls.
     internal func getEpubsForSamplesUrls() -> [String: PubBox] {
-        var ressources = [String: PubBox]()
+        var resources = [String: PubBox]()
 
         for url in samplesUrls {
             guard let result = parseEpub(at: url) else {
@@ -43,9 +43,9 @@ internal class SampleGenerator: XCTest {
             }
             let pubTitle = result.publication.metadata.title 
 
-            ressources[pubTitle] = result
+            resources[pubTitle] = result
         }
-        return ressources
+        return resources
     }
 
     /// Parse Epub at the given URL.
@@ -120,7 +120,7 @@ internal class SampleGenerator: XCTest {
         let bundle = Bundle(for: type(of: self))
 
         guard let path = bundle.path(forResource: "Samples/\(named)", ofType: ofType) else {
-            XCTFail("Couldn't fine ressource name \(named) in Samples/")
+            XCTFail("Couldn't fine resource name \(named) in Samples/")
             return nil
         }
         return URL(string: path)

@@ -44,7 +44,7 @@ public class OPFParser {
         publication.internalData["type"] = "epub"
         publication.internalData["rootfile"] = container.rootFile.rootFilePath
         try parseMetadata(from: document, to: &publication)
-        parseRessources(from: document.root["manifest"], to: &publication)
+        parseResources(from: document.root["manifest"], to: &publication)
         coverLinkFromMeta(from: document.root["metadata"], to: &publication)
         parseSpine(from: document.root["spine"], to: &publication)
         try parseMediaOverlay(from: container, to: &publication)
@@ -119,7 +119,7 @@ public class OPFParser {
     ///   - publication: The `Publication` object with `.resource` properties to
     ///                  fill.
     ///   - coverId: The coverId to identify the cover ressource and tag it.
-    internal func parseRessources(from manifest: AEXMLElement,
+    internal func parseResources(from manifest: AEXMLElement,
                                   to publication: inout Publication)
     {
         // Get the manifest children items
@@ -239,7 +239,7 @@ public class OPFParser {
         }
         for mediaOverlayLink in mediaOverlays {
             let node = MediaOverlayNode()
-            let smilXml = try container.xmlDocument(forRessourceReferencedByLink: mediaOverlayLink)
+            let smilXml = try container.xmlDocument(forResourceReferencedByLink: mediaOverlayLink)
             let body = smilXml.root["body"]
 
             node.role.append("section")

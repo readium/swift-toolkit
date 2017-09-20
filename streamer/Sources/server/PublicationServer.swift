@@ -96,7 +96,7 @@ public class PublicationServer {
 
     // Add handlers for the css/js resources.
     public func addSpecialResourcesHandlers() {
-        func styleRessourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
+        func styleResourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
             guard let request = request else {
                 return GCDWebServerResponse(statusCode: 404)
             }
@@ -117,9 +117,9 @@ public class PublicationServer {
         webServer.addHandler(forMethod: "GET",
                              pathRegex: "/styles/*",
                              request: GCDWebServerRequest.self,
-                             processBlock: styleRessourcesHandler)
+                             processBlock: styleResourcesHandler)
 
-        func scriptRessourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
+        func scriptResourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
             guard let request = request else {
                 return GCDWebServerResponse(statusCode: 404)
             }
@@ -140,7 +140,7 @@ public class PublicationServer {
         webServer.addHandler(forMethod: "GET",
                              pathRegex: "/scripts/*",
                              request: GCDWebServerRequest.self,
-                             processBlock: scriptRessourcesHandler)
+                             processBlock: scriptResourcesHandler)
     }
 
     /// Add a publication to the server. Also add it to the `pubBoxes`
@@ -199,7 +199,7 @@ public class PublicationServer {
         }
 
         /// Webserver HTTP GET ressources request handler.
-        func ressourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
+        func resourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
             let response: GCDWebServerResponse
 
             guard let request = request else {
@@ -235,7 +235,7 @@ public class PublicationServer {
             forMethod: "GET",
             pathRegex: "/\(endpoint)/.*",
             request: GCDWebServerRequest.self,
-            processBlock: ressourcesHandler)
+            processBlock: resourcesHandler)
     }
 
     fileprivate func addManifestHandler(for pubBox: PubBox, at endpoint: String) {

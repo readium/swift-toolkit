@@ -15,7 +15,7 @@ extension PublicationServerTest: Loggable {}
 class PublicationServerTest: XCTestCase {
     let sg = SampleGenerator()
     var publicationServer: PublicationServer? = nil
-    var ressources = [String: PubBox]()
+    var resources = [String: PubBox]()
 
     override func setUp() {
         R2StreamerEnableLog(withMinimumSeverityLevel: .verbose)
@@ -62,7 +62,7 @@ class PublicationServerTest: XCTestCase {
         publicationUrl = publicationUrl.appendingPathComponent(endPoint)
         publicationUrl = publicationUrl.appendingPathComponent("manifest.json")
         // Create the expectation.
-        let expect = expectation(description: "PublicationServer ressource exist at endPoint \(endPoint)/manifest.json")
+        let expect = expectation(description: "PublicationServer resource exists at endPoint \(endPoint)/manifest.json")
         // Define the request.
         let task = URLSession.shared.dataTask(with: publicationUrl, completionHandler: { (data, response, error) in
             guard error == nil else {

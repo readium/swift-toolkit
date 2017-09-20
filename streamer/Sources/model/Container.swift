@@ -175,7 +175,7 @@ protocol EpubContainer: Container {
     /// - Returns: The XML Document.
     /// - Throws: `ContainerError.missingFile`,
     ///           `ContainerError.xmlParse`.
-    func xmlDocument(forRessourceReferencedByLink link: Link?) throws -> AEXMLDocument
+    func xmlDocument(forResourceReferencedByLink link: Link?) throws -> AEXMLDocument
 }
 /// Default Implementation
 extension EpubContainer {
@@ -200,7 +200,7 @@ extension EpubContainer {
     ///   - container: The epub container.
     /// - Returns: The XML Document.
     /// - Throws: `ContainerError.missingLink()`, AEXML and ZipArchive errors.
-    public func xmlDocument(forRessourceReferencedByLink link: Link?) throws -> AEXMLDocument {
+    public func xmlDocument(forResourceReferencedByLink link: Link?) throws -> AEXMLDocument {
         guard let href = link?.href else {
             throw ContainerError.missingLink(title: link?.title)
         }

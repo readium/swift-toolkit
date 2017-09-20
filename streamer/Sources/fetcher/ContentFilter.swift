@@ -132,7 +132,7 @@ internal class ContentFiltersEpub: ContentFilters {
             print("Invalid resource")
             abort()
         }
-        let cssBefore = getHtmlLink(forRessource: "\(baseUrl)styles/ReadiumCSS-before.css")
+        let cssBefore = getHtmlLink(forResource: "\(baseUrl)styles/ReadiumCSS-before.css")
         let viewport = "<meta name=\"viewport\" content=\"width=device-width, height=device-height, initial-scale=1.0;\"/>\n"
 
         resourceHtml = resourceHtml.insert(string: cssBefore, at: headStart)
@@ -143,9 +143,9 @@ internal class ContentFiltersEpub: ContentFilters {
             print("Invalid resource")
             abort()
         }
-        let cssAfter = getHtmlLink(forRessource: "\(baseUrl)styles/ReadiumCSS-after.css")
-        let scriptTouchHandling = getHtmlScript(forRessource: "\(baseUrl)scripts/touchHandling.js")
-        let scriptUtils = getHtmlScript(forRessource: "\(baseUrl)scripts/utils.js")
+        let cssAfter = getHtmlLink(forResource: "\(baseUrl)styles/ReadiumCSS-after.css")
+        let scriptTouchHandling = getHtmlScript(forResource: "\(baseUrl)scripts/touchHandling.js")
+        let scriptUtils = getHtmlScript(forResource: "\(baseUrl)scripts/utils.js")
 
         resourceHtml = resourceHtml.insert(string: cssAfter, at: headEnd)
         resourceHtml = resourceHtml.insert(string: scriptTouchHandling, at: headEnd)
@@ -180,9 +180,9 @@ internal class ContentFiltersEpub: ContentFilters {
         /// Readium CSS -- Pagination.
         /// Readium JS.
         // Touch event bubbling.
-        includes.append(getHtmlScript(forRessource: "\(baseUrl)scripts/touchHandling.js"))
+        includes.append(getHtmlScript(forResource: "\(baseUrl)scripts/touchHandling.js"))
         // Misc JS utils.
-        includes.append(getHtmlScript(forRessource: "\(baseUrl)scripts/utils.js"))
+        includes.append(getHtmlScript(forResource: "\(baseUrl)scripts/utils.js"))
 
         for element in includes {
             resourceHtml = resourceHtml.insert(string: element, at: endHeadIndex)
@@ -194,18 +194,18 @@ internal class ContentFiltersEpub: ContentFilters {
         return enhancedStream
     }
 
-    fileprivate func getHtmlLink(forRessource ressourceName: String) -> String {
+    fileprivate func getHtmlLink(forResource resourceName: String) -> String {
         let prefix = "<link rel=\"stylesheet\" type=\"text/css\" href=\""
         let suffix = "\"/>\n"
 
-        return prefix + ressourceName + suffix
+        return prefix + resourceName + suffix
     }
 
-    fileprivate func getHtmlScript(forRessource ressourceName: String) -> String {
+    fileprivate func getHtmlScript(forResource resourceName: String) -> String {
         let prefix = "<script type=\"text/javascript\" src=\""
         let suffix = "\"></script>\n"
 
-        return prefix + ressourceName + suffix
+        return prefix + resourceName + suffix
     }
 
 }
