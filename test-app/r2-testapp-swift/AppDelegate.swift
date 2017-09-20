@@ -9,6 +9,7 @@
 import UIKit
 import R2Shared
 import R2Streamer
+import ReadiumLCP
 
 struct Location {
     let absolutePath: String
@@ -31,7 +32,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var publicationServer: PublicationServer!
     var epubParser: EpubParser!
     var cbzParser: CbzParser!
-
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
 
@@ -74,40 +74,61 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, open url: URL,
                      sourceApplication: String?, annotation: Any) -> Bool
     {
-        // Default outcome to print in alertView.
-        var alertTitle = "Success"
-        var alertMessage = "Publication added to library."
-        // When logic is done.
-        defer {
-            let alert = UIAlertController(title: alertTitle, message: alertMessage, preferredStyle: .alert)
-            let dismissButton = UIAlertAction(title: "OK", style: .cancel)
-
-            alert.addAction(dismissButton)
-            // Update library publications.
-            libraryViewController?.publications = publicationServer.publications
-            // Redraw cells
-            libraryViewController?.collectionView?.reloadData()
-            libraryViewController?.collectionView?.backgroundView = nil
-            // Present alert.
-            window!.rootViewController!.present(alert, animated: true)
-        }
-        //// Logic.
-        /// Move file to the app's Documents folder.
         guard url.isFileURL else {
-            alertTitle = "Error"
-            alertMessage = "The focument isn't valid."
+            showInfoAlert(title: "Error", message: "The document isn't valid.")
             return false
         }
-        /// Add the publication to the publication server.
-        let location = Location(absolutePath: url.path,
-                                relativePath: url.lastPathComponent,
-                                type: getTypeForPublicationAt(url: url))
-        if !loadPublication(at: location) {
-            alertTitle = "Error"
-            alertMessage = "The publication isn't valid."
+        switch url.pathExtension {
+        case "lcpl":
+            let lcpUtils = LcpUtils()
+
+            // Retrieve publication using the LCPL.
+            lcpUtils.publication(forLicenseAt: url, completion: { publicationUrl, error in
+                guard let path = publicationUrl?.path else {
+                    return
+                }
+                /// parse publication (TOMOVE)
+                /// (should be light parsing and lib upgrade instead)
+                do {
+                    let pubBox = try self.epubParser.parse(fileAtPath: path)
+
+                    try self.publicationServer.add(pubBox.publication, with: pubBox.associatedContainer)
+
+                    self.showInfoAlert(title: "Success", message: "LCP Publication added to library.")
+                } catch {
+                    self.showInfoAlert(title: "Error", message: error.localizedDescription)
+                    return
+                }
+            })
+        default:
+            /// Add the publication to the publication server.
+            let location = Location(absolutePath: url.path,
+                                    relativePath: url.lastPathComponent,
+                                    type: getTypeForPublicationAt(url: url))
+            if !loadPublication(at: location) {
+                showInfoAlert(title: "Error", message: "The publication isn't valid.")
+                return false
+            } else {
+                showInfoAlert(title: "Success", message: "Publication added to library.")
+            }
         }
         return true
     }
+
+    fileprivate func showInfoAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        let dismissButton = UIAlertAction(title: "OK", style: .cancel)
+
+        alert.addAction(dismissButton)
+        // Update library publications.
+        libraryViewController?.publications = publicationServer.publications
+        // Redraw cells
+        libraryViewController?.collectionView?.reloadData()
+        libraryViewController?.collectionView?.backgroundView = nil
+        // Present alert.
+        window!.rootViewController!.present(alert, animated: true)
+    }
+
 }
 
 extension AppDelegate {

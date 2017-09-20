@@ -11,6 +11,7 @@ import WebKit
 import R2Shared
 import R2Streamer
 import R2Navigator
+import ReadiumLCP
 import Kingfisher
 
 let bookPerRow = 3

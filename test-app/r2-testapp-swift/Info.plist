@@ -9,6 +9,8 @@
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
+			<key>CFBundleTypeIconFiles</key>
+			<array/>
 			<key>CFBundleTypeName</key>
 			<string>Epub Document</string>
 			<key>CFBundleTypeRole</key>
@@ -94,6 +96,25 @@
 			<false/>
 			<key>NSPersistentStoreTypeKey</key>
 			<string>Binary</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>lcpl</string>
+				<string>LCPL</string>
+			</array>
+			<key>CFBundleTypeIconFiles</key>
+			<array/>
+			<key>CFBundleTypeName</key>
+			<string>Lightweight Content Protection License</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.data</string>
+			</array>
 		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
@@ -184,6 +205,30 @@
 					<string>cbz</string>
 					<string>CBZ</string>
 				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>com.readium.lcpl</string>
+			<key>UTTypeReferenceURL</key>
+			<string>https://readium.github.io/readium-lcp-specification/</string>
+			<key>UTTypeDescription</key>
+			<string>Lightweight Content Protection License</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.text</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>com.apple.ostype</key>
+				<string>JPEG</string>
+				<key>public.filename-extension</key>
+				<array>
+					<string>lcpl</string>
+					<string>LCPL</string>
+				</array>
+				<key>public.mime-type</key>
+				<string>aplication/vnd.readium.lcp.license-1.0+json</string>
 			</dict>
 		</dict>
 	</array>

@@ -1,7 +1,5 @@
 github "onevcat/Kingfisher" ~> 3.0
-github "stephencelis/SQLite.swift" ~> 0.11.3
-
 github "readium/r2-shared-swift"  "master"
 github "readium/r2-streamer-swift" "master"
-github "readium/r2-navigator-swift" "master" 
-
+github "readium/r2-navigator-swift" "master"
+github "readium/readium-lcp-swift" "master"
