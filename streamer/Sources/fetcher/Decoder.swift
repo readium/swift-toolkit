@@ -14,7 +14,7 @@ extension Decoder: Loggable {}
 /// Deobfuscation/Deencryption of resources.
 internal class Decoder {
 
-    /// Then algorythms handled by the Decoder.
+    /// Then algorithms handled by the Decoder.
     public var decodableAlgorithms = [
         "fontIdpf": "http://www.idpf.org/2008/embedding",
         "fontAdobe": "http://ns.adobe.com/pdf/enc#RC"
