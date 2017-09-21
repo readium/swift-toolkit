@@ -30,6 +30,8 @@ public class LcpUtils {
             return
         }
 
+        // BLOCK CYRILLE ---
+
         firstly {
             /// 3.1/ Fetch the status document.
             /// 3.2/ Validate the status document.
@@ -57,7 +59,7 @@ public class LcpUtils {
                 }
                 /// 5/ Register the device / license if needed.
                 lcp.register()
-                /// 6/ Open the publication.
+                /// 6/ Fetch the publication.
                 return lcp.fetchPublication()
             }.then { publicationUrl -> Void in
                 /// Move the license document in the publication.
