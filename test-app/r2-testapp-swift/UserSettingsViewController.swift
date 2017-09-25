@@ -15,6 +15,8 @@ protocol UserSettingsDelegate: class {
     func fontDidChange(to font: UserSettings.Font)
     func appearanceDidChange(to appearance: UserSettings.Appearance)
     func scrollDidChange(to scroll: UserSettings.Scroll)
+    func fontSelectionTapped()
+    func advancedSettingsTapped()
 }
 
 class UserSettingsViewController: UIViewController {
@@ -25,8 +27,8 @@ class UserSettingsViewController: UIViewController {
     weak var delegate: UserSettingsDelegate?
     weak var userSettings: UserSettings?
 
-    let maxFontSize: Float = 200.0
-    let minFontSize: Float = 50.0
+    let maxFontSize: Float = 250.0
+    let minFontSize: Float = 75.0
     let fontSizeStep: Float = 12.5
 
     override func viewDidLoad() {
@@ -38,7 +40,7 @@ class UserSettingsViewController: UIViewController {
         brightnessSlider.value = Float(UIScreen.main.brightness)
     }
 
-    @IBAction func brightnessDidChanged() {
+    @IBAction func brightnessDidChange() {
         let brightness = brightnessSlider.value
 
         UIScreen.main.brightness = CGFloat(brightness)
@@ -55,7 +57,7 @@ class UserSettingsViewController: UIViewController {
         delegate?.fontSizeDidChange(to: String(newFontSize))
     }
 
-    @IBAction func increaseFontSize() {
+    @IBAction func increaseFontSizeTapped() {
         guard let currentFontSize = userSettings?.value(forKey: .fontSize),
             let currentFontSizeFloat = Float(currentFontSize),
             currentFontSizeFloat < maxFontSize  else {
@@ -79,6 +81,15 @@ class UserSettingsViewController: UIViewController {
 
         delegate?.scrollDidChange(to: scroll)
     }
+
+    @IBAction func fontSelectionTapped() {
+        delegate?.fontSelectionTapped()
+    }
+
+    @IBAction func advancedSettingsTapped() {
+        delegate?.advancedSettingsTapped()
+    }
+    
 }
 
 extension UserSettingsViewController {

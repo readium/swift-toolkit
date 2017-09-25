@@ -27,6 +27,10 @@
 		F38FB06E1F681A8200F9D602 /* SwiftyJSON.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB06C1F681A8200F9D602 /* SwiftyJSON.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F3BD53341F7294A500E46FFC /* ZIPFoundation.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3BD53321F7294A500E46FFC /* ZIPFoundation.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F3BD53371F7294CA00E46FFC /* PromiseKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3BD53351F7294CA00E46FFC /* PromiseKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		F3BD53391F72B26700E46FFC /* FontSelectionTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BD53381F72B26700E46FFC /* FontSelectionTableViewController.swift */; };
+		F3BD533B1F72B27400E46FFC /* AdvancedSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BD533A1F72B27400E46FFC /* AdvancedSettingsViewController.swift */; };
+		F3BD533C1F72B45500E46FFC /* FontSelectionTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BD53381F72B26700E46FFC /* FontSelectionTableViewController.swift */; };
+		F3BD533D1F72B45700E46FFC /* AdvancedSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BD533A1F72B27400E46FFC /* AdvancedSettingsViewController.swift */; };
 		F3E7D43C1F4EF6D400DF166D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D43B1F4EF6D400DF166D /* AppDelegate.swift */; };
 		F3E7D4431F4EF6D400DF166D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4421F4EF6D400DF166D /* Assets.xcassets */; };
 		F3E7D4461F4EF6D400DF166D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */; };
@@ -156,6 +160,8 @@
 		F3B2C8731F613DBA007601E4 /* SQLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SQLite.framework; path = Carthage/Build/iOS/SQLite.framework; sourceTree = "<group>"; };
 		F3BD53321F7294A500E46FFC /* ZIPFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ZIPFoundation.framework; path = Carthage/Build/iOS/ZIPFoundation.framework; sourceTree = "<group>"; };
 		F3BD53351F7294CA00E46FFC /* PromiseKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PromiseKit.framework; path = Carthage/Build/iOS/PromiseKit.framework; sourceTree = "<group>"; };
+		F3BD53381F72B26700E46FFC /* FontSelectionTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FontSelectionTableViewController.swift; sourceTree = "<group>"; };
+		F3BD533A1F72B27400E46FFC /* AdvancedSettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AdvancedSettingsViewController.swift; sourceTree = "<group>"; };
 		F3E7D4381F4EF6D400DF166D /* r2-testapp-swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3E7D43B1F4EF6D400DF166D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		F3E7D4421F4EF6D400DF166D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -355,6 +361,8 @@
 				F3E7D4831F4F044100DF166D /* BarView.swift */,
 				F3E7D4841F4F044100DF166D /* TableOfContentsTableViewController.swift */,
 				F3E7D4851F4F044100DF166D /* UserSettingsViewController.swift */,
+				F3BD53381F72B26700E46FFC /* FontSelectionTableViewController.swift */,
+				F3BD533A1F72B27400E46FFC /* AdvancedSettingsViewController.swift */,
 				F36D24DD1F580B8800A00BF1 /* Main.storyboard */,
 			);
 			name = EPUB;
@@ -551,11 +559,13 @@
 				F3E7D4801F4F03F500DF166D /* CbzViewController.swift in Sources */,
 				F3E7D4821F4F042600DF166D /* EpubViewController.swift in Sources */,
 				F3E7D4711F4EFEC200DF166D /* LibraryViewController.swift in Sources */,
+				F3BD533B1F72B27400E46FFC /* AdvancedSettingsViewController.swift in Sources */,
 				F3E7D48A1F4F049C00DF166D /* SpineItemTableViewController.swift in Sources */,
 				F3E7D4771F4F033200DF166D /* CellMenuView.swift in Sources */,
 				F3E7D43C1F4EF6D400DF166D /* AppDelegate.swift in Sources */,
 				F3E7D4881F4F044100DF166D /* UserSettingsViewController.swift in Sources */,
 				F3E7D47C1F4F03B800DF166D /* UIImageExtension.swift in Sources */,
+				F3BD53391F72B26700E46FFC /* FontSelectionTableViewController.swift in Sources */,
 				F3E7D4871F4F044100DF166D /* TableOfContentsTableViewController.swift in Sources */,
 				F3E7D4751F4F031B00DF166D /* PublicationCell.swift in Sources */,
 			);
@@ -585,11 +595,13 @@
 				F3E7D4C91F4F0B9300DF166D /* CbzViewController.swift in Sources */,
 				F3E7D4CA1F4F0B9300DF166D /* EpubViewController.swift in Sources */,
 				F3E7D4CB1F4F0B9300DF166D /* LibraryViewController.swift in Sources */,
+				F3BD533D1F72B45700E46FFC /* AdvancedSettingsViewController.swift in Sources */,
 				F3E7D4CC1F4F0B9300DF166D /* SpineItemTableViewController.swift in Sources */,
 				F3E7D4CD1F4F0B9300DF166D /* CellMenuView.swift in Sources */,
 				F3E7D4CE1F4F0B9300DF166D /* AppDelegate.swift in Sources */,
 				F3E7D4CF1F4F0B9300DF166D /* UserSettingsViewController.swift in Sources */,
 				F3E7D4D01F4F0B9300DF166D /* UIImageExtension.swift in Sources */,
+				F3BD533C1F72B45500E46FFC /* FontSelectionTableViewController.swift in Sources */,
 				F3E7D4D11F4F0B9300DF166D /* TableOfContentsTableViewController.swift in Sources */,
 				F3E7D4D21F4F0B9300DF166D /* PublicationCell.swift in Sources */,
 			);

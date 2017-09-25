@@ -18,6 +18,8 @@ class EpubViewController: UIViewController {
     var tableOfContentsTVC: TableOfContentsTableViewController!
     var popoverUserconfigurationAnchor: UIBarButtonItem?
     var userSettingsViewController: UserSettingsViewController!
+    var fontSelectionTableViewController: FontSelectionTableViewController!
+    var advancedSettingsViewController: AdvancedSettingsViewController!
 
     init(with publication: Publication, atIndex index: Int, progression: Double?) {
         stackView = UIStackView(frame: UIScreen.main.bounds)
@@ -31,17 +33,9 @@ class EpubViewController: UIViewController {
         // UserSettingsViewController.
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         userSettingsViewController = storyboard.instantiateViewController(withIdentifier: "UserSettingsViewController") as! UserSettingsViewController
+        fontSelectionTableViewController = storyboard.instantiateViewController(withIdentifier: "FontSelectionTableViewController") as! FontSelectionTableViewController
+        advancedSettingsViewController = storyboard.instantiateViewController(withIdentifier: "AdvancedSettingsViewController") as! AdvancedSettingsViewController
         super.init(nibName: nil, bundle: nil)
-        userSettingsViewController.delegate = self
-        userSettingsViewController.userSettings = navigator.userSettings
-        let width = UIScreen.main.bounds.width / 1.618
-        let height = UIScreen.main.bounds.height / 1.618
-        userSettingsViewController.modalPresentationStyle = .popover
-        userSettingsViewController.preferredContentSize = CGSize(width: width, height: height)
-
-        fixedTopBar.delegate = self
-        fixedBottomBar.delegate = self
-        navigator.delegate = self
     }
 
     deinit {
@@ -70,6 +64,20 @@ class EpubViewController: UIViewController {
         if let appearance = navigator.userSettings.appearance {
             setUIColor(for: appearance)
         }
+
+        //
+        userSettingsViewController.delegate = self
+        fontSelectionTableViewController.delegate = self
+        advancedSettingsViewController.delegate = self
+        userSettingsViewController.userSettings = navigator.userSettings
+        let width = UIScreen.main.bounds.width / 1.618
+        let height = UIScreen.main.bounds.height / 1.618
+        userSettingsViewController.modalPresentationStyle = .popover
+        userSettingsViewController.preferredContentSize = CGSize(width: width, height: height)
+
+        fixedTopBar.delegate = self
+        fixedBottomBar.delegate = self
+        navigator.delegate = self
     }
 
     override func viewDidLoad() {
@@ -145,7 +153,6 @@ extension EpubViewController {
     }
 }
 
-
 extension EpubViewController: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
                            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
@@ -203,6 +210,14 @@ extension EpubViewController: UserSettingsDelegate {
         navigator.updateUserSettingStyle()
     }
 
+    func fontSelectionTapped() {
+        print("todo")
+    }
+
+    func advancedSettingsTapped() {
+        print("todo")
+    }
+
     /// Synchronyze the UI appearance to the UserSettings.Appearance.
     ///
     /// - Parameter appearance: The appearance.
@@ -218,6 +233,14 @@ extension EpubViewController: UserSettingsDelegate {
         //
         tableOfContentsTVC.setUIColor(for: appearance)
     }
+}
+
+extension EpubViewController: FontSelectionDelegate {
+
+}
+
+extension EpubViewController: AdvancedSettingsDelegate {
+
 }
 
 extension EpubViewController: UIPopoverPresentationControllerDelegate {

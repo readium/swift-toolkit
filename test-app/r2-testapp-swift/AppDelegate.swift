@@ -99,6 +99,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                     self.showInfoAlert(title: "Error", message: error.localizedDescription)
                     return
                 }
+
+                
+
             })
         default:
             /// Add the publication to the publication server.
