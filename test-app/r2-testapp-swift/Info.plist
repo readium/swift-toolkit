@@ -113,7 +113,7 @@
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>public.data</string>
+				<string>com.readium.lcpl</string>
 			</array>
 		</dict>
 	</array>
@@ -220,8 +220,6 @@
 			</array>
 			<key>UTTypeTagSpecification</key>
 			<dict>
-				<key>com.apple.ostype</key>
-				<string>JPEG</string>
 				<key>public.filename-extension</key>
 				<array>
 					<string>lcpl</string>
