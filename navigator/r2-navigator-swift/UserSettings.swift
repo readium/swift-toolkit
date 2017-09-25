@@ -54,7 +54,7 @@ public class UserSettings {
         public func name(css: Bool = false) -> String {
             switch self {
             case .sans:
-                return (css ? "Helvetica Neue" : "Default")
+                return "Helvetica Neue"
             case .oldStyle:
                 return (css ? "Iowan Old Style" : "Iowan")
             case .modern:
