@@ -72,7 +72,7 @@ class EpubViewController: UIViewController {
 
         // User settings windows.
         let width = UIScreen.main.bounds.width / 1.618
-        let height = UIScreen.main.bounds.height / 1.618
+        let height = UIScreen.main.bounds.height / 2.2
 
         userSettingsViewController.preferredContentSize = CGSize(width: width, height: height)
         userSettingsViewController.modalPresentationStyle = .popover
@@ -118,6 +118,7 @@ class EpubViewController: UIViewController {
         super.viewWillAppear(animated)
 
         navigationController?.hidesBarsOnTap = true
+        toggleFixedBars()
     }
 
     override open func viewWillDisappear(_ animated: Bool) {
@@ -212,6 +213,7 @@ extension EpubViewController: UserSettingsDelegate {
         // remove snap in nav TODO -- taps etc, fix all
         navigator.userSettings.set(value: scroll.name(), forKey: UserSettings.Keys.scroll)
         navigator.updateUserSettingStyle()
+        toggleFixedBars()
     }
 
     func getFontSelectionViewController() -> FontSelectionViewController {
@@ -236,6 +238,18 @@ extension EpubViewController: UserSettingsDelegate {
         navigationController?.navigationBar.tintColor = textColor
         //
         tableOfContentsTVC.setUIColor(for: appearance)
+    }
+
+    // Toggle hide/show fixed bot and top bars.
+    fileprivate func toggleFixedBars() {
+        let currentValue = navigator.userSettings.scroll?.bool() ?? false
+
+        UIView.transition(with: fixedTopBar, duration: 0.318, options: .curveEaseOut, animations: {() -> Void in
+            self.fixedTopBar.isHidden = currentValue
+        }, completion: nil)
+        UIView.transition(with: fixedBottomBar, duration: 0.318, options: .curveEaseOut, animations: {() -> Void in
+            self.fixedBottomBar.isHidden = currentValue
+        }, completion: nil)
     }
 }
 
