@@ -14,4 +14,8 @@ protocol AdvancedSettingsDelegate {
 
 class AdvancedSettingsViewController: UIViewController {
     var delegate: AdvancedSettingsDelegate?
+
+    @IBAction func backTapped() {
+        dismiss(animated: true, completion: nil)
+    }
 }

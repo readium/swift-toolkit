@@ -12,17 +12,15 @@ import R2Navigator
 
 protocol UserSettingsDelegate: class {
     func fontSizeDidChange(to value: String)
-    func fontDidChange(to font: UserSettings.Font)
     func appearanceDidChange(to appearance: UserSettings.Appearance)
     func scrollDidChange(to scroll: UserSettings.Scroll)
-    func fontSelectionTapped()
-    func advancedSettingsTapped()
+    func getFontSelectionViewController() -> FontSelectionViewController
+    func getAdvancedSettingsViewController() -> AdvancedSettingsViewController
 }
 
 class UserSettingsViewController: UIViewController {
     @IBOutlet weak var brightnessSlider: UISlider!
     @IBOutlet weak var appearanceSegmentedControl: UISegmentedControl!
-    @IBOutlet weak var fontPickerView: UIPickerView!
     @IBOutlet weak var scrollSwitch: UISwitch!
     weak var delegate: UserSettingsDelegate?
     weak var userSettings: UserSettings?
@@ -83,13 +81,18 @@ class UserSettingsViewController: UIViewController {
     }
 
     @IBAction func fontSelectionTapped() {
-        delegate?.fontSelectionTapped()
+        guard let fsvc = delegate?.getFontSelectionViewController() else {
+            return
+        }
+        present(fsvc, animated: true, completion: nil)
     }
 
     @IBAction func advancedSettingsTapped() {
-        delegate?.advancedSettingsTapped()
+        guard let asvc = delegate?.getAdvancedSettingsViewController() else {
+            return
+        }
+        present(asvc, animated: true, completion: nil)
     }
-    
 }
 
 extension UserSettingsViewController {
@@ -101,15 +104,11 @@ extension UserSettingsViewController {
 
             appearanceSegmentedControl.selectedSegmentIndex = appearance.rawValue
         }
+//        /// Currently selected font.
+//        if let initialFont = userSettings?.value(forKey: .font) {
+//            let font = UserSettings.Font.init(with: initialFont)
+//        }
 
-        /// Font  PickerView.
-        fontPickerView.dataSource = self
-        fontPickerView.delegate = self
-        if let initialFont = userSettings?.value(forKey: .font) {
-            let font = UserSettings.Font.init(with: initialFont)
-
-            fontPickerView.selectRow(font.rawValue, inComponent: 0, animated: false)
-        }
         // Scroll switch.
         if let initialScroll = userSettings?.value(forKey: .scroll) {
             let scroll = UserSettings.Scroll.init(with: initialScroll)
@@ -119,25 +118,3 @@ extension UserSettingsViewController {
     }
 }
 
-extension UserSettingsViewController: UIPickerViewDelegate {
-    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        guard let font = UserSettings.Font(rawValue: row) else {
-            return
-        }
-        delegate?.fontDidChange(to: font)
-    }
-}
-
-extension UserSettingsViewController: UIPickerViewDataSource {
-    func numberOfComponents(in pickerView: UIPickerView) -> Int {
-        return 1
-    }
-
-    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        return UserSettings.Font.allValues.count
-    }
-
-    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        return UserSettings.Font(rawValue: row)?.name()
-    }
-}

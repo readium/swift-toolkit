@@ -18,7 +18,8 @@ class EpubViewController: UIViewController {
     var tableOfContentsTVC: TableOfContentsTableViewController!
     var popoverUserconfigurationAnchor: UIBarButtonItem?
     var userSettingsViewController: UserSettingsViewController!
-    var fontSelectionTableViewController: FontSelectionTableViewController!
+    //
+    var fontSelectionViewController: FontSelectionViewController!
     var advancedSettingsViewController: AdvancedSettingsViewController!
 
     init(with publication: Publication, atIndex index: Int, progression: Double?) {
@@ -32,9 +33,13 @@ class EpubViewController: UIViewController {
                                                                 callWhenDismissed: navigator.displaySpineItem(with:))
         // UserSettingsViewController.
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        userSettingsViewController = storyboard.instantiateViewController(withIdentifier: "UserSettingsViewController") as! UserSettingsViewController
-        fontSelectionTableViewController = storyboard.instantiateViewController(withIdentifier: "FontSelectionTableViewController") as! FontSelectionTableViewController
-        advancedSettingsViewController = storyboard.instantiateViewController(withIdentifier: "AdvancedSettingsViewController") as! AdvancedSettingsViewController
+
+        userSettingsViewController =
+            storyboard.instantiateViewController(withIdentifier: "UserSettingsViewController") as! UserSettingsViewController
+        fontSelectionViewController =
+            storyboard.instantiateViewController(withIdentifier: "FontSelectionViewController") as! FontSelectionViewController
+        advancedSettingsViewController =
+            storyboard.instantiateViewController(withIdentifier: "AdvancedSettingsViewController") as! AdvancedSettingsViewController
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -65,15 +70,19 @@ class EpubViewController: UIViewController {
             setUIColor(for: appearance)
         }
 
-        //
-        userSettingsViewController.delegate = self
-        fontSelectionTableViewController.delegate = self
-        advancedSettingsViewController.delegate = self
-        userSettingsViewController.userSettings = navigator.userSettings
+        // User settings windows.
         let width = UIScreen.main.bounds.width / 1.618
         let height = UIScreen.main.bounds.height / 1.618
-        userSettingsViewController.modalPresentationStyle = .popover
+
         userSettingsViewController.preferredContentSize = CGSize(width: width, height: height)
+        userSettingsViewController.modalPresentationStyle = .popover
+        userSettingsViewController.delegate = self
+        userSettingsViewController.userSettings = navigator.userSettings
+        //
+        fontSelectionViewController.modalPresentationStyle = .overCurrentContext
+        advancedSettingsViewController.modalPresentationStyle = .overCurrentContext
+        fontSelectionViewController.delegate = self
+        advancedSettingsViewController.delegate = self
 
         fixedTopBar.delegate = self
         fixedBottomBar.delegate = self
@@ -192,11 +201,6 @@ extension EpubViewController: UserSettingsDelegate {
         navigator.updateUserSettingStyle()
     }
 
-    func fontDidChange(to font: UserSettings.Font) {
-        navigator.userSettings.set(value: font.name(), forKey: .font)
-        navigator.updateUserSettingStyle()
-    }
-
     func appearanceDidChange(to appearance: UserSettings.Appearance) {
         navigator.userSettings.set(value: appearance.name(), forKey: .appearance)
         navigator.updateUserSettingStyle()
@@ -210,14 +214,14 @@ extension EpubViewController: UserSettingsDelegate {
         navigator.updateUserSettingStyle()
     }
 
-    func fontSelectionTapped() {
-        print("todo")
+    func getFontSelectionViewController() -> FontSelectionViewController {
+        return fontSelectionViewController
     }
 
-    func advancedSettingsTapped() {
-        print("todo")
+    func getAdvancedSettingsViewController() -> AdvancedSettingsViewController {
+        return advancedSettingsViewController
     }
-
+    
     /// Synchronyze the UI appearance to the UserSettings.Appearance.
     ///
     /// - Parameter appearance: The appearance.
@@ -236,7 +240,14 @@ extension EpubViewController: UserSettingsDelegate {
 }
 
 extension EpubViewController: FontSelectionDelegate {
+    func currentFont() -> UserSettings.Font? {
+        return navigator.userSettings.font
+    }
 
+    func fontDidChange(to font: UserSettings.Font) {
+        navigator.userSettings.set(value: font.name(), forKey: .font)
+        navigator.updateUserSettingStyle()
+    }
 }
 
 extension EpubViewController: AdvancedSettingsDelegate {
