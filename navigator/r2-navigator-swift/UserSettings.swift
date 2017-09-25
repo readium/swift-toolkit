@@ -25,17 +25,24 @@ public class UserSettings {
         //--USER__darkenImages --USER__invertImages
     }
 
+    internal enum Switches: String {
+        case publisherFont = "--USER__fontOverride"
+    }
+
     /// Font available in userSettings.
     public enum Font: Int {
+        case publisher
         case sans
         case oldStyle
         case modern
         case humanist
 
-        public static let allValues = [sans, oldStyle, modern, humanist]
+        public static let allValues = [publisher, sans, oldStyle, modern, humanist]
 
         public init(with name: String) {
             switch name {
+            case Font.sans.name():
+                self = .sans
             case Font.oldStyle.name():
                 self = .oldStyle
             case Font.modern.name():
@@ -43,7 +50,7 @@ public class UserSettings {
             case Font.humanist.name():
                 self = .humanist
             default:
-                self = .sans
+                self = .publisher
             }
         }
 
@@ -53,6 +60,8 @@ public class UserSettings {
         /// - Returns: The font name.
         public func name(css: Bool = false) -> String {
             switch self {
+            case .publisher:
+                return "Publisher's default"
             case .sans:
                 return "Helvetica Neue"
             case .oldStyle:
@@ -64,7 +73,6 @@ public class UserSettings {
             }
         }
     }
-
 
     /// Appearances available in UserSettings.
     public enum Appearance: Int {
@@ -215,7 +223,6 @@ public class UserSettings {
         }
     }
 
-
     /// Generate an array of tuple for setting easily the css properties.
     ///
     /// - Returns: Css properties (key, value).
@@ -226,6 +233,9 @@ public class UserSettings {
             properties.append((key: Keys.fontSize.rawValue, "\(fontSize)%"))
         }
         if let font = font {
+            // Do we override?
+            let value = (font == .publisher ? "readium-font-off" : "readium-font-on")
+            properties.append((key: Switches.publisherFont.rawValue, value))
             properties.append((key: Keys.font.rawValue, "\(font.name(css: true))"))
         }
         if let appearance = appearance {
