@@ -76,12 +76,12 @@ public class Lcp {
     internal func register() {
         // TODO --  check that license not already registered in base. else cancel.
         // call reigister ling
-        if let deviceId = getDeviceId() {
-            let deviceName = getDeviceName()
+//        if let deviceId = getDeviceId() {
+//            let deviceName = getDeviceName()
 
 
             //  5.3/ Store the fact the the device / license has been registered.
-        }
+//        }
     }
 
     /// Return the name of the Device.
@@ -190,4 +190,5 @@ public class Lcp {
             task.resume()
         }
     }
+
 }
