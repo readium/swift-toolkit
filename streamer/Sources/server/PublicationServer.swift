@@ -208,7 +208,8 @@ public class PublicationServer {
             }
 
             // Remove the prefix from the URI.
-            let relativePath = request.path.substring(from: request.path.index(endpoint.endIndex, offsetBy: 2))
+            let relativePath = request.path.substring(from: request.path.index(endpoint.endIndex, offsetBy: 1))
+            //
             let resource = publication.resource(withRelativePath: relativePath)
             let contentType = resource?.typeLink ?? "application/octet-stream"
             // Get a data input stream from the fetcher.
