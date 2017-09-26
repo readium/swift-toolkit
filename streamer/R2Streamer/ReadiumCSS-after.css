@@ -5,20 +5,6 @@
 
  Repo: https://github.com/readium/readium-css */
 
-/*
- Note: implementers feedback greatly appreciated, want to validate this approach before
- fine-tuning margins, columns, etc. On larger screens, you might want to resize the viewport
- i.e. the web view / iframe so that you still get 2 columns.
-
- Tried to make the most out of the multicol’s logic, which is responsive by default,
- but since columns have a floor but no ceiling, we have to find another way to limit line-length,
- manage margins, etc.
-
- I wish something like :nth-column(odd | even) existed to manage padding on body more efficitely
- but we’ll have to do without it so having evenly-distributed spacing (left, column gap and right)
- must be implemented in another way if you want that.
- */
-
 /* Config */
 
 /* Columns are responsive by default, even if column-width is set in pixels,
@@ -26,17 +12,23 @@
  If you want more control, I’m afraid you’ll have to update colWidth/colGap dynamically,
  which is how a significant amount of RS do at the moment. */
 
+/* Default for smartphone portrait (small screens) */
+
 :root {
     /* Your columns’ width floor */
-    --RS__colWidth: 30em;
+    --RS__colWidth: 45em; /* The width at which we’ll switch to 2 columns by default. PS: you can’t set it in rem */
+
     /* Ideal number of columns (depending on columns’ width floor) */
-    --RS__colCount: 2; /* Can be undefined */
+    --RS__colCount: 1;
+
     /* Gap between columns (in pixels so that it won’t resize with font-size) */
     --RS__colGap: 0px;
-    /* Default page horizontal margins (in pixels so that it won’t resize with font-size) */
-    --RS__pageGutter: 20px; /* See if colGap and pageGutter can be the same var */
+
     /* Optimal line-length (rem will take :root font-size into account, whatever the body’s font-size) */
     --RS__maxLineLength: 40rem;
+
+    /* Default page horizontal margins (in pixels so that it won’t resize with font-size) */
+    --RS__pageGutter: 20px; /* See if colGap and pageGutter can be the same var */
 }
 
 /* Reset page margins for Forward compatibility */
@@ -88,10 +80,6 @@
     -webkit-perspective: 1;
     /* Prevents options pop-up when long tap in webkit */
     -webkit-touch-callout: none;
-
-    /* Since columns do their thing at the browser level,
-     provide a variable to check if there is 1 or 2 columns */
-    --RS__currentColNumber: 1;
 }
 
 body {
@@ -101,29 +89,58 @@ body {
     /* Limit line-length but we have to reset when 2 columns and control the viewport.
      By using max-width + margin auto, margins will shrink when font-size increases,
      which is what would be expected in terms of typography. */
-    /* TODO: some authors might have a max-width declared already, see how we can deal with it. */
     max-width: var(--RS__maxLineLength) !important;
     padding: 0 var(--RS__pageGutter) !important;
     margin: 0 auto !important;
 
     /* We need a minimum padding on body so that descandants/ascendants in italic/script are not cut-off.
-     It also serves as a margin on small screens.
      Drawback: we have to use border-box so that it doesn’t screw the box model,
      which means it impacts colWidth and max-width */
     box-sizing: border-box;
 }
 
-/* If viewport can fit 2 columns (+ colGap) */
+/* We’ll now redefine margins and columns depending on the minimum width available
+ The goal is having the simplest model possible and avoid targeting devices */
 
-@media screen and (min-width: 61.5em) {
+/* Smartphone landscape */
+
+@media screen and (min-width: 35em) {
     :root {
-        --RS__maxLineLength: none; /* Reset max-width */
-        --RS__colGap: 0px;
-        --RS__pageGutter: 50px;
-
-        --RS__currentColNumber: 2;
+        --RS__pageGutter: 30px;
     }
 }
+
+/* Tablet portrait */
+
+@media screen and (min-width: 45em) {
+    :root {
+        --RS__pageGutter: 40px;
+    }
+}
+
+/* Desktop small + phablet + tablet landscape */
+
+@media screen and (min-width: 60em), screen and (min-width: 36em) and (max-width: 47em) and (orientation: landscape) {
+    :root {
+        /* The size at which we want 2 columns to switch to 1 (depending on font-size) */
+        --RS__colWidth: 20em; /* 20 * 16 = 320px but 20 * 28 = 560px so it will switch to 1 col @ 175% font-size (user-setting) on an iPad */
+        /* We constrain to 2 columns so that we can never get 3 or 4, etc.*/
+        --RS__colCount: 2;
+        --RS__maxLineLength: none; /* If we don’t use this, colNumber user setting won’t work in Safari… */
+    }
+}
+
+/* Desktop + tablet large */
+
+/* We get the previous settings, we just change the margins */
+
+@media screen and (min-width: 75em) {
+    :root {
+        --RS__pageGutter: 50px;
+    }
+}
+
+/* At this point (80em or so), constraining line length must be done at the web view/iframe level, or by limiting the size of :root itself */
 
 /* Readium CSS
  Scroll module
@@ -133,7 +150,9 @@ body {
 
  Repo: https://github.com/readium/readium-css */
 
-:root[style*="--USER__scroll"][style*="readium-scroll-on"] {
+/* [style*="--USER__view"] can be used to increase specificity but performance hit */
+
+:root[style*="readium-scroll-on"] {
 
     /* Reset columns, auto + auto = columns can’t be created */
     -webkit-columns: auto auto !important;
@@ -142,14 +161,12 @@ body {
     /* Reset html size so that the user can scroll */
     width: auto !important;
     height: auto !important;
-
-    --RS__currentColNumber: 0;
 }
 
-/* TODO: Enforce max-width for body, no matter which media query overrides it in pagination */
+/* Make sure line-length is limited in all configs */
 
-:root[style*="--USER__scroll"][style*="readium-scroll-on"] body {
-    max-width: var(--RS__maxLineLength) !important;
+:root[style*="readium-scroll-on"] body {
+    --RS__maxLineLength: 40rem !important;
 }
 
 /* Scroll mode horizontal */
@@ -199,7 +216,9 @@ body {
 
 /* CONFIG */
 
-:root[style*="--USER__appearance"][style*="readium-night"] {
+/* [style*="--USER__appearance"] can be used to increase specificity but performance hit */
+
+:root[style*="readium-night-on"] {
     --THEME__backgroundColor: #000000;
     --THEME__textColor: #FEFEFE;
 
@@ -207,55 +226,57 @@ body {
     --THEME__visitedColor: #0099E5;
 }
 
-:root[style*="--USER__appearance"][style*="readium-night"] {
+:root[style*="readium-night-on"] {
     color: var(--THEME__textColor) !important;
     background-color: var(--THEME__backgroundColor) !important;
 }
 
-:root[style*="--USER__appearance"][style*="readium-night"] *:not(a) {
+:root[style*="readium-night-on"] *:not(a) {
     color: inherit !important;
     background-color: transparent !important;
     border-color: currentColor !important;
 }
 
-:root[style*="--USER__appearance"][style*="readium-night"] svg text {
+:root[style*="readium-night-on"] svg text {
     fill: currentColor !important;
     stroke: none !important;
 }
 
-:root[style*="--USER__appearance"][style*="readium-night"] a:link,
-:root[style*="--USER__appearance"][style*="readium-night"] a:link * {
+:root[style*="readium-night-on"] a:link,
+:root[style*="readium-night-on"] a:link * {
     color: var(--THEME__linkColor) !important;
 }
 
-:root[style*="--USER__appearance"][style*="readium-night"] a:visited,
-:root[style*="--USER__appearance"][style*="readium-night"] a:visited * {
+:root[style*="readium-night-on"] a:visited,
+:root[style*="readium-night-on"] a:visited * {
     color: var(--THEME__visitedColor) !important;
 }
 
-:root[style*="--USER__appearance"][style*="readium-night"] img[class*="gaiji"],
-:root[style*="--USER__appearance"][style*="readium-night"] *[epub\:type~="titlepage"] img {
+:root[style*="readium-night-on"] img[class*="gaiji"],
+:root[style*="readium-night-on"] *[epub\:type~="titlepage"] img {
     -webkit-filter: invert(100%);
     filter: invert(100%);
 }
 
-/* Darken all images on user’s demand */
+/* Darken all images on user’s demand
+ [style*="--USER__darkenFilter"] can be used to increase specificity but performance hit */
 
-:root[style*="--USER__appearance"][style*="readium-night"][style*="--USER__darkenFilter"][style*="readium-darken-on"] img {
+:root[style*="readium-night-on"][style*="readium-darken-on"] img {
     -webkit-filter: brightness(80%);
     filter: brightness(80%);
 }
 
-/* Invert all images on user’s demand */
+/* Invert all images on user’s demand
+ [style*="--USER__invertFilter"] can be used to increase specificity but performance hit */
 
-:root[style*="--USER__appearance"][style*="readium-night"][style*="--USER__invertFilter"][style*="readium-invert-on"] img {
+:root[style*="readium-night-on"][style*="readium-invert-on"] img {
     -webkit-filter: invert(100%);
     filter: invert(100%);
 }
 
 /* Darken and invert on user’s demand */
 
-:root[style*="--USER__appearance"][style*="readium-night"][style*="--USER__darkenFilter"][style*="readium-darken-on"][style*="--USER__invertFilter"][style*="readium-invert-on"] img {
+:root[style*="readium-night-on"][style*="readium-darken-on"][style*="readium-invert-on"] img {
     -webkit-filter: brightness(80%) invert(100%);
     filter: brightness(80%) invert(100%);
 }
@@ -269,7 +290,9 @@ body {
 
 /* CONFIG */
 
-:root[style*="--USER__appearance"][style*="readium-sepia"] {
+/* [style*="--USER__appearance"] can be used to increase specificity but performance hit */
+
+:root[style*="readium-sepia-on"] {
     --THEME__backgroundColor: #faf4e8;
     --THEME__textColor: #121212;
 
@@ -277,29 +300,29 @@ body {
     --THEME__visitedColor: #551A8B;
 }
 
-:root[style*="--USER__appearance"][style*="readium-sepia"] {
+:root[style*="readium-sepia-on"] {
     color: var(--THEME__textColor) !important;
     background: var(--THEME__backgroundColor) !important;
 }
 
-:root[style*="--USER__appearance"][style*="readium-sepia"] body {
+:root[style*="readium-sepia-on"] body {
     color: inherit;
     background-color: transparent;
 }
 
-:root[style*="--USER__appearance"][style*="readium-sepia"] a:link,
-:root[style*="--USER__appearance"][style*="readium-sepia"] a:link * {
+:root[style*="readium-sepia-on"] a:link,
+:root[style*="readium-sepia-on"] a:link * {
     color: var(--THEME__linkColor);
 }
 
-:root[style*="--USER__appearance"][style*="readium-sepia"] a:visited,
-:root[style*="--USER__appearance"][style*="readium-sepia"] a:visited * {
+:root[style*="readium-sepia-on"] a:visited,
+:root[style*="readium-sepia-on"] a:visited * {
     color: var(--THEME__visitedColor);
 }
 
 /* Disable for proto as there are hardware-, platform- and browser-specific bugs (some or all images won’t render in Blink/Webkit)
- :root[style*="--USER__appearance"][style*="readium-sepia"] svg,
- :root[style*="--USER__appearance"][style*="readium-sepia"] img {
+ :root[style*="readium-sepia-on"] svg,
+ :root[style*="readium-sepia-on"] img {
  mix-blend-mode: multiply;
  }
  */
@@ -313,34 +336,43 @@ body {
 
 /* Variables are added to html (setProperty -> style) */
 
+/* For user overrides which need [style*="readium-advanced-on"] flag,
+ see https://github.com/readium/readium-css/issues/16 > User Overrides advanced */
+
 /* Number of columns = 1 | 2 */
 
-:root[style*="--USER__colNumber"] {
-    -webkit-column-count: var(--USER__colNumber);
-    -moz-column-count: var(--USER__colNumber);
-    column-count: var(--USER__colNumber);
+/* We still need to see if we allow users to force number of columns for all configs, currently it behaves as an "auto" setting */
+
+/* apply col setting except for tablet portrait */
+
+@media screen and (min-width: 60em), screen and (min-width: 36em) and (max-width: 47em) and (orientation: landscape) {
+    :root[style*="--USER__colCount: 1"],
+    :root[style*="--USER__colCount:1"],
+    :root[style*="--USER__colCount: 2"],
+    :root[style*="--USER__colCount:2"] {
+        -webkit-column-count: var(--USER__colCount);
+        -moz-column-count: var(--USER__colCount);
+        column-count: var(--USER__colCount);
+    }
+
+    /* If one column, make sure we limit line-length */
+    :root[style*="--USER__colCount: 1"],
+    :root[style*="--USER__colCount:1"] {
+        --RS__maxLineLength: 40rem !important; /* This is the only way for the user setting to work in webkit… */
+        --RS__colWidth: 100vw;
+    }
+
+    /* If smartphone landscape, and 2 columns, col width the same as iPad landscape + desktop */
+    :root[style*="--USER__colCount: 2"],
+    :root[style*="--USER__colCount:2"] {
+        --RS__colWidth: auto; /* User explicitely tells he/she wants 2 columns, we reset floor value */
+    }
 }
 
-:root[style*="--USER__colNumber: 1"] body,
-:root[style*="--USER__colNumber:1"] body {
-    max-width: var(--RS__maxLineLength);
-
-    --RS__currentColNumber: 1;
-}
-
-:root[style*="--USER__colNumber: 2"],
-:root[style*="--USER__colNumber:2"] {
-    -webkit-column-width: auto;
-    -moz-column-width: auto;
-    column-width: auto;
-
-    --RS__currentColNumber: 2;
-}
-
-/* Page Margins */
+/* Page Margins: the user margin is a factor of the page gutter e.g. 0.5, 0.75, 1, 1.25, 1.5, etc. */
 
 :root[style*="--USER__pageMargins"] body {
-    padding: 0 var(--USER__pageMargins) !important;
+    padding: 0 calc(var(--RS__pageGutter) * var(--USER__pageMargins)) !important;
 }
 
 /* Colors */
@@ -369,13 +401,13 @@ body {
 
 /* Text Align */
 
-:root[style*="--USER__textAlign"] {
+:root[style*="readium-advanced-on"][style*="--USER__textAlign"] {
     text-align: var(--USER__textAlign);
 }
 
-:root[style*="--USER__textAlign"] body, :root[style*="text-align"] body,
-:root[style*="--USER__textAlign"] *:not(blockquote):not(figcaption) p, :root[style*="text-align"] *:not(blockquote):not(figcaption) p,
-:root[style*="--USER__textAlign"] li, :root[style*="text-align"] li {
+:root[style*="readium-advanced-on"][style*="--USER__textAlign"] body, :root[style*="text-align"] body,
+:root[style*="readium-advanced-on"][style*="--USER__textAlign"] *:not(blockquote):not(figcaption) p, :root[style*="text-align"] *:not(blockquote):not(figcaption) p,
+:root[style*="readium-advanced-on"][style*="--USER__textAlign"] li, :root[style*="text-align"] li {
     text-align: inherit !important;
     -moz-text-align-last: auto !important;
     -epub-text-align-last: auto !important;
@@ -384,7 +416,7 @@ body {
 
 /* Hyphens (none | auto) */
 
-:root[style*="--USER__bodyHyphens"] {
+:root[style*="readium-advanced-on"][style*="--USER__bodyHyphens"] {
     -webkit-hyphens: var(--USER__bodyHyphens) !important;
     -moz-hyphens: var(--USER__bodyHyphens) !important;
     -ms-hyphens: var(--USER__bodyHyphens) !important;
@@ -394,11 +426,11 @@ body {
 
 /* Sorry, we can’t use `:matches`, `:-moz-any` or `:-webkit-any` because MS doesn’t support it yet */
 
-:root[style*="--USER__bodyHyphens"] body, :root[style*="hyphens"] body,
-:root[style*="--USER__bodyHyphens"] p, :root[style*="hyphens"] p,
-:root[style*="--USER__bodyHyphens"] li, :root[style*="hyphens"] li,
-:root[style*="--USER__bodyHyphens"] div, :root[style*="hyphens"] div,
-:root[style*="--USER__bodyHyphens"] dd, :root[style*="hyphens"] dd {
+:root[style*="readium-advanced-on"][style*="--USER__bodyHyphens"] body, :root[style*="hyphens"] body,
+:root[style*="readium-advanced-on"][style*="--USER__bodyHyphens"] p, :root[style*="hyphens"] p,
+:root[style*="readium-advanced-on"][style*="--USER__bodyHyphens"] li, :root[style*="hyphens"] li,
+:root[style*="readium-advanced-on"][style*="--USER__bodyHyphens"] div, :root[style*="hyphens"] div,
+:root[style*="readium-advanced-on"][style*="--USER__bodyHyphens"] dd, :root[style*="hyphens"] dd {
     -webkit-hyphens: inherit;
     -moz-hyphens: inherit;
     -ms-hyphens: inherit;
@@ -408,8 +440,8 @@ body {
 
 /* Prevent hyphens in inline code */
 
-:root[style*="--USER__bodyHyphens"] code, :root[style*="hyphens"] code,
-:root[style*="--USER__bodyHyphens"] var, :root[style*="hyphens"] var {
+:root[style*="readium-advanced-on"][style*="--USER__bodyHyphens"] code, :root[style*="hyphens"] code,
+:root[style*="readium-advanced-on"][style*="--USER__bodyHyphens"] var, :root[style*="hyphens"] var {
     -webkit-hyphens: none;
     -moz-hyphens: none;
     -ms-hyphens: none;
@@ -419,25 +451,33 @@ body {
 
 /* Font family (typeface) */
 
-:root[style*="--USER__fontFamily"] {
+/* [style*="--USER__fontOverride"] can be used to increase specificity but performance hit */
+
+:root[style*="readium-font-on"][style*="--USER__fontFamily"] {
     font-family: var(--USER__fontFamily) !important;
 }
 
-:root[style*="--USER__fontFamily"] body, :root[style*="font-family"] body,
-:root[style*="--USER__fontFamily"] p, :root[style*="font-family"] p,
-:root[style*="--USER__fontFamily"] li, :root[style*="font-family"] li,
-:root[style*="--USER__fontFamily"] div, :root[style*="font-family"] div,
-:root[style*="--USER__fontFamily"] dt, :root[style*="font-family"] dt,
-:root[style*="--USER__fontFamily"] dd, :root[style*="font-family"] dd {
+:root[style*="readium-font-on"][style*="--USER__fontFamily"] body, :root[style*="font-family"] body,
+:root[style*="readium-font-on"][style*="--USER__fontFamily"] p, :root[style*="font-family"] p,
+:root[style*="readium-font-on"][style*="--USER__fontFamily"] li, :root[style*="font-family"] li,
+:root[style*="readium-font-on"][style*="--USER__fontFamily"] div, :root[style*="font-family"] div,
+:root[style*="readium-font-on"][style*="--USER__fontFamily"] dt, :root[style*="font-family"] dt,
+:root[style*="readium-font-on"][style*="--USER__fontFamily"] dd, :root[style*="font-family"] dd {
     font-family: inherit !important;
 }
 
-:root[style*="--USER__fontFamily"] i:not(:lang), :root[style*="font-family"] i:not(:lang),
-:root[style*="--USER__fontFamily"] em:not(:lang), :root[style*="font-family"] em:not(:lang),
-:root[style*="--USER__fontFamily"] cite:not(:lang), :root[style*="font-family"] cite:not(:lang),
-:root[style*="--USER__fontFamily"] b:not(:lang), :root[style*="font-family"] b:not(:lang),
-:root[style*="--USER__fontFamily"] strong:not(:lang), :root[style*="font-family"] strong:not(:lang),
-:root[style*="--USER__fontFamily"] span:not(:lang), :root[style*="font-family"] span:not(:lang) {
+:root[style*="readium-font-on"][style*="--USER__fontFamily"] i:not([lang]), :root[style*="font-family"] i:not([lang]),
+:root[style*="readium-font-on"][style*="--USER__fontFamily"] i:not([xml\:lang]), :root[style*="font-family"] i:not([xml\:lang]),
+:root[style*="readium-font-on"][style*="--USER__fontFamily"] em:not([lang]), :root[style*="font-family"] em:not([lang]),
+:root[style*="readium-font-on"][style*="--USER__fontFamily"] em:not([xml\:lang]), :root[style*="font-family"] em:not([xml\:lang]),
+:root[style*="readium-font-on"][style*="--USER__fontFamily"] cite:not([lang]), :root[style*="font-family"] cite:not([lang]),
+:root[style*="readium-font-on"][style*="--USER__fontFamily"] cite:not([xml\:lang]), :root[style*="font-family"] cite:not([xml\:lang]),
+:root[style*="readium-font-on"][style*="--USER__fontFamily"] b:not([lang]), :root[style*="font-family"] b:not([lang]),
+:root[style*="readium-font-on"][style*="--USER__fontFamily"] b:not([xml\:lang]), :root[style*="font-family"] b:not([xml\:lang]),
+:root[style*="readium-font-on"][style*="--USER__fontFamily"] strong:not([lang]), :root[style*="font-family"] strong:not([lang]),
+:root[style*="readium-font-on"][style*="--USER__fontFamily"] strong:not([xml\:lang]), :root[style*="font-family"] strong:not([xml\:lang]),
+:root[style*="readium-font-on"][style*="--USER__fontFamily"] span:not([lang]), :root[style*="font-family"] span:not([lang]),
+:root[style*="readium-font-on"][style*="--USER__fontFamily"] span:not([xml\:lang]), :root[style*="font-family"] span:not([xml\:lang]) {
     font-family: inherit !important;
 }
 
@@ -449,53 +489,53 @@ body {
 
 /* Line height */
 
-:root[style*="--USER__lineHeight"] {
+:root[style*="readium-advanced-on"][style*="--USER__lineHeight"] {
     line-height: var(--USER__lineHeight) !important;
 }
 
-:root[style*="--USER__lineHeight"] body, :root[style*="line-height"] body,
-:root[style*="--USER__lineHeight"] p, :root[style*="line-height"] p,
-:root[style*="--USER__lineHeight"] li, :root[style*="line-height"] li,
-:root[style*="--USER__lineHeight"] div, :root[style*="line-height"] div {
+:root[style*="readium-advanced-on"][style*="--USER__lineHeight"] body, :root[style*="line-height"] body,
+:root[style*="readium-advanced-on"][style*="--USER__lineHeight"] p, :root[style*="line-height"] p,
+:root[style*="readium-advanced-on"][style*="--USER__lineHeight"] li, :root[style*="line-height"] li,
+:root[style*="readium-advanced-on"][style*="--USER__lineHeight"] div, :root[style*="line-height"] div {
     line-height: inherit;
 }
 
 /* Para spacing (paragraphs’ vertical margins) */
 
-:root[style*="--USER__paraSpacing"] p {
+:root[style*="readium-advanced-on"][style*="--USER__paraSpacing"] p {
     margin-top: var(--USER__paraSpacing) !important;
     margin-bottom: var(--USER__paraSpacing) !important;
 }
 
 /* Para indent (text indent) */
 
-:root[style*="--USER__paraIndent"] p {
+:root[style*="readium-advanced-on"][style*="--USER__paraIndent"] p {
     text-indent: var(--USER__paraIndent) !important;
 }
 
 /* Word spacing and letter spacing */
 
-:root[style*="--USER__wordSpacing"] h1,
-:root[style*="--USER__wordSpacing"] h2,
-:root[style*="--USER__wordSpacing"] h3,
-:root[style*="--USER__wordSpacing"] h4,
-:root[style*="--USER__wordSpacing"] h5,
-:root[style*="--USER__wordSpacing"] h6,
-:root[style*="--USER__wordSpacing"] p,
-:root[style*="--USER__wordSpacing"] li,
-:root[style*="--USER__wordSpacing"] div {
+:root[style*="readium-advanced-on"][style*="--USER__wordSpacing"] h1,
+:root[style*="readium-advanced-on"][style*="--USER__wordSpacing"] h2,
+:root[style*="readium-advanced-on"][style*="--USER__wordSpacing"] h3,
+:root[style*="readium-advanced-on"][style*="--USER__wordSpacing"] h4,
+:root[style*="readium-advanced-on"][style*="--USER__wordSpacing"] h5,
+:root[style*="readium-advanced-on"][style*="--USER__wordSpacing"] h6,
+:root[style*="readium-advanced-on"][style*="--USER__wordSpacing"] p,
+:root[style*="readium-advanced-on"][style*="--USER__wordSpacing"] li,
+:root[style*="readium-advanced-on"][style*="--USER__wordSpacing"] div {
     word-spacing: var(--USER__wordSpacing);
 }
 
-:root[style*="--USER__letterSpacing"] h1,
-:root[style*="--USER__letterSpacing"] h2,
-:root[style*="--USER__letterSpacing"] h3,
-:root[style*="--USER__letterSpacing"] h4,
-:root[style*="--USER__letterSpacing"] h5,
-:root[style*="--USER__letterSpacing"] h6,
-:root[style*="--USER__letterSpacing"] p,
-:root[style*="--USER__letterSpacing"] li,
-:root[style*="--USER__letterSpacing"] div {
+:root[style*="readium-advanced-on"][style*="--USER__letterSpacing"] h1,
+:root[style*="readium-advanced-on"][style*="--USER__letterSpacing"] h2,
+:root[style*="readium-advanced-on"][style*="--USER__letterSpacing"] h3,
+:root[style*="readium-advanced-on"][style*="--USER__letterSpacing"] h4,
+:root[style*="readium-advanced-on"][style*="--USER__letterSpacing"] h5,
+:root[style*="readium-advanced-on"][style*="--USER__letterSpacing"] h6,
+:root[style*="readium-advanced-on"][style*="--USER__letterSpacing"] p,
+:root[style*="readium-advanced-on"][style*="--USER__letterSpacing"] li,
+:root[style*="readium-advanced-on"][style*="--USER__letterSpacing"] div {
     letter-spacing: var(--USER__letterSpacing);
     font-variant: none;
 }
@@ -538,43 +578,67 @@ body {
 
 /* :root is used so that you can quickly add a class or attribute if you prefer e.g. `:root[data-rs-normalize]` */
 
-:root[style*="--USER__typeScale"] p,
-:root[style*="--USER__typeScale"] li,
-:root[style*="--USER__typeScale"] div,
-:root[style*="--USER__typeScale"] pre,
-:root[style*="--USER__typeScale"] dd {
+/* We create a default so that you don’t need to explicitly set one in the DOM.
+ Once the “Publisher’s styles” checkbox is unchecked, the normalize is applied automatically */
+
+:root[style*="readium-advanced-on"] {
+    --USER__typeScale: 1.2; /* This is the default type scale you’ll find in most publications */
+}
+
+/* [style*="--USER__advancedSettings"] can be used to increase specificity but performance hit */
+
+:root[style*="readium-advanced-on"] p,
+:root[style*="readium-advanced-on"] li,
+:root[style*="readium-advanced-on"] div,
+:root[style*="readium-advanced-on"] pre,
+:root[style*="readium-advanced-on"] dd {
     font-size: 1rem !important;
 }
 
-:root[style*="--USER__typeScale"] h1 {
+:root[style*="readium-advanced-on"] h1 {
     /* Fallback if browser doesn’t support vars */
     font-size: 1.75rem !important;
-    font-size: calc(((1rem * var(--USER__typeScale, 1.2)) * var(--USER__typeScale, 1.2)) * var(--USER__typeScale, 1.2)) !important;
+    font-size: calc(((1rem * var(--USER__typeScale)) * var(--USER__typeScale)) * var(--USER__typeScale)) !important;
 }
 
-:root[style*="--USER__typeScale"] h2 {
+:root[style*="readium-advanced-on"] h2 {
     /* Fallback if browser doesn’t support vars */
     font-size: 1.5rem !important;
-    font-size: calc((1rem * var(--USER__typeScale, 1.2)) * var(--USER__typeScale, 1.2)) !important;
+    font-size: calc((1rem * var(--USER__typeScale)) * var(--USER__typeScale)) !important;
 }
 
-:root[style*="--USER__typeScale"] h3 {
+:root[style*="readium-advanced-on"] h3 {
     /* Fallback if browser doesn’t support vars */
     font-size: 1.25rem !important;
-    font-size: calc(1rem * var(--USER__typeScale, 1.2)) !important;
+    font-size: calc(1rem * var(--USER__typeScale)) !important;
 }
 
-:root[style*="--USER__typeScale"] h4,
-:root[style*="--USER__typeScale"] h5,
-:root[style*="--USER__typeScale"] h6 {
+:root[style*="readium-advanced-on"] h4,
+:root[style*="readium-advanced-on"] h5,
+:root[style*="readium-advanced-on"] h6 {
     font-size: 1rem !important;
 }
 
-:root[style*="--USER__typeScale"] small {
+:root[style*="readium-advanced-on"] small {
     font-size: smaller !important;
 }
 
-:root[style*="--USER__typeScale"] sub,
-:root[style*="--USER__typeScale"] sup {
+:root[style*="readium-advanced-on"] sub,
+:root[style*="readium-advanced-on"] sup {
     font-size: 67.5% !important;
+}
+
+/* The following styles kick in if you define the typeScale variable in the DOM.
+ No need to repeat declarations which don’t make use of the variable */
+
+:root[style*="readium-advanced-on"][style*="--USER__typeScale"] h1 {
+    font-size: calc(((1rem * var(--USER__typeScale)) * var(--USER__typeScale)) * var(--USER__typeScale)) !important;
+}
+
+:root[style*="readium-advanced-on"][style*="--USER__typeScale"] h2 {
+    font-size: calc((1rem * var(--USER__typeScale)) * var(--USER__typeScale)) !important;
+}
+
+:root[style*="readium-advanced-on"][style*="--USER__typeScale"] h3 {
+    font-size: calc(1rem * var(--USER__typeScale)) !important;
 }

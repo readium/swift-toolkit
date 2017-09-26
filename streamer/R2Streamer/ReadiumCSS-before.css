@@ -1,362 +1,403 @@
+/* Readium CSS
+ Base module
+
+ A minimal stylesheet for all ebooks
+
+ Repo: https://github.com/readium/readium-css */
+
 @namespace url(http://www.w3.org/1999/xhtml);
+
 @namespace epub url(http://www.idpf.org/2007/ops);
+
 @namespace m url(http://www.w3.org/1998/Math/MathML/);
+
 @namespace svg url(http://www.w3.org/2000/svg);
 
 /* Define viewport, HTML5-style */
+
 @-ms-viewport {
-  width: device-width;
+    width: device-width;
 }
 
 @viewport {
-  width: device-width;
-  zoom: 1;
+    width: device-width;
+    zoom: 1;
 }
 
 :root {
-  /* Default font-stacks */
-  --RS__oldStyleTf: "Iowan Old Style", "Sitka Text", Palatino, "Book Antiqua", serif;
-  --RS__modernTf: Athelas, Constantia, Georgia, serif;
-  --RS__sansTf: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --RS__humanistTf: Seravek, Calibri, Roboto, Arial, sans-serif;
-  --RS__monospaceTf: "Andale Mono", Consolas, monospace;
+    /* Default font-stacks */
+    --RS__oldStyleTf: "Iowan Old Style", "Sitka Text", Palatino, "Book Antiqua", serif;
+    --RS__modernTf: Athelas, Constantia, Georgia, serif;
+    --RS__sansTf: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --RS__humanistTf: Seravek, Calibri, Roboto, Arial, sans-serif;
+    --RS__monospaceTf: "Andale Mono", Consolas, monospace;
 
-  /* Config */
-  --RS__baseFontFamily: var(--RS__oldStyleTf);
-  --RS__textColor: #121212;
-  --RS__backgroundColor: #FFFFFF;
+    /* Config */
+    --RS__baseFontFamily: var(--RS__oldStyleTf);
+    --RS__baseLineHeight: 1.5;
+
+    --RS__textColor: #121212;
+    --RS__backgroundColor: #FFFFFF;
 }
 
 /* Default colors */
+
 :root {
-  color: var(--RS__textColor) !important;
-  background-color: var(--RS__backgroundColor) !important;
+    color: var(--RS__textColor) !important;
+    background-color: var(--RS__backgroundColor) !important;
 }
 
 /* Set default font for the doc’s body, it will be overridden by the authors’s stylesheet */
+
 body {
-  font-family: var(--RS__baseFontFamily);
-  text-rendering: optimizeLegibility;
+    font-family: var(--RS__baseFontFamily);
+    line-height: var(--RS__baseLineHeight);
+    text-rendering: optimizeLegibility;
+}
+
+/* 1.5 being too loose with larger font-sizes, we reset headings to normal (which value is 1.125–1.375 for our font-stacks) */
+
+h1, h2, h3 {
+    line-height: normal;
 }
 
 :lang(ja) {
-  word-wrap: break-word;
-  -webkit-line-break: strict;
-  -epub-line-break: strict;
-  line-break: strict;
+    word-wrap: break-word;
+    -webkit-line-break: strict;
+    -epub-line-break: strict;
+    line-break: strict;
 }
 
 /* Set default font for Math */
 
 math {
-  font-family: STIXGeneral, Symbol, Times;
+    font-family: STIXGeneral, Symbol, Times;
 }
 
 /* Language Overrides
-   That will only work if either html or body have a (xml:)lang attribute, not for inline overrides */
+ That will only work if either html or body have a (xml:)lang attribute, not for inline overrides */
 
 :lang(am) {
-  --RS__baseFontFamily: Kefa, Nyala, Roboto, Noto, "Noto Sans Ethiopic", serif;
+    --RS__baseFontFamily: Kefa, Nyala, Roboto, Noto, "Noto Sans Ethiopic", serif;
 }
 
 :lang(ar) {
-  --RS__baseFontFamily: "Geeza Pro", "Arabic Typesetting", Roboto, Noto, "Noto Naskh Arabic", "Times New Roman", serif;
+    --RS__baseFontFamily: "Geeza Pro", "Arabic Typesetting", Roboto, Noto, "Noto Naskh Arabic", "Times New Roman", serif;
 }
 
 :lang(bn) {
-  --RS__baseFontFamily: "Kohinoor Bangla", "Bangla Sangam MN", Vrinda, Roboto, Noto, "Noto Sans Bengali", sans-serif;
+    --RS__baseFontFamily: "Kohinoor Bangla", "Bangla Sangam MN", Vrinda, Roboto, Noto, "Noto Sans Bengali", sans-serif;
 }
 
 :lang(bo) {
-  --RS__baseFontFamily: Kailasa, "Microsoft Himalaya", Roboto, Noto, "Noto Sans Tibetan", sans-serif;
+    --RS__baseFontFamily: Kailasa, "Microsoft Himalaya", Roboto, Noto, "Noto Sans Tibetan", sans-serif;
 }
 
 :lang(chr) {
-  --RS__baseFontFamily: "Plantagenet Cherokee", Roboto, Noto, "Noto Sans Cherokee";
+    --RS__baseFontFamily: "Plantagenet Cherokee", Roboto, Noto, "Noto Sans Cherokee";
 }
 
 :lang(gu) {
-  --RS__baseFontFamily: "Gujarati Sangam MN", "Nirmala UI", Shruti, Roboto, Noto, "Noto Sans Gujarati", sans-serif;
+    --RS__baseFontFamily: "Gujarati Sangam MN", "Nirmala UI", Shruti, Roboto, Noto, "Noto Sans Gujarati", sans-serif;
 }
 
 :lang(he) {
-  --RS__baseFontFamily: "New Peninim MT", "Arial Hebrew", Gisha, "Times New Roman", Roboto, Noto, "Noto Sans Hebrew" sans-serif;
+    --RS__baseFontFamily: "New Peninim MT", "Arial Hebrew", Gisha, "Times New Roman", Roboto, Noto, "Noto Sans Hebrew" sans-serif;
 }
 
 :lang(hi) {
-  --RS__baseFontFamily: "Kohinoor Devanagari", "Devanagari Sangam MN", Kokila, "Nirmala UI", Roboto, Noto, "Noto Sans Devanagari", sans-serif;
+    --RS__baseFontFamily: "Kohinoor Devanagari", "Devanagari Sangam MN", Kokila, "Nirmala UI", Roboto, Noto, "Noto Sans Devanagari", sans-serif;
 }
 
 :lang(hy) {
-  --RS__baseFontFamily: Mshtakan, Sylfaen, Roboto, Noto, "Noto Serif Armenian", serif;
+    --RS__baseFontFamily: Mshtakan, Sylfaen, Roboto, Noto, "Noto Serif Armenian", serif;
 }
 
 :lang(iu) {
-  --RS__baseFontFamily: "Euphemia UCAS", Euphemia, Roboto, Noto, "Noto Sans Canadian Aboriginal", sans-serif;
+    --RS__baseFontFamily: "Euphemia UCAS", Euphemia, Roboto, Noto, "Noto Sans Canadian Aboriginal", sans-serif;
 }
 
 :lang(ja) {
-  --RS__baseFontFamily: "游ゴシック体", YuGothic, "ヒラギノ丸ゴ", "Hiragino Sans", "Yu Gothic UI", "Meiryo UI", "MS Gothic", Roboto, Noto, "Noto Sans CJK JP", sans-serif;
+    --RS__baseFontFamily: "游ゴシック体", YuGothic, "ヒラギノ丸ゴ", "Hiragino Sans", "Yu Gothic UI", "Meiryo UI", "MS Gothic", Roboto, Noto, "Noto Sans CJK JP", sans-serif;
 }
 
 :lang(km) {
-  --RS__baseFontFamily: "Khmer Sangam MN", "Leelawadee UI", "Khmer UI", Roboto, Noto, "Noto Sans Khmer", sans-serif;
+    --RS__baseFontFamily: "Khmer Sangam MN", "Leelawadee UI", "Khmer UI", Roboto, Noto, "Noto Sans Khmer", sans-serif;
 }
 
 :lang(kn) {
-  --RS__baseFontFamily: "Kannada Sangam MN", "Nirmala UI", Tunga, Roboto, Noto, "Noto Sans Kannada", sans-serif;
+    --RS__baseFontFamily: "Kannada Sangam MN", "Nirmala UI", Tunga, Roboto, Noto, "Noto Sans Kannada", sans-serif;
 }
 
 :lang(ko) {
-  --RS__baseFontFamily: "Nanum Gothic", "Apple SD Gothic Neo", "Malgun Gothic", Roboto, Noto, "Noto Sans CJK KR", sans-serif;
+    --RS__baseFontFamily: "Nanum Gothic", "Apple SD Gothic Neo", "Malgun Gothic", Roboto, Noto, "Noto Sans CJK KR", sans-serif;
 }
 
 :lang(lo) {
-  --RS__baseFontFamily: "Lao Sangam MN", "Leelawadee UI", "Lao UI", Roboto, Noto, "Noto Sans Lao", sans-serif;
+    --RS__baseFontFamily: "Lao Sangam MN", "Leelawadee UI", "Lao UI", Roboto, Noto, "Noto Sans Lao", sans-serif;
 }
 
 :lang(ml) {
-  --RS__baseFontFamily: "Malayalam Sangam MN", "Nirmala UI", Kartika, Roboto, Noto, "Noto Sans Malayalam", sans-serif;
+    --RS__baseFontFamily: "Malayalam Sangam MN", "Nirmala UI", Kartika, Roboto, Noto, "Noto Sans Malayalam", sans-serif;
 }
 
 :lang(or) {
-  --RS__baseFontFamily: "Oriya Sangam MN", "Nirmala UI", Kalinga, Roboto, Noto, "Noto Sans Oriya", sans-serif;
+    --RS__baseFontFamily: "Oriya Sangam MN", "Nirmala UI", Kalinga, Roboto, Noto, "Noto Sans Oriya", sans-serif;
 }
 
 :lang(pa) {
-  --RS__baseFontFamily: "Gurmukhi MN", "Nirmala UI", Kartika, Roboto, Noto, "Noto Sans Gurmukhi", sans-serif;
+    --RS__baseFontFamily: "Gurmukhi MN", "Nirmala UI", Kartika, Roboto, Noto, "Noto Sans Gurmukhi", sans-serif;
 }
 
 :lang(si) {
-  --RS__baseFontFamily: "Sinhala Sangam MN", "Nirmala UI", "Iskoola Pota", Roboto, Noto, "Noto Sans Sinhala", sans-serif;
+    --RS__baseFontFamily: "Sinhala Sangam MN", "Nirmala UI", "Iskoola Pota", Roboto, Noto, "Noto Sans Sinhala", sans-serif;
 }
 
 :lang(ta) {
-  --RS__baseFontFamily: "Tamil Sangam MN", "Nirmala UI", Latha, Roboto, Noto, "Noto Sans Tamil", sans-serif;
+    --RS__baseFontFamily: "Tamil Sangam MN", "Nirmala UI", Latha, Roboto, Noto, "Noto Sans Tamil", sans-serif;
 }
 
 :lang(te) {
-  --RS__baseFontFamily: "Kohinoor Telugu", "Telugu Sangam MN", "Nirmala UI", Gautami, Roboto, Noto, "Noto Sans Telugu", sans-serif;
+    --RS__baseFontFamily: "Kohinoor Telugu", "Telugu Sangam MN", "Nirmala UI", Gautami, Roboto, Noto, "Noto Sans Telugu", sans-serif;
 }
 
 :lang(th) {
-  --RS__baseFontFamily: "Thonburi", "Leelawadee UI", "Cordia New", Roboto, Noto, "Noto Sans Thai", sans-serif;
+    --RS__baseFontFamily: "Thonburi", "Leelawadee UI", "Cordia New", Roboto, Noto, "Noto Sans Thai", sans-serif;
 }
 
 /* The following will also work for zh-Hans */
+
 :lang(zh) {
-  --RS__baseFontFamily: "方体", "PingFang SC", "黑体", "Heiti SC", "Microsoft JhengHei UI", "Microsoft JhengHei", Roboto, Noto, "Noto Sans CJK SC", sans-serif;
+    --RS__baseFontFamily: "方体", "PingFang SC", "黑体", "Heiti SC", "Microsoft JhengHei UI", "Microsoft JhengHei", Roboto, Noto, "Noto Sans CJK SC", sans-serif;
 }
 
 :lang(zh-Hant),
 :lang(zh-TW) {
-  --RS__baseFontFamily: "方體", "PingFang TC", "黑體", "Heiti TC", "Microsoft JhengHei UI", "Microsoft JhengHei", Roboto, Noto, "Noto Sans CJK TC", sans-serif;
+    --RS__baseFontFamily: "方體", "PingFang TC", "黑體", "Heiti TC", "Microsoft JhengHei UI", "Microsoft JhengHei", Roboto, Noto, "Noto Sans CJK TC", sans-serif;
 }
 
 :lang(zh-HK) {
-  --RS__baseFontFamily: "方體", "PingFang HK", "方體", "PingFang TC", "黑體", "Heiti TC", "Microsoft JhengHei UI", "Microsoft JhengHei", Roboto, Noto, "Noto Sans CJK TC", sans-serif;
+    --RS__baseFontFamily: "方體", "PingFang HK", "方體", "PingFang TC", "黑體", "Heiti TC", "Microsoft JhengHei UI", "Microsoft JhengHei", Roboto, Noto, "Noto Sans CJK TC", sans-serif;
 }
 
-/* Patch */
+/* Readium CSS
+ HTML5 SR Patch stylesheet
+
+ A set of style to adjust HTML5 Suggested Rendering to paginated content
+
+ Repo: https://github.com/readium/readium-css */
 
 /* Fragmentation */
 
 body {
-  orphans: 2;
-  widows: 2;
+    widows: 2;
+    orphans: 2;
 }
 
 figcaption, th, td {
-  orphans: 1;
-  widows: 1;
+    widows: 1;
+    orphans: 1;
 }
 
 h2, h3, h4, h5, h6, dt,
 hr, caption {
-  -webkit-column-break-after: avoid;
-  page-break-after: avoid;
-  break-after: avoid;
+    -webkit-column-break-after: avoid;
+    page-break-after: avoid;
+    break-after: avoid;
 }
 
-h1, h2, h3, h4, h5, h6, dt, 
+h1, h2, h3, h4, h5, h6, dt,
 figure, tr {
-  -webkit-column-break-inside: avoid;
-  page-break-inside: avoid;
-  break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+    break-inside: avoid;
 }
 
 /* Hyphenation */
 
 body {
-  -webkit-hyphenate-character: "\002D";
-  -moz-hyphenate-character: "\002D";
-  -ms-hyphenate-character: "\002D";
-  hyphenate-character: "\002D";
-  -webkit-hyphenate-limit-lines: 3;
-  -ms-hyphenate-limit-lines: 3;
-  hyphenate-limit-lines: 3;
+    -webkit-hyphenate-character: "\002D";
+    -moz-hyphenate-character: "\002D";
+    -ms-hyphenate-character: "\002D";
+    hyphenate-character: "\002D";
+    -webkit-hyphenate-limit-lines: 3;
+    -ms-hyphenate-limit-lines: 3;
+    hyphenate-limit-lines: 3;
 }
 
 h1, h2, h3, h4, h5, h6, dt,
 figcaption, pre, caption, address,
 center {
-  -ms-hyphens: none;
-  -moz-hyphens: none;
-  -webkit-hyphens: none;
-  -epub-hyphens: none;
-  hyphens: none;
+    -ms-hyphens: none;
+    -moz-hyphens: none;
+    -webkit-hyphens: none;
+    -epub-hyphens: none;
+    hyphens: none;
 }
 
 /* OTF */
 
 body {
-  font-variant-numeric: oldstyle-nums proportional-nums;
+    font-variant-numeric: oldstyle-nums proportional-nums;
 }
 
 h1, h2, h3, h4, h5, h6, dt {
-  font-variant-numeric: lining-nums proportional-nums;
+    font-variant-numeric: lining-nums proportional-nums;
 }
 
 table {
-  font-variant-numeric: lining-nums tabular-nums;
+    font-variant-numeric: lining-nums tabular-nums;
 }
 
 code, var {
-  font-variant-ligatures: none;
-  font-variant-numeric: lining-nums tabular-nums slashed-zero;
+    font-variant-ligatures: none;
+    font-variant-numeric: lining-nums tabular-nums slashed-zero;
 }
 
 rt {
-  font-variant-east-asian: ruby;
+    font-variant-east-asian: ruby;
 }
 
 /* Night mode */
 
 hr {
-  color: inherit;
-  border-color: currentColor;
+    color: inherit;
+    border-color: currentColor;
 }
 
 table, th, td {
-  border-color: currentColor;
+    border-color: currentColor;
 }
 
 /* Horizontal Spacing */
 
 figure, blockquote {
-  margin: 1em 5%;
+    margin: 1em 5%;
 }
 
 ul, ol {
-  padding-left: 5%;
+    padding-left: 5%;
 }
 
 dd {
-  margin-left: 5%;
+    margin-left: 5%;
 }
 
 pre {
-  white-space: pre-wrap;
-  -ms-tab-size: 2;
-  -moz-tab-size: 2;
-  -webkit-tab-size: 2;
-  tab-size: 2;
+    white-space: pre-wrap;
+    -ms-tab-size: 2;
+    -moz-tab-size: 2;
+    -webkit-tab-size: 2;
+    tab-size: 2;
 }
 
 /* Normalization */
 
 abbr[title], acronym[title] {
-  text-decoration: dotted underline;
+    text-decoration: dotted underline;
 }
 
 nobr wbr {
-  white-space: normal;
+    white-space: normal;
 }
 
 /* Make ruby text and parentheses non-selectable (TBC) */
+
 ruby > rt, ruby > rp {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
-/* Safeguards */
+/* Readium CSS
+ Safeguards module
+
+ A set of styles to prevent common issues in pagination
+
+ Repo: https://github.com/readium/readium-css */
 
 /* Config */
+
 /* We’ll be using an "RS__" prefix so that we can prevent collisions with authors’ CSS */
+
 :root {
-  /* max-width for media, you can override that via JS if not compiled to static */
-  --RS__maxMediaWidth: 100%;
+    /* max-width for media, you can override that via JS if not compiled to static */
+    --RS__maxMediaWidth: 100%;
 
-  /* max-height for media, you can override that via JS if not compiled to static 
+    /* max-height for media, you can override that via JS if not compiled to static
      Please consider figures might have a figcaption, which is why 95vh in the first place */
-  --RS__maxMediaHeight: 95vh;
+    --RS__maxMediaHeight: 95vh;
 
-  /* value for medias’ box-sizing */
-  --RS__boxSizingMedia: border-box;
+    /* value for medias’ box-sizing */
+    --RS__boxSizingMedia: border-box;
 
-  /* value for table’s box-sizing */
-  --RS__boxSizingTable: border-box;
+    /* value for table’s box-sizing */
+    --RS__boxSizingTable: border-box;
 }
 
 /* Sanitize line-heights in webkit e.g. raised cap without a declared line-height
-   See effect by checking this demo in Safari: https://codepen.io/JayPanoz/pen/gRmzrE
-   Note: glyphs has to be reset to inline for CJK */
+ See effect by checking this demo in Safari: https://codepen.io/JayPanoz/pen/gRmzrE
+ Note: glyphs has to be reset to inline for CJK */
+
 html {
-  -webkit-line-box-contain: block glyphs replaced;
+    -webkit-line-box-contain: block glyphs replaced;
 }
 
 :lang(ja) {
-  -webkit-line-box-contain: block inline replaced;
+    -webkit-line-box-contain: block inline replaced;
 }
 
 /* Wrap long strings if larger than line-length */
+
 a, h1, h2, h3, h4, h5, h6 {
-  word-wrap: break-word;
+    word-wrap: break-word;
 }
 
 /* Size medias */
+
 /* You can override CSS variables by re-defining it for all elements or a specific one */
+
 img, svg, audio, video {
-  /* We probably don’t need to use modern box-sizing as auto behaves like it */
-  box-sizing: var(--RS__boxSizingMedia);
 
-  width: auto;
-  height: auto;
+    /* Object-fit allows us to keep the correct aspect-ratio */
+    object-fit: contain;
 
-  /* Some files don’t have max-width */
-  max-width: var(--RS__maxMediaWidth);
+    width: auto;
+    height: auto;
 
-  /* We’re setting a max-height, especially for covers */
-  max-height: var(--RS__maxMediaHeight) !important;
+    /* Some files don’t have max-width */
+    max-width: var(--RS__maxMediaWidth);
 
-  /* Object-fit allows us to keep the correct aspect-ratio */
-  object-fit: contain;
+    /* We’re setting a max-height, especially for covers */
+    max-height: var(--RS__maxMediaHeight) !important;
+    /* We probably don’t need to use modern box-sizing as auto behaves like it */
+    box-sizing: var(--RS__boxSizingMedia);
 
-  /* For page-break, we must use those 3
+    /* For page-break, we must use those 3
      We can’t use a variable there, webkit seems to no support them for those properties */
-  -webkit-column-break-inside: avoid;
-  page-break-inside: avoid;
-  break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+    break-inside: avoid;
 }
 
-/* Try managing image + figcaption, primarily for portrait images (only of type image but not only child in div/figure 
-Disabled as it may create issues (min-height)
+/* Try managing image + figcaption, primarily for portrait images (only of type image but not only child in div/figure
+ Disabled as it may create issues (min-height)
 
-div > img:only-of-type:not(:only-child),
-p > img:only-of-type:not(:only-child),
-figure img:only-of-type:not(:only-child) {
-  min-height: 75vh;
-  max-height: calc(100vh - 3rem);
-}
-*/
+ div > img:only-of-type:not(:only-child),
+ p > img:only-of-type:not(:only-child),
+ figure img:only-of-type:not(:only-child) {
+ min-height: 75vh;
+ max-height: calc(100vh - 3rem);
+ }
+ */
 
 /* Try preventing border being cut-off, webkit + blink have content-box by default */
-table {
-  box-sizing: var(--RS__boxSizingTable);
 
-  /* We might want to set at least overflow-x to auto in case the table doesn't fit,
+table {
+
+    /* We might want to set at least overflow-x to auto in case the table doesn't fit,
      max-width is not necessarily the best solution there, but maybe we could investigate transform scale */
-  overflow-x: auto;
+    overflow-x: auto;
+    box-sizing: var(--RS__boxSizingTable);
 }
