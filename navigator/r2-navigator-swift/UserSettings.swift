@@ -15,6 +15,7 @@ public class UserSettings {
     public var font: Font?
     public var appearance: Appearance?
     public var scroll: Scroll?
+    public var publisherSettings: Bool!
 
     // The keys in ReadiumCss. Also used for storing UserSettings in UserDefaults.
     public enum Keys: String {
@@ -22,6 +23,7 @@ public class UserSettings {
         case font = "--USER__fontFamily"
         case appearance = "--USER__appearance"
         case scroll = "--USER__scroll"
+        case publisherSettings = "--USER__advancedSettings"
         //--USER__darkenImages --USER__invertImages
     }
 
@@ -97,11 +99,11 @@ public class UserSettings {
         public func name() -> String{
             switch self {
             case .default:
-                return "readium-default"
+                return "readium-default-on"
             case .sepia:
-                return "readium-sepia"
+                return "readium-sepia-on"
             case .night:
-                return "readium-night"
+                return "readium-night-on"
             }
         }
 
@@ -177,23 +179,21 @@ public class UserSettings {
         } else {
             fontSize = "100"
         }
-        if isKeyPresentInUserDefaults(key: Keys.font),
-            let value = userDefaults.string(forKey: Keys.font.rawValue) {
-            font = Font.init(with: value)
-        } else {
-            font = Font.sans
-        }
+        //
+        let fontValue = userDefaults.string(forKey: Keys.font.rawValue) ?? ""
+            
+        font = Font.init(with: fontValue)
+        //
         if isKeyPresentInUserDefaults(key: Keys.appearance),
             let value = userDefaults.string(forKey: Keys.appearance.rawValue) {
             appearance = Appearance.init(with: value)
         }
-        if isKeyPresentInUserDefaults(key: Keys.scroll),
-            let value = userDefaults.string(forKey: Keys.scroll.rawValue) {
+        //
+        let scrollValue = userDefaults.string(forKey: Keys.scroll.rawValue) ?? ""
 
-            scroll = Scroll.init(with: value)
-        } else {
-            scroll = Scroll.off
-        }
+        scroll = Scroll.init(with: scrollValue)
+        // Publisher settings.
+        publisherSettings = userDefaults.bool(forKey: Keys.publisherSettings.rawValue)
     }
 
     public func set(value: String, forKey key: Keys) {
@@ -206,6 +206,8 @@ public class UserSettings {
             appearance = Appearance.init(with: value)
         case .scroll:
             scroll = Scroll.init(with: value)
+        case .publisherSettings:
+            publisherSettings = Bool.init(value)
         }
 
     }
@@ -220,6 +222,8 @@ public class UserSettings {
             return appearance?.name()
         case .scroll:
             return scroll?.name()
+        case .publisherSettings:
+            return publisherSettings.description
         }
     }
 
@@ -244,6 +248,10 @@ public class UserSettings {
         if let scroll = scroll {
             properties.append((key: Keys.scroll.rawValue, value: "\(scroll.name())"))
         }
+        // Publisher Settings.
+        let value = (publisherSettings == true ? "readium-advanced-on" : "readium-advanced-off")
+
+        properties.append((key:Keys.publisherSettings.rawValue, value: "\(value)"))
         return properties
     }
 
@@ -263,6 +271,7 @@ public class UserSettings {
         if let scroll = scroll {
             userDefaults.set(scroll.name(), forKey: Keys.scroll.rawValue)
         }
+        userDefaults.set(publisherSettings, forKey: Keys.publisherSettings.rawValue)
     }
 
     /// Check if a given key is set in the UserDefaults.
