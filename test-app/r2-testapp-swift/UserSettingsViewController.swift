@@ -14,12 +14,19 @@ protocol UserSettingsDelegate: class {
     func fontSizeDidChange(to value: String)
     func appearanceDidChange(to appearance: UserSettings.Appearance)
     func scrollDidChange(to scroll: UserSettings.Scroll)
+    func publisherSettingsDidChange(to state: Bool)
     func getFontSelectionViewController() -> FontSelectionViewController
     func getAdvancedSettingsViewController() -> AdvancedSettingsViewController
 }
 
 class UserSettingsViewController: UIViewController {
     @IBOutlet weak var brightnessSlider: UISlider!
+    @IBOutlet weak var defaultSwitch: UISwitch!
+
+    @IBOutlet weak var fontSizeMinusButton: UIButton!
+    @IBOutlet weak var fontSizePlusButton: UIButton!
+    @IBOutlet weak var fontSelectionButton: UIButton!
+    @IBOutlet weak var advancedSettingsButton: UIButton!
     @IBOutlet weak var appearanceSegmentedControl: UISegmentedControl!
     @IBOutlet weak var scrollSwitch: UISwitch!
     weak var delegate: UserSettingsDelegate?
@@ -42,6 +49,18 @@ class UserSettingsViewController: UIViewController {
         let brightness = brightnessSlider.value
 
         UIScreen.main.brightness = CGFloat(brightness)
+    }
+
+    @IBAction func defaultSwitched() {
+        let state = defaultSwitch.isOn
+
+        delegate?.publisherSettingsDidChange(to: state)
+
+        fontSizePlusButton.isEnabled = !state
+        fontSizeMinusButton.isEnabled = !state
+        fontSelectionButton.isEnabled = !state
+        advancedSettingsButton.isEnabled = !state
+        appearanceSegmentedControl.isEnabled = !state
     }
 
     @IBAction func decreaseFontSizeTapped() {
@@ -74,12 +93,6 @@ class UserSettingsViewController: UIViewController {
         delegate?.appearanceDidChange(to: appearance)
     }
 
-    @IBAction func scrollSwitched() {
-        let scroll = (scrollSwitch.isOn ? UserSettings.Scroll.on : UserSettings.Scroll.off)
-
-        delegate?.scrollDidChange(to: scroll)
-    }
-
     @IBAction func fontSelectionTapped() {
         guard let fsvc = delegate?.getFontSelectionViewController() else {
             return
@@ -93,6 +106,12 @@ class UserSettingsViewController: UIViewController {
         }
         present(asvc, animated: true, completion: nil)
     }
+
+    @IBAction func scrollSwitched() {
+        let scroll = (scrollSwitch.isOn ? UserSettings.Scroll.on : UserSettings.Scroll.off)
+
+        delegate?.scrollDidChange(to: scroll)
+    }
 }
 
 extension UserSettingsViewController {
@@ -103,6 +122,18 @@ extension UserSettingsViewController {
             let appearance = UserSettings.Appearance.init(with: initialAppearance)
 
             appearanceSegmentedControl.selectedSegmentIndex = appearance.rawValue
+        }
+        // Publisher setting switch.
+        if let publisherSettings = userSettings?.value(forKey: .publisherSettings) {
+            let state = Bool.init(publisherSettings) ?? false
+
+            defaultSwitch.isOn = state
+
+            fontSizePlusButton.isEnabled = !state
+            fontSizeMinusButton.isEnabled = !state
+            fontSelectionButton.isEnabled = !state
+            advancedSettingsButton.isEnabled = !state
+            appearanceSegmentedControl.isEnabled = !state
         }
 //        /// Currently selected font.
 //        if let initialFont = userSettings?.value(forKey: .font) {
@@ -115,6 +146,16 @@ extension UserSettingsViewController {
 
             scrollSwitch.setOn(scroll.bool(), animated: false)
         }
+    }
+
+    fileprivate func updateUiAccordingToDefaultSwitchState() {
+        let state = scrollSwitch.isOn
+
+        fontSizePlusButton.isEnabled = !state
+        fontSizeMinusButton.isEnabled = !state
+        fontSelectionButton.isEnabled = !state
+        advancedSettingsButton.isEnabled = !state
+        appearanceSegmentedControl.isEnabled = !state
     }
 }
 

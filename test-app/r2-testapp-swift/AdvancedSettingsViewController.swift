@@ -8,12 +8,12 @@
 
 import UIKit
 
-protocol AdvancedSettingsDelegate {
+protocol AdvancedSettingsDelegate: class {
 
 }
 
 class AdvancedSettingsViewController: UIViewController {
-    var delegate: AdvancedSettingsDelegate?
+    weak var delegate: AdvancedSettingsDelegate?
 
     @IBAction func backTapped() {
         dismiss(animated: true, completion: nil)

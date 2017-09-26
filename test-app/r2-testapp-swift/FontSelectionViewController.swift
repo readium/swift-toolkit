@@ -9,23 +9,24 @@
 import UIKit
 import R2Navigator
 
-protocol FontSelectionDelegate {
+protocol FontSelectionDelegate: class {
     func currentFont() -> UserSettings.Font?
     func fontDidChange(to font: UserSettings.Font)
 }
 
 class FontSelectionViewController: UIViewController {
     @IBOutlet weak var fontTableView: UITableView!
-    var delegate: FontSelectionDelegate?
+    weak var delegate: FontSelectionDelegate?
 
     override func viewDidLoad() {
         fontTableView.delegate = self
         fontTableView.dataSource = self
+    }
 
+    override func viewDidAppear(_ animated: Bool) {
         if let initialFont = delegate?.currentFont() {
             let index = IndexPath.init(row: initialFont.rawValue, section: 0)
-
-            fontTableView.selectRow(at: index, animated: false, scrollPosition: .none)
+            fontTableView.cellForRow(at: index)?.accessoryType = .checkmark
         }
     }
 
@@ -53,6 +54,23 @@ extension FontSelectionViewController: UITableViewDelegate {
         guard let font = UserSettings.Font(rawValue: indexPath.row) else {
             return
         }
+        let cell = tableView.cellForRow(at: indexPath)
+
+        uncheckAllRows()
+        cell?.accessoryType = .checkmark
         delegate?.fontDidChange(to: font)
+    }
+
+    fileprivate func uncheckAllRows() {
+        let rows = fontTableView.numberOfRows(inSection: 0)
+        var row = 0
+
+        while row < rows {
+            if let cell =  fontTableView.cellForRow(at: IndexPath(row: row, section: 0)) {
+
+                cell.accessoryType = .none
+            }
+            row = row + 1
+        }
     }
 }

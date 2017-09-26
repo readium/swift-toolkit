@@ -72,7 +72,7 @@ class EpubViewController: UIViewController {
 
         // User settings windows.
         let width = UIScreen.main.bounds.width / 1.618
-        let height = UIScreen.main.bounds.height / 2.2
+        let height = UIScreen.main.bounds.height / 2.1
 
         userSettingsViewController.preferredContentSize = CGSize(width: width, height: height)
         userSettingsViewController.modalPresentationStyle = .popover
@@ -214,6 +214,11 @@ extension EpubViewController: UserSettingsDelegate {
         navigator.userSettings.set(value: scroll.name(), forKey: UserSettings.Keys.scroll)
         navigator.updateUserSettingStyle()
         toggleFixedBars()
+    }
+
+    func publisherSettingsDidChange(to state: Bool) {
+        navigator.userSettings.set(value: state.description, forKey: UserSettings.Keys.publisherSettings)
+        navigator.updateUserSettingStyle()
     }
 
     func getFontSelectionViewController() -> FontSelectionViewController {
