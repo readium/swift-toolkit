@@ -280,8 +280,8 @@
                                         <rect key="frame" x="0.0" y="0.0" width="390" height="35"/>
                                         <subviews>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="nWG-YL-cJc">
-                                                <rect key="frame" x="10" y="2" width="48" height="31"/>
-                                                <state key="normal" title="&lt; Back">
+                                                <rect key="frame" x="10" y="2" width="34" height="31"/>
+                                                <state key="normal" title="Back">
                                                     <color key="titleColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                 </state>
                                                 <connections>
@@ -366,8 +366,8 @@
                                         <rect key="frame" x="0.0" y="0.0" width="385" height="35"/>
                                         <subviews>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="UL2-6P-z6p">
-                                                <rect key="frame" x="5" y="2" width="48" height="31"/>
-                                                <state key="normal" title="&lt; Back">
+                                                <rect key="frame" x="5" y="2" width="34" height="31"/>
+                                                <state key="normal" title="Back">
                                                     <color key="titleColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                 </state>
                                                 <connections>
@@ -403,27 +403,46 @@
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="bd8-bG-Dd2">
                                         <rect key="frame" x="0.0" y="85" width="385" height="50"/>
                                         <subviews>
-                                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="37i-PN-aqO">
-                                                <rect key="frame" x="0.0" y="11" width="385" height="29"/>
-                                                <segments>
-                                                    <segment title="auto"/>
-                                                    <segment title="0.125"/>
-                                                    <segment title=".250"/>
-                                                    <segment title=".375"/>
-                                                    <segment title=".500"/>
-                                                </segments>
-                                                <color key="tintColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xPG-Eb-jSz">
+                                                <rect key="frame" x="355" y="1.5" width="30" height="46"/>
+                                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="28"/>
+                                                <state key="normal" title="+">
+                                                    <color key="titleColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                </state>
+                                                <state key="selected">
+                                                    <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                                </state>
                                                 <connections>
-                                                    <action selector="wordSpacingValueChanged:" destination="77D-Mk-Z01" eventType="valueChanged" id="iKf-ez-VWB"/>
+                                                    <action selector="wordSpacingPlusTapped" destination="77D-Mk-Z01" eventType="touchUpInside" id="ua7-DE-dN7"/>
                                                 </connections>
-                                            </segmentedControl>
+                                            </button>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="4C4-XJ-WHZ">
+                                                <rect key="frame" x="0.0" y="1.5" width="30" height="46"/>
+                                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="28"/>
+                                                <state key="normal" title="-">
+                                                    <color key="titleColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                </state>
+                                                <state key="selected">
+                                                    <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                                </state>
+                                                <connections>
+                                                    <action selector="wordSpacingMinusTapped" destination="77D-Mk-Z01" eventType="touchUpInside" id="RmN-P0-eMJ"/>
+                                                </connections>
+                                            </button>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="-" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pfB-vG-vRl">
+                                                <rect key="frame" x="189" y="15.5" width="7.5" height="19.5"/>
+                                                <fontDescription key="fontDescription" type="system" weight="medium" pointSize="16"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
                                         </subviews>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <constraints>
-                                            <constraint firstItem="37i-PN-aqO" firstAttribute="leading" secondItem="bd8-bG-Dd2" secondAttribute="leading" id="A8e-6d-da7"/>
-                                            <constraint firstAttribute="trailing" secondItem="37i-PN-aqO" secondAttribute="trailing" id="HLe-dm-c6A"/>
-                                            <constraint firstItem="37i-PN-aqO" firstAttribute="centerX" secondItem="bd8-bG-Dd2" secondAttribute="centerX" id="Mr0-Rf-nS5"/>
-                                            <constraint firstItem="37i-PN-aqO" firstAttribute="centerY" secondItem="bd8-bG-Dd2" secondAttribute="centerY" id="fFw-Rt-i7j"/>
+                                            <constraint firstItem="xPG-Eb-jSz" firstAttribute="centerY" secondItem="bd8-bG-Dd2" secondAttribute="centerY" id="5DM-xz-4dy"/>
+                                            <constraint firstItem="4C4-XJ-WHZ" firstAttribute="centerY" secondItem="bd8-bG-Dd2" secondAttribute="centerY" id="7Xf-Dz-MpV"/>
+                                            <constraint firstAttribute="trailing" secondItem="xPG-Eb-jSz" secondAttribute="trailing" id="RFB-d1-UdM"/>
+                                            <constraint firstItem="pfB-vG-vRl" firstAttribute="centerY" secondItem="bd8-bG-Dd2" secondAttribute="centerY" id="gEo-ph-vgT"/>
+                                            <constraint firstItem="pfB-vG-vRl" firstAttribute="centerX" secondItem="bd8-bG-Dd2" secondAttribute="centerX" id="pOA-ug-dpg"/>
+                                            <constraint firstItem="4C4-XJ-WHZ" firstAttribute="leading" secondItem="bd8-bG-Dd2" secondAttribute="leading" id="udG-pb-AtQ"/>
                                         </constraints>
                                     </view>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="iMD-84-rgN">
@@ -446,27 +465,46 @@
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="KoR-e7-Geq">
                                         <rect key="frame" x="0.0" y="163" width="385" height="50"/>
                                         <subviews>
-                                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="k0b-UR-3Sg">
-                                                <rect key="frame" x="0.0" y="11" width="385" height="29"/>
-                                                <segments>
-                                                    <segment title="auto"/>
-                                                    <segment title=".0675"/>
-                                                    <segment title=".125"/>
-                                                    <segment title=".1875"/>
-                                                    <segment title=".250"/>
-                                                </segments>
-                                                <color key="tintColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="V5p-j8-qFi">
+                                                <rect key="frame" x="0.0" y="2" width="30" height="46"/>
+                                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="28"/>
+                                                <state key="normal" title="-">
+                                                    <color key="titleColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                </state>
+                                                <state key="selected">
+                                                    <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                                </state>
                                                 <connections>
-                                                    <action selector="letterSpacingValueChanged:" destination="77D-Mk-Z01" eventType="valueChanged" id="M7z-ic-p25"/>
+                                                    <action selector="letterSpacingMinusTapped" destination="77D-Mk-Z01" eventType="touchUpInside" id="ayt-Qt-do2"/>
                                                 </connections>
-                                            </segmentedControl>
+                                            </button>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="-" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7D5-LE-bsa">
+                                                <rect key="frame" x="189" y="15.5" width="7.5" height="19.5"/>
+                                                <fontDescription key="fontDescription" type="system" weight="medium" pointSize="16"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="6Kd-tC-BhP">
+                                                <rect key="frame" x="355" y="2" width="30" height="46"/>
+                                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="28"/>
+                                                <state key="normal" title="+">
+                                                    <color key="titleColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                </state>
+                                                <state key="selected">
+                                                    <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                                </state>
+                                                <connections>
+                                                    <action selector="letterSpacingPlusTapped" destination="77D-Mk-Z01" eventType="touchUpInside" id="uIo-Ag-tbN"/>
+                                                </connections>
+                                            </button>
                                         </subviews>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <constraints>
-                                            <constraint firstItem="k0b-UR-3Sg" firstAttribute="centerX" secondItem="KoR-e7-Geq" secondAttribute="centerX" id="9dk-Oz-FwD"/>
-                                            <constraint firstItem="k0b-UR-3Sg" firstAttribute="leading" secondItem="KoR-e7-Geq" secondAttribute="leading" id="gbE-gI-wmg"/>
-                                            <constraint firstAttribute="trailing" secondItem="k0b-UR-3Sg" secondAttribute="trailing" id="hG1-Nh-YQE"/>
-                                            <constraint firstItem="k0b-UR-3Sg" firstAttribute="centerY" secondItem="KoR-e7-Geq" secondAttribute="centerY" id="qwb-Zb-FeG"/>
+                                            <constraint firstItem="V5p-j8-qFi" firstAttribute="leading" secondItem="KoR-e7-Geq" secondAttribute="leading" id="2s7-Ee-uuq"/>
+                                            <constraint firstItem="7D5-LE-bsa" firstAttribute="centerX" secondItem="KoR-e7-Geq" secondAttribute="centerX" id="AkE-7u-lJv"/>
+                                            <constraint firstItem="6Kd-tC-BhP" firstAttribute="centerY" secondItem="KoR-e7-Geq" secondAttribute="centerY" id="Ezg-FD-VRa"/>
+                                            <constraint firstItem="7D5-LE-bsa" firstAttribute="centerY" secondItem="KoR-e7-Geq" secondAttribute="centerY" id="I0i-xG-hED"/>
+                                            <constraint firstAttribute="trailing" secondItem="6Kd-tC-BhP" secondAttribute="trailing" id="KMv-Ih-PtZ"/>
+                                            <constraint firstItem="V5p-j8-qFi" firstAttribute="centerY" secondItem="KoR-e7-Geq" secondAttribute="centerY" id="Rln-Qw-r5N"/>
                                         </constraints>
                                     </view>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="a6W-Vq-Iiv">
@@ -609,7 +647,9 @@
                     <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
                     <size key="freeformSize" width="400" height="400"/>
                     <connections>
+                        <outlet property="letterSpacingLabel" destination="7D5-LE-bsa" id="zUV-MC-nic"/>
                         <outlet property="pageMarginsLabel" destination="n8X-0W-lHD" id="pdG-iT-uXh"/>
+                        <outlet property="wordSpacingLabel" destination="pfB-vG-vRl" id="0SW-WK-N0e"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x9P-WB-s99" userLabel="First Responder" sceneMemberID="firstResponder"/>

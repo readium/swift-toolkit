@@ -272,13 +272,41 @@ extension EpubViewController: FontSelectionDelegate {
 
 // Delegate for the Advanced Settings View Controller.
 extension EpubViewController: AdvancedSettingsDelegate {
-    func wordSpacingDidChange(to wordSpacing: UserSettings.WordSpacing) {
-        navigator.userSettings.wordSpacing = wordSpacing
+
+    /// Word Spacing.
+
+    func incrementWordSpacing() {
+        navigator.userSettings.wordSpacing.increment()
         navigator.updateUserSettingStyle()
     }
-    func letterSpacingDidChange(to letterSpacing: UserSettings.LetterSpacing) {
-        navigator.userSettings.letterSpacing = letterSpacing
+
+    func decrementWordSpacing() {
+        navigator.userSettings.wordSpacing.decrement()
         navigator.updateUserSettingStyle()
+    }
+
+    func updateWordSpacingLabel() {
+        let newValue = navigator.userSettings.wordSpacing.stringValue()
+
+        advancedSettingsViewController.updateWordSpacing(value: newValue)
+    }
+
+    /// Letter spacing.
+
+    func incrementLetterSpacing() {
+        navigator.userSettings.letterSpacing.increment()
+        navigator.updateUserSettingStyle()
+    }
+
+    func decrementLetterSpacing() {
+        navigator.userSettings.letterSpacing.decrement()
+        navigator.updateUserSettingStyle()
+    }
+
+    func updateLetterSpacingLabel() {
+        let newValue = navigator.userSettings.letterSpacing.stringValue()
+
+        advancedSettingsViewController.updateLetterSpacing(value: newValue)
     }
 
     func columnCountDidChange(to columnCount: UserSettings.ColumnCount) {
@@ -297,9 +325,8 @@ extension EpubViewController: AdvancedSettingsDelegate {
     }
 
     func updatePageMarginsLabel() {
-        guard let newValue = navigator.userSettings.pageMargins.value else {
-            return
-        }
+        let newValue = navigator.userSettings.pageMargins.stringValue()
+
         advancedSettingsViewController.updatePageMargins(value: newValue)
     }
 }

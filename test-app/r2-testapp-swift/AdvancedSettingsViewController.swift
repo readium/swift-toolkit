@@ -12,42 +12,67 @@ import R2Navigator
 let pageMarginsStepValue: Double = 0.25
 
 protocol AdvancedSettingsDelegate: class {
-    func wordSpacingDidChange(to wordSpacing: UserSettings.WordSpacing)
-    func letterSpacingDidChange(to letterSpacing: UserSettings.LetterSpacing)
+    func incrementWordSpacing()
+    func decrementWordSpacing()
+    func updateWordSpacingLabel()
+
+    func incrementLetterSpacing()
+    func decrementLetterSpacing()
+    func updateLetterSpacingLabel()
+
     func columnCountDidChange(to columnCount: UserSettings.ColumnCount)
+
     func incrementPageMargins()
     func decrementPageMargins()
     func updatePageMarginsLabel()
 }
 
 class AdvancedSettingsViewController: UIViewController {
+    @IBOutlet weak var wordSpacingLabel: UILabel!
+    @IBOutlet weak var letterSpacingLabel: UILabel!
     @IBOutlet weak var pageMarginsLabel: UILabel!
     weak var delegate: AdvancedSettingsDelegate?
 
     override func viewDidAppear(_ animated: Bool) {
+        delegate?.updateWordSpacingLabel()
         delegate?.updatePageMarginsLabel()
+        delegate?.updateLetterSpacingLabel()
     }
 
     @IBAction func backTapped() {
         dismiss(animated: true, completion: nil)
     }
 
-    @IBAction func wordSpacingValueChanged(_ sender: UISegmentedControl) {
-        let segmentIndex = sender.selectedSegmentIndex
+    /// Word Spacing.
 
-        guard let wordSpacing = UserSettings.WordSpacing.init(rawValue: segmentIndex) else {
-            return
-        }
-        delegate?.wordSpacingDidChange(to: wordSpacing)
+    @IBAction func wordSpacingPlusTapped() {
+        delegate?.incrementWordSpacing()
+        delegate?.updateWordSpacingLabel()
     }
 
-    @IBAction func letterSpacingValueChanged(_ sender: UISegmentedControl) {
-        let segmentIndex = sender.selectedSegmentIndex
+    @IBAction func wordSpacingMinusTapped() {
+        delegate?.decrementWordSpacing()
+        delegate?.updateWordSpacingLabel()
+    }
 
-        guard let letterSpacing = UserSettings.LetterSpacing.init(rawValue: segmentIndex) else {
-            return
-        }
-        delegate?.letterSpacingDidChange(to: letterSpacing)
+    public func updateWordSpacing(value: String) {
+        wordSpacingLabel.text = value
+    }
+
+    /// Letter spacing.
+
+    @IBAction func letterSpacingPlusTapped() {
+        delegate?.incrementLetterSpacing()
+        delegate?.updateLetterSpacingLabel()
+    }
+
+    @IBAction func letterSpacingMinusTapped() {
+        delegate?.decrementLetterSpacing()
+        delegate?.updateLetterSpacingLabel()
+    }
+
+    public func updateLetterSpacing(value: String) {
+        letterSpacingLabel.text = value
     }
 
     @IBAction func columnCountValueChanged(_ sender: UISegmentedControl) {
@@ -69,8 +94,8 @@ class AdvancedSettingsViewController: UIViewController {
         delegate?.updatePageMarginsLabel()
     }
 
-    public func updatePageMargins(value: Double) {
-        pageMarginsLabel.text = String.init(describing: value)
+    public func updatePageMargins(value: String) {
+        pageMarginsLabel.text = value
     }
 
 }
