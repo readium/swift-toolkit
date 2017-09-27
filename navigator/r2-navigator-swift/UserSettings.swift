@@ -9,8 +9,6 @@
 import Foundation
 import UIKit
 
-let pageMarginsDefault = 1.0
-
 public class UserSettings {
     // FontSize in %.
     public var fontSize: String?
@@ -41,283 +39,6 @@ public class UserSettings {
         case publisherFont = "--USER__fontOverride"
     }
 
-    /// Font available in userSettings.
-    public enum Font: Int {
-        case publisher
-        case sans
-        case oldStyle
-        case modern
-        case humanist
-
-        public static let allValues = [publisher, sans, oldStyle, modern, humanist]
-
-        public init(with name: String) {
-            switch name {
-            case Font.sans.name():
-                self = .sans
-            case Font.oldStyle.name():
-                self = .oldStyle
-            case Font.modern.name():
-                self = .modern
-            case Font.humanist.name():
-                self = .humanist
-            default:
-                self = .publisher
-            }
-        }
-
-        /// Return the associated font name, or the CSS version.
-        ///
-        /// - Parameter css: If true, return the precise CSS full name.
-        /// - Returns: The font name.
-        public func name(css: Bool = false) -> String {
-            switch self {
-            case .publisher:
-                return "Publisher's default"
-            case .sans:
-                return "Helvetica Neue"
-            case .oldStyle:
-                return (css ? "Iowan Old Style" : "Iowan")
-            case .modern:
-                return "Athelas"
-            case .humanist:
-                return "Seravek"
-            }
-        }
-    }
-
-    /// Appearances available in UserSettings.
-    public enum Appearance: Int {
-        case `default`
-        case sepia
-        case night
-
-        public init(with name: String) {
-            switch name {
-            case Appearance.sepia.name():
-                self = .sepia
-            case Appearance.night.name():
-                self = .night
-            default:
-                self = .default
-            }
-        }
-
-        /// The associated name for ReadiumCss.
-        ///
-        /// - Returns: Appearance name.
-        public func name() -> String{
-            switch self {
-            case .default:
-                return "readium-default-on"
-            case .sepia:
-                return "readium-sepia-on"
-            case .night:
-                return "readium-night-on"
-            }
-        }
-
-        /// The associated color for the UI.
-        ///
-        /// - Returns: Color.
-        public func associatedColor() -> UIColor {
-            switch self {
-            case .default:
-                return UIColor.white
-            case .sepia:
-                return UIColor.init(red: 250/255, green: 244/255, blue: 232/255, alpha: 1)
-            case .night:
-                return UIColor.black
-
-            }
-        }
-
-        /// The associated color for the fonts.
-        ///
-        /// - Returns: Color.
-        public func associatedFontColor() -> UIColor {
-            switch self {
-            case .default:
-                return UIColor.black
-            case .sepia:
-                return UIColor.init(red: 18/255, green: 18/255, blue: 18/255, alpha: 1)
-            case .night:
-                return UIColor.init(red: 254/255, green: 254/255, blue: 254/255, alpha: 1)
-
-            }
-        }
-    }
-
-    public enum Scroll {
-        case on
-        case off
-
-        public init(with name: String) {
-            switch name {
-            case Scroll.on.name():
-                self = .on
-            default:
-                self = .off
-            }
-        }
-
-        public func name() -> String {
-            switch self {
-            case .on:
-                return "readium-scroll-on"
-            case .off:
-                return "readium-scroll-off"
-            }
-        }
-
-        public func bool() -> Bool {
-            switch self {
-            case .on:
-                return true
-            default:
-                return false
-            }
-        }
-    }
-
-    public enum ColumnCount: Int {
-        case auto
-        case one
-        case two
-
-        init(with name: String) {
-            switch name {
-            case ColumnCount.one.name():
-                self = .one
-            case ColumnCount.two.name():
-                self = .two
-            default:
-                self = .auto
-            }
-        }
-
-        public func name() -> String {
-            switch self {
-            case .auto:
-                return "auto"
-            case .one:
-                return "1"
-            case .two:
-                return "2"
-            }
-        }
-    }
-
-    public class PageMargins {
-        public let step = 0.25
-        public let min = 0.5
-        public let max = 2.0
-        public var value: Double!
-
-        public init(initialValue: Double) {
-            if initialValue < min || initialValue > max,
-                (initialValue.truncatingRemainder(dividingBy: step) != 0)
-            {
-                value = 1
-            }
-            value = initialValue
-        }
-
-        public func increment() {
-            guard value + step <= max else {
-                return
-            }
-            value = value + step
-        }
-
-        public func decrement() {
-            guard value - step >= min else {
-                return
-            }
-            value = value - step
-        }
-
-        public func stringValue() -> String {
-            return "\(value!)"
-        }
-    }
-
-    public enum WordSpacing: Int {
-        case auto
-        case one
-        case two
-        case three
-        case four
-
-        init(with name: String) {
-            switch name {
-            case WordSpacing.one.name():
-                self = .one
-            case WordSpacing.two.name():
-                self = .two
-            case WordSpacing.three.name():
-                self = .three
-            case WordSpacing.four.name():
-                self = .four
-            default:
-                self = .auto
-            }
-        }
-
-        public func name() -> String {
-            switch self {
-            case .auto:
-                return "auto"
-            case .one:
-                return "0.125rem"
-            case .two:
-                return "0.25rem"
-            case .three:
-                return "0.375rem"
-            case .four:
-                return "0.5rem"
-            }
-        }
-    }
-
-    public enum LetterSpacing: Int {
-        case auto
-        case one
-        case two
-        case three
-        case four
-
-        init(with name: String) {
-            switch name {
-            case LetterSpacing.one.name():
-                self = .one
-            case LetterSpacing.two.name():
-                self = .two
-            case LetterSpacing.three.name():
-                self = .three
-            case LetterSpacing.four.name():
-                self = .four
-            default:
-                self = .auto
-            }
-        }
-
-        public func name() -> String {
-            switch self {
-            case .auto:
-                return "auto"
-            case .one:
-                return "0.0675rem"
-            case .two:
-                return "0.125rem"
-            case .three:
-                return "0.1875rem"
-            case .four:
-                return "0.25rem"
-            }
-        }
-    }
-
     internal init() {
         let userDefaults = UserDefaults.standard
         var value: String
@@ -329,6 +50,7 @@ public class UserSettings {
         } else {
             fontSize = "100"
         }
+
         // Font type.
         value = userDefaults.string(forKey: Keys.font.rawValue) ?? ""
         font = Font.init(with: value)
@@ -347,12 +69,12 @@ public class UserSettings {
         publisherSettings = userDefaults.bool(forKey: Keys.publisherSettings.rawValue)
 
         // Word spacing.
-        value = userDefaults.string(forKey: Keys.wordSpacing.rawValue) ?? ""
-        wordSpacing = WordSpacing.init(with: value)
+        let wordSpacingValue = userDefaults.double(forKey: Keys.wordSpacing.rawValue)
+        wordSpacing = WordSpacing.init(initialValue: wordSpacingValue)
 
         // Letter spacing.
-        value = userDefaults.string(forKey: Keys.letterSpacing.rawValue) ?? ""
-        letterSpacing = LetterSpacing.init(with: value)
+        let letterSpacingValue = userDefaults.double(forKey: Keys.letterSpacing.rawValue)
+        letterSpacing = LetterSpacing.init(initialValue: letterSpacingValue)
 
         // Column count.
         value = userDefaults.string(forKey: Keys.columnCount.rawValue) ?? ""
@@ -377,61 +99,63 @@ public class UserSettings {
         case .publisherSettings:
             return publisherSettings.description
         case .wordSpacing:
-            return wordSpacing.name()
+            return wordSpacing.stringValue()
         case .letterSpacing:
-            return letterSpacing.name()
+            return letterSpacing.stringValue()
         case .columnCount:
             return columnCount?.name()
         case .pageMargins:
             return pageMargins.stringValue()
-
         }
     }
 
-    /// Generate an array of tuple for setting easily the css properties.
+    /// Generate an array of tuple for setting easily the CSS properties.
     ///
     /// - Returns: Css properties (key, value).
     public func cssProperties() -> [(key: String, value: String)] {
         var properties = [(key: String, value: String)]()
         var value: String
 
+        // FontSize.
         if let fontSize = fontSize {
             properties.append((key: Keys.fontSize.rawValue, "\(fontSize)%"))
         }
+
+        // Font.
         if let font = font {
             // Do we override?
             let value = (font == .publisher ? "readium-font-off" : "readium-font-on")
+
             properties.append((key: Switches.publisherFont.rawValue, value))
             properties.append((key: Keys.font.rawValue, "\(font.name(css: true))"))
         }
+        // Appearance.
         if let appearance = appearance {
             properties.append((key: Keys.appearance.rawValue, "\(appearance.name())"))
         }
+        // Scroll.
         if let scroll = scroll {
             properties.append((key: Keys.scroll.rawValue, value: "\(scroll.name())"))
         }
-
         // Publisher Settings.
         value = (publisherSettings == true ? "readium-advanced-off" : "readium-advanced-on")
         properties.append((key: Keys.publisherSettings.rawValue, value: "\(value)"))
 
+        /// Advanced Settings.
         // WordSpacing count.
-        value = wordSpacing.name()
-        properties.append((key: Keys.wordSpacing.rawValue, value: "\(value)"))
-
+        properties.append((key: Keys.wordSpacing.rawValue,
+                           value: wordSpacing.stringValueCss()))
         // LetterSpacing count.
-        value = letterSpacing.name()
-        properties.append((key: Keys.letterSpacing.rawValue, value: "\(value)"))
-
+        properties.append((key: Keys.letterSpacing.rawValue,
+                           value: letterSpacing.stringValueCss()))
         // Column count.
-        value = columnCount.name()
-        properties.append((key: Keys.columnCount.rawValue, value: "\(value)"))
-
+        properties.append((key: Keys.columnCount.rawValue,
+                           value: columnCount.name()))
         // Page margins.
         if let pageMargins = pageMargins {
-            properties.append((key: Keys.pageMargins.rawValue, value: "\(pageMargins.stringValue())"))
+            properties.append((key: Keys.pageMargins.rawValue,
+                               value: pageMargins.stringValue()))
         }
-
         return properties
     }
 
@@ -453,11 +177,11 @@ public class UserSettings {
         }
         userDefaults.set(publisherSettings, forKey: Keys.publisherSettings.rawValue)
 
-        userDefaults.set(wordSpacing.name(), forKey: Keys.wordSpacing.rawValue)
-        userDefaults.set(letterSpacing.name(), forKey: Keys.letterSpacing.rawValue)
+        userDefaults.set(wordSpacing.value, forKey: Keys.wordSpacing.rawValue)
+        userDefaults.set(letterSpacing.value, forKey: Keys.letterSpacing.rawValue)
         userDefaults.set(columnCount.name(), forKey: Keys.columnCount.rawValue)
         if let pageMargins = pageMargins {
-            userDefaults.set(pageMargins.stringValue(), forKey: Keys.pageMargins.rawValue)
+            userDefaults.set(pageMargins.value, forKey: Keys.pageMargins.rawValue)
         }
     }
 

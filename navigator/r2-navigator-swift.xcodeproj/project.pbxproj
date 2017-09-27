@@ -8,6 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		F341C2711F506ED5005E6758 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F341C2701F506ED5005E6758 /* UserSettings.swift */; };
+		F3C548681F7BD5F6003A6DAA /* PageMargins.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3C548671F7BD5F6003A6DAA /* PageMargins.swift */; };
+		F3C5486A1F7BD6EE003A6DAA /* ColumnCount.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3C548691F7BD6EE003A6DAA /* ColumnCount.swift */; };
+		F3C5486C1F7BD70B003A6DAA /* WordSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3C5486B1F7BD70B003A6DAA /* WordSpacing.swift */; };
+		F3C5486E1F7BD721003A6DAA /* LetterSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3C5486D1F7BD721003A6DAA /* LetterSpacing.swift */; };
+		F3C548711F7BD757003A6DAA /* Font.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3C548701F7BD757003A6DAA /* Font.swift */; };
+		F3C548731F7BD77E003A6DAA /* Appearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3C548721F7BD77E003A6DAA /* Appearance.swift */; };
+		F3C548751F7BD794003A6DAA /* Scroll.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3C548741F7BD794003A6DAA /* Scroll.swift */; };
 		F3E7D3CD1F4D83B000DF166D /* R2NavigatorSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D3C31F4D83B000DF166D /* R2NavigatorSwift.framework */; };
 		F3E7D3D21F4D83B000DF166D /* r2_navigator_swiftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3D11F4D83B000DF166D /* r2_navigator_swiftTests.swift */; };
 		F3E7D3D41F4D83B000DF166D /* r2-navigator-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -33,6 +40,13 @@
 /* Begin PBXFileReference section */
 		F341C2701F506ED5005E6758 /* UserSettings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
 		F3B2C86C1F603E79007601E4 /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
+		F3C548671F7BD5F6003A6DAA /* PageMargins.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageMargins.swift; sourceTree = "<group>"; };
+		F3C548691F7BD6EE003A6DAA /* ColumnCount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColumnCount.swift; sourceTree = "<group>"; };
+		F3C5486B1F7BD70B003A6DAA /* WordSpacing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordSpacing.swift; sourceTree = "<group>"; };
+		F3C5486D1F7BD721003A6DAA /* LetterSpacing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LetterSpacing.swift; sourceTree = "<group>"; };
+		F3C548701F7BD757003A6DAA /* Font.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Font.swift; sourceTree = "<group>"; };
+		F3C548721F7BD77E003A6DAA /* Appearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Appearance.swift; sourceTree = "<group>"; };
+		F3C548741F7BD794003A6DAA /* Scroll.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scroll.swift; sourceTree = "<group>"; };
 		F3E7D3C31F4D83B000DF166D /* R2NavigatorSwift.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = R2NavigatorSwift.framework; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "r2-navigator-swift.h"; sourceTree = "<group>"; };
 		F3E7D3C71F4D83B000DF166D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -68,6 +82,28 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		F3C548661F7BD5D4003A6DAA /* UserSettings */ = {
+			isa = PBXGroup;
+			children = (
+				F3C548701F7BD757003A6DAA /* Font.swift */,
+				F3C548721F7BD77E003A6DAA /* Appearance.swift */,
+				F3C548741F7BD794003A6DAA /* Scroll.swift */,
+				F3C5486F1F7BD739003A6DAA /* Advanced */,
+			);
+			name = UserSettings;
+			sourceTree = "<group>";
+		};
+		F3C5486F1F7BD739003A6DAA /* Advanced */ = {
+			isa = PBXGroup;
+			children = (
+				F3C5486B1F7BD70B003A6DAA /* WordSpacing.swift */,
+				F3C5486D1F7BD721003A6DAA /* LetterSpacing.swift */,
+				F3C548691F7BD6EE003A6DAA /* ColumnCount.swift */,
+				F3C548671F7BD5F6003A6DAA /* PageMargins.swift */,
+			);
+			name = Advanced;
+			sourceTree = "<group>";
+		};
 		F3E7D3B91F4D83B000DF166D = {
 			isa = PBXGroup;
 			children = (
@@ -125,6 +161,7 @@
 				F3E7D3DD1F4D845B00DF166D /* BinaryLocation.swift */,
 				F3E7D3DF1F4D847E00DF166D /* Disjunction.swift */,
 				F341C2701F506ED5005E6758 /* UserSettings.swift */,
+				F3C548661F7BD5D4003A6DAA /* UserSettings */,
 			);
 			name = EPUB;
 			sourceTree = "<group>";
@@ -251,12 +288,19 @@
 			buildActionMask = 2147483647;
 			files = (
 				F3E7D3E21F4D84A000DF166D /* NavigatorViewController.swift in Sources */,
+				F3C5486E1F7BD721003A6DAA /* LetterSpacing.swift in Sources */,
 				F3E7D3E61F4D84EF00DF166D /* WebView.swift in Sources */,
+				F3C548681F7BD5F6003A6DAA /* PageMargins.swift in Sources */,
+				F3C548751F7BD794003A6DAA /* Scroll.swift in Sources */,
+				F3C548731F7BD77E003A6DAA /* Appearance.swift in Sources */,
+				F3C5486A1F7BD6EE003A6DAA /* ColumnCount.swift in Sources */,
 				F3E7D42E1F4EE0FE00DF166D /* CbzNavigatorViewController.swift in Sources */,
 				F3E7D3E01F4D847E00DF166D /* Disjunction.swift in Sources */,
 				F341C2711F506ED5005E6758 /* UserSettings.swift in Sources */,
+				F3C548711F7BD757003A6DAA /* Font.swift in Sources */,
 				F3E7D3DE1F4D845B00DF166D /* BinaryLocation.swift in Sources */,
 				F3E7D3E41F4D84DC00DF166D /* TriptychView.swift in Sources */,
+				F3C5486C1F7BD70B003A6DAA /* WordSpacing.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
