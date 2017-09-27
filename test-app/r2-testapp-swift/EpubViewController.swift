@@ -71,8 +71,8 @@ class EpubViewController: UIViewController {
         }
 
         // User settings windows.
-        let width = UIScreen.main.bounds.width / 1.618
-        let height = UIScreen.main.bounds.height / 2.1
+        let width = UIScreen.main.bounds.width / 1.25
+        let height = UIScreen.main.bounds.height / 1.9
 
         userSettingsViewController.preferredContentSize = CGSize(width: width, height: height)
         userSettingsViewController.modalPresentationStyle = .popover
@@ -198,12 +198,12 @@ extension EpubViewController: NavigatorDelegate {
 // MARK: - Delegate of the UserSettingsView Controller.
 extension EpubViewController: UserSettingsDelegate {
     func fontSizeDidChange(to sizeString: String) {
-        navigator.userSettings.set(value: sizeString, forKey: .fontSize)
+        navigator.userSettings.fontSize = sizeString
         navigator.updateUserSettingStyle()
     }
 
     func appearanceDidChange(to appearance: UserSettings.Appearance) {
-        navigator.userSettings.set(value: appearance.name(), forKey: .appearance)
+        navigator.userSettings.appearance = appearance
         navigator.updateUserSettingStyle()
         // Change view appearance.
         setUIColor(for: appearance)
@@ -211,13 +211,13 @@ extension EpubViewController: UserSettingsDelegate {
 
     func scrollDidChange(to scroll: UserSettings.Scroll) {
         // remove snap in nav TODO -- taps etc, fix all
-        navigator.userSettings.set(value: scroll.name(), forKey: UserSettings.Keys.scroll)
+        navigator.userSettings.scroll = scroll
         navigator.updateUserSettingStyle()
         toggleFixedBars()
     }
 
     func publisherSettingsDidChange(to state: Bool) {
-        navigator.userSettings.set(value: state.description, forKey: UserSettings.Keys.publisherSettings)
+        navigator.userSettings.publisherSettings = state
         navigator.updateUserSettingStyle()
     }
 
@@ -258,19 +258,50 @@ extension EpubViewController: UserSettingsDelegate {
     }
 }
 
+// Delegate of the Font Selection View Controller.
 extension EpubViewController: FontSelectionDelegate {
     func currentFont() -> UserSettings.Font? {
         return navigator.userSettings.font
     }
 
     func fontDidChange(to font: UserSettings.Font) {
-        navigator.userSettings.set(value: font.name(), forKey: .font)
+        navigator.userSettings.font = font
         navigator.updateUserSettingStyle()
     }
 }
 
+// Delegate for the Advanced Settings View Controller.
 extension EpubViewController: AdvancedSettingsDelegate {
+    func wordSpacingDidChange(to wordSpacing: UserSettings.WordSpacing) {
+        navigator.userSettings.wordSpacing = wordSpacing
+        navigator.updateUserSettingStyle()
+    }
+    func letterSpacingDidChange(to letterSpacing: UserSettings.LetterSpacing) {
+        navigator.userSettings.letterSpacing = letterSpacing
+        navigator.updateUserSettingStyle()
+    }
 
+    func columnCountDidChange(to columnCount: UserSettings.ColumnCount) {
+        navigator.userSettings.columnCount = columnCount
+        navigator.updateUserSettingStyle()
+    }
+
+    func incrementPageMargins() {
+        navigator.userSettings.pageMargins.increment()
+        navigator.updateUserSettingStyle()
+    }
+
+    func decrementPageMargins() {
+        navigator.userSettings.pageMargins.decrement()
+        navigator.updateUserSettingStyle()
+    }
+
+    func updatePageMarginsLabel() {
+        guard let newValue = navigator.userSettings.pageMargins.value else {
+            return
+        }
+        advancedSettingsViewController.updatePageMargins(value: newValue)
+    }
 }
 
 extension EpubViewController: UIPopoverPresentationControllerDelegate {

@@ -12,6 +12,7 @@ import R2Navigator
 protocol FontSelectionDelegate: class {
     func currentFont() -> UserSettings.Font?
     func fontDidChange(to font: UserSettings.Font)
+
 }
 
 class FontSelectionViewController: UIViewController {
