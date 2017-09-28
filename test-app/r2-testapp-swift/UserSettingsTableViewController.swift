@@ -140,6 +140,7 @@ extension UserSettingsTableViewController {
 
             appearanceSegmentedControl.selectedSegmentIndex = appearance.rawValue
         }
+        
         // Publisher setting switch.
         if let publisherSettings = userSettings?.value(forKey: .publisherSettings) {
             let state = Bool.init(publisherSettings) ?? false
