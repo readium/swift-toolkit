@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F32980EC1F7D34FA00BDEAF4 /* TextAlignement.swift in Sources */ = {isa = PBXBuildFile; fileRef = F32980EB1F7D34FA00BDEAF4 /* TextAlignement.swift */; };
 		F341C2711F506ED5005E6758 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F341C2701F506ED5005E6758 /* UserSettings.swift */; };
 		F3C548681F7BD5F6003A6DAA /* PageMargins.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3C548671F7BD5F6003A6DAA /* PageMargins.swift */; };
 		F3C5486A1F7BD6EE003A6DAA /* ColumnCount.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3C548691F7BD6EE003A6DAA /* ColumnCount.swift */; };
@@ -38,6 +39,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		F32980EB1F7D34FA00BDEAF4 /* TextAlignement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextAlignement.swift; sourceTree = "<group>"; };
 		F341C2701F506ED5005E6758 /* UserSettings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
 		F3B2C86C1F603E79007601E4 /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
 		F3C548671F7BD5F6003A6DAA /* PageMargins.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageMargins.swift; sourceTree = "<group>"; };
@@ -96,9 +98,10 @@
 		F3C5486F1F7BD739003A6DAA /* Advanced */ = {
 			isa = PBXGroup;
 			children = (
+				F32980EB1F7D34FA00BDEAF4 /* TextAlignement.swift */,
+				F3C548691F7BD6EE003A6DAA /* ColumnCount.swift */,
 				F3C5486B1F7BD70B003A6DAA /* WordSpacing.swift */,
 				F3C5486D1F7BD721003A6DAA /* LetterSpacing.swift */,
-				F3C548691F7BD6EE003A6DAA /* ColumnCount.swift */,
 				F3C548671F7BD5F6003A6DAA /* PageMargins.swift */,
 			);
 			name = Advanced;
@@ -291,6 +294,7 @@
 				F3C5486E1F7BD721003A6DAA /* LetterSpacing.swift in Sources */,
 				F3E7D3E61F4D84EF00DF166D /* WebView.swift in Sources */,
 				F3C548681F7BD5F6003A6DAA /* PageMargins.swift in Sources */,
+				F32980EC1F7D34FA00BDEAF4 /* TextAlignement.swift in Sources */,
 				F3C548751F7BD794003A6DAA /* Scroll.swift in Sources */,
 				F3C548731F7BD77E003A6DAA /* Appearance.swift in Sources */,
 				F3C5486A1F7BD6EE003A6DAA /* ColumnCount.swift in Sources */,

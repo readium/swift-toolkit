@@ -16,9 +16,10 @@ public class UserSettings {
     public var appearance: Appearance?
     public var scroll: Scroll?
     public var publisherSettings: Bool!
+    public var textAlignement: TextAlignement!
+    public var columnCount: ColumnCount!
     public var wordSpacing: WordSpacing!
     public var letterSpacing: LetterSpacing!
-    public var columnCount: ColumnCount!
     public var pageMargins: PageMargins!
 
     // The keys in ReadiumCss. Also used for storing UserSettings in UserDefaults.
@@ -32,6 +33,7 @@ public class UserSettings {
         case letterSpacing = "--USER__letterSpacing"
         case columnCount = "--USER__colCount"
         case pageMargins = "--USER__pageMargins"
+        case textAlignement = "--USER__textAlign"
         //--USER__darkenImages --USER__invertImages
     }
 
@@ -68,6 +70,14 @@ public class UserSettings {
         // Publisher settings.
         publisherSettings = userDefaults.bool(forKey: Keys.publisherSettings.rawValue)
 
+        // Page Margins. (0 if unset in the userDefaults)
+        let pageMarginsValue = userDefaults.double(forKey: Keys.pageMargins.rawValue)
+
+        self.pageMargins = PageMargins.init(initialValue: pageMarginsValue)
+
+        // Text alignement.
+        let textAlignement = userDefaults.integer(forKey: Keys.textAlignement.rawValue)
+        self.textAlignement = TextAlignement.init(with: textAlignement)
         // Word spacing.
         let wordSpacingValue = userDefaults.double(forKey: Keys.wordSpacing.rawValue)
         wordSpacing = WordSpacing.init(initialValue: wordSpacingValue)
@@ -79,11 +89,6 @@ public class UserSettings {
         // Column count.
         value = userDefaults.string(forKey: Keys.columnCount.rawValue) ?? ""
         columnCount = ColumnCount.init(with: value)
-
-        // Page Margins. (0 if unset in the userDefaults)
-        let pageMarginsValue = userDefaults.double(forKey: Keys.pageMargins.rawValue)
-
-        self.pageMargins = PageMargins.init(initialValue: pageMarginsValue)
     }
 
     public func value(forKey key: Keys) -> String? {
@@ -98,6 +103,8 @@ public class UserSettings {
             return scroll?.name()
         case .publisherSettings:
             return publisherSettings.description
+        case .textAlignement:
+            return textAlignement.stringValue()
         case .wordSpacing:
             return wordSpacing.stringValue()
         case .letterSpacing:
@@ -142,15 +149,21 @@ public class UserSettings {
         properties.append((key: Keys.publisherSettings.rawValue, value: "\(value)"))
 
         /// Advanced Settings.
+        // Text alignement.
+        properties.append((key: Keys.textAlignement.rawValue,
+                           value: textAlignement.stringValueCss()))
+
+        // Column count.
+        properties.append((key: Keys.columnCount.rawValue,
+                           value: columnCount.name()))
+
         // WordSpacing count.
         properties.append((key: Keys.wordSpacing.rawValue,
                            value: wordSpacing.stringValueCss()))
         // LetterSpacing count.
         properties.append((key: Keys.letterSpacing.rawValue,
                            value: letterSpacing.stringValueCss()))
-        // Column count.
-        properties.append((key: Keys.columnCount.rawValue,
-                           value: columnCount.name()))
+
         // Page margins.
         if let pageMargins = pageMargins {
             properties.append((key: Keys.pageMargins.rawValue,
@@ -177,9 +190,10 @@ public class UserSettings {
         }
         userDefaults.set(publisherSettings, forKey: Keys.publisherSettings.rawValue)
 
+        userDefaults.set(textAlignement.rawValue, forKey: Keys.textAlignement.rawValue)
+        userDefaults.set(columnCount.name(), forKey: Keys.columnCount.rawValue)
         userDefaults.set(wordSpacing.value, forKey: Keys.wordSpacing.rawValue)
         userDefaults.set(letterSpacing.value, forKey: Keys.letterSpacing.rawValue)
-        userDefaults.set(columnCount.name(), forKey: Keys.columnCount.rawValue)
         if let pageMargins = pageMargins {
             userDefaults.set(pageMargins.value, forKey: Keys.pageMargins.rawValue)
         }
