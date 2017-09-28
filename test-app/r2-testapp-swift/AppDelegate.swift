@@ -48,6 +48,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         epubParser = EpubParser()
         cbzParser = CbzParser()
 
+        addSamples()
         loadPublications()
 
         window = UIWindow(frame: UIScreen.main.bounds)
@@ -181,9 +182,9 @@ extension AppDelegate {
         let fileManager = FileManager.default
         // Document Directory always exists (hence try!).
         var inboxUrl = try! fileManager.url(for: .documentDirectory,
-                                             in: .userDomainMask,
-                                             appropriateFor: nil,
-                                             create: true)
+                                            in: .userDomainMask,
+                                            appropriateFor: nil,
+                                            create: true)
 
         inboxUrl.appendPathComponent("Inbox/")
 
@@ -256,6 +257,55 @@ extension AppDelegate {
             publicationType = PublicationType(rawValue: fileType!) ?? PublicationType.unknown
         }
         return publicationType
+    }
+
+    // Dirty temp, waiting for OPDS.
+    fileprivate func addSamples() {
+        let fileManager = FileManager.default
+        // Document Directory always exists (hence `try!`).
+        var inboxDirUrl = try! fileManager.url(for: .documentDirectory,
+                                               in: .userDomainMask,
+                                               appropriateFor: nil,
+                                               create: true)
+        inboxDirUrl.appendPathComponent("Inbox/")
+        do {
+        try fileManager.createDirectory(at: inboxDirUrl,
+                                    withIntermediateDirectories: true,
+                                    attributes: nil)
+        } catch {
+            print("Error creating the msising inbox dir")
+            return
+        }
+
+        let samples = ["1", "2", "3", "4", "5", "6"]
+        var sampleUrls = [URL]()
+
+        for sample in samples {
+            if let path = Bundle.main.path(forResource: sample, ofType: "epub") {
+                let url = URL.init(fileURLWithPath: path)
+
+                sampleUrls.append(url)
+            }
+        }
+
+        do {
+            for sampleUrl in sampleUrls {
+                let fileName = sampleUrl.lastPathComponent
+                // Assemble destination path.
+                let destUrl = inboxDirUrl.appendingPathComponent(fileName)
+                // Check that file don't exist.
+                if !fileManager.fileExists(atPath: destUrl.path) {
+
+
+                    // Move samples to  documents
+                    try fileManager.moveItem(at: sampleUrl, to: destUrl)
+                }
+            }
+        } catch {
+            print("\(error.localizedDescription)")
+            print("Error while moving samples")
+        }
+        return
     }
 }
 
