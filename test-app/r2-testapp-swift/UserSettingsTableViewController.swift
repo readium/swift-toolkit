@@ -1,5 +1,5 @@
 //
-//  UserSettingsViewController.swift
+//  UserSettingsTableViewController.swift
 //  r2-navigator
 //
 //  Created by Alexandre Camilleri on 8/2/17.
@@ -19,13 +19,13 @@ protocol UserSettingsDelegate: class {
     func getAdvancedSettingsViewController() -> AdvancedSettingsViewController
 }
 
-class UserSettingsViewController: UIViewController {
+class UserSettingsTableViewController: UITableViewController {
     @IBOutlet weak var brightnessSlider: UISlider!
     @IBOutlet weak var defaultSwitch: UISwitch!
-
     @IBOutlet weak var fontSizeMinusButton: UIButton!
     @IBOutlet weak var fontSizePlusButton: UIButton!
     @IBOutlet weak var fontSelectionButton: UIButton!
+    @IBOutlet weak var selectedFontLabel: UILabel!
     @IBOutlet weak var advancedSettingsButton: UIButton!
     @IBOutlet weak var appearanceSegmentedControl: UISegmentedControl!
     @IBOutlet weak var scrollSwitch: UISwitch!
@@ -37,14 +37,24 @@ class UserSettingsViewController: UIViewController {
     let fontSizeStep: Float = 12.5
 
     override func viewDidLoad() {
+        super.viewDidLoad()
         initializeControlsValues()
+        self.navigationController?.isNavigationBarHidden = true
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
+
     }
 
     override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
         // Update brightness slider in case the user modified it in the OS.
         brightnessSlider.value = Float(UIScreen.main.brightness)
+        tableView.bounces = false
     }
-
+    
     @IBAction func brightnessDidChange() {
         let brightness = brightnessSlider.value
 
@@ -86,7 +96,6 @@ class UserSettingsViewController: UIViewController {
         guard let appearance = UserSettings.Appearance(rawValue: index) else {
             return
         }
-        switchOffPublisherSettingsIfNeeded()
         delegate?.appearanceDidChange(to: appearance)
     }
 
@@ -94,16 +103,25 @@ class UserSettingsViewController: UIViewController {
         guard let fsvc = delegate?.getFontSelectionViewController() else {
             return
         }
+        let backItem = UIBarButtonItem()
+
+        backItem.title = ""
+        navigationItem.backBarButtonItem = backItem
         switchOffPublisherSettingsIfNeeded()
-        present(fsvc, animated: true, completion: nil)
+        navigationController?.pushViewController(fsvc, animated: true)
     }
 
     @IBAction func advancedSettingsTapped() {
         guard let asvc = delegate?.getAdvancedSettingsViewController() else {
             return
         }
+        let backItem = UIBarButtonItem()
+
+        backItem.title = ""
+        navigationItem.backBarButtonItem = backItem
         switchOffPublisherSettingsIfNeeded()
-        present(asvc, animated: true, completion: nil)
+        navigationController?.pushViewController(asvc, animated: true)
+//        present(asvc, animated: true, completion: nil)
     }
 
     @IBAction func scrollSwitched() {
@@ -113,7 +131,7 @@ class UserSettingsViewController: UIViewController {
     }
 }
 
-extension UserSettingsViewController {
+extension UserSettingsTableViewController {
 
     fileprivate func initializeControlsValues() {
         /// Appearance SegmentedControl.
@@ -129,12 +147,18 @@ extension UserSettingsViewController {
             defaultSwitch.isOn = state
         }
 
+        // Currently selected font.
+        if let font = userSettings?.value(forKey: .font) {
+            setSelectedFontLabel(to: font)
+        }
+
         // Scroll switch.
         if let initialScroll = userSettings?.value(forKey: .scroll) {
             let scroll = UserSettings.Scroll.init(with: initialScroll)
 
             scrollSwitch.setOn(scroll.bool(), animated: false)
         }
+
     }
 
     internal func switchOffPublisherSettingsIfNeeded() {
@@ -142,6 +166,10 @@ extension UserSettingsViewController {
             defaultSwitch.setOn(false, animated: true)
             delegate?.publisherSettingsDidChange(to: false)
         }
+    }
+
+    internal func setSelectedFontLabel(to fontName: String) {
+        selectedFontLabel.text = fontName
     }
 }
 

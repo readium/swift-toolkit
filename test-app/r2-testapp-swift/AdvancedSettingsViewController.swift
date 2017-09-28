@@ -12,6 +12,10 @@ import R2Navigator
 let pageMarginsStepValue: Double = 0.25
 
 protocol AdvancedSettingsDelegate: class {
+    func textAlignementDidChange(to textAlignement: UserSettings.TextAlignement)
+
+    func columnCountDidChange(to columnCount: UserSettings.ColumnCount)
+
     func incrementWordSpacing()
     func decrementWordSpacing()
     func updateWordSpacingLabel()
@@ -19,8 +23,6 @@ protocol AdvancedSettingsDelegate: class {
     func incrementLetterSpacing()
     func decrementLetterSpacing()
     func updateLetterSpacingLabel()
-
-    func columnCountDidChange(to columnCount: UserSettings.ColumnCount)
 
     func incrementPageMargins()
     func decrementPageMargins()
@@ -34,13 +36,25 @@ class AdvancedSettingsViewController: UIViewController {
     weak var delegate: AdvancedSettingsDelegate?
 
     override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(true)
         delegate?.updateWordSpacingLabel()
         delegate?.updatePageMarginsLabel()
         delegate?.updateLetterSpacingLabel()
     }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(true)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
+    }
 
-    @IBAction func backTapped() {
-        dismiss(animated: true, completion: nil)
+    /// Text alignement.
+
+    @IBAction func textAlignementValueChanged(_ sender: UISegmentedControl) {
+            let segmentIndex = sender.selectedSegmentIndex
+
+        guard let textAlignement = UserSettings.TextAlignement.init(rawValue: segmentIndex) else {
+                return
+            }
+            delegate?.textAlignementDidChange(to: textAlignement)
     }
 
     /// Word Spacing.

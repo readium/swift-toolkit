@@ -12,7 +12,6 @@ import R2Navigator
 protocol FontSelectionDelegate: class {
     func currentFont() -> UserSettings.Font?
     func fontDidChange(to font: UserSettings.Font)
-
 }
 
 class FontSelectionViewController: UIViewController {
@@ -20,19 +19,22 @@ class FontSelectionViewController: UIViewController {
     weak var delegate: FontSelectionDelegate?
 
     override func viewDidLoad() {
+        super.viewDidLoad()
         fontTableView.delegate = self
         fontTableView.dataSource = self
+        self.navigationController?.isNavigationBarHidden = true
+    }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
     }
 
     override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
         if let initialFont = delegate?.currentFont() {
             let index = IndexPath.init(row: initialFont.rawValue, section: 0)
             fontTableView.cellForRow(at: index)?.accessoryType = .checkmark
         }
-    }
-
-    @IBAction func backTapped() {
-        dismiss(animated: true, completion: nil)
     }
 }
 

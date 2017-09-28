@@ -17,10 +17,7 @@ class EpubViewController: UIViewController {
     let fixedBottomBar: BarView!
     var tableOfContentsTVC: TableOfContentsTableViewController!
     var popoverUserconfigurationAnchor: UIBarButtonItem?
-    var userSettingsViewController: UserSettingsViewController!
-    //
-    var fontSelectionViewController: FontSelectionViewController!
-    var advancedSettingsViewController: AdvancedSettingsViewController!
+    var userSettingNavigationController: UserSettingsNavigationController!
 
     init(with publication: Publication, atIndex index: Int, progression: Double?) {
         stackView = UIStackView(frame: UIScreen.main.bounds)
@@ -34,12 +31,8 @@ class EpubViewController: UIViewController {
         // UserSettingsViewController.
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
 
-        userSettingsViewController =
-            storyboard.instantiateViewController(withIdentifier: "UserSettingsViewController") as! UserSettingsViewController
-        fontSelectionViewController =
-            storyboard.instantiateViewController(withIdentifier: "FontSelectionViewController") as! FontSelectionViewController
-        advancedSettingsViewController =
-            storyboard.instantiateViewController(withIdentifier: "AdvancedSettingsViewController") as! AdvancedSettingsViewController
+        userSettingNavigationController =
+            storyboard.instantiateViewController(withIdentifier: "UserSettingsNavigationController") as! UserSettingsNavigationController
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -70,19 +63,8 @@ class EpubViewController: UIViewController {
             setUIColor(for: appearance)
         }
 
-        // User settings windows.
-        let width = UIScreen.main.bounds.width / 1.25
-        let height = UIScreen.main.bounds.height / 1.9
-
-        userSettingsViewController.preferredContentSize = CGSize(width: width, height: height)
-        userSettingsViewController.modalPresentationStyle = .popover
-        userSettingsViewController.delegate = self
-        userSettingsViewController.userSettings = navigator.userSettings
-        //
-        fontSelectionViewController.modalPresentationStyle = .overCurrentContext
-        advancedSettingsViewController.modalPresentationStyle = .overCurrentContext
-        fontSelectionViewController.delegate = self
-        advancedSettingsViewController.delegate = self
+        userSettingNavigationController.modalPresentationStyle = .popover
+        userSettingNavigationController.usdelegate = self
 
         fixedTopBar.delegate = self
         fixedBottomBar.delegate = self
@@ -144,12 +126,18 @@ class EpubViewController: UIViewController {
 extension EpubViewController {
 
     func presentUserSettings() {
-        let popoverPresentationController = userSettingsViewController.popoverPresentationController!
+        let popoverPresentationController = userSettingNavigationController.popoverPresentationController!
 
         popoverPresentationController.delegate = self
         popoverPresentationController.barButtonItem = popoverUserconfigurationAnchor
 
-        present(userSettingsViewController, animated: true, completion: nil)
+        present(userSettingNavigationController, animated: true, completion: nil)
+//        let popoverPresentationController = userSettingsTableViewController.popoverPresentationController!
+//
+//        popoverPresentationController.delegate = self
+//        popoverPresentationController.barButtonItem = popoverUserconfigurationAnchor
+//
+//        present(userSettingsTableViewController, animated: true, completion: nil)
     }
 
     func presentTableOfContents() {
@@ -158,7 +146,7 @@ extension EpubViewController {
         backItem.title = ""
         navigationItem.backBarButtonItem = backItem
         // Dismiss userSettings if opened.
-        userSettingsViewController.dismiss(animated: true, completion: nil)
+        userSettingNavigationController.userSettingsTableViewController.dismiss(animated: true, completion: nil)
         self.navigationController?.pushViewController(self.tableOfContentsTVC, animated: true)
     }
 }
@@ -195,44 +183,19 @@ extension EpubViewController: NavigatorDelegate {
     }
 }
 
-// MARK: - Delegate of the UserSettingsView Controller.
-extension EpubViewController: UserSettingsDelegate {
-    func fontSizeDidChange(to sizeString: String) {
-        navigator.userSettings.fontSize = sizeString
+extension EpubViewController: UserSettingsNavigationControllerDelegate {
+    internal func getUserSettings() -> UserSettings {
+        return navigator.userSettings
+    }
+
+    internal func updateUserSettingsStyle() {
         navigator.updateUserSettingStyle()
     }
 
-    func appearanceDidChange(to appearance: UserSettings.Appearance) {
-        navigator.userSettings.appearance = appearance
-        navigator.updateUserSettingStyle()
-        // Change view appearance.
-        setUIColor(for: appearance)
-    }
-
-    func scrollDidChange(to scroll: UserSettings.Scroll) {
-        // remove snap in nav TODO -- taps etc, fix all
-        navigator.userSettings.scroll = scroll
-        navigator.updateUserSettingStyle()
-        toggleFixedBars()
-    }
-
-    func publisherSettingsDidChange(to state: Bool) {
-        navigator.userSettings.publisherSettings = state
-        navigator.updateUserSettingStyle()
-    }
-
-    func getFontSelectionViewController() -> FontSelectionViewController {
-        return fontSelectionViewController
-    }
-
-    func getAdvancedSettingsViewController() -> AdvancedSettingsViewController {
-        return advancedSettingsViewController
-    }
-    
     /// Synchronyze the UI appearance to the UserSettings.Appearance.
     ///
     /// - Parameter appearance: The appearance.
-    fileprivate func setUIColor(for appearance: UserSettings.Appearance) {
+    internal func setUIColor(for appearance: UserSettings.Appearance) {
         let color = appearance.associatedColor()
         let textColor = appearance.associatedFontColor()
 
@@ -246,7 +209,7 @@ extension EpubViewController: UserSettingsDelegate {
     }
 
     // Toggle hide/show fixed bot and top bars.
-    fileprivate func toggleFixedBars() {
+    internal func toggleFixedBars() {
         let currentValue = navigator.userSettings.scroll?.bool() ?? false
 
         UIView.transition(with: fixedTopBar, duration: 0.318, options: .curveEaseOut, animations: {() -> Void in
@@ -255,79 +218,6 @@ extension EpubViewController: UserSettingsDelegate {
         UIView.transition(with: fixedBottomBar, duration: 0.318, options: .curveEaseOut, animations: {() -> Void in
             self.fixedBottomBar.isHidden = currentValue
         }, completion: nil)
-    }
-}
-
-// Delegate of the Font Selection View Controller.
-extension EpubViewController: FontSelectionDelegate {
-    func currentFont() -> UserSettings.Font? {
-        return navigator.userSettings.font
-    }
-
-    func fontDidChange(to font: UserSettings.Font) {
-        navigator.userSettings.font = font
-        navigator.updateUserSettingStyle()
-    }
-}
-
-// Delegate for the Advanced Settings View Controller.
-extension EpubViewController: AdvancedSettingsDelegate {
-
-    /// Word Spacing.
-
-    func incrementWordSpacing() {
-        navigator.userSettings.wordSpacing.increment()
-        navigator.updateUserSettingStyle()
-    }
-
-    func decrementWordSpacing() {
-        navigator.userSettings.wordSpacing.decrement()
-        navigator.updateUserSettingStyle()
-    }
-
-    func updateWordSpacingLabel() {
-        let newValue = navigator.userSettings.wordSpacing.stringValue()
-
-        advancedSettingsViewController.updateWordSpacing(value: newValue)
-    }
-
-    /// Letter spacing.
-
-    func incrementLetterSpacing() {
-        navigator.userSettings.letterSpacing.increment()
-        navigator.updateUserSettingStyle()
-    }
-
-    func decrementLetterSpacing() {
-        navigator.userSettings.letterSpacing.decrement()
-        navigator.updateUserSettingStyle()
-    }
-
-    func updateLetterSpacingLabel() {
-        let newValue = navigator.userSettings.letterSpacing.stringValue()
-
-        advancedSettingsViewController.updateLetterSpacing(value: newValue)
-    }
-
-    func columnCountDidChange(to columnCount: UserSettings.ColumnCount) {
-        navigator.userSettings.columnCount = columnCount
-        navigator.updateUserSettingStyle()
-    }
-
-    func incrementPageMargins() {
-        navigator.userSettings.pageMargins.increment()
-        navigator.updateUserSettingStyle()
-    }
-
-    func decrementPageMargins() {
-        navigator.userSettings.pageMargins.decrement()
-        navigator.updateUserSettingStyle()
-    }
-
-    func updatePageMarginsLabel() {
-        let newValue = navigator.userSettings.pageMargins.stringValue()
-
-        advancedSettingsViewController.updatePageMargins(value: newValue)
     }
 }
 
