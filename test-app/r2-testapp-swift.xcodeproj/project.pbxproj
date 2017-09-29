@@ -13,12 +13,14 @@
 		F32981031F7D477900BDEAF4 /* 4.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F21F7D467C00BDEAF4 /* 4.epub */; };
 		F32981041F7D477900BDEAF4 /* 5.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EF1F7D467B00BDEAF4 /* 5.epub */; };
 		F32981051F7D477900BDEAF4 /* 6.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F01F7D467B00BDEAF4 /* 6.epub */; };
-		F32981061F7D477E00BDEAF4 /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
-		F32981071F7D477E00BDEAF4 /* 2.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F11F7D467C00BDEAF4 /* 2.epub */; };
-		F32981081F7D477E00BDEAF4 /* 3.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F31F7D467C00BDEAF4 /* 3.epub */; };
-		F32981091F7D477E00BDEAF4 /* 4.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F21F7D467C00BDEAF4 /* 4.epub */; };
-		F329810A1F7D477E00BDEAF4 /* 5.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EF1F7D467B00BDEAF4 /* 5.epub */; };
-		F329810B1F7D477E00BDEAF4 /* 6.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F01F7D467B00BDEAF4 /* 6.epub */; };
+		F331FBEB1F7E3432007F16DF /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
+		F331FBEC1F7E3432007F16DF /* 2.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F11F7D467C00BDEAF4 /* 2.epub */; };
+		F331FBED1F7E3432007F16DF /* 3.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F31F7D467C00BDEAF4 /* 3.epub */; };
+		F331FBEE1F7E3432007F16DF /* 4.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F21F7D467C00BDEAF4 /* 4.epub */; };
+		F331FBEF1F7E3432007F16DF /* 5.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EF1F7D467B00BDEAF4 /* 5.epub */; };
+		F331FBF01F7E3432007F16DF /* 6.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F01F7D467B00BDEAF4 /* 6.epub */; };
+		F331FBF21F7E371F007F16DF /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F331FBF11F7E371F007F16DF /* GameKit.framework */; };
+		F331FBF41F7E3724007F16DF /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F331FBF31F7E3724007F16DF /* StoreKit.framework */; };
 		F341C2601F504BAD005E6758 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F341C25F1F504BAD005E6758 /* R2Shared.framework */; };
 		F341C2611F504BAD005E6758 /* R2Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F341C25F1F504BAD005E6758 /* R2Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F341C2631F504BB7005E6758 /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F341C2621F504BB7005E6758 /* R2Streamer.framework */; };
@@ -164,6 +166,8 @@
 		F32980F11F7D467C00BDEAF4 /* 2.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 2.epub; sourceTree = "<group>"; };
 		F32980F21F7D467C00BDEAF4 /* 4.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 4.epub; sourceTree = "<group>"; };
 		F32980F31F7D467C00BDEAF4 /* 3.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 3.epub; sourceTree = "<group>"; };
+		F331FBF11F7E371F007F16DF /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
+		F331FBF31F7E3724007F16DF /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		F341C25F1F504BAD005E6758 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F341C2621F504BB7005E6758 /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F341C2671F504BED005E6758 /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -248,7 +252,9 @@
 				F341C2681F504BED005E6758 /* R2Navigator.framework in Frameworks */,
 				F341C2601F504BAD005E6758 /* R2Shared.framework in Frameworks */,
 				F35AFA061F6FC38700D3F670 /* ReadiumLCP.framework in Frameworks */,
+				F331FBF41F7E3724007F16DF /* StoreKit.framework in Frameworks */,
 				F341C2631F504BB7005E6758 /* R2Streamer.framework in Frameworks */,
+				F331FBF21F7E371F007F16DF /* GameKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -337,6 +343,8 @@
 		F3E7D4691F4EFE8700DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				F331FBF31F7E3724007F16DF /* StoreKit.framework */,
+				F331FBF11F7E371F007F16DF /* GameKit.framework */,
 				F3BD53351F7294CA00E46FFC /* PromiseKit.framework */,
 				F3BD53321F7294A500E46FFC /* ZIPFoundation.framework */,
 				F35AFA101F71432200D3F670 /* ZIPFoundation.framework */,
@@ -517,6 +525,15 @@
 					};
 					F3E7D4C61F4F0B9300DF166D = {
 						DevelopmentTeam = 327YA3JNGT;
+						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.GameCenter = {
+								enabled = 1;
+							};
+							com.apple.InAppPurchase = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -576,12 +593,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F32981061F7D477E00BDEAF4 /* 1.epub in Resources */,
-				F32981071F7D477E00BDEAF4 /* 2.epub in Resources */,
-				F32981081F7D477E00BDEAF4 /* 3.epub in Resources */,
-				F32981091F7D477E00BDEAF4 /* 4.epub in Resources */,
-				F329810A1F7D477E00BDEAF4 /* 5.epub in Resources */,
-				F329810B1F7D477E00BDEAF4 /* 6.epub in Resources */,
+				F331FBEB1F7E3432007F16DF /* 1.epub in Resources */,
+				F331FBEC1F7E3432007F16DF /* 2.epub in Resources */,
+				F331FBED1F7E3432007F16DF /* 3.epub in Resources */,
+				F331FBEE1F7E3432007F16DF /* 4.epub in Resources */,
+				F331FBEF1F7E3432007F16DF /* 5.epub in Resources */,
+				F331FBF01F7E3432007F16DF /* 6.epub in Resources */,
 				F36D24DF1F58394500A00BF1 /* Main.storyboard in Resources */,
 				F3E7D4D81F4F0B9300DF166D /* LaunchScreen.storyboard in Resources */,
 				F3E7D4D91F4F0B9300DF166D /* Assets.xcassets in Resources */,
@@ -739,7 +756,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -790,7 +807,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
@@ -804,6 +821,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -814,6 +832,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-testapp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 3.0;
 			};
@@ -824,6 +843,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -834,6 +854,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-testapp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 3.0;
 			};
@@ -903,15 +924,18 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/r2-testapp-swift/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-testapp-swift";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-testapp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 3.0;
 			};
@@ -923,15 +947,18 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/r2-testapp-swift/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-testapp-swift";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-testapp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 3.0;
 			};

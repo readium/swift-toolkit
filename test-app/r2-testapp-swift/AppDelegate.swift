@@ -48,7 +48,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         epubParser = EpubParser()
         cbzParser = CbzParser()
 
-        addSamples()
+        loadSamplePublications()
         loadPublications()
 
         window = UIWindow(frame: UIScreen.main.bounds)
@@ -149,6 +149,18 @@ extension AppDelegate {
         }
     }
 
+    fileprivate func loadSamplePublications() {
+        // Parse publication from documents folder.
+        let locations = locationsFromSamples()
+
+        // Load the publications.
+        for location in locations {
+            if !loadPublication(at: location) {
+                print("Error loading publication \(location.relativePath).")
+            }
+        }
+    }
+
     /// Load publication at `location` on the server.
     ///
     /// - Parameter locations: The array of loations, containing the informations
@@ -208,6 +220,30 @@ extension AppDelegate {
         return locations
     }
 
+    /// Get the locations out of the application Documents/inbox directory.
+    ///
+    /// - Returns: The Locations array.
+    fileprivate func locationsFromSamples() -> [Location] {
+        let samples = ["1", "2", "3", "4", "5", "6"]
+        var sampleUrls = [URL]()
+
+        for sample in samples {
+            if let path = Bundle.main.path(forResource: sample, ofType: "epub") {
+                let url = URL.init(fileURLWithPath: path)
+
+                sampleUrls.append(url)
+            }
+        }
+
+        /// Find the types associated to the files, or unknown.
+        let locations = sampleUrls.map({ url -> Location in
+            let publicationType = getTypeForPublicationAt(url: url)
+
+            return Location(absolutePath: url.path, relativePath: "sample", type: publicationType)
+        })
+        return locations
+    }
+
     fileprivate func removeFromInboxDirectory(fileName: String) {
         let fileManager = FileManager.default
         // Document Directory always exists (hence `try!`).
@@ -257,55 +293,6 @@ extension AppDelegate {
             publicationType = PublicationType(rawValue: fileType!) ?? PublicationType.unknown
         }
         return publicationType
-    }
-
-    // Dirty temp, waiting for OPDS.
-    fileprivate func addSamples() {
-        let fileManager = FileManager.default
-        // Document Directory always exists (hence `try!`).
-        var inboxDirUrl = try! fileManager.url(for: .documentDirectory,
-                                               in: .userDomainMask,
-                                               appropriateFor: nil,
-                                               create: true)
-        inboxDirUrl.appendPathComponent("Inbox/")
-        do {
-        try fileManager.createDirectory(at: inboxDirUrl,
-                                    withIntermediateDirectories: true,
-                                    attributes: nil)
-        } catch {
-            print("Error creating the msising inbox dir")
-            return
-        }
-
-        let samples = ["1", "2", "3", "4", "5", "6"]
-        var sampleUrls = [URL]()
-
-        for sample in samples {
-            if let path = Bundle.main.path(forResource: sample, ofType: "epub") {
-                let url = URL.init(fileURLWithPath: path)
-
-                sampleUrls.append(url)
-            }
-        }
-
-        do {
-            for sampleUrl in sampleUrls {
-                let fileName = sampleUrl.lastPathComponent
-                // Assemble destination path.
-                let destUrl = inboxDirUrl.appendingPathComponent(fileName)
-                // Check that file don't exist.
-                if !fileManager.fileExists(atPath: destUrl.path) {
-
-
-                    // Move samples to  documents
-                    try fileManager.moveItem(at: sampleUrl, to: destUrl)
-                }
-            }
-        } catch {
-            print("\(error.localizedDescription)")
-            print("Error while moving samples")
-        }
-        return
     }
 }
 
