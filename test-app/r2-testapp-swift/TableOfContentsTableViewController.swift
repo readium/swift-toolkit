@@ -31,6 +31,7 @@ class TableOfContentsTableViewController: UITableViewController {
             // Append childs, and their childs... recursive.
             allElements.append(contentsOf: childs)
         }
+        tableView.tintColor = UIColor.black
     }
 
     required init?(coder aDecoder: NSCoder) {

@@ -146,7 +146,9 @@ extension EpubViewController {
         backItem.title = ""
         navigationItem.backBarButtonItem = backItem
         // Dismiss userSettings if opened.
-        userSettingNavigationController.userSettingsTableViewController.dismiss(animated: true, completion: nil)
+        if let userSettingsTVC = userSettingNavigationController.userSettingsTableViewController {
+            userSettingsTVC.dismiss(animated: true, completion: nil)
+        }
         self.navigationController?.pushViewController(self.tableOfContentsTVC, animated: true)
     }
 }
