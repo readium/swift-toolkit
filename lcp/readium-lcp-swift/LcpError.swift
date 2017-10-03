@@ -14,9 +14,13 @@ public enum LcpError: Error {
     case licenseLinkNotFound
     case publicationLinkNotFound
     case hintLinkNotFound
+    case registerLinkNotFound
     case noStatusDocument
     case licenseDocumentData
     case publicationData
+    case registrationFailure
+    case deviceId
+    case unexpectedServerError
 
     case licenseStatus
     case invalidRights
@@ -37,6 +41,8 @@ public enum LcpError: Error {
             return "The publication link is missing from the license document."
         case .hintLinkNotFound:
             return "The hint link is missing from the license document."
+        case .registerLinkNotFound:
+            return "The register link is missing from the status document."
         case .noStatusDocument:
             return "Updating the license failed, there is no status document."
         case .licenseDocumentData:
@@ -47,6 +53,12 @@ public enum LcpError: Error {
             return "This license is not valid anymore."
         case .invalidRights:
             return "The rights of this license aren't valid."
+        case .registrationFailure:
+            return "The device could not be registered properly."
+        case .deviceId:
+            return "Couldn't retrieve/generate a proper deviceId."
+        case .unexpectedServerError:
+            return "An unexpected error has occured." 
         }
     }
 }
