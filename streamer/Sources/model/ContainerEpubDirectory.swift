@@ -11,7 +11,7 @@ import R2Shared
 extension ContainerEpubDirectory: Loggable {}
 
 /// Container for expended EPUB publications. (Directory)
-public class ContainerEpubDirectory: EpubContainer, DirectoryContainer {
+public class ContainerEpubDirectory: DirectoryContainer {
     /// See `RootFile`.
     public var rootFile: RootFile
 

@@ -14,17 +14,22 @@ extension OPFParser: Loggable {}
 enum OPFParserError: Error {
     /// The Epub have no title. Title is mandatory.
     case missingPublicationTitle
+    case invalidSmilResource
+
+    var localizedDescription: String {
+        switch self {
+        case .missingPublicationTitle:
+            return "The publication is missing a title."
+        case .invalidSmilResource:
+            return "Smile resource couldn't beparsed."
+        }
+    }
 }
 
 /// EpubParser support class, able to parse the OPF package document.
 /// OPF: Open Packaging Format.
 public class OPFParser {
-    let smilp: SMILParser!
     var rootFilePath: String? // Used for normalisation of href.
-
-    internal init() {
-        smilp = SMILParser()
-    }
 
     /// Parse the OPF file of the Epub container and return a `Publication`.
     /// It also complete the informations stored in the container.
@@ -33,21 +38,18 @@ public class OPFParser {
     /// - Returns: The `Publication` object resulting from the parsing.
     /// - Throws: `EpubParserError.xmlParse`.
     internal func parseOPF(from document: AEXMLDocument,
-                           with container: EpubContainer,
+                           with rootFilePath: String,
                            and epubVersion: Double) throws -> Publication
     {
         /// The 'to be built' Publication.
         var publication = Publication()
-
-        rootFilePath = container.rootFile.rootFilePath
         publication.version = epubVersion
         publication.internalData["type"] = "epub"
-        publication.internalData["rootfile"] = container.rootFile.rootFilePath
+        publication.internalData["rootfile"] = rootFilePath
         try parseMetadata(from: document, to: &publication)
         parseResources(from: document.root["manifest"], to: &publication)
         coverLinkFromMeta(from: document.root["metadata"], to: &publication)
         parseSpine(from: document.root["spine"], to: &publication)
-        try parseMediaOverlay(from: container, to: &publication)
         return publication
     }
 
@@ -219,49 +221,6 @@ public class OPFParser {
             return false
         }
         return true
-    }
-
-    /// Parse the mediaOverlays informations contained in the ressources then
-    /// parse the associted SMIL files to populate the MediaOverlays objects
-    /// in each of the Spine's Links.
-    ///
-    /// - Parameters:
-    ///   - container: The Epub Container.
-    ///   - publication: The Publication object representing the Epub data.
-    internal func parseMediaOverlay(from container: EpubContainer,
-                                    to publication: inout Publication) throws
-    {
-        let mediaOverlays = publication.resources.filter({ $0.typeLink ==  "application/smil+xml"})
-
-        guard !mediaOverlays.isEmpty else {
-            log(level: .info, "No media-overlays found in the Publication.")
-            return
-        }
-        for mediaOverlayLink in mediaOverlays {
-            let node = MediaOverlayNode()
-            let smilXml = try container.xmlDocument(forResourceReferencedByLink: mediaOverlayLink)
-            let body = smilXml.root["body"]
-
-            node.role.append("section")
-            if let textRef = body.attributes["epub:textref"] { // Prevent the crash on the japanese book
-                node.text = normalize(base: mediaOverlayLink.href!, href: textRef)
-            }
-            // get body parameters <par>
-            smilp.parseParameters(in: body, withParent: node, base: mediaOverlayLink.href)
-            smilp.parseSequences(in: body, withParent: node, publicationSpine: &publication.spine, base: mediaOverlayLink.href)
-            // "/??/xhtml/mo-002.xhtml#mo-1" => "/??/xhtml/mo-002.xhtml"
-            guard let baseHref = node.text?.components(separatedBy: "#")[0],
-                let link = publication.spine.first(where: {
-                    guard let linkRef = $0.href else {
-                        return false
-                    }
-                    return baseHref.contains(linkRef)
-                }) else {
-                    continue
-            }
-            link.mediaOverlays.append(node)
-            link.properties.mediaOverlay = EpubConstant.mediaOverlayURL + link.href!
-        }
     }
 
     // MARK: - Fileprivate Methods.

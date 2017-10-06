@@ -11,7 +11,7 @@ import R2Shared
 extension ContainerEpub: Loggable {}
 
 /// Container for EPUB publications. (Archived)
-public class ContainerEpub: EpubContainer, ZipArchiveContainer {
+public class ContainerEpub: ZipArchiveContainer {
     /// See `RootFile`.
     public var rootFile: RootFile
     /// The zip archive object containing the Epub.

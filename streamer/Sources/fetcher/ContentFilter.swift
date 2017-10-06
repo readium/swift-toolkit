@@ -18,7 +18,6 @@ internal protocol ContentFilters {
 
     func apply(to input: SeekableInputStream, of publication: Publication, at path: String) throws -> SeekableInputStream
 
-
     func apply(to input: Data, of publication: Publication, at path: String) throws -> Data
 }
 // Default implementation. Do nothing.
@@ -70,16 +69,17 @@ internal class ContentFiltersEpub: ContentFilters {
         //       - inject pagination
         if let link = publication.link(withHref: path),
             link.typeLink == "application/xhtml+xml" || link.typeLink == "text/html",
-            let baseUrl = publication.baseUrl?.deletingLastPathComponent() {
-            if publication.metadata.rendition.layout == .reflowable && link.properties.layout == nil
+            let baseUrl = publication.baseUrl?.deletingLastPathComponent()
+        {
+            if publication.metadata.rendition.layout == .reflowable
+                && link.properties.layout == nil
                 || link.properties.layout == "reflowable"
             {
-                decodedInputStream = injectReflowableHtml(in: decodedInputStream, for: baseUrl) as! DataInputStream
+                decodedInputStream = injectReflowableHtml(in: decodedInputStream, for: baseUrl)
             } else {
-                decodedInputStream = injectFixedLayoutHtml(in: decodedInputStream, for: baseUrl) as! DataInputStream
+                decodedInputStream = injectFixedLayoutHtml(in: decodedInputStream, for: baseUrl)
             }
         }
-
         return decodedInputStream
     }
 
@@ -94,24 +94,26 @@ internal class ContentFiltersEpub: ContentFilters {
                         of publication: Publication, at path: String)  -> Data
     {
         let inputStream = DataInputStream(data: input)
-        let decodedInputStream = decoder.decoding(inputStream, of: publication, at: path)
+        var decodedInputStream = decoder.decoding(inputStream, of: publication, at: path)
 
-        guard var decodedDataStream = decodedInputStream as? DataInputStream else {
-            return input
-        }
         // Inject additional content in the resource if test succeed.
         if let link = publication.link(withHref: path),
             link.typeLink == "application/xhtml+xml" || link.typeLink == "text/html",
-            let baseUrl = publication.baseUrl?.deletingLastPathComponent() {
-            if publication.metadata.rendition.layout == .reflowable && link.properties.layout == nil
-                    || link.properties.layout == "reflowable"
+            let baseUrl = publication.baseUrl?.deletingLastPathComponent()
+        {
+            if publication.metadata.rendition.layout == .reflowable
+                && link.properties.layout == nil
+                || link.properties.layout == "reflowable"
             {
-                decodedDataStream = injectReflowableHtml(in: decodedDataStream, for: baseUrl) as! DataInputStream
+                decodedInputStream = injectReflowableHtml(in: decodedInputStream, for: baseUrl) as! DataInputStream
             } else {
-                decodedDataStream = injectFixedLayoutHtml(in: decodedDataStream, for: baseUrl) as! DataInputStream
+                decodedInputStream = injectFixedLayoutHtml(in: decodedInputStream, for: baseUrl) as! DataInputStream
             }
         }
-
+        //
+        guard let decodedDataStream = decodedInputStream as? DataInputStream else {
+            return Data()
+        }
         return decodedDataStream.data
     }
 

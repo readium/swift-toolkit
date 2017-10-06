@@ -21,8 +21,9 @@ public enum FetcherError: Error {
     case missingRootFile()
     /// The mimetype of the container is empty.
     case missingContainerMimetype()
+    /// The link href couldn't be found in the container.
+    case linkNotFound
 }
-
 
 /// The Fetcher object lets you get the data from the assets in the container.
 /// It will fetch the data in the container and apply content filters
@@ -30,11 +31,11 @@ public enum FetcherError: Error {
 
 // Default implementation.
 internal class Fetcher {
-    /// The publication to fetch from
+    /// The publication.
     let publication: Publication
-    /// The container to access the resources from
+    /// The container to fetch resources from.
     let container: Container
-    /// The relative path to the directory holding the resources in the container
+    /// The relative path to the directory holding the resources in the container.
     let rootFileDirectory: String
     /// The content filter.
     let contentFilters: ContentFilters!
@@ -45,9 +46,8 @@ internal class Fetcher {
 
         // Get the path of the directory of the rootFile, to access resources
         // relative to the rootFile
-        guard let rootfilePath = publication.internalData["rootfile"] else {
-            throw FetcherError.missingRootFile()
-        }
+        let rootfilePath = container.rootFile.rootFilePath
+
         if !rootfilePath.isEmpty, rootfilePath.contains("/") {
             rootFileDirectory = rootfilePath.deletingLastPathComponent
         } else {
@@ -72,6 +72,21 @@ internal class Fetcher {
         return data
     }
 
+    internal func data(forLink link: Link) throws -> Data? {
+        // Get link.href
+        guard var path = link.href else {
+            throw FetcherError.linkNotFound
+        }
+        // Remove starting '/' for relative path.
+        if path.first == "/" {
+            _ = path.characters.popFirst()
+        }
+        var data = try container.data(relativePath: path)
+
+        data = try contentFilters.apply(to: data, of: publication, at: path)
+        return data
+    }
+
     /// Get an input stream with the data of the resource.
     ///
     /// - Parameter path: The relative path to the asset in the publication.
@@ -83,6 +98,21 @@ internal class Fetcher {
         // Get the link information from the publication
         guard let _ = publication.resource(withRelativePath: path) else {
             throw FetcherError.missingFile(path: path)
+        }
+        // Get an input stream from the container
+        inputStream = try container.dataInputStream(relativePath: path)
+        // Apply content filters to inputStream data.
+        inputStream = try contentFilters.apply(to: inputStream, of: publication, at: path)
+
+        return inputStream
+    }
+
+    internal func dataStream(forLink link: Link) throws -> SeekableInputStream? {
+        var inputStream: SeekableInputStream
+
+        // Get link.href
+        guard let path = link.href else {
+            throw FetcherError.linkNotFound
         }
         // Get an input stream from the container
         inputStream = try container.dataInputStream(relativePath: path)

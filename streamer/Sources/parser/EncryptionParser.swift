@@ -24,7 +24,6 @@ public class EncryptionParser {
                                                to encryption: inout Encryption)
     {
         guard let encryptionProperties = encryptedDataElement["EncryptionProperties"]["EncryptionProperty"].all else {
-            //log(level: .info, "Encryption parsing: no encryption properties.")
             return
         }
         //

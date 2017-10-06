@@ -188,6 +188,7 @@ extension EpubContainer {
     public func xmlDocument(forFileAtRelativePath path: String) throws -> AEXMLDocument {
         // Get `Data` from the Container.
         let containerData = try data(relativePath: path)
+
         // Transforms `Data` into an AEXML Document object
         let document = try AEXMLDocument(xml: containerData)
         return document
@@ -209,6 +210,8 @@ extension EpubContainer {
         if pathFile.characters.first == "/" {
             _ = pathFile.characters.popFirst()
         }
+
+        // ADD DECODING. ADD DRM to container.
 
         let document = try xmlDocument(forFileAtRelativePath: pathFile)
         return document

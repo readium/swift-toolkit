@@ -65,7 +65,7 @@ public class CbzParser: PublicationParser {
             link.href = normalize(base: container.rootFile.rootFilePath, href: filename)
             publication.spine.append(link)
         }
-        return (publication, container)
+        return (publication, container, nil)
     }
 
     /// Generate a MultilangString title from the publication at `path`.

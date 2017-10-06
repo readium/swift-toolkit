@@ -25,7 +25,9 @@ public enum PublicationServerError: Error{
 }
 
 /// `Publication` and the associated `Container`.
-public typealias PubBox = (publication: Publication, associatedContainer: Container)
+public typealias PubBox = (publication: Publication,
+    associatedContainer: Container,
+    protectedBy: Drm?)
 
 /// The HTTP server for the publication's manifests and assets. Serves Epubs.
 public class PublicationServer {
@@ -169,7 +171,9 @@ public class PublicationServer {
         // Add the self link to the publication.
         publication.addSelfLink(endpoint: endpoint, for: baseUrl)
         // Add the Publication to the publication boxes dictionnary.
-        let pubBox = (publication, container)
+        let pubBox = PubBox(publication: publication,
+                      associatedContainer: container,
+                      protectedBy: nil)
 
         pubBoxes[endpoint] = pubBox
 

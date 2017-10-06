@@ -69,12 +69,14 @@ public class EpubParser: PublicationParser {
     internal let ndp: NavigationDocumentParser!
     internal let ncxp: NCXParser!
     internal let encp: EncryptionParser!
+    internal let smilp: SMILParser!
 
     public init() {
         opfp = OPFParser()
         ndp = NavigationDocumentParser()
         ncxp = NCXParser()
         encp = EncryptionParser()
+        smilp = SMILParser()
     }
 
     /// Parses the EPUB (file/directory) at `fileAtPath` and generate the
@@ -97,17 +99,47 @@ public class EpubParser: PublicationParser {
         // Parse the container.xml Data and fill the ContainerMetadata objectof the container
         container.rootFile.rootFilePath = try getRootFilePath(from: data)
         // Get the package.opf XML document from the container.
-        let document = try container.xmlDocument(forFileAtRelativePath: container.rootFile.rootFilePath)
+        let documentData = try container.data(relativePath: container.rootFile.rootFilePath)
+        let document = try AEXMLDocument(xml: documentData)
         let epubVersion = getEpubVersion(from: document)
+        
         // Parse OPF file (Metadata, Spine, Resource) and return the Publication.
-        var publication = try opfp.parseOPF(from: document, with: container, and: epubVersion)
+        var publication = try opfp.parseOPF(from: document,
+                                            with: container.rootFile.rootFilePath,
+                                            and: epubVersion)
+        // Check if the publication is DRM protected.
+        let drm = scanForDrm(in: container)
         // Parse the META-INF/Encryption.xml.
-        try parseEncryption(from: container, to: &publication)
+        parseEncryption(from: container, to: &publication, drm)
+
+        /// The folowing resources could be encrypted, hence we use the fetcher.
+        let fetcher = try Fetcher.init(publication: publication, container: container)
+
+        try parseMediaOverlay(from: fetcher, to: &publication)
         // Parse Navigation Document.
-        parseNavigationDocument(from: container, to: &publication)
+        parseNavigationDocument(from: fetcher, to: &publication)
         // Parse the NCX Document (if any).
-        parseNcxDocument(from: container, to: &publication)
+        parseNcxDocument(from: fetcher, to: &publication)
         return (publication, container)
+    }
+
+    /// WIP, currently only LCP.
+    /// Scan Container (but later Publication too probably) to know if any DRM
+    /// are protecting the publication.
+    ///
+    /// - Parameter in: The Publication's Container.
+    /// - Returns: The Drm if any found.
+    internal func scanForDrm(in container: Container) -> Drm? {
+        /// LCP.
+        // Check if a LCP license file is present in the container.
+        if ((try? container.data(relativePath: EpubConstant.lcplFilePath)) != nil) {
+            return Drm.init(brand: .lcp)
+        }
+        /// ADOBE.
+        // TODO
+        /// SONY.
+        // TODO
+        return nil
     }
 
     // MARK: - Internal Methods.
@@ -119,53 +151,38 @@ public class EpubParser: PublicationParser {
     ///   - container: The EPUB Container.
     ///   - publication: The Publication.
     /// - Throws: 
-    internal func parseEncryption(from container: EpubContainer, to publication: inout Publication) throws {
+    internal func parseEncryption(from container: Container, to publication: inout Publication, _ drm: Drm?) {
         //if publication.metadata.title ==
         // Check if there is an encryption file.
-        let document: AEXMLDocument
-
-        do {
-            document = try container.xmlDocument(forFileAtRelativePath: EpubConstant.encryptionDotXmlPath)
-        } catch {
-            logValue(level: .info, error)
+        guard let documentData = try? container.data(relativePath: EpubConstant.encryptionDotXmlPath),
+            let document = try? AEXMLDocument.init(xml: documentData) else {
+            // To encryption document.
             return
         }
+        // Are any files encrypted.
         guard let encryptedDataElements = document["encryption"]["EncryptedData"].all else {
             log(level: .info, "No <EncryptedData> elements")
             return
         }
-        let lcpProtectedFile = lcplFilePresent(in: container)
+
         // Loop through <EncryptedData> elements..
         for encryptedDataElement in encryptedDataElements {
             var encryption = Encryption()
+            // LCP. Tag LCP protected resources.
+            let keyInfoUri = encryptedDataElement["KeyInfo"]["RetrievalMethod"].attributes["URI"]
 
-            encryption.algorithm = encryptedDataElement["EncryptionMethod"].attributes["Algorithm"]
-            // If encryptionMethod != "http://www.idpf.org/2008/embedding" && 
-            // file .lcpl is not present in folder, then error.
-            if !lcpProtectedFile {
-                if let algorithm = encryption.algorithm, algorithm != "http://www.idpf.org/2008/embedding" {
-                    throw EpubParserError.unsupportedDrm
-                }
+            if keyInfoUri == "license.lcpl#/encryption/content_key",
+                drm?.brand == Drm.Brand.lcp
+            {
+                encryption.scheme = drm?.scheme.rawValue
             }
-            // TODO: LCP encryption. Profile/Scheme if lcp.id != nil
+            // LCP END.
+            encryption.algorithm = encryptedDataElement["EncryptionMethod"].attributes["Algorithm"]
+
             encp.parseEncryptionProperties(from: encryptedDataElement, to: &encryption)
             encp.add(encryption: encryption, toLinkInPublication: &publication,
                      encryptedDataElement)
         }
-        // TODO: LCP
-    }
-
-
-    /// Check if there is a LCP License Document present in the Archive,
-    /// indicating that the archive is using a LCP DRM.
-    ///
-    /// - Parameter container: The Publication's Container.
-    /// - Returns: Returns true if an LCPL file is found.
-    private func lcplFilePresent(in container: EpubContainer) -> Bool {
-        guard ((try? container.data(relativePath: EpubConstant.lcplFilePath)) != nil) else {
-            return false
-        }
-         return true
     }
 
     /// Attempt to fill `Publication.tableOfContent`/`.landmarks`/`.pageList`/
@@ -175,10 +192,12 @@ public class EpubParser: PublicationParser {
     /// - Parameters:
     ///   - container: The Epub container.
     ///   - publication: The Epub publication.
-    internal func parseNavigationDocument(from container: EpubContainer, to publication: inout Publication) {
+    internal func parseNavigationDocument(from fetcher: Fetcher, to publication: inout Publication) {
         // Get the link in the spine pointing to the Navigation Document.
         guard let navLink = publication.link(withRel: "contents"),
-            let navDocument = try? container.xmlDocument(forResourceReferencedByLink: navLink) else {
+            let navDocumentData = try? fetcher.data(forLink: navLink),
+            navDocumentData != nil,
+            let navDocument = try? AEXMLDocument.init(xml: navDocumentData!) else {
                 return
         }
         // Set the location of the navigation document in order to normalize href pathes.
@@ -207,10 +226,12 @@ public class EpubParser: PublicationParser {
     /// - Parameters:
     ///   - container: The Epub container.
     ///   - publication: The Epub publication.
-    internal func parseNcxDocument(from container: EpubContainer, to publication: inout Publication) {
+    internal func parseNcxDocument(from fetcher: Fetcher, to publication: inout Publication) {
         // Get the link in the spine pointing to the NCX document.
         guard let ncxLink = publication.resources.first(where: { $0.typeLink == "application/x-dtbncx+xml" }),
-            let ncxDocument = try? container.xmlDocument(forResourceReferencedByLink: ncxLink) else {
+            let ncxDocumentData = try? fetcher.data(forLink: ncxLink),
+            ncxDocumentData != nil,
+            let ncxDocument = try? AEXMLDocument.init(xml: ncxDocumentData!) else {
                 return
         }
         // Set the location of the NCX document in order to normalize href pathes.
@@ -224,6 +245,56 @@ public class EpubParser: PublicationParser {
             let newPageListItems = ncxp.pageList(fromNcxDocument: ncxDocument)
 
             publication.pageList.append(contentsOf: newPageListItems)
+        }
+    }
+
+    /// Parse the mediaOverlays informations contained in the ressources then
+    /// parse the associted SMIL files to populate the MediaOverlays objects
+    /// in each of the Spine's Links.
+    ///
+    /// - Parameters:
+    ///   - container: The Epub Container.
+    ///   - publication: The Publication object representing the Epub data.
+    internal func parseMediaOverlay(from fetcher: Fetcher,
+                                    to publication: inout Publication) throws
+    {
+        let mediaOverlays = publication.resources.filter({ $0.typeLink ==  "application/smil+xml"})
+
+        guard !mediaOverlays.isEmpty else {
+            log(level: .info, "No media-overlays found in the Publication.")
+            return
+        }
+        for mediaOverlayLink in mediaOverlays {
+            let node = MediaOverlayNode()
+            guard let smilData = try? fetcher.data(forLink: mediaOverlayLink),
+                smilData != nil,
+                let smilXml = try? AEXMLDocument(xml: smilData!) else
+            {
+                throw OPFParserError.invalidSmilResource
+            }
+
+
+            let body = smilXml.root["body"]
+
+            node.role.append("section")
+            if let textRef = body.attributes["epub:textref"] { // Prevent the crash on the japanese book
+                node.text = normalize(base: mediaOverlayLink.href!, href: textRef)
+            }
+            // get body parameters <par>
+            smilp.parseParameters(in: body, withParent: node, base: mediaOverlayLink.href)
+            smilp.parseSequences(in: body, withParent: node, publicationSpine: &publication.spine, base: mediaOverlayLink.href)
+            // "/??/xhtml/mo-002.xhtml#mo-1" => "/??/xhtml/mo-002.xhtml"
+            guard let baseHref = node.text?.components(separatedBy: "#")[0],
+                let link = publication.spine.first(where: {
+                    guard let linkRef = $0.href else {
+                        return false
+                    }
+                    return baseHref.contains(linkRef)
+                }) else {
+                    continue
+            }
+            link.mediaOverlays.append(node)
+            link.properties.mediaOverlay = EpubConstant.mediaOverlayURL + link.href!
         }
     }
 
@@ -289,9 +360,9 @@ public class EpubParser: PublicationParser {
     /// - Parameter path: The absolute path of the file.
     /// - Returns: The generated Container.
     /// - Throws: `EpubParserError.missingFile`.
-    fileprivate func generateContainerFrom(fileAtPath path: String) throws -> EpubContainer {
+    fileprivate func generateContainerFrom(fileAtPath path: String) throws -> Container {
         var isDirectory: ObjCBool = false
-        var container: EpubContainer?
+        var container: Container?
 
         guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) else {
             throw EpubParserError.missingFile(path: path)
