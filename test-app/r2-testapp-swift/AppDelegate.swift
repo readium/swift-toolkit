@@ -90,19 +90,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 }
                 /// parse publication (TOMOVE)
                 /// (should be light parsing and lib upgrade instead)
-                do {
-                    let pubBox = try self.epubParser.parse(fileAtPath: path)
-
-                    try self.publicationServer.add(pubBox.publication, with: pubBox.associatedContainer)
-
+                if self.loadPublication(at: Location(absolutePath: path,
+                                                     relativePath: "inbox",
+                                                     type: .epub)) {
                     self.showInfoAlert(title: "Success", message: "LCP Publication added to library.")
-                } catch {
-                    self.showInfoAlert(title: "Error", message: error.localizedDescription)
-                    return
+                } else {
+                    self.showInfoAlert(title: "Error", message: "The LCP Publication couldn't be loaded.")
                 }
-
-                
-
             })
         default:
             /// Add the publication to the publication server.
@@ -178,6 +172,8 @@ extension AppDelegate {
                 return false
             }
             print(parseResult.publication.manifestCanonical)
+            // DRM HANDLING. TODONOW
+
             /// Add.
             try publicationServer.add(parseResult.publication, with: parseResult.associatedContainer)
         } catch {
