@@ -9,9 +9,27 @@
 import Foundation
 import PromiseKit
 import ZIPFoundation
+import R2Shared
+
+public typealias PassphrasePrompter = (_ hint: String,
+    _ comfirmHandler: @escaping (String?) -> Void) -> Void
 
 public class LcpUtils {
     public init () {}
+
+    /// This function aim at returning 
+    ///
+    /// - Parameters:
+    ///   - drm: The partialy completed DRM.
+    ///   - passphrasePrompter: The callback to prompt the user for it's passphrase.
+    /// - Returns: The filled DRM.
+    public func resolve(drm: Drm, passphrasePrompter: PassphrasePrompter) -> Drm {
+        // TODO
+        passphrasePrompter("shitthint", { passphrase in
+            print("passphrase == \(passphrase ?? "fail")")
+        })
+        return drm
+    }
 
     /// Process a LCP License Document (LCPL).
     /// Fetching Status Document, updating License Document, Fetching Publication,
