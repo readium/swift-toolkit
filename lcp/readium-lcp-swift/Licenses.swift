@@ -58,8 +58,8 @@ class Licenses {
         }
         let query = licenses.filter(self.id == id)
         let count = try database.scalar(query.count)
+
         return count == 1
-        return false
     }
 
     /// Add a registered license to the database.

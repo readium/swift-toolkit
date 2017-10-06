@@ -77,8 +77,8 @@ public class Lcp {
     /// document's register Link.
     /// Check if the license has been registered in local DB, and if not
     /// register it then write a row in DB.
-    ///
-    /// - Throws: .
+    /// Note: This function fail without blocking the flow of LCP process.
+    /// If not registered this time, will be the next time.
     internal func register() {
         let database = LCPDatabase.shared
 
