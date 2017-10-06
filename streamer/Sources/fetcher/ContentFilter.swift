@@ -12,25 +12,31 @@ import R2Shared
 /// in the fetcher. They come in different flavors depending of the container
 /// data mimetype.
 internal protocol ContentFilters {
-    var decoder: Decoder! { get set }
-
     init()
 
-    func apply(to input: SeekableInputStream, of publication: Publication, at path: String) throws -> SeekableInputStream
+    func apply(to input: SeekableInputStream,
+               of publication: Publication,
+               with container: Container,
+               at path: String) throws -> SeekableInputStream
 
-    func apply(to input: Data, of publication: Publication, at path: String) throws -> Data
+    func apply(to input: Data,
+               of publication: Publication,
+               with container: Container,
+               at path: String) throws -> Data
 }
 // Default implementation. Do nothing.
 internal extension ContentFilters {
 
     internal func apply(to input: SeekableInputStream,
-                        of publication: Publication, at path: String) throws -> SeekableInputStream {
+                        of publication: Publication,
+                        with container: Container, at path: String) throws -> SeekableInputStream {
         // Do nothing.
         return input
     }
 
     internal func apply(to input: Data,
-                        of publication: Publication, at path: String) throws -> Data {
+                        of publication: Publication,
+                        with container: Container, at path: String) throws -> Data {
         // Do nothing.
         return input
     }
@@ -40,15 +46,7 @@ internal extension ContentFilters {
 /// Filters:
 ///     - Font deobfuscation using the Decoder object.
 ///     - HTML injections (scripts css/js).
-internal class ContentFiltersEpub: ContentFilters {
-
-    /// The Decoder object is used for font deobfusction of resources.
-    var decoder: Decoder!
-
-    required init() {
-        decoder = Decoder()
-    }
-
+final internal class ContentFiltersEpub: ContentFilters {
     /// Apply the Epub content filters on the content of the `input` stream para-
     /// meter.
     ///
@@ -58,10 +56,12 @@ internal class ContentFiltersEpub: ContentFilters {
     ///   - path: The path of the resource relative to the Publication.
     /// - Returns: The resource after the filters have been applyed.
     internal func apply(to input: SeekableInputStream,
-                        of publication: Publication, at path: String) -> SeekableInputStream
+                        of publication: Publication,
+                        with container: Container,
+                        at path: String) -> SeekableInputStream
     {
-        var decodedInputStream = decoder.decoding(input, of: publication, at: path)
-
+        // TODO ADD DrmDecoder
+        var decodedInputStream = FontDecoder.decoding(input, of: publication, at: path)
         // Inject additional content in the resource if test succeed.
         // if type == "application/xhtml+xml"
         //   if (publication layout is 'reflow' &&  resource is `not specified`)
@@ -91,10 +91,12 @@ internal class ContentFiltersEpub: ContentFilters {
     ///   - path: The path of the resource relative to the Publication.
     /// - Returns: The resource after the filters have been applyed.
     internal func apply(to input: Data,
-                        of publication: Publication, at path: String)  -> Data
+                        of publication: Publication,
+                        with container: Container,
+                        at path: String)  -> Data
     {
         let inputStream = DataInputStream(data: input)
-        var decodedInputStream = decoder.decoding(inputStream, of: publication, at: path)
+        var decodedInputStream = FontDecoder.decoding(inputStream, of: publication, at: path)
 
         // Inject additional content in the resource if test succeed.
         if let link = publication.link(withHref: path),
@@ -214,9 +216,6 @@ internal class ContentFiltersEpub: ContentFilters {
 
 /// Content filter specialization for CBZ.
 internal class ContentFiltersCbz: ContentFilters {
-    var decoder: Decoder!
-
     required init() {
-        decoder = Decoder()
     }
 }

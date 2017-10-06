@@ -50,6 +50,9 @@ public protocol Container {
     /// See `RootFile`.
     var rootFile: RootFile { get set }
 
+    /// The DRM protecting resources (some) in the container.
+    var drm: Drm? { get set }
+
     /// Get the raw (possibly encrypted) data of an asset in the container
     ///
     /// - Parameter relativePath: The relative path to the asset.
@@ -177,47 +180,47 @@ protocol EpubContainer: Container {
     ///           `ContainerError.xmlParse`.
     func xmlDocument(forResourceReferencedByLink link: Link?) throws -> AEXMLDocument
 }
-/// Default Implementation
-extension EpubContainer {
-
-    /// Return a XML document representing the file at path.
-    ///
-    /// - Parameter path: The 'container relative' path to the ressource.
-    /// - Returns: The generated document.
-    /// - Throws: ZipArchive and AEXML errors.
-    public func xmlDocument(forFileAtRelativePath path: String) throws -> AEXMLDocument {
-        // Get `Data` from the Container.
-        let containerData = try data(relativePath: path)
-
-        // Transforms `Data` into an AEXML Document object
-        let document = try AEXMLDocument(xml: containerData)
-        return document
-    }
-
-    /// Return a XML Document representing the file referenced by `link`.
-    ///
-    /// - Parameters:
-    ///   - link: The `Link` to the ressource from the manifest.
-    ///   - container: The epub container.
-    /// - Returns: The XML Document.
-    /// - Throws: `ContainerError.missingLink()`, AEXML and ZipArchive errors.
-    public func xmlDocument(forResourceReferencedByLink link: Link?) throws -> AEXMLDocument {
-        guard let href = link?.href else {
-            throw ContainerError.missingLink(title: link?.title)
-        }
-        var pathFile = href
-
-        if pathFile.characters.first == "/" {
-            _ = pathFile.characters.popFirst()
-        }
-
-        // ADD DECODING. ADD DRM to container.
-
-        let document = try xmlDocument(forFileAtRelativePath: pathFile)
-        return document
-    }
-    
-}
+///// Default Implementation
+//extension EpubContainer {
+//
+//    /// Return a XML document representing the file at path.
+//    ///
+//    /// - Parameter path: The 'container relative' path to the ressource.
+//    /// - Returns: The generated document.
+//    /// - Throws: ZipArchive and AEXML errors.
+//    public func xmlDocument(forFileAtRelativePath path: String) throws -> AEXMLDocument {
+//        // Get `Data` from the Container.
+//        let containerData = try data(relativePath: path)
+//
+//        // Transforms `Data` into an AEXML Document object
+//        let document = try AEXMLDocument(xml: containerData)
+//        return document
+//    }
+//
+//    /// Return a XML Document representing the file referenced by `link`.
+//    ///
+//    /// - Parameters:
+//    ///   - link: The `Link` to the ressource from the manifest.
+//    ///   - container: The epub container.
+//    /// - Returns: The XML Document.
+//    /// - Throws: `ContainerError.missingLink()`, AEXML and ZipArchive errors.
+//    public func xmlDocument(forResourceReferencedByLink link: Link?) throws -> AEXMLDocument {
+//        guard let href = link?.href else {
+//            throw ContainerError.missingLink(title: link?.title)
+//        }
+//        var pathFile = href
+//
+//        if pathFile.characters.first == "/" {
+//            _ = pathFile.characters.popFirst()
+//        }
+//
+//        // ADD DECODING. ADD DRM to container.
+//
+//        let document = try xmlDocument(forFileAtRelativePath: pathFile)
+//        return document
+//    }
+//
+//}
 
 /// Specializing the `Container` for CBZ publications.
 protocol CbzContainer: Container {

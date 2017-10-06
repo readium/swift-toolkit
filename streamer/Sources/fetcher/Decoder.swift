@@ -9,19 +9,19 @@
 import R2Shared
 import CryptoSwift
 
-extension Decoder: Loggable {}
+extension FontDecoder: Loggable {}
 
 /// Deobfuscation/Deencryption of resources.
-internal class Decoder {
+internal class FontDecoder {
 
     /// Then algorithms handled by the Decoder.
-    public var decodableAlgorithms = [
+    static public var decodableAlgorithms = [
         "fontIdpf": "http://www.idpf.org/2008/embedding",
         "fontAdobe": "http://ns.adobe.com/pdf/enc#RC"
     ]
 
     /// Algorithm name and associated decoding function.
-    fileprivate var decoders = [
+    static fileprivate var decoders = [
         "http://www.idpf.org/2008/embedding": ObfuscationLength.idpf,
         "http://ns.adobe.com/pdf/enc#RC": ObfuscationLength.adobe
     ]
@@ -42,7 +42,7 @@ internal class Decoder {
     ///                  originate from.
     ///   - path: The relative path of the resource inside of the publication.
     /// - Returns: The Inpustream containing the unencrypted resource.
-    internal func decoding(_ input: SeekableInputStream,
+    static internal func decoding(_ input: SeekableInputStream,
                          of publication: Publication, at path: String) -> SeekableInputStream
     {
         // If the publicationIdentifier is not accessible, no deobfuscation is
@@ -78,7 +78,7 @@ internal class Decoder {
     ///   - pubId: The associated publication Identifier.
     ///   - length: The ObfuscationLength depending of the obfuscation type.
     /// - Returns: The Deobfuscated SeekableInputStream.
-    internal func decodingFont(_ input: SeekableInputStream,
+    static internal func decodingFont(_ input: SeekableInputStream,
                              _ pubId: String,
                              _ length: ObfuscationLength) -> DataInputStream
     {
@@ -113,7 +113,7 @@ internal class Decoder {
     ///   - obfuscationLength: The number of characters obfuscated at the first
     ///                        of the file.
     /// - Returns: The UInt8 buffer containing the déobfuscated data.
-    fileprivate func deobfuscate(_ input: SeekableInputStream,
+    static fileprivate func deobfuscate(_ input: SeekableInputStream,
                                  publicationKey: [UInt8],
                                  obfuscationLength: ObfuscationLength) -> UnsafeBufferPointer<UInt8>
     {
@@ -145,7 +145,7 @@ internal class Decoder {
     ///
     /// - Parameter pubId: The publication Identifier.
     /// - Returns: The key's bytes array.
-    fileprivate func getHashKeyAdobe(publicationIdentifier pubId: String) -> [UInt8] {
+    static fileprivate func getHashKeyAdobe(publicationIdentifier pubId: String) -> [UInt8] {
         // Clean the publicationIdentifier.
         var cleanPubId = pubId.replacingOccurrences(of: "urn:uuid:", with: "")
         cleanPubId = cleanPubId.replacingOccurrences(of: "-", with: "")
@@ -157,7 +157,7 @@ internal class Decoder {
     ///
     /// - Parameter hexa: The hexadecimal String.
     /// - Returns: The key's bytes array.
-    fileprivate func hexaToBytes(_ hexa: String) -> [UInt8] {
+    static fileprivate func hexaToBytes(_ hexa: String) -> [UInt8] {
         var position = hexa.startIndex
 
         return (0..<hexa.characters.count / 2).flatMap { _ in

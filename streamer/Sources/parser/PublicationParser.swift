@@ -6,18 +6,8 @@
 //  Copyright © 2017 Readium. All rights reserved.
 //
 
-/// The parsing protocol.
-protocol PublicationParser {
-    func parse(fileAtPath: String) throws -> PubBox
-}
-
 /// Normalize a path relative path given the base path.
-///
-/// - Parameters:
-///   - base: <#base description#>
-///   - href: <#href description#>
-/// - Returns: <#return value description#>
-func normalize(base: String, href: String?) -> String {
+internal func normalize(base: String, href: String?) -> String {
     guard let href = href, !href.isEmpty else {
         return ""
     }

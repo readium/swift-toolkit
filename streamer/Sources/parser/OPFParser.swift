@@ -29,8 +29,6 @@ enum OPFParserError: Error {
 /// EpubParser support class, able to parse the OPF package document.
 /// OPF: Open Packaging Format.
 public class OPFParser {
-    var rootFilePath: String? // Used for normalisation of href.
-
     /// Parse the OPF file of the Epub container and return a `Publication`.
     /// It also complete the informations stored in the container.
     ///
@@ -46,9 +44,8 @@ public class OPFParser {
         publication.version = epubVersion
         publication.internalData["type"] = "epub"
         publication.internalData["rootfile"] = rootFilePath
-        self.rootFilePath = rootFilePath
         try parseMetadata(from: document, to: &publication)
-        parseResources(from: document.root["manifest"], to: &publication)
+        parseResources(from: document.root["manifest"], to: &publication, rootFilePath)
         coverLinkFromMeta(from: document.root["metadata"], to: &publication)
         parseSpine(from: document.root["spine"], to: &publication)
         return publication
@@ -123,7 +120,8 @@ public class OPFParser {
     ///                  fill.
     ///   - coverId: The coverId to identify the cover ressource and tag it.
     internal func parseResources(from manifest: AEXMLElement,
-                                  to publication: inout Publication)
+                                  to publication: inout Publication,
+                                  _ rootFilePath: String)
     {
         // Get the manifest children items
         guard let manifestItems = manifest["item"].all else {
@@ -137,7 +135,7 @@ public class OPFParser {
                 log(level: .warning, "Manifest item MUST have an id, item ignored.")
                 continue
             }
-            let link = linkFromManifest(item)
+            let link = linkFromManifest(item, rootFilePath)
             /// If the link reference a Smil resource, retrieve and fill it's duration.
             if link.typeLink == "application/smil+xml" {
                 // Retrieve the duration of the smil file in the otherMetadata.
@@ -230,14 +228,14 @@ public class OPFParser {
     ///
     /// - Parameter item: The XML element, or manifest XML item.
     /// - Returns: The `Link` representing the manifest XML item.
-    fileprivate func linkFromManifest(_ item: AEXMLElement) -> Link {
+    fileprivate func linkFromManifest(_ item: AEXMLElement, _ rootFilePath: String) -> Link {
         // The "to be built" link representing the manifest item.
         let link = Link()
 
         // TMP used for storing the id (associated to the idref of the spine items).
         // Will be cleared after the spine parsing.
         link.title = item.attributes["id"]
-        link.href = normalize(base: rootFilePath!, href: item.attributes["href"]!)
+        link.href = normalize(base: rootFilePath, href: item.attributes["href"]!)
         link.typeLink = item.attributes["media-type"]
         if let propertyAttribute = item.attributes["properties"] {
             let properties = propertyAttribute.components(separatedBy: CharacterSet.whitespaces)

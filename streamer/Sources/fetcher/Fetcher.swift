@@ -68,7 +68,7 @@ internal class Fetcher {
         }
         // Get the data from the container
         var data = try container.data(relativePath: path)
-        data = try contentFilters.apply(to: data, of: publication, at: path)
+        data = try contentFilters.apply(to: data, of: publication, with: container, at: path)
         return data
     }
 
@@ -83,7 +83,8 @@ internal class Fetcher {
         }
         var data = try container.data(relativePath: path)
 
-        data = try contentFilters.apply(to: data, of: publication, at: path)
+        data = try contentFilters.apply(to: data, of: publication,
+                                        with: container, at: path)
         return data
     }
 
@@ -102,7 +103,8 @@ internal class Fetcher {
         // Get an input stream from the container
         inputStream = try container.dataInputStream(relativePath: path)
         // Apply content filters to inputStream data.
-        inputStream = try contentFilters.apply(to: inputStream, of: publication, at: path)
+        inputStream = try contentFilters.apply(to: inputStream, of: publication,
+                                               with: container, at: path)
 
         return inputStream
     }
@@ -117,7 +119,8 @@ internal class Fetcher {
         // Get an input stream from the container
         inputStream = try container.dataInputStream(relativePath: path)
         // Apply content filters to inputStream data.
-        inputStream = try contentFilters.apply(to: inputStream, of: publication, at: path)
+        inputStream = try contentFilters.apply(to: inputStream, of: publication,
+                                               with: container, at: path)
 
         return inputStream
     }

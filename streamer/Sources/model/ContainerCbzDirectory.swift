@@ -14,6 +14,7 @@ extension ContainerCbzDirectory: Loggable {}
 public class ContainerCbzDirectory: CbzContainer, DirectoryContainer {
     /// See `RootFile`.
     public var rootFile: RootFile
+    public var drm: Drm?
 
     /// Public failable initializer for the EpubDirectoryContainer class.
     ///

@@ -24,11 +24,6 @@ public enum PublicationServerError: Error{
     case usedEndpoint
 }
 
-/// `Publication` and the associated `Container`.
-public typealias PubBox = (publication: Publication,
-    associatedContainer: Container,
-    protectedBy: Drm?)
-
 /// The HTTP server for the publication's manifests and assets. Serves Epubs.
 public class PublicationServer {
     /// The HTTP server.
@@ -173,7 +168,7 @@ public class PublicationServer {
         // Add the Publication to the publication boxes dictionnary.
         let pubBox = PubBox(publication: publication,
                       associatedContainer: container,
-                      protectedBy: nil)
+                      protectedBy: container.drm)
 
         pubBoxes[endpoint] = pubBox
 

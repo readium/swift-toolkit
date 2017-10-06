@@ -16,6 +16,8 @@ public class ContainerCbz: CbzContainer, ZipArchiveContainer {
     public var rootFile: RootFile
     /// The zip archive object containing the Epub.
     var zipArchive: ZipArchive
+    public var drm: Drm?
+
 
     /// Public failable initializer for the Container protocol.
     ///

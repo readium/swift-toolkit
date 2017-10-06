@@ -59,11 +59,16 @@ public enum EpubParserError: Error {
     }
 }
 
+/// `Publication` and the associated `Container`.
+public typealias PubBox = (publication: Publication, associatedContainer: Container, protectedBy: Drm?)
+/// A callback taking care of the
+public typealias PubParsingCallback = (Drm?) throws -> Void
+
 extension EpubParser: Loggable {}
 
 /// An EPUB container parser that extracts the information from the relevant
 /// files and builds a `Publication` instance out of it.
-public class EpubParser: PublicationParser {
+public class EpubParser {
     /// The multiple parsing submodules.
     internal let opfp: OPFParser!
     internal let ndp: NavigationDocumentParser!
@@ -83,11 +88,16 @@ public class EpubParser: PublicationParser {
     /// corresponding `Publication` and `Container`.
     ///
     /// - Parameter fileAtPath: The path to the epub file.
-    /// - Returns: the resulting publication.
+    /// - Returns: The Resulting publication, and a callback for parsing the
+    ///            possibly DRM encrypted in the publication. The callback need
+    ///            to be called by sending back the Drm object (or nil).
+    ///            The point is to get DRM informations in the Drm object, and
+    ///            inform the decypher() function in  the Drm object to allow
+    ///            the fetcher to decypher encrypted resources.
     /// - Throws: `EpubParserError.wrongMimeType`,
     ///           `EpubParserError.xmlParse`,
     ///           `EpubParserError.missingFile`
-    public func parse(fileAtPath path: String) throws -> PubBox {
+    public func parse(fileAtPath path: String) throws -> (PubBox, PubParsingCallback) {
         // Generate the `Container` for `fileAtPath`
         var container = try generateContainerFrom(fileAtPath: path)
 
@@ -115,12 +125,18 @@ public class EpubParser: PublicationParser {
         /// The folowing resources could be encrypted, hence we use the fetcher.
         let fetcher = try Fetcher.init(publication: publication, container: container)
 
-        try parseMediaOverlay(from: fetcher, to: &publication)
-        // Parse Navigation Document.
-        parseNavigationDocument(from: fetcher, to: &publication)
-        // Parse the NCX Document (if any).
-        parseNcxDocument(from: fetcher, to: &publication)
-        return (publication, container, drm)
+        func parseRemainingResource(protectedBy drm: Drm?) throws {
+            container.drm = drm
+
+            // COMPLETE INFORMATIONS IN link encryption about profile
+
+            try parseMediaOverlay(from: fetcher, to: &publication)
+            // Parse Navigation Document.
+            parseNavigationDocument(from: fetcher, to: &publication)
+            // Parse the NCX Document (if any).
+            parseNcxDocument(from: fetcher, to: &publication)
+        }
+        return ((publication, container, drm), parseRemainingResource)
     }
 
     /// WIP, currently only LCP.
@@ -272,7 +288,6 @@ public class EpubParser: PublicationParser {
             {
                 throw OPFParserError.invalidSmilResource
             }
-
 
             let body = smilXml.root["body"]
 
