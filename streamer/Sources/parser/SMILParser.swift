@@ -96,7 +96,7 @@ internal class SMILParser {
     ///
     /// - Parameter time: The smile time String.
     /// - Returns: The converted value in Seconds as String.
-    internal func smilTimeToSeconds(_ time: String) -> String {
+    static internal func smilTimeToSeconds(_ time: String) -> String {
         let timeFormat: SmilTimeFormat
 
         if time.contains("h") {
@@ -128,9 +128,9 @@ internal class SMILParser {
             return nil
         }
         audio += "#t="
-        audio += smilTimeToSeconds(clipBegin)
+        audio += SMILParser.smilTimeToSeconds(clipBegin)
         audio += ","
-        audio += smilTimeToSeconds(clipEnd)
+        audio += SMILParser.smilTimeToSeconds(clipEnd)
         return audio
     }
 }

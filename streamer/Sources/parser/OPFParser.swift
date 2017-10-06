@@ -46,6 +46,7 @@ public class OPFParser {
         publication.version = epubVersion
         publication.internalData["type"] = "epub"
         publication.internalData["rootfile"] = rootFilePath
+        self.rootFilePath = rootFilePath
         try parseMetadata(from: document, to: &publication)
         parseResources(from: document.root["manifest"], to: &publication)
         coverLinkFromMeta(from: document.root["metadata"], to: &publication)
@@ -143,7 +144,7 @@ public class OPFParser {
                 if let duration = publication.metadata.otherMetadata.first(where: {
                     $0.property == "#\(id)" })?.value
                 {
-                    link.duration = Double(smilp.smilTimeToSeconds(duration))
+                    link.duration = Double(SMILParser.smilTimeToSeconds(duration))
                 }
             }
             publication.resources.append(link)

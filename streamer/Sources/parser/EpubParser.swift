@@ -120,7 +120,7 @@ public class EpubParser: PublicationParser {
         parseNavigationDocument(from: fetcher, to: &publication)
         // Parse the NCX Document (if any).
         parseNcxDocument(from: fetcher, to: &publication)
-        return (publication, container)
+        return (publication, container, drm)
     }
 
     /// WIP, currently only LCP.
