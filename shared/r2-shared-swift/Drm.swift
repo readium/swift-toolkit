@@ -8,10 +8,15 @@
 
 import Foundation
 
-
+/// An object giving info about the DRM encrypting a publication.
+/// This object come back from the streamer, and can be filled by a DRM module,
+/// then sent back to the streamer (with the decypher func filled) in order to
+/// allow the fetcher to be able to decypher content later on.
 public struct Drm {
     public let brand: Brand
     public let scheme: Scheme
+    /// The below properties will be filled when passed back to the DRM module.
+    public var profile: String?
     public var decypher: ((Data) -> Data)?
 
     public enum Brand {
