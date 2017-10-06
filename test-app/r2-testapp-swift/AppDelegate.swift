@@ -30,7 +30,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     weak var libraryViewController: LibraryViewController!
 
     var publicationServer: PublicationServer!
-    var epubParser: EpubParser!
     var cbzParser: CbzParser!
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
@@ -45,7 +44,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         self.publicationServer = publicationServer
         // Init parsers.
-        epubParser = EpubParser()
         cbzParser = CbzParser()
 
         loadSamplePublications()
@@ -168,7 +166,7 @@ extension AppDelegate {
 
             switch location.type {
             case .epub:
-                let parseResult = try epubParser.parse(fileAtPath: location.absolutePath)
+                let parseResult = try EpubParser.parse(fileAtPath: location.absolutePath)
 
                 publication = parseResult.0.publication
                 container = parseResult.0.associatedContainer
