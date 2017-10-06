@@ -10,8 +10,8 @@ import R2Shared
 import AEXML
 
 /// The object containing the methods used to parse SMIL files.
-internal class SMILParser {
-
+final internal class SMILParser {
+    
     /// [RECURSIVE]
     /// Parse the <seq> elements at the current XML level. It will recursively
     /// parse they childrens <par> and <seq>
@@ -21,10 +21,10 @@ internal class SMILParser {
     ///   - parent: The parent MediaOverlayNode of the "to be creatred" nodes.
     ///   - spine: <#spine description#>
     ///   - base: The base location of the file for path normalization.
-    internal func parseSequences(in element: AEXMLElement,
-                                 withParent parent: MediaOverlayNode,
-                                 publicationSpine spine: inout [Link],
-                                 base: String?)
+    static internal func parseSequences(in element: AEXMLElement,
+                                        withParent parent: MediaOverlayNode,
+                                        publicationSpine spine: inout [Link],
+                                        base: String?)
     {
         guard let sequenceElements = element["seq"].all,
             !sequenceElements.isEmpty else
@@ -35,15 +35,15 @@ internal class SMILParser {
         //       for loop. Refactor?
         for sequence in sequenceElements {
             let newNode = MediaOverlayNode()
-
+            
             newNode.role.append("section")
             newNode.text = normalize(base: base!, href: sequence.attributes["epub:textref"]!)
-
+            
             parseParameters(in: sequence, withParent: newNode, base: base)
             parseSequences(in: sequence, withParent: newNode, publicationSpine: &spine, base: base)
-
+            
             let baseHrefParent = parent.text?.components(separatedBy: "#")[0]
-
+            
             guard let baseHref = newNode.text?.components(separatedBy: "#")[0],
                 baseHref != baseHrefParent else
             {
@@ -62,15 +62,15 @@ internal class SMILParser {
             link.properties.mediaOverlay = EpubConstant.mediaOverlayURL + link.href!
         }
     }
-
+    
     /// Parse the <par> elements at the current XML element level.
     ///
     /// - Parameters:
     ///   - element: The XML element which should contain <par>.
     ///   - parent: The parent MediaOverlayNode of the "to be creatred" nodes.
-    internal func parseParameters(in element: AEXMLElement,
-                                  withParent parent: MediaOverlayNode,
-                                  base: String?)
+    static internal func parseParameters(in element: AEXMLElement,
+                                         withParent parent: MediaOverlayNode,
+                                         base: String?)
     {
         guard let parameterElements = element["par"].all,
             !parameterElements.isEmpty else
@@ -80,25 +80,25 @@ internal class SMILParser {
         // For each <par> in the current scope.
         for parameterElement in parameterElements {
             let newNode = MediaOverlayNode()
-
+            
             guard let audioElement = parameterElement["audio"].first else {
                 return
             }
             let audioFilePath = parse(audioElement: audioElement)
-
+            
             newNode.audio = normalize(base: base!, href: audioFilePath!)
             newNode.text = normalize(base: base!, href: parameterElement["text"].attributes["src"]!)
             parent.children.append(newNode)
         }
     }
-
+    
     /// Converts a smile time string into seconds String.
     ///
     /// - Parameter time: The smile time String.
     /// - Returns: The converted value in Seconds as String.
     static internal func smilTimeToSeconds(_ time: String) -> String {
         let timeFormat: SmilTimeFormat
-
+        
         if time.contains("h") {
             timeFormat = .hour
         } else if time.contains("s") {
@@ -107,7 +107,7 @@ internal class SMILParser {
             timeFormat = .milisecond
         } else {
             let timeArity = time.components(separatedBy: ":").count
-
+            
             guard let format = SmilTimeFormat(rawValue: timeArity) else {
                 return ""
             }
@@ -115,12 +115,12 @@ internal class SMILParser {
         }
         return timeFormat.convertToseconds(smilTime: time)
     }
-
+    
     /// Parse the <audio> XML element, children of <par> elements.
     ///
     /// - Parameter audioElement: The audio XML element.
     /// - Returns: The formated string representing the data.
-    fileprivate func parse(audioElement: AEXMLElement) -> String? {
+    static fileprivate func parse(audioElement: AEXMLElement) -> String? {
         guard var audio = audioElement.attributes["src"],
             let clipBegin = audioElement.attributes["clipBegin"],
             let clipEnd = audioElement.attributes["clipEnd"] else
@@ -153,7 +153,7 @@ internal enum SmilTimeFormat: Int {
 }
 
 internal extension SmilTimeFormat {
-
+    
     /// Return the seconds double value from a possible SS.MS format.
     ///
     /// - Parameter seconds: The seconds String.
@@ -161,7 +161,7 @@ internal extension SmilTimeFormat {
     fileprivate func parseSeconds(_ time: String) -> Double {
         let secMilsec = time.components(separatedBy: ".")
         var seconds = 0.0
-
+        
         if secMilsec.count == 2 {
             seconds = Double(secMilsec[0]) ?? 0.0
             seconds += (Double(secMilsec[1]) ?? 0.0) / 1000.0
@@ -170,7 +170,7 @@ internal extension SmilTimeFormat {
         }
         return seconds
     }
-
+    
     /// Will confort the `smileTime` to the equivalent in seconds given it's
     /// type.
     ///
@@ -178,7 +178,7 @@ internal extension SmilTimeFormat {
     /// - Returns: The converted value in seconds.
     internal func convertToseconds(smilTime time: String) -> String {
         var seconds = 0.0
-
+        
         switch self {
         case .milisecond:
             let ms = Double(time.replacingOccurrences(of: "ms", with: ""))
@@ -189,20 +189,20 @@ internal extension SmilTimeFormat {
             let hourMin = time.replacingOccurrences(of: "h", with: "").components(separatedBy: ".")
             let hoursToSeconds = (Double(hourMin[0]) ?? 0) * 3600.0
             let minutesToSeconds = (Double(hourMin[1]) ?? 0) * 0.6 * 60.0
-
+            
             seconds = hoursToSeconds + minutesToSeconds
         case .splitMonadic:
             return time
         case .splitDyadic:
             let minSec = time.components(separatedBy: ":")
-
+            
             // Min
             seconds += (Double(minSec[0]) ?? 0.0) * 60
             // Sec
             seconds += parseSeconds(minSec[1])
         case .splitTriadic:
             let hourMinSec = time.components(separatedBy: ":")
-
+            
             // Hour
             seconds += (Double(hourMinSec[0]) ?? 0.0) * 3600.0
             // Min

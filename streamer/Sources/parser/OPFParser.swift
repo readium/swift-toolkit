@@ -11,11 +11,11 @@ import AEXML
 
 extension OPFParser: Loggable {}
 
-enum OPFParserError: Error {
+public enum OPFParserError: Error {
     /// The Epub have no title. Title is mandatory.
     case missingPublicationTitle
     case invalidSmilResource
-
+    
     var localizedDescription: String {
         switch self {
         case .missingPublicationTitle:
@@ -28,16 +28,16 @@ enum OPFParserError: Error {
 
 /// EpubParser support class, able to parse the OPF package document.
 /// OPF: Open Packaging Format.
-public class OPFParser {
+final public class OPFParser {
     /// Parse the OPF file of the Epub container and return a `Publication`.
     /// It also complete the informations stored in the container.
     ///
     /// - Parameter container: The EPUB container whom OPF file will be parsed.
     /// - Returns: The `Publication` object resulting from the parsing.
     /// - Throws: `EpubParserError.xmlParse`.
-    internal func parseOPF(from document: AEXMLDocument,
-                           with rootFilePath: String,
-                           and epubVersion: Double) throws -> Publication
+    static internal func parseOPF(from document: AEXMLDocument,
+                                  with rootFilePath: String,
+                                  and epubVersion: Double) throws -> Publication
     {
         /// The 'to be built' Publication.
         var publication = Publication()
@@ -55,20 +55,19 @@ public class OPFParser {
     ///
     /// - Parameter document: Parse the Metadata in the XML <metadata> element.
     /// - Returns: The Metadata object representing the XML <metadata> element.
-    internal func parseMetadata(from document: AEXMLDocument, to publication: inout Publication) throws {
+    static internal func parseMetadata(from document: AEXMLDocument, to publication: inout Publication) throws {
         /// The 'to be returned' Metadata object.
         var metadata = Metadata()
-        let mp = MetadataParser()
         let metadataElement = document.root["metadata"]
 
         // Title.
-        guard let multilangTitle = mp.mainTitle(from: metadataElement) else {
+        guard let multilangTitle = MetadataParser.mainTitle(from: metadataElement) else {
             throw OPFParserError.missingPublicationTitle
         }
         metadata.multilangTitle = multilangTitle
         // Identifier.
-        metadata.identifier = mp.uniqueIdentifier(from: metadataElement,
-                                                  with: document.root.attributes)
+        metadata.identifier = MetadataParser.uniqueIdentifier(from: metadataElement,
+                                                              with: document.root.attributes)
         // Description.
         if let description = metadataElement["dc:description"].value {
             metadata.description = description
@@ -78,13 +77,13 @@ public class OPFParser {
             metadata.publicationDate = date
         }
         // Last modification date.
-        metadata.modified = mp.modifiedDate(from: metadataElement)
+        metadata.modified = MetadataParser.modifiedDate(from: metadataElement)
         // Source.
         if let source = metadataElement["dc:source"].value {
             metadata.source = source
         }
         // Subject.
-        if let subject = mp.subject(from: metadataElement) {
+        if let subject = MetadataParser.subject(from: metadataElement) {
             metadata.subjects.append(subject)
         }
         // Languages.
@@ -97,17 +96,17 @@ public class OPFParser {
         }
         // Publishers, Creators, Contributors.
         let epubVersion = publication.version
-        mp.parseContributors(from: metadataElement, to: &metadata, epubVersion)
+        MetadataParser.parseContributors(from: metadataElement, to: &metadata, epubVersion)
         // Page progression direction.
         if let direction = document.root["spine"].attributes["page-progression-direction"] {
             metadata.direction = direction
         }
         // Rendition properties.
-        mp.parseRenditionProperties(from: metadataElement, to: &metadata)
+        MetadataParser.parseRenditionProperties(from: metadataElement, to: &metadata)
         publication.metadata = metadata
         /// Other Metadata.
         // Media overlays: media:duration
-        mp.parseMediaDurations(from: metadataElement, to: &metadata.otherMetadata)
+        MetadataParser.parseMediaDurations(from: metadataElement, to: &metadata.otherMetadata)
     }
 
     /// Parse XML elements of the <Manifest> in the package.opf file.
@@ -119,9 +118,9 @@ public class OPFParser {
     ///   - publication: The `Publication` object with `.resource` properties to
     ///                  fill.
     ///   - coverId: The coverId to identify the cover ressource and tag it.
-    internal func parseResources(from manifest: AEXMLElement,
-                                  to publication: inout Publication,
-                                  _ rootFilePath: String)
+    static internal func parseResources(from manifest: AEXMLElement,
+                                        to publication: inout Publication,
+                                        _ rootFilePath: String)
     {
         // Get the manifest children items
         guard let manifestItems = manifest["item"].all else {
@@ -156,7 +155,7 @@ public class OPFParser {
     ///   - metadata: The metadata XML element.
     ///   - publication: The publication object with the `coverLink` property to
     ///                  fill.
-    private func coverLinkFromMeta(from metadata: AEXMLElement, to publication: inout Publication) {
+    static private func coverLinkFromMeta(from metadata: AEXMLElement, to publication: inout Publication) {
         var coverId: String?
 
         // Read meta to see if any Link is referenced as the Cover.
@@ -178,7 +177,7 @@ public class OPFParser {
     ///   - spine: The Spine XML element.
     ///   - publication: The `Publication` object with `.resource` and `.spine`
     ///                  properties to fill.
-    internal func parseSpine(from spine: AEXMLElement, to publication: inout Publication) {
+    static internal func parseSpine(from spine: AEXMLElement, to publication: inout Publication) {
         // Get the spine children items.
         guard let spineItems = spine["itemref"].all else {
             log(level: .warning, "Spine have no children elements.")
@@ -201,7 +200,7 @@ public class OPFParser {
             // Retrieve `idref`, referencing a resource id.
             // Only linear items are added to the spine.
             guard isLinear(item.attributes["linear"]) else {
-                    continue
+                continue
             }
             // Clean the title - used as a holder for the `idref`.
             publication.resources[index].title = nil
@@ -215,7 +214,7 @@ public class OPFParser {
     ///
     /// - Parameter linear: The linear attribute value, if any.
     /// - Returns: True if it's linear, false if not.
-    fileprivate func isLinear(_ linear: String?) -> Bool {
+    static fileprivate func isLinear(_ linear: String?) -> Bool {
         if linear != nil, linear?.lowercased() == "no" {
             return false
         }
@@ -228,7 +227,7 @@ public class OPFParser {
     ///
     /// - Parameter item: The XML element, or manifest XML item.
     /// - Returns: The `Link` representing the manifest XML item.
-    fileprivate func linkFromManifest(_ item: AEXMLElement, _ rootFilePath: String) -> Link {
+    static fileprivate func linkFromManifest(_ item: AEXMLElement, _ rootFilePath: String) -> Link {
         // The "to be built" link representing the manifest item.
         let link = Link()
 
@@ -256,7 +255,7 @@ public class OPFParser {
     ///
     /// - Parameter propertiesArray: The array of properties strings.
     /// - Returns: The Properties instance created from the strings array info.
-    fileprivate func parse(propertiesArray: [String]) -> Properties {
+    static fileprivate func parse(propertiesArray: [String]) -> Properties {
         var properties = Properties()
 
         // Look if item have any properties.

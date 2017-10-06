@@ -15,17 +15,18 @@ import AEXML
 /// use the new navigation document format.
 /// You can ignore the NCX file if your book won't render properly as EPUB 2 
 /// content, or if you aren't targeting cross-compatibility."
-public class NCXParser {
-    var ncxDocumentPath: String!
-
+final public class NCXParser {
     /// Return the data representation of the table of contents (toc)
     /// informations contained in the NCX Document.
     ///
     /// - Parameter document: The NCX Document.
     /// - Returns: The data representation of the table of contents (toc).
-    internal func tableOfContents(fromNcxDocument document: AEXMLDocument) -> [Link] {
+    static internal func tableOfContents(fromNcxDocument document: AEXMLDocument,
+                                  locatedAt path: String) -> [Link]
+    {
         let navMapElement = document.root["navMap"]
-        let tableOfContentsNodes = nodeArray(forNcxElement: navMapElement, ofType: "navPoint")
+        let tableOfContentsNodes = nodeArray(forNcxElement: navMapElement,
+                                             ofType: "navPoint", path)
 
         return tableOfContentsNodes
     }
@@ -35,9 +36,12 @@ public class NCXParser {
     ///
     /// - Parameter document: The NCX Document.
     /// - Returns: The data representation of the pageList.
-    internal func pageList(fromNcxDocument document: AEXMLDocument) -> [Link] {
+    static internal func pageList(fromNcxDocument document: AEXMLDocument,
+                           locatedAt path: String) -> [Link]
+    {
         let pageListElement = document.root["pageList"]
-        let pageListNodes = nodeArray(forNcxElement: pageListElement, ofType: "pageTarget")
+        let pageListNodes = nodeArray(forNcxElement: pageListElement,
+                                      ofType: "pageTarget", path)
 
         return pageListNodes
     }
@@ -55,8 +59,8 @@ public class NCXParser {
     ///           'pageTarget' for 'pageList'.
     /// - Returns: The Object representation of the data contained in the given
     ///            NCX XML element.
-    fileprivate func nodeArray(forNcxElement element: AEXMLElement,
-                               ofType type: String) -> [Link]
+    static fileprivate func nodeArray(forNcxElement element: AEXMLElement,
+                               ofType type: String, _ ncxDocumentPath: String) -> [Link]
     {
         // The "to be returned" node array.
         var newNodeArray = [Link]()
@@ -67,7 +71,7 @@ public class NCXParser {
         }
         // For each element create a new node of type `type`.
         for element in elements {
-            let newNode = node(using: element, ofType: type)
+            let newNode = node(using: element, ofType: type, ncxDocumentPath)
 
             newNodeArray.append(newNode)
         }
@@ -80,7 +84,7 @@ public class NCXParser {
     ///
     /// - Parameter element: The <navPoint> from the NCX Document.
     /// - Returns: The generated node(`Link`).
-    fileprivate func node(using element: AEXMLElement, ofType type: String) -> Link {
+    static fileprivate func node(using element: AEXMLElement, ofType type: String, _ ncxDocumentPath: String) -> Link {
         let newNode = Link()
 
         // Get current node informations.
@@ -90,7 +94,7 @@ public class NCXParser {
         if let childrenNodes = element[type].all {
             // Add current node children recursively.
             for childNode in childrenNodes {
-                newNode.children.append(node(using: childNode, ofType: type))
+                newNode.children.append(node(using: childNode, ofType: type, ncxDocumentPath))
             }
         }
         return newNode

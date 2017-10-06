@@ -11,16 +11,17 @@ import AEXML
 
 /// The navigation document if documented here at Navigation
 /// https://idpf.github.io/a11y-guidelines/
-public class NavigationDocumentParser {
-    var navigationDocumentPath: String!
+final public class NavigationDocumentParser {
 
     /// Return the data representation of the table of contents informations
     /// contained in the Navigation Document (toc).
     ///
     /// - Parameter document: The Navigation Document.
     /// - Returns: The data representation of the table of contents (toc).
-    internal func tableOfContent(fromNavigationDocument document: AEXMLDocument) -> [Link] {
-        let newTableOfContents = nodeArray(forNavigationDocument: document, havingNavType: "toc")
+    static internal func tableOfContent(fromNavigationDocument document: AEXMLDocument,
+                                        locatedAt path: String) -> [Link] {
+        let newTableOfContents = nodeArray(forNavigationDocument: document,
+                                           locatedAt: path, havingNavType: "toc")
 
         return newTableOfContents
     }
@@ -30,8 +31,10 @@ public class NavigationDocumentParser {
     ///
     /// - Parameter document: The Navigation Document.
     /// - Returns: The data representation of the landmarks.
-    internal func pageList(fromNavigationDocument document: AEXMLDocument) -> [Link] {
-        let newPageList = nodeArray(forNavigationDocument: document, havingNavType: "page-list")
+    static internal func pageList(fromNavigationDocument document: AEXMLDocument,
+                                  locatedAt path: String) -> [Link] {
+        let newPageList = nodeArray(forNavigationDocument: document,
+                                    locatedAt: path, havingNavType: "page-list")
 
         return newPageList
     }
@@ -41,8 +44,10 @@ public class NavigationDocumentParser {
     ///
     /// - Parameter document: The Navigation Document.
     /// - Returns: The data representation of the landmarks.
-    internal func landmarks(fromNavigationDocument document: AEXMLDocument) -> [Link] {
-        let newLandmarks = nodeArray(forNavigationDocument: document, havingNavType: "landmarks")
+    static internal func landmarks(fromNavigationDocument document: AEXMLDocument,
+                                   locatedAt path: String) -> [Link] {
+        let newLandmarks = nodeArray(forNavigationDocument: document,
+                                     locatedAt: path, havingNavType: "landmarks")
 
         return newLandmarks
     }
@@ -52,8 +57,10 @@ public class NavigationDocumentParser {
     ///
     /// - Parameter document: The Navigation Document.
     /// - Returns: The data representation of the list of illustrations (loi).
-    internal func listOfIllustrations(fromNavigationDocument document: AEXMLDocument) -> [Link] {
-        let newListOfIllustrations = nodeArray(forNavigationDocument: document, havingNavType: "loi")
+    static internal func listOfIllustrations(fromNavigationDocument document: AEXMLDocument,
+                                             locatedAt path: String) -> [Link] {
+        let newListOfIllustrations = nodeArray(forNavigationDocument: document,
+                                               locatedAt: path, havingNavType: "loi")
 
         return newListOfIllustrations
     }
@@ -63,8 +70,10 @@ public class NavigationDocumentParser {
     ///
     /// - Parameter document: The Navigation Document.
     /// - Returns: The data representation of the list of illustrations (lot).
-    internal func listOfTables(fromNavigationDocument document: AEXMLDocument) -> [Link] {
-        let newListOfTables = nodeArray(forNavigationDocument: document, havingNavType: "lot")
+    static internal func listOfTables(fromNavigationDocument document: AEXMLDocument,
+                                      locatedAt path: String) -> [Link] {
+        let newListOfTables = nodeArray(forNavigationDocument: document,
+                                        locatedAt: path, havingNavType: "lot")
 
         return newListOfTables
     }
@@ -74,8 +83,10 @@ public class NavigationDocumentParser {
     ///
     /// - Parameter document: The Navigation Document.
     /// - Returns: The data representation of the list of illustrations (lot).
-    internal func listOfAudiofiles(fromNavigationDocument document: AEXMLDocument) -> [Link] {
-        let newListOfAudiofiles = nodeArray(forNavigationDocument: document, havingNavType: "loa")
+    static internal func listOfAudiofiles(fromNavigationDocument document: AEXMLDocument,
+                                          locatedAt path: String) -> [Link] {
+        let newListOfAudiofiles = nodeArray(forNavigationDocument: document,
+                                            locatedAt: path, havingNavType: "loa")
 
         return newListOfAudiofiles
     }
@@ -85,8 +96,10 @@ public class NavigationDocumentParser {
     ///
     /// - Parameter document: The Navigation Document.
     /// - Returns: The data representation of the list of illustrations (lot).
-    internal func listOfVideos(fromNavigationDocument document: AEXMLDocument) -> [Link] {
-        let newListOfVideos = nodeArray(forNavigationDocument: document, havingNavType: "lov")
+    static internal func listOfVideos(fromNavigationDocument document: AEXMLDocument,
+                                      locatedAt path: String) -> [Link] {
+        let newListOfVideos = nodeArray(forNavigationDocument: document,
+                                        locatedAt: path, havingNavType: "lov")
 
         return newListOfVideos
     }
@@ -102,8 +115,9 @@ public class NavigationDocumentParser {
     ///              (eg "toc" for epub:type="toc").
     /// - Returns: The Object representation of the data contained in the
     ///            `navigationDocument` for the element of epub:type==`navType`.
-    fileprivate func nodeArray(forNavigationDocument document: AEXMLDocument,
-                               havingNavType navType: String) -> [Link]
+    static fileprivate func nodeArray(forNavigationDocument document: AEXMLDocument,
+                                      locatedAt path: String,
+                                      havingNavType navType: String) -> [Link]
     {
         var nodeTree = Link()
         var body = document.root["body"]["section"]
@@ -121,7 +135,7 @@ public class NavigationDocumentParser {
             return []
         }
         // Convert the XML element to a `Link` object. Recursive.
-        nodeTree = node(usingNavigationDocumentOl: olElement)
+        nodeTree = node(usingNavigationDocumentOl: olElement, path)
 
         return nodeTree.children
     }
@@ -133,7 +147,8 @@ public class NavigationDocumentParser {
     ///
     /// - Parameter element: The <ol> from the Navigation Document.
     /// - Returns: The generated node(`Link`).
-    fileprivate func node(usingNavigationDocumentOl element: AEXMLElement) -> Link {
+    static fileprivate func node(usingNavigationDocumentOl element: AEXMLElement,
+                                 _ navigationDocumentPath: String) -> Link {
         let newOlNode = Link()
 
         // Retrieve the children <li> elements of the <ol>.
@@ -146,10 +161,10 @@ public class NavigationDocumentParser {
             if let spanText = li["span"].value, !spanText.isEmpty {
                 // Retrieve the <ol> inside the <span> and do a recursive call.
                 if let nextOl = li["ol"].first {
-                    newOlNode.children.append(node(usingNavigationDocumentOl: nextOl))
+                    newOlNode.children.append(node(usingNavigationDocumentOl: nextOl, navigationDocumentPath))
                 }
             } else {
-                let childLiNode = node(usingNavigationDocumentLi: li)
+                let childLiNode = node(usingNavigationDocumentLi: li, navigationDocumentPath)
 
                 newOlNode.children.append(childLiNode)
             }
@@ -163,7 +178,8 @@ public class NavigationDocumentParser {
     ///
     /// - Parameter element: The <ol> from the Navigation Document.
     /// - Returns: The generated node(`Link`).
-    fileprivate func node(usingNavigationDocumentLi element: AEXMLElement) -> Link {
+    static fileprivate func node(usingNavigationDocumentLi element: AEXMLElement,
+                                 _ navigationDocumentPath: String) -> Link {
         let newLiNode = Link ()
         var title = element["a"]["span"].value
 
@@ -175,7 +191,7 @@ public class NavigationDocumentParser {
         // If the <li> have a child <ol>.
         if let nextOl = element["ol"].first {
             // If a nested <ol> is found, insert it into the newNode childrens.
-            newLiNode.children.append(node(usingNavigationDocumentOl: nextOl))
+            newLiNode.children.append(node(usingNavigationDocumentOl: nextOl, navigationDocumentPath))
         }
         return newLiNode
     }

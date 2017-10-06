@@ -11,7 +11,7 @@ import AEXML
 
 extension MetadataParser: Loggable {}
 
-public class MetadataParser {
+final public class MetadataParser {
 
     /// Extracts the Rendition properties from the XML element metadata and fill
     /// then into the Metadata object instance.
@@ -19,7 +19,7 @@ public class MetadataParser {
     /// - Parameters:
     ///   - metadataElement: The XML element containing the metadatas.
     ///   - metadata: The `Metadata` object.
-    internal func parseRenditionProperties(from metadataElement: AEXMLElement,
+    static internal func parseRenditionProperties(from metadataElement: AEXMLElement,
                                            to metadata: inout Metadata) {
         guard let metas = metadataElement["meta"].all else {
             metadata.rendition.layout = RenditionLayout.reflowable
@@ -68,7 +68,7 @@ public class MetadataParser {
     /// - Parameter metadata: The `<metadata>` element.
     /// - Returns: The content of the `<dc:title>` element, `nil` if the element
     ///            wasn't found.
-    internal func mainTitle(from metadata: AEXMLElement) -> MultilangString? {
+    static internal func mainTitle(from metadata: AEXMLElement) -> MultilangString? {
         // Return if there isn't any `<dc:title>` element
         guard let titles = metadata["dc:title"].all else {
             log(level: .error, "Error: Publication have no title")
@@ -93,7 +93,7 @@ public class MetadataParser {
     ///   - Attributes: The XML document attributes.
     /// - Returns: The content of the `<dc:identifier>` element, `nil` if the
     ///            element wasn't found.
-    internal func uniqueIdentifier(from metadata: AEXMLElement,
+    static internal func uniqueIdentifier(from metadata: AEXMLElement,
                                    with documentattributes: [String : String]) -> String?
     {
         // Look for `<dc:identifier>` elements.
@@ -117,7 +117,7 @@ public class MetadataParser {
     ///   - metadataElement: The XML element representing the Publication Metadata.
     /// - Returns: The date generated from the <dcterms:modified> meta element,
     ///            or nil if not found.
-    internal func modifiedDate(from metadataElement: AEXMLElement) -> Date? {
+    static internal func modifiedDate(from metadataElement: AEXMLElement) -> Date? {
         let modifiedAttribute = ["property" : "dcterms:modified"]
 
         // Search if the XML element is present, else return.
@@ -142,7 +142,7 @@ public class MetadataParser {
     /// - Parameters:
     ///   - metadataElement: The XML element representing the metadata.
     ///   - metadata: The Metadata object to fill (inout).
-    internal func subject(from metadataElement: AEXMLElement) -> Subject?
+    static internal func subject(from metadataElement: AEXMLElement) -> Subject?
     {
         /// Find the first <dc:subject> (Epub 3.1)
         guard let subjectElement = metadataElement["dc:subject"].first else {
@@ -168,7 +168,7 @@ public class MetadataParser {
     ///   - metadataElement: The XML element representing the metadata.
     ///   - metadata: The Metadata object to fill (inout).
     ///   - epubVersion: The version of the epub document being parsed.
-    internal func parseContributors(from metadataElement: AEXMLElement,
+    static internal func parseContributors(from metadataElement: AEXMLElement,
                                     to metadata: inout Metadata,
                                     _ epubVersion: Double?)
     {
@@ -195,7 +195,7 @@ public class MetadataParser {
     ///   - metadataElement: The XML element containing the metadata informations.
     ///   - metadata: The Metadata object.
     ///   - epubVersion: The version of the epub being parsed.
-    internal func parseContributor(from element: AEXMLElement, in metadataElement: AEXMLElement,
+    static internal func parseContributor(from element: AEXMLElement, in metadataElement: AEXMLElement,
                                    to metadata: inout Metadata)
     {
         let contributor = createContributor(from: element, metadataElement)
@@ -255,7 +255,7 @@ public class MetadataParser {
     /// - Parameters:
     ///   - element: The XML element reprensenting the contributor.
     /// - Returns: The newly created Contributor instance.
-    internal func createContributor(from element: AEXMLElement, _ metadata: AEXMLElement) -> Contributor
+    static internal func createContributor(from element: AEXMLElement, _ metadata: AEXMLElement) -> Contributor
     {
         // The 'to be returned' Contributor object.
         let contributor = Contributor()
@@ -282,7 +282,7 @@ public class MetadataParser {
     /// - Parameters:
     ///   - metadataElement: The Metadata XML element.
     ///   - otherMetadata: The publication's `otherMetadata` property.
-    internal func parseMediaDurations(from metadataElement: AEXMLElement,
+    static internal func parseMediaDurations(from metadataElement: AEXMLElement,
                                       to otherMetadata: inout [MetadataItem])
     {
         guard let metas = metadataElement["meta"].all else {
@@ -310,7 +310,7 @@ public class MetadataParser {
     ///   - titles: The titles XML elements array.
     ///   - metadata: The Publication Metadata XML object.
     /// - Returns: The main title XML element.
-    private func getMainTitleElement(from titles: [AEXMLElement],
+    static private func getMainTitleElement(from titles: [AEXMLElement],
                                      _ metadata: AEXMLElement) -> AEXMLElement?
     {
         return titles.first(where: {
@@ -330,7 +330,7 @@ public class MetadataParser {
     ///
     /// - Parameter metadata: The XML metadata element.
     /// - Returns: The array of XML element representing the contributors.
-    private func findContributorsXmlElements(in metadata: AEXMLElement) -> [AEXMLElement] {
+    static private func findContributorsXmlElements(in metadata: AEXMLElement) -> [AEXMLElement] {
         var allContributors = [AEXMLElement]()
 
         // Get the Publishers XML elements.
@@ -354,7 +354,7 @@ public class MetadataParser {
     ///
     /// - Parameter metadata: The metadata XML element.
     /// - Returns: The array of XML element representing the <meta> contributors.
-    private func findContributorsMetaXmlElements(in metadata: AEXMLElement) -> [AEXMLElement] {
+    static private func findContributorsMetaXmlElements(in metadata: AEXMLElement) -> [AEXMLElement] {
         var allContributors = [AEXMLElement]()
 
         // Get the Publishers XML elements.
@@ -384,7 +384,7 @@ public class MetadataParser {
     /// - Parameters:
     ///   - element: The element to parse (can be a title or a contributor).
     ///   - metadata: The metadata XML element.
-    private func multiString(forElement element: AEXMLElement,
+    static private func multiString(forElement element: AEXMLElement,
                              _ metadata: AEXMLElement) -> [String: String]
     {
         var multiString = [String:String]()

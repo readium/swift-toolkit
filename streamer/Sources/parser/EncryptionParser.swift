@@ -12,16 +12,16 @@ import AEXML
 extension EncryptionParser: Loggable {}
 
 /// A parser module which provide methods to parse encrypted XML elements.
-public class EncryptionParser {
-
+final public class EncryptionParser {
+    
     /// Parse the <EncryptionProperties> containing <EncryptionProperty> child
     /// elements in order to fill the `Encryption`.
     ///
     /// - Parameters:
     ///   - encryptedDataElement: The <EncryptedData> parent element.
     ///   - encryption: The `Encryption` structure to fill.
-    internal func parseEncryptionProperties(from encryptedDataElement: AEXMLElement,
-                                               to encryption: inout Encryption)
+    static internal func parseEncryptionProperties(from encryptedDataElement: AEXMLElement,
+                                                   to encryption: inout Encryption)
     {
         guard let encryptionProperties = encryptedDataElement["EncryptionProperties"]["EncryptionProperty"].all else {
             return
@@ -31,7 +31,7 @@ public class EncryptionParser {
             parseCompressionElement(from: encryptionProperty, to: &encryption)
         }
     }
-
+    
     /// Find the resource URI the encryptedDataElement is referencing, then look
     /// for an existing link in `publication` with an equal href.
     /// If found add `encryption` to the link properties.encryption.
@@ -41,9 +41,9 @@ public class EncryptionParser {
     ///   - publication: The `Publication` where to look for
     ///   - encryptedDataElement: The xml element containing the encrypted
     ///                           resource's URI.
-    internal func add(encryption: Encryption,
-                      toLinkInPublication publication: inout Publication,
-                      _ encryptedDataElement: AEXMLElement)
+    static internal func add(encryption: Encryption,
+                             toLinkInPublication publication: inout Publication,
+                             _ encryptedDataElement: AEXMLElement)
     {
         // Get the encryption data element associated ressource URI.
         if let resourceURI = encryptedDataElement["CipherData"]["CipherReference"].attributes["URI"] {
@@ -56,15 +56,15 @@ public class EncryptionParser {
             }
         }
     }
-
+    
     /// Parse the <Compression> element.
     ///
     /// - Parameters:
     ///   - encryptionProperty: The EncryptionProperty element, parent of
     ///                         <Compression>.
     ///   - encryption: The Encryption structure to fill.
-    fileprivate func parseCompressionElement(from encryptionProperty: AEXMLElement,
-                                             to encryption: inout Encryption)
+    static fileprivate func parseCompressionElement(from encryptionProperty: AEXMLElement,
+                                                    to encryption: inout Encryption)
     {
         // Check that we have a compression element, with originalLength, not empty.
         guard let compressionElement = encryptionProperty["Compression"].first,

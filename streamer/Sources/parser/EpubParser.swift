@@ -68,22 +68,7 @@ extension EpubParser: Loggable {}
 
 /// An EPUB container parser that extracts the information from the relevant
 /// files and builds a `Publication` instance out of it.
-public class EpubParser {
-    /// The multiple parsing submodules.
-    internal let opfp: OPFParser!
-    internal let ndp: NavigationDocumentParser!
-    internal let ncxp: NCXParser!
-    internal let encp: EncryptionParser!
-    internal let smilp: SMILParser!
-
-    public init() {
-        opfp = OPFParser()
-        ndp = NavigationDocumentParser()
-        ncxp = NCXParser()
-        encp = EncryptionParser()
-        smilp = SMILParser()
-    }
-
+final public class EpubParser {
     /// Parses the EPUB (file/directory) at `fileAtPath` and generate the
     /// corresponding `Publication` and `Container`.
     ///
@@ -97,7 +82,7 @@ public class EpubParser {
     /// - Throws: `EpubParserError.wrongMimeType`,
     ///           `EpubParserError.xmlParse`,
     ///           `EpubParserError.missingFile`
-    public func parse(fileAtPath path: String) throws -> (PubBox, PubParsingCallback) {
+    static public func parse(fileAtPath path: String) throws -> (PubBox, PubParsingCallback) {
         // Generate the `Container` for `fileAtPath`
         var container = try generateContainerFrom(fileAtPath: path)
 
@@ -114,9 +99,9 @@ public class EpubParser {
         let epubVersion = getEpubVersion(from: document)
         
         // Parse OPF file (Metadata, Spine, Resource) and return the Publication.
-        var publication = try opfp.parseOPF(from: document,
-                                            with: container.rootFile.rootFilePath,
-                                            and: epubVersion)
+        var publication = try OPFParser.parseOPF(from: document,
+                                                 with: container.rootFile.rootFilePath,
+                                                 and: epubVersion)
         // Check if the publication is DRM protected.
         let drm = scanForDrm(in: container)
         // Parse the META-INF/Encryption.xml.
@@ -145,7 +130,7 @@ public class EpubParser {
     ///
     /// - Parameter in: The Publication's Container.
     /// - Returns: The Drm if any found.
-    internal func scanForDrm(in container: Container) -> Drm? {
+    static internal func scanForDrm(in container: Container) -> Drm? {
         /// LCP.
         // Check if a LCP license file is present in the container.
         if ((try? container.data(relativePath: EpubConstant.lcplFilePath)) != nil) {
@@ -167,13 +152,13 @@ public class EpubParser {
     ///   - container: The EPUB Container.
     ///   - publication: The Publication.
     /// - Throws: 
-    internal func parseEncryption(from container: Container, to publication: inout Publication, _ drm: Drm?) {
+    static internal func parseEncryption(from container: Container, to publication: inout Publication, _ drm: Drm?) {
         //if publication.metadata.title ==
         // Check if there is an encryption file.
         guard let documentData = try? container.data(relativePath: EpubConstant.encryptionDotXmlPath),
             let document = try? AEXMLDocument.init(xml: documentData) else {
-            // To encryption document.
-            return
+                // To encryption document.
+                return
         }
         // Are any files encrypted.
         guard let encryptedDataElements = document["encryption"]["EncryptedData"].all else {
@@ -195,8 +180,8 @@ public class EpubParser {
             // LCP END.
             encryption.algorithm = encryptedDataElement["EncryptionMethod"].attributes["Algorithm"]
 
-            encp.parseEncryptionProperties(from: encryptedDataElement, to: &encryption)
-            encp.add(encryption: encryption, toLinkInPublication: &publication,
+            EncryptionParser.parseEncryptionProperties(from: encryptedDataElement, to: &encryption)
+            EncryptionParser.add(encryption: encryption, toLinkInPublication: &publication,
                      encryptedDataElement)
         }
     }
@@ -208,7 +193,7 @@ public class EpubParser {
     /// - Parameters:
     ///   - container: The Epub container.
     ///   - publication: The Epub publication.
-    internal func parseNavigationDocument(from fetcher: Fetcher, to publication: inout Publication) {
+    static internal func parseNavigationDocument(from fetcher: Fetcher, to publication: inout Publication) {
         // Get the link in the spine pointing to the Navigation Document.
         guard let navLink = publication.link(withRel: "contents"),
             let navDocumentData = try? fetcher.data(forLink: navLink),
@@ -216,15 +201,24 @@ public class EpubParser {
             let navDocument = try? AEXMLDocument.init(xml: navDocumentData!) else {
                 return
         }
-        // Set the location of the navigation document in order to normalize href pathes.
-        ndp.navigationDocumentPath = navLink.href
-        let newTableOfContentsItems = ndp.tableOfContent(fromNavigationDocument: navDocument)
-        let newLandmarksItems = ndp.landmarks(fromNavigationDocument: navDocument)
-        let newListOfAudiofiles = ndp.listOfAudiofiles(fromNavigationDocument: navDocument)
-        let newListOfIllustrations = ndp.listOfIllustrations(fromNavigationDocument: navDocument)
-        let newListOfTables = ndp.listOfTables(fromNavigationDocument: navDocument)
-        let newListOfVideos = ndp.listOfVideos(fromNavigationDocument: navDocument)
-        let newPageListItems = ndp.pageList(fromNavigationDocument: navDocument)
+        // Get the location of the navigation document in order to normalize href pathes.
+        guard let navigationDocumentPath = navLink.href else {
+            return
+        }
+        let newTableOfContentsItems = NavigationDocumentParser.tableOfContent(fromNavigationDocument: navDocument,
+                                                                              locatedAt: navigationDocumentPath)
+        let newLandmarksItems = NavigationDocumentParser.landmarks(fromNavigationDocument: navDocument,
+                                                                   locatedAt: navigationDocumentPath)
+        let newListOfAudiofiles = NavigationDocumentParser.listOfAudiofiles(fromNavigationDocument: navDocument,
+                                                                            locatedAt: navigationDocumentPath)
+        let newListOfIllustrations = NavigationDocumentParser.listOfIllustrations(fromNavigationDocument: navDocument,
+                                                                                  locatedAt: navigationDocumentPath)
+        let newListOfTables = NavigationDocumentParser.listOfTables(fromNavigationDocument: navDocument,
+                                                                    locatedAt: navigationDocumentPath)
+        let newListOfVideos = NavigationDocumentParser.listOfVideos(fromNavigationDocument: navDocument,
+                                                                    locatedAt: navigationDocumentPath)
+        let newPageListItems = NavigationDocumentParser.pageList(fromNavigationDocument: navDocument,
+                                                                 locatedAt: navigationDocumentPath)
 
         publication.tableOfContents.append(contentsOf:  newTableOfContentsItems)
         publication.landmarks.append(contentsOf: newLandmarksItems)
@@ -242,7 +236,7 @@ public class EpubParser {
     /// - Parameters:
     ///   - container: The Epub container.
     ///   - publication: The Epub publication.
-    internal func parseNcxDocument(from fetcher: Fetcher, to publication: inout Publication) {
+    static internal func parseNcxDocument(from fetcher: Fetcher, to publication: inout Publication) {
         // Get the link in the spine pointing to the NCX document.
         guard let ncxLink = publication.resources.first(where: { $0.typeLink == "application/x-dtbncx+xml" }),
             let ncxDocumentData = try? fetcher.data(forLink: ncxLink),
@@ -250,15 +244,19 @@ public class EpubParser {
             let ncxDocument = try? AEXMLDocument.init(xml: ncxDocumentData!) else {
                 return
         }
-        // Set the location of the NCX document in order to normalize href pathes.
-        ncxp.ncxDocumentPath = ncxLink.href
+        // Get the location of the NCX document in order to normalize href pathes.
+        guard let ncxDocumentPath = ncxLink.href else {
+            return
+        }
         if publication.tableOfContents.isEmpty {
-            let newTableOfContentItems = ncxp.tableOfContents(fromNcxDocument: ncxDocument)
+            let newTableOfContentItems = NCXParser.tableOfContents(fromNcxDocument: ncxDocument,
+                                                              locatedAt: ncxDocumentPath)
 
             publication.tableOfContents.append(contentsOf: newTableOfContentItems)
         }
         if publication.pageList.isEmpty {
-            let newPageListItems = ncxp.pageList(fromNcxDocument: ncxDocument)
+            let newPageListItems = NCXParser.pageList(fromNcxDocument: ncxDocument,
+                                                 locatedAt: ncxDocumentPath)
 
             publication.pageList.append(contentsOf: newPageListItems)
         }
@@ -271,7 +269,7 @@ public class EpubParser {
     /// - Parameters:
     ///   - container: The Epub Container.
     ///   - publication: The Publication object representing the Epub data.
-    internal func parseMediaOverlay(from fetcher: Fetcher,
+    static internal func parseMediaOverlay(from fetcher: Fetcher,
                                     to publication: inout Publication) throws
     {
         let mediaOverlays = publication.resources.filter({ $0.typeLink ==  "application/smil+xml"})
@@ -296,8 +294,8 @@ public class EpubParser {
                 node.text = normalize(base: mediaOverlayLink.href!, href: textRef)
             }
             // get body parameters <par>
-            smilp.parseParameters(in: body, withParent: node, base: mediaOverlayLink.href)
-            smilp.parseSequences(in: body, withParent: node, publicationSpine: &publication.spine, base: mediaOverlayLink.href)
+            SMILParser.parseParameters(in: body, withParent: node, base: mediaOverlayLink.href)
+            SMILParser.parseSequences(in: body, withParent: node, publicationSpine: &publication.spine, base: mediaOverlayLink.href)
             // "/??/xhtml/mo-002.xhtml#mo-1" => "/??/xhtml/mo-002.xhtml"
             guard let baseHref = node.text?.components(separatedBy: "#")[0],
                 let link = publication.spine.first(where: {
@@ -322,7 +320,7 @@ public class EpubParser {
     /// - Parameter data: The containerDotXml `Data` representation.
     /// - Throws: `EpubParserError.xmlParse`,
     ///           `EpubParserError.missingElement`.
-    fileprivate func getRootFilePath(from data: Data) throws -> String {
+    static fileprivate func getRootFilePath(from data: Data) throws -> String {
         let containerDotXml: AEXMLDocument
 
         do {
@@ -344,7 +342,7 @@ public class EpubParser {
     /// - Parameter containerXml: The XML container instance.
     /// - Returns: The OPF file path.
     /// - Throws: `EpubParserError.missingElement`.
-    fileprivate func getRelativePathToOPF(from rootFileElement: AEXMLElement) -> String? {
+    static fileprivate func getRelativePathToOPF(from rootFileElement: AEXMLElement) -> String? {
         guard let fullPath = rootFileElement.attributes["full-path"] else {
             return nil
         }
@@ -356,7 +354,7 @@ public class EpubParser {
     ///
     /// - Parameter containerXml: The XML container instance.
     /// - Returns: The OPF file path.
-    fileprivate func getEpubVersion(from document: AEXMLDocument) -> Double {
+    static fileprivate func getEpubVersion(from document: AEXMLDocument) -> Double {
         let version: Double
 
         if let versionAttribute = document.root.attributes["version"],
@@ -375,7 +373,7 @@ public class EpubParser {
     /// - Parameter path: The absolute path of the file.
     /// - Returns: The generated Container.
     /// - Throws: `EpubParserError.missingFile`.
-    fileprivate func generateContainerFrom(fileAtPath path: String) throws -> Container {
+    static fileprivate func generateContainerFrom(fileAtPath path: String) throws -> Container {
         var isDirectory: ObjCBool = false
         var container: Container?
 
