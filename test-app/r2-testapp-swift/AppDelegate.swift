@@ -161,26 +161,79 @@ extension AppDelegate {
     ///                        to add the publications to the server.
     internal func loadPublication(at location: Location) -> Bool {
         do {
-            let parseResult: PubBox
+            let publication: Publication
+            let container: Container
+            var drm: Drm?
+            var parsingCallback: PubParsingCallback?
 
             switch location.type {
             case .epub:
-                parseResult = try epubParser.parse(fileAtPath: location.absolutePath)
+                let parseResult = try epubParser.parse(fileAtPath: location.absolutePath)
+
+                publication = parseResult.0.publication
+                container = parseResult.0.associatedContainer
+                drm = parseResult.0.protectedBy
+                parsingCallback = parseResult.1
             case .cbz:
-                parseResult = try cbzParser.parse(fileAtPath: location.absolutePath)
+                let parseResult = try cbzParser.parse(fileAtPath: location.absolutePath)
+
+                publication = parseResult.publication
+                container = parseResult.associatedContainer
             case .unknown:
                 return false
             }
-            print(parseResult.publication.manifestCanonical)
-            // DRM HANDLING. TODONOW
+
+            // Drm Handling.
+            
+            if var drm = drm {
+                switch drm.brand{
+                case .lcp:
+                    let lcpUtils = LcpUtils()
+
+                    /// NEED TO DO LIGHT/HEAVY publication parsing (because UI not available yet for prompting)
+                    // drm = lcpUtils.resolve(drm: drm, passphrasePrompter: promptPassphrase)
+                }
+            }
+            do {
+                try parsingCallback!(drm)
+            } catch {
+                print(error.localizedDescription)
+            }
+
+
+            // GET GOOD drm from lcpmodule if lcp
+            // call back call back giving drm, if any
+
+            print(publication.manifestCanonical)
 
             /// Add.
-            try publicationServer.add(parseResult.publication, with: parseResult.associatedContainer)
+            try publicationServer.add(publication, with: container)
         } catch {
             print("Error parsing publication at path '\(location.relativePath)': \(error)")
             return false
         }
         return true
+    }
+
+    fileprivate func promptPassphrase(_ hint: String, _ confirmHandler: @escaping (String?) -> Void)
+    {
+        let alert = UIAlertController(title: "LCP Passphrase",
+                                      message: hint, preferredStyle: .alert)
+        let dismissButton = UIAlertAction(title: "Cancel", style: .cancel)
+        let confirmButton = UIAlertAction(title: "Submit", style: .default) { (_) in
+            let passphrase = alert.textFields?[0].text
+
+            confirmHandler(passphrase)
+        }
+        //adding textfields to our dialog box
+        alert.addTextField { (textField) in
+            textField.placeholder = "Passphrase"
+        }
+
+        alert.addAction(dismissButton)
+        alert.addAction(confirmButton)
+        // Present alert.
+        window!.rootViewController!.present(alert, animated: true)
     }
 
     /// Get the locations out of the application Documents/inbox directory.
