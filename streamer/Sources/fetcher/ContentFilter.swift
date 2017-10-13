@@ -60,8 +60,9 @@ final internal class ContentFiltersEpub: ContentFilters {
                         with container: Container,
                         at path: String) -> SeekableInputStream
     {
-        // TODO ADD DrmDecoder
-        var decodedInputStream = FontDecoder.decoding(input, of: publication, at: path)
+        var decodedInputStream = DrmDecoder.decoding(input, of: publication,
+                                                     at: path, with: container.drm)
+        decodedInputStream = FontDecoder.decoding(input, of: publication, at: path)
         // Inject additional content in the resource if test succeed.
         // if type == "application/xhtml+xml"
         //   if (publication layout is 'reflow' &&  resource is `not specified`)
@@ -96,7 +97,9 @@ final internal class ContentFiltersEpub: ContentFilters {
                         at path: String)  -> Data
     {
         let inputStream = DataInputStream(data: input)
-        var decodedInputStream = FontDecoder.decoding(inputStream, of: publication, at: path)
+        var decodedInputStream = DrmDecoder.decoding(inputStream, of: publication,
+                                                     at: path, with: container.drm)
+        decodedInputStream = FontDecoder.decoding(inputStream, of: publication, at: path)
 
         // Inject additional content in the resource if test succeed.
         if let link = publication.link(withHref: path),
@@ -118,6 +121,8 @@ final internal class ContentFiltersEpub: ContentFilters {
         }
         return decodedDataStream.data
     }
+
+    ////
 
     fileprivate func injectReflowableHtml(in stream: SeekableInputStream, for baseUrl: URL) -> SeekableInputStream {
 

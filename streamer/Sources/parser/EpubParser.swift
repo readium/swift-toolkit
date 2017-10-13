@@ -113,34 +113,12 @@ final public class EpubParser {
         func parseRemainingResource(protectedBy drm: Drm?) throws {
             container.drm = drm
 
-            // COMPLETE INFORMATIONS IN link encryption about profile
-
+            fillEncryptionScheme(forLinksIn: publication, using: drm)
             try parseMediaOverlay(from: fetcher, to: &publication)
-            // Parse Navigation Document.
             parseNavigationDocument(from: fetcher, to: &publication)
-            // Parse the NCX Document (if any).
             parseNcxDocument(from: fetcher, to: &publication)
         }
         return ((publication, container, drm), parseRemainingResource)
-    }
-
-    /// WIP, currently only LCP.
-    /// Scan Container (but later Publication too probably) to know if any DRM
-    /// are protecting the publication.
-    ///
-    /// - Parameter in: The Publication's Container.
-    /// - Returns: The Drm if any found.
-    static internal func scanForDrm(in container: Container) -> Drm? {
-        /// LCP.
-        // Check if a LCP license file is present in the container.
-        if ((try? container.data(relativePath: EpubConstant.lcplFilePath)) != nil) {
-            return Drm.init(brand: .lcp)
-        }
-        /// ADOBE.
-        // TODO
-        /// SONY.
-        // TODO
-        return nil
     }
 
     // MARK: - Internal Methods.
@@ -184,6 +162,25 @@ final public class EpubParser {
             EncryptionParser.add(encryption: encryption, toLinkInPublication: &publication,
                      encryptedDataElement)
         }
+    }
+
+    /// WIP, currently only LCP.
+    /// Scan Container (but later Publication too probably) to know if any DRM
+    /// are protecting the publication.
+    ///
+    /// - Parameter in: The Publication's Container.
+    /// - Returns: The Drm if any found.
+    static internal func scanForDrm(in container: Container) -> Drm? {
+        /// LCP.
+        // Check if a LCP license file is present in the container.
+        if ((try? container.data(relativePath: EpubConstant.lcplFilePath)) != nil) {
+            return Drm.init(brand: .lcp)
+        }
+        /// ADOBE.
+        // TODO
+        /// SONY.
+        // TODO
+        return nil
     }
 
     /// Attempt to fill `Publication.tableOfContent`/`.landmarks`/`.pageList`/
@@ -389,5 +386,29 @@ final public class EpubParser {
             throw EpubParserError.missingFile(path: path)
         }
         return containerUnwrapped
+    }
+
+    /// Called in the callback when the DRM has been informed of the encryption
+    /// scheme, in order to fill this information in the encrypted links.
+    ///
+    /// - Parameters:
+    ///   - publication: The Publication.
+    ///   - drm: The `Drm` object.
+    static fileprivate func fillEncryptionScheme(forLinksIn publication: Publication,
+                                                 using drm: Drm?)
+    {
+        guard let drm = drm else {
+            return
+        }
+        for link in publication.resources {
+            if link.properties.encryption?.profile == drm.profile {
+                link.properties.encryption?.scheme = drm.scheme.rawValue
+            }
+        }
+        for link in publication.spine {
+            if link.properties.encryption?.profile == drm.profile {
+                link.properties.encryption?.scheme = drm.scheme.rawValue
+            }
+        }
     }
 }

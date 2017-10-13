@@ -46,13 +46,16 @@ final public class EncryptionParser {
                              _ encryptedDataElement: AEXMLElement)
     {
         // Get the encryption data element associated ressource URI.
-        if let resourceURI = encryptedDataElement["CipherData"]["CipherReference"].attributes["URI"] {
+        if var resourceURI = encryptedDataElement["CipherData"]["CipherReference"].attributes["URI"] {
+            resourceURI = normalize(base: "/", href: resourceURI)
             // Find the ressource in Publication Links..
             if let link = publication.link(withHref: resourceURI) {
                 if link.properties == nil {
                     link.properties = Properties()
                 }
                 link.properties.encryption = encryption
+            } else {
+                print("RESOURCE NOT FOUND ------ ")
             }
         }
     }

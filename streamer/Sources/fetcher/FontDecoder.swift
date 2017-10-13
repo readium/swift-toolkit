@@ -32,7 +32,6 @@ internal class FontDecoder {
         case idpf = 1040
     }
 
-
     /// Decode obfuscated font from a SeekableInputStream, if the encryption is 
     /// known.
     ///
