@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftyJSON
+import PromiseKit
 
 /// Document that contains references to the various keys, links to related
 /// external resources, rights and restrictions that are applied to the
@@ -32,6 +33,13 @@ public class LicenseDocument {
     /// Used to validate the license integrity.
     public var signature: Signature
 
+    // The possible rel of Links.
+    public enum Rel: String {
+        case hint = "hint"
+        case publication = "publication"
+        case status = "status"
+    }
+
     public init(with json: JSON) throws {
         guard let id = json["id"].string,
             let issued = json["issued"].string,
@@ -54,10 +62,10 @@ public class LicenseDocument {
             self.updated = updatedDate
         }
         /// Check that links contains rel for Hint and Publication.
-        guard (link(withRel: "hint") != nil) else {
+        guard (link(withRel: Rel.hint) != nil) else {
             throw LcpError.hintLinkNotFound
         }
-        guard (link(withRel: "publication") != nil) else {
+        guard (link(withRel: Rel.publication) != nil) else {
             throw LcpError.publicationLinkNotFound
         }
     }
@@ -71,9 +79,44 @@ public class LicenseDocument {
     ///
     /// - Parameter rel: The rel to look for.
     /// - Returns: The first link containing the rel.
-    public func link(withRel rel: String) -> Link? {
-        return links.first(where: { $0.rel.contains(rel) })
+    public func link(withRel rel: Rel) -> Link? {
+        return links.first(where: { $0.rel.contains(rel.rawValue) })
     }
+
+    public func getHint() -> String {
+        return encryption.userKey.hint
+    }
+
+//    /// Returns a promise containing the License Hint.
+//    ///
+//    /// - Returns: The password hint phrase.
+//    public func getHint() -> Promise<String> {
+//        return Promise<String> { fulfill, reject in
+//            // Check for hint link.
+//            guard let hintLink = link(withRel: LicenseDocument.Rel.hint) else {
+//                reject(LcpError.hintLinkNotFound)
+//                return
+//            }
+//            // Fetch
+//            let request = URLRequest(url: hintLink.href)
+//            let task = URLSession.shared.dataTask(with: request, completionHandler: { (data, response, error) in
+//                guard let httpResponse = response as? HTTPURLResponse,
+//                    httpResponse.statusCode == 200 else
+//                {
+//                    reject(LcpError.unexpectedServerError)
+//                    return
+//                }
+//                guard let data = data,
+//                    let hint = String.init(data: data, encoding: String.Encoding.utf8) else
+//                {
+//                    reject(LcpError.invalidHintData)
+//                    return
+//                }
+//                fulfill(hint)
+//            })
+//            task.resume()
+//        }
+//    }
 
 }
 

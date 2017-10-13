@@ -16,19 +16,22 @@ final class LCPDatabase {
     /// Shared instance.
     public static let shared = LCPDatabase()
 
+    /// Connection.
+    let connection: Connection
     /// Tables.
     let licenses: Licenses!
     let transactions: Transactions!
 
     private init() {
         do {
-        var url = try FileManager.default.url(for: .libraryDirectory,
+            var url = try FileManager.default.url(for: .libraryDirectory,
                                                   in: .userDomainMask,
                                                   appropriateFor: nil, create: true)
-        
-        url.appendPathComponent("lcpdatabase.sqlite")
-        licenses = try Licenses.init(forDatabaseAt: url)
-        transactions = try Transactions.init(forDatabaseAt: url)
+
+            url.appendPathComponent("lcpdatabase.sqlite")
+            connection = try Connection(url.absoluteString)
+            licenses = try Licenses()
+            transactions = try Transactions()
         } catch {
             fatalError("Error initializing db.")
         }

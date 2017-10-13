@@ -22,13 +22,68 @@ public class LcpUtils {
     /// - Parameters:
     ///   - drm: The partialy completed DRM.
     ///   - passphrasePrompter: The callback to prompt the user for it's passphrase.
+    ///   - then: The code to be exected on success.
     /// - Returns: The filled DRM.
-    public func resolve(drm: Drm, passphrasePrompter: PassphrasePrompter) -> Drm {
-        // TODO
-        passphrasePrompter("shitthint", { passphrase in
-            print("passphrase == \(passphrase ?? "fail")")
-        })
-        return drm
+    public func resolve(drm: Drm,
+                        forLicenseAt url: URL,
+                        passphrasePrompter: @escaping PassphrasePrompter,
+                        completion: @escaping (Drm?, Error?) -> Void)
+    {
+        let lcp: Lcp
+
+        do {
+            lcp = try Lcp.init(withLicenseDocumentAt: url)
+        } catch {
+            completion(nil, error)
+            return
+        }
+
+        completion(nil, nil) // TMP
+
+        // 1/ Validate the license structure
+        // --- Cyril block.
+
+        // 2/ Get the passphrase associated with the license
+        let db = LCPDatabase.shared
+
+
+        /// 2.1/ Check if a passphrase hash has already been stored for the license.
+        // - let passphrase = try? db.transactions.passphrase(forLicense: lcp.license.id)
+        // - lcp.license.encryption.userKey.keyCheck
+        // - call cyrille lib, returns passphrase is success, error else.
+        //----  if error  then ->
+        /// 2.2/ Check if one or more passphrase hash associated with licenses
+        ///      from the same provider have been stored.
+        // - let passphrases = try? db.transactions.passphrases(forProvider: lcp.license.provider)
+        // - lcp.license.encryption.userKey.keyCheck
+        // - cal cyrille lib, returns passphrase if success, error else.
+
+        /// 2.3/ Display the hint and ask the passphrase to the user.
+        //        let hint = lcp.license.getHint()
+        //        return Promise<String> { fulfill, reject in
+        //            passphrasePrompter(hint, { passphrase in
+        //                guard let passphrase = passphrase else {
+        //                    reject(LcpError.emptyPassphrase)
+        //                    return
+        //                }
+        //                fulfill(passphrase)
+        //            })
+        //        }
+
+//        firstly {
+//
+//
+//            }.then { passphrase in
+//
+//            }.then { passphrase -> Promise<Void> in
+//                return
+//        }
+
+        /// 2.4/ Store the passphrase hash + license id tuple securely.
+        // 3/ Validate the license integrity
+        /// 3.1/ r2-lcp-client library (C++) with the passphrase hash, the license and CRL as parameters.
+        // 4/ Check the license status
+
     }
 
     /// Process a LCP License Document (LCPL).

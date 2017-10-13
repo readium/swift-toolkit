@@ -52,6 +52,11 @@ public class StatusDocument {
         case expired
     }
 
+    public enum Rel: String {
+        case register = "register"
+        case license = "license"
+    }
+
     public init(with data: Data) throws {
         let json = JSON(data: data)
 
@@ -80,7 +85,7 @@ public class StatusDocument {
     ///
     /// - Parameter rel: The rel to look for.
     /// - Returns: The first link containing the rel.
-    public func link(withRel rel: String) -> Link? {
-        return links.first(where: { $0.rel.contains(rel) })
+    public func link(withRel rel: Rel) -> Link? {
+        return links.first(where: { $0.rel.contains(rel.rawValue) })
     }
 }

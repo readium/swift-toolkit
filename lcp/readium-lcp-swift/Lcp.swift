@@ -34,7 +34,7 @@ public class Lcp {
     /// - Parameter completion:
     internal func fetchStatusDocument() -> Promise<Void> {
         return Promise<Void> { fulfill, reject in
-            guard let statusLink = license.link(withRel: "status") else {
+            guard let statusLink = license.link(withRel: LicenseDocument.Rel.status) else {
                 reject(LcpError.statusLinkNotFound)
                 return
             }
@@ -100,7 +100,7 @@ public class Lcp {
         }
         let deviceName = getDeviceName()
         // get registerUrl.
-        guard var registerUrl = status.link(withRel: "register")?.href else {
+        guard var registerUrl = status.link(withRel: StatusDocument.Rel.register)?.href else {
             print(LcpError.registerLinkNotFound.localizedDescription)
             return
         }
@@ -162,7 +162,7 @@ public class Lcp {
     /// - Returns: The URL representing the path of the publication localy.
     internal func fetchPublication() -> Promise<URL> {
         return Promise<URL> { fulfill, reject in
-            guard let publicationLink = license.link(withRel: "publication") else {
+            guard let publicationLink = license.link(withRel: LicenseDocument.Rel.publication) else {
                 reject(LcpError.publicationLinkNotFound)
                 return
             }
@@ -209,7 +209,7 @@ public class Lcp {
                 reject(LcpError.noStatusDocument)
                 return
             }
-            guard let licenseLink = status.link(withRel: "license") else {
+            guard let licenseLink = status.link(withRel: StatusDocument.Rel.license) else {
                 reject(LcpError.licenseLinkNotFound)
                 return
             }

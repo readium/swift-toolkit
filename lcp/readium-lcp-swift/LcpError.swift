@@ -21,6 +21,8 @@ public enum LcpError: Error {
     case registrationFailure
     case deviceId
     case unexpectedServerError
+    case invalidHintData
+    case emptyPassphrase
 
     case licenseStatus
     case invalidRights
@@ -58,7 +60,11 @@ public enum LcpError: Error {
         case .deviceId:
             return "Couldn't retrieve/generate a proper deviceId."
         case .unexpectedServerError:
-            return "An unexpected error has occured." 
+            return "An unexpected error has occured."
+        case .invalidHintData:
+            return "The data returned by the server for the hint is not valid."
+        case .emptyPassphrase:
+            return "The passphrase is empty."
         }
     }
 }
