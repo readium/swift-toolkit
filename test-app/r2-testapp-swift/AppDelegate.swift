@@ -28,9 +28,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     weak var libraryViewController: LibraryViewController!
-
     var publicationServer: PublicationServer!
+
+    /// TODO: make it static like the epub parser.
     var cbzParser: CbzParser!
+
+    /// Publications waiting to be added to the PublicationServer (first opening).
+    /// publication identifier : data
+    var items = [String: (PubBox, PubParsingCallback)]()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
 
@@ -43,16 +48,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             return false
         }
         self.publicationServer = publicationServer
-        // Init parsers.
+        // Init parser. // To be made static soon.
         cbzParser = CbzParser()
 
-        loadSamplePublications()
-        loadPublications()
+        // Parse publications (just the OPF and Encryption for now)
+        lightParseSamplePublications()
+        lightParsePublications()
 
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
 
-        guard let libraryVC = LibraryViewController(publicationServer.publications) else {
+        let publications = items.flatMap() { $0.value.0.publication }
+        guard let libraryVC = LibraryViewController(publications) else {
             print("Error instanciating the LibraryVC.")
             return false
         }
@@ -88,9 +95,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 }
                 /// parse publication (TOMOVE)
                 /// (should be light parsing and lib upgrade instead)
-                if self.loadPublication(at: Location(absolutePath: path,
-                                                     relativePath: "inbox",
-                                                     type: .epub)) {
+                if self.lightParsePublication(at: Location(absolutePath: path,
+                                                           relativePath: "inbox",
+                                                           type: .epub)) {
                     self.showInfoAlert(title: "Success", message: "LCP Publication added to library.")
                 } else {
                     self.showInfoAlert(title: "Error", message: "The LCP Publication couldn't be loaded.")
@@ -101,7 +108,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let location = Location(absolutePath: url.path,
                                     relativePath: url.lastPathComponent,
                                     type: getTypeForPublicationAt(url: url))
-            if !loadPublication(at: location) {
+            if !lightParsePublication(at: location) {
                 showInfoAlert(title: "Error", message: "The publication isn't valid.")
                 return false
             } else {
@@ -129,25 +136,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 extension AppDelegate {
 
-    fileprivate func loadPublications() {
+    fileprivate func lightParsePublications() {
         // Parse publication from documents folder.
         let locations = locationsFromInboxDirectory()
 
         // Load the publications.
         for location in locations {
-            if !loadPublication(at: location) {
+            if !lightParsePublication(at: location) {
                 print("Error loading publication \(location.relativePath).")
             }
         }
     }
 
-    fileprivate func loadSamplePublications() {
+    fileprivate func lightParseSamplePublications() {
         // Parse publication from documents folder.
         let locations = locationsFromSamples()
 
         // Load the publications.
         for location in locations {
-            if !loadPublication(at: location) {
+            if !lightParsePublication(at: location) {
                 print("Error loading publication \(location.relativePath).")
             }
         }
@@ -157,22 +164,22 @@ extension AppDelegate {
     ///
     /// - Parameter locations: The array of loations, containing the informations
     ///                        to add the publications to the server.
-    internal func loadPublication(at location: Location) -> Bool {
+    internal func lightParsePublication(at location: Location) -> Bool {
+        let publication: Publication
+        let container: Container
         do {
-            let publication: Publication
-            let container: Container
-            var drm: Drm?
-            var parsingCallback: PubParsingCallback?
-
             switch location.type {
             case .epub:
                 let parseResult = try EpubParser.parse(fileAtPath: location.absolutePath)
-
                 publication = parseResult.0.publication
                 container = parseResult.0.associatedContainer
-                drm = parseResult.0.protectedBy
-                parsingCallback = parseResult.1
+
+                guard let id = publication.metadata.identifier else {
+                    return false
+                }
+                items[id] = (parseResult.0, parseResult.1)
             case .cbz:
+                print("disabled")
                 let parseResult = try cbzParser.parse(fileAtPath: location.absolutePath)
 
                 publication = parseResult.publication
@@ -180,58 +187,13 @@ extension AppDelegate {
             case .unknown:
                 return false
             }
-
-            // Drm Handling.
-            
-            if var drm = drm {
-                switch drm.brand{
-                case .lcp:
-                    let lcpUtils = LcpUtils()
-
-                    /// NEED TO DO LIGHT/HEAVY publication parsing (because UI not available yet for prompting)
-                    // drm = lcpUtils.resolve(drm: drm, passphrasePrompter: promptPassphrase)
-                }
-            }
-            do {
-                try parsingCallback!(drm)
-            } catch {
-                print(error.localizedDescription)
-            }
-
-
-            // GET GOOD drm from lcpmodule if lcp
-            // call back call back giving drm, if any
-
-            print(publication.manifestCanonical)
-
-            /// Add.
+            /// Add the publication to the server.
             try publicationServer.add(publication, with: container)
         } catch {
             print("Error parsing publication at path '\(location.relativePath)': \(error)")
             return false
         }
         return true
-    }
-
-    fileprivate func promptPassphrase(_ hint: String, _ confirmHandler: @escaping (String?) -> Void)
-    {
-        let alert = UIAlertController(title: "LCP Passphrase",
-                                      message: hint, preferredStyle: .alert)
-        let dismissButton = UIAlertAction(title: "Cancel", style: .cancel)
-        let confirmButton = UIAlertAction(title: "Submit", style: .default) { (_) in
-            let passphrase = alert.textFields?[0].text
-
-            confirmHandler(passphrase)
-        }
-        //adding textfields to our dialog box
-        alert.addTextField { (textField) in
-            textField.placeholder = "Passphrase"
-        }
-
-        alert.addAction(dismissButton)
-        alert.addAction(confirmButton)
-        // Present alert.
-        window!.rootViewController!.present(alert, animated: true)
     }
 
     /// Get the locations out of the application Documents/inbox directory.
@@ -246,10 +208,8 @@ extension AppDelegate {
                                             create: true)
 
         inboxUrl.appendPathComponent("Inbox/")
-
         var files: [String]
 
-        print("\(inboxUrl.path)")
         // Get the array of files from the documents/inbox folder.
         do {
             files = try fileManager.contentsOfDirectory(atPath: inboxUrl.path)
@@ -345,6 +305,70 @@ extension AppDelegate {
 
 extension AppDelegate: LibraryViewControllerDelegate {
 
+    ///
+    ///
+    /// - Parameter id: <#id description#>
+    /// - Throws: <#throws value description#>
+    func loadPublication(withId id: String?) throws {
+        guard let id = id, let item = items[id] else {
+            print("Error no id")
+            return
+        }
+        let parsingCallback = item.1
+        guard let drm = item.0.protectedBy else {
+            // No DRM so the parsing callback can be directly called safely.
+            try parsingCallback(nil)
+            return
+        }
+        // Drm handling.
+        switch drm.brand {
+        case .lcp:
+            let epubPath = item.0.associatedContainer.rootFile.rootPath
+            guard let licenseUrl = URL.init(string: epubPath.appending(EpubConstant.lcplFilePath)) else {
+                print("URL error")
+                return
+            }
+            let lcpUtils = LcpUtils()
+
+            func completion(drm: Drm?, error: Error?) {
+                guard error == nil else {
+                    print(error!.localizedDescription)
+                    return
+                }
+                /// Parse the remaining stuff (could be made async),
+                /// but first need the drm from above to be completed.
+                try? parsingCallback(drm)
+            }
+
+            lcpUtils.resolve(drm: drm,
+                             forLicenseAt: licenseUrl,
+                             passphrasePrompter: promptPassphrase,
+                             completion: completion)
+
+        }
+    }
+
+    fileprivate func promptPassphrase(_ hint: String, _ confirmHandler: @escaping (String?) -> Void)
+    {
+        let alert = UIAlertController(title: "LCP Passphrase",
+                                      message: hint, preferredStyle: .alert)
+        let dismissButton = UIAlertAction(title: "Cancel", style: .cancel)
+        let confirmButton = UIAlertAction(title: "Submit", style: .default) { (_) in
+            let passphrase = alert.textFields?[0].text
+
+            confirmHandler(passphrase)
+        }
+        //adding textfields to our dialog box
+        alert.addTextField { (textField) in
+            textField.placeholder = "Passphrase"
+        }
+
+        alert.addAction(dismissButton)
+        alert.addAction(confirmButton)
+        // Present alert.
+        window!.rootViewController!.present(alert, animated: true)
+    }
+
     func remove(_ publication: Publication) {
         // Find associated container.
         guard let pubBox = publicationServer.pubBoxes.values.first(where: {
@@ -364,6 +388,5 @@ extension AppDelegate: LibraryViewControllerDelegate {
         publicationServer.remove(publication)
         libraryViewController?.publications = publicationServer.publications
     }
-
 }
 

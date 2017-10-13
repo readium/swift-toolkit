@@ -19,6 +19,7 @@ let insets = 5 // In px.
 
 protocol LibraryViewControllerDelegate: class {
     func remove(_ publication: Publication)
+    func loadPublication(withId id: String?) throws
 }
 
 class LibraryViewController: UICollectionViewController {
@@ -146,7 +147,6 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
     }
 
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        //        let cell = collectionView.cellForItem(at: indexPath) as! PublicationCell
         let publication = publications[indexPath.row]
 
         // Get publication type.
@@ -171,6 +171,11 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
             let userDefaults = UserDefaults.standard
             let index = userDefaults.integer(forKey: "\(publicationIdentifier)-document")
             let progression = userDefaults.double(forKey: "\(publicationIdentifier)-documentProgression")
+            do {
+                try delegate?.loadPublication(withId: publicationIdentifier)
+            } catch {
+                print(">> ERROR : \(error.localizedDescription)")
+            }
             let epubViewer = EpubViewController(with: publication,
                                                 atIndex: index,
                                                 progression: progression)
