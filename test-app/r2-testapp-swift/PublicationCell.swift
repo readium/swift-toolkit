@@ -27,6 +27,8 @@ class PublicationCell: UICollectionViewCell {
         imageView = UIImageView()
         menuView = CellMenuView(frame: frame)
         super.init(frame: frame)
+        isAccessibilityElement = true
+        accessibilityHint = "Hold to access options."
         imageView.contentMode = .scaleAspectFit
         imageView.frame = self.bounds
         menuView.delegate = self

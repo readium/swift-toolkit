@@ -66,6 +66,7 @@ class LibraryViewController: UICollectionViewController {
         recognizer.minimumPressDuration = 0.5
         recognizer.delaysTouchesBegan = true
         collectionView?.addGestureRecognizer(recognizer)
+        collectionView?.accessibilityLabel = "Library"
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -116,6 +117,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
         let publication = publications[indexPath.row]
 
         cell.delegate = self
+        cell.accessibilityLabel = publication.metadata.title
         // Load image and then apply the shadow.
         if let coverUrl = publication.uriTo(link: publication.coverLink) {
             cell.imageView.kf.setImage(with: coverUrl, placeholder: nil,
