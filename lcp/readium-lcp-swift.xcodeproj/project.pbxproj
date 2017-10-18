@@ -246,7 +246,6 @@
 				F3B2C8831F667222007601E4 /* Frameworks */,
 				F3B2C8841F667222007601E4 /* Headers */,
 				F3B2C8851F667222007601E4 /* Resources */,
-				F3B540911F82798800021D1A /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -330,24 +329,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		F3B540911F82798800021D1A /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/Carthage/Build/iOS/SQLite.framework",
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/$(FRAMEWORKS_FOLDER_PATH)/SQLite.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "/usr/local/bin/carthage copy-frameworks";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		F3B2C8821F667222007601E4 /* Sources */ = {
