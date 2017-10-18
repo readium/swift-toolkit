@@ -765,6 +765,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_ENABLE_CODE_COVERAGE = NO;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -783,6 +784,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_ENABLE_CODE_COVERAGE = NO;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
