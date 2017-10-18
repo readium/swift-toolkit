@@ -11,79 +11,109 @@ import PromiseKit
 import ZIPFoundation
 import R2Shared
 
-public typealias PassphrasePrompter = (_ hint: String,
-    _ comfirmHandler: @escaping (String?) -> Void) -> Void
-
 public class LcpUtils {
     public init () {}
 
-    /// This function aim at returning 
+    ///
     ///
     /// - Parameters:
     ///   - drm: The partialy completed DRM.
-    ///   - passphrasePrompter: The callback to prompt the user for it's passphrase.
-    ///   - then: The code to be exected on success.
-    /// - Returns: The filled DRM.
+    ///   - url: The epub archive url.
+    ///   - providedPassphrase: The passphrase, if not provided will look in base to find it.
+    ///   - completion: The code to be exected on success.
     public func resolve(drm: Drm,
-                        forLicenseAt url: URL,
-                        passphrasePrompter: @escaping PassphrasePrompter,
-                        completion: @escaping (Drm?, Error?) -> Void)
+                        forLicenseOf url: URL,
+                        providedPassphrase: String?,
+                        completion: @escaping (Drm, Error?, String?) -> Void)
     {
         let lcp: Lcp
 
         do {
-            lcp = try Lcp.init(withLicenseDocumentAt: url)
+            lcp = try Lcp.init(withLicenseDocumentIn: url)
         } catch {
-            completion(nil, error)
+            completion(drm, error, nil)
             return
         }
-
-        completion(nil, nil) // TMP
 
         // 1/ Validate the license structure
         // --- Cyril block.
 
-        // 2/ Get the passphrase associated with the license
-        let db = LCPDatabase.shared
+        firstly {
+            // If a passphrase has been provided.
+            if let providedPassphrase = providedPassphrase {
+                return  self.checkPassphrase(providedPassphrase)
+            } else {
+                // 2/ Try to get the passphrase associated with the license in DB.
+                return try self.checkDbPassphrases(lcp)
+            }
+            }.then { passphrase in // Passphrase is valid from here.
+                //4/ Store the passphrase hash + license id tuple securely.
+                self.storePassphrase(passphrase,
+                                     lcp.license.id,
+                                     lcp.license.provider)
+            }.then {
+                completion(drm, nil, nil)
+            }.catch { error in
+                completion(drm, error, lcp.license.getHint())
+        }
 
+    }
 
+    /// <#Description#>
+    ///
+    /// - Parameter passphrase: <#passphrase description#>
+    /// - Returns: <#return value description#>
+    private func checkPassphrase(_ passphrase: String) -> Promise<String> {
+        return Promise<String> { fulfill, reject in
+            // CYRILCODE - to check provided passphrase
+            //if fail, reject/throw
+            fulfill(passphrase)
+        }
+    }
+
+    /// <#Description#>
+    ///
+    /// - Parameters:
+    ///   - lcp: <#lcp description#>
+    ///   - passphrasePrompter: <#passphrasePrompter description#>
+    /// - Returns: <#return value description#>
+    private func checkDbPassphrases(_ lcp: Lcp) throws -> Promise<String> {
         /// 2.1/ Check if a passphrase hash has already been stored for the license.
-        // - let passphrase = try? db.transactions.passphrase(forLicense: lcp.license.id)
-        // - lcp.license.encryption.userKey.keyCheck
-        // - call cyrille lib, returns passphrase is success, error else.
-        //----  if error  then ->
         /// 2.2/ Check if one or more passphrase hash associated with licenses
         ///      from the same provider have been stored.
-        // - let passphrases = try? db.transactions.passphrases(forProvider: lcp.license.provider)
-        // - lcp.license.encryption.userKey.keyCheck
-        // - cal cyrille lib, returns passphrase if success, error else.
+        var passphrases = [String]()
+        let db = LCPDatabase.shared
+        passphrases = (try? db.transactions.possiblePassphrases(for: lcp.license.id,
+                                                                and: lcp.license.provider)) ?? []
 
-        /// 2.3/ Display the hint and ask the passphrase to the user.
-        //        let hint = lcp.license.getHint()
-        //        return Promise<String> { fulfill, reject in
-        //            passphrasePrompter(hint, { passphrase in
-        //                guard let passphrase = passphrase else {
-        //                    reject(LcpError.emptyPassphrase)
-        //                    return
-        //                }
-        //                fulfill(passphrase)
-        //            })
-        //        }
+        guard !passphrases.isEmpty else {
+            throw LcpError.passphraseNeeded
+        }
+        print(passphrases.description)
+        /// CYRILCODE - check if any of the passphrases match
+        // if yes fulfill() with it. // return
+        // lcp.license.encryption.userKey.keyCheck
+        return checkPassphrase("passphrase")
+    }
 
-//        firstly {
-//
-//
-//            }.then { passphrase in
-//
-//            }.then { passphrase -> Promise<Void> in
-//                return
-//        }
+    /// <#Description#>
+    ///
+    /// - Parameters:
+    ///   - passphrase: <#passphrase description#>
+    ///   - licenseId: <#licenseId description#>
+    ///   - provider: <#provider description#>
+    /// - Returns: <#return value description#>
+    private func storePassphrase(_ passphrase: String, _ licenseId: String, _ provider: URL) -> Promise<Void> {
+        return Promise { fulfill, reject in
+            let db = LCPDatabase.shared
 
-        /// 2.4/ Store the passphrase hash + license id tuple securely.
-        // 3/ Validate the license integrity
-        /// 3.1/ r2-lcp-client library (C++) with the passphrase hash, the license and CRL as parameters.
-        // 4/ Check the license status
-
+            do {
+                try db.transactions.add(licenseId, provider.absoluteString, passphrase)
+            } catch {
+                reject(error)
+            }
+            fulfill()
+        }
     }
 
     /// Process a LCP License Document (LCPL).
@@ -103,7 +133,7 @@ public class LcpUtils {
             return
         }
 
-        // BLOCK CYRILLE ---
+        // CYRILCODE -  check for valid license.
 
         firstly {
             /// 3.1/ Fetch the status document.
@@ -152,7 +182,7 @@ public class LcpUtils {
     /// - Throws: ``.
     internal func moveLicense(from licenseUrl: URL, to publicationUrl: URL) throws {
         guard let archive = Archive(url: publicationUrl, accessMode: .update) else  {
-            return
+            throw LcpError.archive
         }
         // Create local META-INF folder to respect the zip file hierachy.
         let fileManager = FileManager.default
@@ -168,7 +198,6 @@ public class LcpUtils {
                              relativeTo: urlMetaInf.deletingLastPathComponent())
         // Delete META-INF/license.lcpl from inbox.
         try fileManager.removeItem(at: urlMetaInf)
-
     }
 }
 

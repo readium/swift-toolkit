@@ -30,8 +30,8 @@ final class LCPDatabase {
 
             url.appendPathComponent("lcpdatabase.sqlite")
             connection = try Connection(url.absoluteString)
-            licenses = try Licenses()
-            transactions = try Transactions()
+            licenses = Licenses(connection)
+            transactions = Transactions(connection)
         } catch {
             fatalError("Error initializing db.")
         }

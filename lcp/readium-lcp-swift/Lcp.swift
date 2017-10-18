@@ -10,6 +10,7 @@ import Foundation
 import UIKit
 import PromiseKit
 import SwiftyJSON
+import ZIPFoundation
 
 public class Lcp {
     var licensePath: URL
@@ -22,6 +23,20 @@ public class Lcp {
         guard let data = try? Data.init(contentsOf: path.absoluteURL) else {
             throw LcpError.invalidPath
         }
+        let json = JSON(data: data)
+        guard let license = try? LicenseDocument.init(with: json) else {
+            throw LcpError.invalidLcpl
+        }
+        self.license = license
+    }
+
+    public init(withLicenseDocumentIn archive: URL) throws {
+        guard let url = URL.init(string: "META-INF/license.lcpl") else {
+            throw LcpError.invalidPath
+        }
+        licensePath = url
+        let data = try Lcp.getData(forFile: licensePath, fromArchive: archive)
+
         let json = JSON(data: data)
         guard let license = try? LicenseDocument.init(with: json) else {
             throw LcpError.invalidLcpl
@@ -243,6 +258,37 @@ public class Lcp {
             })
             task.resume()
         }
+    }
+
+    /// Get the data of a file from an archive.
+    ///
+    /// - Parameters:
+    ///   - file: Absolute path.
+    ///   - url: Relative path.
+    /// - Returns: If found, the Data object representing the file.
+    /// - Throws: .
+    static fileprivate func getData(forFile fileUrl: URL, fromArchive url: URL) throws -> Data {
+        guard let archive = Archive(url: url, accessMode: .read) else  {
+            throw LcpError.archive
+        }
+        guard let entry = archive[fileUrl.absoluteString] else {
+            throw LcpError.fileNotInArchive
+        }
+        var destPath = url.deletingLastPathComponent()
+
+        destPath.appendPathComponent("extracted_file.tmp")
+
+        let destUrl = URL.init(fileURLWithPath: destPath.absoluteString)
+        let data: Data
+
+        // Extract file.
+        _ = try archive.extract(entry, to: destUrl)
+        data = try Data.init(contentsOf: destUrl)
+
+        // Remove temporary file.
+        try FileManager.default.removeItem(at: destUrl)
+
+        return data
     }
     
 }

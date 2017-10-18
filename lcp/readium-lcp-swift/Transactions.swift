@@ -15,18 +15,47 @@ class Transactions {
     /// Table.
     let transactions = Table("Transactions")
     /// Fields.
-    let licenseId = Expression<Int>("licenseId")
+    let licenseId = Expression<String>("licenseId")
     let origin = Expression<String>("origin")
-    let passphrase = Expression<String>("passphrase") // hashed
+    let passphrase = Expression<String>("passphrase") // hashed.
     
-    init()  {
-        let db = LCPDatabase.shared.connection
-        
-        _ = try? db.run(transactions.create(temporary: false, ifNotExists: true) { t in
+    init(_ connection: Connection)  {
+        _ = try? connection.run(transactions.create(temporary: false, ifNotExists: true) { t in
             t.column(licenseId)
             t.column(origin)
             t.column(passphrase)
         })
+    }
+
+    func add(_ licenseId: String, _ origin: String, _ passphrase: String) throws {
+        let db = LCPDatabase.shared.connection
+
+        let insertQuery = transactions.insert(
+            self.licenseId <- licenseId,
+            self.origin <- origin,
+            self.passphrase <- passphrase
+        )
+        try db.run(insertQuery)
+    }
+
+    /// Try to find the possible passphrases for the license/provider tuple.
+    ///
+    /// - Parameters:
+    ///   - licenseId: <#licenseId description#>
+    ///   - provider: <#provider description#>
+    /// - Returns: <#return value description#>
+    func possiblePassphrases(for licenseId: String, and provider: URL) throws -> [String] {
+        var possiblePassphrases = [String]()
+        let licensePassphrase: String?
+        let providerPassphrases: [String]
+
+        licensePassphrase = try passphrase(for: licenseId)
+        providerPassphrases = try passphrases(for: provider)
+        if let licensePassphrase = licensePassphrase {
+            possiblePassphrases.append(licensePassphrase)
+        }
+        possiblePassphrases.append(contentsOf: providerPassphrases)
+        return possiblePassphrases
     }
 
     /// Returns the passphrase found for given license.
@@ -34,9 +63,9 @@ class Transactions {
     /// - Parameter id: <#id description#>
     /// - Returns: <#return value description#>
     /// - Throws: <#throws value description#>
-    func passphrase(forLicense id: String) throws -> String? {
+    func passphrase(for license: String) throws -> String? {
         let db = LCPDatabase.shared.connection
-        let query = transactions.select(passphrase).filter(licenseId == Int(id)!)
+        let query = transactions.select(passphrase).filter(licenseId == license)
 
         for row in try db.prepare(query) {
             return try row.get(passphrase)
@@ -44,13 +73,12 @@ class Transactions {
         return nil
     }
 
-
     /// Retursn a passphrases array found for
     ///
     /// - Parameter provider: <#provider description#>
     /// - Returns: <#return value description#>
     /// - Throws: <#throws value description#>
-    func passphrases(forProvider provider: URL) throws -> [String] {
+    func passphrases(for provider: URL) throws -> [String] {
         let db = LCPDatabase.shared.connection
         let query = transactions.select(passphrase).filter(origin == provider.absoluteString)
 

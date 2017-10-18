@@ -24,10 +24,8 @@ class Licenses {
     let end = Expression<Date?>("end")
     let state = Expression<String?>("state")
 
-    init() {
-        let db = LCPDatabase.shared.connection
-        
-        _ = try? db.run(licenses.create(temporary: false, ifNotExists: true) { t in
+    init(_ connection: Connection) {
+        _ = try? connection.run(licenses.create(temporary: false, ifNotExists: true) { t in
             t.column(id, unique: true)
             t.column(printsLeft)
             t.column(copiesLeft)

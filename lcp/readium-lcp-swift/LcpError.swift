@@ -23,6 +23,9 @@ public enum LcpError: Error {
     case unexpectedServerError
     case invalidHintData
     case emptyPassphrase
+    case archive
+    case fileNotInArchive
+    case passphraseNeeded
 
     case licenseStatus
     case invalidRights
@@ -65,6 +68,13 @@ public enum LcpError: Error {
             return "The data returned by the server for the hint is not valid."
         case .emptyPassphrase:
             return "The passphrase is empty."
+        case .archive:
+            return "Coudn't instantiate the archive object."
+        case .fileNotInArchive:
+            return "The file you requested couldn't be found in the archive."
+        case .passphraseNeeded:
+            return "Couldn't find a valide passphrase in the database, please provide a passphrase."
+
         }
     }
 }
