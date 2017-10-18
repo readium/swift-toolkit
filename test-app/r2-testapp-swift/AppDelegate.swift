@@ -316,7 +316,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
         }
         let parsingCallback = item.1
         guard let drm = item.0.protectedBy else {
-            // No DRM so the parsing callback can be directly called safely.
+            // No DRM, so the parsing callback can be directly called.
             try parsingCallback(nil)
             return
         }
@@ -324,27 +324,39 @@ extension AppDelegate: LibraryViewControllerDelegate {
         switch drm.brand {
         case .lcp:
             let epubPath = item.0.associatedContainer.rootFile.rootPath
-            guard let licenseUrl = URL.init(string: epubPath.appending(EpubConstant.lcplFilePath)) else {
+            guard let epubUrl = URL.init(string: epubPath) else {
                 print("URL error")
                 return
             }
             let lcpUtils = LcpUtils()
 
-            func completion(drm: Drm?, error: Error?) {
-                guard error == nil else {
-                    print(error!.localizedDescription)
-                    return
-                }
-                /// Parse the remaining stuff (could be made async),
-                /// but first need the drm from above to be completed.
-                try? parsingCallback(drm)
-            }
-
-            lcpUtils.resolve(drm: drm,
-                             forLicenseAt: licenseUrl,
-                             passphrasePrompter: promptPassphrase,
-                             completion: completion)
-
+//            func completion(drm: Drm, error: Error?, hint: String?) {
+//                guard error == nil else {
+//                    if (error as? LcpError) == LcpError.passphraseNeeded,
+//                        let hint = hint
+//                    {
+//                        // This time ask the passphrase to the user.
+//                        promptPassphrase(hint, { passphrase in
+//                            try lcpUtils.resolve(drm: drm,
+//                                                 forLicenseOf: epubUrl,
+//                                                 providedPassphrase: passphrase,
+//                                                 completion: completion)
+//                        })
+//                    } else {
+//                        print(error!.localizedDescription)
+//                        return
+//                    }
+//                }
+//                /// Parse the remaining stuff (could be made async),
+//                /// but first need the drm from above to be completed.
+//                try? parsingCallback(drm)
+//            }
+//
+//            // First call we don't give passphrase (to check if any in the LCP base)
+//            try lcpUtils.resolve(drm: drm,
+//                             forLicenseOf: epubUrl,
+//                             providedPassphrase: nil,
+//                             completion: completion)
         }
     }
 

@@ -175,14 +175,15 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
             let progression = userDefaults.double(forKey: "\(publicationIdentifier)-documentProgression")
             do {
                 try delegate?.loadPublication(withId: publicationIdentifier)
+                
+                let epubViewer = EpubViewController(with: publication,
+                                                    atIndex: index,
+                                                    progression: progression)
+
+                navigationController?.pushViewController(epubViewer, animated: true)
             } catch {
                 print(">> ERROR : \(error.localizedDescription)")
             }
-            let epubViewer = EpubViewController(with: publication,
-                                                atIndex: index,
-                                                progression: progression)
-
-            navigationController?.pushViewController(epubViewer, animated: true)
         default:
             break
         }

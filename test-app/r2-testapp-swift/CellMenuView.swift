@@ -33,12 +33,15 @@ class CellMenuView: UIView {
         modifiedFrame.origin = CGPoint.zero
         super.init(frame: modifiedFrame)
         backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
+        infoButton.isAccessibilityElement = true
         infoButton.setTitle("Infos", for: .normal)
         infoButton.setTitleColor(#colorLiteral(red: 0.2549019754, green: 0.2745098174, blue: 0.3019607961, alpha: 1), for: .normal)
         infoButton.addTarget(self, action: #selector(infoButtonTapped), for: .touchDown)
+        removeButton.isAccessibilityElement = true
         removeButton.setTitle("Remove", for: .normal)
         removeButton.setTitleColor(#colorLiteral(red: 0.7450980544, green: 0.1568627506, blue: 0.07450980693, alpha: 1), for: .normal)
         removeButton.addTarget(self, action: #selector(removeButtonTapped), for: .touchDown)
+        cancelButton.isAccessibilityElement = true
         cancelButton.setTitle("Cancel", for: .normal)
         cancelButton.setTitleColor(#colorLiteral(red: 0.2549019754, green: 0.2745098174, blue: 0.3019607961, alpha: 1), for: .normal)
         cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchDown)
