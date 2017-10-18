@@ -94,7 +94,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                     return
                 }
                 /// parse publication (TOMOVE)
-                /// (should be light parsing and lib upgrade instead)
                 if self.lightParsePublication(at: Location(absolutePath: path,
                                                            relativePath: "inbox",
                                                            type: .epub)) {
@@ -305,7 +304,7 @@ extension AppDelegate {
 
 extension AppDelegate: LibraryViewControllerDelegate {
 
-    ///
+    /// "heavy parse"
     ///
     /// - Parameter id: <#id description#>
     /// - Throws: <#throws value description#>
@@ -330,33 +329,20 @@ extension AppDelegate: LibraryViewControllerDelegate {
             }
             let lcpUtils = LcpUtils()
 
-//            func completion(drm: Drm, error: Error?, hint: String?) {
-//                guard error == nil else {
-//                    if (error as? LcpError) == LcpError.passphraseNeeded,
-//                        let hint = hint
-//                    {
-//                        // This time ask the passphrase to the user.
-//                        promptPassphrase(hint, { passphrase in
-//                            try lcpUtils.resolve(drm: drm,
-//                                                 forLicenseOf: epubUrl,
-//                                                 providedPassphrase: passphrase,
-//                                                 completion: completion)
-//                        })
-//                    } else {
-//                        print(error!.localizedDescription)
-//                        return
-//                    }
-//                }
-//                /// Parse the remaining stuff (could be made async),
-//                /// but first need the drm from above to be completed.
-//                try? parsingCallback(drm)
-//            }
-//
-//            // First call we don't give passphrase (to check if any in the LCP base)
-//            try lcpUtils.resolve(drm: drm,
-//                             forLicenseOf: epubUrl,
-//                             providedPassphrase: nil,
-//                             completion: completion)
+            func completion(drm: Drm, error: Error?, hint: String?) {
+                guard error == nil else {
+                    print(error!.localizedDescription)
+                    return
+                }
+                /// Parse the remaining stuff (could be made async),
+                /// but first need the drm from above to be completed.
+                try? parsingCallback(drm)
+            }
+
+            try lcpUtils.resolve(drm: drm,
+                             forLicenseOf: epubUrl,
+                             providedPassphrase: nil,
+                             completion: completion)
         }
     }
 
