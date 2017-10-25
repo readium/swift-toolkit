@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		F32314A21F8616C2000FCFB0 /* Drm.swift in Sources */ = {isa = PBXBuildFile; fileRef = F32314A11F8616C2000FCFB0 /* Drm.swift */; };
+		F3462DE41FA07A000011F559 /* Decipherer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3462DE31FA07A000011F559 /* Decipherer.swift */; };
 		F3E7D3F91F4EBE2100DF166D /* r2-shared-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = F3E7D3F71F4EBE2100DF166D /* r2-shared-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F3E7D40E1F4EC69100DF166D /* Contributor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4011F4EC69100DF166D /* Contributor.swift */; };
 		F3E7D40F1F4EC69100DF166D /* Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4021F4EC69100DF166D /* Encryption.swift */; };
@@ -28,6 +29,7 @@
 
 /* Begin PBXFileReference section */
 		F32314A11F8616C2000FCFB0 /* Drm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Drm.swift; sourceTree = "<group>"; };
+		F3462DE31FA07A000011F559 /* Decipherer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Decipherer.swift; sourceTree = "<group>"; };
 		F3B2C8681F602ED7007601E4 /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
 		F3E7D3F41F4EBE2100DF166D /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3E7D3F71F4EBE2100DF166D /* r2-shared-swift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "r2-shared-swift.h"; sourceTree = "<group>"; };
@@ -85,6 +87,7 @@
 				F3E7D3F81F4EBE2100DF166D /* Info.plist */,
 				F3E7D40C1F4EC69100DF166D /* RootFile.swift */,
 				F32314A11F8616C2000FCFB0 /* Drm.swift */,
+				F3462DE31FA07A000011F559 /* Decipherer.swift */,
 				F3E7D4221F4ECB3D00DF166D /* ISO8601DateString.swift */,
 				F3E7D41B1F4EC69C00DF166D /* Publication */,
 			);
@@ -229,6 +232,7 @@
 				F3E7D4191F4EC69100DF166D /* RootFile.swift in Sources */,
 				F3E7D4141F4EC69100DF166D /* MetadataItem.swift in Sources */,
 				F3E7D4101F4EC69100DF166D /* Link.swift in Sources */,
+				F3462DE41FA07A000011F559 /* Decipherer.swift in Sources */,
 				F3E7D4181F4EC69100DF166D /* Rendition.swift in Sources */,
 				F3E7D4121F4EC69100DF166D /* MediaOverlays.swift in Sources */,
 				F32314A21F8616C2000FCFB0 /* Drm.swift in Sources */,
