@@ -17,7 +17,7 @@ public struct Drm {
     public let scheme: Scheme
     /// The below properties will be filled when passed back to the DRM module.
     public var profile: String?
-    public var decypher: ((Data) -> Data)?
+    public var decipherer: Decipherer?
 
     public enum Brand {
         case lcp
