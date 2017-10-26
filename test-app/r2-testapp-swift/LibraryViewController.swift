@@ -19,7 +19,7 @@ let insets = 5 // In px.
 
 protocol LibraryViewControllerDelegate: class {
     func remove(_ publication: Publication)
-    func loadPublication(withId id: String?) throws
+    func loadPublication(withId id: String?, completion: @escaping () -> Void) throws
 }
 
 class LibraryViewController: UICollectionViewController {
@@ -174,13 +174,16 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
             let index = userDefaults.integer(forKey: "\(publicationIdentifier)-document")
             let progression = userDefaults.double(forKey: "\(publicationIdentifier)-documentProgression")
             do {
-                try delegate?.loadPublication(withId: publicationIdentifier)
-                
+                // Ask delegate to load that document.
+                try delegate?.loadPublication(withId: publicationIdentifier, completion: {
+
                 let epubViewer = EpubViewController(with: publication,
                                                     atIndex: index,
                                                     progression: progression)
 
-                navigationController?.pushViewController(epubViewer, animated: true)
+                    self.navigationController?.pushViewController(epubViewer, animated: true)
+
+                })
             } catch {
                 print(">> ERROR : \(error.localizedDescription)")
             }

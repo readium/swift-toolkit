@@ -1,4 +1,5 @@
 github "onevcat/Kingfisher" ~> 3.0
+github "mxcl/PromiseKit"
 github "readium/r2-shared-swift"  "master"
 github "readium/r2-streamer-swift" "master"
 github "readium/r2-navigator-swift" "master"

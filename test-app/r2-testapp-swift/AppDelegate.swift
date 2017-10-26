@@ -10,6 +10,8 @@ import UIKit
 import R2Shared
 import R2Streamer
 import ReadiumLCP
+import PromiseKit
+import CryptoSwift
 
 struct Location {
     let absolutePath: String
@@ -86,22 +88,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         switch url.pathExtension {
         case "lcpl":
-            let lcpUtils = LcpUtils()
-
-            // Retrieve publication using the LCPL.
-            lcpUtils.publication(forLicenseAt: url, completion: { publicationUrl, error in
-                guard let path = publicationUrl?.path else {
-                    return
-                }
-                /// parse publication (TOMOVE)
-                if self.lightParsePublication(at: Location(absolutePath: path,
-                                                           relativePath: "inbox",
-                                                           type: .epub)) {
-                    self.showInfoAlert(title: "Success", message: "LCP Publication added to library.")
-                } else {
-                    self.showInfoAlert(title: "Error", message: "The LCP Publication couldn't be loaded.")
-                }
-            })
+            firstly {
+                // Retrieve publication using the LCPL.
+                try publication(forLicenseAt: url)
+                }.then { publicationUrl -> Void in
+                    /// Parse publication. (tomove?)
+                    if self.lightParsePublication(at: Location(absolutePath: publicationUrl.path,
+                                                               relativePath: "inbox",
+                                                               type: .epub)) {
+                        self.showInfoAlert(title: "Success", message: "LCP Publication added to library.")
+                    } else {
+                        self.showInfoAlert(title: "Error", message: "The LCP Publication couldn't be loaded.")
+                    }
+                }.catch { error in
+                    self.showInfoAlert(title: "Error", message: error.localizedDescription)
+            }
         default:
             /// Add the publication to the publication server.
             let location = Location(absolutePath: url.path,
@@ -271,7 +272,7 @@ extension AppDelegate {
         }
     }
 
-    /// Try to guess the type (epub/cbz for now) of the publication at url.
+    /// Find the type (epub/cbz for now) of the publication at url.
     ///
     /// - Parameter url: The location of the publication file.
     /// - Returns: The type associated to this publication.
@@ -300,23 +301,75 @@ extension AppDelegate {
         }
         return publicationType
     }
+    
+    /// Process a LCP License Document (LCPL).
+    /// Fetching Status Document, updating License Document, Fetching Publication,
+    /// and moving the (updated) License Document into the publication archive.
+    ///
+    /// - Parameters:
+    ///   - path: The path of the License Document (LCPL).
+    ///   - completion: The handler to be called on completion.
+    internal func publication(forLicenseAt url: URL) throws -> Promise<URL> {
+        let lcp = try Lcp.init(withLicenseDocumentAt: url)
+        
+        return firstly {
+            /// 3.1/ Fetch the status document.
+            /// 3.2/ Validate the status document.
+            return lcp.fetchStatusDocument()
+            }.then { _ -> Promise<Void> in
+                /// 3.3/ Check that the status is "ready" or "active".
+                guard lcp.getStatus() == StatusDocument.Status.ready
+                    || lcp.getStatus() == StatusDocument.Status.active else {
+                        /// If this is not the case (revoked, returned, cancelled,
+                        /// expired), the app will notify the user and stop there.
+                        throw LcpError.licenseStatus
+                }
+                /// 3.4/ Check if the license has been updated. If it is the case,
+                //       the app must:
+                /// 3.4.1/ Fetch the updated license.
+                /// 3.4.2/ Validate the updated license. If the updated license
+                ///        is not valid, the app must keep the current one.
+                /// 3.4.3/ Replace the current license by the updated one in the
+                ///        EPUB archive.
+                return lcp.updateLicenseDocument()
+            }.then { _ -> Promise<URL> in
+                /// 4/ Check the rights.
+                guard lcp.areRightsValid() else {
+                    throw LcpError.invalidRights
+                }
+                /// 5/ Register the device / license if needed.
+                lcp.register()
+                /// 6/ Fetch the publication.
+                return lcp.fetchPublication()
+            }.then { publicationUrl -> Promise<URL> in
+                /// Move the license document in the publication.
+                try Lcp.moveLicense(from: lcp.licensePath, to: publicationUrl)
+                return Promise(value: publicationUrl)
+        }
+    }
 }
 
 extension AppDelegate: LibraryViewControllerDelegate {
 
-    /// "heavy parse"
+    
+    /// Complementary parsing of the publication.
+    /// Will parse Nav/ncx + mo (files that are possibly encrypted)
+    /// using the DRM object of the publication.container.
     ///
-    /// - Parameter id: <#id description#>
+    /// - Parameters:
+    ///   - id: <#id description#>
+    ///   - completion: <#completion description#>
     /// - Throws: <#throws value description#>
-    func loadPublication(withId id: String?) throws {
+    func loadPublication(withId id: String?, completion: @escaping () -> Void) throws {
         guard let id = id, let item = items[id] else {
             print("Error no id")
             return
         }
         let parsingCallback = item.1
-        guard let drm = item.0.protectedBy else {
+        guard var drm = item.0.protectedBy else {
             // No DRM, so the parsing callback can be directly called.
             try parsingCallback(nil)
+            completion()
             return
         }
         // Drm handling.
@@ -327,44 +380,114 @@ extension AppDelegate: LibraryViewControllerDelegate {
                 print("URL error")
                 return
             }
-            let lcpUtils = LcpUtils()
 
-            func completion(drm: Drm, error: Error?, hint: String?) {
-                guard error == nil else {
-                    print(error!.localizedDescription)
-                    return
+            let session = try LcpSession.init(protectedEpubUrl: epubUrl)
+
+            // get passphrase from DB, if not found prompt user, validate, go on
+            firstly {
+                // 1/ Validate the license structure
+                try session.validateLicense()
+                }.then { _ in
+                    // 2/ Get the passphrase associated with the license
+                    // 2.1/ Check if a passphrase hash has already been stored for the license.
+                    // 2.2/ Check if one or more passphrase hash associated with
+                    //      licenses from the same provider have been stored.
+                    //      + calls the r2-lcp-client library  to validate it.
+                    try session.passphraseFromDb()
+                }.then { passphraseHash -> Promise<String> in
+
+                    /// When passphrase is here should be commented.
+
+                    switch passphraseHash {
+                    // In case passphrase from db isn't found/valid.
+                    case nil:
+                        // 3/ Display the hint and ask the passphrase to the user.
+                        //      + calls the r2-lcp-client library  to validate it.
+                        let hint = session.getHint()
+                    
+                        return firstly {
+                            self.promptPassphrase(hint)
+                            }.then { clearPassphrase -> Promise<String?> in
+                                let passphraseHash = clearPassphrase.sha256()
+//                                let data = passphraseHash.data(using: .utf8)!
+//                                let hexString = data.map{ String(format:"%02x", $0) }.joined()
+                                
+                                return session.checkPassphrases([passphraseHash])
+                            }.then { validPassphraseHash -> Promise<String> in
+                                guard let validPassphraseHash = validPassphraseHash else {
+                                    throw LcpError.unknown
+                                }
+                                try session.storePassphrase(validPassphraseHash)
+                                return Promise(value: validPassphraseHash)
+                        }
+                    // Passphrase from db was already ok.
+                    default:
+                        return Promise(value: passphraseHash!)
+                    }
+                }.then { validPassphraseHash -> Promise<DeciphererLcp> in
+                    firstly {
+//                        // Get Certificat Revocation List. from "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl"
+//                        return Promise<String> { fulfill, reject in
+//                            guard let url = URL(string: "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl") else {
+//                                reject(LcpError.crlFetching)
+//                                return
+//                            }
+//                            var urlRequest = URLRequest.init(url: url)
+//
+//                            url
+//                            URLSession.shared.dataTask(with: url, completionHandler: <#T##(Data?, URLResponse?, Error?) -> Void#>)
+//                        }
+                        return Promise(value: "-----BEGIN X509 CRL-----MIICrTCBljANBgkqhkiG9w0BAQQFADBnMQswCQYDVQQGEwJGUjEOMAwGA1UEBxMFUGFyaXMxDzANBgNVBAoTBkVEUkxhYjESMBAGA1UECxMJTENQIFRlc3RzMSMwIQYDVQQDExpFRFJMYWIgUmVhZGl1bSBMQ1AgdGVzdCBDQRcNMTcwOTI2MTM1NTE1WhcNMjcwOTI0MTM1NTE1WjANBgkqhkiG9w0BAQQFAAOCAgEA27f50xnlaKGUdqs6u6rDWsR75z+tZrH4J2aA5E9I/K5fNe20FftQZb6XNjVQTNvawoMW0q+Rh9dVjDnV5Cfwptchu738ZQr8iCOLQHvIM6wqQj7XwMqvyNaaeGMZxfRMGlx7T9DOwvtWFCc5X0ikYGPPV19CFf1cas8x9Y3LE8GmCtX9eUrotWLKRggG+qRTCri/SlaoicfzqhViiGeLdW8RpG/Q6ox+tLHti3fxOgZarMgMbRmUa6OTh8pnxrfnrdtD2PbwACvaEMCpNCZRaSTMRmIxw8UUbUA/JxDIwyISGn3ZRgbFAglYzaX80rSQZr6e0bFlzHl1xZtZ0RazGQWP9vvfH5ESp6FsD98g//VYigatoPz/EKU4cfP+1W/Zrr4jRSBFB37rxASXPBcxL8cerb9nnRbAEvIqxnR4e0ZkhMyqIrLUZ3Jva0fC30kdtp09/KJ22mXKBz85wUQa7ihiSz7pov0R9hpY93fvt++idHBECRNGOeBC4wRtGxpru8ZUa0/KFOD0HXHMQDwVcIa/72T0okStOqjIOcWflxl/eAvUXwtet9Ht3o9giSl6hAObAeleMJOB37Bq9ASfh4w7d5he8zqfsCGjaG1OVQNWVAGxQQViWVysfcJohny4PIVAc9KkjCFa/QrkNGjrkUiV/PFCwL66iiF666DrXLY=-----END X509 CRL-----")
+                        }.then { pemCrl -> Promise<DeciphererLcp> in
+                            // Get a decipherer object for the given passphrase,
+                            // also checking that it's not revoqued using the crl.
+                            return session.resolve(using: validPassphraseHash, pemCrl: pemCrl)
+                    }
+                }.then { decipherer -> Void in
+                    drm.decipherer = decipherer
+                    
+                    drm.profile = session.getProfile()
+                    
+                    /// Parse the remaining stuff
+                    try? parsingCallback(drm)
+                    // Tell the caller than we done.
+                    completion()
+                }.catch { error in
+                    print("Error: \(error)")
+                    //throw LcpError.unknown
                 }
-                /// Parse the remaining stuff (could be made async),
-                /// but first need the drm from above to be completed.
-                try? parsingCallback(drm)
-            }
-
-            try lcpUtils.resolve(drm: drm,
-                             forLicenseOf: epubUrl,
-                             providedPassphrase: nil,
-                             completion: completion)
         }
     }
 
-    fileprivate func promptPassphrase(_ hint: String, _ confirmHandler: @escaping (String?) -> Void)
+    // Ask a passphrase to the user and verify it
+    func promptPassphrase(_ hint: String) -> Promise<String>
     {
-        let alert = UIAlertController(title: "LCP Passphrase",
-                                      message: hint, preferredStyle: .alert)
-        let dismissButton = UIAlertAction(title: "Cancel", style: .cancel)
-        let confirmButton = UIAlertAction(title: "Submit", style: .default) { (_) in
-            let passphrase = alert.textFields?[0].text
+        //return Promise(value: "motdepasse")
+        return Promise<String> { fullfil, reject in
+            let alert = UIAlertController(title: "LCP Passphrase",
+                                          message: hint, preferredStyle: .alert)
+            let dismissButton = UIAlertAction(title: "Cancel", style: .cancel)
+            let confirmButton = UIAlertAction(title: "Submit", style: .default) { (_) in
+                let passphrase = alert.textFields?[0].text
 
-            confirmHandler(passphrase)
-        }
-        //adding textfields to our dialog box
-        alert.addTextField { (textField) in
-            textField.placeholder = "Passphrase"
-        }
+                if let passphrase = passphrase {
+                    fullfil(passphrase)
+                } else {
+                    reject(LcpError.emptyPassphrase)
+                }
+            }
 
-        alert.addAction(dismissButton)
-        alert.addAction(confirmButton)
-        // Present alert.
-        window!.rootViewController!.present(alert, animated: true)
+            //adding textfields to our dialog box
+            alert.addTextField { (textField) in
+                textField.placeholder = "Passphrase"
+                textField.isSecureTextEntry = true
+            }
+
+            alert.addAction(dismissButton)
+            alert.addAction(confirmButton)
+            // Present alert.
+            window!.rootViewController!.present(alert, animated: true)
+        }
     }
 
     func remove(_ publication: Publication) {
