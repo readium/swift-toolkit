@@ -43,3 +43,4 @@ public class ContainerCbzDirectory: CbzContainer, DirectoryContainer {
         return list.map({ $0.path.lastPathComponent })
     }
 }
+

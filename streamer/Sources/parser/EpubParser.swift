@@ -113,7 +113,7 @@ final public class EpubParser {
         func parseRemainingResource(protectedBy drm: Drm?) throws {
             container.drm = drm
 
-            fillEncryptionScheme(forLinksIn: publication, using: drm)
+            fillEncryptionProfile(forLinksIn: publication, using: drm)
             try parseMediaOverlay(from: fetcher, to: &publication)
             parseNavigationDocument(from: fetcher, to: &publication)
             parseNcxDocument(from: fetcher, to: &publication)
@@ -277,6 +277,7 @@ final public class EpubParser {
         }
         for mediaOverlayLink in mediaOverlays {
             let node = MediaOverlayNode()
+            
             guard let smilData = try? fetcher.data(forLink: mediaOverlayLink),
                 smilData != nil,
                 let smilXml = try? AEXMLDocument(xml: smilData!) else
@@ -394,20 +395,20 @@ final public class EpubParser {
     /// - Parameters:
     ///   - publication: The Publication.
     ///   - drm: The `Drm` object.
-    static fileprivate func fillEncryptionScheme(forLinksIn publication: Publication,
-                                                 using drm: Drm?)
+    static fileprivate func fillEncryptionProfile(forLinksIn publication: Publication,
+                                                  using drm: Drm?)
     {
         guard let drm = drm else {
             return
         }
         for link in publication.resources {
-            if link.properties.encryption?.profile == drm.profile {
-                link.properties.encryption?.scheme = drm.scheme.rawValue
+            if link.properties.encryption?.scheme == drm.scheme.rawValue{
+                link.properties.encryption?.profile = drm.profile
             }
         }
         for link in publication.spine {
-            if link.properties.encryption?.profile == drm.profile {
-                link.properties.encryption?.scheme = drm.scheme.rawValue
+            if link.properties.encryption?.scheme == drm.scheme.rawValue {
+                link.properties.encryption?.profile = drm.profile
             }
         }
     }

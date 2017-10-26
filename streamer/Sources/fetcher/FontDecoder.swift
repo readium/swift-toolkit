@@ -42,26 +42,25 @@ internal class FontDecoder {
     ///   - path: The relative path of the resource inside of the publication.
     /// - Returns: The Inpustream containing the unencrypted resource.
     static internal func decoding(_ input: SeekableInputStream,
-                         of publication: Publication, at path: String) -> SeekableInputStream
+                                  of resourceLink: Link,
+                                  _ publicationIdentifier: String?) -> SeekableInputStream
     {
         // If the publicationIdentifier is not accessible, no deobfuscation is
         // possible.
-        guard let publicationIdentifier = publication.metadata.identifier else {
+        guard let publicationIdentifier = publicationIdentifier else {
             log(level: .error, "Couldn't get the publication identifier.")
             return input
         }
         // Check if the resource is encrypted.
-        guard let link = publication.link(withHref: path),
-            let encryption = link.properties.encryption,
+        guard let encryption = resourceLink.properties.encryption,
             let algorithm = encryption.algorithm else
         {
             return input
         }
         // Check if the decoder can handle the encryption.
         guard decodableAlgorithms.values.contains(algorithm),
-            let type = decoders[link.properties.encryption!.algorithm!] else
+            let type = decoders[algorithm] else
         {
-            log(level: .error, "\(path)'s encrypted but decoder can't handle it")
             return input
         }
         // Decode the data and return a seekable input stream.
@@ -78,18 +77,19 @@ internal class FontDecoder {
     ///   - length: The ObfuscationLength depending of the obfuscation type.
     /// - Returns: The Deobfuscated SeekableInputStream.
     static internal func decodingFont(_ input: SeekableInputStream,
-                             _ pubId: String,
+                             _ publicationIdentifier: String,
                              _ length: ObfuscationLength) -> DataInputStream
     {
         let publicationKey: [UInt8]
+        
         
         // Generate the hashKey from the publicationIdentifier and store it into
         // a byte array.
         switch length {
         case .adobe:
-            publicationKey = getHashKeyAdobe(publicationIdentifier: pubId)
+            publicationKey = getHashKeyAdobe(publicationIdentifier: publicationIdentifier)
         case .idpf:
-            publicationKey = hexaToBytes(pubId.sha1())
+            publicationKey = hexaToBytes(publicationIdentifier.sha1())
         }
         // Create a buffer object.
         // Deobfuscate the first X characters, depending of the type of obf..

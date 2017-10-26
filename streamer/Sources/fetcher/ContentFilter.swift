@@ -60,9 +60,15 @@ final internal class ContentFiltersEpub: ContentFilters {
                         with container: Container,
                         at path: String) -> SeekableInputStream
     {
-        var decodedInputStream = DrmDecoder.decoding(input, of: publication,
-                                                     at: path, with: container.drm)
-        decodedInputStream = FontDecoder.decoding(input, of: publication, at: path)
+        /// Get the link for the resource.
+        guard let resourceLink = publication.link(withHref: path) else {
+            return input
+        }
+        var decodedInputStream = DrmDecoder.decoding(input, of: resourceLink, with: container.drm)
+        decodedInputStream = FontDecoder.decoding(decodedInputStream,
+                                                  of: resourceLink,
+                                                  publication.metadata.identifier)
+    
         // Inject additional content in the resource if test succeed.
         // if type == "application/xhtml+xml"
         //   if (publication layout is 'reflow' &&  resource is `not specified`)
@@ -96,10 +102,15 @@ final internal class ContentFiltersEpub: ContentFilters {
                         with container: Container,
                         at path: String)  -> Data
     {
+        /// Get the link for the resource.
+        guard let resourceLink = publication.link(withHref: path) else {
+            return input
+        }
         let inputStream = DataInputStream(data: input)
-        var decodedInputStream = DrmDecoder.decoding(inputStream, of: publication,
-                                                     at: path, with: container.drm)
-        decodedInputStream = FontDecoder.decoding(inputStream, of: publication, at: path)
+        let dataInputStream = DrmDecoder.decoding(inputStream, of: resourceLink, with: container.drm)
+        var decodedInputStream = FontDecoder.decoding(dataInputStream,
+                                                      of: resourceLink,
+                                                      publication.metadata.identifier)
 
         // Inject additional content in the resource if test succeed.
         if let link = publication.link(withHref: path),

@@ -136,7 +136,12 @@ extension ZipArchiveContainer {
 
     // Override default imp. from Container protocol.
     public func data(relativePath: String) throws -> Data {
-        return try zipArchive.readData(path: relativePath)
+        var path = relativePath
+        
+        if path.characters.first == "/" {
+            _ = path.characters.popFirst()
+        }
+        return try zipArchive.readData(path: path)
     }
 
     // Override default imp. from Container protocol.
@@ -147,12 +152,12 @@ extension ZipArchiveContainer {
     // Override default imp. from Container protocol.
     public func dataInputStream(relativePath: String) throws -> SeekableInputStream {
         // One zipArchive instance per inputstream... for multithreading.
-        var pathFile = relativePath
+        var path = relativePath
 
-        if pathFile.characters.first == "/" {
-            _ = pathFile.characters.popFirst()
+        if path.characters.first == "/" {
+            _ = path.characters.popFirst()
         }
-        guard let inputStream = ZipInputStream(zipFilePath: rootFile.rootPath, path: pathFile) else {
+        guard let inputStream = ZipInputStream(zipFilePath: rootFile.rootPath, path: path) else {
             throw ContainerError.streamInitFailed
         }
         return inputStream

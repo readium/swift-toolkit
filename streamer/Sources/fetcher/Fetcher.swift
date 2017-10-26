@@ -74,17 +74,12 @@ internal class Fetcher {
 
     internal func data(forLink link: Link) throws -> Data? {
         // Get link.href
-        guard var path = link.href else {
+        guard let path = link.href else {
             throw FetcherError.linkNotFound
-        }
-        // Remove starting '/' for relative path.
-        if path.first == "/" {
-            _ = path.characters.popFirst()
         }
         var data = try container.data(relativePath: path)
 
-        data = try contentFilters.apply(to: data, of: publication,
-                                        with: container, at: path)
+        data = try contentFilters.apply(to: data, of: publication, with: container, at: path)
         return data
     }
 
