@@ -74,6 +74,7 @@
 		F3ED92DC1EA0C93F00E15C8F /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3ED92DB1EA0C93F00E15C8F /* CryptoSwift.framework */; };
 		F3ED92DD1EA0C9DD00E15C8F /* CryptoSwift.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = F3ED92DB1EA0C93F00E15C8F /* CryptoSwift.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F3ED92DE1EA0C9E400E15C8F /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3ED92DB1EA0C93F00E15C8F /* CryptoSwift.framework */; };
+		F3F41E151FA0EBDE00F97737 /* DataCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F41E141FA0EBDE00F97737 /* DataCompression.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -165,6 +166,7 @@
 		F3ED92D51E9F702E00E15C8F /* FontDecoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = FontDecoder.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		F3ED92D91EA0AF0000E15C8F /* DataInputStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataInputStream.swift; sourceTree = "<group>"; };
 		F3ED92DB1EA0C93F00E15C8F /* CryptoSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoSwift.framework; path = Carthage/Build/iOS/CryptoSwift.framework; sourceTree = "<group>"; };
+		F3F41E141FA0EBDE00F97737 /* DataCompression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DataCompression.swift; path = Sources/fetcher/DataCompression.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -250,6 +252,7 @@
 		59501DE71E2FB16600D1B4BF /* Fetcher */ = {
 			isa = PBXGroup;
 			children = (
+				F3F41E141FA0EBDE00F97737 /* DataCompression.swift */,
 				F351DB701E54B43400D84BDF /* Containers */,
 				59501DE81E2FB16600D1B4BF /* Fetcher.swift */,
 				F3B8F0231E9E62A50052D64B /* ContentFilter.swift */,
@@ -544,6 +547,7 @@
 				F3E6A2D61E70111500BBD81C /* Logger.swift in Sources */,
 				59501E0A1E2FB16600D1B4BF /* FileInputStream.swift in Sources */,
 				F300FA371F8E1D7700442332 /* DrmDecoder.swift in Sources */,
+				F3F41E151FA0EBDE00F97737 /* DataCompression.swift in Sources */,
 				F3E0214F1E9277A80094CFF7 /* ContainerCbzDirectory.swift in Sources */,
 				59501E0E1E2FB16600D1B4BF /* ioapi.c in Sources */,
 				F3ED92D61E9F702E00E15C8F /* FontDecoder.swift in Sources */,
