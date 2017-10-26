@@ -22,10 +22,13 @@ public enum LcpError: Error {
     case deviceId
     case unexpectedServerError
     case invalidHintData
-    case emptyPassphrase
     case archive
     case fileNotInArchive
-    case passphraseNeeded
+    case noPassphraseFound
+    case emptyPassphrase
+    case invalidJson
+    case invalidContext
+    case crlFetching
 
     case licenseStatus
     case invalidRights
@@ -66,15 +69,20 @@ public enum LcpError: Error {
             return "An unexpected error has occured."
         case .invalidHintData:
             return "The data returned by the server for the hint is not valid."
-        case .emptyPassphrase:
-            return "The passphrase is empty."
         case .archive:
             return "Coudn't instantiate the archive object."
         case .fileNotInArchive:
             return "The file you requested couldn't be found in the archive."
-        case .passphraseNeeded:
+        case .noPassphraseFound:
             return "Couldn't find a valide passphrase in the database, please provide a passphrase."
-
+        case .emptyPassphrase:
+            return "The passphrase provided is empty."
+        case .invalidJson:
+            return "The JSON license is not valid."
+        case .invalidContext:
+            return "The context provided is invalid."
+        case .crlFetching:
+            return "Error while fetching the certificate revocation list"
         }
     }
 }

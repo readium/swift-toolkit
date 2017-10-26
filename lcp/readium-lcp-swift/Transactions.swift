@@ -73,11 +73,10 @@ class Transactions {
         return nil
     }
 
-    /// Retursn a passphrases array found for
+    /// Return a passphrases array found for the given provider.
     ///
-    /// - Parameter provider: <#provider description#>
-    /// - Returns: <#return value description#>
-    /// - Throws: <#throws value description#>
+    /// - Parameter provider: The book provider URL.
+    /// - Returns: The passhrases found in DB for the given provider.
     func passphrases(for provider: URL) throws -> [String] {
         let db = LCPDatabase.shared.connection
         let query = transactions.select(passphrase).filter(origin == provider.absoluteString)

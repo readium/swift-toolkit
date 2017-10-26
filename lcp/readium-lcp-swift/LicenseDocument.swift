@@ -33,6 +33,8 @@ public class LicenseDocument {
     /// Used to validate the license integrity.
     public var signature: Signature
 
+    public var json: String
+
     // The possible rel of Links.
     public enum Rel: String {
         case hint = "hint"
@@ -40,7 +42,9 @@ public class LicenseDocument {
         case status = "status"
     }
 
-    public init(with json: JSON) throws {
+    public init(with data: Data) throws {
+        let json = JSON(data: data)
+
         guard let id = json["id"].string,
             let issued = json["issued"].string,
             let issuedDate = issued.dateFromISO8601,
@@ -48,6 +52,10 @@ public class LicenseDocument {
         {
             throw LcpParsingError.json
         }
+        guard let jsonString = String.init(data: data, encoding: String.Encoding.utf8) else {
+            throw LcpParsingError.json
+        }
+        self.json = jsonString
         self.id = id
         self.issued = issuedDate
         self.provider = provider

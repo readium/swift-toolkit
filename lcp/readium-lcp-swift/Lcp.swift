@@ -13,7 +13,7 @@ import SwiftyJSON
 import ZIPFoundation
 
 public class Lcp {
-    var licensePath: URL
+    public var licensePath: URL
     var license: LicenseDocument
     var status: StatusDocument?
     
@@ -23,8 +23,7 @@ public class Lcp {
         guard let data = try? Data.init(contentsOf: path.absoluteURL) else {
             throw LcpError.invalidPath
         }
-        let json = JSON(data: data)
-        guard let license = try? LicenseDocument.init(with: json) else {
+        guard let license = try? LicenseDocument.init(with: data) else {
             throw LcpError.invalidLcpl
         }
         self.license = license
@@ -37,8 +36,7 @@ public class Lcp {
         licensePath = url
         let data = try Lcp.getData(forFile: licensePath, fromArchive: archive)
 
-        let json = JSON(data: data)
-        guard let license = try? LicenseDocument.init(with: json) else {
+        guard let license = try? LicenseDocument.init(with: data) else {
             throw LcpError.invalidLcpl
         }
         self.license = license
@@ -47,7 +45,7 @@ public class Lcp {
     /// Update the Status Document.
     ///
     /// - Parameter completion:
-    internal func fetchStatusDocument() -> Promise<Void> {
+    public func fetchStatusDocument() -> Promise<Void> {
         return Promise<Void> { fulfill, reject in
             guard let statusLink = license.link(withRel: LicenseDocument.Rel.status) else {
                 reject(LcpError.statusLinkNotFound)
@@ -74,7 +72,7 @@ public class Lcp {
     /// Check that current date is inside the [end - start] right's dates range.
     ///
     /// - Returns: True if valid.
-    internal func areRightsValid() -> Bool {
+    public func areRightsValid() -> Bool {
         let now = Date.init()
         
         if let start = license.rights.start,
@@ -94,7 +92,7 @@ public class Lcp {
     /// register it then write a row in DB.
     /// Note: This function fail without blocking the flow of LCP process.
     /// If not registered this time, will be the next time.
-    internal func register() {
+    public func register() {
         let database = LCPDatabase.shared
 
         // Check that no existing license with license.id are in the base.
@@ -152,7 +150,7 @@ public class Lcp {
     /// Return the name of the Device.
     ///
     /// - Returns: The device name.
-    internal func getDeviceName() -> String {
+    public func getDeviceName() -> String {
         return UIDevice.current.name
     }
     
@@ -161,7 +159,7 @@ public class Lcp {
     /// save it.
     ///
     /// - Returns: The device unique ID.
-    internal func getDeviceId() -> String? {
+    public func getDeviceId() -> String? {
         guard let deviceId = UserDefaults.standard.string(forKey: "lcp_device_id") else {
             let deviceId = UUID.init()
             
@@ -171,11 +169,15 @@ public class Lcp {
         return deviceId
     }
     
+    public func getStatus() -> StatusDocument.Status? {
+        return status?.status ?? nil
+    }
+    
     /// Download publication to inbox and return the path to the downloaded
     /// resource.
     ///
     /// - Returns: The URL representing the path of the publication localy.
-    internal func fetchPublication() -> Promise<URL> {
+    public func fetchPublication() -> Promise<URL> {
         return Promise<URL> { fulfill, reject in
             guard let publicationLink = license.link(withRel: LicenseDocument.Rel.publication) else {
                 reject(LcpError.publicationLinkNotFound)
@@ -218,7 +220,7 @@ public class Lcp {
     /// Update the License Document.
     ///
     /// - Parameter completion:
-    internal func updateLicenseDocument() -> Promise<Void> {
+    public func updateLicenseDocument() -> Promise<Void> {
         return Promise<Void> { fulfill, reject in
             guard let status = self.status else {
                 reject(LcpError.noStatusDocument)
@@ -239,7 +241,7 @@ public class Lcp {
                         /// Refresh the current LicenseDocument in memory with the
                         /// freshly fetched one.
                         content = try Data.init(contentsOf: localUrl)
-                        self.license = try LicenseDocument.init(with: JSON(content))
+                        self.license = try LicenseDocument.init(with: content)
                         /// Replace the current licenseDocument on disk with the
                         /// new one.
                         try FileManager.default.removeItem(at: self.licensePath)
@@ -247,14 +249,12 @@ public class Lcp {
                         try FileManager.default.moveItem(at: localUrl,
                                                          to: self.licensePath)
                     } catch {
-                        reject(error)
+                        print(error.localizedDescription)
                     }
-                    fulfill()
                 } else if let error = error {
-                    reject(error)
-                } else {
-                    reject(LcpError.unknown)
+                    print(error.localizedDescription)
                 }
+                fulfill()
             })
             task.resume()
         }
@@ -291,4 +291,30 @@ public class Lcp {
         return data
     }
     
+    /// Moves the license.lcpl file from the "Documents/Inbox/" folder to the Zip archive
+    /// META-INF folder.
+    ///
+    /// - Parameters:
+    ///   - licenseUrl: The url of the license.lcpl file on the file system.
+    ///   - publicationUrl: The url of the publication archive
+    /// - Throws: ``.
+    static public func moveLicense(from licenseUrl: URL, to publicationUrl: URL) throws {
+        guard let archive = Archive(url: publicationUrl, accessMode: .update) else  {
+            throw LcpError.archive
+        }
+        // Create local META-INF folder to respect the zip file hierachy.
+        let fileManager = FileManager.default
+        var urlMetaInf = licenseUrl.deletingLastPathComponent()
+        
+        urlMetaInf.appendPathComponent("META-INF", isDirectory: true)
+        try fileManager.createDirectory(at: urlMetaInf, withIntermediateDirectories: true, attributes: nil)
+        
+        // Move license in the META-INF local folder.
+        try fileManager.moveItem(at: licenseUrl, to: urlMetaInf.appendingPathComponent("license.lcpl"))
+        // Copy META-INF/license.lcpl to archive.
+        try archive.addEntry(with: urlMetaInf.lastPathComponent.appending("/license.lcpl"),
+                             relativeTo: urlMetaInf.deletingLastPathComponent())
+        // Delete META-INF/license.lcpl from inbox.
+        try fileManager.removeItem(at: urlMetaInf)
+    }
 }
