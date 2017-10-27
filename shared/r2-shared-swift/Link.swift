@@ -16,30 +16,28 @@ public class Link {
     /// MIME type of resource.
     public var typeLink: String?
     /// Indicates the relationship between the resource and its containing collection.
-    public var rel: [String]!
+    public var rel = [String]()
     /// Indicates the height of the linked resource in pixels.
     public var height: Int?
     /// Indicates the width of the linked resource in pixels.
     public var width: Int?
     public var title: String?
     /// Properties associated to the linked resource.
-    public var properties: Properties!
+    public var properties = Properties()
     /// Indicates the length of the linked resource in seconds.
     public var duration: TimeInterval?
     /// Indicates that the linked resource is a URI template.
     public var templated: Bool?
+    /// Indicate the bitrate for the link resource.
+    public var bitrate: Int?
+    
 
     /// The underlaying nodes in a tree structure of `Link`s.
-    public var children: [Link]!
+    public var children = [Link]()
     /// The MediaOverlays associated to the resource of the `Link`.
-    public var mediaOverlays: MediaOverlays!
+    public var mediaOverlays = MediaOverlays()
 
-    public init() {
-        properties = Properties()
-        mediaOverlays = MediaOverlays()
-        rel = [String]()
-        children = [Link]()
-    }
+    public init() {}
 
     public required init?(map: Map) {}
 
@@ -48,7 +46,7 @@ public class Link {
     ///
     /// - Returns: True if encrypted.
     public func isEncrypted() -> Bool {
-        guard let properties = properties, let _ = properties.encryption else {
+        guard let _ = properties.encryption else {
             return false
         }
         return true

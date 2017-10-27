@@ -21,7 +21,9 @@ public class Subject {
     public var scheme: String?
     /// Epub 3.1 "code" (opf:term)
     public var code: String?
-
+    /// Used to retrieve similar publications for the given subjects.
+    public var links = [Link]()
+    
     public init() {}
     
     public required init?(map: Map) {}

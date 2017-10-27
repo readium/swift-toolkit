@@ -32,6 +32,8 @@ public class Publication {
     public var listOfTables = [Link]()
     public var listOfVideos = [Link]()
     public var pageList = [Link]()
+    /// OPDS
+    public var images = [Link]()
 
     /// Extension point for links that shouldn't show up in the manifest.
     public var otherLinks = [Link]()

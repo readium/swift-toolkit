@@ -19,12 +19,13 @@ public class Contributor {
             return multilangName.singleString
         }
     }
-    /// TODO.
     public var sortAs: String?
     /// An unambiguous reference to this contributor.
     public var identifier: String?
     /// The role of the contributor in the publication making.
-    public var roles: [String] = []
+    public var roles = [String]()
+    /// Used to retrieve similar publications for the given contributor.
+    public var links = [Link]()
 
     public init() {}
 

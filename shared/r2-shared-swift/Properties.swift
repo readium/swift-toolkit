@@ -31,6 +31,12 @@ public struct Properties {
     /// Indicates the condition to be met for the linked resource to be rendered
     /// within a synthetic spread.
     public var spread: String?
+    ///
+    public var numberOfItems: Int?
+    ///
+    public var price: Price?
+    ///
+    public var indirectAcquisition: IndirectAcquisition?
 
     public init() {}
 }

@@ -23,6 +23,9 @@ public class Metadata {
     public var languages = [String]()
     public var identifier: String?
     // Contributors.
+    public var publishers = [Contributor]()
+    public var imprints = [Contributor]()
+    public var contributors = [Contributor]()
     public var authors = [Contributor]()
     public var translators = [Contributor]()
     public var editors = [Contributor]()
@@ -33,11 +36,8 @@ public class Metadata {
     public var colorists = [Contributor]()
     public var inkers = [Contributor]()
     public var narrators = [Contributor]()
-    public var imprints = [Contributor]()
 
     public var subjects = [Subject]()
-    public var publishers = [Contributor]()
-    public var contributors = [Contributor]()
     public var modified: Date?
     public var publicationDate: String?
     public var description: String?
@@ -47,6 +47,13 @@ public class Metadata {
     public var epubType = [String]()
     public var rights: String?
     public var otherMetadata = [MetadataItem]()
+    
+    // TODO: support parsing from OPF.
+    public var belongsTo: BelongsTo?
+    
+    public var duration: Int?
+    
+    //belongto duration
 
     public init() {
         direction = "default"
