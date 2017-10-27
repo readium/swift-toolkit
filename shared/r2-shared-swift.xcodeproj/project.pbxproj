@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 		F32314A21F8616C2000FCFB0 /* Drm.swift in Sources */ = {isa = PBXBuildFile; fileRef = F32314A11F8616C2000FCFB0 /* Drm.swift */; };
 		F3462DE41FA07A000011F559 /* Decipherer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3462DE31FA07A000011F559 /* Decipherer.swift */; };
+		F3B187A01FA33D4D00BB46BF /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B1879F1FA33D4D00BB46BF /* Feed.swift */; };
+		F3B187A21FA33DFA00BB46BF /* Facet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B187A11FA33DFA00BB46BF /* Facet.swift */; };
+		F3B187A41FA33E1D00BB46BF /* OpdsMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B187A31FA33E1D00BB46BF /* OpdsMetadata.swift */; };
+		F3B187A61FA33E4900BB46BF /* Group.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B187A51FA33E4900BB46BF /* Group.swift */; };
 		F3E7D3F91F4EBE2100DF166D /* r2-shared-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = F3E7D3F71F4EBE2100DF166D /* r2-shared-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F3E7D40E1F4EC69100DF166D /* Contributor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4011F4EC69100DF166D /* Contributor.swift */; };
 		F3E7D40F1F4EC69100DF166D /* Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4021F4EC69100DF166D /* Encryption.swift */; };
@@ -25,11 +29,19 @@
 		F3E7D41A1F4EC69100DF166D /* Subject.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D40D1F4EC69100DF166D /* Subject.swift */; };
 		F3E7D4211F4ECA9800DF166D /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D4201F4ECA9800DF166D /* ObjectMapper.framework */; };
 		F3E7D4231F4ECB3D00DF166D /* ISO8601DateString.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4221F4ECB3D00DF166D /* ISO8601DateString.swift */; };
+		F3F41E181FA3377E00F97737 /* Price.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F41E171FA3377E00F97737 /* Price.swift */; };
+		F3F41E1A1FA3378900F97737 /* IndirectAcquisition.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F41E191FA3378900F97737 /* IndirectAcquisition.swift */; };
+		F3F41E1D1FA33AAA00F97737 /* BelongsTo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F41E1C1FA33AAA00F97737 /* BelongsTo.swift */; };
+		F3F41E1F1FA33AF800F97737 /* Collection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F41E1E1FA33AF800F97737 /* Collection.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		F32314A11F8616C2000FCFB0 /* Drm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Drm.swift; sourceTree = "<group>"; };
 		F3462DE31FA07A000011F559 /* Decipherer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Decipherer.swift; sourceTree = "<group>"; };
+		F3B1879F1FA33D4D00BB46BF /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
+		F3B187A11FA33DFA00BB46BF /* Facet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Facet.swift; sourceTree = "<group>"; };
+		F3B187A31FA33E1D00BB46BF /* OpdsMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpdsMetadata.swift; sourceTree = "<group>"; };
+		F3B187A51FA33E4900BB46BF /* Group.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Group.swift; sourceTree = "<group>"; };
 		F3B2C8681F602ED7007601E4 /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
 		F3E7D3F41F4EBE2100DF166D /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3E7D3F71F4EBE2100DF166D /* r2-shared-swift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "r2-shared-swift.h"; sourceTree = "<group>"; };
@@ -49,6 +61,10 @@
 		F3E7D40D1F4EC69100DF166D /* Subject.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Subject.swift; sourceTree = "<group>"; };
 		F3E7D4201F4ECA9800DF166D /* ObjectMapper.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ObjectMapper.framework; path = Carthage/Build/iOS/ObjectMapper.framework; sourceTree = "<group>"; };
 		F3E7D4221F4ECB3D00DF166D /* ISO8601DateString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ISO8601DateString.swift; sourceTree = "<group>"; };
+		F3F41E171FA3377E00F97737 /* Price.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Price.swift; sourceTree = "<group>"; };
+		F3F41E191FA3378900F97737 /* IndirectAcquisition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndirectAcquisition.swift; sourceTree = "<group>"; };
+		F3F41E1C1FA33AAA00F97737 /* BelongsTo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BelongsTo.swift; sourceTree = "<group>"; };
+		F3F41E1E1FA33AF800F97737 /* Collection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Collection.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +79,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		F3B1879E1FA33D3700BB46BF /* OPDS */ = {
+			isa = PBXGroup;
+			children = (
+				F3B1879F1FA33D4D00BB46BF /* Feed.swift */,
+				F3B187A31FA33E1D00BB46BF /* OpdsMetadata.swift */,
+				F3B187A11FA33DFA00BB46BF /* Facet.swift */,
+				F3B187A51FA33E4900BB46BF /* Group.swift */,
+			);
+			path = OPDS;
+			sourceTree = "<group>";
+		};
 		F3E7D3EA1F4EBE2100DF166D = {
 			isa = PBXGroup;
 			children = (
@@ -90,6 +117,7 @@
 				F3462DE31FA07A000011F559 /* Decipherer.swift */,
 				F3E7D4221F4ECB3D00DF166D /* ISO8601DateString.swift */,
 				F3E7D41B1F4EC69C00DF166D /* Publication */,
+				F3B1879E1FA33D3700BB46BF /* OPDS */,
 			);
 			path = "r2-shared-swift";
 			sourceTree = "<group>";
@@ -113,6 +141,8 @@
 				F3E7D4071F4EC69100DF166D /* MetadataItem.swift */,
 				F3E7D4081F4EC69100DF166D /* MultilangString.swift */,
 				F3E7D40D1F4EC69100DF166D /* Subject.swift */,
+				F3F41E1C1FA33AAA00F97737 /* BelongsTo.swift */,
+				F3F41E1E1FA33AF800F97737 /* Collection.swift */,
 			);
 			name = Metadata;
 			sourceTree = "<group>";
@@ -124,6 +154,7 @@
 				F3E7D4091F4EC69100DF166D /* Properties.swift */,
 				F3E7D4021F4EC69100DF166D /* Encryption.swift */,
 				F3E7D40B1F4EC69100DF166D /* Rendition.swift */,
+				F3F41E161FA3375800F97737 /* OPDSProperties */,
 			);
 			name = Link;
 			sourceTree = "<group>";
@@ -144,6 +175,15 @@
 				F3E7D4201F4ECA9800DF166D /* ObjectMapper.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		F3F41E161FA3375800F97737 /* OPDSProperties */ = {
+			isa = PBXGroup;
+			children = (
+				F3F41E171FA3377E00F97737 /* Price.swift */,
+				F3F41E191FA3378900F97737 /* IndirectAcquisition.swift */,
+			);
+			path = OPDSProperties;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -229,17 +269,25 @@
 				F3E7D4161F4EC69100DF166D /* Properties.swift in Sources */,
 				F3E7D4231F4ECB3D00DF166D /* ISO8601DateString.swift in Sources */,
 				F3E7D41A1F4EC69100DF166D /* Subject.swift in Sources */,
+				F3B187A61FA33E4900BB46BF /* Group.swift in Sources */,
 				F3E7D4191F4EC69100DF166D /* RootFile.swift in Sources */,
 				F3E7D4141F4EC69100DF166D /* MetadataItem.swift in Sources */,
+				F3F41E181FA3377E00F97737 /* Price.swift in Sources */,
 				F3E7D4101F4EC69100DF166D /* Link.swift in Sources */,
 				F3462DE41FA07A000011F559 /* Decipherer.swift in Sources */,
 				F3E7D4181F4EC69100DF166D /* Rendition.swift in Sources */,
 				F3E7D4121F4EC69100DF166D /* MediaOverlays.swift in Sources */,
+				F3B187A01FA33D4D00BB46BF /* Feed.swift in Sources */,
+				F3B187A21FA33DFA00BB46BF /* Facet.swift in Sources */,
+				F3F41E1D1FA33AAA00F97737 /* BelongsTo.swift in Sources */,
+				F3F41E1F1FA33AF800F97737 /* Collection.swift in Sources */,
+				F3B187A41FA33E1D00BB46BF /* OpdsMetadata.swift in Sources */,
 				F32314A21F8616C2000FCFB0 /* Drm.swift in Sources */,
 				F3E7D4111F4EC69100DF166D /* MediaOverlayNode.swift in Sources */,
 				F3E7D4151F4EC69100DF166D /* MultilangString.swift in Sources */,
 				F3E7D4171F4EC69100DF166D /* Publication.swift in Sources */,
 				F3E7D40F1F4EC69100DF166D /* Encryption.swift in Sources */,
+				F3F41E1A1FA3378900F97737 /* IndirectAcquisition.swift in Sources */,
 				F3E7D4131F4EC69100DF166D /* Metadata.swift in Sources */,
 				F3E7D40E1F4EC69100DF166D /* Contributor.swift in Sources */,
 			);
