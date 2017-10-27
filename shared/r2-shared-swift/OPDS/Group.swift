@@ -9,9 +9,9 @@
 /// A substructure of a feed.
 public class Group {
     public var metadata: OpdsMetadata
-    public var links: [Link]?
-    public var publications: [Publication]?
-    public var navigation: [Link]?
+    public var links = [Link]()
+    public var publications = [Publication]()
+    public var navigation = [Link]()
 
     public init(title: String) {
         self.metadata = OpdsMetadata(title: title)

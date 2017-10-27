@@ -10,11 +10,11 @@
 /// Main structure of an OPDS catalog.
 public class Feed {
     public var metadata: OpdsMetadata
-    public var links: [Link]?
-    public var facets: [Facet]?
-    public var groups: [Group]?
-    public var publications: [Publication]?
-    public var navigation: [Link]?
+    public var links = [Link]()
+    public var facets = [Facet]()
+    public var groups = [Group])(
+    public var publications = [Publication]()
+    public var navigation = [Link]()
 
     public init(title: String) {
         self.metadata = OpdsMetadata(title: title)

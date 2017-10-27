@@ -9,7 +9,7 @@
 /// Enables faceted navigation in OPDS.
 public class Facet {
     public var metadata: OpdsMetadata
-    public var links: [Link]?
+    public var links = [Link]()
 
     public init(title: String) {
         self.metadata = OpdsMetadata(title: title)
