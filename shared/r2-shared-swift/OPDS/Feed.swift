@@ -12,7 +12,7 @@ public class Feed {
     public var metadata: OpdsMetadata
     public var links = [Link]()
     public var facets = [Facet]()
-    public var groups = [Group])(
+    public var groups = [Group]()
     public var publications = [Publication]()
     public var navigation = [Link]()
 
