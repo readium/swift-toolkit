@@ -36,7 +36,7 @@ public struct Properties {
     ///
     public var price: Price?
     ///
-    public var indirectAcquisition: IndirectAcquisition?
+    public var indirectAcquisition: [IndirectAcquisition]?
 
     public init() {}
 }
