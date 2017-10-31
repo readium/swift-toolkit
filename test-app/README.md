@@ -4,7 +4,7 @@
 A test app for the Swift implementation of Readium-2.
 It showcase the use of the differents building blocks of Readium-2
 
-![](https://media.giphy.com/media/hAttjic8neYp2/giphy.gif) ![](https://media.giphy.com/media/13ivNbjbbUT41a/giphy.gif) ![](https://media.giphy.com/media/JRVssNIC48Bb2/giphy.gif)
+![](https://media.giphy.com/media/hAttjic8neYp2/giphy.gif) ![](https://media.giphy.com/media/13ivNbjbbUT41a/giphy.gif) ![](https://media.giphy.com/media/l378cRkMNuKx2AOAw/giphy.gif)
 
 - [r2-shared-swift](https://github.com/readium/r2-shared-swift) (Model, shared for both streamer and navigator)
 - [r2-streamer-swift](https://github.com/readium/r2-streamer-swift) (The parser/server)
