@@ -41,8 +41,7 @@ public class LcpSession {
     /// - Parameters:
     ///   - passphrase: The passphrase.
     ///   - completion: The code to be exected on success.
-    public func resolve(using passphrase: String, pemCrl: String) -> Promise<DeciphererLcp>
-    {
+    public func resolve(using passphrase: String, pemCrl: String) -> Promise<DeciphererLcp> {
         return firstly {
             // 4/ Check the license status
             lcp.fetchStatusDocument()
