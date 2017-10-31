@@ -1,6 +1,5 @@
 github "Hearst-DD/ObjectMapper" "2.2.9"
-github "SwiftyJSON/SwiftyJSON" "3.1.4"
-github "krzyzanowskim/CryptoSwift" "0.7.2"
-github "readium/r2-shared-swift" "a4890560083cf88a4f6849040d2f12ec84d8cda9"
+github "krzyzanowskim/CryptoSwift" "0.8.0"
+github "readium/r2-shared-swift" "f6b2d4739cfd0efe4f4dcbaec6de730d216f0567"
 github "swisspol/GCDWebServer" "3.4.1"
 github "tadija/AEXML" "4.1.0"
