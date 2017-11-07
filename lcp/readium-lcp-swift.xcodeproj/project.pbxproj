@@ -8,13 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		F300FA351F8E1AEB00442332 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F300FA341F8E1AEB00442332 /* R2Shared.framework */; };
-		F3120DE61FACAFC4009ACFAD /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3120DE51FACAFC3009ACFAD /* R2LCPClient.framework */; };
 		F331FBF81F8228F8007F16DF /* LCPDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = F331FBF71F8228F8007F16DF /* LCPDatabase.swift */; };
 		F35AF9F91F6AB8C700D3F670 /* LcpSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35AF9F81F6AB8C700D3F670 /* LcpSession.swift */; };
 		F35AF9FF1F6ACD3900D3F670 /* LcpParsingError.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35AF9FE1F6ACD3900D3F670 /* LcpParsingError.swift */; };
 		F35AFA011F6AD54400D3F670 /* Lcp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35AFA001F6AD54400D3F670 /* Lcp.swift */; };
 		F35AFA021F6BCAF900D3F670 /* PromiseKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F35AF9F11F6AB14300D3F670 /* PromiseKit.framework */; };
-		F35AFA0F1F713D8200D3F670 /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F35AFA0E1F713D8200D3F670 /* ZIPFoundation.framework */; };
 		F36F9E261F826C17001D0DB4 /* Licenses.swift in Sources */ = {isa = PBXBuildFile; fileRef = F36F9E251F826C17001D0DB4 /* Licenses.swift */; };
 		F36F9E281F8270FC001D0DB4 /* Transactions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F36F9E271F8270FC001D0DB4 /* Transactions.swift */; };
 		F38CDB221F697D3A004156CB /* PotentialRights.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38CDB211F697D3A004156CB /* PotentialRights.swift */; };
@@ -36,6 +34,8 @@
 		F3B2C8AB1F66727C007601E4 /* LcpError.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B2C8A51F66727C007601E4 /* LcpError.swift */; };
 		F3B2C8AC1F66727C007601E4 /* Link.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B2C8A61F66727C007601E4 /* Link.swift */; };
 		F3B2C8AF1F6672E1007601E4 /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3B2C8AE1F6672E1007601E4 /* SwiftyJSON.framework */; };
+		F3E2DEA11FB1B3DC009A1CC4 /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E2DEA01FB1B3DC009A1CC4 /* ZIPFoundation.framework */; };
+		F3E2DEA31FB1B7A9009A1CC4 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E2DEA21FB1B7A9009A1CC4 /* R2LCPClient.framework */; };
 		F3F41E0E1FA0C26600F97737 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3F41E0D1FA0C26600F97737 /* CryptoSwift.framework */; };
 /* End PBXBuildFile section */
 
@@ -51,13 +51,11 @@
 
 /* Begin PBXFileReference section */
 		F300FA341F8E1AEB00442332 /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
-		F3120DE51FACAFC3009ACFAD /* R2LCPClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2LCPClient.framework; path = Carthage/Build/iOS/R2LCPClient.framework; sourceTree = "<group>"; };
 		F331FBF71F8228F8007F16DF /* LCPDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDatabase.swift; sourceTree = "<group>"; };
 		F35AF9F11F6AB14300D3F670 /* PromiseKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PromiseKit.framework; path = Carthage/Build/iOS/PromiseKit.framework; sourceTree = "<group>"; };
 		F35AF9F81F6AB8C700D3F670 /* LcpSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LcpSession.swift; sourceTree = "<group>"; };
 		F35AF9FE1F6ACD3900D3F670 /* LcpParsingError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LcpParsingError.swift; sourceTree = "<group>"; };
 		F35AFA001F6AD54400D3F670 /* Lcp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Lcp.swift; sourceTree = "<group>"; };
-		F35AFA0E1F713D8200D3F670 /* ZIPFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ZIPFoundation.framework; path = Carthage/Build/iOS/ZIPFoundation.framework; sourceTree = "<group>"; };
 		F36F9E251F826C17001D0DB4 /* Licenses.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Licenses.swift; sourceTree = "<group>"; };
 		F36F9E271F8270FC001D0DB4 /* Transactions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transactions.swift; sourceTree = "<group>"; };
 		F38CDB211F697D3A004156CB /* PotentialRights.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PotentialRights.swift; sourceTree = "<group>"; };
@@ -82,6 +80,8 @@
 		F3B2C8A51F66727C007601E4 /* LcpError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LcpError.swift; sourceTree = "<group>"; };
 		F3B2C8A61F66727C007601E4 /* Link.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Link.swift; sourceTree = "<group>"; };
 		F3B2C8AE1F6672E1007601E4 /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
+		F3E2DEA01FB1B3DC009A1CC4 /* ZIPFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ZIPFoundation.framework; path = Carthage/Build/iOS/ZIPFoundation.framework; sourceTree = "<group>"; };
+		F3E2DEA21FB1B7A9009A1CC4 /* R2LCPClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = "<group>"; };
 		F3F41E0D1FA0C26600F97737 /* CryptoSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoSwift.framework; path = Carthage/Build/iOS/CryptoSwift.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -90,10 +90,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F3120DE61FACAFC4009ACFAD /* R2LCPClient.framework in Frameworks */,
+				F3E2DEA31FB1B7A9009A1CC4 /* R2LCPClient.framework in Frameworks */,
+				F3E2DEA11FB1B3DC009A1CC4 /* ZIPFoundation.framework in Frameworks */,
 				F3F41E0E1FA0C26600F97737 /* CryptoSwift.framework in Frameworks */,
 				F300FA351F8E1AEB00442332 /* R2Shared.framework in Frameworks */,
-				F35AFA0F1F713D8200D3F670 /* ZIPFoundation.framework in Frameworks */,
 				F3B2C8AF1F6672E1007601E4 /* SwiftyJSON.framework in Frameworks */,
 				F38FB0511F67DC2F00F9D602 /* SQLite.framework in Frameworks */,
 				F35AFA021F6BCAF900D3F670 /* PromiseKit.framework in Frameworks */,
@@ -219,10 +219,10 @@
 		F3B2C8AD1F6672E1007601E4 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				F3120DE51FACAFC3009ACFAD /* R2LCPClient.framework */,
+				F3E2DEA21FB1B7A9009A1CC4 /* R2LCPClient.framework */,
+				F3E2DEA01FB1B3DC009A1CC4 /* ZIPFoundation.framework */,
 				F3F41E0D1FA0C26600F97737 /* CryptoSwift.framework */,
 				F300FA341F8E1AEB00442332 /* R2Shared.framework */,
-				F35AFA0E1F713D8200D3F670 /* ZIPFoundation.framework */,
 				F35AF9F11F6AB14300D3F670 /* PromiseKit.framework */,
 				F38FB0501F67DC2F00F9D602 /* SQLite.framework */,
 				F3B2C8AE1F6672E1007601E4 /* SwiftyJSON.framework */,
@@ -514,7 +514,7 @@
 				);
 				INFOPLIST_FILE = "readium-lcp-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.readium-lcp-swift";
 				PRODUCT_NAME = ReadiumLCP;
@@ -542,7 +542,7 @@
 				);
 				INFOPLIST_FILE = "readium-lcp-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.readium-lcp-swift";
 				PRODUCT_NAME = ReadiumLCP;
