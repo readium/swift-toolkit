@@ -25,19 +25,13 @@
 		F341C2641F504BB7005E6758 /* R2Streamer.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F341C2621F504BB7005E6758 /* R2Streamer.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F341C2681F504BED005E6758 /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F341C2671F504BED005E6758 /* R2Navigator.framework */; };
 		F341C2691F504BED005E6758 /* R2Navigator.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F341C2671F504BED005E6758 /* R2Navigator.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		F35AFA061F6FC38700D3F670 /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F35AFA051F6FC38700D3F670 /* ReadiumLCP.framework */; };
-		F35AFA071F6FC38700D3F670 /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F35AFA051F6FC38700D3F670 /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F35AFA0A1F6FC3FE00D3F670 /* PromiseKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F35AFA081F6FC3FE00D3F670 /* PromiseKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		F35AFA121F71432200D3F670 /* ZIPFoundation.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F35AFA101F71432200D3F670 /* ZIPFoundation.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F36D24DE1F580B8800A00BF1 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F36D24DD1F580B8800A00BF1 /* Main.storyboard */; };
 		F36D24DF1F58394500A00BF1 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F36D24DD1F580B8800A00BF1 /* Main.storyboard */; };
-		F38FB0461F66944800F9D602 /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB0431F66943B00F9D602 /* ReadiumLCP.framework */; };
-		F38FB0471F66944800F9D602 /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB0431F66943B00F9D602 /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F38FB0571F68045500F9D602 /* SQLite.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB0551F68045500F9D602 /* SQLite.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F38FB05F1F68191A00F9D602 /* SQLite.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB0551F68045500F9D602 /* SQLite.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F38FB06B1F681A7600F9D602 /* SwiftyJSON.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB0691F681A7600F9D602 /* SwiftyJSON.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F38FB06E1F681A8200F9D602 /* SwiftyJSON.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB06C1F681A8200F9D602 /* SwiftyJSON.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		F3BD53341F7294A500E46FFC /* ZIPFoundation.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3BD53321F7294A500E46FFC /* ZIPFoundation.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F3BD53371F7294CA00E46FFC /* PromiseKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3BD53351F7294CA00E46FFC /* PromiseKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F3BD53391F72B26700E46FFC /* FontSelectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BD53381F72B26700E46FFC /* FontSelectionViewController.swift */; };
 		F3BD533B1F72B27400E46FFC /* AdvancedSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BD533A1F72B27400E46FFC /* AdvancedSettingsViewController.swift */; };
@@ -89,7 +83,6 @@
 		F3E7D4DF1F4F0B9300DF166D /* AEXML.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D49E1F4F095500DF166D /* AEXML.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F3E7D4E01F4F0B9300DF166D /* ObjectMapper.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D4A11F4F095500DF166D /* ObjectMapper.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F3E7D4E11F4F0B9300DF166D /* CryptoSwift.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D49F1F4F095500DF166D /* CryptoSwift.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		F3F41E111FA0C40D00F97737 /* R2LCPClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3F41E0F1FA0C40D00F97737 /* R2LCPClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -120,8 +113,6 @@
 				F38FB0571F68045500F9D602 /* SQLite.framework in Embed Frameworks */,
 				F3E7D4BF1F4F09A200DF166D /* R2Shared.framework in Embed Frameworks */,
 				F3E7D4BB1F4F09A200DF166D /* Kingfisher.framework in Embed Frameworks */,
-				F38FB0471F66944800F9D602 /* ReadiumLCP.framework in Embed Frameworks */,
-				F3BD53341F7294A500E46FFC /* ZIPFoundation.framework in Embed Frameworks */,
 				F3E7D4B71F4F09A200DF166D /* GCDWebServers.framework in Embed Frameworks */,
 				F38FB06E1F681A8200F9D602 /* SwiftyJSON.framework in Embed Frameworks */,
 				F3E7D4B31F4F09A200DF166D /* AEXML.framework in Embed Frameworks */,
@@ -144,15 +135,12 @@
 				F341C2611F504BAD005E6758 /* R2Shared.framework in Embed Frameworks */,
 				F35AFA0A1F6FC3FE00D3F670 /* PromiseKit.framework in Embed Frameworks */,
 				F3E7D4DE1F4F0B9300DF166D /* GCDWebServers.framework in Embed Frameworks */,
-				F3F41E111FA0C40D00F97737 /* R2LCPClient.framework in Embed Frameworks */,
 				F3E7D4DF1F4F0B9300DF166D /* AEXML.framework in Embed Frameworks */,
 				F3E7D4E01F4F0B9300DF166D /* ObjectMapper.framework in Embed Frameworks */,
 				F38FB06B1F681A7600F9D602 /* SwiftyJSON.framework in Embed Frameworks */,
 				F341C2641F504BB7005E6758 /* R2Streamer.framework in Embed Frameworks */,
 				F38FB05F1F68191A00F9D602 /* SQLite.framework in Embed Frameworks */,
 				F3E7D4E11F4F0B9300DF166D /* CryptoSwift.framework in Embed Frameworks */,
-				F35AFA071F6FC38700D3F670 /* ReadiumLCP.framework in Embed Frameworks */,
-				F35AFA121F71432200D3F670 /* ZIPFoundation.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -226,7 +214,6 @@
 			files = (
 				F3E7D4C41F4F0A3E00DF166D /* R2Navigator.framework in Frameworks */,
 				F3E7D4BE1F4F09A200DF166D /* R2Shared.framework in Frameworks */,
-				F38FB0461F66944800F9D602 /* ReadiumLCP.framework in Frameworks */,
 				F3E7D4C01F4F09A200DF166D /* R2Streamer.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -251,7 +238,6 @@
 			files = (
 				F341C2681F504BED005E6758 /* R2Navigator.framework in Frameworks */,
 				F341C2601F504BAD005E6758 /* R2Shared.framework in Frameworks */,
-				F35AFA061F6FC38700D3F670 /* ReadiumLCP.framework in Frameworks */,
 				F32314A31F8626CD000FCFB0 /* R2Streamer.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -270,6 +256,14 @@
 				F32980F01F7D467B00BDEAF4 /* 6.epub */,
 			);
 			path = Samples;
+			sourceTree = "<group>";
+		};
+		F3B43C581FB30CAF005A1F6E /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				F38FB06C1F681A8200F9D602 /* SwiftyJSON.framework */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 		F3DCFFBC1F7CE0140056BA37 /* UserSettings */ = {
@@ -292,6 +286,7 @@
 				F3E7D45A1F4EF6D400DF166D /* r2-testapp-swiftUITests */,
 				F3E7D4391F4EF6D400DF166D /* Products */,
 				F3E7D4691F4EFE8700DF166D /* Frameworks */,
+				F3B43C581FB30CAF005A1F6E /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -360,7 +355,6 @@
 				F38FB0551F68045500F9D602 /* SQLite.framework */,
 				F38FB0661F681A3200F9D602 /* ReadiumLCP.framework */,
 				F38FB0691F681A7600F9D602 /* SwiftyJSON.framework */,
-				F3B2C8701F613DB5007601E4 /* SwiftyJSON.framework */,
 				F3BD53321F7294A500E46FFC /* ZIPFoundation.framework */,
 				F35AFA101F71432200D3F670 /* ZIPFoundation.framework */,
 				F3B2C8731F613DBA007601E4 /* SQLite.framework */,
