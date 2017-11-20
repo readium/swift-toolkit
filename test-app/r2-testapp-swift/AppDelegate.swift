@@ -94,7 +94,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 }.then { publicationUrl -> Void in
                     /// Parse publication. (tomove?)
                     if self.lightParsePublication(at: Location(absolutePath: publicationUrl.path,
-                                                               relativePath: "inbox",
+                                                               relativePath: "",
                                                                type: .epub)) {
                         self.showInfoAlert(title: "Success", message: "LCP Publication added to library.")
                     } else {
@@ -104,9 +104,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                     self.showInfoAlert(title: "Error", message: error.localizedDescription)
             }
         default:
+            /// Move Publication to documents.
+            var documentsUrl = try! FileManager.default.url(for: .documentDirectory,
+                                                            in: .userDomainMask,
+                                                            appropriateFor: nil,
+                                                            create: true)
+            documentsUrl.appendPathComponent(url.lastPathComponent)
+            do {
+                try FileManager.default.moveItem(at: url, to: documentsUrl)
+            } catch {
+                print(error)
+                return false
+            }
             /// Add the publication to the publication server.
-            let location = Location(absolutePath: url.path,
-                                    relativePath: url.lastPathComponent,
+            let location = Location(absolutePath: documentsUrl.path,
+                                    relativePath: documentsUrl.lastPathComponent,
                                     type: getTypeForPublicationAt(url: url))
             if !lightParsePublication(at: location) {
                 showInfoAlert(title: "Error", message: "The publication isn't valid.")
@@ -138,7 +150,7 @@ extension AppDelegate {
 
     fileprivate func lightParsePublications() {
         // Parse publication from documents folder.
-        let locations = locationsFromInboxDirectory()
+        let locations = locationsFromDocumentsDirectory()
 
         // Load the publications.
         for location in locations {
@@ -167,6 +179,7 @@ extension AppDelegate {
     internal func lightParsePublication(at location: Location) -> Bool {
         let publication: Publication
         let container: Container
+        
         do {
             switch location.type {
             case .epub:
@@ -196,30 +209,29 @@ extension AppDelegate {
         return true
     }
 
-    /// Get the locations out of the application Documents/inbox directory.
+    /// Get the locations out of the application Documents directory.
     ///
     /// - Returns: The Locations array.
-    fileprivate func locationsFromInboxDirectory() -> [Location] {
+    fileprivate func locationsFromDocumentsDirectory() -> [Location] {
         let fileManager = FileManager.default
         // Document Directory always exists (hence try!).
-        var inboxUrl = try! fileManager.url(for: .documentDirectory,
-                                            in: .userDomainMask,
-                                            appropriateFor: nil,
-                                            create: true)
+        var documentsUrl = try! fileManager.url(for: .documentDirectory,
+                                                in: .userDomainMask,
+                                                appropriateFor: nil,
+                                                create: true)
 
-        inboxUrl.appendPathComponent("Inbox/")
         var files: [String]
 
         // Get the array of files from the documents/inbox folder.
         do {
-            files = try fileManager.contentsOfDirectory(atPath: inboxUrl.path)
+            files = try fileManager.contentsOfDirectory(atPath: documentsUrl.path)
         } catch {
             print("Error while reading content of directory.")
             return []
         }
         /// Find the types associated to the files, or unknown.
         let locations = files.map({ fileName -> Location in
-            let fileUrl = inboxUrl.appendingPathComponent(fileName)
+            let fileUrl = documentsUrl.appendingPathComponent(fileName)
             let publicationType = getTypeForPublicationAt(url: fileUrl)
 
             return Location(absolutePath: fileUrl.path, relativePath: fileName, type: publicationType)
@@ -251,14 +263,13 @@ extension AppDelegate {
         return locations
     }
 
-    fileprivate func removeFromInboxDirectory(fileName: String) {
+    fileprivate func removeFromDocumentsDirectory(fileName: String) {
         let fileManager = FileManager.default
         // Document Directory always exists (hence `try!`).
         var inboxDirUrl = try! fileManager.url(for: .documentDirectory,
                                                in: .userDomainMask,
                                                appropriateFor: nil,
                                                create: true)
-        inboxDirUrl.appendPathComponent("Inbox/")
         // Assemble destination path.
         let absoluteUrl = inboxDirUrl.appendingPathComponent(fileName)
         // Check that file don't exist.
@@ -266,7 +277,7 @@ extension AppDelegate {
             do {
                 try fileManager.removeItem(at: absoluteUrl)
             } catch {
-                print("Error while deleting file in Documents/Inbox")
+                print("Error while deleting file in Documents.")
             }
             return
         }
@@ -404,13 +415,13 @@ extension AppDelegate: LibraryViewControllerDelegate {
                         // 3/ Display the hint and ask the passphrase to the user.
                         //      + calls the r2-lcp-client library  to validate it.
                         let hint = session.getHint()
-                    
+
                         return firstly {
                             self.promptPassphrase(hint)
                             }.then { clearPassphrase -> Promise<String?> in
                                 let passphraseHash = clearPassphrase.sha256()
-//                                let data = passphraseHash.data(using: .utf8)!
-//                                let hexString = data.map{ String(format:"%02x", $0) }.joined()
+                                //                                let data = passphraseHash.data(using: .utf8)!
+                                //                                let hexString = data.map{ String(format:"%02x", $0) }.joined()
                                 
                                 return session.checkPassphrases([passphraseHash])
                             }.then { validPassphraseHash -> Promise<String> in
@@ -426,17 +437,17 @@ extension AppDelegate: LibraryViewControllerDelegate {
                     }
                 }.then { validPassphraseHash -> Promise<DeciphererLcp> in
                     firstly {
-//                        // Get Certificat Revocation List. from "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl"
-//                        return Promise<String> { fulfill, reject in
-//                            guard let url = URL(string: "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl") else {
-//                                reject(LcpError.crlFetching)
-//                                return
-//                            }
-//                            var urlRequest = URLRequest.init(url: url)
-//
-//                            url
-//                            URLSession.shared.dataTask(with: url, completionHandler: <#T##(Data?, URLResponse?, Error?) -> Void#>)
-//                        }
+                        //                        // Get Certificat Revocation List. from "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl"
+                        //                        return Promise<String> { fulfill, reject in
+                        //                            guard let url = URL(string: "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl") else {
+                        //                                reject(LcpError.crlFetching)
+                        //                                return
+                        //                            }
+                        //                            var urlRequest = URLRequest.init(url: url)
+                        //
+                        //                            url
+                        //                            URLSession.shared.dataTask(with: url, completionHandler: <#T##(Data?, URLResponse?, Error?) -> Void#>)
+                        //                        }
                         return Promise(value: "-----BEGIN X509 CRL-----MIICrTCBljANBgkqhkiG9w0BAQQFADBnMQswCQYDVQQGEwJGUjEOMAwGA1UEBxMFUGFyaXMxDzANBgNVBAoTBkVEUkxhYjESMBAGA1UECxMJTENQIFRlc3RzMSMwIQYDVQQDExpFRFJMYWIgUmVhZGl1bSBMQ1AgdGVzdCBDQRcNMTcwOTI2MTM1NTE1WhcNMjcwOTI0MTM1NTE1WjANBgkqhkiG9w0BAQQFAAOCAgEA27f50xnlaKGUdqs6u6rDWsR75z+tZrH4J2aA5E9I/K5fNe20FftQZb6XNjVQTNvawoMW0q+Rh9dVjDnV5Cfwptchu738ZQr8iCOLQHvIM6wqQj7XwMqvyNaaeGMZxfRMGlx7T9DOwvtWFCc5X0ikYGPPV19CFf1cas8x9Y3LE8GmCtX9eUrotWLKRggG+qRTCri/SlaoicfzqhViiGeLdW8RpG/Q6ox+tLHti3fxOgZarMgMbRmUa6OTh8pnxrfnrdtD2PbwACvaEMCpNCZRaSTMRmIxw8UUbUA/JxDIwyISGn3ZRgbFAglYzaX80rSQZr6e0bFlzHl1xZtZ0RazGQWP9vvfH5ESp6FsD98g//VYigatoPz/EKU4cfP+1W/Zrr4jRSBFB37rxASXPBcxL8cerb9nnRbAEvIqxnR4e0ZkhMyqIrLUZ3Jva0fC30kdtp09/KJ22mXKBz85wUQa7ihiSz7pov0R9hpY93fvt++idHBECRNGOeBC4wRtGxpru8ZUa0/KFOD0HXHMQDwVcIa/72T0okStOqjIOcWflxl/eAvUXwtet9Ht3o9giSl6hAObAeleMJOB37Bq9ASfh4w7d5he8zqfsCGjaG1OVQNWVAGxQQViWVysfcJohny4PIVAc9KkjCFa/QrkNGjrkUiV/PFCwL66iiF666DrXLY=-----END X509 CRL-----")
                         }.then { pemCrl -> Promise<DeciphererLcp> in
                             // Get a decipherer object for the given passphrase,
@@ -455,7 +466,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
                 }.catch { error in
                     print("Error: \(error)")
                     //throw LcpError.unknown
-                }
+            }
         }
     }
 
@@ -503,7 +514,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
         if let url = URL(string: path) {
             let filename = url.lastPathComponent
             
-            removeFromInboxDirectory(fileName: filename)
+            removeFromDocumentsDirectory(fileName: filename)
         }
         // Remove publication from publicationServer.
         publicationServer.remove(publication)
