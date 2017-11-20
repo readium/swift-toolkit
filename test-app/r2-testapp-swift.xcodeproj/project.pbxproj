@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F30D3BCD1FBF1BA6009229C6 /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F30D3BCC1FBF1BA6009229C6 /* ZIPFoundation.framework */; };
+		F30D3BCF1FBF1BAC009229C6 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3A851B81FB99CB6002F846D /* R2LCPClient.framework */; };
+		F30D3BD11FBF1D6B009229C6 /* ZIPFoundation.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F30D3BCC1FBF1BA6009229C6 /* ZIPFoundation.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F3120DE71FACB08E009ACFAD /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
 		F3120DE81FACB090009ACFAD /* 2.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F11F7D467C00BDEAF4 /* 2.epub */; };
 		F3120DE91FACB092009ACFAD /* 3.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F31F7D467C00BDEAF4 /* 3.epub */; };
@@ -34,6 +37,10 @@
 		F38FB05F1F68191A00F9D602 /* SQLite.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB0551F68045500F9D602 /* SQLite.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F38FB06B1F681A7600F9D602 /* SwiftyJSON.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB0691F681A7600F9D602 /* SwiftyJSON.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F38FB06E1F681A8200F9D602 /* SwiftyJSON.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB06C1F681A8200F9D602 /* SwiftyJSON.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		F3A851B91FB99CB6002F846D /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3A851B81FB99CB6002F846D /* R2LCPClient.framework */; };
+		F3A851BA1FB99CB6002F846D /* R2LCPClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3A851B81FB99CB6002F846D /* R2LCPClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		F3B43C591FB34D83005A1F6E /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB0661F681A3200F9D602 /* ReadiumLCP.framework */; };
+		F3B43C5A1FB34D83005A1F6E /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB0661F681A3200F9D602 /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F3BD53371F7294CA00E46FFC /* PromiseKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3BD53351F7294CA00E46FFC /* PromiseKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F3BD53391F72B26700E46FFC /* FontSelectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BD53381F72B26700E46FFC /* FontSelectionViewController.swift */; };
 		F3BD533B1F72B27400E46FFC /* AdvancedSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BD533A1F72B27400E46FFC /* AdvancedSettingsViewController.swift */; };
@@ -41,12 +48,6 @@
 		F3BD533D1F72B45700E46FFC /* AdvancedSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BD533A1F72B27400E46FFC /* AdvancedSettingsViewController.swift */; };
 		F3DCFFBE1F7CE0610056BA37 /* UserSettingsNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3DCFFBD1F7CE0610056BA37 /* UserSettingsNavigationController.swift */; };
 		F3DCFFBF1F7CE0610056BA37 /* UserSettingsNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3DCFFBD1F7CE0610056BA37 /* UserSettingsNavigationController.swift */; };
-		F3E2DE991FACD922009A1CC4 /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB0661F681A3200F9D602 /* ReadiumLCP.framework */; };
-		F3E2DE9A1FACD922009A1CC4 /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB0661F681A3200F9D602 /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		F3E2DEA81FB1E5FA009A1CC4 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E2DEA71FB1E5FA009A1CC4 /* R2LCPClient.framework */; };
-		F3E2DEA91FB1E5FA009A1CC4 /* R2LCPClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3E2DEA71FB1E5FA009A1CC4 /* R2LCPClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		F3E2DEAB1FB1E645009A1CC4 /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E2DEAA1FB1E644009A1CC4 /* ZIPFoundation.framework */; };
-		F3E2DEAC1FB1E645009A1CC4 /* ZIPFoundation.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3E2DEAA1FB1E644009A1CC4 /* ZIPFoundation.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F3E7D43C1F4EF6D400DF166D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D43B1F4EF6D400DF166D /* AppDelegate.swift */; };
 		F3E7D4431F4EF6D400DF166D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4421F4EF6D400DF166D /* Assets.xcassets */; };
 		F3E7D4461F4EF6D400DF166D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */; };
@@ -139,20 +140,20 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				F3E2DE9A1FACD922009A1CC4 /* ReadiumLCP.framework in Embed Frameworks */,
 				F341C2691F504BED005E6758 /* R2Navigator.framework in Embed Frameworks */,
 				F3E7D4DD1F4F0B9300DF166D /* Kingfisher.framework in Embed Frameworks */,
 				F341C2611F504BAD005E6758 /* R2Shared.framework in Embed Frameworks */,
 				F35AFA0A1F6FC3FE00D3F670 /* PromiseKit.framework in Embed Frameworks */,
 				F3E7D4DE1F4F0B9300DF166D /* GCDWebServers.framework in Embed Frameworks */,
+				F3A851BA1FB99CB6002F846D /* R2LCPClient.framework in Embed Frameworks */,
 				F3E7D4DF1F4F0B9300DF166D /* AEXML.framework in Embed Frameworks */,
 				F3E7D4E01F4F0B9300DF166D /* ObjectMapper.framework in Embed Frameworks */,
-				F3E2DEA91FB1E5FA009A1CC4 /* R2LCPClient.framework in Embed Frameworks */,
+				F3B43C5A1FB34D83005A1F6E /* ReadiumLCP.framework in Embed Frameworks */,
 				F38FB06B1F681A7600F9D602 /* SwiftyJSON.framework in Embed Frameworks */,
 				F341C2641F504BB7005E6758 /* R2Streamer.framework in Embed Frameworks */,
 				F38FB05F1F68191A00F9D602 /* SQLite.framework in Embed Frameworks */,
 				F3E7D4E11F4F0B9300DF166D /* CryptoSwift.framework in Embed Frameworks */,
-				F3E2DEAC1FB1E645009A1CC4 /* ZIPFoundation.framework in Embed Frameworks */,
+				F30D3BD11FBF1D6B009229C6 /* ZIPFoundation.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -160,6 +161,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		F30D3BCC1FBF1BA6009229C6 /* ZIPFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = ZIPFoundation.framework; sourceTree = "<group>"; };
 		F32314A41F8626CD000FCFB0 /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F32980EE1F7D467B00BDEAF4 /* 1.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 1.epub; sourceTree = "<group>"; };
 		F32980EF1F7D467B00BDEAF4 /* 5.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 5.epub; sourceTree = "<group>"; };
@@ -178,14 +180,13 @@
 		F38FB0661F681A3200F9D602 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F38FB0691F681A7600F9D602 /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
 		F38FB06C1F681A8200F9D602 /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
+		F3A851B81FB99CB6002F846D /* R2LCPClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = "<group>"; };
 		F3B2C8701F613DB5007601E4 /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
 		F3B2C8731F613DBA007601E4 /* SQLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SQLite.framework; path = Carthage/Build/iOS/SQLite.framework; sourceTree = "<group>"; };
 		F3BD53351F7294CA00E46FFC /* PromiseKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PromiseKit.framework; path = Carthage/Build/iOS/PromiseKit.framework; sourceTree = "<group>"; };
 		F3BD53381F72B26700E46FFC /* FontSelectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FontSelectionViewController.swift; sourceTree = "<group>"; };
 		F3BD533A1F72B27400E46FFC /* AdvancedSettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AdvancedSettingsViewController.swift; sourceTree = "<group>"; };
 		F3DCFFBD1F7CE0610056BA37 /* UserSettingsNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettingsNavigationController.swift; sourceTree = "<group>"; };
-		F3E2DEA71FB1E5FA009A1CC4 /* R2LCPClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = "<group>"; };
-		F3E2DEAA1FB1E644009A1CC4 /* ZIPFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ZIPFoundation.framework; path = Carthage/Build/iOS/ZIPFoundation.framework; sourceTree = "<group>"; };
 		F3E7D4381F4EF6D400DF166D /* r2-testapp-swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3E7D43B1F4EF6D400DF166D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		F3E7D4421F4EF6D400DF166D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -224,9 +225,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				F3E7D4C41F4F0A3E00DF166D /* R2Navigator.framework in Frameworks */,
+				F30D3BCF1FBF1BAC009229C6 /* R2LCPClient.framework in Frameworks */,
 				F3E7D4BE1F4F09A200DF166D /* R2Shared.framework in Frameworks */,
 				F38FB0461F66944800F9D602 /* ReadiumLCP.framework in Frameworks */,
 				F3E7D4C01F4F09A200DF166D /* R2Streamer.framework in Frameworks */,
+				F30D3BCD1FBF1BA6009229C6 /* ZIPFoundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -248,12 +251,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F3E2DEA81FB1E5FA009A1CC4 /* R2LCPClient.framework in Frameworks */,
+				F3A851B91FB99CB6002F846D /* R2LCPClient.framework in Frameworks */,
 				F341C2681F504BED005E6758 /* R2Navigator.framework in Frameworks */,
 				F341C2601F504BAD005E6758 /* R2Shared.framework in Frameworks */,
-				F3E2DE991FACD922009A1CC4 /* ReadiumLCP.framework in Frameworks */,
 				F32314A31F8626CD000FCFB0 /* R2Streamer.framework in Frameworks */,
-				F3E2DEAB1FB1E645009A1CC4 /* ZIPFoundation.framework in Frameworks */,
+				F3B43C591FB34D83005A1F6E /* ReadiumLCP.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -295,8 +297,8 @@
 		F3E7D42F1F4EF6D400DF166D = {
 			isa = PBXGroup;
 			children = (
-				F3E2DEAA1FB1E644009A1CC4 /* ZIPFoundation.framework */,
-				F3E2DEA71FB1E5FA009A1CC4 /* R2LCPClient.framework */,
+				F3A851B81FB99CB6002F846D /* R2LCPClient.framework */,
+				F30D3BCC1FBF1BA6009229C6 /* ZIPFoundation.framework */,
 				F3E7D43A1F4EF6D400DF166D /* r2-testapp-swift */,
 				F3E7D44F1F4EF6D400DF166D /* r2-testapp-swiftTests */,
 				F3E7D45A1F4EF6D400DF166D /* r2-testapp-swiftUITests */,

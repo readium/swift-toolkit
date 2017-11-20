@@ -1,0 +1,4 @@
+framework module ZIPFoundation {
+    header "ZIPFoundation-Swift.h"
+    requires objc
+}
