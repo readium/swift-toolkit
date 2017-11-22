@@ -69,7 +69,9 @@ public class LcpSession {
                 /// 5/ Register the device / license if needed.
                 self.lcp.register()
                 
-                return self.initializeDeciphererLcp(jsonLicense: self.lcp.license.json, passphrase: passphrase, pemCrl: pemCrl)
+                return self.initializeDeciphererLcp(jsonLicense: self.lcp.license.json,
+                                                    passphrase: passphrase,
+                                                    pemCrl: pemCrl)
             }.catch { error in
                 print("Error: \(error.localizedDescription)")
         }

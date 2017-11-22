@@ -37,6 +37,17 @@ class Licenses {
         })
     }
 
+    internal func updateState(forLicenseWith id: String, to state: String) throws {
+        let db = LCPDatabase.shared.connection
+        let license = licenses.filter(self.id == id)
+
+        // Check if empty.
+        guard try db.scalar(license.count) > 0 else {
+            throw LcpError.licenseNotFound
+        }
+        try db.run(license.update(self.state <- state))
+    }
+
     /// Check if the table already contains an entry for the given ID.
     ///
     /// - Parameter id: The ID to check for.
@@ -61,7 +72,7 @@ class Licenses {
     ///   - status: <#status description#>
     /// - Throws: <#throws value description#>
     internal func insert(_ license: LicenseDocument, with status: StatusDocument.Status?) throws {
-        let c = LCPDatabase.shared.connection
+        let db = LCPDatabase.shared.connection
 
         let insertQuery = licenses.insert(
             id <- license.id,
@@ -73,7 +84,7 @@ class Licenses {
             end <- license.rights.end,
             state <- status?.rawValue ?? nil
         )
-        try c.run(insertQuery)
+        try db.run(insertQuery)
     }
     
 }

@@ -117,7 +117,7 @@ public class Lcp {
             print(LcpError.registerLinkNotFound.localizedDescription)
             return
         }
-        // Removing the templace {?id,name}
+        // Removing the template {?id,name}
         registerUrl.deleteLastPathComponent()
         registerUrl.appendPathComponent("register")
 
@@ -145,6 +145,97 @@ public class Lcp {
             }
         })
         task.resume()
+    }
+
+    /// <#Description#>
+    public func `return`() {
+        // Is the Status document fetched.
+        guard let status = status else {
+            print(LcpError.noStatusDocument.localizedDescription)
+            return
+        }
+        // Get device ID and Name.
+        guard let deviceId = getDeviceId() else {
+            print(LcpError.deviceId)
+            return
+        }
+        let deviceName = getDeviceName()
+        // get registerUrl.
+        guard var returnUrl = status.link(withRel: StatusDocument.Rel.return)?.href else {
+            print(LcpError.returnLinkNotFound.localizedDescription)
+            return
+        }
+        // Removing the template return{?end,id,name}
+        returnUrl.deleteLastPathComponent()
+        returnUrl.appendPathComponent("return")
+
+        var request = URLRequest(url: returnUrl)
+        request.httpMethod = "PUT"
+        request.httpBody = "id=\(deviceId)&name=\(deviceName)".data(using: .utf8)
+        // Call returnUrl.
+        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data, response, error) in
+            if let httpResponse = response as? HTTPURLResponse  {
+                if error == nil {
+                    switch httpResponse.statusCode {
+                    case 200:
+                        // update the status document
+                        if let data = data {
+                            do {
+                                // Update local license in Lcp object
+                                self.status = try StatusDocument.init(with: data)
+                                guard let status = self.status?.status else {
+                                    print("The status is not filled.")
+                                    return
+                                }
+                                // Update license status (to 'returned' normally)
+                                try LCPDatabase.shared.licenses.updateState(forLicenseWith: self.license.id,
+                                                                            to: status.rawValue)
+                            } catch {
+                                print(LcpError.licenseDocumentData.localizedDescription)
+                            }
+                        }
+
+                        // logging the event in db
+
+                    case 400:
+                        print(LcpError.returnFailure.localizedDescription)
+                    case 403:
+                        print(LcpError.alreadyReturned.localizedDescription)
+                    default:
+                        print(LcpError.unexpectedServerError.localizedDescription)
+                    }
+                } else if let error = error {
+                    print(error.localizedDescription)
+                }
+            }
+        })
+        task.resume()
+
+    }
+
+
+    /// <#Description#>
+    public func renew() {
+        // Is the Status document fetched.
+        guard let status = status else {
+            print(LcpError.noStatusDocument.localizedDescription)
+            return
+        }
+        // Get device ID and Name.
+        guard let deviceId = getDeviceId() else {
+            print(LcpError.deviceId)
+            return
+        }
+        let deviceName = getDeviceName()
+        // get registerUrl.
+        guard var renewUrl = status.link(withRel: StatusDocument.Rel.renew)?.href else {
+            print(LcpError.renewLinkNotFound.localizedDescription)
+            return
+        }
+        // Removing the template return{?end,id,name}
+        renewUrl.deleteLastPathComponent()
+        renewUrl.appendPathComponent("renew")
+
     }
     
     /// Return the name of the Device.
@@ -192,18 +283,19 @@ public class Lcp {
                                                       appropriateFor: nil,
                                                       create: true)
             
-            destinationUrl.appendPathComponent("Inbox/\(title).epub")
+            destinationUrl.appendPathComponent("\(title).epub")
             guard !FileManager.default.fileExists(atPath: destinationUrl.path) else {
                 fulfill(destinationUrl)
                 return
             }
             
             let task = URLSession.shared.downloadTask(with: request, completionHandler: { tmpLocalUrl, response, error in
+                print(error?.localizedDescription)
                 if let localUrl = tmpLocalUrl, error == nil {
                     do {
-                        try FileManager.default.copyItem(at: localUrl, to: destinationUrl)
-                        try FileManager.default.removeItem(at: localUrl)
+                        try FileManager.default.moveItem(at: localUrl, to: destinationUrl)
                     } catch {
+                        print(error.localizedDescription)
                         reject(error)
                     }
                     fulfill(destinationUrl)
@@ -230,7 +322,9 @@ public class Lcp {
                 reject(LcpError.licenseLinkNotFound)
                 return
             }
-            let request = URLRequest(url: licenseLink.href)
+            var request = URLRequest(url: licenseLink.href)
+
+            print(request)
             
             /// 3.4.1/ Fetch the updated license.
             let task = URLSession.shared.downloadTask(with: request, completionHandler: { tmpLocalUrl, response, error in
@@ -238,6 +332,10 @@ public class Lcp {
                     let content: Data
                     
                     do {
+
+                        let fileContent = try String(contentsOf: localUrl)
+
+                        print(fileContent)
                         /// Refresh the current LicenseDocument in memory with the
                         /// freshly fetched one.
                         content = try Data.init(contentsOf: localUrl)
@@ -304,7 +402,7 @@ public class Lcp {
         }
         // Create local META-INF folder to respect the zip file hierachy.
         let fileManager = FileManager.default
-        var urlMetaInf = licenseUrl.deletingLastPathComponent()
+        var urlMetaInf = publicationUrl.deletingLastPathComponent()
         
         urlMetaInf.appendPathComponent("META-INF", isDirectory: true)
         try fileManager.createDirectory(at: urlMetaInf, withIntermediateDirectories: true, attributes: nil)

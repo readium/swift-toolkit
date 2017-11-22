@@ -55,6 +55,8 @@ public class StatusDocument {
     public enum Rel: String {
         case register = "register"
         case license = "license"
+        case `return` = "return"
+        case renew = "renew"
     }
 
     public init(with data: Data) throws {

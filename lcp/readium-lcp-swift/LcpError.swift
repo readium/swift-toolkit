@@ -11,14 +11,21 @@ public enum LcpError: Error {
     case invalidPath
     case invalidLcpl
     case statusLinkNotFound
+    case licenseNotFound
     case licenseLinkNotFound
     case publicationLinkNotFound
     case hintLinkNotFound
     case registerLinkNotFound
+    case returnLinkNotFound
+    case renewLinkNotFound
     case noStatusDocument
     case licenseDocumentData
     case publicationData
     case registrationFailure
+    case returnFailure
+    case alreadyReturned
+    case alreadyExpired
+    case renewFailure
     case deviceId
     case unexpectedServerError
     case invalidHintData
@@ -41,6 +48,8 @@ public enum LcpError: Error {
             return "The provided license file path is incorrect."
         case .invalidLcpl:
             return "The provided license isn't a correctly formatted LCPL file. "
+        case .licenseNotFound:
+            return "No license found in base for the given identifier."
         case .statusLinkNotFound:
             return "The status link is missing from the license document."
         case .licenseLinkNotFound:
@@ -51,6 +60,10 @@ public enum LcpError: Error {
             return "The hint link is missing from the license document."
         case .registerLinkNotFound:
             return "The register link is missing from the status document."
+        case .returnLinkNotFound:
+            return "The return link is missing from the status document."
+        case .renewLinkNotFound:
+            return "The renew link is missing from the status document."
         case .noStatusDocument:
             return "Updating the license failed, there is no status document."
         case .licenseDocumentData:
@@ -63,6 +76,14 @@ public enum LcpError: Error {
             return "The rights of this license aren't valid."
         case .registrationFailure:
             return "The device could not be registered properly."
+        case .returnFailure:
+            return "Your publication could not be returned properly."
+        case .alreadyReturned:
+            return "Your publication has already been returned before."
+        case .alreadyExpired:
+            return "Your publication has already expired."
+        case .renewFailure:
+            return "Your publication could not be renewed properly."
         case .deviceId:
             return "Couldn't retrieve/generate a proper deviceId."
         case .unexpectedServerError:

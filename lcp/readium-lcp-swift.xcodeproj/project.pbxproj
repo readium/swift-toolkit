@@ -24,6 +24,7 @@
 		F38FB03E1F66840900F9D602 /* ContentKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB03D1F66840900F9D602 /* ContentKey.swift */; };
 		F38FB0421F66847E00F9D602 /* Signature.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB0411F66847E00F9D602 /* Signature.swift */; };
 		F38FB0511F67DC2F00F9D602 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB0501F67DC2F00F9D602 /* SQLite.framework */; };
+		F39E9E731FC2E5F30098F77E /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F39E9E721FC2E5F30098F77E /* R2LCPClient.framework */; };
 		F3B2C8911F667223007601E4 /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3B2C8871F667222007601E4 /* ReadiumLCP.framework */; };
 		F3B2C8961F667223007601E4 /* readium_lcp_swiftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B2C8951F667223007601E4 /* readium_lcp_swiftTests.swift */; };
 		F3B2C8981F667223007601E4 /* readium-lcp-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = F3B2C88A1F667223007601E4 /* readium-lcp-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -35,7 +36,6 @@
 		F3B2C8AC1F66727C007601E4 /* Link.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B2C8A61F66727C007601E4 /* Link.swift */; };
 		F3B2C8AF1F6672E1007601E4 /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3B2C8AE1F6672E1007601E4 /* SwiftyJSON.framework */; };
 		F3E2DEA11FB1B3DC009A1CC4 /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E2DEA01FB1B3DC009A1CC4 /* ZIPFoundation.framework */; };
-		F3E2DEA31FB1B7A9009A1CC4 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E2DEA21FB1B7A9009A1CC4 /* R2LCPClient.framework */; };
 		F3F41E0E1FA0C26600F97737 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3F41E0D1FA0C26600F97737 /* CryptoSwift.framework */; };
 /* End PBXBuildFile section */
 
@@ -67,6 +67,7 @@
 		F38FB03D1F66840900F9D602 /* ContentKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentKey.swift; sourceTree = "<group>"; };
 		F38FB0411F66847E00F9D602 /* Signature.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Signature.swift; sourceTree = "<group>"; };
 		F38FB0501F67DC2F00F9D602 /* SQLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SQLite.framework; path = Carthage/Build/iOS/SQLite.framework; sourceTree = "<group>"; };
+		F39E9E721FC2E5F30098F77E /* R2LCPClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = "<group>"; };
 		F3B2C8871F667222007601E4 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3B2C88A1F667223007601E4 /* readium-lcp-swift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "readium-lcp-swift.h"; sourceTree = "<group>"; };
 		F3B2C88B1F667223007601E4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -81,7 +82,6 @@
 		F3B2C8A61F66727C007601E4 /* Link.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Link.swift; sourceTree = "<group>"; };
 		F3B2C8AE1F6672E1007601E4 /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
 		F3E2DEA01FB1B3DC009A1CC4 /* ZIPFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ZIPFoundation.framework; path = Carthage/Build/iOS/ZIPFoundation.framework; sourceTree = "<group>"; };
-		F3E2DEA21FB1B7A9009A1CC4 /* R2LCPClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = "<group>"; };
 		F3F41E0D1FA0C26600F97737 /* CryptoSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoSwift.framework; path = Carthage/Build/iOS/CryptoSwift.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -90,7 +90,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F3E2DEA31FB1B7A9009A1CC4 /* R2LCPClient.framework in Frameworks */,
+				F39E9E731FC2E5F30098F77E /* R2LCPClient.framework in Frameworks */,
 				F3E2DEA11FB1B3DC009A1CC4 /* ZIPFoundation.framework in Frameworks */,
 				F3F41E0E1FA0C26600F97737 /* CryptoSwift.framework in Frameworks */,
 				F300FA351F8E1AEB00442332 /* R2Shared.framework in Frameworks */,
@@ -219,7 +219,7 @@
 		F3B2C8AD1F6672E1007601E4 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				F3E2DEA21FB1B7A9009A1CC4 /* R2LCPClient.framework */,
+				F39E9E721FC2E5F30098F77E /* R2LCPClient.framework */,
 				F3E2DEA01FB1B3DC009A1CC4 /* ZIPFoundation.framework */,
 				F3F41E0D1FA0C26600F97737 /* CryptoSwift.framework */,
 				F300FA341F8E1AEB00442332 /* R2Shared.framework */,
