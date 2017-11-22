@@ -215,7 +215,7 @@ extension AppDelegate {
     fileprivate func locationsFromDocumentsDirectory() -> [Location] {
         let fileManager = FileManager.default
         // Document Directory always exists (hence try!).
-        var documentsUrl = try! fileManager.url(for: .documentDirectory,
+        let documentsUrl = try! fileManager.url(for: .documentDirectory,
                                                 in: .userDomainMask,
                                                 appropriateFor: nil,
                                                 create: true)
@@ -266,7 +266,7 @@ extension AppDelegate {
     fileprivate func removeFromDocumentsDirectory(fileName: String) {
         let fileManager = FileManager.default
         // Document Directory always exists (hence `try!`).
-        var inboxDirUrl = try! fileManager.url(for: .documentDirectory,
+        let inboxDirUrl = try! fileManager.url(for: .documentDirectory,
                                                in: .userDomainMask,
                                                appropriateFor: nil,
                                                create: true)
@@ -322,7 +322,8 @@ extension AppDelegate {
     ///   - completion: The handler to be called on completion.
     internal func publication(forLicenseAt url: URL) throws -> Promise<URL> {
         let lcp = try Lcp.init(withLicenseDocumentAt: url)
-        
+
+        showInfoAlert(title: "Downloading", message: "The publication is being fetched in the background and will be available soon.")
         return firstly {
             /// 3.1/ Fetch the status document.
             /// 3.2/ Validate the status document.
@@ -356,7 +357,7 @@ extension AppDelegate {
                 /// Move the license document in the publication.
                 try Lcp.moveLicense(from: lcp.licensePath, to: publicationUrl)
                 return Promise(value: publicationUrl)
-        }
+            }
     }
 }
 
@@ -377,7 +378,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
             return
         }
         let parsingCallback = item.1
-        guard var drm = item.0.protectedBy else {
+        guard var drm = item.0.associatedContainer.drm else {
             // No DRM, so the parsing callback can be directly called.
             try parsingCallback(nil)
             completion()
@@ -420,8 +421,6 @@ extension AppDelegate: LibraryViewControllerDelegate {
                             self.promptPassphrase(hint)
                             }.then { clearPassphrase -> Promise<String?> in
                                 let passphraseHash = clearPassphrase.sha256()
-                                //                                let data = passphraseHash.data(using: .utf8)!
-                                //                                let hexString = data.map{ String(format:"%02x", $0) }.joined()
                                 
                                 return session.checkPassphrases([passphraseHash])
                             }.then { validPassphraseHash -> Promise<String> in
@@ -469,9 +468,9 @@ extension AppDelegate: LibraryViewControllerDelegate {
             }
         }
     }
-
+    
     // Ask a passphrase to the user and verify it
-    func promptPassphrase(_ hint: String) -> Promise<String>
+    fileprivate func promptPassphrase(_ hint: String) -> Promise<String>
     {
         //return Promise(value: "motdepasse")
         return Promise<String> { fullfil, reject in
@@ -520,5 +519,15 @@ extension AppDelegate: LibraryViewControllerDelegate {
         publicationServer.remove(publication)
         libraryViewController?.publications = publicationServer.publications
     }
+
+//    func getDrm(for publication: Publication) -> Drm? {
+//        // Find associated container.
+//        guard let pubBox = publicationServer.pubBoxes.values.first(where: {
+//            $0.publication.metadata.identifier == publication.metadata.identifier
+//        }) else {
+//            return nil
+//        }
+//        return pubBox.associatedContainer.drm
+//    }
 }
 

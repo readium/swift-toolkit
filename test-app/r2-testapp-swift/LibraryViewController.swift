@@ -18,8 +18,9 @@ let bookPerRow = 3
 let insets = 5 // In px.
 
 protocol LibraryViewControllerDelegate: class {
-    func remove(_ publication: Publication)
     func loadPublication(withId id: String?, completion: @escaping () -> Void) throws
+    func remove(_ publication: Publication)
+//    func getDrm(for publication: Publication) -> Drm?
 }
 
 class LibraryViewController: UICollectionViewController {
@@ -215,9 +216,14 @@ extension LibraryViewController: PublicationCellDelegate {
     }
 
     func displayInformation(forCellAt indexPath: IndexPath) {
-        //        let publication = publications[indexPath.row]
         
-        print("TODO display info")
+        let storyboard = UIStoryboard(name: "Details", bundle: nil)
+        let detailsView = storyboard.instantiateViewController(withIdentifier: "DetailsTableViewController") as! DetailsTableViewController
+        let publication = publications[indexPath.row]
+
+        detailsView.setup(publication: publication,
+                          drm: delegate?.getDrm(for: publication))
+        navigationController?.pushViewController(detailsView, animated: true)
     }
     
     func cellFlipped(_ cell: PublicationCell) {
