@@ -1,3 +1,2 @@
 github "Hearst-DD/ObjectMapper" "2.2.9"
-github "Readium/r2-shared-swift" "d3d8c435fafec1eb52eaabcfbb4ab3be3ef55ccc"
-github "SwiftyJSON/SwiftyJSON" "3.1.4"
+github "Readium/r2-shared-swift" "f6b2d4739cfd0efe4f4dcbaec6de730d216f0567"
