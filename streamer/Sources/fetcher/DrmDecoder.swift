@@ -63,7 +63,7 @@ class DrmDecoder {
                                      drm: Drm) -> Data?
     {
         // Check that the DRM object contain a decipherer.
-        guard let decipherer = drm.decipherer else {
+        guard let drmLicense = drm.license else {
             return nil
         }
         // Transform stream into Data.
@@ -76,7 +76,7 @@ class DrmDecoder {
 
         // Convertion.
         do {
-            return try decipherer.decipher(data)
+            return try drmLicense.decipher(data)
         } catch {
             return nil
         }

@@ -60,7 +60,7 @@ public enum EpubParserError: Error {
 }
 
 /// `Publication` and the associated `Container`.
-public typealias PubBox = (publication: Publication, associatedContainer: Container, protectedBy: Drm?)
+public typealias PubBox = (publication: Publication, associatedContainer: Container)
 /// A callback taking care of the
 public typealias PubParsingCallback = (Drm?) throws -> Void
 
@@ -118,7 +118,8 @@ final public class EpubParser {
             parseNavigationDocument(from: fetcher, to: &publication)
             parseNcxDocument(from: fetcher, to: &publication)
         }
-        return ((publication, container, drm), parseRemainingResource)
+        container.drm = drm
+        return ((publication, container), parseRemainingResource)
     }
 
     // MARK: - Internal Methods.

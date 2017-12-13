@@ -167,8 +167,7 @@ public class PublicationServer {
         publication.addSelfLink(endpoint: endpoint, for: baseUrl)
         // Add the Publication to the publication boxes dictionnary.
         let pubBox = PubBox(publication: publication,
-                      associatedContainer: container,
-                      protectedBy: container.drm)
+                      associatedContainer: container)
 
         pubBoxes[endpoint] = pubBox
 
