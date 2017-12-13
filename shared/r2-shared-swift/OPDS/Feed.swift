@@ -19,4 +19,13 @@ public class Feed {
     public init(title: String) {
         self.metadata = OpdsMetadata(title: title)
     }
+
+    /// Return a String representing the URL of the searchLink of the feed.
+    ///
+    /// - Returns: The HREF value of the search link
+    internal func getSearchLinkHref() -> String? {
+        let searchLink = links.first(where: { $0.rel.contains("search") })
+
+        return searchLink?.href
+    }
 }

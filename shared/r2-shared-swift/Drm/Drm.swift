@@ -17,10 +17,10 @@ public struct Drm {
     public let scheme: Scheme
     /// The below properties will be filled when passed back to the DRM module.
     public var profile: String?
-    public var decipherer: Decipherer?
+    public var license: DrmLicense?
 
-    public enum Brand {
-        case lcp
+    public enum Brand: String {
+        case lcp = "Lcp"
     }
 
     public enum Scheme: String {
