@@ -18,9 +18,8 @@ let bookPerRow = 3
 let insets = 5 // In px.
 
 protocol LibraryViewControllerDelegate: class {
-    func loadPublication(withId id: String?, completion: @escaping () -> Void) throws
+    func loadPublication(withId id: String?, completion: @escaping (Drm?) -> Void) throws
     func remove(_ publication: Publication)
-//    func getDrm(for publication: Publication) -> Drm?
 }
 
 class LibraryViewController: UICollectionViewController {
@@ -176,21 +175,30 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
             let progression = userDefaults.double(forKey: "\(publicationIdentifier)-documentProgression")
             do {
                 // Ask delegate to load that document.
-                try delegate?.loadPublication(withId: publicationIdentifier, completion: {
+                try delegate?.loadPublication(withId: publicationIdentifier, completion: { drm in
 
-                let epubViewer = EpubViewController(with: publication,
-                                                    atIndex: index,
-                                                    progression: progression)
+                    let epubViewer = EpubViewController(with: publication,
+                                                        atIndex: index,
+                                                        progression: progression, drm)
 
                     self.navigationController?.pushViewController(epubViewer, animated: true)
 
                 })
             } catch {
-                print(">> ERROR : \(error.localizedDescription)")
+                infoAlert(title: "Error", message: error.localizedDescription)
             }
         default:
             break
         }
+    }
+
+    internal func infoAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        let dismissButton = UIAlertAction(title: "Ok", style: .cancel)
+
+        alert.addAction(dismissButton)
+        // Present alert.
+        present(alert, animated: true)
     }
 }
 
@@ -221,8 +229,7 @@ extension LibraryViewController: PublicationCellDelegate {
         let detailsView = storyboard.instantiateViewController(withIdentifier: "DetailsTableViewController") as! DetailsTableViewController
         let publication = publications[indexPath.row]
 
-        detailsView.setup(publication: publication,
-                          drm: delegate?.getDrm(for: publication))
+        detailsView.setup(publication: publication)
         navigationController?.pushViewController(detailsView, animated: true)
     }
     

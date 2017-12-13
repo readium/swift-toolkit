@@ -18,8 +18,10 @@ class EpubViewController: UIViewController {
     var tableOfContentsTVC: TableOfContentsTableViewController!
     var popoverUserconfigurationAnchor: UIBarButtonItem?
     var userSettingNavigationController: UserSettingsNavigationController!
+    var drmManagementTVC: DrmManagementTableViewController!
+    var haveDrm = false
 
-    init(with publication: Publication, atIndex index: Int, progression: Double?) {
+    init(with publication: Publication, atIndex index: Int, progression: Double?, _ drm: Drm?) {
         stackView = UIStackView(frame: UIScreen.main.bounds)
         navigator = NavigatorViewController(for: publication,
                                             initialIndex: index,
@@ -29,10 +31,19 @@ class EpubViewController: UIViewController {
         tableOfContentsTVC = TableOfContentsTableViewController(for: navigator.getTableOfContents(),
                                                                 callWhenDismissed: navigator.displaySpineItem(with:))
         // UserSettingsViewController.
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        var storyboard = UIStoryboard(name: "Main", bundle: nil)
 
         userSettingNavigationController =
             storyboard.instantiateViewController(withIdentifier: "UserSettingsNavigationController") as! UserSettingsNavigationController
+
+        if drm != nil {
+            haveDrm = true
+            // DrmManagementViewController?
+            storyboard = UIStoryboard(name: "DrmManagement", bundle: nil)
+            drmManagementTVC =
+                storyboard.instantiateViewController(withIdentifier: "DrmManagementTableViewController") as! DrmManagementTableViewController
+            drmManagementTVC.drm = drm
+        }
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -78,18 +89,28 @@ class EpubViewController: UIViewController {
         fixedBottomBar.setLabel(title: "")
 
         navigationController?.setNavigationBarHidden(true, animated: false)
+        var barButtons = [UIBarButtonItem]()
 
         // SpineItemView button.
         let spineItemButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self,
                                               action: #selector(presentTableOfContents))
+        barButtons.append(spineItemButton)
         // User configuration button
 
         let userSettingsButton = UIBarButtonItem(image: #imageLiteral(resourceName: "settingsIcon"), style: .plain, target: self,
                                                  action: #selector(presentUserSettings))
+        barButtons.append(userSettingsButton)
+
+        if haveDrm {
+            let drmManagementButton = UIBarButtonItem(image: #imageLiteral(resourceName: "drm"), style: .plain, target: self,
+                                                      action: #selector(presentDrmManagement))
+            barButtons.append(drmManagementButton)
+        }
 
         popoverUserconfigurationAnchor = userSettingsButton
         /// Add spineItemViewController button to navBar.
-        navigationItem.setRightBarButtonItems([spineItemButton, userSettingsButton], animated: true)
+        navigationItem.setRightBarButtonItems(barButtons,
+                                              animated: true)
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -132,12 +153,6 @@ extension EpubViewController {
         popoverPresentationController.barButtonItem = popoverUserconfigurationAnchor
 
         present(userSettingNavigationController, animated: true, completion: nil)
-//        let popoverPresentationController = userSettingsTableViewController.popoverPresentationController!
-//
-//        popoverPresentationController.delegate = self
-//        popoverPresentationController.barButtonItem = popoverUserconfigurationAnchor
-//
-//        present(userSettingsTableViewController, animated: true, completion: nil)
     }
 
     func presentTableOfContents() {
@@ -149,7 +164,19 @@ extension EpubViewController {
         if let userSettingsTVC = userSettingNavigationController.userSettingsTableViewController {
             userSettingsTVC.dismiss(animated: true, completion: nil)
         }
-        self.navigationController?.pushViewController(self.tableOfContentsTVC, animated: true)
+        navigationController?.pushViewController(tableOfContentsTVC, animated: true)
+    }
+
+    func presentDrmManagement() {
+        let backItem = UIBarButtonItem()
+
+        backItem.title = ""
+        navigationItem.backBarButtonItem = backItem
+        // Dismiss userSettings if opened.
+        if let userSettingsTVC = userSettingNavigationController.userSettingsTableViewController {
+            userSettingsTVC.dismiss(animated: true, completion: nil)
+        }
+        self.navigationController?.pushViewController(drmManagementTVC, animated: true)
     }
 }
 

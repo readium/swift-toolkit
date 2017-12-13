@@ -14,36 +14,17 @@ class DetailsTableViewController: UITableViewController {
     // Informations
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var idLabel: UILabel!
-    // DRM
-    @IBOutlet weak var typeLabel: UILabel!
-    @IBOutlet weak var statusLabel: UILabel!
-    @IBOutlet weak var loanStatusLabel: UILabel!
-    weak var publication: Publication? = nil
-    var drm: Drm? = nil
 
-    func setup(publication: Publication, drm: Drm?) {
+    weak var publication: Publication? = nil
+
+    func setup(publication: Publication) {
         self.publication = publication
-        self.drm = drm
         modalPresentationStyle = .popover
     }
 
     override func viewDidLoad() {
         titleLabel.text = publication?.metadata.multilangTitle?.singleString
         idLabel.text = publication?.metadata.identifier
-        typeLabel.text = drm?.brand.rawValue
-//        LCPDatabase.shared
-        statusLabel.text = "unknown"
-        loanStatusLabel.text = "unknown"
-        // USE db
-    }
-
-    
-    @IBAction func renewTapped() {
-        print("TAPPER")
-    }
-
-    @IBAction func returnTapped() {
-        print("du")
     }
 
 

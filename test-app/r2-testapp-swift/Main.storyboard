@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13196" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
-        <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13173"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13527"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -30,7 +29,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <slider opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.1679999977350235" minValue="0.0" maxValue="1" minimumValueImage="lowerBrightness" maximumValueImage="higherBrightness" translatesAutoresizingMaskIntoConstraints="NO" id="98A-jm-Ha8">
-                                                    <rect key="frame" x="4.5" y="-5" width="239.5" height="56"/>
+                                                    <rect key="frame" x="5" y="-5" width="239" height="56"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
                                                     <connections>
                                                         <action selector="brightnessDidChange" destination="Aip-CA-mbT" eventType="valueChanged" id="DHh-vw-Qtq"/>
@@ -61,14 +60,14 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" insetsLayoutMarginsFromSafeArea="NO" text="Publisher's defaults" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="vVu-qO-onw">
-                                                    <rect key="frame" x="15" y="0.0" width="220" height="39.5"/>
+                                                    <rect key="frame" x="15" y="0.0" width="219" height="39.5"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="0tu-Dp-cye">
-                                                    <rect key="frame" x="185" y="4.5" width="49" height="31"/>
+                                                    <rect key="frame" x="185" y="4" width="49" height="31"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
                                                     <connections>
                                                         <action selector="defaultSwitched" destination="Aip-CA-mbT" eventType="valueChanged" id="qOE-JF-GZi"/>
@@ -145,11 +144,11 @@
                                         <rect key="frame" x="0.0" y="134" width="250" height="40"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="KgI-Ea-6ce" id="Vu5-Jb-xpW">
-                                            <rect key="frame" x="0.0" y="0.0" width="217" height="39.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="216" height="39.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7WU-ia-QFH">
-                                                    <rect key="frame" x="0.0" y="0.0" width="246" height="40"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="245" height="40"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <connections>
                                                         <action selector="fontSelectionTapped" destination="Aip-CA-mbT" eventType="touchUpInside" id="XeZ-gO-NNe"/>
@@ -176,11 +175,11 @@
                                         <rect key="frame" x="0.0" y="174" width="250" height="40"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="J1O-1U-t1t" id="FUF-YF-IDf">
-                                            <rect key="frame" x="0.0" y="0.0" width="217" height="39.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="216" height="39.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="bg6-yO-8TA">
-                                                    <rect key="frame" x="0.0" y="0.0" width="251" height="40"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="250" height="40"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <connections>
                                                         <action selector="advancedSettingsTapped" destination="Aip-CA-mbT" eventType="touchUpInside" id="ePC-mn-o7k"/>
@@ -218,7 +217,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <segmentedControl opaque="NO" contentMode="scaleToFill" verticalCompressionResistancePriority="600" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="TZb-nI-KDr">
-                                                    <rect key="frame" x="8" y="8.5" width="234" height="29"/>
+                                                    <rect key="frame" x="8" y="8" width="234" height="29"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
                                                     <segments>
                                                         <segment title="Default"/>
@@ -248,7 +247,7 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" insetsLayoutMarginsFromSafeArea="NO" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="s2p-at-loK">
-                                                    <rect key="frame" x="235" y="0.0" width="765" height="39.5"/>
+                                                    <rect key="frame" x="234" y="0.0" width="766" height="39.5"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
@@ -298,7 +297,7 @@
                     <value key="contentSizeForViewInPopover" type="size" width="250" height="305"/>
                     <size key="freeformSize" width="250" height="305"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="o63-pz-oFj">
-                        <rect key="frame" x="0.0" y="0.0" width="250" height="48"/>
+                        <rect key="frame" x="0.0" y="0.0" width="250" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <connections>
