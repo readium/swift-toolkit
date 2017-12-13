@@ -8,7 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		F32314A21F8616C2000FCFB0 /* Drm.swift in Sources */ = {isa = PBXBuildFile; fileRef = F32314A11F8616C2000FCFB0 /* Drm.swift */; };
-		F3462DE41FA07A000011F559 /* Decipherer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3462DE31FA07A000011F559 /* Decipherer.swift */; };
+		F34CB2891FC56CAD005E3A37 /* DrmLicense.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34CB2881FC56CAD005E3A37 /* DrmLicense.swift */; };
+		F39E9E6F1FC2E1B70098F77E /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D4201F4ECA9800DF166D /* ObjectMapper.framework */; };
 		F3B187A01FA33D4D00BB46BF /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B1879F1FA33D4D00BB46BF /* Feed.swift */; };
 		F3B187A21FA33DFA00BB46BF /* Facet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B187A11FA33DFA00BB46BF /* Facet.swift */; };
 		F3B187A41FA33E1D00BB46BF /* OpdsMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B187A31FA33E1D00BB46BF /* OpdsMetadata.swift */; };
@@ -27,7 +28,6 @@
 		F3E7D4181F4EC69100DF166D /* Rendition.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D40B1F4EC69100DF166D /* Rendition.swift */; };
 		F3E7D4191F4EC69100DF166D /* RootFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D40C1F4EC69100DF166D /* RootFile.swift */; };
 		F3E7D41A1F4EC69100DF166D /* Subject.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D40D1F4EC69100DF166D /* Subject.swift */; };
-		F3E7D4211F4ECA9800DF166D /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D4201F4ECA9800DF166D /* ObjectMapper.framework */; };
 		F3E7D4231F4ECB3D00DF166D /* ISO8601DateString.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4221F4ECB3D00DF166D /* ISO8601DateString.swift */; };
 		F3F41E181FA3377E00F97737 /* Price.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F41E171FA3377E00F97737 /* Price.swift */; };
 		F3F41E1A1FA3378900F97737 /* IndirectAcquisition.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F41E191FA3378900F97737 /* IndirectAcquisition.swift */; };
@@ -37,12 +37,11 @@
 
 /* Begin PBXFileReference section */
 		F32314A11F8616C2000FCFB0 /* Drm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Drm.swift; sourceTree = "<group>"; };
-		F3462DE31FA07A000011F559 /* Decipherer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Decipherer.swift; sourceTree = "<group>"; };
+		F34CB2881FC56CAD005E3A37 /* DrmLicense.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrmLicense.swift; sourceTree = "<group>"; };
 		F3B1879F1FA33D4D00BB46BF /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
 		F3B187A11FA33DFA00BB46BF /* Facet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Facet.swift; sourceTree = "<group>"; };
 		F3B187A31FA33E1D00BB46BF /* OpdsMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpdsMetadata.swift; sourceTree = "<group>"; };
 		F3B187A51FA33E4900BB46BF /* Group.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Group.swift; sourceTree = "<group>"; };
-		F3B2C8681F602ED7007601E4 /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
 		F3E7D3F41F4EBE2100DF166D /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3E7D3F71F4EBE2100DF166D /* r2-shared-swift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "r2-shared-swift.h"; sourceTree = "<group>"; };
 		F3E7D3F81F4EBE2100DF166D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -72,13 +71,22 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F3E7D4211F4ECA9800DF166D /* ObjectMapper.framework in Frameworks */,
+				F39E9E6F1FC2E1B70098F77E /* ObjectMapper.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		F34CB28A1FC5714D005E3A37 /* Drm */ = {
+			isa = PBXGroup;
+			children = (
+				F32314A11F8616C2000FCFB0 /* Drm.swift */,
+				F34CB2881FC56CAD005E3A37 /* DrmLicense.swift */,
+			);
+			path = Drm;
+			sourceTree = "<group>";
+		};
 		F3B1879E1FA33D3700BB46BF /* OPDS */ = {
 			isa = PBXGroup;
 			children = (
@@ -113,9 +121,8 @@
 				F3E7D3F71F4EBE2100DF166D /* r2-shared-swift.h */,
 				F3E7D3F81F4EBE2100DF166D /* Info.plist */,
 				F3E7D40C1F4EC69100DF166D /* RootFile.swift */,
-				F32314A11F8616C2000FCFB0 /* Drm.swift */,
-				F3462DE31FA07A000011F559 /* Decipherer.swift */,
 				F3E7D4221F4ECB3D00DF166D /* ISO8601DateString.swift */,
+				F34CB28A1FC5714D005E3A37 /* Drm */,
 				F3E7D41B1F4EC69C00DF166D /* Publication */,
 				F3B1879E1FA33D3700BB46BF /* OPDS */,
 			);
@@ -171,7 +178,6 @@
 		F3E7D41F1F4ECA9800DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				F3B2C8681F602ED7007601E4 /* SwiftyJSON.framework */,
 				F3E7D4201F4ECA9800DF166D /* ObjectMapper.framework */,
 			);
 			name = Frameworks;
@@ -274,7 +280,7 @@
 				F3E7D4141F4EC69100DF166D /* MetadataItem.swift in Sources */,
 				F3F41E181FA3377E00F97737 /* Price.swift in Sources */,
 				F3E7D4101F4EC69100DF166D /* Link.swift in Sources */,
-				F3462DE41FA07A000011F559 /* Decipherer.swift in Sources */,
+				F34CB2891FC56CAD005E3A37 /* DrmLicense.swift in Sources */,
 				F3E7D4181F4EC69100DF166D /* Rendition.swift in Sources */,
 				F3E7D4121F4EC69100DF166D /* MediaOverlays.swift in Sources */,
 				F3B187A01FA33D4D00BB46BF /* Feed.swift in Sources */,
@@ -344,7 +350,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -398,7 +404,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
