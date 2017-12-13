@@ -11,21 +11,21 @@ import UIKit
 import PromiseKit
 import SwiftyJSON
 import ZIPFoundation
+import R2Shared
+import R2LCPClient
 
-public class Lcp {
+public class LcpLicense: DrmLicense {
     public var licensePath: URL
     var license: LicenseDocument
     var status: StatusDocument?
+    internal var context: DRMContext?
     
     public init(withLicenseDocumentAt path: URL) throws {
         licensePath = path
         
-        guard let data = try? Data.init(contentsOf: path.absoluteURL) else {
-            throw LcpError.invalidPath
-        }
-        guard let license = try? LicenseDocument.init(with: data) else {
-            throw LcpError.invalidLcpl
-        }
+        let data = try Data.init(contentsOf: path.absoluteURL)
+        let license = try LicenseDocument.init(with: data)
+        
         self.license = license
     }
 
@@ -34,14 +34,26 @@ public class Lcp {
             throw LcpError.invalidPath
         }
         licensePath = url
-        let data = try Lcp.getData(forFile: licensePath, fromArchive: archive)
+        let data = try LcpLicense.getData(forFile: licensePath, fromArchive: archive)
 
         guard let license = try? LicenseDocument.init(with: data) else {
             throw LcpError.invalidLcpl
         }
         self.license = license
     }
-    
+
+    /// Decipher encrypted content.
+    ///
+    /// - Parameter data: <#data description#>
+    /// - Returns: <#return value description#>
+    /// - Throws: <#throws value description#>
+    public func decipher(_ data: Data) throws -> Data? {
+        guard let context = context else {
+            throw LcpError.invalidContext
+        }
+        return decrypt(data: data, using: context)
+    }
+
     /// Update the Status Document.
     ///
     /// - Parameter completion:
@@ -72,18 +84,35 @@ public class Lcp {
     /// Check that current date is inside the [end - start] right's dates range.
     ///
     /// - Returns: True if valid.
-    public func areRightsValid() -> Bool {
+    public func areRightsValid() throws {
         let now = Date.init()
         
         if let start = license.rights.start,
             !(now > start) {
-            return false
+            throw LcpError.invalidRights
         }
         if let end = license.rights.end,
             !(now < end) {
-            return false
+            throw LcpError.invalidRights
         }
-        return true
+    }
+
+    public func checkStatus() throws {
+        guard let status =  status?.status else {
+            throw LcpError.missingLicenseStatus
+        }
+        switch status {
+        case .returned:
+            throw LcpError.licenseStatusReturned
+        case .expired:
+            throw LcpError.licenseStatusExpired
+        case .revoked:
+            throw LcpError.licenseStatusRevoked
+        case .cancelled:
+            throw LcpError.licenseStatusCancelled
+        default:
+            return
+        }
     }
     
     /// Attemps to register the device for the given license using the Status
@@ -113,14 +142,13 @@ public class Lcp {
         }
         let deviceName = getDeviceName()
         // get registerUrl.
-        guard var registerUrl = status.link(withRel: StatusDocument.Rel.register)?.href else {
+        // Removing the template {?id,name}
+        guard let url = status.link(withRel: StatusDocument.Rel.register)?.href,
+            let registerUrl = URL(string: url.absoluteString.replacingOccurrences(of: "%7B?id,name%7D", with: "")) else
+        {
             print(LcpError.registerLinkNotFound.localizedDescription)
             return
         }
-        // Removing the template {?id,name}
-        registerUrl.deleteLastPathComponent()
-        registerUrl.appendPathComponent("register")
-
         var request = URLRequest(url: registerUrl)
         request.httpMethod = "POST"
         request.httpBody = "id=\(deviceId)&name=\(deviceName)".data(using: .utf8)
@@ -148,26 +176,25 @@ public class Lcp {
     }
 
     /// <#Description#>
-    public func `return`() {
+    public func `return`(completion: @escaping (Error?) -> Void){
         // Is the Status document fetched.
         guard let status = status else {
-            print(LcpError.noStatusDocument.localizedDescription)
+            completion(LcpError.noStatusDocument)
             return
         }
         // Get device ID and Name.
         guard let deviceId = getDeviceId() else {
-            print(LcpError.deviceId)
+            completion(LcpError.deviceId)
             return
         }
         let deviceName = getDeviceName()
         // get registerUrl.
-        guard var returnUrl = status.link(withRel: StatusDocument.Rel.return)?.href else {
-            print(LcpError.returnLinkNotFound.localizedDescription)
+        guard let url = status.link(withRel: StatusDocument.Rel.return)?.href,
+            let returnUrl = URL(string: url.absoluteString.replacingOccurrences(of: "%7B?id,name%7D", with: "")) else
+        {
+            completion(LcpError.returnLinkNotFound)
             return
         }
-        // Removing the template return{?end,id,name}
-        returnUrl.deleteLastPathComponent()
-        returnUrl.appendPathComponent("return")
 
         var request = URLRequest(url: returnUrl)
         request.httpMethod = "PUT"
@@ -183,66 +210,104 @@ public class Lcp {
                             do {
                                 // Update local license in Lcp object
                                 self.status = try StatusDocument.init(with: data)
-                                guard let status = self.status?.status else {
-                                    print("The status is not filled.")
-                                    return
-                                }
                                 // Update license status (to 'returned' normally)
                                 try LCPDatabase.shared.licenses.updateState(forLicenseWith: self.license.id,
-                                                                            to: status.rawValue)
+                                                                            to: self.status!.status.rawValue)
+                                completion(nil)
                             } catch {
-                                print(LcpError.licenseDocumentData.localizedDescription)
+                                completion(LcpError.licenseDocumentData)
                             }
                         }
-
-                        // logging the event in db
-
                     case 400:
-                        print(LcpError.returnFailure.localizedDescription)
+                        completion(LcpError.returnFailure)
                     case 403:
-                        print(LcpError.alreadyReturned.localizedDescription)
+                        completion(LcpError.alreadyReturned)
                     default:
-                        print(LcpError.unexpectedServerError.localizedDescription)
+                        completion(LcpError.unexpectedServerError)
                     }
                 } else if let error = error {
-                    print(error.localizedDescription)
+                    completion(error)
                 }
             }
         })
         task.resume()
-
     }
 
-
     /// <#Description#>
-    public func renew() {
+    public func renew(endDate: Date?, completion: @escaping (Error?) -> Void) {
         // Is the Status document fetched.
         guard let status = status else {
-            print(LcpError.noStatusDocument.localizedDescription)
+            completion(LcpError.noStatusDocument)
             return
         }
         // Get device ID and Name.
         guard let deviceId = getDeviceId() else {
-            print(LcpError.deviceId)
+            completion(LcpError.deviceId)
             return
         }
         let deviceName = getDeviceName()
         // get registerUrl.
-        guard var renewUrl = status.link(withRel: StatusDocument.Rel.renew)?.href else {
-            print(LcpError.renewLinkNotFound.localizedDescription)
+        guard let url = status.link(withRel: StatusDocument.Rel.renew)?.href,
+            var renewUrl = URL(string: url.absoluteString.replacingOccurrences(of: "%7B?end,id,name%7D", with: "")) else
+        {
+            completion(LcpError.renewLinkNotFound)
             return
         }
-        // Removing the template return{?end,id,name}
-        renewUrl.deleteLastPathComponent()
-        renewUrl.appendPathComponent("renew")
 
+        renewUrl = URL(string: renewUrl.absoluteString + "?id=\(deviceId)&name=\(deviceName)")!
+        //renewUrl = URL(string: renewUrl.absoluteString.appending("?end=\(endDate),id=\(deviceId)&name=\(deviceName)"))!
+        var request = URLRequest(url: renewUrl)
+        request.httpMethod = "PUT"
+//        request.httpBody = "end=\(endDate),id=\(deviceId)&name=\(deviceName)".data(using: .utf8)
+        print(request.url?.absoluteString)
+        // Call returnUrl.
+        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data, response, error) in
+            if let httpResponse = response as? HTTPURLResponse  {
+                if error == nil {
+                    switch httpResponse.statusCode {
+                    case 200:
+                        // update the status document
+                        if let data = data {
+                            do {
+                                // Update local license in Lcp object
+                                self.status = try StatusDocument.init(with: data)
+                                // Update license status (to 'returned' normally)
+                                try LCPDatabase.shared.licenses.updateState(forLicenseWith: self.license.id,
+                                                                            to: self.status!.status.rawValue)
+                                // Update license document.
+                                firstly {
+                                    self.updateLicenseDocument()
+                                    }.then {
+                                        completion(nil)
+                                    }.catch { error in
+                                        completion(error)
+                                }
+                            } catch {
+                                completion(LcpError.licenseDocumentData)
+                            }
+                        }
+                    case 400:
+                        completion(LcpError.renewFailure)
+                    case 403:
+                        completion(LcpError.renewPeriod)
+                    default:
+                        completion(LcpError.unexpectedServerError)
+                    }
+                } else if let error = error {
+                    completion(error)
+                }
+            }
+        })
+        task.resume()
     }
     
     /// Return the name of the Device.
     ///
     /// - Returns: The device name.
     public func getDeviceName() -> String {
-        return UIDevice.current.name
+        let name = UIDevice.current.name//.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        return String(UIDevice.current.name.filter { !" \n\t\r".characters.contains($0) })
     }
     
     /// Returns the id of the device (Looking in the userSettings).
@@ -322,9 +387,16 @@ public class Lcp {
                 reject(LcpError.licenseLinkNotFound)
                 return
             }
-            var request = URLRequest(url: licenseLink.href)
+            print(licenseLink.href.absoluteString)
+            let request = URLRequest(url: licenseLink.href)
 
-            print(request)
+            // Compare last update date
+            let latestUpdate = license.dateOfLastUpdate()
+
+            if let lastUpdate = LCPDatabase.shared.licenses.dateOfLastUpdate(forLicenseWith: license.id),
+                lastUpdate == latestUpdate {
+                    return
+            }
             
             /// 3.4.1/ Fetch the updated license.
             let task = URLSession.shared.downloadTask(with: request, completionHandler: { tmpLocalUrl, response, error in
@@ -335,14 +407,13 @@ public class Lcp {
 
                         let fileContent = try String(contentsOf: localUrl)
 
-                        print(fileContent)
                         /// Refresh the current LicenseDocument in memory with the
                         /// freshly fetched one.
                         content = try Data.init(contentsOf: localUrl)
                         self.license = try LicenseDocument.init(with: content)
                         /// Replace the current licenseDocument on disk with the
                         /// new one.
-                        try FileManager.default.removeItem(at: self.licensePath)
+                        // try FileManager.default.removeItem(at: self.licensePath)
                         // SHOULD make a save or something // TODO
                         try FileManager.default.moveItem(at: localUrl,
                                                          to: self.licensePath)
@@ -414,5 +485,41 @@ public class Lcp {
                              relativeTo: urlMetaInf.deletingLastPathComponent())
         // Delete META-INF/license.lcpl from inbox.
         try fileManager.removeItem(at: urlMetaInf)
+    }
+
+    public func currentStatus() -> String {
+        return getStatus()?.rawValue ?? ""
+    }
+
+    public func lastUpdate() -> Date {
+        return license.dateOfLastUpdate()
+    }
+
+    public func issued() -> Date {
+        return license.issued
+    }
+
+    public func provider() -> URL {
+        return license.provider
+    }
+
+    public func rightsEnd() -> Date? {
+        return license.rights.end
+    }
+
+    public func rightsStart() -> Date? {
+        return license.rights.start
+    }
+
+    public func rightsPrints() -> Int? {
+        return license.rights.print
+    }
+
+    public func rightsCopies() -> Int? {
+        return license.rights.copy
+    }
+
+    public func potentialRightsEnd() -> Date? {
+        return license.rights.potentialEnd
     }
 }

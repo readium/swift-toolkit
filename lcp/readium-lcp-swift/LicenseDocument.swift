@@ -9,6 +9,7 @@
 import Foundation
 import SwiftyJSON
 import PromiseKit
+import R2Shared
 
 /// Document that contains references to the various keys, links to related
 /// external resources, rights and restrictions that are applied to the
@@ -63,6 +64,9 @@ public class LicenseDocument {
         encryption = try Encryption.init(with: json["encryption"])
         links = try parseLinks(json["links"])
         rights = Rights.init(with: json["rights"])
+        if let potentialEnd = json["potential_rights"]["end"].string?.dateFromISO8601 {
+            rights.potentialEnd = potentialEnd
+        }
         user = User.init(with: json["user"])
         signature = try Signature.init(with: json["signature"])
         if let updated = json["updated"].string,

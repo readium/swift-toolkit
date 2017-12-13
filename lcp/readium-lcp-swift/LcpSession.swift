@@ -13,27 +13,11 @@ import R2Shared
 import R2LCPClient
 import CryptoSwift
 
-// Implementation of the Decipherer protocol for LCP.
-// This is used in the DRM object to be able to decipher data.
-public class DeciphererLcp: Decipherer {
-    
-    internal var context: DRMContext?
-    
-    internal init() {}
-    
-    public func decipher(_ data: Data) throws -> Data? {
-        guard let context = context else {
-            throw LcpError.invalidContext
-        }
-        return LCPClient.decrypt(data: data, using: context)
-    }
-}
-
 public class LcpSession {
-    internal let lcp: Lcp
+    internal let lcpLicense: LcpLicense
     
     public init(protectedEpubUrl url: URL) throws {
-        lcp = try Lcp.init(withLicenseDocumentIn: url)
+        lcpLicense = try LcpLicense.init(withLicenseDocumentIn: url)
     }
     
     /// Generate a Decipherer for the LCP drm.
@@ -41,18 +25,13 @@ public class LcpSession {
     /// - Parameters:
     ///   - passphrase: The passphrase.
     ///   - completion: The code to be exected on success.
-    public func resolve(using passphrase: String, pemCrl: String) -> Promise<DeciphererLcp> {
+    public func resolve(using passphrase: String, pemCrl: String) -> Promise<LcpLicense> {
         return firstly {
             // 4/ Check the license status
-            lcp.fetchStatusDocument()
+            lcpLicense.fetchStatusDocument()
             }.then { _ -> Promise<Void> in
                 /// 3.3/ Check that the status is "ready" or "active".
-                guard self.lcp.status?.status == StatusDocument.Status.ready
-                    || self.lcp.status?.status == StatusDocument.Status.active else {
-                        /// If this is not the case (revoked, returned, cancelled,
-                        /// expired), the app will notify the user and stop there.
-                        throw LcpError.licenseStatus
-                }
+                try self.lcpLicense.checkStatus()
                 /// 3.4/ Check if the license has been updated. If it is the case,
                 //       the app must:
                 /// 3.4.1/ Fetch the updated license.
@@ -60,44 +39,46 @@ public class LcpSession {
                 ///        is not valid, the app must keep the current one.
                 /// 3.4.3/ Replace the current license by the updated one in the
                 ///        EPUB archive.
-                return self.lcp.updateLicenseDocument()
-            }.then { _ -> Promise<DeciphererLcp> in
+                return self.lcpLicense.updateLicenseDocument()
+            }.then { _ -> Promise<LcpLicense> in
                 /// 4/ Check the rights.
-                guard self.lcp.areRightsValid() else {
-                    throw LcpError.invalidRights
-                }
+                try self.lcpLicense.areRightsValid()
                 /// 5/ Register the device / license if needed.
-                self.lcp.register()
-                
-                return self.initializeDeciphererLcp(jsonLicense: self.lcp.license.json,
-                                                    passphrase: passphrase,
-                                                    pemCrl: pemCrl)
-            }.catch { error in
-                print("Error: \(error.localizedDescription)")
-        }
+                self.lcpLicense.register()
+
+                return self.getLcpContext(jsonLicense: self.lcpLicense.license.json,
+                                          passphrase: passphrase,
+                                          pemCrl: pemCrl)
+            }
     }
-    
-    func initializeDeciphererLcp(jsonLicense: String, passphrase: String, pemCrl: String) -> Promise<DeciphererLcp> {
-        return Promise<DeciphererLcp> { fulfill, reject in
-            LCPClient.createContext(jsonLicense: jsonLicense, hashedPassphrase: passphrase, pemCrl: pemCrl) { (error, context) in
+
+    /// <#Description#>
+    ///
+    /// - Parameters:
+    ///   - jsonLicense: <#jsonLicense description#>
+    ///   - passphrase: <#passphrase description#>
+    ///   - pemCrl: <#pemCrl description#>
+    /// - Returns: <#return value description#>
+    func getLcpContext(jsonLicense: String, passphrase: String, pemCrl: String) -> Promise<LcpLicense> {
+        return Promise<LcpLicense> { fulfill, reject in
+            createContext(jsonLicense: jsonLicense, hashedPassphrase: passphrase, pemCrl: pemCrl) { (error, context) in
                 if let error = error {
                     reject(error)
                     return
                 }
-                let deciphererLcp = DeciphererLcp()
                 
-                deciphererLcp.context = context
-                fulfill(deciphererLcp)
+                self.lcpLicense.context = context
+                fulfill(self.lcpLicense)
             }
         }
     }
     
     public func getHint() -> String {
-        return lcp.license.getHint()
+        return lcpLicense.license.getHint()
     }
     
     public func getProfile() -> String {
-        return lcp.license.encryption.profile.absoluteString
+        return lcpLicense.license.encryption.profile.absoluteString
     }
     
     /// Call R2LCPClient to check if any of the provided passphrases are valid,
@@ -109,18 +90,18 @@ public class LcpSession {
         return Promise<String?> { fulfill, reject in
             
             func completionHandler(error: Error?, passphrase: String?) {
-                if let error = error as Error? {
-                    reject(error)
-                    return
-                }
+//                if let error = error as Error? {
+//                    reject(LcpError.noPass)
+//                    return
+//                }
                 guard let passphrase = passphrase else {
-                    reject(LcpError.noPassphraseFound)
+                    reject(LcpError.invalidPassphrase)
                     return
                 }
                 fulfill(passphrase)
             }
             
-            LCPClient.findOneValidPassphrase(jsonLicense: lcp.license.json,
+            findOneValidPassphrase(jsonLicense: lcpLicense.license.json,
                                              hashedPassphrases: passphrases,
                                              completionHandler: completionHandler)
         }
@@ -136,8 +117,8 @@ public class LcpSession {
         ///      from the same provider have been stored.
         var passphrases = [String]()
         let db = LCPDatabase.shared
-        passphrases = (try? db.transactions.possiblePassphrases(for: lcp.license.id,
-                                                                and: lcp.license.provider)) ?? []
+        passphrases = (try? db.transactions.possiblePassphrases(for: lcpLicense.license.id,
+                                                                and: lcpLicense.license.user.id)) ?? []
         
         guard !passphrases.isEmpty else {
             return Promise(value: nil)
@@ -149,10 +130,11 @@ public class LcpSession {
     public func storePassphrase(_ passphraseHash: String) throws
     {
         let db = LCPDatabase.shared
-        let licenseId = lcp.license.id
-        let provider = lcp.license.provider.absoluteString
+        let licenseId = lcpLicense.license.id
+        let provider = lcpLicense.license.provider.absoluteString
+        let userId = lcpLicense.license.user.id
         
-        try db.transactions.add(licenseId, provider, passphraseHash)
+        try db.transactions.add(licenseId, provider, userId, passphraseHash)
     }
     
     /// <#Description#>

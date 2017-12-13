@@ -20,6 +20,8 @@ public struct Rights {
     var start: Date?
     /// Date and time when the license ends.
     var end: Date?
+    /// Possible extenssion date. Set to end + 1 month by default.
+    var potentialEnd: Date?
 
     init(with json: JSON) {
         print = json["print"].int
@@ -33,6 +35,9 @@ public struct Rights {
             let endDate = end.dateFromISO8601
         {
             self.end = endDate
+            self.potentialEnd = Calendar.current.date(byAdding: .month,
+                                                      value: 1,
+                                                      to: endDate)
         }
     }
 }

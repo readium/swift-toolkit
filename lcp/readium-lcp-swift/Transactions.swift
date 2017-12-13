@@ -17,22 +17,25 @@ class Transactions {
     /// Fields.
     let licenseId = Expression<String>("licenseId")
     let origin = Expression<String>("origin")
+    let userId = Expression<String?>("userId")
     let passphrase = Expression<String>("passphrase") // hashed.
     
     init(_ connection: Connection)  {
         _ = try? connection.run(transactions.create(temporary: false, ifNotExists: true) { t in
             t.column(licenseId)
             t.column(origin)
+            t.column(userId)
             t.column(passphrase)
         })
     }
 
-    func add(_ licenseId: String, _ origin: String, _ passphrase: String) throws {
+    func add(_ licenseId: String, _ origin: String, _ userId: String?, _ passphrase: String) throws {
         let db = LCPDatabase.shared.connection
 
         let insertQuery = transactions.insert(
             self.licenseId <- licenseId,
             self.origin <- origin,
+            self.userId <- userId,
             self.passphrase <- passphrase
         )
         try db.run(insertQuery)
@@ -44,17 +47,19 @@ class Transactions {
     ///   - licenseId: <#licenseId description#>
     ///   - provider: <#provider description#>
     /// - Returns: <#return value description#>
-    func possiblePassphrases(for licenseId: String, and provider: URL) throws -> [String] {
+    func possiblePassphrases(for licenseId: String, and userId: String?) throws -> [String] {
         var possiblePassphrases = [String]()
         let licensePassphrase: String?
-        let providerPassphrases: [String]
+        let userIdPassphrases: [String]
 
         licensePassphrase = try passphrase(for: licenseId)
-        providerPassphrases = try passphrases(for: provider)
+        if let userId = userId {
+            userIdPassphrases = try passphrases(for: userId)
+            possiblePassphrases.append(contentsOf: userIdPassphrases)
+        }
         if let licensePassphrase = licensePassphrase {
             possiblePassphrases.append(licensePassphrase)
         }
-        possiblePassphrases.append(contentsOf: providerPassphrases)
         return possiblePassphrases
     }
 
@@ -77,9 +82,9 @@ class Transactions {
     ///
     /// - Parameter provider: The book provider URL.
     /// - Returns: The passhrases found in DB for the given provider.
-    func passphrases(for provider: URL) throws -> [String] {
+    func passphrases(for userId: String) throws -> [String] {
         let db = LCPDatabase.shared.connection
-        let query = transactions.select(passphrase).filter(origin == provider.absoluteString)
+        let query = transactions.select(passphrase).filter(self.userId == userId)
 
         return try db.prepare(query).flatMap({ try? $0.get(passphrase) })
     }

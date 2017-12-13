@@ -37,6 +37,24 @@ class Licenses {
         })
     }
 
+    internal func dateOfLastUpdate(forLicenseWith id: String) -> Date? {
+        let db = LCPDatabase.shared.connection
+        let query = licenses.filter(self.id == id).select(updated).order(updated.desc).limit(1)
+
+        do {
+            for result in try db.prepare(query) {
+                do {
+                    return try result.get(updated)
+                } catch {
+                    return nil
+                }
+            }
+        } catch {
+            return nil
+        }
+        return nil
+    }
+
     internal func updateState(forLicenseWith id: String, to state: String) throws {
         let db = LCPDatabase.shared.connection
         let license = licenses.filter(self.id == id)

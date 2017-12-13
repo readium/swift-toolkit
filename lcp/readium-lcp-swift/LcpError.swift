@@ -6,6 +6,8 @@
 //  Copyright © 2017 Readium. All rights reserved.
 //
 
+import Foundation
+
 public enum LcpError: Error {
     case unknown
     case invalidPath
@@ -26,6 +28,7 @@ public enum LcpError: Error {
     case alreadyReturned
     case alreadyExpired
     case renewFailure
+    case renewPeriod
     case deviceId
     case unexpectedServerError
     case invalidHintData
@@ -36,11 +39,17 @@ public enum LcpError: Error {
     case invalidJson
     case invalidContext
     case crlFetching
-
-    case licenseStatus
+    case missingLicenseStatus
+    case licenseStatusCancelled
+    case licenseStatusReturned
+    case licenseStatusRevoked
+    case licenseStatusExpired
     case invalidRights
+    case invalidPassphrase
+}
 
-    public var localizedDescription: String {
+extension LcpError: LocalizedError {
+    public var errorDescription: String? {
         switch self {
         case .unknown:
             return "Unknown error."
@@ -70,8 +79,16 @@ public enum LcpError: Error {
             return "Updating license failed, the fetche data is invalid."
         case .publicationData:
             return "The publication data is invalid."
-        case .licenseStatus:
-            return "This license is not valid anymore."
+        case .missingLicenseStatus:
+            return "The license status couldn't be defined."
+        case .licenseStatusReturned:
+            return "This license has been returned."
+        case .licenseStatusRevoked:
+            return "This license has been revoked by its provider."
+        case .licenseStatusCancelled:
+            return "You have cancelled this license."
+        case .licenseStatusExpired:
+            return "The license status is expired, if your provider allow it, you may be able to renew it."
         case .invalidRights:
             return "The rights of this license aren't valid."
         case .registrationFailure:
@@ -103,7 +120,11 @@ public enum LcpError: Error {
         case .invalidContext:
             return "The context provided is invalid."
         case .crlFetching:
-            return "Error while fetching the certificate revocation list"
+            return "Error while fetching the certificate revocation list."
+        case .invalidPassphrase:
+            return "The passphrase entered is not valid."
+        case .renewPeriod:
+            return "Incorrect renewal period, your publication could not be renewed."
         }
     }
 }

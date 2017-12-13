@@ -6,6 +6,8 @@
 //  Copyright © 2017 Readium. All rights reserved.
 //
 
+import Foundation
+
 public enum LcpParsingError: Error {
     case json
     case date
@@ -15,7 +17,9 @@ public enum LcpParsingError: Error {
     case encryption
     case signature
 
-    public var localizedDescription: String {
+}
+extension LcpParsingError: LocalizedError {
+    public var errorDescription: String? {
         switch self {
         case .json:
             return "The JSON is no representing a valid Status Document."
