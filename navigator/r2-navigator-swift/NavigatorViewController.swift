@@ -14,9 +14,9 @@ import WebKit
 public protocol NavigatorDelegate: class {
     func middleTapHandler()
     func willExitPublication(documentIndex: Int, progression: Double?)
-    /// invoked when publication change to another spine, slide to next chapter for example
-    /// for now, It changes when html resource changing
-    func didChangedSpine(currentSpineIndex: Int)
+    /// invoked when publication's content change to another page of 'document', slide to next chapter for example
+    /// It changes when html file resource changed
+    func didChangedDocumentPage(currentDocumentIndex: Int)
 }
 
 open class NavigatorViewController: UIViewController {
@@ -191,8 +191,10 @@ extension Delegatee: TriptychViewDelegate {
         return webView
     }
     
-    public func viewsDidUpdate(documentIndex: Int) {
-        parent.delegate?.didChangedSpine(currentSpineIndex: documentIndex)
+    func viewsDidUpdate(documentIndex: Int) {
+        // notice that you should set the delegate before you load views
+        // otherwise, when open the publication, you may miss the first invocation
+        parent.delegate?.didChangedDocumentPage(currentDocumentIndex: documentIndex)
     }
 }
 
