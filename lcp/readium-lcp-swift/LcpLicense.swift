@@ -154,22 +154,24 @@ public class LcpLicense: DrmLicense {
         request.httpBody = "id=\(deviceId)&name=\(deviceName)".data(using: .utf8)
         // Call registerUrl.
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data, response, error) in
-            if let httpResponse = response as? HTTPURLResponse  {
-                if httpResponse.statusCode == 400 {
-                    print(LcpError.registrationFailure.localizedDescription)
-                } else if httpResponse.statusCode == 200 {
-                    //  5.3/ Store the fact the the device / license has been registered.
-                    do {
-                        try LCPDatabase.shared.licenses.insert(self.license, with: status.status)
-                        return // SUCCESS
-                    } catch {
-                        print(error.localizedDescription)
-                    }
-                } else {
-                    print(LcpError.unexpectedServerError)
+            guard let httpResponse = response as? HTTPURLResponse else {
+                if let error = error {
+                    print(error.localizedDescription)
                 }
-            } else if let error = error {
-                print(error.localizedDescription)
+                return
+            }
+            if httpResponse.statusCode == 400 {
+                print(LcpError.registrationFailure.localizedDescription)
+            } else if httpResponse.statusCode == 200 {
+                //  5.3/ Store the fact the the device / license has been registered.
+                do {
+                    try LCPDatabase.shared.licenses.insert(self.license, with: status.status)
+                    return // SUCCESS
+                } catch {
+                    print(error.localizedDescription)
+                }
+            } else {
+                print(LcpError.unexpectedServerError)
             }
         })
         task.resume()
@@ -190,43 +192,44 @@ public class LcpLicense: DrmLicense {
         let deviceName = getDeviceName()
         // get registerUrl.
         guard let url = status.link(withRel: StatusDocument.Rel.return)?.href,
-            let returnUrl = URL(string: url.absoluteString.replacingOccurrences(of: "%7B?id,name%7D", with: "")) else
+            var returnUrl = URL(string: url.absoluteString.replacingOccurrences(of: "%7B?id,name%7D", with: "")) else
         {
             completion(LcpError.returnLinkNotFound)
             return
         }
 
+        returnUrl = URL(string: returnUrl.absoluteString + "?id=\(deviceId)&name=\(deviceName)")!
         var request = URLRequest(url: returnUrl)
         request.httpMethod = "PUT"
-        request.httpBody = "id=\(deviceId)&name=\(deviceName)".data(using: .utf8)
-        // Call returnUrl.
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data, response, error) in
-            if let httpResponse = response as? HTTPURLResponse  {
-                if error == nil {
-                    switch httpResponse.statusCode {
-                    case 200:
-                        // update the status document
-                        if let data = data {
-                            do {
-                                // Update local license in Lcp object
-                                self.status = try StatusDocument.init(with: data)
-                                // Update license status (to 'returned' normally)
-                                try LCPDatabase.shared.licenses.updateState(forLicenseWith: self.license.id,
-                                                                            to: self.status!.status.rawValue)
-                                completion(nil)
-                            } catch {
-                                completion(LcpError.licenseDocumentData)
-                            }
-                        }
-                    case 400:
-                        completion(LcpError.returnFailure)
-                    case 403:
-                        completion(LcpError.alreadyReturned)
-                    default:
-                        completion(LcpError.unexpectedServerError)
-                    }
-                } else if let error = error {
+            guard let httpResponse = response as? HTTPURLResponse else {
+                if let error = error {
                     completion(error)
+                }
+                return
+            }
+            if error == nil {
+                switch httpResponse.statusCode {
+                case 200:
+                    // update the status document
+                    if let data = data {
+                        do {
+                            // Update local license in Lcp object
+                            self.status = try StatusDocument.init(with: data)
+                            // Update license status (to 'returned' normally)
+                            try LCPDatabase.shared.licenses.updateState(forLicenseWith: self.license.id,
+                                                                        to: self.status!.status.rawValue)
+                            completion(nil)
+                        } catch {
+                            completion(LcpError.licenseDocumentData)
+                        }
+                    }
+                case 400:
+                    completion(LcpError.returnFailure)
+                case 403:
+                    completion(LcpError.alreadyReturned)
+                default:
+                    completion(LcpError.unexpectedServerError)
                 }
             }
         })
@@ -255,11 +258,9 @@ public class LcpLicense: DrmLicense {
         }
 
         renewUrl = URL(string: renewUrl.absoluteString + "?id=\(deviceId)&name=\(deviceName)")!
-        //renewUrl = URL(string: renewUrl.absoluteString.appending("?end=\(endDate),id=\(deviceId)&name=\(deviceName)"))!
         var request = URLRequest(url: renewUrl)
         request.httpMethod = "PUT"
-//        request.httpBody = "end=\(endDate),id=\(deviceId)&name=\(deviceName)".data(using: .utf8)
-        print(request.url?.absoluteString)
+
         // Call returnUrl.
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data, response, error) in
             if let httpResponse = response as? HTTPURLResponse  {
@@ -305,9 +306,7 @@ public class LcpLicense: DrmLicense {
     ///
     /// - Returns: The device name.
     public func getDeviceName() -> String {
-        let name = UIDevice.current.name//.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        return String(UIDevice.current.name.filter { !" \n\t\r".characters.contains($0) })
+        return String(UIDevice.current.name.filter { !" \n\t\r".contains($0) })
     }
     
     /// Returns the id of the device (Looking in the userSettings).
@@ -355,7 +354,6 @@ public class LcpLicense: DrmLicense {
             }
             
             let task = URLSession.shared.downloadTask(with: request, completionHandler: { tmpLocalUrl, response, error in
-                print(error?.localizedDescription)
                 if let localUrl = tmpLocalUrl, error == nil {
                     do {
                         try FileManager.default.moveItem(at: localUrl, to: destinationUrl)
@@ -404,9 +402,6 @@ public class LcpLicense: DrmLicense {
                     let content: Data
                     
                     do {
-
-                        let fileContent = try String(contentsOf: localUrl)
-
                         /// Refresh the current LicenseDocument in memory with the
                         /// freshly fetched one.
                         content = try Data.init(contentsOf: localUrl)
