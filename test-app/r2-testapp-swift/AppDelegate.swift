@@ -456,18 +456,36 @@ extension AppDelegate: LibraryViewControllerDelegate {
                 }
             }.then { validPassphraseHash -> Promise<LcpLicense> in
                 firstly {
-                    //                        // Get Certificat Revocation List. from "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl"
-                    //                        return Promise<String> { fulfill, reject in
-                    //                            guard let url = URL(string: "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl") else {
-                    //                                reject(LcpError.crlFetching)
-                    //                                return
-                    //                            }
-                    //                            var urlRequest = URLRequest.init(url: url)
-                    //
-                    //                            url
-                    //                            URLSession.shared.dataTask(with: url, completionHandler: <#T##(Data?, URLResponse?, Error?) -> Void#>)
-                    //                        }
-                    return Promise(value: "-----BEGIN X509 CRL-----MIICrTCBljANBgkqhkiG9w0BAQQFADBnMQswCQYDVQQGEwJGUjEOMAwGA1UEBxMFUGFyaXMxDzANBgNVBAoTBkVEUkxhYjESMBAGA1UECxMJTENQIFRlc3RzMSMwIQYDVQQDExpFRFJMYWIgUmVhZGl1bSBMQ1AgdGVzdCBDQRcNMTcwOTI2MTM1NTE1WhcNMjcwOTI0MTM1NTE1WjANBgkqhkiG9w0BAQQFAAOCAgEA27f50xnlaKGUdqs6u6rDWsR75z+tZrH4J2aA5E9I/K5fNe20FftQZb6XNjVQTNvawoMW0q+Rh9dVjDnV5Cfwptchu738ZQr8iCOLQHvIM6wqQj7XwMqvyNaaeGMZxfRMGlx7T9DOwvtWFCc5X0ikYGPPV19CFf1cas8x9Y3LE8GmCtX9eUrotWLKRggG+qRTCri/SlaoicfzqhViiGeLdW8RpG/Q6ox+tLHti3fxOgZarMgMbRmUa6OTh8pnxrfnrdtD2PbwACvaEMCpNCZRaSTMRmIxw8UUbUA/JxDIwyISGn3ZRgbFAglYzaX80rSQZr6e0bFlzHl1xZtZ0RazGQWP9vvfH5ESp6FsD98g//VYigatoPz/EKU4cfP+1W/Zrr4jRSBFB37rxASXPBcxL8cerb9nnRbAEvIqxnR4e0ZkhMyqIrLUZ3Jva0fC30kdtp09/KJ22mXKBz85wUQa7ihiSz7pov0R9hpY93fvt++idHBECRNGOeBC4wRtGxpru8ZUa0/KFOD0HXHMQDwVcIa/72T0okStOqjIOcWflxl/eAvUXwtet9Ht3o9giSl6hAObAeleMJOB37Bq9ASfh4w7d5he8zqfsCGjaG1OVQNWVAGxQQViWVysfcJohny4PIVAc9KkjCFa/QrkNGjrkUiV/PFCwL66iiF666DrXLY=-----END X509 CRL-----")
+                    // Get Certificat Revocation List. from "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl"
+                    return Promise<String> { fulfill, reject in
+                        guard let url = URL(string: "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl") else {
+                            reject(LcpError.crlFetching)
+                            return
+                        }
+
+                        let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, response, error) in
+                            guard let httpResponse = response as? HTTPURLResponse else {
+                                if let error = error { reject(error) }
+                                return
+                            }
+                            if error == nil {
+                                switch httpResponse.statusCode {
+                                case 200:
+                                    print(httpResponse)
+
+                                    // update the status document
+                                    if let data = data {
+                                        let pem = "-----BEGIN X509 CRL-----\(data.base64EncodedString())-----END X509 CRL-----";
+
+                                        fulfill(pem)
+                                    }
+                                default:
+                                    reject(LcpError.crlFetching)
+                                }
+                            }
+                        })
+                        task.resume()
+                    }
                     }.then { pemCrl -> Promise<LcpLicense> in
                         // Get a decipherer object for the given passphrase,
                         // also checking that it's not revoqued using the crl.

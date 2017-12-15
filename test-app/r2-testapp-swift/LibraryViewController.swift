@@ -17,6 +17,8 @@ import Kingfisher
 let bookPerRow = 3
 let insets = 5 // In px.
 
+let supportedProfiles = ["http://readium.org/lcp/basic-profile"]
+
 protocol LibraryViewControllerDelegate: class {
     func loadPublication(withId id: String?, completion: @escaping (Drm?) -> Void) throws
     func remove(_ publication: Publication)
@@ -176,7 +178,11 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
             do {
                 // Ask delegate to load that document.
                 try delegate?.loadPublication(withId: publicationIdentifier, completion: { drm in
-
+                    // Check if profile is supported.
+                    if let profile = drm?.profile, !supportedProfiles.contains(profile) {
+                        self.infoAlert(title: "Error", message: "The profile of this DRM is not supported.")
+                        return
+                    }
                     let epubViewer = EpubViewController(with: publication,
                                                         atIndex: index,
                                                         progression: progression, drm)
