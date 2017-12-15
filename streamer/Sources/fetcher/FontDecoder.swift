@@ -159,7 +159,7 @@ internal class FontDecoder {
     static fileprivate func hexaToBytes(_ hexa: String) -> [UInt8] {
         var position = hexa.startIndex
 
-        return (0..<hexa.characters.count / 2).flatMap { _ in
+        return (0..<hexa.count / 2).flatMap { _ in
             defer { position = hexa.index(position, offsetBy: 2) }
 
             return UInt8(hexa[position...hexa.index(after: position)], radix: 16)

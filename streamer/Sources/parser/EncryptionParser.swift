@@ -50,9 +50,6 @@ final public class EncryptionParser {
             resourceURI = normalize(base: "/", href: resourceURI)
             // Find the ressource in Publication Links..
             if let link = publication.link(withHref: resourceURI) {
-                if link.properties == nil {
-                    link.properties = Properties()
-                }
                 link.properties.encryption = encryption
             } else {
                 print("RESOURCE NOT FOUND ------ ")
