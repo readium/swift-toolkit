@@ -175,8 +175,6 @@ final class TriptychView: UIView {
             return
         }
         
-        delegate.viewsDidUpdate(documentIndex: index)
-
         func viewForIndex(_ index: Int, location: BinaryLocation) -> UIView {
             guard let views = views, let previousIndex = previousIndex else {
                 return delegate.triptychView(self, viewForIndex: index, location: location)
@@ -247,6 +245,8 @@ final class TriptychView: UIView {
             }
         }
 
+        delegate.viewsDidUpdate(documentIndex: index)
+    
         syncSubviews()
         setNeedsLayout()
     }

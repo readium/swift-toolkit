@@ -17,6 +17,7 @@ public protocol NavigatorDelegate: class {
     /// invoked when publication's content change to another page of 'document', slide to next chapter for example
     /// It changes when html file resource changed
     func didChangedDocumentPage(currentDocumentIndex: Int)
+    func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int)
 }
 
 open class NavigatorViewController: UIViewController {
@@ -125,7 +126,12 @@ extension NavigatorViewController {
 }
 
 extension NavigatorViewController: ViewDelegate {
-
+    func documentPageDidChanged(webview: WebView, currentPage: Int, totalPage: Int) {
+        if triptychView.currentView == webview {
+            delegate?.didChangedPaginatedDocumentPage(currentPage: currentPage, documentTotalPage: totalPage)
+        }
+    }
+    
     /// Display next spine item (spine item).
     public func displayNextDocument() {
         displaySpineItem(at: triptychView.index + 1)
@@ -195,6 +201,12 @@ extension Delegatee: TriptychViewDelegate {
         // notice that you should set the delegate before you load views
         // otherwise, when open the publication, you may miss the first invocation
         parent.delegate?.didChangedDocumentPage(currentDocumentIndex: documentIndex)
+        if let currentView = parent.triptychView.currentView {
+            let cw = currentView as! WebView
+            if let pages = cw.totalPages {
+                parent.delegate?.didChangedPaginatedDocumentPage(currentPage: cw.currentPage(), documentTotalPage: pages)
+            }
+        }
     }
 }
 
