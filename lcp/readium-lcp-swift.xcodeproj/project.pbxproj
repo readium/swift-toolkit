@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		F300FA351F8E1AEB00442332 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F300FA341F8E1AEB00442332 /* R2Shared.framework */; };
+		F3314BF41FE42F2300C3B790 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3314BF31FE42F2300C3B790 /* R2LCPClient.framework */; };
 		F331FBF81F8228F8007F16DF /* LCPDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = F331FBF71F8228F8007F16DF /* LCPDatabase.swift */; };
 		F35AF9F91F6AB8C700D3F670 /* LcpSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35AF9F81F6AB8C700D3F670 /* LcpSession.swift */; };
 		F35AF9FF1F6ACD3900D3F670 /* LcpParsingError.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35AF9FE1F6ACD3900D3F670 /* LcpParsingError.swift */; };
@@ -15,7 +16,6 @@
 		F35AFA021F6BCAF900D3F670 /* PromiseKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F35AF9F11F6AB14300D3F670 /* PromiseKit.framework */; };
 		F36F9E261F826C17001D0DB4 /* Licenses.swift in Sources */ = {isa = PBXBuildFile; fileRef = F36F9E251F826C17001D0DB4 /* Licenses.swift */; };
 		F36F9E281F8270FC001D0DB4 /* Transactions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F36F9E271F8270FC001D0DB4 /* Transactions.swift */; };
-		F37DF7B61FDA90D8002652E4 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F37DF7B71FDA90D8002652E4 /* R2LCPClient.framework */; };
 		F38CDB221F697D3A004156CB /* PotentialRights.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38CDB211F697D3A004156CB /* PotentialRights.swift */; };
 		F38FB0311F6674E100F9D602 /* ISO8601DateString.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB0301F6674E100F9D602 /* ISO8601DateString.swift */; };
 		F38FB0361F66837800F9D602 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB0351F66837800F9D602 /* User.swift */; };
@@ -51,6 +51,7 @@
 
 /* Begin PBXFileReference section */
 		F300FA341F8E1AEB00442332 /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
+		F3314BF31FE42F2300C3B790 /* R2LCPClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2LCPClient.framework; path = Carthage/Build/iOS/R2LCPClient.framework; sourceTree = "<group>"; };
 		F331FBF71F8228F8007F16DF /* LCPDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDatabase.swift; sourceTree = "<group>"; };
 		F35AF9F11F6AB14300D3F670 /* PromiseKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PromiseKit.framework; path = Carthage/Build/iOS/PromiseKit.framework; sourceTree = "<group>"; };
 		F35AF9F81F6AB8C700D3F670 /* LcpSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LcpSession.swift; sourceTree = "<group>"; };
@@ -58,7 +59,6 @@
 		F35AFA001F6AD54400D3F670 /* LcpLicense.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LcpLicense.swift; sourceTree = "<group>"; };
 		F36F9E251F826C17001D0DB4 /* Licenses.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Licenses.swift; sourceTree = "<group>"; };
 		F36F9E271F8270FC001D0DB4 /* Transactions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transactions.swift; sourceTree = "<group>"; };
-		F37DF7B71FDA90D8002652E4 /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F38CDB211F697D3A004156CB /* PotentialRights.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PotentialRights.swift; sourceTree = "<group>"; };
 		F38FB0301F6674E100F9D602 /* ISO8601DateString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ISO8601DateString.swift; sourceTree = "<group>"; };
 		F38FB0351F66837800F9D602 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
@@ -90,7 +90,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F37DF7B61FDA90D8002652E4 /* R2LCPClient.framework in Frameworks */,
+				F3314BF41FE42F2300C3B790 /* R2LCPClient.framework in Frameworks */,
 				F3E2DEA11FB1B3DC009A1CC4 /* ZIPFoundation.framework in Frameworks */,
 				F3F41E0E1FA0C26600F97737 /* CryptoSwift.framework in Frameworks */,
 				F300FA351F8E1AEB00442332 /* R2Shared.framework in Frameworks */,
@@ -219,7 +219,7 @@
 		F3B2C8AD1F6672E1007601E4 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				F37DF7B71FDA90D8002652E4 /* R2LCPClient.framework */,
+				F3314BF31FE42F2300C3B790 /* R2LCPClient.framework */,
 				F3E2DEA01FB1B3DC009A1CC4 /* ZIPFoundation.framework */,
 				F3F41E0D1FA0C26600F97737 /* CryptoSwift.framework */,
 				F300FA341F8E1AEB00442332 /* R2Shared.framework */,
