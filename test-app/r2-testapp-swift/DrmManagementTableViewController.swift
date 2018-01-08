@@ -27,7 +27,7 @@ class DrmManagementTableViewController: UITableViewController {
     public var drm: Drm?
 
     override func viewWillAppear(_ animated: Bool) {
-        title = "Drm Management"
+        title = "DRM Management"
         reload()
     }
 
