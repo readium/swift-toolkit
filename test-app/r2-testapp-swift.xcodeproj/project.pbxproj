@@ -127,12 +127,10 @@
 			dstSubfolderSpec = 10;
 			files = (
 				F3E7D4C51F4F0A3E00DF166D /* R2Navigator.framework in Embed Frameworks */,
-				F38FB0571F68045500F9D602 /* SQLite.framework in Embed Frameworks */,
 				F3E7D4BF1F4F09A200DF166D /* R2Shared.framework in Embed Frameworks */,
 				F3E7D4BB1F4F09A200DF166D /* Kingfisher.framework in Embed Frameworks */,
 				F38FB0471F66944800F9D602 /* ReadiumLCP.framework in Embed Frameworks */,
 				F3E7D4B71F4F09A200DF166D /* GCDWebServers.framework in Embed Frameworks */,
-				F38FB06E1F681A8200F9D602 /* SwiftyJSON.framework in Embed Frameworks */,
 				F3E7D4B31F4F09A200DF166D /* AEXML.framework in Embed Frameworks */,
 				F3BD53371F7294CA00E46FFC /* PromiseKit.framework in Embed Frameworks */,
 				F3E7D4B91F4F09A200DF166D /* ObjectMapper.framework in Embed Frameworks */,
@@ -160,7 +158,6 @@
 				F3B43C5A1FB34D83005A1F6E /* ReadiumLCP.framework in Embed Frameworks */,
 				F38FB06B1F681A7600F9D602 /* SwiftyJSON.framework in Embed Frameworks */,
 				F341C2641F504BB7005E6758 /* R2Streamer.framework in Embed Frameworks */,
-				F38FB05F1F68191A00F9D602 /* SQLite.framework in Embed Frameworks */,
 				F3E7D4E11F4F0B9300DF166D /* CryptoSwift.framework in Embed Frameworks */,
 				F30D3BD11FBF1D6B009229C6 /* ZIPFoundation.framework in Embed Frameworks */,
 			);
@@ -239,7 +236,6 @@
 			files = (
 				F3E7D4C41F4F0A3E00DF166D /* R2Navigator.framework in Frameworks */,
 				F3E7D4BE1F4F09A200DF166D /* R2Shared.framework in Frameworks */,
-				F38FB0461F66944800F9D602 /* ReadiumLCP.framework in Frameworks */,
 				F3E7D4C01F4F09A200DF166D /* R2Streamer.framework in Frameworks */,
 				F3314BFB1FE4382500C3B790 /* ZIPFoundation.framework in Frameworks */,
 			);
@@ -293,6 +289,14 @@
 				F32980F01F7D467B00BDEAF4 /* 6.epub */,
 			);
 			path = Samples;
+			sourceTree = "<group>";
+		};
+		F3B43C581FB30CAF005A1F6E /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				F38FB06C1F681A8200F9D602 /* SwiftyJSON.framework */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 		F3DCFFBC1F7CE0140056BA37 /* UserSettings */ = {

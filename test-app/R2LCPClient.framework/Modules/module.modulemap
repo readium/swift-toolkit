@@ -1,4 +1,0 @@
-framework module R2LCPClient {
-    header "R2LCPClient-Swift.h"
-    requires objc
-}
