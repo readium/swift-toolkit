@@ -90,10 +90,10 @@ public class LcpSession {
         return Promise<String?> { fulfill, reject in
             
             func completionHandler(error: Error?, passphrase: String?) {
-//                if let error = error as Error? {
-//                    reject(LcpError.noPass)
-//                    return
-//                }
+                if let error = error as Error? {
+                    reject(error)
+                    return
+                }
                 guard let passphrase = passphrase else {
                     reject(LcpError.invalidPassphrase)
                     return
