@@ -9,7 +9,7 @@
 import UIKit
 import R2Shared
 import R2Streamer
-//import ReadiumLCP
+import ReadiumLCP
 import PromiseKit
 import CryptoSwift
 
