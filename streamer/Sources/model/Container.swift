@@ -138,8 +138,8 @@ extension ZipArchiveContainer {
     public func data(relativePath: String) throws -> Data {
         var path = relativePath
         
-        if path.characters.first == "/" {
-            _ = path.characters.popFirst()
+        if path.first == "/" {
+            _ = path.popFirst()
         }
         return try zipArchive.readData(path: path)
     }
@@ -154,8 +154,8 @@ extension ZipArchiveContainer {
         // One zipArchive instance per inputstream... for multithreading.
         var path = relativePath
 
-        if path.characters.first == "/" {
-            _ = path.characters.popFirst()
+        if path.first == "/" {
+            _ = path.popFirst()
         }
         guard let inputStream = ZipInputStream(zipFilePath: rootFile.rootPath, path: path) else {
             throw ContainerError.streamInitFailed

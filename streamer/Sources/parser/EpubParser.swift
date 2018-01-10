@@ -286,7 +286,7 @@ final public class EpubParser {
                 throw OPFParserError.invalidSmilResource
             }
 
-            let body = smilXml.root["body"]
+            let body = smilXml["smil"]["body"]
 
             node.role.append("section")
             if let textRef = body.attributes["epub:textref"] { // Prevent the crash on the japanese book
@@ -327,8 +327,8 @@ final public class EpubParser {
         } catch {
             throw EpubParserError.xmlParse(underlyingError: error)
         }
-        // Look for the `<roofile>` element.
-        let rootFileElement = containerDotXml.root["rootfiles"]["rootfile"]
+
+        let rootFileElement = containerDotXml["container"]["rootfiles"]["rootfile"]
         // Get the path of the OPF file, relative to the metadata.rootPath.
         guard let opfFilePath = getRelativePathToOPF(from: rootFileElement) else {
             throw EpubParserError.missingElement(message: "Missing rootfile in `container.xml`.")
@@ -356,7 +356,7 @@ final public class EpubParser {
     static fileprivate func getEpubVersion(from document: AEXMLDocument) -> Double {
         let version: Double
 
-        if let versionAttribute = document.root.attributes["version"],
+        if let versionAttribute = document["package"].attributes["version"],
             let versionNumber = Double(versionAttribute)
         {
             version = versionNumber

@@ -120,10 +120,10 @@ final public class NavigationDocumentParser {
                                       havingNavType navType: String) -> [Link]
     {
         var nodeTree = Link()
-        var body = document.root["body"]["section"]
+        var body = document["nav"]["body"]["section"]
 
         if body.error == AEXMLError.elementNotFound {
-            body = document.root["body"]
+            body = document["nav"]["body"]
         }
         // Retrieve the <nav> elements from the document with "epub:type"
         // property being equal to `navType`.

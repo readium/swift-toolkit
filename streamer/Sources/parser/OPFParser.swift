@@ -45,9 +45,9 @@ final public class OPFParser {
         publication.internalData["type"] = "epub"
         publication.internalData["rootfile"] = rootFilePath
         try parseMetadata(from: document, to: &publication)
-        parseResources(from: document.root["manifest"], to: &publication, rootFilePath)
-        coverLinkFromMeta(from: document.root["metadata"], to: &publication)
-        parseSpine(from: document.root["spine"], to: &publication)
+        parseResources(from: document["package"]["manifest"], to: &publication, rootFilePath)
+        coverLinkFromMeta(from: document["package"]["metadata"], to: &publication)
+        parseSpine(from: document["package"]["spine"], to: &publication)
         return publication
     }
 
@@ -58,7 +58,7 @@ final public class OPFParser {
     static internal func parseMetadata(from document: AEXMLDocument, to publication: inout Publication) throws {
         /// The 'to be returned' Metadata object.
         var metadata = Metadata()
-        let metadataElement = document.root["metadata"]
+        let metadataElement = document["package"]["metadata"]
 
         // Title.
         guard let multilangTitle = MetadataParser.mainTitle(from: metadataElement) else {
@@ -67,7 +67,7 @@ final public class OPFParser {
         metadata.multilangTitle = multilangTitle
         // Identifier.
         metadata.identifier = MetadataParser.uniqueIdentifier(from: metadataElement,
-                                                              with: document.root.attributes)
+                                                              with: document["package"].attributes)
         // Description.
         if let description = metadataElement["dc:description"].value {
             metadata.description = description
@@ -98,7 +98,7 @@ final public class OPFParser {
         let epubVersion = publication.version
         MetadataParser.parseContributors(from: metadataElement, to: &metadata, epubVersion)
         // Page progression direction.
-        if let direction = document.root["spine"].attributes["page-progression-direction"] {
+        if let direction = document["package"]["spine"].attributes["page-progression-direction"] {
             metadata.direction = direction
         }
         // Rendition properties.

@@ -24,7 +24,7 @@ final public class NCXParser {
     static internal func tableOfContents(fromNcxDocument document: AEXMLDocument,
                                   locatedAt path: String) -> [Link]
     {
-        let navMapElement = document.root["navMap"]
+        let navMapElement = document["ncx"]["navMap"]
         let tableOfContentsNodes = nodeArray(forNcxElement: navMapElement,
                                              ofType: "navPoint", path)
 
@@ -39,7 +39,7 @@ final public class NCXParser {
     static internal func pageList(fromNcxDocument document: AEXMLDocument,
                            locatedAt path: String) -> [Link]
     {
-        let pageListElement = document.root["pageList"]
+        let pageListElement = document["ncx"]["pageList"]
         let pageListNodes = nodeArray(forNcxElement: pageListElement,
                                       ofType: "pageTarget", path)
 

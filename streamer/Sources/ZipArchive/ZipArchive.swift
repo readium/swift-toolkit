@@ -288,7 +288,7 @@ internal class ZipArchive {
             throw ZipArchiveError.minizipError
         }
         let path = String(cString: fileName)
-        guard !path.characters.isEmpty else {
+        guard !path.isEmpty else {
             throw ZipArchiveError.paramError
         }
         let crypted = ((fileInfo.flag & 1) != 0)
