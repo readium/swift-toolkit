@@ -15,13 +15,13 @@ import R2Shared
 import R2LCPClient
 
 public class LcpLicense: DrmLicense {
-    public var licensePath: URL
+    public var archivePath: URL
     var license: LicenseDocument
     var status: StatusDocument?
     internal var context: DRMContext?
     
     public init(withLicenseDocumentAt path: URL) throws {
-        licensePath = path
+        archivePath = path
         
         let data = try Data.init(contentsOf: path.absoluteURL)
         let license = try LicenseDocument.init(with: data)
@@ -33,8 +33,8 @@ public class LcpLicense: DrmLicense {
         guard let url = URL.init(string: "META-INF/license.lcpl") else {
             throw LcpError.invalidPath
         }
-        licensePath = url
-        let data = try LcpLicense.getData(forFile: licensePath, fromArchive: archive)
+        archivePath = archive
+        let data = try LcpLicense.getData(forFile: url, fromArchive: archive)
 
         guard let license = try? LicenseDocument.init(with: data) else {
             throw LcpError.invalidLcpl
@@ -410,8 +410,8 @@ public class LcpLicense: DrmLicense {
                         /// new one.
                         // try FileManager.default.removeItem(at: self.licensePath)
                         // SHOULD make a save or something // TODO
-                        try FileManager.default.moveItem(at: localUrl,
-                                                         to: self.licensePath)
+                     //   try FileManager.default.moveItem(at: localUrl, to: self.archivePath)
+                        try LcpLicense.moveLicense(from: localUrl, to: self.archivePath)
                     } catch {
                         print(error.localizedDescription)
                     }
@@ -432,6 +432,7 @@ public class LcpLicense: DrmLicense {
     /// - Returns: If found, the Data object representing the file.
     /// - Throws: .
     static fileprivate func getData(forFile fileUrl: URL, fromArchive url: URL) throws -> Data {
+
         guard let archive = Archive(url: url, accessMode: .read) else  {
             throw LcpError.archive
         }
@@ -471,15 +472,16 @@ public class LcpLicense: DrmLicense {
         var urlMetaInf = publicationUrl.deletingLastPathComponent()
         
         urlMetaInf.appendPathComponent("META-INF", isDirectory: true)
-        try fileManager.createDirectory(at: urlMetaInf, withIntermediateDirectories: true, attributes: nil)
-        
+        if !fileManager.fileExists(atPath: urlMetaInf.path) {
+            try fileManager.createDirectory(atPath: urlMetaInf.path, withIntermediateDirectories: false, attributes: nil)
+        }
         // Move license in the META-INF local folder.
-        try fileManager.moveItem(at: licenseUrl, to: urlMetaInf.appendingPathComponent("license.lcpl"))
+        try fileManager.moveItem(atPath: licenseUrl.path, toPath: urlMetaInf.path + "/license.lcpl")
         // Copy META-INF/license.lcpl to archive.
         try archive.addEntry(with: urlMetaInf.lastPathComponent.appending("/license.lcpl"),
                              relativeTo: urlMetaInf.deletingLastPathComponent())
         // Delete META-INF/license.lcpl from inbox.
-        try fileManager.removeItem(at: urlMetaInf)
+        try fileManager.removeItem(atPath: urlMetaInf.path)
     }
 
     public func currentStatus() -> String {
