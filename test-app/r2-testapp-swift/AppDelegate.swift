@@ -38,7 +38,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     /// Publications waiting to be added to the PublicationServer (first opening).
     /// publication identifier : data
     var items = [String: (PubBox, PubParsingCallback)]()
-    var alert = UIAlertController(title: "", message: "", preferredStyle: .alert)
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
 
@@ -132,24 +131,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 reload()
             }
         }
-        let dismissButton = UIAlertAction(title: "OK", style: .cancel)
-
-        alert.addAction(dismissButton)
         return true
     }
 
     fileprivate func showInfoAlert(title: String, message: String) {
+        let alert = UIAlertController(title: "", message: "", preferredStyle: .alert)
+        let dismissButton = UIAlertAction(title: "OK", style: .cancel)
+
+        alert.addAction(dismissButton)
         alert.title = title
         alert.message = message
 
         // Present alert.
-        if alert.isBeingPresented  {
-            alert.dismiss(animated: false, completion: {
-                self.window!.rootViewController!.present(self.alert, animated: false)
-            })
-        } else {
-            window!.rootViewController!.present(alert, animated: true)
-        }
+//        if alert.isBeingPresented  {
+//            alert.dismiss(animated: false, completion: {
+//                self.window?.rootViewController?.present(self.alert, animated: false)
+//            })
+//        } else {
+            window?.rootViewController?.dismiss(animated: false, completion: nil)
+            window?.rootViewController?.present(alert, animated: true)
+//        }
     }
 
     fileprivate func reload() {
@@ -265,6 +266,7 @@ extension AppDelegate {
                 let url = URL.init(fileURLWithPath: path)
 
                 sampleUrls.append(url)
+                print(url.absoluteString)
             }
         }
 
@@ -364,7 +366,7 @@ extension AppDelegate {
                 return lcpLicense.fetchPublication()
             }.then { publicationUrl -> Promise<URL> in
                 /// Move the license document in the publication.
-                try LcpLicense.moveLicense(from: lcpLicense.licensePath,
+                try LcpLicense.moveLicense(from: lcpLicense.archivePath,
                                            to: publicationUrl)
                 return Promise(value: publicationUrl)
         }
@@ -523,7 +525,6 @@ extension AppDelegate: LibraryViewControllerDelegate {
     // Ask a passphrase to the user and verify it
     fileprivate func promptPassphrase(_ hint: String) -> Promise<String>
     {
-        //return Promise(value: "motdepasse")
         return Promise<String> { fullfil, reject in
             let alert = UIAlertController(title: "LCP Passphrase",
                                           message: hint, preferredStyle: .alert)

@@ -17,7 +17,9 @@ import Kingfisher
 let bookPerRow = 3
 let insets = 5 // In px.
 
-let supportedProfiles = ["http://readium.org/lcp/basic-profile"]
+/// To modify depending of the profile of the liblcp.a used
+let supportedProfiles = ["http://readium.org/lcp/basic-profile",
+                        "http://readium.org/lcp/profile-1.0"]
 
 protocol LibraryViewControllerDelegate: class {
     func loadPublication(withId id: String?, completion: @escaping (Drm?) -> Void) throws

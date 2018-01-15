@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F30614E8200CF25A00EB1A56 /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3AC620D200CB437007F34DB /* ReadiumLCP.framework */; };
+		F30614E9200CF25A00EB1A56 /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3AC620D200CB437007F34DB /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F30AEE7A1FC312EA0073C9FD /* DetailsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */; };
 		F30AEE7B1FC312EE0073C9FD /* DetailsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */; };
 		F30AEE7D1FC316430073C9FD /* Details.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F30AEE7C1FC316430073C9FD /* Details.storyboard */; };
@@ -39,14 +41,24 @@
 		F35AFA0A1F6FC3FE00D3F670 /* PromiseKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F35AFA081F6FC3FE00D3F670 /* PromiseKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F36D24DE1F580B8800A00BF1 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F36D24DD1F580B8800A00BF1 /* Main.storyboard */; };
 		F36D24DF1F58394500A00BF1 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F36D24DD1F580B8800A00BF1 /* Main.storyboard */; };
-		F37BB195200616D6003DE4A8 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB0551F68045500F9D602 /* SQLite.framework */; };
-		F37BB196200616D6003DE4A8 /* SQLite.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB0551F68045500F9D602 /* SQLite.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		F38FB0471F66944800F9D602 /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB0431F66943B00F9D602 /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		F37BB198200652F8003DE4A8 /* LCPPassphrasePrompt.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F37BB197200652F8003DE4A8 /* LCPPassphrasePrompt.storyboard */; };
+		F37BB199200652F8003DE4A8 /* LCPPassphrasePrompt.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F37BB197200652F8003DE4A8 /* LCPPassphrasePrompt.storyboard */; };
+		F37BB19E2008A81C003DE4A8 /* LcpPassphrasePromptViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F37BB19D2008A81C003DE4A8 /* LcpPassphrasePromptViewController.swift */; };
+		F37BB19F2008A81C003DE4A8 /* LcpPassphrasePromptViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F37BB19D2008A81C003DE4A8 /* LcpPassphrasePromptViewController.swift */; };
+		F37BB1A12008B03A003DE4A8 /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F37BB1A02008B03A003DE4A8 /* SwiftyJSON.framework */; };
+		F37BB1A22008B03A003DE4A8 /* SwiftyJSON.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F37BB1A02008B03A003DE4A8 /* SwiftyJSON.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F38FB06B1F681A7600F9D602 /* SwiftyJSON.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB0691F681A7600F9D602 /* SwiftyJSON.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F3AA9E3C1FE91B3100921EA4 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3314BF21FE42B9000C3B790 /* R2LCPClient.framework */; };
 		F3AA9E3D1FE91B3100921EA4 /* R2LCPClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3314BF21FE42B9000C3B790 /* R2LCPClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		F3B43C591FB34D83005A1F6E /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB0661F681A3200F9D602 /* ReadiumLCP.framework */; };
-		F3B43C5A1FB34D83005A1F6E /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB0661F681A3200F9D602 /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		F3AC62012008B90C007F34DB /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3AC62002008B90C007F34DB /* SQLite.framework */; };
+		F3AC62022008B90C007F34DB /* SQLite.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3AC62002008B90C007F34DB /* SQLite.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		F3AC62032008FB81007F34DB /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3AC62002008B90C007F34DB /* SQLite.framework */; };
+		F3AC62042008FB81007F34DB /* SQLite.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3AC62002008B90C007F34DB /* SQLite.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		F3AC620620091A1B007F34DB /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3AC61FF2008B281007F34DB /* R2LCPClient.framework */; };
+		F3AC620720091A1B007F34DB /* R2LCPClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3AC61FF2008B281007F34DB /* R2LCPClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		F3AC620C200CA456007F34DB /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F38FB0431F66943B00F9D602 /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		F3AC620E200CB437007F34DB /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3AC620D200CB437007F34DB /* ReadiumLCP.framework */; };
+		F3AC620F200CB437007F34DB /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3AC620D200CB437007F34DB /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F3BD53371F7294CA00E46FFC /* PromiseKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3BD53351F7294CA00E46FFC /* PromiseKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F3BD53391F72B26700E46FFC /* FontSelectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BD53381F72B26700E46FFC /* FontSelectionViewController.swift */; };
 		F3BD533B1F72B27400E46FFC /* AdvancedSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BD533A1F72B27400E46FFC /* AdvancedSettingsViewController.swift */; };
@@ -127,14 +139,17 @@
 				F3E7D4C51F4F0A3E00DF166D /* R2Navigator.framework in Embed Frameworks */,
 				F3E7D4BF1F4F09A200DF166D /* R2Shared.framework in Embed Frameworks */,
 				F3E7D4BB1F4F09A200DF166D /* Kingfisher.framework in Embed Frameworks */,
-				F38FB0471F66944800F9D602 /* ReadiumLCP.framework in Embed Frameworks */,
 				F3E7D4B71F4F09A200DF166D /* GCDWebServers.framework in Embed Frameworks */,
+				F3AC620720091A1B007F34DB /* R2LCPClient.framework in Embed Frameworks */,
 				F3E7D4B31F4F09A200DF166D /* AEXML.framework in Embed Frameworks */,
 				F3BD53371F7294CA00E46FFC /* PromiseKit.framework in Embed Frameworks */,
 				F3E7D4B91F4F09A200DF166D /* ObjectMapper.framework in Embed Frameworks */,
+				F30614E9200CF25A00EB1A56 /* ReadiumLCP.framework in Embed Frameworks */,
+				F37BB1A22008B03A003DE4A8 /* SwiftyJSON.framework in Embed Frameworks */,
 				F3E7D4B51F4F09A200DF166D /* CryptoSwift.framework in Embed Frameworks */,
 				F3E7D4C11F4F09A200DF166D /* R2Streamer.framework in Embed Frameworks */,
 				F3314BFC1FE4382500C3B790 /* ZIPFoundation.framework in Embed Frameworks */,
+				F3AC62022008B90C007F34DB /* SQLite.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -145,7 +160,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				F37BB196200616D6003DE4A8 /* SQLite.framework in Embed Frameworks */,
+				F3AC62042008FB81007F34DB /* SQLite.framework in Embed Frameworks */,
 				F341C2691F504BED005E6758 /* R2Navigator.framework in Embed Frameworks */,
 				F3E7D4DD1F4F0B9300DF166D /* Kingfisher.framework in Embed Frameworks */,
 				F341C2611F504BAD005E6758 /* R2Shared.framework in Embed Frameworks */,
@@ -153,8 +168,9 @@
 				F3E7D4DE1F4F0B9300DF166D /* GCDWebServers.framework in Embed Frameworks */,
 				F3AA9E3D1FE91B3100921EA4 /* R2LCPClient.framework in Embed Frameworks */,
 				F3E7D4DF1F4F0B9300DF166D /* AEXML.framework in Embed Frameworks */,
+				F3AC620C200CA456007F34DB /* ReadiumLCP.framework in Embed Frameworks */,
+				F3AC620F200CB437007F34DB /* ReadiumLCP.framework in Embed Frameworks */,
 				F3E7D4E01F4F0B9300DF166D /* ObjectMapper.framework in Embed Frameworks */,
-				F3B43C5A1FB34D83005A1F6E /* ReadiumLCP.framework in Embed Frameworks */,
 				F38FB06B1F681A7600F9D602 /* SwiftyJSON.framework in Embed Frameworks */,
 				F341C2641F504BB7005E6758 /* R2Streamer.framework in Embed Frameworks */,
 				F3E7D4E11F4F0B9300DF166D /* CryptoSwift.framework in Embed Frameworks */,
@@ -182,16 +198,18 @@
 		F341C2671F504BED005E6758 /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F34CB28B1FCC20D4005E3A37 /* DrmManagementTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrmManagementTableViewController.swift; sourceTree = "<group>"; };
 		F34CB28E1FCC54A2005E3A37 /* DrmManagement.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = DrmManagement.storyboard; sourceTree = "<group>"; };
-		F35AFA051F6FC38700D3F670 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F35AFA081F6FC3FE00D3F670 /* PromiseKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PromiseKit.framework; path = Carthage/Build/iOS/PromiseKit.framework; sourceTree = "<group>"; };
 		F36D24DD1F580B8800A00BF1 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
+		F37BB197200652F8003DE4A8 /* LCPPassphrasePrompt.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LCPPassphrasePrompt.storyboard; sourceTree = "<group>"; };
+		F37BB19D2008A81C003DE4A8 /* LcpPassphrasePromptViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LcpPassphrasePromptViewController.swift; sourceTree = "<group>"; };
+		F37BB1A02008B03A003DE4A8 /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
 		F38FB0431F66943B00F9D602 /* ReadiumLCP.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReadiumLCP.framework; path = Carthage/Build/iOS/ReadiumLCP.framework; sourceTree = "<group>"; };
-		F38FB0551F68045500F9D602 /* SQLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SQLite.framework; path = Carthage/Build/iOS/SQLite.framework; sourceTree = "<group>"; };
-		F38FB0661F681A3200F9D602 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F38FB0691F681A7600F9D602 /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
 		F38FB06C1F681A8200F9D602 /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
+		F3AC61FF2008B281007F34DB /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		F3AC62002008B90C007F34DB /* SQLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SQLite.framework; path = Carthage/Build/iOS/SQLite.framework; sourceTree = "<group>"; };
+		F3AC620D200CB437007F34DB /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3B2C8701F613DB5007601E4 /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
-		F3B2C8731F613DBA007601E4 /* SQLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SQLite.framework; path = Carthage/Build/iOS/SQLite.framework; sourceTree = "<group>"; };
 		F3BD53351F7294CA00E46FFC /* PromiseKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PromiseKit.framework; path = Carthage/Build/iOS/PromiseKit.framework; sourceTree = "<group>"; };
 		F3BD53381F72B26700E46FFC /* FontSelectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FontSelectionViewController.swift; sourceTree = "<group>"; };
 		F3BD533A1F72B27400E46FFC /* AdvancedSettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AdvancedSettingsViewController.swift; sourceTree = "<group>"; };
@@ -233,10 +251,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F3AC62012008B90C007F34DB /* SQLite.framework in Frameworks */,
 				F3E7D4C41F4F0A3E00DF166D /* R2Navigator.framework in Frameworks */,
 				F3E7D4BE1F4F09A200DF166D /* R2Shared.framework in Frameworks */,
 				F3E7D4C01F4F09A200DF166D /* R2Streamer.framework in Frameworks */,
 				F3314BFB1FE4382500C3B790 /* ZIPFoundation.framework in Frameworks */,
+				F3AC620620091A1B007F34DB /* R2LCPClient.framework in Frameworks */,
+				F30614E8200CF25A00EB1A56 /* ReadiumLCP.framework in Frameworks */,
+				F37BB1A12008B03A003DE4A8 /* SwiftyJSON.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -258,12 +280,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F3AC620E200CB437007F34DB /* ReadiumLCP.framework in Frameworks */,
 				F3AA9E3C1FE91B3100921EA4 /* R2LCPClient.framework in Frameworks */,
 				F341C2681F504BED005E6758 /* R2Navigator.framework in Frameworks */,
-				F37BB195200616D6003DE4A8 /* SQLite.framework in Frameworks */,
+				F3AC62032008FB81007F34DB /* SQLite.framework in Frameworks */,
 				F341C2601F504BAD005E6758 /* R2Shared.framework in Frameworks */,
 				F32314A31F8626CD000FCFB0 /* R2Streamer.framework in Frameworks */,
-				F3B43C591FB34D83005A1F6E /* ReadiumLCP.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -305,6 +327,9 @@
 		F3E7D42F1F4EF6D400DF166D = {
 			isa = PBXGroup;
 			children = (
+				F3AC620D200CB437007F34DB /* ReadiumLCP.framework */,
+				F3AC62002008B90C007F34DB /* SQLite.framework */,
+				F37BB1A02008B03A003DE4A8 /* SwiftyJSON.framework */,
 				F30D3BCC1FBF1BA6009229C6 /* ZIPFoundation.framework */,
 				F3E7D43A1F4EF6D400DF166D /* r2-testapp-swift */,
 				F3E7D44F1F4EF6D400DF166D /* r2-testapp-swiftTests */,
@@ -334,6 +359,8 @@
 				F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */,
 				F3E7D4471F4EF6D400DF166D /* Info.plist */,
 				F3E7D43B1F4EF6D400DF166D /* AppDelegate.swift */,
+				F37BB197200652F8003DE4A8 /* LCPPassphrasePrompt.storyboard */,
+				F37BB19D2008A81C003DE4A8 /* LcpPassphrasePromptViewController.swift */,
 				F3E7D47B1F4F03B800DF166D /* UIImageExtension.swift */,
 				F3E7D4731F4F030300DF166D /* Library */,
 				F3E7D47A1F4F037D00DF166D /* Viewers */,
@@ -362,6 +389,7 @@
 		F3E7D4691F4EFE8700DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				F3AC61FF2008B281007F34DB /* R2LCPClient.framework */,
 				F3314BF21FE42B9000C3B790 /* R2LCPClient.framework */,
 				F3E7D49E1F4F095500DF166D /* AEXML.framework */,
 				F3E7D49F1F4F095500DF166D /* CryptoSwift.framework */,
@@ -375,13 +403,9 @@
 				F3E7D46C1F4EFE8B00DF166D /* R2Shared.framework */,
 				F32314A41F8626CD000FCFB0 /* R2Streamer.framework */,
 				F3E7D46A1F4EFE8700DF166D /* R2Streamer.framework */,
-				F35AFA051F6FC38700D3F670 /* ReadiumLCP.framework */,
 				F35AFA081F6FC3FE00D3F670 /* PromiseKit.framework */,
 				F38FB0431F66943B00F9D602 /* ReadiumLCP.framework */,
-				F38FB0551F68045500F9D602 /* SQLite.framework */,
-				F38FB0661F681A3200F9D602 /* ReadiumLCP.framework */,
 				F38FB0691F681A7600F9D602 /* SwiftyJSON.framework */,
-				F3B2C8731F613DBA007601E4 /* SQLite.framework */,
 				F3B2C8701F613DB5007601E4 /* SwiftyJSON.framework */,
 				F341C2621F504BB7005E6758 /* R2Streamer.framework */,
 			);
@@ -587,6 +611,7 @@
 				F3120DE81FACB090009ACFAD /* 2.epub in Resources */,
 				F3120DE91FACB092009ACFAD /* 3.epub in Resources */,
 				F3120DEA1FACB094009ACFAD /* 4.epub in Resources */,
+				F37BB198200652F8003DE4A8 /* LCPPassphrasePrompt.storyboard in Resources */,
 				F34CB28F1FCC54A2005E3A37 /* DrmManagement.storyboard in Resources */,
 				F3120DEB1FACB096009ACFAD /* 5.epub in Resources */,
 				F30AEE7D1FC316430073C9FD /* Details.storyboard in Resources */,
@@ -619,6 +644,7 @@
 				F3120DEE1FACB0B9009ACFAD /* 2.epub in Resources */,
 				F3120DEF1FACB0BB009ACFAD /* 3.epub in Resources */,
 				F3120DF01FACB0BC009ACFAD /* 4.epub in Resources */,
+				F37BB199200652F8003DE4A8 /* LCPPassphrasePrompt.storyboard in Resources */,
 				F34CB2901FCC54A2005E3A37 /* DrmManagement.storyboard in Resources */,
 				F3120DF11FACB0BE009ACFAD /* 5.epub in Resources */,
 				F30AEE7E1FC316430073C9FD /* Details.storyboard in Resources */,
@@ -656,6 +682,7 @@
 				F3E7D4801F4F03F500DF166D /* CbzViewController.swift in Sources */,
 				F3E7D4821F4F042600DF166D /* EpubViewController.swift in Sources */,
 				F3E7D4711F4EFEC200DF166D /* LibraryViewController.swift in Sources */,
+				F37BB19E2008A81C003DE4A8 /* LcpPassphrasePromptViewController.swift in Sources */,
 				F3BD533B1F72B27400E46FFC /* AdvancedSettingsViewController.swift in Sources */,
 				F34CB28C1FCC20D4005E3A37 /* DrmManagementTableViewController.swift in Sources */,
 				F3E7D48A1F4F049C00DF166D /* SpineItemTableViewController.swift in Sources */,
@@ -695,6 +722,7 @@
 				F3E7D4C91F4F0B9300DF166D /* CbzViewController.swift in Sources */,
 				F3E7D4CA1F4F0B9300DF166D /* EpubViewController.swift in Sources */,
 				F3E7D4CB1F4F0B9300DF166D /* LibraryViewController.swift in Sources */,
+				F37BB19F2008A81C003DE4A8 /* LcpPassphrasePromptViewController.swift in Sources */,
 				F3BD533D1F72B45700E46FFC /* AdvancedSettingsViewController.swift in Sources */,
 				F34CB28D1FCC20D4005E3A37 /* DrmManagementTableViewController.swift in Sources */,
 				F3E7D4CC1F4F0B9300DF166D /* SpineItemTableViewController.swift in Sources */,
