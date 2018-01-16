@@ -14,9 +14,11 @@ class DrmManagementTableViewController: UITableViewController {
     @IBOutlet weak var stateLabel: UILabel!
     @IBOutlet weak var typeLabel: UILabel!
     @IBOutlet weak var providerLabel: UILabel!
-    @IBOutlet weak var idLabel: UILabel!
     @IBOutlet weak var issuedLabel: UILabel!
     @IBOutlet weak var updatedLabel: UILabel!
+    //
+
+    @IBOutlet weak var startLabel: UILabel!
     @IBOutlet weak var endLabel: UILabel!
     @IBOutlet weak var printsLeftLabel: UILabel!
     @IBOutlet weak var copiesLeftLabel: UILabel!
@@ -93,11 +95,12 @@ class DrmManagementTableViewController: UITableViewController {
         guard let drm = drm else {
             return
         }
-        stateLabel.text = drm.license?.currentStatus()
         typeLabel.text = drm.brand.rawValue
+        stateLabel.text = drm.license?.currentStatus()
         providerLabel.text = drm.license?.provider().absoluteString
-        idLabel.text = drm.scheme.rawValue
+        issuedLabel.text = drm.license?.issued().description
         updatedLabel.text = drm.license?.lastUpdate().description
+        startLabel.text = drm.license?.rightsStart()?.description
         endLabel.text = drm.license?.rightsEnd()?.description
         if let prints = drm.license?.rightsPrints() {
             printsLeftLabel.text =  String(prints)
