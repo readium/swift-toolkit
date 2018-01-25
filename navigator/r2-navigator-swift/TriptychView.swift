@@ -131,8 +131,8 @@ final class TriptychView: UIView {
         }
         for view in views.array {
             if let webview = (view as? WebView) {
-                webview.scrollView.delegate = nil
                 webview.removeMessageHandlers()
+                webview.scrollView.delegate = nil
             }
         }
     }
@@ -162,22 +162,6 @@ final class TriptychView: UIView {
 
         let offset = min(1, index)
         scrollView.contentOffset.x = size.width * CGFloat(offset)
-    }
-
-    fileprivate func updateScrollViewDelegates(setToNil: Bool) {
-        guard let views = self.views else {
-            return
-        }
-        for (_, view) in views.array.enumerated() {
-            if let webView = view as? WebView {
-                if setToNil {
-                    webView.scrollView.delegate = nil
-                }
-                else {
-                    webView.scrollView.delegate = webView
-                }
-            }
-        }
     }
 
     fileprivate func updateViews(previousIndex: Int? = nil) {
@@ -223,8 +207,6 @@ final class TriptychView: UIView {
             return delegate.triptychView(self, viewForIndex: index, location: location)
         }
 
-        updateScrollViewDelegates(setToNil: true)
-
         switch viewCount {
         case 1:
             assert(index == 0)
@@ -262,7 +244,6 @@ final class TriptychView: UIView {
             }
         }
 
-        updateScrollViewDelegates(setToNil: false)
         syncSubviews()
         setNeedsLayout()
     }
@@ -271,6 +252,7 @@ final class TriptychView: UIView {
         scrollView.subviews.forEach({
             if let webview = ($0 as? WebView) {
                 webview.removeMessageHandlers()
+                webview.scrollView.delegate = nil
             }
             $0.removeFromSuperview()
         })
@@ -279,6 +261,7 @@ final class TriptychView: UIView {
             viewArray.forEach({
                 if let webview = ($0 as? WebView) {
                     webview.addMessageHandlers()
+                    webview.scrollView.delegate = webview
                 }
                 self.scrollView.addSubview($0)
             })
