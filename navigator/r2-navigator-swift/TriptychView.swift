@@ -132,7 +132,6 @@ final class TriptychView: UIView {
         for view in views.array {
             if let webview = (view as? WebView) {
                 webview.removeMessageHandlers()
-                webview.scrollView.delegate = nil
             }
         }
     }
@@ -252,7 +251,6 @@ final class TriptychView: UIView {
         scrollView.subviews.forEach({
             if let webview = ($0 as? WebView) {
                 webview.removeMessageHandlers()
-                webview.scrollView.delegate = nil
             }
             $0.removeFromSuperview()
         })
@@ -261,7 +259,6 @@ final class TriptychView: UIView {
             viewArray.forEach({
                 if let webview = ($0 as? WebView) {
                     webview.addMessageHandlers()
-                    webview.scrollView.delegate = webview
                 }
                 self.scrollView.addSubview($0)
             })

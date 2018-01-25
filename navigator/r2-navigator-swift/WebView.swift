@@ -79,6 +79,16 @@ final class WebView: WKWebView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
+    override func didMoveToSuperview() {
+        // Fixing an iOS 9 bug by explicitly clearing scrollView.delegate before deinitialization
+        if superview == nil {
+            scrollView.delegate = nil
+        }
+        else {
+            scrollView.delegate = self
+        }
+    }
 }
 
 extension WebView {
