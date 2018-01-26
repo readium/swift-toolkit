@@ -27,12 +27,8 @@ class readium_opds1_1_test: XCTestCase {
             return
         }
 
-        guard let opdsData = try? Data(contentsOf: fileURL) else {
-            XCTFail("Unable to load test file")
-            return
-        }
-
         do {
+            let opdsData = try Data(contentsOf: fileURL)
             feed = try OPDSParser.parse(xmlData: opdsData)
             XCTAssert(feed != nil)
         } catch {
