@@ -72,129 +72,8 @@ class OPDSParser {
                 }
             }
 
-            // Acquisition.
-            if !isNavigation {
-                let publication = Publication()
-                /// METADATA (publication) ----
-                let metadata = Metadata()
-                publication.metadata = metadata
-
-                if let entryTitle = entry["title"].value {
-                    if metadata.multilangTitle == nil {
-                        metadata.multilangTitle = MultilangString()
-                    }
-                    metadata.multilangTitle?.singleString = entryTitle
-                }
-
-                if let identifier = entry["identifier"].value {
-                    metadata.identifier = identifier
-                } else if let id = entry["id"].value {
-                    metadata.identifier = id
-                }
-
-                // Languages.
-                if let languages = entry["dcterms:language"].all {
-                    metadata.languages = languages.map({ $0.string })
-                }
-                // Last modification date.
-                if let tmpDate = entry["updated"].value,
-                    let date = tmpDate.dateFromISO8601
-                {
-                    metadata.modified = date
-                }
-                // Publication date.
-                if let tmpDate = entry["published"].value,
-                    let date = tmpDate.dateFromISO8601
-                {
-                    metadata.modified = date
-                }
-                // Rights.
-                if let rights = entry["rights"].all {
-                    metadata.rights = rights.map({ $0.string }).joined(separator: " ")
-                }
-                // TODO SERIES -------------
-                // Publisher
-                if let publisher = entry["dcterms:publisher"].value {
-                    let contributor = Contributor()
-
-                    contributor.multilangName.singleString = publisher
-                    metadata.publishers.append(contributor)
-                }
-                // Categories.
-                if let categories = entry["category"].all {
-                    for category in categories {
-                        let subject = Subject()
-
-                        subject.code = category.attributes["term"]
-                        subject.name = category.attributes["label"]
-                        subject.scheme = category.attributes["scheme"]
-                        metadata.subjects.append(subject)
-                    }
-                }
-                /// Contributors.
-                // Author.
-                if let authors = entry["author"].all {
-                    for author in authors {
-                        let contributor = Contributor()
-
-                        if let uri = author["uri"].value {
-                            let link = Link()
-
-                            link.href = uri
-                            contributor.links.append(link)
-                        }
-                        contributor.multilangName.singleString = author["name"].value
-                        metadata.authors.append(contributor)
-                    }
-                }
-                // Description.
-                if let content = entry["content"].value {
-                    metadata.description = content
-                } else if let summary = entry["summary"].value {
-                    metadata.description = summary
-                }
-                // Links.
-                if let links = entry["link"].all {
-                    for link in links {
-                        let newLink = Link()
-
-                        newLink.href = link.attributes["href"]
-                        newLink.title = link.attributes["title"]
-                        newLink.typeLink = link.attributes["type"]
-                        if let rel = link.attributes["rel"] {
-                            newLink.rel.append(rel)
-                        }
-                        //                            if let rels = link.attributes["rel"]?.split(separator: " ") {
-                        //                                for rel in rels {
-                        //                                    newLink.rel.append(rel)
-                        //                                }
-                        //                            }
-                        // Indirect acquisition check. (Recursive)
-                        if let indirectAcquisitions = link["opds:indirectAcquisition"].all,
-                            !indirectAcquisitions.isEmpty
-                        {
-                            newLink.properties.indirectAcquisition = parseIndirectAcquisition(children: indirectAcquisitions)
-                        }
-                        // Price.
-                        if let price = link["opds:price"].value,
-                            let priceDouble = Double(price),
-                            let currency = link["opds:price"].attributes["currencyCode"]
-                        {
-                            let newPrice = Price(currency: currency, value: priceDouble)
-
-                            newLink.properties.price = newPrice
-                        }
-                        if let rel = link.attributes["rel"] {
-                            if rel == "collection" || rel == "http://opds-spec.org/group" {
-                            } else if rel == "http://opds-spec.org/image" || rel == "http://opds-spec.org/image-thumbnail" {
-                                publication.images.append(newLink)
-                            } else {
-                                publication.links.append(newLink)
-                            }
-                        }
-                    }
-                }
-                /// METADATA END ----
+            if (!isNavigation) {
+                let publication = parseEntry(entry: entry)
 
                 // Checking if this publication need to go into a group or in publications.
                 if collectionLink.href != nil {
@@ -252,8 +131,139 @@ class OPDSParser {
                 }
             }
         }
-
+        
         return feed
+    }
+
+    static func parseEntry(xmlData: Data) throws -> Publication {
+        let document = try AEXMLDocument.init(xml: xmlData)
+        let root = document.root
+        return parseEntry(entry: root)
+    }
+
+    static internal func parseEntry(entry: AEXMLElement) -> Publication {
+        let publication = Publication()
+        /// METADATA (publication) ----
+        let metadata = Metadata()
+        publication.metadata = metadata
+
+        if let entryTitle = entry["title"].value {
+            if metadata.multilangTitle == nil {
+                metadata.multilangTitle = MultilangString()
+            }
+            metadata.multilangTitle?.singleString = entryTitle
+        }
+
+        if let identifier = entry["identifier"].value {
+            metadata.identifier = identifier
+        } else if let id = entry["id"].value {
+            metadata.identifier = id
+        }
+
+        // Languages.
+        if let languages = entry["dcterms:language"].all {
+            metadata.languages = languages.map({ $0.string })
+        }
+        // Last modification date.
+        if let tmpDate = entry["updated"].value,
+            let date = tmpDate.dateFromISO8601
+        {
+            metadata.modified = date
+        }
+        // Publication date.
+        if let tmpDate = entry["published"].value,
+            let date = tmpDate.dateFromISO8601
+        {
+            metadata.modified = date
+        }
+        // Rights.
+        if let rights = entry["rights"].all {
+            metadata.rights = rights.map({ $0.string }).joined(separator: " ")
+        }
+        // TODO SERIES -------------
+        // Publisher
+        if let publisher = entry["dcterms:publisher"].value {
+            let contributor = Contributor()
+
+            contributor.multilangName.singleString = publisher
+            metadata.publishers.append(contributor)
+        }
+        // Categories.
+        if let categories = entry["category"].all {
+            for category in categories {
+                let subject = Subject()
+
+                subject.code = category.attributes["term"]
+                subject.name = category.attributes["label"]
+                subject.scheme = category.attributes["scheme"]
+                metadata.subjects.append(subject)
+            }
+        }
+        /// Contributors.
+        // Author.
+        if let authors = entry["author"].all {
+            for author in authors {
+                let contributor = Contributor()
+
+                if let uri = author["uri"].value {
+                    let link = Link()
+
+                    link.href = uri
+                    contributor.links.append(link)
+                }
+                contributor.multilangName.singleString = author["name"].value
+                metadata.authors.append(contributor)
+            }
+        }
+        // Description.
+        if let content = entry["content"].value {
+            metadata.description = content
+        } else if let summary = entry["summary"].value {
+            metadata.description = summary
+        }
+        // Links.
+        if let links = entry["link"].all {
+            for link in links {
+                let newLink = Link()
+
+                newLink.href = link.attributes["href"]
+                newLink.title = link.attributes["title"]
+                newLink.typeLink = link.attributes["type"]
+                if let rel = link.attributes["rel"] {
+                    newLink.rel.append(rel)
+                }
+                //                            if let rels = link.attributes["rel"]?.split(separator: " ") {
+                //                                for rel in rels {
+                //                                    newLink.rel.append(rel)
+                //                                }
+                //                            }
+                // Indirect acquisition check. (Recursive)
+                if let indirectAcquisitions = link["opds:indirectAcquisition"].all,
+                    !indirectAcquisitions.isEmpty
+                {
+                    newLink.properties.indirectAcquisition = parseIndirectAcquisition(children: indirectAcquisitions)
+                }
+                // Price.
+                if let price = link["opds:price"].value,
+                    let priceDouble = Double(price),
+                    let currency = link["opds:price"].attributes["currencyCode"]
+                {
+                    let newPrice = Price(currency: currency, value: priceDouble)
+
+                    newLink.properties.price = newPrice
+                }
+                if let rel = link.attributes["rel"] {
+                    if rel == "collection" || rel == "http://opds-spec.org/group" {
+                    } else if rel == "http://opds-spec.org/image" || rel == "http://opds-spec.org/image-thumbnail" {
+                        publication.images.append(newLink)
+                    } else {
+                        publication.links.append(newLink)
+                    }
+                }
+            }
+        }
+
+        return publication
     }
 
     static internal func addFacet(feed: Feed, to link: Link, named title: String) {
