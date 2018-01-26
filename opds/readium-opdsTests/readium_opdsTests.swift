@@ -7,7 +7,9 @@
 //
 
 import XCTest
-@testable import readium_opds
+
+import AEXML
+@testable import ReadiumOPDS
 
 class readium_opdsTests: XCTestCase {
     
@@ -21,16 +23,23 @@ class readium_opdsTests: XCTestCase {
         super.tearDown()
     }
     
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
-    
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
+    func testParseOPDS_1_1() {
+        let testBundle = Bundle(for: type(of: self))
+        guard let fileURL = testBundle.url(forResource: "wiki_1_1", withExtension: "opds") else {
+            XCTFail("Unable to locate test file")
+            return
+        }
+
+        guard let opdsData = try? Data(contentsOf: fileURL) else {
+            XCTFail("Unable to load test file")
+            return
+        }
+
+        do {
+            let feed = try OPDSParser.parse(xmlData: opdsData)
+            XCTAssert(feed.metadata.title == "Unpopular Publications")
+        } catch {
+            XCTFail(error.localizedDescription)
         }
     }
-    
 }
