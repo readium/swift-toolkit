@@ -34,6 +34,7 @@ class readium_opds1_1_test: XCTestCase {
 
         do {
             feed = try OPDSParser.parse(xmlData: opdsData)
+            XCTAssert(feed != nil)
         } catch {
             XCTFail(error.localizedDescription)
         }
