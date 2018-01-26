@@ -77,8 +77,12 @@ class OPDSParser {
                 let publication = Publication()
                 /// METADATA (publication) ----
                 let metadata = Metadata()
+                publication.metadata = metadata
 
                 if let entryTitle = entry["title"].value {
+                    if metadata.multilangTitle == nil {
+                        metadata.multilangTitle = MultilangString()
+                    }
                     metadata.multilangTitle?.singleString = entryTitle
                 }
 
