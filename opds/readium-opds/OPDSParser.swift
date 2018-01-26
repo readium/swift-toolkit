@@ -53,7 +53,7 @@ class OPDSParser {
 
         for entry in entries {
             var isNavigation = true
-            var collectionLink = Link()
+            let collectionLink = Link()
 
             if let links = entry["link"].all {
                 for link in links {
