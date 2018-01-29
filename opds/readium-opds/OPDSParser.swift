@@ -8,6 +8,7 @@
 
 import AEXML
 import R2Shared
+import PromiseKit
 
 enum OPDSParserError: Error {
     case missingTitle
@@ -19,7 +20,27 @@ enum OPDSParserError: Error {
         }
     }
 }
-    
+
+enum OPDSParserSearchHelperError: Error {
+    case searchLinkNotFound
+    case searchDocumentIsEmpty
+    case searchDocumentIsInvalid
+    case searchURLNotFound
+
+    var localizedDescription: String {
+        switch self {
+        case .searchLinkNotFound:
+            return "Search link not found in feed"
+        case .searchDocumentIsEmpty:
+            return "OpenSearch document is empty"
+        case .searchDocumentIsInvalid:
+            return "OpenSearch document is not valid XML"
+        case .searchURLNotFound:
+            return "Search URL template not found"
+        }
+    }
+}
+
 class OPDSParser {
 
     /// Parse an OPDS flux.
@@ -139,6 +160,53 @@ class OPDSParser {
         let document = try AEXMLDocument.init(xml: xmlData)
         let root = document.root
         return parseEntry(entry: root)
+    }
+
+    static func searchTemplate(feed: Feed) -> Promise<String> {
+        return Promise<String> { fulfill, reject in
+            var openSearchURL: URL? = nil
+            for link in feed.links {
+                if link.rel[0] == "search" {
+                    guard let linkHref = link.href else {
+                        reject(OPDSParserSearchHelperError.searchLinkNotFound)
+                        return
+                    }
+                    openSearchURL = URL(string: linkHref)
+                }
+            }
+            guard let unwrappedURL = openSearchURL else {
+                reject(OPDSParserSearchHelperError.searchLinkNotFound)
+                return
+            }
+            let task = URLSession.shared.dataTask(with: unwrappedURL, completionHandler: { (data, response, error) in
+                guard error == nil else {
+                    reject(error!)
+                    return
+                }
+                guard let data = data else {
+                    reject(OPDSParserSearchHelperError.searchDocumentIsEmpty)
+                    return
+                }
+                guard let document = try? AEXMLDocument.init(xml: data) else {
+                    reject (OPDSParserSearchHelperError.searchDocumentIsInvalid)
+                    return
+                }
+                guard let urls = document.root["Url"].all else {
+                    reject(OPDSParserSearchHelperError.searchURLNotFound)
+                    return
+                }
+                if urls.count == 0 {
+                    reject (OPDSParserSearchHelperError.searchURLNotFound)
+                    return
+                }
+                guard let template = urls[0].attributes["template"] else {
+                    reject (OPDSParserSearchHelperError.searchURLNotFound)
+                    return
+                }
+                fulfill(template)
+            })
+            task.resume()
+        }
     }
 
     static internal func parseEntry(entry: AEXMLElement) -> Publication {

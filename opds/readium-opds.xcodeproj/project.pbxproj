@@ -13,6 +13,8 @@
 		111E54D0201BC52600A7FE9A /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F34B7E6B1FA35CEA00534FD3 /* R2Shared.framework */; };
 		111E54D5201FB0AD00A7FE9A /* PromiseKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 111E54D4201FB0AC00A7FE9A /* PromiseKit.framework */; };
 		111E54D6201FB0B600A7FE9A /* PromiseKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 111E54D4201FB0AC00A7FE9A /* PromiseKit.framework */; };
+		111E54D8201FC65400A7FE9A /* readium_odps1_1_searchHelper_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111E54D7201FC65400A7FE9A /* readium_odps1_1_searchHelper_test.swift */; };
+		111E54DA201FC91600A7FE9A /* feedbooks_catalog.atom in Resources */ = {isa = PBXBuildFile; fileRef = 111E54D9201FC91600A7FE9A /* feedbooks_catalog.atom */; };
 		F34B7E571FA35B7900534FD3 /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F34B7E4D1FA35B7900534FD3 /* ReadiumOPDS.framework */; };
 		F34B7E5C1FA35B7900534FD3 /* readium_opds1_1_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34B7E5B1FA35B7900534FD3 /* readium_opds1_1_test.swift */; };
 		F34B7E5E1FA35B7900534FD3 /* readium_opds.h in Headers */ = {isa = PBXBuildFile; fileRef = F34B7E501FA35B7900534FD3 /* readium_opds.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -34,6 +36,8 @@
 /* Begin PBXFileReference section */
 		111E54CC201BBD9700A7FE9A /* wiki_1_1.opds */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = wiki_1_1.opds; path = "readium-opdsTests/Samples/wiki_1_1.opds"; sourceTree = SOURCE_ROOT; };
 		111E54D4201FB0AC00A7FE9A /* PromiseKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PromiseKit.framework; path = Carthage/Build/iOS/PromiseKit.framework; sourceTree = "<group>"; };
+		111E54D7201FC65400A7FE9A /* readium_odps1_1_searchHelper_test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = readium_odps1_1_searchHelper_test.swift; sourceTree = "<group>"; };
+		111E54D9201FC91600A7FE9A /* feedbooks_catalog.atom */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = feedbooks_catalog.atom; path = "readium-opdsTests/Samples/feedbooks_catalog.atom"; sourceTree = SOURCE_ROOT; };
 		F34B7E4D1FA35B7900534FD3 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ReadiumOPDS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F34B7E501FA35B7900534FD3 /* readium_opds.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = readium_opds.h; sourceTree = "<group>"; };
 		F34B7E511FA35B7900534FD3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -73,6 +77,7 @@
 		111E54CB201BBD7A00A7FE9A /* Samples */ = {
 			isa = PBXGroup;
 			children = (
+				111E54D9201FC91600A7FE9A /* feedbooks_catalog.atom */,
 				111E54CC201BBD9700A7FE9A /* wiki_1_1.opds */,
 			);
 			name = Samples;
@@ -111,8 +116,9 @@
 		F34B7E5A1FA35B7900534FD3 /* readium-opdsTests */ = {
 			isa = PBXGroup;
 			children = (
-				111E54CB201BBD7A00A7FE9A /* Samples */,
 				F34B7E5B1FA35B7900534FD3 /* readium_opds1_1_test.swift */,
+				111E54D7201FC65400A7FE9A /* readium_odps1_1_searchHelper_test.swift */,
+				111E54CB201BBD7A00A7FE9A /* Samples */,
 				F34B7E5D1FA35B7900534FD3 /* Info.plist */,
 			);
 			path = "readium-opdsTests";
@@ -231,6 +237,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				111E54CD201BBD9700A7FE9A /* wiki_1_1.opds in Resources */,
+				111E54DA201FC91600A7FE9A /* feedbooks_catalog.atom in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -273,6 +280,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				111E54D8201FC65400A7FE9A /* readium_odps1_1_searchHelper_test.swift in Sources */,
 				111E54CE201BC50E00A7FE9A /* OPDSParser.swift in Sources */,
 				F34B7E5C1FA35B7900534FD3 /* readium_opds1_1_test.swift in Sources */,
 			);
