@@ -21,7 +21,7 @@ enum OPDSParserError: Error {
     }
 }
 
-enum OPDSParserSearchHelperError: Error {
+enum OPDSParserOpenSearchHelperError: Error {
     case searchLinkNotFound
     case searchDocumentIsInvalid
 //    case missingTemplateForFeedType
@@ -177,7 +177,7 @@ class OPDSParser {
         return MimeTypeParameters(type: type, parameters: params)
     }
 
-    static func fetchSearchTemplate(feed: Feed) -> Promise<String> {
+    static func fetchOpenSearchTemplate(feed: Feed) -> Promise<String> {
         return Promise<String> { fulfill, reject in
             var openSearchURL: URL? = nil
             var selfMimeType: String? = nil
@@ -190,7 +190,7 @@ class OPDSParser {
                 }
                 else if link.rel[0] == "search" {
                     guard let linkHref = link.href else {
-                        reject(OPDSParserSearchHelperError.searchLinkNotFound)
+                        reject(OPDSParserOpenSearchHelperError.searchLinkNotFound)
                         return
                     }
                     openSearchURL = URL(string: linkHref)
@@ -198,7 +198,7 @@ class OPDSParser {
             }
 
             guard let unwrappedURL = openSearchURL else {
-                reject(OPDSParserSearchHelperError.searchLinkNotFound)
+                reject(OPDSParserOpenSearchHelperError.searchLinkNotFound)
                 return
             }
 
@@ -208,19 +208,19 @@ class OPDSParser {
                     return
                 }
                 guard let data = data else {
-                    reject(OPDSParserSearchHelperError.searchDocumentIsInvalid)
+                    reject(OPDSParserOpenSearchHelperError.searchDocumentIsInvalid)
                     return
                 }
                 guard let document = try? AEXMLDocument.init(xml: data) else {
-                    reject (OPDSParserSearchHelperError.searchDocumentIsInvalid)
+                    reject (OPDSParserOpenSearchHelperError.searchDocumentIsInvalid)
                     return
                 }
                 guard let urls = document.root["Url"].all else {
-                    reject(OPDSParserSearchHelperError.searchDocumentIsInvalid)
+                    reject(OPDSParserOpenSearchHelperError.searchDocumentIsInvalid)
                     return
                 }
                 if urls.count == 0 {
-                    reject(OPDSParserSearchHelperError.searchDocumentIsInvalid)
+                    reject(OPDSParserOpenSearchHelperError.searchDocumentIsInvalid)
                     return
                 }
                 // The OpenSearch document may contain multiple Urls, and we need to find the closest matching one.
@@ -247,7 +247,7 @@ class OPDSParser {
                 }
                 let match = typeAndProfileMatch ?? (typeMatch ?? urls[0])
                 guard let template = match.attributes["template"] else {
-                    reject(OPDSParserSearchHelperError.searchDocumentIsInvalid)
+                    reject(OPDSParserOpenSearchHelperError.searchDocumentIsInvalid)
                     return
                 }
                 fulfill(template)

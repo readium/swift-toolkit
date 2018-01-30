@@ -46,7 +46,7 @@ class readium_odps1_1_searchHelper_test: XCTestCase {
         let expectation = XCTestExpectation()
 
         firstly {
-            OPDSParser.fetchSearchTemplate(feed: feed)
+            OPDSParser.fetchOpenSearchTemplate(feed: feed)
         }.then { templateResult -> Void in
             template = templateResult
             expectation.fulfill()
