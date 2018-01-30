@@ -15,6 +15,7 @@ public class OpdsMetadata {
     public var currentPage: Int?
     public var modified: Date?
     public var position: Int?
+    public var type: String?
 
     init(title: String) {
         self.title = title
