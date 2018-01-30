@@ -11,6 +11,7 @@
 		111E54CE201BC50E00A7FE9A /* OPDSParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34B7E681FA35BB100534FD3 /* OPDSParser.swift */; };
 		111E54CF201BC52400A7FE9A /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F34B7E6C1FA35CEA00534FD3 /* AEXML.framework */; };
 		111E54D0201BC52600A7FE9A /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F34B7E6B1FA35CEA00534FD3 /* R2Shared.framework */; };
+		111E54DD2021022700A7FE9A /* OPDS2Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111E54DB2021022700A7FE9A /* OPDS2Parser.swift */; };
 		F34B7E571FA35B7900534FD3 /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F34B7E4D1FA35B7900534FD3 /* ReadiumOPDS.framework */; };
 		F34B7E5C1FA35B7900534FD3 /* readium_opds1_1_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34B7E5B1FA35B7900534FD3 /* readium_opds1_1_test.swift */; };
 		F34B7E5E1FA35B7900534FD3 /* readium_opds.h in Headers */ = {isa = PBXBuildFile; fileRef = F34B7E501FA35B7900534FD3 /* readium_opds.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -31,6 +32,7 @@
 
 /* Begin PBXFileReference section */
 		111E54CC201BBD9700A7FE9A /* wiki_1_1.opds */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = wiki_1_1.opds; path = "readium-opdsTests/Samples/wiki_1_1.opds"; sourceTree = SOURCE_ROOT; };
+		111E54DB2021022700A7FE9A /* OPDS2Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDS2Parser.swift; sourceTree = "<group>"; };
 		F34B7E4D1FA35B7900534FD3 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ReadiumOPDS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F34B7E501FA35B7900534FD3 /* readium_opds.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = readium_opds.h; sourceTree = "<group>"; };
 		F34B7E511FA35B7900534FD3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -99,6 +101,7 @@
 				F34B7E501FA35B7900534FD3 /* readium_opds.h */,
 				F34B7E511FA35B7900534FD3 /* Info.plist */,
 				F34B7E681FA35BB100534FD3 /* OPDSParser.swift */,
+				111E54DB2021022700A7FE9A /* OPDS2Parser.swift */,
 			);
 			path = "readium-opds";
 			sourceTree = "<group>";
@@ -258,6 +261,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F34B7E691FA35BB100534FD3 /* OPDSParser.swift in Sources */,
+				111E54DC2021022700A7FE9A /* OPDS2Parser.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -265,6 +269,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				111E54DD2021022700A7FE9A /* OPDS2Parser.swift in Sources */,
 				111E54CE201BC50E00A7FE9A /* OPDSParser.swift in Sources */,
 				F34B7E5C1FA35B7900534FD3 /* readium_opds1_1_test.swift in Sources */,
 			);
