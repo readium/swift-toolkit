@@ -46,14 +46,14 @@ class readium_odps1_1_searchHelper_test: XCTestCase {
         let expectation = XCTestExpectation()
 
         firstly {
-            OPDSParser.searchTemplate(feed: feed)
+            OPDSParser.fetchSearchTemplate(feed: feed)
         }.then { templateResult -> Void in
             template = templateResult
             expectation.fulfill()
         }
         wait(for: [expectation], timeout: 10.0)
 
-        XCTAssert(template == "http://www.feedbooks.com/search?query={searchTerms}")
+        XCTAssert(template == "http://www.feedbooks.com/search.atom?query={searchTerms}")
 
     }
 }

@@ -23,22 +23,24 @@ enum OPDSParserError: Error {
 
 enum OPDSParserSearchHelperError: Error {
     case searchLinkNotFound
-    case searchDocumentIsEmpty
     case searchDocumentIsInvalid
-    case searchURLNotFound
+//    case missingTemplateForFeedType
 
     var localizedDescription: String {
         switch self {
         case .searchLinkNotFound:
             return "Search link not found in feed"
-        case .searchDocumentIsEmpty:
-            return "OpenSearch document is empty"
         case .searchDocumentIsInvalid:
-            return "OpenSearch document is not valid XML"
-        case .searchURLNotFound:
-            return "Search URL template not found"
+            return "OpenSearch document is invalid"
+//        case .missingTemplateForFeedType:
+//            return "Missing search template for feed type"
         }
     }
+}
+
+struct MimeTypeParameters {
+    var type: String
+    var parameters = [String: String]()
 }
 
 class OPDSParser {
@@ -162,11 +164,31 @@ class OPDSParser {
         return parseEntry(entry: root)
     }
 
-    static func searchTemplate(feed: Feed) -> Promise<String> {
+    static func parseMimeType(mimeTypeString: String) -> MimeTypeParameters {
+        let substrings = mimeTypeString.split(separator: ";")
+        let type = String(substrings[0]).trimmingCharacters(in: .whitespaces)
+        var params = [String: String]()
+        for defn in substrings.dropFirst() {
+            let halves = defn.split(separator: "=")
+            let paramName = String(halves[0]).trimmingCharacters(in: .whitespaces)
+            let paramValue = String(halves[1]).trimmingCharacters(in: .whitespaces)
+            params[paramName] = paramValue
+        }
+        return MimeTypeParameters(type: type, parameters: params)
+    }
+
+    static func fetchSearchTemplate(feed: Feed) -> Promise<String> {
         return Promise<String> { fulfill, reject in
             var openSearchURL: URL? = nil
+            var selfMimeType: String? = nil
+
             for link in feed.links {
-                if link.rel[0] == "search" {
+                if link.rel[0] == "self" {
+                    if let linkType = link.typeLink {
+                        selfMimeType = linkType
+                    }
+                }
+                else if link.rel[0] == "search" {
                     guard let linkHref = link.href else {
                         reject(OPDSParserSearchHelperError.searchLinkNotFound)
                         return
@@ -174,17 +196,19 @@ class OPDSParser {
                     openSearchURL = URL(string: linkHref)
                 }
             }
+
             guard let unwrappedURL = openSearchURL else {
                 reject(OPDSParserSearchHelperError.searchLinkNotFound)
                 return
             }
+
             let task = URLSession.shared.dataTask(with: unwrappedURL, completionHandler: { (data, response, error) in
                 guard error == nil else {
                     reject(error!)
                     return
                 }
                 guard let data = data else {
-                    reject(OPDSParserSearchHelperError.searchDocumentIsEmpty)
+                    reject(OPDSParserSearchHelperError.searchDocumentIsInvalid)
                     return
                 }
                 guard let document = try? AEXMLDocument.init(xml: data) else {
@@ -192,18 +216,42 @@ class OPDSParser {
                     return
                 }
                 guard let urls = document.root["Url"].all else {
-                    reject(OPDSParserSearchHelperError.searchURLNotFound)
+                    reject(OPDSParserSearchHelperError.searchDocumentIsInvalid)
                     return
                 }
                 if urls.count == 0 {
-                    reject (OPDSParserSearchHelperError.searchURLNotFound)
+                    reject(OPDSParserSearchHelperError.searchDocumentIsInvalid)
                     return
                 }
-                guard let template = urls[0].attributes["template"] else {
-                    reject (OPDSParserSearchHelperError.searchURLNotFound)
+                // The OpenSearch document may contain multiple Urls, and we need to find the closest matching one.
+                // We match by mimetype and profile; if that fails, by mimetype; and if that fails, the first url is returned
+                var typeAndProfileMatch: AEXMLElement? = nil
+                var typeMatch: AEXMLElement? = nil
+                if let unwrappedSelfMimeType = selfMimeType {
+                    let selfMimeParams = parseMimeType(mimeTypeString: unwrappedSelfMimeType)
+                    for url in urls {
+                        guard let urlMimeType = url.attributes["type"] else {
+                            continue
+                        }
+                        let otherMimeParams = parseMimeType(mimeTypeString: urlMimeType)
+                        if selfMimeParams.type == otherMimeParams.type {
+                            if typeMatch == nil {
+                                typeMatch = url
+                            }
+                            if selfMimeParams.parameters["profile"] == otherMimeParams.parameters["profile"] {
+                                typeAndProfileMatch = url
+                                break
+                            }
+                        }
+                    }
+                }
+                let match = typeAndProfileMatch ?? (typeMatch ?? urls[0])
+                guard let template = match.attributes["template"] else {
+                    reject(OPDSParserSearchHelperError.searchDocumentIsInvalid)
                     return
                 }
                 fulfill(template)
+                return
             })
             task.resume()
         }
