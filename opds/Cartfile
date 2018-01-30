@@ -1,3 +1,3 @@
 github "Readium/r2-shared-swift" "master"
 github "tadija/AEXML"
-github "mxcl/PromiseKit" ~> 4.6
+github "mxcl/PromiseKit" ~> 4.5
