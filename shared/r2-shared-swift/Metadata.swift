@@ -46,6 +46,7 @@ public class Metadata {
     public var source: String?
     public var epubType = [String]()
     public var rights: String?
+    public var rdfType: String?
     public var otherMetadata = [MetadataItem]()
     
     // TODO: support parsing from OPF.
