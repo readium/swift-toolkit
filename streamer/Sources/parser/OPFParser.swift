@@ -65,6 +65,11 @@ final public class OPFParser {
             throw OPFParserError.missingPublicationTitle
         }
         metadata.multilangTitle = multilangTitle
+        
+        // Subtitle.
+        let multilangSubtitle = MetadataParser.subTitle(from: metadataElement)
+        metadata.multilangSubtitle = multilangSubtitle
+        
         // Identifier.
         metadata.identifier = MetadataParser.uniqueIdentifier(from: metadataElement,
                                                               with: document["package"].attributes)
