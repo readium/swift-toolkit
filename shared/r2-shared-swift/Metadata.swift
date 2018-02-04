@@ -9,6 +9,17 @@
 import Foundation
 import ObjectMapper
 
+// http://www.idpf.org/epub/30/spec/epub30-publications.html#elemdef-opf-dctitle
+// the six basic values of the "title-type" property specified by EPUB 3:
+public enum TitleType: String {
+    case main
+    case subtitle
+    case short
+    case collection
+    case edition
+    case extended
+}
+
 /// The data representation of the <metadata> element of the ".opf" file.
 public class Metadata {
     /// The structure used for the serialisation.
@@ -17,6 +28,14 @@ public class Metadata {
     public var title: String {
         get {
             return multilangTitle?.singleString ?? ""
+        }
+    }
+    
+    public var multilangSubtitle: MultilangString?
+    /// The subtitle of the the publication
+    public var subtitle: String {
+        get {
+            return multilangSubtitle?.singleString ?? ""
         }
     }
 
@@ -70,6 +89,10 @@ public class Metadata {
     public func titleForLang(_ lang: String) -> String? {
         return multilangTitle?.multiString[lang]
     }
+    
+    public func subtitleForLang(_ lang: String) -> String? {
+        return multilangSubtitle?.multiString[lang]
+    }
 }
 // JSON Serialisation extension.
 extension Metadata: Mappable {
@@ -86,6 +109,15 @@ extension Metadata: Mappable {
 
             titleForSinglestring <- map["title"]
         }
+        
+        if var subtitlesFromMultistring = multilangTitle?.multiString,
+            !subtitlesFromMultistring.isEmpty {
+            subtitlesFromMultistring <- map[TitleType.subtitle.rawValue]
+        } else {
+            var subtitleForSinglestring = multilangTitle?.singleString ?? ""
+            subtitleForSinglestring <- map[TitleType.subtitle.rawValue]
+        }
+        
         languages <- map["languages", ignoreNil: true]
         if !authors.isEmpty {
             authors <- map["authors", ignoreNil: true]
