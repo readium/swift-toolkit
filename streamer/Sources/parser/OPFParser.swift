@@ -11,7 +11,7 @@ import AEXML
 
 // http://www.idpf.org/epub/30/spec/epub30-publications.html#elemdef-opf-dctitle
 // the six basic values of the "title-type" property specified by EPUB 3:
-public enum DCMESTitleType: String {
+public enum EPUBTitleType: String {
     case main
     case subtitle
     case short
