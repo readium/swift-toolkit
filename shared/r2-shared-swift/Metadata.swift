@@ -9,17 +9,6 @@
 import Foundation
 import ObjectMapper
 
-// http://www.idpf.org/epub/30/spec/epub30-publications.html#elemdef-opf-dctitle
-// the six basic values of the "title-type" property specified by EPUB 3:
-public enum TitleType: String {
-    case main
-    case subtitle
-    case short
-    case collection
-    case edition
-    case extended
-}
-
 /// The data representation of the <metadata> element of the ".opf" file.
 public class Metadata {
     /// The structure used for the serialisation.
@@ -112,10 +101,10 @@ extension Metadata: Mappable {
         
         if var subtitlesFromMultistring = multilangTitle?.multiString,
             !subtitlesFromMultistring.isEmpty {
-            subtitlesFromMultistring <- map[TitleType.subtitle.rawValue]
+            subtitlesFromMultistring <- map["subtitle"]
         } else {
             var subtitleForSinglestring = multilangTitle?.singleString ?? ""
-            subtitleForSinglestring <- map[TitleType.subtitle.rawValue]
+            subtitleForSinglestring <- map["subtitle"]
         }
         
         languages <- map["languages", ignoreNil: true]
