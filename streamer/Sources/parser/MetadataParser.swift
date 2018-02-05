@@ -69,7 +69,7 @@ final public class MetadataParser {
     /// - Returns: The content of the `<dc:title>` element, `nil` if the element
     ///            wasn't found.
     
-    static internal func titleFor(titleType: TitleType, from metadata: AEXMLElement) -> MultilangString? {
+    static internal func titleFor(titleType: DCMESTitleType, from metadata: AEXMLElement) -> MultilangString? {
         // Return if there isn't any `<dc:title>` element
         guard let titles = metadata["dc:title"].all else {
             log(level: .error, "Error: Publication have no title")
@@ -94,7 +94,6 @@ final public class MetadataParser {
         
         /// The default title to be returned, the first one, singleString.
         /// Special treatment for main title when there is no title marked as main title.
-        
         if mainTitle.singleString == nil {
             mainTitle.singleString = metadata["dc:title"].string
         }
@@ -332,7 +331,7 @@ final public class MetadataParser {
     ///   - metadata: The Publication Metadata XML object.
     /// - Returns: The main title XML element.
     
-    static private func getTitleElement(titleType:TitleType, from titles: [AEXMLElement],
+    static private func getTitleElement(titleType:DCMESTitleType, from titles: [AEXMLElement],
                                         _ metadata: AEXMLElement) -> AEXMLElement?
     {
         return titles.first(where: {

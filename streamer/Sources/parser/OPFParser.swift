@@ -9,6 +9,17 @@
 import R2Shared
 import AEXML
 
+// http://www.idpf.org/epub/30/spec/epub30-publications.html#elemdef-opf-dctitle
+// the six basic values of the "title-type" property specified by EPUB 3:
+public enum DCMESTitleType: String {
+    case main
+    case subtitle
+    case short
+    case collection
+    case edition
+    case extended
+}
+
 extension OPFParser: Loggable {}
 
 public enum OPFParserError: Error {
@@ -59,7 +70,12 @@ final public class OPFParser {
         /// The 'to be returned' Metadata object.
         var metadata = Metadata()
         let metadataElement = document["package"]["metadata"]
-
+        
+        // Default xmlns <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+//        let xmlns = metadataElement.attributes.keys.first(where: { (sampleKey) -> Bool in
+//            return sampleKey.starts(with: "xmlns:")
+//        })?.split(separator: ":").last ?? "dc"
+        
         // Title.
         guard let multilangTitle = MetadataParser.mainTitle(from: metadataElement) else {
             throw OPFParserError.missingPublicationTitle
