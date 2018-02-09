@@ -8,9 +8,9 @@ and [Readium Web Publication Manifest](https://github.com/readium/webpub-manifes
 
 - [x] Abstract model
 - [x] OPDS 1.x support
-- [ ] OPDS 2.0 support
-- [ ] Search
-- [ ] Full entries
+- [x] OPDS 2.0 support
+- [x] Search
+- [x] Full entries
 - [x] Facets
 - [x] Groups
 - [x] Indirect acquisition
