@@ -15,6 +15,7 @@ public class Feed {
     public var groups = [Group]()
     public var publications = [Publication]()
     public var navigation = [Link]()
+    public var context = [String]()
 
     public init(title: String) {
         self.metadata = OpdsMetadata(title: title)
