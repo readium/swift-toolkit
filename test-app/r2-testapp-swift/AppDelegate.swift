@@ -9,9 +9,12 @@
 import UIKit
 import R2Shared
 import R2Streamer
-import ReadiumLCP
 import PromiseKit
 import CryptoSwift
+
+#if LCP
+import ReadiumLCP
+#endif
 
 struct Location {
     let absolutePath: String
@@ -82,6 +85,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, open url: URL,
                      sourceApplication: String?, annotation: Any) -> Bool
     {
+      #if LCP
         guard url.isFileURL else {
             showInfoAlert(title: "Error", message: "The document isn't valid.")
             return false
@@ -131,6 +135,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 reload()
             }
         }
+      #endif
         return true
     }
 
@@ -328,7 +333,8 @@ extension AppDelegate {
         }
         return publicationType
     }
-    
+
+  #if LCP
     /// Process a LCP License Document (LCPL).
     /// Fetching Status Document, updating License Document, Fetching Publication,
     /// and moving the (updated) License Document into the publication archive.
@@ -397,7 +403,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
             return
         }
         let publicationPath = item.0.associatedContainer.rootFile.rootPath
-
+      #if LCP
         // Drm handling.
         switch drm.brand {
         case .lcp:
@@ -406,8 +412,10 @@ extension AppDelegate: LibraryViewControllerDelegate {
                                      parsingCallback: parsingCallback,
                                      completion)
         }
+      #endif
     }
-
+  
+  #if LCP
     /// Handle the processing of a publication protected with a LCP DRM.
     ///
     /// - Parameters:
@@ -551,7 +559,8 @@ extension AppDelegate: LibraryViewControllerDelegate {
             window!.rootViewController!.present(alert, animated: true)
         }
     }
-
+  #endif
+  
     func remove(_ publication: Publication) {
         // Find associated container.
         guard let pubBox = publicationServer.pubBoxes.values.first(where: {
