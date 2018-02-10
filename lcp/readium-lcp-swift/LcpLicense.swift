@@ -392,8 +392,9 @@ public class LcpLicense: DrmLicense {
             let latestUpdate = license.dateOfLastUpdate()
 
             if let lastUpdate = LCPDatabase.shared.licenses.dateOfLastUpdate(forLicenseWith: license.id),
-                lastUpdate == latestUpdate {
-                    return
+                lastUpdate > latestUpdate {
+                    fulfill()
+                return
             }
             
             /// 3.4.1/ Fetch the updated license.
@@ -418,6 +419,7 @@ public class LcpLicense: DrmLicense {
                 } else if let error = error {
                     print(error.localizedDescription)
                 }
+                try? LCPDatabase.shared.licenses.insert(self.license, with: status.status)
                 fulfill()
             })
             task.resume()
