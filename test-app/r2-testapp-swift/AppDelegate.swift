@@ -377,6 +377,7 @@ extension AppDelegate {
                 return Promise(value: publicationUrl)
         }
     }
+  #endif
 }
 
 extension AppDelegate: LibraryViewControllerDelegate {
