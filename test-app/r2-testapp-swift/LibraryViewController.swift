@@ -11,15 +11,18 @@ import WebKit
 import R2Shared
 import R2Streamer
 import R2Navigator
-//import ReadiumLCP
 import Kingfisher
 
 let bookPerRow = 3
 let insets = 5 // In px.
 
+/// To modify depending of the profile of the liblcp.a used
+let supportedProfiles = ["http://readium.org/lcp/basic-profile",
+                        "http://readium.org/lcp/profile-1.0"]
+
 protocol LibraryViewControllerDelegate: class {
+    func loadPublication(withId id: String?, completion: @escaping (Drm?) -> Void) throws
     func remove(_ publication: Publication)
-    func loadPublication(withId id: String?, completion: @escaping () -> Void) throws
 }
 
 class LibraryViewController: UICollectionViewController {
@@ -175,21 +178,34 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
             let progression = userDefaults.double(forKey: "\(publicationIdentifier)-documentProgression")
             do {
                 // Ask delegate to load that document.
-                try delegate?.loadPublication(withId: publicationIdentifier, completion: {
-
-                let epubViewer = EpubViewController(with: publication,
-                                                    atIndex: index,
-                                                    progression: progression)
+                try delegate?.loadPublication(withId: publicationIdentifier, completion: { drm in
+                    // Check if profile is supported.
+                    if let profile = drm?.profile, !supportedProfiles.contains(profile) {
+                        self.infoAlert(title: "Error", message: "The profile of this DRM is not supported.")
+                        return
+                    }
+                    let epubViewer = EpubViewController(with: publication,
+                                                        atIndex: index,
+                                                        progression: progression, drm)
 
                     self.navigationController?.pushViewController(epubViewer, animated: true)
 
                 })
             } catch {
-                print(">> ERROR : \(error.localizedDescription)")
+                infoAlert(title: "Error", message: error.localizedDescription)
             }
         default:
             break
         }
+    }
+
+    internal func infoAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        let dismissButton = UIAlertAction(title: "Ok", style: .cancel)
+
+        alert.addAction(dismissButton)
+        // Present alert.
+        present(alert, animated: true)
     }
 }
 
@@ -215,9 +231,13 @@ extension LibraryViewController: PublicationCellDelegate {
     }
 
     func displayInformation(forCellAt indexPath: IndexPath) {
-        //        let publication = publications[indexPath.row]
         
-        print("TODO display info")
+        let storyboard = UIStoryboard(name: "Details", bundle: nil)
+        let detailsView = storyboard.instantiateViewController(withIdentifier: "DetailsTableViewController") as! DetailsTableViewController
+        let publication = publications[indexPath.row]
+
+        detailsView.setup(publication: publication)
+        navigationController?.pushViewController(detailsView, animated: true)
     }
     
     func cellFlipped(_ cell: PublicationCell) {

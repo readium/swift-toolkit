@@ -36,7 +36,6 @@ internal class UserSettingsNavigationController: UINavigationController {
         advancedSettingsViewController =
             storyboard.instantiateViewController(withIdentifier: "AdvancedSettingsViewController") as! AdvancedSettingsViewController
 
-
         userSettingsTableViewController.modalPresentationStyle = .popover
         userSettingsTableViewController.delegate = self
         userSettingsTableViewController.userSettings = userSettings
