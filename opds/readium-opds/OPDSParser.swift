@@ -10,18 +10,21 @@ import AEXML
 import R2Shared
 import PromiseKit
 
-enum OPDSParserError: Error {
+public enum OPDSParserError: Error {
     case missingTitle
+    case documentNotFound
     
     var localizedDescription: String {
         switch self {
         case .missingTitle:
             return "The title is missing from the feed."
+        case .documentNotFound:
+            return "Document is not found"
         }
     }
 }
 
-enum OPDSParserOpenSearchHelperError: Error {
+public enum OPDSParserOpenSearchHelperError: Error {
     case searchLinkNotFound
     case searchDocumentIsInvalid
 //    case missingTemplateForFeedType
@@ -43,12 +46,35 @@ struct MimeTypeParameters {
     var parameters = [String: String]()
 }
 
-class OPDSParser {
+public class OPDSParser {
+    public static func parseURL(url: URL) -> Promise<Feed> {
+        return Promise<Feed> {fulfill, reject in
+            let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, response, error) in
+                guard error == nil else {
+                    reject(error!)
+                    return
+                }
+                guard let data = data else {
+                    reject(OPDSParserError.documentNotFound)
+                    return
+                }
+                do {
+                    let feed = try self.parse(xmlData: data)
+                    fulfill(feed)
+                }
+                catch {
+                    reject(error)
+                }
+
+            })
+            task.resume()
+        }
+    }
 
     /// Parse an OPDS flux.
     ///
     /// - Parameter: The opds flux data.
-    static func parse(xmlData: Data) throws -> Feed {
+    public static func parse(xmlData: Data) throws -> Feed {
         let document = try AEXMLDocument.init(xml: xmlData)
         let root = document.root
 
@@ -158,7 +184,7 @@ class OPDSParser {
         return feed
     }
 
-    static func parseEntry(xmlData: Data) throws -> Publication {
+    public static func parseEntry(xmlData: Data) throws -> Publication {
         let document = try AEXMLDocument.init(xml: xmlData)
         let root = document.root
         return parseEntry(entry: root)
@@ -177,7 +203,7 @@ class OPDSParser {
         return MimeTypeParameters(type: type, parameters: params)
     }
 
-    static func fetchOpenSearchTemplate(feed: Feed) -> Promise<String> {
+    public static func fetchOpenSearchTemplate(feed: Feed) -> Promise<String> {
         return Promise<String> { fulfill, reject in
             var openSearchURL: URL? = nil
             var selfMimeType: String? = nil
