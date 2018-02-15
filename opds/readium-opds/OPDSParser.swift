@@ -411,6 +411,7 @@ public class OPDSParser {
         for facet in feed.facets {
             if facet.metadata.title == title {
                 facet.links.append(link)
+                return
             }
         }
         let newFacet = Facet(title: title)
