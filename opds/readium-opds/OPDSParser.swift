@@ -136,17 +136,15 @@ public class OPDSParser {
                 if let entryTitle = entry["title"].value {
                     newLink.title = entryTitle
                 }
-                if let _ = entry["link"].value {
-                    if let rel = entry["link"].attributes["rel"] {
-                        newLink.rel.append(rel)
-                    }
-                    if let facetElementCountStr = entry["link"].attributes["thr:count"],
-                        let facetElementCount = Int(facetElementCountStr) {
-                        newLink.properties.numberOfItems = facetElementCount
-                    }
-                    newLink.typeLink = entry["link"].attributes["type"]
-                    newLink.href = entry["link"].attributes["href"]
+                if let rel = entry["link"].attributes["rel"] {
+                    newLink.rel.append(rel)
                 }
+                if let facetElementCountStr = entry["link"].attributes["thr:count"],
+                    let facetElementCount = Int(facetElementCountStr) {
+                    newLink.properties.numberOfItems = facetElementCount
+                }
+                newLink.typeLink = entry["link"].attributes["type"]
+                newLink.href = entry["link"].attributes["href"]
                 // Check collection link
                 if collectionLink.href != nil {
                     addNavigationInGroup(feed, newLink, collectionLink)
