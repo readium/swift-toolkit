@@ -313,11 +313,10 @@ public class OPDSParser {
             metadata.modified = date
         }
         // Publication date.
-        if let tmpDate = entry["published"].value,
-            let date = tmpDate.dateFromISO8601
-        {
-            metadata.modified = date
+        if let tmpDate = entry["published"].value {
+            metadata.publicationDate = tmpDate
         }
+
         // Rights.
         if let rights = entry["rights"].all {
             metadata.rights = rights.map({ $0.string }).joined(separator: " ")
