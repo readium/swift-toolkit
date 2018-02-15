@@ -140,6 +140,10 @@ public class OPDSParser {
                     if let rel = entry["link"].attributes["rel"] {
                         newLink.rel.append(rel)
                     }
+                    if let facetElementCountStr = entry["link"].attributes["thr:count"],
+                        let facetElementCount = Int(facetElementCountStr) {
+                        newLink.properties.numberOfItems = facetElementCount
+                    }
                     newLink.typeLink = entry["link"].attributes["type"]
                     newLink.href = entry["link"].attributes["href"]
                 }
