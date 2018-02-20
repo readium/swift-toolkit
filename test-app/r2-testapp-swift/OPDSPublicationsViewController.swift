@@ -16,21 +16,23 @@ import Kingfisher
 import PromiseKit
 import ReadiumOPDS
 
-let bookPerRow = 3
-let insets = 5 // In px.
+let opdsBookPerRow = 3
+let opdsInsets = 5 // In px.
 
-protocol LibraryViewControllerDelegate: class {
+protocol OPDSPublicationsViewControllerDelegate: class {
     func remove(_ publication: Publication)
     func loadPublication(withId id: String?, completion: @escaping () -> Void) throws
 }
 
-class LibraryViewController: UICollectionViewController {
+class OPDSPublicationsViewController: UICollectionViewController {
     var publications: [Publication]
-    weak var delegate: LibraryViewControllerDelegate?
-    weak var lastFlippedCell: PublicationCell?
+    var viewFrame: CGRect
+    weak var delegate: OPDSPublicationsViewControllerDelegate?
+    weak var lastFlippedCell: OPDSPublicationCell?
 
-    init?(_ publications: [Publication]) {
+    init?(_ publications: [Publication], frame: CGRect) {
         self.publications = publications
+        self.viewFrame = frame
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -40,10 +42,11 @@ class LibraryViewController: UICollectionViewController {
     }
 
     override func loadView() {
-        view = UIView(frame: UIScreen.main.bounds)
+        //view = UIView(frame: UIScreen.main.bounds)
+        view = UIView(frame: self.viewFrame)
 
         //let flowFrame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: UIScreen.main.bounds.size.height-44)
-        let flowFrame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height-44)
+        let flowFrame = CGRect(x: 0, y: 0, width: self.viewFrame.width, height: self.viewFrame.height-44)
 
         let flowLayout = UICollectionViewFlowLayout()
         let collectionView = UICollectionView(frame: flowFrame,
@@ -53,14 +56,16 @@ class LibraryViewController: UICollectionViewController {
         collectionView.backgroundColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
         collectionView.contentInset = UIEdgeInsets(top: 15, left: 20,
                                                    bottom: 20, right: 20)
-        collectionView.register(PublicationCell.self,
-                                forCellWithReuseIdentifier: "publicationCell")
+        collectionView.register(OPDSPublicationCell.self, forCellWithReuseIdentifier: "opdsPublicationCell")
         collectionView.delegate = self
-        let width = (Int(UIScreen.main.bounds.width) / bookPerRow) - (bookPerRow * 2 * insets)
+        let width = (Int(UIScreen.main.bounds.width) / opdsBookPerRow) - (opdsBookPerRow * 2 * opdsInsets)
         let height = Int(Double(width) * 1.5) // Height/width ratio == 1.5
         layout.itemSize = CGSize(width: width, height: height)
         self.collectionView = collectionView
+
         view.addSubview(collectionView)
+
+
     }
 
     override func viewDidLoad() {
@@ -73,7 +78,7 @@ class LibraryViewController: UICollectionViewController {
         recognizer.minimumPressDuration = 0.5
         recognizer.delaysTouchesBegan = true
         collectionView?.addGestureRecognizer(recognizer)
-        collectionView?.accessibilityLabel = "Library"
+        collectionView?.accessibilityLabel = "Catalog"
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -86,32 +91,10 @@ class LibraryViewController: UICollectionViewController {
         lastFlippedCell?.flipMenu()
         super.viewWillDisappear(animated)
     }
-
-    public func showDemoToolbar() {
-        let toolbarFrame = CGRect(x: 0, y: UIScreen.main.bounds.height-44, width: UIScreen.main.bounds.width, height: 44)
-        let toolbarView = UIToolbar(frame: toolbarFrame)
-        toolbarView.sizeToFit()
-        let catalogButton = UIBarButtonItem()
-        catalogButton.title = "Feedbooks catalog"
-        catalogButton.target = self
-        catalogButton.action = #selector(self.loadSampleCatalog)
-        toolbarView.items = [catalogButton]
-        view.addSubview(toolbarView)
-    }
-
-    func loadSampleCatalog() {
-        firstly {
-            //OPDSParser.parseURL(url: URL(string: "http://www.feedbooks.com/catalog.atom")!)
-            OPDSParser.parseURL(url: URL(string: "http://www.feedbooks.com/books/top.atom")!)
-            }.then { feed -> Void in
-                let opdsCatalog = OPDSCatalogViewController(feed: feed)
-                self.navigationController?.pushViewController(opdsCatalog!, animated: true)
-        }
-    }
 }
 
 // MARK: - Misc.
-extension LibraryViewController {
+extension OPDSPublicationsViewController {
 
     func handleLongPress(gestureRecognizer: UILongPressGestureRecognizer) {
         if (gestureRecognizer.state != UIGestureRecognizerState.began) {
@@ -119,7 +102,7 @@ extension LibraryViewController {
         }
         let location = gestureRecognizer.location(in: collectionView)
         if let indexPath = collectionView?.indexPathForItem(at: location) {
-            let cell = collectionView?.cellForItem(at: indexPath) as! PublicationCell
+            let cell = collectionView?.cellForItem(at: indexPath) as! OPDSPublicationCell
 
             cell.flipMenu()
         }
@@ -127,7 +110,7 @@ extension LibraryViewController {
 }
 
 // MARK: - CollectionView Datasource.
-extension LibraryViewController: UICollectionViewDelegateFlowLayout {
+extension OPDSPublicationsViewController: UICollectionViewDelegateFlowLayout {
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         // No data to display.
         if publications.count == 0 {
@@ -142,20 +125,27 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
     }
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "publicationCell", for: indexPath) as! PublicationCell
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "opdsPublicationCell", for: indexPath) as! OPDSPublicationCell
         let publication = publications[indexPath.row]
 
         cell.delegate = self
         cell.accessibilityLabel = publication.metadata.title
         // Load image and then apply the shadow.
-        if let coverUrl = publication.uriTo(link: publication.coverLink) {
+        var coverUrl: URL? = nil
+        if publication.coverLink != nil {
+            coverUrl = publication.uriTo(link: publication.coverLink)
+        }
+        else if publication.images.count > 0 {
+            coverUrl = URL(string: publication.images[0].href!)
+        }
+        if coverUrl != nil {
             cell.imageView.kf.setImage(with: coverUrl, placeholder: nil,
                                        options: [.transition(ImageTransition.fade(0.5))],
                                        progressBlock: nil, completionHandler: { error in
                                         cell.applyShadows()
             })
         } else {
-            let width = (Int(UIScreen.main.bounds.width) / bookPerRow) - (bookPerRow * 2 * insets)
+            let width = (Int(UIScreen.main.bounds.width) / opdsBookPerRow) - (opdsBookPerRow * 2 * opdsInsets)
             let height = Int(Double(width) * 1.5) // Height/width ratio == 1.5
             let titleTextView = UITextView(frame: CGRect(x: 0, y: 0, width: width, height: height))
 
@@ -167,6 +157,8 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
             cell.imageView.image = UIImage.imageWithTextView(textView: titleTextView)
             cell.applyShadows()
         }
+        cell.infoViewController.titleLabel.text = publication.metadata.title
+        cell.infoViewController.authorLabel.text = publication.metadata.authors.map({$0.name ?? ""}).joined(separator: ", ")
         return cell
     }
 
@@ -222,7 +214,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
     }
 }
 
-extension LibraryViewController: PublicationCellDelegate {
+extension OPDSPublicationsViewController: OPDSPublicationCellDelegate {
 
     func removePublicationFromLibrary(forCellAt indexPath: IndexPath) {
         let removePublicationAlert = UIAlertController(title: "Are you sure?",
@@ -245,11 +237,11 @@ extension LibraryViewController: PublicationCellDelegate {
 
     func displayInformation(forCellAt indexPath: IndexPath) {
         //        let publication = publications[indexPath.row]
-        
+
         print("TODO display info")
     }
-    
-    func cellFlipped(_ cell: PublicationCell) {
+
+    func cellFlipped(_ cell: OPDSPublicationCell) {
         lastFlippedCell?.flipMenu()
         lastFlippedCell = cell
     }

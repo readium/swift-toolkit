@@ -7,6 +7,23 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		116C610F203B4E0E00BDC085 /* OPDSPublicationsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116C610E203B4E0E00BDC085 /* OPDSPublicationsViewController.swift */; };
+		116C6114203B9A1F00BDC085 /* PublicationInfoView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 116C6113203B9A1F00BDC085 /* PublicationInfoView.xib */; };
+		116C6115203B9A1F00BDC085 /* PublicationInfoView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 116C6113203B9A1F00BDC085 /* PublicationInfoView.xib */; };
+		116C6117203B9A3800BDC085 /* PublicationInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116C6116203B9A3800BDC085 /* PublicationInfoViewController.swift */; };
+		116C6118203B9A3800BDC085 /* PublicationInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116C6116203B9A3800BDC085 /* PublicationInfoViewController.swift */; };
+		116C611A203CA9D700BDC085 /* OPDSPublicationCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116C6119203CA9D700BDC085 /* OPDSPublicationCell.swift */; };
+		116C611B203CAC5100BDC085 /* OPDSPublicationsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116C610E203B4E0E00BDC085 /* OPDSPublicationsViewController.swift */; };
+		116C611C203CAC5900BDC085 /* OPDSPublicationCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116C6119203CA9D700BDC085 /* OPDSPublicationCell.swift */; };
+		118FB3E920337C6700515BF3 /* OPDSCatalogViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 118FB3E820337C6700515BF3 /* OPDSCatalogViewController.xib */; };
+		118FB3EA20337C6700515BF3 /* OPDSCatalogViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 118FB3E820337C6700515BF3 /* OPDSCatalogViewController.xib */; };
+		118FB3EC20337CA900515BF3 /* OPDSCatalogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118FB3EB20337CA900515BF3 /* OPDSCatalogViewController.swift */; };
+		118FB3ED20337CA900515BF3 /* OPDSCatalogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118FB3EB20337CA900515BF3 /* OPDSCatalogViewController.swift */; };
+		118FB3EE20338C6700515BF3 /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 118FB3EF20338C6700515BF3 /* ReadiumOPDS.framework */; };
+		1193CDD620338DC800E7E9F9 /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1193CDD520338DC800E7E9F9 /* ReadiumOPDS.framework */; };
+		1193CDD820338DDE00E7E9F9 /* ReadiumOPDS.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1193CDD520338DC800E7E9F9 /* ReadiumOPDS.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		1193CDDB20339A8B00E7E9F9 /* OPDSNavigationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1193CDDA20339A8B00E7E9F9 /* OPDSNavigationViewController.swift */; };
+		1193CDDC20339A8B00E7E9F9 /* OPDSNavigationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1193CDDA20339A8B00E7E9F9 /* OPDSNavigationViewController.swift */; };
 		F32314A31F8626CD000FCFB0 /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F32314A41F8626CD000FCFB0 /* R2Streamer.framework */; };
 		F32981001F7D477900BDEAF4 /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
 		F32981011F7D477900BDEAF4 /* 2.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F11F7D467C00BDEAF4 /* 2.epub */; };
@@ -114,6 +131,7 @@
 				F3E7D4B91F4F09A200DF166D /* ObjectMapper.framework in Embed Frameworks */,
 				F3E7D4B51F4F09A200DF166D /* CryptoSwift.framework in Embed Frameworks */,
 				F3E7D4C11F4F09A200DF166D /* R2Streamer.framework in Embed Frameworks */,
+				1193CDD820338DDE00E7E9F9 /* ReadiumOPDS.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -140,6 +158,15 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		116C610E203B4E0E00BDC085 /* OPDSPublicationsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPublicationsViewController.swift; sourceTree = "<group>"; };
+		116C6113203B9A1F00BDC085 /* PublicationInfoView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PublicationInfoView.xib; sourceTree = "<group>"; };
+		116C6116203B9A3800BDC085 /* PublicationInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationInfoViewController.swift; sourceTree = "<group>"; };
+		116C6119203CA9D700BDC085 /* OPDSPublicationCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSPublicationCell.swift; sourceTree = "<group>"; };
+		118FB3E820337C6700515BF3 /* OPDSCatalogViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = OPDSCatalogViewController.xib; sourceTree = "<group>"; };
+		118FB3EB20337CA900515BF3 /* OPDSCatalogViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSCatalogViewController.swift; sourceTree = "<group>"; };
+		118FB3EF20338C6700515BF3 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumOPDS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1193CDD520338DC800E7E9F9 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReadiumOPDS.framework; path = Carthage/Build/iOS/ReadiumOPDS.framework; sourceTree = "<group>"; };
+		1193CDDA20339A8B00E7E9F9 /* OPDSNavigationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSNavigationViewController.swift; sourceTree = "<group>"; };
 		F32314A41F8626CD000FCFB0 /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F32980EE1F7D467B00BDEAF4 /* 1.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 1.epub; sourceTree = "<group>"; };
 		F32980EF1F7D467B00BDEAF4 /* 5.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 5.epub; sourceTree = "<group>"; };
@@ -205,6 +232,7 @@
 			files = (
 				F3E7D4C41F4F0A3E00DF166D /* R2Navigator.framework in Frameworks */,
 				F3E7D4BE1F4F09A200DF166D /* R2Shared.framework in Frameworks */,
+				1193CDD620338DC800E7E9F9 /* ReadiumOPDS.framework in Frameworks */,
 				F3E7D4C01F4F09A200DF166D /* R2Streamer.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -227,6 +255,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				118FB3EE20338C6700515BF3 /* ReadiumOPDS.framework in Frameworks */,
 				F341C2681F504BED005E6758 /* R2Navigator.framework in Frameworks */,
 				F341C2601F504BAD005E6758 /* R2Shared.framework in Frameworks */,
 				F32314A31F8626CD000FCFB0 /* R2Streamer.framework in Frameworks */,
@@ -236,6 +265,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1193CDD920339A5700E7E9F9 /* OPDS Catalog */ = {
+			isa = PBXGroup;
+			children = (
+				116C6119203CA9D700BDC085 /* OPDSPublicationCell.swift */,
+				118FB3EB20337CA900515BF3 /* OPDSCatalogViewController.swift */,
+				1193CDDA20339A8B00E7E9F9 /* OPDSNavigationViewController.swift */,
+				116C610E203B4E0E00BDC085 /* OPDSPublicationsViewController.swift */,
+			);
+			name = "OPDS Catalog";
+			sourceTree = "<group>";
+		};
 		F32980ED1F7D464900BDEAF4 /* Samples */ = {
 			isa = PBXGroup;
 			children = (
@@ -327,6 +367,8 @@
 		F3E7D4691F4EFE8700DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				118FB3EF20338C6700515BF3 /* ReadiumOPDS.framework */,
+				1193CDD520338DC800E7E9F9 /* ReadiumOPDS.framework */,
 				F3E7D49E1F4F095500DF166D /* AEXML.framework */,
 				F3E7D49F1F4F095500DF166D /* CryptoSwift.framework */,
 				F3E7D4A01F4F095500DF166D /* GCDWebServers.framework */,
@@ -359,6 +401,8 @@
 			children = (
 				F3E7D4741F4F031B00DF166D /* PublicationCell.swift */,
 				F3E7D4761F4F033200DF166D /* CellMenuView.swift */,
+				116C6113203B9A1F00BDC085 /* PublicationInfoView.xib */,
+				116C6116203B9A3800BDC085 /* PublicationInfoViewController.swift */,
 			);
 			name = PublicationCell;
 			sourceTree = "<group>";
@@ -366,8 +410,10 @@
 		F3E7D4731F4F030300DF166D /* Library */ = {
 			isa = PBXGroup;
 			children = (
+				1193CDD920339A5700E7E9F9 /* OPDS Catalog */,
 				F3E7D4701F4EFEC200DF166D /* LibraryViewController.swift */,
 				F3E7D4721F4F02FB00DF166D /* PublicationCell */,
+				118FB3E820337C6700515BF3 /* OPDSCatalogViewController.xib */,
 			);
 			name = Library;
 			sourceTree = "<group>";
@@ -546,9 +592,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				F32981001F7D477900BDEAF4 /* 1.epub in Resources */,
+				116C6114203B9A1F00BDC085 /* PublicationInfoView.xib in Resources */,
 				F32981011F7D477900BDEAF4 /* 2.epub in Resources */,
 				F32981021F7D477900BDEAF4 /* 3.epub in Resources */,
 				F32981031F7D477900BDEAF4 /* 4.epub in Resources */,
+				118FB3E920337C6700515BF3 /* OPDSCatalogViewController.xib in Resources */,
 				F32981041F7D477900BDEAF4 /* 5.epub in Resources */,
 				F32981051F7D477900BDEAF4 /* 6.epub in Resources */,
 				F3E7D4461F4EF6D400DF166D /* LaunchScreen.storyboard in Resources */,
@@ -576,9 +624,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				F331FBEB1F7E3432007F16DF /* 1.epub in Resources */,
+				116C6115203B9A1F00BDC085 /* PublicationInfoView.xib in Resources */,
 				F331FBEC1F7E3432007F16DF /* 2.epub in Resources */,
 				F331FBED1F7E3432007F16DF /* 3.epub in Resources */,
 				F331FBEE1F7E3432007F16DF /* 4.epub in Resources */,
+				118FB3EA20337C6700515BF3 /* OPDSCatalogViewController.xib in Resources */,
 				F331FBEF1F7E3432007F16DF /* 5.epub in Resources */,
 				F331FBF01F7E3432007F16DF /* 6.epub in Resources */,
 				F36D24DF1F58394500A00BF1 /* Main.storyboard in Resources */,
@@ -616,14 +666,19 @@
 				F3E7D4711F4EFEC200DF166D /* LibraryViewController.swift in Sources */,
 				F3BD533B1F72B27400E46FFC /* AdvancedSettingsViewController.swift in Sources */,
 				F3E7D48A1F4F049C00DF166D /* SpineItemTableViewController.swift in Sources */,
+				116C610F203B4E0E00BDC085 /* OPDSPublicationsViewController.swift in Sources */,
 				F3E7D4771F4F033200DF166D /* CellMenuView.swift in Sources */,
 				F3E7D43C1F4EF6D400DF166D /* AppDelegate.swift in Sources */,
+				118FB3EC20337CA900515BF3 /* OPDSCatalogViewController.swift in Sources */,
 				F3E7D4881F4F044100DF166D /* UserSettingsTableViewController.swift in Sources */,
+				1193CDDB20339A8B00E7E9F9 /* OPDSNavigationViewController.swift in Sources */,
 				F3E7D47C1F4F03B800DF166D /* UIImageExtension.swift in Sources */,
 				F3BD53391F72B26700E46FFC /* FontSelectionViewController.swift in Sources */,
 				F3E7D4871F4F044100DF166D /* TableOfContentsTableViewController.swift in Sources */,
 				F3E7D4751F4F031B00DF166D /* PublicationCell.swift in Sources */,
 				F3DCFFBE1F7CE0610056BA37 /* UserSettingsNavigationController.swift in Sources */,
+				116C6117203B9A3800BDC085 /* PublicationInfoViewController.swift in Sources */,
+				116C611A203CA9D700BDC085 /* OPDSPublicationCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -655,12 +710,17 @@
 				F3E7D4CC1F4F0B9300DF166D /* SpineItemTableViewController.swift in Sources */,
 				F3E7D4CD1F4F0B9300DF166D /* CellMenuView.swift in Sources */,
 				F3E7D4CE1F4F0B9300DF166D /* AppDelegate.swift in Sources */,
+				118FB3ED20337CA900515BF3 /* OPDSCatalogViewController.swift in Sources */,
 				F3E7D4CF1F4F0B9300DF166D /* UserSettingsTableViewController.swift in Sources */,
+				1193CDDC20339A8B00E7E9F9 /* OPDSNavigationViewController.swift in Sources */,
 				F3E7D4D01F4F0B9300DF166D /* UIImageExtension.swift in Sources */,
+				116C6118203B9A3800BDC085 /* PublicationInfoViewController.swift in Sources */,
 				F3BD533C1F72B45500E46FFC /* FontSelectionViewController.swift in Sources */,
 				F3E7D4D11F4F0B9300DF166D /* TableOfContentsTableViewController.swift in Sources */,
+				116C611B203CAC5100BDC085 /* OPDSPublicationsViewController.swift in Sources */,
 				F3E7D4D21F4F0B9300DF166D /* PublicationCell.swift in Sources */,
 				F3DCFFBF1F7CE0610056BA37 /* UserSettingsNavigationController.swift in Sources */,
+				116C611C203CAC5900BDC085 /* OPDSPublicationCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

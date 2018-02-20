@@ -67,6 +67,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         libraryVC.delegate = self
         libraryViewController = libraryVC
+        libraryVC.showDemoToolbar()
         let navigationController = UINavigationController(rootViewController: libraryViewController)
 
         window!.rootViewController = navigationController
@@ -366,7 +367,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
             return
         }
         let parsingCallback = item.1
-        guard var drm = item.0.protectedBy else {
+        guard var drm = item.0.associatedContainer.drm else {
             // No DRM, so the parsing callback can be directly called.
             try parsingCallback(nil)
             completion()
