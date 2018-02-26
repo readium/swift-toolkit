@@ -10,7 +10,7 @@ import Foundation
 
 import R2Shared
 
-enum OPDS2ParserError: Error {
+public enum OPDS2ParserError: Error {
     case invalidJSON
     case metadataNotFound
     case invalidMetadata
@@ -54,8 +54,8 @@ enum OPDS2ParserError: Error {
     }
 }
 
-class OPDS2Parser {
-    static func parse(jsonData: Data) throws -> Feed {
+public class OPDS2Parser {
+    public static func parse(jsonData: Data) throws -> Feed {
         guard let jsonRoot = try? JSONSerialization.jsonObject(with: jsonData, options: []) else {
             throw OPDS2ParserError.invalidJSON
         }
