@@ -16,6 +16,8 @@ protocol TriptychViewDelegate: class {
         viewForIndex index: Int,
         location: BinaryLocation)
         -> UIView
+    
+    func viewsDidUpdate(documentIndex:Int)
 }
 
 final class TriptychView: UIView {
@@ -172,7 +174,7 @@ final class TriptychView: UIView {
         guard let delegate = delegate else {
             return
         }
-
+        
         func viewForIndex(_ index: Int, location: BinaryLocation) -> UIView {
             guard let views = views, let previousIndex = previousIndex else {
                 return delegate.triptychView(self, viewForIndex: index, location: location)
@@ -243,6 +245,8 @@ final class TriptychView: UIView {
             }
         }
 
+        delegate.viewsDidUpdate(documentIndex: index)
+    
         syncSubviews()
         setNeedsLayout()
     }

@@ -17,6 +17,7 @@ protocol ViewDelegate: class {
     func publicationIdentifier() -> String?
     func publicationBaseUrl() -> URL?
     func displaySpineItem(with href: String)
+    func documentPageDidChanged(webview: WebView, currentPage: Int ,totalPage: Int)
 }
 
 final class WebView: WKWebView {
@@ -25,7 +26,16 @@ final class WebView: WKWebView {
     fileprivate let initialLocation: BinaryLocation
 
     public var initialId: String?
+    // progression and totalPages only work on 'readium-scroll-off' mode
     public var progression: Double?
+    public var totalPages: Int?
+    public func currentPage() -> Int {
+        guard progression != nil && totalPages != nil else {
+            return 1
+        }
+        return Int(progression! * Double(totalPages!)) + 1
+    }
+    
     internal var userSettings: UserSettings?
 
     public var documentLoaded = false
@@ -73,6 +83,25 @@ final class WebView: WKWebView {
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.showsVerticalScrollIndicator = false
         navigationDelegate = self
+        
+        scrollView.addObserver(self, forKeyPath: "contentSize", options: .new, context: nil)
+    }
+    
+    deinit {
+        scrollView.removeObserver(self, forKeyPath: "contentSize", context: nil)
+    }
+    
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        if keyPath == "contentSize" {
+            if let value = change?[NSKeyValueChangeKey.newKey] as? CGSize {
+                // update total pages
+                let pageCount = Int(value.width / scrollView.frame.size.width);
+                if totalPages != pageCount {
+                    totalPages = pageCount
+                    viewDelegate?.documentPageDidChanged(webview: self, currentPage: currentPage(), totalPage: pageCount)
+                }
+            }
+        }
     }
 
     @available(*, unavailable)
@@ -178,7 +207,18 @@ extension WebView {
         guard documentLoaded, let newProgression = Double(body) else {
             return
         }
+        
+        let originPage = self.currentPage()
+
         progression = newProgression
+        
+        let currentPage = self.currentPage()
+        
+        if originPage != currentPage {
+            if let pages = totalPages {
+                viewDelegate?.documentPageDidChanged(webview: self, currentPage: currentPage, totalPage: pages)
+            }
+        }
     }
 
     /// Update webview style to userSettings.
