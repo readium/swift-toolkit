@@ -8,7 +8,6 @@
 
 import UIKit
 import R2Shared
-import ReadiumLCP
 
 class DetailsTableViewController: UITableViewController {
     // Informations
