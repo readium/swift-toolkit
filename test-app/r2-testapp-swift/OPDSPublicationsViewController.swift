@@ -44,12 +44,12 @@ class OPDSPublicationsViewController: UICollectionViewController {
     override func loadView() {
         //view = UIView(frame: UIScreen.main.bounds)
         view = UIView(frame: self.viewFrame)
-
+        view.autoresizesSubviews = true
         //let flowFrame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: UIScreen.main.bounds.size.height-44)
-        let flowFrame = CGRect(x: 0, y: 0, width: self.viewFrame.width, height: self.viewFrame.height-44)
+        //let flowFrame = CGRect(x: 0, y: 0, width: self.viewFrame.width, height: self.viewFrame.height-44)
 
         let flowLayout = UICollectionViewFlowLayout()
-        let collectionView = UICollectionView(frame: flowFrame,
+        let collectionView = UICollectionView(frame: view.bounds,
                                               collectionViewLayout: flowLayout)
         let layout = (collectionView.collectionViewLayout as! UICollectionViewFlowLayout)
 
@@ -62,7 +62,8 @@ class OPDSPublicationsViewController: UICollectionViewController {
         let height = Int(Double(width) * 1.5) // Height/width ratio == 1.5
         layout.itemSize = CGSize(width: width, height: height)
         self.collectionView = collectionView
-
+        collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(collectionView)
 
 
