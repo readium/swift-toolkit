@@ -56,4 +56,12 @@ class OPDSNavigationViewController: UITableViewController {
 
     open override var prefersStatusBarHidden: Bool {
         return true
-    }}
+    }
+
+    func changeFeed(newFeed: Feed) {
+        self.links = newFeed.navigation
+        DispatchQueue.main.async {
+            self.tableView.reloadData()
+        }
+    }
+}

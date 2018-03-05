@@ -213,6 +213,13 @@ extension OPDSPublicationsViewController: UICollectionViewDelegateFlowLayout {
             break
         }
     }
+
+    func changePublications(newPublications: [Publication]) {
+        self.publications = newPublications
+        DispatchQueue.main.async {
+            self.collectionView?.reloadData()
+        }
+    }
 }
 
 extension OPDSPublicationsViewController: OPDSPublicationCellDelegate {

@@ -100,12 +100,12 @@ class LibraryViewController: UICollectionViewController {
     }
 
     func loadSampleCatalog() {
+        let feedURL = URL(string: "http://www.feedbooks.com/books/top.atom")!
         firstly {
-            //OPDSParser.parseURL(url: URL(string: "http://www.feedbooks.com/catalog.atom")!)
-            OPDSParser.parseURL(url: URL(string: "http://www.feedbooks.com/books/top.atom")!)
-            }.then { feed -> Void in
-                let opdsCatalog = OPDSCatalogViewController(feed: feed)
-                self.navigationController?.pushViewController(opdsCatalog!, animated: true)
+            OPDSParser.parseURL(url: feedURL)
+        }.then { feed -> Void in
+            let opdsCatalog = OPDSCatalogViewController(feed: feed, originalFeedURL: feedURL)
+            self.navigationController?.pushViewController(opdsCatalog!, animated: true)
         }
     }
 }

@@ -9,9 +9,12 @@
 import UIKit
 import R2Shared
 import ReadiumOPDS
+import PromiseKit
 
 class OPDSCatalogViewController: UIViewController {
     var feed: Feed
+    var originalFeedURL: URL
+    var currentFeedURL: URL
     var opdsNavigationViewController: OPDSNavigationViewController?
     var publicationViewController: OPDSPublicationsViewController?
    // @IBOutlet weak var mainView: UIView?
@@ -19,9 +22,11 @@ class OPDSCatalogViewController: UIViewController {
     var filterButton: UIBarButtonItem?
     var facetValues: [Int: Int]
 
-    init?(feed: Feed) {
+    init?(feed: Feed, originalFeedURL: URL) {
         self.feed = feed
         self.facetValues = [Int: Int]()
+        self.originalFeedURL = originalFeedURL
+        self.currentFeedURL = originalFeedURL
         super.init(nibName: "OPDSCatalogView", bundle: nil)
     }
 
@@ -44,6 +49,21 @@ class OPDSCatalogViewController: UIViewController {
         navigationController?.setNavigationBarHidden(false, animated: false)
         view.frame = view.bounds
         super.viewWillAppear(animated)
+    }
+
+    func loadNewURL(newURL: URL) {
+        firstly {
+            OPDSParser.parseURL(url: newURL)
+        }.then { feed -> Void in
+            self.currentFeedURL = newURL
+            self.changeFeed(newFeed: feed)
+        }
+    }
+
+    func changeFeed(newFeed: Feed) {
+        feed = newFeed
+        opdsNavigationViewController?.changeFeed(newFeed: newFeed)
+        publicationViewController?.changePublications(newPublications: newFeed.publications)
     }
 
     func filterMenuClicked(_ sender: UIBarButtonItem) {
@@ -76,6 +96,15 @@ class OPDSCatalogViewController: UIViewController {
 
     public func setValueForFacet(facet: Int, value: Int?) {
         facetValues[facet] = value
-        // TODO: Actually update the catalog
+        if let facetValue = value,
+            let hrefValue = self.feed.facets[facet].links[facetValue].href {
+            // hrefValue is only a path, it doesn't have a scheme or domain name.
+            // We get those from the original url
+            let newURLString = (self.originalFeedURL.scheme ?? "http") + "://" + self.originalFeedURL.host! + hrefValue
+            self.loadNewURL(newURL: URL(string: newURLString)!)
+        }
+        else {
+            self.loadNewURL(newURL: self.originalFeedURL) // Note: this fails for multiple facet groups. Figure out a fix when an example is available
+        }
     }
 }
