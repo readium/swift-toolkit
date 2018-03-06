@@ -22,11 +22,11 @@ class OPDSCatalogViewController: UIViewController {
    // @IBOutlet weak var mainView: UIView?
   //  @IBOutlet weak var filterButton: UIButton?
     var filterButton: UIBarButtonItem?
-    var facetValues: [Int: Int]
+    //var facetValues: [Int: Int]
 
     init?(feed: Feed, originalFeedURL: URL) {
         self.feed = feed
-        self.facetValues = [Int: Int]()
+        //self.facetValues = [Int: Int]()
         self.originalFeedURL = originalFeedURL
         self.currentFeedURL = originalFeedURL
         self.isLoadingNextPage = false
@@ -58,14 +58,17 @@ class OPDSCatalogViewController: UIViewController {
         firstly {
             OPDSParser.parseURL(url: newURL)
         }.then { newFeed -> Void in
-            self.currentFeedURL = newURL
-            self.nextPageURL = self.findNextPageURL(feed: newFeed)
-            self.changeFeed(newFeed: newFeed)
+            let opdsCatalog = OPDSCatalogViewController(feed: newFeed, originalFeedURL: newURL)
+            self.navigationController?.pushViewController(opdsCatalog!, animated: true)
+//            self.currentFeedURL = newURL
+//            self.nextPageURL = self.findNextPageURL(feed: newFeed)
+//            self.changeFeed(newFeed: newFeed)
         }
     }
 
     func changeFeed(newFeed: Feed) {
         feed = newFeed
+        //self.facetValues = [Int: Int]()
         opdsNavigationViewController?.changeFeed(newFeed: newFeed)
         publicationViewController?.changePublications(newPublications: newFeed.publications)
     }
@@ -94,14 +97,14 @@ class OPDSCatalogViewController: UIViewController {
     }
 
     public func getValueForFacet(facet: Int) -> Int? {
-        if facetValues.keys.contains(facet) {
-            return facetValues[facet]
-        }
+//        if facetValues.keys.contains(facet) {
+//            return facetValues[facet]
+//        }
         return nil
     }
 
     public func setValueForFacet(facet: Int, value: Int?) {
-        facetValues[facet] = value
+        //facetValues[facet] = value
         if let facetValue = value,
             let hrefValue = self.feed.facets[facet].links[facetValue].href {
             // hrefValue is only a path, it doesn't have a scheme or domain name.
