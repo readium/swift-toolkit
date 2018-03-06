@@ -15,6 +15,8 @@ class OPDSCatalogViewController: UIViewController {
     var feed: Feed
     var originalFeedURL: URL
     var currentFeedURL: URL
+    var nextPageURL: URL?
+    public var isLoadingNextPage: Bool
     var opdsNavigationViewController: OPDSNavigationViewController?
     var publicationViewController: OPDSPublicationsViewController?
    // @IBOutlet weak var mainView: UIView?
@@ -27,6 +29,7 @@ class OPDSCatalogViewController: UIViewController {
         self.facetValues = [Int: Int]()
         self.originalFeedURL = originalFeedURL
         self.currentFeedURL = originalFeedURL
+        self.isLoadingNextPage = false
         super.init(nibName: "OPDSCatalogView", bundle: nil)
     }
 
@@ -42,6 +45,7 @@ class OPDSCatalogViewController: UIViewController {
         navigationItem.title = feed.metadata.title
         filterButton = UIBarButtonItem(title: "Filter", style: UIBarButtonItemStyle.plain, target: self, action: #selector(OPDSCatalogViewController.filterMenuClicked))
         navigationItem.leftBarButtonItem = filterButton
+        self.nextPageURL = self.findNextPageURL(feed: feed)
         initSubviews()
     }
 
@@ -54,9 +58,10 @@ class OPDSCatalogViewController: UIViewController {
     func loadNewURL(newURL: URL) {
         firstly {
             OPDSParser.parseURL(url: newURL)
-        }.then { feed -> Void in
+        }.then { newFeed -> Void in
             self.currentFeedURL = newURL
-            self.changeFeed(newFeed: feed)
+            self.nextPageURL = self.findNextPageURL(feed: newFeed)
+            self.changeFeed(newFeed: newFeed)
         }
     }
 
@@ -82,7 +87,7 @@ class OPDSCatalogViewController: UIViewController {
             view.addSubview((opdsNavigationViewController?.view)!)
         }
         if feed.publications.count != 0 {
-            publicationViewController = OPDSPublicationsViewController(feed.publications, frame: view.frame)
+            publicationViewController = OPDSPublicationsViewController(feed.publications, frame: view.frame, catalogViewController: self)
             view.addSubview((publicationViewController?.view)!)
         }
     }
@@ -105,6 +110,33 @@ class OPDSCatalogViewController: UIViewController {
         }
         else {
             self.loadNewURL(newURL: self.originalFeedURL) // Note: this fails for multiple facet groups. Figure out a fix when an example is available
+        }
+    }
+
+    public func findNextPageURL(feed: Feed) -> URL? {
+        for link in feed.links {
+            for rel in link.rel {
+                if rel == "next" {
+                    return URL(string: link.href!)
+                }
+            }
+        }
+        return nil
+    }
+
+    public func loadNextPage() {
+        if self.isLoadingNextPage || nextPageURL == nil {
+            return
+        }
+        self.isLoadingNextPage = true
+        firstly {
+            OPDSParser.parseURL(url: nextPageURL!)
+        }.then { newFeed -> Void in
+            self.nextPageURL = self.findNextPageURL(feed: newFeed)
+            self.feed.publications.append(contentsOf: newFeed.publications)
+            self.changeFeed(newFeed: self.feed) // changing to the ORIGINAL feed, now with more publications
+        }.always {
+            self.isLoadingNextPage = false
         }
     }
 }

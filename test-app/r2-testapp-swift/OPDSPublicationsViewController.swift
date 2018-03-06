@@ -27,12 +27,14 @@ protocol OPDSPublicationsViewControllerDelegate: class {
 class OPDSPublicationsViewController: UICollectionViewController {
     var publications: [Publication]
     var viewFrame: CGRect
+    var catalogViewController: OPDSCatalogViewController
     weak var delegate: OPDSPublicationsViewControllerDelegate?
     weak var lastFlippedCell: OPDSPublicationCell?
 
-    init?(_ publications: [Publication], frame: CGRect) {
+    init?(_ publications: [Publication], frame: CGRect, catalogViewController: OPDSCatalogViewController) {
         self.publications = publications
         self.viewFrame = frame
+        self.catalogViewController = catalogViewController
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -160,6 +162,11 @@ extension OPDSPublicationsViewController: UICollectionViewDelegateFlowLayout {
         }
         cell.infoViewController.titleLabel.text = publication.metadata.title
         cell.infoViewController.authorLabel.text = publication.metadata.authors.map({$0.name ?? ""}).joined(separator: ", ")
+
+        if indexPath.row == publications.count - 1 && !catalogViewController.isLoadingNextPage {
+            // When the last cell has been reached, load the next page of the feed
+            catalogViewController.loadNextPage()
+        }
         return cell
     }
 
