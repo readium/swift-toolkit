@@ -20,6 +20,10 @@ class OPDSFacetChoiceTableViewController : UITableViewController {
         self.facetIndex = facetIndex
         self.catalogViewController = catalogViewController
         super.init(style: UITableViewStyle.plain)
+        tableView.rowHeight = UITableViewAutomaticDimension
+        tableView.estimatedRowHeight = 44
+        let height = Float(self.facet.links.count + 1) * Float(self.tableView.estimatedRowHeight) + 5.0 // some extra space to make sure we don't get a flashing scrollbar
+        self.preferredContentSize = CGSize(width: self.preferredContentSize.width, height: CGFloat(height))
     }
 
     required init?(coder aDecoder: NSCoder) {

@@ -40,11 +40,10 @@ class OPDSCatalogViewController: UIViewController {
     override func loadView() {
         let flowFrame = CGRect(x: 0, y: 44, width: UIScreen.main.bounds.size.width, height: UIScreen.main.bounds.size.height-44)
         view = UIView(frame: flowFrame)
-        //super.loadView()
-        navigationItem.leftItemsSupplementBackButton = true
+        //navigationItem.leftItemsSupplementBackButton = true
         navigationItem.title = feed.metadata.title
         filterButton = UIBarButtonItem(title: "Filter", style: UIBarButtonItemStyle.plain, target: self, action: #selector(OPDSCatalogViewController.filterMenuClicked))
-        navigationItem.leftBarButtonItem = filterButton
+        navigationItem.rightBarButtonItem = filterButton
         self.nextPageURL = self.findNextPageURL(feed: feed)
         initSubviews()
     }
@@ -77,8 +76,10 @@ class OPDSCatalogViewController: UIViewController {
 
         present(tableViewController, animated: true, completion: nil)
 
-        let popoverPresentationController = tableViewController.popoverPresentationController
-        popoverPresentationController?.barButtonItem = sender
+
+        if let popoverPresentationController = tableViewController.popoverPresentationController {
+            popoverPresentationController.barButtonItem = sender
+        }
     }
 
     func initSubviews() {

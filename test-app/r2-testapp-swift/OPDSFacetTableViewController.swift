@@ -18,6 +18,10 @@ class OPDSFacetTableViewController : UITableViewController {
         self.feed = feed
         self.catalogViewController = catalogViewController
         super.init(style: UITableViewStyle.plain)
+        tableView.rowHeight = UITableViewAutomaticDimension
+        tableView.estimatedRowHeight = 44
+        let height = Float(self.feed.facets.count) * Float(self.tableView.estimatedRowHeight) + 5.0 // some extra space to make sure we don't get a flashing scrollbar
+        self.preferredContentSize = CGSize(width: self.preferredContentSize.width, height: CGFloat(height))
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -51,7 +55,7 @@ class OPDSFacetTableViewController : UITableViewController {
         let tableViewController = OPDSFacetChoiceTableViewController(facet: feed.facets[facetIndex], facetIndex: facetIndex, catalogViewController: catalogViewController)
         tableViewController.modalPresentationStyle = UIModalPresentationStyle.popover
         let popoverPresentationController = tableViewController.popoverPresentationController
-        popoverPresentationController?.barButtonItem = catalogViewController.navigationItem.leftBarButtonItem
+        popoverPresentationController?.barButtonItem = catalogViewController.navigationItem.rightBarButtonItem
         catalogViewController.present(tableViewController, animated: false, completion: nil)
     }
 

@@ -100,7 +100,7 @@ class LibraryViewController: UICollectionViewController {
     }
 
     func loadSampleCatalog() {
-        let feedURL = URL(string: "http://www.feedbooks.com/books/top.atom")!
+        let feedURL = URL(string: "http://www.feedbooks.com/store/top.atom?category=FBFIC022000")!
         firstly {
             OPDSParser.parseURL(url: feedURL)
         }.then { feed -> Void in
