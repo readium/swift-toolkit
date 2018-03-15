@@ -12,23 +12,21 @@ import ReadiumOPDS
 import PromiseKit
 
 class OPDSCatalogViewController: UIViewController {
-    var feed: Feed
+    var feed: Feed?
+    var isFeedInitialized: Bool
     var originalFeedURL: URL
     var currentFeedURL: URL
     var nextPageURL: URL?
     public var isLoadingNextPage: Bool
     var opdsNavigationViewController: OPDSNavigationViewController?
     var publicationViewController: OPDSPublicationsViewController?
-   // @IBOutlet weak var mainView: UIView?
-  //  @IBOutlet weak var filterButton: UIButton?
     var filterButton: UIBarButtonItem?
-    //var facetValues: [Int: Int]
+    var spinnerView: UIActivityIndicatorView?
 
-    init?(feed: Feed, originalFeedURL: URL) {
-        self.feed = feed
-        //self.facetValues = [Int: Int]()
-        self.originalFeedURL = originalFeedURL
-        self.currentFeedURL = originalFeedURL
+    init?(url: URL) {
+        self.originalFeedURL = url
+        self.currentFeedURL = url
+        self.isFeedInitialized = false
         self.isLoadingNextPage = false
         super.init(nibName: "OPDSCatalogView", bundle: nil)
     }
@@ -40,11 +38,32 @@ class OPDSCatalogViewController: UIViewController {
     override func loadView() {
         let flowFrame = CGRect(x: 0, y: 44, width: UIScreen.main.bounds.size.width, height: UIScreen.main.bounds.size.height-44)
         view = UIView(frame: flowFrame)
-        //navigationItem.leftItemsSupplementBackButton = true
-        navigationItem.title = feed.metadata.title
+        navigationItem.title = ""
+        spinnerView = UIActivityIndicatorView.init(activityIndicatorStyle: .whiteLarge)
+        spinnerView?.startAnimating()
+        spinnerView?.center = view.center
+        view.addSubview(spinnerView!)
+        parseFeed()
+    }
+
+    func parseFeed() {
+        firstly {
+            OPDSParser.parseURL(url: self.originalFeedURL)
+        }.then { newFeed -> Void in
+            self.feed = newFeed
+            self.finishFeedInitialization()
+        }
+    }
+
+    func finishFeedInitialization() {
+        DispatchQueue.main.async {
+            self.spinnerView?.removeFromSuperview()
+        }
+        self.isFeedInitialized = true
+        navigationItem.title = feed!.metadata.title
+        self.nextPageURL = self.findNextPageURL(feed: feed!)
         filterButton = UIBarButtonItem(title: "Filter", style: UIBarButtonItemStyle.plain, target: self, action: #selector(OPDSCatalogViewController.filterMenuClicked))
         navigationItem.rightBarButtonItem = filterButton
-        self.nextPageURL = self.findNextPageURL(feed: feed)
         initSubviews()
     }
 
@@ -55,26 +74,21 @@ class OPDSCatalogViewController: UIViewController {
     }
 
     func loadNewURL(newURL: URL) {
-        firstly {
-            OPDSParser.parseURL(url: newURL)
-        }.then { newFeed -> Void in
-            let opdsCatalog = OPDSCatalogViewController(feed: newFeed, originalFeedURL: newURL)
-            self.navigationController?.pushViewController(opdsCatalog!, animated: true)
-//            self.currentFeedURL = newURL
-//            self.nextPageURL = self.findNextPageURL(feed: newFeed)
-//            self.changeFeed(newFeed: newFeed)
-        }
+        let opdsCatalog = OPDSCatalogViewController(url: newURL)
+        self.navigationController?.pushViewController(opdsCatalog!, animated: true)
     }
 
     func changeFeed(newFeed: Feed) {
         feed = newFeed
-        //self.facetValues = [Int: Int]()
         opdsNavigationViewController?.changeFeed(newFeed: newFeed)
         publicationViewController?.changePublications(newPublications: newFeed.publications)
     }
 
     func filterMenuClicked(_ sender: UIBarButtonItem) {
-        let tableViewController = OPDSFacetTableViewController(feed: feed, catalogViewController: self)
+        if (!isFeedInitialized) {
+            return
+        }
+        let tableViewController = OPDSFacetTableViewController(feed: feed!, catalogViewController: self)
         tableViewController.modalPresentationStyle = UIModalPresentationStyle.popover
 
         present(tableViewController, animated: true, completion: nil)
@@ -86,27 +100,30 @@ class OPDSCatalogViewController: UIViewController {
     }
 
     func initSubviews() {
-        if feed.navigation.count != 0 {
-            opdsNavigationViewController = OPDSNavigationViewController(feed: feed)
+        if (!isFeedInitialized) {
+            return
+        }
+        if feed!.navigation.count != 0 {
+            opdsNavigationViewController = OPDSNavigationViewController(feed: feed!)
             view.addSubview((opdsNavigationViewController?.view)!)
         }
-        if feed.publications.count != 0 {
-            publicationViewController = OPDSPublicationsViewController(feed.publications, frame: view.frame, catalogViewController: self)
+        if feed!.publications.count != 0 {
+            publicationViewController = OPDSPublicationsViewController(feed!.publications, frame: view.frame, catalogViewController: self)
             view.addSubview((publicationViewController?.view)!)
         }
     }
 
     public func getValueForFacet(facet: Int) -> Int? {
-//        if facetValues.keys.contains(facet) {
-//            return facetValues[facet]
-//        }
+        // TODO: remove this function
         return nil
     }
 
     public func setValueForFacet(facet: Int, value: Int?) {
-        //facetValues[facet] = value
+        if (!isFeedInitialized) {
+            return
+        }
         if let facetValue = value,
-            let hrefValue = self.feed.facets[facet].links[facetValue].href {
+            let hrefValue = self.feed!.facets[facet].links[facetValue].href {
             // hrefValue is only a path, it doesn't have a scheme or domain name.
             // We get those from the original url
             let newURLString = (self.originalFeedURL.scheme ?? "http") + "://" + self.originalFeedURL.host! + hrefValue
@@ -129,7 +146,7 @@ class OPDSCatalogViewController: UIViewController {
     }
 
     public func loadNextPage() {
-        if self.isLoadingNextPage || nextPageURL == nil {
+        if !self.isFeedInitialized || self.isLoadingNextPage || nextPageURL == nil {
             return
         }
         self.isLoadingNextPage = true
@@ -137,8 +154,8 @@ class OPDSCatalogViewController: UIViewController {
             OPDSParser.parseURL(url: nextPageURL!)
         }.then { newFeed -> Void in
             self.nextPageURL = self.findNextPageURL(feed: newFeed)
-            self.feed.publications.append(contentsOf: newFeed.publications)
-            self.changeFeed(newFeed: self.feed) // changing to the ORIGINAL feed, now with more publications
+            self.feed!.publications.append(contentsOf: newFeed.publications)
+            self.changeFeed(newFeed: self.feed!) // changing to the ORIGINAL feed, now with more publications
         }.always {
             self.isLoadingNextPage = false
         }
