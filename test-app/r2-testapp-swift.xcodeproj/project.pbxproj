@@ -11,6 +11,8 @@
 		11405D70204DD40800557FA4 /* OPDSFacetTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11405D6E204DD40800557FA4 /* OPDSFacetTableViewController.swift */; };
 		11405D72204DDC8B00557FA4 /* OPDSFacetChoiceTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11405D71204DDC8B00557FA4 /* OPDSFacetChoiceTableViewController.swift */; };
 		11405D73204DDC8B00557FA4 /* OPDSFacetChoiceTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11405D71204DDC8B00557FA4 /* OPDSFacetChoiceTableViewController.swift */; };
+		11405D75205B135900557FA4 /* OPDSCatalogSelectorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11405D74205B135900557FA4 /* OPDSCatalogSelectorViewController.swift */; };
+		11405D76205B135900557FA4 /* OPDSCatalogSelectorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11405D74205B135900557FA4 /* OPDSCatalogSelectorViewController.swift */; };
 		116C610F203B4E0E00BDC085 /* OPDSPublicationsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116C610E203B4E0E00BDC085 /* OPDSPublicationsViewController.swift */; };
 		116C6114203B9A1F00BDC085 /* PublicationInfoView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 116C6113203B9A1F00BDC085 /* PublicationInfoView.xib */; };
 		116C6115203B9A1F00BDC085 /* PublicationInfoView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 116C6113203B9A1F00BDC085 /* PublicationInfoView.xib */; };
@@ -164,6 +166,7 @@
 /* Begin PBXFileReference section */
 		11405D6E204DD40800557FA4 /* OPDSFacetTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSFacetTableViewController.swift; sourceTree = "<group>"; };
 		11405D71204DDC8B00557FA4 /* OPDSFacetChoiceTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSFacetChoiceTableViewController.swift; sourceTree = "<group>"; };
+		11405D74205B135900557FA4 /* OPDSCatalogSelectorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSCatalogSelectorViewController.swift; sourceTree = "<group>"; };
 		116C610E203B4E0E00BDC085 /* OPDSPublicationsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPublicationsViewController.swift; sourceTree = "<group>"; };
 		116C6113203B9A1F00BDC085 /* PublicationInfoView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PublicationInfoView.xib; sourceTree = "<group>"; };
 		116C6116203B9A3800BDC085 /* PublicationInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationInfoViewController.swift; sourceTree = "<group>"; };
@@ -422,6 +425,7 @@
 				F3E7D4701F4EFEC200DF166D /* LibraryViewController.swift */,
 				F3E7D4721F4F02FB00DF166D /* PublicationCell */,
 				118FB3E820337C6700515BF3 /* OPDSCatalogView.xib */,
+				11405D74205B135900557FA4 /* OPDSCatalogSelectorViewController.swift */,
 			);
 			name = Library;
 			sourceTree = "<group>";
@@ -681,6 +685,7 @@
 				118FB3EC20337CA900515BF3 /* OPDSCatalogViewController.swift in Sources */,
 				F3E7D4881F4F044100DF166D /* UserSettingsTableViewController.swift in Sources */,
 				1193CDDB20339A8B00E7E9F9 /* OPDSNavigationViewController.swift in Sources */,
+				11405D75205B135900557FA4 /* OPDSCatalogSelectorViewController.swift in Sources */,
 				F3E7D47C1F4F03B800DF166D /* UIImageExtension.swift in Sources */,
 				11405D6F204DD40800557FA4 /* OPDSFacetTableViewController.swift in Sources */,
 				F3BD53391F72B26700E46FFC /* FontSelectionViewController.swift in Sources */,
@@ -725,6 +730,7 @@
 				F3E7D4CF1F4F0B9300DF166D /* UserSettingsTableViewController.swift in Sources */,
 				1193CDDC20339A8B00E7E9F9 /* OPDSNavigationViewController.swift in Sources */,
 				F3E7D4D01F4F0B9300DF166D /* UIImageExtension.swift in Sources */,
+				11405D76205B135900557FA4 /* OPDSCatalogSelectorViewController.swift in Sources */,
 				116C6118203B9A3800BDC085 /* PublicationInfoViewController.swift in Sources */,
 				11405D70204DD40800557FA4 /* OPDSFacetTableViewController.swift in Sources */,
 				F3BD533C1F72B45500E46FFC /* FontSelectionViewController.swift in Sources */,
