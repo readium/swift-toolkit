@@ -85,13 +85,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, open url: URL,
                      sourceApplication: String?, annotation: Any) -> Bool
     {
-      #if LCP
         guard url.isFileURL else {
             showInfoAlert(title: "Error", message: "The document isn't valid.")
             return false
         }
         switch url.pathExtension {
         case "lcpl":
+            #if LCP
             // Retrieve publication using the LCPL.
             firstly {
                 try publication(at: url)
@@ -110,6 +110,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                     print("Error -- \(error.localizedDescription)")
                     self.showInfoAlert(title: "Error", message: error.localizedDescription)
             }
+            #endif
         default:
             /// Move Publication to documents.
             var documentsUrl = try! FileManager.default.url(for: .documentDirectory,
@@ -135,7 +136,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 reload()
             }
         }
-      #endif
         return true
     }
 
