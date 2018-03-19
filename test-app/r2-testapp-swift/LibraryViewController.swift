@@ -100,9 +100,11 @@ class LibraryViewController: UICollectionViewController {
     }
 
     func loadSampleCatalog() {
-        let feedURL = URL(string: "http://www.feedbooks.com/store/top.atom?category=FBFIC022000")!
-        let opdsCatalog = OPDSCatalogViewController(url: feedURL)
-        self.navigationController?.pushViewController(opdsCatalog!, animated: true)
+//        let feedURL = URL(string: "http://www.feedbooks.com/store/top.atom?category=FBFIC022000")!
+//        let opdsCatalog = OPDSCatalogViewController(url: feedURL)
+//        self.navigationController?.pushViewController(opdsCatalog!, animated: true)
+        let catalogSelector = OPDSCatalogSelectorViewController()
+        self.navigationController?.pushViewController(catalogSelector, animated: true)
     }
 }
 
