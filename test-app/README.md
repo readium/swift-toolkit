@@ -1,10 +1,27 @@
-[![BSD-3](https://img.shields.io/badge/License-BSD--3-brightgreen.svg)](https://opensource.org/licenses/BSD-3-Clause)
-# r2-testapp-swift
+# Readium-2 Test App (Swift/iOS)
 
-A test app for the Swift implementation of Readium-2.
-It showcase the use of the differents building blocks of Readium-2
+A test app for the Swift implementation of Readium-2 that integrates various modules together.
+
+[![BSD-3](https://img.shields.io/badge/License-BSD--3-brightgreen.svg)](https://opensource.org/licenses/BSD-3-Clause)
+
+## Features
+
+- [x] EPUB 2.x and 3.x support
+- [x] Readium LCP support
+- [x] CBZ support
+- [x] Custom styles
+- [x] Night & sepia modes
+- [x] Pagination and scrolling
+- [x] Table of contents
+- [ ] OPDS 1.x and 2.0 support
+- [ ] FXL support
+- [ ] RTL support
+
+## Demo
 
 ![](https://media.giphy.com/media/hAttjic8neYp2/giphy.gif) ![](https://media.giphy.com/media/13ivNbjbbUT41a/giphy.gif) ![](https://media.giphy.com/media/l378cRkMNuKx2AOAw/giphy.gif)
+
+## Dependencies
 
 - [r2-shared-swift](https://github.com/readium/r2-shared-swift) (Model, shared for both streamer and navigator)
 - [r2-streamer-swift](https://github.com/readium/r2-streamer-swift) (The parser/server)
