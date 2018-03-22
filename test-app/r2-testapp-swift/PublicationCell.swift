@@ -39,6 +39,14 @@ class PublicationCell: UICollectionViewCell {
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    override func layoutSubviews() {
+        contentView.frame = self.bounds
+        imageView.frame = self.bounds
+        imageView.layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: contentView.layer.cornerRadius).cgPath
+        menuView.frame = self.bounds
+        menuView.layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: contentView.layer.cornerRadius).cgPath
+    }
 }
 
 extension PublicationCell {
@@ -76,9 +84,8 @@ extension PublicationCell {
         view.layer.shadowOffset = CGSize.init(width: 0, height: 3.0)
         view.layer.shadowOpacity = opacity
         view.layer.masksToBounds = false
-        view.layer.shadowPath = UIBezierPath(roundedRect: bounds,
-                                             cornerRadius: contentView.layer.cornerRadius).cgPath
     }
+
 }
 
 // MARK: - Responds to action which occured in the PublicationCell's MenuView.
