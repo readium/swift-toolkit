@@ -91,12 +91,14 @@ class EpubViewController: UIViewController {
         navigationController?.setNavigationBarHidden(true, animated: false)
         var barButtons = [UIBarButtonItem]()
 
-        // SpineItemView button.
-        let spineItemButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self,
-                                              action: #selector(presentTableOfContents))
-        barButtons.append(spineItemButton)
+        if navigator.getTableOfContents().count > 0 {
+          // SpineItemView button.
+          let spineItemButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self,
+                                                action: #selector(presentTableOfContents))
+          barButtons.append(spineItemButton)
+        }
+      
         // User configuration button
-
         let userSettingsButton = UIBarButtonItem(image: #imageLiteral(resourceName: "settingsIcon"), style: .plain, target: self,
                                                  action: #selector(presentUserSettings))
         barButtons.append(userSettingsButton)
@@ -238,6 +240,9 @@ extension EpubViewController: UserSettingsNavigationControllerDelegate {
         
         //
         tableOfContentsTVC.setUIColor(for: appearance)
+        if haveDrm {
+          drmManagementTVC.appearance = appearance
+        }
     }
 
     // Toggle hide/show fixed bot and top bars.

@@ -7,8 +7,9 @@
 //
 
 import UIKit
-import R2Shared
 import PromiseKit
+import R2Shared
+import R2Navigator
 
 class DrmManagementTableViewController: UITableViewController {
     @IBOutlet weak var stateLabel: UILabel!
@@ -27,10 +28,32 @@ class DrmManagementTableViewController: UITableViewController {
     @IBOutlet weak var returnButton: UIButton!
 
     public var drm: Drm?
+    public var appearance:UserSettings.Appearance?
 
     override func viewWillAppear(_ animated: Bool) {
         title = "DRM Management"
         reload()
+      self.navigationController?.navigationBar.barTintColor = UIColor.white
+      self.navigationController?.navigationBar.tintColor = UIColor.black
+      self.navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor.black]
+
+    }
+  
+    override func viewWillDisappear(_ animated: Bool) {
+      if let appearance = appearance{
+        setUIColor(for: appearance)
+      }
+      super.viewWillDisappear(animated)
+    }
+  
+    internal func setUIColor(for appearance: UserSettings.Appearance) {
+      let color = appearance.associatedColor()
+      let textColor = appearance.associatedFontColor()
+      //
+      navigationController?.navigationBar.barTintColor = color
+      navigationController?.navigationBar.tintColor = textColor
+      navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: textColor]
+      //
     }
 
     open override var prefersStatusBarHidden: Bool {
@@ -122,23 +145,20 @@ class DrmManagementTableViewController: UITableViewController {
     // MARK: - UITableView
     
     override func numberOfSections(in tableView: UITableView) -> Int {
-        
-        let count = super.numberOfSections(in: tableView)
-        if let _ = drm?.license?.rightsEnd() {
-            return count
-        } else {
-            return count - 1
-        }
+      let count = super.numberOfSections(in: tableView)
+      if drm?.license?.rightsEnd() == nil {
+        // remove last section
+        return count - 1
+      }
+      return count
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        
-        let count = super.tableView(tableView, numberOfRowsInSection: section)
-        if (section == 1 && drm?.license?.rightsEnd() == nil) {
-            // remove the second cell
-            return count - 2
-        }
-        
-        return count
+      let count = super.tableView(tableView, numberOfRowsInSection: section)
+      if (section == 1 && drm?.license?.rightsEnd() == nil) {
+        // remove last two rows
+        return count - 2
+      }
+      return count
     }
 }

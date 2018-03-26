@@ -116,32 +116,63 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
     }
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "publicationCell", for: indexPath) as! PublicationCell
-        let publication = publications[indexPath.row]
-
-        cell.delegate = self
-        cell.accessibilityLabel = publication.metadata.title
+        
+        let pCell = collectionView.dequeueReusableCell(withReuseIdentifier: "publicationCell", for: indexPath) as! PublicationCell
+        
+        let publication = publications[indexPath.item]
+        
+        pCell.delegate = self
+        pCell.accessibilityLabel = publication.metadata.title
+        
+        let updateCellImage = { (theImage: UIImage) -> Void in
+            let currentPubInfo = self.publications[indexPath.item]
+            if (currentPubInfo.coverLink === publication.coverLink) {
+                pCell.imageView.image = theImage
+                pCell.applyShadows()
+            }
+        }
+        
         // Load image and then apply the shadow.
         if let coverUrl = publication.uriTo(link: publication.coverLink) {
-            cell.imageView.kf.setImage(with: coverUrl, placeholder: nil,
-                                       options: [.transition(ImageTransition.fade(0.5))],
-                                       progressBlock: nil, completionHandler: { error in
-                                        cell.applyShadows()
-            })
+            
+            let cacheKey = coverUrl.absoluteString
+            if (ImageCache.default.imageCachedType(forKey: cacheKey).cached) {
+                
+                ImageCache.default.retrieveImage(forKey: cacheKey, options: nil) {
+                    image, cacheType in
+                    if let theImage = image {
+                        updateCellImage(theImage)
+                    } else {
+                        print("Not exist in cache.")
+                    }
+                }
+
+            } else {
+                
+                ImageDownloader.default.downloadImage(with: coverUrl, options: [], progressBlock: nil) { (image, error, url, data) in
+                    
+                    guard let newImage = image else {return}
+                    ImageCache.default.store(newImage, forKey: cacheKey)
+                    updateCellImage(newImage)
+                }
+            } // check cache
+            
         } else {
+            
             let width = (Int(UIScreen.main.bounds.width) / bookPerRow) - (bookPerRow * 2 * insets)
             let height = Int(Double(width) * 1.5) // Height/width ratio == 1.5
             let titleTextView = UITextView(frame: CGRect(x: 0, y: 0, width: width, height: height))
-
+            
             titleTextView.layer.borderWidth = 5.0
             titleTextView.layer.borderColor = #colorLiteral(red: 0.08269290555, green: 0.2627741129, blue: 0.3623990017, alpha: 1).cgColor
             titleTextView.backgroundColor = #colorLiteral(red: 0.05882352963, green: 0.180392161, blue: 0.2470588237, alpha: 1)
             titleTextView.textColor = #colorLiteral(red: 0.8639426257, green: 0.8639426257, blue: 0.8639426257, alpha: 1)
             titleTextView.text = publication.metadata.title.appending("\n_________") //Dirty styling.
-            cell.imageView.image = UIImage.imageWithTextView(textView: titleTextView)
-            cell.applyShadows()
+            pCell.imageView.image = UIImage.imageWithTextView(textView: titleTextView)
+            pCell.applyShadows()
         }
-        return cell
+        
+        return pCell
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets
