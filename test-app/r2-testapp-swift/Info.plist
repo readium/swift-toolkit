@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>R2 Test</string>
+	<string>R2 Reader</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -130,7 +130,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>0.4</string>
 	<key>CFBundleVersion</key>
-	<string>4</string>
+	<string>11</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
