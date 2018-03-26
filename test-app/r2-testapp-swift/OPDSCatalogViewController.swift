@@ -20,8 +20,11 @@ class OPDSCatalogViewController: UIViewController {
     public var isLoadingNextPage: Bool
     var opdsNavigationViewController: OPDSNavigationViewController?
     var publicationViewController: OPDSPublicationsViewController?
+    var groupViewControllers: [OPDSGroupViewController]?
     var filterButton: UIBarButtonItem?
     var spinnerView: UIActivityIndicatorView?
+    var scrollView: UIScrollView?
+    var contentView: UIView?
 
     init?(url: URL) {
         self.originalFeedURL = url
@@ -37,7 +40,10 @@ class OPDSCatalogViewController: UIViewController {
 
     override func loadView() {
         let flowFrame = CGRect(x: 0, y: 44, width: UIScreen.main.bounds.size.width, height: UIScreen.main.bounds.size.height-44)
-        view = UIView(frame: flowFrame)
+        scrollView = UIScrollView(frame: flowFrame)
+        view = scrollView
+        contentView = UIView(frame: scrollView!.bounds)
+        scrollView?.addSubview(contentView!)
         navigationItem.title = ""
         spinnerView = UIActivityIndicatorView.init(activityIndicatorStyle: .whiteLarge)
         spinnerView?.startAnimating()
@@ -103,14 +109,70 @@ class OPDSCatalogViewController: UIViewController {
         if (!isFeedInitialized) {
             return
         }
+        var bottomView: UIView? = nil
+        let margins = contentView?.layoutMargins
+
         if feed!.navigation.count != 0 {
             opdsNavigationViewController = OPDSNavigationViewController(feed: feed!)
-            view.addSubview((opdsNavigationViewController?.view)!)
+            //view.addSubview((opdsNavigationViewController?.view)!)
+            contentView!.addSubview((opdsNavigationViewController?.view)!)
+            bottomView = opdsNavigationViewController?.view
+            bottomView?.topAnchor.constraint(equalTo: contentView!.topAnchor)
+        }
+        if feed!.groups.count != 0 {
+            groupViewControllers = []
+            for group in feed!.groups {
+                let groupViewController = OPDSGroupViewController(group, stackView: contentView!, catalogViewController: self)!
+                groupViewControllers?.append(groupViewController)
+                if bottomView == nil {
+                    contentView!.addSubview((groupViewController.view)!)
+                    (groupViewController.view)!.topAnchor.constraint(equalTo: contentView!.topAnchor).isActive = true
+
+                    (groupViewController.view)!.leftAnchor.constraint(equalTo: contentView!.leftAnchor).isActive = true
+                    (groupViewController.view)!.rightAnchor.constraint(equalTo: contentView!.rightAnchor).isActive = true
+
+                    (groupViewController.view)!.bottomAnchor.constraint(equalTo: (groupViewController.view)!.topAnchor, constant: 150).isActive = true
+
+                    //(groupViewController.view)!.setNeedsUpdateConstraints()
+                }
+                else {
+                    contentView!.addSubview((groupViewController.view)!)
+
+                    (groupViewController.view)!.topAnchor.constraint(equalTo: bottomView!.bottomAnchor).isActive = true
+                    (groupViewController.view)!.leftAnchor.constraint(equalTo: contentView!.leftAnchor).isActive = true
+                    (groupViewController.view)!.rightAnchor.constraint(equalTo: contentView!.rightAnchor).isActive = true
+
+                    (groupViewController.view)!.bottomAnchor.constraint(equalTo: (groupViewController.view)!.topAnchor, constant: 150).isActive = true
+
+                    //(groupViewController.view)!.setNeedsUpdateConstraints()
+
+                }
+                bottomView = (groupViewController.view)!
+            }
         }
         if feed!.publications.count != 0 {
             publicationViewController = OPDSPublicationsViewController(feed!.publications, frame: view.frame, catalogViewController: self)
-            view.addSubview((publicationViewController?.view)!)
+            //view.addSubview((publicationViewController?.view)!)
+            if bottomView == nil {
+                contentView!.addSubview((publicationViewController?.view)!)
+                bottomView?.topAnchor.constraint(equalTo: contentView!.topAnchor)
+            }
+            else {
+                contentView!.insertSubview((publicationViewController?.view)!, belowSubview: bottomView!)
+                (publicationViewController?.view)!.topAnchor.constraint(equalTo: bottomView!.bottomAnchor)
+            }
+            bottomView = (publicationViewController?.view)!
         }
+//        contentView!.topAnchor.constraint(equalTo: scrollView!.topAnchor).isActive = true
+//        contentView!.leftAnchor.constraint(equalTo: scrollView!.leftAnchor).isActive = true
+//        contentView!.rightAnchor.constraint(equalTo: scrollView!.rightAnchor).isActive = true
+        if (bottomView != nil) {
+            //contentView!.bottomAnchor.constraint(equalTo: bottomView!.bottomAnchor).isActive = true
+        }
+        contentView!.layoutSubviews()
+        contentView!.frame = CGRect(x: 0, y: 0, width:(scrollView?.bounds.width)!,
+                                    height: bottomView!.frame.maxY)
+        scrollView?.contentSize = contentView!.frame.size
     }
 
     public func getValueForFacet(facet: Int) -> Int? {
