@@ -427,7 +427,7 @@ public class OPDSParser {
                                                _ collectionLink: Link)
     {
         for group in feed.groups {
-            for l in feed.links {
+            for l in group.links {
                 if l.href == collectionLink.href {
                     group.publications.append(publication)
                     return
@@ -454,7 +454,7 @@ public class OPDSParser {
                                               _ collectionLink: Link)
     {
         for group in feed.groups {
-            for l in feed.links {
+            for l in group.links {
                 if l.href == collectionLink.href {
                     group.navigation.append(link)
                     return
