@@ -63,7 +63,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
 
-        let publications = items.flatMap() { $0.value.0.publication }
+        let publications = items.flatMap() { $0.value.0.publication }.sorted { (pA, pB) -> Bool in
+            pA.metadata.title < pB.metadata.title
+        }
+        
         guard let libraryVC = LibraryViewController(publications) else {
             print("Error instanciating the LibraryVC.")
             return false
