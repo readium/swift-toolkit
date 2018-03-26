@@ -39,7 +39,7 @@ class Licenses {
 
     internal func dateOfLastUpdate(forLicenseWith id: String) -> Date? {
         let db = LCPDatabase.shared.connection
-        let query = licenses.select(updated).order(updated.desc)
+        let query = licenses.filter(self.id == id).select(updated).order(updated.desc)
 
         do {
             for result in try db.prepare(query) {
