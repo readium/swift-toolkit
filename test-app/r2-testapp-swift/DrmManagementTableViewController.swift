@@ -118,4 +118,27 @@ class DrmManagementTableViewController: UITableViewController {
         // Present alert.
         present(alert, animated: true)
     }
+    
+    // MARK: - UITableView
+    
+    override func numberOfSections(in tableView: UITableView) -> Int {
+        
+        let count = super.numberOfSections(in: tableView)
+        if let _ = drm?.license?.rightsEnd() {
+            return count
+        } else {
+            return count - 1
+        }
+    }
+    
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        
+        let count = super.tableView(tableView, numberOfRowsInSection: section)
+        if (section == 1 && drm?.license?.rightsEnd() == nil) {
+            // remove the second cell
+            return count - 2
+        }
+        
+        return count
+    }
 }

@@ -233,6 +233,9 @@ extension EpubViewController: UserSettingsNavigationControllerDelegate {
         //
         navigationController?.navigationBar.barTintColor = color
         navigationController?.navigationBar.tintColor = textColor
+        
+        navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: textColor]
+        
         //
         tableOfContentsTVC.setUIColor(for: appearance)
     }
