@@ -18,6 +18,7 @@ public protocol NavigatorDelegate: class {
     /// It changes when html file resource changed
     func didChangedDocumentPage(currentDocumentIndex: Int)
     func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int)
+}
 
 public extension NavigatorDelegate {
   func didChangedDocumentPage(currentDocumentIndex: Int) {
