@@ -29,7 +29,6 @@ class OPDSGroupCollectionViewController: UICollectionViewController {
     var viewFrame: CGRect
     var catalogViewController: OPDSCatalogViewController
     weak var delegate: OPDSGroupCollectionViewControllerDelegate?
-    weak var lastFlippedCell: PublicationCell?
 
     init?(_ publications: [Publication], frame: CGRect, catalogViewController: OPDSCatalogViewController) {
         self.publications = publications
@@ -60,7 +59,7 @@ class OPDSGroupCollectionViewController: UICollectionViewController {
         layout.minimumInteritemSpacing = 0
         layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         collectionView.contentInset = UIEdgeInsets(top: -50, left: 0, bottom: 0, right: 0)
-        collectionView.register(PublicationCell.self, forCellWithReuseIdentifier: "opdsGroupPublicationCell")
+        collectionView.register(OPDSPublicationCellSimple.self, forCellWithReuseIdentifier: "opdsGroupPublicationCell")
         collectionView.showsVerticalScrollIndicator = false
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.delegate = self
@@ -83,13 +82,6 @@ class OPDSGroupCollectionViewController: UICollectionViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         clearsSelectionOnViewWillAppear = true
-        installsStandardGestureForInteractiveMovement = false
-        // Add long press gesture recognizer.
-        let recognizer = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
-
-        recognizer.minimumPressDuration = 0.5
-        recognizer.delaysTouchesBegan = true
-        collectionView?.addGestureRecognizer(recognizer)
         collectionView?.accessibilityLabel = "Catalog"
     }
 
@@ -100,24 +92,7 @@ class OPDSGroupCollectionViewController: UICollectionViewController {
 
     override func viewWillDisappear(_ animated: Bool) {
         navigationController?.setNavigationBarHidden(false, animated: animated)
-        lastFlippedCell?.flipMenu()
         super.viewWillDisappear(animated)
-    }
-}
-
-// MARK: - Misc.
-extension OPDSGroupCollectionViewController {
-
-    func handleLongPress(gestureRecognizer: UILongPressGestureRecognizer) {
-        if (gestureRecognizer.state != UIGestureRecognizerState.began) {
-            return
-        }
-        let location = gestureRecognizer.location(in: collectionView)
-        if let indexPath = collectionView?.indexPathForItem(at: location) {
-            let cell = collectionView?.cellForItem(at: indexPath) as! PublicationCell
-
-            cell.flipMenu()
-        }
     }
 }
 
@@ -137,10 +112,9 @@ extension OPDSGroupCollectionViewController: UICollectionViewDelegateFlowLayout 
     }
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "opdsGroupPublicationCell", for: indexPath) as! PublicationCell
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "opdsGroupPublicationCell", for: indexPath) as! OPDSPublicationCellSimple
         let publication = publications[indexPath.row]
 
-        cell.delegate = self
         cell.accessibilityLabel = publication.metadata.title
         // Load image and then apply the shadow.
         var coverUrl: URL? = nil
@@ -151,7 +125,7 @@ extension OPDSGroupCollectionViewController: UICollectionViewDelegateFlowLayout 
             coverUrl = URL(string: publication.images[0].href!)
         }
         if coverUrl != nil {
-            cell.imageView.kf.setImage(with: coverUrl, placeholder: nil,
+            cell.imageView!.kf.setImage(with: coverUrl, placeholder: nil,
                                        options: [.transition(ImageTransition.fade(0.5))],
                                        progressBlock: nil, completionHandler: nil)
         } else {
@@ -164,15 +138,14 @@ extension OPDSGroupCollectionViewController: UICollectionViewDelegateFlowLayout 
             titleTextView.backgroundColor = #colorLiteral(red: 0.05882352963, green: 0.180392161, blue: 0.2470588237, alpha: 1)
             titleTextView.textColor = #colorLiteral(red: 0.8639426257, green: 0.8639426257, blue: 0.8639426257, alpha: 1)
             titleTextView.text = publication.metadata.title.appending("\n_________") //Dirty styling.
-            cell.imageView.image = UIImage.imageWithTextView(textView: titleTextView)
+            cell.imageView!.image = UIImage.imageWithTextView(textView: titleTextView)
         }
-        //cell.infoViewController.titleLabel.text = publication.metadata.title
-        //cell.infoViewController.authorLabel.text = publication.metadata.authors.map({$0.name ?? ""}).joined(separator: ", ")
 
         if indexPath.row == publications.count - 1 && !catalogViewController.isLoadingNextPage {
             // When the last cell has been reached, load the next page of the feed
             catalogViewController.loadNextPage()
         }
+        cell.layoutIfNeeded()
         return cell
     }
 
@@ -185,46 +158,9 @@ extension OPDSGroupCollectionViewController: UICollectionViewDelegateFlowLayout 
 
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let publication = publications[indexPath.row]
+        let publicationInfoViewController = OPDSPublicationInfoViewController(publication, catalogViewController: self.catalogViewController)
+        self.catalogViewController.navigationController?.pushViewController(publicationInfoViewController!, animated: true)
 
-        // Get publication type.
-        guard let publicationType = publication.internalData["type"] else {
-            return
-        }
-        let backItem = UIBarButtonItem()
-
-        backItem.title = ""
-        navigationItem.backBarButtonItem = backItem
-        // Instanciate and push the appropriated renderer.
-        switch publicationType {
-        case "cbz":
-            let cbzViewer = CbzViewController(for: publication, initialIndex: 0)
-
-            navigationController?.pushViewController(cbzViewer, animated: true)
-        case "epub":
-            guard let publicationIdentifier = publication.metadata.identifier else {
-                return
-            }
-            // Retrieve last read document/progression in that document.
-            let userDefaults = UserDefaults.standard
-            let index = userDefaults.integer(forKey: "\(publicationIdentifier)-document")
-            let progression = userDefaults.double(forKey: "\(publicationIdentifier)-documentProgression")
-            do {
-                // Ask delegate to load that document.
-                try delegate?.loadPublication(withId: publicationIdentifier, completion: {
-
-                    let epubViewer = EpubViewController(with: publication,
-                                                        atIndex: index,
-                                                        progression: progression)
-
-                    self.navigationController?.pushViewController(epubViewer, animated: true)
-
-                })
-            } catch {
-                print(">> ERROR : \(error.localizedDescription)")
-            }
-        default:
-            break
-        }
     }
 
     func changePublications(newPublications: [Publication]) {
@@ -234,38 +170,3 @@ extension OPDSGroupCollectionViewController: UICollectionViewDelegateFlowLayout 
         }
     }
 }
-
-extension OPDSGroupCollectionViewController: PublicationCellDelegate {
-
-    func removePublicationFromLibrary(forCellAt indexPath: IndexPath) {
-        let removePublicationAlert = UIAlertController(title: "Are you sure?",
-                                                       message: "This will remove the Publication from your library.",
-                                                       preferredStyle: UIAlertControllerStyle.alert)
-        let removeAction = UIAlertAction(title: "Remove", style: .destructive, handler: { alert in
-            // Remove the publication from publicationServer and Documents folder.
-            self.delegate?.remove(self.publications[indexPath.row])
-            // Remove item from UI colletionView.
-            self.collectionView?.deleteItems(at: [indexPath])
-        })
-        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: { alert in
-            return
-        })
-
-        removePublicationAlert.addAction(removeAction)
-        removePublicationAlert.addAction(cancelAction)
-        present(removePublicationAlert, animated: true, completion: nil)
-    }
-
-    func displayInformation(forCellAt indexPath: IndexPath) {
-        //        let publication = publications[indexPath.row]
-
-        print("TODO display info")
-    }
-
-    func cellFlipped(_ cell: PublicationCell) {
-        lastFlippedCell?.flipMenu()
-        lastFlippedCell = cell
-    }
-}
-
-

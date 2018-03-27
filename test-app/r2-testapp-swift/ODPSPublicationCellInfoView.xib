@@ -10,7 +10,7 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
-        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="PublicationInfoViewController" customModule="r2_testapp_swift" customModuleProvider="target">
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="OPDSPublicationCellInfoViewController" customModule="r2_testapp_swift" customModuleProvider="target">
             <connections>
                 <outlet property="authorLabel" destination="DOi-IV-G7i" id="ktY-g8-jCk"/>
                 <outlet property="imageView" destination="scB-xQ-J5P" id="EIU-82-f3p"/>
