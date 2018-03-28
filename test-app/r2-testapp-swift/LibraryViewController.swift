@@ -29,6 +29,12 @@ class LibraryViewController: UICollectionViewController {
     var publications: [Publication]
     weak var delegate: LibraryViewControllerDelegate?
     weak var lastFlippedCell: PublicationCell?
+    
+    lazy var loadingIndicator: PublicationIndicator = {
+        
+        let indicator = PublicationIndicator(activityIndicatorStyle: UIActivityIndicatorViewStyle.gray)
+        return indicator
+    } ()
 
     init?(_ publications: [Publication]) {
         self.publications = publications
@@ -183,24 +189,57 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
     }
 
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        
         let publication = publications[indexPath.row]
-
-        // Get publication type.
-        guard let publicationType = publication.internalData["type"] else {
-            return
+        //loadPublication(publication: publication)
+        
+        collectionView.isUserInteractionEnabled = false
+        
+        if let cell = collectionView.cellForItem(at: indexPath) {
+            
+            cell.contentView.addSubview(self.loadingIndicator)
+            self.loadingIndicator.startAnimating()
         }
-        let backItem = UIBarButtonItem()
-
-        backItem.title = ""
-        navigationItem.backBarButtonItem = backItem
-        // Instanciate and push the appropriated renderer.
-        switch publicationType {
-        case "cbz":
+        
+        let cleanup = {
+            self.loadingIndicator.stopAnimating()
+            self.loadingIndicator.removeFromSuperview()
+            collectionView.isUserInteractionEnabled = true
+        }
+        
+        loadPublication(publication: publication, succ: { (contentVC) in
+            
+            cleanup()
+            
+            let backItem = UIBarButtonItem()
+            backItem.title = ""
+            self.navigationItem.backBarButtonItem = backItem
+            self.navigationController?.pushViewController(contentVC, animated: true)
+            
+            collectionView.isUserInteractionEnabled = true
+            
+        }) { (message) in
+            
+            cleanup()
+            self.infoAlert(title: "Error", message: message ?? "")
+        }
+    }
+    
+    func loadPublication(publication: Publication,
+                         succ: ((UIViewController)->Void)? = nil,
+                         fail: ((String?)->Void)? = nil) {
+        
+        // Get publication type
+        
+        let pubType = PublicationType(rawString: publication.internalData["type"])
+        
+        switch pubType {
+        case .cbz:
             let cbzViewer = CbzViewController(for: publication, initialIndex: 0)
-
-            navigationController?.pushViewController(cbzViewer, animated: true)
-        case "epub":
+            succ?(cbzViewer)
+        case .epub:
             guard let publicationIdentifier = publication.metadata.identifier else {
+                fail?("Invalid EPUB file")
                 return
             }
             // Retrieve last read document/progression in that document.
@@ -212,21 +251,21 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
                 try delegate?.loadPublication(withId: publicationIdentifier, completion: { drm in
                     // Check if profile is supported.
                     if let profile = drm?.profile, !supportedProfiles.contains(profile) {
-                        self.infoAlert(title: "Error", message: "The profile of this DRM is not supported.")
+                        let message = "The profile of this DRM is not supported."
+                        fail?(message)
                         return
                     }
+                    
                     let epubViewer = EpubViewController(with: publication,
                                                         atIndex: index,
                                                         progression: progression, drm)
-
-                    self.navigationController?.pushViewController(epubViewer, animated: true)
-
+                    succ?(epubViewer)
                 })
             } catch {
-                infoAlert(title: "Error", message: error.localizedDescription)
+                fail?(error.localizedDescription)
             }
         default:
-            break
+            fail?("Unsupported format")
         }
     }
 
@@ -277,4 +316,17 @@ extension LibraryViewController: PublicationCellDelegate {
     }
 }
 
-
+class PublicationIndicator: UIActivityIndicatorView {
+    override func didMoveToSuperview() {
+        super.didMoveToSuperview()
+        
+        guard let superView = self.superview else {return}
+        self.translatesAutoresizingMaskIntoConstraints = false
+        
+        let hConstraint = NSLayoutConstraint(item: self, attribute: .centerX, relatedBy: .equal, toItem: superView, attribute: .centerX, multiplier: 1.0, constant: 0.0)
+        
+        let vConstraint = NSLayoutConstraint(item: self, attribute: .centerY, relatedBy: .equal, toItem: superView, attribute: .centerY, multiplier: 1.0, constant: 0.0)
+        
+        superView.addConstraints([hConstraint, vConstraint])
+    }
+}
