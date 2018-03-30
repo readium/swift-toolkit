@@ -23,9 +23,10 @@ A test app for the Swift implementation of Readium-2 that integrates various mod
 
 ## Dependencies
 
-- [r2-shared-swift](https://github.com/readium/r2-shared-swift) (Model, shared for both streamer and navigator)
-- [r2-streamer-swift](https://github.com/readium/r2-streamer-swift) (The parser/server)
-- [r2-navigator-swift](https://github.com/readium/r2-navigator-swift) (The bare ViewControllers for displaying parsed resources)
+- [Shared Models](https://github.com/readium/r2-shared-swift) (Model, shared for both streamer and navigator)
+- [Streamer](https://github.com/readium/r2-streamer-swift) (The parser/server)
+- [Navigator](https://github.com/readium/r2-navigator-swift) (The bare ViewControllers for displaying parsed resources)
+- [Readium CSS](https://github.com/readium/readium-css) (Handles styles, layout and user settings)
 
 ## Install and run the testapp
 
