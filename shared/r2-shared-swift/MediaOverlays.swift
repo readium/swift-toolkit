@@ -44,13 +44,13 @@ public class MediaOverlays {
     /// - Returns: The `Clip`, representation of the associated SMIL element.
     /// - Throws: `MediaOverlayNodeError.audio`,
     ///           `MediaOverlayNodeError.timersParsing`.
-    public func clip(forFragmentId id: String) throws -> Clip {
-        let clip: Clip
+    public func clip(forFragmentId id: String) throws -> Clip? {
+        let clip: Clip?
 
         do {
             let fragmentNode = try node(forFragmentId: id)
 
-            clip = try fragmentNode.clip()
+            clip = fragmentNode.clip
         }
         return clip
     }
@@ -68,12 +68,12 @@ public class MediaOverlays {
     ///            one designated by `id`.
     /// - Throws: `MediaOverlayNodeError.audio`,
     ///           `MediaOverlayNodeError.timersParsing`.
-    public func clip(nextAfterFragmentId id: String) throws -> Clip {
-        let clip: Clip
+    public func clip(nextAfterFragmentId id: String) throws -> Clip? {
+        let clip: Clip?
 
         do {
             let fragmentNextNode = try node(nextAfterFragmentId: id)
-            clip = try fragmentNextNode.clip()
+            clip = fragmentNextNode.clip
         }
         return clip
     }
