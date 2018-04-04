@@ -292,9 +292,11 @@ final public class EpubParser {
             if let textRef = body.attributes["epub:textref"] { // Prevent the crash on the japanese book
                 node.text = normalize(base: mediaOverlayLink.href!, href: textRef)
             }
-            // get body parameters <par>
-            SMILParser.parseParameters(in: body, withParent: node, base: mediaOverlayLink.href)
-            SMILParser.parseSequences(in: body, withParent: node, publicationSpine: &publication.spine, base: mediaOverlayLink.href)
+            // get body parameters <par>a
+            if let href = mediaOverlayLink.href {
+                SMILParser.parseParameters(in: body, withParent: node, base: href)
+                SMILParser.parseSequences(in: body, withParent: node, publicationSpine: &publication.spine, base: href)
+            }
             // "/??/xhtml/mo-002.xhtml#mo-1" => "/??/xhtml/mo-002.xhtml"
             guard let baseHref = node.text?.components(separatedBy: "#")[0],
                 let link = publication.spine.first(where: {
