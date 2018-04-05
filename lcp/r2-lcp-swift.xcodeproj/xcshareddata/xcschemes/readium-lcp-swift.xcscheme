@@ -16,8 +16,8 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "F3B2C8861F667222007601E4"
                BuildableName = "ReadiumLCP.framework"
-               BlueprintName = "readium-lcp-swift"
-               ReferencedContainer = "container:readium-lcp-swift.xcodeproj">
+               BlueprintName = "r2-lcp-swift"
+               ReferencedContainer = "container:r2-lcp-swift.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -34,9 +34,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "F3B2C88F1F667223007601E4"
-               BuildableName = "readium-lcp-swiftTests.xctest"
-               BlueprintName = "readium-lcp-swiftTests"
-               ReferencedContainer = "container:readium-lcp-swift.xcodeproj">
+               BuildableName = "r2-lcp-swiftTests.xctest"
+               BlueprintName = "r2-lcp-swiftTests"
+               ReferencedContainer = "container:r2-lcp-swift.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -45,8 +45,8 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "F3B2C8861F667222007601E4"
             BuildableName = "ReadiumLCP.framework"
-            BlueprintName = "readium-lcp-swift"
-            ReferencedContainer = "container:readium-lcp-swift.xcodeproj">
+            BlueprintName = "r2-lcp-swift"
+            ReferencedContainer = "container:r2-lcp-swift.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -68,8 +68,8 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "F3B2C8861F667222007601E4"
             BuildableName = "ReadiumLCP.framework"
-            BlueprintName = "readium-lcp-swift"
-            ReferencedContainer = "container:readium-lcp-swift.xcodeproj">
+            BlueprintName = "r2-lcp-swift"
+            ReferencedContainer = "container:r2-lcp-swift.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -86,8 +86,8 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "F3B2C8861F667222007601E4"
             BuildableName = "ReadiumLCP.framework"
-            BlueprintName = "readium-lcp-swift"
-            ReferencedContainer = "container:readium-lcp-swift.xcodeproj">
+            BlueprintName = "r2-lcp-swift"
+            ReferencedContainer = "container:r2-lcp-swift.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>
