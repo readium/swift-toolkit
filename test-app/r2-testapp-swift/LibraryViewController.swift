@@ -32,7 +32,7 @@ class LibraryViewController: UICollectionViewController {
     
     lazy var loadingIndicator: PublicationIndicator = {
         
-        let indicator = PublicationIndicator(activityIndicatorStyle: UIActivityIndicatorViewStyle.gray)
+        let indicator = PublicationIndicator()
         return indicator
     } ()
 
@@ -191,52 +191,43 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         
         let publication = publications[indexPath.row]
-        //loadPublication(publication: publication)
         
+        guard let cell = collectionView.cellForItem(at: indexPath) else {return}
+        cell.contentView.addSubview(self.loadingIndicator)
         collectionView.isUserInteractionEnabled = false
         
-        if let cell = collectionView.cellForItem(at: indexPath) {
-            
-            cell.contentView.addSubview(self.loadingIndicator)
-            self.loadingIndicator.startAnimating()
-        }
-        
         let cleanup = {
-            self.loadingIndicator.stopAnimating()
             self.loadingIndicator.removeFromSuperview()
             collectionView.isUserInteractionEnabled = true
         }
         
-        loadPublication(publication: publication, succ: { (contentVC) in
-            
+        let successCallback = { (contentVC: UIViewController) in
             cleanup()
-            
             let backItem = UIBarButtonItem()
             backItem.title = ""
             self.navigationItem.backBarButtonItem = backItem
             self.navigationController?.pushViewController(contentVC, animated: true)
-            
-            collectionView.isUserInteractionEnabled = true
-            
-        }) { (message) in
-            
+        }
+        
+        let failCallback = { (message: String?) in
             cleanup()
             self.infoAlert(title: "Error", message: message ?? "")
         }
+        
+        loadPublication(publication: publication, success: successCallback, fail: failCallback)
     }
     
     func loadPublication(publication: Publication,
-                         succ: ((UIViewController)->Void)? = nil,
-                         fail: ((String?)->Void)? = nil) {
+                         success: ((UIViewController)->Void)? = nil,
+                         fail: ((String?) -> Void)? = nil) {
         
         // Get publication type
+        let publicationType = PublicationType(rawString: publication.internalData["type"])
         
-        let pubType = PublicationType(rawString: publication.internalData["type"])
-        
-        switch pubType {
+        switch publicationType {
         case .cbz:
             let cbzViewer = CbzViewController(for: publication, initialIndex: 0)
-            succ?(cbzViewer)
+            success?(cbzViewer)
         case .epub:
             guard let publicationIdentifier = publication.metadata.identifier else {
                 fail?("Invalid EPUB file")
@@ -259,7 +250,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
                     let epubViewer = EpubViewController(with: publication,
                                                         atIndex: index,
                                                         progression: progression, drm)
-                    succ?(epubViewer)
+                    success?(epubViewer)
                 })
             } catch {
                 fail?(error.localizedDescription)
@@ -316,17 +307,40 @@ extension LibraryViewController: PublicationCellDelegate {
     }
 }
 
-class PublicationIndicator: UIActivityIndicatorView {
+class PublicationIndicator: UIView  {
+    
+    lazy var indicator: UIActivityIndicatorView =  {
+        
+        let result = UIActivityIndicatorView(activityIndicatorStyle: UIActivityIndicatorViewStyle.whiteLarge)
+        result.translatesAutoresizingMaskIntoConstraints = false
+        self.backgroundColor = UIColor(white: 0.3, alpha: 0.7)
+        self.addSubview(result)
+        
+        let hConstraint = NSLayoutConstraint(item: result, attribute: .centerX, relatedBy: .equal, toItem: self, attribute: .centerX, multiplier: 1.0, constant: 0.0)
+        let vConstraint = NSLayoutConstraint(item: result, attribute: .centerY, relatedBy: .equal, toItem: self, attribute: .centerY, multiplier: 1.0, constant: 0.0)
+        self.addConstraints([hConstraint, vConstraint])
+        
+        return result
+    } ()
+    
     override func didMoveToSuperview() {
         super.didMoveToSuperview()
         
         guard let superView = self.superview else {return}
         self.translatesAutoresizingMaskIntoConstraints = false
         
-        let hConstraint = NSLayoutConstraint(item: self, attribute: .centerX, relatedBy: .equal, toItem: superView, attribute: .centerX, multiplier: 1.0, constant: 0.0)
+        let horizontalConstraint = NSLayoutConstraint(item: self, attribute: .centerX, relatedBy: .equal, toItem: superView, attribute: .centerX, multiplier: 1.0, constant: 0.0)
+        let verticalConstraint = NSLayoutConstraint(item: self, attribute: .centerY, relatedBy: .equal, toItem: superView, attribute: .centerY, multiplier: 1.0, constant: 0.0)
+        let widthConstraint = NSLayoutConstraint(item: self, attribute: .width, relatedBy: .equal, toItem: superView, attribute: .width, multiplier: 1.0, constant: 0.0)
+        let heightConstraint = NSLayoutConstraint(item: self, attribute: .height, relatedBy: .equal, toItem: superView, attribute: .height, multiplier: 1.0, constant: 0.0)
         
-        let vConstraint = NSLayoutConstraint(item: self, attribute: .centerY, relatedBy: .equal, toItem: superView, attribute: .centerY, multiplier: 1.0, constant: 0.0)
+        superView.addConstraints([horizontalConstraint, verticalConstraint, widthConstraint, heightConstraint])
         
-        superView.addConstraints([hConstraint, vConstraint])
+        self.indicator.startAnimating()
+    }
+    
+    override func removeFromSuperview() {
+        self.indicator.stopAnimating()
+        super.removeFromSuperview()
     }
 }
