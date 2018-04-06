@@ -85,9 +85,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     /// Called when the user open a file outside of the application and open it
     /// with the application.
-    func application(_ application: UIApplication, open url: URL,
-                     sourceApplication: String?, annotation: Any) -> Bool
-    {
+    func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
         guard url.isFileURL else {
             showInfoAlert(title: "Error", message: "The document isn't valid.")
             return false
@@ -103,7 +101,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                     if self.lightParsePublication(at: Location(absolutePath: publicationUrl.path,
                                                                relativePath: "",
                                                                type: .epub)) {
-
                         self.showInfoAlert(title: "Success", message: "LCP Publication added to library.")
                         self.reload()
                     } else {
