@@ -112,9 +112,15 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { (_) in }
         alertController.addTextField {(textField) in
             textField.placeholder = "Feed Title"
+            if feedIndex != nil {
+                textField.text = self.catalogData![feedIndex!]["title"]
+            }
         }
         alertController.addTextField {(textField) in
             textField.placeholder = "Feed URL"
+            if feedIndex != nil {
+                textField.text = self.catalogData![feedIndex!]["url"]
+            }
         }
         alertController.addAction(confirmAction)
         alertController.addAction(cancelAction)
