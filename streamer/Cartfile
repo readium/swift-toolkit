@@ -1,4 +1,4 @@
-github "readium/r2-shared-swift" == 1.0.0
+github "readium/r2-shared-swift" == 1.2.0
 github "tadija/AEXML" == 4.1
 github "swisspol/GCDWebServer" == 3.3.3
 github "krzyzanowskim/CryptoSwift" == 0.7.0
