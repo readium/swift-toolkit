@@ -1,6 +1,7 @@
 github "readium/r2-shared-swift" == 1.2.0
 github "readium/r2-streamer-swift" == 1.0.0
 github "readium/r2-navigator-swift" == 1.0.0
+github "readium/readium-opds-swift" "master"
 #github "readium/r2-lcp-swift" == 1.0.0
 #github "readium/r2-lcp-wrapper-swift" == 1.0.0
 github "tadija/AEXML" == 4.1
