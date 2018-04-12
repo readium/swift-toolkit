@@ -8,6 +8,7 @@
 
 import R2Shared
 import AEXML
+import Fuzi
 
 /// Epub related constants.
 public struct EpubConstant {
@@ -196,14 +197,15 @@ final public class EpubParser {
         guard let navLink = publication.link(withRel: "contents"),
             let navDocumentData = try? fetcher.data(forLink: navLink),
             navDocumentData != nil,
-            let navDocument = try? AEXMLDocument.init(xml: navDocumentData!) else {
+            let navDocument = try? AEXMLDocument.init(xml: navDocumentData!),
+            let navDocumentFuzi = try? XMLDocument.init(data: navDocumentData!) else {
                 return
         }
         // Get the location of the navigation document in order to normalize href pathes.
         guard let navigationDocumentPath = navLink.href else {
             return
         }
-        let newTableOfContentsItems = NavigationDocumentParser.tableOfContent(fromNavigationDocument: navDocument,
+        let newTableOfContentsItems = NavigationDocumentParser.tableOfContent(fromNavigationDocument: navDocumentFuzi,
                                                                               locatedAt: navigationDocumentPath)
         let newLandmarksItems = NavigationDocumentParser.landmarks(fromNavigationDocument: navDocument,
                                                                    locatedAt: navigationDocumentPath)

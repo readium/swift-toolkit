@@ -8,6 +8,7 @@
 
 import R2Shared
 import AEXML
+import Fuzi
 
 /// The navigation document if documented here at Navigation
 /// https://idpf.github.io/a11y-guidelines/
@@ -18,11 +19,24 @@ final public class NavigationDocumentParser {
     ///
     /// - Parameter document: The Navigation Document.
     /// - Returns: The data representation of the table of contents (toc).
-    static internal func tableOfContent(fromNavigationDocument document: AEXMLDocument,
+    static internal func tableOfContent(fromNavigationDocument document: XMLDocument,
                                         locatedAt path: String) -> [Link] {
-        let newTableOfContents = nodeArray(forNavigationDocument: document,
-                                           locatedAt: path, havingNavType: "toc")
-
+        var newTableOfContents = [Link]()
+        
+        document.definePrefix("html", defaultNamespace: "http://www.w3.org/1999/xhtml")
+        
+        let xpath = "/html:html/html:body/html:nav[@epub:type='toc']//html:a|"
+            + "/html:html/html:body/html:nav[@epub:type='toc']//html:span"
+        
+        let elements = document.xpath(xpath)
+        
+        for element in elements {
+            let link = Link()
+            link.title = element.stringValue
+            link.href = normalize(base: path, href: element.attr("href"))
+            newTableOfContents.append(link)
+        }
+        
         return newTableOfContents
     }
 
