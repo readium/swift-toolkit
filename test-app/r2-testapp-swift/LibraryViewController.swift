@@ -12,6 +12,8 @@ import R2Shared
 import R2Streamer
 import R2Navigator
 import Kingfisher
+import PromiseKit
+import ReadiumOPDS
 
 let bookPerRow = 3
 let insets = 5 // In px.
@@ -41,8 +43,13 @@ class LibraryViewController: UICollectionViewController {
     }
 
     override func loadView() {
+        view = UIView(frame: UIScreen.main.bounds)
+
+        //let flowFrame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: UIScreen.main.bounds.size.height-44)
+        let flowFrame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height-44)
+
         let flowLayout = UICollectionViewFlowLayout()
-        let collectionView = UICollectionView(frame: UIScreen.main.bounds,
+        let collectionView = UICollectionView(frame: flowFrame,
                                               collectionViewLayout: flowLayout)
         let layout = (collectionView.collectionViewLayout as! UICollectionViewFlowLayout)
 
@@ -56,7 +63,7 @@ class LibraryViewController: UICollectionViewController {
         let height = Int(Double(width) * 1.5) // Height/width ratio == 1.5
         layout.itemSize = CGSize(width: width, height: height)
         self.collectionView = collectionView
-        view = collectionView
+        view.addSubview(collectionView)
     }
 
     override func viewDidLoad() {
@@ -81,6 +88,26 @@ class LibraryViewController: UICollectionViewController {
         navigationController?.setNavigationBarHidden(false, animated: animated)
         lastFlippedCell?.flipMenu()
         super.viewWillDisappear(animated)
+    }
+
+    public func showDemoToolbar() {
+        let toolbarFrame = CGRect(x: 0, y: UIScreen.main.bounds.height-44, width: UIScreen.main.bounds.width, height: 44)
+        let toolbarView = UIToolbar(frame: toolbarFrame)
+        toolbarView.sizeToFit()
+        let catalogButton = UIBarButtonItem()
+        catalogButton.title = "Feedbooks catalog"
+        catalogButton.target = self
+        catalogButton.action = #selector(self.loadSampleCatalog)
+        toolbarView.items = [catalogButton]
+        view.addSubview(toolbarView)
+    }
+
+    func loadSampleCatalog() {
+//        let feedURL = URL(string: "http://www.feedbooks.com/store/top.atom?category=FBFIC022000")!
+//        let opdsCatalog = OPDSCatalogViewController(url: feedURL)
+//        self.navigationController?.pushViewController(opdsCatalog!, animated: true)
+        let catalogSelector = OPDSCatalogSelectorViewController()
+        self.navigationController?.pushViewController(catalogSelector, animated: true)
     }
 }
 
