@@ -94,10 +94,9 @@ public class PublicationServer {
     // Add handlers for the css/js resources.
     public func addSpecialResourcesHandlers() {
         func styleResourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
-            guard let request = request else {
+            guard let request = request, let filename = request.path else {
                 return GCDWebServerResponse(statusCode: 404)
             }
-            let filename = request.path
             let resourceName = (filename as NSString).deletingPathExtension.lastPathComponent
 
             if let styleUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "css"),
@@ -117,10 +116,9 @@ public class PublicationServer {
                              processBlock: styleResourcesHandler)
 
         func scriptResourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
-            guard let request = request else {
+            guard let request = request, let filename = request.path else {
                 return GCDWebServerResponse(statusCode: 404)
             }
-            let filename = request.path
             let resourceName = (filename as NSString).deletingPathExtension.lastPathComponent
 
             if let scriptUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "js"),
