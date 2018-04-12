@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		03D011F0208020270097A87C /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03D011EF208020270097A87C /* Minizip.framework */; };
 		59501DD71E2FB0D700D1B4BF /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501DCD1E2FB0D700D1B4BF /* R2Streamer.framework */; };
 		59501DDE1E2FB0D700D1B4BF /* R2Streamer.h in Headers */ = {isa = PBXBuildFile; fileRef = 59501DD01E2FB0D700D1B4BF /* R2Streamer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		59501E031E2FB16600D1B4BF /* Fetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DE81E2FB16600D1B4BF /* Fetcher.swift */; };
@@ -18,13 +19,6 @@
 		59501E0A1E2FB16600D1B4BF /* FileInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DF31E2FB16600D1B4BF /* FileInputStream.swift */; };
 		59501E0B1E2FB16600D1B4BF /* Seekable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DF41E2FB16600D1B4BF /* Seekable.swift */; };
 		59501E0C1E2FB16600D1B4BF /* ZipInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DF51E2FB16600D1B4BF /* ZipInputStream.swift */; };
-		59501E0D1E2FB16600D1B4BF /* crypt.h in Headers */ = {isa = PBXBuildFile; fileRef = 59501DF81E2FB16600D1B4BF /* crypt.h */; };
-		59501E0E1E2FB16600D1B4BF /* ioapi.c in Sources */ = {isa = PBXBuildFile; fileRef = 59501DF91E2FB16600D1B4BF /* ioapi.c */; };
-		59501E0F1E2FB16600D1B4BF /* ioapi.h in Headers */ = {isa = PBXBuildFile; fileRef = 59501DFA1E2FB16600D1B4BF /* ioapi.h */; };
-		59501E101E2FB16600D1B4BF /* unzip.c in Sources */ = {isa = PBXBuildFile; fileRef = 59501DFC1E2FB16600D1B4BF /* unzip.c */; };
-		59501E111E2FB16600D1B4BF /* unzip.h in Headers */ = {isa = PBXBuildFile; fileRef = 59501DFD1E2FB16600D1B4BF /* unzip.h */; };
-		59501E121E2FB16600D1B4BF /* zip.c in Sources */ = {isa = PBXBuildFile; fileRef = 59501DFE1E2FB16600D1B4BF /* zip.c */; };
-		59501E131E2FB16600D1B4BF /* zip.h in Headers */ = {isa = PBXBuildFile; fileRef = 59501DFF1E2FB16600D1B4BF /* zip.h */; };
 		59501E141E2FB16600D1B4BF /* Zip.h in Headers */ = {isa = PBXBuildFile; fileRef = 59501E001E2FB16600D1B4BF /* Zip.h */; };
 		59501E151E2FB16600D1B4BF /* ZipArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501E011E2FB16600D1B4BF /* ZipArchive.swift */; };
 		59501E1B1E2FB1F500D1B4BF /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E181E2FB1F500D1B4BF /* AEXML.framework */; };
@@ -104,6 +98,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		03D011EF208020270097A87C /* Minizip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Minizip.framework; path = Carthage/Build/iOS/Minizip.framework; sourceTree = "<group>"; };
 		59501DCD1E2FB0D700D1B4BF /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		59501DD01E2FB0D700D1B4BF /* R2Streamer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = R2Streamer.h; sourceTree = "<group>"; };
 		59501DD11E2FB0D700D1B4BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -118,14 +113,6 @@
 		59501DF31E2FB16600D1B4BF /* FileInputStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileInputStream.swift; sourceTree = "<group>"; };
 		59501DF41E2FB16600D1B4BF /* Seekable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Seekable.swift; sourceTree = "<group>"; };
 		59501DF51E2FB16600D1B4BF /* ZipInputStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZipInputStream.swift; sourceTree = "<group>"; };
-		59501DF81E2FB16600D1B4BF /* crypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crypt.h; sourceTree = "<group>"; };
-		59501DF91E2FB16600D1B4BF /* ioapi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ioapi.c; sourceTree = "<group>"; };
-		59501DFA1E2FB16600D1B4BF /* ioapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ioapi.h; sourceTree = "<group>"; };
-		59501DFB1E2FB16600D1B4BF /* module.modulemap */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
-		59501DFC1E2FB16600D1B4BF /* unzip.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = unzip.c; sourceTree = "<group>"; };
-		59501DFD1E2FB16600D1B4BF /* unzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = unzip.h; sourceTree = "<group>"; };
-		59501DFE1E2FB16600D1B4BF /* zip.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = zip.c; sourceTree = "<group>"; };
-		59501DFF1E2FB16600D1B4BF /* zip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = zip.h; sourceTree = "<group>"; };
 		59501E001E2FB16600D1B4BF /* Zip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Zip.h; sourceTree = "<group>"; };
 		59501E011E2FB16600D1B4BF /* ZipArchive.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZipArchive.swift; sourceTree = "<group>"; };
 		59501E181E2FB1F500D1B4BF /* AEXML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AEXML.framework; path = Carthage/Build/iOS/AEXML.framework; sourceTree = "<group>"; };
@@ -176,6 +163,7 @@
 			files = (
 				F3E7D4261F4EDD7800DF166D /* ObjectMapper.framework in Frameworks */,
 				F3E7D4251F4ED05F00DF166D /* R2Shared.framework in Frameworks */,
+				03D011F0208020270097A87C /* Minizip.framework in Frameworks */,
 				59501E201E2FB2AD00D1B4BF /* libz.tbd in Frameworks */,
 				59501E1B1E2FB1F500D1B4BF /* AEXML.framework in Frameworks */,
 				59501E1C1E2FB1F500D1B4BF /* GCDWebServers.framework in Frameworks */,
@@ -300,7 +288,6 @@
 		59501DF61E2FB16600D1B4BF /* ZipArchive */ = {
 			isa = PBXGroup;
 			children = (
-				59501DF71E2FB16600D1B4BF /* minizip */,
 				59501E001E2FB16600D1B4BF /* Zip.h */,
 				59501E011E2FB16600D1B4BF /* ZipArchive.swift */,
 			);
@@ -308,24 +295,10 @@
 			path = Sources/ZipArchive;
 			sourceTree = SOURCE_ROOT;
 		};
-		59501DF71E2FB16600D1B4BF /* minizip */ = {
-			isa = PBXGroup;
-			children = (
-				59501DF81E2FB16600D1B4BF /* crypt.h */,
-				59501DF91E2FB16600D1B4BF /* ioapi.c */,
-				59501DFA1E2FB16600D1B4BF /* ioapi.h */,
-				59501DFB1E2FB16600D1B4BF /* module.modulemap */,
-				59501DFC1E2FB16600D1B4BF /* unzip.c */,
-				59501DFD1E2FB16600D1B4BF /* unzip.h */,
-				59501DFE1E2FB16600D1B4BF /* zip.c */,
-				59501DFF1E2FB16600D1B4BF /* zip.h */,
-			);
-			path = minizip;
-			sourceTree = "<group>";
-		};
 		59501E171E2FB1F500D1B4BF /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				03D011EF208020270097A87C /* Minizip.framework */,
 				F3E7D4241F4ED05F00DF166D /* R2Shared.framework */,
 				F3ED92DB1EA0C93F00E15C8F /* CryptoSwift.framework */,
 				59501E1F1E2FB2AD00D1B4BF /* libz.tbd */,
@@ -400,13 +373,9 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				59501E131E2FB16600D1B4BF /* zip.h in Headers */,
-				59501E0D1E2FB16600D1B4BF /* crypt.h in Headers */,
-				59501E111E2FB16600D1B4BF /* unzip.h in Headers */,
 				59501E141E2FB16600D1B4BF /* Zip.h in Headers */,
 				59501E071E2FB16600D1B4BF /* R2Streamer-Bridging-Header.h in Headers */,
 				59501DDE1E2FB0D700D1B4BF /* R2Streamer.h in Headers */,
-				59501E0F1E2FB16600D1B4BF /* ioapi.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -525,6 +494,7 @@
 				"$(SRCROOT)/Carthage/Build/iOS/ObjectMapper.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/GCDWebServers.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/CryptoSwift.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/Minizip.framework",
 			);
 			outputPaths = (
 			);
@@ -542,14 +512,12 @@
 				F3D434241E8E9DA5008C379E /* CbzParser.swift in Sources */,
 				59501E061E2FB16600D1B4BF /* EpubParser.swift in Sources */,
 				F3098E751E7C02AD002358A1 /* MetadataParser.swift in Sources */,
-				59501E101E2FB16600D1B4BF /* unzip.c in Sources */,
 				59501E0C1E2FB16600D1B4BF /* ZipInputStream.swift in Sources */,
 				F3E6A2D61E70111500BBD81C /* Logger.swift in Sources */,
 				59501E0A1E2FB16600D1B4BF /* FileInputStream.swift in Sources */,
 				F300FA371F8E1D7700442332 /* DrmDecoder.swift in Sources */,
 				F3F41E151FA0EBDE00F97737 /* DataCompression.swift in Sources */,
 				F3E0214F1E9277A80094CFF7 /* ContainerCbzDirectory.swift in Sources */,
-				59501E0E1E2FB16600D1B4BF /* ioapi.c in Sources */,
 				F3ED92D61E9F702E00E15C8F /* FontDecoder.swift in Sources */,
 				F3D434261E8E9ED0008C379E /* ContainerCbz.swift in Sources */,
 				59501E091E2FB16600D1B4BF /* WebServerResourceResponse.swift in Sources */,
@@ -557,7 +525,6 @@
 				59501E081E2FB16600D1B4BF /* PublicationServer.swift in Sources */,
 				59501E0B1E2FB16600D1B4BF /* Seekable.swift in Sources */,
 				F37B635E1E6EDC6300C6A3AC /* Loggable.swift in Sources */,
-				59501E121E2FB16600D1B4BF /* zip.c in Sources */,
 				F3098E711E7BFF87002358A1 /* NCXParser.swift in Sources */,
 				59501E151E2FB16600D1B4BF /* ZipArchive.swift in Sources */,
 				F3B8F01C1E9CD76A0052D64B /* SMILParser.swift in Sources */,
