@@ -1,1 +1,1 @@
-github "Readium/r2-shared-swift" "master"
+github "Readium/r2-shared-swift" == 1.2.0
