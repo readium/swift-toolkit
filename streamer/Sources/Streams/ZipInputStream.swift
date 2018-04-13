@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import minizip
+import Minizip
 
 extension ZipInputStream: Loggable {}
 
