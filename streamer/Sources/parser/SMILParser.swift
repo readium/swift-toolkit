@@ -24,7 +24,7 @@ final internal class SMILParser {
     static internal func parseSequences(in element: AEXMLElement,
                                         withParent parent: MediaOverlayNode,
                                         publicationSpine spine: inout [Link],
-                                        base: String?)
+                                        base: String)
     {
         guard let sequenceElements = element["seq"].all,
             !sequenceElements.isEmpty else
@@ -37,7 +37,7 @@ final internal class SMILParser {
             let newNode = MediaOverlayNode()
             
             newNode.role.append("section")
-            newNode.text = normalize(base: base!, href: sequence.attributes["epub:textref"]!)
+            newNode.text = normalize(base: base, href: sequence.attributes["epub:textref"]!)
             
             parseParameters(in: sequence, withParent: newNode, base: base)
             parseSequences(in: sequence, withParent: newNode, publicationSpine: &spine, base: base)
@@ -70,24 +70,27 @@ final internal class SMILParser {
     ///   - parent: The parent MediaOverlayNode of the "to be creatred" nodes.
     static internal func parseParameters(in element: AEXMLElement,
                                          withParent parent: MediaOverlayNode,
-                                         base: String?)
+                                         base: String)
     {
         guard let parameterElements = element["par"].all,
             !parameterElements.isEmpty else
         {
             return
         }
+        
         // For each <par> in the current scope.
         for parameterElement in parameterElements {
-            let newNode = MediaOverlayNode()
             
             guard let audioElement = parameterElement["audio"].first else {
-                return
+                continue // no audio
             }
-            let audioFilePath = parse(audioElement: audioElement)
+            guard let audioClip = parse(base: base, audioElement: audioElement) else {
+                continue // invalid audio element
+            }
             
-            newNode.audio = normalize(base: base!, href: audioFilePath!)
-            newNode.text = normalize(base: base!, href: parameterElement["text"].attributes["src"]!)
+            let nodeText = normalize(base: base, href: parameterElement["text"].attributes["src"]!)
+            
+            let newNode = MediaOverlayNode(nodeText, clip: audioClip)
             parent.children.append(newNode)
         }
     }
@@ -120,18 +123,42 @@ final internal class SMILParser {
     ///
     /// - Parameter audioElement: The audio XML element.
     /// - Returns: The formated string representing the data.
-    static fileprivate func parse(audioElement: AEXMLElement) -> String? {
-        guard var audio = audioElement.attributes["src"],
-            let clipBegin = audioElement.attributes["clipBegin"],
-            let clipEnd = audioElement.attributes["clipEnd"] else
-        {
+    static fileprivate func parse(base: String, audioElement: AEXMLElement) -> Clip? {
+        guard let audioSrc = audioElement.attributes["src"] else {
             return nil
         }
-        audio += "#t="
-        audio += SMILParser.smilTimeToSeconds(clipBegin)
-        audio += ","
-        audio += SMILParser.smilTimeToSeconds(clipEnd)
-        return audio
+        
+        //SML3.0/1.0: clipBegin/clip-begin and clipEnd/clip-end
+        let clipBegin = audioElement.attributes["clipBegin"] ?? "0.0"
+        let clipEnd = audioElement.attributes["clipEnd"] ?? "-1.0"
+        
+        let parsedBegin = SMILParser.smilTimeToSeconds(clipBegin)
+        let parsedEnd = SMILParser.smilTimeToSeconds(clipEnd)
+        
+        let timeBegin = Double(parsedBegin) ?? 0.0
+        let timeEnd = Double(parsedEnd) ?? -1.0
+        
+        let audioString = normalize(base: base, href: audioSrc)
+        guard let audioURL = URL(string: audioString) else {return nil}
+        
+        var newClip = Clip()
+        newClip.relativeUrl = audioURL
+    
+        newClip.start = timeBegin
+        newClip.end = timeEnd
+        
+        // It's not recommended getting the duration of audio here.
+        // It's still inside the *.epub file, actually a zip file.
+        // As the result, it cannot utilize AV APIs from Apple. The soultion
+        // And the fetcher (minizip) only provide data access, that might be IO problem.
+        
+        newClip.duration = timeEnd>0 ? (timeEnd - timeBegin):-1
+        //let asset = AVURLAsset(url: URL(fileURLWithPath: "resource"))
+        //let duration = Double(CMTimeGetSeconds(asset.duration))
+        //fetcher.data(forRelativePath: "EPUB/audio/basic_tests.mp3")
+        //fetcher.dataStream(forRelativePath: "EPUB/audio/basic_tests.mp3")
+        
+        return newClip
     }
 }
 
