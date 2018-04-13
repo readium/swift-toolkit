@@ -44,7 +44,6 @@ class LibraryViewController: UICollectionViewController {
         let flowLayout = UICollectionViewFlowLayout()
         let collectionView = UICollectionView(frame: UIScreen.main.bounds,
                                               collectionViewLayout: flowLayout)
-        let layout = (collectionView.collectionViewLayout as! UICollectionViewFlowLayout)
 
         collectionView.backgroundColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
         collectionView.contentInset = UIEdgeInsets(top: 15, left: 20,
@@ -52,9 +51,6 @@ class LibraryViewController: UICollectionViewController {
         collectionView.register(PublicationCell.self,
                                 forCellWithReuseIdentifier: "publicationCell")
         collectionView.delegate = self
-        let width = (Int(UIScreen.main.bounds.width) / bookPerRow) - (bookPerRow * 2 * insets)
-        let height = Int(Double(width) * 1.5) // Height/width ratio == 1.5
-        layout.itemSize = CGSize(width: width, height: height)
         self.collectionView = collectionView
         view = collectionView
     }
@@ -81,6 +77,11 @@ class LibraryViewController: UICollectionViewController {
         navigationController?.setNavigationBarHidden(false, animated: animated)
         lastFlippedCell?.flipMenu()
         super.viewWillDisappear(animated)
+    }
+    
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        collectionView?.collectionViewLayout.invalidateLayout()
     }
 }
 
@@ -180,6 +181,12 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
         let inset = CGFloat(insets)
 
         return UIEdgeInsets(top: inset, left: inset, bottom: inset, right: inset)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let width = (Int(UIScreen.main.bounds.width) / bookPerRow) - (bookPerRow * 2 * insets)
+        let height = Int(Double(width) * 1.5) // Height/width ratio == 1.5
+        return CGSize(width: width, height: height)
     }
 
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
