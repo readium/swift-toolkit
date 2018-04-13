@@ -312,9 +312,9 @@ class PublicationIndicator: UIView  {
         self.backgroundColor = UIColor(white: 0.3, alpha: 0.7)
         self.addSubview(result)
         
-        let hConstraint = NSLayoutConstraint(item: result, attribute: .centerX, relatedBy: .equal, toItem: self, attribute: .centerX, multiplier: 1.0, constant: 0.0)
-        let vConstraint = NSLayoutConstraint(item: result, attribute: .centerY, relatedBy: .equal, toItem: self, attribute: .centerY, multiplier: 1.0, constant: 0.0)
-        self.addConstraints([hConstraint, vConstraint])
+        let horizontalConstraint = NSLayoutConstraint(item: result, attribute: .centerX, relatedBy: .equal, toItem: self, attribute: .centerX, multiplier: 1.0, constant: 0.0)
+        let verticalConstraint = NSLayoutConstraint(item: result, attribute: .centerY, relatedBy: .equal, toItem: self, attribute: .centerY, multiplier: 1.0, constant: 0.0)
+        self.addConstraints([horizontalConstraint, verticalConstraint])
         
         return result
     } ()
