@@ -30,11 +30,7 @@ class LibraryViewController: UICollectionViewController {
     weak var delegate: LibraryViewControllerDelegate?
     weak var lastFlippedCell: PublicationCell?
     
-    lazy var loadingIndicator: PublicationIndicator = {
-        
-        let indicator = PublicationIndicator()
-        return indicator
-    } ()
+    lazy var loadingIndicator = PublicationIndicator()
 
     init?(_ publications: [Publication]) {
         self.publications = publications
