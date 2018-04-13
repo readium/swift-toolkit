@@ -12,4 +12,5 @@ github "SwiftyJSON/SwiftyJSON" == 3.1.4
 github "onevcat/Kingfisher" == 4.6.4
 github "stephencelis/SQLite.swift" == 0.11.4
 github "edrlab/ZIPFoundation" "master"
+github "cezheng/Fuzi" == 2.0.2
 github "dexman/Minizip"

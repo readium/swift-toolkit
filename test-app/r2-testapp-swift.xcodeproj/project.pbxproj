@@ -21,6 +21,7 @@
 		03EF765B206A5F1A00C3C24E /* Kingfisher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764F206A5F1A00C3C24E /* Kingfisher.framework */; };
 		03EF765C206A5F1A00C3C24E /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7650206A5F1A00C3C24E /* R2Navigator.framework */; };
 		03EF765D206A5F1A00C3C24E /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */; };
+		AE009A04207F5980001D82C5 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE009A03207F5980001D82C5 /* Fuzi.framework */; };
 		F30AEE7A1FC312EA0073C9FD /* DetailsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */; };
 		F30AEE7D1FC316430073C9FD /* Details.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F30AEE7C1FC316430073C9FD /* Details.storyboard */; };
 		F3120DE71FACB08E009ACFAD /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
@@ -99,6 +100,7 @@
 		03EF764F206A5F1A00C3C24E /* Kingfisher.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Kingfisher.framework; path = Carthage/Build/iOS/Kingfisher.framework; sourceTree = "<group>"; };
 		03EF7650206A5F1A00C3C24E /* R2Navigator.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Navigator.framework; path = Carthage/Build/iOS/R2Navigator.framework; sourceTree = "<group>"; };
 		03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDWebServers.framework; path = Carthage/Build/iOS/GCDWebServers.framework; sourceTree = "<group>"; };
+		AE009A03207F5980001D82C5 /* Fuzi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Fuzi.framework; path = Carthage/Build/iOS/Fuzi.framework; sourceTree = "<group>"; };
 		F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsTableViewController.swift; sourceTree = "<group>"; };
 		F30AEE7C1FC316430073C9FD /* Details.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Details.storyboard; sourceTree = "<group>"; };
 		F32980EE1F7D467B00BDEAF4 /* 1.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 1.epub; sourceTree = "<group>"; };
@@ -143,6 +145,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AE009A04207F5980001D82C5 /* Fuzi.framework in Frameworks */,
 				03EF7652206A5F1A00C3C24E /* R2Shared.framework in Frameworks */,
 				03EF7653206A5F1A00C3C24E /* CryptoSwift.framework in Frameworks */,
 				03EF7654206A5F1A00C3C24E /* SQLite.framework in Frameworks */,
@@ -260,6 +263,7 @@
 		F3E7D4691F4EFE8700DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				AE009A03207F5980001D82C5 /* Fuzi.framework */,
 				03D011F1208023360097A87C /* Minizip.framework */,
 				03D011ED208013CA0097A87C /* ReadiumOPDS.framework */,
 				03EF764D206A5F1A00C3C24E /* AEXML.framework */,
@@ -493,6 +497,7 @@
 				"$(SRCROOT)/Carthage/Build/iOS/SQLite.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/SwiftyJSON.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/ZIPFoundation.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/Fuzi.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/ReadiumOPDS.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/Minizip.framework",
 			);
