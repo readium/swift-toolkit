@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		03D011EE208013CA0097A87C /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03D011ED208013CA0097A87C /* ReadiumOPDS.framework */; };
+		03D011F2208023360097A87C /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03D011F1208023360097A87C /* Minizip.framework */; };
 		03EF7652206A5F1A00C3C24E /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7646206A5F1900C3C24E /* R2Shared.framework */; };
 		03EF7653206A5F1A00C3C24E /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7647206A5F1900C3C24E /* CryptoSwift.framework */; };
 		03EF7654206A5F1A00C3C24E /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7648206A5F1A00C3C24E /* SQLite.framework */; };
@@ -84,6 +86,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		03D011ED208013CA0097A87C /* ReadiumOPDS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReadiumOPDS.framework; path = Carthage/Build/iOS/ReadiumOPDS.framework; sourceTree = "<group>"; };
+		03D011F1208023360097A87C /* Minizip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Minizip.framework; path = Carthage/Build/iOS/Minizip.framework; sourceTree = "<group>"; };
 		03EF7646206A5F1900C3C24E /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
 		03EF7647206A5F1900C3C24E /* CryptoSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoSwift.framework; path = Carthage/Build/iOS/CryptoSwift.framework; sourceTree = "<group>"; };
 		03EF7648206A5F1A00C3C24E /* SQLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SQLite.framework; path = Carthage/Build/iOS/SQLite.framework; sourceTree = "<group>"; };
@@ -148,7 +152,9 @@
 				03EF7655206A5F1A00C3C24E /* ZIPFoundation.framework in Frameworks */,
 				03EF7656206A5F1A00C3C24E /* ObjectMapper.framework in Frameworks */,
 				03EF7657206A5F1A00C3C24E /* R2Streamer.framework in Frameworks */,
+				03D011EE208013CA0097A87C /* ReadiumOPDS.framework in Frameworks */,
 				03EF7658206A5F1A00C3C24E /* SwiftyJSON.framework in Frameworks */,
+				03D011F2208023360097A87C /* Minizip.framework in Frameworks */,
 				03EF7659206A5F1A00C3C24E /* AEXML.framework in Frameworks */,
 				03EF765A206A5F1A00C3C24E /* PromiseKit.framework in Frameworks */,
 				03EF765B206A5F1A00C3C24E /* Kingfisher.framework in Frameworks */,
@@ -258,6 +264,8 @@
 			isa = PBXGroup;
 			children = (
 				AE009A03207F5980001D82C5 /* Fuzi.framework */,
+				03D011F1208023360097A87C /* Minizip.framework */,
+				03D011ED208013CA0097A87C /* ReadiumOPDS.framework */,
 				03EF764D206A5F1A00C3C24E /* AEXML.framework */,
 				03EF7647206A5F1900C3C24E /* CryptoSwift.framework */,
 				03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */,
@@ -490,6 +498,8 @@
 				"$(SRCROOT)/Carthage/Build/iOS/SwiftyJSON.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/ZIPFoundation.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/Fuzi.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/ReadiumOPDS.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/Minizip.framework",
 			);
 			name = "Carthage Run Script";
 			outputPaths = (

@@ -26,6 +26,10 @@ public enum PublicationType: String {
     case epub = "epub"
     case cbz = "cbz"
     case unknown = "unknown"
+
+    init(rawString: String?) {
+        self = PublicationType(rawValue: rawString ?? "") ?? .unknown
+    }
 }
 
 @UIApplicationMain
