@@ -479,6 +479,16 @@ public class LcpLicense: DrmLicense {
         }
         // Move license in the META-INF local folder.
         try fileManager.moveItem(atPath: licenseUrl.path, toPath: urlMetaInf.path + "/license.lcpl")
+        
+        // Remove the old license if already exist.a
+        if let oldLicense = archive["META-INF/license.lcpl"] {
+            do {
+                try archive.remove(oldLicense)
+            } catch {
+                print("Removing old LCP License from EPUB archive failed with error:\(error)")
+            }
+        }
+        
         // Copy META-INF/license.lcpl to archive.
         try archive.addEntry(with: urlMetaInf.lastPathComponent.appending("/license.lcpl"),
                              relativeTo: urlMetaInf.deletingLastPathComponent())
