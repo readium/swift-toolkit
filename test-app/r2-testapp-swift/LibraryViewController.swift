@@ -21,7 +21,7 @@ let supportedProfiles = ["http://readium.org/lcp/basic-profile",
                         "http://readium.org/lcp/profile-1.0"]
 
 protocol LibraryViewControllerDelegate: class {
-    func loadPublication(withId id: String?, completion: @escaping (Drm?) -> Void) throws
+    func loadPublication(withId id: String?, completion: @escaping (Drm?, Error?) -> Void) throws
     func remove(_ publication: Publication)
 }
 
@@ -214,7 +214,8 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
         
         let failCallback = { (message: String?) in
             cleanup()
-            self.infoAlert(title: "Error", message: message ?? "")
+            guard let failMessage = message else {return}
+            self.infoAlert(title: "Error", message: failMessage)
         }
         
         loadPublication(publication: publication, success: successCallback, fail: failCallback)
@@ -242,8 +243,14 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
             let progression = userDefaults.double(forKey: "\(publicationIdentifier)-documentProgression")
             do {
                 // Ask delegate to load that document.
-                try delegate?.loadPublication(withId: publicationIdentifier, completion: { drm in
+                try delegate?.loadPublication(withId: publicationIdentifier, completion: { drm, error in
                     // Check if profile is supported.
+                    
+                    if let _ = error {
+                        fail?(nil) // slient error
+                        return
+                    }
+                    
                     if let profile = drm?.profile, !supportedProfiles.contains(profile) {
                         let message = "The profile of this DRM is not supported."
                         fail?(message)
