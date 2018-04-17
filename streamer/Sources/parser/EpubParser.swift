@@ -220,7 +220,8 @@ final public class EpubParser {
         let newPageListItems = NavigationDocumentParser.pageList(fromNavigationDocument: navDocument,
                                                                  locatedAt: navigationDocumentPath)
 
-        publication.tableOfContents.append(contentsOf:  newTableOfContentsItems)
+        //publication.tableOfContents.append(contentsOf:  newTableOfContentsItems)
+        publication.tableOfContents = newTableOfContentsItems
         publication.landmarks.append(contentsOf: newLandmarksItems)
         publication.listOfAudioFiles.append(contentsOf: newListOfAudiofiles)
         publication.listOfIllustrations.append(contentsOf: newListOfIllustrations)
