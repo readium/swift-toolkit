@@ -525,7 +525,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
                         try? parsingCallback(drm)
                         // Tell the caller than we done.
                         completion(drm, nil)
-                    }.catch(execute: catchError)
+                    }.catch(policy: CatchPolicy.allErrors, execute:catchError)
             }
             
             switch lcpClientError {
