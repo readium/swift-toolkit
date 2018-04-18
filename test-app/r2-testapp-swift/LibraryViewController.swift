@@ -23,7 +23,7 @@ let supportedProfiles = ["http://readium.org/lcp/basic-profile",
                         "http://readium.org/lcp/profile-1.0"]
 
 protocol LibraryViewControllerDelegate: class {
-    func loadPublication(withId id: String?, completion: @escaping (Drm?) -> Void) throws
+    func loadPublication(withId id: String?, completion: @escaping (Drm?, Error?) -> Void) throws
     func remove(_ publication: Publication)
 }
 
@@ -31,6 +31,8 @@ class LibraryViewController: UICollectionViewController {
     var publications: [Publication]
     weak var delegate: LibraryViewControllerDelegate?
     weak var lastFlippedCell: PublicationCell?
+    
+    lazy var loadingIndicator = PublicationIndicator()
 
     init?(_ publications: [Publication]) {
         self.publications = publications
@@ -210,24 +212,49 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
     }
 
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        
         let publication = publications[indexPath.row]
-
-        // Get publication type.
-        guard let publicationType = publication.internalData["type"] else {
-            return
+        
+        guard let cell = collectionView.cellForItem(at: indexPath) else {return}
+        cell.contentView.addSubview(self.loadingIndicator)
+        collectionView.isUserInteractionEnabled = false
+        
+        let cleanup = {
+            self.loadingIndicator.removeFromSuperview()
+            collectionView.isUserInteractionEnabled = true
         }
-        let backItem = UIBarButtonItem()
-
-        backItem.title = ""
-        navigationItem.backBarButtonItem = backItem
-        // Instanciate and push the appropriated renderer.
+        
+        let successCallback = { (contentVC: UIViewController) in
+            cleanup()
+            let backItem = UIBarButtonItem()
+            backItem.title = ""
+            self.navigationItem.backBarButtonItem = backItem
+            self.navigationController?.pushViewController(contentVC, animated: true)
+        }
+        
+        let failCallback = { (message: String?) in
+            cleanup()
+            guard let failMessage = message else {return}
+            self.infoAlert(title: "Error", message: failMessage)
+        }
+        
+        loadPublication(publication: publication, success: successCallback, fail: failCallback)
+    }
+    
+    func loadPublication(publication: Publication,
+                         success: ((UIViewController)->Void)? = nil,
+                         fail: ((String?) -> Void)? = nil) {
+        
+        // Get publication type
+        let publicationType = PublicationType(rawString: publication.internalData["type"])
+        
         switch publicationType {
-        case "cbz":
+        case .cbz:
             let cbzViewer = CbzViewController(for: publication, initialIndex: 0)
-
-            navigationController?.pushViewController(cbzViewer, animated: true)
-        case "epub":
+            success?(cbzViewer)
+        case .epub:
             guard let publicationIdentifier = publication.metadata.identifier else {
+                fail?("Invalid EPUB file")
                 return
             }
             // Retrieve last read document/progression in that document.
@@ -236,24 +263,30 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
             let progression = userDefaults.double(forKey: "\(publicationIdentifier)-documentProgression")
             do {
                 // Ask delegate to load that document.
-                try delegate?.loadPublication(withId: publicationIdentifier, completion: { drm in
+                try delegate?.loadPublication(withId: publicationIdentifier, completion: { drm, error in
                     // Check if profile is supported.
-                    if let profile = drm?.profile, !supportedProfiles.contains(profile) {
-                        self.infoAlert(title: "Error", message: "The profile of this DRM is not supported.")
+                    
+                    if let _ = error {
+                        fail?(nil) // slient error
                         return
                     }
+                    
+                    if let profile = drm?.profile, !supportedProfiles.contains(profile) {
+                        let message = "The profile of this DRM is not supported."
+                        fail?(message)
+                        return
+                    }
+                    
                     let epubViewer = EpubViewController(with: publication,
                                                         atIndex: index,
                                                         progression: progression, drm)
-
-                    self.navigationController?.pushViewController(epubViewer, animated: true)
-
+                    success?(epubViewer)
                 })
             } catch {
-                infoAlert(title: "Error", message: error.localizedDescription)
+                fail?(error.localizedDescription)
             }
         default:
-            break
+            fail?("Unsupported format")
         }
     }
 
@@ -304,4 +337,40 @@ extension LibraryViewController: PublicationCellDelegate {
     }
 }
 
-
+class PublicationIndicator: UIView  {
+    
+    lazy var indicator: UIActivityIndicatorView =  {
+        
+        let result = UIActivityIndicatorView(activityIndicatorStyle: UIActivityIndicatorViewStyle.whiteLarge)
+        result.translatesAutoresizingMaskIntoConstraints = false
+        self.backgroundColor = UIColor(white: 0.3, alpha: 0.7)
+        self.addSubview(result)
+        
+        let horizontalConstraint = NSLayoutConstraint(item: result, attribute: .centerX, relatedBy: .equal, toItem: self, attribute: .centerX, multiplier: 1.0, constant: 0.0)
+        let verticalConstraint = NSLayoutConstraint(item: result, attribute: .centerY, relatedBy: .equal, toItem: self, attribute: .centerY, multiplier: 1.0, constant: 0.0)
+        self.addConstraints([horizontalConstraint, verticalConstraint])
+        
+        return result
+    } ()
+    
+    override func didMoveToSuperview() {
+        super.didMoveToSuperview()
+        
+        guard let superView = self.superview else {return}
+        self.translatesAutoresizingMaskIntoConstraints = false
+        
+        let horizontalConstraint = NSLayoutConstraint(item: self, attribute: .centerX, relatedBy: .equal, toItem: superView, attribute: .centerX, multiplier: 1.0, constant: 0.0)
+        let verticalConstraint = NSLayoutConstraint(item: self, attribute: .centerY, relatedBy: .equal, toItem: superView, attribute: .centerY, multiplier: 1.0, constant: 0.0)
+        let widthConstraint = NSLayoutConstraint(item: self, attribute: .width, relatedBy: .equal, toItem: superView, attribute: .width, multiplier: 1.0, constant: 0.0)
+        let heightConstraint = NSLayoutConstraint(item: self, attribute: .height, relatedBy: .equal, toItem: superView, attribute: .height, multiplier: 1.0, constant: 0.0)
+        
+        superView.addConstraints([horizontalConstraint, verticalConstraint, widthConstraint, heightConstraint])
+        
+        self.indicator.startAnimating()
+    }
+    
+    override func removeFromSuperview() {
+        self.indicator.stopAnimating()
+        super.removeFromSuperview()
+    }
+}
