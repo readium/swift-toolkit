@@ -212,7 +212,7 @@ final internal class ContentFiltersEpub: ContentFilters {
         // Touch event bubbling.
         includes.append(getHtmlScript(forResource: "\(baseUrl)scripts/touchHandling.js"))
         // Misc JS utils.
-        includes.append(getHtmlScript(forResource: "\(baseUrl)scripts/utils.js"))
+        includes.append(getHtmlScript(forResource: "\(baseUrl)scripts/\(utilsJS)"))
 
         for element in includes {
             resourceHtml = resourceHtml.insert(string: element, at: endHeadIndex)
