@@ -65,26 +65,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         lightParseSamplePublications()
         lightParsePublications()
 
-        window = UIWindow(frame: UIScreen.main.bounds)
-        window?.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
-
-        let publications = items.flatMap() { $0.value.0.publication }.sorted { (pA, pB) -> Bool in
-            pA.metadata.title < pB.metadata.title
-        }
-        
-        guard let libraryVC = LibraryViewController(publications) else {
-            print("Error instanciating the LibraryVC.")
-            return false
-        }
-        libraryVC.delegate = self
-        libraryViewController = libraryVC
-        let navigationController = UINavigationController(rootViewController: libraryViewController)
-
-        window!.rootViewController = navigationController
-        window?.makeKeyAndVisible()
-
-        navigationController.navigationBar.tintColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
-        navigationController.navigationBar.barTintColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
         return true
     }
 

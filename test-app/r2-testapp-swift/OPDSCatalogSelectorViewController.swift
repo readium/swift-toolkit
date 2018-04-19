@@ -17,23 +17,15 @@ class OPDSCatalogSelectorViewController: UITableViewController {
     let userDefaultsID = "opdsCatalogArray"
     var addFeedButton: UIBarButtonItem?
 
-    init() {
+    override func viewDidLoad() {
         catalogData = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
         if catalogData == nil {
             catalogData = [["title": "feedbooks", "url": "http://www.feedbooks.com/store/top.atom?category=FBFIC022000"]]
             UserDefaults.standard.set(catalogData, forKey: userDefaultsID)
         }
 
-
-        super.init(style: UITableViewStyle.plain)
         self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
-    }
-
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func viewDidLoad() {
+        
         self.tableView.frame = UIScreen.main.bounds
         tableView.layoutMargins = UIEdgeInsets.zero
         tableView.separatorInset = UIEdgeInsets.zero
@@ -42,6 +34,10 @@ class OPDSCatalogSelectorViewController: UITableViewController {
 
         addFeedButton = UIBarButtonItem(title: "Add", style: UIBarButtonItemStyle.plain, target: self, action: #selector(OPDSCatalogSelectorViewController.showAddFeedPopup))
         navigationItem.rightBarButtonItem = addFeedButton
+        
+        navigationController?.navigationBar.tintColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
+        navigationController?.navigationBar.barTintColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
+        navigationController?.view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {

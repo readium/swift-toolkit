@@ -27,7 +27,7 @@ internal class UserSettingsNavigationController: UINavigationController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let storyboard = UIStoryboard(name: "UserSettings", bundle: nil)
         userSettings = usdelegate.getUserSettings()
 
         userSettingsTableViewController = viewControllers[0] as! UserSettingsTableViewController

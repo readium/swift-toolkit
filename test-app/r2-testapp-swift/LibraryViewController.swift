@@ -28,48 +28,37 @@ protocol LibraryViewControllerDelegate: class {
 }
 
 class LibraryViewController: UICollectionViewController {
-    var publications: [Publication]
+    var publications: [Publication]!
     weak var delegate: LibraryViewControllerDelegate?
     weak var lastFlippedCell: PublicationCell?
     
     lazy var loadingIndicator = PublicationIndicator()
 
-    init?(_ publications: [Publication]) {
-        self.publications = publications
-        super.init(nibName: nil, bundle: nil)
-    }
-
-    @available(*, unavailable)
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func loadView() {
-        view = UIView(frame: UIScreen.main.bounds)
-
-        //let flowFrame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: UIScreen.main.bounds.size.height-44)
-        let flowFrame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height-44)
-
-        let flowLayout = UICollectionViewFlowLayout()
-        let collectionView = UICollectionView(frame: flowFrame,
-                                              collectionViewLayout: flowLayout)
-        let layout = (collectionView.collectionViewLayout as! UICollectionViewFlowLayout)
-
-        collectionView.backgroundColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
-        collectionView.contentInset = UIEdgeInsets(top: 15, left: 20,
-                                                   bottom: 20, right: 20)
-        collectionView.register(PublicationCell.self,
-                                forCellWithReuseIdentifier: "publicationCell")
-        collectionView.delegate = self
-        let width = (Int(UIScreen.main.bounds.width) / bookPerRow) - (bookPerRow * 2 * insets)
-        let height = Int(Double(width) * 1.5) // Height/width ratio == 1.5
-        layout.itemSize = CGSize(width: width, height: height)
-        self.collectionView = collectionView
-        view.addSubview(collectionView)
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        
+        delegate = appDelegate
+        
+        publications = appDelegate.items.flatMap() { $0.value.0.publication }.sorted { (pA, pB) -> Bool in
+            pA.metadata.title < pB.metadata.title
+        }
+        
+        appDelegate.libraryViewController = self
+        
+        collectionView?.register(PublicationCell.self, forCellWithReuseIdentifier: "publicationCell")
+        
+        collectionView?.backgroundColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
+        collectionView?.contentInset = UIEdgeInsets(top: 15, left: 20, bottom: 20, right: 20)
+
+        let width = (Int(UIScreen.main.bounds.width) / bookPerRow) - (bookPerRow * 2 * insets)
+        let height = Int(Double(width) * 1.5) // Height/width ratio == 1.5
+        let flowLayout = UICollectionViewFlowLayout()
+        collectionView?.collectionViewLayout = flowLayout
+        let layout = (collectionView?.collectionViewLayout as! UICollectionViewFlowLayout)
+        layout.itemSize = CGSize(width: width, height: height)
+        
         clearsSelectionOnViewWillAppear = true
         installsStandardGestureForInteractiveMovement = false
         // Add long press gesture recognizer.
@@ -79,6 +68,9 @@ class LibraryViewController: UICollectionViewController {
         recognizer.delaysTouchesBegan = true
         collectionView?.addGestureRecognizer(recognizer)
         collectionView?.accessibilityLabel = "Library"
+        
+        navigationController?.navigationBar.tintColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
+        navigationController?.navigationBar.barTintColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -97,25 +89,25 @@ class LibraryViewController: UICollectionViewController {
         collectionView?.collectionViewLayout.invalidateLayout()
     }
 
-    public func showDemoToolbar() {
-        let toolbarFrame = CGRect(x: 0, y: UIScreen.main.bounds.height-44, width: UIScreen.main.bounds.width, height: 44)
-        let toolbarView = UIToolbar(frame: toolbarFrame)
-        toolbarView.sizeToFit()
-        let catalogButton = UIBarButtonItem()
-        catalogButton.title = "Feedbooks catalog"
-        catalogButton.target = self
-        catalogButton.action = #selector(self.loadSampleCatalog)
-        toolbarView.items = [catalogButton]
-        view.addSubview(toolbarView)
-    }
-
-    func loadSampleCatalog() {
-//        let feedURL = URL(string: "http://www.feedbooks.com/store/top.atom?category=FBFIC022000")!
-//        let opdsCatalog = OPDSCatalogViewController(url: feedURL)
-//        self.navigationController?.pushViewController(opdsCatalog!, animated: true)
-        let catalogSelector = OPDSCatalogSelectorViewController()
-        self.navigationController?.pushViewController(catalogSelector, animated: true)
-    }
+//    public func showDemoToolbar() {
+//        let toolbarFrame = CGRect(x: 0, y: UIScreen.main.bounds.height-44, width: UIScreen.main.bounds.width, height: 44)
+//        let toolbarView = UIToolbar(frame: toolbarFrame)
+//        toolbarView.sizeToFit()
+//        let catalogButton = UIBarButtonItem()
+//        catalogButton.title = "Feedbooks catalog"
+//        catalogButton.target = self
+//        catalogButton.action = #selector(self.loadSampleCatalog)
+//        toolbarView.items = [catalogButton]
+//        view.addSubview(toolbarView)
+//    }
+//
+//    func loadSampleCatalog() {
+////        let feedURL = URL(string: "http://www.feedbooks.com/store/top.atom?category=FBFIC022000")!
+////        let opdsCatalog = OPDSCatalogViewController(url: feedURL)
+////        self.navigationController?.pushViewController(opdsCatalog!, animated: true)
+//        let catalogSelector = OPDSCatalogSelectorViewController()
+//        self.navigationController?.pushViewController(catalogSelector, animated: true)
+//    }
 }
 
 // MARK: - Misc.
@@ -262,6 +254,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
         switch publicationType {
         case .cbz:
             let cbzViewer = CbzViewController(for: publication, initialIndex: 0)
+            cbzViewer.hidesBottomBarWhenPushed = true
             success?(cbzViewer)
         case .epub:
             guard let publicationIdentifier = publication.metadata.identifier else {
@@ -291,6 +284,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
                     let epubViewer = EpubViewController(with: publication,
                                                         atIndex: index,
                                                         progression: progression, drm)
+                    epubViewer.hidesBottomBarWhenPushed = true
                     success?(epubViewer)
                 })
             } catch {
