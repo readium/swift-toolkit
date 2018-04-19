@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		03D011F0208020270097A87C /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03D011EF208020270097A87C /* Minizip.framework */; };
+		570754AA2088EE31008A9013 /* utils-old.js in Resources */ = {isa = PBXBuildFile; fileRef = 570754A92088EE31008A9013 /* utils-old.js */; };
 		59501DD71E2FB0D700D1B4BF /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501DCD1E2FB0D700D1B4BF /* R2Streamer.framework */; };
 		59501DDE1E2FB0D700D1B4BF /* R2Streamer.h in Headers */ = {isa = PBXBuildFile; fileRef = 59501DD01E2FB0D700D1B4BF /* R2Streamer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		59501E031E2FB16600D1B4BF /* Fetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DE81E2FB16600D1B4BF /* Fetcher.swift */; };
@@ -99,6 +100,7 @@
 
 /* Begin PBXFileReference section */
 		03D011EF208020270097A87C /* Minizip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Minizip.framework; path = Carthage/Build/iOS/Minizip.framework; sourceTree = "<group>"; };
+		570754A92088EE31008A9013 /* utils-old.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "utils-old.js"; sourceTree = "<group>"; };
 		59501DCD1E2FB0D700D1B4BF /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		59501DD01E2FB0D700D1B4BF /* R2Streamer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = R2Streamer.h; sourceTree = "<group>"; };
 		59501DD11E2FB0D700D1B4BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -316,6 +318,7 @@
 				F36D24D61F546FEA00A00BF1 /* ReadiumCSS-before.css */,
 				F36D24D71F546FEA00A00BF1 /* ReadiumCSS-default.css */,
 				F3DCEB241F1CA92300061978 /* touchHandling.js */,
+				570754A92088EE31008A9013 /* utils-old.js */,
 				F3D462F51F28D56C00505E59 /* utils.js */,
 			);
 			name = Resources;
@@ -468,6 +471,7 @@
 				F36D24D81F546FEA00A00BF1 /* ReadiumCSS-after.css in Resources */,
 				F3DCEB251F1CA92300061978 /* touchHandling.js in Resources */,
 				F36D24DA1F546FEA00A00BF1 /* ReadiumCSS-default.css in Resources */,
+				570754AA2088EE31008A9013 /* utils-old.js in Resources */,
 				F3D462F61F28D56C00505E59 /* utils.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -47,6 +47,15 @@ internal extension ContentFilters {
 ///     - Font deobfuscation using the Decoder object.
 ///     - HTML injections (scripts css/js).
 final internal class ContentFiltersEpub: ContentFilters {
+    // File name for untils.js, using ES5 code for any version older than iOS 10.
+    internal let utilsJS:String = {
+        if #available(iOS 10, *) {
+            return "utils.js"
+        } else {
+            return "utils-old.js"
+        }
+    } ()
+    
     /// Apply the Epub content filters on the content of the `input` stream para-
     /// meter.
     ///
@@ -165,7 +174,8 @@ final internal class ContentFiltersEpub: ContentFilters {
         }
         let cssAfter = getHtmlLink(forResource: "\(baseUrl)styles/ReadiumCSS-after.css")
         let scriptTouchHandling = getHtmlScript(forResource: "\(baseUrl)scripts/touchHandling.js")
-        let scriptUtils = getHtmlScript(forResource: "\(baseUrl)scripts/utils.js")
+        
+        let scriptUtils = getHtmlScript(forResource: "\(baseUrl)scripts/\(utilsJS)")
 
         resourceHtml = resourceHtml.insert(string: cssAfter, at: headEnd)
         resourceHtml = resourceHtml.insert(string: scriptTouchHandling, at: headEnd)
