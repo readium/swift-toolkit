@@ -1,5 +1,5 @@
 github "readium/r2-shared-swift" "develop"
-github "tadija/AEXML" == 4.1
+github "tadija/AEXML" == 4.2.2
 github "swisspol/GCDWebServer" == 3.3.3
 github "krzyzanowskim/CryptoSwift" == 0.7.0
 github "Hearst-DD/ObjectMapper" == 2.2
