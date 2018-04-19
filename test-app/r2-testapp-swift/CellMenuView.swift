@@ -15,20 +15,13 @@ protocol CellMenuViewDelegate: class {
 }
 
 class CellMenuView: UIView {
-    let infoButton: UIButton!
-    let removeButton: UIButton!
-    let cancelButton: UIButton!
+    let infoButton = UIButton()
+    let removeButton = UIButton()
+    let cancelButton = UIButton()
+
     weak var delegate: CellMenuViewDelegate?
 
     override init(frame: CGRect) {
-        let width = frame.size.width
-        let height = frame.size.height / 3
-        let offset = height
-
-        infoButton = UIButton(frame: CGRect(x: 0, y: 0, width: width, height: height))
-        removeButton = UIButton(frame: CGRect(x: 0, y: offset, width: width, height: height))
-        cancelButton = UIButton(frame: CGRect(x: 0, y: offset * 2, width: width, height: height))
-
         var modifiedFrame = frame
         modifiedFrame.origin = CGPoint.zero
         super.init(frame: modifiedFrame)
@@ -53,6 +46,16 @@ class CellMenuView: UIView {
     @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func layoutSubviews() {
+        let width = frame.size.width
+        let height = frame.size.height / 3
+        let offset = height
+        
+        infoButton.frame = CGRect(x: 0, y: 0, width: width, height: height)
+        removeButton.frame = CGRect(x: 0, y: offset, width: width, height: height)
+        cancelButton.frame = CGRect(x: 0, y: offset * 2, width: width, height: height)
     }
 }
 
