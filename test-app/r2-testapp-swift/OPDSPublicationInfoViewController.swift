@@ -59,6 +59,7 @@ class OPDSPublicationInfoViewController : UIViewController {
     var catalogViewController: OPDSCatalogViewController
 
     @IBOutlet weak var imageView: UIImageView!
+    @IBOutlet weak var fxImageView: UIImageView!
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var authorLabel: UILabel!
 
@@ -73,18 +74,19 @@ class OPDSPublicationInfoViewController : UIViewController {
     }
 
     override func viewDidLoad() {
+        fxImageView.clipsToBounds = true
+        fxImageView!.contentMode = .scaleAspectFill
         imageView!.contentMode = .scaleAspectFit
         let coverUrl = URL(string: publication.images[0].href!)
         if (coverUrl != nil) {
             imageView!.kf.setImage(with: coverUrl, placeholder: nil,
                               options: [.transition(ImageTransition.fade(0.5))],
                               progressBlock: nil, completionHandler: nil)
+            fxImageView?.image = imageView?.image
         }
         titleLabel.text = publication.metadata.title
         authorLabel.text = publication.metadata.authors.map({$0.name ?? ""}).joined(separator: ", ")
     }
-
-    
 }
 
 
