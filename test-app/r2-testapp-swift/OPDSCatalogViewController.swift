@@ -157,7 +157,10 @@ class OPDSCatalogViewController: UIViewController {
             //view.addSubview((publicationViewController?.view)!)
             if bottomView == nil {
                 contentView!.addSubview((publicationViewController?.view)!)
-                bottomView?.topAnchor.constraint(equalTo: contentView!.topAnchor)
+                publicationViewController?.view.translatesAutoresizingMaskIntoConstraints = false
+                publicationViewController?.view.topAnchor.constraint(equalTo: topLayoutGuide.bottomAnchor).isActive = true
+                publicationViewController?.view.bottomAnchor.constraint(equalTo: bottomLayoutGuide.topAnchor).isActive = true
+                publicationViewController?.view.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
             }
             else {
                 contentView!.insertSubview((publicationViewController?.view)!, belowSubview: bottomView!)
