@@ -68,8 +68,10 @@ class OPDSCatalogViewController: UIViewController {
         self.isFeedInitialized = true
         navigationItem.title = feed!.metadata.title
         self.nextPageURL = self.findNextPageURL(feed: feed!)
-        filterButton = UIBarButtonItem(title: "Filter", style: UIBarButtonItemStyle.plain, target: self, action: #selector(OPDSCatalogViewController.filterMenuClicked))
-        navigationItem.rightBarButtonItem = filterButton
+        if let facets = feed?.facets, facets.count > 0 {
+            filterButton = UIBarButtonItem(title: "Filter", style: UIBarButtonItemStyle.plain, target: self, action: #selector(OPDSCatalogViewController.filterMenuClicked))
+            navigationItem.rightBarButtonItem = filterButton
+        }
         initSubviews()
     }
 
