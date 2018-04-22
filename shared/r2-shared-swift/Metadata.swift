@@ -19,6 +19,14 @@ public class Metadata {
             return multilangTitle?.singleString ?? ""
         }
     }
+    
+    public var multilangSubtitle: MultilangString?
+    /// The subtitle of the the publication
+    public var subtitle: String {
+        get {
+            return multilangSubtitle?.singleString ?? ""
+        }
+    }
 
     public var languages = [String]()
     public var identifier: String?
@@ -71,6 +79,10 @@ public class Metadata {
     public func titleForLang(_ lang: String) -> String? {
         return multilangTitle?.multiString[lang]
     }
+    
+    public func subtitleForLang(_ lang: String) -> String? {
+        return multilangSubtitle?.multiString[lang]
+    }
 }
 // JSON Serialisation extension.
 extension Metadata: Mappable {
@@ -87,6 +99,15 @@ extension Metadata: Mappable {
 
             titleForSinglestring <- map["title"]
         }
+        
+        if var subtitlesFromMultistring = multilangTitle?.multiString,
+            !subtitlesFromMultistring.isEmpty {
+            subtitlesFromMultistring <- map["subtitle"]
+        } else {
+            var subtitleForSinglestring = multilangTitle?.singleString ?? ""
+            subtitleForSinglestring <- map["subtitle"]
+        }
+        
         languages <- map["languages", ignoreNil: true]
         if !authors.isEmpty {
             authors <- map["authors", ignoreNil: true]

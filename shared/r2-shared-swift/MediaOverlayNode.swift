@@ -24,7 +24,10 @@ public struct Clip {
     /// End time in seconds.
     public var end: Double!
     /// Total clip duration in seconds (end - start).
+    @available(iOS, deprecated: 9.0, message: "Don't use it when the value is negative, because some information is missing in the original SMIL file. Try to get the duration from file system or APIs in Fetcher, then minus the start value.")
     public var duration: Double!
+    
+    public init() {}
 }
 
 /// The Error enumeration of the MediaOverlayNode class.
@@ -39,13 +42,15 @@ public enum MediaOverlayNodeError: Error {
 /// Represents a MediaOverlay XML node.
 public class MediaOverlayNode {
     public var text: String?
-    public var audio: String?
+    public var clip: Clip?
+    
     public var role = [String]()
     public var children = [MediaOverlayNode]()
 
-    public init(_ text: String? = nil, audio: String? = nil) {
+    public init(_ text: String? = nil, clip: Clip? = nil) {
         self.text = text
-        self.audio = audio
+        self.clip = clip
+        self.clip?.fragmentId = self.fragmentId()
     }
 
     // Mark: - Internal Methods.
@@ -58,54 +63,5 @@ public class MediaOverlayNode {
             return nil
         }
         return text.components(separatedBy: "#").last
-    }
-
-    /// Generate a `Clip` from self.
-    ///
-    /// - Returns: The generated `Clip`.
-    /// - Throws: `MediaOverlayNodeError.audio`,
-    ///           `MediaOverlayNodeError.timersParsing`.
-    public func clip() throws -> Clip {
-        var newClip = Clip()
-
-        // Retrieve the audioString (containing timers + audiofile url), then
-        // retrieve both.
-        guard let audioString = self.audio,
-            let audioFileString = audioString.components(separatedBy: "#").first,
-            let audioFileUrl = URL(string: audioFileString) else
-        {
-            throw MediaOverlayNodeError.audio
-        }
-        // Relative audio file URL.
-        newClip.relativeUrl = audioFileUrl
-        guard let times = audioString.components(separatedBy: "#").last else {
-            throw MediaOverlayNodeError.timersParsing
-        }
-        try parseTimer(times, into: &newClip)
-        newClip.fragmentId = fragmentId()
-        return newClip
-    }
-
-    /// Parse the time String to fill `clip`.
-    ///
-    /// - Parameters:
-    ///   - times: The time string ("t=S.MS,S.MS")
-    ///   - clip: The Clip instance where to fill the parsed data.
-    /// - Throws: `MediaOverlayNodeError.timersParsing`.
-    fileprivate func parseTimer(_ times: String, into clip: inout Clip) throws {
-        var times = times
-        // Remove "t=" prefix from times string.
-        times = times.substring(from: times.index(times.startIndex, offsetBy: 2))
-        // Parse start and end times.
-        guard let start = times.components(separatedBy: ",").first,
-            let end = times.components(separatedBy: ",").last,
-            let startTimer = Double(start),
-            let endTimer = Double(end) else
-        {
-            throw MediaOverlayNodeError.timersParsing
-        }
-        clip.start = startTimer
-        clip.end = endTimer
-        clip.duration = endTimer - startTimer
     }
 }
