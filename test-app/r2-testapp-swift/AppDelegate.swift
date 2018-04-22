@@ -14,6 +14,7 @@ import CryptoSwift
 
 #if LCP
 import ReadiumLCP
+import R2LCPClient
 #endif
 
 struct Location {
@@ -26,6 +27,10 @@ public enum PublicationType: String {
     case epub = "epub"
     case cbz = "cbz"
     case unknown = "unknown"
+
+    init(rawString: String?) {
+        self = PublicationType(rawValue: rawString ?? "") ?? .unknown
+    }
 }
 
 @UIApplicationMain
@@ -391,7 +396,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
     ///   - id: <#id description#>
     ///   - completion: <#completion description#>
     /// - Throws: <#throws value description#>
-    func loadPublication(withId id: String?, completion: @escaping (Drm?) -> Void) throws {
+    func loadPublication(withId id: String?, completion: @escaping (Drm?, Error?) -> Void) throws {
         guard let id = id, let item = items[id] else {
             print("Error no id")
             return
@@ -400,7 +405,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
         guard let drm = item.0.associatedContainer.drm else {
             // No DRM, so the parsing callback can be directly called.
             try parsingCallback(nil)
-            completion(nil)
+            completion(nil, nil)
             return
         }
         let publicationPath = item.0.associatedContainer.rootFile.rootPath
@@ -426,7 +431,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
     /// - Throws: .
     func handleLcpPublication(atPath publicationPath: String, with drm: Drm,
                               parsingCallback: @escaping PubParsingCallback,
-                              _ completion: @escaping (Drm?) -> Void) throws
+                              _ completion: @escaping (Drm?, Error?) -> Void) throws
     {
         guard let epubUrl = URL.init(string: publicationPath) else {
             print("URL error")
@@ -474,11 +479,11 @@ extension AppDelegate: LibraryViewControllerDelegate {
         }
 
         // Fonction used in the async code below.
-        func promptPassphrase() -> Promise<String> {
+        func promptPassphrase(reason:String? = nil) -> Promise<String> {
             let hint = session.getHint()
 
             return firstly {
-                self.promptPassphrase(hint)
+                self.promptPassphrase(hint, reason: reason)
                 }.then { clearPassphrase -> Promise<String?> in
                     let passphraseHash = clearPassphrase.sha256()
 
@@ -489,6 +494,49 @@ extension AppDelegate: LibraryViewControllerDelegate {
                     }
                     try session.storePassphrase(validPassphraseHash)
                     return Promise(value: validPassphraseHash)
+            }
+        }
+        
+        //https://stackoverflow.com/questions/30523285/how-do-i-create-an-inline-recursive-closure-in-swift
+        // Quick fix for error catch, because it's using Promise and there are so many func(closure) with captured values, there will be alot trouble to make them as seprated funcions. That's a dirty fix, shoud be refactored later all together.
+        var catchError:((Error) -> Void)!
+        catchError = { error in
+            
+            guard let lcpClientError = error as? LCPClientError else {
+                
+                if ((error as NSError) != NSError.cancelledError()) {
+                    self.showInfoAlert(title: "Error", message: error.localizedDescription)
+                }
+                completion(nil, error)
+                return
+            }
+            
+            let askPassphrase = { (reason: String) -> Void in
+                firstly {
+                    return promptPassphrase(reason: reason)
+                    }.then { passphraseHash -> Promise<LcpLicense> in
+                        return validatePassphrase(passphraseHash: passphraseHash)
+                    }.then { lcpLicense -> Void in
+                        
+                        var drm = drm
+                        drm.license = lcpLicense
+                        drm.profile = session.getProfile()
+                        /// Update container.drm to drm and parse the remaining elements.
+                        try? parsingCallback(drm)
+                        // Tell the caller than we done.
+                        completion(drm, nil)
+                    }.catch(policy: CatchPolicy.allErrors, execute:catchError)
+            }
+            
+            switch lcpClientError {
+            case .userKeyCheckInvalid:
+                askPassphrase("LCP Passphrase updated")
+            case .noValidPassphraseFound:
+                askPassphrase("Wrong LCP Passphrase")
+            default:
+                self.showInfoAlert(title: "Error", message: error.localizedDescription)
+                completion(nil, nil)
+                return
             }
         }
 
@@ -524,20 +572,22 @@ extension AppDelegate: LibraryViewControllerDelegate {
                 /// Update container.drm to drm and parse the remaining elements.
                 try? parsingCallback(drm)
                 // Tell the caller than we done.
-                completion(drm)
-            }.catch { error in
-                self.showInfoAlert(title: "Error", message: error.localizedDescription)
-                completion(nil)
-        }
+                completion(drm, nil)
+            }.catch(policy: CatchPolicy.allErrors, execute:catchError)
     }
     
     // Ask a passphrase to the user and verify it
-    fileprivate func promptPassphrase(_ hint: String) -> Promise<String>
+    fileprivate func promptPassphrase(_ hint: String, reason: String? = nil) -> Promise<String>
     {
         return Promise<String> { fullfil, reject in
-            let alert = UIAlertController(title: "LCP Passphrase",
+            
+            let title = reason ?? "LCP Passphrase"
+            let alert = UIAlertController(title: title,
                                           message: hint, preferredStyle: .alert)
-            let dismissButton = UIAlertAction(title: "Cancel", style: .cancel)
+            let dismissButton = UIAlertAction(title: "Cancel", style: .cancel) { (_) in
+                reject(NSError.cancelledError())
+            }
+            
             let confirmButton = UIAlertAction(title: "Submit", style: .default) { (_) in
                 let passphrase = alert.textFields?[0].text
 
