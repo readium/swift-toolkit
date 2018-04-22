@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import minizip
+import Minizip
 
 public struct ZipFileInfo {
     let path: String

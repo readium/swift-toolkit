@@ -8,6 +8,7 @@
 
 import R2Shared
 import AEXML
+import Fuzi
 
 /// Epub related constants.
 public struct EpubConstant {
@@ -196,14 +197,15 @@ final public class EpubParser {
         guard let navLink = publication.link(withRel: "contents"),
             let navDocumentData = try? fetcher.data(forLink: navLink),
             navDocumentData != nil,
-            let navDocument = try? AEXMLDocument.init(xml: navDocumentData!) else {
+            let navDocument = try? AEXMLDocument.init(xml: navDocumentData!),
+            let navDocumentFuzi = try? XMLDocument.init(data: navDocumentData!) else {
                 return
         }
         // Get the location of the navigation document in order to normalize href pathes.
         guard let navigationDocumentPath = navLink.href else {
             return
         }
-        let newTableOfContentsItems = NavigationDocumentParser.tableOfContent(fromNavigationDocument: navDocument,
+        let newTableOfContentsItems = NavigationDocumentParser.tableOfContent(fromNavigationDocument: navDocumentFuzi,
                                                                               locatedAt: navigationDocumentPath)
         let newLandmarksItems = NavigationDocumentParser.landmarks(fromNavigationDocument: navDocument,
                                                                    locatedAt: navigationDocumentPath)
@@ -218,7 +220,8 @@ final public class EpubParser {
         let newPageListItems = NavigationDocumentParser.pageList(fromNavigationDocument: navDocument,
                                                                  locatedAt: navigationDocumentPath)
 
-        publication.tableOfContents.append(contentsOf:  newTableOfContentsItems)
+        //publication.tableOfContents.append(contentsOf:  newTableOfContentsItems)
+        publication.tableOfContents = newTableOfContentsItems
         publication.landmarks.append(contentsOf: newLandmarksItems)
         publication.listOfAudioFiles.append(contentsOf: newListOfAudiofiles)
         publication.listOfIllustrations.append(contentsOf: newListOfIllustrations)
@@ -292,9 +295,11 @@ final public class EpubParser {
             if let textRef = body.attributes["epub:textref"] { // Prevent the crash on the japanese book
                 node.text = normalize(base: mediaOverlayLink.href!, href: textRef)
             }
-            // get body parameters <par>
-            SMILParser.parseParameters(in: body, withParent: node, base: mediaOverlayLink.href)
-            SMILParser.parseSequences(in: body, withParent: node, publicationSpine: &publication.spine, base: mediaOverlayLink.href)
+            // get body parameters <par>a
+            if let href = mediaOverlayLink.href {
+                SMILParser.parseParameters(in: body, withParent: node, base: href)
+                SMILParser.parseSequences(in: body, withParent: node, publicationSpine: &publication.spine, base: href)
+            }
             // "/??/xhtml/mo-002.xhtml#mo-1" => "/??/xhtml/mo-002.xhtml"
             guard let baseHref = node.text?.components(separatedBy: "#")[0],
                 let link = publication.spine.first(where: {
