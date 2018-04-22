@@ -1,4 +1,4 @@
-github "readium/r2-shared-swift" == 1.2.0
+github "readium/r2-shared-swift" "master"
 github "readium/r2-lcp-wrapper-swift" == 1.0.0
 github "SwiftyJSON/SwiftyJSON" == 3.1.4
 github "mxcl/PromiseKit" == 4.5
