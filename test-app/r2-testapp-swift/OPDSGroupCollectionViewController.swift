@@ -157,9 +157,9 @@ extension OPDSGroupCollectionViewController: UICollectionViewDelegateFlowLayout 
     }
 
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let publication = publications[indexPath.row]
-        let publicationInfoViewController = OPDSPublicationInfoViewController(publication, catalogViewController: self.catalogViewController)
-        self.catalogViewController.navigationController?.pushViewController(publicationInfoViewController!, animated: true)
+//        let publication = publications[indexPath.row]
+//        let publicationInfoViewController = OPDSPublicationInfoViewController(publication, catalogViewController: self.catalogViewController)
+//        self.catalogViewController.navigationController?.pushViewController(publicationInfoViewController!, animated: true)
 
     }
 

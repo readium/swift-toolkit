@@ -20,7 +20,10 @@ class OPDSCatalogSelectorViewController: UITableViewController {
     override func viewDidLoad() {
         catalogData = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
         if catalogData == nil {
-            catalogData = [["title": "feedbooks", "url": "http://www.feedbooks.com/store/top.atom?category=FBFIC022000"]]
+            catalogData = [
+                ["title": "feedbooks", "url": "http://www.feedbooks.com/store/top.atom?category=FBFIC022000"],
+                ["title": "feedbooks nav", "url": "http://www.feedbooks.com/store/categories/FBFIC000000.atom"]
+            ]
             UserDefaults.standard.set(catalogData, forKey: userDefaultsID)
         }
 
@@ -63,8 +66,15 @@ class OPDSCatalogSelectorViewController: UITableViewController {
               let url = URL(string: urlString) else {
             return
         }
-        let opdsCatalog = OPDSCatalogViewController(url: url)
-        self.navigationController?.pushViewController(opdsCatalog!, animated: true)
+        //let opdsCatalog = OPDSCatalogViewController(url: url)
+        //self.navigationController?.pushViewController(opdsCatalog!, animated: true)
+        
+        let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
+        let opdsRootViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsRootViewController") as? OPDSRootTableViewController
+        if let opdsRootViewController = opdsRootViewController {
+            opdsRootViewController.originalFeedURL = url
+            navigationController?.pushViewController(opdsRootViewController, animated: true)
+        }
     }
 
     override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {

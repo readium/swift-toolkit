@@ -12,11 +12,11 @@ import R2Shared
 
 class OPDSFacetTableViewController : UITableViewController {
     var feed: Feed
-    var catalogViewController: OPDSCatalogViewController
+    var rootViewController: OPDSRootTableViewController
 
-    init(feed: Feed, catalogViewController: OPDSCatalogViewController) {
+    init(feed: Feed, rootViewController: OPDSRootTableViewController) {
         self.feed = feed
-        self.catalogViewController = catalogViewController
+        self.rootViewController = rootViewController
         super.init(style: UITableViewStyle.plain)
         tableView.rowHeight = UITableViewAutomaticDimension
         tableView.estimatedRowHeight = 44
@@ -39,7 +39,7 @@ class OPDSFacetTableViewController : UITableViewController {
         let facetName = feed.facets[facet].metadata.title
         cell.textLabel?.text = facetName
 
-        if let facetValue = catalogViewController.getValueForFacet(facet: facet) {
+        if let facetValue = rootViewController.getValueForFacet(facet: facet) {
             cell.detailTextLabel?.text = feed.facets[indexPath.row].links[facetValue].title
         }
         else {
@@ -52,11 +52,11 @@ class OPDSFacetTableViewController : UITableViewController {
         self.dismiss(animated: false, completion: nil)
 
         let facetIndex = indexPath.row
-        let tableViewController = OPDSFacetChoiceTableViewController(facet: feed.facets[facetIndex], facetIndex: facetIndex, catalogViewController: catalogViewController)
+        let tableViewController = OPDSFacetChoiceTableViewController(facet: feed.facets[facetIndex], facetIndex: facetIndex, rootViewController: rootViewController)
         tableViewController.modalPresentationStyle = UIModalPresentationStyle.popover
         let popoverPresentationController = tableViewController.popoverPresentationController
-        popoverPresentationController?.barButtonItem = catalogViewController.navigationItem.rightBarButtonItem
-        catalogViewController.present(tableViewController, animated: false, completion: nil)
+        popoverPresentationController?.barButtonItem = rootViewController.navigationItem.rightBarButtonItem
+        rootViewController.present(tableViewController, animated: false, completion: nil)
     }
 
 }

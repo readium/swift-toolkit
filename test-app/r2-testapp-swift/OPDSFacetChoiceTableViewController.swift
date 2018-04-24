@@ -13,12 +13,12 @@ import R2Shared
 class OPDSFacetChoiceTableViewController : UITableViewController {
     var facet: Facet
     var facetIndex: Int
-    var catalogViewController: OPDSCatalogViewController
+    var rootViewController: OPDSRootTableViewController
 
-    init(facet: Facet, facetIndex: Int, catalogViewController: OPDSCatalogViewController) {
+    init(facet: Facet, facetIndex: Int, rootViewController: OPDSRootTableViewController) {
         self.facet = facet
         self.facetIndex = facetIndex
-        self.catalogViewController = catalogViewController
+        self.rootViewController = rootViewController
         super.init(style: UITableViewStyle.plain)
         tableView.rowHeight = UITableViewAutomaticDimension
         tableView.estimatedRowHeight = 44
@@ -48,7 +48,7 @@ class OPDSFacetChoiceTableViewController : UITableViewController {
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let linkIndex: Int? = indexPath.row == 0 ? nil : (indexPath.row - 1)
-        catalogViewController.setValueForFacet(facet: facetIndex, value: linkIndex)
+        rootViewController.setValueForFacet(facet: facetIndex, value: linkIndex)
         self.dismiss(animated: true, completion: nil)
     }
 }

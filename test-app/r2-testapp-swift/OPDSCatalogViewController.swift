@@ -31,7 +31,7 @@ class OPDSCatalogViewController: UIViewController {
         self.currentFeedURL = url
         self.isFeedInitialized = false
         self.isLoadingNextPage = false
-        super.init(nibName: "OPDSCatalogView", bundle: nil)
+        super.init(nibName: nil, bundle: nil)
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -68,10 +68,10 @@ class OPDSCatalogViewController: UIViewController {
         self.isFeedInitialized = true
         navigationItem.title = feed!.metadata.title
         self.nextPageURL = self.findNextPageURL(feed: feed!)
-        if let facets = feed?.facets, facets.count > 0 {
-            filterButton = UIBarButtonItem(title: "Filter", style: UIBarButtonItemStyle.plain, target: self, action: #selector(OPDSCatalogViewController.filterMenuClicked))
-            navigationItem.rightBarButtonItem = filterButton
-        }
+//        if let facets = feed?.facets, facets.count > 0 {
+//            filterButton = UIBarButtonItem(title: "Filter", style: UIBarButtonItemStyle.plain, target: self, action: #selector(OPDSCatalogViewController.filterMenuClicked))
+//            navigationItem.rightBarButtonItem = filterButton
+//        }
         initSubviews()
     }
 
@@ -82,8 +82,12 @@ class OPDSCatalogViewController: UIViewController {
     }
 
     func loadNewURL(newURL: URL) {
-        let opdsCatalog = OPDSCatalogViewController(url: newURL)
-        self.navigationController?.pushViewController(opdsCatalog!, animated: true)
+//        let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
+//        let opdsRootViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsRootViewController") as? OPDSRootTableViewController
+//        if let opdsRootViewController = opdsRootViewController {
+//            opdsRootViewController.originalFeedURL = newURL
+//            navigationController?.pushViewController(opdsRootViewController, animated: true)
+//        }
     }
 
     func changeFeed(newFeed: Feed) {
@@ -92,20 +96,20 @@ class OPDSCatalogViewController: UIViewController {
         publicationViewController?.changePublications(newPublications: newFeed.publications)
     }
 
-    func filterMenuClicked(_ sender: UIBarButtonItem) {
-        if (!isFeedInitialized) {
-            return
-        }
-        let tableViewController = OPDSFacetTableViewController(feed: feed!, catalogViewController: self)
-        tableViewController.modalPresentationStyle = UIModalPresentationStyle.popover
-
-        present(tableViewController, animated: true, completion: nil)
-
-
-        if let popoverPresentationController = tableViewController.popoverPresentationController {
-            popoverPresentationController.barButtonItem = sender
-        }
-    }
+//    func filterMenuClicked(_ sender: UIBarButtonItem) {
+//        if (!isFeedInitialized) {
+//            return
+//        }
+//        let tableViewController = OPDSFacetTableViewController(feed: feed!, catalogViewController: self)
+//        tableViewController.modalPresentationStyle = UIModalPresentationStyle.popover
+//
+//        present(tableViewController, animated: true, completion: nil)
+//
+//
+//        if let popoverPresentationController = tableViewController.popoverPresentationController {
+//            popoverPresentationController.barButtonItem = sender
+//        }
+//    }
 
     func initSubviews() {
         if (!isFeedInitialized) {
