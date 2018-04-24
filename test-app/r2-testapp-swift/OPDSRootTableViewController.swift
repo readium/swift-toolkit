@@ -14,7 +14,9 @@ import PromiseKit
 enum FeedBrowsingState {
     case Navigation
     case Publication
-    case Mixed
+    case MixedGroup
+    case MixedNavigationPublication
+    case MixedNavigationGroupPublication
     case None
 }
 
@@ -70,8 +72,14 @@ class OPDSRootTableViewController: UITableViewController {
                 browsingState = .Publication
                 tableView.separatorStyle = .none
                 tableView.isScrollEnabled = false
+            } else if feed.groups.count > 0 && feed.publications.count == 0 && feed.navigation.count == 0 {
+                browsingState = .MixedGroup
+            } else if feed.navigation.count > 0 && feed.groups.count == 0 && feed.publications.count > 0 {
+                browsingState = .MixedNavigationPublication
+            } else if feed.navigation.count > 0 && feed.groups.count > 0 && feed.publications.count > 0 {
+                browsingState = .MixedNavigationGroupPublication
             } else {
-                browsingState = .Mixed
+                browsingState = .None
             }
             
             DispatchQueue.main.async {
@@ -177,8 +185,14 @@ class OPDSRootTableViewController: UITableViewController {
         case .Navigation, .Publication:
             numberOfSections = 1
             
-        case .Mixed:
-            numberOfSections = 0
+        case .MixedGroup:
+            numberOfSections = feed!.groups.count
+            
+        case .MixedNavigationPublication:
+            numberOfSections = 2
+            
+        case .MixedNavigationGroupPublication:
+            numberOfSections = 1 + feed!.groups.count + 1
             
         default:
             numberOfSections = 0
@@ -196,11 +210,27 @@ class OPDSRootTableViewController: UITableViewController {
         case .Navigation:
             numberOfRowsInSection = feed!.navigation.count
             
-        case .Publication:
+        case .Publication, .MixedGroup:
             numberOfRowsInSection = 1
             
-        case .Mixed:
-            numberOfRowsInSection = 0
+        case .MixedNavigationPublication:
+            if section == 0 {
+                numberOfRowsInSection = feed!.navigation.count
+            }
+            if section == 1 {
+                numberOfRowsInSection = 1
+            }
+            
+        case .MixedNavigationGroupPublication:
+            if section == 0 {
+                numberOfRowsInSection = feed!.navigation.count
+            }
+            if section == 1 && section <= feed!.groups.count {
+                numberOfRowsInSection = 1
+            }
+            if section == (feed!.groups.count + 1) {
+                numberOfRowsInSection = 1
+            }
             
         default:
             numberOfRowsInSection = 0
@@ -215,14 +245,11 @@ class OPDSRootTableViewController: UITableViewController {
         
         switch browsingState {
             
-        case .Navigation:
-            heightForRowAt = 44
-            
         case .Publication:
             heightForRowAt = tableView.bounds.height
             
-        case .Mixed:
-            heightForRowAt = 44
+        case .MixedGroup:
+            heightForRowAt = 150
             
         default:
             heightForRowAt = 44
@@ -230,6 +257,28 @@ class OPDSRootTableViewController: UITableViewController {
         }
         
         return heightForRowAt
+    }
+    
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        var title: String?
+
+        switch browsingState {
+            
+        case .MixedGroup:
+            if section >= 0 && section <= feed!.groups.count {
+                title = feed!.groups[section].metadata.title
+            }
+        case .MixedNavigationGroupPublication:
+            if section >= 1 && section <= (feed!.groups.count + 1) {
+                title = feed!.groups[section-1].metadata.title
+            }
+
+        default:
+            title = nil
+
+        }
+
+        return title
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -253,11 +302,15 @@ class OPDSRootTableViewController: UITableViewController {
             castedCell.opdsRootTableViewController = self
             cell = castedCell
             
-        case .Mixed:
-            cell = nil
-            
+        case .MixedGroup:
+            let castedCell = tableView.dequeueReusableCell(withIdentifier: "opdsGroupCell", for: indexPath) as! OPDSGroupTableViewCell
+            castedCell.group = feed?.groups[indexPath.section]
+            castedCell.opdsRootTableViewController = self
+            cell = castedCell
+
         default:
-            cell = nil
+            cell = tableView.dequeueReusableCell(withIdentifier: "opdsNavigationCell", for: indexPath)
+            cell?.contentView.backgroundColor = UIColor.orange
             
         }
         
@@ -279,16 +332,59 @@ class OPDSRootTableViewController: UITableViewController {
                 }
             }
             
-        case .Publication:
-            break
-            
-        case .Mixed:
-            break
-            
         default:
             break
             
         }
     }
+    
+    override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+        let header = view as! UITableViewHeaderFooterView
+        header.textLabel?.font = UIFont.boldSystemFont(ofSize: 13)
+        
+        if view.subviews.last is UIButton {
+            return
+        }
 
+        let buttonWidth: CGFloat = 70
+        let moreButton = OPDSMoreButton(type: .system)
+        moreButton.frame = CGRect(x: header.frame.width - buttonWidth, y: 0, width: buttonWidth, height: header.frame.height)
+        
+        moreButton.setTitle("more >", for: .normal)
+        moreButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 11)
+        moreButton.setTitleColor(UIColor.darkGray, for: .normal)
+        
+        moreButton.section = section
+        
+        moreButton.addTarget(self, action: #selector(moreAction), for: .touchUpInside)
+        
+        view.addSubview(moreButton)
+        
+        moreButton.translatesAutoresizingMaskIntoConstraints = false
+        moreButton.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
+        moreButton.heightAnchor.constraint(equalToConstant: header.frame.height).isActive = true
+        moreButton.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+    }
+    
+    //MARK: - Target action
+    
+    func moreAction(sender: UIButton!) {
+        if let moreButton = sender as? OPDSMoreButton {
+            if let links = feed?.groups[moreButton.section!].links {
+                if links.count > 0 {
+                    let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
+                    let opdsRootViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsRootViewController") as? OPDSRootTableViewController
+                    if let opdsRootViewController = opdsRootViewController {
+                        opdsRootViewController.originalFeedURL = URL(string: links[0].href!)
+                        navigationController?.pushViewController(opdsRootViewController, animated: true)
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+class OPDSMoreButton: UIButton {
+    var section: Int?
 }

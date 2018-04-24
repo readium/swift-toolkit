@@ -26,13 +26,16 @@ class OPDSPublicationInfoViewController : UIViewController {
         fxImageView!.contentMode = .scaleAspectFill
         imageView!.contentMode = .scaleAspectFit
         
-        if let href = publication?.images[0].href {
-            let coverURL = URL(string: href)
-            if (coverURL != nil) {
-                imageView!.kf.setImage(with: coverURL, placeholder: nil,
-                                       options: [.transition(ImageTransition.fade(0.5))],
-                                       progressBlock: nil, completionHandler: nil)
-                fxImageView?.image = imageView?.image
+        if let images = publication?.images {
+            if images.count > 0 {
+                let href = images[0].href!
+                let coverURL = URL(string: href)
+                if (coverURL != nil) {
+                    imageView!.kf.setImage(with: coverURL, placeholder: nil,
+                                           options: [.transition(ImageTransition.fade(0.5))],
+                                           progressBlock: nil, completionHandler: nil)
+                    fxImageView?.image = imageView?.image
+                }
             }
         }
         
@@ -42,7 +45,6 @@ class OPDSPublicationInfoViewController : UIViewController {
         downloadActivityIndicator.stopAnimating()
         
         downloadURL = getDownloadURL()
-        //downloadURL = URL(string: "http://fr.feedbooks.com/userbook/27284.epub")
         
         // If we are not able to get a free link, we hide the download button
         // TODO: handle payment or redirection for others links?

@@ -59,16 +59,88 @@
                                     <outlet property="title" destination="v4x-Wk-h3D" id="ky5-qj-Ztw"/>
                                 </connections>
                             </tableViewCell>
-                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="opdsGroupCell" id="Tmv-tw-gbQ">
-                                <rect key="frame" x="0.0" y="72" width="375" height="44"/>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="opdsGroupCell" rowHeight="150" id="Tmv-tw-gbQ" customClass="OPDSGroupTableViewCell" customModule="r2_testapp_swift" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="72" width="375" height="150"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Tmv-tw-gbQ" id="xI3-YI-St7">
-                                    <rect key="frame" x="0.0" y="0.0" width="375" height="43.5"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="375" height="149.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="HsF-38-3EX">
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="149.5"/>
+                                            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                            <collectionViewFlowLayout key="collectionViewLayout" scrollDirection="horizontal" minimumLineSpacing="5" minimumInteritemSpacing="5" id="taj-iZ-nuK">
+                                                <size key="itemSize" width="150" height="124.5"/>
+                                                <size key="headerReferenceSize" width="0.0" height="0.0"/>
+                                                <size key="footerReferenceSize" width="0.0" height="0.0"/>
+                                                <inset key="sectionInset" minX="5" minY="5" maxX="5" maxY="5"/>
+                                            </collectionViewFlowLayout>
+                                            <cells>
+                                                <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="opdsPublicationCollectionViewCell" id="4FG-lb-1Bt" customClass="OPDSGroupCollectionViewCell" customModule="r2_testapp_swift" customModuleProvider="target">
+                                                    <rect key="frame" x="5" y="12.5" width="150" height="124.5"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO">
+                                                        <rect key="frame" x="0.0" y="0.0" width="150" height="124.5"/>
+                                                        <autoresizingMask key="autoresizingMask"/>
+                                                        <subviews>
+                                                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="0sq-Rr-D1p">
+                                                                <rect key="frame" x="0.0" y="0.0" width="150" height="225"/>
+                                                            </imageView>
+                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="9cN-m8-BDS">
+                                                                <rect key="frame" x="0.0" y="252" width="150" height="13"/>
+                                                                <constraints>
+                                                                    <constraint firstAttribute="height" constant="13" id="ycq-Ee-HLK"/>
+                                                                </constraints>
+                                                                <fontDescription key="fontDescription" type="system" pointSize="10"/>
+                                                                <nil key="textColor"/>
+                                                                <nil key="highlightedColor"/>
+                                                            </label>
+                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="v9Q-bx-r88">
+                                                                <rect key="frame" x="0.0" y="224" width="150" height="28"/>
+                                                                <constraints>
+                                                                    <constraint firstAttribute="height" constant="28" id="f4w-qS-au3"/>
+                                                                </constraints>
+                                                                <fontDescription key="fontDescription" type="system" weight="medium" pointSize="10"/>
+                                                                <nil key="textColor"/>
+                                                                <nil key="highlightedColor"/>
+                                                            </label>
+                                                        </subviews>
+                                                    </view>
+                                                    <constraints>
+                                                        <constraint firstAttribute="trailing" secondItem="0sq-Rr-D1p" secondAttribute="trailing" id="8ap-wd-8ly"/>
+                                                        <constraint firstItem="9cN-m8-BDS" firstAttribute="leading" secondItem="4FG-lb-1Bt" secondAttribute="leading" id="B0q-pm-7Fv"/>
+                                                        <constraint firstAttribute="bottom" secondItem="9cN-m8-BDS" secondAttribute="bottom" id="BHF-pF-w88"/>
+                                                        <constraint firstAttribute="trailing" secondItem="9cN-m8-BDS" secondAttribute="trailing" id="Bx9-vs-3TD"/>
+                                                        <constraint firstItem="9cN-m8-BDS" firstAttribute="top" secondItem="0sq-Rr-D1p" secondAttribute="bottom" constant="27" id="MIO-QN-3GZ"/>
+                                                        <constraint firstItem="0sq-Rr-D1p" firstAttribute="top" secondItem="4FG-lb-1Bt" secondAttribute="top" id="U9e-xv-tCW"/>
+                                                        <constraint firstItem="9cN-m8-BDS" firstAttribute="top" secondItem="v9Q-bx-r88" secondAttribute="bottom" id="Wjk-d1-iRx"/>
+                                                        <constraint firstAttribute="trailing" secondItem="v9Q-bx-r88" secondAttribute="trailing" id="Xap-oT-8nK"/>
+                                                        <constraint firstItem="v9Q-bx-r88" firstAttribute="leading" secondItem="4FG-lb-1Bt" secondAttribute="leading" id="lJ2-kE-fju"/>
+                                                        <constraint firstItem="0sq-Rr-D1p" firstAttribute="leading" secondItem="4FG-lb-1Bt" secondAttribute="leading" id="tLv-RT-I4f"/>
+                                                    </constraints>
+                                                    <connections>
+                                                        <outlet property="authorLabel" destination="9cN-m8-BDS" id="WPo-dc-Dfe"/>
+                                                        <outlet property="imageView" destination="0sq-Rr-D1p" id="cWa-Lx-JKW"/>
+                                                        <outlet property="titleLabel" destination="v9Q-bx-r88" id="dnB-9J-nwX"/>
+                                                    </connections>
+                                                </collectionViewCell>
+                                            </cells>
+                                            <connections>
+                                                <outlet property="dataSource" destination="Tmv-tw-gbQ" id="1V9-dZ-c3a"/>
+                                                <outlet property="delegate" destination="Tmv-tw-gbQ" id="C3Z-kf-1yZ"/>
+                                            </connections>
+                                        </collectionView>
+                                    </subviews>
+                                    <constraints>
+                                        <constraint firstItem="HsF-38-3EX" firstAttribute="top" secondItem="xI3-YI-St7" secondAttribute="top" id="3sY-KH-PxN"/>
+                                        <constraint firstAttribute="bottom" secondItem="HsF-38-3EX" secondAttribute="bottom" id="SmR-Rj-wSn"/>
+                                        <constraint firstItem="HsF-38-3EX" firstAttribute="leading" secondItem="xI3-YI-St7" secondAttribute="leading" id="hEt-1P-4dT"/>
+                                        <constraint firstAttribute="trailing" secondItem="HsF-38-3EX" secondAttribute="trailing" id="wEh-Hy-uKZ"/>
+                                    </constraints>
                                 </tableViewCellContentView>
                             </tableViewCell>
                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="opdsPublicationCell" rowHeight="300" id="3hI-ay-JyC" customClass="OPDSPublicationTableViewCell" customModule="r2_testapp_swift" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="116" width="375" height="300"/>
+                                <rect key="frame" x="0.0" y="222" width="375" height="300"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="3hI-ay-JyC" id="dKq-gc-oeg">
                                     <rect key="frame" x="0.0" y="0.0" width="375" height="299.5"/>
@@ -280,8 +352,8 @@
                                 <variation key="heightClass=compact-widthClass=compact" axis="horizontal">
                                     <mask key="constraints">
                                         <include reference="EHs-jU-e4R"/>
-                                        <exclude reference="tfa-mB-dAK"/>
                                         <include reference="fLH-vO-jm4"/>
+                                        <exclude reference="tfa-mB-dAK"/>
                                         <exclude reference="wd1-Wp-cfa"/>
                                         <exclude reference="0kw-KY-bIE"/>
                                         <include reference="GCP-4v-HIu"/>

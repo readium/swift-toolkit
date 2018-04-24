@@ -42,6 +42,8 @@
 		AE48F322208DE1E4000B7B44 /* OPDSNavigationTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE48F321208DE1E4000B7B44 /* OPDSNavigationTableViewCell.swift */; };
 		AE48F324208E0375000B7B44 /* OPDSPublicationTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE48F323208E0375000B7B44 /* OPDSPublicationTableViewCell.swift */; };
 		AE48F326208E1BFA000B7B44 /* OPDSPublicationCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE48F325208E1BFA000B7B44 /* OPDSPublicationCollectionViewCell.swift */; };
+		AE53A074208F623E00737838 /* OPDSGroupTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53A073208F623E00737838 /* OPDSGroupTableViewCell.swift */; };
+		AE53A076208F62D200737838 /* OPDSGroupCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */; };
 		F30AEE7A1FC312EA0073C9FD /* DetailsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */; };
 		F30AEE7D1FC316430073C9FD /* Details.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F30AEE7C1FC316430073C9FD /* Details.storyboard */; };
 		F3120DE71FACB08E009ACFAD /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
@@ -141,6 +143,8 @@
 		AE48F321208DE1E4000B7B44 /* OPDSNavigationTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSNavigationTableViewCell.swift; sourceTree = "<group>"; };
 		AE48F323208E0375000B7B44 /* OPDSPublicationTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPublicationTableViewCell.swift; sourceTree = "<group>"; };
 		AE48F325208E1BFA000B7B44 /* OPDSPublicationCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPublicationCollectionViewCell.swift; sourceTree = "<group>"; };
+		AE53A073208F623E00737838 /* OPDSGroupTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSGroupTableViewCell.swift; sourceTree = "<group>"; };
+		AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSGroupCollectionViewCell.swift; sourceTree = "<group>"; };
 		F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsTableViewController.swift; sourceTree = "<group>"; };
 		F30AEE7C1FC316430073C9FD /* Details.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Details.storyboard; sourceTree = "<group>"; };
 		F32980EE1F7D467B00BDEAF4 /* 1.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 1.epub; sourceTree = "<group>"; };
@@ -225,6 +229,8 @@
 			children = (
 				AE48F31F208DD3A9000B7B44 /* OPDSRootTableViewController.swift */,
 				AE48F321208DE1E4000B7B44 /* OPDSNavigationTableViewCell.swift */,
+				AE53A073208F623E00737838 /* OPDSGroupTableViewCell.swift */,
+				AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */,
 				AE48F323208E0375000B7B44 /* OPDSPublicationTableViewCell.swift */,
 				AE48F325208E1BFA000B7B44 /* OPDSPublicationCollectionViewCell.swift */,
 				113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */,
@@ -605,6 +611,7 @@
 				AE48F326208E1BFA000B7B44 /* OPDSPublicationCollectionViewCell.swift in Sources */,
 				113B12D120800FD60074A5A2 /* OPDSGroupCollectionViewController.swift in Sources */,
 				113B12DF20800FD60074A5A2 /* OPDSPublicationCell.swift in Sources */,
+				AE53A076208F62D200737838 /* OPDSGroupCollectionViewCell.swift in Sources */,
 				113B12DA20800FD60074A5A2 /* OPDSFacetTableViewController.swift in Sources */,
 				F3E7D4821F4F042600DF166D /* EpubViewController.swift in Sources */,
 				113B12DE20800FD60074A5A2 /* OPDSCatalogViewController.swift in Sources */,
@@ -614,6 +621,7 @@
 				F3BD533B1F72B27400E46FFC /* AdvancedSettingsViewController.swift in Sources */,
 				113B12D520800FD60074A5A2 /* OPDSPublicationCellSimple.swift in Sources */,
 				F34CB28C1FCC20D4005E3A37 /* DrmManagementTableViewController.swift in Sources */,
+				AE53A074208F623E00737838 /* OPDSGroupTableViewCell.swift in Sources */,
 				F3E7D48A1F4F049C00DF166D /* SpineItemTableViewController.swift in Sources */,
 				AE48F322208DE1E4000B7B44 /* OPDSNavigationTableViewCell.swift in Sources */,
 				F3E7D4771F4F033200DF166D /* CellMenuView.swift in Sources */,
