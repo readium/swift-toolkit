@@ -242,6 +242,8 @@ class OPDSRootTableViewController: UITableViewController {
             castedCell.title.text = feed?.navigation[indexPath.row].title
             if let count = feed?.navigation[indexPath.row].properties.numberOfItems {
                 castedCell.count.text = "\(count)"
+            } else {
+                castedCell.count.text = ""
             }
             cell = castedCell
             
