@@ -21,8 +21,9 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         catalogData = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
         if catalogData == nil {
             catalogData = [
-                ["title": "feedbooks", "url": "http://www.feedbooks.com/store/top.atom?category=FBFIC022000"],
-                ["title": "feedbooks nav", "url": "http://www.feedbooks.com/store/categories/FBFIC000000.atom"]
+                ["title": "Feedbooks", "url": "http://www.feedbooks.com/catalog.atom"],
+                //["title": "Feedbooks OPDS2", "url": "http://feedbooks.github.io/opds-test-catalog/opds-2/home.json"],
+                ["title": "NYPL", "url": "https://circulation.librarysimplified.org"]
             ]
             UserDefaults.standard.set(catalogData, forKey: userDefaultsID)
         }

@@ -29,6 +29,7 @@ class OPDSGroupTableViewCell: UITableViewCell {
     
     override func prepareForReuse() {
         super.prepareForReuse()
+        collectionView?.setContentOffset(.zero, animated: false)
         collectionView?.reloadData()
     }
 
