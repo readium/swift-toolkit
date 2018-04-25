@@ -14,6 +14,7 @@ class OPDSGroupTableViewCell: UITableViewCell {
 
     var group: Group?
     weak var opdsRootTableViewController: OPDSRootTableViewController?
+    weak var collectionView: UICollectionView?
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -24,6 +25,11 @@ class OPDSGroupTableViewCell: UITableViewCell {
         super.setSelected(selected, animated: animated)
 
         // Configure the view for the selected state
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        collectionView?.reloadData()
     }
 
 }
@@ -37,6 +43,8 @@ extension OPDSGroupTableViewCell: UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        self.collectionView = collectionView
+        
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "opdsPublicationCollectionViewCell",
                                                       for: indexPath) as! OPDSGroupCollectionViewCell
         

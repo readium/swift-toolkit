@@ -342,7 +342,8 @@ class OPDSRootTableViewController: UITableViewController {
         let header = view as! UITableViewHeaderFooterView
         header.textLabel?.font = UIFont.boldSystemFont(ofSize: 13)
         
-        if view.subviews.last is UIButton {
+        if let moreButton = view.subviews.last as? OPDSMoreButton {
+            moreButton.section = section
             return
         }
 
