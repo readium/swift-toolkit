@@ -427,6 +427,7 @@ class OPDSRootTableViewController: UITableViewController {
                 moreButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 11)
                 moreButton.setTitleColor(UIColor.darkGray, for: .normal)
                 
+                moreButton.offset = offset
                 moreButton.addTarget(self, action: #selector(moreAction), for: .touchUpInside)
                 
                 view.addSubview(moreButton)
