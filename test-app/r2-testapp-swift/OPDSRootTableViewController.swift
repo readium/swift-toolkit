@@ -23,7 +23,6 @@ enum FeedBrowsingState {
 class OPDSRootTableViewController: UITableViewController {
     
     var originalFeedURL: URL?
-    var currentFeedURL: URL?
     var nextPageURL: URL?
     
     var feed: Feed?
@@ -131,48 +130,45 @@ class OPDSRootTableViewController: UITableViewController {
                 }.then { newFeed -> Void in
                     self.nextPageURL = self.findNextPageURL(feed: newFeed)
                     self.feed?.publications.append(contentsOf: newFeed.publications)
-                    //self.changeFeed(newFeed: self.feed!) // changing to the ORIGINAL feed, now with more publications
-                    //self.feed = newFeed
                     completionHandler(self.feed)
-                }.always {
-                    //self.isLoadingNextPage = false
-            }
+                }
         }
     }
     
     //MARK: - Facets
     
     func filterMenuClicked(_ sender: UIBarButtonItem) {
-        let tableViewController = OPDSFacetTableViewController(feed: feed!, rootViewController: self)
-        tableViewController.modalPresentationStyle = UIModalPresentationStyle.popover
 
-        present(tableViewController, animated: true, completion: nil)
-
-
-        if let popoverPresentationController = tableViewController.popoverPresentationController {
-            popoverPresentationController.barButtonItem = sender
-        }
-    }
-    
-    public func getValueForFacet(facet: Int) -> Int? {
-        // TODO: remove this function
-        return nil
-    }
-    
-    public func setValueForFacet(facet: Int, value: Int?) {
-        if let facetValue = value, let hrefValue = self.feed!.facets[facet].links[facetValue].href {
-            // hrefValue is only a path, it doesn't have a scheme or domain name.
-            // We get those from the original url
-            let scheme = originalFeedURL?.scheme ?? "http"
-            let host = originalFeedURL?.host ?? "unknown"
-            let newURLString = scheme + "://" + host + hrefValue
-            if let newURL = URL(string: newURLString) {
-                loadNewURL(url: newURL)
+        let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
+        
+        if let opdsFacetViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsFacetViewController") as? OPDSFacetViewController {
+            opdsFacetViewController.modalPresentationStyle = UIModalPresentationStyle.popover
+            opdsFacetViewController.feed = feed!
+            opdsFacetViewController.rootViewController = self
+            
+            present(opdsFacetViewController, animated: true, completion: nil)
+            
+            if let popoverPresentationController = opdsFacetViewController.popoverPresentationController {
+                popoverPresentationController.barButtonItem = sender
             }
         }
-        else {
-            if let originalURL = originalFeedURL {
-                loadNewURL(url: originalURL) // Note: this fails for multiple facet groups. Figure out a fix when an example is available
+        
+    }
+
+    public func applyFacetAt(indexPath: IndexPath) {
+        if let href = feed!.facets[indexPath.section].links[indexPath.row].href {
+            if let url = URL(string: href) {
+                if let _ = url.host, let _ = url.scheme {
+                    loadNewURL(url: url)
+                }
+                else {
+                    let scheme = originalFeedURL?.scheme ?? "http"
+                    let host = originalFeedURL?.host ?? "unknown"
+                    let newURLString = scheme + "://" + host + href
+                    if let newURL = URL(string: newURLString) {
+                        loadNewURL(url: newURL)
+                    }
+                }
             }
         }
     }
