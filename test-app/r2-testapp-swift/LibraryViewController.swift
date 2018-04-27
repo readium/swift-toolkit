@@ -100,6 +100,8 @@ class LibraryViewController: UICollectionViewController {
         .phone : iPhoneLayoutNumberPerRow
     ]
     
+    private var previousScreenOrientation: GeneralScreenOrientation?
+    
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
         
@@ -109,8 +111,19 @@ class LibraryViewController: UICollectionViewController {
         } ()
         
         let orientation = { () -> GeneralScreenOrientation in
-            return UIDevice.current.orientation.isPortrait ? GeneralScreenOrientation.portrait:GeneralScreenOrientation.landscape
+            let deviceOrientation = UIDevice.current.orientation
+            
+            switch deviceOrientation {
+            case .unknown, .portrait, .portraitUpsideDown:
+                    return GeneralScreenOrientation.portrait
+            case .landscapeLeft, .landscapeRight:
+                    return GeneralScreenOrientation.landscape
+            case .faceUp, .faceDown:
+                return previousScreenOrientation ?? .portrait
+            }
         } ()
+        
+        previousScreenOrientation = orientation
         
         guard let deviceLayoutNumberPerRow = layoutNumberPerRow[idiom] else {return}
         guard let numberPerRow = deviceLayoutNumberPerRow[orientation] else {return}
@@ -124,7 +137,6 @@ class LibraryViewController: UICollectionViewController {
         
         flowLayout.minimumLineSpacing = minimumSpacing * 2
         flowLayout.minimumInteritemSpacing = minimumSpacing
-        
         flowLayout.itemSize = CGSize(width: width, height: height)
     }
 }
