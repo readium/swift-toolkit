@@ -31,7 +31,7 @@
 		F3120DEC1FACB098009ACFAD /* 6.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F01F7D467B00BDEAF4 /* 6.epub */; };
 		F34CB28C1FCC20D4005E3A37 /* DrmManagementTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34CB28B1FCC20D4005E3A37 /* DrmManagementTableViewController.swift */; };
 		F34CB28F1FCC54A2005E3A37 /* DrmManagement.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F34CB28E1FCC54A2005E3A37 /* DrmManagement.storyboard */; };
-		F36D24DE1F580B8800A00BF1 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F36D24DD1F580B8800A00BF1 /* Main.storyboard */; };
+		F36D24DE1F580B8800A00BF1 /* UserSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F36D24DD1F580B8800A00BF1 /* UserSettings.storyboard */; };
 		F37BB198200652F8003DE4A8 /* LCPPassphrasePrompt.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F37BB197200652F8003DE4A8 /* LCPPassphrasePrompt.storyboard */; };
 		F37BB19E2008A81C003DE4A8 /* LcpPassphrasePromptViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F37BB19D2008A81C003DE4A8 /* LcpPassphrasePromptViewController.swift */; };
 		F3BD53391F72B26700E46FFC /* FontSelectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BD53381F72B26700E46FFC /* FontSelectionViewController.swift */; };
@@ -109,7 +109,7 @@
 		F32980F31F7D467C00BDEAF4 /* 3.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 3.epub; sourceTree = "<group>"; };
 		F34CB28B1FCC20D4005E3A37 /* DrmManagementTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrmManagementTableViewController.swift; sourceTree = "<group>"; };
 		F34CB28E1FCC54A2005E3A37 /* DrmManagement.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = DrmManagement.storyboard; sourceTree = "<group>"; };
-		F36D24DD1F580B8800A00BF1 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
+		F36D24DD1F580B8800A00BF1 /* UserSettings.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = UserSettings.storyboard; sourceTree = "<group>"; };
 		F37BB197200652F8003DE4A8 /* LCPPassphrasePrompt.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LCPPassphrasePrompt.storyboard; sourceTree = "<group>"; };
 		F37BB19D2008A81C003DE4A8 /* LcpPassphrasePromptViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LcpPassphrasePromptViewController.swift; sourceTree = "<group>"; };
 		F3BD53381F72B26700E46FFC /* FontSelectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FontSelectionViewController.swift; sourceTree = "<group>"; };
@@ -325,7 +325,7 @@
 				F3DCFFBC1F7CE0140056BA37 /* UserSettings */,
 				F3E7D4841F4F044100DF166D /* TableOfContentsTableViewController.swift */,
 				F3E7D4831F4F044100DF166D /* BarView.swift */,
-				F36D24DD1F580B8800A00BF1 /* Main.storyboard */,
+				F36D24DD1F580B8800A00BF1 /* UserSettings.storyboard */,
 			);
 			name = EPUB;
 			sourceTree = "<group>";
@@ -454,7 +454,7 @@
 				F3120DEC1FACB098009ACFAD /* 6.epub in Resources */,
 				F3E7D4461F4EF6D400DF166D /* LaunchScreen.storyboard in Resources */,
 				F3E7D4431F4EF6D400DF166D /* Assets.xcassets in Resources */,
-				F36D24DE1F580B8800A00BF1 /* Main.storyboard in Resources */,
+				F36D24DE1F580B8800A00BF1 /* UserSettings.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
