@@ -903,4 +903,3 @@ body {
 :root[style*="readium-advanced-on"][style*="--USER__typeScale"] h3 {
   font-size: calc(1rem * var(--USER__typeScale)) !important;
 }
-/*# sourceMappingURL=ReadiumCSS-after.css.map */
