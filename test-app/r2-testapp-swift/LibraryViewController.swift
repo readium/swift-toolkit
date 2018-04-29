@@ -18,6 +18,8 @@ import ReadiumOPDS
 /// To modify depending of the profile of the liblcp.a used
 let supportedProfiles = ["http://readium.org/lcp/basic-profile",
                         "http://readium.org/lcp/profile-1.0"]
+let bookPerRow = 3
+let insets = 5 // In px.
 
 protocol LibraryViewControllerDelegate: class {
     func loadPublication(withId id: String?, completion: @escaping (Drm?, Error?) -> Void) throws
@@ -30,35 +32,6 @@ class LibraryViewController: UICollectionViewController {
     weak var lastFlippedCell: PublicationCell?
     
     lazy var loadingIndicator = PublicationIndicator()
-
-    init?(_ publications: [Publication]) {
-        self.publications = publications
-        super.init(nibName: nil, bundle: nil)
-    }
-
-    @available(*, unavailable)
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func loadView() {
-        // What is the reason creating another flowLayout?
-        // What is the reason creating another collectionView?
-        // Why not use the build in properites from UICollectionViewController?
-        let flowLayout = UICollectionViewFlowLayout()
-        let collectionView = UICollectionView(frame: UIScreen.main.bounds,
-                                              collectionViewLayout: flowLayout)
-
-        collectionView.backgroundColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
-        collectionView.contentInset = UIEdgeInsets(top: 15, left: 20,
-                                                   bottom: 20, right: 20)
-        collectionView.register(PublicationCell.self,
-                                forCellWithReuseIdentifier: "publicationCell")
-        collectionView.delegate = self
-        
-        self.collectionView = collectionView
-        view = collectionView
-    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -113,59 +86,6 @@ class LibraryViewController: UICollectionViewController {
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         collectionView?.collectionViewLayout.invalidateLayout()
-    }
-    
-    enum GeneralScreenOrientation: String {
-        case landscape
-        case portrait
-    }
-    
-    static let iPadLayoutNumberPerRow:[GeneralScreenOrientation: Int] = [.portrait: 4, .landscape: 5]
-    static let iPhoneLayoutNumberPerRow:[GeneralScreenOrientation: Int] = [.portrait: 3, .landscape: 4]
-    
-    lazy var layoutNumberPerRow:[UIUserInterfaceIdiom:[GeneralScreenOrientation: Int]] = [
-        .pad : iPadLayoutNumberPerRow,
-        .phone : iPhoneLayoutNumberPerRow
-    ]
-    
-    private var previousScreenOrientation: GeneralScreenOrientation?
-    
-    override func viewWillLayoutSubviews() {
-        super.viewWillLayoutSubviews()
-        
-        let idiom = { () -> UIUserInterfaceIdiom in
-            let tempIdion = UIDevice.current.userInterfaceIdiom
-            return (tempIdion != .pad) ? .phone:.pad // ignnore carplay and others
-        } ()
-        
-        let orientation = { () -> GeneralScreenOrientation in
-            let deviceOrientation = UIDevice.current.orientation
-            
-            switch deviceOrientation {
-            case .unknown, .portrait, .portraitUpsideDown:
-                    return GeneralScreenOrientation.portrait
-            case .landscapeLeft, .landscapeRight:
-                    return GeneralScreenOrientation.landscape
-            case .faceUp, .faceDown:
-                return previousScreenOrientation ?? .portrait
-            }
-        } ()
-        
-        previousScreenOrientation = orientation
-        
-        guard let deviceLayoutNumberPerRow = layoutNumberPerRow[idiom] else {return}
-        guard let numberPerRow = deviceLayoutNumberPerRow[orientation] else {return}
-        
-        guard let flowLayout = self.collectionView?.collectionViewLayout as? UICollectionViewFlowLayout else {return}
-        let contentWith = collectionView?.collectionViewLayout.collectionViewContentSize.width ?? 0
-        
-        let minimumSpacing = CGFloat(5)
-        let width = (contentWith - CGFloat(numberPerRow-1) * minimumSpacing) / CGFloat(numberPerRow)
-        let height = width * 1.5 // Height/width ratio == 1.5
-        
-        flowLayout.minimumLineSpacing = minimumSpacing * 2
-        flowLayout.minimumInteritemSpacing = minimumSpacing
-        flowLayout.itemSize = CGSize(width: width, height: height)
     }
 }
 
@@ -243,11 +163,10 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
             } // check cache
             
         } else {
-            
-            let flowLayout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout
-            
-            let width = flowLayout?.itemSize.width ?? 0
-            let height = flowLayout?.itemSize.height ?? 0
+          
+            let width = (Int(UIScreen.main.bounds.width) / bookPerRow) - (bookPerRow * 2 * insets)
+            let height = Int(Double(width) * 1.5) // Height/width ratio == 1.5
+
             let titleTextView = UITextView(frame: CGRect(x: 0, y: 0, width: width, height: height))
             
             titleTextView.layer.borderWidth = 5.0
@@ -261,7 +180,20 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
         
         return cell
     }
-    
+  
+     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets
+     {
+         let inset = CGFloat(insets)
+  
+        return UIEdgeInsets(top: inset, left: inset, bottom: inset, right: inset)
+     }
+  
+     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+           let width = (Int(UIScreen.main.bounds.width) / bookPerRow) - (bookPerRow * 2 * insets)
+           let height = Int(Double(width) * 1.5) // Height/width ratio == 1.5
+           return CGSize(width: width, height: height)
+     }
+
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         
         let publication = publications[indexPath.row]
