@@ -396,7 +396,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
     ///   - id: <#id description#>
     ///   - completion: <#completion description#>
     /// - Throws: <#throws value description#>
-    func loadPublication(withId id: String?, completion: @escaping (Drm?) -> Void) throws {
+    func loadPublication(withId id: String?, completion: @escaping (Drm?, Error?) -> Void) throws {
         guard let id = id, let item = items[id] else {
             print("Error no id")
             return
@@ -405,7 +405,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
         guard let drm = item.0.associatedContainer.drm else {
             // No DRM, so the parsing callback can be directly called.
             try parsingCallback(nil)
-            completion(nil)
+            completion(nil, nil)
             return
         }
         let publicationPath = item.0.associatedContainer.rootFile.rootPath
@@ -431,7 +431,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
     /// - Throws: .
     func handleLcpPublication(atPath publicationPath: String, with drm: Drm,
                               parsingCallback: @escaping PubParsingCallback,
-                              _ completion: @escaping (Drm?) -> Void) throws
+                              _ completion: @escaping (Drm?, Error?) -> Void) throws
     {
         guard let epubUrl = URL.init(string: publicationPath) else {
             print("URL error")
@@ -503,8 +503,11 @@ extension AppDelegate: LibraryViewControllerDelegate {
         catchError = { error in
             
             guard let lcpClientError = error as? LCPClientError else {
-                self.showInfoAlert(title: "Error", message: error.localizedDescription)
-                completion(nil)
+                
+                if ((error as NSError) != NSError.cancelledError()) {
+                    self.showInfoAlert(title: "Error", message: error.localizedDescription)
+                }
+                completion(nil, error)
                 return
             }
             
@@ -521,8 +524,8 @@ extension AppDelegate: LibraryViewControllerDelegate {
                         /// Update container.drm to drm and parse the remaining elements.
                         try? parsingCallback(drm)
                         // Tell the caller than we done.
-                        completion(drm)
-                    }.catch(execute: catchError)
+                        completion(drm, nil)
+                    }.catch(policy: CatchPolicy.allErrors, execute:catchError)
             }
             
             switch lcpClientError {
@@ -532,7 +535,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
                 askPassphrase("Wrong LCP Passphrase")
             default:
                 self.showInfoAlert(title: "Error", message: error.localizedDescription)
-                completion(nil)
+                completion(nil, nil)
                 return
             }
         }
@@ -569,8 +572,8 @@ extension AppDelegate: LibraryViewControllerDelegate {
                 /// Update container.drm to drm and parse the remaining elements.
                 try? parsingCallback(drm)
                 // Tell the caller than we done.
-                completion(drm)
-            }.catch(execute: catchError)
+                completion(drm, nil)
+            }.catch(policy: CatchPolicy.allErrors, execute:catchError)
     }
     
     // Ask a passphrase to the user and verify it
@@ -581,7 +584,10 @@ extension AppDelegate: LibraryViewControllerDelegate {
             let title = reason ?? "LCP Passphrase"
             let alert = UIAlertController(title: title,
                                           message: hint, preferredStyle: .alert)
-            let dismissButton = UIAlertAction(title: "Cancel", style: .cancel)
+            let dismissButton = UIAlertAction(title: "Cancel", style: .cancel) { (_) in
+                reject(NSError.cancelledError())
+            }
+            
             let confirmButton = UIAlertAction(title: "Submit", style: .default) { (_) in
                 let passphrase = alert.textFields?[0].text
 

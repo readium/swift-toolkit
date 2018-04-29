@@ -35,17 +35,32 @@ class UserSettingsTableViewController: UITableViewController {
     let maxFontSize: Float = 250.0
     let minFontSize: Float = 75.0
     let fontSizeStep: Float = 12.5
+    
+    private var brightnessObserver: NSObjectProtocol?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         initializeControlsValues()
         self.navigationController?.isNavigationBarHidden = true
+        
+        brightnessObserver = NotificationCenter.default.addObserver(forName: NSNotification.Name.UIScreenBrightnessDidChange, object: nil, queue: nil) { (notification) in
+            
+            let brightness = Float(UIScreen.main.brightness)
+            if (brightness != self.brightnessSlider.value) {
+                self.brightnessSlider.value = brightness
+            }
+        }
+    }
+    
+    deinit {
+        if let theObserver = brightnessObserver {
+            NotificationCenter.default.removeObserver(theObserver)
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
-        
         if let ppc = popoverController  {
             let preferredSize = self.preferredContentSize
             self.navigationController?.preferredContentSize = CGSize.zero
