@@ -153,8 +153,6 @@ extension EpubViewController {
 
         popoverPresentationController.delegate = self
         popoverPresentationController.barButtonItem = popoverUserconfigurationAnchor
-        
-        userSettingNavigationController.popoverController = popoverPresentationController
 
         present(userSettingNavigationController, animated: true, completion: nil)
     }

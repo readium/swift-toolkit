@@ -41,8 +41,6 @@ class AdvancedSettingsViewController: UIViewController {
     weak var delegate: AdvancedSettingsDelegate?
     weak var userSettings: UserSettings?
     
-    weak var popoverController: UIPopoverPresentationController?
-    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(true)
         delegate?.updateWordSpacingLabel()
@@ -53,7 +51,7 @@ class AdvancedSettingsViewController: UIViewController {
         super.viewWillAppear(true)
         navigationController?.setNavigationBarHidden(false, animated: animated)
         
-        if let ppc = popoverController  {
+        if let ppc = popoverPresentationController  {
             let preferredSize = self.preferredContentSize
             self.navigationController?.preferredContentSize = CGSize.zero
             self.navigationController?.preferredContentSize = preferredSize

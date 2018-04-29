@@ -29,8 +29,6 @@ class UserSettingsTableViewController: UITableViewController {
     @IBOutlet weak var scrollSwitch: UISwitch!
     weak var delegate: UserSettingsDelegate?
     weak var userSettings: UserSettings?
-    
-    weak var popoverController: UIPopoverPresentationController?
 
     let maxFontSize: Float = 250.0
     let minFontSize: Float = 75.0
@@ -61,7 +59,7 @@ class UserSettingsTableViewController: UITableViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
-        if let ppc = popoverController  {
+        if let ppc = popoverPresentationController  {
             let preferredSize = self.preferredContentSize
             self.navigationController?.preferredContentSize = CGSize.zero
             self.navigationController?.preferredContentSize = preferredSize
@@ -130,8 +128,6 @@ class UserSettingsTableViewController: UITableViewController {
 
         backItem.title = ""
         navigationItem.backBarButtonItem = backItem
-        
-        asvc.popoverController = self.popoverController
         navigationController?.pushViewController(asvc, animated: true)
 //        present(asvc, animated: true, completion: nil)
     }
