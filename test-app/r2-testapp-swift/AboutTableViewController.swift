@@ -18,11 +18,15 @@ class AboutTableViewController: UITableViewController {
 
         if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
             let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
-            versionNumberCell.textLabel?.text = "Version \(version)"
-            buildNumberCell.textLabel?.text = "Build \(build)"
+            versionNumberCell.textLabel?.text = "App Version:"
+            buildNumberCell.textLabel?.text = "GitHub Tag:"
+            versionNumberCell.detailTextLabel?.text = "\(version)"
+            buildNumberCell.detailTextLabel?.text = "V1.0.0-beta3"
         } else {
-            versionNumberCell.textLabel?.text = "Version unknown"
-            buildNumberCell.textLabel?.text = "Build unknown"
+            versionNumberCell.textLabel?.text = "App Version:"
+            buildNumberCell.textLabel?.text = "GitHub Tag:"
+            versionNumberCell.detailTextLabel?.text = "unknown"
+            buildNumberCell.detailTextLabel?.text = "unknown"
         }
         
         // Uncomment the following line to preserve selection between presentations
