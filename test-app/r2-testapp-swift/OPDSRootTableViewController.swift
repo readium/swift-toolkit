@@ -40,31 +40,20 @@ class OPDSRootTableViewController: UITableViewController {
     
     // MARK: - OPDS feed parsing
     
-//    func parseJSONFeed(url: URL) {
-//        UIApplication.shared.isNetworkActivityIndicatorVisible = true
-//
-//        let sessionConfiguration = URLSessionConfiguration.default
-//        let session = URLSession(configuration: sessionConfiguration)
-//        let request = URLRequest(url:url)
-//
-//        let task = session.dataTask(with: request) { (data, response, error) in
-//            if data != nil && error == nil {
-//                // Download succeed
-//                print("Success downloading JSON.")
-//                self.feed = try! OPDS2Parser.parse(jsonData: data!)
-//                self.finishFeedInitialization()
-//            } else {
-//                // Download failed
-//                print("Error while downloading JSON.")
-//            }
-//        }
-//
-//        task.resume()
-//    }
-    
+    func parseJSONFeed() {
+      if let url = originalFeedURL {
+        UIApplication.shared.isNetworkActivityIndicatorVisible = true
+        firstly {
+          OPDS2Parser.parseURL(url: url)
+          }.then { newFeed -> Void in
+            self.feed = newFeed
+            self.finishFeedInitialization()
+        }
+      }
+    }
+  
     func parseFeed() {
         if let url = originalFeedURL {
-//            parseJSONFeed(url: url)
             UIApplication.shared.isNetworkActivityIndicatorVisible = true
             firstly {
                 OPDSParser.parseURL(url: url)
