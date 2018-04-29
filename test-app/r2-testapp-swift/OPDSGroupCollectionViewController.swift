@@ -11,7 +11,6 @@ import WebKit
 import R2Shared
 import R2Streamer
 import R2Navigator
-//import ReadiumLCP
 import Kingfisher
 import PromiseKit
 import ReadiumOPDS
@@ -43,11 +42,8 @@ class OPDSGroupCollectionViewController: UICollectionViewController {
     }
 
     override func loadView() {
-        //view = UIView(frame: UIScreen.main.bounds)
         view = UIView(frame: self.viewFrame)
         view.autoresizesSubviews = true
-        //let flowFrame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: UIScreen.main.bounds.size.height-44)
-        //let flowFrame = CGRect(x: 0, y: 0, width: self.viewFrame.width, height: self.viewFrame.height-44)
 
         let flowLayout = UICollectionViewFlowLayout()
         flowLayout.scrollDirection = .horizontal
@@ -65,10 +61,8 @@ class OPDSGroupCollectionViewController: UICollectionViewController {
         collectionView.delegate = self
         collectionView.backgroundColor = UIColor.white
         self.automaticallyAdjustsScrollViewInsets = false
-        //let width = (Int(UIScreen.main.bounds.width) / opdsBookPerRow) - (opdsBookPerRow * 2 * opdsInsets)
         let width = (Int(Float(self.viewFrame.width) / Float(opdsGroupBookPerRow))) - (opdsGroupBookPerRow * 2 * opdsGroupInsets)
 
-        //let height = Int(Double(width) * 1.5) // Height/width ratio == 1.5
         let height = Int(self.viewFrame.height)
         layout.itemSize = CGSize(width: width, height: height)
         self.collectionView = collectionView

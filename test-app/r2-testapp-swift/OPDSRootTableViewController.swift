@@ -175,6 +175,7 @@ class OPDSRootTableViewController: UITableViewController {
         let opdsRootViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsRootViewController") as? OPDSRootTableViewController
         if let opdsRootViewController = opdsRootViewController {
             opdsRootViewController.originalFeedURL = url
+            opdsRootViewController.originalFeedType = originalFeedType
             navigationController?.pushViewController(opdsRootViewController, animated: true)
         }
     }
@@ -446,6 +447,7 @@ class OPDSRootTableViewController: UITableViewController {
                 let opdsRootViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsRootViewController") as? OPDSRootTableViewController
                 if let opdsRootViewController = opdsRootViewController {
                     opdsRootViewController.originalFeedURL = URL(string: links[0].href!)
+                    opdsRootViewController.originalFeedType = originalFeedType
                     navigationController?.pushViewController(opdsRootViewController, animated: true)
                 }
             }

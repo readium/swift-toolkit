@@ -12,7 +12,7 @@ import R2Shared
 import ReadiumOPDS
 
 class OPDSCatalogSelectorViewController: UITableViewController {
-    var catalogData: [[String: String]]? // An array of dicts in the form ["title": title, "url": url]
+    var catalogData: [[String: String]]? // An array of dicts in the form ["title": title, "url": url, "type": type]
     let cellReuseIdentifier = "catalogSelectorCell"
     let userDefaultsID = "opdsCatalogArray"
     var addFeedButton: UIBarButtonItem?
@@ -22,9 +22,7 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         if catalogData == nil {
             catalogData = [
               ["title": "Feedbooks", "url": "http://www.feedbooks.com/catalog.atom", "type":"1"],
-//              ["title": "Feedbooks OPDS2", "url": "http://feedbooks.github.io/opds-test-catalog/opds-2/home.json", "type":"2"],
-//                ["title": "NYPL", "url": "https://circulation.librarysimplified.org", "type":"1"],
-                ["title": "Open Textbooks", "url": "http://open.minitex.org", "type":"1"]
+              ["title": "Open Textbooks", "url": "http://open.minitex.org", "type":"1"]
             ]
             UserDefaults.standard.set(catalogData, forKey: userDefaultsID)
         }
@@ -68,12 +66,10 @@ class OPDSCatalogSelectorViewController: UITableViewController {
               let url = URL(string: urlString) else {
             return
         }
-      guard let type = catalogData![indexPath.row]["type"] else {
-          return
-      }
-        //let opdsCatalog = OPDSCatalogViewController(url: url)
-        //self.navigationController?.pushViewController(opdsCatalog!, animated: true)
-        
+        guard let type = catalogData![indexPath.row]["type"] else {
+            return
+        }
+      
         let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
         let opdsRootViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsRootViewController") as? OPDSRootTableViewController
         if let opdsRootViewController = opdsRootViewController {
@@ -98,7 +94,6 @@ class OPDSCatalogSelectorViewController: UITableViewController {
             self.tableView.reloadData()
         })
         deleteAction.backgroundColor = UIColor.gray
-
 
         return [editAction, deleteAction]
     }

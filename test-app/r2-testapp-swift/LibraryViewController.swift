@@ -88,26 +88,6 @@ class LibraryViewController: UICollectionViewController {
         super.viewWillTransition(to: size, with: coordinator)
         collectionView?.collectionViewLayout.invalidateLayout()
     }
-
-//    public func showDemoToolbar() {
-//        let toolbarFrame = CGRect(x: 0, y: UIScreen.main.bounds.height-44, width: UIScreen.main.bounds.width, height: 44)
-//        let toolbarView = UIToolbar(frame: toolbarFrame)
-//        toolbarView.sizeToFit()
-//        let catalogButton = UIBarButtonItem()
-//        catalogButton.title = "Feedbooks catalog"
-//        catalogButton.target = self
-//        catalogButton.action = #selector(self.loadSampleCatalog)
-//        toolbarView.items = [catalogButton]
-//        view.addSubview(toolbarView)
-//    }
-//
-//    func loadSampleCatalog() {
-////        let feedURL = URL(string: "http://www.feedbooks.com/store/top.atom?category=FBFIC022000")!
-////        let opdsCatalog = OPDSCatalogViewController(url: feedURL)
-////        self.navigationController?.pushViewController(opdsCatalog!, animated: true)
-//        let catalogSelector = OPDSCatalogSelectorViewController()
-//        self.navigationController?.pushViewController(catalogSelector, animated: true)
-//    }
 }
 
 // MARK: - Misc.
@@ -143,18 +123,18 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
-        let pCell = collectionView.dequeueReusableCell(withReuseIdentifier: "publicationCell", for: indexPath) as! PublicationCell
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "publicationCell", for: indexPath) as! PublicationCell
         
         let publication = publications[indexPath.item]
         
-        pCell.delegate = self
-        pCell.accessibilityLabel = publication.metadata.title
+        cell.delegate = self
+        cell.accessibilityLabel = publication.metadata.title
         
         let updateCellImage = { (theImage: UIImage) -> Void in
             let currentPubInfo = self.publications[indexPath.item]
             if (currentPubInfo.coverLink === publication.coverLink) {
-                pCell.imageView.image = theImage
-                pCell.applyShadows()
+                cell.imageView.image = theImage
+                cell.applyShadows()
             }
         }
         
@@ -194,11 +174,11 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
             titleTextView.backgroundColor = #colorLiteral(red: 0.05882352963, green: 0.180392161, blue: 0.2470588237, alpha: 1)
             titleTextView.textColor = #colorLiteral(red: 0.8639426257, green: 0.8639426257, blue: 0.8639426257, alpha: 1)
             titleTextView.text = publication.metadata.title.appending("\n_________") //Dirty styling.
-            pCell.imageView.image = UIImage.imageWithTextView(textView: titleTextView)
-            pCell.applyShadows()
+            cell.imageView.image = UIImage.imageWithTextView(textView: titleTextView)
+            cell.applyShadows()
         }
         
-        return pCell
+        return cell
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets

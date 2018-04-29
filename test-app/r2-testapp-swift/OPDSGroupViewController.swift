@@ -50,10 +50,6 @@ class OPDSGroupViewController: UIViewController {
         let collectionViewFrame = CGRect(x:0, y:50, width:stackView.frame.width, height: 100)
         collectionViewController = OPDSGroupCollectionViewController(group.publications, frame: collectionViewFrame, catalogViewController: catalogViewController)
         view.addSubview(collectionViewController!.view)
-//        (collectionViewController!.view)!.topAnchor.constraint(equalTo: view.topAnchor, constant: 50).isActive = true
-//        (collectionViewController!.view)!.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
-//        (collectionViewController!.view)!.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
-//        (collectionViewController!.view)!.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
     }
 
     func moreButtonPressed(sender: Any) {

@@ -11,7 +11,6 @@ import WebKit
 import R2Shared
 import R2Streamer
 import R2Navigator
-//import ReadiumLCP
 import Kingfisher
 import PromiseKit
 import ReadiumOPDS
@@ -43,11 +42,8 @@ class OPDSPublicationsViewController: UICollectionViewController {
     }
 
     override func loadView() {
-        //view = UIView(frame: UIScreen.main.bounds)
         view = UIView(frame: self.viewFrame)
         view.autoresizesSubviews = true
-        //let flowFrame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: UIScreen.main.bounds.size.height-44)
-        //let flowFrame = CGRect(x: 0, y: 0, width: self.viewFrame.width, height: self.viewFrame.height-44)
 
         let flowLayout = UICollectionViewFlowLayout()
         let collectionView = UICollectionView(frame: view.bounds,
@@ -66,7 +62,6 @@ class OPDSPublicationsViewController: UICollectionViewController {
         collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(collectionView)
-
 
     }
 

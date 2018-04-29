@@ -68,10 +68,6 @@ class OPDSCatalogViewController: UIViewController {
         self.isFeedInitialized = true
         navigationItem.title = feed!.metadata.title
         self.nextPageURL = self.findNextPageURL(feed: feed!)
-//        if let facets = feed?.facets, facets.count > 0 {
-//            filterButton = UIBarButtonItem(title: "Filter", style: UIBarButtonItemStyle.plain, target: self, action: #selector(OPDSCatalogViewController.filterMenuClicked))
-//            navigationItem.rightBarButtonItem = filterButton
-//        }
         initSubviews()
     }
 
@@ -96,31 +92,14 @@ class OPDSCatalogViewController: UIViewController {
         publicationViewController?.changePublications(newPublications: newFeed.publications)
     }
 
-//    func filterMenuClicked(_ sender: UIBarButtonItem) {
-//        if (!isFeedInitialized) {
-//            return
-//        }
-//        let tableViewController = OPDSFacetTableViewController(feed: feed!, catalogViewController: self)
-//        tableViewController.modalPresentationStyle = UIModalPresentationStyle.popover
-//
-//        present(tableViewController, animated: true, completion: nil)
-//
-//
-//        if let popoverPresentationController = tableViewController.popoverPresentationController {
-//            popoverPresentationController.barButtonItem = sender
-//        }
-//    }
-
     func initSubviews() {
         if (!isFeedInitialized) {
             return
         }
         var bottomView: UIView? = nil
-        let margins = contentView?.layoutMargins
 
         if feed!.navigation.count != 0 {
             opdsNavigationViewController = OPDSNavigationViewController(feed: feed!)
-            //view.addSubview((opdsNavigationViewController?.view)!)
             contentView!.addSubview((opdsNavigationViewController?.view)!)
             bottomView = opdsNavigationViewController?.view
             bottomView?.topAnchor.constraint(equalTo: contentView!.topAnchor)
@@ -139,7 +118,6 @@ class OPDSCatalogViewController: UIViewController {
 
                     (groupViewController.view)!.bottomAnchor.constraint(equalTo: (groupViewController.view)!.topAnchor, constant: 150).isActive = true
 
-                    //(groupViewController.view)!.setNeedsUpdateConstraints()
                 }
                 else {
                     contentView!.addSubview((groupViewController.view)!)
@@ -149,16 +127,12 @@ class OPDSCatalogViewController: UIViewController {
                     (groupViewController.view)!.rightAnchor.constraint(equalTo: contentView!.rightAnchor).isActive = true
 
                     (groupViewController.view)!.bottomAnchor.constraint(equalTo: (groupViewController.view)!.topAnchor, constant: 150).isActive = true
-
-                    //(groupViewController.view)!.setNeedsUpdateConstraints()
-
                 }
                 bottomView = (groupViewController.view)!
             }
         }
         if feed!.publications.count != 0 {
             publicationViewController = OPDSPublicationsViewController(feed!.publications, frame: view.frame, catalogViewController: self)
-            //view.addSubview((publicationViewController?.view)!)
             if bottomView == nil {
                 contentView!.addSubview((publicationViewController?.view)!)
                 publicationViewController?.view.translatesAutoresizingMaskIntoConstraints = false
@@ -172,12 +146,7 @@ class OPDSCatalogViewController: UIViewController {
             }
             bottomView = (publicationViewController?.view)!
         }
-//        contentView!.topAnchor.constraint(equalTo: scrollView!.topAnchor).isActive = true
-//        contentView!.leftAnchor.constraint(equalTo: scrollView!.leftAnchor).isActive = true
-//        contentView!.rightAnchor.constraint(equalTo: scrollView!.rightAnchor).isActive = true
-        if (bottomView != nil) {
-            //contentView!.bottomAnchor.constraint(equalTo: bottomView!.bottomAnchor).isActive = true
-        }
+
         contentView!.layoutSubviews()
         contentView!.frame = CGRect(x: 0, y: 0, width:(scrollView?.bounds.width)!,
                                     height: bottomView!.frame.maxY)
