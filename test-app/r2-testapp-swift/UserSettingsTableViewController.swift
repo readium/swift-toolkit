@@ -14,14 +14,12 @@ protocol UserSettingsDelegate: class {
     func fontSizeDidChange(to value: String)
     func appearanceDidChange(to appearance: UserSettings.Appearance)
     func scrollDidChange(to scroll: UserSettings.Scroll)
-    func publisherSettingsDidChange(to state: Bool)
     func getFontSelectionViewController() -> FontSelectionViewController
     func getAdvancedSettingsViewController() -> AdvancedSettingsViewController
 }
 
 class UserSettingsTableViewController: UITableViewController {
     @IBOutlet weak var brightnessSlider: UISlider!
-    @IBOutlet weak var defaultSwitch: UISwitch!
     @IBOutlet weak var fontSizeMinusButton: UIButton!
     @IBOutlet weak var fontSizePlusButton: UIButton!
     @IBOutlet weak var fontSelectionButton: UIButton!
@@ -31,6 +29,8 @@ class UserSettingsTableViewController: UITableViewController {
     @IBOutlet weak var scrollSwitch: UISwitch!
     weak var delegate: UserSettingsDelegate?
     weak var userSettings: UserSettings?
+    
+    weak var popoverController: UIPopoverPresentationController?
 
     let maxFontSize: Float = 250.0
     let minFontSize: Float = 75.0
@@ -61,8 +61,14 @@ class UserSettingsTableViewController: UITableViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
+        if let ppc = popoverController  {
+            let preferredSize = self.preferredContentSize
+            self.navigationController?.preferredContentSize = CGSize.zero
+            self.navigationController?.preferredContentSize = preferredSize
+            ppc.preferredContentSizeDidChange(forChildContentContainer: self)
+        }
     }
-
+        
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         // Update brightness slider in case the user modified it in the OS.
@@ -76,12 +82,6 @@ class UserSettingsTableViewController: UITableViewController {
         UIScreen.main.brightness = CGFloat(brightness)
     }
 
-    @IBAction func defaultSwitched() {
-        let state = defaultSwitch.isOn
-
-        delegate?.publisherSettingsDidChange(to: state)
-    }
-
     @IBAction func decreaseFontSizeTapped() {
         guard let currentFontSize = userSettings?.value(forKey: .fontSize),
             let currentFontSizeFloat = Float(currentFontSize),
@@ -90,7 +90,6 @@ class UserSettingsTableViewController: UITableViewController {
         }
         let newFontSize = currentFontSizeFloat - fontSizeStep // Font Size Step.
 
-        switchOffPublisherSettingsIfNeeded()
         delegate?.fontSizeDidChange(to: String(newFontSize))
     }
 
@@ -101,8 +100,6 @@ class UserSettingsTableViewController: UITableViewController {
                 return
         }
         let newFontSize = currentFontSizeFloat + fontSizeStep // Font Size Step.
-
-        switchOffPublisherSettingsIfNeeded()
         delegate?.fontSizeDidChange(to: String(newFontSize))
     }
 
@@ -122,7 +119,6 @@ class UserSettingsTableViewController: UITableViewController {
 
         backItem.title = ""
         navigationItem.backBarButtonItem = backItem
-        switchOffPublisherSettingsIfNeeded()
         navigationController?.pushViewController(fsvc, animated: true)
     }
 
@@ -134,7 +130,8 @@ class UserSettingsTableViewController: UITableViewController {
 
         backItem.title = ""
         navigationItem.backBarButtonItem = backItem
-        switchOffPublisherSettingsIfNeeded()
+        
+        asvc.popoverController = self.popoverController
         navigationController?.pushViewController(asvc, animated: true)
 //        present(asvc, animated: true, completion: nil)
     }
@@ -156,13 +153,6 @@ extension UserSettingsTableViewController {
             appearanceSegmentedControl.selectedSegmentIndex = appearance.rawValue
         }
         
-        // Publisher setting switch.
-        if let publisherSettings = userSettings?.value(forKey: .publisherSettings) {
-            let state = Bool.init(publisherSettings) ?? false
-
-            defaultSwitch.isOn = state
-        }
-
         // Currently selected font.
         if let font = userSettings?.value(forKey: .font) {
             setSelectedFontLabel(to: font)
@@ -175,13 +165,6 @@ extension UserSettingsTableViewController {
             scrollSwitch.setOn(scroll.bool(), animated: false)
         }
 
-    }
-
-    internal func switchOffPublisherSettingsIfNeeded() {
-        if defaultSwitch.isOn {
-            defaultSwitch.setOn(false, animated: true)
-            delegate?.publisherSettingsDidChange(to: false)
-        }
     }
 
     internal func setSelectedFontLabel(to fontName: String) {
