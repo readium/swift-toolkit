@@ -68,14 +68,7 @@ class UserSettingsTableViewController: UITableViewController {
             ppc.preferredContentSizeDidChange(forChildContentContainer: self)
         }
     }
-    
-//    override var preferredContentSize: CGSize {
-//        get {
-//            return CGSize(width: 250, height: 260)
-//        }
-//        set { super.preferredContentSize = newValue }
-//    }
-    
+        
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         // Update brightness slider in case the user modified it in the OS.
