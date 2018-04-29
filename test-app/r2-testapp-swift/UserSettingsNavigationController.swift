@@ -24,6 +24,8 @@ internal class UserSettingsNavigationController: UINavigationController {
     //
     weak var usdelegate: UserSettingsNavigationControllerDelegate!
     var userSettings: UserSettings!
+    
+    weak var popoverController: UIPopoverPresentationController?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -31,6 +33,8 @@ internal class UserSettingsNavigationController: UINavigationController {
         userSettings = usdelegate.getUserSettings()
 
         userSettingsTableViewController = viewControllers[0] as! UserSettingsTableViewController
+        userSettingsTableViewController.popoverController = self.popoverController
+        
         fontSelectionViewController =
             storyboard.instantiateViewController(withIdentifier: "FontSelectionViewController") as! FontSelectionViewController
         advancedSettingsViewController =
@@ -42,6 +46,12 @@ internal class UserSettingsNavigationController: UINavigationController {
         //
         fontSelectionViewController.delegate = self
         advancedSettingsViewController.delegate = self
+        advancedSettingsViewController.userSettings = userSettings
+    }
+    
+    func publisherSettingsDidChange(to state: Bool) {
+        userSettings?.publisherSettings = state
+        usdelegate?.updateUserSettingsStyle()
     }
 }
 
@@ -64,11 +74,6 @@ extension UserSettingsNavigationController: UserSettingsDelegate {
         userSettings.scroll = scroll
         usdelegate?.updateUserSettingsStyle()
         usdelegate?.toggleFixedBars()
-    }
-
-    func publisherSettingsDidChange(to state: Bool) {
-        userSettings.publisherSettings = state
-        usdelegate?.updateUserSettingsStyle()
     }
 
     func getFontSelectionViewController() -> FontSelectionViewController {
