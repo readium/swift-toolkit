@@ -117,7 +117,10 @@ final public class EpubParser {
             fillEncryptionProfile(forLinksIn: publication, using: drm)
             try parseMediaOverlay(from: fetcher, to: &publication)
             parseNavigationDocument(from: fetcher, to: &publication)
-            parseNcxDocument(from: fetcher, to: &publication)
+            
+            if publication.tableOfContents.isEmpty || publication.pageList.isEmpty {
+                parseNcxDocument(from: fetcher, to: &publication)
+            }
         }
         container.drm = drm
         return ((publication, container), parseRemainingResource)
@@ -220,14 +223,13 @@ final public class EpubParser {
         let newPageListItems = NavigationDocumentParser.pageList(fromNavigationDocument: navDocument,
                                                                  locatedAt: navigationDocumentPath)
 
-        //publication.tableOfContents.append(contentsOf:  newTableOfContentsItems)
         publication.tableOfContents = newTableOfContentsItems
-        publication.landmarks.append(contentsOf: newLandmarksItems)
-        publication.listOfAudioFiles.append(contentsOf: newListOfAudiofiles)
-        publication.listOfIllustrations.append(contentsOf: newListOfIllustrations)
-        publication.listOfTables.append(contentsOf: newListOfTables)
-        publication.listOfVideos.append(contentsOf: newListOfVideos)
-        publication.pageList.append(contentsOf: newPageListItems)
+        publication.landmarks = newLandmarksItems
+        publication.listOfAudioFiles = newListOfAudiofiles
+        publication.listOfIllustrations = newListOfIllustrations
+        publication.listOfTables = newListOfTables
+        publication.listOfVideos = newListOfVideos
+        publication.pageList = newPageListItems
     }
 
     /// Attempt to fill `Publication.tableOfContent`/`.pageList` using the NCX
