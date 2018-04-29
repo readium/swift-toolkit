@@ -24,14 +24,22 @@ class OPDSRootTableViewController: UITableViewController {
     
     var originalFeedURL: URL?
     var nextPageURL: URL?
-    
+    var originalFeedType: String?
+  
     var feed: Feed?
     
     var browsingState: FeedBrowsingState = .None
 
     override func viewDidLoad() {
-        super.viewDidLoad()
-        parseFeed()
+      super.viewDidLoad()
+      if let type = originalFeedType {
+        if (type == "2") {
+          parseJSONFeed()
+        }
+        else {
+          parseFeed()
+        }
+      }
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -372,6 +380,7 @@ class OPDSRootTableViewController: UITableViewController {
                     let opdsRootViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsRootViewController") as? OPDSRootTableViewController
                     if let opdsRootViewController = opdsRootViewController {
                         opdsRootViewController.originalFeedURL = URL(string: href)
+                        opdsRootViewController.originalFeedType = originalFeedType
                         navigationController?.pushViewController(opdsRootViewController, animated: true)
                     }
                 }
