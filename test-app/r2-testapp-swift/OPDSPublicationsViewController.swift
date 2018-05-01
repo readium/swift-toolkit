@@ -141,7 +141,7 @@ extension OPDSPublicationsViewController: UICollectionViewDelegateFlowLayout {
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets
     {
-        let inset = CGFloat(insets)
+        let inset = CGFloat(opdsInsets)
 
         return UIEdgeInsets(top: inset, left: inset, bottom: inset, right: inset)
     }
