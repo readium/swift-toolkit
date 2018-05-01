@@ -85,7 +85,7 @@ extension PublicationCell {
         view.layer.shadowOpacity = opacity
         view.layer.masksToBounds = false
     }
-
+    
 }
 
 // MARK: - Responds to action which occured in the PublicationCell's MenuView.

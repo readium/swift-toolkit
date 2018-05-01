@@ -31,7 +31,7 @@ class EpubViewController: UIViewController {
         tableOfContentsTVC = TableOfContentsTableViewController(for: navigator.getTableOfContents(),
                                                                 callWhenDismissed: navigator.displaySpineItem(with:))
         // UserSettingsViewController.
-        var storyboard = UIStoryboard(name: "Main", bundle: nil)
+        var storyboard = UIStoryboard(name: "UserSettings", bundle: nil)
 
         userSettingNavigationController =
             storyboard.instantiateViewController(withIdentifier: "UserSettingsNavigationController") as! UserSettingsNavigationController

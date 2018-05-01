@@ -1,6 +1,9 @@
-# Readium-2 Test App (Swift/iOS)
 
-A test app for the Swift implementation of Readium-2 that integrates various modules together.
+
+
+# Readium-2 Test App (Swift/iOS) [![Available on the AppStore](https://devimages-cdn.apple.com/app-store/marketing/guidelines/images/badge-download-on-the-app-store.svg)](https://itunes.apple.com/us/app/r2-reader/id1363963230)
+
+A test app for the Swift implementation of Readium-2. Stable builds are [published on the AppStore](https://itunes.apple.com/us/app/r2-reader/id1363963230).
 
 [![BSD-3](https://img.shields.io/badge/License-BSD--3-brightgreen.svg)](https://opensource.org/licenses/BSD-3-Clause)
 

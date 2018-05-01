@@ -65,26 +65,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         lightParseSamplePublications()
         lightParsePublications()
 
-        window = UIWindow(frame: UIScreen.main.bounds)
-        window?.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
-
-        let publications = items.flatMap() { $0.value.0.publication }.sorted { (pA, pB) -> Bool in
-            pA.metadata.title < pB.metadata.title
-        }
-        
-        guard let libraryVC = LibraryViewController(publications) else {
-            print("Error instanciating the LibraryVC.")
-            return false
-        }
-        libraryVC.delegate = self
-        libraryViewController = libraryVC
-        let navigationController = UINavigationController(rootViewController: libraryViewController)
-
-        window!.rootViewController = navigationController
-        window?.makeKeyAndVisible()
-
-        navigationController.navigationBar.tintColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
-        navigationController.navigationBar.barTintColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
         return true
     }
 
@@ -95,6 +75,41 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             showInfoAlert(title: "Error", message: "The document isn't valid.")
             return false
         }
+        return addPublicationToLibrary(url: url)
+    }
+
+    fileprivate func showInfoAlert(title: String, message: String) {
+        let alert = UIAlertController(title: "", message: "", preferredStyle: .alert)
+        let dismissButton = UIAlertAction(title: "OK", style: .cancel)
+
+        alert.addAction(dismissButton)
+        alert.title = title
+        alert.message = message
+
+        // Present alert.
+//        if alert.isBeingPresented  {
+//            alert.dismiss(animated: false, completion: {
+//                self.window?.rootViewController?.present(self.alert, animated: false)
+//            })
+//        } else {
+            window?.rootViewController?.dismiss(animated: false, completion: nil)
+            window?.rootViewController?.present(alert, animated: true)
+//        }
+    }
+
+    fileprivate func reload() {
+        // Update library publications.
+        libraryViewController?.publications = publicationServer.publications
+        // Redraw cells
+        libraryViewController?.collectionView?.reloadData()
+        libraryViewController?.collectionView?.backgroundView = nil
+    }
+
+}
+
+extension AppDelegate {
+    
+    internal func addPublicationToLibrary(url: URL) -> Bool {
         switch url.pathExtension {
         case "lcpl":
             #if LCP
@@ -106,6 +121,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                     if self.lightParsePublication(at: Location(absolutePath: publicationUrl.path,
                                                                relativePath: "",
                                                                type: .epub)) {
+                        
                         self.showInfoAlert(title: "Success", message: "LCP Publication added to library.")
                         self.reload()
                     } else {
@@ -141,39 +157,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 reload()
             }
         }
+        
         return true
     }
-
-    fileprivate func showInfoAlert(title: String, message: String) {
-        let alert = UIAlertController(title: "", message: "", preferredStyle: .alert)
-        let dismissButton = UIAlertAction(title: "OK", style: .cancel)
-
-        alert.addAction(dismissButton)
-        alert.title = title
-        alert.message = message
-
-        // Present alert.
-//        if alert.isBeingPresented  {
-//            alert.dismiss(animated: false, completion: {
-//                self.window?.rootViewController?.present(self.alert, animated: false)
-//            })
-//        } else {
-            window?.rootViewController?.dismiss(animated: false, completion: nil)
-            window?.rootViewController?.present(alert, animated: true)
-//        }
-    }
-
-    fileprivate func reload() {
-        // Update library publications.
-        libraryViewController?.publications = publicationServer.publications
-        // Redraw cells
-        libraryViewController?.collectionView?.reloadData()
-        libraryViewController?.collectionView?.backgroundView = nil
-    }
-
-}
-
-extension AppDelegate {
 
     fileprivate func lightParsePublications() {
         // Parse publication from documents folder.
