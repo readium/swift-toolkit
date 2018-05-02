@@ -27,7 +27,60 @@ public class Metadata {
             return multilangSubtitle?.singleString ?? ""
         }
     }
-
+    
+    public var direction: PageProgressionDirection {
+        didSet {
+            if direction == .rtl {
+                for lang in languages {
+                    let langType = LangType(rawString: lang)
+                    if langType != .other {
+                        self.primaryLanguage = lang
+                        self.primaryContentLayout = Metadata.contentlayoutStyle(for: langType, pageDirection: direction)
+                        break
+                    }
+                } // for
+            }
+            self.primaryLanguage = languages.first
+        }
+    }
+    
+    public enum LangType: String {
+        case ar
+        case fa
+        case he
+        case zh
+        case ja
+        case ko
+        case other = ""
+        
+        public init(rawString: String) {
+            self = LangType(rawValue: rawString) ?? .other
+        }
+    }
+    
+    public enum ContentLayoutStyle: String {
+        case rtl = "rtl"
+        case ltr = "ltr"
+        
+        case cjkVertical = "cjk-vertical"
+        case cjkHorizontal = "cjk-horizontal"
+    }
+    
+    public static func contentlayoutStyle(for lang:LangType, pageDirection:PageProgressionDirection) -> ContentLayoutStyle {
+        
+        switch(lang) {
+        case .ar, .fa, .he:
+            return .rtl
+        case .zh, .ja, .ko:
+            return pageDirection == .rtl ? .cjkVertical:.cjkHorizontal
+        default:
+            return pageDirection == .rtl ? .rtl:.ltr
+        }
+    }
+    
+    public private(set) var primaryLanguage: String?
+    public private(set) var primaryContentLayout: ContentLayoutStyle?
+ 
     public var languages = [String]()
     public var identifier: String?
     // Contributors.
@@ -49,7 +102,7 @@ public class Metadata {
     public var modified: Date?
     public var publicationDate: String?
     public var description: String?
-    public var direction: String
+    
     public var rendition = Rendition()
     public var source: String?
     public var epubType = [String]()
@@ -65,13 +118,13 @@ public class Metadata {
     //belongto duration
 
     public init() {
-        direction = "default"
+        direction = .Default
     }
 
     required public init?(map: Map) {
-        direction = "default"
+        direction = .Default
     }
-
+    
     /// Get the title for the given `lang`, if it exists in the dictionnary.
     ///
     /// - Parameter lang: The string representing the lang e.g. "en", "fr"..
@@ -158,5 +211,15 @@ extension Metadata: Mappable {
         if !subjects.isEmpty {
             subjects <- map["subjects", ignoreNil: true]
         }
+    }
+}
+
+public enum PageProgressionDirection: String {
+    case Default = "default"
+    case ltr
+    case rtl
+    
+    public init(rawString: String) {
+        self = PageProgressionDirection(rawValue: rawString) ?? .ltr
     }
 }
