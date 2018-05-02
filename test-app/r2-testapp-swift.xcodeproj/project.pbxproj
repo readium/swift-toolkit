@@ -35,7 +35,7 @@
 		113B12DF20800FD60074A5A2 /* OPDSPublicationCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12CE20800FD60074A5A2 /* OPDSPublicationCell.swift */; };
 		AE009A04207F5980001D82C5 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE009A03207F5980001D82C5 /* Fuzi.framework */; };
 		AE2B6A872088949300C12072 /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE2B6A862088949300C12072 /* ReadiumOPDS.framework */; };
-		AE2B6A8920889C8700C12072 /* OPDSMain.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AE2B6A8820889C8700C12072 /* OPDSMain.storyboard */; };
+		AE2B6A8920889C8700C12072 /* AppMain.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AE2B6A8820889C8700C12072 /* AppMain.storyboard */; };
 		AE37DE432093291600079AA2 /* AboutTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE37DE422093291600079AA2 /* AboutTableViewController.swift */; };
 		AE48F31E208DD056000B7B44 /* OPDS.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AE48F31D208DD056000B7B44 /* OPDS.storyboard */; };
 		AE48F320208DD3A9000B7B44 /* OPDSRootTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE48F31F208DD3A9000B7B44 /* OPDSRootTableViewController.swift */; };
@@ -136,7 +136,7 @@
 		113B12CE20800FD60074A5A2 /* OPDSPublicationCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSPublicationCell.swift; sourceTree = "<group>"; };
 		AE009A03207F5980001D82C5 /* Fuzi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Fuzi.framework; path = Carthage/Build/iOS/Fuzi.framework; sourceTree = "<group>"; };
 		AE2B6A862088949300C12072 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReadiumOPDS.framework; path = Carthage/Build/iOS/ReadiumOPDS.framework; sourceTree = "<group>"; };
-		AE2B6A8820889C8700C12072 /* OPDSMain.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = OPDSMain.storyboard; sourceTree = "<group>"; };
+		AE2B6A8820889C8700C12072 /* AppMain.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = AppMain.storyboard; sourceTree = "<group>"; };
 		AE37DE422093291600079AA2 /* AboutTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutTableViewController.swift; sourceTree = "<group>"; };
 		AE48F31D208DD056000B7B44 /* OPDS.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = OPDS.storyboard; sourceTree = "<group>"; };
 		AE48F31F208DD3A9000B7B44 /* OPDSRootTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSRootTableViewController.swift; sourceTree = "<group>"; };
@@ -302,7 +302,7 @@
 				F32980ED1F7D464900BDEAF4 /* Samples */,
 				F3E7D4421F4EF6D400DF166D /* Assets.xcassets */,
 				F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */,
-				AE2B6A8820889C8700C12072 /* OPDSMain.storyboard */,
+				AE2B6A8820889C8700C12072 /* AppMain.storyboard */,
 				F3E7D4471F4EF6D400DF166D /* Info.plist */,
 				F3E7D43B1F4EF6D400DF166D /* AppDelegate.swift */,
 				F37BB197200652F8003DE4A8 /* LCPPassphrasePrompt.storyboard */,
@@ -527,7 +527,7 @@
 				F3120DEA1FACB094009ACFAD /* 4.epub in Resources */,
 				F37BB198200652F8003DE4A8 /* LCPPassphrasePrompt.storyboard in Resources */,
 				F34CB28F1FCC54A2005E3A37 /* DrmManagement.storyboard in Resources */,
-				AE2B6A8920889C8700C12072 /* OPDSMain.storyboard in Resources */,
+				AE2B6A8920889C8700C12072 /* AppMain.storyboard in Resources */,
 				F3120DEB1FACB096009ACFAD /* 5.epub in Resources */,
 				F30AEE7D1FC316430073C9FD /* Details.storyboard in Resources */,
 				113B12D020800FD60074A5A2 /* ODPSPublicationCellInfoView.xib in Resources */,

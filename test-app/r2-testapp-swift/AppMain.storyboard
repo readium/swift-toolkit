@@ -112,11 +112,11 @@
             </objects>
             <point key="canvasLocation" x="737" y="-830"/>
         </scene>
-        <!--Catalogs-->
+        <!--OPDS Feeds-->
         <scene sceneID="NIH-XQ-a8S">
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="Boc-ZD-ADG" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Catalogs" image="catalogs" id="5Fd-7x-1gb"/>
+                    <tabBarItem key="tabBarItem" title="OPDS Feeds" image="catalogs" id="5Fd-7x-1gb"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="cfC-gQ-QmI">
                         <rect key="frame" x="0.0" y="20" width="375" height="44"/>
@@ -305,9 +305,9 @@
         </scene>
     </scenes>
     <resources>
-        <image name="about" width="23" height="23"/>
-        <image name="bookshelf" width="23" height="23"/>
-        <image name="catalogs" width="23" height="23"/>
+        <image name="about" width="25" height="25"/>
+        <image name="bookshelf" width="24" height="24"/>
+        <image name="catalogs" width="24" height="24"/>
         <image name="cnl" width="200" height="141"/>
     </resources>
 </document>
