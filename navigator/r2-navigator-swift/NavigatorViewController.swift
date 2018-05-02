@@ -14,6 +14,20 @@ import WebKit
 public protocol NavigatorDelegate: class {
     func middleTapHandler()
     func willExitPublication(documentIndex: Int, progression: Double?)
+    /// invoked when publication's content change to another page of 'document', slide to next chapter for example
+    /// It changes when html file resource changed
+    func didChangedDocumentPage(currentDocumentIndex: Int)
+    func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int)
+}
+
+public extension NavigatorDelegate {
+  func didChangedDocumentPage(currentDocumentIndex: Int) {
+    // optional
+  }
+  
+  func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int) {
+    // optional
+  }
 }
 
 open class NavigatorViewController: UIViewController {
@@ -40,7 +54,9 @@ open class NavigatorViewController: UIViewController {
         }
         triptychView = TriptychView(frame: CGRect.zero,
                                     viewCount: publication.spine.count,
-                                    initialIndex: index)
+                                    initialIndex: index,
+                                    pageDirection:publication.metadata.direction)
+        
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -122,15 +138,22 @@ extension NavigatorViewController {
 }
 
 extension NavigatorViewController: ViewDelegate {
-
+    func documentPageDidChanged(webview: WebView, currentPage: Int, totalPage: Int) {
+        if triptychView.currentView == webview {
+            delegate?.didChangedPaginatedDocumentPage(currentPage: currentPage, documentTotalPage: totalPage)
+        }
+    }
+    
     /// Display next spine item (spine item).
-    public func displayNextDocument() {
-        displaySpineItem(at: triptychView.index + 1)
+    public func displayRightDocument() {
+        let delta = triptychView.direction == .rtl ? -1:1
+        displaySpineItem(at: triptychView.index + delta)
     }
 
     /// Display previous document (spine item).
-    public func displayPreviousDocument() {
-        displaySpineItem(at: triptychView.index - 1)
+    public func displayLeftDocument() {
+        let delta = triptychView.direction == .rtl ? -1:1
+        displaySpineItem(at: triptychView.index - delta)
     }
 
     /// Returns the currently presented Publication's identifier.
@@ -186,6 +209,18 @@ extension Delegatee: TriptychViewDelegate {
             }
         }
         return webView
+    }
+    
+    func viewsDidUpdate(documentIndex: Int) {
+        // notice that you should set the delegate before you load views
+        // otherwise, when open the publication, you may miss the first invocation
+        parent.delegate?.didChangedDocumentPage(currentDocumentIndex: documentIndex)
+        if let currentView = parent.triptychView.currentView {
+            let cw = currentView as! WebView
+            if let pages = cw.totalPages {
+                parent.delegate?.didChangedPaginatedDocumentPage(currentPage: cw.currentPage(), documentTotalPage: pages)
+            }
+        }
     }
 }
 
