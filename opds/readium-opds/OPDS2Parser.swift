@@ -9,6 +9,7 @@
 import Foundation
 
 import R2Shared
+import PromiseKit
 
 public enum OPDS2ParserError: Error {
     case invalidJSON
@@ -55,67 +56,87 @@ public enum OPDS2ParserError: Error {
 }
 
 public class OPDS2Parser {
-    public static func parse(jsonData: Data) throws -> Feed {
-        guard let jsonRoot = try? JSONSerialization.jsonObject(with: jsonData, options: []) else {
-            throw OPDS2ParserError.invalidJSON
-        }
-        guard let topLevelDict = jsonRoot as? [String: Any] else {
-            throw OPDS2ParserError.invalidJSON
-        }
-        guard let metadataDict = topLevelDict["metadata"] as? [String: Any] else {
-            throw OPDS2ParserError.metadataNotFound
-
-        }
-        guard let title = metadataDict["title"] as? String else {
-            throw OPDS2ParserError.missingTitle
-        }
-        let feed = Feed(title: title)
-        parseMetadata(opdsMetadata: feed.metadata, metadataDict: metadataDict)
-
-        for (k, v) in topLevelDict {
-            switch k {
-            case "@context":
-                switch v {
-                case let s as String:
-                    feed.context.append(s)
-                case let sArr as [String]:
-                    feed.context.append(contentsOf: sArr)
-                default:
-                    continue
-                }
-            case "metadata": // Already handled above
-                continue
-            case "links":
-                guard let links = v as? [[String: Any]] else {
-                    throw OPDS2ParserError.invalidLink
-                }
-                try parseLinks(feed: feed, links: links)
-            case "facets":
-                guard let facets = v as? [[String: Any]] else {
-                    throw OPDS2ParserError.invalidFacet
-                }
-                try parseFacets(feed: feed, facets: facets)
-            case "publications":
-                guard let publications = v as? [[String: Any]] else {
-                    throw OPDS2ParserError.invalidPublication
-                }
-                try parsePublications(feed: feed, publications: publications)
-            case "navigation":
-                guard let navLinks = v as? [[String: Any]] else {
-                    throw OPDS2ParserError.invalidNavigation
-                }
-                try parseNavigation(feed: feed, navLinks: navLinks)
-            case "groups":
-                guard let groups = v as? [[String: Any]] else {
-                    throw OPDS2ParserError.invalidGroup
-                }
-                try parseGroups(feed: feed, groups: groups)
-            default:
-                continue
+  
+  public static func parseURL(url: URL) -> Promise<Feed> {
+        return Promise<Feed> {fulfill, reject in
+          let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, response, error) in
+            guard error == nil else {
+              reject(error!)
+              return
             }
+            guard let data = data else {
+              reject(OPDSParserError.documentNotFound)
+              return
+            }
+            do {
+              
+              guard let jsonRoot = try? JSONSerialization.jsonObject(with: data, options: []) else {
+                throw OPDS2ParserError.invalidJSON
+              }
+              guard let topLevelDict = jsonRoot as? [String: Any] else {
+                throw OPDS2ParserError.invalidJSON
+              }
+              guard let metadataDict = topLevelDict["metadata"] as? [String: Any] else {
+                throw OPDS2ParserError.metadataNotFound
+                
+              }
+              guard let title = metadataDict["title"] as? String else {
+                throw OPDS2ParserError.missingTitle
+              }
+              let feed = Feed(title: title)
+              parseMetadata(opdsMetadata: feed.metadata, metadataDict: metadataDict)
+              
+              for (k, v) in topLevelDict {
+                switch k {
+                case "@context":
+                  switch v {
+                  case let s as String:
+                    feed.context.append(s)
+                  case let sArr as [String]:
+                    feed.context.append(contentsOf: sArr)
+                  default:
+                    continue
+                  }
+                case "metadata": // Already handled above
+                  continue
+                case "links":
+                  guard let links = v as? [[String: Any]] else {
+                    throw OPDS2ParserError.invalidLink
+                  }
+                  try parseLinks(feed: feed, links: links)
+                case "facets":
+                  guard let facets = v as? [[String: Any]] else {
+                    throw OPDS2ParserError.invalidFacet
+                  }
+                  try parseFacets(feed: feed, facets: facets)
+                case "publications":
+                  guard let publications = v as? [[String: Any]] else {
+                    throw OPDS2ParserError.invalidPublication
+                  }
+                  try parsePublications(feed: feed, publications: publications)
+                case "navigation":
+                  guard let navLinks = v as? [[String: Any]] else {
+                    throw OPDS2ParserError.invalidNavigation
+                  }
+                  try parseNavigation(feed: feed, navLinks: navLinks)
+                case "groups":
+                  guard let groups = v as? [[String: Any]] else {
+                    throw OPDS2ParserError.invalidGroup
+                  }
+                  try parseGroups(feed: feed, groups: groups)
+                default:
+                  continue
+                }
+              }
+              fulfill(feed)
+            }
+            catch {
+              reject(error)
+            }
+    
+          })
+          task.resume()
         }
-
-        return feed
     }
 
     static internal func parseMetadata(opdsMetadata: OpdsMetadata, metadataDict: [String: Any]) {
