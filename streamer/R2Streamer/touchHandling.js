@@ -54,6 +54,8 @@ var handleTouchEnd = function(event) {
     if(!singleTouchGesture) {
         return;
     }
+    //https://stackoverflow.com/questions/4878484/difference-between-tagname-and-nodename
+    if (event.target.nodeName == "input") {return}
 
     var touch = event.changedTouches[0];
 
