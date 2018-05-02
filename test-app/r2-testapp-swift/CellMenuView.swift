@@ -18,9 +18,9 @@ class CellMenuView: UIView {
     let infoButton = UIButton()
     let removeButton = UIButton()
     let cancelButton = UIButton()
-    
+
     weak var delegate: CellMenuViewDelegate?
-    
+
     override init(frame: CGRect) {
         var modifiedFrame = frame
         modifiedFrame.origin = CGPoint.zero
@@ -42,7 +42,7 @@ class CellMenuView: UIView {
         addSubview(removeButton)
         addSubview(cancelButton)
     }
-    
+
     @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -63,11 +63,11 @@ extension CellMenuView {
     func infoButtonTapped() {
         delegate?.infoTapped()
     }
-    
+
     func removeButtonTapped() {
         delegate?.removeTapped()
     }
-    
+
     func cancelButtonTapped() {
         delegate?.cancelTapped()
     }

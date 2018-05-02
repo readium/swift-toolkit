@@ -12,8 +12,10 @@ import R2Navigator
 let pageMarginsStepValue: Double = 0.25
 
 protocol AdvancedSettingsDelegate: class {
+    
+    func publisherSettingsDidChange(to state: Bool)
+    
     func textAlignementDidChange(to textAlignement: UserSettings.TextAlignement)
-
     func columnCountDidChange(to columnCount: UserSettings.ColumnCount)
 
     func incrementWordSpacing()
@@ -30,11 +32,15 @@ protocol AdvancedSettingsDelegate: class {
 }
 
 class AdvancedSettingsViewController: UIViewController {
+    
+    @IBOutlet weak var defaultSwitch: UISwitch!
+    
     @IBOutlet weak var wordSpacingLabel: UILabel!
     @IBOutlet weak var letterSpacingLabel: UILabel!
     @IBOutlet weak var pageMarginsLabel: UILabel!
     weak var delegate: AdvancedSettingsDelegate?
-
+    weak var userSettings: UserSettings?
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(true)
         delegate?.updateWordSpacingLabel()
@@ -44,6 +50,33 @@ class AdvancedSettingsViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
         navigationController?.setNavigationBarHidden(false, animated: animated)
+        
+        if let ppc = popoverPresentationController  {
+            let preferredSize = self.preferredContentSize
+            self.navigationController?.preferredContentSize = CGSize.zero
+            self.navigationController?.preferredContentSize = preferredSize
+            ppc.preferredContentSizeDidChange(forChildContentContainer: self)
+        }
+        
+        // Publisher setting switch.
+        if let publisherSettings = userSettings?.value(forKey: .publisherSettings) {
+            let state = Bool.init(publisherSettings) ?? false
+            defaultSwitch.isOn = state
+        }
+    }
+    
+    /// Publisher's default
+    
+    @IBAction func defaultSwitched() {
+        let state = defaultSwitch.isOn
+        delegate?.publisherSettingsDidChange(to: state)
+    }
+    
+    internal func switchOffPublisherSettingsIfNeeded() {
+        if defaultSwitch.isOn {
+            defaultSwitch.setOn(false, animated: true)
+            delegate?.publisherSettingsDidChange(to: false)
+        }
     }
 
     /// Text alignement.
@@ -55,6 +88,8 @@ class AdvancedSettingsViewController: UIViewController {
                 return
             }
             delegate?.textAlignementDidChange(to: textAlignement)
+        
+        switchOffPublisherSettingsIfNeeded()
     }
 
     /// Word Spacing.
@@ -62,11 +97,13 @@ class AdvancedSettingsViewController: UIViewController {
     @IBAction func wordSpacingPlusTapped() {
         delegate?.incrementWordSpacing()
         delegate?.updateWordSpacingLabel()
+        switchOffPublisherSettingsIfNeeded()
     }
 
     @IBAction func wordSpacingMinusTapped() {
         delegate?.decrementWordSpacing()
         delegate?.updateWordSpacingLabel()
+        switchOffPublisherSettingsIfNeeded()
     }
 
     public func updateWordSpacing(value: String) {
@@ -78,11 +115,13 @@ class AdvancedSettingsViewController: UIViewController {
     @IBAction func letterSpacingPlusTapped() {
         delegate?.incrementLetterSpacing()
         delegate?.updateLetterSpacingLabel()
+        switchOffPublisherSettingsIfNeeded()
     }
 
     @IBAction func letterSpacingMinusTapped() {
         delegate?.decrementLetterSpacing()
         delegate?.updateLetterSpacingLabel()
+        switchOffPublisherSettingsIfNeeded()
     }
 
     public func updateLetterSpacing(value: String) {
@@ -96,21 +135,23 @@ class AdvancedSettingsViewController: UIViewController {
             return
         }
         delegate?.columnCountDidChange(to: columnCount)
+        switchOffPublisherSettingsIfNeeded()
     }
 
     @IBAction func pageMarginsPlusTapped() {
         delegate?.incrementPageMargins()
         delegate?.updatePageMarginsLabel()
+        switchOffPublisherSettingsIfNeeded()
     }
 
     @IBAction func pageMarginsMinusTapped() {
         delegate?.decrementPageMargins()
         delegate?.updatePageMarginsLabel()
+        switchOffPublisherSettingsIfNeeded()
     }
 
     public func updatePageMargins(value: String) {
         pageMarginsLabel.text = value
     }
-
 }
 
