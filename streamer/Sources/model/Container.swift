@@ -139,7 +139,7 @@ extension ZipArchiveContainer {
         var path = relativePath
         
         if path.first == "/" {
-            _ = path.popFirst()
+            path = String(path.dropFirst())
         }
         return try zipArchive.readData(path: path)
     }
@@ -155,7 +155,7 @@ extension ZipArchiveContainer {
         var path = relativePath
 
         if path.first == "/" {
-            _ = path.popFirst()
+            path = String(path.dropFirst())
         }
         guard let inputStream = ZipInputStream(zipFilePath: rootFile.rootPath, path: path) else {
             throw ContainerError.streamInitFailed
