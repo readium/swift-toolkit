@@ -120,8 +120,13 @@ final public class OPFParser {
         MetadataParser.parseContributors(from: metadataElement, to: &metadata, epubVersion)
         // Page progression direction.
         if let direction = document["package"]["spine"].attributes["page-progression-direction"] {
-            metadata.direction = direction
+            metadata.direction = PageProgressionDirection(rawString: direction)
+        } else {
+            let langType = LangType(rawString: metadata.languages.first ?? "")
+            let rawDirection = Metadata.contentlayoutStyle(for: langType, pageDirection: nil).rawValue
+            metadata.direction = PageProgressionDirection(rawString: rawDirection)
         }
+        
         // Rendition properties.
         MetadataParser.parseRenditionProperties(from: metadataElement, to: &metadata)
         publication.metadata = metadata

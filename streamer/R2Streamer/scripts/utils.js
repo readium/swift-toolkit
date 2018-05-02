@@ -9,7 +9,7 @@ var ticking = false;
 
 // Position in range [0 - 1].
 var update = function(position) {
-    var positionString = position.toString()
+    let positionString = position.toString()
     webkit.messageHandlers.updateProgression.postMessage(positionString);
 };
 
@@ -34,46 +34,66 @@ var scrollToId = function(id) {
 };
 
 // Position must be in the range [0 - 1], 0-100%.
-var scrollToPosition = function(position) {
+var scrollToPosition = function(position, dir) {
     console.log("ScrollToPosition");
     if ((position < 0) || (position > 1)) {
         console.log("InvalidPosition");
         return;
     }
-    var offset = document.getElementsByTagName("body")[0].scrollWidth * position;
-
-    console.log("ScrollToOffset", offset);
-    document.body.scrollLeft = snapOffset(offset);
+    var offset = 0.0;
+    if (dir == 'rtl') {
+        offset = (-document.body.scrollWidth + maxScreenX) * (1.0-position);
+    } else {
+        offset = document.body.scrollWidth * position;
+    }
+    console.log(offset);
+    document.body.scrollLeft = offset;
 };
 
-var scrollLeft = function() {
-    var offset = window.scrollX - maxScreenX;
-
-    if (offset >= 0) {
-        document.body.scrollLeft = offset;
+var scrollLeft = function(dir) {
+    var scrollWidth = document.body.scrollWidth;
+    var newOffset = window.scrollX - maxScreenX;
+    var edge = -scrollWidth + maxScreenX;
+    var newEdge = (dir == "rtl")? edge:0;
+    
+    if (newOffset > newEdge) {
+        document.body.scrollLeft = newOffset
         return 0;
     } else {
-        document.body.scrollLeft = 0;
-        return "edge"; // Need to previousDocument.
+        var oldOffset = window.scrollX;
+        document.body.scrollLeft = newEdge;
+        if (oldOffset != newEdge) {
+            return 0;
+        } else {
+            return "edge";
+        }
     }
 };
 
-var scrollRight = function() {
-    var offset = window.scrollX + maxScreenX;
-    var scrollWidth = document.getElementsByTagName("body")[0].scrollWidth;
-
-    if (offset < scrollWidth) {
-        document.body.scrollLeft = offset;
+var scrollRight = function(dir) {
+    
+    var scrollWidth = document.body.scrollWidth;
+    var newOffset = window.scrollX + maxScreenX;
+    var edge = scrollWidth - maxScreenX;
+    var newEdge = (dir == "rtl")? 0:edge
+    
+    if (newOffset < newEdge) {
+        document.body.scrollLeft = newOffset
         return 0;
     } else {
-        document.body.scrollLeft = scrollWidth;
-        return "edge"; // Need to nextDocument.
+        var oldOffset = window.scrollX;
+        document.body.scrollLeft = newEdge;
+        if (oldOffset != newEdge) {
+            return 0;
+        } else {
+            return "edge";
+        }
     }
 };
 
 // Snap the offset to the screen width (page width).
 var snapOffset = function(offset) {
-    var value = offset + 1;
+    let value = offset + 1;
 
     return value - (value % maxScreenX);
 };

@@ -97,9 +97,10 @@ public class PublicationServer {
             guard let request = request, let filename = request.path else {
                 return GCDWebServerResponse(statusCode: 404)
             }
+            let relativePath = request.path.deletingLastPathComponent
             let resourceName = (filename as NSString).deletingPathExtension.lastPathComponent
 
-            if let styleUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "css"),
+            if let styleUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "css", subdirectory: relativePath),
                 let data = try? Data.init(contentsOf: styleUrl)
             {
                 let response = GCDWebServerDataResponse(data: data, contentType: "text/css")
@@ -119,9 +120,10 @@ public class PublicationServer {
             guard let request = request, let filename = request.path else {
                 return GCDWebServerResponse(statusCode: 404)
             }
+            let relativePath = request.path.deletingLastPathComponent
             let resourceName = (filename as NSString).deletingPathExtension.lastPathComponent
 
-            if let scriptUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "js"),
+            if let scriptUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "js", subdirectory: relativePath),
                 let data = try? Data.init(contentsOf: scriptUrl)
             {
                 let response = GCDWebServerDataResponse(data: data, contentType: "text/javascript")
