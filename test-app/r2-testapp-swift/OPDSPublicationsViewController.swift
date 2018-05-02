@@ -111,11 +111,12 @@ extension OPDSPublicationsViewController: UICollectionViewDelegateFlowLayout {
             coverUrl = URL(string: publication.images[0].href!)
         }
         if coverUrl != nil {
+            
             cell.imageView!.kf.setImage(with: coverUrl, placeholder: nil,
-                                       options: [.transition(ImageTransition.fade(0.5))],
-                                       progressBlock: nil, completionHandler: { error in
-                                        cell.applyShadows()
-            })
+                                        options: [.transition(ImageTransition.fade(0.5))],
+                                        progressBlock: nil) { (_,_,_,_) in
+                                            cell.applyShadows()
+                                        }
         } else {
             let width = (Int(UIScreen.main.bounds.width) / opdsBookPerRow) - (opdsBookPerRow * 2 * opdsInsets)
             let height = Int(Double(width) * 1.5) // Height/width ratio == 1.5

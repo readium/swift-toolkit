@@ -52,7 +52,7 @@ class OPDSGroupViewController: UIViewController {
         view.addSubview(collectionViewController!.view)
     }
 
-    func moreButtonPressed(sender: Any) {
+    @objc func moreButtonPressed(sender: Any) {
         if self.group.links.count == 0 {
             return
         }
