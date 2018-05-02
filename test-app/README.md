@@ -16,7 +16,7 @@ A test app for the Swift implementation of Readium-2. Stable builds are [publish
 - [x] Night & sepia modes
 - [x] Pagination and scrolling
 - [x] Table of contents
-- [ ] OPDS 1.x and 2.0 support
+- [x] OPDS 1.x and 2.0 support
 - [ ] FXL support
 - [ ] RTL support
 
