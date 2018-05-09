@@ -16,6 +16,7 @@ class OPDSCatalogSelectorViewController: UITableViewController {
     let cellReuseIdentifier = "catalogSelectorCell"
     let userDefaultsID = "opdsCatalogArray"
     var addFeedButton: UIBarButtonItem?
+    var mustEditAtIndexPath: IndexPath?
 
     override func viewDidLoad() {
         catalogData = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
@@ -41,6 +42,13 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         navigationController?.navigationBar.tintColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
         navigationController?.navigationBar.barTintColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
         navigationController?.view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        if let index = mustEditAtIndexPath?.row {
+            showEditPopup(feedIndex: index)
+        }
+        mustEditAtIndexPath = nil
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -73,8 +81,9 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
         let opdsRootViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsRootViewController") as? OPDSRootTableViewController
         if let opdsRootViewController = opdsRootViewController {
-          opdsRootViewController.originalFeedURL = url
-          opdsRootViewController.originalFeedType = type
+            opdsRootViewController.originalFeedURL = url
+            opdsRootViewController.originalFeedType = type
+            opdsRootViewController.originalFeedIndexPath = indexPath
             navigationController?.pushViewController(opdsRootViewController, animated: true)
         }
     }

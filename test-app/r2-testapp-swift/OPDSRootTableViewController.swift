@@ -25,21 +25,25 @@ class OPDSRootTableViewController: UITableViewController {
     var originalFeedURL: URL?
     var nextPageURL: URL?
     var originalFeedType: String?
+    var originalFeedIndexPath: IndexPath?
+    var mustEditFeed = false
   
     var feed: Feed?
     
     var browsingState: FeedBrowsingState = .None
 
     override func viewDidLoad() {
-      super.viewDidLoad()
-      if let type = originalFeedType {
-        if (type == "2") {
-          parseJSONFeed()
+        super.viewDidLoad()
+        navigationController?.delegate = self
+        
+        if let type = originalFeedType {
+            if (type == "2") {
+                parseJSONFeed()
+            }
+            else {
+                parseFeed()
+            }
         }
-        else {
-          parseFeed()
-        }
-      }
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -49,15 +53,16 @@ class OPDSRootTableViewController: UITableViewController {
     // MARK: - OPDS feed parsing
     
     func parseJSONFeed() {
-      if let url = originalFeedURL {
-        UIApplication.shared.isNetworkActivityIndicatorVisible = true
-        firstly {
-          OPDS2Parser.parseURL(url: url)
-          }.then { newFeed -> Void in
-            self.feed = newFeed
-            self.finishFeedInitialization()
+        if let url = originalFeedURL {
+            UIApplication.shared.isNetworkActivityIndicatorVisible = true
+            firstly {
+                OPDS2Parser.parseURL(url: url)
+                }.then { newFeed -> Void in
+                    self.feed = newFeed
+                }.always {
+                    self.finishFeedInitialization()
+            }
         }
-      }
     }
   
     func parseFeed() {
@@ -67,6 +72,7 @@ class OPDSRootTableViewController: UITableViewController {
                 OPDSParser.parseURL(url: url)
                 }.then { newFeed -> Void in
                     self.feed = newFeed
+                }.always {
                     self.finishFeedInitialization()
             }
         }
@@ -74,6 +80,7 @@ class OPDSRootTableViewController: UITableViewController {
     
     func finishFeedInitialization() {
         if let feed = feed {
+            
             navigationItem.title = feed.metadata.title
             self.nextPageURL = self.findNextPageURL(feed: feed)
             
@@ -101,12 +108,47 @@ class OPDSRootTableViewController: UITableViewController {
                 browsingState = .None
             }
             
-            DispatchQueue.main.async {
-                UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                self.tableView.reloadData()
-            }
+        } else {
+            
+            tableView.backgroundView = UIView(frame: UIScreen.main.bounds)
+            tableView.separatorStyle = .none
+            
+            let frame = CGRect(x: 0, y: tableView.backgroundView!.bounds.height / 2, width: tableView.backgroundView!.bounds.width, height: 20)
+            
+            let messageLabel = UILabel(frame: frame)
+            messageLabel.textColor = UIColor.darkGray
+            messageLabel.textAlignment = .center
+            messageLabel.text = "Something goes wrong."
+            
+            let editButton = UIButton(type: .system)
+            editButton.frame = frame
+            editButton.setTitle("Edit catalog", for: .normal)
+            editButton.addTarget(self, action:#selector(self.editButtonClicked), for: .touchUpInside)
+            
+            let stackView = UIStackView(arrangedSubviews: [messageLabel, editButton])
+            stackView.axis = .vertical
+            stackView.distribution = .equalSpacing
+            let spacing: CGFloat = 15
+            stackView.spacing = spacing
+            
+            tableView.backgroundView?.addSubview(stackView)
+            
+            stackView.translatesAutoresizingMaskIntoConstraints = false
+            stackView.widthAnchor.constraint(equalTo: tableView.backgroundView!.widthAnchor).isActive = true
+            stackView.heightAnchor.constraint(equalToConstant: messageLabel.frame.height + editButton.frame.height + spacing).isActive = true
+            stackView.centerYAnchor.constraint(equalTo: tableView.backgroundView!.centerYAnchor).isActive = true
             
         }
+        
+        DispatchQueue.main.async {
+            UIApplication.shared.isNetworkActivityIndicatorVisible = false
+            self.tableView.reloadData()
+        }
+    }
+    
+    func editButtonClicked(_ sender: UIBarButtonItem) {
+        mustEditFeed = true
+        navigationController?.popViewController(animated: true)
     }
     
     func findNextPageURL(feed: Feed) -> URL? {
@@ -445,6 +487,20 @@ class OPDSRootTableViewController: UITableViewController {
     }
 
 }
+
+//MARK: - UINavigationController delegate
+
+extension OPDSRootTableViewController: UINavigationControllerDelegate {
+    
+    func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
+        if mustEditFeed {
+            (viewController as? OPDSCatalogSelectorViewController)?.mustEditAtIndexPath = originalFeedIndexPath
+        }
+    }
+    
+}
+
+//MARK: - Sublass of UIButton
 
 class OPDSMoreButton: UIButton {
     var offset: Int?
