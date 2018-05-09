@@ -113,7 +113,7 @@ class OPDSRootTableViewController: UITableViewController {
         for link in feed.links {
             for rel in link.rel {
                 if rel == "next" {
-                    return URL(string: link.href!)
+                    return URL(string: link.absoluteHref!)
                 }
             }
         }
@@ -153,19 +153,9 @@ class OPDSRootTableViewController: UITableViewController {
     }
 
     public func applyFacetAt(indexPath: IndexPath) {
-        if let href = feed!.facets[indexPath.section].links[indexPath.row].href {
-            if let url = URL(string: href) {
-                if let _ = url.host, let _ = url.scheme {
-                    loadNewURL(url: url)
-                }
-                else {
-                    let scheme = originalFeedURL?.scheme ?? "http"
-                    let host = originalFeedURL?.host ?? "unknown"
-                    let newURLString = scheme + "://" + host + href
-                    if let newURL = URL(string: newURLString) {
-                        loadNewURL(url: newURL)
-                    }
-                }
+        if let absoluteHref = feed!.facets[indexPath.section].links[indexPath.row].absoluteHref {
+            if let url = URL(string: absoluteHref) {
+                loadNewURL(url: url)
             }
         }
     }
@@ -376,11 +366,11 @@ class OPDSRootTableViewController: UITableViewController {
             
         case .Navigation, .MixedNavigationPublication, .MixedNavigationGroupPublication:
             if indexPath.section == 0 {
-                if let href = feed?.navigation[indexPath.row].href {
+                if let absoluteHref = feed?.navigation[indexPath.row].absoluteHref {
                     let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
                     let opdsRootViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsRootViewController") as? OPDSRootTableViewController
                     if let opdsRootViewController = opdsRootViewController {
-                        opdsRootViewController.originalFeedURL = URL(string: href)
+                        opdsRootViewController.originalFeedURL = URL(string: absoluteHref)
                         opdsRootViewController.originalFeedType = originalFeedType
                         navigationController?.pushViewController(opdsRootViewController, animated: true)
                     }

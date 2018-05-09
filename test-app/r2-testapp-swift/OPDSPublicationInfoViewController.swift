@@ -28,8 +28,8 @@ class OPDSPublicationInfoViewController : UIViewController {
         
         if let images = publication?.images {
             if images.count > 0 {
-                let href = images[0].href!
-                let coverURL = URL(string: href)
+                let absoluteHref = images[0].absoluteHref!
+                let coverURL = URL(string: absoluteHref)
                 if (coverURL != nil) {
                     imageView!.kf.setImage(with: coverURL, placeholder: nil,
                                            options: [.transition(ImageTransition.fade(0.5))],
@@ -109,9 +109,9 @@ class OPDSPublicationInfoViewController : UIViewController {
         
         if let links = publication?.links {
             for link in links {
-                if let href = link.href {
-                    if href.contains(".epub") || href.contains(".lcpl") {
-                        url = URL(string: href)
+                if let absoluteHref = link.absoluteHref {
+                    if absoluteHref.contains(".epub") || absoluteHref.contains(".lcpl") {
+                        url = URL(string: absoluteHref)
                         break
                     }
                 }
