@@ -35,38 +35,20 @@ public class Metadata {
                     let langType = LangType(rawString: lang)
                     if langType != .other {
                         self.primaryLanguage = lang
-                        self.primaryContentLayout = Metadata.contentlayoutStyle(for: langType, pageDirection: direction)
-                        break
+                        let layout = Metadata.contentlayoutStyle(for: langType, pageDirection: direction)
+                        self.primaryContentLayout = layout; break
                     }
                 } // for
+                return
             }
-            self.primaryLanguage = languages.first
+            self.primaryLanguage = languages.first // Unknow
+            let langType = LangType(rawString: primaryLanguage ?? "")
+            let layout = Metadata.contentlayoutStyle(for: langType, pageDirection: direction)
+            self.primaryContentLayout = layout
         }
     }
     
-    public enum LangType: String {
-        case ar
-        case fa
-        case he
-        case zh
-        case ja
-        case ko
-        case other = ""
-        
-        public init(rawString: String) {
-            self = LangType(rawValue: rawString) ?? .other
-        }
-    }
-    
-    public enum ContentLayoutStyle: String {
-        case rtl = "rtl"
-        case ltr = "ltr"
-        
-        case cjkVertical = "cjk-vertical"
-        case cjkHorizontal = "cjk-horizontal"
-    }
-    
-    public static func contentlayoutStyle(for lang:LangType, pageDirection:PageProgressionDirection) -> ContentLayoutStyle {
+    public static func contentlayoutStyle(for lang:LangType, pageDirection:PageProgressionDirection?) -> ContentLayoutStyle {
         
         switch(lang) {
         case .ar, .fa, .he:
@@ -222,4 +204,33 @@ public enum PageProgressionDirection: String {
     public init(rawString: String) {
         self = PageProgressionDirection(rawValue: rawString) ?? .ltr
     }
+}
+
+public enum LangType: String {
+    case ar
+    case fa
+    case he
+    case zh // Any Chinese: zh-*-*
+    case ja
+    case ko
+    case mn  // "mn", "mn-Cyrl"
+    case other = ""
+    
+    public init(rawString: String) {
+        let language: String = { () -> String in
+            if let lang = rawString.split(separator: "-").first {
+                return String(lang)
+            }
+            return rawString
+        }()
+        self = LangType(rawValue: language) ?? .other
+    }
+}
+
+public enum ContentLayoutStyle: String {
+    case rtl = "rtl"
+    case ltr = "ltr"
+    
+    case cjkVertical = "cjk-vertical"
+    case cjkHorizontal = "cjk-horizontal"
 }
