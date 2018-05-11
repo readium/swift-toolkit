@@ -35,6 +35,7 @@
 		AE48F326208E1BFA000B7B44 /* OPDSPublicationCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE48F325208E1BFA000B7B44 /* OPDSPublicationCollectionViewCell.swift */; };
 		AE53A074208F623E00737838 /* OPDSGroupTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53A073208F623E00737838 /* OPDSGroupTableViewCell.swift */; };
 		AE53A076208F62D200737838 /* OPDSGroupCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */; };
+		AED681F220A32EBA0090DBCD /* OPDSPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AED681F120A32EBA0090DBCD /* OPDSPlaceholderView.swift */; };
 		F30AEE7A1FC312EA0073C9FD /* DetailsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */; };
 		F30AEE7D1FC316430073C9FD /* Details.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F30AEE7C1FC316430073C9FD /* Details.storyboard */; };
 		F3120DE71FACB08E009ACFAD /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
@@ -127,6 +128,7 @@
 		AE48F325208E1BFA000B7B44 /* OPDSPublicationCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPublicationCollectionViewCell.swift; sourceTree = "<group>"; };
 		AE53A073208F623E00737838 /* OPDSGroupTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSGroupTableViewCell.swift; sourceTree = "<group>"; };
 		AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSGroupCollectionViewCell.swift; sourceTree = "<group>"; };
+		AED681F120A32EBA0090DBCD /* OPDSPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPlaceholderView.swift; sourceTree = "<group>"; };
 		F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsTableViewController.swift; sourceTree = "<group>"; };
 		F30AEE7C1FC316430073C9FD /* Details.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Details.storyboard; sourceTree = "<group>"; };
 		F32980EE1F7D467B00BDEAF4 /* 1.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 1.epub; sourceTree = "<group>"; };
@@ -218,6 +220,7 @@
 				113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */,
 				113B12C920800FD50074A5A2 /* OPDSFacetViewController.swift */,
 				113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */,
+				AED681F120A32EBA0090DBCD /* OPDSPlaceholderView.swift */,
 				AE48F31D208DD056000B7B44 /* OPDS.storyboard */,
 				113B12BF20800FD50074A5A2 /* ODPSPublicationCellInfoView.xib */,
 			);
@@ -590,6 +593,7 @@
 				F3BD533B1F72B27400E46FFC /* AdvancedSettingsViewController.swift in Sources */,
 				F34CB28C1FCC20D4005E3A37 /* DrmManagementTableViewController.swift in Sources */,
 				AE53A074208F623E00737838 /* OPDSGroupTableViewCell.swift in Sources */,
+				AED681F220A32EBA0090DBCD /* OPDSPlaceholderView.swift in Sources */,
 				F3E7D48A1F4F049C00DF166D /* SpineItemTableViewController.swift in Sources */,
 				AE48F322208DE1E4000B7B44 /* OPDSNavigationTableViewCell.swift in Sources */,
 				F3E7D4771F4F033200DF166D /* CellMenuView.swift in Sources */,

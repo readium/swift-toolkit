@@ -53,6 +53,10 @@ extension OPDSGroupTableViewCell: UICollectionViewDataSource {
             
             cell.accessibilityLabel = publication.metadata.title
             
+            let titleTextView = OPDSPlaceholderListView(frame: cell.frame,
+                                                        title: publication.metadata.title,
+                                                        author: publication.metadata.authors.map({$0.name ?? ""}).joined(separator: ", "))
+            
             var coverURL: URL?
             if publication.coverLink != nil {
                 coverURL = publication.uriTo(link: publication.coverLink)
@@ -62,7 +66,7 @@ extension OPDSGroupTableViewCell: UICollectionViewDataSource {
             
             if let coverURL = coverURL {
                 cell.imageView.kf.setImage(with: coverURL,
-                                           placeholder: nil,
+                                           placeholder: titleTextView,
                                            options: [.transition(ImageTransition.fade(0.5))],
                                            progressBlock: nil,
                                            completionHandler: nil)
