@@ -266,8 +266,8 @@ final class TriptychView: UIView {
                 views = InternalViews.many(
                     currentView: currentView,
                     otherViews: Disjunction.both(
-                        first: viewForIndex(index - 1, location: beginning),
-                        second: viewForIndex(index + 1, location: ending)))
+                        first: viewForIndex(index - 1, location: ending),
+                        second: viewForIndex(index + 1, location: beginning)))
             }
         }
 
@@ -377,8 +377,6 @@ extension TriptychView: UIScrollViewDelegate {
         guard let views = views else {
             return
         }
-        
-        print("View count \(views.count)")
 
         if views.count == 3 {
             let width = frame.size.width
@@ -397,9 +395,6 @@ extension TriptychView: UIScrollViewDelegate {
                 scrollView.contentOffset.x = max(xOffset, width)
             }
         }
-        print("Did Scroll")
-        print("View count \(views.count)")
-        print(scrollView.contentOffset)
     }
 
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
@@ -432,8 +427,6 @@ extension TriptychView: UIScrollViewDelegate {
 
         updateViews(previousIndex: previousIndex)
         
-        print("Did end")
-
         // This works around a very specific case that may be a bug in iOS's scroll
         // view implementation. If the user is on a view of index >= 1, and if the
         // user swipes forward slightly and then, with great force, swipes back and
@@ -454,10 +447,6 @@ extension TriptychView: UIScrollViewDelegate {
                     return CGFloat(pageOffset) * scrollView.frame.width
                 }
             } ()
-            
-            print("***********")
-            print(adjustedOffset)
-            print("***********")
             
             scrollView.setContentOffset(
                 .init(x: adjustedOffset, y: 0),

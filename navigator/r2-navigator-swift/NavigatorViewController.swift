@@ -46,6 +46,7 @@ open class NavigatorViewController: UIViewController {
         self.publication = publication
         self.initialProgression = initialProgression
         userSettings = UserSettings()
+        userSettings.userSettingsUIPreset = publication.userSettingsUIPreset
         delegatee = Delegatee()
         var index = initialIndex
 
@@ -183,7 +184,10 @@ extension Delegatee: TriptychViewDelegate {
 
     public func triptychView(_ view: TriptychView, viewForIndex index: Int,
                              location: BinaryLocation) -> UIView {
+        
         let webView = WebView(frame: view.bounds, initialLocation: location)
+        webView.direction = view.direction
+        
         let link = parent.publication.spine[index]
 
         if let url = parent.publication.uriTo(link: link) {
