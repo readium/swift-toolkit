@@ -87,10 +87,13 @@
                                                                 <rect key="frame" x="0.0" y="0.0" width="150" height="125"/>
                                                                 <subviews>
                                                                     <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="9xH-AH-3iE">
-                                                                        <rect key="frame" x="0.0" y="0.0" width="150" height="84"/>
+                                                                        <rect key="frame" x="0.0" y="0.0" width="150" height="79"/>
                                                                     </imageView>
-                                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="czy-j6-EZF">
-                                                                        <rect key="frame" x="0.0" y="89" width="150" height="19"/>
+                                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Two lines Two lines Two lines Two lines Two lines" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="czy-j6-EZF">
+                                                                        <rect key="frame" x="0.0" y="84" width="150" height="24"/>
+                                                                        <constraints>
+                                                                            <constraint firstAttribute="height" constant="24" id="Kqz-Oa-cba"/>
+                                                                        </constraints>
                                                                         <fontDescription key="fontDescription" type="system" weight="medium" pointSize="10"/>
                                                                         <nil key="textColor"/>
                                                                         <nil key="highlightedColor"/>
@@ -102,6 +105,9 @@
                                                                         <nil key="highlightedColor"/>
                                                                     </label>
                                                                 </subviews>
+                                                                <constraints>
+                                                                    <constraint firstAttribute="bottom" secondItem="czy-j6-EZF" secondAttribute="bottom" constant="17" id="rLc-qc-dYK"/>
+                                                                </constraints>
                                                             </stackView>
                                                         </subviews>
                                                     </view>
