@@ -139,6 +139,7 @@ class OPDSRootTableViewController: UITableViewController {
             editButton.frame = frame
             editButton.setTitle("Edit catalog", for: .normal)
             editButton.addTarget(self, action:#selector(self.editButtonClicked), for: .touchUpInside)
+            editButton.isHidden = originalFeedIndexPath == nil ? true : false
             
             let stackView = UIStackView(arrangedSubviews: [messageLabel, editButton])
             stackView.axis = .vertical
@@ -364,8 +365,14 @@ class OPDSRootTableViewController: UITableViewController {
                 title = feed!.groups[section].metadata.title
             }
         case .MixedNavigationGroupPublication:
+            if section == 0 {
+                title = "Browse"
+            }
             if section >= 1 && section <= feed!.groups.count {
                 title = feed!.groups[section-1].metadata.title
+            }
+            if section > feed!.groups.count {
+                title = feed!.metadata.title
             }
 
         default:
@@ -468,6 +475,7 @@ class OPDSRootTableViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+        
         let header = view as! UITableViewHeaderFooterView
         header.textLabel?.font = UIFont.boldSystemFont(ofSize: 13)
         
@@ -479,37 +487,42 @@ class OPDSRootTableViewController: UITableViewController {
             offset = section
         }
         
-        if let moreButton = view.subviews.last as? OPDSMoreButton {
-            moreButton.offset = offset
-            return
-        }
-        
-        if let links = feed?.groups[offset].links {
+        if let feed = feed {
             
-            if links.count > 0 {
-                
-                let buttonWidth: CGFloat = 70
-                let moreButton = OPDSMoreButton(type: .system)
-                moreButton.frame = CGRect(x: header.frame.width - buttonWidth, y: 0, width: buttonWidth, height: header.frame.height)
-                
-                moreButton.setTitle("more >", for: .normal)
-                moreButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 11)
-                moreButton.setTitleColor(UIColor.darkGray, for: .normal)
-                
-                moreButton.offset = offset
-                moreButton.addTarget(self, action: #selector(moreAction), for: .touchUpInside)
-                
-                view.addSubview(moreButton)
-                
-                moreButton.translatesAutoresizingMaskIntoConstraints = false
-                moreButton.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
-                moreButton.heightAnchor.constraint(equalToConstant: header.frame.height).isActive = true
-                moreButton.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-                
+            if let moreButton = view.subviews.last as? OPDSMoreButton {
+                if offset >= 0 && offset < feed.groups.count {
+                    moreButton.offset = offset
+                } else {
+                    view.subviews.last?.removeFromSuperview()
+                }
+                return
+            }
+            
+            if offset >= 0 && offset < feed.groups.count {
+                let links = feed.groups[offset].links
+                if links.count > 0 {
+                    let buttonWidth: CGFloat = 70
+                    let moreButton = OPDSMoreButton(type: .system)
+                    moreButton.frame = CGRect(x: header.frame.width - buttonWidth, y: 0, width: buttonWidth, height: header.frame.height)
+                    
+                    moreButton.setTitle("more >", for: .normal)
+                    moreButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 11)
+                    moreButton.setTitleColor(UIColor.darkGray, for: .normal)
+                    
+                    moreButton.offset = offset
+                    moreButton.addTarget(self, action: #selector(moreAction), for: .touchUpInside)
+                    
+                    view.addSubview(moreButton)
+                    
+                    moreButton.translatesAutoresizingMaskIntoConstraints = false
+                    moreButton.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
+                    moreButton.heightAnchor.constraint(equalToConstant: header.frame.height).isActive = true
+                    moreButton.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+                }
             }
             
         }
-
+        
     }
     
     //MARK: - Target action
