@@ -214,6 +214,9 @@ public class OPDSParser {
                 if link.rel[0] == "self" {
                     if let linkType = link.typeLink {
                         selfMimeType = linkType
+                        if openSearchURL != nil {
+                            break
+                        }
                     }
                 }
                 else if link.rel[0] == "search" {
@@ -222,6 +225,9 @@ public class OPDSParser {
                         return
                     }
                     openSearchURL = URL(string: linkHref)
+                    if selfMimeType != nil {
+                        break
+                    }
                 }
             }
 
@@ -230,7 +236,7 @@ public class OPDSParser {
                 return
             }
 
-            let task = URLSession.shared.dataTask(with: unwrappedURL, completionHandler: { (data, response, error) in
+            URLSession.shared.dataTask(with: unwrappedURL, completionHandler: { (data, response, error) in
                 guard error == nil else {
                     reject(error!)
                     return
@@ -280,8 +286,7 @@ public class OPDSParser {
                 }
                 fulfill(template)
                 return
-            })
-            task.resume()
+            }).resume()
         }
     }
 
