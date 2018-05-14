@@ -12,8 +12,25 @@ import Kingfisher
 
 class OPDSPublicationTableViewCell: UITableViewCell {
     
+    @IBOutlet weak var collectionView: UICollectionView!
+    
     var feed: Feed?
     weak var opdsRootTableViewController: OPDSRootTableViewController?
+    
+    enum GeneralScreenOrientation: String {
+        case landscape
+        case portrait
+    }
+    
+    static let iPadLayoutNumberPerRow:[GeneralScreenOrientation: Int] = [.portrait: 4, .landscape: 5]
+    static let iPhoneLayoutNumberPerRow:[GeneralScreenOrientation: Int] = [.portrait: 3, .landscape: 4]
+    
+    lazy var layoutNumberPerRow:[UIUserInterfaceIdiom:[GeneralScreenOrientation: Int]] = [
+        .pad : iPadLayoutNumberPerRow,
+        .phone : iPhoneLayoutNumberPerRow
+    ]
+    
+    fileprivate var previousScreenOrientation: GeneralScreenOrientation?
 
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -24,6 +41,11 @@ class OPDSPublicationTableViewCell: UITableViewCell {
         super.setSelected(selected, animated: animated)
 
         // Configure the view for the selected state
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        collectionView.collectionViewLayout.invalidateLayout()
     }
 
 }
@@ -92,14 +114,38 @@ extension OPDSPublicationTableViewCell: UICollectionViewDelegateFlowLayout {
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
         
-        let itemsRatio: CGFloat = 3
-        let itemsInset: CGFloat = 5
-        let labelsHeight: CGFloat = 40
-        let itemWidth = (collectionView.bounds.width / itemsRatio) - (itemsRatio * 2 * itemsInset)
-        let itemHeight = (itemWidth * 1.5) + labelsHeight
+        let idiom = { () -> UIUserInterfaceIdiom in
+            let tempIdion = UIDevice.current.userInterfaceIdiom
+            return (tempIdion != .pad) ? .phone:.pad // ignnore carplay and others
+        } ()
+        
+        let orientation = { () -> GeneralScreenOrientation in
+            let deviceOrientation = UIDevice.current.orientation
+            
+            switch deviceOrientation {
+            case .unknown, .portrait, .portraitUpsideDown:
+                return GeneralScreenOrientation.portrait
+            case .landscapeLeft, .landscapeRight:
+                return GeneralScreenOrientation.landscape
+            case .faceUp, .faceDown:
+                return previousScreenOrientation ?? .portrait
+            }
+        } ()
+        
+        previousScreenOrientation = orientation
+
+        guard let deviceLayoutNumberPerRow = layoutNumberPerRow[idiom] else {return CGSize(width: 0, height: 0)}
+        guard let numberPerRow = deviceLayoutNumberPerRow[orientation] else {return CGSize(width: 0, height: 0)}
+        
+        let minimumSpacing: CGFloat = 5.0
+        let labelHeight: CGFloat = 50.0
+        let coverRatio: CGFloat = 1.5
+        
+        let itemWidth = (collectionView.frame.width / CGFloat(numberPerRow)) - (CGFloat(minimumSpacing) * CGFloat(numberPerRow)) - minimumSpacing
+        let itemHeight = (itemWidth * coverRatio) + labelHeight
 
         return CGSize(width: itemWidth, height: itemHeight)
-
+        
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {

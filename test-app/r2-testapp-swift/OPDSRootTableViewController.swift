@@ -31,6 +31,21 @@ class OPDSRootTableViewController: UITableViewController {
     var feed: Feed?
     
     var browsingState: FeedBrowsingState = .None
+    
+    enum GeneralScreenOrientation: String {
+        case landscape
+        case portrait
+    }
+    
+    static let iPadLayoutHeightForRow:[GeneralScreenOrientation: CGFloat] = [.portrait: 330, .landscape: 340]
+    static let iPhoneLayoutHeightForRow:[GeneralScreenOrientation: CGFloat] = [.portrait: 220, .landscape: 280]
+    
+    lazy var layoutHeightForRow:[UIUserInterfaceIdiom:[GeneralScreenOrientation: CGFloat]] = [
+        .pad : iPadLayoutHeightForRow,
+        .phone : iPhoneLayoutHeightForRow
+    ]
+    
+    fileprivate var previousScreenOrientation: GeneralScreenOrientation?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -286,7 +301,7 @@ class OPDSRootTableViewController: UITableViewController {
             heightForRowAt = tableView.bounds.height
             
         case .MixedGroup:
-            heightForRowAt = 150
+            heightForRowAt = calculateRowHeightForGroup()
             
         case .MixedNavigationPublication:
             if indexPath.section == 0 {
@@ -299,7 +314,7 @@ class OPDSRootTableViewController: UITableViewController {
             if indexPath.section == 0 {
                 heightForRowAt = 44
             } else if indexPath.section >= 1 && indexPath.section <= feed!.groups.count {
-                heightForRowAt = 150
+                heightForRowAt = calculateRowHeightForGroup()
             } else {
                 heightForRowAt = tableView.bounds.height / 2
             }
@@ -310,6 +325,33 @@ class OPDSRootTableViewController: UITableViewController {
         }
         
         return heightForRowAt
+    }
+    
+    private func calculateRowHeightForGroup() -> CGFloat {
+        let idiom = { () -> UIUserInterfaceIdiom in
+            let tempIdion = UIDevice.current.userInterfaceIdiom
+            return (tempIdion != .pad) ? .phone:.pad // ignnore carplay and others
+        } ()
+        
+        let orientation = { () -> GeneralScreenOrientation in
+            let deviceOrientation = UIDevice.current.orientation
+            
+            switch deviceOrientation {
+            case .unknown, .portrait, .portraitUpsideDown:
+                return GeneralScreenOrientation.portrait
+            case .landscapeLeft, .landscapeRight:
+                return GeneralScreenOrientation.landscape
+            case .faceUp, .faceDown:
+                return previousScreenOrientation ?? .portrait
+            }
+        } ()
+        
+        previousScreenOrientation = orientation
+        
+        guard let deviceLayoutHeightForRow = layoutHeightForRow[idiom] else {return 44}
+        guard let heightForRow = deviceLayoutHeightForRow[orientation] else {return 44}
+        
+        return heightForRow
     }
     
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
