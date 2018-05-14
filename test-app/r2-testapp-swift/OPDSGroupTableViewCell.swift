@@ -85,11 +85,15 @@ extension OPDSGroupTableViewCell: UICollectionViewDataSource {
             }
             
             if let coverURL = coverURL {
+                UIApplication.shared.isNetworkActivityIndicatorVisible = true
                 cell.imageView.kf.setImage(with: coverURL,
                                            placeholder: titleTextView,
                                            options: [.transition(ImageTransition.fade(0.5))],
-                                           progressBlock: nil,
-                                           completionHandler: nil)
+                                           progressBlock: nil) { (_, _, _, _) in
+                                            DispatchQueue.main.async {
+                                                UIApplication.shared.isNetworkActivityIndicatorVisible = false
+                                            }
+                }
             }
             
             cell.titleLabel.text = publication.metadata.title
