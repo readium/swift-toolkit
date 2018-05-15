@@ -123,6 +123,47 @@
                                                         <outlet property="titleLabel" destination="czy-j6-EZF" id="jcp-HE-u1H"/>
                                                     </connections>
                                                 </collectionViewCell>
+                                                <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="opdsNavigationCollectionViewCell" id="lKr-xy-HBu" customClass="OPDSGroupCollectionViewCell" customModule="r2_testapp_swift" customModuleProvider="target">
+                                                    <rect key="frame" x="170" y="50" width="200" height="50"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO">
+                                                        <rect key="frame" x="0.0" y="0.0" width="200" height="50"/>
+                                                        <autoresizingMask key="autoresizingMask"/>
+                                                        <subviews>
+                                                            <stackView opaque="NO" contentMode="scaleToFill" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="EVD-Wc-A9Q">
+                                                                <rect key="frame" x="0.0" y="0.0" width="200" height="50"/>
+                                                                <subviews>
+                                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Two lines Two lines Two lines" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="s7k-QM-Rwj" userLabel="Navigation Title Label">
+                                                                        <rect key="frame" x="0.0" y="0.0" width="147.5" height="50"/>
+                                                                        <fontDescription key="fontDescription" type="system" weight="medium" pointSize="13"/>
+                                                                        <nil key="textColor"/>
+                                                                        <nil key="highlightedColor"/>
+                                                                    </label>
+                                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="999999" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2yM-Mz-biK" userLabel="Navigation Count Label">
+                                                                        <rect key="frame" x="157.5" y="0.0" width="42.5" height="50"/>
+                                                                        <constraints>
+                                                                            <constraint firstAttribute="width" constant="42.5" id="Gkl-nm-Z9s"/>
+                                                                        </constraints>
+                                                                        <fontDescription key="fontDescription" type="system" pointSize="11"/>
+                                                                        <nil key="textColor"/>
+                                                                        <nil key="highlightedColor"/>
+                                                                    </label>
+                                                                </subviews>
+                                                            </stackView>
+                                                        </subviews>
+                                                    </view>
+                                                    <constraints>
+                                                        <constraint firstAttribute="trailing" secondItem="EVD-Wc-A9Q" secondAttribute="trailing" id="7hE-Xw-MEw"/>
+                                                        <constraint firstItem="EVD-Wc-A9Q" firstAttribute="top" secondItem="lKr-xy-HBu" secondAttribute="top" id="OkJ-iH-B5e"/>
+                                                        <constraint firstItem="EVD-Wc-A9Q" firstAttribute="leading" secondItem="lKr-xy-HBu" secondAttribute="leading" id="mwW-z6-VHV"/>
+                                                        <constraint firstAttribute="bottom" secondItem="EVD-Wc-A9Q" secondAttribute="bottom" id="uYf-bx-OEs"/>
+                                                    </constraints>
+                                                    <size key="customSize" width="200" height="50"/>
+                                                    <connections>
+                                                        <outlet property="navigationCountLabel" destination="2yM-Mz-biK" id="rpq-C4-4SC"/>
+                                                        <outlet property="navigationTitleLabel" destination="s7k-QM-Rwj" id="N4x-QZ-HV3"/>
+                                                    </connections>
+                                                </collectionViewCell>
                                             </cells>
                                             <connections>
                                                 <outlet property="dataSource" destination="Tmv-tw-gbQ" id="1V9-dZ-c3a"/>
