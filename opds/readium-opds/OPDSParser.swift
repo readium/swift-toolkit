@@ -6,13 +6,14 @@
 //  Copyright © 2017 Readium. All rights reserved.
 //
 
-import AEXML
+import Fuzi
 import R2Shared
 import PromiseKit
 
 public enum OPDSParserError: Error {
     case missingTitle
     case documentNotFound
+    case rootNotFound
     
     var localizedDescription: String {
         switch self {
@@ -20,6 +21,8 @@ public enum OPDSParserError: Error {
             return "The title is missing from the feed."
         case .documentNotFound:
             return "Document is not found"
+        case .rootNotFound:
+            return "Root is not found"
         }
     }
 }
@@ -79,49 +82,45 @@ public class OPDSParser {
     ///
     /// - Parameter: The opds flux data.
     public static func parse(xmlData: Data) throws -> Feed {
-        let document = try AEXMLDocument.init(xml: xmlData)
-        let root = document.root
+        let document = try XMLDocument.init(data: xmlData)
+        
+        guard let root = document.root else {
+            throw OPDSParserError.rootNotFound
+        }
 
-        guard let title = root["title"].value else {
+        guard let title = root.firstChild(tag: "title")?.stringValue else {
             throw OPDSParserError.missingTitle
         }
         let feed = Feed.init(title: title)
 
-        if let tmpDate = root["updated"].value,
+        if let tmpDate = root.firstChild(tag: "updated")?.stringValue,
             let date = tmpDate.dateFromISO8601
         {
             feed.metadata.modified = date
         }
-        if let totalResults = root["TotalResults"].value {
+        if let totalResults = root.firstChild(tag: "TotalResults")?.stringValue {
             feed.metadata.numberOfItem = Int(totalResults)
         }
-        if let itemsPerPage = root["ItemsPerPage"].value {
+        if let itemsPerPage = root.firstChild(tag: "ItemsPerPage")?.stringValue {
             feed.metadata.itemsPerPage = Int(itemsPerPage)
         }
-        ///////
-        guard let entries = root["entry"].all else {
-            return feed
-        }
-        ////
 
-        for entry in entries {
+        for entry in root.children(tag: "entry") {
             var isNavigation = true
             let collectionLink = Link()
 
-            if let links = entry["link"].all {
-                for link in links {
-                    if let rel = link.attributes["rel"] {
-                        // Check is navigation or acquisition.
-                        if rel.range(of: "http://opds-spec.org/acquisition") != nil {
-                            isNavigation = false
-                        }
-                        // Check if there is a colelction.
-                        if rel == "collection" || rel == "http://opds-spec.org/group" {
-                            collectionLink.rel.append("collection")
-                            collectionLink.href = link.attributes["href"]
-                            collectionLink.absoluteHref = URLHelper.getAbsolute(href: link.attributes["href"], base: feedURL)
-                            collectionLink.title = link.attributes["title"]
-                        }
+            for link in entry.children(tag: "link") {
+                if let rel = link.attributes["rel"] {
+                    // Check is navigation or acquisition.
+                    if rel.range(of: "http://opds-spec.org/acquisition") != nil {
+                        isNavigation = false
+                    }
+                    // Check if there is a colelction.
+                    if rel == "collection" || rel == "http://opds-spec.org/group" {
+                        collectionLink.rel.append("collection")
+                        collectionLink.href = link.attributes["href"]
+                        collectionLink.absoluteHref = URLHelper.getAbsolute(href: link.attributes["href"], base: feedURL)
+                        collectionLink.title = link.attributes["title"]
                     }
                 }
             }
@@ -138,19 +137,23 @@ public class OPDSParser {
             } else {
                 let newLink = Link()
 
-                if let entryTitle = entry["title"].value {
+                if let entryTitle = entry.firstChild(tag: "title")?.stringValue {
                     newLink.title = entryTitle
                 }
-                if let rel = entry["link"].attributes["rel"] {
+                
+                if let rel = entry.firstChild(tag: "link")?.attr("rel") {
                     newLink.rel.append(rel)
                 }
-                if let facetElementCountStr = entry["link"].attributes["thr:count"],
+                
+                if let facetElementCountStr = entry.firstChild(tag: "link")?.attr("thr:count"),
                     let facetElementCount = Int(facetElementCountStr) {
                     newLink.properties.numberOfItems = facetElementCount
                 }
-                newLink.typeLink = entry["link"].attributes["type"]
-                newLink.href = entry["link"].attributes["href"]
-                newLink.absoluteHref = URLHelper.getAbsolute(href: entry["link"].attributes["href"], base: feedURL)
+                
+                newLink.typeLink = entry.firstChild(tag: "link")?.attr("type")
+                newLink.href = entry.firstChild(tag: "link")?.attr("href")
+                newLink.absoluteHref = URLHelper.getAbsolute(href: entry.firstChild(tag: "link")?.attr("href"), base: feedURL)
+                
                 // Check collection link
                 if collectionLink.href != nil {
                     addNavigationInGroup(feed, newLink, collectionLink)
@@ -160,33 +163,31 @@ public class OPDSParser {
             }
         }
 
-        if let links = root["link"].all {
-            for link in links {
-                let newLink = Link()
+        for link in root.children(tag: "link") {
+            let newLink = Link()
 
-                newLink.href = link.attributes["href"]
-                newLink.absoluteHref = URLHelper.getAbsolute(href: link.attributes["href"], base: feedURL)
-                newLink.title = link.attributes["title"]
-                newLink.typeLink = link.attributes["type"]
-                if let rel = link.attributes["rel"] {
-                    newLink.rel.append(rel)
+            newLink.href = link.attributes["href"]
+            newLink.absoluteHref = URLHelper.getAbsolute(href: link.attributes["href"], base: feedURL)
+            newLink.title = link.attributes["title"]
+            newLink.typeLink = link.attributes["type"]
+            if let rel = link.attributes["rel"] {
+                newLink.rel.append(rel)
+            }
+            //                    if let rels = link.attributes["rel"]?.split(separator: " ") {
+            //                        for rel in rels {
+            //                            newLink.rel.append(rel)
+            //                        }
+            //                    }
+            if let facetGroupName = link.attributes["opds:facetGroup"],
+                newLink.rel.contains("http://opds-spec.org/facet")
+            {
+                if let facetElementCountStr = link.attributes["thr:count"],
+                    let facetElementCount = Int(facetElementCountStr) {
+                    newLink.properties.numberOfItems = facetElementCount
                 }
-                //                    if let rels = link.attributes["rel"]?.split(separator: " ") {
-                //                        for rel in rels {
-                //                            newLink.rel.append(rel)
-                //                        }
-                //                    }
-                if let facetGroupName = link.attributes["opds:facetGroup"],
-                    newLink.rel.contains("http://opds-spec.org/facet")
-                {
-                    if let facetElementCountStr = link.attributes["thr:count"],
-                        let facetElementCount = Int(facetElementCountStr) {
-                        newLink.properties.numberOfItems = facetElementCount
-                    }
-                    addFacet(feed: feed, to: newLink, named: facetGroupName)
-                } else {
-                    feed.links.append(newLink)
-                }
+                addFacet(feed: feed, to: newLink, named: facetGroupName)
+            } else {
+                feed.links.append(newLink)
             }
         }
         
@@ -194,8 +195,10 @@ public class OPDSParser {
     }
 
     public static func parseEntry(xmlData: Data) throws -> Publication {
-        let document = try AEXMLDocument.init(xml: xmlData)
-        let root = document.root
+        let document = try XMLDocument.init(data: xmlData)
+        guard let root = document.root else {
+            throw OPDSParserError.rootNotFound
+        }
         return parseEntry(entry: root)
     }
 
@@ -252,11 +255,11 @@ public class OPDSParser {
                     reject(OPDSParserOpenSearchHelperError.searchDocumentIsInvalid)
                     return
                 }
-                guard let document = try? AEXMLDocument.init(xml: data) else {
+                guard let document = try? XMLDocument.init(data: data) else {
                     reject (OPDSParserOpenSearchHelperError.searchDocumentIsInvalid)
                     return
                 }
-                guard let urls = document.root["Url"].all else {
+                guard let urls = document.root?.children(tag: "Url") else {
                     reject(OPDSParserOpenSearchHelperError.searchDocumentIsInvalid)
                     return
                 }
@@ -266,8 +269,8 @@ public class OPDSParser {
                 }
                 // The OpenSearch document may contain multiple Urls, and we need to find the closest matching one.
                 // We match by mimetype and profile; if that fails, by mimetype; and if that fails, the first url is returned
-                var typeAndProfileMatch: AEXMLElement? = nil
-                var typeMatch: AEXMLElement? = nil
+                var typeAndProfileMatch: XMLElement? = nil
+                var typeMatch: XMLElement? = nil
                 if let unwrappedSelfMimeType = selfMimeType {
                     let selfMimeParams = parseMimeType(mimeTypeString: unwrappedSelfMimeType)
                     for url in urls {
@@ -297,125 +300,120 @@ public class OPDSParser {
         }
     }
 
-    static internal func parseEntry(entry: AEXMLElement) -> Publication {
+    static internal func parseEntry(entry: XMLElement) -> Publication {
         let publication = Publication()
         /// METADATA (publication) ----
         let metadata = Metadata()
         publication.metadata = metadata
 
-        if let entryTitle = entry["title"].value {
+        if let entryTitle = entry.firstChild(tag: "title")?.stringValue {
             if metadata.multilangTitle == nil {
                 metadata.multilangTitle = MultilangString()
             }
             metadata.multilangTitle?.singleString = entryTitle
         }
 
-        if let identifier = entry["identifier"].value {
+        if let identifier = entry.firstChild(tag: "identifier")?.stringValue {
             metadata.identifier = identifier
-        } else if let id = entry["id"].value {
+        } else if let id = entry.firstChild(tag: "id")?.stringValue {
             metadata.identifier = id
         }
 
         // Languages.
-        if let languages = entry["dcterms:language"].all {
-            metadata.languages = languages.map({ $0.string })
+        let languages = entry.children(tag: "dcterms:language")
+        if languages.count > 0 {
+            metadata.languages = languages.map({ $0.stringValue })
         }
         // Last modification date.
-        if let tmpDate = entry["updated"].value,
+        if let tmpDate = entry.firstChild(tag: "updated")?.stringValue,
             let date = tmpDate.dateFromISO8601
         {
             metadata.modified = date
         }
         // Publication date.
-        if let tmpDate = entry["published"].value {
+        if let tmpDate = entry.firstChild(tag: "published")?.stringValue {
             metadata.publicationDate = tmpDate
         }
 
         // Rights.
-        if let rights = entry["rights"].all {
-            metadata.rights = rights.map({ $0.string }).joined(separator: " ")
+        let rights = entry.children(tag: "rights")
+        if rights.count > 0 {
+            metadata.rights = rights.map({ $0.stringValue }).joined(separator: " ")
         }
         // TODO SERIES -------------
         // Publisher
-        if let publisher = entry["dcterms:publisher"].value {
+        if let publisher = entry.firstChild(tag: "dcterms:publisher")?.stringValue {
             let contributor = Contributor()
 
             contributor.multilangName.singleString = publisher
             metadata.publishers.append(contributor)
         }
         // Categories.
-        if let categories = entry["category"].all {
-            for category in categories {
-                let subject = Subject()
+        for category in entry.children(tag: "category") {
+            let subject = Subject()
 
-                subject.code = category.attributes["term"]
-                subject.name = category.attributes["label"]
-                subject.scheme = category.attributes["scheme"]
-                metadata.subjects.append(subject)
-            }
+            subject.code = category.attributes["term"]
+            subject.name = category.attributes["label"]
+            subject.scheme = category.attributes["scheme"]
+            metadata.subjects.append(subject)
         }
         /// Contributors.
         // Author.
-        if let authors = entry["author"].all {
-            for author in authors {
-                let contributor = Contributor()
+        for author in entry.children(tag: "author") {
+            let contributor = Contributor()
 
-                if let uri = author["uri"].value {
-                    let link = Link()
-
-                    link.href = uri
-                    link.absoluteHref = URLHelper.getAbsolute(href: uri, base: feedURL)
-                    contributor.links.append(link)
-                }
-                contributor.multilangName.singleString = author["name"].value
-                metadata.authors.append(contributor)
+            if let uri = author.firstChild(tag: "uri")?.stringValue {
+                let link = Link()
+                link.href = uri
+                link.absoluteHref = URLHelper.getAbsolute(href: uri, base: feedURL)
+                contributor.links.append(link)
             }
+            
+            contributor.multilangName.singleString = author.firstChild(tag: "name")?.stringValue
+            metadata.authors.append(contributor)
         }
         // Description.
-        if let content = entry["content"].value {
+        if let content = entry.firstChild(tag: "content")?.stringValue {
             metadata.description = content
-        } else if let summary = entry["summary"].value {
+        } else if let summary = entry.firstChild(tag: "summary")?.stringValue {
             metadata.description = summary
         }
         // Links.
-        if let links = entry["link"].all {
-            for link in links {
-                let newLink = Link()
+        for link in entry.children(tag: "link") {
+            let newLink = Link()
 
-                newLink.href = link.attributes["href"]
-                newLink.absoluteHref = URLHelper.getAbsolute(href: link.attributes["href"], base: feedURL)
-                newLink.title = link.attributes["title"]
-                newLink.typeLink = link.attributes["type"]
-                if let rel = link.attributes["rel"] {
-                    newLink.rel.append(rel)
-                }
-                //                            if let rels = link.attributes["rel"]?.split(separator: " ") {
-                //                                for rel in rels {
-                //                                    newLink.rel.append(rel)
-                //                                }
-                //                            }
-                // Indirect acquisition check. (Recursive)
-                if let indirectAcquisitions = link["opds:indirectAcquisition"].all,
-                    !indirectAcquisitions.isEmpty
-                {
-                    newLink.properties.indirectAcquisition = parseIndirectAcquisition(children: indirectAcquisitions)
-                }
-                // Price.
-                if let price = link["opds:price"].value,
-                    let priceDouble = Double(price),
-                    let currency = link["opds:price"].attributes["currencyCode"]
-                {
-                    let newPrice = Price(currency: currency, value: priceDouble)
+            newLink.href = link.attributes["href"]
+            newLink.absoluteHref = URLHelper.getAbsolute(href: link.attributes["href"], base: feedURL)
+            newLink.title = link.attributes["title"]
+            newLink.typeLink = link.attributes["type"]
+            if let rel = link.attributes["rel"] {
+                newLink.rel.append(rel)
+            }
+            //                            if let rels = link.attributes["rel"]?.split(separator: " ") {
+            //                                for rel in rels {
+            //                                    newLink.rel.append(rel)
+            //                                }
+            //                            }
+            // Indirect acquisition check. (Recursive)
+            let indirectAcquisitions = link.children(tag: "opds:indirectAcquisition")
+            if !indirectAcquisitions.isEmpty {
+                newLink.properties.indirectAcquisition = parseIndirectAcquisition(children: indirectAcquisitions)
+            }
+            // Price.
+            if let price = link.firstChild(tag: "opds:price")?.stringValue,
+                let priceDouble = Double(price),
+                let currency = link.firstChild(tag: "opds:price")?.attr("currencyCode")
+            {
+                let newPrice = Price(currency: currency, value: priceDouble)
 
-                    newLink.properties.price = newPrice
-                }
-                if let rel = link.attributes["rel"] {
-                    if rel == "collection" || rel == "http://opds-spec.org/group" {
-                    } else if rel == "http://opds-spec.org/image" || rel == "http://opds-spec.org/image-thumbnail" {
-                        publication.images.append(newLink)
-                    } else {
-                        publication.links.append(newLink)
-                    }
+                newLink.properties.price = newPrice
+            }
+            if let rel = link.attributes["rel"] {
+                if rel == "collection" || rel == "http://opds-spec.org/group" {
+                } else if rel == "http://opds-spec.org/image" || rel == "http://opds-spec.org/image-thumbnail" {
+                    publication.images.append(newLink)
+                } else {
+                    publication.links.append(newLink)
                 }
             }
         }
@@ -496,14 +494,15 @@ public class OPDSParser {
     ///
     /// - Parameter children: <#children description#>
     /// - Returns: <#return value description#>
-    static internal func parseIndirectAcquisition(children: [AEXMLElement]) -> [IndirectAcquisition] {
+    static internal func parseIndirectAcquisition(children: [XMLElement]) -> [IndirectAcquisition] {
         var ret = [IndirectAcquisition]()
 
         for child in children {
             if let typeAcquisition = child.attributes["type"] {
                 let newIndAcq = IndirectAcquisition(typeAcquisition: typeAcquisition)
 
-                if let grandChildren = child["opds:indirectAcquisition"].all {
+                let grandChildren = child.children(tag: "opds:indirectAcquisition")
+                if grandChildren.count > 0 {
                     newIndAcq.child = parseIndirectAcquisition(children: grandChildren)
                 }
                 ret.append(newIndAcq)
