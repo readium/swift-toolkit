@@ -84,6 +84,10 @@ public class OPDSParser {
     public static func parse(xmlData: Data) throws -> Feed {
         let document = try XMLDocument.init(data: xmlData)
         
+        document.definePrefix("thr", defaultNamespace: "http://purl.org/syndication/thread/1.0")
+        document.definePrefix("dcterms", defaultNamespace: "http://purl.org/dc/terms/")
+        document.definePrefix("opds", defaultNamespace: "http://opds-spec.org/2010/catalog")
+        
         guard let root = document.root else {
             throw OPDSParserError.rootNotFound
         }
@@ -145,7 +149,7 @@ public class OPDSParser {
                     newLink.rel.append(rel)
                 }
                 
-                if let facetElementCountStr = entry.firstChild(tag: "link")?.attr("thr:count"),
+                if let facetElementCountStr = entry.firstChild(tag: "link")?.attr("count"),
                     let facetElementCount = Int(facetElementCountStr) {
                     newLink.properties.numberOfItems = facetElementCount
                 }
@@ -178,10 +182,10 @@ public class OPDSParser {
             //                            newLink.rel.append(rel)
             //                        }
             //                    }
-            if let facetGroupName = link.attributes["opds:facetGroup"],
+            if let facetGroupName = link.attributes["facetGroup"],
                 newLink.rel.contains("http://opds-spec.org/facet")
             {
-                if let facetElementCountStr = link.attributes["thr:count"],
+                if let facetElementCountStr = link.attributes["count"],
                     let facetElementCount = Int(facetElementCountStr) {
                     newLink.properties.numberOfItems = facetElementCount
                 }
@@ -320,7 +324,7 @@ public class OPDSParser {
         }
 
         // Languages.
-        let languages = entry.children(tag: "dcterms:language")
+        let languages = entry.children(tag: "language")
         if languages.count > 0 {
             metadata.languages = languages.map({ $0.stringValue })
         }
@@ -342,7 +346,7 @@ public class OPDSParser {
         }
         // TODO SERIES -------------
         // Publisher
-        if let publisher = entry.firstChild(tag: "dcterms:publisher")?.stringValue {
+        if let publisher = entry.firstChild(tag: "publisher")?.stringValue {
             let contributor = Contributor()
 
             contributor.multilangName.singleString = publisher
@@ -395,14 +399,14 @@ public class OPDSParser {
             //                                }
             //                            }
             // Indirect acquisition check. (Recursive)
-            let indirectAcquisitions = link.children(tag: "opds:indirectAcquisition")
+            let indirectAcquisitions = link.children(tag: "indirectAcquisition")
             if !indirectAcquisitions.isEmpty {
                 newLink.properties.indirectAcquisition = parseIndirectAcquisition(children: indirectAcquisitions)
             }
             // Price.
-            if let price = link.firstChild(tag: "opds:price")?.stringValue,
+            if let price = link.firstChild(tag: "price")?.stringValue,
                 let priceDouble = Double(price),
-                let currency = link.firstChild(tag: "opds:price")?.attr("currencyCode")
+                let currency = link.firstChild(tag: "price")?.attr("currencyCode")
             {
                 let newPrice = Price(currency: currency, value: priceDouble)
 
@@ -501,7 +505,7 @@ public class OPDSParser {
             if let typeAcquisition = child.attributes["type"] {
                 let newIndAcq = IndirectAcquisition(typeAcquisition: typeAcquisition)
 
-                let grandChildren = child.children(tag: "opds:indirectAcquisition")
+                let grandChildren = child.children(tag: "indirectAcquisition")
                 if grandChildren.count > 0 {
                     newIndAcq.child = parseIndirectAcquisition(children: grandChildren)
                 }
