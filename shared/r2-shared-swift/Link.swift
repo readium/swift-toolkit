@@ -13,6 +13,8 @@ import ObjectMapper
 public class Link {
     /// The link destination.
     public var href: String?
+    /// The link destination (absolute URL).
+    public var absoluteHref: String?
     /// MIME type of resource.
     public var typeLink: String?
     /// Indicates the relationship between the resource and its containing collection.
