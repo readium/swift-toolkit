@@ -70,11 +70,11 @@ open class CbzNavigatorViewController: UIViewController {
 
 extension CbzNavigatorViewController {
 
-    public func loadNext() {
+    @objc public func loadNext() {
         load(nextSpineItem())
     }
 
-    public func loadPrevious() {
+    @objc public func loadPrevious() {
         load(previousSpineItem())
     }
 
