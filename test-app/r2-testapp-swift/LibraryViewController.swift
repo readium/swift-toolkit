@@ -58,7 +58,7 @@ class LibraryViewController: UICollectionViewController {
     
     delegate = appDelegate
 
-    publications = appDelegate.items.flatMap() { $0.value.0.publication }.sorted { (pA, pB) -> Bool in
+    publications = appDelegate.items.compactMap() { $0.value.0.publication }.sorted { (pA, pB) -> Bool in
           pA.metadata.title < pB.metadata.title
       }
 
@@ -99,9 +99,9 @@ class LibraryViewController: UICollectionViewController {
   static let iPadLayoutNumberPerRow:[GeneralScreenOrientation: Int] = [.portrait: 4, .landscape: 5]
   static let iPhoneLayoutNumberPerRow:[GeneralScreenOrientation: Int] = [.portrait: 3, .landscape: 4]
   
-  lazy var layoutNumberPerRow:[UIUserInterfaceIdiom:[GeneralScreenOrientation: Int]] = [
-    .pad : iPadLayoutNumberPerRow,
-    .phone : iPhoneLayoutNumberPerRow
+  static let layoutNumberPerRow:[UIUserInterfaceIdiom:[GeneralScreenOrientation: Int]] = [
+    .pad : LibraryViewController.iPadLayoutNumberPerRow,
+    .phone : LibraryViewController.iPhoneLayoutNumberPerRow
   ]
   
   private var previousScreenOrientation: GeneralScreenOrientation?
@@ -127,6 +127,11 @@ class LibraryViewController: UICollectionViewController {
       }
     } ()
     
+    var layoutNumberPerRow:[UIUserInterfaceIdiom:[GeneralScreenOrientation: Int]] = [
+        .pad : LibraryViewController.iPadLayoutNumberPerRow,
+        .phone : LibraryViewController.iPhoneLayoutNumberPerRow
+    ]
+    
     previousScreenOrientation = orientation
     
     guard let deviceLayoutNumberPerRow = layoutNumberPerRow[idiom] else {return}
@@ -147,18 +152,18 @@ class LibraryViewController: UICollectionViewController {
 
 // MARK: - Misc.
 extension LibraryViewController {
-  
-  func handleLongPress(gestureRecognizer: UILongPressGestureRecognizer) {
-    if (gestureRecognizer.state != UIGestureRecognizerState.began) {
-      return
+
+    @objc func handleLongPress(gestureRecognizer: UILongPressGestureRecognizer) {
+        if (gestureRecognizer.state != UIGestureRecognizerState.began) {
+            return
+        }
+        let location = gestureRecognizer.location(in: collectionView)
+        if let indexPath = collectionView?.indexPathForItem(at: location) {
+            let cell = collectionView?.cellForItem(at: indexPath) as! PublicationCell
+
+            cell.flipMenu()
+        }
     }
-    let location = gestureRecognizer.location(in: collectionView)
-    if let indexPath = collectionView?.indexPathForItem(at: location) {
-      let cell = collectionView?.cellForItem(at: indexPath) as! PublicationCell
-      
-      cell.flipMenu()
-    }
-  }
 }
 
 // MARK: - CollectionView Datasource.

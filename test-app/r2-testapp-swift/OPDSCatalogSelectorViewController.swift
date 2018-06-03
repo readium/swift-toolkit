@@ -98,7 +98,7 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         return [editAction, deleteAction]
     }
 
-    func showAddFeedPopup() {
+    @objc func showAddFeedPopup() {
         self.showEditPopup(feedIndex: nil)
     }
 

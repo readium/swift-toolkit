@@ -60,15 +60,15 @@ class CellMenuView: UIView {
 }
 
 extension CellMenuView {
-    func infoButtonTapped() {
+    @objc func infoButtonTapped() {
         delegate?.infoTapped()
     }
 
-    func removeButtonTapped() {
+    @objc func removeButtonTapped() {
         delegate?.removeTapped()
     }
-
-    func cancelButtonTapped() {
+    
+    @objc func cancelButtonTapped() {
         delegate?.cancelTapped()
     }
 }

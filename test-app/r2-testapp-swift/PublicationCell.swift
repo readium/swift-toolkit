@@ -9,7 +9,7 @@
 import UIKit
 
 protocol PublicationCellDelegate: class {
-    weak var lastFlippedCell: PublicationCell? { get set }
+    var lastFlippedCell: PublicationCell? { get set }
 
     func displayInformation(forCellAt indexPath: IndexPath)
     func removePublicationFromLibrary(forCellAt indexPath: IndexPath)

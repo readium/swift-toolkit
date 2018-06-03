@@ -148,7 +148,7 @@ class EpubViewController: UIViewController {
 
 extension EpubViewController {
 
-    func presentUserSettings() {
+    @objc func presentUserSettings() {
         let popoverPresentationController = userSettingNavigationController.popoverPresentationController!
 
         popoverPresentationController.delegate = self
@@ -157,7 +157,7 @@ extension EpubViewController {
         present(userSettingNavigationController, animated: true, completion: nil)
     }
 
-    func presentTableOfContents() {
+    @objc func presentTableOfContents() {
         let backItem = UIBarButtonItem()
 
         backItem.title = ""
@@ -169,7 +169,7 @@ extension EpubViewController {
         navigationController?.pushViewController(tableOfContentsTVC, animated: true)
     }
 
-    func presentDrmManagement() {
+    @objc func presentDrmManagement() {
         let backItem = UIBarButtonItem()
 
         backItem.title = ""
@@ -236,7 +236,7 @@ extension EpubViewController: UserSettingsNavigationControllerDelegate {
         navigationController?.navigationBar.barTintColor = color
         navigationController?.navigationBar.tintColor = textColor
         
-        navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: textColor]
+        navigationController?.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: textColor]
         
         //
         tableOfContentsTVC.setUIColor(for: appearance)
