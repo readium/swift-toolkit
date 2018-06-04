@@ -192,7 +192,7 @@ class OPDSRootTableViewController: UITableViewController {
     
     //MARK: - Facets
     
-    func filterMenuClicked(_ sender: UIBarButtonItem) {
+    @objc func filterMenuClicked(_ sender: UIBarButtonItem) {
 
         let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
         
@@ -564,7 +564,7 @@ class OPDSRootTableViewController: UITableViewController {
     
     //MARK: - Target action
     
-    func moreAction(sender: UIButton!) {
+    @objc func moreAction(sender: UIButton!) {
         if let moreButton = sender as? OPDSMoreButton {
             if let href = feed?.groups[moreButton.offset!].links[0].href {
                 pushOpdsRootViewController(href: href)
