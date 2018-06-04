@@ -448,7 +448,7 @@ public class OPDSParser {
             let selfLink = Link()
 
             selfLink.href = collectionLink.href
-            selfLink.absoluteHref = Tool.getAbsolute(href: selfLink.href, base: feedURL)
+            selfLink.absoluteHref = URLHelper.getAbsolute(href: selfLink.href, base: feedURL)
             selfLink.title = collectionLink.title
             selfLink.rel.append("self")
             newGroup.links.append(selfLink)
@@ -476,7 +476,7 @@ public class OPDSParser {
             let selfLink = Link()
 
             selfLink.href = collectionLink.href
-            selfLink.absoluteHref = Tool.getAbsolute(href: collectionLink.href, base: feedURL)
+            selfLink.absoluteHref = URLHelper.getAbsolute(href: collectionLink.href, base: feedURL)
             selfLink.title = collectionLink.title
             selfLink.rel.append("self")
             newGroup.links.append(selfLink)

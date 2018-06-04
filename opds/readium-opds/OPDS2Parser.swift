@@ -175,7 +175,7 @@ public class OPDS2Parser {
                 l.title = v as? String
             case "href":
                 l.href = v as? String
-                l.absoluteHref = Tool.getAbsolute(href: l.href, base: feedURL)
+                l.absoluteHref = URLHelper.getAbsolute(href: l.href, base: feedURL)
             case "type":
                 l.typeLink = v as? String
             case "rel":

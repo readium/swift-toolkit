@@ -8,7 +8,7 @@
 
 import Foundation
 
-class Tool {
+class URLHelper {
     
     /**
      Check if an href destination is absolute or not.
@@ -39,7 +39,7 @@ class Tool {
         var absolute: String?
         
         if let href = href {
-            if Tool.isAbsolute(href: href) {
+            if URLHelper.isAbsolute(href: href) {
                 absolute = href
             } else {
                 if let base = base {
