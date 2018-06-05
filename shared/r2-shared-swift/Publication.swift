@@ -40,6 +40,9 @@ public class Publication {
     // TODO: other collections
     // var otherCollections: [PublicationCollection]
     public var internalData = [String: String]()
+    
+    // The status of Settings prpperties. Enable or disable
+    public var userSettingsUIPreset:[ReadiumCSSKey:Bool]?
 
     // MARK: - Public methods.
 
@@ -246,4 +249,26 @@ extension Publication: Mappable {
             listOfTables <- map["lot", ignoreNil: true]
         }
     }
+}
+
+// The keys in ReadiumCss. Also used for storing UserSettings in UserDefaults.
+public enum ReadiumCSSKey: String {
+    case fontSize = "--USER__fontSize"
+    case font = "--USER__fontFamily"
+    case appearance = "--USER__appearance"
+    case scroll = "--USER__scroll"
+    case publisherSettings = "--USER__advancedSettings"
+    case wordSpacing = "--USER__wordSpacing"
+    case letterSpacing = "--USER__letterSpacing"
+    case columnCount = "--USER__colCount"
+    case pageMargins = "--USER__pageMargins"
+    case textAlignement = "--USER__textAlign"
+    //--USER__darkenImages --USER__invertImages
+    
+    case paraIndent = "--USER__paraIndent"
+    
+    case hyphens = "--USER__bodyHyphens"
+    case ligatrues = "--USER__ligatures"
+    
+    case publisherFont = "--USER__fontOverride"
 }
