@@ -10,6 +10,7 @@ import UIKit
 import Foundation
 import R2Shared
 import ReadiumOPDS
+import PromiseKit
 
 class OPDSCatalogSelectorViewController: UITableViewController {
     var catalogData: [[String: String]]? // An array of dicts in the form ["title": title, "url": url, "type": type]
@@ -111,20 +112,37 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         self.showEditPopup(feedIndex: nil)
     }
 
-    func showEditPopup(feedIndex: Int?) {
-        let alertController = UIAlertController(title: "Enter feed title and URL", message: "", preferredStyle: .alert)
+    func showEditPopup(feedIndex: Int?, retry: Bool = false) {
+        let alertController = UIAlertController(title: "Enter feed title and URL",
+                                                message: retry ? "Feed is not valid, please try again." : "",
+                                                preferredStyle: .alert)
         let confirmAction = UIAlertAction(title: "OK", style: .default) { (_) in
             let title = alertController.textFields?[0].text
-            let url = alertController.textFields?[1].text
+            let urlString = alertController.textFields?[1].text
             let type = alertController.textFields?[2].text
-            if feedIndex == nil {
-                self.catalogData?.append(["title": title!, "url": url!, "type": type!])
+            if let url = URL(string: urlString!) {
+                UIApplication.shared.isNetworkActivityIndicatorVisible = true
+                firstly {
+                    type! == "1" ? OPDSParser.parseURL(url: url) : OPDS2Parser.parseURL(url: url)
+                    }.then { newFeed -> Void in
+                        DispatchQueue.main.async {
+                            if feedIndex == nil {
+                                self.catalogData?.append(["title": title!, "url": urlString!, "type": type!])
+                            }
+                            else {
+                                self.catalogData?[feedIndex!] = ["title": title!, "url": urlString!, "type": type!]
+                            }
+                            UserDefaults.standard.set(self.catalogData, forKey: self.userDefaultsID)
+                            self.tableView.reloadData()
+                        }
+                    }.catch(execute: { (_) in
+                        self.showEditPopup(feedIndex: feedIndex, retry: true)
+                    }).always {
+                        UIApplication.shared.isNetworkActivityIndicatorVisible = false
+                }
+            } else {
+                self.showEditPopup(feedIndex: feedIndex, retry: true)
             }
-            else {
-                self.catalogData?[feedIndex!] = ["title": title!, "url": url!, "type": type!]
-            }
-            UserDefaults.standard.set(self.catalogData, forKey: self.userDefaultsID)
-            self.tableView.reloadData()
         }
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { (_) in }
         alertController.addTextField {(textField) in
