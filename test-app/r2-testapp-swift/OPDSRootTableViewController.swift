@@ -41,8 +41,8 @@ class OPDSRootTableViewController: UITableViewController {
     static let iPhoneLayoutHeightForRow:[GeneralScreenOrientation: CGFloat] = [.portrait: 220, .landscape: 280]
     
     lazy var layoutHeightForRow:[UIUserInterfaceIdiom:[GeneralScreenOrientation: CGFloat]] = [
-        .pad : iPadLayoutHeightForRow,
-        .phone : iPhoneLayoutHeightForRow
+        .pad : OPDSRootTableViewController.iPadLayoutHeightForRow,
+        .phone : OPDSRootTableViewController.iPhoneLayoutHeightForRow
     ]
     
     fileprivate var previousScreenOrientation: GeneralScreenOrientation?
@@ -162,7 +162,7 @@ class OPDSRootTableViewController: UITableViewController {
         }
     }
     
-    func editButtonClicked(_ sender: UIBarButtonItem) {
+    @objc func editButtonClicked(_ sender: UIBarButtonItem) {
         mustEditFeed = true
         navigationController?.popViewController(animated: true)
     }

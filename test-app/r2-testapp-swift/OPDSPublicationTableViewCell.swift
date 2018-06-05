@@ -26,8 +26,8 @@ class OPDSPublicationTableViewCell: UITableViewCell {
     static let iPhoneLayoutNumberPerRow:[GeneralScreenOrientation: Int] = [.portrait: 3, .landscape: 4]
     
     lazy var layoutNumberPerRow:[UIUserInterfaceIdiom:[GeneralScreenOrientation: Int]] = [
-        .pad : iPadLayoutNumberPerRow,
-        .phone : iPhoneLayoutNumberPerRow
+        .pad : OPDSPublicationTableViewCell.iPadLayoutNumberPerRow,
+        .phone : OPDSPublicationTableViewCell.iPhoneLayoutNumberPerRow
     ]
     
     fileprivate var previousScreenOrientation: GeneralScreenOrientation?
