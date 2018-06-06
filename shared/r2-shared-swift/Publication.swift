@@ -268,7 +268,7 @@ public enum ReadiumCSSKey: String {
     case paraIndent = "--USER__paraIndent"
     
     case hyphens = "--USER__bodyHyphens"
-    case ligatrues = "--USER__ligatures"
+    case ligatures = "--USER__ligatures"
     
     case publisherFont = "--USER__fontOverride"
 }
