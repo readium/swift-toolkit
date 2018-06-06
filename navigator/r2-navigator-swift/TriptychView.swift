@@ -31,7 +31,7 @@ final class TriptychView: UIView {
 
     /// The array containing the Views for the current document, and possibly for
     /// the next and previous or other kind of preloading.
-    internal enum InternalViews {
+    internal enum Views {
         case one(view: UIView)
         case two(firstView: UIView, secondView: UIView)
         case many(currentView: UIView, otherViews: Disjunction<UIView, UIView>)
@@ -100,9 +100,9 @@ final class TriptychView: UIView {
 
     public let viewCount: Int
 
-    internal var views: InternalViews?
+    internal var views: Views?
     
-    let beginning, ending: BinaryLocation
+    let leading, trailing: BinaryLocation
     let direction: PageProgressionDirection
 
     fileprivate var clamping: Clamping = .none
@@ -122,9 +122,9 @@ final class TriptychView: UIView {
         self.scrollView = UIScrollView()
         
         if self.direction == .rtl {
-            beginning = .right; ending = .left
+            leading = .right; trailing = .left
         } else {
-            beginning = .left; ending = .right
+            leading = .left; trailing = .right
         }
         
         super.init(frame: frame)
@@ -237,37 +237,37 @@ final class TriptychView: UIView {
         switch viewCount {
         case 1:
             assert(index == 0)
-            let view = viewForIndex(0, location: beginning)
-            views = InternalViews.one(view: view)
+            let view = viewForIndex(0, location: leading)
+            views = Views.one(view: view)
         case 2:
             assert(index < 2)
             if index == 0 {
-                let firstView = viewForIndex(0, location: beginning)
-                let secondView = viewForIndex(1, location: beginning) // Why?
-                views = InternalViews.two(firstView: firstView, secondView: secondView)
+                let firstView = viewForIndex(0, location: leading)
+                let secondView = viewForIndex(1, location: leading) // Why?
+                views = Views.two(firstView: firstView, secondView: secondView)
             } else {
-                let firstView = viewForIndex(0, location: ending)
-                let secondView = viewForIndex(1, location: beginning)
-                views = InternalViews.two(firstView: firstView, secondView: secondView)
+                let firstView = viewForIndex(0, location: trailing)
+                let secondView = viewForIndex(1, location: leading)
+                views = Views.two(firstView: firstView, secondView: secondView)
             }
         default:
-            let currentView = viewForIndex(index, location: beginning)
+            let currentView = viewForIndex(index, location: leading)
             if index == 0 {
-                self.views = InternalViews.many(
-                    currentView: viewForIndex(index, location: beginning),
+                self.views = Views.many(
+                    currentView: viewForIndex(index, location: leading),
                     otherViews: Disjunction.second(value:
-                        viewForIndex(index + 1, location: ending)))
+                        viewForIndex(index + 1, location: trailing)))
             } else if index == viewCount - 1 {
-                views = InternalViews.many(
-                    currentView: viewForIndex(index, location: ending),
+                views = Views.many(
+                    currentView: viewForIndex(index, location: trailing),
                     otherViews: Disjunction.first(value:
-                        viewForIndex(index - 1, location: beginning)))
+                        viewForIndex(index - 1, location: leading)))
             } else {
-                views = InternalViews.many(
+                views = Views.many(
                     currentView: currentView,
                     otherViews: Disjunction.both(
-                        first: viewForIndex(index - 1, location: ending),
-                        second: viewForIndex(index + 1, location: beginning)))
+                        first: viewForIndex(index - 1, location: trailing),
+                        second: viewForIndex(index + 1, location: leading)))
             }
         }
 
@@ -307,7 +307,7 @@ extension TriptychView {
         guard index != nextIndex else {
             if let id = id {
                 if id == "" {
-                    cw.scrollAt(location: beginning)
+                    cw.scrollAt(location: leading)
                 } else {
                     cw.scrollAt(tagId: id)
                 }
@@ -323,11 +323,11 @@ extension TriptychView {
         if index < nextIndex {
             currentRect.x += coefficient*currentFrameSize.width
             scrollView.scrollRectToVisible(CGRect(origin: currentRect, size: currentFrameSize), animated: false)
-            cw.scrollAt(location: ending)
+            cw.scrollAt(location: trailing)
         } else {
             currentRect.x -= coefficient*currentFrameSize.width
             scrollView.scrollRectToVisible(CGRect(origin: currentRect, size: currentFrameSize), animated: false)
-            cw.scrollAt(location: beginning)
+            cw.scrollAt(location: leading)
         }
 
         let previousIndex = index
@@ -342,7 +342,7 @@ extension TriptychView {
             if id == "" {
                 if abs(previousIndex - nextIndex) == 1 {
                     // if the view was adjacent and already loaded
-                    cw.scrollAt(location: beginning)
+                    cw.scrollAt(location: leading)
                 } else {
                     // In case the view wasn't preloaded
                     cw.progression = 0.0

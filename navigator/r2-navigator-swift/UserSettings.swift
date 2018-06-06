@@ -25,7 +25,7 @@ public class UserSettings {
     public var pageMargins: PageMargins!
     
     public var hyphens: Bool!
-    public var ligatrues: Bool!
+    public var ligatures: Bool!
     
     public var userSettingsUIPreset: [ReadiumCSSKey:Bool]?
 
@@ -78,9 +78,9 @@ public class UserSettings {
         value = userDefaults.string(forKey: ReadiumCSSKey.columnCount.rawValue) ?? ""
         columnCount = ColumnCount.init(with: value)
         
-        // hyphens and ligatrues
+        // hyphens and ligatures
         hyphens = userDefaults.bool(forKey: ReadiumCSSKey.hyphens.rawValue)
-        ligatrues = userDefaults.bool(forKey: ReadiumCSSKey.ligatrues.rawValue)
+        ligatures = userDefaults.bool(forKey: ReadiumCSSKey.ligatures.rawValue)
     }
 
     public func value(forKey key: ReadiumCSSKey) -> String? {
@@ -107,8 +107,8 @@ public class UserSettings {
             return pageMargins.stringValue()
         case .hyphens:
             return String(hyphens)
-        case .ligatrues:
-            return String(ligatrues)
+        case .ligatures:
+            return String(ligatures)
         case .publisherFont:
             return font?.name() ?? ""
         case .paraIndent:
