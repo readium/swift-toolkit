@@ -8,7 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		03D011F0208020270097A87C /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03D011EF208020270097A87C /* Minizip.framework */; };
-		570754AA2088EE31008A9013 /* utils-old.js in Resources */ = {isa = PBXBuildFile; fileRef = 570754A92088EE31008A9013 /* utils-old.js */; };
+		57BFC4A7209C8EDC0018EC21 /* scripts in Resources */ = {isa = PBXBuildFile; fileRef = 57BFC4A5209C8EDC0018EC21 /* scripts */; };
+		57BFC4A8209C8EDC0018EC21 /* styles in Resources */ = {isa = PBXBuildFile; fileRef = 57BFC4A6209C8EDC0018EC21 /* styles */; };
 		59501DD71E2FB0D700D1B4BF /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501DCD1E2FB0D700D1B4BF /* R2Streamer.framework */; };
 		59501DDE1E2FB0D700D1B4BF /* R2Streamer.h in Headers */ = {isa = PBXBuildFile; fileRef = 59501DD01E2FB0D700D1B4BF /* R2Streamer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		59501E031E2FB16600D1B4BF /* Fetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DE81E2FB16600D1B4BF /* Fetcher.swift */; };
@@ -41,9 +42,6 @@
 		F351DB721E54B6DB00D84BDF /* ContainerEpubDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = F351DB711E54B6DB00D84BDF /* ContainerEpubDirectory.swift */; };
 		F351DB741E54B71A00D84BDF /* ContainerEpub.swift in Sources */ = {isa = PBXBuildFile; fileRef = F351DB731E54B71A00D84BDF /* ContainerEpub.swift */; };
 		F36B18F41E64638E005E22B4 /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F36B18F31E64638E005E22B4 /* StringExtension.swift */; };
-		F36D24D81F546FEA00A00BF1 /* ReadiumCSS-after.css in Resources */ = {isa = PBXBuildFile; fileRef = F36D24D51F546FEA00A00BF1 /* ReadiumCSS-after.css */; };
-		F36D24D91F546FEA00A00BF1 /* ReadiumCSS-before.css in Resources */ = {isa = PBXBuildFile; fileRef = F36D24D61F546FEA00A00BF1 /* ReadiumCSS-before.css */; };
-		F36D24DA1F546FEA00A00BF1 /* ReadiumCSS-default.css in Resources */ = {isa = PBXBuildFile; fileRef = F36D24D71F546FEA00A00BF1 /* ReadiumCSS-default.css */; };
 		F37B63551E6DC44300C6A3AC /* SampleGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F37B63541E6DC44300C6A3AC /* SampleGenerator.swift */; };
 		F37B635E1E6EDC6300C6A3AC /* Loggable.swift in Sources */ = {isa = PBXBuildFile; fileRef = F37B635D1E6EDC6300C6A3AC /* Loggable.swift */; };
 		F3B8F01C1E9CD76A0052D64B /* SMILParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B8F01B1E9CD76A0052D64B /* SMILParser.swift */; };
@@ -51,8 +49,6 @@
 		F3B8F0241E9E62A50052D64B /* ContentFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B8F0231E9E62A50052D64B /* ContentFilter.swift */; };
 		F3D434241E8E9DA5008C379E /* CbzParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D434231E8E9DA5008C379E /* CbzParser.swift */; };
 		F3D434261E8E9ED0008C379E /* ContainerCbz.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D434251E8E9ED0008C379E /* ContainerCbz.swift */; };
-		F3D462F61F28D56C00505E59 /* utils.js in Resources */ = {isa = PBXBuildFile; fileRef = F3D462F51F28D56C00505E59 /* utils.js */; };
-		F3DCEB251F1CA92300061978 /* touchHandling.js in Resources */ = {isa = PBXBuildFile; fileRef = F3DCEB241F1CA92300061978 /* touchHandling.js */; };
 		F3DE1D861E6971A800D05F74 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E181E2FB1F500D1B4BF /* AEXML.framework */; };
 		F3DE1D871E6971A800D05F74 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E191E2FB1F500D1B4BF /* GCDWebServers.framework */; };
 		F3DE1D881E6971A800D05F74 /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */; };
@@ -100,7 +96,8 @@
 
 /* Begin PBXFileReference section */
 		03D011EF208020270097A87C /* Minizip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Minizip.framework; path = Carthage/Build/iOS/Minizip.framework; sourceTree = "<group>"; };
-		570754A92088EE31008A9013 /* utils-old.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "utils-old.js"; sourceTree = "<group>"; };
+		57BFC4A5209C8EDC0018EC21 /* scripts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = scripts; sourceTree = "<group>"; };
+		57BFC4A6209C8EDC0018EC21 /* styles */ = {isa = PBXFileReference; lastKnownFileType = folder; path = styles; sourceTree = "<group>"; };
 		59501DCD1E2FB0D700D1B4BF /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		59501DD01E2FB0D700D1B4BF /* R2Streamer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = R2Streamer.h; sourceTree = "<group>"; };
 		59501DD11E2FB0D700D1B4BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -133,9 +130,6 @@
 		F351DB711E54B6DB00D84BDF /* ContainerEpubDirectory.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContainerEpubDirectory.swift; path = Sources/model/ContainerEpubDirectory.swift; sourceTree = SOURCE_ROOT; };
 		F351DB731E54B71A00D84BDF /* ContainerEpub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContainerEpub.swift; sourceTree = "<group>"; };
 		F36B18F31E64638E005E22B4 /* StringExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
-		F36D24D51F546FEA00A00BF1 /* ReadiumCSS-after.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = "ReadiumCSS-after.css"; sourceTree = "<group>"; };
-		F36D24D61F546FEA00A00BF1 /* ReadiumCSS-before.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = "ReadiumCSS-before.css"; sourceTree = "<group>"; };
-		F36D24D71F546FEA00A00BF1 /* ReadiumCSS-default.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = "ReadiumCSS-default.css"; sourceTree = "<group>"; };
 		F37B63541E6DC44300C6A3AC /* SampleGenerator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SampleGenerator.swift; sourceTree = "<group>"; };
 		F37B635D1E6EDC6300C6A3AC /* Loggable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Loggable.swift; sourceTree = "<group>"; };
 		F3B8F01B1E9CD76A0052D64B /* SMILParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = SMILParser.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
@@ -143,8 +137,6 @@
 		F3B8F0231E9E62A50052D64B /* ContentFilter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContentFilter.swift; path = Sources/fetcher/ContentFilter.swift; sourceTree = SOURCE_ROOT; };
 		F3D434231E8E9DA5008C379E /* CbzParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CbzParser.swift; path = Sources/parser/CbzParser.swift; sourceTree = SOURCE_ROOT; };
 		F3D434251E8E9ED0008C379E /* ContainerCbz.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContainerCbz.swift; path = Sources/model/ContainerCbz.swift; sourceTree = SOURCE_ROOT; };
-		F3D462F51F28D56C00505E59 /* utils.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = utils.js; sourceTree = "<group>"; };
-		F3DCEB241F1CA92300061978 /* touchHandling.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = touchHandling.js; sourceTree = "<group>"; };
 		F3DE1D891E69757100D05F74 /* PublicationParsingTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationParsingTest.swift; sourceTree = "<group>"; };
 		F3DE1EC91E69801D00D05F74 /* Samples */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Samples; sourceTree = "<group>"; };
 		F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; name = OPFParser.swift; path = Sources/parser/OPFParser.swift; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
@@ -314,12 +306,8 @@
 		F302CA2E1F0D2BD900835B22 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				F36D24D51F546FEA00A00BF1 /* ReadiumCSS-after.css */,
-				F36D24D61F546FEA00A00BF1 /* ReadiumCSS-before.css */,
-				F36D24D71F546FEA00A00BF1 /* ReadiumCSS-default.css */,
-				F3DCEB241F1CA92300061978 /* touchHandling.js */,
-				570754A92088EE31008A9013 /* utils-old.js */,
-				F3D462F51F28D56C00505E59 /* utils.js */,
+				57BFC4A5209C8EDC0018EC21 /* scripts */,
+				57BFC4A6209C8EDC0018EC21 /* styles */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -468,12 +456,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F36D24D91F546FEA00A00BF1 /* ReadiumCSS-before.css in Resources */,
-				F36D24D81F546FEA00A00BF1 /* ReadiumCSS-after.css in Resources */,
-				F3DCEB251F1CA92300061978 /* touchHandling.js in Resources */,
-				F36D24DA1F546FEA00A00BF1 /* ReadiumCSS-default.css in Resources */,
-				570754AA2088EE31008A9013 /* utils-old.js in Resources */,
-				F3D462F61F28D56C00505E59 /* utils.js in Resources */,
+				57BFC4A8209C8EDC0018EC21 /* styles in Resources */,
+				57BFC4A7209C8EDC0018EC21 /* scripts in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
