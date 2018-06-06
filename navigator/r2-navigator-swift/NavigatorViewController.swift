@@ -46,6 +46,7 @@ open class NavigatorViewController: UIViewController {
         self.publication = publication
         self.initialProgression = initialProgression
         userSettings = UserSettings()
+        userSettings.userSettingsUIPreset = publication.userSettingsUIPreset
         delegatee = Delegatee()
         var index = initialIndex
 
@@ -54,7 +55,9 @@ open class NavigatorViewController: UIViewController {
         }
         triptychView = TriptychView(frame: CGRect.zero,
                                     viewCount: publication.spine.count,
-                                    initialIndex: index)
+                                    initialIndex: index,
+                                    pageDirection:publication.metadata.direction)
+        
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -143,13 +146,15 @@ extension NavigatorViewController: ViewDelegate {
     }
     
     /// Display next spine item (spine item).
-    public func displayNextDocument() {
-        displaySpineItem(at: triptychView.index + 1)
+    public func displayRightDocument() {
+        let delta = triptychView.direction == .rtl ? -1:1
+        displaySpineItem(at: triptychView.index + delta)
     }
 
     /// Display previous document (spine item).
-    public func displayPreviousDocument() {
-        displaySpineItem(at: triptychView.index - 1)
+    public func displayLeftDocument() {
+        let delta = triptychView.direction == .rtl ? -1:1
+        displaySpineItem(at: triptychView.index - delta)
     }
 
     /// Returns the currently presented Publication's identifier.
@@ -179,7 +184,10 @@ extension Delegatee: TriptychViewDelegate {
 
     public func triptychView(_ view: TriptychView, viewForIndex index: Int,
                              location: BinaryLocation) -> UIView {
+        
         let webView = WebView(frame: view.bounds, initialLocation: location)
+        webView.direction = view.direction
+        
         let link = parent.publication.spine[index]
 
         if let url = parent.publication.uriTo(link: link) {

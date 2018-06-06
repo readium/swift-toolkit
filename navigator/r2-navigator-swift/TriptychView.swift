@@ -1,4 +1,4 @@
-//
+ //
 //  TriptychView.swift
 //  r2-navigator-swift
 //
@@ -8,6 +8,7 @@
 //
 
 import UIKit
+import R2Shared
 
 protocol TriptychViewDelegate: class {
 
@@ -100,22 +101,32 @@ final class TriptychView: UIView {
     public let viewCount: Int
 
     internal var views: Views?
+    
+    let leading, trailing: BinaryLocation
+    let direction: PageProgressionDirection
 
     fileprivate var clamping: Clamping = .none
 
     private var isAtAnEdge: Bool {
         return index == 0 || index == viewCount - 1
     }
-
-    public init(frame: CGRect, viewCount: Int, initialIndex: Int) {
+    
+    public init(frame: CGRect, viewCount: Int, initialIndex: Int, pageDirection: PageProgressionDirection) {
 
         precondition(viewCount >= 1)
         precondition(initialIndex >= 0 && initialIndex < viewCount)
 
         index = initialIndex
-        scrollView = UIScrollView()
         self.viewCount = viewCount
-
+        self.direction = pageDirection
+        self.scrollView = UIScrollView()
+        
+        if self.direction == .rtl {
+            leading = .right; trailing = .left
+        } else {
+            leading = .left; trailing = .right
+        }
+        
         super.init(frame: frame)
 
         scrollView.delegate = self
@@ -156,13 +167,28 @@ final class TriptychView: UIView {
         let size = frame.size
 
         scrollView.contentSize = CGSize(width: size.width * CGFloat(views.count), height: size.height)
-
-        for (index, view) in views.array.enumerated() {
+        
+        let viewList:[UIView] = {
+            if self.direction == .rtl {
+                return views.array.reversed()
+            }
+            return views.array
+        }()
+        
+        for (index, view) in viewList.enumerated() {
             view.frame = CGRect(origin: CGPoint(x: size.width * CGFloat(index), y: 0), size: size)
         }
 
-        let offset = min(1, index)
-        scrollView.contentOffset.x = size.width * CGFloat(offset)
+        let pageOffset = min(1, index)
+        
+        let offset:CGFloat = {
+            if self.direction == .rtl {
+                return scrollView.contentSize.width - CGFloat(pageOffset+1)*scrollView.frame.width
+            }
+            return size.width * CGFloat(pageOffset)
+        } ()
+        
+        scrollView.contentOffset.x = offset
     }
 
     fileprivate func updateViews(previousIndex: Int? = nil) {
@@ -186,8 +212,8 @@ final class TriptychView: UIView {
             case .one(let view):
                 indexesToCurrentViews[0] = view
             case .two(let firstView, let secondView):
-                indexesToCurrentViews[0] = firstView
-                indexesToCurrentViews[1] = secondView
+                indexesToCurrentViews[0] = firstView // What?
+                indexesToCurrentViews[1] = secondView // What?
             case .many(let currentView, let otherViews):
                 indexesToCurrentViews[previousIndex] = currentView
                 switch otherViews {
@@ -211,37 +237,37 @@ final class TriptychView: UIView {
         switch viewCount {
         case 1:
             assert(index == 0)
-            let view = viewForIndex(0, location: .beginning)
+            let view = viewForIndex(0, location: leading)
             views = Views.one(view: view)
         case 2:
             assert(index < 2)
             if index == 0 {
-                let firstView = viewForIndex(0, location: .beginning)
-                let secondView = viewForIndex(1, location: .beginning)
+                let firstView = viewForIndex(0, location: leading)
+                let secondView = viewForIndex(1, location: leading) // Why?
                 views = Views.two(firstView: firstView, secondView: secondView)
             } else {
-                let firstView = viewForIndex(0, location: .end)
-                let secondView = viewForIndex(1, location: .beginning)
+                let firstView = viewForIndex(0, location: trailing)
+                let secondView = viewForIndex(1, location: leading)
                 views = Views.two(firstView: firstView, secondView: secondView)
             }
         default:
-            let currentView = viewForIndex(index, location: .beginning)
+            let currentView = viewForIndex(index, location: leading)
             if index == 0 {
                 self.views = Views.many(
-                    currentView: currentView,
+                    currentView: viewForIndex(index, location: leading),
                     otherViews: Disjunction.second(value:
-                        viewForIndex(index + 1, location: .beginning)))
+                        viewForIndex(index + 1, location: trailing)))
             } else if index == viewCount - 1 {
                 views = Views.many(
-                    currentView: currentView,
+                    currentView: viewForIndex(index, location: trailing),
                     otherViews: Disjunction.first(value:
-                        viewForIndex(index - 1, location: .end)))
+                        viewForIndex(index - 1, location: leading)))
             } else {
                 views = Views.many(
                     currentView: currentView,
                     otherViews: Disjunction.both(
-                        first: viewForIndex(index - 1, location: .end),
-                        second: viewForIndex(index + 1, location: .beginning)))
+                        first: viewForIndex(index - 1, location: trailing),
+                        second: viewForIndex(index + 1, location: leading)))
             }
         }
 
@@ -281,7 +307,7 @@ extension TriptychView {
         guard index != nextIndex else {
             if let id = id {
                 if id == "" {
-                    cw.scrollAt(location: .beginning)
+                    cw.scrollAt(location: leading)
                 } else {
                     cw.scrollAt(tagId: id)
                 }
@@ -291,15 +317,17 @@ extension TriptychView {
 
         var currentRect = scrollView.contentOffset
         let currentFrameSize = scrollView.frame.size
+        
+        let coefficient = CGFloat(direction == .rtl ? -1:1)
 
         if index < nextIndex {
-            currentRect.x += currentFrameSize.width
+            currentRect.x += coefficient*currentFrameSize.width
             scrollView.scrollRectToVisible(CGRect(origin: currentRect, size: currentFrameSize), animated: false)
-            cw.scrollAt(location: .end)
+            cw.scrollAt(location: trailing)
         } else {
-            currentRect.x -= currentFrameSize.width
+            currentRect.x -= coefficient*currentFrameSize.width
             scrollView.scrollRectToVisible(CGRect(origin: currentRect, size: currentFrameSize), animated: false)
-            cw.scrollAt(location: .beginning)
+            cw.scrollAt(location: leading)
         }
 
         let previousIndex = index
@@ -314,7 +342,7 @@ extension TriptychView {
             if id == "" {
                 if abs(previousIndex - nextIndex) == 1 {
                     // if the view was adjacent and already loaded
-                    cw.scrollAt(location: .beginning)
+                    cw.scrollAt(location: leading)
                 } else {
                     // In case the view wasn't preloaded
                     cw.progression = 0.0
@@ -374,8 +402,15 @@ extension TriptychView: UIScrollViewDelegate {
         clamping = .none
 
         let previousIndex = index
-
-        let pageOffset = Int(round(scrollView.contentOffset.x / scrollView.frame.width))
+        
+        let offset:CGFloat = {
+            if self.direction == .rtl {
+                return scrollView.contentSize.width - (scrollView.contentOffset.x + scrollView.frame.width)
+            }
+            return scrollView.contentOffset.x
+        } ()
+        
+        let pageOffset = Int(round(offset / scrollView.frame.width))
 
         if pageOffset == 0 {
             if index > 0 {
@@ -391,7 +426,7 @@ extension TriptychView: UIScrollViewDelegate {
         }
 
         updateViews(previousIndex: previousIndex)
-
+        
         // This works around a very specific case that may be a bug in iOS's scroll
         // view implementation. If the user is on a view of index >= 1, and if the
         // user swipes forward slightly and then, with great force, swipes back and
@@ -404,8 +439,17 @@ extension TriptychView: UIScrollViewDelegate {
         // animating if the offset is already correct because otherwise doing so may
         // result in a visual glitch (also for unknown reasons).
         if(fmod(scrollView.contentOffset.x, scrollView.frame.width) != 0.0) {
+            
+            let adjustedOffset:CGFloat = {
+                if self.direction == .rtl {
+                    return scrollView.contentSize.width - CGFloat(pageOffset + 1) * scrollView.frame.width
+                } else {
+                    return CGFloat(pageOffset) * scrollView.frame.width
+                }
+            } ()
+            
             scrollView.setContentOffset(
-                .init(x: CGFloat(pageOffset) * scrollView.frame.width, y: 0),
+                .init(x: adjustedOffset, y: 0),
                 animated: true)
         }
     }

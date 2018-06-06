@@ -8,6 +8,6 @@
 //
 
 enum BinaryLocation {
-    case beginning
-    case end
+    case left
+    case right
 }
