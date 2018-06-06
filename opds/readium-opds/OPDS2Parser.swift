@@ -56,8 +56,11 @@ public enum OPDS2ParserError: Error {
 }
 
 public class OPDS2Parser {
-  
+  static var feedURL: URL?
+    
   public static func parseURL(url: URL) -> Promise<Feed> {
+        feedURL = url
+    
         return Promise<Feed> {fulfill, reject in
           let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, response, error) in
             guard error == nil else {
@@ -172,6 +175,7 @@ public class OPDS2Parser {
                 l.title = v as? String
             case "href":
                 l.href = v as? String
+                l.absoluteHref = URLHelper.getAbsolute(href: l.href, base: feedURL)
             case "type":
                 l.typeLink = v as? String
             case "rel":
