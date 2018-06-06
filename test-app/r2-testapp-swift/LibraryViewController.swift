@@ -216,31 +216,42 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
       } else {
         
         ImageDownloader.default.downloadImage(with: coverUrl, options: [], progressBlock: nil) { (image, error, url, data) in
-          
-          guard let newImage = image else {return}
-          ImageCache.default.store(newImage, forKey: cacheKey)
-          updateCellImage(newImage)
+            if error != nil {
+                let flowLayout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout
+                let textView = self.defaultCover(layout: flowLayout, publication: publication)
+                cell.imageView.image = UIImage.imageWithTextView(textView: textView)
+                cell.applyShadows()
+            } else {
+                guard let newImage = image else {return}
+                ImageCache.default.store(newImage, forKey: cacheKey)
+                updateCellImage(newImage)
+            }
         }
       } // check cache
       
     } else {
       
       let flowLayout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout
-      
-      let width = flowLayout?.itemSize.width ?? 0
-      let height = flowLayout?.itemSize.height ?? 0
-      let titleTextView = UITextView(frame: CGRect(x: 0, y: 0, width: width, height: height))
-      
-      titleTextView.layer.borderWidth = 5.0
-      titleTextView.layer.borderColor = #colorLiteral(red: 0.08269290555, green: 0.2627741129, blue: 0.3623990017, alpha: 1).cgColor
-      titleTextView.backgroundColor = #colorLiteral(red: 0.05882352963, green: 0.180392161, blue: 0.2470588237, alpha: 1)
-      titleTextView.textColor = #colorLiteral(red: 0.8639426257, green: 0.8639426257, blue: 0.8639426257, alpha: 1)
-      titleTextView.text = publication.metadata.title.appending("\n_________") //Dirty styling.
-      cell.imageView.image = UIImage.imageWithTextView(textView: titleTextView)
+      let textView = defaultCover(layout: flowLayout, publication: publication)
+      cell.imageView.image = UIImage.imageWithTextView(textView: textView)
       cell.applyShadows()
     }
     
     return cell
+  }
+    
+  internal func defaultCover(layout: UICollectionViewFlowLayout?, publication: Publication) -> UITextView {
+    let width = layout?.itemSize.width ?? 0
+    let height = layout?.itemSize.height ?? 0
+    let titleTextView = UITextView(frame: CGRect(x: 0, y: 0, width: width, height: height))
+
+    titleTextView.layer.borderWidth = 5.0
+    titleTextView.layer.borderColor = #colorLiteral(red: 0.08269290555, green: 0.2627741129, blue: 0.3623990017, alpha: 1).cgColor
+    titleTextView.backgroundColor = #colorLiteral(red: 0.05882352963, green: 0.180392161, blue: 0.2470588237, alpha: 1)
+    titleTextView.textColor = #colorLiteral(red: 0.8639426257, green: 0.8639426257, blue: 0.8639426257, alpha: 1)
+    titleTextView.text = publication.metadata.title.appending("\n_________") //Dirty styling.
+        
+    return titleTextView
   }
 
   override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {

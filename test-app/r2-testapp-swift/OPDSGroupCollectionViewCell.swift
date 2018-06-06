@@ -14,4 +14,7 @@ class OPDSGroupCollectionViewCell: UICollectionViewCell {
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var authorLabel: UILabel!
     
+    @IBOutlet weak var navigationTitleLabel: UILabel!
+    @IBOutlet weak var navigationCountLabel: UILabel!
+    
 }

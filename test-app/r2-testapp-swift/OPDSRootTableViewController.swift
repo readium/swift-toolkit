@@ -25,21 +25,40 @@ class OPDSRootTableViewController: UITableViewController {
     var originalFeedURL: URL?
     var nextPageURL: URL?
     var originalFeedType: String?
+    var originalFeedIndexPath: IndexPath?
+    var mustEditFeed = false
   
     var feed: Feed?
     
     var browsingState: FeedBrowsingState = .None
+    
+    enum GeneralScreenOrientation: String {
+        case landscape
+        case portrait
+    }
+    
+    static let iPadLayoutHeightForRow:[GeneralScreenOrientation: CGFloat] = [.portrait: 330, .landscape: 340]
+    static let iPhoneLayoutHeightForRow:[GeneralScreenOrientation: CGFloat] = [.portrait: 220, .landscape: 280]
+    
+    lazy var layoutHeightForRow:[UIUserInterfaceIdiom:[GeneralScreenOrientation: CGFloat]] = [
+        .pad : OPDSRootTableViewController.iPadLayoutHeightForRow,
+        .phone : OPDSRootTableViewController.iPhoneLayoutHeightForRow
+    ]
+    
+    fileprivate var previousScreenOrientation: GeneralScreenOrientation?
 
     override func viewDidLoad() {
-      super.viewDidLoad()
-      if let type = originalFeedType {
-        if (type == "2") {
-          parseJSONFeed()
+        super.viewDidLoad()
+        navigationController?.delegate = self
+        
+        if let type = originalFeedType {
+            if (type == "2") {
+                parseJSONFeed()
+            }
+            else {
+                parseFeed()
+            }
         }
-        else {
-          parseFeed()
-        }
-      }
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -49,15 +68,16 @@ class OPDSRootTableViewController: UITableViewController {
     // MARK: - OPDS feed parsing
     
     func parseJSONFeed() {
-      if let url = originalFeedURL {
-        UIApplication.shared.isNetworkActivityIndicatorVisible = true
-        firstly {
-          OPDS2Parser.parseURL(url: url)
-          }.then { newFeed -> Void in
-            self.feed = newFeed
-            self.finishFeedInitialization()
+        if let url = originalFeedURL {
+            UIApplication.shared.isNetworkActivityIndicatorVisible = true
+            firstly {
+                OPDS2Parser.parseURL(url: url)
+                }.then { newFeed -> Void in
+                    self.feed = newFeed
+                }.always {
+                    self.finishFeedInitialization()
+            }
         }
-      }
     }
   
     func parseFeed() {
@@ -67,6 +87,7 @@ class OPDSRootTableViewController: UITableViewController {
                 OPDSParser.parseURL(url: url)
                 }.then { newFeed -> Void in
                     self.feed = newFeed
+                }.always {
                     self.finishFeedInitialization()
             }
         }
@@ -74,6 +95,7 @@ class OPDSRootTableViewController: UITableViewController {
     
     func finishFeedInitialization() {
         if let feed = feed {
+            
             navigationItem.title = feed.metadata.title
             self.nextPageURL = self.findNextPageURL(feed: feed)
             
@@ -101,19 +123,55 @@ class OPDSRootTableViewController: UITableViewController {
                 browsingState = .None
             }
             
-            DispatchQueue.main.async {
-                UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                self.tableView.reloadData()
-            }
+        } else {
+            
+            tableView.backgroundView = UIView(frame: UIScreen.main.bounds)
+            tableView.separatorStyle = .none
+            
+            let frame = CGRect(x: 0, y: tableView.backgroundView!.bounds.height / 2, width: tableView.backgroundView!.bounds.width, height: 20)
+            
+            let messageLabel = UILabel(frame: frame)
+            messageLabel.textColor = UIColor.darkGray
+            messageLabel.textAlignment = .center
+            messageLabel.text = "Something goes wrong."
+            
+            let editButton = UIButton(type: .system)
+            editButton.frame = frame
+            editButton.setTitle("Edit catalog", for: .normal)
+            editButton.addTarget(self, action:#selector(self.editButtonClicked), for: .touchUpInside)
+            editButton.isHidden = originalFeedIndexPath == nil ? true : false
+            
+            let stackView = UIStackView(arrangedSubviews: [messageLabel, editButton])
+            stackView.axis = .vertical
+            stackView.distribution = .equalSpacing
+            let spacing: CGFloat = 15
+            stackView.spacing = spacing
+            
+            tableView.backgroundView?.addSubview(stackView)
+            
+            stackView.translatesAutoresizingMaskIntoConstraints = false
+            stackView.widthAnchor.constraint(equalTo: tableView.backgroundView!.widthAnchor).isActive = true
+            stackView.heightAnchor.constraint(equalToConstant: messageLabel.frame.height + editButton.frame.height + spacing).isActive = true
+            stackView.centerYAnchor.constraint(equalTo: tableView.backgroundView!.centerYAnchor).isActive = true
             
         }
+        
+        DispatchQueue.main.async {
+            UIApplication.shared.isNetworkActivityIndicatorVisible = false
+            self.tableView.reloadData()
+        }
+    }
+    
+    @objc func editButtonClicked(_ sender: UIBarButtonItem) {
+        mustEditFeed = true
+        navigationController?.popViewController(animated: true)
     }
     
     func findNextPageURL(feed: Feed) -> URL? {
         for link in feed.links {
             for rel in link.rel {
                 if rel == "next" {
-                    return URL(string: link.href!)
+                    return URL(string: link.absoluteHref!)
                 }
             }
         }
@@ -153,30 +211,8 @@ class OPDSRootTableViewController: UITableViewController {
     }
 
     public func applyFacetAt(indexPath: IndexPath) {
-        if let href = feed!.facets[indexPath.section].links[indexPath.row].href {
-            if let url = URL(string: href) {
-                if let _ = url.host, let _ = url.scheme {
-                    loadNewURL(url: url)
-                }
-                else {
-                    let scheme = originalFeedURL?.scheme ?? "http"
-                    let host = originalFeedURL?.host ?? "unknown"
-                    let newURLString = scheme + "://" + host + href
-                    if let newURL = URL(string: newURLString) {
-                        loadNewURL(url: newURL)
-                    }
-                }
-            }
-        }
-    }
-    
-    func loadNewURL(url: URL) {
-        let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
-        let opdsRootViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsRootViewController") as? OPDSRootTableViewController
-        if let opdsRootViewController = opdsRootViewController {
-            opdsRootViewController.originalFeedURL = url
-            opdsRootViewController.originalFeedType = originalFeedType
-            navigationController?.pushViewController(opdsRootViewController, animated: true)
+        if let absoluteHref = feed!.facets[indexPath.section].links[indexPath.row].absoluteHref {
+            pushOpdsRootViewController(href: absoluteHref)
         }
     }
 
@@ -215,8 +251,15 @@ class OPDSRootTableViewController: UITableViewController {
         case .Navigation:
             numberOfRowsInSection = feed!.navigation.count
             
-        case .Publication, .MixedGroup:
+        case .Publication:
             numberOfRowsInSection = 1
+            
+        case .MixedGroup:
+            if feed!.groups[section].navigation.count > 0 {
+                numberOfRowsInSection = feed!.groups[section].navigation.count
+            } else {
+                numberOfRowsInSection = 1
+            }
             
         case .MixedNavigationPublication:
             if section == 0 {
@@ -231,7 +274,11 @@ class OPDSRootTableViewController: UITableViewController {
                 numberOfRowsInSection = feed!.navigation.count
             }
             if section >= 1 && section <= feed!.groups.count {
-                numberOfRowsInSection = 1
+                if feed!.groups[section - 1].navigation.count > 0 {
+                    numberOfRowsInSection = feed!.groups[section - 1].navigation.count
+                } else {
+                    numberOfRowsInSection = 1
+                }
             }
             if section == (feed!.groups.count + 1) {
                 numberOfRowsInSection = 1
@@ -254,7 +301,11 @@ class OPDSRootTableViewController: UITableViewController {
             heightForRowAt = tableView.bounds.height
             
         case .MixedGroup:
-            heightForRowAt = 150
+            if feed!.groups[indexPath.section].navigation.count > 0 {
+                heightForRowAt = 44
+            } else {
+                heightForRowAt = calculateRowHeightForGroup(feed!.groups[indexPath.section ])
+            }
             
         case .MixedNavigationPublication:
             if indexPath.section == 0 {
@@ -267,9 +318,15 @@ class OPDSRootTableViewController: UITableViewController {
             if indexPath.section == 0 {
                 heightForRowAt = 44
             } else if indexPath.section >= 1 && indexPath.section <= feed!.groups.count {
-                heightForRowAt = 150
+                if feed!.groups[indexPath.section - 1].navigation.count > 0 {
+                    heightForRowAt = 44
+                } else {
+                    heightForRowAt = calculateRowHeightForGroup(feed!.groups[indexPath.section - 1])
+                }
             } else {
-                heightForRowAt = tableView.bounds.height / 2
+                let group = Group(title: feed!.metadata.title)
+                group.publications = feed!.publications
+                heightForRowAt = calculateRowHeightForGroup(group)
             }
             
         default:
@@ -278,6 +335,43 @@ class OPDSRootTableViewController: UITableViewController {
         }
         
         return heightForRowAt
+    }
+    
+    fileprivate func calculateRowHeightForGroup(_ group: Group) -> CGFloat {
+        
+        if group.navigation.count > 0 {
+            
+            return tableView.bounds.height / 2
+            
+        } else {
+            
+            let idiom = { () -> UIUserInterfaceIdiom in
+                let tempIdion = UIDevice.current.userInterfaceIdiom
+                return (tempIdion != .pad) ? .phone:.pad // ignnore carplay and others
+            } ()
+            
+            let orientation = { () -> GeneralScreenOrientation in
+                let deviceOrientation = UIDevice.current.orientation
+                
+                switch deviceOrientation {
+                case .unknown, .portrait, .portraitUpsideDown:
+                    return GeneralScreenOrientation.portrait
+                case .landscapeLeft, .landscapeRight:
+                    return GeneralScreenOrientation.landscape
+                case .faceUp, .faceDown:
+                    return previousScreenOrientation ?? .portrait
+                }
+            } ()
+            
+            previousScreenOrientation = orientation
+            
+            guard let deviceLayoutHeightForRow = layoutHeightForRow[idiom] else {return 44}
+            guard let heightForRow = deviceLayoutHeightForRow[orientation] else {return 44}
+            
+            return heightForRow
+            
+        }
+        
     }
     
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
@@ -290,8 +384,14 @@ class OPDSRootTableViewController: UITableViewController {
                 title = feed!.groups[section].metadata.title
             }
         case .MixedNavigationGroupPublication:
+            if section == 0 {
+                title = "Browse"
+            }
             if section >= 1 && section <= feed!.groups.count {
                 title = feed!.groups[section-1].metadata.title
+            }
+            if section > feed!.groups.count {
+                title = feed!.metadata.title
             }
 
         default:
@@ -326,10 +426,8 @@ class OPDSRootTableViewController: UITableViewController {
         case .MixedNavigationGroupPublication:
             if indexPath.section == 0 {
                 cell = buildNavigationCell(tableView: tableView, indexPath: indexPath)
-            } else if indexPath.section >= 1 && indexPath.section <= feed!.groups.count {
-                cell = buildGroupCell(tableView: tableView, indexPath: indexPath)
             } else {
-                cell = buildPublicationCell(tableView: tableView, indexPath: indexPath)
+                cell = buildGroupCell(tableView: tableView, indexPath: indexPath)
             }
 
         default:
@@ -358,13 +456,33 @@ class OPDSRootTableViewController: UITableViewController {
         return castedCell
     }
     
-    func buildGroupCell(tableView: UITableView, indexPath: IndexPath) -> OPDSGroupTableViewCell {
-        let castedCell = tableView.dequeueReusableCell(withIdentifier: "opdsGroupCell", for: indexPath) as! OPDSGroupTableViewCell
+    func buildGroupCell(tableView: UITableView, indexPath: IndexPath) -> UITableViewCell {
+
         if browsingState != .MixedGroup {
-            castedCell.group = feed?.groups[indexPath.section - 1]
+            if indexPath.section > feed!.groups.count {
+                let group = Group(title: feed!.metadata.title)
+                group.publications = feed!.publications
+                return preparedGroupCell(group: group, indexPath: indexPath, offset: 0)
+            } else {
+                if feed!.groups[indexPath.section - 1].navigation.count > 0 {
+                    return buildNavigationCell(tableView: tableView, indexPath: indexPath)
+                } else {
+                    return preparedGroupCell(group: nil, indexPath: indexPath, offset: 1)
+                }
+            }
         } else {
-            castedCell.group = feed?.groups[indexPath.section]
+            if feed!.groups[indexPath.section].navigation.count > 0 {
+                return buildNavigationCell(tableView: tableView, indexPath: indexPath)
+            } else {
+                return preparedGroupCell(group: nil, indexPath: indexPath, offset: 0)
+            }
         }
+
+    }
+    
+    fileprivate func preparedGroupCell(group: Group?, indexPath: IndexPath, offset: Int) -> OPDSGroupTableViewCell {
+        let castedCell = tableView.dequeueReusableCell(withIdentifier: "opdsGroupCell", for: indexPath) as! OPDSGroupTableViewCell
+        castedCell.group = group != nil ? group : feed?.groups[indexPath.section - offset]
         castedCell.opdsRootTableViewController = self
         return castedCell
     }
@@ -376,13 +494,13 @@ class OPDSRootTableViewController: UITableViewController {
             
         case .Navigation, .MixedNavigationPublication, .MixedNavigationGroupPublication:
             if indexPath.section == 0 {
-                if let href = feed?.navigation[indexPath.row].href {
-                    let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
-                    let opdsRootViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsRootViewController") as? OPDSRootTableViewController
-                    if let opdsRootViewController = opdsRootViewController {
-                        opdsRootViewController.originalFeedURL = URL(string: href)
-                        opdsRootViewController.originalFeedType = originalFeedType
-                        navigationController?.pushViewController(opdsRootViewController, animated: true)
+                if let absoluteHref = feed!.navigation[indexPath.row].absoluteHref {
+                    pushOpdsRootViewController(href: absoluteHref)
+                }
+            } else if indexPath.section >= 1 && indexPath.section <= feed!.groups.count {
+                if feed!.groups[indexPath.section - 1].navigation.count > 0 {
+                    if let absoluteHref = feed!.groups[indexPath.section - 1].navigation[indexPath.row].absoluteHref {
+                        pushOpdsRootViewController(href: absoluteHref)
                     }
                 }
             }
@@ -394,6 +512,7 @@ class OPDSRootTableViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+        
         let header = view as! UITableViewHeaderFooterView
         header.textLabel?.font = UIFont.boldSystemFont(ofSize: 13)
         
@@ -405,56 +524,79 @@ class OPDSRootTableViewController: UITableViewController {
             offset = section
         }
         
-        if let moreButton = view.subviews.last as? OPDSMoreButton {
-            moreButton.offset = offset
-            return
-        }
-        
-        if let links = feed?.groups[offset].links {
+        if let feed = feed {
             
-            if links.count > 0 {
-                
-                let buttonWidth: CGFloat = 70
-                let moreButton = OPDSMoreButton(type: .system)
-                moreButton.frame = CGRect(x: header.frame.width - buttonWidth, y: 0, width: buttonWidth, height: header.frame.height)
-                
-                moreButton.setTitle("more >", for: .normal)
-                moreButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 11)
-                moreButton.setTitleColor(UIColor.darkGray, for: .normal)
-                
-                moreButton.offset = offset
-                moreButton.addTarget(self, action: #selector(moreAction), for: .touchUpInside)
-                
-                view.addSubview(moreButton)
-                
-                moreButton.translatesAutoresizingMaskIntoConstraints = false
-                moreButton.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
-                moreButton.heightAnchor.constraint(equalToConstant: header.frame.height).isActive = true
-                moreButton.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-                
+            if let moreButton = view.subviews.last as? OPDSMoreButton {
+                if offset >= 0 && offset < feed.groups.count {
+                    moreButton.offset = offset
+                } else {
+                    view.subviews.last?.removeFromSuperview()
+                }
+                return
+            }
+            
+            if offset >= 0 && offset < feed.groups.count {
+                let links = feed.groups[offset].links
+                if links.count > 0 {
+                    let buttonWidth: CGFloat = 70
+                    let moreButton = OPDSMoreButton(type: .system)
+                    moreButton.frame = CGRect(x: header.frame.width - buttonWidth, y: 0, width: buttonWidth, height: header.frame.height)
+                    
+                    moreButton.setTitle("more >", for: .normal)
+                    moreButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 11)
+                    moreButton.setTitleColor(UIColor.darkGray, for: .normal)
+                    
+                    moreButton.offset = offset
+                    moreButton.addTarget(self, action: #selector(moreAction), for: .touchUpInside)
+                    
+                    view.addSubview(moreButton)
+                    
+                    moreButton.translatesAutoresizingMaskIntoConstraints = false
+                    moreButton.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
+                    moreButton.heightAnchor.constraint(equalToConstant: header.frame.height).isActive = true
+                    moreButton.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+                }
             }
             
         }
-
+        
     }
     
     //MARK: - Target action
     
     @objc func moreAction(sender: UIButton!) {
         if let moreButton = sender as? OPDSMoreButton {
-            if let links = feed?.groups[moreButton.offset!].links {
-                let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
-                let opdsRootViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsRootViewController") as? OPDSRootTableViewController
-                if let opdsRootViewController = opdsRootViewController {
-                    opdsRootViewController.originalFeedURL = URL(string: links[0].href!)
-                    opdsRootViewController.originalFeedType = originalFeedType
-                    navigationController?.pushViewController(opdsRootViewController, animated: true)
-                }
+            if let href = feed?.groups[moreButton.offset!].links[0].href {
+                pushOpdsRootViewController(href: href)
             }
         }
     }
 
 }
+
+//MARK: - UINavigationController delegate and tooling
+
+extension OPDSRootTableViewController: UINavigationControllerDelegate {
+    
+    func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
+        if mustEditFeed {
+            (viewController as? OPDSCatalogSelectorViewController)?.mustEditAtIndexPath = originalFeedIndexPath
+        }
+    }
+    
+    fileprivate func pushOpdsRootViewController(href: String) {
+        let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
+        let opdsRootViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsRootViewController") as? OPDSRootTableViewController
+        if let opdsRootViewController = opdsRootViewController {
+            opdsRootViewController.originalFeedURL = URL(string: href)
+            opdsRootViewController.originalFeedType = originalFeedType
+            navigationController?.pushViewController(opdsRootViewController, animated: true)
+        }
+    }
+    
+}
+
+//MARK: - Sublass of UIButton
 
 class OPDSMoreButton: UIButton {
     var offset: Int?

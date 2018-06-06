@@ -26,15 +26,32 @@ class OPDSPublicationInfoViewController : UIViewController {
         fxImageView!.contentMode = .scaleAspectFill
         imageView!.contentMode = .scaleAspectFit
         
+        let titleTextView = OPDSPlaceholderPublicationView(frame: imageView.frame,
+                                                           title: publication?.metadata.title,
+                                                           author: publication?.metadata.authors.map({$0.name ?? ""}).joined(separator: ", "))
+    
         if let images = publication?.images {
             if images.count > 0 {
-                let href = images[0].href!
-                let coverURL = URL(string: href)
+                let absoluteHref = images[0].absoluteHref!
+                let coverURL = URL(string: absoluteHref)
                 if (coverURL != nil) {
-                    imageView!.kf.setImage(with: coverURL, placeholder: nil,
+                    UIApplication.shared.isNetworkActivityIndicatorVisible = true
+                    imageView!.kf.setImage(with: coverURL,
+                                           placeholder: titleTextView,
                                            options: [.transition(ImageTransition.fade(0.5))],
-                                           progressBlock: nil, completionHandler: nil)
-                    fxImageView?.image = imageView?.image
+                                           progressBlock: nil) { (image, _, _, _) in
+                                            DispatchQueue.main.async {
+                                                UIApplication.shared.isNetworkActivityIndicatorVisible = false
+                                            }
+                                            self.fxImageView?.image = image
+                                            UIView.transition(with: self.fxImageView,
+                                                              duration: 0.3,
+                                                              options: .transitionCrossDissolve,
+                                                              animations: {
+                                                                self.fxImageView?.image = image
+                                                                
+                                            }, completion: nil)
+                    }
                 }
             }
         }
@@ -109,9 +126,9 @@ class OPDSPublicationInfoViewController : UIViewController {
         
         if let links = publication?.links {
             for link in links {
-                if let href = link.href {
-                    if href.contains(".epub") || href.contains(".lcpl") {
-                        url = URL(string: href)
+                if let absoluteHref = link.absoluteHref {
+                    if absoluteHref.contains(".epub") || absoluteHref.contains(".lcpl") {
+                        url = URL(string: absoluteHref)
                         break
                     }
                 }

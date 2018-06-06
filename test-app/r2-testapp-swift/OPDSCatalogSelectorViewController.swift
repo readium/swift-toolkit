@@ -10,12 +10,14 @@ import UIKit
 import Foundation
 import R2Shared
 import ReadiumOPDS
+import PromiseKit
 
 class OPDSCatalogSelectorViewController: UITableViewController {
     var catalogData: [[String: String]]? // An array of dicts in the form ["title": title, "url": url, "type": type]
     let cellReuseIdentifier = "catalogSelectorCell"
     let userDefaultsID = "opdsCatalogArray"
     var addFeedButton: UIBarButtonItem?
+    var mustEditAtIndexPath: IndexPath?
 
     override func viewDidLoad() {
         catalogData = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
@@ -41,6 +43,13 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         navigationController?.navigationBar.tintColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
         navigationController?.navigationBar.barTintColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
         navigationController?.view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        if let index = mustEditAtIndexPath?.row {
+            showEditPopup(feedIndex: index)
+        }
+        mustEditAtIndexPath = nil
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -73,8 +82,9 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
         let opdsRootViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsRootViewController") as? OPDSRootTableViewController
         if let opdsRootViewController = opdsRootViewController {
-          opdsRootViewController.originalFeedURL = url
-          opdsRootViewController.originalFeedType = type
+            opdsRootViewController.originalFeedURL = url
+            opdsRootViewController.originalFeedType = type
+            opdsRootViewController.originalFeedIndexPath = indexPath
             navigationController?.pushViewController(opdsRootViewController, animated: true)
         }
     }
@@ -102,20 +112,37 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         self.showEditPopup(feedIndex: nil)
     }
 
-    func showEditPopup(feedIndex: Int?) {
-        let alertController = UIAlertController(title: "Enter feed title and URL", message: "", preferredStyle: .alert)
+    func showEditPopup(feedIndex: Int?, retry: Bool = false) {
+        let alertController = UIAlertController(title: "Enter feed title and URL",
+                                                message: retry ? "Feed is not valid, please try again." : "",
+                                                preferredStyle: .alert)
         let confirmAction = UIAlertAction(title: "OK", style: .default) { (_) in
             let title = alertController.textFields?[0].text
-            let url = alertController.textFields?[1].text
+            let urlString = alertController.textFields?[1].text
             let type = alertController.textFields?[2].text
-            if feedIndex == nil {
-                self.catalogData?.append(["title": title!, "url": url!, "type": type!])
+            if let url = URL(string: urlString!) {
+                UIApplication.shared.isNetworkActivityIndicatorVisible = true
+                firstly {
+                    type! == "1" ? OPDSParser.parseURL(url: url) : OPDS2Parser.parseURL(url: url)
+                    }.then { newFeed -> Void in
+                        DispatchQueue.main.async {
+                            if feedIndex == nil {
+                                self.catalogData?.append(["title": title!, "url": urlString!, "type": type!])
+                            }
+                            else {
+                                self.catalogData?[feedIndex!] = ["title": title!, "url": urlString!, "type": type!]
+                            }
+                            UserDefaults.standard.set(self.catalogData, forKey: self.userDefaultsID)
+                            self.tableView.reloadData()
+                        }
+                    }.catch(execute: { (_) in
+                        self.showEditPopup(feedIndex: feedIndex, retry: true)
+                    }).always {
+                        UIApplication.shared.isNetworkActivityIndicatorVisible = false
+                }
+            } else {
+                self.showEditPopup(feedIndex: feedIndex, retry: true)
             }
-            else {
-                self.catalogData?[feedIndex!] = ["title": title!, "url": url!, "type": type!]
-            }
-            UserDefaults.standard.set(self.catalogData, forKey: self.userDefaultsID)
-            self.tableView.reloadData()
         }
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { (_) in }
         alertController.addTextField {(textField) in

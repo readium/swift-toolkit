@@ -20,19 +20,10 @@
 		03EF765B206A5F1A00C3C24E /* Kingfisher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764F206A5F1A00C3C24E /* Kingfisher.framework */; };
 		03EF765C206A5F1A00C3C24E /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7650206A5F1A00C3C24E /* R2Navigator.framework */; };
 		03EF765D206A5F1A00C3C24E /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */; };
-		113B12CF20800FD60074A5A2 /* OPDSGroupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12BE20800FD50074A5A2 /* OPDSGroupViewController.swift */; };
 		113B12D020800FD60074A5A2 /* ODPSPublicationCellInfoView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 113B12BF20800FD50074A5A2 /* ODPSPublicationCellInfoView.xib */; };
-		113B12D120800FD60074A5A2 /* OPDSGroupCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12C020800FD50074A5A2 /* OPDSGroupCollectionViewController.swift */; };
 		113B12D220800FD60074A5A2 /* OPDSCatalogSelectorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */; };
-		113B12D320800FD60074A5A2 /* OPDSNavigationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12C220800FD50074A5A2 /* OPDSNavigationViewController.swift */; };
-		113B12D420800FD60074A5A2 /* OPDSPublicationsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12C320800FD50074A5A2 /* OPDSPublicationsViewController.swift */; };
-		113B12D520800FD60074A5A2 /* OPDSPublicationCellSimple.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12C420800FD50074A5A2 /* OPDSPublicationCellSimple.swift */; };
 		113B12DA20800FD60074A5A2 /* OPDSFacetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12C920800FD50074A5A2 /* OPDSFacetViewController.swift */; };
-		113B12DB20800FD60074A5A2 /* OPDSPublicationCellBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12CA20800FD50074A5A2 /* OPDSPublicationCellBase.swift */; };
-		113B12DC20800FD60074A5A2 /* OPDSPublicationCellInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12CB20800FD50074A5A2 /* OPDSPublicationCellInfoViewController.swift */; };
 		113B12DD20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */; };
-		113B12DE20800FD60074A5A2 /* OPDSCatalogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12CD20800FD60074A5A2 /* OPDSCatalogViewController.swift */; };
-		113B12DF20800FD60074A5A2 /* OPDSPublicationCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12CE20800FD60074A5A2 /* OPDSPublicationCell.swift */; };
 		AE009A04207F5980001D82C5 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE009A03207F5980001D82C5 /* Fuzi.framework */; };
 		AE2B6A872088949300C12072 /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE2B6A862088949300C12072 /* ReadiumOPDS.framework */; };
 		AE2B6A8920889C8700C12072 /* AppMain.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AE2B6A8820889C8700C12072 /* AppMain.storyboard */; };
@@ -44,6 +35,7 @@
 		AE48F326208E1BFA000B7B44 /* OPDSPublicationCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE48F325208E1BFA000B7B44 /* OPDSPublicationCollectionViewCell.swift */; };
 		AE53A074208F623E00737838 /* OPDSGroupTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53A073208F623E00737838 /* OPDSGroupTableViewCell.swift */; };
 		AE53A076208F62D200737838 /* OPDSGroupCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */; };
+		AED681F220A32EBA0090DBCD /* OPDSPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AED681F120A32EBA0090DBCD /* OPDSPlaceholderView.swift */; };
 		F30AEE7A1FC312EA0073C9FD /* DetailsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */; };
 		F30AEE7D1FC316430073C9FD /* Details.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F30AEE7C1FC316430073C9FD /* Details.storyboard */; };
 		F3120DE71FACB08E009ACFAD /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
@@ -121,19 +113,10 @@
 		03EF764F206A5F1A00C3C24E /* Kingfisher.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Kingfisher.framework; path = Carthage/Build/iOS/Kingfisher.framework; sourceTree = "<group>"; };
 		03EF7650206A5F1A00C3C24E /* R2Navigator.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Navigator.framework; path = Carthage/Build/iOS/R2Navigator.framework; sourceTree = "<group>"; };
 		03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDWebServers.framework; path = Carthage/Build/iOS/GCDWebServers.framework; sourceTree = "<group>"; };
-		113B12BE20800FD50074A5A2 /* OPDSGroupViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSGroupViewController.swift; sourceTree = "<group>"; };
 		113B12BF20800FD50074A5A2 /* ODPSPublicationCellInfoView.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ODPSPublicationCellInfoView.xib; sourceTree = "<group>"; };
-		113B12C020800FD50074A5A2 /* OPDSGroupCollectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSGroupCollectionViewController.swift; sourceTree = "<group>"; };
 		113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSCatalogSelectorViewController.swift; sourceTree = "<group>"; };
-		113B12C220800FD50074A5A2 /* OPDSNavigationViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSNavigationViewController.swift; sourceTree = "<group>"; };
-		113B12C320800FD50074A5A2 /* OPDSPublicationsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSPublicationsViewController.swift; sourceTree = "<group>"; };
-		113B12C420800FD50074A5A2 /* OPDSPublicationCellSimple.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSPublicationCellSimple.swift; sourceTree = "<group>"; };
 		113B12C920800FD50074A5A2 /* OPDSFacetViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSFacetViewController.swift; sourceTree = "<group>"; };
-		113B12CA20800FD50074A5A2 /* OPDSPublicationCellBase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSPublicationCellBase.swift; sourceTree = "<group>"; };
-		113B12CB20800FD50074A5A2 /* OPDSPublicationCellInfoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSPublicationCellInfoViewController.swift; sourceTree = "<group>"; };
 		113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSPublicationInfoViewController.swift; sourceTree = "<group>"; };
-		113B12CD20800FD60074A5A2 /* OPDSCatalogViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSCatalogViewController.swift; sourceTree = "<group>"; };
-		113B12CE20800FD60074A5A2 /* OPDSPublicationCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSPublicationCell.swift; sourceTree = "<group>"; };
 		AE009A03207F5980001D82C5 /* Fuzi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Fuzi.framework; path = Carthage/Build/iOS/Fuzi.framework; sourceTree = "<group>"; };
 		AE2B6A862088949300C12072 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReadiumOPDS.framework; path = Carthage/Build/iOS/ReadiumOPDS.framework; sourceTree = "<group>"; };
 		AE2B6A8820889C8700C12072 /* AppMain.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = AppMain.storyboard; sourceTree = "<group>"; };
@@ -145,6 +128,7 @@
 		AE48F325208E1BFA000B7B44 /* OPDSPublicationCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPublicationCollectionViewCell.swift; sourceTree = "<group>"; };
 		AE53A073208F623E00737838 /* OPDSGroupTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSGroupTableViewCell.swift; sourceTree = "<group>"; };
 		AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSGroupCollectionViewCell.swift; sourceTree = "<group>"; };
+		AED681F120A32EBA0090DBCD /* OPDSPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPlaceholderView.swift; sourceTree = "<group>"; };
 		F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsTableViewController.swift; sourceTree = "<group>"; };
 		F30AEE7C1FC316430073C9FD /* Details.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Details.storyboard; sourceTree = "<group>"; };
 		F32980EE1F7D467B00BDEAF4 /* 1.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 1.epub; sourceTree = "<group>"; };
@@ -235,18 +219,10 @@
 				AE48F325208E1BFA000B7B44 /* OPDSPublicationCollectionViewCell.swift */,
 				113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */,
 				113B12C920800FD50074A5A2 /* OPDSFacetViewController.swift */,
+				113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */,
+				AED681F120A32EBA0090DBCD /* OPDSPlaceholderView.swift */,
 				AE48F31D208DD056000B7B44 /* OPDS.storyboard */,
 				113B12BF20800FD50074A5A2 /* ODPSPublicationCellInfoView.xib */,
-				113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */,
-				113B12CD20800FD60074A5A2 /* OPDSCatalogViewController.swift */,
-				113B12C020800FD50074A5A2 /* OPDSGroupCollectionViewController.swift */,
-				113B12BE20800FD50074A5A2 /* OPDSGroupViewController.swift */,
-				113B12C220800FD50074A5A2 /* OPDSNavigationViewController.swift */,
-				113B12CE20800FD60074A5A2 /* OPDSPublicationCell.swift */,
-				113B12CA20800FD50074A5A2 /* OPDSPublicationCellBase.swift */,
-				113B12CB20800FD50074A5A2 /* OPDSPublicationCellInfoViewController.swift */,
-				113B12C420800FD50074A5A2 /* OPDSPublicationCellSimple.swift */,
-				113B12C320800FD50074A5A2 /* OPDSPublicationsViewController.swift */,
 			);
 			name = OPDS;
 			sourceTree = "<group>";
@@ -609,36 +585,28 @@
 				113B12DD20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift in Sources */,
 				F3E7D4801F4F03F500DF166D /* CbzViewController.swift in Sources */,
 				AE48F326208E1BFA000B7B44 /* OPDSPublicationCollectionViewCell.swift in Sources */,
-				113B12D120800FD60074A5A2 /* OPDSGroupCollectionViewController.swift in Sources */,
-				113B12DF20800FD60074A5A2 /* OPDSPublicationCell.swift in Sources */,
 				AE53A076208F62D200737838 /* OPDSGroupCollectionViewCell.swift in Sources */,
 				113B12DA20800FD60074A5A2 /* OPDSFacetViewController.swift in Sources */,
 				F3E7D4821F4F042600DF166D /* EpubViewController.swift in Sources */,
-				113B12DE20800FD60074A5A2 /* OPDSCatalogViewController.swift in Sources */,
-				113B12DB20800FD60074A5A2 /* OPDSPublicationCellBase.swift in Sources */,
 				F3E7D4711F4EFEC200DF166D /* LibraryViewController.swift in Sources */,
 				F37BB19E2008A81C003DE4A8 /* LcpPassphrasePromptViewController.swift in Sources */,
 				F3BD533B1F72B27400E46FFC /* AdvancedSettingsViewController.swift in Sources */,
-				113B12D520800FD60074A5A2 /* OPDSPublicationCellSimple.swift in Sources */,
 				F34CB28C1FCC20D4005E3A37 /* DrmManagementTableViewController.swift in Sources */,
 				AE53A074208F623E00737838 /* OPDSGroupTableViewCell.swift in Sources */,
+				AED681F220A32EBA0090DBCD /* OPDSPlaceholderView.swift in Sources */,
 				F3E7D48A1F4F049C00DF166D /* SpineItemTableViewController.swift in Sources */,
 				AE48F322208DE1E4000B7B44 /* OPDSNavigationTableViewCell.swift in Sources */,
 				F3E7D4771F4F033200DF166D /* CellMenuView.swift in Sources */,
 				F3E7D43C1F4EF6D400DF166D /* AppDelegate.swift in Sources */,
-				113B12D420800FD60074A5A2 /* OPDSPublicationsViewController.swift in Sources */,
 				113B12D220800FD60074A5A2 /* OPDSCatalogSelectorViewController.swift in Sources */,
 				F3E7D4881F4F044100DF166D /* UserSettingsTableViewController.swift in Sources */,
 				AE48F320208DD3A9000B7B44 /* OPDSRootTableViewController.swift in Sources */,
 				F3E7D47C1F4F03B800DF166D /* UIImageExtension.swift in Sources */,
-				113B12D320800FD60074A5A2 /* OPDSNavigationViewController.swift in Sources */,
 				F3BD53391F72B26700E46FFC /* FontSelectionViewController.swift in Sources */,
 				F3E7D4871F4F044100DF166D /* TableOfContentsTableViewController.swift in Sources */,
-				113B12CF20800FD60074A5A2 /* OPDSGroupViewController.swift in Sources */,
 				F3E7D4751F4F031B00DF166D /* PublicationCell.swift in Sources */,
 				AE48F324208E0375000B7B44 /* OPDSPublicationTableViewCell.swift in Sources */,
 				F3DCFFBE1F7CE0610056BA37 /* UserSettingsNavigationController.swift in Sources */,
-				113B12DC20800FD60074A5A2 /* OPDSPublicationCellInfoViewController.swift in Sources */,
 				F30AEE7A1FC312EA0073C9FD /* DetailsTableViewController.swift in Sources */,
 				AE37DE432093291600079AA2 /* AboutTableViewController.swift in Sources */,
 			);
