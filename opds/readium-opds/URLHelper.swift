@@ -1,5 +1,5 @@
 //
-//  Tool.swift
+//  URLHelper.swift
 //  readium-opds
 //
 //  Created by Geoffrey Bugniot on 07/05/2018.
