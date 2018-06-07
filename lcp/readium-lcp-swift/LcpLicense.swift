@@ -70,7 +70,7 @@ public class LcpLicense: DrmLicense {
                     } catch {
                         reject(error)
                     }
-                    fulfill()
+                  fulfill(())
                 } else if let error = error {
                     reject(error)
                 } else {
@@ -393,7 +393,7 @@ public class LcpLicense: DrmLicense {
 
             if let lastUpdate = LCPDatabase.shared.licenses.dateOfLastUpdate(forLicenseWith: license.id),
                 lastUpdate > latestUpdate {
-                    fulfill()
+                    fulfill(())
                 return
             }
             
@@ -420,7 +420,7 @@ public class LcpLicense: DrmLicense {
                     print(error.localizedDescription)
                 }
                 try? LCPDatabase.shared.licenses.insert(self.license, with: status.status)
-                fulfill()
+              fulfill(())
             })
             task.resume()
         }
