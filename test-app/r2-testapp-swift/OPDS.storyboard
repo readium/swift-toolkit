@@ -422,8 +422,15 @@
                                                 <nil key="textColor"/>
                                                 <color key="highlightedColor" red="0.38068733809999999" green="0.38068733809999999" blue="0.38068733809999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                             </label>
+                                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" textAlignment="justified" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ZVE-iD-fWW">
+                                                <rect key="frame" x="8" y="86" width="359" height="128"/>
+                                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                <string key="text">Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda.</string>
+                                                <fontDescription key="fontDescription" type="system" weight="thin" pointSize="14"/>
+                                                <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                                            </textView>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ZIq-yW-8qr">
-                                                <rect key="frame" x="133" y="142.5" width="110" height="40"/>
+                                                <rect key="frame" x="133" y="230" width="110" height="40"/>
                                                 <color key="backgroundColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                 <constraints>
                                                     <constraint firstAttribute="height" constant="40" id="IwM-4m-uNb"/>
@@ -437,8 +444,12 @@
                                                     <action selector="downloadBook:" destination="lur-JP-MVV" eventType="touchUpInside" id="xUa-CM-mll"/>
                                                 </connections>
                                             </button>
-                                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="bFT-zY-8al">
-                                                <rect key="frame" x="169" y="200.5" width="37" height="37"/>
+                                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="white" translatesAutoresizingMaskIntoConstraints="NO" id="bFT-zY-8al">
+                                                <rect key="frame" x="251" y="231.5" width="37" height="37"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="37" id="4ts-zA-yYw"/>
+                                                    <constraint firstAttribute="width" constant="37" id="lNg-UZ-BwC"/>
+                                                </constraints>
                                                 <color key="color" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                             </activityIndicatorView>
                                         </subviews>
@@ -448,12 +459,16 @@
                                             <constraint firstItem="cgc-Pq-nWR" firstAttribute="top" secondItem="WYE-Hq-hFh" secondAttribute="top" constant="30" id="757-nC-NE1"/>
                                             <constraint firstItem="jb4-he-yej" firstAttribute="top" secondItem="cgc-Pq-nWR" secondAttribute="bottom" constant="8" id="C8N-gT-HM8"/>
                                             <constraint firstItem="ZIq-yW-8qr" firstAttribute="centerX" secondItem="WYE-Hq-hFh" secondAttribute="centerX" id="Dwc-Ok-CFW"/>
-                                            <constraint firstItem="bFT-zY-8al" firstAttribute="centerX" secondItem="WYE-Hq-hFh" secondAttribute="centerX" id="Tlq-JT-tBv"/>
-                                            <constraint firstItem="ZIq-yW-8qr" firstAttribute="centerY" secondItem="WYE-Hq-hFh" secondAttribute="centerY" id="jwB-PO-Q3L"/>
-                                            <constraint firstItem="bFT-zY-8al" firstAttribute="top" secondItem="ZIq-yW-8qr" secondAttribute="bottom" constant="18" id="pRG-JX-COJ"/>
+                                            <constraint firstItem="bFT-zY-8al" firstAttribute="leading" secondItem="ZIq-yW-8qr" secondAttribute="trailing" constant="8" id="Ics-I3-Kn5"/>
+                                            <constraint firstItem="ZVE-iD-fWW" firstAttribute="leading" secondItem="WYE-Hq-hFh" secondAttribute="leading" constant="8" id="QHW-25-jtL"/>
+                                            <constraint firstAttribute="trailing" secondItem="ZVE-iD-fWW" secondAttribute="trailing" constant="8" id="fSK-d6-G5p"/>
+                                            <constraint firstItem="ZIq-yW-8qr" firstAttribute="top" secondItem="ZVE-iD-fWW" secondAttribute="bottom" constant="16" id="hyt-iS-pfE"/>
+                                            <constraint firstItem="ZIq-yW-8qr" firstAttribute="centerY" secondItem="WYE-Hq-hFh" secondAttribute="centerY" constant="88.25" id="jwB-PO-Q3L"/>
                                             <constraint firstItem="jb4-he-yej" firstAttribute="leading" secondItem="WYE-Hq-hFh" secondAttribute="leading" constant="8" id="quF-sa-mWo"/>
                                             <constraint firstItem="jb4-he-yej" firstAttribute="top" secondItem="cgc-Pq-nWR" secondAttribute="bottom" constant="8" id="tiB-Kb-cME"/>
                                             <constraint firstAttribute="trailing" secondItem="jb4-he-yej" secondAttribute="trailing" constant="8" id="tmc-QE-fYJ"/>
+                                            <constraint firstItem="bFT-zY-8al" firstAttribute="centerY" secondItem="ZIq-yW-8qr" secondAttribute="centerY" id="tuq-rj-SwI"/>
+                                            <constraint firstItem="ZVE-iD-fWW" firstAttribute="top" secondItem="jb4-he-yej" secondAttribute="bottom" constant="8" id="w17-qp-vy6"/>
                                         </constraints>
                                     </view>
                                 </subviews>
@@ -496,6 +511,7 @@
                     </view>
                     <connections>
                         <outlet property="authorLabel" destination="jb4-he-yej" id="8dg-qh-VFz"/>
+                        <outlet property="descriptionTextView" destination="ZVE-iD-fWW" id="mN7-aT-3aq"/>
                         <outlet property="downloadActivityIndicator" destination="bFT-zY-8al" id="hkG-Zw-FTM"/>
                         <outlet property="downloadButton" destination="ZIq-yW-8qr" id="HhM-V6-vuw"/>
                         <outlet property="fxImageView" destination="Sci-QS-dhx" id="Gau-Xd-fg1"/>
@@ -505,7 +521,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="XCR-vI-SnD" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="886" y="-201"/>
+            <point key="canvasLocation" x="885.60000000000002" y="-201.04947526236884"/>
         </scene>
     </scenes>
 </document>
