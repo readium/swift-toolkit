@@ -39,8 +39,8 @@ extension String {
     }
 
     func insert(string: String, at index: String.Index) -> String {
-        let prefix = substring(to: index)
-        let suffix = substring(from: index)
+        let prefix = self[..<index] //substring(to: index)
+        let suffix = self[index...] //substring(from: index)
 
         return  prefix + string + suffix
     }
