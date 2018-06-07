@@ -18,6 +18,7 @@ class OPDSPublicationInfoViewController : UIViewController {
     @IBOutlet weak var fxImageView: UIImageView!
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var authorLabel: UILabel!
+    @IBOutlet weak var descriptionTextView: UITextView!
     @IBOutlet weak var downloadButton: UIButton!
     @IBOutlet weak var downloadActivityIndicator: UIActivityIndicatorView!
 
@@ -58,6 +59,7 @@ class OPDSPublicationInfoViewController : UIViewController {
         
         titleLabel.text = publication?.metadata.title
         authorLabel.text = publication?.metadata.authors.map({$0.name ?? ""}).joined(separator: ", ")
+        descriptionTextView.text = publication?.metadata.description
         
         downloadActivityIndicator.stopAnimating()
         
