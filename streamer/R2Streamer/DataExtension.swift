@@ -19,7 +19,7 @@ extension Data {
             let read = input.read(buffer, maxLength: bufferSize)
             self.append(buffer, count: read)
         }
-        buffer.deallocate(capacity: bufferSize)
+        buffer.deallocate()
         
         input.close()
     }

@@ -184,7 +184,7 @@ fileprivate func perform(_ config: Config, source: UnsafePointer<UInt8>, sourceS
     guard config.operation == COMPRESSION_STREAM_ENCODE || sourceSize > 0 else { return nil }
 
     let streamBase = UnsafeMutablePointer<compression_stream>.allocate(capacity: 1)
-    defer { streamBase.deallocate(capacity: 1) }
+    defer { streamBase.deallocate() }
     var stream = streamBase.pointee
 
     let status = compression_stream_init(&stream, config.operation, config.algorithm)
@@ -193,7 +193,7 @@ fileprivate func perform(_ config: Config, source: UnsafePointer<UInt8>, sourceS
 
     let bufferSize = Swift.max( Swift.min(sourceSize, 64 * 1024), 64)
     let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
-    defer { buffer.deallocate(capacity: bufferSize) }
+    defer { buffer.deallocate() }
 
     stream.dst_ptr  = buffer
     stream.dst_size = bufferSize
