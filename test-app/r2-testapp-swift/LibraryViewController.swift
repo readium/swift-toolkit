@@ -323,6 +323,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
           let epubViewer = EpubViewController(with: publication,
                                               atIndex: index,
                                               progression: progression, drm)
+          epubViewer.hidesBottomBarWhenPushed = true
           success?(epubViewer)
         })
       } catch {
