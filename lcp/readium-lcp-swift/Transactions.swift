@@ -86,6 +86,6 @@ class Transactions {
         let db = LCPDatabase.shared.connection
         let query = transactions.select(passphrase).filter(self.userId == userId)
 
-        return try db.prepare(query).flatMap({ try? $0.get(passphrase) })
+        return try db.prepare(query).compactMap({ try? $0.get(passphrase) })
     }
 }
