@@ -119,7 +119,7 @@ public class OPDSParser {
                         if rel == "collection" || rel == "http://opds-spec.org/group" {
                             collectionLink.rel.append("collection")
                             collectionLink.href = link.attributes["href"]
-                            collectionLink.absoluteHref = Tool.getAbsolute(href: link.attributes["href"], base: feedURL)
+                            collectionLink.absoluteHref = URLHelper.getAbsolute(href: link.attributes["href"], base: feedURL)
                             collectionLink.title = link.attributes["title"]
                         }
                     }
@@ -150,7 +150,7 @@ public class OPDSParser {
                 }
                 newLink.typeLink = entry["link"].attributes["type"]
                 newLink.href = entry["link"].attributes["href"]
-                newLink.absoluteHref = Tool.getAbsolute(href: entry["link"].attributes["href"], base: feedURL)
+                newLink.absoluteHref = URLHelper.getAbsolute(href: entry["link"].attributes["href"], base: feedURL)
                 // Check collection link
                 if collectionLink.href != nil {
                     addNavigationInGroup(feed, newLink, collectionLink)
@@ -165,7 +165,7 @@ public class OPDSParser {
                 let newLink = Link()
 
                 newLink.href = link.attributes["href"]
-                newLink.absoluteHref = Tool.getAbsolute(href: link.attributes["href"], base: feedURL)
+                newLink.absoluteHref = URLHelper.getAbsolute(href: link.attributes["href"], base: feedURL)
                 newLink.title = link.attributes["title"]
                 newLink.typeLink = link.attributes["type"]
                 if let rel = link.attributes["rel"] {
@@ -364,7 +364,7 @@ public class OPDSParser {
                     let link = Link()
 
                     link.href = uri
-                    link.absoluteHref = Tool.getAbsolute(href: uri, base: feedURL)
+                    link.absoluteHref = URLHelper.getAbsolute(href: uri, base: feedURL)
                     contributor.links.append(link)
                 }
                 contributor.multilangName.singleString = author["name"].value
@@ -383,7 +383,7 @@ public class OPDSParser {
                 let newLink = Link()
 
                 newLink.href = link.attributes["href"]
-                newLink.absoluteHref = Tool.getAbsolute(href: link.attributes["href"], base: feedURL)
+                newLink.absoluteHref = URLHelper.getAbsolute(href: link.attributes["href"], base: feedURL)
                 newLink.title = link.attributes["title"]
                 newLink.typeLink = link.attributes["type"]
                 if let rel = link.attributes["rel"] {
