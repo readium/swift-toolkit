@@ -38,7 +38,7 @@ class OPDSRootTableViewController: UITableViewController {
     }
     
     static let iPadLayoutHeightForRow:[GeneralScreenOrientation: CGFloat] = [.portrait: 330, .landscape: 340]
-    static let iPhoneLayoutHeightForRow:[GeneralScreenOrientation: CGFloat] = [.portrait: 220, .landscape: 280]
+    static let iPhoneLayoutHeightForRow:[GeneralScreenOrientation: CGFloat] = [.portrait: 230, .landscape: 280]
     
     lazy var layoutHeightForRow:[UIUserInterfaceIdiom:[GeneralScreenOrientation: CGFloat]] = [
         .pad : OPDSRootTableViewController.iPadLayoutHeightForRow,
