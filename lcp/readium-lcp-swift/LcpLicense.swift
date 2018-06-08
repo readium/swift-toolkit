@@ -125,9 +125,8 @@ public class LcpLicense: DrmLicense {
         let database = LCPDatabase.shared
 
         // Check that no existing license with license.id are in the base.
-        guard let existingLicense = try? database.licenses.existingLicense(with: license.id),
-            !existingLicense else
-        {
+        guard let registered = try? database.licenses.checkRegister(with: license.id), !registered
+        else {
             return
         }
         // Is the Status document fetched.
@@ -165,7 +164,10 @@ public class LcpLicense: DrmLicense {
             } else if httpResponse.statusCode == 200 {
                 //  5.3/ Store the fact the the device / license has been registered.
                 do {
-                    try LCPDatabase.shared.licenses.insert(self.license, with: status.status)
+                    
+                    //try LCPDatabase.shared.licenses.insert(self.license, with: status.status)
+                    try LCPDatabase.shared.licenses.register(forLicenseWith: self.license.id)
+                    
                     return // SUCCESS
                 } catch {
                     print(error.localizedDescription)
