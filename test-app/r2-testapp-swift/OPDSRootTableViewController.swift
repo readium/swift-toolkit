@@ -24,7 +24,6 @@ class OPDSRootTableViewController: UITableViewController {
     
     var originalFeedURL: URL?
     var nextPageURL: URL?
-    var originalFeedType: String?
     var originalFeedIndexPath: IndexPath?
     var mustEditFeed = false
   
@@ -51,14 +50,7 @@ class OPDSRootTableViewController: UITableViewController {
         super.viewDidLoad()
         navigationController?.delegate = self
         
-        if let type = originalFeedType {
-            if (type == "2") {
-                parseJSONFeed()
-            }
-            else {
-                parseFeed()
-            }
-        }
+        parseFeed()
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -67,19 +59,6 @@ class OPDSRootTableViewController: UITableViewController {
     
     // MARK: - OPDS feed parsing
     
-    func parseJSONFeed() {
-        if let url = originalFeedURL {
-            UIApplication.shared.isNetworkActivityIndicatorVisible = true
-            firstly {
-                OPDS2Parser.parseURL(url: url)
-                }.then { newFeed -> Void in
-                    self.feed = newFeed
-                }.always {
-                    self.finishFeedInitialization()
-            }
-        }
-    }
-  
     func parseFeed() {
         if let url = originalFeedURL {
             UIApplication.shared.isNetworkActivityIndicatorVisible = true
@@ -589,7 +568,6 @@ extension OPDSRootTableViewController: UINavigationControllerDelegate {
         let opdsRootViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsRootViewController") as? OPDSRootTableViewController
         if let opdsRootViewController = opdsRootViewController {
             opdsRootViewController.originalFeedURL = URL(string: href)
-            opdsRootViewController.originalFeedType = originalFeedType
             navigationController?.pushViewController(opdsRootViewController, animated: true)
         }
     }

@@ -13,7 +13,7 @@ import ReadiumOPDS
 import PromiseKit
 
 class OPDSCatalogSelectorViewController: UITableViewController {
-    var catalogData: [[String: String]]? // An array of dicts in the form ["title": title, "url": url, "type": type]
+    var catalogData: [[String: String]]? // An array of dicts in the form ["title": title, "url": url]
     let cellReuseIdentifier = "catalogSelectorCell"
     let userDefaultsID = "opdsCatalogArray"
     var addFeedButton: UIBarButtonItem?
@@ -23,8 +23,8 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         catalogData = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
         if catalogData == nil {
             catalogData = [
-              ["title": "Feedbooks", "url": "http://www.feedbooks.com/catalog.atom", "type":"1"],
-              ["title": "Open Textbooks", "url": "http://open.minitex.org", "type":"1"]
+              ["title": "Feedbooks", "url": "http://www.feedbooks.com/catalog.atom"],
+              ["title": "Open Textbooks", "url": "http://open.minitex.org"]
             ]
             UserDefaults.standard.set(catalogData, forKey: userDefaultsID)
         }
@@ -75,15 +75,11 @@ class OPDSCatalogSelectorViewController: UITableViewController {
               let url = URL(string: urlString) else {
             return
         }
-        guard let type = catalogData![indexPath.row]["type"] else {
-            return
-        }
       
         let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
         let opdsRootViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsRootViewController") as? OPDSRootTableViewController
         if let opdsRootViewController = opdsRootViewController {
             opdsRootViewController.originalFeedURL = url
-            opdsRootViewController.originalFeedType = type
             opdsRootViewController.originalFeedIndexPath = indexPath
             navigationController?.pushViewController(opdsRootViewController, animated: true)
         }
@@ -119,18 +115,17 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         let confirmAction = UIAlertAction(title: "OK", style: .default) { (_) in
             let title = alertController.textFields?[0].text
             let urlString = alertController.textFields?[1].text
-            let type = alertController.textFields?[2].text
             if let url = URL(string: urlString!) {
                 UIApplication.shared.isNetworkActivityIndicatorVisible = true
                 firstly {
-                    type! == "1" ? OPDSParser.parseURL(url: url) : OPDS2Parser.parseURL(url: url)
+                    OPDSParser.parseURL(url: url)
                     }.then { newFeed -> Void in
                         DispatchQueue.main.async {
                             if feedIndex == nil {
-                                self.catalogData?.append(["title": title!, "url": urlString!, "type": type!])
+                                self.catalogData?.append(["title": title!, "url": urlString!])
                             }
                             else {
-                                self.catalogData?[feedIndex!] = ["title": title!, "url": urlString!, "type": type!]
+                                self.catalogData?[feedIndex!] = ["title": title!, "url": urlString!]
                             }
                             UserDefaults.standard.set(self.catalogData, forKey: self.userDefaultsID)
                             self.tableView.reloadData()
@@ -156,12 +151,6 @@ class OPDSCatalogSelectorViewController: UITableViewController {
             if feedIndex != nil {
                 textField.text = self.catalogData![feedIndex!]["url"]
             }
-        }
-        alertController.addTextField {(textField) in
-          textField.placeholder = "Feed Type (1=OPDS 1.x, 2=OPDS 2.x)"
-          if feedIndex != nil {
-            textField.text = self.catalogData![feedIndex!]["type"]
-          }
         }
         alertController.addAction(confirmAction)
         alertController.addAction(cancelAction)
