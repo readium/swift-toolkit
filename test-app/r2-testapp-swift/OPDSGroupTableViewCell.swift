@@ -217,7 +217,6 @@ extension OPDSGroupTableViewCell: UICollectionViewDelegateFlowLayout {
                 let newOpdsRootViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsRootViewController") as? OPDSRootTableViewController
                 if let newOpdsRootViewController = newOpdsRootViewController {
                     newOpdsRootViewController.originalFeedURL = URL(string: absoluteHref)
-                    newOpdsRootViewController.originalFeedType = opdsRootTableViewController?.originalFeedType
                     opdsRootTableViewController?.navigationController?.pushViewController(newOpdsRootViewController, animated: true)
                 }
             }
