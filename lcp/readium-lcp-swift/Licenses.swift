@@ -23,8 +23,11 @@ class Licenses {
     let updated = Expression<Date?>("updated")
     let end = Expression<Date?>("end")
     let state = Expression<String?>("state")
+    
+    let registered = Expression<Bool>("registered")
 
     init(_ connection: Connection) {
+        
         _ = try? connection.run(licenses.create(temporary: false, ifNotExists: true) { t in
             t.column(id, unique: true)
             t.column(printsLeft)
@@ -35,6 +38,11 @@ class Licenses {
             t.column(end)
             t.column(state)
         })
+        
+        if 0 == connection.userVersion {
+            _ = try? connection.run(licenses.addColumn(registered, defaultValue: false))
+            connection.userVersion = 1
+        }
     }
 
     internal func dateOfLastUpdate(forLicenseWith id: String) -> Date? {
@@ -65,6 +73,17 @@ class Licenses {
         }
         try db.run(license.update(self.state <- state))
     }
+    
+    internal func register(forLicenseWith id: String) throws {
+        let db = LCPDatabase.shared.connection
+        let license = licenses.filter(self.id == id)
+        
+        // Check if empty.
+        guard try db.scalar(license.count) > 0 else {
+            throw LcpError.licenseNotFound
+        }
+        try db.run(license.update(self.registered <- true))
+    }
 
     /// Check if the table already contains an entry for the given ID.
     ///
@@ -80,6 +99,23 @@ class Licenses {
         let query = licenses.filter(self.id == id)
         let count = try db.scalar(query.count)
 
+        return count == 1
+    }
+    
+    /// Check if the table already contains an entry for the given ID which is registered
+    ///
+    /// - Parameter id: The ID to check for.
+    /// - Returns: A boolean indicating the result of the search, true if found.
+    /// - Throws: .
+    internal func checkRegister(with id: String) throws -> Bool {
+        let db = LCPDatabase.shared.connection
+        // Check if empty.
+        guard try db.scalar(licenses.count) > 0 else {
+            return false
+        }
+        let query = licenses.filter(self.id == id && self.registered == true)
+        let count = try db.scalar(query.count)
+        
         return count == 1
     }
 
@@ -100,9 +136,18 @@ class Licenses {
             issued <- license.issued,
             updated <- license.updated,
             end <- license.rights.end,
-            state <- status?.rawValue ?? nil
+            state <- status?.rawValue ?? nil,
+            registered <- false
         )
+        
         try db.run(insertQuery)
     }
     
+}
+
+extension Connection {
+    public var userVersion: Int32 {
+        get { return Int32(try! scalar("PRAGMA user_version") as! Int64)}
+        set { try! run("PRAGMA user_version = \(newValue)") }
+    }
 }
