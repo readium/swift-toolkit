@@ -16,8 +16,7 @@ class AboutTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
-            let _ = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
+        if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
             versionNumberCell.textLabel?.text = "App Version:"
             buildNumberCell.textLabel?.text = "GitHub Tag:"
             versionNumberCell.detailTextLabel?.text = "\(version)"
