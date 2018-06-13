@@ -28,14 +28,11 @@ public enum OPDSParserError: Error {
 
 public class OPDSParser {
     
-    static var feedURL: URL?
-    
     /// Parse an OPDS feed.
     /// Feed can be v1 (XML) or v2 (JSON).
     /// - parameter url: The feed URL
     /// - Returns: A promise with the resulting Feed
     public static func parseURL(url: URL) -> Promise<Feed> {
-        feedURL = url
         
         return Promise<Feed> {fulfill, reject in
             
@@ -55,10 +52,10 @@ public class OPDSParser {
                 
                 // We try to parse as an OPDS v1 feed,
                 // then, if it fails, we try as an OPDS v2 feed.
-                if let feed = try? OPDS1Parser.parse(xmlData: data) {
+                if let feed = try? OPDS1Parser.parse(xmlData: data, url: url) {
                     fulfill(feed)
                 } else {
-                    if let feed = try? OPDS2Parser.parse(jsonData: data) {
+                    if let feed = try? OPDS2Parser.parse(jsonData: data, url: url) {
                         fulfill(feed)
                     } else {
                         // Not a valid OPDS ressource
