@@ -13,6 +13,8 @@ import R2Shared
 import R2LCPClient
 import CryptoSwift
 
+public let kShouldPresentLCPMessage = "kShouldPresentLCPMessage"
+
 public class LcpSession {
     internal let lcpLicense: LcpLicense
     
@@ -29,17 +31,34 @@ public class LcpSession {
         return firstly {
             // 4/ Check the license status
             lcpLicense.fetchStatusDocument()
-            }.then { _ -> Promise<Void> in
-                /// 3.3/ Check that the status is "ready" or "active".
-                try self.lcpLicense.checkStatus()
-                /// 3.4/ Check if the license has been updated. If it is the case,
-                //       the app must:
-                /// 3.4.1/ Fetch the updated license.
-                /// 3.4.2/ Validate the updated license. If the updated license
-                ///        is not valid, the app must keep the current one.
-                /// 3.4.3/ Replace the current license by the updated one in the
-                ///        EPUB archive.
-                return self.lcpLicense.updateLicenseDocument()
+            }.then{ error -> Promise<Void> in
+                
+                guard let serverError = error as NSError? else {
+                    /// 3.3/ Check that the status is "ready" or "active".
+                    try self.lcpLicense.checkStatus()
+                    /// 3.4/ Check if the license has been updated. If it is the case,
+                    //       the app must:
+                    /// 3.4.1/ Fetch the updated license.
+                    /// 3.4.2/ Validate the updated license. If the updated license
+                    ///        is not valid, the app must keep the current one.
+                    /// 3.4.3/ Replace the current license by the updated one in the
+                    ///        EPUB archive.
+                    return self.lcpLicense.updateLicenseDocument()
+                }
+                
+                if serverError.domain == "org.readium" {
+                    //print(serverError.localizedDescription)
+                    let noteName = Notification.Name(kShouldPresentLCPMessage)
+                    let userInfo = serverError.userInfo
+                    
+                    let notification = Notification(name: noteName, object: nil, userInfo: userInfo)
+                    NotificationCenter.default.post(notification)
+                }
+                
+                return Promise<Void> { fulfill, reject in
+                    fulfill(())
+                }
+                
             }.then { _ -> Promise<LcpLicense> in
                 /// 4/ Check the rights.
                 try self.lcpLicense.areRightsValid()
