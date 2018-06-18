@@ -87,6 +87,7 @@ class OPDSRootTableViewController: UITableViewController {
                 navigationItem.rightBarButtonItem = filterButton
             }
             
+            // Check feed compozition. Then, browsingState will be used to build the UI.
             if feed.navigation.count > 0 && feed.groups.count == 0 && feed.publications.count == 0 {
                 browsingState = .Navigation
             } else if feed.publications.count > 0 && feed.groups.count == 0 && feed.navigation.count == 0 {
@@ -215,6 +216,7 @@ class OPDSRootTableViewController: UITableViewController {
             numberOfSections = 2
             
         case .MixedNavigationGroup:
+            // 1 section for the nav + groups count for the next sections
             numberOfSections = 1 + feed!.groups.count
             
         case .MixedNavigationGroupPublication:
@@ -255,13 +257,17 @@ class OPDSRootTableViewController: UITableViewController {
             }
             
         case .MixedNavigationGroup:
+            // Nav
             if section == 0 {
                 numberOfRowsInSection = feed!.navigation.count
             }
+            // Groups
             if section >= 1 && section <= feed!.groups.count {
                 if feed!.groups[section - 1].navigation.count > 0 {
+                    // Nav inside a group
                     numberOfRowsInSection = feed!.groups[section - 1].navigation.count
                 } else {
+                    // No nav inside a group
                     numberOfRowsInSection = 1
                 }
             }
@@ -312,12 +318,16 @@ class OPDSRootTableViewController: UITableViewController {
             }
             
         case .MixedNavigationGroup:
+            // Nav
             if indexPath.section == 0 {
                 heightForRowAt = 44
+            // Group
             } else {
+                // Nav inside a group
                 if feed!.groups[indexPath.section - 1].navigation.count > 0 {
                     heightForRowAt = 44
                 } else {
+                    // No nav inside a group
                     heightForRowAt = calculateRowHeightForGroup(feed!.groups[indexPath.section - 1])
                 }
             }
@@ -393,9 +403,11 @@ class OPDSRootTableViewController: UITableViewController {
             }
             
         case .MixedNavigationGroup:
+            // Nav
             if section == 0 {
                 title = "Browse"
             }
+            // Groups
             if section >= 1 && section <= feed!.groups.count {
                 title = feed!.groups[section-1].metadata.title
             }
@@ -442,8 +454,10 @@ class OPDSRootTableViewController: UITableViewController {
             
         case .MixedNavigationGroup, .MixedNavigationGroupPublication:
             if indexPath.section == 0 {
+                // Nav
                 cell = buildNavigationCell(tableView: tableView, indexPath: indexPath)
             } else {
+                // Groups
                 cell = buildGroupCell(tableView: tableView, indexPath: indexPath)
             }
 
