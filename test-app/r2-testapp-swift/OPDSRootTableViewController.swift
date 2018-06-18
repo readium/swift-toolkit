@@ -16,6 +16,7 @@ enum FeedBrowsingState {
     case Publication
     case MixedGroup
     case MixedNavigationPublication
+    case MixedNavigationGroup
     case MixedNavigationGroupPublication
     case None
 }
@@ -96,6 +97,8 @@ class OPDSRootTableViewController: UITableViewController {
                 browsingState = .MixedGroup
             } else if feed.navigation.count > 0 && feed.groups.count == 0 && feed.publications.count > 0 {
                 browsingState = .MixedNavigationPublication
+            } else if feed.navigation.count > 0 && feed.groups.count > 0 && feed.publications.count == 0 {
+                browsingState = .MixedNavigationGroup
             } else if feed.navigation.count > 0 && feed.groups.count > 0 && feed.publications.count > 0 {
                 browsingState = .MixedNavigationGroupPublication
             } else {
@@ -211,6 +214,9 @@ class OPDSRootTableViewController: UITableViewController {
         case .MixedNavigationPublication:
             numberOfSections = 2
             
+        case .MixedNavigationGroup:
+            numberOfSections = 1 + feed!.groups.count
+            
         case .MixedNavigationGroupPublication:
             numberOfSections = 1 + feed!.groups.count + 1
             
@@ -246,6 +252,18 @@ class OPDSRootTableViewController: UITableViewController {
             }
             if section == 1 {
                 numberOfRowsInSection = 1
+            }
+            
+        case .MixedNavigationGroup:
+            if section == 0 {
+                numberOfRowsInSection = feed!.navigation.count
+            }
+            if section >= 1 && section <= feed!.groups.count {
+                if feed!.groups[section - 1].navigation.count > 0 {
+                    numberOfRowsInSection = feed!.groups[section - 1].navigation.count
+                } else {
+                    numberOfRowsInSection = 1
+                }
             }
             
         case .MixedNavigationGroupPublication:
@@ -291,6 +309,17 @@ class OPDSRootTableViewController: UITableViewController {
                 heightForRowAt = 44
             } else {
                 heightForRowAt = tableView.bounds.height / 2
+            }
+            
+        case .MixedNavigationGroup:
+            if indexPath.section == 0 {
+                heightForRowAt = 44
+            } else {
+                if feed!.groups[indexPath.section - 1].navigation.count > 0 {
+                    heightForRowAt = 44
+                } else {
+                    heightForRowAt = calculateRowHeightForGroup(feed!.groups[indexPath.section - 1])
+                }
             }
             
         case .MixedNavigationGroupPublication:
@@ -362,6 +391,15 @@ class OPDSRootTableViewController: UITableViewController {
             if section >= 0 && section <= feed!.groups.count {
                 title = feed!.groups[section].metadata.title
             }
+            
+        case .MixedNavigationGroup:
+            if section == 0 {
+                title = "Browse"
+            }
+            if section >= 1 && section <= feed!.groups.count {
+                title = feed!.groups[section-1].metadata.title
+            }
+            
         case .MixedNavigationGroupPublication:
             if section == 0 {
                 title = "Browse"
@@ -402,7 +440,7 @@ class OPDSRootTableViewController: UITableViewController {
                 cell = buildPublicationCell(tableView: tableView, indexPath: indexPath)
             }
             
-        case .MixedNavigationGroupPublication:
+        case .MixedNavigationGroup, .MixedNavigationGroupPublication:
             if indexPath.section == 0 {
                 cell = buildNavigationCell(tableView: tableView, indexPath: indexPath)
             } else {
@@ -471,7 +509,7 @@ class OPDSRootTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         switch browsingState {
             
-        case .Navigation, .MixedNavigationPublication, .MixedNavigationGroupPublication:
+        case .Navigation, .MixedNavigationPublication, .MixedNavigationGroup, .MixedNavigationGroupPublication:
             if indexPath.section == 0 {
                 if let absoluteHref = feed!.navigation[indexPath.row].absoluteHref {
                     pushOpdsRootViewController(href: absoluteHref)
