@@ -354,7 +354,10 @@ extension LibraryViewController: PublicationCellDelegate {
       // Remove the publication from publicationServer and Documents folder.
       self.delegate?.remove(self.publications[indexPath.row])
       // Remove item from UI colletionView.
-      self.collectionView?.deleteItems(at: [indexPath])
+      //self.collectionView.deleteItems(at: [indexPath])
+        self.collectionView?.performBatchUpdates({
+            self.collectionView?.reloadData()
+        }, completion: nil)
     })
     let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: { alert in
       return
