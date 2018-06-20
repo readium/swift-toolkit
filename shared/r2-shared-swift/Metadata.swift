@@ -234,3 +234,133 @@ public enum ContentLayoutStyle: String {
     case cjkVertical = "cjk-vertical"
     case cjkHorizontal = "cjk-horizontal"
 }
+
+// MARK: - Parsing related methods
+extension Metadata {
+    
+    static public func parse(metadataDict: [String: Any]) throws -> Metadata {
+        let m = Metadata()
+        for (k, v) in metadataDict {
+            switch k {
+            case "title":
+                m.multilangTitle = MultilangString()
+                m.multilangTitle?.singleString = v as? String
+            case "identifier":
+                m.identifier = v as? String
+            case "type", "@type":
+                m.rdfType = v as? String
+            case "modified":
+                if let dateStr = v as? String {
+                    m.modified = dateStr.dateFromISO8601
+                }
+            case "author":
+                m.authors.append(contentsOf: try Contributor.parse(contributors: v))
+            case "translator":
+                m.translators.append(contentsOf: try Contributor.parse(contributors: v))
+            case "editor":
+                m.editors.append(contentsOf: try Contributor.parse(contributors: v))
+            case "artist":
+                m.artists.append(contentsOf: try Contributor.parse(contributors: v))
+            case "illustrator":
+                m.illustrators.append(contentsOf: try Contributor.parse(contributors: v))
+            case "letterer":
+                m.letterers.append(contentsOf: try Contributor.parse(contributors: v))
+            case "penciler":
+                m.pencilers.append(contentsOf: try Contributor.parse(contributors: v))
+            case "colorist":
+                m.colorists.append(contentsOf: try Contributor.parse(contributors: v))
+            case "inker":
+                m.inkers.append(contentsOf: try Contributor.parse(contributors: v))
+            case "narrator":
+                m.narrators.append(contentsOf: try Contributor.parse(contributors: v))
+            case "contributor":
+                m.contributors.append(contentsOf: try Contributor.parse(contributors: v))
+            case "publisher":
+                m.publishers.append(contentsOf: try Contributor.parse(contributors: v))
+            case "imprint":
+                m.imprints.append(contentsOf: try Contributor.parse(contributors: v))
+            case "published":
+                m.publicationDate = v as? String
+            case "description":
+                m.description = v as? String
+            case "source":
+                m.source = v as? String
+            case "rights":
+                m.rights = v as? String
+            case "subject":
+                if let subjects = v as? [[String: Any]] {
+                    for subjDict in subjects {
+                        let subject = Subject()
+                        for (sk, sv) in subjDict {
+                            switch sk {
+                            case "name":
+                                subject.name = sv as? String
+                            case "sort_as":
+                                subject.sortAs = sv as? String
+                            case "scheme":
+                                subject.scheme = sv as? String
+                            case "code":
+                                subject.code = sv as? String
+                            default:
+                                continue
+                            }
+                        }
+                        m.subjects.append(subject)
+                    }
+                }
+            case "belongs_to":
+                if let belongsDict = v as? [String: Any] {
+                    let belongs = BelongsTo()
+                    for (bk, bv) in belongsDict {
+                        switch bk {
+                        case "series":
+                            switch bv {
+                            case let s as String:
+                                belongs.series.append(R2Shared.Collection(name: s))
+                            case let cArr as [[String: Any]]:
+                                for cDict in cArr {
+                                    belongs.series.append(try Collection.parse(cDict))
+                                }
+                            case let cDict as [String: Any]:
+                                belongs.series.append(try Collection.parse(cDict))
+                            default:
+                                continue
+                            }
+                        case "collection":
+                            switch bv {
+                            case let s as String:
+                                belongs.collection.append(R2Shared.Collection(name: s))
+                            case let cArr as [[String: Any]]:
+                                for cDict in cArr {
+                                    belongs.collection.append(try Collection.parse(cDict))
+                                }
+                            case let cDict as [String: Any]:
+                                belongs.collection.append(try Collection.parse(cDict))
+                            default:
+                                continue
+                            }
+                        default:
+                            continue
+                        }
+                    }
+                    m.belongsTo = belongs
+                }
+            case "duration":
+                m.duration = v as? Int
+            case "language":
+                switch v {
+                case let s as String:
+                    m.languages.append(s)
+                case let sArr as [String]:
+                    m.languages.append(contentsOf: sArr)
+                default:
+                    continue
+                }
+            default:
+                continue
+            }
+        }
+        return m
+    }
+    
+}

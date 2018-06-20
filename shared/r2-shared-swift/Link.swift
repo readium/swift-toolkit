@@ -72,3 +72,94 @@ extension Link: Mappable {
     }
 }
 
+// MARK: - Parsing related errors
+public enum LinkError: Error {
+    case invalidLink
+    
+    var localizedDescription: String {
+        switch self {
+        case .invalidLink:
+            return "Invalid link"
+        }
+    }
+}
+
+// MARK: - Parsing related methods
+extension Link {
+    
+    static public func parse(linkDict: [String: Any]) throws -> Link {
+        let l = Link()
+        for (k, v) in linkDict {
+            switch k {
+            case "title":
+                l.title = v as? String
+            case "href":
+                l.href = v as? String
+                l.absoluteHref = v as? String
+            case "type":
+                l.typeLink = v as? String
+            case "rel":
+                if let rel = v as? String {
+                    l.rel = [rel]
+                }
+                else if let rels = v as? [String] {
+                    l.rel = rels
+                }
+            case "height":
+                l.height = v as? Int
+            case "width":
+                l.width = v as? Int
+            case "bitrate":
+                l.bitrate = v as? Int
+            case "duration":
+                l.duration = v as? Double
+            case "templated":
+                l.templated = v as? Bool
+            case "properties":
+                var prop = Properties()
+                if let propDict = v as? [String: Any] {
+                    for (kp, vp) in propDict {
+                        switch kp {
+                        case "numberOfItems":
+                            prop.numberOfItems = vp as? Int
+                        case "indirectAcquisition":
+                            guard let acquisitions = v as? [[String: Any]] else {
+                                throw LinkError.invalidLink
+                            }
+                            for a in acquisitions {
+                                let ia = try IndirectAcquisition.parse(indirectAcquisitionDict: a)
+                                if prop.indirectAcquisition == nil {
+                                    prop.indirectAcquisition = [ia]
+                                }
+                                else {
+                                    prop.indirectAcquisition!.append(ia)
+                                }
+                            }
+                        case "price":
+                            guard let priceDict = v as? [String: Any],
+                                let currency = priceDict["currency"] as? String,
+                                let value = priceDict["value"] as? Double
+                                else {
+                                    throw LinkError.invalidLink
+                            }
+                            let price = Price(currency: currency, value: value)
+                            prop.price = price
+                        default:
+                            continue
+                        }
+                    }
+                }
+            case "children":
+                guard let childLinkDict = v as? [String: Any] else {
+                    throw LinkError.invalidLink
+                }
+                let childLink = try parse(linkDict: childLinkDict)
+                l.children.append(childLink)
+            default:
+                continue
+            }
+        }
+        return l
+    }
+    
+}

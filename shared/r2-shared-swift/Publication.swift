@@ -272,3 +272,53 @@ public enum ReadiumCSSKey: String {
     
     case publisherFont = "--USER__fontOverride"
 }
+
+// MARK: - Parsing related errors
+public enum PublicationError: Error {
+    case invalidPublication
+    
+    var localizedDescription: String {
+        switch self {
+        case .invalidPublication:
+            return "Invalid publication"
+        }
+    }
+}
+
+// MARK: - Parsing related methods
+extension Publication {
+    
+    static public func parse(pubDict: [String: Any]) throws -> Publication {
+        let p = Publication()
+        for (k, v) in pubDict {
+            switch k {
+            case "metadata":
+                guard let metadataDict = v as? [String: Any] else {
+                    throw PublicationError.invalidPublication
+                }
+                let metadata = try Metadata.parse(metadataDict: metadataDict)
+                p.metadata = metadata
+            case "links":
+                guard let links = v as? [[String: Any]] else {
+                    throw PublicationError.invalidPublication
+                }
+                for linkDict in links {
+                    let link = try Link.parse(linkDict: linkDict)
+                    p.links.append(link)
+                }
+            case "images":
+                guard let links = v as? [[String: Any]] else {
+                    throw PublicationError.invalidPublication
+                }
+                for linkDict in links {
+                    let link = try Link.parse(linkDict: linkDict)
+                    p.images.append(link)
+                }
+            default:
+                continue
+            }
+        }
+        return p
+    }
+    
+}

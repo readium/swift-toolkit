@@ -50,3 +50,73 @@ extension Contributor: Mappable {
         }
     }
 }
+
+// MARK: - Parsing related errors
+public enum ContributorError: Error {
+    case invalidContributor
+    
+    var localizedDescription: String {
+        switch self {
+        case .invalidContributor:
+            return "Invalid contributor"
+        }
+    }
+}
+
+// MARK: - Parsing related methods
+extension Contributor {
+    
+    static public func parse(_ cDict: [String: Any]) throws -> Contributor {
+        let c = Contributor()
+        for (k, v) in cDict {
+            switch k {
+            case "name":
+                switch v {
+                case let s as String:
+                    c.multilangName.singleString = s
+                case let multiString as [String: String]:
+                    c.multilangName.multiString = multiString
+                default:
+                    throw ContributorError.invalidContributor
+                }
+            case "identifier":
+                c.identifier = v as? String
+            case "sort_as":
+                c.sortAs = v as? String
+            case "role":
+                if let s = v as? String {
+                    c.roles.append(s)
+                }
+            case "links":
+                if let linkDict = v as? [String: Any] {
+                    c.links.append(try Link.parse(linkDict: linkDict))
+                }
+            default:
+                continue
+            }
+        }
+        return c
+    }
+    
+    static public func parse(contributors: Any) throws -> [Contributor] {
+        var result: [Contributor] = []
+        switch contributors {
+        case let name as String:
+            let c = Contributor()
+            c.multilangName.singleString = name
+            result.append(c)
+        case let cDict as [String: Any]:
+            let c = try parse(cDict)
+            result.append(c)
+        case let cArray as [[String: Any]]:
+            for cDict in cArray {
+                let c = try parse(cDict)
+                result.append(c)
+            }
+        default:
+            throw ContributorError.invalidContributor
+        }
+        return result
+    }
+    
+}
