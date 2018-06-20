@@ -79,8 +79,13 @@ public class OPDS2Parser {
     /// Parse an OPDS feed.
     /// Feed can only be v2 (JSON).
     /// - parameter jsonData: The json raw data
+    /// - parameter url: The feed URL (optional)
     /// - Returns: The resulting Feed
-    public static func parse(jsonData: Data) throws -> Feed {
+    public static func parse(jsonData: Data, url: URL? = nil) throws -> Feed {
+        
+        if let url = url {
+            feedURL = url
+        }
         
         guard let jsonRoot = try? JSONSerialization.jsonObject(with: jsonData, options: []) else {
             throw OPDS2ParserError.invalidJSON

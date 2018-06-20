@@ -82,8 +82,13 @@ public class OPDS1Parser {
     /// Parse an OPDS feed.
     /// Feed can only be v1 (XML).
     /// - parameter xmlData: The xml raw data
+    /// - parameter url: The feed URL (optional)
     /// - Returns: The resulting Feed
-    public static func parse(xmlData: Data) throws -> Feed {
+    public static func parse(xmlData: Data, url: URL? = nil) throws -> Feed {
+        if let url = url {
+            feedURL = url
+        }
+        
         let document = try XMLDocument.init(data: xmlData)
         
         document.definePrefix("thr", defaultNamespace: "http://purl.org/syndication/thread/1.0")
