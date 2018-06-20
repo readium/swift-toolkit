@@ -89,7 +89,8 @@ public class LcpLicense: DrmLicense {
                     }
                   fulfill(nil)
                 } else if let error = error {
-                    reject(error)
+                    //reject(error)
+                    fulfill(error)
                 } else {
                     reject(LcpError.unknown)
                 }
