@@ -123,7 +123,7 @@ extension Link {
                         case "numberOfItems":
                             prop.numberOfItems = vp as? Int
                         case "indirectAcquisition":
-                            guard let acquisitions = v as? [[String: Any]] else {
+                            guard let acquisitions = vp as? [[String: Any]] else {
                                 throw LinkError.invalidLink
                             }
                             for a in acquisitions {
