@@ -149,6 +149,7 @@ extension Link {
                         }
                     }
                 }
+                l.properties = prop
             case "children":
                 guard let childLinkDict = v as? [String: Any] else {
                     throw LinkError.invalidLink
