@@ -51,6 +51,10 @@ final class WebView: WKWebView {
                     "rightTap": rightTapped,
                     "didLoad": documentDidLoad,
                     "updateProgression": progressionDidChange]
+    
+    let jsFollowUp = ["leftTap": dismissIfNeed,
+                    "centerTap": dismissIfNeed,
+                    "rightTap": dismissIfNeed]
 
     internal enum Scroll {
         case left
@@ -127,6 +131,11 @@ final class WebView: WKWebView {
 }
 
 extension WebView {
+    
+    internal func dismissIfNeed() {
+        self.isUserInteractionEnabled = false
+        self.isUserInteractionEnabled = true
+    }
 
     /// Called from the JS code when a tap is detected in the 2/10 left
     /// part of the screen.
@@ -137,6 +146,7 @@ extension WebView {
         guard documentLoaded else {
             return
         }
+        
         Scroll.left.proceed(on: self)
     }
 
@@ -257,6 +267,9 @@ extension WebView: WKScriptMessageHandler {
         }
         if let handler = jsEvents[message.name] {
             handler(self)(body)
+        }
+        if let followup = jsFollowUp[message.name] {
+            followup(self)()
         }
     }
 
