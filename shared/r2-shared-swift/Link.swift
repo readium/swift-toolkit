@@ -136,7 +136,7 @@ extension Link {
                                 }
                             }
                         case "price":
-                            guard let priceDict = v as? [String: Any],
+                            guard let priceDict = vp as? [String: Any],
                                 let currency = priceDict["currency"] as? String,
                                 let value = priceDict["value"] as? Double
                                 else {
