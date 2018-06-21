@@ -424,12 +424,26 @@ class OPDSRootTableViewController: UITableViewController {
     
     func buildNavigationCell(tableView: UITableView, indexPath: IndexPath) -> OPDSNavigationTableViewCell {
         let castedCell = tableView.dequeueReusableCell(withIdentifier: "opdsNavigationCell", for: indexPath) as! OPDSNavigationTableViewCell
-        castedCell.title.text = feed?.navigation[indexPath.row].title
-        if let count = feed?.navigation[indexPath.row].properties.numberOfItems {
-            castedCell.count.text = "\(count)"
+        
+        var currentNavigation: [Link]?
+        
+        if let navigation = feed?.navigation, navigation.count > 0 {
+            currentNavigation = navigation
         } else {
-            castedCell.count.text = ""
+            if let navigation = feed?.groups[indexPath.section].navigation, navigation.count > 0 {
+                currentNavigation = navigation
+            }
         }
+
+        if let currentNavigation = currentNavigation {
+            castedCell.title.text = currentNavigation[indexPath.row].title
+            if let count = currentNavigation[indexPath.row].properties.numberOfItems {
+                castedCell.count.text = "\(count)"
+            } else {
+                castedCell.count.text = ""
+            }
+        }
+        
         return castedCell
     }
     
