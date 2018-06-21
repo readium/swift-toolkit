@@ -13,7 +13,7 @@ import R2Shared
 public enum Version {
     /// OPDS 1.x must be an XML ressource
     case OPDS1
-    /// OPDS 1.x must be a JSON ressource
+    /// OPDS 2.x must be a JSON ressource
     case OPDS2
 }
 
