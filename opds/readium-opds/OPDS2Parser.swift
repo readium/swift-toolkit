@@ -46,14 +46,14 @@ public enum OPDS2ParserError: Error {
 public class OPDS2Parser {
   static var feedURL: URL?
     
-  /// Parse an OPDS feed.
+  /// Parse an OPDS feed or publication.
   /// Feed can only be v2 (JSON).
   /// - parameter url: The feed URL
-  /// - Returns: A promise with the resulting Feed
-  public static func parseURL(url: URL) -> Promise<Feed> {
+  /// - Returns: A promise with the intermediate structure of type ParseData
+  public static func parseURL(url: URL) -> Promise<ParseData> {
         feedURL = url
     
-        return Promise<Feed> {fulfill, reject in
+        return Promise<ParseData> {fulfill, reject in
           let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, response, error) in
             guard error == nil else {
               reject(error!)
@@ -64,8 +64,8 @@ public class OPDS2Parser {
               return
             }
             do {
-              let feed = try self.parse(jsonData: data)
-              fulfill(feed)
+              let parseData = try self.parse(jsonData: data, url: url, response: response!)
+              fulfill(parseData)
             }
             catch {
               reject(error)
@@ -76,16 +76,17 @@ public class OPDS2Parser {
         }
     }
     
-    /// Parse an OPDS feed.
-    /// Feed can only be v2 (JSON).
+    /// Parse an OPDS feed or publication.
+    /// Feed can only be v1 (XML).
     /// - parameter jsonData: The json raw data
-    /// - parameter url: The feed URL (optional)
-    /// - Returns: The resulting Feed
-    public static func parse(jsonData: Data, url: URL? = nil) throws -> Feed {
+    /// - parameter url: The feed URL
+    /// - parameter response: The response payload
+    /// - Returns: The intermediate structure of type ParseData
+    public static func parse(jsonData: Data, url: URL, response: URLResponse) throws -> ParseData {
         
-        if let url = url {
-            feedURL = url
-        }
+        feedURL = url
+        
+        var parseData = ParseData(url: url, response: response, version: .OPDS2)
         
         guard let jsonRoot = try? JSONSerialization.jsonObject(with: jsonData, options: []) else {
             throw OPDS2ParserError.invalidJSON
@@ -95,7 +96,32 @@ public class OPDS2Parser {
             throw OPDS2ParserError.invalidJSON
         }
         
-        guard let metadataDict = topLevelDict["metadata"] as? [String: Any] else {
+        if topLevelDict["navigation"] == nil
+            && topLevelDict["groups"] == nil
+            && topLevelDict["publications"] == nil
+            && topLevelDict["facets"] == nil {
+            
+            // Publication only
+            parseData.publication = try? Publication.parse(pubDict: topLevelDict)
+            
+        } else {
+            
+            // Feed
+            parseData.feed = try? parse(jsonDict: topLevelDict)
+            
+        }
+
+        return parseData
+        
+    }
+    
+    /// Parse an OPDS feed.
+    /// Feed can only be v2 (JSON).
+    /// - parameter jsonDict: The json top level dictionary
+    /// - Returns: The resulting Feed
+    public static func parse(jsonDict: [String: Any]) throws -> Feed {
+        
+        guard let metadataDict = jsonDict["metadata"] as? [String: Any] else {
             throw OPDS2ParserError.metadataNotFound
             
         }
@@ -107,7 +133,7 @@ public class OPDS2Parser {
         let feed = Feed(title: title)
         parseMetadata(opdsMetadata: feed.metadata, metadataDict: metadataDict)
         
-        for (k, v) in topLevelDict {
+        for (k, v) in jsonDict {
             switch k {
             case "@context":
                 switch v {
