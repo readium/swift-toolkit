@@ -14,7 +14,7 @@
         <scene sceneID="qiY-Sn-fxs">
             <objects>
                 <tabBarController id="vEH-Wa-DdV" sceneMemberID="viewController">
-                    <tabBar key="tabBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" translucent="NO" id="M9x-Gy-YWu">
+                    <tabBar key="tabBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" translucent="NO" id="M9x-Gy-YWu" customClass="R2TabBar" customModule="r2_testapp_swift" customModuleProvider="target">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="49"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -103,12 +103,12 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
-                            <constraint firstItem="5l4-XZ-QZP" firstAttribute="top" secondItem="8dr-D3-oSd" secondAttribute="top" id="0rg-Gf-H26"/>
-                            <constraint firstItem="5l4-XZ-QZP" firstAttribute="leading" secondItem="8dr-D3-oSd" secondAttribute="leading" id="bM5-KQ-W3j"/>
-                            <constraint firstItem="8dr-D3-oSd" firstAttribute="trailing" secondItem="5l4-XZ-QZP" secondAttribute="trailing" id="dDZ-Tx-NTA"/>
-                            <constraint firstItem="8dr-D3-oSd" firstAttribute="bottom" secondItem="5l4-XZ-QZP" secondAttribute="bottom" id="wAX-C4-vft"/>
+                            <constraint firstItem="5l4-XZ-QZP" firstAttribute="top" secondItem="rk8-q6-nzT" secondAttribute="top" id="0rg-Gf-H26"/>
+                            <constraint firstItem="5l4-XZ-QZP" firstAttribute="leading" secondItem="rk8-q6-nzT" secondAttribute="leading" id="bM5-KQ-W3j"/>
+                            <constraint firstItem="rk8-q6-nzT" firstAttribute="trailing" secondItem="5l4-XZ-QZP" secondAttribute="trailing" id="dDZ-Tx-NTA"/>
+                            <constraint firstItem="rk8-q6-nzT" firstAttribute="bottom" secondItem="5l4-XZ-QZP" secondAttribute="bottom" id="wAX-C4-vft"/>
                         </constraints>
-                        <viewLayoutGuide key="safeArea" id="8dr-D3-oSd"/>
+                        <viewLayoutGuide key="safeArea" id="rk8-q6-nzT"/>
                     </view>
                     <navigationItem key="navigationItem" title="Library" id="ayk-i8-5FT"/>
                     <connections>
