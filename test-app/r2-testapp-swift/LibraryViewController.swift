@@ -58,7 +58,7 @@ class LibraryViewController: UICollectionViewController {
     
     delegate = appDelegate
 
-    publications = appDelegate.items.flatMap() { $0.value.0.publication }.sorted { (pA, pB) -> Bool in
+    publications = appDelegate.items.compactMap() { $0.value.0.publication }.sorted { (pA, pB) -> Bool in
           pA.metadata.title < pB.metadata.title
       }
 
@@ -99,9 +99,9 @@ class LibraryViewController: UICollectionViewController {
   static let iPadLayoutNumberPerRow:[GeneralScreenOrientation: Int] = [.portrait: 4, .landscape: 5]
   static let iPhoneLayoutNumberPerRow:[GeneralScreenOrientation: Int] = [.portrait: 3, .landscape: 4]
   
-  lazy var layoutNumberPerRow:[UIUserInterfaceIdiom:[GeneralScreenOrientation: Int]] = [
-    .pad : iPadLayoutNumberPerRow,
-    .phone : iPhoneLayoutNumberPerRow
+  static let layoutNumberPerRow:[UIUserInterfaceIdiom:[GeneralScreenOrientation: Int]] = [
+    .pad : LibraryViewController.iPadLayoutNumberPerRow,
+    .phone : LibraryViewController.iPhoneLayoutNumberPerRow
   ]
   
   private var previousScreenOrientation: GeneralScreenOrientation?
@@ -127,6 +127,11 @@ class LibraryViewController: UICollectionViewController {
       }
     } ()
     
+    var layoutNumberPerRow:[UIUserInterfaceIdiom:[GeneralScreenOrientation: Int]] = [
+        .pad : LibraryViewController.iPadLayoutNumberPerRow,
+        .phone : LibraryViewController.iPhoneLayoutNumberPerRow
+    ]
+    
     previousScreenOrientation = orientation
     
     guard let deviceLayoutNumberPerRow = layoutNumberPerRow[idiom] else {return}
@@ -147,18 +152,18 @@ class LibraryViewController: UICollectionViewController {
 
 // MARK: - Misc.
 extension LibraryViewController {
-  
-  func handleLongPress(gestureRecognizer: UILongPressGestureRecognizer) {
-    if (gestureRecognizer.state != UIGestureRecognizerState.began) {
-      return
+
+    @objc func handleLongPress(gestureRecognizer: UILongPressGestureRecognizer) {
+        if (gestureRecognizer.state != UIGestureRecognizerState.began) {
+            return
+        }
+        let location = gestureRecognizer.location(in: collectionView)
+        if let indexPath = collectionView?.indexPathForItem(at: location) {
+            let cell = collectionView?.cellForItem(at: indexPath) as! PublicationCell
+
+            cell.flipMenu()
+        }
     }
-    let location = gestureRecognizer.location(in: collectionView)
-    if let indexPath = collectionView?.indexPathForItem(at: location) {
-      let cell = collectionView?.cellForItem(at: indexPath) as! PublicationCell
-      
-      cell.flipMenu()
-    }
-  }
 }
 
 // MARK: - CollectionView Datasource.
@@ -211,31 +216,42 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
       } else {
         
         ImageDownloader.default.downloadImage(with: coverUrl, options: [], progressBlock: nil) { (image, error, url, data) in
-          
-          guard let newImage = image else {return}
-          ImageCache.default.store(newImage, forKey: cacheKey)
-          updateCellImage(newImage)
+            if error != nil {
+                let flowLayout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout
+                let textView = self.defaultCover(layout: flowLayout, publication: publication)
+                cell.imageView.image = UIImage.imageWithTextView(textView: textView)
+                cell.applyShadows()
+            } else {
+                guard let newImage = image else {return}
+                ImageCache.default.store(newImage, forKey: cacheKey)
+                updateCellImage(newImage)
+            }
         }
       } // check cache
       
     } else {
       
       let flowLayout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout
-      
-      let width = flowLayout?.itemSize.width ?? 0
-      let height = flowLayout?.itemSize.height ?? 0
-      let titleTextView = UITextView(frame: CGRect(x: 0, y: 0, width: width, height: height))
-      
-      titleTextView.layer.borderWidth = 5.0
-      titleTextView.layer.borderColor = #colorLiteral(red: 0.08269290555, green: 0.2627741129, blue: 0.3623990017, alpha: 1).cgColor
-      titleTextView.backgroundColor = #colorLiteral(red: 0.05882352963, green: 0.180392161, blue: 0.2470588237, alpha: 1)
-      titleTextView.textColor = #colorLiteral(red: 0.8639426257, green: 0.8639426257, blue: 0.8639426257, alpha: 1)
-      titleTextView.text = publication.metadata.title.appending("\n_________") //Dirty styling.
-      cell.imageView.image = UIImage.imageWithTextView(textView: titleTextView)
+      let textView = defaultCover(layout: flowLayout, publication: publication)
+      cell.imageView.image = UIImage.imageWithTextView(textView: textView)
       cell.applyShadows()
     }
     
     return cell
+  }
+    
+  internal func defaultCover(layout: UICollectionViewFlowLayout?, publication: Publication) -> UITextView {
+    let width = layout?.itemSize.width ?? 0
+    let height = layout?.itemSize.height ?? 0
+    let titleTextView = UITextView(frame: CGRect(x: 0, y: 0, width: width, height: height))
+
+    titleTextView.layer.borderWidth = 5.0
+    titleTextView.layer.borderColor = #colorLiteral(red: 0.08269290555, green: 0.2627741129, blue: 0.3623990017, alpha: 1).cgColor
+    titleTextView.backgroundColor = #colorLiteral(red: 0.05882352963, green: 0.180392161, blue: 0.2470588237, alpha: 1)
+    titleTextView.textColor = #colorLiteral(red: 0.8639426257, green: 0.8639426257, blue: 0.8639426257, alpha: 1)
+    titleTextView.text = publication.metadata.title.appending("\n_________") //Dirty styling.
+        
+    return titleTextView
   }
 
   override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -307,6 +323,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
           let epubViewer = EpubViewController(with: publication,
                                               atIndex: index,
                                               progression: progression, drm)
+          epubViewer.hidesBottomBarWhenPushed = true
           success?(epubViewer)
         })
       } catch {

@@ -35,8 +35,7 @@ class DrmManagementTableViewController: UITableViewController {
         reload()
       self.navigationController?.navigationBar.barTintColor = UIColor.white
       self.navigationController?.navigationBar.tintColor = UIColor.black
-      self.navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor.black]
-
+      self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.black]
     }
   
     override func viewWillDisappear(_ animated: Bool) {
@@ -52,7 +51,7 @@ class DrmManagementTableViewController: UITableViewController {
       //
       navigationController?.navigationBar.barTintColor = color
       navigationController?.navigationBar.tintColor = textColor
-      navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: textColor]
+      navigationController?.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: textColor]
       //
     }
 

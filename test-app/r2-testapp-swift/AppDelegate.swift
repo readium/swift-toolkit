@@ -138,23 +138,31 @@ extension AppDelegate {
                                                             in: .userDomainMask,
                                                             appropriateFor: nil,
                                                             create: true)
+            
             documentsUrl.appendPathComponent(url.lastPathComponent)
-            do {
-                try FileManager.default.moveItem(at: url, to: documentsUrl)
-            } catch {
-                showInfoAlert(title: "Error", message: "Couldn't retrieve the protected epub from the server \(error)")
-                return false
-            }
-            /// Add the publication to the publication server.
-            let location = Location(absolutePath: documentsUrl.path,
-                                    relativePath: documentsUrl.lastPathComponent,
-                                    type: getTypeForPublicationAt(url: url))
-            if !lightParsePublication(at: location) {
-                showInfoAlert(title: "Error", message: "The publication isn't valid.")
+            
+            if FileManager().fileExists(atPath: documentsUrl.path) {
+                showInfoAlert(title: "Error", message: "Publication already added to library.")
                 return false
             } else {
-                showInfoAlert(title: "Success", message: "Publication added to library.")
-                reload()
+                do {
+                    try FileManager.default.moveItem(at: url, to: documentsUrl)
+                } catch {
+                    showInfoAlert(title: "Error", message: "Couldn't retrieve the protected epub from the server \(error)")
+                    return false
+                }
+                /// Add the publication to the publication server.
+                let location = Location(absolutePath: documentsUrl.path,
+                                        relativePath: documentsUrl.lastPathComponent,
+                                        type: getTypeForPublicationAt(url: url))
+                if !lightParsePublication(at: location) {
+                    showInfoAlert(title: "Error", message: "The publication isn't valid.")
+                    return false
+                } else {
+                    showInfoAlert(title: "Success", message: "Publication added to library.")
+                    reload()
+                }
+                
             }
         }
         

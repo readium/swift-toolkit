@@ -54,7 +54,7 @@ class CbzViewController: CbzNavigatorViewController {
 }
 
 extension CbzViewController {
-    func presentSpineItemsTVC() {
+    @objc func presentSpineItemsTVC() {
         let backItem = UIBarButtonItem()
         let spineItemsTVC = SpineItemsTableViewController(for: publication.spine, callWhenDismissed: load(at:))
     

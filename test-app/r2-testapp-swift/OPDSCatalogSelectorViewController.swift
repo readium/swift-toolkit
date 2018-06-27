@@ -10,19 +10,21 @@ import UIKit
 import Foundation
 import R2Shared
 import ReadiumOPDS
+import PromiseKit
 
 class OPDSCatalogSelectorViewController: UITableViewController {
-    var catalogData: [[String: String]]? // An array of dicts in the form ["title": title, "url": url, "type": type]
+    var catalogData: [[String: String]]? // An array of dicts in the form ["title": title, "url": url]
     let cellReuseIdentifier = "catalogSelectorCell"
     let userDefaultsID = "opdsCatalogArray"
     var addFeedButton: UIBarButtonItem?
+    var mustEditAtIndexPath: IndexPath?
 
     override func viewDidLoad() {
         catalogData = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
         if catalogData == nil {
             catalogData = [
-              ["title": "Feedbooks", "url": "http://www.feedbooks.com/catalog.atom", "type":"1"],
-              ["title": "Open Textbooks", "url": "http://open.minitex.org", "type":"1"]
+              ["title": "Feedbooks", "url": "http://www.feedbooks.com/catalog.atom"],
+              ["title": "Open Textbooks", "url": "http://open.minitex.org"]
             ]
             UserDefaults.standard.set(catalogData, forKey: userDefaultsID)
         }
@@ -42,13 +44,20 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         navigationController?.navigationBar.barTintColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
         navigationController?.view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
     }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        if let index = mustEditAtIndexPath?.row {
+            showEditPopup(feedIndex: index)
+        }
+        mustEditAtIndexPath = nil
+    }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return catalogData!.count
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell:UITableViewCell = self.tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier) as UITableViewCell!
+        let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath)
         cell.textLabel?.text = catalogData![indexPath.row]["title"]
         return cell
     }
@@ -66,15 +75,12 @@ class OPDSCatalogSelectorViewController: UITableViewController {
               let url = URL(string: urlString) else {
             return
         }
-        guard let type = catalogData![indexPath.row]["type"] else {
-            return
-        }
       
         let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
         let opdsRootViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsRootViewController") as? OPDSRootTableViewController
         if let opdsRootViewController = opdsRootViewController {
-          opdsRootViewController.originalFeedURL = url
-          opdsRootViewController.originalFeedType = type
+            opdsRootViewController.originalFeedURL = url
+            opdsRootViewController.originalFeedIndexPath = indexPath
             navigationController?.pushViewController(opdsRootViewController, animated: true)
         }
     }
@@ -98,24 +104,40 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         return [editAction, deleteAction]
     }
 
-    func showAddFeedPopup() {
+    @objc func showAddFeedPopup() {
         self.showEditPopup(feedIndex: nil)
     }
 
-    func showEditPopup(feedIndex: Int?) {
-        let alertController = UIAlertController(title: "Enter feed title and URL", message: "", preferredStyle: .alert)
+    func showEditPopup(feedIndex: Int?, retry: Bool = false) {
+        let alertController = UIAlertController(title: "Enter feed title and URL",
+                                                message: retry ? "Feed is not valid, please try again." : "",
+                                                preferredStyle: .alert)
         let confirmAction = UIAlertAction(title: "OK", style: .default) { (_) in
             let title = alertController.textFields?[0].text
-            let url = alertController.textFields?[1].text
-            let type = alertController.textFields?[2].text
-            if feedIndex == nil {
-                self.catalogData?.append(["title": title!, "url": url!, "type": type!])
+            let urlString = alertController.textFields?[1].text
+            if let url = URL(string: urlString!) {
+                UIApplication.shared.isNetworkActivityIndicatorVisible = true
+                firstly {
+                    OPDSParser.parseURL(url: url)
+                    }.then { newFeed -> Void in
+                        DispatchQueue.main.async {
+                            if feedIndex == nil {
+                                self.catalogData?.append(["title": title!, "url": urlString!])
+                            }
+                            else {
+                                self.catalogData?[feedIndex!] = ["title": title!, "url": urlString!]
+                            }
+                            UserDefaults.standard.set(self.catalogData, forKey: self.userDefaultsID)
+                            self.tableView.reloadData()
+                        }
+                    }.catch(execute: { (_) in
+                        self.showEditPopup(feedIndex: feedIndex, retry: true)
+                    }).always {
+                        UIApplication.shared.isNetworkActivityIndicatorVisible = false
+                }
+            } else {
+                self.showEditPopup(feedIndex: feedIndex, retry: true)
             }
-            else {
-                self.catalogData?[feedIndex!] = ["title": title!, "url": url!, "type": type!]
-            }
-            UserDefaults.standard.set(self.catalogData, forKey: self.userDefaultsID)
-            self.tableView.reloadData()
         }
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { (_) in }
         alertController.addTextField {(textField) in
@@ -129,12 +151,6 @@ class OPDSCatalogSelectorViewController: UITableViewController {
             if feedIndex != nil {
                 textField.text = self.catalogData![feedIndex!]["url"]
             }
-        }
-        alertController.addTextField {(textField) in
-          textField.placeholder = "Feed Type (1=OPDS 1.x, 2=OPDS 2.x)"
-          if feedIndex != nil {
-            textField.text = self.catalogData![feedIndex!]["type"]
-          }
         }
         alertController.addAction(confirmAction)
         alertController.addAction(cancelAction)
