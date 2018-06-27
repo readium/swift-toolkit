@@ -10,9 +10,11 @@
 import WebKit
 import SafariServices
 
+import R2Shared
+
 protocol ViewDelegate: class {
-    func displayNextDocument()
-    func displayPreviousDocument()
+    func displayRightDocument()
+    func displayLeftDocument()
     func handleCenterTap()
     func publicationIdentifier() -> String?
     func publicationBaseUrl() -> URL?
@@ -24,6 +26,8 @@ final class WebView: WKWebView {
 
     public weak var viewDelegate: ViewDelegate?
     fileprivate let initialLocation: BinaryLocation
+    
+    var direction: PageProgressionDirection?
 
     public var initialId: String?
     // progression and totalPages only work on 'readium-scroll-off' mode
@@ -47,23 +51,29 @@ final class WebView: WKWebView {
                     "rightTap": rightTapped,
                     "didLoad": documentDidLoad,
                     "updateProgression": progressionDidChange]
+    
+    let jsFollowUp = ["leftTap": dismissIfNeed,
+                    "centerTap": dismissIfNeed,
+                    "rightTap": dismissIfNeed]
 
     internal enum Scroll {
         case left
         case right
-
         func proceed(on target: WebView) {
+            
+            let dir = target.direction?.rawValue ?? PageProgressionDirection.ltr.rawValue
+            
             switch self {
             case .left:
-                target.evaluateJavaScript("scrollLeft();", completionHandler: { result, error in
+                target.evaluateJavaScript("scrollLeft(\"\(dir)\");", completionHandler: { result, error in
                     if error == nil, let result = result as? String, result == "edge" {
-                        target.viewDelegate?.displayPreviousDocument()
+                        target.viewDelegate?.displayLeftDocument()
                     }
                 })
             case .right:
-                target.evaluateJavaScript("scrollRight();", completionHandler: { result, error in
+                target.evaluateJavaScript("scrollRight(\"\(dir)\");", completionHandler: { result, error in
                     if error == nil, let result = result as? String, result == "edge" {
-                        target.viewDelegate?.displayNextDocument()
+                        target.viewDelegate?.displayRightDocument()
                     }
                 })
             }
@@ -121,6 +131,11 @@ final class WebView: WKWebView {
 }
 
 extension WebView {
+    
+    internal func dismissIfNeed() {
+        self.isUserInteractionEnabled = false
+        self.isUserInteractionEnabled = true
+    }
 
     /// Called from the JS code when a tap is detected in the 2/10 left
     /// part of the screen.
@@ -131,6 +146,7 @@ extension WebView {
         guard documentLoaded else {
             return
         }
+        
         Scroll.left.proceed(on: self)
     }
 
@@ -159,8 +175,8 @@ extension WebView {
     /// - Parameter body: Unused.
     internal func documentDidLoad(body: String) {
         documentLoaded = true
-        scrollToInitialPosition()
         applyUserSettingsStyle()
+        scrollToInitialPosition()
     }
 }
 
@@ -168,8 +184,10 @@ extension WebView {
     // Scroll at position 0-1 (0%-100%)
     internal func scrollAt(position: Double) {
         guard position >= 0 && position <= 1 else { return }
+        
+        let dir = self.direction?.rawValue ?? PageProgressionDirection.ltr.rawValue
 
-        self.evaluateJavaScript("scrollToPosition(\'\(position)\')",
+        self.evaluateJavaScript("scrollToPosition(\'\(position)\', \'\(dir)\')",
             completionHandler: nil)
     }
 
@@ -182,9 +200,9 @@ extension WebView {
     // Scroll to .beggining or .end.
     internal func scrollAt(location: BinaryLocation) {
         switch location {
-        case .beginning:
+        case .left:
             scrollAt(position: 0)
-        case .end:
+        case .right:
             scrollAt(position: 1)
         }
     }
@@ -249,6 +267,9 @@ extension WebView: WKScriptMessageHandler {
         }
         if let handler = jsEvents[message.name] {
             handler(self)(body)
+        }
+        if let followup = jsFollowUp[message.name] {
+            followup(self)()
         }
     }
 

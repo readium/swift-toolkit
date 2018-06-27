@@ -9,6 +9,8 @@
 import Foundation
 import UIKit
 
+import R2Shared
+
 public class UserSettings {
     // FontSize in %.
     public var fontSize: String?
@@ -21,25 +23,11 @@ public class UserSettings {
     public var wordSpacing: WordSpacing!
     public var letterSpacing: LetterSpacing!
     public var pageMargins: PageMargins!
-
-    // The keys in ReadiumCss. Also used for storing UserSettings in UserDefaults.
-    public enum Keys: String {
-        case fontSize = "--USER__fontSize"
-        case font = "--USER__fontFamily"
-        case appearance = "--USER__appearance"
-        case scroll = "--USER__scroll"
-        case publisherSettings = "--USER__advancedSettings"
-        case wordSpacing = "--USER__wordSpacing"
-        case letterSpacing = "--USER__letterSpacing"
-        case columnCount = "--USER__colCount"
-        case pageMargins = "--USER__pageMargins"
-        case textAlignement = "--USER__textAlign"
-        //--USER__darkenImages --USER__invertImages
-    }
-
-    internal enum Switches: String {
-        case publisherFont = "--USER__fontOverride"
-    }
+    
+    public var hyphens: Bool!
+    public var ligatures: Bool!
+    
+    public var userSettingsUIPreset: [ReadiumCSSKey:Bool]?
 
     internal init() {
         let userDefaults = UserDefaults.standard
@@ -47,51 +35,55 @@ public class UserSettings {
 
         /// Load settings from userDefaults.
         // Font size.
-        if isKeyPresentInUserDefaults(key: Keys.fontSize) {
-            fontSize = userDefaults.string(forKey: Keys.fontSize.rawValue)
+        if isKeyPresentInUserDefaults(key: ReadiumCSSKey.fontSize) {
+            fontSize = userDefaults.string(forKey: ReadiumCSSKey.fontSize.rawValue)
         } else {
             fontSize = "100"
         }
 
         // Font type.
-        value = userDefaults.string(forKey: Keys.font.rawValue) ?? ""
+        value = userDefaults.string(forKey: ReadiumCSSKey.font.rawValue) ?? ""
         font = Font.init(with: value)
 
         // Appearance.
-        if isKeyPresentInUserDefaults(key: Keys.appearance),
-            let value = userDefaults.string(forKey: Keys.appearance.rawValue) {
+        if isKeyPresentInUserDefaults(key: ReadiumCSSKey.appearance),
+            let value = userDefaults.string(forKey: ReadiumCSSKey.appearance.rawValue) {
             appearance = Appearance.init(with: value)
         }
 
         // Scroll mod.
-        value = userDefaults.string(forKey: Keys.scroll.rawValue) ?? ""
+        value = userDefaults.string(forKey: ReadiumCSSKey.scroll.rawValue) ?? ""
         scroll = Scroll.init(with: value)
 
         // Publisher settings.
-        publisherSettings = userDefaults.bool(forKey: Keys.publisherSettings.rawValue)
+        publisherSettings = userDefaults.bool(forKey: ReadiumCSSKey.publisherSettings.rawValue)
 
         // Page Margins. (0 if unset in the userDefaults)
-        let pageMarginsValue = userDefaults.double(forKey: Keys.pageMargins.rawValue)
+        let pageMarginsValue = userDefaults.double(forKey: ReadiumCSSKey.pageMargins.rawValue)
 
         self.pageMargins = PageMargins.init(initialValue: pageMarginsValue)
 
         // Text alignement.
-        let textAlignement = userDefaults.integer(forKey: Keys.textAlignement.rawValue)
+        let textAlignement = userDefaults.integer(forKey: ReadiumCSSKey.textAlignement.rawValue)
         self.textAlignement = TextAlignement.init(with: textAlignement)
         // Word spacing.
-        let wordSpacingValue = userDefaults.double(forKey: Keys.wordSpacing.rawValue)
+        let wordSpacingValue = userDefaults.double(forKey: ReadiumCSSKey.wordSpacing.rawValue)
         wordSpacing = WordSpacing.init(initialValue: wordSpacingValue)
 
         // Letter spacing.
-        let letterSpacingValue = userDefaults.double(forKey: Keys.letterSpacing.rawValue)
+        let letterSpacingValue = userDefaults.double(forKey: ReadiumCSSKey.letterSpacing.rawValue)
         letterSpacing = LetterSpacing.init(initialValue: letterSpacingValue)
 
         // Column count.
-        value = userDefaults.string(forKey: Keys.columnCount.rawValue) ?? ""
+        value = userDefaults.string(forKey: ReadiumCSSKey.columnCount.rawValue) ?? ""
         columnCount = ColumnCount.init(with: value)
+        
+        // hyphens and ligatures
+        hyphens = userDefaults.bool(forKey: ReadiumCSSKey.hyphens.rawValue)
+        ligatures = userDefaults.bool(forKey: ReadiumCSSKey.ligatures.rawValue)
     }
 
-    public func value(forKey key: Keys) -> String? {
+    public func value(forKey key: ReadiumCSSKey) -> String? {
         switch key {
         case .fontSize:
             return fontSize
@@ -113,6 +105,14 @@ public class UserSettings {
             return columnCount?.name()
         case .pageMargins:
             return pageMargins.stringValue()
+        case .hyphens:
+            return String(hyphens)
+        case .ligatures:
+            return String(ligatures)
+        case .publisherFont:
+            return font?.name() ?? ""
+        case .paraIndent:
+            return "Not supported"
         }
     }
 
@@ -125,7 +125,7 @@ public class UserSettings {
 
         // FontSize.
         if let fontSize = fontSize {
-            properties.append((key: Keys.fontSize.rawValue, "\(fontSize)%"))
+            properties.append((key: ReadiumCSSKey.fontSize.rawValue, "\(fontSize)%"))
         }
 
         // Font.
@@ -133,40 +133,40 @@ public class UserSettings {
             // Do we override?
             let value = (font == .publisher ? "readium-font-off" : "readium-font-on")
 
-            properties.append((key: Switches.publisherFont.rawValue, value))
-            properties.append((key: Keys.font.rawValue, "\(font.name(css: true))"))
+            properties.append((key: ReadiumCSSKey.publisherFont.rawValue, value))
+            properties.append((key: ReadiumCSSKey.font.rawValue, "\(font.name(css: true))"))
         }
         // Appearance.
         if let appearance = appearance {
-            properties.append((key: Keys.appearance.rawValue, "\(appearance.name())"))
+            properties.append((key: ReadiumCSSKey.appearance.rawValue, "\(appearance.name())"))
         }
         // Scroll.
         if let scroll = scroll {
-            properties.append((key: Keys.scroll.rawValue, value: "\(scroll.name())"))
+            properties.append((key: ReadiumCSSKey.scroll.rawValue, value: "\(scroll.name())"))
         }
         // Publisher Settings.
         value = (publisherSettings == true ? "readium-advanced-off" : "readium-advanced-on")
-        properties.append((key: Keys.publisherSettings.rawValue, value: "\(value)"))
+        properties.append((key: ReadiumCSSKey.publisherSettings.rawValue, value: "\(value)"))
 
         /// Advanced Settings.
         // Text alignement.
-        properties.append((key: Keys.textAlignement.rawValue,
+        properties.append((key: ReadiumCSSKey.textAlignement.rawValue,
                            value: textAlignement.stringValueCss()))
 
         // Column count.
-        properties.append((key: Keys.columnCount.rawValue,
+        properties.append((key: ReadiumCSSKey.columnCount.rawValue,
                            value: columnCount.name()))
 
         // WordSpacing count.
-        properties.append((key: Keys.wordSpacing.rawValue,
+        properties.append((key: ReadiumCSSKey.wordSpacing.rawValue,
                            value: wordSpacing.stringValueCss()))
         // LetterSpacing count.
-        properties.append((key: Keys.letterSpacing.rawValue,
+        properties.append((key: ReadiumCSSKey.letterSpacing.rawValue,
                            value: letterSpacing.stringValueCss()))
 
         // Page margins.
         if let pageMargins = pageMargins {
-            properties.append((key: Keys.pageMargins.rawValue,
+            properties.append((key: ReadiumCSSKey.pageMargins.rawValue,
                                value: pageMargins.stringValue()))
         }
         return properties
@@ -177,25 +177,25 @@ public class UserSettings {
         let userDefaults = UserDefaults.standard
 
         if let fontSize = fontSize {
-            userDefaults.set(fontSize, forKey: Keys.fontSize.rawValue)
+            userDefaults.set(fontSize, forKey: ReadiumCSSKey.fontSize.rawValue)
         }
         if let font =  font {
-            userDefaults.set(font.name(), forKey: Keys.font.rawValue)
+            userDefaults.set(font.name(), forKey: ReadiumCSSKey.font.rawValue)
         }
         if let appearance = appearance {
-            userDefaults.set(appearance.name(), forKey: Keys.appearance.rawValue)
+            userDefaults.set(appearance.name(), forKey: ReadiumCSSKey.appearance.rawValue)
         }
         if let scroll = scroll {
-            userDefaults.set(scroll.name(), forKey: Keys.scroll.rawValue)
+            userDefaults.set(scroll.name(), forKey: ReadiumCSSKey.scroll.rawValue)
         }
-        userDefaults.set(publisherSettings, forKey: Keys.publisherSettings.rawValue)
+        userDefaults.set(publisherSettings, forKey: ReadiumCSSKey.publisherSettings.rawValue)
 
-        userDefaults.set(textAlignement.rawValue, forKey: Keys.textAlignement.rawValue)
-        userDefaults.set(columnCount.name(), forKey: Keys.columnCount.rawValue)
-        userDefaults.set(wordSpacing.value, forKey: Keys.wordSpacing.rawValue)
-        userDefaults.set(letterSpacing.value, forKey: Keys.letterSpacing.rawValue)
+        userDefaults.set(textAlignement.rawValue, forKey: ReadiumCSSKey.textAlignement.rawValue)
+        userDefaults.set(columnCount.name(), forKey: ReadiumCSSKey.columnCount.rawValue)
+        userDefaults.set(wordSpacing.value, forKey: ReadiumCSSKey.wordSpacing.rawValue)
+        userDefaults.set(letterSpacing.value, forKey: ReadiumCSSKey.letterSpacing.rawValue)
         if let pageMargins = pageMargins {
-            userDefaults.set(pageMargins.value, forKey: Keys.pageMargins.rawValue)
+            userDefaults.set(pageMargins.value, forKey: ReadiumCSSKey.pageMargins.rawValue)
         }
     }
 
@@ -203,7 +203,7 @@ public class UserSettings {
     ///
     /// - Parameter key: The key name.
     /// - Returns: A boolean value indicating if the value is present.
-    private func isKeyPresentInUserDefaults(key: Keys) -> Bool {
+    private func isKeyPresentInUserDefaults(key: ReadiumCSSKey) -> Bool {
         return UserDefaults.standard.object(forKey: key.rawValue) != nil
     }
 }
