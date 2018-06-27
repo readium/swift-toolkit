@@ -29,7 +29,7 @@ class readium_opds1_1_test: XCTestCase {
 
         do {
             let opdsData = try Data(contentsOf: fileURL)
-            feed = try OPDSParser.parse(xmlData: opdsData)
+            feed = try OPDS1Parser.parse(xmlData: opdsData)
             XCTAssert(feed != nil)
         } catch {
             XCTFail(error.localizedDescription)
