@@ -7,6 +7,7 @@
 //
 
 import R2Shared
+import Fuzi
 
 /// Protocol defining the content filters. They are implemented below and used
 /// in the fetcher. They come in different flavors depending of the container
@@ -91,7 +92,7 @@ final internal class ContentFiltersEpub: ContentFilters {
                 && link.properties.layout == nil
                 || link.properties.layout == "reflowable"
             {
-                decodedInputStream = injectReflowableHtml(in: decodedInputStream, for: baseUrl)
+                decodedInputStream = injectReflowableHtml(in: decodedInputStream, for: publication)
             } else {
                 decodedInputStream = injectFixedLayoutHtml(in: decodedInputStream, for: baseUrl)
             }
@@ -130,7 +131,7 @@ final internal class ContentFiltersEpub: ContentFilters {
                 && link.properties.layout == nil
                 || link.properties.layout == "reflowable"
             {
-                decodedInputStream = injectReflowableHtml(in: decodedInputStream, for: baseUrl) as! DataInputStream
+                decodedInputStream = injectReflowableHtml(in: decodedInputStream, for: publication) as! DataInputStream
             } else {
                 decodedInputStream = injectFixedLayoutHtml(in: decodedInputStream, for: baseUrl) as! DataInputStream
             }
@@ -144,7 +145,7 @@ final internal class ContentFiltersEpub: ContentFilters {
 
     ////
 
-    fileprivate func injectReflowableHtml(in stream: SeekableInputStream, for baseUrl: URL) -> SeekableInputStream {
+    fileprivate func injectReflowableHtml(in stream: SeekableInputStream, for publication:Publication) -> SeekableInputStream {
 
         let bufferSize = Int(stream.length)
         var buffer = Array<UInt8>(repeating: 0, count: bufferSize)
@@ -161,7 +162,30 @@ final internal class ContentFiltersEpub: ContentFilters {
             print("Invalid resource")
             abort()
         }
-        let cssBefore = getHtmlLink(forResource: "\(baseUrl)styles/ReadiumCSS-before.css")
+        
+        guard let baseUrl = publication.baseUrl?.deletingLastPathComponent() else {
+            print("Invalid host")
+            abort()
+        }
+        
+        //publication.metadata.primaryContentLayout
+        guard let document = try? XMLDocument(string: resourceHtml) else {return stream}
+        
+        let langAttribute = document.root?.attr("lang")
+        let langType = LangType(rawString: langAttribute ?? "")
+        
+        let pageDirection = publication.metadata.direction
+        let contentLayoutStyle = Metadata.contentlayoutStyle(for: langType, pageDirection: pageDirection)
+        
+        let styleSubFolder = contentLayoutStyle.rawValue
+        
+        if let primaryContentLayout = publication.metadata.primaryContentLayout {
+            if let preset = userSettingsUIPreset[primaryContentLayout] {
+                    publication.userSettingsUIPreset = preset
+            }
+        }
+        
+        let cssBefore = getHtmlLink(forResource: "\(baseUrl)styles/\(styleSubFolder)/ReadiumCSS-before.css")
         let viewport = "<meta name=\"viewport\" content=\"width=device-width, height=device-height, initial-scale=1.0;\"/>\n"
 
         resourceHtml = resourceHtml.insert(string: cssBefore, at: headStart)
@@ -172,7 +196,7 @@ final internal class ContentFiltersEpub: ContentFilters {
             print("Invalid resource")
             abort()
         }
-        let cssAfter = getHtmlLink(forResource: "\(baseUrl)styles/ReadiumCSS-after.css")
+        let cssAfter = getHtmlLink(forResource: "\(baseUrl)styles/\(styleSubFolder)/ReadiumCSS-after.css")
         let scriptTouchHandling = getHtmlScript(forResource: "\(baseUrl)scripts/touchHandling.js")
         
         let scriptUtils = getHtmlScript(forResource: "\(baseUrl)scripts/\(utilsJS)")
@@ -239,6 +263,36 @@ final internal class ContentFiltersEpub: ContentFilters {
     }
 
 }
+
+let ltrPreset:[ReadiumCSSKey:Bool] = [
+    .hyphens: false,
+    .ligatures: false]
+
+let rtlPreset:[ReadiumCSSKey:Bool] = [.hyphens: false,
+                                      .wordSpacing: false,
+                                      .letterSpacing: false,
+                                      .ligatures: true]
+
+let cjkHorizontalPreset: [ReadiumCSSKey:Bool] = [
+    .textAlignement: false,
+    .hyphens: false,
+    .paraIndent: false,
+    .wordSpacing: false,
+    .letterSpacing: false]
+
+let cjkVerticalPreset: [ReadiumCSSKey:Bool] = [
+    .columnCount: false,
+    .textAlignement: false,
+    .hyphens: false,
+    .paraIndent: false,
+    .wordSpacing: false,
+    .letterSpacing: false]
+
+let userSettingsUIPreset:[ContentLayoutStyle: [ReadiumCSSKey:Bool]] = [
+        .ltr: ltrPreset,
+        .rtl: rtlPreset,
+        .cjkVertical: cjkVerticalPreset,
+        .cjkHorizontal: cjkHorizontalPreset]
 
 /// Content filter specialization for CBZ.
 internal class ContentFiltersCbz: ContentFilters {

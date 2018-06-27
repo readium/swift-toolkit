@@ -46,7 +46,7 @@ public class PublicationServer {
     /// Return all the `Publications` sorted by title asc.
     public var publications: [Publication] {
         get {
-            let publications = pubBoxes.values.flatMap({ $0.publication })
+            let publications = pubBoxes.values.compactMap({ $0.publication })
 
             return publications.sorted(by: { $0.metadata.title < $1.metadata.title })
         }
@@ -54,7 +54,7 @@ public class PublicationServer {
 
     /// Return all the `Container` as an array.
     public var containers: [Container] {
-        get { return  pubBoxes.values.flatMap({ $0.associatedContainer }) }
+        get { return  pubBoxes.values.compactMap({ $0.associatedContainer }) }
     }
 
     // MARK: - Public methods
@@ -97,9 +97,10 @@ public class PublicationServer {
             guard let request = request, let filename = request.path else {
                 return GCDWebServerResponse(statusCode: 404)
             }
+            let relativePath = request.path.deletingLastPathComponent
             let resourceName = (filename as NSString).deletingPathExtension.lastPathComponent
 
-            if let styleUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "css"),
+            if let styleUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "css", subdirectory: relativePath),
                 let data = try? Data.init(contentsOf: styleUrl)
             {
                 let response = GCDWebServerDataResponse(data: data, contentType: "text/css")
@@ -119,9 +120,10 @@ public class PublicationServer {
             guard let request = request, let filename = request.path else {
                 return GCDWebServerResponse(statusCode: 404)
             }
+            let relativePath = request.path.deletingLastPathComponent
             let resourceName = (filename as NSString).deletingPathExtension.lastPathComponent
 
-            if let scriptUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "js"),
+            if let scriptUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "js", subdirectory: relativePath),
                 let data = try? Data.init(contentsOf: scriptUrl)
             {
                 let response = GCDWebServerDataResponse(data: data, contentType: "text/javascript")
@@ -204,7 +206,7 @@ public class PublicationServer {
             }
 
             // Remove the prefix from the URI.
-            let relativePath = request.path.substring(from: request.path.index(endpoint.endIndex, offsetBy: 1))
+            let relativePath = String(request.path[request.path.index(endpoint.endIndex, offsetBy: 1)...])
             //
             let resource = publication.resource(withRelativePath: relativePath)
             let contentType = resource?.typeLink ?? "application/octet-stream"

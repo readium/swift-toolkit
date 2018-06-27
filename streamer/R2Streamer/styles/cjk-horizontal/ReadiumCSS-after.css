@@ -533,97 +533,6 @@ body {
 }
 
 /* Readium CSS 
-   Text align pref
-
-   A submodule managing text-align for user settings
-   Part of “User Overrides Advanced” class – “advanced settings” flag required.
-
-   Repo: https://github.com/readium/readium-css */
-
-:root[style*="readium-advanced-on"][style*="--USER__textAlign"] {
-  text-align: var(--USER__textAlign);
-}
-
-:root[style*="readium-advanced-on"][style*="--USER__textAlign"] body,
-:root[style*="readium-advanced-on"][style*="--USER__textAlign"] *:not(blockquote):not(figcaption) p,
-:root[style*="readium-advanced-on"][style*="--USER__textAlign"] li {
-  text-align: inherit !important;
-  -moz-text-align-last: auto !important;
-  -epub-text-align-last: auto !important;
-  text-align-last: auto !important;
-}
-
-/* In case something goes wrong at the programmatic level + rtl for body + rtl in ltr */
-
-:root[style*="readium-advanced-on"][dir="rtl"][style*="--USER__textAlign: left"],
-:root[style*="readium-advanced-on"][dir="rtl"][style*="--USER__textAlign:left"],
-:root[style*="readium-advanced-on"][style*="--USER__textAlign: left"] *[dir="rtl"],
-:root[style*="readium-advanced-on"][style*="--USER__textAlign:left"] *[dir="rtl"] {
-  text-align: right;
-}
-
-/* Edge, if logical value is used, think of it as a polyfill. For LTR, it will fall back to the default, which is left */
-
-:root[style*="readium-advanced-on"][dir="rtl"][style*="--USER__textAlign: start"],
-:root[style*="readium-advanced-on"][dir="rtl"][style*="--USER__textAlign:start"] {
-  text-align: right;
-}
-
-/* Readium CSS 
-   Hyphenation pref
-
-   A submodule managing hyphens for user settings
-   Part of “User Overrides Advanced” class – “advanced settings” flag required.
-
-   Repo: https://github.com/readium/readium-css */
-
-/* Managing hyphenation automatically for text-align values */
-
-:root[style*="readium-advanced-on"][style*="--USER__textAlign: justify"] body,
-:root[style*="readium-advanced-on"][style*="--USER__textAlign:justify"] body {
-  -webkit-hyphens: auto;
-  -moz-hyphens: auto;
-  -ms-hyphens: auto;
-  -epub-hyphens: auto;
-  hyphens: auto;
-}
-
-:root[style*="readium-advanced-on"][style*="--USER__textAlign: left"] body,
-:root[style*="readium-advanced-on"][style*="--USER__textAlign:left"] body,
-:root[style*="readium-advanced-on"][style*="--USER__textAlign: right"] body,
-:root[style*="readium-advanced-on"][style*="--USER__textAlign:right"] body {
-  -webkit-hyphens: none;
-  -moz-hyphens: none;
-  -ms-hyphens: none;
-  -epub-hyphens: none;
-  hyphens: none;
-}
-
-/* Managing the user override */
-
-:root[style*="readium-advanced-on"][style*="--USER__bodyHyphens"] {
-  -webkit-hyphens: var(--USER__bodyHyphens) !important;
-  -moz-hyphens: var(--USER__bodyHyphens) !important;
-  -ms-hyphens: var(--USER__bodyHyphens) !important;
-  -epub-hyphens: var(--USER__bodyHyphens) !important;
-  hyphens: var(--USER__bodyHyphens) !important;
-}
-
-/* Sorry, we can’t use `:matches`, `:-moz-any` or `:-webkit-any` because MS doesn’t support it yet */
-
-:root[style*="readium-advanced-on"][style*="--USER__bodyHyphens"] body,
-:root[style*="readium-advanced-on"][style*="--USER__bodyHyphens"] p,
-:root[style*="readium-advanced-on"][style*="--USER__bodyHyphens"] li,
-:root[style*="readium-advanced-on"][style*="--USER__bodyHyphens"] div,
-:root[style*="readium-advanced-on"][style*="--USER__bodyHyphens"] dd {
-  -webkit-hyphens: inherit;
-  -moz-hyphens: inherit;
-  -ms-hyphens: inherit;
-  -epub-hyphens: inherit;
-  hyphens: inherit;
-}
-
-/* Readium CSS 
    Font Family pref
 
    A submodule managing font-family for user settings
@@ -657,73 +566,6 @@ body {
 :root[style*="readium-font-on"][style*="--USER__fontFamily"] span:not([lang]),
 :root[style*="readium-font-on"][style*="--USER__fontFamily"] span:not([xml\:lang]) {
   font-family: inherit !important;
-}
-
-/* Readium CSS 
-   A11y font pref
-
-   A submodule managing a11y text normalization for user settings
-   Part of “User Overrides” class – “font override” flag required.
-
-   Repo: https://github.com/readium/readium-css */
-
-/* For AccessibleDfa, we need to normalize font-weight and font-style since only the normal style is available */
-
-:root[style*="readium-font-on"][style*="AccessibleDfa"] {
-  /* We won’t use the variable there since we need fallbacks for missing characters */
-  font-family: AccessibleDfa, Verdana, Tahoma, "Trebuchet MS", sans-serif !important;
-  --RS__lineHeightCompensation: 1.167;
-}
-
-:root[style*="readium-font-on"][style*="IA Writer Duospace"] {
-  /* We won’t use the variable there since we need fallbacks for missing characters */
-  font-family: "IA Writer Duospace", Menlo, "DejaVu Sans Mono", "Bitstream Vera Sans Mono", Courier, monospace !important;
-  --RS__lineHeightCompensation: 1.167;
-}
-
-:root[style*="readium-font-on"][style*="readium-a11y-on"] {
-  font-family: var(--USER__fontFamily) !important;
-  --RS__lineHeightCompensation: 1.167;
-}
-
-/* Maybe users want a setting to normalize any font offered so there is a “a11y Normalize” flag for it */
-
-:root[style*="readium-font-on"][style*="AccessibleDfa"],
-:root[style*="readium-font-on"][style*="IA Writer Duospace"],
-:root[style*="readium-font-on"][style*="readium-a11y-on"] {
-  font-style: normal !important;
-  font-weight: normal !important;
-}
-
-/* Targeting everything except code. Note that Open Dyslexic has a monospaced font for code */
-
-:root[style*="readium-font-on"][style*="AccessibleDfa"] *:not(code):not(var):not(kbd):not(samp),
-:root[style*="readium-font-on"][style*="IA Writer Duospace"] *:not(code):not(var):not(kbd):not(samp),
-:root[style*="readium-font-on"][style*="readium-a11y-on"] *:not(code):not(var):not(kbd):not(samp) {
-  font-family: inherit !important;
-  font-style: inherit !important;
-  font-weight: inherit !important;
-}
-
-/* Normalizing text-decoration, subs and sups */
-
-:root[style*="readium-font-on"][style*="AccessibleDfa"] *,
-:root[style*="readium-font-on"][style*="IA Writer Duospace"] *,
-:root[style*="readium-font-on"][style*="readium-a11y-on"] * {
-  text-decoration: none !important;
-  font-variant-caps: normal !important;
-  font-variant-numeric: normal !important;
-  font-variant-position: normal !important;
-}
-
-:root[style*="readium-font-on"][style*="AccessibleDfa"] sup,
-:root[style*="readium-font-on"][style*="IA Writer Duospace"] sup,
-:root[style*="readium-font-on"][style*="readium-a11y-on"] sup,
-:root[style*="readium-font-on"][style*="AccessibleDfa"] sub,
-:root[style*="readium-font-on"][style*="IA Writer Duospace"] sub,
-:root[style*="readium-font-on"][style*="readium-a11y-on"] sub {
-  font-size: 1rem !important;
-  vertical-align: baseline !important;
 }
 
 /* Readium CSS 
@@ -768,66 +610,6 @@ body {
 :root[style*="readium-advanced-on"][style*="--USER__paraSpacing"] p {
   margin-top: var(--USER__paraSpacing) !important;
   margin-bottom: var(--USER__paraSpacing) !important;
-}
-
-/* Readium CSS 
-   Para indent pref
-
-   A submodule managing paragraphs’ text-indent for user settings
-   Part of “User Overrides Advanced” class – “advanced settings” flag required.
-
-   Repo: https://github.com/readium/readium-css */
-
-:root[style*="readium-advanced-on"][style*="--USER__paraIndent"] p {
-  text-indent: var(--USER__paraIndent) !important;
-}
-
-/* If there are inline-block elements in paragraphs, text-indent will inherit so we must reset it */
-
-:root[style*="readium-advanced-on"][style*="--USER__paraIndent"] p *,
-:root[style*="readium-advanced-on"][style*="--USER__paraIndent"] p:first-letter {
-  text-indent: 0 !important;
-}
-
-/* Readium CSS 
-   Word spacing pref
-
-   A submodule managing word-spacing for user settings
-   Part of “User Overrides Advanced” class – “advanced settings” flag required.
-
-   Repo: https://github.com/readium/readium-css */
-
-:root[style*="readium-advanced-on"][style*="--USER__wordSpacing"] h1,
-:root[style*="readium-advanced-on"][style*="--USER__wordSpacing"] h2,
-:root[style*="readium-advanced-on"][style*="--USER__wordSpacing"] h3,
-:root[style*="readium-advanced-on"][style*="--USER__wordSpacing"] h4,
-:root[style*="readium-advanced-on"][style*="--USER__wordSpacing"] h5,
-:root[style*="readium-advanced-on"][style*="--USER__wordSpacing"] h6,
-:root[style*="readium-advanced-on"][style*="--USER__wordSpacing"] p,
-:root[style*="readium-advanced-on"][style*="--USER__wordSpacing"] li,
-:root[style*="readium-advanced-on"][style*="--USER__wordSpacing"] div {
-  word-spacing: var(--USER__wordSpacing);
-}
-
-/* Readium CSS 
-   Letter spacing pref
-
-   A submodule managing letter-spacing for user settings
-   Part of “User Overrides Advanced” class – “advanced settings” flag required.
-
-   Repo: https://github.com/readium/readium-css */
-
-:root[style*="readium-advanced-on"][style*="--USER__letterSpacing"] h1,
-:root[style*="readium-advanced-on"][style*="--USER__letterSpacing"] h2,
-:root[style*="readium-advanced-on"][style*="--USER__letterSpacing"] h3,
-:root[style*="readium-advanced-on"][style*="--USER__letterSpacing"] h4,
-:root[style*="readium-advanced-on"][style*="--USER__letterSpacing"] h5,
-:root[style*="readium-advanced-on"][style*="--USER__letterSpacing"] h6,
-:root[style*="readium-advanced-on"][style*="--USER__letterSpacing"] p,
-:root[style*="readium-advanced-on"][style*="--USER__letterSpacing"] li,
-:root[style*="readium-advanced-on"][style*="--USER__letterSpacing"] div {
-  letter-spacing: var(--USER__letterSpacing);
-  font-variant: none;
 }
 
 /* Readium CSS 
@@ -903,3 +685,4 @@ body {
 :root[style*="readium-advanced-on"][style*="--USER__typeScale"] h3 {
   font-size: calc(1rem * var(--USER__typeScale)) !important;
 }
+/*# sourceMappingURL=ReadiumCSS-after.css.map */
