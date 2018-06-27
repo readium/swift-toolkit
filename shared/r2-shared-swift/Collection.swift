@@ -23,3 +23,49 @@ public class Collection {
         self.name = name
     }
 }
+
+// MARK: - Parsing related errors
+public enum CollectionError: Error {
+    case invalidCollection
+    
+    var localizedDescription: String {
+        switch self {
+        case .invalidCollection:
+            return "Invalid collection"
+        }
+    }
+}
+
+// MARK: - Parsing related methods
+extension Collection {
+    
+    static public func parse(_ collectionDict: [String: Any]) throws -> R2Shared.Collection {
+        guard let name = collectionDict["name"] as? String else {
+            throw CollectionError.invalidCollection
+        }
+        let c = R2Shared.Collection(name: name)
+        for (k, v) in collectionDict {
+            switch k {
+            case "name": // Already handled above
+                continue
+            case "sort_as":
+                c.sortAs = v as? String
+            case "identifier":
+                c.identifier = v as? String
+            case "position":
+                c.position = v as? Double
+            case "links":
+                guard let links = v as? [[String: Any]] else {
+                    throw CollectionError.invalidCollection
+                }
+                for link in links {
+                    c.links.append(try Link.parse(linkDict: link))
+                }
+            default:
+                continue
+            }
+        }
+        return c
+    }
+    
+}

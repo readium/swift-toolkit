@@ -16,3 +16,37 @@ public class IndirectAcquisition {
         self.typeAcquisition = typeAcquisition
     }
 }
+
+// MARK: - Parsing related errors
+public enum IndirectAcquisitionError: Error {
+    case invalidIndirectAcquisition
+    
+    var localizedDescription: String {
+        switch self {
+        case .invalidIndirectAcquisition:
+            return "Invalid indirect acquisition"
+        }
+    }
+}
+
+// MARK: - Parsing related methods
+extension IndirectAcquisition {
+    
+    static public func parse(indirectAcquisitionDict: [String: Any]) throws -> IndirectAcquisition {
+        guard let iaType = indirectAcquisitionDict["type"] as? String else {
+            throw IndirectAcquisitionError.invalidIndirectAcquisition
+        }
+        let ia = IndirectAcquisition(typeAcquisition: iaType)
+        for (k, v) in indirectAcquisitionDict {
+            if (k == "child") {
+                guard let childDict = v as? [String: Any] else {
+                    throw IndirectAcquisitionError.invalidIndirectAcquisition
+                }
+                let child = try parse(indirectAcquisitionDict: childDict)
+                ia.child.append(child)
+            }
+        }
+        return ia
+    }
+    
+}

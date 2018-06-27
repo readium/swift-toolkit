@@ -40,6 +40,9 @@ public class Publication {
     // TODO: other collections
     // var otherCollections: [PublicationCollection]
     public var internalData = [String: String]()
+    
+    // The status of Settings prpperties. Enable or disable
+    public var userSettingsUIPreset:[ReadiumCSSKey:Bool]?
 
     // MARK: - Public methods.
 
@@ -246,4 +249,76 @@ extension Publication: Mappable {
             listOfTables <- map["lot", ignoreNil: true]
         }
     }
+}
+
+// The keys in ReadiumCss. Also used for storing UserSettings in UserDefaults.
+public enum ReadiumCSSKey: String {
+    case fontSize = "--USER__fontSize"
+    case font = "--USER__fontFamily"
+    case appearance = "--USER__appearance"
+    case scroll = "--USER__scroll"
+    case publisherSettings = "--USER__advancedSettings"
+    case wordSpacing = "--USER__wordSpacing"
+    case letterSpacing = "--USER__letterSpacing"
+    case columnCount = "--USER__colCount"
+    case pageMargins = "--USER__pageMargins"
+    case textAlignement = "--USER__textAlign"
+    //--USER__darkenImages --USER__invertImages
+    
+    case paraIndent = "--USER__paraIndent"
+    
+    case hyphens = "--USER__bodyHyphens"
+    case ligatures = "--USER__ligatures"
+    
+    case publisherFont = "--USER__fontOverride"
+}
+
+// MARK: - Parsing related errors
+public enum PublicationError: Error {
+    case invalidPublication
+    
+    var localizedDescription: String {
+        switch self {
+        case .invalidPublication:
+            return "Invalid publication"
+        }
+    }
+}
+
+// MARK: - Parsing related methods
+extension Publication {
+    
+    static public func parse(pubDict: [String: Any]) throws -> Publication {
+        let p = Publication()
+        for (k, v) in pubDict {
+            switch k {
+            case "metadata":
+                guard let metadataDict = v as? [String: Any] else {
+                    throw PublicationError.invalidPublication
+                }
+                let metadata = try Metadata.parse(metadataDict: metadataDict)
+                p.metadata = metadata
+            case "links":
+                guard let links = v as? [[String: Any]] else {
+                    throw PublicationError.invalidPublication
+                }
+                for linkDict in links {
+                    let link = try Link.parse(linkDict: linkDict)
+                    p.links.append(link)
+                }
+            case "images":
+                guard let links = v as? [[String: Any]] else {
+                    throw PublicationError.invalidPublication
+                }
+                for linkDict in links {
+                    let link = try Link.parse(linkDict: linkDict)
+                    p.images.append(link)
+                }
+            default:
+                continue
+            }
+        }
+        return p
+    }
+    
 }
