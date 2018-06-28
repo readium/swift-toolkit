@@ -28,7 +28,9 @@ class OPDSRootTableViewController: UITableViewController {
     var originalFeedIndexPath: IndexPath?
     var mustEditFeed = false
   
+    var parseData: ParseData?
     var feed: Feed?
+    var publication: Publication?
     
     var browsingState: FeedBrowsingState = .None
     
@@ -65,8 +67,8 @@ class OPDSRootTableViewController: UITableViewController {
             UIApplication.shared.isNetworkActivityIndicatorVisible = true
             firstly {
                 OPDSParser.parseURL(url: url)
-                }.then { newFeed -> Void in
-                    self.feed = newFeed
+                }.then { newParseData -> Void in
+                    self.parseData = newParseData
                 }.always {
                     self.finishFeedInitialization()
             }
@@ -74,7 +76,8 @@ class OPDSRootTableViewController: UITableViewController {
     }
     
     func finishFeedInitialization() {
-        if let feed = feed {
+        if let feed = parseData?.feed {
+            self.feed = feed
             
             navigationItem.title = feed.metadata.title
             self.nextPageURL = self.findNextPageURL(feed: feed)
@@ -165,10 +168,12 @@ class OPDSRootTableViewController: UITableViewController {
         if let nextPageURL = nextPageURL {
             firstly {
                 OPDSParser.parseURL(url: nextPageURL)
-                }.then { newFeed -> Void in
-                    self.nextPageURL = self.findNextPageURL(feed: newFeed)
-                    self.feed?.publications.append(contentsOf: newFeed.publications)
-                    completionHandler(self.feed)
+                }.then { newParseData -> Void in
+                    if let newFeed = newParseData.feed {
+                        self.nextPageURL = self.findNextPageURL(feed: newFeed)
+                        self.feed?.publications.append(contentsOf: newFeed.publications)
+                        completionHandler(self.feed)
+                    }
                 }
         }
     }
@@ -471,12 +476,26 @@ class OPDSRootTableViewController: UITableViewController {
     
     func buildNavigationCell(tableView: UITableView, indexPath: IndexPath) -> OPDSNavigationTableViewCell {
         let castedCell = tableView.dequeueReusableCell(withIdentifier: "opdsNavigationCell", for: indexPath) as! OPDSNavigationTableViewCell
-        castedCell.title.text = feed?.navigation[indexPath.row].title
-        if let count = feed?.navigation[indexPath.row].properties.numberOfItems {
-            castedCell.count.text = "\(count)"
+        
+        var currentNavigation: [Link]?
+        
+        if let navigation = feed?.navigation, navigation.count > 0 {
+            currentNavigation = navigation
         } else {
-            castedCell.count.text = ""
+            if let navigation = feed?.groups[indexPath.section].navigation, navigation.count > 0 {
+                currentNavigation = navigation
+            }
         }
+
+        if let currentNavigation = currentNavigation {
+            castedCell.title.text = currentNavigation[indexPath.row].title
+            if let count = currentNavigation[indexPath.row].properties.numberOfItems {
+                castedCell.count.text = "\(count)"
+            } else {
+                castedCell.count.text = ""
+            }
+        }
+        
         return castedCell
     }
     
