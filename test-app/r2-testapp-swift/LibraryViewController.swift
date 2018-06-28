@@ -55,8 +55,6 @@ class LibraryViewController: UIViewController {
     }
     appDelegate.libraryViewController = self
     
-    //clearsSelectionOnViewWillAppear = true
-    //installsStandardGestureForInteractiveMovement = false
     // Add long press gesture recognizer.
     let recognizer = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
     
@@ -74,7 +72,6 @@ class LibraryViewController: UIViewController {
   }
   
   override func viewWillDisappear(_ animated: Bool) {
-    //navigationController?.setNavigationBarHidden(false, animated: animated)
     lastFlippedCell?.flipMenu()
     super.viewWillDisappear(animated)
   }
@@ -143,6 +140,21 @@ class LibraryViewController: UIViewController {
   }
 }
 
+extension LibraryViewController {
+    @objc func handleLongPress(gestureRecognizer: UILongPressGestureRecognizer) {
+        if (gestureRecognizer.state != UIGestureRecognizerState.began) {
+            return
+        }
+        
+        let location = gestureRecognizer.location(in: collectionView)
+        if let indexPath = collectionView.indexPathForItem(at: location) {
+            let cell = collectionView.cellForItem(at: indexPath) as! PublicationCell
+            
+            cell.flipMenu()
+        }
+    }
+}
+
 // MARK: - Misc.
 extension LibraryViewController: UIDocumentPickerDelegate {
     
@@ -169,26 +181,9 @@ extension LibraryViewController: UIDocumentPickerDelegate {
         }
     }
     
-//    public func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
-//
-//    }
-    
     public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
         if let appDelegate = self.delegate as? AppDelegate {
             _ = appDelegate.addPublicationToLibrary(url: url)
-        }
-    }
-
-    @objc func handleLongPress(gestureRecognizer: UILongPressGestureRecognizer) {
-        if (gestureRecognizer.state != UIGestureRecognizerState.began) {
-            return
-        }
-        
-        let location = gestureRecognizer.location(in: collectionView)
-        if let indexPath = collectionView.indexPathForItem(at: location) {
-            let cell = collectionView.cellForItem(at: indexPath) as! PublicationCell
-
-            cell.flipMenu()
         }
     }
 }
