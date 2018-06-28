@@ -77,7 +77,7 @@ public class OPDS2Parser {
     }
     
     /// Parse an OPDS feed or publication.
-    /// Feed can only be v1 (XML).
+    /// Feed can only be v2 (JSON).
     /// - parameter jsonData: The json raw data
     /// - parameter url: The feed URL
     /// - parameter response: The response payload
