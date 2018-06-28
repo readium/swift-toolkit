@@ -24,7 +24,7 @@ public class UserProperty {
     
 }
 
-public class Enumeratable: UserProperty, UserPropertyStringifier {
+public class Enumerable: UserProperty, UserPropertyStringifier {
 
     var index: Int
     var values: [String]
@@ -102,8 +102,8 @@ public class UserProperties {
     
     public var properties = [UserProperty]()
     
-    public func addEnumeratable(index: Int, values: [String], reference: String, name: String) {
-        properties.append(Enumeratable(index: index, values: values, reference: reference, name: name))
+    public func addEnumerable(index: Int, values: [String], reference: String, name: String) {
+        properties.append(Enumerable(index: index, values: values, reference: reference, name: name))
     }
     
     public func addIncrementable(nValue: Float, min: Float, max: Float, step: Float, suffix: String, reference: String, name: String) {
