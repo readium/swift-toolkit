@@ -49,14 +49,14 @@ struct MimeTypeParameters {
 public class OPDS1Parser {
     static var feedURL: URL?
     
-    /// Parse an OPDS feed.
+    /// Parse an OPDS feed or publication.
     /// Feed can only be v1 (XML).
     /// - parameter url: The feed URL
-    /// - Returns: A promise with the resulting Feed
-    public static func parseURL(url: URL) -> Promise<Feed> {
+    /// - Returns: A promise with the intermediate structure of type ParseData
+    public static func parseURL(url: URL) -> Promise<ParseData> {
         feedURL = url
         
-        return Promise<Feed> {fulfill, reject in
+        return Promise<ParseData> {fulfill, reject in
             let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, response, error) in
                 guard error == nil else {
                     reject(error!)
@@ -67,8 +67,8 @@ public class OPDS1Parser {
                     return
                 }
                 do {
-                    let feed = try self.parse(xmlData: data)
-                    fulfill(feed)
+                    let parseData = try self.parse(xmlData: data, url: url, response: response!)
+                    fulfill(parseData)
                 }
                 catch {
                     reject(error)
@@ -78,19 +78,40 @@ public class OPDS1Parser {
             task.resume()
         }
     }
-
-    /// Parse an OPDS feed.
+    
+    /// Parse an OPDS feed or publication.
     /// Feed can only be v1 (XML).
     /// - parameter xmlData: The xml raw data
-    /// - parameter url: The feed URL (optional)
-    /// - Returns: The resulting Feed
-    public static func parse(xmlData: Data, url: URL? = nil) throws -> Feed {
-        if let url = url {
-            feedURL = url
+    /// - parameter url: The feed URL
+    /// - parameter response: The response payload
+    /// - Returns: The intermediate structure of type ParseData
+    public static func parse(xmlData: Data, url: URL, response: URLResponse) throws -> ParseData {
+        
+        feedURL = url
+        
+        var parseData = ParseData(url: url, response: response, version: .OPDS1)
+        
+        let xmlDocument = try XMLDocument.init(data: xmlData)
+        
+        if xmlDocument.root?.tag == "feed" {
+            // Feed
+            parseData.feed = try? parse(document: xmlDocument)
+        } else if xmlDocument.root?.tag == "entry" {
+            // Publication only
+            parseData.publication = try? parseEntry(document: xmlDocument)
+        } else {
+            throw OPDS1ParserError.rootNotFound
         }
         
-        let document = try XMLDocument.init(data: xmlData)
+        return parseData
         
+    }
+    
+    /// Parse an OPDS feed.
+    /// Feed can only be v1 (XML).
+    /// - parameter document: The XMLDocument data
+    /// - Returns: The resulting Feed
+    public static func parse(document: XMLDocument) throws -> Feed {
         document.definePrefix("thr", defaultNamespace: "http://purl.org/syndication/thread/1.0")
         document.definePrefix("dcterms", defaultNamespace: "http://purl.org/dc/terms/")
         document.definePrefix("opds", defaultNamespace: "http://opds-spec.org/2010/catalog")
@@ -205,8 +226,7 @@ public class OPDS1Parser {
         return feed
     }
 
-    public static func parseEntry(xmlData: Data) throws -> Publication {
-        let document = try XMLDocument.init(data: xmlData)
+    public static func parseEntry(document: XMLDocument) throws -> Publication {
         guard let root = document.root else {
             throw OPDS1ParserError.rootNotFound
         }
