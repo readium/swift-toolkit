@@ -69,13 +69,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         lightParseSamplePublications()
         lightParsePublications()
         
-        #if LCP
-        let noteName = Notification.Name(kShouldPresentLCPMessage)
-        messageObserverLCP = NotificationCenter.default.addObserver(forName: noteName, object: nil, queue: nil) { (note) in
-            let message = note.userInfo?[NSLocalizedDescriptionKey] as? String
-            //self.showInfoAlert(title: "LCP Error", message: message ?? "")
-        }
-        #endif
+      /// This showInfoAlert will dismiss the LibraryViewController which is going to show.
+      /// The alert or toast should not have any side effect like that.
+      /// Once the new alert is done. We can use the code below.
+//        #if LCP
+//        let noteName = Notification.Name(kShouldPresentLCPMessage)
+//        messageObserverLCP = NotificationCenter.default.addObserver(forName: noteName, object: nil, queue: nil) { (note) in
+//            let message = note.userInfo?[NSLocalizedDescriptionKey] as? String
+//            self.showInfoAlert(title: "LCP Error", message: message ?? "")
+//        }
+//        #endif
 
         return true
     }
