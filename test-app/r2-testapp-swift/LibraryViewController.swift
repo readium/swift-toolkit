@@ -15,6 +15,8 @@ import Kingfisher
 import PromiseKit
 import ReadiumOPDS
 
+import MobileCoreServices
+
 /// To modify depending of the profile of the liblcp.a used
 let supportedProfiles = ["http://readium.org/lcp/basic-profile",
                          "http://readium.org/lcp/profile-1.0"]
@@ -24,71 +26,59 @@ protocol LibraryViewControllerDelegate: class {
     func remove(_ publication: Publication)
 }
 
-class LibraryViewController: UICollectionViewController {
+class LibraryViewController: UIViewController {
     var publications: [Publication]!
     weak var delegate: LibraryViewControllerDelegate?
     weak var lastFlippedCell: PublicationCell?
     
     lazy var loadingIndicator = PublicationIndicator()
-
-  override func loadView() {
-    // What is the reason creating another flowLayout?
-    // What is the reason creating another collectionView?
-    // Why not use the build in properites from UICollectionViewController?
-    let flowLayout = UICollectionViewFlowLayout()
-    let collectionView = UICollectionView(frame: UIScreen.main.bounds,
-                                          collectionViewLayout: flowLayout)
     
-    collectionView.backgroundColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
-    collectionView.contentInset = UIEdgeInsets(top: 15, left: 20,
-                                               bottom: 20, right: 20)
-    collectionView.register(PublicationCell.self,
-                            forCellWithReuseIdentifier: "publicationCell")
-    collectionView.delegate = self
-    
-    self.collectionView = collectionView
-    view = collectionView
-  }
+    @IBOutlet weak var collectionView: UICollectionView! {
+        didSet {
+            collectionView.backgroundColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
+            collectionView.contentInset = UIEdgeInsets(top: 15, left: 20,
+                                                   bottom: 20, right: 20)
+            collectionView.register(PublicationCell.self,
+                                forCellWithReuseIdentifier: "publicationCell")
+            collectionView.delegate = self
+            collectionView.dataSource = self
+        }
+    }
   
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    
-    let appDelegate = UIApplication.shared.delegate as! AppDelegate
-    
+    guard let appDelegate = UIApplication.shared.delegate as?  AppDelegate else {return}
     delegate = appDelegate
-
     publications = appDelegate.items.compactMap() { $0.value.0.publication }.sorted { (pA, pB) -> Bool in
           pA.metadata.title < pB.metadata.title
-      }
-
+    }
     appDelegate.libraryViewController = self
     
-    clearsSelectionOnViewWillAppear = true
-    installsStandardGestureForInteractiveMovement = false
     // Add long press gesture recognizer.
     let recognizer = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
     
     recognizer.minimumPressDuration = 0.5
     recognizer.delaysTouchesBegan = true
-    collectionView?.addGestureRecognizer(recognizer)
-    collectionView?.accessibilityLabel = "Library"
+    collectionView.addGestureRecognizer(recognizer)
+    collectionView.accessibilityLabel = "Library"
+    
+    self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(presentDoccumentPicker))
   }
   
   override func viewWillAppear(_ animated: Bool) {
-    navigationController?.setNavigationBarHidden(true, animated: animated)
+    navigationController?.setNavigationBarHidden(false, animated: animated)
     super.viewWillAppear(animated)
   }
   
   override func viewWillDisappear(_ animated: Bool) {
-    navigationController?.setNavigationBarHidden(false, animated: animated)
     lastFlippedCell?.flipMenu()
     super.viewWillDisappear(animated)
   }
   
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
-    collectionView?.collectionViewLayout.invalidateLayout()
+    collectionView.collectionViewLayout.invalidateLayout()
   }
   
   enum GeneralScreenOrientation: String {
@@ -137,8 +127,8 @@ class LibraryViewController: UICollectionViewController {
     guard let deviceLayoutNumberPerRow = layoutNumberPerRow[idiom] else {return}
     guard let numberPerRow = deviceLayoutNumberPerRow[orientation] else {return}
     
-    guard let flowLayout = self.collectionView?.collectionViewLayout as? UICollectionViewFlowLayout else {return}
-    let contentWith = collectionView?.collectionViewLayout.collectionViewContentSize.width ?? 0
+    guard let flowLayout = self.collectionView.collectionViewLayout as? UICollectionViewFlowLayout else {return}
+    let contentWith = collectionView.collectionViewLayout.collectionViewContentSize.width
     
     let minimumSpacing = CGFloat(5)
     let width = (contentWith - CGFloat(numberPerRow-1) * minimumSpacing) / CGFloat(numberPerRow)
@@ -150,25 +140,57 @@ class LibraryViewController: UICollectionViewController {
   }
 }
 
-// MARK: - Misc.
 extension LibraryViewController {
-
     @objc func handleLongPress(gestureRecognizer: UILongPressGestureRecognizer) {
         if (gestureRecognizer.state != UIGestureRecognizerState.began) {
             return
         }
+        
         let location = gestureRecognizer.location(in: collectionView)
-        if let indexPath = collectionView?.indexPathForItem(at: location) {
-            let cell = collectionView?.cellForItem(at: indexPath) as! PublicationCell
-
+        if let indexPath = collectionView.indexPathForItem(at: location) {
+            let cell = collectionView.cellForItem(at: indexPath) as! PublicationCell
+            
             cell.flipMenu()
         }
     }
 }
 
+// MARK: - Misc.
+extension LibraryViewController: UIDocumentPickerDelegate {
+    
+    @objc func presentDoccumentPicker() {
+        
+        let listOfUTI = [String("org.idpf.epub-container"),
+                         String("cx.c3.cbz-archive"),
+                         String("com.readium.lcpl"),
+                         String(kUTTypeText)]
+        
+        let documentPicker = UIDocumentPickerViewController(documentTypes: listOfUTI, in: .import)
+        documentPicker.delegate = self
+        self.present(documentPicker, animated: true, completion: nil)
+    }
+    
+    public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        
+        if controller.documentPickerMode != UIDocumentPickerMode.import {return}
+        
+        if let appDelegate = self.delegate as? AppDelegate {
+            for url in urls {
+                _ = appDelegate.addPublicationToLibrary(url: url)
+            }
+        }
+    }
+    
+    public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
+        if let appDelegate = self.delegate as? AppDelegate {
+            _ = appDelegate.addPublicationToLibrary(url: url)
+        }
+    }
+}
+
 // MARK: - CollectionView Datasource.
-extension LibraryViewController: UICollectionViewDelegateFlowLayout {
-  override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
     // No data to display.
     if publications.count == 0 {
       let noPublicationLabel = UILabel(frame: collectionView.frame)
@@ -181,7 +203,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
     return publications.count
   }
   
-  override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     
     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "publicationCell", for: indexPath) as! PublicationCell
     
@@ -254,34 +276,34 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout {
     return titleTextView
   }
 
-  override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     
-    let publication = publications[indexPath.row]
-    
-    guard let cell = collectionView.cellForItem(at: indexPath) else {return}
-    cell.contentView.addSubview(self.loadingIndicator)
-    collectionView.isUserInteractionEnabled = false
-    
-    let cleanup = {
-      self.loadingIndicator.removeFromSuperview()
-      collectionView.isUserInteractionEnabled = true
-    }
-    
-    let successCallback = { (contentVC: UIViewController) in
-      cleanup()
-      let backItem = UIBarButtonItem()
-      backItem.title = ""
-      self.navigationItem.backBarButtonItem = backItem
-      self.navigationController?.pushViewController(contentVC, animated: true)
-    }
-    
-    let failCallback = { (message: String?) in
-      cleanup()
-      guard let failMessage = message else {return}
-      self.infoAlert(title: "Error", message: failMessage)
-    }
-    
-    loadPublication(publication: publication, success: successCallback, fail: failCallback)
+        let publication = publications[indexPath.row]
+        
+        guard let cell = collectionView.cellForItem(at: indexPath) else {return}
+        cell.contentView.addSubview(self.loadingIndicator)
+        collectionView.isUserInteractionEnabled = false
+        
+        let cleanup = {
+          self.loadingIndicator.removeFromSuperview()
+          collectionView.isUserInteractionEnabled = true
+        }
+        
+        let successCallback = { (contentVC: UIViewController) in
+          cleanup()
+          let backItem = UIBarButtonItem()
+          backItem.title = ""
+          self.navigationItem.backBarButtonItem = backItem
+          self.navigationController?.pushViewController(contentVC, animated: true)
+        }
+        
+        let failCallback = { (message: String?) in
+          cleanup()
+          guard let failMessage = message else {return}
+          self.infoAlert(title: "Error", message: failMessage)
+        }
+        
+        loadPublication(publication: publication, success: successCallback, fail: failCallback)
   }
   
   func loadPublication(publication: Publication,
@@ -354,7 +376,7 @@ extension LibraryViewController: PublicationCellDelegate {
       // Remove the publication from publicationServer and Documents folder.
       self.delegate?.remove(self.publications[indexPath.row])
       // Remove item from UI colletionView.
-      self.collectionView?.deleteItems(at: [indexPath])
+      self.collectionView.deleteItems(at: [indexPath])
     })
     let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: { alert in
       return

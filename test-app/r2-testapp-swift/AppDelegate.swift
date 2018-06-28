@@ -101,8 +101,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Update library publications.
         libraryViewController?.publications = publicationServer.publications
         // Redraw cells
-        libraryViewController?.collectionView?.reloadData()
-        libraryViewController?.collectionView?.backgroundView = nil
+        libraryViewController?.collectionView.reloadData()
+        libraryViewController?.collectionView.backgroundView = nil
     }
 
 }
