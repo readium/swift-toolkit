@@ -57,22 +57,40 @@ public class LcpLicense: DrmLicense {
     /// Update the Status Document.
     ///
     /// - Parameter completion:
-    public func fetchStatusDocument() -> Promise<Void> {
-        return Promise<Void> { fulfill, reject in
+    public func fetchStatusDocument() -> Promise<Error?> {
+        return Promise<Error?> { fulfill, reject in
             guard let statusLink = license.link(withRel: LicenseDocument.Rel.status) else {
                 reject(LcpError.statusLinkNotFound)
                 return
             }
             let task = URLSession.shared.dataTask(with: statusLink.href) { (data, response, error) in
+                
+                if let httpResponse = response as? HTTPURLResponse {
+                    let statusCode = httpResponse.statusCode
+                    if statusCode == 404 {
+                        let info = [NSLocalizedDescriptionKey : "The Readium LCP License Status Document does not exist."]
+                        let serverError = NSError(domain: "org.readium", code: 404, userInfo: info)
+                        fulfill(serverError)
+                        return
+                        
+                    } else if statusCode > 500 {
+                        let info = [NSLocalizedDescriptionKey : "The Readium LCP server is experiencing problems, the License Status Document is unreachable"]
+                        let serverError = NSError(domain: "org.readium", code: statusCode, userInfo: info)
+                        fulfill(serverError)
+                        return
+                    }
+                }
+                
                 if let data = data {
                     do {
                         self.status = try StatusDocument.init(with: data)
                     } catch {
                         reject(error)
                     }
-                  fulfill(())
+                  fulfill(nil)
                 } else if let error = error {
-                    reject(error)
+                    //reject(error)
+                    fulfill(error)
                 } else {
                     reject(LcpError.unknown)
                 }
