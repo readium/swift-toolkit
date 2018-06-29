@@ -27,7 +27,7 @@ public class UserSettings {
     public var hyphens: Bool!
     public var ligatures: Bool!
     
-    public var userSettingsUIPreset: [ReadiumCSSKey:Bool]?
+    public var userSettingsUIPreset: [ReadiumCSSName: Bool]?
 
     internal init() {
         let userDefaults = UserDefaults.standard
@@ -35,65 +35,65 @@ public class UserSettings {
 
         /// Load settings from userDefaults.
         // Font size.
-        if isKeyPresentInUserDefaults(key: ReadiumCSSKey.fontSize) {
-            fontSize = userDefaults.string(forKey: ReadiumCSSKey.fontSize.rawValue)
+        if isKeyPresentInUserDefaults(key: ReadiumCSSName.fontSize) {
+            fontSize = userDefaults.string(forKey: ReadiumCSSName.fontSize.rawValue)
         } else {
             fontSize = "100"
         }
 
         // Font type.
-        value = userDefaults.string(forKey: ReadiumCSSKey.font.rawValue) ?? ""
+        value = userDefaults.string(forKey: ReadiumCSSName.fontFamily.rawValue) ?? ""
         font = Font.init(with: value)
 
         // Appearance.
-        if isKeyPresentInUserDefaults(key: ReadiumCSSKey.appearance),
-            let value = userDefaults.string(forKey: ReadiumCSSKey.appearance.rawValue) {
+        if isKeyPresentInUserDefaults(key: ReadiumCSSName.appearance),
+            let value = userDefaults.string(forKey: ReadiumCSSName.appearance.rawValue) {
             appearance = Appearance.init(with: value)
         }
 
         // Scroll mod.
-        value = userDefaults.string(forKey: ReadiumCSSKey.scroll.rawValue) ?? ""
+        value = userDefaults.string(forKey: ReadiumCSSName.scroll.rawValue) ?? ""
         scroll = Scroll.init(with: value)
 
         // Publisher settings.
-        publisherSettings = userDefaults.bool(forKey: ReadiumCSSKey.publisherSettings.rawValue)
+        publisherSettings = userDefaults.bool(forKey: ReadiumCSSName.publisherDefault.rawValue)
 
         // Page Margins. (0 if unset in the userDefaults)
-        let pageMarginsValue = userDefaults.double(forKey: ReadiumCSSKey.pageMargins.rawValue)
+        let pageMarginsValue = userDefaults.double(forKey: ReadiumCSSName.pageMargins.rawValue)
 
         self.pageMargins = PageMargins.init(initialValue: pageMarginsValue)
 
         // Text alignement.
-        let textAlignement = userDefaults.integer(forKey: ReadiumCSSKey.textAlignement.rawValue)
+        let textAlignement = userDefaults.integer(forKey: ReadiumCSSName.textAlignement.rawValue)
         self.textAlignement = TextAlignement.init(with: textAlignement)
         // Word spacing.
-        let wordSpacingValue = userDefaults.double(forKey: ReadiumCSSKey.wordSpacing.rawValue)
+        let wordSpacingValue = userDefaults.double(forKey: ReadiumCSSName.wordSpacing.rawValue)
         wordSpacing = WordSpacing.init(initialValue: wordSpacingValue)
 
         // Letter spacing.
-        let letterSpacingValue = userDefaults.double(forKey: ReadiumCSSKey.letterSpacing.rawValue)
+        let letterSpacingValue = userDefaults.double(forKey: ReadiumCSSName.letterSpacing.rawValue)
         letterSpacing = LetterSpacing.init(initialValue: letterSpacingValue)
 
         // Column count.
-        value = userDefaults.string(forKey: ReadiumCSSKey.columnCount.rawValue) ?? ""
+        value = userDefaults.string(forKey: ReadiumCSSName.columnCount.rawValue) ?? ""
         columnCount = ColumnCount.init(with: value)
         
         // hyphens and ligatures
-        hyphens = userDefaults.bool(forKey: ReadiumCSSKey.hyphens.rawValue)
-        ligatures = userDefaults.bool(forKey: ReadiumCSSKey.ligatures.rawValue)
+        hyphens = userDefaults.bool(forKey: ReadiumCSSName.hyphens.rawValue)
+        ligatures = userDefaults.bool(forKey: ReadiumCSSName.ligatures.rawValue)
     }
 
-    public func value(forKey key: ReadiumCSSKey) -> String? {
+    public func value(forKey key: ReadiumCSSName) -> String? {
         switch key {
         case .fontSize:
             return fontSize
-        case .font:
+        case .fontFamily:
             return font?.name()
         case .appearance:
             return appearance?.name()
         case .scroll:
             return scroll?.name()
-        case .publisherSettings:
+        case .publisherDefault:
             return publisherSettings.description
         case .textAlignement:
             return textAlignement.stringValue()
@@ -109,7 +109,7 @@ public class UserSettings {
             return String(hyphens)
         case .ligatures:
             return String(ligatures)
-        case .publisherFont:
+        case .fontOverride:
             return font?.name() ?? ""
         case .paraIndent:
             return "Not supported"
@@ -125,7 +125,7 @@ public class UserSettings {
 
         // FontSize.
         if let fontSize = fontSize {
-            properties.append((key: ReadiumCSSKey.fontSize.rawValue, "\(fontSize)%"))
+            properties.append((key: ReadiumCSSName.fontSize.rawValue, "\(fontSize)%"))
         }
 
         // Font.
@@ -133,40 +133,40 @@ public class UserSettings {
             // Do we override?
             let value = (font == .publisher ? "readium-font-off" : "readium-font-on")
 
-            properties.append((key: ReadiumCSSKey.publisherFont.rawValue, value))
-            properties.append((key: ReadiumCSSKey.font.rawValue, "\(font.name(css: true))"))
+            properties.append((key: ReadiumCSSName.fontOverride.rawValue, value))
+            properties.append((key: ReadiumCSSName.fontFamily.rawValue, "\(font.name(css: true))"))
         }
         // Appearance.
         if let appearance = appearance {
-            properties.append((key: ReadiumCSSKey.appearance.rawValue, "\(appearance.name())"))
+            properties.append((key: ReadiumCSSName.appearance.rawValue, "\(appearance.name())"))
         }
         // Scroll.
         if let scroll = scroll {
-            properties.append((key: ReadiumCSSKey.scroll.rawValue, value: "\(scroll.name())"))
+            properties.append((key: ReadiumCSSName.scroll.rawValue, value: "\(scroll.name())"))
         }
         // Publisher Settings.
         value = (publisherSettings == true ? "readium-advanced-off" : "readium-advanced-on")
-        properties.append((key: ReadiumCSSKey.publisherSettings.rawValue, value: "\(value)"))
+        properties.append((key: ReadiumCSSName.publisherDefault.rawValue, value: "\(value)"))
 
         /// Advanced Settings.
         // Text alignement.
-        properties.append((key: ReadiumCSSKey.textAlignement.rawValue,
+        properties.append((key: ReadiumCSSName.textAlignement.rawValue,
                            value: textAlignement.stringValueCss()))
 
         // Column count.
-        properties.append((key: ReadiumCSSKey.columnCount.rawValue,
+        properties.append((key: ReadiumCSSName.columnCount.rawValue,
                            value: columnCount.name()))
 
         // WordSpacing count.
-        properties.append((key: ReadiumCSSKey.wordSpacing.rawValue,
+        properties.append((key: ReadiumCSSName.wordSpacing.rawValue,
                            value: wordSpacing.stringValueCss()))
         // LetterSpacing count.
-        properties.append((key: ReadiumCSSKey.letterSpacing.rawValue,
+        properties.append((key: ReadiumCSSName.letterSpacing.rawValue,
                            value: letterSpacing.stringValueCss()))
 
         // Page margins.
         if let pageMargins = pageMargins {
-            properties.append((key: ReadiumCSSKey.pageMargins.rawValue,
+            properties.append((key: ReadiumCSSName.pageMargins.rawValue,
                                value: pageMargins.stringValue()))
         }
         return properties
@@ -177,25 +177,25 @@ public class UserSettings {
         let userDefaults = UserDefaults.standard
 
         if let fontSize = fontSize {
-            userDefaults.set(fontSize, forKey: ReadiumCSSKey.fontSize.rawValue)
+            userDefaults.set(fontSize, forKey: ReadiumCSSName.fontSize.rawValue)
         }
         if let font =  font {
-            userDefaults.set(font.name(), forKey: ReadiumCSSKey.font.rawValue)
+            userDefaults.set(font.name(), forKey: ReadiumCSSName.fontFamily.rawValue)
         }
         if let appearance = appearance {
-            userDefaults.set(appearance.name(), forKey: ReadiumCSSKey.appearance.rawValue)
+            userDefaults.set(appearance.name(), forKey: ReadiumCSSName.appearance.rawValue)
         }
         if let scroll = scroll {
-            userDefaults.set(scroll.name(), forKey: ReadiumCSSKey.scroll.rawValue)
+            userDefaults.set(scroll.name(), forKey: ReadiumCSSName.scroll.rawValue)
         }
-        userDefaults.set(publisherSettings, forKey: ReadiumCSSKey.publisherSettings.rawValue)
+        userDefaults.set(publisherSettings, forKey: ReadiumCSSName.publisherDefault.rawValue)
 
-        userDefaults.set(textAlignement.rawValue, forKey: ReadiumCSSKey.textAlignement.rawValue)
-        userDefaults.set(columnCount.name(), forKey: ReadiumCSSKey.columnCount.rawValue)
-        userDefaults.set(wordSpacing.value, forKey: ReadiumCSSKey.wordSpacing.rawValue)
-        userDefaults.set(letterSpacing.value, forKey: ReadiumCSSKey.letterSpacing.rawValue)
+        userDefaults.set(textAlignement.rawValue, forKey: ReadiumCSSName.textAlignement.rawValue)
+        userDefaults.set(columnCount.name(), forKey: ReadiumCSSName.columnCount.rawValue)
+        userDefaults.set(wordSpacing.value, forKey: ReadiumCSSName.wordSpacing.rawValue)
+        userDefaults.set(letterSpacing.value, forKey: ReadiumCSSName.letterSpacing.rawValue)
         if let pageMargins = pageMargins {
-            userDefaults.set(pageMargins.value, forKey: ReadiumCSSKey.pageMargins.rawValue)
+            userDefaults.set(pageMargins.value, forKey: ReadiumCSSName.pageMargins.rawValue)
         }
     }
 
@@ -203,7 +203,7 @@ public class UserSettings {
     ///
     /// - Parameter key: The key name.
     /// - Returns: A boolean value indicating if the value is present.
-    private func isKeyPresentInUserDefaults(key: ReadiumCSSKey) -> Bool {
+    private func isKeyPresentInUserDefaults(key: ReadiumCSSName) -> Bool {
         return UserDefaults.standard.object(forKey: key.rawValue) != nil
     }
 }
