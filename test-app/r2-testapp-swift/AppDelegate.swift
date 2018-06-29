@@ -46,6 +46,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     /// Publications waiting to be added to the PublicationServer (first opening).
     /// publication identifier : data
     var items = [String: (PubBox, PubParsingCallback)]()
+    
+    #if LCP
+    private var messageObserverLCP: NSObjectProtocol?
+    #endif
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
 
@@ -64,6 +68,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Parse publications (just the OPF and Encryption for now)
         lightParseSamplePublications()
         lightParsePublications()
+        
+      /// This showInfoAlert will dismiss the LibraryViewController which is going to show.
+      /// The alert or toast should not have any side effect like that.
+      /// Once the new alert is done. We can use the code below.
+//        #if LCP
+//        let noteName = Notification.Name(kShouldPresentLCPMessage)
+//        messageObserverLCP = NotificationCenter.default.addObserver(forName: noteName, object: nil, queue: nil) { (note) in
+//            let message = note.userInfo?[NSLocalizedDescriptionKey] as? String
+//            self.showInfoAlert(title: "LCP Error", message: message ?? "")
+//        }
+//        #endif
 
         return true
     }
@@ -423,6 +438,37 @@ extension AppDelegate: LibraryViewControllerDelegate {
     ///   - drm: The drm object associated with the Publication.
     ///   - completion: The completion handler.
     /// - Throws: .
+    
+    @objc func fetchCRL(success: ((String)->Void)? = nil,
+                        fail: (() -> Void)? = nil) {
+        // Get Certificat Revocation List. from "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl"
+        guard let url = URL(string: "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl") else {
+            //reject(LcpError.crlFetching)
+            fail?()
+            return
+        }
+        
+        let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, response, error) in
+            guard let httpResponse = response as? HTTPURLResponse else {
+                if let _ = error {fail?()}
+                return
+            }
+            if error == nil {
+                switch httpResponse.statusCode {
+                case 200:
+                    // update the status document
+                    if let data = data {
+                        let pem = "-----BEGIN X509 CRL-----\(data.base64EncodedString())-----END X509 CRL-----";
+                        success?(pem)
+                    }
+                default:
+                    fail?()
+                }
+            } else {fail?()}
+        })
+        task.resume()
+    }
+    
     func handleLcpPublication(atPath publicationPath: String, with drm: Drm,
                               parsingCallback: @escaping PubParsingCallback,
                               _ completion: @escaping (Drm?, Error?) -> Void) throws
@@ -432,39 +478,57 @@ extension AppDelegate: LibraryViewControllerDelegate {
             return
         }
 
+        let kCRLDate = "kCRLDate"
+        let kCRLString = "kCRLString"
+        
+        let updateCRL = { (newCRL:String) -> Void in
+            UserDefaults.standard.set(newCRL, forKey: kCRLString)
+            UserDefaults.standard.set(Date(), forKey: kCRLDate)
+        }
+        
         let session = try LcpSession.init(protectedEpubUrl: epubUrl)
-
-        // Fonction used in the async code below.
+        
         func validatePassphrase(passphraseHash: String) -> Promise<LcpLicense> {
             return firstly {
-                // Get Certificat Revocation List. from "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl"
-                return Promise<String> { fulfill, reject in
-                    guard let url = URL(string: "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl") else {
-                        reject(LcpError.crlFetching)
-                        return
+                
+                let promiseCRL =  { () -> Promise<String> in
+                    return Promise<String> { fulfill, reject in
+                        let fallback:(()->Void) = { () -> Void in
+                            let stringCRL = UserDefaults.standard.value(forKey: "kCRLString") as? String
+                            //let dateCRL = UserDefaults.standard.value(forKey: "kCRLStringUpdatedDate") as? Date
+                            fulfill(stringCRL ?? "")
+                        }
+                        self.fetchCRL(success: { (pem:String) in
+                            updateCRL(pem)
+                            fulfill(pem)
+                        }, fail: {
+                            fallback()
+                        })
                     }
-
-                    let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, response, error) in
-                        guard let httpResponse = response as? HTTPURLResponse else {
-                            if let error = error { reject(error) }
-                            return
-                        }
-                        if error == nil {
-                            switch httpResponse.statusCode {
-                            case 200:
-                                // update the status document
-                                if let data = data {
-                                    let pem = "-----BEGIN X509 CRL-----\(data.base64EncodedString())-----END X509 CRL-----";
-
-                                    fulfill(pem)
-                                }
-                            default:
-                                reject(LcpError.crlFetching)
-                            }
-                        }
-                    })
-                    task.resume()
                 }
+                
+                guard let updatedDate = UserDefaults.standard.value(forKey: kCRLDate) as? Date else {
+                    return promiseCRL()
+                }
+                    
+                let calendar = NSCalendar.current
+                
+                let updatedCal = calendar.startOfDay(for: updatedDate)
+                let currentCal = calendar.startOfDay(for: Date())
+                
+                let components = calendar.dateComponents([.day], from: updatedCal, to: currentCal)
+                let dayCount = components.day ?? Int.max
+                    if dayCount < 7 {
+                        guard let stringCRL = UserDefaults.standard.value(forKey: kCRLString) as? String else {
+                            return promiseCRL()
+                        }
+                        return Promise<String> { fulfill, reject in
+                            fulfill(stringCRL)
+                        }
+                    } else {
+                        return promiseCRL()
+                    }
+                
                 }.then { pemCrl -> Promise<LcpLicense> in
                     // Get a decipherer object for the given passphrase,
                     // also checking that it's not revoqued using the crl.
