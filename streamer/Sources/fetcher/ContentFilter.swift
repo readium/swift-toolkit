@@ -157,6 +157,18 @@ final internal class ContentFiltersEpub: ContentFilters {
         guard var resourceHtml = String.init(data: data, encoding: String.Encoding.utf8) else {
             return stream
         }
+        
+        // Inserting in <HTML>
+        guard let htmlContentStart = resourceHtml.endIndex(of: "<html") else {
+            print("Invalid resource")
+            abort()
+        }
+        
+        // User properties injection
+        let style = " " + buildUserPropertiesString(publication: publication)
+        
+        resourceHtml = resourceHtml.insert(string: style, at: htmlContentStart)
+        
         // Inserting at the start of <HEAD>.
         guard let headStart = resourceHtml.endIndex(of: "<head>") else {
             print("Invalid resource")
@@ -261,7 +273,17 @@ final internal class ContentFiltersEpub: ContentFilters {
 
         return prefix + resourceName + suffix
     }
-
+    
+    fileprivate func buildUserPropertiesString(publication: Publication) -> String {
+        var userPropertiesString = ""
+        
+        for property in publication.userProperties.properties {
+            userPropertiesString += property.name + ": " + property.toString() + "; "
+        }
+        
+        return userPropertiesString
+    }
+    
 }
 
 let ltrPreset:[ReadiumCSSName: Bool] = [
