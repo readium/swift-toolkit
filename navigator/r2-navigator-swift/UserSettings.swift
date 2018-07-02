@@ -12,193 +12,222 @@ import UIKit
 import R2Shared
 
 public class UserSettings {
-    // FontSize in %.
-    public var fontSize: String?
-    public var font: Font?
-    public var appearance: Appearance?
-    public var scroll: Scroll?
-    public var publisherSettings: Bool!
-    public var textAlignement: TextAlignement!
-    public var columnCount: ColumnCount!
-    public var wordSpacing: WordSpacing!
-    public var letterSpacing: LetterSpacing!
-    public var pageMargins: PageMargins!
     
-    public var hyphens: Bool!
-    public var ligatures: Bool!
+    private let appearanceValues = ["readium-default-on", "readium-sepia-on","readium-night-on"]
+    private let fontFamilyValues = ["Publisher's default", "Helvetica Neue", "Iowan Old Style", "Athelas", "Seravek"]
+    private let textAlignmentValues = ["justify", "start"]
+    private let columnCountValues = ["auto", "1", "2"]
+    
+    var fontSize: Float = 100
+    var fontOverride = false
+    var fontFamily = 0
+    var appearance = 0
+    var verticalScroll = false
+    
+    var publisherDefaults = false
+    var textAlignment = 0
+    var columnCount = 0
+    var wordSpacing: Float = 0
+    var letterSpacing: Float = 0
+    var pageMargins: Float = 0.5
     
     public var userSettingsUIPreset: [ReadiumCSSName: Bool]?
 
     internal init() {
-        let userDefaults = UserDefaults.standard
-        var value: String
-
-        /// Load settings from userDefaults.
-        // Font size.
-        if isKeyPresentInUserDefaults(key: ReadiumCSSName.fontSize) {
-            fontSize = userDefaults.string(forKey: ReadiumCSSName.fontSize.rawValue)
-        } else {
-            fontSize = "100"
-        }
-
-        // Font type.
-        value = userDefaults.string(forKey: ReadiumCSSName.fontFamily.rawValue) ?? ""
-        font = Font.init(with: value)
-
-        // Appearance.
-        if isKeyPresentInUserDefaults(key: ReadiumCSSName.appearance),
-            let value = userDefaults.string(forKey: ReadiumCSSName.appearance.rawValue) {
-            appearance = Appearance.init(with: value)
-        }
-
-        // Scroll mod.
-        value = userDefaults.string(forKey: ReadiumCSSName.scroll.rawValue) ?? ""
-        scroll = Scroll.init(with: value)
-
-        // Publisher settings.
-        publisherSettings = userDefaults.bool(forKey: ReadiumCSSName.publisherDefault.rawValue)
-
-        // Page Margins. (0 if unset in the userDefaults)
-        let pageMarginsValue = userDefaults.double(forKey: ReadiumCSSName.pageMargins.rawValue)
-
-        self.pageMargins = PageMargins.init(initialValue: pageMarginsValue)
-
-        // Text alignement.
-        let textAlignement = userDefaults.integer(forKey: ReadiumCSSName.textAlignement.rawValue)
-        self.textAlignement = TextAlignement.init(with: textAlignement)
-        // Word spacing.
-        let wordSpacingValue = userDefaults.double(forKey: ReadiumCSSName.wordSpacing.rawValue)
-        wordSpacing = WordSpacing.init(initialValue: wordSpacingValue)
-
-        // Letter spacing.
-        let letterSpacingValue = userDefaults.double(forKey: ReadiumCSSName.letterSpacing.rawValue)
-        letterSpacing = LetterSpacing.init(initialValue: letterSpacingValue)
-
-        // Column count.
-        value = userDefaults.string(forKey: ReadiumCSSName.columnCount.rawValue) ?? ""
-        columnCount = ColumnCount.init(with: value)
         
-        // hyphens and ligatures
-        hyphens = userDefaults.bool(forKey: ReadiumCSSName.hyphens.rawValue)
-        ligatures = userDefaults.bool(forKey: ReadiumCSSName.ligatures.rawValue)
-    }
-
-    public func value(forKey key: ReadiumCSSName) -> String? {
-        switch key {
-        case .fontSize:
-            return fontSize
-        case .fontFamily:
-            return font?.name()
-        case .appearance:
-            return appearance?.name()
-        case .scroll:
-            return scroll?.name()
-        case .publisherDefault:
-            return publisherSettings.description
-        case .textAlignement:
-            return textAlignement.stringValue()
-        case .wordSpacing:
-            return wordSpacing.stringValue()
-        case .letterSpacing:
-            return letterSpacing.stringValue()
-        case .columnCount:
-            return columnCount?.name()
-        case .pageMargins:
-            return pageMargins.stringValue()
-        case .hyphens:
-            return String(hyphens)
-        case .ligatures:
-            return String(ligatures)
-        case .fontOverride:
-            return font?.name() ?? ""
-        case .paraIndent:
-            return "Not supported"
-        }
-    }
-
-    /// Generate an array of tuple for setting easily the CSS properties.
-    ///
-    /// - Returns: Css properties (key, value).
-    public func cssProperties() -> [(key: String, value: String)] {
-        var properties = [(key: String, value: String)]()
-        var value: String
-
-        // FontSize.
-        if let fontSize = fontSize {
-            properties.append((key: ReadiumCSSName.fontSize.rawValue, "\(fontSize)%"))
-        }
-
-        // Font.
-        if let font = font {
-            // Do we override?
-            let value = (font == .publisher ? "readium-font-off" : "readium-font-on")
-
-            properties.append((key: ReadiumCSSName.fontOverride.rawValue, value))
-            properties.append((key: ReadiumCSSName.fontFamily.rawValue, "\(font.name(css: true))"))
-        }
-        // Appearance.
-        if let appearance = appearance {
-            properties.append((key: ReadiumCSSName.appearance.rawValue, "\(appearance.name())"))
-        }
-        // Scroll.
-        if let scroll = scroll {
-            properties.append((key: ReadiumCSSName.scroll.rawValue, value: "\(scroll.name())"))
-        }
-        // Publisher Settings.
-        value = (publisherSettings == true ? "readium-advanced-off" : "readium-advanced-on")
-        properties.append((key: ReadiumCSSName.publisherDefault.rawValue, value: "\(value)"))
-
-        /// Advanced Settings.
-        // Text alignement.
-        properties.append((key: ReadiumCSSName.textAlignement.rawValue,
-                           value: textAlignement.stringValueCss()))
-
-        // Column count.
-        properties.append((key: ReadiumCSSName.columnCount.rawValue,
-                           value: columnCount.name()))
-
-        // WordSpacing count.
-        properties.append((key: ReadiumCSSName.wordSpacing.rawValue,
-                           value: wordSpacing.stringValueCss()))
-        // LetterSpacing count.
-        properties.append((key: ReadiumCSSName.letterSpacing.rawValue,
-                           value: letterSpacing.stringValueCss()))
-
-        // Page margins.
-        if let pageMargins = pageMargins {
-            properties.append((key: ReadiumCSSName.pageMargins.rawValue,
-                               value: pageMargins.stringValue()))
-        }
-        return properties
-    }
-
-    // Save settings to userDefault.
-    public func save() {
         let userDefaults = UserDefaults.standard
 
-        if let fontSize = fontSize {
-            userDefaults.set(fontSize, forKey: ReadiumCSSName.fontSize.rawValue)
+        /// Load settings from UserDefaults
+        
+        // Font size
+        if isKeyPresentInUserDefaults(key: ReadiumCSSName.fontSize) {
+            fontSize = userDefaults.float(forKey: ReadiumCSSName.fontSize.rawValue)
+        } else {
+            fontSize = 100
         }
-        if let font =  font {
-            userDefaults.set(font.name(), forKey: ReadiumCSSName.fontFamily.rawValue)
-        }
-        if let appearance = appearance {
-            userDefaults.set(appearance.name(), forKey: ReadiumCSSName.appearance.rawValue)
-        }
-        if let scroll = scroll {
-            userDefaults.set(scroll.name(), forKey: ReadiumCSSName.scroll.rawValue)
-        }
-        userDefaults.set(publisherSettings, forKey: ReadiumCSSName.publisherDefault.rawValue)
 
-        userDefaults.set(textAlignement.rawValue, forKey: ReadiumCSSName.textAlignement.rawValue)
-        userDefaults.set(columnCount.name(), forKey: ReadiumCSSName.columnCount.rawValue)
-        userDefaults.set(wordSpacing.value, forKey: ReadiumCSSName.wordSpacing.rawValue)
-        userDefaults.set(letterSpacing.value, forKey: ReadiumCSSName.letterSpacing.rawValue)
-        if let pageMargins = pageMargins {
-            userDefaults.set(pageMargins.value, forKey: ReadiumCSSName.pageMargins.rawValue)
+        // Font family
+        if isKeyPresentInUserDefaults(key: ReadiumCSSName.fontFamily) {
+            fontFamily = userDefaults.integer(forKey: ReadiumCSSName.fontSize.rawValue)
+        } else {
+            fontFamily = 0
         }
+        
+        // Font override
+        if isKeyPresentInUserDefaults(key: ReadiumCSSName.fontOverride) {
+            fontOverride = userDefaults.bool(forKey: ReadiumCSSName.fontOverride.rawValue)
+        } else {
+            fontOverride = false
+        }
+        
+        // Appearance
+        if isKeyPresentInUserDefaults(key: ReadiumCSSName.appearance) {
+            appearance = userDefaults.integer(forKey: ReadiumCSSName.appearance.rawValue)
+        } else {
+            appearance = 0
+        }
+        
+        // Vertical scroll
+        if isKeyPresentInUserDefaults(key: ReadiumCSSName.scroll) {
+            verticalScroll = userDefaults.bool(forKey: ReadiumCSSName.scroll.rawValue)
+        } else {
+            verticalScroll = false
+        }
+        
+        // Publisher default system
+        if isKeyPresentInUserDefaults(key: ReadiumCSSName.publisherDefault) {
+            publisherDefaults = userDefaults.bool(forKey: ReadiumCSSName.publisherDefault.rawValue)
+        } else {
+            publisherDefaults = false
+        }
+        
+        // Text alignment
+        if isKeyPresentInUserDefaults(key: ReadiumCSSName.textAlignment) {
+            textAlignment = userDefaults.integer(forKey: ReadiumCSSName.textAlignment.rawValue)
+        } else {
+            textAlignment = 0
+        }
+        
+        // Column count
+        if isKeyPresentInUserDefaults(key: ReadiumCSSName.columnCount) {
+            columnCount = userDefaults.integer(forKey: ReadiumCSSName.columnCount.rawValue)
+        } else {
+            columnCount = 0
+        }
+        
+        // Word spacing
+        if isKeyPresentInUserDefaults(key: ReadiumCSSName.wordSpacing) {
+            wordSpacing = userDefaults.float(forKey: ReadiumCSSName.wordSpacing.rawValue)
+        } else {
+            wordSpacing = 0
+        }
+        
+        // Letter spacing
+        if isKeyPresentInUserDefaults(key: ReadiumCSSName.letterSpacing) {
+            letterSpacing = userDefaults.float(forKey: ReadiumCSSName.letterSpacing.rawValue)
+        } else {
+            letterSpacing = 0
+        }
+        
+        // Page margins
+        if isKeyPresentInUserDefaults(key: ReadiumCSSName.pageMargins) {
+            pageMargins = userDefaults.float(forKey: ReadiumCSSName.pageMargins.rawValue)
+        } else {
+            pageMargins = 0
+        }
+        
     }
+    
+    // Get settings
+    public func cssProperties() -> UserProperties {
+        
+        let userProperties = UserProperties()
+        
+        // Font size
+        userProperties.addIncrementable(nValue: fontSize,
+                                        min: 100,
+                                        max: 300,
+                                        step: 25,
+                                        suffix: "%",
+                                        reference: ReadiumCSSReference.fontSize.rawValue,
+                                        name: ReadiumCSSName.fontSize.rawValue)
+        
+        // Font family
+        userProperties.addEnumerable(index: 0,
+                                     values: fontFamilyValues,
+                                     reference: ReadiumCSSReference.fontFamily.rawValue,
+                                     name: ReadiumCSSName.fontFamily.rawValue)
+        
+        // Font override
+        userProperties.addSwitchable(onValue: "readium-font-on",
+                                     offValue: "readium-font-off",
+                                     on: fontOverride,
+                                     reference: ReadiumCSSReference.fontOverride.rawValue,
+                                     name: ReadiumCSSName.fontOverride.rawValue)
+        
+        // Appearance
+        userProperties.addEnumerable(index: appearance,
+                                     values: appearanceValues,
+                                     reference: ReadiumCSSReference.appearance.rawValue,
+                                     name: ReadiumCSSName.appearance.rawValue)
+        
+        // Vertical scroll
+        userProperties.addSwitchable(onValue: "readium-scroll-on",
+                                     offValue: "readium-scroll-off",
+                                     on: verticalScroll,
+                                     reference: ReadiumCSSReference.scroll.rawValue,
+                                     name: ReadiumCSSName.scroll.rawValue)
+        
+        // Publisher default system
+        userProperties.addSwitchable(onValue: "readium-advanced-off",
+                                     offValue: "readium-advanced-on",
+                                     on: publisherDefaults,
+                                     reference: ReadiumCSSReference.publisherDefault.rawValue,
+                                     name: ReadiumCSSName.publisherDefault.rawValue)
+        
+        // Text alignment
+        userProperties.addEnumerable(index: textAlignment,
+                                     values: textAlignmentValues,
+                                     reference: ReadiumCSSReference.textAlignment.rawValue,
+                                     name: ReadiumCSSName.textAlignment.rawValue)
+        
+        // Column count
+        userProperties.addEnumerable(index: columnCount,
+                                     values: columnCountValues,
+                                     reference: ReadiumCSSReference.columnCount.rawValue,
+                                     name: ReadiumCSSName.columnCount.rawValue)
+        
+        // Word spacing
+        userProperties.addIncrementable(nValue: wordSpacing,
+                                        min: 0,
+                                        max: 0.5,
+                                        step: 0.125,
+                                        suffix: "rem",
+                                        reference: ReadiumCSSReference.wordSpacing.rawValue,
+                                        name: ReadiumCSSName.wordSpacing.rawValue)
+        
+        // Letter spacing
+        userProperties.addIncrementable(nValue: letterSpacing,
+                                        min: 0,
+                                        max: 0.25,
+                                        step: 0.0625,
+                                        suffix: "em",
+                                        reference: ReadiumCSSReference.letterSpacing.rawValue,
+                                        name: ReadiumCSSName.letterSpacing.rawValue)
+        
+        // Page margins
+        userProperties.addIncrementable(nValue: pageMargins,
+                                        min: 0.5,
+                                        max: 2,
+                                        step: 0.25,
+                                        suffix: "",
+                                        reference: ReadiumCSSReference.pageMargins.rawValue,
+                                        name: ReadiumCSSName.pageMargins.rawValue)
+        
+        return userProperties
+        
+    }
+    
+    // Save settings to UserDefaults
+    public func save() {
+        
+        let userDefaults = UserDefaults.standard
 
+        userDefaults.set(fontSize, forKey: ReadiumCSSName.fontSize.rawValue)
+        userDefaults.set(fontFamily, forKey: ReadiumCSSName.fontFamily.rawValue)
+        userDefaults.set(fontOverride, forKey: ReadiumCSSName.fontOverride.rawValue)
+        userDefaults.set(appearance, forKey: ReadiumCSSName.appearance.rawValue)
+        userDefaults.set(verticalScroll, forKey: ReadiumCSSName.scroll.rawValue)
+        userDefaults.set(publisherDefaults, forKey: ReadiumCSSName.publisherDefault.rawValue)
+
+        userDefaults.set(textAlignment, forKey: ReadiumCSSName.textAlignment.rawValue)
+        userDefaults.set(columnCount, forKey: ReadiumCSSName.columnCount.rawValue)
+        userDefaults.set(wordSpacing, forKey: ReadiumCSSName.wordSpacing.rawValue)
+        userDefaults.set(letterSpacing, forKey: ReadiumCSSName.letterSpacing.rawValue)
+        userDefaults.set(pageMargins, forKey: ReadiumCSSName.pageMargins.rawValue)
+        
+    }
+    
     /// Check if a given key is set in the UserDefaults.
     ///
     /// - Parameter key: The key name.
@@ -206,4 +235,5 @@ public class UserSettings {
     private func isKeyPresentInUserDefaults(key: ReadiumCSSName) -> Bool {
         return UserDefaults.standard.object(forKey: key.rawValue) != nil
     }
+    
 }
