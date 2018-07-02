@@ -264,31 +264,31 @@ final internal class ContentFiltersEpub: ContentFilters {
 
 }
 
-let ltrPreset:[ReadiumCSSKey:Bool] = [
+let ltrPreset:[ReadiumCSSName: Bool] = [
     .hyphens: false,
     .ligatures: false]
 
-let rtlPreset:[ReadiumCSSKey:Bool] = [.hyphens: false,
+let rtlPreset:[ReadiumCSSName: Bool] = [.hyphens: false,
                                       .wordSpacing: false,
                                       .letterSpacing: false,
                                       .ligatures: true]
 
-let cjkHorizontalPreset: [ReadiumCSSKey:Bool] = [
-    .textAlignement: false,
+let cjkHorizontalPreset: [ReadiumCSSName: Bool] = [
+    .textAlignment: false,
     .hyphens: false,
     .paraIndent: false,
     .wordSpacing: false,
     .letterSpacing: false]
 
-let cjkVerticalPreset: [ReadiumCSSKey:Bool] = [
+let cjkVerticalPreset: [ReadiumCSSName: Bool] = [
     .columnCount: false,
-    .textAlignement: false,
+    .textAlignment: false,
     .hyphens: false,
     .paraIndent: false,
     .wordSpacing: false,
     .letterSpacing: false]
 
-let userSettingsUIPreset:[ContentLayoutStyle: [ReadiumCSSKey:Bool]] = [
+let userSettingsUIPreset:[ContentLayoutStyle: [ReadiumCSSName: Bool]] = [
         .ltr: ltrPreset,
         .rtl: rtlPreset,
         .cjkVertical: cjkVerticalPreset,
