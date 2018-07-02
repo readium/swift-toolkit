@@ -12,7 +12,7 @@ public protocol UserPropertyStringifier {
     func toString() -> String
 }
 
-public class UserProperty {
+public class UserProperty: UserPropertyStringifier {
     
     public var reference: String
     public var name: String
@@ -22,9 +22,13 @@ public class UserProperty {
         self.name = name
     }
     
+    public func toString() -> String {
+        return ""
+    }
+    
 }
 
-public class Enumerable: UserProperty, UserPropertyStringifier {
+public class Enumerable: UserProperty {
 
     public var index: Int
     public var values: [String]
@@ -36,13 +40,13 @@ public class Enumerable: UserProperty, UserPropertyStringifier {
         super.init(reference, name)
     }
     
-    public func toString() -> String {
+    public override func toString() -> String {
         return values[index]
     }
     
 }
 
-public class Incrementable: UserProperty, UserPropertyStringifier {
+public class Incrementable: UserProperty {
     
     public var value, min, max, step: Float
     public var suffix: String
@@ -65,13 +69,13 @@ public class Incrementable: UserProperty, UserPropertyStringifier {
         value -= ( (value - step) >= min ) ? step : 0.0
     }
     
-    public func toString() -> String {
+    public override func toString() -> String {
         return "\(value)" + suffix
     }
     
 }
 
-public class Switchable: UserProperty, UserPropertyStringifier {
+public class Switchable: UserProperty {
     
     public var onValue: String
     public var offValue: String
@@ -92,7 +96,7 @@ public class Switchable: UserProperty, UserPropertyStringifier {
         on = !on
     }
     
-    public func toString() -> String {
+    public override func toString() -> String {
         return values[on]!
     }
     
