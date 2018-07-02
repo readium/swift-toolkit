@@ -102,6 +102,8 @@ public class UserProperties {
     
     public var properties = [UserProperty]()
     
+    public init() {}
+    
     public func addEnumerable(index: Int, values: [String], reference: String, name: String) {
         properties.append(Enumerable(index: index, values: values, reference: reference, name: name))
     }
