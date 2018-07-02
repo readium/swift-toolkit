@@ -8,14 +8,14 @@
 
 import Foundation
 
-protocol UserPropertyStringifier {
+public protocol UserPropertyStringifier {
     func toString() -> String
 }
 
 public class UserProperty {
     
-    var reference: String
-    var name: String
+    public var reference: String
+    public var name: String
     
     init(_ reference: String, _ name: String) {
         self.reference = reference
@@ -26,8 +26,8 @@ public class UserProperty {
 
 public class Enumerable: UserProperty, UserPropertyStringifier {
 
-    var index: Int
-    var values: [String]
+    public var index: Int
+    public var values: [String]
     
     init(index: Int, values: [String], reference: String, name: String) {
         self.index = index
@@ -44,8 +44,8 @@ public class Enumerable: UserProperty, UserPropertyStringifier {
 
 public class Incrementable: UserProperty, UserPropertyStringifier {
     
-    var value, min, max, step: Float
-    var suffix: String
+    public var value, min, max, step: Float
+    public var suffix: String
     
     init(value: Float, min: Float, max: Float, step: Float, suffix: String, reference: String, name: String) {
         self.value = value
@@ -73,10 +73,10 @@ public class Incrementable: UserProperty, UserPropertyStringifier {
 
 public class Switchable: UserProperty, UserPropertyStringifier {
     
-    var onValue: String
-    var offValue: String
-    var on: Bool
-    var values: [Bool: String]
+    public var onValue: String
+    public var offValue: String
+    public var on: Bool
+    public var values: [Bool: String]
     
     init(onValue: String, offValue: String, on: Bool, reference: String, name: String) {
         self.onValue = onValue
@@ -92,7 +92,7 @@ public class Switchable: UserProperty, UserPropertyStringifier {
         on = !on
     }
     
-    func toString() -> String {
+    public func toString() -> String {
         return values[on]!
     }
     
