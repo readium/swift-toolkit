@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		57470F7E20ED0D1A000CDCA3 /* DownloadSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */; };
 		F32314A21F8616C2000FCFB0 /* Drm.swift in Sources */ = {isa = PBXBuildFile; fileRef = F32314A11F8616C2000FCFB0 /* Drm.swift */; };
 		F34CB2891FC56CAD005E3A37 /* DrmLicense.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34CB2881FC56CAD005E3A37 /* DrmLicense.swift */; };
 		F39E9E6F1FC2E1B70098F77E /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D4201F4ECA9800DF166D /* ObjectMapper.framework */; };
@@ -36,6 +37,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadSession.swift; sourceTree = "<group>"; };
 		F32314A11F8616C2000FCFB0 /* Drm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Drm.swift; sourceTree = "<group>"; };
 		F34CB2881FC56CAD005E3A37 /* DrmLicense.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrmLicense.swift; sourceTree = "<group>"; };
 		F3B1879F1FA33D4D00BB46BF /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
@@ -78,6 +80,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		57470F7F20ED0D25000CDCA3 /* Toolkit */ = {
+			isa = PBXGroup;
+			children = (
+				57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */,
+			);
+			path = Toolkit;
+			sourceTree = "<group>";
+		};
 		F34CB28A1FC5714D005E3A37 /* Drm */ = {
 			isa = PBXGroup;
 			children = (
@@ -122,6 +132,7 @@
 				F3E7D3F81F4EBE2100DF166D /* Info.plist */,
 				F3E7D40C1F4EC69100DF166D /* RootFile.swift */,
 				F3E7D4221F4ECB3D00DF166D /* ISO8601DateString.swift */,
+				57470F7F20ED0D25000CDCA3 /* Toolkit */,
 				F34CB28A1FC5714D005E3A37 /* Drm */,
 				F3E7D41B1F4EC69C00DF166D /* Publication */,
 				F3B1879E1FA33D3700BB46BF /* OPDS */,
@@ -275,6 +286,7 @@
 				F3E7D4161F4EC69100DF166D /* Properties.swift in Sources */,
 				F3E7D4231F4ECB3D00DF166D /* ISO8601DateString.swift in Sources */,
 				F3E7D41A1F4EC69100DF166D /* Subject.swift in Sources */,
+				57470F7E20ED0D1A000CDCA3 /* DownloadSession.swift in Sources */,
 				F3B187A61FA33E4900BB46BF /* Group.swift in Sources */,
 				F3E7D4191F4EC69100DF166D /* RootFile.swift in Sources */,
 				F3E7D4141F4EC69100DF166D /* MetadataItem.swift in Sources */,
