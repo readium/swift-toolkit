@@ -81,11 +81,9 @@ class OPDSPublicationInfoViewController : UIViewController {
             UIApplication.shared.isNetworkActivityIndicatorVisible = true
             downloadButton.isEnabled = false
             
-            let sessionConfiguration = URLSessionConfiguration.default
-            let session = URLSession(configuration: sessionConfiguration)
             let request = URLRequest(url:url)
             
-            let task = session.downloadTask(with: request) { (localURL, response, error) in
+            DownloadSession.shared.launch(request: request, completionHandler: { (localURL, response, error) in
                 if let localURL = localURL, error == nil {
                     // Download succeed
                     // downloadTask renames the file download, thus to be parsed correctly according to
@@ -114,10 +112,7 @@ class OPDSPublicationInfoViewController : UIViewController {
                     UIApplication.shared.isNetworkActivityIndicatorVisible = false
                     self.downloadButton.isEnabled = true
                 }
-            }
-            
-            task.resume()
-            
+            })
         }
         
     }

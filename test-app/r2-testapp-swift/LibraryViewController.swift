@@ -28,10 +28,20 @@ protocol LibraryViewControllerDelegate: class {
 
 class LibraryViewController: UIViewController {
     var publications: [Publication]!
-    weak var delegate: LibraryViewControllerDelegate?
+    
     weak var lastFlippedCell: PublicationCell?
     
+    let appDelegate = UIApplication.shared.delegate as? AppDelegate
+    var delegate: LibraryViewControllerDelegate? {
+        get {
+            return self.appDelegate
+        }
+    }
+    
     lazy var loadingIndicator = PublicationIndicator()
+    
+    private var downloadSet =  NSMutableOrderedSet()
+    private var downloadTaskToRatio = [URLSessionDownloadTask:Float]()
     
     @IBOutlet weak var collectionView: UICollectionView! {
         didSet {
@@ -48,12 +58,8 @@ class LibraryViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    guard let appDelegate = UIApplication.shared.delegate as?  AppDelegate else {return}
-    delegate = appDelegate
-    publications = appDelegate.items.compactMap() { $0.value.0.publication }.sorted { (pA, pB) -> Bool in
-          pA.metadata.title < pB.metadata.title
-    }
-    appDelegate.libraryViewController = self
+    publications = appDelegate?.publicationServer.publications
+    appDelegate?.libraryViewController = self
     
     // Add long press gesture recognizer.
     let recognizer = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
@@ -62,6 +68,8 @@ class LibraryViewController: UIViewController {
     recognizer.delaysTouchesBegan = true
     collectionView.addGestureRecognizer(recognizer)
     collectionView.accessibilityLabel = "Library"
+    
+    DownloadSession.shared.displayDelegate = self
     
     self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(presentDoccumentPicker))
   }
@@ -192,28 +200,41 @@ extension LibraryViewController: UIDocumentPickerDelegate {
 extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
     // No data to display.
-    if publications.count == 0 {
+    if downloadSet.count == 0 && publications.count == 0 {
       let noPublicationLabel = UILabel(frame: collectionView.frame)
       
       noPublicationLabel.text = "📖 Open EPUB/CBZ file to import"
       noPublicationLabel.textColor = UIColor.gray
       noPublicationLabel.textAlignment = .center
       collectionView.backgroundView = noPublicationLabel
+        
+        return 0
     }
-    return publications.count
+    return downloadSet.count + publications.count
   }
   
 func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     
     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "publicationCell", for: indexPath) as! PublicationCell
+    cell.imageView.image = nil
+    cell.progress = 0
     
-    let publication = publications[indexPath.item]
+    if indexPath.item < downloadSet.count {
+        guard let task = downloadSet.object(at: indexPath.item) as? URLSessionDownloadTask else {return cell}
+        if let ratio = downloadTaskToRatio[task] {
+            cell.progress = ratio
+        }
+        return cell
+    }
+    
+    let offset = indexPath.item-downloadSet.count
+    let publication = publications[offset]
     
     cell.delegate = self
     cell.accessibilityLabel = publication.metadata.title
     
     let updateCellImage = { (theImage: UIImage) -> Void in
-      let currentPubInfo = self.publications[indexPath.item]
+      let currentPubInfo = self.publications[offset]
       if (currentPubInfo.coverLink === publication.coverLink) {
         cell.imageView.image = theImage
         cell.applyShadows()
@@ -401,6 +422,69 @@ extension LibraryViewController: PublicationCellDelegate {
     lastFlippedCell?.flipMenu()
     lastFlippedCell = cell
   }
+}
+
+extension LibraryViewController: DownloadDisplayDelegate {
+    
+    func didStartDownload(task:URLSessionDownloadTask) {
+        
+        let offset = downloadSet.count
+        downloadSet.add(task)
+        downloadTaskToRatio[task] = 0
+        let newIndexPath = IndexPath(item: offset, section: 0)
+        
+        self.collectionView.performBatchUpdates({
+            self.collectionView.insertItems(at: [newIndexPath])
+        }, completion: nil)
+    }
+    
+    func didFinishDownload(task:URLSessionDownloadTask) {
+        
+        let offset = downloadSet.index(of: task)
+        downloadSet.remove(task)
+        downloadTaskToRatio.removeValue(forKey: task)
+        
+        publications = appDelegate?.publicationServer.publications
+        
+        let theIndexPath = IndexPath(item: offset, section: 0)
+        let newIndexPath = IndexPath(item: downloadSet.count, section: 0)
+        
+        if newIndexPath == theIndexPath {
+            self.collectionView.reloadItems(at: [newIndexPath])
+            return
+        }
+    
+        self.collectionView.performBatchUpdates({
+            collectionView.moveItem(at: theIndexPath, to: newIndexPath)
+        }, completion: { (_) in
+            self.collectionView.reloadItems(at: [newIndexPath])
+        })
+    }
+    
+    func didFailWithError(task:URLSessionDownloadTask, error: Error) {
+        
+        let offset = downloadSet.index(of: task)
+        downloadSet.remove(task)
+        downloadTaskToRatio.removeValue(forKey: task)
+        let theIndexPath = IndexPath(item: offset, section: 0)
+        
+        self.collectionView.performBatchUpdates({
+            collectionView.deleteItems(at: [theIndexPath])
+        }, completion: nil)
+    }
+    
+    func didUpdateDownloadPercentage(task:URLSessionDownloadTask, percentage: Float) {
+        
+        downloadTaskToRatio[task] = percentage
+        
+        let index = downloadSet.index(of: task)
+        let indexPath = IndexPath(item: index, section: 0)
+        
+        DispatchQueue.main.async {
+            guard let cell = self.collectionView.cellForItem(at: indexPath) as? PublicationCell else {return}
+            cell.progress = percentage
+        }
+    }
 }
 
 class PublicationIndicator: UIView  {
