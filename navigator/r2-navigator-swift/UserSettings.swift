@@ -133,7 +133,7 @@ public class UserSettings {
                                         name: ReadiumCSSName.fontSize.rawValue)
         
         // Font family
-        userProperties.addEnumerable(index: 0,
+        userProperties.addEnumerable(index: fontFamily,
                                      values: fontFamilyValues,
                                      reference: ReadiumCSSReference.fontFamily.rawValue,
                                      name: ReadiumCSSName.fontFamily.rawValue)
