@@ -113,7 +113,7 @@ public class UserSettings {
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.pageMargins) {
             pageMargins = userDefaults.float(forKey: ReadiumCSSName.pageMargins.rawValue)
         } else {
-            pageMargins = 0
+            pageMargins = 1
         }
         
     }
