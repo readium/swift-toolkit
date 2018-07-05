@@ -235,6 +235,7 @@ public class UserSettings {
         
         if let currentPublisherDefaults = userProperties.getProperty(reference: ReadiumCSSReference.publisherDefault.rawValue) as? Switchable {
             userDefaults.set(currentPublisherDefaults.on, forKey: ReadiumCSSName.publisherDefault.rawValue)
+        }
 
         if let currentTextAlignment = userProperties.getProperty(reference: ReadiumCSSReference.textAlignment.rawValue) as? Enumerable {
             userDefaults.set(currentTextAlignment.index, forKey: ReadiumCSSName.textAlignment.rawValue)
