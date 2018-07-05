@@ -8,11 +8,12 @@
 
 import UIKit
 import R2Navigator
+import R2Shared
 
 protocol UserSettingsNavigationControllerDelegate: class {
     func getUserSettings() -> UserSettings
     func updateUserSettingsStyle()
-    func setUIColor(for appearance: UserSettings.Appearance)
+    func setUIColor(for appearance: UserProperty)
     func toggleFixedBars()
 }
 
@@ -42,121 +43,180 @@ internal class UserSettingsNavigationController: UINavigationController {
         userSettingsTableViewController.userSettings = userSettings
         //
         fontSelectionViewController.delegate = self
+        fontSelectionViewController.userSettings = userSettings
         advancedSettingsViewController.delegate = self
         advancedSettingsViewController.userSettings = userSettings
     }
     
-    func publisherSettingsDidChange(to state: Bool) {
-        userSettings?.publisherSettings = state
-        usdelegate?.updateUserSettingsStyle()
+    /// Publisher's default
+    
+    func publisherSettingsDidChange() {
+        if let publisherDefault = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.publisherDefault.rawValue) as? Switchable {
+            publisherDefault.switchValue()
+            usdelegate?.updateUserSettingsStyle()
+        }
     }
 }
 
 // MARK: - Delegate of the UserSettingsView Controller.
 extension UserSettingsNavigationController: UserSettingsDelegate {
-    func fontSizeDidChange(to sizeString: String) {
-        userSettings.fontSize = sizeString
-        usdelegate?.updateUserSettingsStyle()
+    
+    /// Font size
+    
+    func fontSizeDidChange(increase: Bool) {
+        if let fontSize = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.fontSize.rawValue) as? Incrementable {
+            if increase {
+                fontSize.increment()
+            } else {
+                fontSize.decrement()
+            }
+            usdelegate?.updateUserSettingsStyle()
+        }
+    }
+    
+    /// Appearance
+
+    func appearanceDidChange(to appearanceIndex: Int) {
+        if let appearance = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) as? Enumerable {
+            appearance.index = appearanceIndex
+            usdelegate?.updateUserSettingsStyle()
+            // Change view appearance.
+            usdelegate?.setUIColor(for: appearance)
+        }
     }
 
-    func appearanceDidChange(to appearance: UserSettings.Appearance) {
-        userSettings.appearance = appearance
-        usdelegate?.updateUserSettingsStyle()
-        // Change view appearance.
-        usdelegate?.setUIColor(for: appearance)
+    /// Vertical scroll
+    
+    func scrollDidChange() {
+        if let scroll = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable {
+            scroll.switchValue()
+            usdelegate?.updateUserSettingsStyle()
+            usdelegate?.toggleFixedBars()
+        }
     }
 
-    func scrollDidChange(to scroll: UserSettings.Scroll) {
-        // remove snap in nav TODO -- taps etc, fix all
-        userSettings.scroll = scroll
-        usdelegate?.updateUserSettingsStyle()
-        usdelegate?.toggleFixedBars()
-    }
-
+    /// Font family
+    
     func getFontSelectionViewController() -> FontSelectionViewController {
         return fontSelectionViewController
     }
 
+    /// Advanced settings
     func getAdvancedSettingsViewController() -> AdvancedSettingsViewController {
         return advancedSettingsViewController
     }
+    
 }
 
 // Delegate of the Font Selection View Controller.
 extension UserSettingsNavigationController: FontSelectionDelegate {
-    func currentFont() -> UserSettings.Font? {
-        return userSettings.font
+    func currentFontIndex() -> Int {
+        if let fontFamily = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.fontFamily.rawValue) as? Enumerable {
+            return fontFamily.index
+        } else {
+            return 0
+        }
     }
 
-    func fontDidChange(to font: UserSettings.Font) {
-        userSettings.font = font
-        userSettingsTableViewController.setSelectedFontLabel(to: font.name())
-        usdelegate?.updateUserSettingsStyle()
+    func fontDidChange(to fontIndex: Int) {
+        if let fontFamily = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.fontFamily.rawValue) as? Enumerable,
+            let fontOverride = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.fontOverride.rawValue) as? Switchable {
+            fontFamily.index = fontIndex
+            if fontFamily.index != 0 {
+                fontOverride.on = true
+            } else {
+                fontOverride.on = false
+            }
+            userSettingsTableViewController.setSelectedFontLabel(to: fontFamily.toString())
+            usdelegate?.updateUserSettingsStyle()
+        }
     }
 }
 
 // Delegate for the Advanced Settings View Controller.
 extension UserSettingsNavigationController: AdvancedSettingsDelegate {
-
-    func textAlignementDidChange(to textAlignement: UserSettings.TextAlignement) {
-        userSettings.textAlignement = textAlignement
-        usdelegate?.updateUserSettingsStyle()
+    
+    /// Text alignment
+    
+    func textAlignementDidChange(to textAlignmentIndex: Int) {
+        if let textAlignment = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.textAlignment.rawValue) as? Enumerable {
+            textAlignment.index = textAlignmentIndex
+            usdelegate?.updateUserSettingsStyle()
+        }
     }
 
-    /// Word Spacing.
-
+    /// Word spacing
     func incrementWordSpacing() {
-        userSettings.wordSpacing.increment()
-        usdelegate?.updateUserSettingsStyle()
+        if let wordSpacing = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.wordSpacing.rawValue) as? Incrementable {
+            wordSpacing.increment()
+            usdelegate?.updateUserSettingsStyle()
+        }
     }
 
     func decrementWordSpacing() {
-        userSettings.wordSpacing.decrement()
-        usdelegate?.updateUserSettingsStyle()
+        if let wordSpacing = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.wordSpacing.rawValue) as? Incrementable {
+            wordSpacing.decrement()
+            usdelegate?.updateUserSettingsStyle()
+        }
     }
 
     func updateWordSpacingLabel() {
-        let newValue = userSettings.wordSpacing.stringValue()
-
-        advancedSettingsViewController.updateWordSpacing(value: newValue)
+        if let newValue = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.wordSpacing.rawValue)?.toString() {
+            advancedSettingsViewController.updateWordSpacing(value: newValue)
+        }
     }
 
-    /// Letter spacing.
+    /// Letter spacing
 
     func incrementLetterSpacing() {
-        userSettings.letterSpacing.increment()
-        usdelegate?.updateUserSettingsStyle()
+        if let letterSpacing = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.letterSpacing.rawValue) as? Incrementable {
+            letterSpacing.increment()
+            usdelegate?.updateUserSettingsStyle()
+        }
     }
 
     func decrementLetterSpacing() {
-        userSettings.letterSpacing.decrement()
-        usdelegate?.updateUserSettingsStyle()
+        if let letterSpacing = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.letterSpacing.rawValue) as? Incrementable {
+            letterSpacing.decrement()
+            usdelegate?.updateUserSettingsStyle()
+        }
     }
 
     func updateLetterSpacingLabel() {
-        let newValue = userSettings.letterSpacing.stringValue()
-
-        advancedSettingsViewController.updateLetterSpacing(value: newValue)
+        if let newValue = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.letterSpacing.rawValue)?.toString() {
+            advancedSettingsViewController.updateLetterSpacing(value: newValue)
+        }
     }
+    
+    /// Column count
 
-    func columnCountDidChange(to columnCount: UserSettings.ColumnCount) {
-        userSettings.columnCount = columnCount
-        usdelegate?.updateUserSettingsStyle()
+    func columnCountDidChange(to columnCountIndex: Int) {
+        if let columnCount = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.columnCount.rawValue) as? Enumerable {
+            columnCount.index = columnCountIndex
+            usdelegate?.updateUserSettingsStyle()
+        }
     }
+    
+    /// Page margins
 
     func incrementPageMargins() {
-        userSettings.pageMargins.increment()
-        usdelegate?.updateUserSettingsStyle()
+        if let pageMargins = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.pageMargins.rawValue) as? Incrementable {
+            pageMargins.increment()
+            usdelegate?.updateUserSettingsStyle()
+        }
     }
 
     func decrementPageMargins() {
-        userSettings.pageMargins.decrement()
-        usdelegate?.updateUserSettingsStyle()
+        if let pageMargins = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.pageMargins.rawValue) as? Incrementable {
+            pageMargins.decrement()
+            usdelegate?.updateUserSettingsStyle()
+        }
     }
 
     func updatePageMarginsLabel() {
-        let newValue = userSettings.pageMargins.stringValue()
-
-        advancedSettingsViewController.updatePageMargins(value: newValue)
+        if let newValue = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.pageMargins.rawValue)?.toString() {
+            advancedSettingsViewController.updatePageMargins(value: newValue)
+        }
     }
+    
 }

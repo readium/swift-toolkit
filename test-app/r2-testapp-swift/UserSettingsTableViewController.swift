@@ -9,11 +9,12 @@
 
 import UIKit
 import R2Navigator
+import R2Shared
 
 protocol UserSettingsDelegate: class {
-    func fontSizeDidChange(to value: String)
-    func appearanceDidChange(to appearance: UserSettings.Appearance)
-    func scrollDidChange(to scroll: UserSettings.Scroll)
+    func fontSizeDidChange(increase: Bool)
+    func appearanceDidChange(to appearanceIndex: Int)
+    func scrollDidChange()
     func getFontSelectionViewController() -> FontSelectionViewController
     func getAdvancedSettingsViewController() -> AdvancedSettingsViewController
 }
@@ -30,10 +31,6 @@ class UserSettingsTableViewController: UITableViewController {
     weak var delegate: UserSettingsDelegate?
     weak var userSettings: UserSettings?
 
-    let maxFontSize: Float = 250.0
-    let minFontSize: Float = 75.0
-    let fontSizeStep: Float = 12.5
-    
     private var brightnessObserver: NSObjectProtocol?
 
     override func viewDidLoad() {
@@ -47,6 +44,13 @@ class UserSettingsTableViewController: UITableViewController {
             if (brightness != self.brightnessSlider.value) {
                 self.brightnessSlider.value = brightness
             }
+        }
+        
+        // Set font size variation
+        if let currentFontSize = userSettings?.userProperties.getProperty(reference: ReadiumCSSReference.fontSize.rawValue) as? Incrementable {
+            currentFontSize.max = 250.0
+            currentFontSize.min = 75.0
+            currentFontSize.step = 12.5
         }
     }
     
@@ -81,32 +85,15 @@ class UserSettingsTableViewController: UITableViewController {
     }
 
     @IBAction func decreaseFontSizeTapped() {
-        guard let currentFontSize = userSettings?.value(forKey: .fontSize),
-            let currentFontSizeFloat = Float(currentFontSize),
-            currentFontSizeFloat > minFontSize  else {
-                return
-        }
-        let newFontSize = currentFontSizeFloat - fontSizeStep // Font Size Step.
-
-        delegate?.fontSizeDidChange(to: String(newFontSize))
+        delegate?.fontSizeDidChange(increase: false)
     }
 
     @IBAction func increaseFontSizeTapped() {
-        guard let currentFontSize = userSettings?.value(forKey: .fontSize),
-            let currentFontSizeFloat = Float(currentFontSize),
-            currentFontSizeFloat < maxFontSize  else {
-                return
-        }
-        let newFontSize = currentFontSizeFloat + fontSizeStep // Font Size Step.
-        delegate?.fontSizeDidChange(to: String(newFontSize))
+        delegate?.fontSizeDidChange(increase: true)
     }
 
     @IBAction func appearanceDidChange(_ sender: UISegmentedControl) {
-        let index = sender.selectedSegmentIndex
-        guard let appearance = UserSettings.Appearance(rawValue: index) else {
-            return
-        }
-        delegate?.appearanceDidChange(to: appearance)
+        delegate?.appearanceDidChange(to: sender.selectedSegmentIndex)
     }
 
     @IBAction func fontSelectionTapped() {
@@ -133,9 +120,7 @@ class UserSettingsTableViewController: UITableViewController {
     }
 
     @IBAction func scrollSwitched() {
-        let scroll = (scrollSwitch.isOn ? UserSettings.Scroll.on : UserSettings.Scroll.off)
-
-        delegate?.scrollDidChange(to: scroll)
+        delegate?.scrollDidChange()
     }
 }
 
@@ -143,22 +128,18 @@ extension UserSettingsTableViewController {
 
     fileprivate func initializeControlsValues() {
         /// Appearance SegmentedControl.
-        if let initialAppearance = userSettings?.value(forKey: .appearance) {
-            let appearance = UserSettings.Appearance.init(with: initialAppearance)
-
-            appearanceSegmentedControl.selectedSegmentIndex = appearance.rawValue
+        if let initialAppearance = userSettings?.userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) as? Enumerable {
+            appearanceSegmentedControl.selectedSegmentIndex = initialAppearance.index
         }
         
         // Currently selected font.
-        if let font = userSettings?.value(forKey: .font) {
-            setSelectedFontLabel(to: font)
+        if let initialFontFamily = userSettings?.userProperties.getProperty(reference: ReadiumCSSReference.fontFamily.rawValue) as? Enumerable {
+            setSelectedFontLabel(to: initialFontFamily.toString())
         }
 
         // Scroll switch.
-        if let initialScroll = userSettings?.value(forKey: .scroll) {
-            let scroll = UserSettings.Scroll.init(with: initialScroll)
-
-            scrollSwitch.setOn(scroll.bool(), animated: false)
+        if let initialScroll = userSettings?.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable {
+            scrollSwitch.setOn(initialScroll.on, animated: false)
         }
 
     }

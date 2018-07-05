@@ -77,12 +77,11 @@ extension TableOfContentsTableViewController {
     /// Synchronyze the UI appearance to the UserSettings.Appearance.
     ///
     /// - Parameter appearance: The appearance.
-    public func setUIColor(for appearance: UserSettings.Appearance) {
-        let color = appearance.associatedColor()
-        let textColor = appearance.associatedFontColor()
+    public func setUIColor(for appearance: UserProperty) {
+        let colors = AssociatedColors.getColors(for: appearance)
 
-        tableView.tintColor = textColor
-        tableView.backgroundColor = color
+        tableView.tintColor = colors.textColor
+        tableView.backgroundColor = colors.mainColor
         tableView.reloadData()
     }
 
