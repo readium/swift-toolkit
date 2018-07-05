@@ -165,7 +165,7 @@ final internal class ContentFiltersEpub: ContentFilters {
         }
         
         // User properties injection
-        let style = " " + buildUserPropertiesString(publication: publication)
+        let style = " style=\" " + buildUserPropertiesString(publication: publication) + "\""
         
         resourceHtml = resourceHtml.insert(string: style, at: htmlContentStart)
         
