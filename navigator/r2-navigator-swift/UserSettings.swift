@@ -18,18 +18,18 @@ public class UserSettings {
     private let textAlignmentValues = ["justify", "start"]
     private let columnCountValues = ["auto", "1", "2"]
     
-    var fontSize: Float = 100
-    var fontOverride = false
-    var fontFamily = 0
-    var appearance = 0
-    var verticalScroll = false
+    private var fontSize: Float = 100
+    private var fontOverride = false
+    private var fontFamily = 0
+    private var appearance = 0
+    private var verticalScroll = false
     
-    var publisherDefaults = false
-    var textAlignment = 0
-    var columnCount = 0
-    var wordSpacing: Float = 0
-    var letterSpacing: Float = 0
-    var pageMargins: Float = 0.5
+    private var publisherDefaults = false
+    private var textAlignment = 0
+    private var columnCount = 0
+    private var wordSpacing: Float = 0
+    private var letterSpacing: Float = 0
+    private var pageMargins: Float = 1
     
     public var userSettingsUIPreset: [ReadiumCSSName: Bool]?
 
