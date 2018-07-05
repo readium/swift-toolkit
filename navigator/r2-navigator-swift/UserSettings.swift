@@ -48,7 +48,7 @@ public class UserSettings {
 
         // Font family
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.fontFamily) {
-            fontFamily = userDefaults.integer(forKey: ReadiumCSSName.fontSize.rawValue)
+            fontFamily = userDefaults.integer(forKey: ReadiumCSSName.fontFamily.rawValue)
         } else {
             fontFamily = 0
         }
