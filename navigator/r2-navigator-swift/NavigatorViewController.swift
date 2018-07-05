@@ -46,6 +46,7 @@ open class NavigatorViewController: UIViewController {
         self.publication = publication
         self.initialProgression = initialProgression
         userSettings = UserSettings()
+        publication.userProperties.properties = userSettings.userProperties.properties
         userSettings.userSettingsUIPreset = publication.userSettingsUIPreset
         delegatee = Delegatee()
         var index = initialIndex
