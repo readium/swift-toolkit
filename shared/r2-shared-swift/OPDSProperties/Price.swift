@@ -11,6 +11,7 @@
 
 import Foundation
 
+/// Price related to a publication
 public class Price {
     public var currency: String
     public var value: Double

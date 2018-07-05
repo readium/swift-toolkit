@@ -9,7 +9,7 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
-
+/// Used to establish a relation between a publication and a serie or a collection
 public class BelongsTo {
     public init() {}
 

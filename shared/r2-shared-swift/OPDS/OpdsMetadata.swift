@@ -11,6 +11,7 @@
 
 import Foundation
 
+/// OPDS metadata properties.
 public class OpdsMetadata {
     public var title: String
     public var numberOfItem: Int?

@@ -11,6 +11,7 @@
 
 import Foundation
 
+/// Indirect acquisition list for a publication
 public class IndirectAcquisition {
     public var typeAcquisition: String
     public var child = [IndirectAcquisition]()
