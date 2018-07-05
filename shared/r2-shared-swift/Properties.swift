@@ -1,6 +1,6 @@
 //
 //  Properties.swift
-//  R2Streamer
+//  r2-shared-swift
 //
 //  Created by Alexandre Camilleri on 4/11/17.
 //
@@ -62,7 +62,7 @@ extension Properties: Mappable {
         return false
     }
 
-    /// JSON Mappin utility function.
+    /// JSON mapping utility function.
     public mutating func mapping(map: Map) {
         if !contains.isEmpty {
             contains <- map["contains", ignoreNil: true]

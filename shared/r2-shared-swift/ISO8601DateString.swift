@@ -1,6 +1,6 @@
 //
 //  DateExtension.swift
-//  R2Shared
+//  r2-shared-swift
 //
 //  Created by Alexandre Camilleri on 3/22/17.
 //

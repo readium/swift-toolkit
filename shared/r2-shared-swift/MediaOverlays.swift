@@ -1,6 +1,6 @@
 //
 //  MediaOverlays.swift
-//  R2Streamer
+//  r2-shared-swift
 //
 //  Created by Alexandre Camilleri on 4/11/17.
 //

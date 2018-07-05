@@ -1,6 +1,6 @@
 //
 //  RootFile.swift
-//  R2Streamer
+//  r2-shared-swift
 //
 //  Created by Alexandre Camilleri on 3/3/17.
 //

@@ -1,6 +1,6 @@
 //
 //  Subject.swift
-//  R2Streamer
+//  r2-shared-swift
 //
 //  Created by Alexandre Camilleri on 2/17/17.
 //

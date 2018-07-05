@@ -1,6 +1,6 @@
 //
 //  Publication.swift
-//  R2Streamer
+//  r2-shared-swift
 //
 //  Created by Olivier Körner on 08/12/2016.
 //
@@ -89,12 +89,7 @@ public class Publication {
 
         // Remove links.
         canonicalPublication.links = []
-        // Ordered. (Looks like it's already done)
-        // func linkOrderedAscending(_ l1: Link, _ l2: Link) -> Bool {
-        //      return l1.href?.localizedStandardCompare(l2.href!) == ComparisonResult.orderedAscending
-        // }
-        // orderedPublication.links.sort(by: linkOrderedAscending)
-        //  ...
+        
         var jsonString = canonicalPublication.toJSONString(prettyPrint: false) ?? ""
 
         jsonString = jsonString.replacingOccurrences(of: "\\", with: "")
@@ -266,7 +261,6 @@ public enum ReadiumCSSKey: String {
     case columnCount = "--USER__colCount"
     case pageMargins = "--USER__pageMargins"
     case textAlignement = "--USER__textAlign"
-    //--USER__darkenImages --USER__invertImages
     
     case paraIndent = "--USER__paraIndent"
     

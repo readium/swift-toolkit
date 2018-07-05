@@ -1,6 +1,6 @@
 //
 //  Metadata.swift
-//  R2Streamer
+//  r2-shared-swift
 //
 //  Created by Alexandre Camilleri on 2/16/17.
 //
@@ -41,7 +41,7 @@ public class Metadata {
                         let layout = Metadata.contentlayoutStyle(for: langType, pageDirection: direction)
                         self.primaryContentLayout = layout; break
                     }
-                } // for
+                }
                 return
             }
             self.primaryLanguage = languages.first // Unknow
@@ -99,8 +99,6 @@ public class Metadata {
     public var belongsTo: BelongsTo?
     
     public var duration: Int?
-    
-    //belongto duration
 
     public init() {
         direction = .Default
@@ -122,6 +120,7 @@ public class Metadata {
         return multilangSubtitle?.multiString[lang]
     }
 }
+
 // JSON Serialisation extension.
 extension Metadata: Mappable {
     public func mapping(map: Map) {
