@@ -244,11 +244,11 @@ extension WebView {
         guard let userSettings = userSettings else {
             return
         }
-        for cssProperty in userSettings.cssProperties().properties {
+        for cssProperty in userSettings.userProperties.properties {
             evaluateJavaScript("setProperty(\"\(cssProperty.name)\", \"\(cssProperty.toString())\");", completionHandler: nil)
         }
         // Disable paginated mode if scroll is on.
-        if let scroll = userSettings.cssProperties().getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable {
+        if let scroll = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable {
             scrollView.isPagingEnabled = !scroll.on
         }
     }

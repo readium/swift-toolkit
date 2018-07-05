@@ -32,11 +32,12 @@ public class UserSettings {
     private var pageMargins: Float = 1
     
     public var userSettingsUIPreset: [ReadiumCSSName: Bool]?
+    public let userProperties = UserProperties()
+    
+    private let userDefaults = UserDefaults.standard
 
     internal init() {
         
-        let userDefaults = UserDefaults.standard
-
         /// Load settings from UserDefaults
         
         // Font size
@@ -118,12 +119,12 @@ public class UserSettings {
             pageMargins = 1
         }
         
+        buildCssProperties()
+        
     }
     
-    // Get settings
-    public func cssProperties() -> UserProperties {
-        
-        let userProperties = UserProperties()
+    // Build and add CSS properties
+    private func buildCssProperties() {
         
         // Font size
         userProperties.addIncrementable(nValue: fontSize,
@@ -205,8 +206,6 @@ public class UserSettings {
                                         suffix: "",
                                         reference: ReadiumCSSReference.pageMargins.rawValue,
                                         name: ReadiumCSSName.pageMargins.rawValue)
-        
-        return userProperties
         
     }
     
