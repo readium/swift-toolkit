@@ -213,18 +213,48 @@ public class UserSettings {
         
         let userDefaults = UserDefaults.standard
 
-        userDefaults.set(fontSize, forKey: ReadiumCSSName.fontSize.rawValue)
-        userDefaults.set(fontFamily, forKey: ReadiumCSSName.fontFamily.rawValue)
-        userDefaults.set(fontOverride, forKey: ReadiumCSSName.fontOverride.rawValue)
-        userDefaults.set(appearance, forKey: ReadiumCSSName.appearance.rawValue)
-        userDefaults.set(verticalScroll, forKey: ReadiumCSSName.scroll.rawValue)
-        userDefaults.set(publisherDefaults, forKey: ReadiumCSSName.publisherDefault.rawValue)
+        if let currentfontSize = userProperties.getProperty(reference: ReadiumCSSReference.fontSize.rawValue) as? Incrementable {
+            userDefaults.set(currentfontSize.value, forKey: ReadiumCSSName.fontSize.rawValue)
+        }
+        
+        if let currentfontFamily = userProperties.getProperty(reference: ReadiumCSSReference.fontFamily.rawValue) as? Enumerable {
+            userDefaults.set(currentfontFamily.index, forKey: ReadiumCSSName.fontFamily.rawValue)
+        }
+        
+        if let currentfontOverride = userProperties.getProperty(reference: ReadiumCSSReference.fontOverride.rawValue) as? Switchable {
+            userDefaults.set(currentfontOverride.on, forKey: ReadiumCSSName.fontOverride.rawValue)
+        }
+        
+        if let currentAppearance = userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) as? Enumerable {
+            userDefaults.set(currentAppearance.index, forKey: ReadiumCSSName.appearance.rawValue)
+        }
+        
+        if let currentVerticalScroll = userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable {
+            userDefaults.set(currentVerticalScroll.on, forKey: ReadiumCSSName.scroll.rawValue)
+        }
+        
+        if let currentPublisherDefaults = userProperties.getProperty(reference: ReadiumCSSReference.publisherDefault.rawValue) as? Switchable {
+            userDefaults.set(currentPublisherDefaults.on, forKey: ReadiumCSSName.publisherDefault.rawValue)
 
-        userDefaults.set(textAlignment, forKey: ReadiumCSSName.textAlignment.rawValue)
-        userDefaults.set(columnCount, forKey: ReadiumCSSName.columnCount.rawValue)
-        userDefaults.set(wordSpacing, forKey: ReadiumCSSName.wordSpacing.rawValue)
-        userDefaults.set(letterSpacing, forKey: ReadiumCSSName.letterSpacing.rawValue)
-        userDefaults.set(pageMargins, forKey: ReadiumCSSName.pageMargins.rawValue)
+        if let currentTextAlignment = userProperties.getProperty(reference: ReadiumCSSReference.textAlignment.rawValue) as? Enumerable {
+            userDefaults.set(currentTextAlignment.index, forKey: ReadiumCSSName.textAlignment.rawValue)
+        }
+        
+        if let currentColumnCount = userProperties.getProperty(reference: ReadiumCSSReference.columnCount.rawValue) as? Enumerable {
+            userDefaults.set(currentColumnCount.index, forKey: ReadiumCSSName.columnCount.rawValue)
+        }
+        
+        if let currentWordSpacing = userProperties.getProperty(reference: ReadiumCSSReference.wordSpacing.rawValue) as? Incrementable {
+            userDefaults.set(currentWordSpacing.value, forKey: ReadiumCSSName.wordSpacing.rawValue)
+        }
+        
+        if let currentLetterSpacing = userProperties.getProperty(reference: ReadiumCSSReference.letterSpacing.rawValue) as? Incrementable {
+            userDefaults.set(currentLetterSpacing.value, forKey: ReadiumCSSName.letterSpacing.rawValue)
+        }
+        
+        if let currentPageMargins = userProperties.getProperty(reference: ReadiumCSSReference.pageMargins.rawValue) as? Incrementable {
+            userDefaults.set(currentPageMargins.value, forKey: ReadiumCSSName.pageMargins.rawValue)
+        }
         
     }
     
