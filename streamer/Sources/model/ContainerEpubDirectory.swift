@@ -12,6 +12,8 @@ extension ContainerEpubDirectory: Loggable {}
 
 /// Container for expended EPUB publications. (Directory)
 public class ContainerEpubDirectory: DirectoryContainer {
+    public var attribute: [FileAttributeKey : Any]?
+    
     /// See `RootFile`.
     public var rootFile: RootFile
     public var drm: Drm?    

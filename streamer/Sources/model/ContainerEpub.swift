@@ -12,6 +12,8 @@ extension ContainerEpub: Loggable {}
 
 /// Container for EPUB publications. (Archived)
 public class ContainerEpub: ZipArchiveContainer {
+    public var attribute: [FileAttributeKey : Any]?
+    
     /// See `RootFile`.
     public var rootFile: RootFile
     /// The zip archive object containing the Epub.

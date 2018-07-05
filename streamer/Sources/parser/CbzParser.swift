@@ -41,6 +41,10 @@ public class CbzParser {
         // Generate the `Container` for `fileAtPath`.
         let container: CbzContainer = try generateContainerFrom(fileAtPath: path)
         let publication = Publication()
+        
+        if let updatedDate = container.attribute?[FileAttributeKey.modificationDate] as? Date {
+            publication.updatedDate = updatedDate
+        }
 
         publication.metadata.multilangTitle = title(from: path)
         publication.metadata.identifier = path
@@ -100,6 +104,9 @@ public class CbzParser {
         } else {
             container = ContainerCbz(path: path)
         }
+        
+        container?.attribute = try? FileManager.default.attributesOfItem(atPath: path)
+        
         guard let containerUnwrapped = container else {
             throw CbzParserError.missingFile(path: path)
         }

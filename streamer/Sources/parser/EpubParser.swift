@@ -103,6 +103,11 @@ final public class EpubParser {
         var publication = try OPFParser.parseOPF(from: document,
                                                  with: container.rootFile.rootFilePath,
                                                  and: epubVersion)
+        
+        if let updatedDate = container.attribute?[FileAttributeKey.modificationDate] as? Date {
+            publication.updatedDate = updatedDate
+        }
+ 
         // Check if the publication is DRM protected.
         let drm = scanForDrm(in: container)
         // Parse the META-INF/Encryption.xml.
@@ -391,6 +396,9 @@ final public class EpubParser {
         } else {
             container = ContainerEpub(path: path)
         }
+        
+        container?.attribute = try? FileManager.default.attributesOfItem(atPath: path)
+        
         guard let containerUnwrapped = container else {
             throw EpubParserError.missingFile(path: path)
         }

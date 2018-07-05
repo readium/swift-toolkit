@@ -46,6 +46,9 @@ public enum ContainerError: Error {
 
 /// Provide methods for accessing raw data from container's files.
 public protocol Container {
+    
+    /// A dictionary object that describes the attributes (file, directory, symlink, and so on) of the file specified by the path of this Container. The keys in the dictionary are described in File Attribute Keys.
+    var attribute: [FileAttributeKey : Any]? {get set}
 
     /// See `RootFile`.
     var rootFile: RootFile { get set }

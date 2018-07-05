@@ -12,6 +12,8 @@ extension ContainerCbz: Loggable {}
 
 /// Container for archived CBZ publications.
 public class ContainerCbz: CbzContainer, ZipArchiveContainer {
+    public var attribute: [FileAttributeKey : Any]?
+    
     /// See `RootFile`.
     public var rootFile: RootFile
     /// The zip archive object containing the Epub.
