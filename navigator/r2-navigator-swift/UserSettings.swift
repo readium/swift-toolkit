@@ -56,6 +56,8 @@ public class UserSettings {
         // Font override
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.fontOverride) {
             fontOverride = userDefaults.bool(forKey: ReadiumCSSName.fontOverride.rawValue)
+        } else if fontFamily != 0 {
+            fontOverride = true
         } else {
             fontOverride = false
         }
