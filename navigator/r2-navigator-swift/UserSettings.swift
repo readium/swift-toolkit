@@ -14,7 +14,7 @@ import R2Shared
 public class UserSettings {
     
     private let appearanceValues = ["readium-default-on", "readium-sepia-on","readium-night-on"]
-    private let fontFamilyValues = ["Publisher's default", "Helvetica Neue", "Iowan Old Style", "Athelas", "Seravek"]
+    private let fontFamilyValues = ["Publisher's default", "Helvetica Neue", "Iowan Old Style", "Athelas", "Seravek", "OpenDyslexic"]
     private let textAlignmentValues = ["justify", "start"]
     private let columnCountValues = ["auto", "1", "2"]
     
