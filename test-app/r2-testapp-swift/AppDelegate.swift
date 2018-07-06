@@ -100,16 +100,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         alert.addAction(dismissButton)
         alert.title = title
         alert.message = message
-
-        // Present alert.
-//        if alert.isBeingPresented  {
-//            alert.dismiss(animated: false, completion: {
-//                self.window?.rootViewController?.present(self.alert, animated: false)
-//            })
-//        } else {
-            window?.rootViewController?.dismiss(animated: false, completion: nil)
-            window?.rootViewController?.present(alert, animated: true)
-//        }
+        
+        guard let rootViewController = self.window?.rootViewController else {return}
+        if let _  = rootViewController.presentedViewController {
+            rootViewController.dismiss(animated: true) {
+                rootViewController.present(alert, animated: true)
+            }
+        } else {
+            rootViewController.present(alert, animated: true)
+        }
     }
 
     fileprivate func reload() {
@@ -366,7 +365,7 @@ extension AppDelegate {
         return firstly {
             /// 3.1/ Fetch the status document.
             /// 3.2/ Validate the status document.
-            return lcpLicense.fetchStatusDocument()
+            return lcpLicense.fetchStatusDocument(freshNew: true)
             }.then { _ -> Promise<Void> in
                 /// 3.3/ Check that the status is "ready" or "active".
                 try lcpLicense.checkStatus()
