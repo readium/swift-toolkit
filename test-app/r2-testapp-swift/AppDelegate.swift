@@ -114,9 +114,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     fileprivate func reload() {
         // Update library publications.
-        //libraryViewController?.publications = publicationServer.publications
+        libraryViewController?.publications = publicationServer.publications
         // Redraw cells
-        //libraryViewController?.collectionView.reloadData()
+        libraryViewController?.collectionView.reloadData()
         libraryViewController?.collectionView.backgroundView = nil
     }
 
@@ -174,10 +174,9 @@ extension AppDelegate {
                     showInfoAlert(title: "Error", message: "The publication isn't valid.")
                     return false
                 } else {
-                    //showInfoAlert(title: "Success", message: "Publication added to library.")
-                    reload()
+                    showInfoAlert(title: "Success", message: "Publication added to library.")
+                    //reload()
                 }
-                
             }
         }
         

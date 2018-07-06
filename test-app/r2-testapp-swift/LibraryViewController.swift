@@ -444,7 +444,10 @@ extension LibraryViewController: DownloadDisplayDelegate {
         downloadSet.remove(task)
         downloadTaskToRatio.removeValue(forKey: task)
         
-        publications = appDelegate?.publicationServer.publications
+        guard let newList = appDelegate?.publicationServer.publications else {return}
+        if newList.count == publications.count {return}
+        
+        publications = newList
         
         let theIndexPath = IndexPath(item: offset, section: 0)
         let newIndexPath = IndexPath(item: downloadSet.count, section: 0)
@@ -461,7 +464,7 @@ extension LibraryViewController: DownloadDisplayDelegate {
         })
     }
     
-    func didFailWithError(task:URLSessionDownloadTask, error: Error) {
+    func didFailWithError(task:URLSessionDownloadTask, error: Error?) {
         
         let offset = downloadSet.index(of: task)
         downloadSet.remove(task)
