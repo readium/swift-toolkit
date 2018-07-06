@@ -212,10 +212,13 @@ final internal class ContentFiltersEpub: ContentFilters {
         let scriptTouchHandling = getHtmlScript(forResource: "\(baseUrl)scripts/touchHandling.js")
         
         let scriptUtils = getHtmlScript(forResource: "\(baseUrl)scripts/\(utilsJS)")
+        
+        let fontStyle = getHtmlFontStyle(forResource: "\(baseUrl)fonts/OpenDyslexic-Regular.otf", fontFamily: "OpenDyslexic")
 
         resourceHtml = resourceHtml.insert(string: cssAfter, at: headEnd)
         resourceHtml = resourceHtml.insert(string: scriptTouchHandling, at: headEnd)
         resourceHtml = resourceHtml.insert(string: scriptUtils, at: headEnd)
+        resourceHtml = resourceHtml.insert(string: fontStyle, at: headEnd)
 
         let enhancedData = resourceHtml.data(using: String.Encoding.utf8)
         let enhancedStream = DataInputStream(data: enhancedData!)
@@ -272,6 +275,10 @@ final internal class ContentFiltersEpub: ContentFilters {
         let suffix = "\"></script>\n"
 
         return prefix + resourceName + suffix
+    }
+    
+    fileprivate func getHtmlFontStyle(forResource resourceName: String, fontFamily: String) -> String {
+        return "<style type=\"text/css\">@font-face{font-family: \"\(fontFamily)\"; src:url('\(resourceName)') format('opentype');}</style>\n"
     }
     
     fileprivate func buildUserPropertiesString(publication: Publication) -> String {

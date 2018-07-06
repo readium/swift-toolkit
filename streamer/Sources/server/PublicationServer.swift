@@ -91,7 +91,7 @@ public class PublicationServer {
         return true
     }
 
-    // Add handlers for the css/js resources.
+    // Add handlers for the css/js/font resources.
     public func addSpecialResourcesHandlers() {
         func styleResourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
             guard let request = request, let filename = request.path else {
@@ -138,6 +138,30 @@ public class PublicationServer {
                              pathRegex: "/scripts/*",
                              request: GCDWebServerRequest.self,
                              processBlock: scriptResourcesHandler)
+        
+        func fontResourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
+            guard let request = request, let filename = request.path else {
+                return GCDWebServerResponse(statusCode: 404)
+            }
+            let relativePath = request.path.deletingLastPathComponent
+            let resourceName = (filename as NSString).deletingPathExtension.lastPathComponent
+            
+            if let fontUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "otf", subdirectory: relativePath),
+                let data = try? Data.init(contentsOf: fontUrl)
+            {
+                let response = GCDWebServerDataResponse(data: data, contentType: "font/opentype")
+                
+                return response
+            } else {
+                return GCDWebServerResponse(statusCode: 404)
+            }
+        }
+        /// Handler for Font resources.
+        webServer.addHandler(forMethod: "GET",
+                             pathRegex: "/fonts/*",
+                             request: GCDWebServerRequest.self,
+                             processBlock: fontResourcesHandler)
+        
     }
 
     /// Add a publication to the server. Also add it to the `pubBoxes`
