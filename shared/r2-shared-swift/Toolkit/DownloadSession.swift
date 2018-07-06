@@ -11,11 +11,11 @@ import Foundation
 public protocol DownloadDisplayDelegate {
     func didStartDownload(task:URLSessionDownloadTask);
     func didFinishDownload(task:URLSessionDownloadTask);
-    func didFailWithError(task:URLSessionDownloadTask, error: Error);
+    func didFailWithError(task:URLSessionDownloadTask, error: Error?);
     func didUpdateDownloadPercentage(task:URLSessionDownloadTask, percentage: Float);
 }
 
-public typealias completionHandlerType = ((URL?, URLResponse?, Error?) -> Void)
+public typealias completionHandlerType = ((URL?, URLResponse?, Error?) -> Bool?)
 
 public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDelegate {
     
@@ -24,7 +24,7 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
     
     private lazy var session: URLSession = {
         let config = URLSessionConfiguration.default
-        return URLSession(configuration: config, delegate: self, delegateQueue: nil)
+        return URLSession(configuration: config, delegate: self, delegateQueue: OperationQueue.main)
     } ()
     
     public var displayDelegate:DownloadDisplayDelegate?
@@ -32,20 +32,25 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
     
     public func launch(request: URLRequest, completionHandler:completionHandlerType?) {
         let task = self.session.downloadTask(with: request); task.resume()
-        self.taskMap[task] = completionHandler
         
         DispatchQueue.main.async {
+            self.taskMap[task] = completionHandler
             self.displayDelegate?.didStartDownload(task: task)
         }
     }
     
     public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
         
-        self.taskMap[downloadTask]?(location, nil, nil)
-        self.taskMap.removeValue(forKey: downloadTask)
+        let done = self.taskMap[downloadTask]?(location, nil, nil) ?? false
         
         DispatchQueue.main.async {
-            self.displayDelegate?.didFinishDownload(task: downloadTask)
+            self.taskMap.removeValue(forKey: downloadTask)
+            
+            if done {
+                self.displayDelegate?.didFinishDownload(task: downloadTask)
+            } else {
+                self.displayDelegate?.didFailWithError(task: downloadTask, error: nil)
+            }
         }
     }
     
@@ -66,11 +71,13 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
     }
     
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        self.taskMap[task]?(nil, nil, error)
-        self.taskMap.removeValue(forKey: task)
-        guard let theError = error else {return}
         
         DispatchQueue.main.async {
+            
+            guard let theError = error else {return}
+            _ = self.taskMap[task]?(nil, nil, error)
+            self.taskMap.removeValue(forKey: task)
+            
             self.displayDelegate?.didFailWithError(task: task as! URLSessionDownloadTask, error: theError)
         }
     }
