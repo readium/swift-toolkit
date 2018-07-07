@@ -55,9 +55,9 @@ public class LcpLicense: DrmLicense {
     }
 
     /// Update the Status Document.
-    ///
+    /// - Parametet initialDownloadAttempt: if serverError then Reject with error for initial download attempt otherwise fulfill with error
     /// - Parameter completion:
-    public func fetchStatusDocument() -> Promise<Error?> {
+    public func fetchStatusDocument(initialDownloadAttempt: Bool) -> Promise<Error?> {
         return Promise<Error?> { fulfill, reject in
             guard let statusLink = license.link(withRel: LicenseDocument.Rel.status) else {
                 reject(LcpError.statusLinkNotFound)
@@ -67,18 +67,23 @@ public class LcpLicense: DrmLicense {
                 
                 if let httpResponse = response as? HTTPURLResponse {
                     let statusCode = httpResponse.statusCode
-                    if statusCode == 404 {
-                        let info = [NSLocalizedDescriptionKey : "The Readium LCP License Status Document does not exist."]
-                        let serverError = NSError(domain: "org.readium", code: 404, userInfo: info)
+                    
+                    let serverError:Error = {
+                        if statusCode == 404 {
+                            let info = [NSLocalizedDescriptionKey : "The Readium LCP License Status Document does not exist."]
+                            return NSError(domain: "org.readium", code: 404, userInfo: info)
+                        } else if statusCode > 500 {
+                            let info = [NSLocalizedDescriptionKey : "The Readium LCP server is experiencing problems, the License Status Document is unreachable"]
+                            return NSError(domain: "org.readium", code: statusCode, userInfo: info)
+                        } else {return NSError()}
+                    } ()
+            
+                    if initialDownloadAttempt {
+                        reject(serverError)
+                    } else {
                         fulfill(serverError)
-                        return
-                        
-                    } else if statusCode > 500 {
-                        let info = [NSLocalizedDescriptionKey : "The Readium LCP server is experiencing problems, the License Status Document is unreachable"]
-                        let serverError = NSError(domain: "org.readium", code: statusCode, userInfo: info)
-                        fulfill(serverError)
-                        return
                     }
+                    return
                 }
                 
                 if let data = data {
@@ -348,6 +353,8 @@ public class LcpLicense: DrmLicense {
         return status?.status ?? nil
     }
     
+    let downloadSession = DownloadSession.shared
+
     /// Download publication to inbox and return the path to the downloaded
     /// resource.
     ///
@@ -373,7 +380,7 @@ public class LcpLicense: DrmLicense {
                 return
             }
             
-            let task = URLSession.shared.downloadTask(with: request, completionHandler: { tmpLocalUrl, response, error in
+            self.downloadSession.launch(request: request, completionHandler: { (tmpLocalUrl, response, error) -> Bool? in
                 if let localUrl = tmpLocalUrl, error == nil {
                     do {
                         try FileManager.default.moveItem(at: localUrl, to: destinationUrl)
@@ -382,13 +389,14 @@ public class LcpLicense: DrmLicense {
                         reject(error)
                     }
                     fulfill(destinationUrl)
+                    return true
                 } else if let error = error {
                     reject(error)
                 } else {
                     reject(LcpError.unknown)
                 }
+                return nil
             })
-            task.resume()
         }
     }
     
