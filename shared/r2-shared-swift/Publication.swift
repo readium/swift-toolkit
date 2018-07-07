@@ -34,6 +34,8 @@ public class Publication {
     public var pageList = [Link]()
     /// OPDS
     public var images = [Link]()
+    /// User properties
+    public var userProperties = UserProperties()
     
     /// The updated date of file which is referenced by this Publication
     public var updatedDate:Date = Date() // default value to avoid optional chain
@@ -44,8 +46,8 @@ public class Publication {
     // var otherCollections: [PublicationCollection]
     public var internalData = [String: String]()
     
-    // The status of Settings prpperties. Enable or disable
-    public var userSettingsUIPreset:[ReadiumCSSKey:Bool]?
+    // The status of Settings properties. Enable or disable.
+    public var userSettingsUIPreset:[ReadiumCSSName: Bool]?
 
     // MARK: - Public methods.
 
@@ -254,26 +256,41 @@ extension Publication: Mappable {
     }
 }
 
-// The keys in ReadiumCss. Also used for storing UserSettings in UserDefaults.
-public enum ReadiumCSSKey: String {
-    case fontSize = "--USER__fontSize"
-    case font = "--USER__fontFamily"
-    case appearance = "--USER__appearance"
-    case scroll = "--USER__scroll"
-    case publisherSettings = "--USER__advancedSettings"
-    case wordSpacing = "--USER__wordSpacing"
-    case letterSpacing = "--USER__letterSpacing"
-    case columnCount = "--USER__colCount"
-    case pageMargins = "--USER__pageMargins"
-    case textAlignement = "--USER__textAlign"
-    //--USER__darkenImages --USER__invertImages
-    
-    case paraIndent = "--USER__paraIndent"
-    
-    case hyphens = "--USER__bodyHyphens"
-    case ligatures = "--USER__ligatures"
-    
-    case publisherFont = "--USER__fontOverride"
+/// List of strings that can identify a user setting
+public enum ReadiumCSSReference: String {
+    case fontSize           = "fontSize"
+    case fontFamily         = "fontFamily"
+    case fontOverride       = "fontOverride"
+    case appearance         = "appearance"
+    case scroll             = "scroll"
+    case publisherDefault   = "advancedSettings"
+    case textAlignment      = "textAlign"
+    case columnCount        = "colCount"
+    case wordSpacing        = "wordSpacing"
+    case letterSpacing      = "letterSpacing"
+    case pageMargins        = "pageMargins"
+    case paraIndent         = "paraIndent"
+    case hyphens            = "bodyHyphens"
+    case ligatures          = "ligatures"
+}
+
+/// List of strings that can identify the name of a CSS custom property
+/// Also used for storing UserSettings in UserDefaults
+public enum ReadiumCSSName: String {
+    case fontSize           = "--USER__fontSize"
+    case fontFamily         = "--USER__fontFamily"
+    case fontOverride       = "--USER__fontOverride"
+    case appearance         = "--USER__appearance"
+    case scroll             = "--USER__scroll"
+    case publisherDefault   = "--USER__advancedSettings"
+    case textAlignment      = "--USER__textAlign"
+    case columnCount        = "--USER__colCount"
+    case wordSpacing        = "--USER__wordSpacing"
+    case letterSpacing      = "--USER__letterSpacing"
+    case pageMargins        = "--USER__pageMargins"
+    case paraIndent         = "--USER__paraIndent"
+    case hyphens            = "--USER__bodyHyphens"
+    case ligatures          = "--USER__ligatures"
 }
 
 // MARK: - Parsing related errors
