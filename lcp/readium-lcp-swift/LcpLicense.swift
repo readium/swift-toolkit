@@ -55,9 +55,9 @@ public class LcpLicense: DrmLicense {
     }
 
     /// Update the Status Document.
-    ///
+    /// - Parametet initialDownloadAttempt: if serverError then Reject with error for initial download attempt otherwise fulfill with error
     /// - Parameter completion:
-    public func fetchStatusDocument(freshNew: Bool) -> Promise<Error?> {
+    public func fetchStatusDocument(initialDownloadAttempt: Bool) -> Promise<Error?> {
         return Promise<Error?> { fulfill, reject in
             guard let statusLink = license.link(withRel: LicenseDocument.Rel.status) else {
                 reject(LcpError.statusLinkNotFound)
@@ -78,7 +78,7 @@ public class LcpLicense: DrmLicense {
                         } else {return NSError()}
                     } ()
             
-                    if freshNew {
+                    if initialDownloadAttempt {
                         reject(serverError)
                     } else {
                         fulfill(serverError)

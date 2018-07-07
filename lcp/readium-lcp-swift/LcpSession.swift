@@ -30,7 +30,7 @@ public class LcpSession {
     public func resolve(using passphrase: String, pemCrl: String) -> Promise<LcpLicense> {
         return firstly {
             // 4/ Check the license status
-            lcpLicense.fetchStatusDocument(freshNew: false)
+            lcpLicense.fetchStatusDocument(initialDownloadAttempt: false)
             }.then{ error -> Promise<Void> in
                 
                 guard let serverError = error as NSError? else {
