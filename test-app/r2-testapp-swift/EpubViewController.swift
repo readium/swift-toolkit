@@ -70,7 +70,7 @@ class EpubViewController: UIViewController {
         view.addSubview(stackView)
 
         /// Set initial UI appearance.
-        if let appearance = navigator.userSettings.appearance {
+        if let appearance = navigator.publication.userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) {
             setUIColor(for: appearance)
         }
 
@@ -226,17 +226,16 @@ extension EpubViewController: UserSettingsNavigationControllerDelegate {
     /// Synchronyze the UI appearance to the UserSettings.Appearance.
     ///
     /// - Parameter appearance: The appearance.
-    internal func setUIColor(for appearance: UserSettings.Appearance) {
-        let color = appearance.associatedColor()
-        let textColor = appearance.associatedFontColor()
+    internal func setUIColor(for appearance: UserProperty) {
+        let colors = AssociatedColors.getColors(for: appearance)
 
-        navigator.view.backgroundColor = color
-        view.backgroundColor = color
+        navigator.view.backgroundColor = colors.mainColor
+        view.backgroundColor = colors.mainColor
         //
-        navigationController?.navigationBar.barTintColor = color
-        navigationController?.navigationBar.tintColor = textColor
+        navigationController?.navigationBar.barTintColor = colors.mainColor
+        navigationController?.navigationBar.tintColor = colors.textColor
         
-        navigationController?.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: textColor]
+        navigationController?.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: colors.textColor]
         
         //
         tableOfContentsTVC.setUIColor(for: appearance)
@@ -247,7 +246,11 @@ extension EpubViewController: UserSettingsNavigationControllerDelegate {
 
     // Toggle hide/show fixed bot and top bars.
     internal func toggleFixedBars() {
-        let currentValue = navigator.userSettings.scroll?.bool() ?? false
+        guard let scroll = navigator.userSettings.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable else {
+            return
+        }
+        
+        let currentValue = scroll.on
 
         UIView.transition(with: fixedTopBar, duration: 0.318, options: .curveEaseOut, animations: {() -> Void in
             self.fixedTopBar.isHidden = currentValue
