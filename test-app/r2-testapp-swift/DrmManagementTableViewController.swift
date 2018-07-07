@@ -28,7 +28,7 @@ class DrmManagementTableViewController: UITableViewController {
     @IBOutlet weak var returnButton: UIButton!
 
     public var drm: Drm?
-    public var appearance:UserSettings.Appearance?
+    public var appearance: UserProperty?
 
     override func viewWillAppear(_ animated: Bool) {
         title = "DRM Management"
@@ -45,13 +45,13 @@ class DrmManagementTableViewController: UITableViewController {
       super.viewWillDisappear(animated)
     }
   
-    internal func setUIColor(for appearance: UserSettings.Appearance) {
-      let color = appearance.associatedColor()
-      let textColor = appearance.associatedFontColor()
+    internal func setUIColor(for appearance: UserProperty) {
+      let colors = AssociatedColors.getColors(for: appearance)
+        
       //
-      navigationController?.navigationBar.barTintColor = color
-      navigationController?.navigationBar.tintColor = textColor
-      navigationController?.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: textColor]
+      navigationController?.navigationBar.barTintColor = colors.mainColor
+      navigationController?.navigationBar.tintColor = colors.textColor
+      navigationController?.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: colors.textColor]
       //
     }
 

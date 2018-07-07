@@ -8,15 +8,14 @@
 
 import UIKit
 import R2Navigator
-
-let pageMarginsStepValue: Double = 0.25
+import R2Shared
 
 protocol AdvancedSettingsDelegate: class {
     
-    func publisherSettingsDidChange(to state: Bool)
+    func publisherSettingsDidChange()
     
-    func textAlignementDidChange(to textAlignement: UserSettings.TextAlignement)
-    func columnCountDidChange(to columnCount: UserSettings.ColumnCount)
+    func textAlignementDidChange(to textAlignementIndex: Int)
+    func columnCountDidChange(to columnCountIndex: Int)
 
     func incrementWordSpacing()
     func decrementWordSpacing()
@@ -59,36 +58,28 @@ class AdvancedSettingsViewController: UIViewController {
         }
         
         // Publisher setting switch.
-        if let publisherSettings = userSettings?.value(forKey: .publisherSettings) {
-            let state = Bool.init(publisherSettings) ?? false
-            defaultSwitch.isOn = state
+        if let publisherDefault = userSettings?.userProperties.getProperty(reference: ReadiumCSSReference.publisherDefault.rawValue) as? Switchable {
+            defaultSwitch.isOn = publisherDefault.on
         }
     }
     
     /// Publisher's default
     
     @IBAction func defaultSwitched() {
-        let state = defaultSwitch.isOn
-        delegate?.publisherSettingsDidChange(to: state)
+        delegate?.publisherSettingsDidChange()
     }
     
     internal func switchOffPublisherSettingsIfNeeded() {
         if defaultSwitch.isOn {
             defaultSwitch.setOn(false, animated: true)
-            delegate?.publisherSettingsDidChange(to: false)
+            delegate?.publisherSettingsDidChange()
         }
     }
 
     /// Text alignement.
 
     @IBAction func textAlignementValueChanged(_ sender: UISegmentedControl) {
-            let segmentIndex = sender.selectedSegmentIndex
-
-        guard let textAlignement = UserSettings.TextAlignement.init(rawValue: segmentIndex) else {
-                return
-            }
-            delegate?.textAlignementDidChange(to: textAlignement)
-        
+        delegate?.textAlignementDidChange(to: sender.selectedSegmentIndex)
         switchOffPublisherSettingsIfNeeded()
     }
 
@@ -128,16 +119,8 @@ class AdvancedSettingsViewController: UIViewController {
         letterSpacingLabel.text = value
     }
 
-    @IBAction func columnCountValueChanged(_ sender: UISegmentedControl) {
-        let segmentIndex = sender.selectedSegmentIndex
-        
-        guard let columnCount = UserSettings.ColumnCount.init(rawValue: segmentIndex) else {
-            return
-        }
-        delegate?.columnCountDidChange(to: columnCount)
-        switchOffPublisherSettingsIfNeeded()
-    }
-
+    /// Page margins.
+    
     @IBAction func pageMarginsPlusTapped() {
         delegate?.incrementPageMargins()
         delegate?.updatePageMarginsLabel()
@@ -152,6 +135,13 @@ class AdvancedSettingsViewController: UIViewController {
 
     public func updatePageMargins(value: String) {
         pageMarginsLabel.text = value
+    }
+    
+    /// Column count.
+    
+    @IBAction func columnCountValueChanged(_ sender: UISegmentedControl) {
+        delegate?.columnCountDidChange(to: sender.selectedSegmentIndex)
+        switchOffPublisherSettingsIfNeeded()
     }
 }
 
