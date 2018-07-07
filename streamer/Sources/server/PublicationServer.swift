@@ -48,7 +48,7 @@ public class PublicationServer {
         get {
             let publications = pubBoxes.values.compactMap({ $0.publication })
 
-            return publications.sorted(by: { $0.metadata.title < $1.metadata.title })
+            return publications.sorted(by: {$0.updatedDate > $1.updatedDate})
         }
     }
 

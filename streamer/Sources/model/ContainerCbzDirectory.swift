@@ -12,6 +12,8 @@ extension ContainerCbzDirectory: Loggable {}
 
 /// Container for expanded CBZ publications.
 public class ContainerCbzDirectory: CbzContainer, DirectoryContainer {
+    public var attribute: [FileAttributeKey : Any]?
+    
     /// See `RootFile`.
     public var rootFile: RootFile
     public var drm: Drm?
