@@ -108,6 +108,12 @@ extension Contributor {
         case let cDict as [String: Any]:
             let c = try parse(cDict)
             result.append(c)
+        case let cArray as [String]:
+            for name in cArray {
+                let c = Contributor()
+                c.multilangName.singleString = name
+                result.append(c)
+            }
         case let cArray as [[String: Any]]:
             for cDict in cArray {
                 let c = try parse(cDict)

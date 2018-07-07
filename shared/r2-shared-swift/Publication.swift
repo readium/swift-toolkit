@@ -36,6 +36,9 @@ public class Publication {
     public var images = [Link]()
     /// User properties
     public var userProperties = UserProperties()
+    
+    /// The updated date of file which is referenced by this Publication
+    public var updatedDate:Date = Date() // default value to avoid optional chain
 
     /// Extension point for links that shouldn't show up in the manifest.
     public var otherLinks = [Link]()

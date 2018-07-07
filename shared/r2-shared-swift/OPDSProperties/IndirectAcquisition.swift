@@ -39,11 +39,13 @@ extension IndirectAcquisition {
         let ia = IndirectAcquisition(typeAcquisition: iaType)
         for (k, v) in indirectAcquisitionDict {
             if (k == "child") {
-                guard let childDict = v as? [String: Any] else {
+                guard let childArray = v as? [[String: Any]] else {
                     throw IndirectAcquisitionError.invalidIndirectAcquisition
                 }
-                let child = try parse(indirectAcquisitionDict: childDict)
-                ia.child.append(child)
+                for childDict in childArray {
+                    let child = try parse(indirectAcquisitionDict: childDict)
+                    ia.child.append(child)
+                }
             }
         }
         return ia

@@ -123,7 +123,7 @@ extension Link {
                         case "numberOfItems":
                             prop.numberOfItems = vp as? Int
                         case "indirectAcquisition":
-                            guard let acquisitions = v as? [[String: Any]] else {
+                            guard let acquisitions = vp as? [[String: Any]] else {
                                 throw LinkError.invalidLink
                             }
                             for a in acquisitions {
@@ -136,7 +136,7 @@ extension Link {
                                 }
                             }
                         case "price":
-                            guard let priceDict = v as? [String: Any],
+                            guard let priceDict = vp as? [String: Any],
                                 let currency = priceDict["currency"] as? String,
                                 let value = priceDict["value"] as? Double
                                 else {
@@ -149,6 +149,7 @@ extension Link {
                         }
                     }
                 }
+                l.properties = prop
             case "children":
                 guard let childLinkDict = v as? [String: Any] else {
                     throw LinkError.invalidLink
