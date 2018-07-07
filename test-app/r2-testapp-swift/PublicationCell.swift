@@ -20,6 +20,37 @@ class PublicationCell: UICollectionViewCell {
     var imageView: UIImageView
     var menuView: CellMenuView
     var cardView: (frontView: UIView, backView: UIView)?
+    
+    var progress:Float = 0.0 {
+        didSet {
+            progressView.progress = progress
+            let hidden = (progress == 0 || progress == 1)
+            if hidden !=  progressView.isHidden {
+                progressView.isHidden = hidden
+                if hidden {
+                    self.backgroundColor = UIColor.clear
+                } else {
+                    self.backgroundColor = UIColor.lightGray
+                }
+            } //
+        }
+    }
+    
+    private lazy var progressView: UIProgressView = {
+        
+        let pView = UIProgressView(progressViewStyle: .bar)
+        pView.translatesAutoresizingMaskIntoConstraints = false
+        self.addSubview(pView)    
+        
+        let leftConstraint = NSLayoutConstraint(item: pView, attribute: .left, relatedBy: .equal, toItem: self, attribute: .left, multiplier: 1.0, constant: 0.0)
+        let rightConstraint = NSLayoutConstraint(item: pView, attribute: .right, relatedBy: .equal, toItem: self, attribute: .right, multiplier: 1.0, constant: 0.0)
+        let verticalConstraint = NSLayoutConstraint(item: pView, attribute: .bottom, relatedBy: .equal, toItem: self, attribute: .bottom, multiplier: 1.0, constant: 0.0)
+        
+        self.addConstraints([leftConstraint, rightConstraint, verticalConstraint])
+
+        return pView
+    } ()
+    
     //
     weak var delegate: PublicationCellDelegate?
 
