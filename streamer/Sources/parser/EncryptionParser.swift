@@ -1,6 +1,6 @@
 //
 //  EncryptionParser.swift
-//  R2Streamer
+//  r2-streamer-swift
 //
 //  Created by Alexandre Camilleri on 4/12/17.
 //

@@ -1,6 +1,6 @@
 //
 //  OPFParser.swift
-//  R2Streamer
+//  r2-streamer-swift
 //
 //  Created by Alexandre Camilleri on 2/21/17.
 //
@@ -73,11 +73,6 @@ final public class OPFParser {
         /// The 'to be returned' Metadata object.
         var metadata = Metadata()
         let metadataElement = document["package"]["metadata"]
-        
-        // Default xmlns <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-//        let xmlns = metadataElement.attributes.keys.first(where: { (sampleKey) -> Bool in
-//            return sampleKey.starts(with: "xmlns:")
-//        })?.split(separator: ":").last ?? "dc"
         
         // Title.
         guard let multilangTitle = MetadataParser.mainTitle(from: metadataElement) else {

@@ -1,6 +1,6 @@
 //
 //  Seekable.swift
-//  R2Streamer
+//  r2-streamer-swift
 //
 //  Created by Olivier Körner on 11/01/2017.
 //

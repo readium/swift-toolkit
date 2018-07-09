@@ -1,6 +1,6 @@
 //
 //  SeekableFileInputStream.swift
-//  R2Streamer
+//  r2-streamer-swift
 //
 //  Created by Olivier Körner on 15/01/2017.
 //

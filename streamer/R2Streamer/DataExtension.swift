@@ -1,6 +1,6 @@
 //
 //  DataExtension.swift
-//  R2Streamer
+//  r2-streamer-swift
 //
 //  Created by Alexandre Camilleri on 7/5/17.
 //

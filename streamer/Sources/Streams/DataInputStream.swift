@@ -1,6 +1,6 @@
 //
 //  DataInputStream.swift
-//  R2Streamer
+//  r2-streamer-swift
 //
 //  Created by Alexandre Camilleri on 4/14/17.
 //

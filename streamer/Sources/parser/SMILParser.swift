@@ -1,6 +1,6 @@
 //
 //  SMILParser.swift
-//  R2Streamer
+//  r2-streamer-swift
 //
 //  Created by Alexandre Camilleri on 4/11/17.
 //
@@ -156,10 +156,6 @@ final internal class SMILParser {
         // And the fetcher (minizip) only provide data access, that might be IO problem.
         
         newClip.duration = timeEnd>0 ? (timeEnd - timeBegin):-1
-        //let asset = AVURLAsset(url: URL(fileURLWithPath: "resource"))
-        //let duration = Double(CMTimeGetSeconds(asset.duration))
-        //fetcher.data(forRelativePath: "EPUB/audio/basic_tests.mp3")
-        //fetcher.dataStream(forRelativePath: "EPUB/audio/basic_tests.mp3")
         
         return newClip
     }

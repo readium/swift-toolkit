@@ -1,6 +1,6 @@
 //
 //  MetadataParser.swift
-//  R2Streamer
+//  r2-streamer-swift
 //
 //  Created by Alexandre Camilleri on 3/17/17.
 //

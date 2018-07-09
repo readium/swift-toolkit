@@ -1,6 +1,6 @@
 //
 //  RDEpubParser.swift
-//  R2Streamer
+//  r2-streamer-swift
 //
 //  Created by Olivier Körner on 08/12/2016.
 //

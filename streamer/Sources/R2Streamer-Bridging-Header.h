@@ -1,6 +1,6 @@
 //
 //  R2Streamer-Bridging-Header.h
-//  R2Streamer
+//  r2-streamer-swift
 //
 //  Created by Olivier Körner on 21/12/2016.
 //

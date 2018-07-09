@@ -1,6 +1,6 @@
 //
 //  R2Streamer.h
-//  R2Streamer
+//  r2-streamer-swift
 //
 //  Created by Olivier Körner on 18/01/2017.
 //

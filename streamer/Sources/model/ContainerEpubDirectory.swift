@@ -1,6 +1,6 @@
 //
 //  DirectoryContainer.swift
-//  R2Streamer
+//  r2-streamer-swift
 //
 //  Created by Alexandre Camilleri on 2/15/17.
 //

@@ -1,6 +1,6 @@
 //
 //  RDGCDServerResourceResponse.swift
-//  R2Streamer
+//  r2-streamer-swift
 //
 //  Created by Olivier Körner on 13/01/2017.
 //
@@ -139,8 +139,6 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
             return Data()
         }
         totalNumberOfBytesRead += UInt64(numberOfBytesRead)
-        //Log.debug?.message("ResourceResponse read \(numberOfBytesRead) bytes")
-        //Log.debug?.message("ResourceResponse \(range.lowerBound)-\(range.upperBound) / \(inputStream.length) : bytes read \(totalNumberOfBytesRead)")
         return Data(bytes: buffer, count: numberOfBytesRead)
     }
 
