@@ -326,7 +326,7 @@ public class OPDS1Parser {
         }
     }
 
-    static internal func parseEntry(entry: XMLElement) -> Publication {
+    static func parseEntry(entry: XMLElement) -> Publication {
         let publication = Publication()
         /// METADATA (publication) ----
         let metadata = Metadata()
@@ -441,7 +441,7 @@ public class OPDS1Parser {
         return publication
     }
 
-    static internal func addFacet(feed: Feed, to link: Link, named title: String) {
+    static func addFacet(feed: Feed, to link: Link, named title: String) {
         for facet in feed.facets {
             if facet.metadata.title == title {
                 facet.links.append(link)
@@ -454,7 +454,7 @@ public class OPDS1Parser {
         feed.facets.append(newFacet)
     }
 
-    static internal func addPublicationInGroup(_ feed: Feed,
+    static func addPublicationInGroup(_ feed: Feed,
                                                _ publication: Publication,
                                                _ collectionLink: Link)
     {
@@ -482,7 +482,7 @@ public class OPDS1Parser {
         }
     }
 
-    static internal func addNavigationInGroup(_ feed: Feed,
+    static func addNavigationInGroup(_ feed: Feed,
                                               _ link: Link,
                                               _ collectionLink: Link)
     {
@@ -507,12 +507,8 @@ public class OPDS1Parser {
             feed.groups.append(newGroup)
         }
     }
-
-    /// <#Description#>
-    ///
-    /// - Parameter children: <#children description#>
-    /// - Returns: <#return value description#>
-    static internal func parseIndirectAcquisition(children: [XMLElement]) -> [IndirectAcquisition] {
+    
+    static func parseIndirectAcquisition(children: [XMLElement]) -> [IndirectAcquisition] {
         var ret = [IndirectAcquisition]()
 
         for child in children {
