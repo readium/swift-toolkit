@@ -475,9 +475,7 @@ public class OPDS1Parser {
             selfLink.title = collectionLink.title
             selfLink.rel.append("self")
             newGroup.links.append(selfLink)
-            //
             newGroup.publications.append(publication)
-            //
             feed.groups.append(newGroup)
         }
     }
