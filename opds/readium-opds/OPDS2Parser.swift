@@ -182,8 +182,7 @@ public class OPDS2Parser {
         return feed
         
     }
-
-
+    
     static func parseMetadata(opdsMetadata: OpdsMetadata, metadataDict: [String: Any]) {
         for (k, v) in metadataDict {
             switch k {

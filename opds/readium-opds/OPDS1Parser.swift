@@ -221,6 +221,10 @@ public class OPDS1Parser {
         return feed
     }
 
+    /// Parse an OPDS publication.
+    /// Publication can only be v1 (XML).
+    /// - parameter document: The XMLDocument data
+    /// - Returns: The resulting Publication
     public static func parseEntry(document: XMLDocument) throws -> Publication {
         guard let root = document.root else {
             throw OPDS1ParserError.rootNotFound
@@ -228,6 +232,9 @@ public class OPDS1Parser {
         return parseEntry(entry: root)
     }
 
+    /// Fetch an Open Search template from an OPDS feed.
+    /// - parameter feed: The OPDS feed
+    /// - Returns: A promise with the template as a string
     public static func fetchOpenSearchTemplate(feed: Feed) -> Promise<String> {
         return Promise<String> { fulfill, reject in
             var openSearchURL: URL? = nil
