@@ -30,7 +30,7 @@ public class LicenseDocument {
     /// Used to associate the License Document with resources that are not 
     /// locally available.
     public var links = [Link]()
-    ///
+    /// Rights informations associated with the License Document
     public var rights: Rights
     /// The user owning the License.
     public var user: User

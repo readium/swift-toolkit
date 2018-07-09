@@ -147,7 +147,9 @@ public class LcpSession {
         return checkPassphrases(passphrases)
     }
     
-    
+    /// Store a passphrase hash to the database
+    ///
+    /// - Parameter passphraseHash: the hash to store
     public func storePassphrase(_ passphraseHash: String) throws
     {
         let db = LCPDatabase.shared
@@ -167,13 +169,3 @@ public class LcpSession {
         return Promise<Void>()
     }
 }
-
-
-
-
-
-
-
-
-
-

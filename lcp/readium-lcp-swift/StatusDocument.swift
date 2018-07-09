@@ -82,6 +82,9 @@ public class StatusDocument {
         potentialRights = PotentialRights.init(with: json["potential_rights"])
     }
 
+    /// Returns the date of the latest license update.
+    ///
+    /// - Returns: The date.
     public func dateOfLatestLicenseDocumentUpdate() -> Date? {
         return updated?.license
     }
