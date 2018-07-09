@@ -23,17 +23,6 @@ public struct Event {
     /// Time and date when the event occurred.
     public var date: Date // Named timestamp in spec.
 
-    /// Describe the type of the Event.
-    ///
-    /// - register: Associate a new device with the License.
-    /// - `return`: Ask for the License to be immediately invalidated.
-    /// - renew: Extends the expiration date of a license into the future.
-//    public enum Type { //TODO
-//        case register
-//        case `return`
-//        case renew
-//    }
-
     public init(with json: JSON) throws {
         guard let name = json["name"].string,
             let dateData = json["timestamp"].string,

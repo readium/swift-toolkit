@@ -50,7 +50,6 @@ public class LcpSession {
                 }
                 
                 if serverError.domain == "org.readium" {
-                    //print(serverError.localizedDescription)
                     let noteName = Notification.Name(kShouldPresentLCPMessage)
                     let userInfo = serverError.userInfo
                     

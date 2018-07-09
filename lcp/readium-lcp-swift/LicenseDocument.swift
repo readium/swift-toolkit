@@ -102,36 +102,5 @@ public class LicenseDocument {
         return encryption.userKey.hint
     }
 
-//    /// Returns a promise containing the License Hint.
-//    ///
-//    /// - Returns: The password hint phrase.
-//    public func getHint() -> Promise<String> {
-//        return Promise<String> { fulfill, reject in
-//            // Check for hint link.
-//            guard let hintLink = link(withRel: LicenseDocument.Rel.hint) else {
-//                reject(LcpError.hintLinkNotFound)
-//                return
-//            }
-//            // Fetch
-//            let request = URLRequest(url: hintLink.href)
-//            let task = URLSession.shared.dataTask(with: request, completionHandler: { (data, response, error) in
-//                guard let httpResponse = response as? HTTPURLResponse,
-//                    httpResponse.statusCode == 200 else
-//                {
-//                    reject(LcpError.unexpectedServerError)
-//                    return
-//                }
-//                guard let data = data,
-//                    let hint = String.init(data: data, encoding: String.Encoding.utf8) else
-//                {
-//                    reject(LcpError.invalidHintData)
-//                    return
-//                }
-//                fulfill(hint)
-//            })
-//            task.resume()
-//        }
-//    }
-
 }
 
