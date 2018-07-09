@@ -30,7 +30,6 @@ public enum OPDS1ParserError: Error {
 public enum OPDSParserOpenSearchHelperError: Error {
     case searchLinkNotFound
     case searchDocumentIsInvalid
-//    case missingTemplateForFeedType
 
     var localizedDescription: String {
         switch self {
@@ -38,8 +37,6 @@ public enum OPDSParserOpenSearchHelperError: Error {
             return "Search link not found in feed"
         case .searchDocumentIsInvalid:
             return "OpenSearch document is invalid"
-//        case .missingTemplateForFeedType:
-//            return "Missing search template for feed type"
         }
     }
 }
@@ -208,11 +205,6 @@ public class OPDS1Parser {
             if let rel = link.attributes["rel"] {
                 newLink.rel.append(rel)
             }
-            //                    if let rels = link.attributes["rel"]?.split(separator: " ") {
-            //                        for rel in rels {
-            //                            newLink.rel.append(rel)
-            //                        }
-            //                    }
             if let facetGroupName = link.attributes["facetGroup"],
                 newLink.rel.contains("http://opds-spec.org/facet")
             {
@@ -423,12 +415,6 @@ public class OPDS1Parser {
             if let rel = link.attributes["rel"] {
                 newLink.rel.append(rel)
             }
-            //                            if let rels = link.attributes["rel"]?.split(separator: " ") {
-            //                                for rel in rels {
-            //                                    newLink.rel.append(rel)
-            //                                }
-            //                            }
-            // Indirect acquisition check. (Recursive)
             let indirectAcquisitions = link.children(tag: "indirectAcquisition")
             if !indirectAcquisitions.isEmpty {
                 newLink.properties.indirectAcquisition = parseIndirectAcquisition(children: indirectAcquisitions)
@@ -517,9 +503,7 @@ public class OPDS1Parser {
             selfLink.title = collectionLink.title
             selfLink.rel.append("self")
             newGroup.links.append(selfLink)
-            //
             newGroup.navigation.append(link)
-            //
             feed.groups.append(newGroup)
         }
     }
