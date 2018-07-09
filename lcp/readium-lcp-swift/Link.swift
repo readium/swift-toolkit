@@ -1,6 +1,6 @@
 //
 //  Link.swift
-//  r2-shared-swift
+//  readium-lcp-swift
 //
 //  Created by Alexandre Camilleri on 9/8/17.
 //

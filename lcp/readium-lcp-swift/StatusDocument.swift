@@ -1,6 +1,6 @@
 //
 //  StatusDocument.swift
-//  r2-shared-swift
+//  readium-lcp-swift
 //
 //  Created by Alexandre Camilleri on 9/6/17.
 //
