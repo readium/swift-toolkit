@@ -245,7 +245,7 @@ final class TriptychView: UIView {
             assert(index < 2)
             if index == 0 {
                 let firstView = viewForIndex(0, location: leading)
-                let secondView = viewForIndex(1, location: leading) // Why?
+                let secondView = viewForIndex(1, location: leading)
                 views = Views.two(firstView: firstView, secondView: secondView)
             } else {
                 let firstView = viewForIndex(0, location: trailing)
