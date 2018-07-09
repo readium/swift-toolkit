@@ -228,19 +228,6 @@ public class OPDS1Parser {
         return parseEntry(entry: root)
     }
 
-    static func parseMimeType(mimeTypeString: String) -> MimeTypeParameters {
-        let substrings = mimeTypeString.split(separator: ";")
-        let type = String(substrings[0]).trimmingCharacters(in: .whitespaces)
-        var params = [String: String]()
-        for defn in substrings.dropFirst() {
-            let halves = defn.split(separator: "=")
-            let paramName = String(halves[0]).trimmingCharacters(in: .whitespaces)
-            let paramValue = String(halves[1]).trimmingCharacters(in: .whitespaces)
-            params[paramName] = paramValue
-        }
-        return MimeTypeParameters(type: type, parameters: params)
-    }
-
     public static func fetchOpenSearchTemplate(feed: Feed) -> Promise<String> {
         return Promise<String> { fulfill, reject in
             var openSearchURL: URL? = nil
@@ -324,6 +311,19 @@ public class OPDS1Parser {
                 return
             }).resume()
         }
+    }
+    
+    static func parseMimeType(mimeTypeString: String) -> MimeTypeParameters {
+        let substrings = mimeTypeString.split(separator: ";")
+        let type = String(substrings[0]).trimmingCharacters(in: .whitespaces)
+        var params = [String: String]()
+        for defn in substrings.dropFirst() {
+            let halves = defn.split(separator: "=")
+            let paramName = String(halves[0]).trimmingCharacters(in: .whitespaces)
+            let paramValue = String(halves[1]).trimmingCharacters(in: .whitespaces)
+            params[paramName] = paramValue
+        }
+        return MimeTypeParameters(type: type, parameters: params)
     }
 
     static func parseEntry(entry: XMLElement) -> Publication {
