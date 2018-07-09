@@ -68,22 +68,25 @@ public class LcpLicense: DrmLicense {
                 if let httpResponse = response as? HTTPURLResponse {
                     let statusCode = httpResponse.statusCode
                     
-                    let serverError:Error = {
+                    let serverError:Error? = {
                         if statusCode == 404 {
                             let info = [NSLocalizedDescriptionKey : "The Readium LCP License Status Document does not exist."]
                             return NSError(domain: "org.readium", code: 404, userInfo: info)
-                        } else if statusCode > 500 {
+                        } else if statusCode >= 500 {
                             let info = [NSLocalizedDescriptionKey : "The Readium LCP server is experiencing problems, the License Status Document is unreachable"]
                             return NSError(domain: "org.readium", code: statusCode, userInfo: info)
-                        } else {return NSError()}
+                        }
+                        return nil
                     } ()
-            
-                    if initialDownloadAttempt {
-                        reject(serverError)
-                    } else {
-                        fulfill(serverError)
+                    
+                    if let theServerError = serverError {
+                        if initialDownloadAttempt {
+                            reject(theServerError)
+                        } else {
+                            fulfill(theServerError)
+                        }
+                        return
                     }
-                    return
                 }
                 
                 if let data = data {
