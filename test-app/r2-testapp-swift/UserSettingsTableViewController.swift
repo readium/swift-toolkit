@@ -1,6 +1,6 @@
 //
 //  UserSettingsTableViewController.swift
-//  r2-navigator
+//  r2-testapp-swift
 //
 //  Created by Alexandre Camilleri on 8/2/17.
 //

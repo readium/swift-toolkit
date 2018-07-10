@@ -1,6 +1,6 @@
 //
 //  AppDelegate.swift
-//  r2-navigator-launcher
+//  r2-testapp-swift
 //
 //  Created by Alexandre Camilleri on 6/12/17.
 //

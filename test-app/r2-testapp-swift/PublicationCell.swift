@@ -1,6 +1,6 @@
 //
 //  PublicationCell.swift
-//  r2-navigator
+//  r2-testapp-swift
 //
 //  Created by Alexandre Camilleri on 6/13/17.
 //

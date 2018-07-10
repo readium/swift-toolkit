@@ -1,5 +1,5 @@
 //
-//  OPDSFacetTableViewController.swift
+//  OPDSFacetViewController.swift
 //  r2-testapp-swift
 //
 //  Created by Nikita Aizikovskyi on Mar-05-2018.

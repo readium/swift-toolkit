@@ -1,6 +1,6 @@
 //
 //  BarView.swift
-//  r2-navigator
+//  r2-testapp-swift
 //
 //  Created by Alexandre Camilleri on 7/11/17.
 //

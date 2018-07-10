@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  DrmManagementTableViewController.swift
 //  r2-testapp-swift
 //
 //  Created by Alexandre Camilleri on 11/27/17.
