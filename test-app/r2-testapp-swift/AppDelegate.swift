@@ -31,7 +31,7 @@ public enum PublicationType: String {
     case epub = "epub"
     case cbz = "cbz"
     case unknown = "unknown"
-
+    
     init(rawString: String?) {
         self = PublicationType(rawValue: rawString ?? "") ?? .unknown
     }
@@ -40,12 +40,12 @@ public enum PublicationType: String {
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
-
+    
     weak var libraryViewController: LibraryViewController!
     var publicationServer: PublicationServer!
     
     var cbzParser: CbzParser!
-
+    
     /// Publications waiting to be added to the PublicationServer (first opening).
     /// publication identifier : data
     var items = [String: (PubBox, PubParsingCallback)]()
@@ -53,9 +53,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     #if LCP
     private var messageObserverLCP: NSObjectProtocol?
     #endif
-
+    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-
+        
         /// Init R2.
         // Set logging minimum level.
         R2StreamerEnableLog(withMinimumSeverityLevel: .debug)
@@ -67,14 +67,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         self.publicationServer = publicationServer
         // Init parser. // To be made static soon.
         cbzParser = CbzParser()
-
+        
         // Parse publications (just the OPF and Encryption for now)
         lightParseSamplePublications()
         lightParsePublications()
-
+        
         return true
     }
-
+    
     /// Called when the user open a file outside of the application and open it
     /// with the application.
     func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
@@ -84,11 +84,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         return addPublicationToLibrary(url: url)
     }
-
+    
     fileprivate func showInfoAlert(title: String, message: String) {
         let alert = UIAlertController(title: "", message: "", preferredStyle: .alert)
         let dismissButton = UIAlertAction(title: "OK", style: .cancel)
-
+        
         alert.addAction(dismissButton)
         alert.title = title
         alert.message = message
@@ -102,7 +102,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             rootViewController.present(alert, animated: true)
         }
     }
-
+    
     fileprivate func reload() {
         // Update library publications.
         libraryViewController?.publications = publicationServer.publications
@@ -112,7 +112,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         libraryViewController?.collectionView.reloadItems(at: range)
         libraryViewController?.collectionView.backgroundView = nil
     }
-
+    
 }
 
 extension AppDelegate {
@@ -175,11 +175,11 @@ extension AppDelegate {
         
         return true
     }
-
+    
     fileprivate func lightParsePublications() {
         // Parse publication from documents folder.
         let locations = locationsFromDocumentsDirectory()
-
+        
         // Load the publications.
         for location in locations {
             if !lightParsePublication(at: location) {
@@ -187,11 +187,11 @@ extension AppDelegate {
             }
         }
     }
-
+    
     fileprivate func lightParseSamplePublications() {
         // Parse publication from documents folder.
         let locations = locationsFromSamples()
-
+        
         // Load the publications.
         for location in locations {
             if !lightParsePublication(at: location) {
@@ -199,7 +199,7 @@ extension AppDelegate {
             }
         }
     }
-
+    
     /// Load publication at `location` on the server.
     ///
     internal func lightParsePublication(at location: Location) -> Bool {
@@ -212,7 +212,7 @@ extension AppDelegate {
                 let parseResult = try EpubParser.parse(fileAtPath: location.absolutePath)
                 publication = parseResult.0.publication
                 container = parseResult.0.associatedContainer
-
+                
                 guard let id = publication.metadata.identifier else {
                     return false
                 }
@@ -220,7 +220,7 @@ extension AppDelegate {
             case .cbz:
                 print("disabled")
                 let parseResult = try cbzParser.parse(fileAtPath: location.absolutePath)
-
+                
                 publication = parseResult.publication
                 container = parseResult.associatedContainer
             case .unknown:
@@ -234,7 +234,7 @@ extension AppDelegate {
         }
         return true
     }
-
+    
     /// Get the locations out of the application Documents directory.
     ///
     /// - Returns: The Locations array.
@@ -245,9 +245,9 @@ extension AppDelegate {
                                                 in: .userDomainMask,
                                                 appropriateFor: nil,
                                                 create: true)
-
+        
         var files: [String]
-
+        
         // Get the array of files from the documents/inbox folder.
         do {
             files = try fileManager.contentsOfDirectory(atPath: documentsUrl.path)
@@ -259,37 +259,37 @@ extension AppDelegate {
         let locations = files.map({ fileName -> Location in
             let fileUrl = documentsUrl.appendingPathComponent(fileName)
             let publicationType = getTypeForPublicationAt(url: fileUrl)
-
+            
             return Location(absolutePath: fileUrl.path, relativePath: fileName, type: publicationType)
         })
         return locations
     }
-
+    
     /// Get the locations out of the application Documents/inbox directory.
     ///
     /// - Returns: The Locations array.
     fileprivate func locationsFromSamples() -> [Location] {
         let samples = ["1", "2", "3", "4", "5", "6"]
         var sampleUrls = [URL]()
-
+        
         for sample in samples {
             if let path = Bundle.main.path(forResource: sample, ofType: "epub") {
                 let url = URL.init(fileURLWithPath: path)
-
+                
                 sampleUrls.append(url)
                 print(url.absoluteString)
             }
         }
-
+        
         /// Find the types associated to the files, or unknown.
         let locations = sampleUrls.map({ url -> Location in
             let publicationType = getTypeForPublicationAt(url: url)
-
+            
             return Location(absolutePath: url.path, relativePath: "sample", type: publicationType)
         })
         return locations
     }
-
+    
     fileprivate func removeFromDocumentsDirectory(fileName: String) {
         let fileManager = FileManager.default
         // Document Directory always exists (hence `try!`).
@@ -309,7 +309,7 @@ extension AppDelegate {
             return
         }
     }
-
+    
     /// Find the type (epub/cbz for now) of the publication at url.
     ///
     /// - Parameter url: The location of the publication file.
@@ -318,7 +318,7 @@ extension AppDelegate {
         let fileName = url.lastPathComponent
         let fileType = fileName.contains(".") ? fileName.components(separatedBy: ".").last : ""
         var publicationType = PublicationType.unknown
-
+        
         // If directory.
         if fileType!.isEmpty {
             let mimetypePath = url.appendingPathComponent("mimetype").path
@@ -339,8 +339,8 @@ extension AppDelegate {
         }
         return publicationType
     }
-
-  #if LCP
+    
+    #if LCP
     /// Process a LCP License Document (LCPL).
     /// Fetching Status Document, updating License Document, Fetching Publication,
     /// and moving the (updated) License Document into the publication archive.
@@ -353,7 +353,7 @@ extension AppDelegate {
         /// Here we use a lcpLicense, and that's avoidable.
         /// Normally the streamer scan for DRM
         let lcpLicense = try LcpLicense.init(withLicenseDocumentAt: url)
-
+        
         return firstly {
             /// 3.1/ Fetch the status document.
             /// 3.2/ Validate the status document.
@@ -383,11 +383,11 @@ extension AppDelegate {
                 return Promise(value: publicationUrl)
         }
     }
-  #endif
+    #endif
 }
 
 extension AppDelegate: LibraryViewControllerDelegate {
-
+    
     
     /// Complementary parsing of the publication.
     /// Will parse Nav/ncx + mo (files that are possibly encrypted)
@@ -410,7 +410,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
             return
         }
         let publicationPath = item.0.associatedContainer.rootFile.rootPath
-      #if LCP
+        #if LCP
         // Drm handling.
         switch drm.brand {
         case .lcp:
@@ -419,10 +419,10 @@ extension AppDelegate: LibraryViewControllerDelegate {
                                      parsingCallback: parsingCallback,
                                      completion)
         }
-      #endif
+        #endif
     }
-  
-  #if LCP
+    
+    #if LCP
     /// Handle the processing of a publication protected with a LCP DRM.
     ///
     /// - Parameters:
@@ -469,7 +469,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
             print("URL error")
             return
         }
-
+        
         let kCRLDate = "kCRLDate"
         let kCRLString = "kCRLString"
         
@@ -502,7 +502,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
                 guard let updatedDate = UserDefaults.standard.value(forKey: kCRLDate) as? Date else {
                     return promiseCRL()
                 }
-                    
+                
                 let calendar = NSCalendar.current
                 
                 let updatedCal = calendar.startOfDay(for: updatedDate)
@@ -510,16 +510,16 @@ extension AppDelegate: LibraryViewControllerDelegate {
                 
                 let components = calendar.dateComponents([.day], from: updatedCal, to: currentCal)
                 let dayCount = components.day ?? Int.max
-                    if dayCount < 7 {
-                        guard let stringCRL = UserDefaults.standard.value(forKey: kCRLString) as? String else {
-                            return promiseCRL()
-                        }
-                        return Promise<String> { fulfill, reject in
-                            fulfill(stringCRL)
-                        }
-                    } else {
+                if dayCount < 7 {
+                    guard let stringCRL = UserDefaults.standard.value(forKey: kCRLString) as? String else {
                         return promiseCRL()
                     }
+                    return Promise<String> { fulfill, reject in
+                        fulfill(stringCRL)
+                    }
+                } else {
+                    return promiseCRL()
+                }
                 
                 }.then { pemCrl -> Promise<LcpLicense> in
                     // Get a decipherer object for the given passphrase,
@@ -527,16 +527,16 @@ extension AppDelegate: LibraryViewControllerDelegate {
                     return session.resolve(using: passphraseHash, pemCrl: pemCrl)
             }
         }
-
+        
         // Fonction used in the async code below.
         func promptPassphrase(reason:String? = nil) -> Promise<String> {
             let hint = session.getHint()
-
+            
             return firstly {
                 self.promptPassphrase(hint, reason: reason)
                 }.then { clearPassphrase -> Promise<String?> in
                     let passphraseHash = clearPassphrase.sha256()
-
+                    
                     return session.checkPassphrases([passphraseHash])
                 }.then { validPassphraseHash -> Promise<String> in
                     guard let validPassphraseHash = validPassphraseHash else {
@@ -589,7 +589,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
                 return
             }
         }
-
+        
         // get passphrase from DB, if not found prompt user, validate, go on
         firstly {
             // 1/ Validate the license structure (Nothing yet)
@@ -616,7 +616,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
                 return validatePassphrase(passphraseHash: passphraseHash)
             }.then { lcpLicense -> Void in
                 var drm = drm
-
+                
                 drm.license = lcpLicense
                 drm.profile = session.getProfile()
                 /// Update container.drm to drm and parse the remaining elements.
@@ -640,28 +640,28 @@ extension AppDelegate: LibraryViewControllerDelegate {
             
             let confirmButton = UIAlertAction(title: "Submit", style: .default) { (_) in
                 let passphrase = alert.textFields?[0].text
-
+                
                 if let passphrase = passphrase {
                     fullfil(passphrase)
                 } else {
                     reject(LcpError.emptyPassphrase)
                 }
             }
-
+            
             //adding textfields to our dialog box
             alert.addTextField { (textField) in
                 textField.placeholder = "Passphrase"
                 textField.isSecureTextEntry = true
             }
-
+            
             alert.addAction(dismissButton)
             alert.addAction(confirmButton)
             // Present alert.
             window!.rootViewController!.present(alert, animated: true)
         }
     }
-  #endif
-  
+    #endif
+    
     func remove(_ publication: Publication) {
         // Find associated container.
         guard let pubBox = publicationServer.pubBoxes.values.first(where: {
@@ -671,7 +671,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
         }
         // Remove publication from Documents/Inbox folder.
         let path = pubBox.associatedContainer.rootFile.rootPath
-
+        
         if let url = URL(string: path) {
             let filename = url.lastPathComponent
             

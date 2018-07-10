@@ -27,14 +27,14 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         catalogData = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
         if catalogData == nil {
             catalogData = [
-              ["title": "Feedbooks", "url": "http://www.feedbooks.com/catalog.atom"],
-              ["title": "Open Textbooks", "url": "http://open.minitex.org"]
+                ["title": "Feedbooks", "url": "http://www.feedbooks.com/catalog.atom"],
+                ["title": "Open Textbooks", "url": "http://open.minitex.org"]
             ]
             UserDefaults.standard.set(catalogData, forKey: userDefaultsID)
         }
-
-        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
         
+        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
+
         self.tableView.frame = UIScreen.main.bounds
         tableView.layoutMargins = UIEdgeInsets.zero
         tableView.separatorInset = UIEdgeInsets.zero
@@ -76,8 +76,8 @@ class OPDSCatalogSelectorViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         self.tableView.deselectRow(at: indexPath, animated: false)
         guard let urlString = catalogData![indexPath.row]["url"],
-              let url = URL(string: urlString) else {
-            return
+            let url = URL(string: urlString) else {
+                return
         }
       
         let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
