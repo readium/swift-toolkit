@@ -120,7 +120,6 @@ class UserSettingsTableViewController: UITableViewController {
         backItem.title = ""
         navigationItem.backBarButtonItem = backItem
         navigationController?.pushViewController(asvc, animated: true)
-//        present(asvc, animated: true, completion: nil)
     }
 
     @IBAction func scrollSwitched() {

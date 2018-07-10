@@ -21,13 +21,12 @@ class DrmManagementTableViewController: UITableViewController {
     @IBOutlet weak var providerLabel: UILabel!
     @IBOutlet weak var issuedLabel: UILabel!
     @IBOutlet weak var updatedLabel: UILabel!
-    //
-
+    
     @IBOutlet weak var startLabel: UILabel!
     @IBOutlet weak var endLabel: UILabel!
     @IBOutlet weak var printsLeftLabel: UILabel!
     @IBOutlet weak var copiesLeftLabel: UILabel!
-    //
+    
     @IBOutlet weak var renewButton: UIButton!
     @IBOutlet weak var returnButton: UIButton!
 
@@ -52,11 +51,9 @@ class DrmManagementTableViewController: UITableViewController {
     internal func setUIColor(for appearance: UserProperty) {
       let colors = AssociatedColors.getColors(for: appearance)
         
-      //
       navigationController?.navigationBar.barTintColor = colors.mainColor
       navigationController?.navigationBar.tintColor = colors.textColor
       navigationController?.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: colors.textColor]
-      //
     }
 
     open override var prefersStatusBarHidden: Bool {

@@ -45,7 +45,7 @@ internal class UserSettingsNavigationController: UINavigationController {
         userSettingsTableViewController.modalPresentationStyle = .popover
         userSettingsTableViewController.delegate = self
         userSettingsTableViewController.userSettings = userSettings
-        //
+        
         fontSelectionViewController.delegate = self
         fontSelectionViewController.userSettings = userSettings
         advancedSettingsViewController.delegate = self

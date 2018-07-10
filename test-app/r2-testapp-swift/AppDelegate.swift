@@ -43,8 +43,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     weak var libraryViewController: LibraryViewController!
     var publicationServer: PublicationServer!
-
-    /// TODO: make it static like the epub parser.
+    
     var cbzParser: CbzParser!
 
     /// Publications waiting to be added to the PublicationServer (first opening).
@@ -72,17 +71,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Parse publications (just the OPF and Encryption for now)
         lightParseSamplePublications()
         lightParsePublications()
-        
-      /// This showInfoAlert will dismiss the LibraryViewController which is going to show.
-      /// The alert or toast should not have any side effect like that.
-      /// Once the new alert is done. We can use the code below.
-//        #if LCP
-//        let noteName = Notification.Name(kShouldPresentLCPMessage)
-//        messageObserverLCP = NotificationCenter.default.addObserver(forName: noteName, object: nil, queue: nil) { (note) in
-//            let message = note.userInfo?[NSLocalizedDescriptionKey] as? String
-//            self.showInfoAlert(title: "LCP Error", message: message ?? "")
-//        }
-//        #endif
 
         return true
     }
@@ -693,15 +681,5 @@ extension AppDelegate: LibraryViewControllerDelegate {
         publicationServer.remove(publication)
         libraryViewController?.publications = publicationServer.publications
     }
-
-    //        func getDrm(for publication: Publication) -> Drm? {
-    //            // Find associated container.
-    //            guard let pubBox = publicationServer.pubBoxes.values.first(where: {
-    //                $0.publication.metadata.identifier == publication.metadata.identifier
-    //            }) else {
-    //                return nil
-    //            }
-    //            return pubBox.associatedContainer.drm
-    //        }
+    
 }
-

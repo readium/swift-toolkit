@@ -274,7 +274,7 @@ func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath:
                 updateCellImage(newImage)
             }
         }
-      } // check cache
+      }
       
     } else {
       
