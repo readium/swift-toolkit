@@ -3,7 +3,11 @@
 //  r2-navigator
 //
 //  Created by Alexandre Camilleri on 7/11/17.
-//  Copyright © 2017 European Digital Reading Lab. All rights reserved.
+//
+//  Copyright 2018 European Digital Reading Lab. All rights reserved.
+//  Licensed to the Readium Foundation under one or more contributor license agreements.
+//  Use of this source code is governed by a BSD-style license which is detailed in the
+//  LICENSE file present in the project repository where this source code is maintained.
 //
 
 import UIKit
