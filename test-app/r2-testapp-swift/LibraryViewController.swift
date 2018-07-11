@@ -160,8 +160,8 @@ extension LibraryViewController {
         
         let location = gestureRecognizer.location(in: collectionView)
         if let indexPath = collectionView.indexPathForItem(at: location) {
+            if indexPath.item < downloadSet.count {return}
             let cell = collectionView.cellForItem(at: indexPath) as! PublicationCell
-            
             cell.flipMenu()
         }
     }
@@ -302,8 +302,12 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+      
+        let offset = downloadSet.count
+        let index = indexPath.item - offset
+        if (index < 0 || index >= publications.count) {return}
         
-        let publication = publications[indexPath.row]
+        let publication = publications[index]
         
         guard let cell = collectionView.cellForItem(at: indexPath) else {return}
         cell.contentView.addSubview(self.loadingIndicator)
