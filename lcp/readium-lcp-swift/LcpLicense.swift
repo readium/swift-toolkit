@@ -71,22 +71,25 @@ public class LcpLicense: DrmLicense {
                 if let httpResponse = response as? HTTPURLResponse {
                     let statusCode = httpResponse.statusCode
                     
-                    let serverError:Error = {
+                    let serverError:Error? = {
                         if statusCode == 404 {
                             let info = [NSLocalizedDescriptionKey : "The Readium LCP License Status Document does not exist."]
                             return NSError(domain: "org.readium", code: 404, userInfo: info)
-                        } else if statusCode > 500 {
+                        } else if statusCode >= 500 {
                             let info = [NSLocalizedDescriptionKey : "The Readium LCP server is experiencing problems, the License Status Document is unreachable"]
                             return NSError(domain: "org.readium", code: statusCode, userInfo: info)
-                        } else {return NSError()}
+                        }
+                        return nil
                     } ()
-            
-                    if initialDownloadAttempt {
-                        reject(serverError)
-                    } else {
-                        fulfill(serverError)
+                    
+                    if let theServerError = serverError {
+                        if initialDownloadAttempt {
+                            reject(theServerError)
+                        } else {
+                            fulfill(theServerError)
+                        }
+                        return
                     }
-                    return
                 }
                 
                 if let data = data {
@@ -358,8 +361,8 @@ public class LcpLicense: DrmLicense {
     /// resource.
     ///
     /// - Returns: The URL representing the path of the publication localy.
-    public func fetchPublication() -> Promise<URL> {
-        return Promise<URL> { fulfill, reject in
+    public func fetchPublication() -> Promise<(URL, URLSessionDownloadTask?)> {
+        return Promise<(URL, URLSessionDownloadTask?)> { fulfill, reject in
             guard let publicationLink = license.link(withRel: LicenseDocument.Rel.publication) else {
                 reject(LcpError.publicationLinkNotFound)
                 return
@@ -375,11 +378,11 @@ public class LcpLicense: DrmLicense {
             
             destinationUrl.appendPathComponent("\(title).epub")
             guard !FileManager.default.fileExists(atPath: destinationUrl.path) else {
-                fulfill(destinationUrl)
+                fulfill((destinationUrl, nil))
                 return
             }
             
-            self.downloadSession.launch(request: request, completionHandler: { (tmpLocalUrl, response, error) -> Bool? in
+            self.downloadSession.launch(request: request, completionHandler: { (tmpLocalUrl, response, error, downloadTask) -> Bool? in
                 if let localUrl = tmpLocalUrl, error == nil {
                     do {
                         try FileManager.default.moveItem(at: localUrl, to: destinationUrl)
@@ -387,7 +390,7 @@ public class LcpLicense: DrmLicense {
                         print(error.localizedDescription)
                         reject(error)
                     }
-                    fulfill(destinationUrl)
+                    fulfill((destinationUrl, downloadTask))
                     return true
                 } else if let error = error {
                     reject(error)
