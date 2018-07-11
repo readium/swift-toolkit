@@ -82,7 +82,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             showInfoAlert(title: "Error", message: "The document isn't valid.")
             return false
         }
-        return addPublicationToLibrary(url: url)
+        return addPublicationToLibrary(url: url, needUIUpdate: true)
     }
     
     fileprivate func showInfoAlert(title: String, message: String) {
@@ -102,36 +102,37 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             rootViewController.present(alert, animated: true)
         }
     }
-    
-    fileprivate func reload() {
+
+    fileprivate func reload(downloadTask: URLSessionDownloadTask?) {
         // Update library publications.
-        libraryViewController?.publications = publicationServer.publications
-        // Redraw cells
-        guard let collectionView = libraryViewController?.collectionView else {return}
-        let range = collectionView.indexPathsForVisibleItems
-        libraryViewController?.collectionView.reloadItems(at: range)
-        libraryViewController?.collectionView.backgroundView = nil
+        
+        guard let theDownloadTask = downloadTask else {
+            libraryViewController?.insertNewItemWithUpdatedDataSource()
+            return
+        }
+        libraryViewController?.reloadWith(downloadTask: theDownloadTask)
     }
     
 }
 
 extension AppDelegate {
     
-    internal func addPublicationToLibrary(url: URL) -> Bool {
+    internal func addPublicationToLibrary(url: URL, needUIUpdate:Bool) -> Bool {
         switch url.pathExtension {
         case "lcpl":
             #if LCP
             // Retrieve publication using the LCPL.
             firstly {
                 try publication(at: url)
-                }.then { publicationUrl -> Void in
+                }.then { (publicationUrl, downloadTask)-> Void in
+                    
                     /// Parse publication. (tomove?)
                     if self.lightParsePublication(at: Location(absolutePath: publicationUrl.path,
                                                                relativePath: "",
                                                                type: .epub)) {
                         
                         self.showInfoAlert(title: "Success", message: "LCP Publication added to library.")
-                        self.reload()
+                        self.reload(downloadTask: downloadTask)
                     } else {
                         self.showInfoAlert(title: "Error", message: "The LCP Publication couldn't be loaded.")
                     }
@@ -155,6 +156,9 @@ extension AppDelegate {
             } else {
                 do {
                     try FileManager.default.moveItem(at: url, to: documentsUrl)
+                    let dateAttribute = [FileAttributeKey.modificationDate: Date()]
+                    try FileManager.default.setAttributes(dateAttribute, ofItemAtPath: documentsUrl.path)
+                    
                 } catch {
                     showInfoAlert(title: "Error", message: "Couldn't retrieve the protected epub from the server \(error)")
                     return false
@@ -168,7 +172,9 @@ extension AppDelegate {
                     return false
                 } else {
                     showInfoAlert(title: "Success", message: "Publication added to library.")
-                    //reload()
+                    if needUIUpdate {
+                        reload(downloadTask: nil)
+                    }
                 }
             }
         }
@@ -348,7 +354,7 @@ extension AppDelegate {
     /// - Parameters:
     ///   - path: The path of the License Document (LCPL).
     ///   - completion: The handler to be called on completion.
-    internal func publication(at url: URL) throws -> Promise<URL> {
+    internal func publication(at url: URL) throws -> Promise<(URL, URLSessionDownloadTask?)> {
         showInfoAlert(title: "Downloading", message: "The publication is being fetched in the background and will be available soon.")
         /// Here we use a lcpLicense, and that's avoidable.
         /// Normally the streamer scan for DRM
@@ -369,18 +375,18 @@ extension AppDelegate {
                 /// 3.4.3/ Replace the current license by the updated one in the
                 ///        EPUB archive.
                 return lcpLicense.updateLicenseDocument()
-            }.then { _ -> Promise<URL> in
+            }.then { _ -> Promise<(URL, URLSessionDownloadTask?)> in
                 /// 4/ Check the rights.
                 try lcpLicense.areRightsValid()
                 /// 5/ Register the device / license if needed.
                 lcpLicense.register()
                 /// 6/ Fetch the publication.
                 return lcpLicense.fetchPublication()
-            }.then { publicationUrl -> Promise<URL> in
+            }.then { (publicationUrl, downloadTask) -> Promise<(URL, URLSessionDownloadTask?)> in
                 /// Move the license document in the publication.
                 try LcpLicense.moveLicense(from: lcpLicense.archivePath,
                                            to: publicationUrl)
-                return Promise(value: publicationUrl)
+                return Promise(value: (publicationUrl, downloadTask))
         }
     }
     #endif
