@@ -111,10 +111,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
     }
 
-    fileprivate func reload(forDownloadTask: URLSessionDownloadTask?) {
+    fileprivate func reload(downloadTask: URLSessionDownloadTask?) {
         // Update library publications.
         
-        guard let theDownloadTask = forDownloadTask else {
+        guard let theDownloadTask = downloadTask else {
             libraryViewController?.insertNewItemWithUpdatedDataSource()
             return
         }
@@ -140,7 +140,7 @@ extension AppDelegate {
                                                                type: .epub)) {
                         
                         self.showInfoAlert(title: "Success", message: "LCP Publication added to library.")
-                        self.reload(forDownloadTask: downloadTask)
+                        self.reload(downloadTask: downloadTask)
                     } else {
                         self.showInfoAlert(title: "Error", message: "The LCP Publication couldn't be loaded.")
                     }
@@ -181,7 +181,7 @@ extension AppDelegate {
                 } else {
                     showInfoAlert(title: "Success", message: "Publication added to library.")
                     if needUIUpdate {
-                        reload(forDownloadTask: nil)
+                        reload(downloadTask: nil)
                     }
                 }
             }
