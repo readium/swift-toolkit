@@ -362,8 +362,8 @@ public class LcpLicense: DrmLicense {
     /// resource.
     ///
     /// - Returns: The URL representing the path of the publication localy.
-    public func fetchPublication() -> Promise<URL> {
-        return Promise<URL> { fulfill, reject in
+    public func fetchPublication() -> Promise<(URL, URLSessionDownloadTask?)> {
+        return Promise<(URL, URLSessionDownloadTask?)> { fulfill, reject in
             guard let publicationLink = license.link(withRel: LicenseDocument.Rel.publication) else {
                 reject(LcpError.publicationLinkNotFound)
                 return
@@ -379,11 +379,11 @@ public class LcpLicense: DrmLicense {
             
             destinationUrl.appendPathComponent("\(title).epub")
             guard !FileManager.default.fileExists(atPath: destinationUrl.path) else {
-                fulfill(destinationUrl)
+                fulfill((destinationUrl, nil))
                 return
             }
             
-            self.downloadSession.launch(request: request, completionHandler: { (tmpLocalUrl, response, error) -> Bool? in
+            self.downloadSession.launch(request: request, completionHandler: { (tmpLocalUrl, response, error, downloadTask) -> Bool? in
                 if let localUrl = tmpLocalUrl, error == nil {
                     do {
                         try FileManager.default.moveItem(at: localUrl, to: destinationUrl)
@@ -391,7 +391,7 @@ public class LcpLicense: DrmLicense {
                         print(error.localizedDescription)
                         reject(error)
                     }
-                    fulfill(destinationUrl)
+                    fulfill((destinationUrl, downloadTask))
                     return true
                 } else if let error = error {
                     reject(error)
