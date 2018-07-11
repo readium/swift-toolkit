@@ -52,10 +52,6 @@ class AboutTableViewController: UITableViewController {
             } else {
                 url = URL(string: "https://opensource.org/licenses/BSD-3-Clause")
             }
-        } else if indexPath.section == 2 {
-            if indexPath.row == 0 {
-                url = URL(string: "http://www.centrenationaldulivre.fr/")
-            }
         }
         
         if let url = url {
