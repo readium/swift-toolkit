@@ -3,7 +3,10 @@
 //  readium-opds
 //
 //  Created by Alexandre Camilleri on 10/27/17.
-//  Copyright © 2017 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import Fuzi
@@ -27,7 +30,6 @@ public enum OPDS1ParserError: Error {
 public enum OPDSParserOpenSearchHelperError: Error {
     case searchLinkNotFound
     case searchDocumentIsInvalid
-//    case missingTemplateForFeedType
 
     var localizedDescription: String {
         switch self {
@@ -35,8 +37,6 @@ public enum OPDSParserOpenSearchHelperError: Error {
             return "Search link not found in feed"
         case .searchDocumentIsInvalid:
             return "OpenSearch document is invalid"
-//        case .missingTemplateForFeedType:
-//            return "Missing search template for feed type"
         }
     }
 }
@@ -205,11 +205,6 @@ public class OPDS1Parser {
             if let rel = link.attributes["rel"] {
                 newLink.rel.append(rel)
             }
-            //                    if let rels = link.attributes["rel"]?.split(separator: " ") {
-            //                        for rel in rels {
-            //                            newLink.rel.append(rel)
-            //                        }
-            //                    }
             if let facetGroupName = link.attributes["facetGroup"],
                 newLink.rel.contains("http://opds-spec.org/facet")
             {
@@ -226,6 +221,10 @@ public class OPDS1Parser {
         return feed
     }
 
+    /// Parse an OPDS publication.
+    /// Publication can only be v1 (XML).
+    /// - parameter document: The XMLDocument data
+    /// - Returns: The resulting Publication
     public static func parseEntry(document: XMLDocument) throws -> Publication {
         guard let root = document.root else {
             throw OPDS1ParserError.rootNotFound
@@ -233,19 +232,9 @@ public class OPDS1Parser {
         return parseEntry(entry: root)
     }
 
-    static func parseMimeType(mimeTypeString: String) -> MimeTypeParameters {
-        let substrings = mimeTypeString.split(separator: ";")
-        let type = String(substrings[0]).trimmingCharacters(in: .whitespaces)
-        var params = [String: String]()
-        for defn in substrings.dropFirst() {
-            let halves = defn.split(separator: "=")
-            let paramName = String(halves[0]).trimmingCharacters(in: .whitespaces)
-            let paramValue = String(halves[1]).trimmingCharacters(in: .whitespaces)
-            params[paramName] = paramValue
-        }
-        return MimeTypeParameters(type: type, parameters: params)
-    }
-
+    /// Fetch an Open Search template from an OPDS feed.
+    /// - parameter feed: The OPDS feed
+    /// - Returns: A promise with the template as a string
     public static func fetchOpenSearchTemplate(feed: Feed) -> Promise<String> {
         return Promise<String> { fulfill, reject in
             var openSearchURL: URL? = nil
@@ -330,8 +319,21 @@ public class OPDS1Parser {
             }).resume()
         }
     }
+    
+    static func parseMimeType(mimeTypeString: String) -> MimeTypeParameters {
+        let substrings = mimeTypeString.split(separator: ";")
+        let type = String(substrings[0]).trimmingCharacters(in: .whitespaces)
+        var params = [String: String]()
+        for defn in substrings.dropFirst() {
+            let halves = defn.split(separator: "=")
+            let paramName = String(halves[0]).trimmingCharacters(in: .whitespaces)
+            let paramValue = String(halves[1]).trimmingCharacters(in: .whitespaces)
+            params[paramName] = paramValue
+        }
+        return MimeTypeParameters(type: type, parameters: params)
+    }
 
-    static internal func parseEntry(entry: XMLElement) -> Publication {
+    static func parseEntry(entry: XMLElement) -> Publication {
         let publication = Publication()
         /// METADATA (publication) ----
         let metadata = Metadata()
@@ -420,12 +422,6 @@ public class OPDS1Parser {
             if let rel = link.attributes["rel"] {
                 newLink.rel.append(rel)
             }
-            //                            if let rels = link.attributes["rel"]?.split(separator: " ") {
-            //                                for rel in rels {
-            //                                    newLink.rel.append(rel)
-            //                                }
-            //                            }
-            // Indirect acquisition check. (Recursive)
             let indirectAcquisitions = link.children(tag: "indirectAcquisition")
             if !indirectAcquisitions.isEmpty {
                 newLink.properties.indirectAcquisition = parseIndirectAcquisition(children: indirectAcquisitions)
@@ -452,7 +448,7 @@ public class OPDS1Parser {
         return publication
     }
 
-    static internal func addFacet(feed: Feed, to link: Link, named title: String) {
+    static func addFacet(feed: Feed, to link: Link, named title: String) {
         for facet in feed.facets {
             if facet.metadata.title == title {
                 facet.links.append(link)
@@ -465,7 +461,7 @@ public class OPDS1Parser {
         feed.facets.append(newFacet)
     }
 
-    static internal func addPublicationInGroup(_ feed: Feed,
+    static func addPublicationInGroup(_ feed: Feed,
                                                _ publication: Publication,
                                                _ collectionLink: Link)
     {
@@ -486,14 +482,12 @@ public class OPDS1Parser {
             selfLink.title = collectionLink.title
             selfLink.rel.append("self")
             newGroup.links.append(selfLink)
-            //
             newGroup.publications.append(publication)
-            //
             feed.groups.append(newGroup)
         }
     }
 
-    static internal func addNavigationInGroup(_ feed: Feed,
+    static func addNavigationInGroup(_ feed: Feed,
                                               _ link: Link,
                                               _ collectionLink: Link)
     {
@@ -514,18 +508,12 @@ public class OPDS1Parser {
             selfLink.title = collectionLink.title
             selfLink.rel.append("self")
             newGroup.links.append(selfLink)
-            //
             newGroup.navigation.append(link)
-            //
             feed.groups.append(newGroup)
         }
     }
-
-    /// <#Description#>
-    ///
-    /// - Parameter children: <#children description#>
-    /// - Returns: <#return value description#>
-    static internal func parseIndirectAcquisition(children: [XMLElement]) -> [IndirectAcquisition] {
+    
+    static func parseIndirectAcquisition(children: [XMLElement]) -> [IndirectAcquisition] {
         var ret = [IndirectAcquisition]()
 
         for child in children {

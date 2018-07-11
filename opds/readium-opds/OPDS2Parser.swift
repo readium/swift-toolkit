@@ -3,7 +3,10 @@
 //  readium-opds
 //
 //  Created by Nikita Aizikovskyi on Jan-30-2018.
-//  Copyright © 2018 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import Foundation
@@ -179,9 +182,8 @@ public class OPDS2Parser {
         return feed
         
     }
-
-
-    static internal func parseMetadata(opdsMetadata: OpdsMetadata, metadataDict: [String: Any]) {
+    
+    static func parseMetadata(opdsMetadata: OpdsMetadata, metadataDict: [String: Any]) {
         for (k, v) in metadataDict {
             switch k {
             case "title":
@@ -206,7 +208,7 @@ public class OPDS2Parser {
         }
     }
 
-    static internal func parseFacets(feed: Feed, facets: [[String: Any]]) throws {
+    static func parseFacets(feed: Feed, facets: [[String: Any]]) throws {
         for facetDict in facets {
             guard let metadata = facetDict["metadata"] as? [String: Any] else {
                 throw OPDS2ParserError.invalidFacet
@@ -232,7 +234,7 @@ public class OPDS2Parser {
         }
     }
 
-    static internal func parseLinks(feed: Feed, links: [[String: Any]]) throws {
+    static func parseLinks(feed: Feed, links: [[String: Any]]) throws {
         for linkDict in links {
             let link = try Link.parse(linkDict: linkDict)
             link.absoluteHref = URLHelper.getAbsolute(href: link.href, base: feedURL)
@@ -240,14 +242,14 @@ public class OPDS2Parser {
         }
     }
 
-    static internal func parsePublications(feed: Feed, publications: [[String: Any]]) throws {
+    static func parsePublications(feed: Feed, publications: [[String: Any]]) throws {
         for pubDict in publications {
             let pub = try Publication.parse(pubDict: pubDict)
             feed.publications.append(pub)
         }
     }
 
-    static internal func parseNavigation(feed: Feed, navLinks: [[String: Any]]) throws {
+    static func parseNavigation(feed: Feed, navLinks: [[String: Any]]) throws {
         for navDict in navLinks {
             let link = try Link.parse(linkDict: navDict)
             link.absoluteHref = URLHelper.getAbsolute(href: link.href, base: feedURL)
@@ -255,7 +257,7 @@ public class OPDS2Parser {
         }
     }
 
-    static internal func parseGroups(feed: Feed, groups: [[String: Any]]) throws {
+    static func parseGroups(feed: Feed, groups: [[String: Any]]) throws {
         for groupDict in groups {
             guard let metadata = groupDict["metadata"] as? [String: Any] else {
                 throw OPDS2ParserError.invalidGroup
