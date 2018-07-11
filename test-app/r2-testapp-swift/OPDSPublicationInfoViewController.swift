@@ -83,7 +83,7 @@ class OPDSPublicationInfoViewController : UIViewController {
             
             let request = URLRequest(url:url)
             
-            DownloadSession.shared.launch(request: request, completionHandler: { (localURL, response, error) -> Bool in
+            DownloadSession.shared.launch(request: request, completionHandler: { (localURL, response, error, downloadTask) -> Bool in
                 
                 DispatchQueue.main.async {
                     self.downloadActivityIndicator.stopAnimating()
@@ -107,7 +107,7 @@ class OPDSPublicationInfoViewController : UIViewController {
                         return false
                     }
                     
-                    return appDelegate.addPublicationToLibrary(url: fixedURL)
+                    return appDelegate.addPublicationToLibrary(url: fixedURL, needUIUpdate: false)
                     
                 } else {
                     // Download failed

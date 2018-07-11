@@ -31,7 +31,7 @@ class LibraryViewController: UIViewController {
     
     weak var lastFlippedCell: PublicationCell?
     
-    let appDelegate = UIApplication.shared.delegate as? AppDelegate
+    let appDelegate = UIApplication.shared.delegate as! AppDelegate
     var delegate: LibraryViewControllerDelegate? {
         get {
             return self.appDelegate
@@ -58,8 +58,8 @@ class LibraryViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    publications = appDelegate?.publicationServer.publications
-    appDelegate?.libraryViewController = self
+    publications = appDelegate.publicationServer.publications
+    appDelegate.libraryViewController = self
     
     // Add long press gesture recognizer.
     let recognizer = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
@@ -184,14 +184,14 @@ extension LibraryViewController: UIDocumentPickerDelegate {
         
         if let appDelegate = self.delegate as? AppDelegate {
             for url in urls {
-                _ = appDelegate.addPublicationToLibrary(url: url)
+                _ = appDelegate.addPublicationToLibrary(url: url, needUIUpdate: true)
             }
         }
     }
     
     public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
         if let appDelegate = self.delegate as? AppDelegate {
-            _ = appDelegate.addPublicationToLibrary(url: url)
+            _ = appDelegate.addPublicationToLibrary(url: url, needUIUpdate: true)
         }
     }
 }
@@ -440,14 +440,14 @@ extension LibraryViewController: DownloadDisplayDelegate {
     
     func didFinishDownload(task:URLSessionDownloadTask) {
         
-        let offset = downloadSet.index(of: task)
-        downloadSet.remove(task)
-        downloadTaskToRatio.removeValue(forKey: task)
-        
-        guard let newList = appDelegate?.publicationServer.publications else {return}
+        let newList = appDelegate.publicationServer.publications
         if newList.count == publications.count {return}
         
         publications = newList
+        
+        let offset = downloadSet.index(of: task)
+        downloadSet.remove(task)
+        downloadTaskToRatio.removeValue(forKey: task)
         
         let theIndexPath = IndexPath(item: offset, section: 0)
         let newIndexPath = IndexPath(item: downloadSet.count, section: 0)
@@ -487,6 +487,21 @@ extension LibraryViewController: DownloadDisplayDelegate {
             guard let cell = self.collectionView.cellForItem(at: indexPath) as? PublicationCell else {return}
             cell.progress = percentage
         }
+    }
+    
+    func reloadWith(downloadTask: URLSessionDownloadTask) {
+        self.didFinishDownload(task: downloadTask)
+    }
+    
+    func insertNewItemWithUpdatedDataSource() {
+        self.publications = appDelegate.publicationServer.publications
+        
+        let offset = downloadSet.count
+        let newIndexPath = IndexPath(item: offset, section: 0)
+        
+        collectionView.performBatchUpdates({
+            collectionView.insertItems(at: [newIndexPath])
+        }, completion: nil)
     }
 }
 
