@@ -93,6 +93,10 @@ extension Contributor {
             case "links":
                 if let linkDict = v as? [String: Any] {
                     c.links.append(try Link.parse(linkDict: linkDict))
+                }else if let array = v as? [[String: Any]] {
+                    for dict in array {
+                        c.links.append(try Link.parse(linkDict: dict))
+                    }
                 }
             default:
                 continue
