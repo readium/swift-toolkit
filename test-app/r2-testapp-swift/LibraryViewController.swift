@@ -392,16 +392,31 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
 }
 
 extension LibraryViewController: PublicationCellDelegate {
-    
+
     func removePublicationFromLibrary(forCellAt indexPath: IndexPath) {
+        let offset = downloadSet.count
+        let index = indexPath.item-offset
+        
+        if index >= self.publications.count {return}
+        
+        let publication = self.publications[index]
+
         let removePublicationAlert = UIAlertController(title: "Are you sure?",
                                                        message: "This will remove the Publication from your library.",
                                                        preferredStyle: UIAlertControllerStyle.alert)
         let removeAction = UIAlertAction(title: "Remove", style: .destructive, handler: { alert in
             // Remove the publication from publicationServer and Documents folder.
-            self.delegate?.remove(self.publications[indexPath.row])
+            let newOffset = self.downloadSet.count
+            guard let newIndex = self.publications.index(where: { (element) -> Bool in
+                publication.metadata.identifier == element.metadata.identifier
+            }) else {return}
+            let newIndexPath = IndexPath(item: newOffset+newIndex, section: 0)
+            
+            self.delegate?.remove(publication)
             // Remove item from UI colletionView.
-            self.collectionView.deleteItems(at: [indexPath])
+            self.collectionView.performBatchUpdates({
+                self.collectionView.deleteItems(at: [newIndexPath])
+            }, completion: nil)
         })
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: { alert in
             return
