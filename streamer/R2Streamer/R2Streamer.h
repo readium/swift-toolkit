@@ -1,9 +1,12 @@
 //
 //  R2Streamer.h
-//  R2Streamer
+//  r2-streamer-swift
 //
 //  Created by Olivier Körner on 18/01/2017.
-//  Copyright © 2017 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 #import <UIKit/UIKit.h>

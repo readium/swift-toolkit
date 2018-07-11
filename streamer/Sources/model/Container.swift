@@ -1,9 +1,12 @@
 //
 //  Container.swift
-//  R2Streamer
+//  r2-streamer-swift
 //
 //  Created by Olivier Körner on 14/12/2016.
-//  Copyright © 2016 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import R2Shared
@@ -188,47 +191,6 @@ protocol EpubContainer: Container {
     ///           `ContainerError.xmlParse`.
     func xmlDocument(forResourceReferencedByLink link: Link?) throws -> AEXMLDocument
 }
-///// Default Implementation
-//extension EpubContainer {
-//
-//    /// Return a XML document representing the file at path.
-//    ///
-//    /// - Parameter path: The 'container relative' path to the ressource.
-//    /// - Returns: The generated document.
-//    /// - Throws: ZipArchive and AEXML errors.
-//    public func xmlDocument(forFileAtRelativePath path: String) throws -> AEXMLDocument {
-//        // Get `Data` from the Container.
-//        let containerData = try data(relativePath: path)
-//
-//        // Transforms `Data` into an AEXML Document object
-//        let document = try AEXMLDocument(xml: containerData)
-//        return document
-//    }
-//
-//    /// Return a XML Document representing the file referenced by `link`.
-//    ///
-//    /// - Parameters:
-//    ///   - link: The `Link` to the ressource from the manifest.
-//    ///   - container: The epub container.
-//    /// - Returns: The XML Document.
-//    /// - Throws: `ContainerError.missingLink()`, AEXML and ZipArchive errors.
-//    public func xmlDocument(forResourceReferencedByLink link: Link?) throws -> AEXMLDocument {
-//        guard let href = link?.href else {
-//            throw ContainerError.missingLink(title: link?.title)
-//        }
-//        var pathFile = href
-//
-//        if pathFile.characters.first == "/" {
-//            _ = pathFile.characters.popFirst()
-//        }
-//
-//        // ADD DECODING. ADD DRM to container.
-//
-//        let document = try xmlDocument(forFileAtRelativePath: pathFile)
-//        return document
-//    }
-//
-//}
 
 /// Specializing the `Container` for CBZ publications.
 protocol CbzContainer: Container {

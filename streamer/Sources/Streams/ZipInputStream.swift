@@ -1,9 +1,12 @@
 //
 //  RDUnzipStream.swift
-//  R2Streamer
+//  r2-streamer-swift
 //
 //  Created by Olivier Körner on 11/01/2017.
-//  Copyright © 2017 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import UIKit
@@ -81,7 +84,6 @@ internal class ZipInputStream: SeekableInputStream {
     }
 
     override internal func open() {
-        //objc_sync_enter(zipArchive)
         do {
             try zipArchive.openCurrentFile()
             _streamStatus = .open
@@ -89,7 +91,6 @@ internal class ZipInputStream: SeekableInputStream {
             print("ERROR: could not ZipArchive.openCurrentFile()")
             _streamStatus = .error
             _streamError = error
-            //objc_sync_exit(zipArchive)
         }
     }
 
@@ -100,11 +101,6 @@ internal class ZipInputStream: SeekableInputStream {
     }
 
     override internal func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) -> Int {
-        //        guard _streamStatus == .open else  {
-        //            print("Stream not open")
-        //            return -1
-        //        }
-        //log(level: .debug, "\(fileInZipPath) read \(maxLength) bytes")
         let bytesRead = zipArchive.readDataFromCurrentFile(buffer, maxLength: UInt64(maxLength))
         if Int(bytesRead) < maxLength {
             _streamStatus = .atEnd
@@ -114,15 +110,13 @@ internal class ZipInputStream: SeekableInputStream {
 
     override internal func close() {
         zipArchive.closeCurrentFile()
-        //objc_sync_exit(zipArchive)
         _streamStatus = .closed
     }
 
     override internal func seek(offset: Int64, whence: SeekWhence) throws {
         assert(whence == .startOfFile, "Only seek from start of stream is supported for now.")
         assert(offset >= 0, "Since only seek from start of stream if supported, offset must be >= 0")
-
-        //log(level: .debug, "ZipInputStream \(fileInZipPath) offset \(offset)")
+        
         do {
             try zipArchive.seek(Int(offset))
         } catch {

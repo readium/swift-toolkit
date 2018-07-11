@@ -1,9 +1,12 @@
 //
 //  SMILParser.swift
-//  R2Streamer
+//  r2-streamer-swift
 //
 //  Created by Alexandre Camilleri on 4/11/17.
-//  Copyright © 2017 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import R2Shared
@@ -153,10 +156,6 @@ final internal class SMILParser {
         // And the fetcher (minizip) only provide data access, that might be IO problem.
         
         newClip.duration = timeEnd>0 ? (timeEnd - timeBegin):-1
-        //let asset = AVURLAsset(url: URL(fileURLWithPath: "resource"))
-        //let duration = Double(CMTimeGetSeconds(asset.duration))
-        //fetcher.data(forRelativePath: "EPUB/audio/basic_tests.mp3")
-        //fetcher.dataStream(forRelativePath: "EPUB/audio/basic_tests.mp3")
         
         return newClip
     }
