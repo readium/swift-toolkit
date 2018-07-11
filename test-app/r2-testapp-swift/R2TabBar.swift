@@ -3,8 +3,12 @@
 //  r2-testapp-swift
 //
 //  Created by Senda Li on 2018/6/21.
-//  Copyright © 2018 Readium. All rights reserved.
-//  https://stackoverflow.com/questions/46214740/ios-11-iphone-x-simulator-uitabbar-icons-and-titles-being-rendered-on-top-coveri
+//
+//  Copyright 2018 European Digital Reading Lab. All rights reserved.
+//  Licensed to the Readium Foundation under one or more contributor license agreements.
+//  Use of this source code is governed by a BSD-style license which is detailed in the
+//  LICENSE file present in the project repository where this source code is maintained.
+//
 
 import UIKit
 
