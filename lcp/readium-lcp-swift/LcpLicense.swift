@@ -3,7 +3,10 @@
 //  readium-lcp-swift
 //
 //  Created by Alexandre Camilleri on 9/14/17.
-//  Copyright © 2017 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import Foundation
@@ -94,7 +97,6 @@ public class LcpLicense: DrmLicense {
                     }
                   fulfill(nil)
                 } else if let error = error {
-                    //reject(error)
                     fulfill(error)
                 } else {
                     reject(LcpError.unknown)
@@ -187,10 +189,7 @@ public class LcpLicense: DrmLicense {
             } else if httpResponse.statusCode == 200 {
                 //  5.3/ Store the fact the the device / license has been registered.
                 do {
-                    
-                    //try LCPDatabase.shared.licenses.insert(self.license, with: status.status)
                     try LCPDatabase.shared.licenses.register(forLicenseWith: self.license.id)
-                    
                     return // SUCCESS
                 } catch {
                     print(error.localizedDescription)
@@ -437,9 +436,6 @@ public class LcpLicense: DrmLicense {
                         self.license = try LicenseDocument.init(with: content)
                         /// Replace the current licenseDocument on disk with the
                         /// new one.
-                        // try FileManager.default.removeItem(at: self.licensePath)
-                        // SHOULD make a save or something // TODO
-                     //   try FileManager.default.moveItem(at: localUrl, to: self.archivePath)
                         try LcpLicense.moveLicense(from: localUrl, to: self.archivePath)
                     } catch {
                         print(error.localizedDescription)

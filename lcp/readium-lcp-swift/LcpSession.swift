@@ -3,7 +3,10 @@
 //  readium-lcp-swift
 //
 //  Created by Alexandre Camilleri on 9/14/17.
-//  Copyright © 2017 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import Foundation
@@ -47,7 +50,6 @@ public class LcpSession {
                 }
                 
                 if serverError.domain == "org.readium" {
-                    //print(serverError.localizedDescription)
                     let noteName = Notification.Name(kShouldPresentLCPMessage)
                     let userInfo = serverError.userInfo
                     
@@ -145,7 +147,9 @@ public class LcpSession {
         return checkPassphrases(passphrases)
     }
     
-    
+    /// Store a passphrase hash to the database
+    ///
+    /// - Parameter passphraseHash: the hash to store
     public func storePassphrase(_ passphraseHash: String) throws
     {
         let db = LCPDatabase.shared
@@ -165,13 +169,3 @@ public class LcpSession {
         return Promise<Void>()
     }
 }
-
-
-
-
-
-
-
-
-
-

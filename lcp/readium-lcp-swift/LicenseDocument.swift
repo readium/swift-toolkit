@@ -1,9 +1,12 @@
 //
 //  LicenseDocument.swift
-//  r2-shared-swift
+//  readium-lcp-swift
 //
 //  Created by Alexandre Camilleri on 9/6/17.
-//  Copyright © 2017 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import Foundation
@@ -27,7 +30,7 @@ public class LicenseDocument {
     /// Used to associate the License Document with resources that are not 
     /// locally available.
     public var links = [Link]()
-    ///
+    /// Rights informations associated with the License Document
     public var rights: Rights
     /// The user owning the License.
     public var user: User
@@ -98,37 +101,6 @@ public class LicenseDocument {
     public func getHint() -> String {
         return encryption.userKey.hint
     }
-
-//    /// Returns a promise containing the License Hint.
-//    ///
-//    /// - Returns: The password hint phrase.
-//    public func getHint() -> Promise<String> {
-//        return Promise<String> { fulfill, reject in
-//            // Check for hint link.
-//            guard let hintLink = link(withRel: LicenseDocument.Rel.hint) else {
-//                reject(LcpError.hintLinkNotFound)
-//                return
-//            }
-//            // Fetch
-//            let request = URLRequest(url: hintLink.href)
-//            let task = URLSession.shared.dataTask(with: request, completionHandler: { (data, response, error) in
-//                guard let httpResponse = response as? HTTPURLResponse,
-//                    httpResponse.statusCode == 200 else
-//                {
-//                    reject(LcpError.unexpectedServerError)
-//                    return
-//                }
-//                guard let data = data,
-//                    let hint = String.init(data: data, encoding: String.Encoding.utf8) else
-//                {
-//                    reject(LcpError.invalidHintData)
-//                    return
-//                }
-//                fulfill(hint)
-//            })
-//            task.resume()
-//        }
-//    }
 
 }
 

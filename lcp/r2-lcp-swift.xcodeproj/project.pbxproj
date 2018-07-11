@@ -15,7 +15,6 @@
 		F36F9E261F826C17001D0DB4 /* Licenses.swift in Sources */ = {isa = PBXBuildFile; fileRef = F36F9E251F826C17001D0DB4 /* Licenses.swift */; };
 		F36F9E281F8270FC001D0DB4 /* Transactions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F36F9E271F8270FC001D0DB4 /* Transactions.swift */; };
 		F38CDB221F697D3A004156CB /* PotentialRights.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38CDB211F697D3A004156CB /* PotentialRights.swift */; };
-		F38FB0311F6674E100F9D602 /* ISO8601DateString.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB0301F6674E100F9D602 /* ISO8601DateString.swift */; };
 		F38FB0361F66837800F9D602 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB0351F66837800F9D602 /* User.swift */; };
 		F38FB0381F66839600F9D602 /* Rights.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB0371F66839600F9D602 /* Rights.swift */; };
 		F38FB03A1F6683D800F9D602 /* Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB0391F6683D800F9D602 /* Encryption.swift */; };
@@ -55,7 +54,6 @@
 		F36F9E251F826C17001D0DB4 /* Licenses.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Licenses.swift; sourceTree = "<group>"; };
 		F36F9E271F8270FC001D0DB4 /* Transactions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transactions.swift; sourceTree = "<group>"; };
 		F38CDB211F697D3A004156CB /* PotentialRights.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PotentialRights.swift; sourceTree = "<group>"; };
-		F38FB0301F6674E100F9D602 /* ISO8601DateString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ISO8601DateString.swift; sourceTree = "<group>"; };
 		F38FB0351F66837800F9D602 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		F38FB0371F66839600F9D602 /* Rights.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Rights.swift; sourceTree = "<group>"; };
 		F38FB0391F6683D800F9D602 /* Encryption.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Encryption.swift; sourceTree = "<group>"; };
@@ -186,7 +184,6 @@
 				F3B2C88A1F667223007601E4 /* readium-lcp-swift.h */,
 				F331FBF71F8228F8007F16DF /* LCPDatabase.swift */,
 				F36F9E241F826C05001D0DB4 /* Tables */,
-				F38FB0301F6674E100F9D602 /* ISO8601DateString.swift */,
 				F3B2C8A51F66727C007601E4 /* LcpError.swift */,
 				F35AF9FE1F6ACD3900D3F670 /* LcpParsingError.swift */,
 				F35AFA001F6AD54400D3F670 /* LcpLicense.swift */,
@@ -357,7 +354,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F38FB0311F6674E100F9D602 /* ISO8601DateString.swift in Sources */,
 				F35AF9F91F6AB8C700D3F670 /* LcpSession.swift in Sources */,
 				F38CDB221F697D3A004156CB /* PotentialRights.swift in Sources */,
 				F36F9E261F826C17001D0DB4 /* Licenses.swift in Sources */,
