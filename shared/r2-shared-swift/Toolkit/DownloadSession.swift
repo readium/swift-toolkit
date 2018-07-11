@@ -15,7 +15,7 @@ public protocol DownloadDisplayDelegate {
     func didUpdateDownloadPercentage(task:URLSessionDownloadTask, percentage: Float);
 }
 
-public typealias completionHandlerType = ((URL?, URLResponse?, Error?) -> Bool?)
+public typealias completionHandlerType = ((URL?, URLResponse?, Error?, URLSessionDownloadTask) -> Bool?)
 
 public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDelegate {
     
@@ -41,7 +41,7 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
     
     public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
         
-        let done = self.taskMap[downloadTask]?(location, nil, nil) ?? false
+        let done = self.taskMap[downloadTask]?(location, nil, nil, downloadTask) ?? false
         
         DispatchQueue.main.async {
             self.taskMap.removeValue(forKey: downloadTask)
@@ -74,11 +74,13 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
         
         DispatchQueue.main.async {
             
+            guard let downloadTask = task as? URLSessionDownloadTask else {return}
+            
             guard let theError = error else {return}
-            _ = self.taskMap[task]?(nil, nil, error)
+            _ = self.taskMap[task]?(nil, nil, error, downloadTask)
             self.taskMap.removeValue(forKey: task)
             
-            self.displayDelegate?.didFailWithError(task: task as! URLSessionDownloadTask, error: theError)
+            self.displayDelegate?.didFailWithError(task: downloadTask, error: theError)
         }
     }
 }
