@@ -3,7 +3,11 @@
 //  r2-testapp-swift
 //
 //  Created by Geoffrey Bugniot on 23/04/2018.
-//  Copyright © 2018 Readium. All rights reserved.
+//
+//  Copyright 2018 European Digital Reading Lab. All rights reserved.
+//  Licensed to the Readium Foundation under one or more contributor license agreements.
+//  Use of this source code is governed by a BSD-style license which is detailed in the
+//  LICENSE file present in the project repository where this source code is maintained.
 //
 
 import UIKit
@@ -27,7 +31,7 @@ class OPDSRootTableViewController: UITableViewController {
     var nextPageURL: URL?
     var originalFeedIndexPath: IndexPath?
     var mustEditFeed = false
-  
+    
     var parseData: ParseData?
     var feed: Feed?
     var publication: Publication?
@@ -48,7 +52,7 @@ class OPDSRootTableViewController: UITableViewController {
     ]
     
     fileprivate var previousScreenOrientation: GeneralScreenOrientation?
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationController?.delegate = self
@@ -174,14 +178,14 @@ class OPDSRootTableViewController: UITableViewController {
                         self.feed?.publications.append(contentsOf: newFeed.publications)
                         completionHandler(self.feed)
                     }
-                }
+            }
         }
     }
     
     //MARK: - Facets
     
     @objc func filterMenuClicked(_ sender: UIBarButtonItem) {
-
+        
         let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
         
         if let opdsFacetViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsFacetViewController") as? OPDSFacetViewController {
@@ -197,15 +201,15 @@ class OPDSRootTableViewController: UITableViewController {
         }
         
     }
-
+    
     public func applyFacetAt(indexPath: IndexPath) {
         if let absoluteHref = feed!.facets[indexPath.section].links[indexPath.row].absoluteHref {
             pushOpdsRootViewController(href: absoluteHref)
         }
     }
-
+    
     // MARK: - Table view data source
-
+    
     override func numberOfSections(in tableView: UITableView) -> Int {
         var numberOfSections = 0
         
@@ -234,7 +238,7 @@ class OPDSRootTableViewController: UITableViewController {
         
         return numberOfSections
     }
-
+    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         var numberOfRowsInSection = 0
         
@@ -326,7 +330,7 @@ class OPDSRootTableViewController: UITableViewController {
             // Nav
             if indexPath.section == 0 {
                 heightForRowAt = 44
-            // Group
+                // Group
             } else {
                 // Nav inside a group
                 if feed!.groups[indexPath.section - 1].navigation.count > 0 {
@@ -399,7 +403,7 @@ class OPDSRootTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         var title: String?
-
+        
         switch browsingState {
             
         case .MixedGroup:
@@ -427,15 +431,15 @@ class OPDSRootTableViewController: UITableViewController {
             if section > feed!.groups.count {
                 title = feed!.metadata.title
             }
-
+            
         default:
             title = nil
-
+            
         }
-
+        
         return title
     }
-
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         var cell: UITableViewCell?
         
@@ -465,7 +469,7 @@ class OPDSRootTableViewController: UITableViewController {
                 // Groups
                 cell = buildGroupCell(tableView: tableView, indexPath: indexPath)
             }
-
+            
         default:
             cell = nil
             
@@ -486,7 +490,7 @@ class OPDSRootTableViewController: UITableViewController {
                 currentNavigation = navigation
             }
         }
-
+        
         if let currentNavigation = currentNavigation {
             castedCell.title.text = currentNavigation[indexPath.row].title
             if let count = currentNavigation[indexPath.row].properties.numberOfItems {
@@ -507,7 +511,7 @@ class OPDSRootTableViewController: UITableViewController {
     }
     
     func buildGroupCell(tableView: UITableView, indexPath: IndexPath) -> UITableViewCell {
-
+        
         if browsingState != .MixedGroup {
             if indexPath.section > feed!.groups.count {
                 let group = Group(title: feed!.metadata.title)
@@ -527,7 +531,7 @@ class OPDSRootTableViewController: UITableViewController {
                 return preparedGroupCell(group: nil, indexPath: indexPath, offset: 0)
             }
         }
-
+        
     }
     
     fileprivate func preparedGroupCell(group: Group?, indexPath: IndexPath, offset: Int) -> OPDSGroupTableViewCell {
@@ -554,7 +558,7 @@ class OPDSRootTableViewController: UITableViewController {
                     }
                 }
             }
-
+            
         default:
             break
             
@@ -621,7 +625,7 @@ class OPDSRootTableViewController: UITableViewController {
             }
         }
     }
-
+    
 }
 
 //MARK: - UINavigationController delegate and tooling

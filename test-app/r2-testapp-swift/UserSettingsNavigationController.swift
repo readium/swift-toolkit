@@ -3,7 +3,11 @@
 //  r2-testapp-swift
 //
 //  Created by Alexandre Camilleri on 9/28/17.
-//  Copyright © 2017 Readium. All rights reserved.
+//
+//  Copyright 2018 European Digital Reading Lab. All rights reserved.
+//  Licensed to the Readium Foundation under one or more contributor license agreements.
+//  Use of this source code is governed by a BSD-style license which is detailed in the
+//  LICENSE file present in the project repository where this source code is maintained.
 //
 
 import UIKit
@@ -41,7 +45,7 @@ internal class UserSettingsNavigationController: UINavigationController {
         userSettingsTableViewController.modalPresentationStyle = .popover
         userSettingsTableViewController.delegate = self
         userSettingsTableViewController.userSettings = userSettings
-        //
+        
         fontSelectionViewController.delegate = self
         fontSelectionViewController.userSettings = userSettings
         advancedSettingsViewController.delegate = self
