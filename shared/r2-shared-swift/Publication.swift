@@ -1,9 +1,12 @@
 //
 //  Publication.swift
-//  R2Streamer
+//  r2-shared-swift
 //
 //  Created by Olivier Körner on 08/12/2016.
-//  Copyright © 2016 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import Foundation
@@ -91,12 +94,7 @@ public class Publication {
 
         // Remove links.
         canonicalPublication.links = []
-        // Ordered. (Looks like it's already done)
-        // func linkOrderedAscending(_ l1: Link, _ l2: Link) -> Bool {
-        //      return l1.href?.localizedStandardCompare(l2.href!) == ComparisonResult.orderedAscending
-        // }
-        // orderedPublication.links.sort(by: linkOrderedAscending)
-        //  ...
+        
         var jsonString = canonicalPublication.toJSONString(prettyPrint: false) ?? ""
 
         jsonString = jsonString.replacingOccurrences(of: "\\", with: "")
