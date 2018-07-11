@@ -3,7 +3,11 @@
 //  r2-testapp-swift
 //
 //  Created by Nikita Aizikovskyi on Mar-12-2018.
-//  Copyright © 2018 Readium. All rights reserved.
+//
+//  Copyright 2018 European Digital Reading Lab. All rights reserved.
+//  Licensed to the Readium Foundation under one or more contributor license agreements.
+//  Use of this source code is governed by a BSD-style license which is detailed in the
+//  LICENSE file present in the project repository where this source code is maintained.
 //
 
 import UIKit
@@ -23,14 +27,14 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         catalogData = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
         if catalogData == nil {
             catalogData = [
-              ["title": "Feedbooks", "url": "http://www.feedbooks.com/catalog.atom"],
-              ["title": "Open Textbooks", "url": "http://open.minitex.org"]
+                ["title": "Feedbooks", "url": "http://www.feedbooks.com/catalog.atom"],
+                ["title": "Open Textbooks", "url": "http://open.minitex.org"]
             ]
             UserDefaults.standard.set(catalogData, forKey: userDefaultsID)
         }
-
-        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
         
+        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
+
         self.tableView.frame = UIScreen.main.bounds
         tableView.layoutMargins = UIEdgeInsets.zero
         tableView.separatorInset = UIEdgeInsets.zero
@@ -72,8 +76,8 @@ class OPDSCatalogSelectorViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         self.tableView.deselectRow(at: indexPath, animated: false)
         guard let urlString = catalogData![indexPath.row]["url"],
-              let url = URL(string: urlString) else {
-            return
+            let url = URL(string: urlString) else {
+                return
         }
       
         let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
