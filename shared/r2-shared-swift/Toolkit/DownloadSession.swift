@@ -9,7 +9,7 @@
 import Foundation
 
 public protocol DownloadDisplayDelegate {
-    func didStartDownload(task:URLSessionDownloadTask);
+    func didStartDownload(task:URLSessionDownloadTask, description:String);
     func didFinishDownload(task:URLSessionDownloadTask);
     func didFailWithError(task:URLSessionDownloadTask, error: Error?);
     func didUpdateDownloadPercentage(task:URLSessionDownloadTask, percentage: Float);
@@ -30,12 +30,14 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
     public var displayDelegate:DownloadDisplayDelegate?
     private var taskMap = [URLSessionTask:completionHandlerType]()
     
-    public func launch(request: URLRequest, completionHandler:completionHandlerType?) {
+    public func launch(request: URLRequest, description:String?, completionHandler:completionHandlerType?) {
         let task = self.session.downloadTask(with: request); task.resume()
         
         DispatchQueue.main.async {
+            
             self.taskMap[task] = completionHandler
-            self.displayDelegate?.didStartDownload(task: task)
+            let localizedDescription = description ?? "..."
+            self.displayDelegate?.didStartDownload(task: task, description: localizedDescription)
         }
     }
     
