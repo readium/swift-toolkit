@@ -429,7 +429,7 @@ public class OPDS1Parser {
             // Price.
             if let price = link.firstChild(tag: "price")?.stringValue,
                 let priceDouble = Double(price),
-                let currency = link.firstChild(tag: "price")?.attr("currencyCode")
+                let currency = link.firstChild(tag: "price")?.attr("currencycode")
             {
                 let newPrice = Price(currency: currency, value: priceDouble)
 
