@@ -46,6 +46,7 @@ class LibraryViewController: UIViewController {
     
     private var downloadSet =  NSMutableOrderedSet()
     private var downloadTaskToRatio = [URLSessionDownloadTask:Float]()
+    private var downloadTaskDescription = [URLSessionDownloadTask:String]()
     
     @IBOutlet weak var collectionView: UICollectionView! {
         didSet {
@@ -213,8 +214,10 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
             collectionView.backgroundView = noPublicationLabel
             
             return 0
+        } else {
+            collectionView.backgroundView = nil
+            return downloadSet.count + publications.count
         }
-        return downloadSet.count + publications.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -228,6 +231,13 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
             if let ratio = downloadTaskToRatio[task] {
                 cell.progress = ratio
             }
+            
+            let downloadDescription = downloadTaskDescription[task] ?? "..."
+            let flowLayout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout
+            let textView = defaultCover(layout: flowLayout, description: downloadDescription)
+            cell.imageView.image = UIImage.imageWithTextView(textView: textView)
+            cell.applyShadows()
+            
             return cell
         }
         
@@ -265,7 +275,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
                 ImageDownloader.default.downloadImage(with: coverUrl, options: [], progressBlock: nil) { (image, error, url, data) in
                     if error != nil {
                         let flowLayout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout
-                        let textView = self.defaultCover(layout: flowLayout, publication: publication)
+                        let textView = self.defaultCover(layout: flowLayout, description: publication.metadata.title)
                         cell.imageView.image = UIImage.imageWithTextView(textView: textView)
                         cell.applyShadows()
                     } else {
@@ -279,7 +289,8 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
         } else {
             
             let flowLayout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout
-            let textView = defaultCover(layout: flowLayout, publication: publication)
+            let description = publication.metadata.title
+            let textView = defaultCover(layout: flowLayout, description:description)
             cell.imageView.image = UIImage.imageWithTextView(textView: textView)
             cell.applyShadows()
         }
@@ -287,7 +298,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
         return cell
     }
     
-    internal func defaultCover(layout: UICollectionViewFlowLayout?, publication: Publication) -> UITextView {
+    internal func defaultCover(layout: UICollectionViewFlowLayout?, description: String) -> UITextView {
         let width = layout?.itemSize.width ?? 0
         let height = layout?.itemSize.height ?? 0
         let titleTextView = UITextView(frame: CGRect(x: 0, y: 0, width: width, height: height))
@@ -296,7 +307,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
         titleTextView.layer.borderColor = #colorLiteral(red: 0.08269290555, green: 0.2627741129, blue: 0.3623990017, alpha: 1).cgColor
         titleTextView.backgroundColor = #colorLiteral(red: 0.05882352963, green: 0.180392161, blue: 0.2470588237, alpha: 1)
         titleTextView.textColor = #colorLiteral(red: 0.8639426257, green: 0.8639426257, blue: 0.8639426257, alpha: 1)
-        titleTextView.text = publication.metadata.title.appending("\n_________") //Dirty styling.
+        titleTextView.text = description.appending("\n_________") //Dirty styling.
         
         return titleTextView
     }
@@ -449,11 +460,12 @@ extension LibraryViewController: PublicationCellDelegate {
 
 extension LibraryViewController: DownloadDisplayDelegate {
     
-    func didStartDownload(task:URLSessionDownloadTask) {
+    func didStartDownload(task: URLSessionDownloadTask, description: String) {
         
         let offset = downloadSet.count
         downloadSet.add(task)
         downloadTaskToRatio[task] = 0
+        downloadTaskDescription[task] = description
         let newIndexPath = IndexPath(item: offset, section: 0)
         
         self.collectionView.performBatchUpdates({
@@ -471,9 +483,13 @@ extension LibraryViewController: DownloadDisplayDelegate {
         let offset = downloadSet.index(of: task)
         downloadSet.remove(task)
         downloadTaskToRatio.removeValue(forKey: task)
+        let description = downloadTaskDescription[task] ?? ""
+        downloadTaskDescription.removeValue(forKey: task)
         
         let theIndexPath = IndexPath(item: offset, section: 0)
         let newIndexPath = IndexPath(item: downloadSet.count, section: 0)
+        
+        self.infoAlert(title: "Success", message: "[\(description)] added to library.")
         
         if newIndexPath == theIndexPath {
             self.collectionView.reloadItems(at: [newIndexPath])
@@ -492,11 +508,16 @@ extension LibraryViewController: DownloadDisplayDelegate {
         let offset = downloadSet.index(of: task)
         downloadSet.remove(task)
         downloadTaskToRatio.removeValue(forKey: task)
+        let description = downloadTaskDescription[task] ?? ""
+        downloadTaskDescription.removeValue(forKey: task)
+        
         let theIndexPath = IndexPath(item: offset, section: 0)
         
         self.collectionView.performBatchUpdates({
             collectionView.deleteItems(at: [theIndexPath])
-        }, completion: nil)
+        }, completion: { (_) in
+            self.infoAlert(title: "Download Failed", message: description)
+        })
     }
     
     func didUpdateDownloadPercentage(task:URLSessionDownloadTask, percentage: Float) {
@@ -524,7 +545,9 @@ extension LibraryViewController: DownloadDisplayDelegate {
         
         collectionView.performBatchUpdates({
             collectionView.insertItems(at: [newIndexPath])
-        }, completion: nil)
+        }, completion: {(_) in
+            self.infoAlert(title: "Success", message: "Publication added to library.")
+        })
     }
 }
 
