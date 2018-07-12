@@ -19,6 +19,7 @@ class CbzViewController: CbzNavigatorViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationController?.setNavigationBarHidden(true, animated: false)
+        navigationController?.navigationBar.tintColor = UIColor.black
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -33,7 +34,7 @@ class CbzViewController: CbzNavigatorViewController {
         view.addGestureRecognizer(swipeRight)
         view.addGestureRecognizer(swipeLeft)
         // SpineItemView button.
-        let spineItemButton = UIBarButtonItem(title: "📖", style: .plain, target: self,
+        let spineItemButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self,
                                               action: #selector(presentSpineItemsTVC))
         /// Add spineItemViewController button to navBar.
         navigationItem.setRightBarButtonItems([spineItemButton], animated: true)
