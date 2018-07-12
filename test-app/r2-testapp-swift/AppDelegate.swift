@@ -354,7 +354,7 @@ extension AppDelegate {
     ///   - path: The path of the License Document (LCPL).
     ///   - completion: The handler to be called on completion.
     internal func publication(at url: URL) throws -> Promise<(URL, URLSessionDownloadTask?)> {
-        showInfoAlert(title: "Downloading", message: "The publication is being fetched in the background and will be available soon.")
+        showInfoAlert(title: "Importing", message: "R2Reader is trying to import the LCP publication and will be available soon.")
         /// Here we use a lcpLicense, and that's avoidable.
         /// Normally the streamer scan for DRM
         let lcpLicense = try LcpLicense.init(withLicenseDocumentAt: url)
@@ -679,6 +679,12 @@ extension AppDelegate: LibraryViewControllerDelegate {
         
         if let url = URL(string: path) {
             let filename = url.lastPathComponent
+            
+            #if LCP
+            if let lcpLicense = try? LcpLicense(withLicenseDocumentIn: url) {
+                try? lcpLicense.removeDataBaseItem()
+            }
+            #endif
             
             removeFromDocumentsDirectory(fileName: filename)
         }
