@@ -223,4 +223,26 @@ extension UserSettingsNavigationController: AdvancedSettingsDelegate {
         }
     }
     
+    /// Line height
+    
+    func incrementLineHeight() {
+        if let lineHeight = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.lineHeight.rawValue) as? Incrementable {
+            lineHeight.increment()
+            usdelegate?.updateUserSettingsStyle()
+        }
+    }
+    
+    func decrementLineHeight() {
+        if let lineHeight = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.lineHeight.rawValue) as? Incrementable {
+            lineHeight.decrement()
+            usdelegate?.updateUserSettingsStyle()
+        }
+    }
+    
+    func updateLineHeightLabel() {
+        if let newValue = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.lineHeight.rawValue)?.toString() {
+            advancedSettingsViewController.updateLineHeight(value: newValue)
+        }
+    }
+    
 }
