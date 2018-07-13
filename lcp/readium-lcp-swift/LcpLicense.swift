@@ -138,7 +138,15 @@ public class LcpLicense: DrmLicense {
         case .expired:
             throw LcpError.licenseStatusExpired(updatedDate)
         case .revoked:
-            throw LcpError.licenseStatusRevoked(updatedDate)
+            let extraInfo: String? = {
+                if let registerCount = self.status?.events.filter({ (event) -> Bool in
+                    return event.type == "register"
+                }).count {
+                    return "The license was registered by \(registerCount) devices."
+                }
+                return nil
+            } ()
+            throw LcpError.licenseStatusRevoked(updatedDate, extraInfo)
         case .cancelled:
             throw LcpError.licenseStatusCancelled(updatedDate)
         default:

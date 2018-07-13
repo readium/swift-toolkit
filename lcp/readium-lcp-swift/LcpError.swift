@@ -45,7 +45,7 @@ public enum LcpError: Error {
     case missingLicenseStatus
     case licenseStatusCancelled(Date?)
     case licenseStatusReturned(Date?)
-    case licenseStatusRevoked(Date?)
+    case licenseStatusRevoked(Date?, String?)
     case licenseStatusExpired(Date?)
     case invalidRights
     case invalidPassphrase
@@ -103,9 +103,13 @@ extension LcpError: LocalizedError {
         case .licenseStatusReturned(let updatedDate):
             let suffix = self.localizedSuffix(for: updatedDate)
             return "This license has been returned\(suffix)."
-        case .licenseStatusRevoked(let updatedDate):
+        case .licenseStatusRevoked(let updatedDate, let extra):
             let suffix = self.localizedSuffix(for: updatedDate)
-            return "This license has been revoked by its provider\(suffix)."
+            let message = "This license has been revoked by its provider" + suffix + "."
+            guard let extraInfo = extra else {
+                return message
+            }
+            return message + "\n" + extraInfo
         case .licenseStatusCancelled(let updatedDate):
             let suffix = self.localizedSuffix(for: updatedDate)
             return "You have cancelled this license\(suffix)."
