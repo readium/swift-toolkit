@@ -119,7 +119,7 @@ class Licenses {
         guard try db.scalar(licenses.count) > 0 else {
             return false
         }
-        let query = licenses.filter(self.id == id && self.localFileURL != nil)
+        let query = licenses.filter(self.id == licenseID && self.localFileURL != nil)
         let count = try db.scalar(query.count)
         
         return count == 1
