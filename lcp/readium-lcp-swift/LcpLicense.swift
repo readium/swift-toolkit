@@ -126,18 +126,21 @@ public class LcpLicense: DrmLicense {
     }
 
     public func checkStatus() throws {
-        guard let status =  status?.status else {
+        guard let theStatus =  status?.status else {
             throw LcpError.missingLicenseStatus
         }
-        switch status {
+        
+        let updatedDate = status?.updated?.status
+        
+        switch theStatus {
         case .returned:
-            throw LcpError.licenseStatusReturned
+            throw LcpError.licenseStatusReturned(updatedDate)
         case .expired:
-            throw LcpError.licenseStatusExpired
+            throw LcpError.licenseStatusExpired(updatedDate)
         case .revoked:
-            throw LcpError.licenseStatusRevoked
+            throw LcpError.licenseStatusRevoked(updatedDate)
         case .cancelled:
-            throw LcpError.licenseStatusCancelled
+            throw LcpError.licenseStatusCancelled(updatedDate)
         default:
             return
         }

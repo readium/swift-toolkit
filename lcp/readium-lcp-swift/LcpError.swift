@@ -43,12 +43,28 @@ public enum LcpError: Error {
     case invalidContext
     case crlFetching
     case missingLicenseStatus
-    case licenseStatusCancelled
-    case licenseStatusReturned
-    case licenseStatusRevoked
-    case licenseStatusExpired
+    case licenseStatusCancelled(Date?)
+    case licenseStatusReturned(Date?)
+    case licenseStatusRevoked(Date?)
+    case licenseStatusExpired(Date?)
     case invalidRights
     case invalidPassphrase
+    
+    func localizedString(for date: Date) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMMM dd, yyyy HH:mm"
+        
+        dateFormatter.locale = Locale(identifier:"en")
+        //.current // Change "en" to change the default locale if you want
+        return dateFormatter.string(from: date)
+    }
+    
+    func localizedSuffix(for date: Date?) -> String {
+        if let theDate = date {
+            return " on \(localizedString(for: theDate))"
+        }
+        return ""
+    }
 }
 
 extension LcpError: LocalizedError {
@@ -84,14 +100,18 @@ extension LcpError: LocalizedError {
             return "The publication data is invalid."
         case .missingLicenseStatus:
             return "The license status couldn't be defined."
-        case .licenseStatusReturned:
-            return "This license has been returned."
-        case .licenseStatusRevoked:
-            return "This license has been revoked by its provider."
-        case .licenseStatusCancelled:
-            return "You have cancelled this license."
-        case .licenseStatusExpired:
-            return "The license status is expired, if your provider allow it, you may be able to renew it."
+        case .licenseStatusReturned(let updatedDate):
+            let suffix = self.localizedSuffix(for: updatedDate)
+            return "This license has been returned\(suffix)."
+        case .licenseStatusRevoked(let updatedDate):
+            let suffix = self.localizedSuffix(for: updatedDate)
+            return "This license has been revoked by its provider\(suffix)."
+        case .licenseStatusCancelled(let updatedDate):
+            let suffix = self.localizedSuffix(for: updatedDate)
+            return "You have cancelled this license\(suffix)."
+        case .licenseStatusExpired(let updatedDate):
+            let suffix = self.localizedSuffix(for: updatedDate)
+            return "The license status is expired\(suffix), if your provider allow it, you may be able to renew it."
         case .invalidRights:
             return "The rights of this license aren't valid."
         case .registrationFailure:
