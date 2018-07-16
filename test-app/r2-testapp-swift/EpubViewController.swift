@@ -147,6 +147,11 @@ class EpubViewController: UIViewController {
     
     open override var prefersStatusBarHidden: Bool {
         return true
+    
+    override func willMove(toParentViewController parent: UIViewController?) {
+        // Restore library's default UI colors
+        navigationController?.navigationBar.tintColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
+        navigationController?.navigationBar.barTintColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
     }
 }
 
