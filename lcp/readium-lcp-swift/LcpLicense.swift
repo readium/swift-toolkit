@@ -387,15 +387,15 @@ public class LcpLicense: DrmLicense {
                 return
             }
             let request = URLRequest(url: publicationLink.href)
-            let title = publicationLink.title ?? "publication" //Todo
+            let title = publicationLink.title ?? "Unknow Title" //Todo
             let fileManager = FileManager.default
             // Document Directory always exists (hence try!).
             var destinationUrl = try! fileManager.url(for: .documentDirectory,
                                                       in: .userDomainMask,
                                                       appropriateFor: nil,
                                                       create: true)
-            
-            destinationUrl.appendPathComponent("\(title).epub")
+            let fileName = "lcp." + self.license.id
+            destinationUrl.appendPathComponent("\(fileName).epub")
 //            guard !FileManager.default.fileExists(atPath: destinationUrl.path) else {
 //                //fulfill((destinationUrl, nil))
 //                return
@@ -548,6 +548,10 @@ public class LcpLicense: DrmLicense {
     
     public func removeDataBaseItem() throws {
         try LCPDatabase.shared.licenses.deleteData(for: self.license.id)
+    }
+    
+    public static func removeDataBaseItem(licenseID: String) throws {
+        try LCPDatabase.shared.licenses.deleteData(for: licenseID)
     }
 
     public func currentStatus() -> String {
