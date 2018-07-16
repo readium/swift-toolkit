@@ -345,6 +345,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
         switch publicationType {
         case .cbz:
             let cbzViewer = CbzViewController(for: publication, initialIndex: 0)
+            cbzViewer.hidesBottomBarWhenPushed = true
             success?(cbzViewer)
         case .epub:
             guard let publicationIdentifier = publication.metadata.identifier else {
