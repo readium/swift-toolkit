@@ -131,7 +131,6 @@ extension AppDelegate {
                                                                relativePath: "",
                                                                type: .epub)) {
                         
-                        //self.showInfoAlert(title: "Success", message: "LCP Publication added to library.")
                         self.reload(downloadTask: downloadTask)
                     } else {
                         self.showInfoAlert(title: "Error", message: "The LCP Publication couldn't be loaded.")
