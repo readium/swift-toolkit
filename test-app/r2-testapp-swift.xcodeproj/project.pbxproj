@@ -7,18 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		03702BFE20F16C4B0064F079 /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03702BFD20F16C4B0064F079 /* ReadiumLCP.framework */; };
-		03702BFF20F16C4B0064F079 /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03702BFD20F16C4B0064F079 /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		03702C0120F16C4B0064F079 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03702C0020F16C4B0064F079 /* R2LCPClient.framework */; };
-		03702C0220F16C4B0064F079 /* R2LCPClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03702C0020F16C4B0064F079 /* R2LCPClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		03702C0420F16C4B0064F079 /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03702C0320F16C4B0064F079 /* R2Navigator.framework */; };
-		03702C0520F16C4B0064F079 /* R2Navigator.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03702C0320F16C4B0064F079 /* R2Navigator.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		03702C0720F16C4B0064F079 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03702C0620F16C4B0064F079 /* R2Shared.framework */; };
-		03702C0820F16C4B0064F079 /* R2Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03702C0620F16C4B0064F079 /* R2Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		03702C0A20F16C4B0064F079 /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03702C0920F16C4B0064F079 /* R2Streamer.framework */; };
-		03702C0B20F16C4B0064F079 /* R2Streamer.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03702C0920F16C4B0064F079 /* R2Streamer.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		03702C0D20F16C4B0064F079 /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03702C0C20F16C4B0064F079 /* ReadiumOPDS.framework */; };
-		03702C0E20F16C4B0064F079 /* ReadiumOPDS.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03702C0C20F16C4B0064F079 /* ReadiumOPDS.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		03B8169120FD0118002A449E /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7650206A5F1A00C3C24E /* R2Navigator.framework */; };
+		03B8169220FD0118002A449E /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7646206A5F1900C3C24E /* R2Shared.framework */; };
+		03B8169320FD0118002A449E /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764B206A5F1A00C3C24E /* R2Streamer.framework */; };
+		03B8169420FD012C002A449E /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE2B6A862088949300C12072 /* ReadiumOPDS.framework */; };
 		03D011F2208023360097A87C /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03D011F1208023360097A87C /* Minizip.framework */; };
 		03EF7653206A5F1A00C3C24E /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7647206A5F1900C3C24E /* CryptoSwift.framework */; };
 		03EF7654206A5F1A00C3C24E /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7648206A5F1A00C3C24E /* SQLite.framework */; };
@@ -74,25 +66,6 @@
 		F3E7D4881F4F044100DF166D /* UserSettingsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4851F4F044100DF166D /* UserSettingsTableViewController.swift */; };
 		F3E7D48A1F4F049C00DF166D /* SpineItemTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4891F4F049C00DF166D /* SpineItemTableViewController.swift */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		F3E7D4C21F4F09A200DF166D /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				03702C0E20F16C4B0064F079 /* ReadiumOPDS.framework in Embed Frameworks */,
-				03702C0520F16C4B0064F079 /* R2Navigator.framework in Embed Frameworks */,
-				03702C0820F16C4B0064F079 /* R2Shared.framework in Embed Frameworks */,
-				03702BFF20F16C4B0064F079 /* ReadiumLCP.framework in Embed Frameworks */,
-				03702C0B20F16C4B0064F079 /* R2Streamer.framework in Embed Frameworks */,
-				03702C0220F16C4B0064F079 /* R2LCPClient.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		03702BFD20F16C4B0064F079 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -173,19 +146,17 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				03B8169420FD012C002A449E /* ReadiumOPDS.framework in Frameworks */,
+				03B8169120FD0118002A449E /* R2Navigator.framework in Frameworks */,
+				03B8169220FD0118002A449E /* R2Shared.framework in Frameworks */,
+				03B8169320FD0118002A449E /* R2Streamer.framework in Frameworks */,
 				AE009A04207F5980001D82C5 /* Fuzi.framework in Frameworks */,
-				03702C0720F16C4B0064F079 /* R2Shared.framework in Frameworks */,
-				03702C0D20F16C4B0064F079 /* ReadiumOPDS.framework in Frameworks */,
 				03EF7653206A5F1A00C3C24E /* CryptoSwift.framework in Frameworks */,
-				03702C0420F16C4B0064F079 /* R2Navigator.framework in Frameworks */,
 				03EF7654206A5F1A00C3C24E /* SQLite.framework in Frameworks */,
 				03EF7655206A5F1A00C3C24E /* ZIPFoundation.framework in Frameworks */,
 				03EF7656206A5F1A00C3C24E /* ObjectMapper.framework in Frameworks */,
-				03702C0A20F16C4B0064F079 /* R2Streamer.framework in Frameworks */,
 				03EF7658206A5F1A00C3C24E /* SwiftyJSON.framework in Frameworks */,
-				03702BFE20F16C4B0064F079 /* ReadiumLCP.framework in Frameworks */,
 				03D011F2208023360097A87C /* Minizip.framework in Frameworks */,
-				03702C0120F16C4B0064F079 /* R2LCPClient.framework in Frameworks */,
 				03EF7659206A5F1A00C3C24E /* AEXML.framework in Frameworks */,
 				03EF765A206A5F1A00C3C24E /* PromiseKit.framework in Frameworks */,
 				03EF765B206A5F1A00C3C24E /* Kingfisher.framework in Frameworks */,
@@ -387,7 +358,6 @@
 				F3E7D4341F4EF6D400DF166D /* Sources */,
 				F3E7D4351F4EF6D400DF166D /* Frameworks */,
 				F3E7D4361F4EF6D400DF166D /* Resources */,
-				F3E7D4C21F4F09A200DF166D /* Embed Frameworks */,
 				03EF765E206A5F2B00C3C24E /* Carthage Run Script */,
 			);
 			buildRules = (
@@ -482,6 +452,10 @@
 				"$(SRCROOT)/Carthage/Build/iOS/ZIPFoundation.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/Fuzi.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/Minizip.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/R2Shared.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/R2Streamer.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/R2Navigator.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/ReadiumOPDS.framework",
 			);
 			name = "Carthage Run Script";
 			outputPaths = (
@@ -677,7 +651,7 @@
 					"$(PROJECT_DIR)",
 				);
 				OTHER_LDFLAGS = "-lxml2";
-				OTHER_SWIFT_FLAGS = "-DLCP";
+				OTHER_SWIFT_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.r2reader;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
@@ -710,7 +684,7 @@
 					"$(PROJECT_DIR)",
 				);
 				OTHER_LDFLAGS = "-lxml2";
-				OTHER_SWIFT_FLAGS = "-DLCP";
+				OTHER_SWIFT_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.r2reader;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
