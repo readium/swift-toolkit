@@ -7,18 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		03B8169120FD0118002A449E /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7650206A5F1A00C3C24E /* R2Navigator.framework */; };
+		03B8169220FD0118002A449E /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7646206A5F1900C3C24E /* R2Shared.framework */; };
+		03B8169320FD0118002A449E /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764B206A5F1A00C3C24E /* R2Streamer.framework */; };
+		03B8169420FD012C002A449E /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE2B6A862088949300C12072 /* ReadiumOPDS.framework */; };
 		03D011F2208023360097A87C /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03D011F1208023360097A87C /* Minizip.framework */; };
-		03EF7652206A5F1A00C3C24E /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7646206A5F1900C3C24E /* R2Shared.framework */; };
 		03EF7653206A5F1A00C3C24E /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7647206A5F1900C3C24E /* CryptoSwift.framework */; };
 		03EF7654206A5F1A00C3C24E /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7648206A5F1A00C3C24E /* SQLite.framework */; };
 		03EF7655206A5F1A00C3C24E /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */; };
 		03EF7656206A5F1A00C3C24E /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764A206A5F1A00C3C24E /* ObjectMapper.framework */; };
-		03EF7657206A5F1A00C3C24E /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764B206A5F1A00C3C24E /* R2Streamer.framework */; };
 		03EF7658206A5F1A00C3C24E /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */; };
 		03EF7659206A5F1A00C3C24E /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764D206A5F1A00C3C24E /* AEXML.framework */; };
 		03EF765A206A5F1A00C3C24E /* PromiseKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764E206A5F1A00C3C24E /* PromiseKit.framework */; };
 		03EF765B206A5F1A00C3C24E /* Kingfisher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764F206A5F1A00C3C24E /* Kingfisher.framework */; };
-		03EF765C206A5F1A00C3C24E /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7650206A5F1A00C3C24E /* R2Navigator.framework */; };
 		03EF765D206A5F1A00C3C24E /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */; };
 		113B12D020800FD60074A5A2 /* ODPSPublicationCellInfoView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 113B12BF20800FD50074A5A2 /* ODPSPublicationCellInfoView.xib */; };
 		113B12D220800FD60074A5A2 /* OPDSCatalogSelectorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */; };
@@ -26,7 +27,6 @@
 		113B12DD20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */; };
 		57B00B7B20DBF88400B076A2 /* R2TabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57B00B7A20DBF88400B076A2 /* R2TabBar.swift */; };
 		AE009A04207F5980001D82C5 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE009A03207F5980001D82C5 /* Fuzi.framework */; };
-		AE2B6A872088949300C12072 /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE2B6A862088949300C12072 /* ReadiumOPDS.framework */; };
 		AE2B6A8920889C8700C12072 /* AppMain.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AE2B6A8820889C8700C12072 /* AppMain.storyboard */; };
 		AE37DE432093291600079AA2 /* AboutTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE37DE422093291600079AA2 /* AboutTableViewController.swift */; };
 		AE48F31E208DD056000B7B44 /* OPDS.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AE48F31D208DD056000B7B44 /* OPDS.storyboard */; };
@@ -55,8 +55,6 @@
 		F3E7D43C1F4EF6D400DF166D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D43B1F4EF6D400DF166D /* AppDelegate.swift */; };
 		F3E7D4431F4EF6D400DF166D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4421F4EF6D400DF166D /* Assets.xcassets */; };
 		F3E7D4461F4EF6D400DF166D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */; };
-		F3E7D4511F4EF6D400DF166D /* r2_testapp_swiftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4501F4EF6D400DF166D /* r2_testapp_swiftTests.swift */; };
-		F3E7D45C1F4EF6D400DF166D /* r2_testapp_swiftUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D45B1F4EF6D400DF166D /* r2_testapp_swiftUITests.swift */; };
 		F3E7D4711F4EFEC200DF166D /* LibraryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4701F4EFEC200DF166D /* LibraryViewController.swift */; };
 		F3E7D4751F4F031B00DF166D /* PublicationCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4741F4F031B00DF166D /* PublicationCell.swift */; };
 		F3E7D4771F4F033200DF166D /* CellMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4761F4F033200DF166D /* CellMenuView.swift */; };
@@ -69,37 +67,13 @@
 		F3E7D48A1F4F049C00DF166D /* SpineItemTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4891F4F049C00DF166D /* SpineItemTableViewController.swift */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		F3E7D44D1F4EF6D400DF166D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = F3E7D4301F4EF6D400DF166D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = F3E7D4371F4EF6D400DF166D;
-			remoteInfo = "r2-testapp-swift";
-		};
-		F3E7D4581F4EF6D400DF166D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = F3E7D4301F4EF6D400DF166D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = F3E7D4371F4EF6D400DF166D;
-			remoteInfo = "r2-testapp-swift";
-		};
-/* End PBXContainerItemProxy section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		F3E7D4C21F4F09A200DF166D /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
+		03702BFD20F16C4B0064F079 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		03702C0020F16C4B0064F079 /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		03702C0320F16C4B0064F079 /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		03702C0620F16C4B0064F079 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		03702C0920F16C4B0064F079 /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		03702C0C20F16C4B0064F079 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumOPDS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03D011F1208023360097A87C /* Minizip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Minizip.framework; path = Carthage/Build/iOS/Minizip.framework; sourceTree = "<group>"; };
 		03EF7646206A5F1900C3C24E /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
 		03EF7647206A5F1900C3C24E /* CryptoSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoSwift.framework; path = Carthage/Build/iOS/CryptoSwift.framework; sourceTree = "<group>"; };
@@ -151,10 +125,8 @@
 		F3E7D4421F4EF6D400DF166D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F3E7D4451F4EF6D400DF166D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		F3E7D4471F4EF6D400DF166D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		F3E7D44C1F4EF6D400DF166D /* r2-testapp-swiftTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "r2-testapp-swiftTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3E7D4501F4EF6D400DF166D /* r2_testapp_swiftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = r2_testapp_swiftTests.swift; sourceTree = "<group>"; };
 		F3E7D4521F4EF6D400DF166D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		F3E7D4571F4EF6D400DF166D /* r2-testapp-swiftUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "r2-testapp-swiftUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3E7D45B1F4EF6D400DF166D /* r2_testapp_swiftUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = r2_testapp_swiftUITests.swift; sourceTree = "<group>"; };
 		F3E7D45D1F4EF6D400DF166D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F3E7D4701F4EFEC200DF166D /* LibraryViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LibraryViewController.swift; sourceTree = "<group>"; };
@@ -174,35 +146,21 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AE2B6A872088949300C12072 /* ReadiumOPDS.framework in Frameworks */,
+				03B8169420FD012C002A449E /* ReadiumOPDS.framework in Frameworks */,
+				03B8169120FD0118002A449E /* R2Navigator.framework in Frameworks */,
+				03B8169220FD0118002A449E /* R2Shared.framework in Frameworks */,
+				03B8169320FD0118002A449E /* R2Streamer.framework in Frameworks */,
 				AE009A04207F5980001D82C5 /* Fuzi.framework in Frameworks */,
-				03EF7652206A5F1A00C3C24E /* R2Shared.framework in Frameworks */,
 				03EF7653206A5F1A00C3C24E /* CryptoSwift.framework in Frameworks */,
 				03EF7654206A5F1A00C3C24E /* SQLite.framework in Frameworks */,
 				03EF7655206A5F1A00C3C24E /* ZIPFoundation.framework in Frameworks */,
 				03EF7656206A5F1A00C3C24E /* ObjectMapper.framework in Frameworks */,
-				03EF7657206A5F1A00C3C24E /* R2Streamer.framework in Frameworks */,
 				03EF7658206A5F1A00C3C24E /* SwiftyJSON.framework in Frameworks */,
 				03D011F2208023360097A87C /* Minizip.framework in Frameworks */,
 				03EF7659206A5F1A00C3C24E /* AEXML.framework in Frameworks */,
 				03EF765A206A5F1A00C3C24E /* PromiseKit.framework in Frameworks */,
 				03EF765B206A5F1A00C3C24E /* Kingfisher.framework in Frameworks */,
-				03EF765C206A5F1A00C3C24E /* R2Navigator.framework in Frameworks */,
 				03EF765D206A5F1A00C3C24E /* GCDWebServers.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F3E7D4491F4EF6D400DF166D /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F3E7D4541F4EF6D400DF166D /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -255,6 +213,12 @@
 		F3E7D42F1F4EF6D400DF166D = {
 			isa = PBXGroup;
 			children = (
+				03702C0C20F16C4B0064F079 /* ReadiumOPDS.framework */,
+				03702C0920F16C4B0064F079 /* R2Streamer.framework */,
+				03702C0620F16C4B0064F079 /* R2Shared.framework */,
+				03702C0320F16C4B0064F079 /* R2Navigator.framework */,
+				03702C0020F16C4B0064F079 /* R2LCPClient.framework */,
+				03702BFD20F16C4B0064F079 /* ReadiumLCP.framework */,
 				F3E7D43A1F4EF6D400DF166D /* r2-testapp-swift */,
 				F3E7D44F1F4EF6D400DF166D /* r2-testapp-swiftTests */,
 				F3E7D45A1F4EF6D400DF166D /* r2-testapp-swiftUITests */,
@@ -267,8 +231,6 @@
 			isa = PBXGroup;
 			children = (
 				F3E7D4381F4EF6D400DF166D /* r2-testapp-swift.app */,
-				F3E7D44C1F4EF6D400DF166D /* r2-testapp-swiftTests.xctest */,
-				F3E7D4571F4EF6D400DF166D /* r2-testapp-swiftUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -396,9 +358,7 @@
 				F3E7D4341F4EF6D400DF166D /* Sources */,
 				F3E7D4351F4EF6D400DF166D /* Frameworks */,
 				F3E7D4361F4EF6D400DF166D /* Resources */,
-				F3E7D4C21F4F09A200DF166D /* Embed Frameworks */,
 				03EF765E206A5F2B00C3C24E /* Carthage Run Script */,
-				F36D24E01F59A55F00A00BF1 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -408,42 +368,6 @@
 			productName = "r2-testapp-swift";
 			productReference = F3E7D4381F4EF6D400DF166D /* r2-testapp-swift.app */;
 			productType = "com.apple.product-type.application";
-		};
-		F3E7D44B1F4EF6D400DF166D /* r2-testapp-swiftTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = F3E7D4631F4EF6D400DF166D /* Build configuration list for PBXNativeTarget "r2-testapp-swiftTests" */;
-			buildPhases = (
-				F3E7D4481F4EF6D400DF166D /* Sources */,
-				F3E7D4491F4EF6D400DF166D /* Frameworks */,
-				F3E7D44A1F4EF6D400DF166D /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				F3E7D44E1F4EF6D400DF166D /* PBXTargetDependency */,
-			);
-			name = "r2-testapp-swiftTests";
-			productName = "r2-testapp-swiftTests";
-			productReference = F3E7D44C1F4EF6D400DF166D /* r2-testapp-swiftTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		F3E7D4561F4EF6D400DF166D /* r2-testapp-swiftUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = F3E7D4661F4EF6D400DF166D /* Build configuration list for PBXNativeTarget "r2-testapp-swiftUITests" */;
-			buildPhases = (
-				F3E7D4531F4EF6D400DF166D /* Sources */,
-				F3E7D4541F4EF6D400DF166D /* Frameworks */,
-				F3E7D4551F4EF6D400DF166D /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				F3E7D4591F4EF6D400DF166D /* PBXTargetDependency */,
-			);
-			name = "r2-testapp-swiftUITests";
-			productName = "r2-testapp-swiftUITests";
-			productReference = F3E7D4571F4EF6D400DF166D /* r2-testapp-swiftUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
 
@@ -457,6 +381,7 @@
 				TargetAttributes = {
 					F3E7D4371F4EF6D400DF166D = {
 						CreatedOnToolsVersion = 8.3.3;
+						DevelopmentTeam = 327YA3JNGT;
 						LastSwiftMigration = 0930;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
@@ -464,18 +389,6 @@
 								enabled = 1;
 							};
 						};
-					};
-					F3E7D44B1F4EF6D400DF166D = {
-						CreatedOnToolsVersion = 8.3.3;
-						DevelopmentTeam = 327YA3JNGT;
-						ProvisioningStyle = Automatic;
-						TestTargetID = F3E7D4371F4EF6D400DF166D;
-					};
-					F3E7D4561F4EF6D400DF166D = {
-						CreatedOnToolsVersion = 8.3.3;
-						DevelopmentTeam = 327YA3JNGT;
-						ProvisioningStyle = Automatic;
-						TestTargetID = F3E7D4371F4EF6D400DF166D;
 					};
 				};
 			};
@@ -493,8 +406,6 @@
 			projectRoot = "";
 			targets = (
 				F3E7D4371F4EF6D400DF166D /* r2-testapp-swift */,
-				F3E7D44B1F4EF6D400DF166D /* r2-testapp-swiftTests */,
-				F3E7D4561F4EF6D400DF166D /* r2-testapp-swiftUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -521,20 +432,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		F3E7D44A1F4EF6D400DF166D /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F3E7D4551F4EF6D400DF166D /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
@@ -550,14 +447,14 @@
 				"$(SRCROOT)/Carthage/Build/iOS/Kingfisher.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/ObjectMapper.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/PromiseKit.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/R2Navigator.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/R2Shared.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/R2Streamer.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/SQLite.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/SwiftyJSON.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/ZIPFoundation.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/Fuzi.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/Minizip.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/R2Shared.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/R2Streamer.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/R2Navigator.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/ReadiumOPDS.framework",
 			);
 			name = "Carthage Run Script";
@@ -566,19 +463,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "/usr/local/bin/carthage copy-frameworks";
-		};
-		F36D24E01F59A55F00A00BF1 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 12;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "APP_PATH=\"${TARGET_BUILD_DIR}/${WRAPPER_NAME}\"\n\n# This script loops through the frameworks embedded in the application and\n# removes unused architectures.\nfind \"$APP_PATH\" -name '*.framework' -type d | while read -r FRAMEWORK\ndo\nFRAMEWORK_EXECUTABLE_NAME=$(defaults read \"$FRAMEWORK/Info.plist\" CFBundleExecutable)\nFRAMEWORK_EXECUTABLE_PATH=\"$FRAMEWORK/$FRAMEWORK_EXECUTABLE_NAME\"\necho \"Executable is $FRAMEWORK_EXECUTABLE_PATH\"\n\nEXTRACTED_ARCHS=()\n\nfor ARCH in $ARCHS\ndo\necho \"Extracting $ARCH from $FRAMEWORK_EXECUTABLE_NAME\"\nlipo -extract \"$ARCH\" \"$FRAMEWORK_EXECUTABLE_PATH\" -o \"$FRAMEWORK_EXECUTABLE_PATH-$ARCH\"\nEXTRACTED_ARCHS+=(\"$FRAMEWORK_EXECUTABLE_PATH-$ARCH\")\ndone\n\necho \"Merging extracted architectures: ${ARCHS}\"\nlipo -o \"$FRAMEWORK_EXECUTABLE_PATH-merged\" -create \"${EXTRACTED_ARCHS[@]}\"\nrm \"${EXTRACTED_ARCHS[@]}\"\n\necho \"Replacing original executable with thinned version\"\nrm \"$FRAMEWORK_EXECUTABLE_PATH\"\nmv \"$FRAMEWORK_EXECUTABLE_PATH-merged\" \"$FRAMEWORK_EXECUTABLE_PATH\"\n\ndone";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -619,36 +503,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		F3E7D4481F4EF6D400DF166D /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				F3E7D4511F4EF6D400DF166D /* r2_testapp_swiftTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F3E7D4531F4EF6D400DF166D /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				F3E7D45C1F4EF6D400DF166D /* r2_testapp_swiftUITests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		F3E7D44E1F4EF6D400DF166D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = F3E7D4371F4EF6D400DF166D /* r2-testapp-swift */;
-			targetProxy = F3E7D44D1F4EF6D400DF166D /* PBXContainerItemProxy */;
-		};
-		F3E7D4591F4EF6D400DF166D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = F3E7D4371F4EF6D400DF166D /* r2-testapp-swift */;
-			targetProxy = F3E7D4581F4EF6D400DF166D /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */ = {
@@ -781,7 +636,7 @@
 				CODE_SIGN_ENTITLEMENTS = "r2-testapp-swift/r2-testapp-swift.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
@@ -814,7 +669,7 @@
 				CODE_SIGN_ENTITLEMENTS = "r2-testapp-swift/r2-testapp-swift.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
@@ -829,74 +684,13 @@
 					"$(PROJECT_DIR)",
 				);
 				OTHER_LDFLAGS = "-lxml2";
+				OTHER_SWIFT_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.r2reader;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
 				SWIFT_VERSION = 4.0;
-			};
-			name = Release;
-		};
-		F3E7D4641F4EF6D400DF166D /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CLANG_ENABLE_CODE_COVERAGE = NO;
-				DEVELOPMENT_TEAM = 327YA3JNGT;
-				INFOPLIST_FILE = "r2-testapp-swiftTests/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-testapp-swiftTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/r2-testapp-swift.app/r2-testapp-swift";
-			};
-			name = Debug;
-		};
-		F3E7D4651F4EF6D400DF166D /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CLANG_ENABLE_CODE_COVERAGE = NO;
-				DEVELOPMENT_TEAM = 327YA3JNGT;
-				INFOPLIST_FILE = "r2-testapp-swiftTests/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-testapp-swiftTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/r2-testapp-swift.app/r2-testapp-swift";
-			};
-			name = Release;
-		};
-		F3E7D4671F4EF6D400DF166D /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CLANG_ENABLE_CODE_COVERAGE = NO;
-				DEVELOPMENT_TEAM = 327YA3JNGT;
-				INFOPLIST_FILE = "r2-testapp-swiftUITests/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-testapp-swiftUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
-				TEST_TARGET_NAME = "r2-testapp-swift";
-			};
-			name = Debug;
-		};
-		F3E7D4681F4EF6D400DF166D /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CLANG_ENABLE_CODE_COVERAGE = NO;
-				DEVELOPMENT_TEAM = 327YA3JNGT;
-				INFOPLIST_FILE = "r2-testapp-swiftUITests/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-testapp-swiftUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
-				TEST_TARGET_NAME = "r2-testapp-swift";
 			};
 			name = Release;
 		};
@@ -917,24 +711,6 @@
 			buildConfigurations = (
 				F3E7D4611F4EF6D400DF166D /* Debug */,
 				F3E7D4621F4EF6D400DF166D /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		F3E7D4631F4EF6D400DF166D /* Build configuration list for PBXNativeTarget "r2-testapp-swiftTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				F3E7D4641F4EF6D400DF166D /* Debug */,
-				F3E7D4651F4EF6D400DF166D /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		F3E7D4661F4EF6D400DF166D /* Build configuration list for PBXNativeTarget "r2-testapp-swiftUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				F3E7D4671F4EF6D400DF166D /* Debug */,
-				F3E7D4681F4EF6D400DF166D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
