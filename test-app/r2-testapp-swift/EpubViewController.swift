@@ -142,11 +142,19 @@ class EpubViewController: UIViewController {
     }
     
     override open var preferredStatusBarUpdateAnimation: UIStatusBarAnimation {
-        return UIStatusBarAnimation.fade
+        return UIStatusBarAnimation.slide
     }
     
     open override var prefersStatusBarHidden: Bool {
-        return true
+        // Prevent animation blinking when navigating back to the library
+        // by always showing status bar when navigation bar is visible
+        return navigationController?.isNavigationBarHidden == true
+    }
+    
+    override func willMove(toParentViewController parent: UIViewController?) {
+        // Restore library's default UI colors
+        navigationController?.navigationBar.tintColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
+        navigationController?.navigationBar.barTintColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
     }
 }
 
