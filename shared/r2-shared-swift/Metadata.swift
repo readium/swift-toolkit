@@ -303,6 +303,14 @@ extension Metadata {
                                 subject.scheme = sv as? String
                             case "code":
                                 subject.code = sv as? String
+                            case "links":
+                                if let dict = sv as? [String: Any] {
+                                    subject.links.append(try Link.parse(linkDict: dict))
+                                }else if let array = sv as? [[String: Any]] {
+                                    for dict in array {
+                                        subject.links.append(try Link.parse(linkDict: dict))
+                                    }
+                                }
                             default:
                                 continue
                             }
