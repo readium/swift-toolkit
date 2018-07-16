@@ -396,10 +396,6 @@ public class LcpLicense: DrmLicense {
                                                       create: true)
             let fileName = "lcp." + self.license.id
             destinationUrl.appendPathComponent("\(fileName).epub")
-//            guard !FileManager.default.fileExists(atPath: destinationUrl.path) else {
-//                //fulfill((destinationUrl, nil))
-//                return
-//            }
             
             let publicationTitle = publicationLink.title ?? "..."
             
