@@ -29,6 +29,7 @@ class FontSelectionViewController: UIViewController {
         fontTableView.delegate = self
         fontTableView.dataSource = self
         self.navigationController?.isNavigationBarHidden = true
+        fontTableView.addObserver(self, forKeyPath: "contentSize", options: .new, context: nil)
     }
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -41,6 +42,11 @@ class FontSelectionViewController: UIViewController {
             let index = IndexPath.init(row: initialFontIndex, section: 0)
             fontTableView.cellForRow(at: index)?.accessoryType = .checkmark
         }
+    }
+    
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        // Update preferredContentSize only when fontTableView is populated
+        self.preferredContentSize = CGSize(width: super.preferredContentSize.width, height: fontTableView.contentSize.height)
     }
 }
 
