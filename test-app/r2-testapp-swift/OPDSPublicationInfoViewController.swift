@@ -86,8 +86,9 @@ class OPDSPublicationInfoViewController : UIViewController {
             downloadButton.isEnabled = false
             
             let request = URLRequest(url:url)
+            let description = publication?.metadata.title
             
-            DownloadSession.shared.launch(request: request, completionHandler: { (localURL, response, error, downloadTask) -> Bool in
+            DownloadSession.shared.launch(request: request, description: description, completionHandler: { (localURL, response, error, downloadTask) -> Bool in
                 
                 DispatchQueue.main.async {
                     self.downloadActivityIndicator.stopAnimating()

@@ -131,7 +131,6 @@ extension AppDelegate {
                                                                relativePath: "",
                                                                type: .epub)) {
                         
-                        self.showInfoAlert(title: "Success", message: "LCP Publication added to library.")
                         self.reload(downloadTask: downloadTask)
                     } else {
                         self.showInfoAlert(title: "Error", message: "The LCP Publication couldn't be loaded.")
@@ -171,7 +170,6 @@ extension AppDelegate {
                     showInfoAlert(title: "Error", message: "The publication isn't valid.")
                     return false
                 } else {
-                    showInfoAlert(title: "Success", message: "Publication added to library.")
                     if needUIUpdate {
                         reload(downloadTask: nil)
                     }
@@ -355,7 +353,7 @@ extension AppDelegate {
     ///   - path: The path of the License Document (LCPL).
     ///   - completion: The handler to be called on completion.
     internal func publication(at url: URL) throws -> Promise<(URL, URLSessionDownloadTask?)> {
-        showInfoAlert(title: "Downloading", message: "The publication is being fetched in the background and will be available soon.")
+        showInfoAlert(title: "Importing", message: "R2Reader is trying to import the LCP publication and will be available soon.")
         /// Here we use a lcpLicense, and that's avoidable.
         /// Normally the streamer scan for DRM
         let lcpLicense = try LcpLicense.init(withLicenseDocumentAt: url)
@@ -680,6 +678,17 @@ extension AppDelegate: LibraryViewControllerDelegate {
         
         if let url = URL(string: path) {
             let filename = url.lastPathComponent
+            
+            #if LCP
+            if let lcpLicense = try? LcpLicense(withLicenseDocumentIn: url) {
+                try? lcpLicense.removeDataBaseItem()
+            }
+            // In case, the epub download succeed but the process inserting lcp into epub failed
+            if filename.starts(with: "lcp.") {
+                let possibleLCPID = url.deletingPathExtension().lastPathComponent
+                try? LcpLicense.removeDataBaseItem(licenseID: possibleLCPID)
+            }
+            #endif
             
             removeFromDocumentsDirectory(fileName: filename)
         }
