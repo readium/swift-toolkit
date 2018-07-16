@@ -684,6 +684,11 @@ extension AppDelegate: LibraryViewControllerDelegate {
             if let lcpLicense = try? LcpLicense(withLicenseDocumentIn: url) {
                 try? lcpLicense.removeDataBaseItem()
             }
+            // In case, the epub download succeed but the process inserting lcp into epub failed
+            if filename.starts(with: "lcp.") {
+                let possibleLCPID = url.deletingPathExtension().lastPathComponent
+                try? LcpLicense.removeDataBaseItem(licenseID: possibleLCPID)
+            }
             #endif
             
             removeFromDocumentsDirectory(fileName: filename)
