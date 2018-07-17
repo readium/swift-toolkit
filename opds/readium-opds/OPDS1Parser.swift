@@ -212,6 +212,12 @@ public class OPDS1Parser {
                     let facetElementCount = Int(facetElementCountStr) {
                     newLink.properties.numberOfItems = facetElementCount
                 }
+                
+                // Active Facet Check
+                if link.attributes["activeFacet"] == "true" {
+                    newLink.rel.append("self")
+                }
+                
                 addFacet(feed: feed, to: newLink, named: facetGroupName)
             } else {
                 feed.links.append(newLink)
