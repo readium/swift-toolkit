@@ -685,7 +685,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
             }
             // In case, the epub download succeed but the process inserting lcp into epub failed
             if filename.starts(with: "lcp.") {
-                let possibleLCPID = url.deletingPathExtension().lastPathComponent
+                let possibleLCPID = url.deletingPathExtension().lastPathComponent.replacingOccurrences(of: "lcp.", with: "")
                 try? LcpLicense.removeDataBaseItem(licenseID: possibleLCPID)
             }
             #endif
