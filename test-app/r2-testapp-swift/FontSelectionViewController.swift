@@ -23,6 +23,7 @@ class FontSelectionViewController: UIViewController {
     @IBOutlet weak var fontTableView: UITableView!
     weak var delegate: FontSelectionDelegate?
     var userSettings: UserSettings?
+    var initialTableViewIndex: IndexPath?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -39,8 +40,7 @@ class FontSelectionViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if let initialFontIndex = delegate?.currentFontIndex() {
-            let index = IndexPath.init(row: initialFontIndex, section: 0)
-            fontTableView.cellForRow(at: index)?.accessoryType = .checkmark
+            initialTableViewIndex = IndexPath.init(row: initialFontIndex, section: 0)
         }
     }
     
@@ -76,22 +76,28 @@ extension FontSelectionViewController: UITableViewDataSource {
 
 extension FontSelectionViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let cell = tableView.cellForRow(at: indexPath)
-        uncheckAllRows()
-        cell?.accessoryType = .checkmark
         delegate?.fontDidChange(to: indexPath.row)
     }
-
-    fileprivate func uncheckAllRows() {
-        let rows = fontTableView.numberOfRows(inSection: 0)
-        var row = 0
-
-        while row < rows {
-            if let cell =  fontTableView.cellForRow(at: IndexPath(row: row, section: 0)) {
-
-                cell.accessoryType = .none
+    
+    func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
+        if let oldIndex = tableView.indexPathForSelectedRow {
+            tableView.cellForRow(at: oldIndex)?.accessoryType = .none
+        } else {
+            if let initialTableViewIndex = initialTableViewIndex {
+                tableView.cellForRow(at: initialTableViewIndex)?.accessoryType = .none
             }
-            row = row + 1
+        }
+        
+        tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
+        
+        return indexPath
+    }
+    
+    override func viewDidLayoutSubviews() {
+        // Add initial checkmark on row only when view is resized according to its preferredContentSize
+        if fontTableView.indexPathForSelectedRow == nil && initialTableViewIndex != nil {
+            fontTableView.cellForRow(at: initialTableViewIndex!)?.accessoryType = .checkmark
         }
     }
+    
 }
