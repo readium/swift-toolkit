@@ -387,7 +387,6 @@ public class LcpLicense: DrmLicense {
                 return
             }
             let request = URLRequest(url: publicationLink.href)
-            let title = publicationLink.title ?? "Unknow Title" //Todo
             let fileManager = FileManager.default
             // Document Directory always exists (hence try!).
             var destinationUrl = try! fileManager.url(for: .documentDirectory,
