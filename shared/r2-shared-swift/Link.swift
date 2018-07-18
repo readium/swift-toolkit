@@ -1,9 +1,12 @@
 //
 //  Link.swift
-//  R2Streamer
+//  r2-shared-swift
 //
 //  Created by Alexandre Camilleri on 2/17/17.
-//  Copyright © 2017 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import Foundation
@@ -123,7 +126,7 @@ extension Link {
                         case "numberOfItems":
                             prop.numberOfItems = vp as? Int
                         case "indirectAcquisition":
-                            guard let acquisitions = v as? [[String: Any]] else {
+                            guard let acquisitions = vp as? [[String: Any]] else {
                                 throw LinkError.invalidLink
                             }
                             for a in acquisitions {
@@ -136,7 +139,7 @@ extension Link {
                                 }
                             }
                         case "price":
-                            guard let priceDict = v as? [String: Any],
+                            guard let priceDict = vp as? [String: Any],
                                 let currency = priceDict["currency"] as? String,
                                 let value = priceDict["value"] as? Double
                                 else {
@@ -149,6 +152,7 @@ extension Link {
                         }
                     }
                 }
+                l.properties = prop
             case "children":
                 guard let childLinkDict = v as? [String: Any] else {
                     throw LinkError.invalidLink

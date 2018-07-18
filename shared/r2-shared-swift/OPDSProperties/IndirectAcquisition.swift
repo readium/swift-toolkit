@@ -3,11 +3,15 @@
 //  r2-shared-swift
 //
 //  Created by Alexandre Camilleri on 10/27/17.
-//  Copyright © 2017 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import Foundation
 
+/// Indirect acquisition list for a publication
 public class IndirectAcquisition {
     public var typeAcquisition: String
     public var child = [IndirectAcquisition]()
@@ -39,11 +43,13 @@ extension IndirectAcquisition {
         let ia = IndirectAcquisition(typeAcquisition: iaType)
         for (k, v) in indirectAcquisitionDict {
             if (k == "child") {
-                guard let childDict = v as? [String: Any] else {
+                guard let childArray = v as? [[String: Any]] else {
                     throw IndirectAcquisitionError.invalidIndirectAcquisition
                 }
-                let child = try parse(indirectAcquisitionDict: childDict)
-                ia.child.append(child)
+                for childDict in childArray {
+                    let child = try parse(indirectAcquisitionDict: childDict)
+                    ia.child.append(child)
+                }
             }
         }
         return ia

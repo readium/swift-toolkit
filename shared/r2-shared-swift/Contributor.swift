@@ -1,9 +1,12 @@
 //
 //  Contributors.swift
-//  R2Streamer
+//  r2-shared-swift
 //
 //  Created by Alexandre Camilleri on 2/16/17.
-//  Copyright © 2017 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import Foundation
@@ -90,6 +93,10 @@ extension Contributor {
             case "links":
                 if let linkDict = v as? [String: Any] {
                     c.links.append(try Link.parse(linkDict: linkDict))
+                }else if let array = v as? [[String: Any]] {
+                    for dict in array {
+                        c.links.append(try Link.parse(linkDict: dict))
+                    }
                 }
             default:
                 continue
@@ -108,6 +115,12 @@ extension Contributor {
         case let cDict as [String: Any]:
             let c = try parse(cDict)
             result.append(c)
+        case let cArray as [String]:
+            for name in cArray {
+                let c = Contributor()
+                c.multilangName.singleString = name
+                result.append(c)
+            }
         case let cArray as [[String: Any]]:
             for cDict in cArray {
                 let c = try parse(cDict)

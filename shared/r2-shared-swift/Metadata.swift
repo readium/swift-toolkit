@@ -1,9 +1,12 @@
 //
 //  Metadata.swift
-//  R2Streamer
+//  r2-shared-swift
 //
 //  Created by Alexandre Camilleri on 2/16/17.
-//  Copyright © 2017 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import Foundation
@@ -38,7 +41,7 @@ public class Metadata {
                         let layout = Metadata.contentlayoutStyle(for: langType, pageDirection: direction)
                         self.primaryContentLayout = layout; break
                     }
-                } // for
+                }
                 return
             }
             self.primaryLanguage = languages.first // Unknow
@@ -96,8 +99,6 @@ public class Metadata {
     public var belongsTo: BelongsTo?
     
     public var duration: Int?
-    
-    //belongto duration
 
     public init() {
         direction = .Default
@@ -119,6 +120,7 @@ public class Metadata {
         return multilangSubtitle?.multiString[lang]
     }
 }
+
 // JSON Serialisation extension.
 extension Metadata: Mappable {
     public func mapping(map: Map) {
@@ -301,6 +303,14 @@ extension Metadata {
                                 subject.scheme = sv as? String
                             case "code":
                                 subject.code = sv as? String
+                            case "links":
+                                if let dict = sv as? [String: Any] {
+                                    subject.links.append(try Link.parse(linkDict: dict))
+                                }else if let array = sv as? [[String: Any]] {
+                                    for dict in array {
+                                        subject.links.append(try Link.parse(linkDict: dict))
+                                    }
+                                }
                             default:
                                 continue
                             }
