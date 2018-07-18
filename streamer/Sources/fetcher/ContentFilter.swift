@@ -1,9 +1,12 @@
 //
 //  FetcherEpub.swift
-//  R2Streamer
+//  r2-streamer-swift
 //
 //  Created by Alexandre Camilleri on 4/12/17.
-//  Copyright © 2017 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import R2Shared
@@ -157,6 +160,18 @@ final internal class ContentFiltersEpub: ContentFilters {
         guard var resourceHtml = String.init(data: data, encoding: String.Encoding.utf8) else {
             return stream
         }
+        
+        // Inserting in <HTML>
+        guard let htmlContentStart = resourceHtml.endIndex(of: "<html") else {
+            print("Invalid resource")
+            abort()
+        }
+        
+        // User properties injection
+        let style = " style=\" " + buildUserPropertiesString(publication: publication) + "\""
+        
+        resourceHtml = resourceHtml.insert(string: style, at: htmlContentStart)
+        
         // Inserting at the start of <HEAD>.
         guard let headStart = resourceHtml.endIndex(of: "<head>") else {
             print("Invalid resource")
@@ -200,10 +215,13 @@ final internal class ContentFiltersEpub: ContentFilters {
         let scriptTouchHandling = getHtmlScript(forResource: "\(baseUrl)scripts/touchHandling.js")
         
         let scriptUtils = getHtmlScript(forResource: "\(baseUrl)scripts/\(utilsJS)")
+        
+        let fontStyle = getHtmlFontStyle(forResource: "\(baseUrl)fonts/OpenDyslexic-Regular.otf", fontFamily: "OpenDyslexic")
 
         resourceHtml = resourceHtml.insert(string: cssAfter, at: headEnd)
         resourceHtml = resourceHtml.insert(string: scriptTouchHandling, at: headEnd)
         resourceHtml = resourceHtml.insert(string: scriptUtils, at: headEnd)
+        resourceHtml = resourceHtml.insert(string: fontStyle, at: headEnd)
 
         let enhancedData = resourceHtml.data(using: String.Encoding.utf8)
         let enhancedStream = DataInputStream(data: enhancedData!)
@@ -261,34 +279,48 @@ final internal class ContentFiltersEpub: ContentFilters {
 
         return prefix + resourceName + suffix
     }
-
+    
+    fileprivate func getHtmlFontStyle(forResource resourceName: String, fontFamily: String) -> String {
+        return "<style type=\"text/css\">@font-face{font-family: \"\(fontFamily)\"; src:url('\(resourceName)') format('opentype');}</style>\n"
+    }
+    
+    fileprivate func buildUserPropertiesString(publication: Publication) -> String {
+        var userPropertiesString = ""
+        
+        for property in publication.userProperties.properties {
+            userPropertiesString += property.name + ": " + property.toString() + "; "
+        }
+        
+        return userPropertiesString
+    }
+    
 }
 
-let ltrPreset:[ReadiumCSSKey:Bool] = [
+let ltrPreset:[ReadiumCSSName: Bool] = [
     .hyphens: false,
     .ligatures: false]
 
-let rtlPreset:[ReadiumCSSKey:Bool] = [.hyphens: false,
+let rtlPreset:[ReadiumCSSName: Bool] = [.hyphens: false,
                                       .wordSpacing: false,
                                       .letterSpacing: false,
                                       .ligatures: true]
 
-let cjkHorizontalPreset: [ReadiumCSSKey:Bool] = [
-    .textAlignement: false,
+let cjkHorizontalPreset: [ReadiumCSSName: Bool] = [
+    .textAlignment: false,
     .hyphens: false,
     .paraIndent: false,
     .wordSpacing: false,
     .letterSpacing: false]
 
-let cjkVerticalPreset: [ReadiumCSSKey:Bool] = [
+let cjkVerticalPreset: [ReadiumCSSName: Bool] = [
     .columnCount: false,
-    .textAlignement: false,
+    .textAlignment: false,
     .hyphens: false,
     .paraIndent: false,
     .wordSpacing: false,
     .letterSpacing: false]
 
-let userSettingsUIPreset:[ContentLayoutStyle: [ReadiumCSSKey:Bool]] = [
+let userSettingsUIPreset:[ContentLayoutStyle: [ReadiumCSSName: Bool]] = [
         .ltr: ltrPreset,
         .rtl: rtlPreset,
         .cjkVertical: cjkVerticalPreset,

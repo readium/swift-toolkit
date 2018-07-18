@@ -1,9 +1,12 @@
 //
 //  CbzParser.swift
-//  R2Streamer
+//  r2-streamer-swift
 //
 //  Created by Alexandre Camilleri on 3/31/17.
-//  Copyright © 2017 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import R2Shared
@@ -41,6 +44,10 @@ public class CbzParser {
         // Generate the `Container` for `fileAtPath`.
         let container: CbzContainer = try generateContainerFrom(fileAtPath: path)
         let publication = Publication()
+        
+        if let updatedDate = container.attribute?[FileAttributeKey.modificationDate] as? Date {
+            publication.updatedDate = updatedDate
+        }
 
         publication.metadata.multilangTitle = title(from: path)
         publication.metadata.identifier = path
@@ -100,6 +107,9 @@ public class CbzParser {
         } else {
             container = ContainerCbz(path: path)
         }
+        
+        container?.attribute = try? FileManager.default.attributesOfItem(atPath: path)
+        
         guard let containerUnwrapped = container else {
             throw CbzParserError.missingFile(path: path)
         }

@@ -1,9 +1,12 @@
 //
 //  PublicationServer.swift
-//  R2Streamer
+//  r2-streamer-swift
 //
 //  Created by Olivier Körner on 21/12/2016.
-//  Copyright © 2016 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import R2Shared
@@ -48,7 +51,7 @@ public class PublicationServer {
         get {
             let publications = pubBoxes.values.compactMap({ $0.publication })
 
-            return publications.sorted(by: { $0.metadata.title < $1.metadata.title })
+            return publications.sorted(by: {$0.updatedDate > $1.updatedDate})
         }
     }
 
@@ -91,7 +94,7 @@ public class PublicationServer {
         return true
     }
 
-    // Add handlers for the css/js resources.
+    // Add handlers for the css/js/font resources.
     public func addSpecialResourcesHandlers() {
         func styleResourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
             guard let request = request, let filename = request.path else {
@@ -138,6 +141,30 @@ public class PublicationServer {
                              pathRegex: "/scripts/*",
                              request: GCDWebServerRequest.self,
                              processBlock: scriptResourcesHandler)
+        
+        func fontResourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
+            guard let request = request, let filename = request.path else {
+                return GCDWebServerResponse(statusCode: 404)
+            }
+            let relativePath = request.path.deletingLastPathComponent
+            let resourceName = (filename as NSString).deletingPathExtension.lastPathComponent
+            
+            if let fontUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "otf", subdirectory: relativePath),
+                let data = try? Data.init(contentsOf: fontUrl)
+            {
+                let response = GCDWebServerDataResponse(data: data, contentType: "font/opentype")
+                
+                return response
+            } else {
+                return GCDWebServerResponse(statusCode: 404)
+            }
+        }
+        /// Handler for Font resources.
+        webServer.addHandler(forMethod: "GET",
+                             pathRegex: "/fonts/*",
+                             request: GCDWebServerRequest.self,
+                             processBlock: fontResourcesHandler)
+        
     }
 
     /// Add a publication to the server. Also add it to the `pubBoxes`
