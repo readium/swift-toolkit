@@ -1,9 +1,12 @@
 //
 //  StatusDocument.swift
-//  r2-shared-swift
+//  readium-lcp-swift
 //
 //  Created by Alexandre Camilleri on 9/6/17.
-//  Copyright © 2017 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import Foundation
@@ -79,6 +82,9 @@ public class StatusDocument {
         potentialRights = PotentialRights.init(with: json["potential_rights"])
     }
 
+    /// Returns the date of the latest license update.
+    ///
+    /// - Returns: The date.
     public func dateOfLatestLicenseDocumentUpdate() -> Date? {
         return updated?.license
     }

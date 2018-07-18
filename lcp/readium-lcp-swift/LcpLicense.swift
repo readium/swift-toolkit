@@ -3,7 +3,10 @@
 //  readium-lcp-swift
 //
 //  Created by Alexandre Camilleri on 9/14/17.
-//  Copyright © 2017 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import Foundation
@@ -55,24 +58,49 @@ public class LcpLicense: DrmLicense {
     }
 
     /// Update the Status Document.
-    ///
+    /// - Parametet initialDownloadAttempt: if serverError then Reject with error for initial download attempt otherwise fulfill with error
     /// - Parameter completion:
-    public func fetchStatusDocument() -> Promise<Void> {
-        return Promise<Void> { fulfill, reject in
+    public func fetchStatusDocument(initialDownloadAttempt: Bool) -> Promise<Error?> {
+        return Promise<Error?> { fulfill, reject in
             guard let statusLink = license.link(withRel: LicenseDocument.Rel.status) else {
                 reject(LcpError.statusLinkNotFound)
                 return
             }
             let task = URLSession.shared.dataTask(with: statusLink.href) { (data, response, error) in
+                
+                if let httpResponse = response as? HTTPURLResponse {
+                    let statusCode = httpResponse.statusCode
+                    
+                    let serverError:Error? = {
+                        if statusCode == 404 {
+                            let info = [NSLocalizedDescriptionKey : "The Readium LCP License Status Document does not exist."]
+                            return NSError(domain: "org.readium", code: 404, userInfo: info)
+                        } else if statusCode >= 500 {
+                            let info = [NSLocalizedDescriptionKey : "The Readium LCP server is experiencing problems, the License Status Document is unreachable"]
+                            return NSError(domain: "org.readium", code: statusCode, userInfo: info)
+                        }
+                        return nil
+                    } ()
+                    
+                    if let theServerError = serverError {
+                        if initialDownloadAttempt {
+                            reject(theServerError)
+                        } else {
+                            fulfill(theServerError)
+                        }
+                        return
+                    }
+                }
+                
                 if let data = data {
                     do {
                         self.status = try StatusDocument.init(with: data)
                     } catch {
                         reject(error)
                     }
-                  fulfill(())
+                  fulfill(nil)
                 } else if let error = error {
-                    reject(error)
+                    fulfill(error)
                 } else {
                     reject(LcpError.unknown)
                 }
@@ -98,18 +126,29 @@ public class LcpLicense: DrmLicense {
     }
 
     public func checkStatus() throws {
-        guard let status =  status?.status else {
+        guard let theStatus =  status?.status else {
             throw LcpError.missingLicenseStatus
         }
-        switch status {
+        
+        let updatedDate = status?.updated?.status
+        
+        switch theStatus {
         case .returned:
-            throw LcpError.licenseStatusReturned
+            throw LcpError.licenseStatusReturned(updatedDate)
         case .expired:
-            throw LcpError.licenseStatusExpired
+            throw LcpError.licenseStatusExpired(updatedDate)
         case .revoked:
-            throw LcpError.licenseStatusRevoked
+            let extraInfo: String? = {
+                if let registerCount = self.status?.events.filter({ (event) -> Bool in
+                    return event.type == "register"
+                }).count {
+                    return "The license was registered by \(registerCount) devices."
+                }
+                return nil
+            } ()
+            throw LcpError.licenseStatusRevoked(updatedDate, extraInfo)
         case .cancelled:
-            throw LcpError.licenseStatusCancelled
+            throw LcpError.licenseStatusCancelled(updatedDate)
         default:
             return
         }
@@ -164,10 +203,7 @@ public class LcpLicense: DrmLicense {
             } else if httpResponse.statusCode == 200 {
                 //  5.3/ Store the fact the the device / license has been registered.
                 do {
-                    
-                    //try LCPDatabase.shared.licenses.insert(self.license, with: status.status)
                     try LCPDatabase.shared.licenses.register(forLicenseWith: self.license.id)
-                    
                     return // SUCCESS
                 } catch {
                     print(error.localizedDescription)
@@ -334,43 +370,54 @@ public class LcpLicense: DrmLicense {
     /// resource.
     ///
     /// - Returns: The URL representing the path of the publication localy.
-    public func fetchPublication() -> Promise<URL> {
-        return Promise<URL> { fulfill, reject in
+    public func fetchPublication() -> Promise<(URL, URLSessionDownloadTask?)> {
+        return Promise<(URL, URLSessionDownloadTask?)> { fulfill, reject in
+            
+            let exist = try LCPDatabase.shared.licenses.localFileExisting(for: self.license.id)
+            
+            if exist {
+                let info = [NSLocalizedDescriptionKey : "LCP book already imported before."]
+                let duplicateError = NSError(domain: "org.readium", code: 0, userInfo: info)
+                reject(duplicateError)
+                return
+            }
+            
             guard let publicationLink = license.link(withRel: LicenseDocument.Rel.publication) else {
                 reject(LcpError.publicationLinkNotFound)
                 return
             }
             let request = URLRequest(url: publicationLink.href)
-            let title = publicationLink.title ?? "publication" //Todo
+            let title = publicationLink.title ?? "Unknow Title" //Todo
             let fileManager = FileManager.default
             // Document Directory always exists (hence try!).
             var destinationUrl = try! fileManager.url(for: .documentDirectory,
                                                       in: .userDomainMask,
                                                       appropriateFor: nil,
                                                       create: true)
+            let fileName = "lcp." + self.license.id
+            destinationUrl.appendPathComponent("\(fileName).epub")
             
-            destinationUrl.appendPathComponent("\(title).epub")
-            guard !FileManager.default.fileExists(atPath: destinationUrl.path) else {
-                fulfill(destinationUrl)
-                return
-            }
+            let publicationTitle = publicationLink.title ?? "..."
             
-            let task = URLSession.shared.downloadTask(with: request, completionHandler: { tmpLocalUrl, response, error in
+            DownloadSession.shared.launch(request: request, description: publicationTitle, completionHandler: { (tmpLocalUrl, response, error, downloadTask) -> Bool? in
                 if let localUrl = tmpLocalUrl, error == nil {
                     do {
                         try FileManager.default.moveItem(at: localUrl, to: destinationUrl)
+                        try LCPDatabase.shared.licenses.updateLocalFile(for: self.license.id, localURL: destinationUrl.absoluteString, updatedAt: Date())
                     } catch {
                         print(error.localizedDescription)
                         reject(error)
+                        return false
                     }
-                    fulfill(destinationUrl)
+                    fulfill((destinationUrl, downloadTask))
+                    return true
                 } else if let error = error {
                     reject(error)
                 } else {
                     reject(LcpError.unknown)
                 }
+                return false
             })
-            task.resume()
         }
     }
     
@@ -411,9 +458,6 @@ public class LcpLicense: DrmLicense {
                         self.license = try LicenseDocument.init(with: content)
                         /// Replace the current licenseDocument on disk with the
                         /// new one.
-                        // try FileManager.default.removeItem(at: self.licensePath)
-                        // SHOULD make a save or something // TODO
-                     //   try FileManager.default.moveItem(at: localUrl, to: self.archivePath)
                         try LcpLicense.moveLicense(from: localUrl, to: self.archivePath)
                     } catch {
                         print(error.localizedDescription)
@@ -496,6 +540,14 @@ public class LcpLicense: DrmLicense {
                              relativeTo: urlMetaInf.deletingLastPathComponent())
         // Delete META-INF/license.lcpl from inbox.
         try fileManager.removeItem(atPath: urlMetaInf.path)
+    }
+    
+    public func removeDataBaseItem() throws {
+        try LCPDatabase.shared.licenses.deleteData(for: self.license.id)
+    }
+    
+    public static func removeDataBaseItem(licenseID: String) throws {
+        try LCPDatabase.shared.licenses.deleteData(for: licenseID)
     }
 
     public func currentStatus() -> String {

@@ -3,7 +3,10 @@
 //  readium-lcp-swift
 //
 //  Created by Alexandre Camilleri on 10/2/17.
-//  Copyright © 2017 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import Foundation
@@ -25,6 +28,9 @@ class Licenses {
     let state = Expression<String?>("state")
     
     let registered = Expression<Bool>("registered")
+    
+    let localFileURL = Expression<String?>("localFileURL")
+    let localFileUpdated = Expression<Date?>("localFileUpdated")
 
     init(_ connection: Connection) {
         
@@ -42,6 +48,11 @@ class Licenses {
         if 0 == connection.userVersion {
             _ = try? connection.run(licenses.addColumn(registered, defaultValue: false))
             connection.userVersion = 1
+        }
+        if 1 == connection.userVersion {
+            _ = try? connection.run(licenses.addColumn(localFileURL))
+            _ = try? connection.run(licenses.addColumn(localFileUpdated))
+            connection.userVersion = 2
         }
     }
 
@@ -100,6 +111,59 @@ class Licenses {
         let count = try db.scalar(query.count)
 
         return count == 1
+    }
+    
+    internal func localFileExisting(for licenseID: String) throws -> Bool {
+        let db = LCPDatabase.shared.connection
+        // Check if empty.
+        guard try db.scalar(licenses.count) > 0 else {
+            return false
+        }
+        let query = licenses.filter(self.id == licenseID && self.localFileURL != nil)
+        let count = try db.scalar(query.count)
+        
+        return count == 1
+    }
+    
+    internal func updateLocalFile(for licenseID: String, localURL: String, updatedAt: Date) throws -> Void {
+        
+        let db = LCPDatabase.shared.connection
+        let license = licenses.filter(self.id == id)
+        
+        // Check if empty.
+        guard try db.scalar(license.count) > 0 else {
+            throw LcpError.licenseNotFound
+        }
+        
+        try db.run(license.update(self.localFileURL <- localURL,
+                                  self.localFileUpdated <- updatedAt))
+    }
+    
+    internal func deleteLocalFile(for licenseID: String) throws -> Void {
+        
+        let db = LCPDatabase.shared.connection
+        let license = licenses.filter(self.id == id)
+        
+        // Check if empty.
+        guard try db.scalar(license.count) > 0 else {
+            throw LcpError.licenseNotFound
+        }
+        
+        try db.run(license.update(self.localFileURL <- nil,
+                                  self.localFileUpdated <- nil))
+    }
+    
+    internal func deleteData(for licenseID: String) throws -> Void {
+        
+        let db = LCPDatabase.shared.connection
+        let license = licenses.filter(self.id == id)
+        
+        // Check if empty.
+        guard try db.scalar(license.count) > 0 else {
+            throw LcpError.licenseNotFound
+        }
+        
+        try db.run(license.delete())
     }
     
     /// Check if the table already contains an entry for the given ID which is registered
