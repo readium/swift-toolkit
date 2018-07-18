@@ -73,6 +73,17 @@ class EpubViewController: UIViewController {
         
         view.addSubview(stackView)
         
+        if #available(iOS 11, *) {
+            let safeArea = view.safeAreaLayoutGuide
+            stackView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                stackView.topAnchor.constraint(equalTo: safeArea.topAnchor),
+                self.stackView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
+                self.stackView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
+                self.stackView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor),
+            ])
+        }
+        
         /// Set initial UI appearance.
         if let appearance = navigator.publication.userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) {
             setUIColor(for: appearance)
