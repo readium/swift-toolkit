@@ -3,7 +3,11 @@
 //  r2-testapp-swift
 //
 //  Created by Nikita Aizikovskyi on Mar-27-2018.
-//  Copyright © 2018 Readium. All rights reserved.
+//
+//  Copyright 2018 European Digital Reading Lab. All rights reserved.
+//  Licensed to the Readium Foundation under one or more contributor license agreements.
+//  Use of this source code is governed by a BSD-style license which is detailed in the
+//  LICENSE file present in the project repository where this source code is maintained.
 //
 
 import UIKit
@@ -81,11 +85,17 @@ class OPDSPublicationInfoViewController : UIViewController {
             UIApplication.shared.isNetworkActivityIndicatorVisible = true
             downloadButton.isEnabled = false
             
-            let sessionConfiguration = URLSessionConfiguration.default
-            let session = URLSession(configuration: sessionConfiguration)
             let request = URLRequest(url:url)
+            let description = publication?.metadata.title
             
-            let task = session.downloadTask(with: request) { (localURL, response, error) in
+            DownloadSession.shared.launch(request: request, description: description, completionHandler: { (localURL, response, error, downloadTask) -> Bool in
+                
+                DispatchQueue.main.async {
+                    self.downloadActivityIndicator.stopAnimating()
+                    UIApplication.shared.isNetworkActivityIndicatorVisible = false
+                    self.downloadButton.isEnabled = true
+                }
+                
                 if let localURL = localURL, error == nil {
                     // Download succeed
                     // downloadTask renames the file download, thus to be parsed correctly according to
@@ -97,27 +107,20 @@ class OPDSPublicationInfoViewController : UIViewController {
                     } catch {
                         print("\(error)")
                     }
-                    DispatchQueue.main.async {
-                        // We use the app delegate method that handle the adding of a publication to the
-                        // document library
-                        if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
-                            let _ = appDelegate.addPublicationToLibrary(url: fixedURL)
-                        }
+                    
+                    guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+                        return false
                     }
+                    
+                    return appDelegate.addPublicationToLibrary(url: fixedURL, needUIUpdate: false)
+                    
                 } else {
                     // Download failed
                     print("Error while downloading a publication.")
                 }
                 
-                DispatchQueue.main.async {
-                    self.downloadActivityIndicator.stopAnimating()
-                    UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                    self.downloadButton.isEnabled = true
-                }
-            }
-            
-            task.resume()
-            
+                return false
+            })
         }
         
     }

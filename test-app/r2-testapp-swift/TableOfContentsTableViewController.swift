@@ -1,9 +1,13 @@
 //
 //  TableOfContentsTableViewController.swift
-//  r2-navigator
+//  r2-testapp-swift
 //
 //  Created by Alexandre Camilleri on 7/24/17.
-//  Copyright © 2017 European Digital Reading Lab. All rights reserved.
+//
+//  Copyright 2018 European Digital Reading Lab. All rights reserved.
+//  Licensed to the Readium Foundation under one or more contributor license agreements.
+//  Use of this source code is governed by a BSD-style license which is detailed in the
+//  LICENSE file present in the project repository where this source code is maintained.
 //
 
 import R2Shared
@@ -77,12 +81,11 @@ extension TableOfContentsTableViewController {
     /// Synchronyze the UI appearance to the UserSettings.Appearance.
     ///
     /// - Parameter appearance: The appearance.
-    public func setUIColor(for appearance: UserSettings.Appearance) {
-        let color = appearance.associatedColor()
-        let textColor = appearance.associatedFontColor()
+    public func setUIColor(for appearance: UserProperty) {
+        let colors = AssociatedColors.getColors(for: appearance)
 
-        tableView.tintColor = textColor
-        tableView.backgroundColor = color
+        tableView.tintColor = colors.textColor
+        tableView.backgroundColor = colors.mainColor
         tableView.reloadData()
     }
 

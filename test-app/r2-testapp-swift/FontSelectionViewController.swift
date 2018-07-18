@@ -3,20 +3,26 @@
 //  r2-testapp-swift
 //
 //  Created by Alexandre Camilleri on 9/20/17.
-//  Copyright © 2017 Readium. All rights reserved.
+//
+//  Copyright 2018 European Digital Reading Lab. All rights reserved.
+//  Licensed to the Readium Foundation under one or more contributor license agreements.
+//  Use of this source code is governed by a BSD-style license which is detailed in the
+//  LICENSE file present in the project repository where this source code is maintained.
 //
 
 import UIKit
 import R2Navigator
+import R2Shared
 
 protocol FontSelectionDelegate: class {
-    func currentFont() -> UserSettings.Font?
-    func fontDidChange(to font: UserSettings.Font)
+    func currentFontIndex() -> Int
+    func fontDidChange(to fontIndex: Int)
 }
 
 class FontSelectionViewController: UIViewController {
     @IBOutlet weak var fontTableView: UITableView!
     weak var delegate: FontSelectionDelegate?
+    var userSettings: UserSettings?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -31,8 +37,8 @@ class FontSelectionViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        if let initialFont = delegate?.currentFont() {
-            let index = IndexPath.init(row: initialFont.rawValue, section: 0)
+        if let initialFontIndex = delegate?.currentFontIndex() {
+            let index = IndexPath.init(row: initialFontIndex, section: 0)
             fontTableView.cellForRow(at: index)?.accessoryType = .checkmark
         }
     }
@@ -40,13 +46,23 @@ class FontSelectionViewController: UIViewController {
 
 extension FontSelectionViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return UserSettings.Font.allValues.count
+        if let fontFamily = userSettings?.userProperties.getProperty(reference: ReadiumCSSReference.fontFamily.rawValue) as? Enumerable {
+            return fontFamily.values.count
+        } else {
+            return 0
+        }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "fontTableViewCell")!
-        let fontName = UserSettings.Font(rawValue: indexPath.row)?.name() ?? "Error"
-
+        
+        var fontName: String
+        if let fontFamily = userSettings?.userProperties.getProperty(reference: ReadiumCSSReference.fontFamily.rawValue) as? Enumerable {
+            fontName = fontFamily.values[indexPath.row]
+        } else {
+            fontName = "Error"
+        }
+        
         cell.textLabel?.text = fontName
         return cell
     }
@@ -54,14 +70,10 @@ extension FontSelectionViewController: UITableViewDataSource {
 
 extension FontSelectionViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let font = UserSettings.Font(rawValue: indexPath.row) else {
-            return
-        }
         let cell = tableView.cellForRow(at: indexPath)
-
         uncheckAllRows()
         cell?.accessoryType = .checkmark
-        delegate?.fontDidChange(to: font)
+        delegate?.fontDidChange(to: indexPath.row)
     }
 
     fileprivate func uncheckAllRows() {

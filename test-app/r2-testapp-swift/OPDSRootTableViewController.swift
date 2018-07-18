@@ -3,7 +3,11 @@
 //  r2-testapp-swift
 //
 //  Created by Geoffrey Bugniot on 23/04/2018.
-//  Copyright © 2018 Readium. All rights reserved.
+//
+//  Copyright 2018 European Digital Reading Lab. All rights reserved.
+//  Licensed to the Readium Foundation under one or more contributor license agreements.
+//  Use of this source code is governed by a BSD-style license which is detailed in the
+//  LICENSE file present in the project repository where this source code is maintained.
 //
 
 import UIKit
@@ -16,6 +20,7 @@ enum FeedBrowsingState {
     case Publication
     case MixedGroup
     case MixedNavigationPublication
+    case MixedNavigationGroup
     case MixedNavigationGroupPublication
     case None
 }
@@ -26,8 +31,10 @@ class OPDSRootTableViewController: UITableViewController {
     var nextPageURL: URL?
     var originalFeedIndexPath: IndexPath?
     var mustEditFeed = false
-  
+    
+    var parseData: ParseData?
     var feed: Feed?
+    var publication: Publication?
     
     var browsingState: FeedBrowsingState = .None
     
@@ -45,7 +52,7 @@ class OPDSRootTableViewController: UITableViewController {
     ]
     
     fileprivate var previousScreenOrientation: GeneralScreenOrientation?
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationController?.delegate = self
@@ -64,8 +71,8 @@ class OPDSRootTableViewController: UITableViewController {
             UIApplication.shared.isNetworkActivityIndicatorVisible = true
             firstly {
                 OPDSParser.parseURL(url: url)
-                }.then { newFeed -> Void in
-                    self.feed = newFeed
+                }.then { newParseData -> Void in
+                    self.parseData = newParseData
                 }.always {
                     self.finishFeedInitialization()
             }
@@ -73,7 +80,8 @@ class OPDSRootTableViewController: UITableViewController {
     }
     
     func finishFeedInitialization() {
-        if let feed = feed {
+        if let feed = parseData?.feed {
+            self.feed = feed
             
             navigationItem.title = feed.metadata.title
             self.nextPageURL = self.findNextPageURL(feed: feed)
@@ -86,6 +94,7 @@ class OPDSRootTableViewController: UITableViewController {
                 navigationItem.rightBarButtonItem = filterButton
             }
             
+            // Check feed compozition. Then, browsingState will be used to build the UI.
             if feed.navigation.count > 0 && feed.groups.count == 0 && feed.publications.count == 0 {
                 browsingState = .Navigation
             } else if feed.publications.count > 0 && feed.groups.count == 0 && feed.navigation.count == 0 {
@@ -96,6 +105,8 @@ class OPDSRootTableViewController: UITableViewController {
                 browsingState = .MixedGroup
             } else if feed.navigation.count > 0 && feed.groups.count == 0 && feed.publications.count > 0 {
                 browsingState = .MixedNavigationPublication
+            } else if feed.navigation.count > 0 && feed.groups.count > 0 && feed.publications.count == 0 {
+                browsingState = .MixedNavigationGroup
             } else if feed.navigation.count > 0 && feed.groups.count > 0 && feed.publications.count > 0 {
                 browsingState = .MixedNavigationGroupPublication
             } else {
@@ -161,18 +172,20 @@ class OPDSRootTableViewController: UITableViewController {
         if let nextPageURL = nextPageURL {
             firstly {
                 OPDSParser.parseURL(url: nextPageURL)
-                }.then { newFeed -> Void in
-                    self.nextPageURL = self.findNextPageURL(feed: newFeed)
-                    self.feed?.publications.append(contentsOf: newFeed.publications)
-                    completionHandler(self.feed)
-                }
+                }.then { newParseData -> Void in
+                    if let newFeed = newParseData.feed {
+                        self.nextPageURL = self.findNextPageURL(feed: newFeed)
+                        self.feed?.publications.append(contentsOf: newFeed.publications)
+                        completionHandler(self.feed)
+                    }
+            }
         }
     }
     
     //MARK: - Facets
     
     @objc func filterMenuClicked(_ sender: UIBarButtonItem) {
-
+        
         let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
         
         if let opdsFacetViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsFacetViewController") as? OPDSFacetViewController {
@@ -188,15 +201,15 @@ class OPDSRootTableViewController: UITableViewController {
         }
         
     }
-
+    
     public func applyFacetAt(indexPath: IndexPath) {
         if let absoluteHref = feed!.facets[indexPath.section].links[indexPath.row].absoluteHref {
             pushOpdsRootViewController(href: absoluteHref)
         }
     }
-
+    
     // MARK: - Table view data source
-
+    
     override func numberOfSections(in tableView: UITableView) -> Int {
         var numberOfSections = 0
         
@@ -211,6 +224,10 @@ class OPDSRootTableViewController: UITableViewController {
         case .MixedNavigationPublication:
             numberOfSections = 2
             
+        case .MixedNavigationGroup:
+            // 1 section for the nav + groups count for the next sections
+            numberOfSections = 1 + feed!.groups.count
+            
         case .MixedNavigationGroupPublication:
             numberOfSections = 1 + feed!.groups.count + 1
             
@@ -221,7 +238,7 @@ class OPDSRootTableViewController: UITableViewController {
         
         return numberOfSections
     }
-
+    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         var numberOfRowsInSection = 0
         
@@ -246,6 +263,22 @@ class OPDSRootTableViewController: UITableViewController {
             }
             if section == 1 {
                 numberOfRowsInSection = 1
+            }
+            
+        case .MixedNavigationGroup:
+            // Nav
+            if section == 0 {
+                numberOfRowsInSection = feed!.navigation.count
+            }
+            // Groups
+            if section >= 1 && section <= feed!.groups.count {
+                if feed!.groups[section - 1].navigation.count > 0 {
+                    // Nav inside a group
+                    numberOfRowsInSection = feed!.groups[section - 1].navigation.count
+                } else {
+                    // No nav inside a group
+                    numberOfRowsInSection = 1
+                }
             }
             
         case .MixedNavigationGroupPublication:
@@ -291,6 +324,21 @@ class OPDSRootTableViewController: UITableViewController {
                 heightForRowAt = 44
             } else {
                 heightForRowAt = tableView.bounds.height / 2
+            }
+            
+        case .MixedNavigationGroup:
+            // Nav
+            if indexPath.section == 0 {
+                heightForRowAt = 44
+                // Group
+            } else {
+                // Nav inside a group
+                if feed!.groups[indexPath.section - 1].navigation.count > 0 {
+                    heightForRowAt = 44
+                } else {
+                    // No nav inside a group
+                    heightForRowAt = calculateRowHeightForGroup(feed!.groups[indexPath.section - 1])
+                }
             }
             
         case .MixedNavigationGroupPublication:
@@ -355,13 +403,24 @@ class OPDSRootTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         var title: String?
-
+        
         switch browsingState {
             
         case .MixedGroup:
             if section >= 0 && section <= feed!.groups.count {
                 title = feed!.groups[section].metadata.title
             }
+            
+        case .MixedNavigationGroup:
+            // Nav
+            if section == 0 {
+                title = "Browse"
+            }
+            // Groups
+            if section >= 1 && section <= feed!.groups.count {
+                title = feed!.groups[section-1].metadata.title
+            }
+            
         case .MixedNavigationGroupPublication:
             if section == 0 {
                 title = "Browse"
@@ -372,15 +431,15 @@ class OPDSRootTableViewController: UITableViewController {
             if section > feed!.groups.count {
                 title = feed!.metadata.title
             }
-
+            
         default:
             title = nil
-
+            
         }
-
+        
         return title
     }
-
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         var cell: UITableViewCell?
         
@@ -402,13 +461,15 @@ class OPDSRootTableViewController: UITableViewController {
                 cell = buildPublicationCell(tableView: tableView, indexPath: indexPath)
             }
             
-        case .MixedNavigationGroupPublication:
+        case .MixedNavigationGroup, .MixedNavigationGroupPublication:
             if indexPath.section == 0 {
+                // Nav
                 cell = buildNavigationCell(tableView: tableView, indexPath: indexPath)
             } else {
+                // Groups
                 cell = buildGroupCell(tableView: tableView, indexPath: indexPath)
             }
-
+            
         default:
             cell = nil
             
@@ -419,12 +480,26 @@ class OPDSRootTableViewController: UITableViewController {
     
     func buildNavigationCell(tableView: UITableView, indexPath: IndexPath) -> OPDSNavigationTableViewCell {
         let castedCell = tableView.dequeueReusableCell(withIdentifier: "opdsNavigationCell", for: indexPath) as! OPDSNavigationTableViewCell
-        castedCell.title.text = feed?.navigation[indexPath.row].title
-        if let count = feed?.navigation[indexPath.row].properties.numberOfItems {
-            castedCell.count.text = "\(count)"
+        
+        var currentNavigation: [Link]?
+        
+        if let navigation = feed?.navigation, navigation.count > 0 {
+            currentNavigation = navigation
         } else {
-            castedCell.count.text = ""
+            if let navigation = feed?.groups[indexPath.section].navigation, navigation.count > 0 {
+                currentNavigation = navigation
+            }
         }
+        
+        if let currentNavigation = currentNavigation {
+            castedCell.title.text = currentNavigation[indexPath.row].title
+            if let count = currentNavigation[indexPath.row].properties.numberOfItems {
+                castedCell.count.text = "\(count)"
+            } else {
+                castedCell.count.text = ""
+            }
+        }
+        
         return castedCell
     }
     
@@ -436,7 +511,7 @@ class OPDSRootTableViewController: UITableViewController {
     }
     
     func buildGroupCell(tableView: UITableView, indexPath: IndexPath) -> UITableViewCell {
-
+        
         if browsingState != .MixedGroup {
             if indexPath.section > feed!.groups.count {
                 let group = Group(title: feed!.metadata.title)
@@ -456,7 +531,7 @@ class OPDSRootTableViewController: UITableViewController {
                 return preparedGroupCell(group: nil, indexPath: indexPath, offset: 0)
             }
         }
-
+        
     }
     
     fileprivate func preparedGroupCell(group: Group?, indexPath: IndexPath, offset: Int) -> OPDSGroupTableViewCell {
@@ -471,7 +546,7 @@ class OPDSRootTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         switch browsingState {
             
-        case .Navigation, .MixedNavigationPublication, .MixedNavigationGroupPublication:
+        case .Navigation, .MixedNavigationPublication, .MixedNavigationGroup, .MixedNavigationGroupPublication:
             if indexPath.section == 0 {
                 if let absoluteHref = feed!.navigation[indexPath.row].absoluteHref {
                     pushOpdsRootViewController(href: absoluteHref)
@@ -483,7 +558,7 @@ class OPDSRootTableViewController: UITableViewController {
                     }
                 }
             }
-
+            
         default:
             break
             
@@ -550,7 +625,7 @@ class OPDSRootTableViewController: UITableViewController {
             }
         }
     }
-
+    
 }
 
 //MARK: - UINavigationController delegate and tooling
