@@ -3,8 +3,10 @@
 //  r2-navigator-swift
 //
 //  Created by Winnie Quinn, Alexandre Camilleri on 8/23/17.
-//  Copyright © 2017 Readium.
-//  This file is covered by the LICENSE file in the root of this project.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import WebKit
@@ -244,13 +246,12 @@ extension WebView {
         guard let userSettings = userSettings else {
             return
         }
-        for cssProperty in userSettings.cssProperties() {
-            evaluateJavaScript("setProperty(\"\(cssProperty.key)\", \"\(cssProperty.value)\");",
-                completionHandler: nil)
+        for cssProperty in userSettings.userProperties.properties {
+            evaluateJavaScript("setProperty(\"\(cssProperty.name)\", \"\(cssProperty.toString())\");", completionHandler: nil)
         }
         // Disable paginated mode if scroll is on.
-        if let scroll = userSettings.scroll {
-            scrollView.isPagingEnabled = !scroll.bool()
+        if let scroll = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable {
+            scrollView.isPagingEnabled = !scroll.on
         }
     }
 }

@@ -3,8 +3,10 @@
 //  r2-navigator-swift
 //
 //  Created by Winnie Quinn, Alexandre Camilleri on 8/23/17.
-//  Copyright © 2017 Readium.
-//  This file is covered by the LICENSE file in the root of this project.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import UIKit
@@ -46,6 +48,7 @@ open class NavigatorViewController: UIViewController {
         self.publication = publication
         self.initialProgression = initialProgression
         userSettings = UserSettings()
+        publication.userProperties.properties = userSettings.userProperties.properties
         userSettings.userSettingsUIPreset = publication.userSettingsUIPreset
         delegatee = Delegatee()
         var index = initialIndex
