@@ -3,7 +3,10 @@
 //  readium-opds
 //
 //  Created by Nikita Aizikovskyi on Jan-30-2018.
-//  Copyright © 2018 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import Foundation
@@ -46,14 +49,14 @@ public enum OPDS2ParserError: Error {
 public class OPDS2Parser {
   static var feedURL: URL?
     
-  /// Parse an OPDS feed.
+  /// Parse an OPDS feed or publication.
   /// Feed can only be v2 (JSON).
   /// - parameter url: The feed URL
-  /// - Returns: A promise with the resulting Feed
-  public static func parseURL(url: URL) -> Promise<Feed> {
+  /// - Returns: A promise with the intermediate structure of type ParseData
+  public static func parseURL(url: URL) -> Promise<ParseData> {
         feedURL = url
     
-        return Promise<Feed> {fulfill, reject in
+        return Promise<ParseData> {fulfill, reject in
           let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, response, error) in
             guard error == nil else {
               reject(error!)
@@ -64,8 +67,8 @@ public class OPDS2Parser {
               return
             }
             do {
-              let feed = try self.parse(jsonData: data)
-              fulfill(feed)
+              let parseData = try self.parse(jsonData: data, url: url, response: response!)
+              fulfill(parseData)
             }
             catch {
               reject(error)
@@ -76,16 +79,17 @@ public class OPDS2Parser {
         }
     }
     
-    /// Parse an OPDS feed.
+    /// Parse an OPDS feed or publication.
     /// Feed can only be v2 (JSON).
     /// - parameter jsonData: The json raw data
-    /// - parameter url: The feed URL (optional)
-    /// - Returns: The resulting Feed
-    public static func parse(jsonData: Data, url: URL? = nil) throws -> Feed {
+    /// - parameter url: The feed URL
+    /// - parameter response: The response payload
+    /// - Returns: The intermediate structure of type ParseData
+    public static func parse(jsonData: Data, url: URL, response: URLResponse) throws -> ParseData {
         
-        if let url = url {
-            feedURL = url
-        }
+        feedURL = url
+        
+        var parseData = ParseData(url: url, response: response, version: .OPDS2)
         
         guard let jsonRoot = try? JSONSerialization.jsonObject(with: jsonData, options: []) else {
             throw OPDS2ParserError.invalidJSON
@@ -95,7 +99,32 @@ public class OPDS2Parser {
             throw OPDS2ParserError.invalidJSON
         }
         
-        guard let metadataDict = topLevelDict["metadata"] as? [String: Any] else {
+        if topLevelDict["navigation"] == nil
+            && topLevelDict["groups"] == nil
+            && topLevelDict["publications"] == nil
+            && topLevelDict["facets"] == nil {
+            
+            // Publication only
+            parseData.publication = try? Publication.parse(pubDict: topLevelDict)
+            
+        } else {
+            
+            // Feed
+            parseData.feed = try? parse(jsonDict: topLevelDict)
+            
+        }
+
+        return parseData
+        
+    }
+    
+    /// Parse an OPDS feed.
+    /// Feed can only be v2 (JSON).
+    /// - parameter jsonDict: The json top level dictionary
+    /// - Returns: The resulting Feed
+    public static func parse(jsonDict: [String: Any]) throws -> Feed {
+        
+        guard let metadataDict = jsonDict["metadata"] as? [String: Any] else {
             throw OPDS2ParserError.metadataNotFound
             
         }
@@ -107,7 +136,7 @@ public class OPDS2Parser {
         let feed = Feed(title: title)
         parseMetadata(opdsMetadata: feed.metadata, metadataDict: metadataDict)
         
-        for (k, v) in topLevelDict {
+        for (k, v) in jsonDict {
             switch k {
             case "@context":
                 switch v {
@@ -153,9 +182,8 @@ public class OPDS2Parser {
         return feed
         
     }
-
-
-    static internal func parseMetadata(opdsMetadata: OpdsMetadata, metadataDict: [String: Any]) {
+    
+    static func parseMetadata(opdsMetadata: OpdsMetadata, metadataDict: [String: Any]) {
         for (k, v) in metadataDict {
             switch k {
             case "title":
@@ -180,7 +208,7 @@ public class OPDS2Parser {
         }
     }
 
-    static internal func parseFacets(feed: Feed, facets: [[String: Any]]) throws {
+    static func parseFacets(feed: Feed, facets: [[String: Any]]) throws {
         for facetDict in facets {
             guard let metadata = facetDict["metadata"] as? [String: Any] else {
                 throw OPDS2ParserError.invalidFacet
@@ -206,7 +234,7 @@ public class OPDS2Parser {
         }
     }
 
-    static internal func parseLinks(feed: Feed, links: [[String: Any]]) throws {
+    static func parseLinks(feed: Feed, links: [[String: Any]]) throws {
         for linkDict in links {
             let link = try Link.parse(linkDict: linkDict)
             link.absoluteHref = URLHelper.getAbsolute(href: link.href, base: feedURL)
@@ -214,14 +242,14 @@ public class OPDS2Parser {
         }
     }
 
-    static internal func parsePublications(feed: Feed, publications: [[String: Any]]) throws {
+    static func parsePublications(feed: Feed, publications: [[String: Any]]) throws {
         for pubDict in publications {
             let pub = try Publication.parse(pubDict: pubDict)
             feed.publications.append(pub)
         }
     }
 
-    static internal func parseNavigation(feed: Feed, navLinks: [[String: Any]]) throws {
+    static func parseNavigation(feed: Feed, navLinks: [[String: Any]]) throws {
         for navDict in navLinks {
             let link = try Link.parse(linkDict: navDict)
             link.absoluteHref = URLHelper.getAbsolute(href: link.href, base: feedURL)
@@ -229,7 +257,7 @@ public class OPDS2Parser {
         }
     }
 
-    static internal func parseGroups(feed: Feed, groups: [[String: Any]]) throws {
+    static func parseGroups(feed: Feed, groups: [[String: Any]]) throws {
         for groupDict in groups {
             guard let metadata = groupDict["metadata"] as? [String: Any] else {
                 throw OPDS2ParserError.invalidGroup

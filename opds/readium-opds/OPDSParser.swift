@@ -3,7 +3,10 @@
 //  readium-opds
 //
 //  Created by Geoffrey Bugniot on 22/05/2018.
-//  Copyright © 2018 Readium. All rights reserved.
+//
+//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by a BSD-style license which is detailed
+//  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import Foundation
@@ -28,13 +31,16 @@ public enum OPDSParserError: Error {
 
 public class OPDSParser {
     
-    /// Parse an OPDS feed.
+    static var feedURL: URL?
+    
+    /// Parse an OPDS feed or publication.
     /// Feed can be v1 (XML) or v2 (JSON).
     /// - parameter url: The feed URL
-    /// - Returns: A promise with the resulting Feed
-    public static func parseURL(url: URL) -> Promise<Feed> {
+    /// - Returns: A promise with the intermediate structure of type ParseData
+    public static func parseURL(url: URL) -> Promise<ParseData> {
+        feedURL = url
         
-        return Promise<Feed> {fulfill, reject in
+        return Promise<ParseData> {fulfill, reject in
             
             let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, response, error) in
                 
@@ -52,11 +58,11 @@ public class OPDSParser {
                 
                 // We try to parse as an OPDS v1 feed,
                 // then, if it fails, we try as an OPDS v2 feed.
-                if let feed = try? OPDS1Parser.parse(xmlData: data, url: url) {
-                    fulfill(feed)
+                if let parseData = try? OPDS1Parser.parse(xmlData: data, url: url, response: response!) {
+                    fulfill(parseData)
                 } else {
-                    if let feed = try? OPDS2Parser.parse(jsonData: data, url: url) {
-                        fulfill(feed)
+                    if let parseData = try? OPDS2Parser.parse(jsonData: data, url: url, response: response!) {
+                        fulfill(parseData)
                     } else {
                         // Not a valid OPDS ressource
                         reject(OPDSParserError.documentNotValid)
