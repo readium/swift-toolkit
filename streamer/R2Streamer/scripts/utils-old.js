@@ -52,43 +52,57 @@ var scrollToPosition = function(position, dir) {
 
 var scrollLeft = function(dir) {
     var scrollWidth = document.body.scrollWidth;
-    var newOffset = window.scrollX - maxScreenX;
-    var edge = -scrollWidth + maxScreenX;
+    var newOffset = window.scrollX - window.innerWidth;
+    var edge = -scrollWidth + window.innerWidth;
     var newEdge = (dir == "rtl")? edge:0;
     
-    if (newOffset > newEdge) {
-        document.body.scrollLeft = newOffset
-        return 0;
+    if (window.innerWidth == scrollWidth) {
+        // No scroll and default zoom
+        return "edge";
     } else {
-        var oldOffset = window.scrollX;
-        document.body.scrollLeft = newEdge;
-        if (oldOffset != newEdge) {
+        // Scrolled and zoomed
+        if (newOffset > newEdge) {
+            document.body.scrollLeft = newOffset
             return 0;
         } else {
-            return "edge";
+            var oldOffset = window.scrollX;
+            document.body.scrollLeft = newEdge;
+            if (oldOffset != newEdge) {
+                return 0;
+            } else {
+                return "edge";
+            }
         }
     }
+    
 };
 
 var scrollRight = function(dir) {
     
     var scrollWidth = document.body.scrollWidth;
-    var newOffset = window.scrollX + maxScreenX;
-    var edge = scrollWidth - maxScreenX;
+    var newOffset = window.scrollX + window.innerWidth;
+    var edge = scrollWidth - window.innerWidth;
     var newEdge = (dir == "rtl")? 0:edge
     
-    if (newOffset < newEdge) {
-        document.body.scrollLeft = newOffset
-        return 0;
+    if (window.innerWidth == scrollWidth) {
+        // No scroll and default zoom
+        return "edge";
     } else {
-        var oldOffset = window.scrollX;
-        document.body.scrollLeft = newEdge;
-        if (oldOffset != newEdge) {
+        // Scrolled and zoomed
+        if (newOffset < newEdge) {
+            document.body.scrollLeft = newOffset
             return 0;
         } else {
-            return "edge";
+            var oldOffset = window.scrollX;
+            document.body.scrollLeft = newEdge;
+            if (oldOffset != newEdge) {
+                return 0;
+            } else {
+                return "edge";
+            }
         }
     }
+    
 };
 
 // Snap the offset to the screen width (page width).
