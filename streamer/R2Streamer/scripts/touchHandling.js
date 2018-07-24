@@ -63,11 +63,7 @@ var handleTouchEnd = function(event) {
     var relativeDistanceY = Math.abs(((touch.screenY % maxScreenY) - startY) / maxScreenY);
     var touchDistance = Math.max(relativeDistanceX, relativeDistanceY);
 
-    var scrollWidth = document.scrollWidth;
-    var screenWidth = maxScreenX;
-    var tapAreaWidth = maxScreenX * 0.2;
-
-    // // Tap to turn.
+    // Tap to turn.
     if(touchDistance < 0.01) {
         var position = Math.abs(touch.clientX % maxScreenX) / maxScreenX;
         if (position <= 0.2) {
