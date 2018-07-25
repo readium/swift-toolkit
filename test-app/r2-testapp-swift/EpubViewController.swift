@@ -25,11 +25,87 @@ class EpubViewController: UIViewController {
     var drmManagementTVC: DrmManagementTableViewController!
     var haveDrm = false
     
+    lazy var bookmarkDataSource: BookmarkDataSource = {
+        
+        let publicationID = navigator.publication.metadata.identifier ?? ""
+        return BookmarkDataSource(thePublicationID:publicationID)
+    } ()
+    
+    lazy var bookmarkViewController: BookmarkViewController = {
+        let theVC = BookmarkViewController(dataSource: self.bookmarkDataSource)
+        
+        theVC.didSelectBookmark = { (theBookmark:Bookmark) -> Void in
+            self.navigator.displaySpineItem(at: theBookmark.spineIndex, progress: theBookmark.progress)
+            self.navigationController?.popViewController(animated: true)
+        }
+        return theVC
+    } ()
+    
+    lazy var bookmarkButton: UIBarButtonItem = {
+        let theButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.bookmarks, target: self, action: #selector(bookmarkButtonTapped))
+        return theButton
+    } ()
+    
+    lazy var markButton: UIBarButtonItem = {
+        let theButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.compose, target: self, action: #selector(addBookmarkForCurrentPosition))
+        return theButton
+    } ()
+    
+    @objc func bookmarkButtonTapped() {
+        navigationController?.pushViewController(self.bookmarkViewController, animated: true)
+    }
+    
+    lazy var hrefToTitle: [String: String] = {
+        
+        let linkList = self.navigator.getTableOfContents()
+        return self.fulfill(linkList: linkList)
+    } ()
+    
+    func fulfill(linkList: [Link]) -> [String: String] {
+        var result = [String: String]()
+        
+        for linkItem in linkList {
+            if let href = linkItem.href, let title = linkItem.title {
+                result[href] = title
+            }
+            let subResult = fulfill(linkList: linkItem.children)
+            result.merge(subResult) { (current, another) -> String in
+                return current
+            }
+        }
+        return result
+    }
+    
+    @objc func addBookmarkForCurrentPosition() {
+        
+        let position = navigator.currentPosition
+        
+        let spineIndex = position.0
+        let progress = position.1
+        
+        if spineIndex == 0 {return}
+        
+        let spine = self.navigator.getSpine()[spineIndex]
+        let spineTitle: String = {
+            if let spineHref = spine.href {
+                return hrefToTitle[spineHref]
+            }
+            return nil
+        } () ?? "Unknow"
+        
+        guard let publicationID = navigator.publication.metadata.identifier else {return}
+        
+        let newBookmark = Bookmark(spineIndex: spineIndex, progress: progress, description: spineTitle, publicationID: publicationID)
+        _ = self.bookmarkViewController.dataSource.addBookMark(newBookmark: newBookmark)
+        self.bookmarkViewController.tableView.reloadData()
+    }
+    
     init(with publication: Publication, atIndex index: Int, progression: Double?, _ drm: Drm?) {
         stackView = UIStackView(frame: UIScreen.main.bounds)
         navigator = NavigatorViewController(for: publication,
                                             initialIndex: index,
                                             initialProgression: progression)
+        
         fixedTopBar = BarView()
         fixedBottomBar = BarView()
         tableOfContentsTVC = TableOfContentsTableViewController(for: navigator.getTableOfContents(),
@@ -112,6 +188,9 @@ class EpubViewController: UIViewController {
                                                       action: #selector(presentDrmManagement))
             barButtons.append(drmManagementButton)
         }
+        
+        barButtons.append(self.bookmarkButton)
+        barButtons.append(self.markButton)
         
         popoverUserconfigurationAnchor = userSettingsButton
         /// Add spineItemViewController button to navBar.
@@ -223,6 +302,15 @@ extension EpubViewController: NavigatorDelegate {
         // Save current publication's document's progression. 
         // (<=> the position in the spine item)
         userDefaults.set(progression, forKey: "\(publicationIdentifier)-documentProgression")
+    }
+    
+    func didChangedDocumentPage(currentDocumentIndex: Int) {
+        
+    }
+    
+    func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int) {
+        let position = navigator.currentPosition
+        print(position)
     }
 }
 
