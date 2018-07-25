@@ -396,10 +396,7 @@ public class OPDS1Parser {
             let contributor = Contributor()
 
             if let uri = author.firstChild(tag: "uri")?.stringValue {
-                let link = Link()
-                link.href = uri
-                link.absoluteHref = URLHelper.getAbsolute(href: uri, base: feedURL)
-                contributor.links.append(link)
+                contributor.identifier = uri
             }
             
             contributor.multilangName.singleString = author.firstChild(tag: "name")?.stringValue
