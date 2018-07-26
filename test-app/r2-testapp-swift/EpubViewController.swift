@@ -25,8 +25,13 @@ class EpubViewController: UIViewController {
     var drmManagementTVC: DrmManagementTableViewController!
     var haveDrm = false
     
+    lazy var locatorViewController:LocatorViewController = {
+        let result = LocatorViewController()
+        result.setContent(tocVC: self.tableOfContentsTVC, bookmarkVC: self.bookmarkViewController)
+        return result
+    } ()
+    
     lazy var bookmarkDataSource: BookmarkDataSource = {
-        
         let publicationID = navigator.publication.metadata.identifier ?? ""
         return BookmarkDataSource(thePublicationID:publicationID)
     } ()
@@ -41,19 +46,10 @@ class EpubViewController: UIViewController {
         return theVC
     } ()
     
-    lazy var bookmarkButton: UIBarButtonItem = {
-        let theButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.bookmarks, target: self, action: #selector(bookmarkButtonTapped))
-        return theButton
-    } ()
-    
     lazy var markButton: UIBarButtonItem = {
         let theButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.compose, target: self, action: #selector(addBookmarkForCurrentPosition))
         return theButton
     } ()
-    
-    @objc func bookmarkButtonTapped() {
-        navigationController?.pushViewController(self.bookmarkViewController, animated: true)
-    }
     
     lazy var hrefToTitle: [String: String] = {
         
@@ -189,7 +185,6 @@ class EpubViewController: UIViewController {
             barButtons.append(drmManagementButton)
         }
         
-        barButtons.append(self.bookmarkButton)
         barButtons.append(self.markButton)
         
         popoverUserconfigurationAnchor = userSettingsButton
@@ -257,7 +252,7 @@ extension EpubViewController {
         if let userSettingsTVC = userSettingNavigationController.userSettingsTableViewController {
             userSettingsTVC.dismiss(animated: true, completion: nil)
         }
-        navigationController?.pushViewController(tableOfContentsTVC, animated: true)
+        navigationController?.pushViewController(locatorViewController, animated: true)
     }
     
     @objc func presentDrmManagement() {
