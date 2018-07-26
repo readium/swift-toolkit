@@ -21,7 +21,6 @@
 		03EF765A206A5F1A00C3C24E /* PromiseKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764E206A5F1A00C3C24E /* PromiseKit.framework */; };
 		03EF765B206A5F1A00C3C24E /* Kingfisher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764F206A5F1A00C3C24E /* Kingfisher.framework */; };
 		03EF765D206A5F1A00C3C24E /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */; };
-		113B12D020800FD60074A5A2 /* ODPSPublicationCellInfoView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 113B12BF20800FD50074A5A2 /* ODPSPublicationCellInfoView.xib */; };
 		113B12D220800FD60074A5A2 /* OPDSCatalogSelectorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */; };
 		113B12DA20800FD60074A5A2 /* OPDSFacetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12C920800FD50074A5A2 /* OPDSFacetViewController.swift */; };
 		113B12DD20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */; };
@@ -89,7 +88,6 @@
 		03EF764F206A5F1A00C3C24E /* Kingfisher.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Kingfisher.framework; path = Carthage/Build/iOS/Kingfisher.framework; sourceTree = "<group>"; };
 		03EF7650206A5F1A00C3C24E /* R2Navigator.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Navigator.framework; path = Carthage/Build/iOS/R2Navigator.framework; sourceTree = "<group>"; };
 		03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDWebServers.framework; path = Carthage/Build/iOS/GCDWebServers.framework; sourceTree = "<group>"; };
-		113B12BF20800FD50074A5A2 /* ODPSPublicationCellInfoView.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ODPSPublicationCellInfoView.xib; sourceTree = "<group>"; };
 		113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSCatalogSelectorViewController.swift; sourceTree = "<group>"; };
 		113B12C920800FD50074A5A2 /* OPDSFacetViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSFacetViewController.swift; sourceTree = "<group>"; };
 		113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSPublicationInfoViewController.swift; sourceTree = "<group>"; };
@@ -185,7 +183,6 @@
 				113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */,
 				AED681F120A32EBA0090DBCD /* OPDSPlaceholderView.swift */,
 				AE48F31D208DD056000B7B44 /* OPDS.storyboard */,
-				113B12BF20800FD50074A5A2 /* ODPSPublicationCellInfoView.xib */,
 			);
 			name = OPDS;
 			sourceTree = "<group>";
@@ -430,7 +427,6 @@
 				F3120DEB1FACB096009ACFAD /* 5.epub in Resources */,
 				F30AEE7D1FC316430073C9FD /* Details.storyboard in Resources */,
 				AE00DA9B2109C02C007EEA47 /* PublicationCollectionViewCell.xib in Resources */,
-				113B12D020800FD60074A5A2 /* ODPSPublicationCellInfoView.xib in Resources */,
 				F3120DEC1FACB098009ACFAD /* 6.epub in Resources */,
 				AE48F31E208DD056000B7B44 /* OPDS.storyboard in Resources */,
 				F3E7D4461F4EF6D400DF166D /* LaunchScreen.storyboard in Resources */,
