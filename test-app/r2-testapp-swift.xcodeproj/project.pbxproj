@@ -27,6 +27,8 @@
 		113B12DD20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */; };
 		57B00B7B20DBF88400B076A2 /* R2TabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57B00B7A20DBF88400B076A2 /* R2TabBar.swift */; };
 		AE009A04207F5980001D82C5 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE009A03207F5980001D82C5 /* Fuzi.framework */; };
+		AE00DA9A2109C02C007EEA47 /* PublicationCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE00DA982109C02C007EEA47 /* PublicationCollectionViewCell.swift */; };
+		AE00DA9B2109C02C007EEA47 /* PublicationCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = AE00DA992109C02C007EEA47 /* PublicationCollectionViewCell.xib */; };
 		AE2B6A8920889C8700C12072 /* AppMain.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AE2B6A8820889C8700C12072 /* AppMain.storyboard */; };
 		AE37DE432093291600079AA2 /* AboutTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE37DE422093291600079AA2 /* AboutTableViewController.swift */; };
 		AE48F31E208DD056000B7B44 /* OPDS.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AE48F31D208DD056000B7B44 /* OPDS.storyboard */; };
@@ -94,6 +96,8 @@
 		57B00B7A20DBF88400B076A2 /* R2TabBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = R2TabBar.swift; sourceTree = "<group>"; };
 		57CADB3220D14B3100DF6675 /* r2-testapp-swift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "r2-testapp-swift.entitlements"; sourceTree = "<group>"; };
 		AE009A03207F5980001D82C5 /* Fuzi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Fuzi.framework; path = Carthage/Build/iOS/Fuzi.framework; sourceTree = "<group>"; };
+		AE00DA982109C02C007EEA47 /* PublicationCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationCollectionViewCell.swift; sourceTree = "<group>"; };
+		AE00DA992109C02C007EEA47 /* PublicationCollectionViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PublicationCollectionViewCell.xib; sourceTree = "<group>"; };
 		AE2B6A862088949300C12072 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReadiumOPDS.framework; path = Carthage/Build/iOS/ReadiumOPDS.framework; sourceTree = "<group>"; };
 		AE2B6A8820889C8700C12072 /* AppMain.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = AppMain.storyboard; sourceTree = "<group>"; };
 		AE37DE422093291600079AA2 /* AboutTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutTableViewController.swift; sourceTree = "<group>"; };
@@ -306,6 +310,8 @@
 		F3E7D4731F4F030300DF166D /* Library */ = {
 			isa = PBXGroup;
 			children = (
+				AE00DA982109C02C007EEA47 /* PublicationCollectionViewCell.swift */,
+				AE00DA992109C02C007EEA47 /* PublicationCollectionViewCell.xib */,
 				113B12BD20800FC10074A5A2 /* OPDS */,
 				F3E7D4701F4EFEC200DF166D /* LibraryViewController.swift */,
 				F3E7D4721F4F02FB00DF166D /* PublicationCell */,
@@ -423,6 +429,7 @@
 				AE2B6A8920889C8700C12072 /* AppMain.storyboard in Resources */,
 				F3120DEB1FACB096009ACFAD /* 5.epub in Resources */,
 				F30AEE7D1FC316430073C9FD /* Details.storyboard in Resources */,
+				AE00DA9B2109C02C007EEA47 /* PublicationCollectionViewCell.xib in Resources */,
 				113B12D020800FD60074A5A2 /* ODPSPublicationCellInfoView.xib in Resources */,
 				F3120DEC1FACB098009ACFAD /* 6.epub in Resources */,
 				AE48F31E208DD056000B7B44 /* OPDS.storyboard in Resources */,
@@ -494,6 +501,7 @@
 				AE48F320208DD3A9000B7B44 /* OPDSRootTableViewController.swift in Sources */,
 				F3E7D47C1F4F03B800DF166D /* UIImageExtension.swift in Sources */,
 				F3BD53391F72B26700E46FFC /* FontSelectionViewController.swift in Sources */,
+				AE00DA9A2109C02C007EEA47 /* PublicationCollectionViewCell.swift in Sources */,
 				F3E7D4871F4F044100DF166D /* TableOfContentsTableViewController.swift in Sources */,
 				F3E7D4751F4F031B00DF166D /* PublicationCell.swift in Sources */,
 				AE48F324208E0375000B7B44 /* OPDSPublicationTableViewCell.swift in Sources */,
