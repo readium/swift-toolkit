@@ -86,8 +86,11 @@ extension OPDSGroupTableViewCell: UICollectionViewDataSource {
         
         if browsingState == .Publication {
             
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "opdsPublicationCollectionViewCell",
-                                                          for: indexPath) as! OPDSGroupCollectionViewCell
+            collectionView.register(UINib(nibName: "PublicationCollectionViewCell", bundle: nil),
+                                    forCellWithReuseIdentifier: "publicationCollectionViewCell")
+            
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "publicationCollectionViewCell",
+                                                          for: indexPath) as! PublicationCollectionViewCell
             
             if let publication = group?.publications[indexPath.row] {
                 
@@ -106,7 +109,7 @@ extension OPDSGroupTableViewCell: UICollectionViewDataSource {
                 
                 if let coverURL = coverURL {
                     UIApplication.shared.isNetworkActivityIndicatorVisible = true
-                    cell.imageView.kf.setImage(with: coverURL,
+                    cell.coverImageView.kf.setImage(with: coverURL,
                                                placeholder: titleTextView,
                                                options: [.transition(ImageTransition.fade(0.5))],
                                                progressBlock: nil) { (_, _, _, _) in
