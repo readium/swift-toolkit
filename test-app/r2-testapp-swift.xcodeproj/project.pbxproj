@@ -202,6 +202,7 @@
 		F3DCFFBC1F7CE0140056BA37 /* UserSettings */ = {
 			isa = PBXGroup;
 			children = (
+				F36D24DD1F580B8800A00BF1 /* UserSettings.storyboard */,
 				F3DCFFBD1F7CE0610056BA37 /* UserSettingsNavigationController.swift */,
 				F3E7D4851F4F044100DF166D /* UserSettingsTableViewController.swift */,
 				F3BD53381F72B26700E46FFC /* FontSelectionViewController.swift */,
@@ -342,7 +343,6 @@
 				F3DCFFBC1F7CE0140056BA37 /* UserSettings */,
 				F3E7D4841F4F044100DF166D /* TableOfContentsTableViewController.swift */,
 				F3E7D4831F4F044100DF166D /* BarView.swift */,
-				F36D24DD1F580B8800A00BF1 /* UserSettings.storyboard */,
 				AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */,
 			);
 			name = EPUB;
