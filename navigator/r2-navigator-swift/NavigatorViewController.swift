@@ -77,6 +77,14 @@ open class NavigatorViewController: UIViewController {
         triptychView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         view.addSubview(triptychView)
     }
+    
+    public var currentPosition:(Int, Double) {
+        get {
+            let progression = triptychView.getCurrentDocumentProgression()
+            let index = triptychView.getCurrentDocumentIndex()
+            return (index, progression ?? 0)
+        }
+    }
 
     open override func viewWillDisappear(_ animated: Bool) {
         // Save the currently opened document index and progression.
@@ -100,7 +108,14 @@ extension NavigatorViewController {
         }
         triptychView.moveTo(index: index)
     }
-
+    
+    public func displaySpineItem(at index: Int, progress: Double) {
+        displaySpineItem(at: index)
+        if let webView = triptychView.currentView as? WebView {
+            webView.scrollAt(position: progress)
+        }
+    }
+    
     /// Load resource with the corresponding href.
     ///
     /// - Parameter href: The href of the resource to load. Can contain a tag id.
