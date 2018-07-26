@@ -15,4 +15,8 @@ class PublicationCollectionViewCell: UICollectionViewCell {
         // Initialization code
     }
 
+    @IBOutlet weak var coverImageView: UIImageView!
+    @IBOutlet weak var titleLabel: UILabel!
+    @IBOutlet weak var authorLabel: UILabel!
+    
 }
