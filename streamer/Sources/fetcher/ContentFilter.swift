@@ -248,9 +248,6 @@ final internal class ContentFiltersEpub: ContentFilters {
 
         var includes = [String]()
 
-        includes.append("<meta name=\"viewport\" content=\"width=1024; height=768; left=50%; top=50%; bottom=auto; right=auto; transform=translate(-50%, -50%);\"/>\n")
-        /// Readium CSS -- Pagination.
-        /// Readium JS.
         // Touch event bubbling.
         includes.append(getHtmlScript(forResource: "\(baseUrl)scripts/touchHandling.js"))
         // Misc JS utils.
