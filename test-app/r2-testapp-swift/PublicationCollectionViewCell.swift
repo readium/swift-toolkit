@@ -16,7 +16,6 @@ class PublicationCollectionViewCell: UICollectionViewCell {
 
     override func awakeFromNib() {
         super.awakeFromNib()
-        // Initialization code
     }
 
     @IBOutlet weak var coverImageView: UIImageView!
