@@ -23,15 +23,15 @@ var maxScreenUpdate = function() {
         maxScreenX = screen.height;
         maxScreenY = screen.width;
     }
-    // snapCurrentPosition();
+    snapCurrentPosition();
 };
 
-// var snapCurrentPosition = function() {
-//     var currentOffset = window.scrollX;
-//     var currentOffsetSnapped = snapOffset(currentOffset + 1);
-//
-//     document.body.scrollLeft = currentOffsetSnapped;
-// };
+var snapCurrentPosition = function() {
+    var currentOffset = window.scrollX;
+    var currentOffsetSnapped = snapOffset(currentOffset + 1);
+    
+    document.body.scrollLeft = currentOffsetSnapped;
+};
 
 // When a touch is detected records its starting coordinates and if it's a singleTouchGesture.
 var handleTouchStart = function(event) {
