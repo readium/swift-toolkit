@@ -43,10 +43,10 @@ class LocatorViewController: UIViewController {
         return result
     } ()
     
-    private var tocVC: TableOfContentsTableViewController?
+    private var tocVC: UIViewController?
     private var bookmarkVC: BookmarkViewController?
     
-    func setContent(tocVC:TableOfContentsTableViewController, bookmarkVC:BookmarkViewController) {
+    func setContent(tocVC:UIViewController, bookmarkVC:BookmarkViewController) {
         self.tocVC = tocVC
         self.bookmarkVC = bookmarkVC
         self.segment.selectedSegmentIndex = 0
@@ -90,6 +90,9 @@ class LocatorViewController: UIViewController {
             } () else {return}
         self.containerView.subviews.forEach { (subview) in
             subview.removeFromSuperview()
+        }
+        self.childViewControllers.forEach { (childVC) in
+            childVC.removeFromParentViewController()
         }
         childVC.view.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         childVC.view.frame = containerView.bounds

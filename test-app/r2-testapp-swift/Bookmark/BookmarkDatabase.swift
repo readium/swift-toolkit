@@ -65,6 +65,13 @@ class BookmarkDBTable {
     func insert(newBookmark: Bookmark) throws -> Int64 {
         let db = BookmarkDatabase.shared.connection
         
+        let bookmark = bookmarkTable.filter(self.publicationID == newBookmark.publicationID && self.spineIndex == newBookmark.spineIndex && self.progress == newBookmark.progress)
+        
+        // Check if empty.
+        guard try db.scalar(bookmark.count) == 0 else {
+            return -1
+        }
+        
         let insertQuery = bookmarkTable.insert(
             createdDate <- newBookmark.createdDate,
             publicationID <- newBookmark.publicationID,

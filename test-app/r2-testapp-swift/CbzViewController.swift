@@ -16,6 +16,28 @@ import R2Navigator
 
 class CbzViewController: CbzNavigatorViewController {
 
+    lazy var bookmarkDataSource = BookmarkDataSource(thePublicationID: self.publication.metadata.identifier ?? "")
+    lazy var bookmarkVC: BookmarkViewController = {
+        let result = BookmarkViewController(dataSource: self.bookmarkDataSource)
+        result.didSelectBookmark = { (theBookmark:Bookmark) -> Void in
+            self.load(at: theBookmark.spineIndex)
+            self.navigationController?.popViewController(animated: true)
+        }
+        return result
+    } ()
+    lazy var spineListVC = SpineItemsTableViewController(for: publication.spine) { (spineIndex) in
+        self.load(at: spineIndex)
+        self.navigationController?.popViewController(animated: true)
+    }
+    
+    lazy var locatorVC: LocatorViewController = {
+        let result = LocatorViewController()
+        
+        
+        result.setContent(tocVC: self.spineListVC, bookmarkVC: self.bookmarkVC)
+        return result
+    } ()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationController?.setNavigationBarHidden(true, animated: false)
@@ -36,8 +58,10 @@ class CbzViewController: CbzNavigatorViewController {
         // SpineItemView button.
         let spineItemButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self,
                                               action: #selector(presentSpineItemsTVC))
+        
+        let bookmarkButton = UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(addBookmarkForCurrentPosition))
         /// Add spineItemViewController button to navBar.
-        navigationItem.setRightBarButtonItems([spineItemButton], animated: true)
+        navigationItem.setRightBarButtonItems([spineItemButton, bookmarkButton], animated: true)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -56,15 +80,28 @@ class CbzViewController: CbzNavigatorViewController {
     open override var prefersStatusBarHidden: Bool {
         return true
     }
+    
+    @objc func addBookmarkForCurrentPosition() {
+        
+        let spineIndex = pageNumber
+        let progress = 0.0
+        if spineIndex == 0 {return}
+        
+        guard let publicationID = publication.metadata.identifier else {return}
+        let spineDescription = publication.spine[spineIndex].href ?? "Unknow"
+        
+        let newBookmark = Bookmark(spineIndex: spineIndex, progress: progress, description: spineDescription, publicationID: publicationID)
+        _ = self.bookmarkVC.dataSource.addBookMark(newBookmark: newBookmark)
+        self.bookmarkVC.tableView.reloadData()
+    }
 }
 
 extension CbzViewController {
     @objc func presentSpineItemsTVC() {
         let backItem = UIBarButtonItem()
-        let spineItemsTVC = SpineItemsTableViewController(for: publication.spine, callWhenDismissed: load(at:))
-    
+        
         backItem.title = "Back"
         navigationItem.backBarButtonItem = backItem
-        navigationController?.pushViewController(spineItemsTVC, animated: true)
+        navigationController?.pushViewController(self.locatorVC, animated: true)
     }
 }

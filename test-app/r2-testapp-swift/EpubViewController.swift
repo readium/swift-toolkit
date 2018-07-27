@@ -47,7 +47,7 @@ class EpubViewController: UIViewController {
     } ()
     
     lazy var markButton: UIBarButtonItem = {
-        let theButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.compose, target: self, action: #selector(addBookmarkForCurrentPosition))
+        let theButton = UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(addBookmarkForCurrentPosition))
         return theButton
     } ()
     

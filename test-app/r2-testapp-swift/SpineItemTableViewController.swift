@@ -35,7 +35,6 @@ class SpineItemsTableViewController: UITableViewController {
             tableView.deselectRow(at: indexPath, animated: true)
         }
         callBack(indexPath.row)
-        self.navigationController?.popViewController(animated: true)
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
