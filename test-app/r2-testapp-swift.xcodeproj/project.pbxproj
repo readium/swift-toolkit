@@ -58,7 +58,6 @@
 		F3E7D4431F4EF6D400DF166D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4421F4EF6D400DF166D /* Assets.xcassets */; };
 		F3E7D4461F4EF6D400DF166D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */; };
 		F3E7D4711F4EFEC200DF166D /* LibraryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4701F4EFEC200DF166D /* LibraryViewController.swift */; };
-		F3E7D4751F4F031B00DF166D /* PublicationCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4741F4F031B00DF166D /* PublicationCell.swift */; };
 		F3E7D47C1F4F03B800DF166D /* UIImageExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D47B1F4F03B800DF166D /* UIImageExtension.swift */; };
 		F3E7D4801F4F03F500DF166D /* CbzViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D47F1F4F03F500DF166D /* CbzViewController.swift */; };
 		F3E7D4821F4F042600DF166D /* EpubViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4811F4F042600DF166D /* EpubViewController.swift */; };
@@ -133,7 +132,6 @@
 		F3E7D45B1F4EF6D400DF166D /* r2_testapp_swiftUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = r2_testapp_swiftUITests.swift; sourceTree = "<group>"; };
 		F3E7D45D1F4EF6D400DF166D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F3E7D4701F4EFEC200DF166D /* LibraryViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LibraryViewController.swift; sourceTree = "<group>"; };
-		F3E7D4741F4F031B00DF166D /* PublicationCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationCell.swift; sourceTree = "<group>"; };
 		F3E7D47B1F4F03B800DF166D /* UIImageExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIImageExtension.swift; sourceTree = "<group>"; };
 		F3E7D47F1F4F03F500DF166D /* CbzViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CbzViewController.swift; sourceTree = "<group>"; };
 		F3E7D4811F4F042600DF166D /* EpubViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpubViewController.swift; sourceTree = "<group>"; };
@@ -294,15 +292,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		F3E7D4721F4F02FB00DF166D /* PublicationCell */ = {
-			isa = PBXGroup;
-			children = (
-				F3E7D4741F4F031B00DF166D /* PublicationCell.swift */,
-				F3E7D4761F4F033200DF166D /* CellMenuView.swift */,
-			);
-			name = PublicationCell;
-			sourceTree = "<group>";
-		};
 		F3E7D4731F4F030300DF166D /* Library */ = {
 			isa = PBXGroup;
 			children = (
@@ -312,7 +301,6 @@
 				AECC772C210F32EC0012EBE2 /* PublicationMenuViewController.xib */,
 				113B12BD20800FC10074A5A2 /* OPDS */,
 				F3E7D4701F4EFEC200DF166D /* LibraryViewController.swift */,
-				F3E7D4721F4F02FB00DF166D /* PublicationCell */,
 				F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */,
 				F30AEE7C1FC316430073C9FD /* Details.storyboard */,
 			);
@@ -500,7 +488,6 @@
 				F3BD53391F72B26700E46FFC /* FontSelectionViewController.swift in Sources */,
 				AE00DA9A2109C02C007EEA47 /* PublicationCollectionViewCell.swift in Sources */,
 				F3E7D4871F4F044100DF166D /* TableOfContentsTableViewController.swift in Sources */,
-				F3E7D4751F4F031B00DF166D /* PublicationCell.swift in Sources */,
 				AE48F324208E0375000B7B44 /* OPDSPublicationTableViewCell.swift in Sources */,
 				F3DCFFBE1F7CE0610056BA37 /* UserSettingsNavigationController.swift in Sources */,
 				F30AEE7A1FC312EA0073C9FD /* DetailsTableViewController.swift in Sources */,
