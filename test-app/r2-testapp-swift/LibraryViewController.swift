@@ -33,7 +33,7 @@ protocol LibraryViewControllerDelegate: class {
 class LibraryViewController: UIViewController {
     var publications: [Publication]!
     
-    weak var lastFlippedCell: PublicationCell?
+    weak var lastFlippedCell: PublicationCollectionViewCell?
     
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
     var delegate: LibraryViewControllerDelegate? {
@@ -53,8 +53,8 @@ class LibraryViewController: UIViewController {
             collectionView.backgroundColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
             collectionView.contentInset = UIEdgeInsets(top: 15, left: 20,
                                                        bottom: 20, right: 20)
-            collectionView.register(PublicationCell.self,
-                                    forCellWithReuseIdentifier: "publicationCell")
+            collectionView.register(UINib(nibName: "PublicationCollectionViewCell", bundle: nil),
+                                    forCellWithReuseIdentifier: "publicationCollectionViewCell")
             collectionView.delegate = self
             collectionView.dataSource = self
         }
@@ -148,7 +148,7 @@ class LibraryViewController: UIViewController {
         
         let minimumSpacing = CGFloat(5)
         let width = (contentWith - CGFloat(numberPerRow-1) * minimumSpacing) / CGFloat(numberPerRow)
-        let height = width * 1.5 // Height/width ratio == 1.5
+        let height = width * 1.9
         
         flowLayout.minimumLineSpacing = minimumSpacing * 2
         flowLayout.minimumInteritemSpacing = minimumSpacing
@@ -165,7 +165,7 @@ extension LibraryViewController {
         let location = gestureRecognizer.location(in: collectionView)
         if let indexPath = collectionView.indexPathForItem(at: location) {
             if indexPath.item < downloadSet.count {return}
-            let cell = collectionView.cellForItem(at: indexPath) as! PublicationCell
+            let cell = collectionView.cellForItem(at: indexPath) as! PublicationCollectionViewCell
             cell.flipMenu()
         }
     }
@@ -225,8 +225,8 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "publicationCell", for: indexPath) as! PublicationCell
-        cell.imageView.image = nil
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "publicationCollectionViewCell", for: indexPath) as! PublicationCollectionViewCell
+        cell.coverImageView.image = nil
         cell.progress = 0
         
         if indexPath.item < downloadSet.count {
@@ -238,8 +238,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
             let downloadDescription = downloadTaskDescription[task] ?? "..."
             let flowLayout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout
             let textView = defaultCover(layout: flowLayout, description: downloadDescription)
-            cell.imageView.image = UIImage.imageWithTextView(textView: textView)
-            cell.applyShadows()
+            cell.coverImageView.image = UIImage.imageWithTextView(textView: textView)
             
             return cell
         }
@@ -250,11 +249,13 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
         cell.delegate = self
         cell.accessibilityLabel = publication.metadata.title
         
+        cell.titleLabel.text = publication.metadata.title
+        cell.authorLabel.text = publication.metadata.authors.map({$0.name ?? ""}).joined(separator: ", ")
+        
         let updateCellImage = { (theImage: UIImage) -> Void in
             let currentPubInfo = self.publications[offset]
             if (currentPubInfo.coverLink === publication.coverLink) {
-                cell.imageView.image = theImage
-                cell.applyShadows()
+                cell.coverImageView.image = theImage
             }
         }
         
@@ -279,8 +280,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
                     if error != nil {
                         let flowLayout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout
                         let textView = self.defaultCover(layout: flowLayout, description: publication.metadata.title)
-                        cell.imageView.image = UIImage.imageWithTextView(textView: textView)
-                        cell.applyShadows()
+                        cell.coverImageView.image = UIImage.imageWithTextView(textView: textView)
                     } else {
                         guard let newImage = image else {return}
                         ImageCache.default.store(newImage, forKey: cacheKey)
@@ -294,8 +294,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
             let flowLayout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout
             let description = publication.metadata.title
             let textView = defaultCover(layout: flowLayout, description:description)
-            cell.imageView.image = UIImage.imageWithTextView(textView: textView)
-            cell.applyShadows()
+            cell.coverImageView.image = UIImage.imageWithTextView(textView: textView)
         }
         
         return cell
@@ -410,7 +409,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
     }
 }
 
-extension LibraryViewController: PublicationCellDelegate {
+extension LibraryViewController: PublicationCollectionViewCellDelegate {
 
     func removePublicationFromLibrary(forCellAt indexPath: IndexPath) {
         let offset = downloadSet.count
@@ -456,7 +455,7 @@ extension LibraryViewController: PublicationCellDelegate {
         navigationController?.pushViewController(detailsView, animated: true)
     }
     
-    func cellFlipped(_ cell: PublicationCell) {
+    func cellFlipped(_ cell: PublicationCollectionViewCell) {
         lastFlippedCell?.flipMenu()
         lastFlippedCell = cell
     }
@@ -532,7 +531,7 @@ extension LibraryViewController: DownloadDisplayDelegate {
         let indexPath = IndexPath(item: index, section: 0)
         
         DispatchQueue.main.async {
-            guard let cell = self.collectionView.cellForItem(at: indexPath) as? PublicationCell else {return}
+            guard let cell = self.collectionView.cellForItem(at: indexPath) as? PublicationCollectionViewCell else {return}
             cell.progress = percentage
         }
     }
