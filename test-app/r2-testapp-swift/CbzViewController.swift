@@ -32,8 +32,6 @@ class CbzViewController: CbzNavigatorViewController {
     
     lazy var locatorVC: LocatorViewController = {
         let result = LocatorViewController()
-        
-        
         result.setContent(tocVC: self.spineListVC, bookmarkVC: self.bookmarkVC)
         return result
     } ()
@@ -91,7 +89,7 @@ class CbzViewController: CbzNavigatorViewController {
         let spineDescription = publication.spine[spineIndex].href ?? "Unknow"
         
         let newBookmark = Bookmark(spineIndex: spineIndex, progress: progress, description: spineDescription, publicationID: publicationID)
-        _ = self.bookmarkVC.dataSource.addBookMark(newBookmark: newBookmark)
+        _ = self.bookmarkVC.dataSource.addBookmark(newBookmark: newBookmark)
         self.bookmarkVC.tableView.reloadData()
     }
 }

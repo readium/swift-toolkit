@@ -92,7 +92,7 @@ class EpubViewController: UIViewController {
         guard let publicationID = navigator.publication.metadata.identifier else {return}
         
         let newBookmark = Bookmark(spineIndex: spineIndex, progress: progress, description: spineTitle, publicationID: publicationID)
-        _ = self.bookmarkViewController.dataSource.addBookMark(newBookmark: newBookmark)
+        _ = self.bookmarkViewController.dataSource.addBookmark(newBookmark: newBookmark)
         self.bookmarkViewController.tableView.reloadData()
     }
     

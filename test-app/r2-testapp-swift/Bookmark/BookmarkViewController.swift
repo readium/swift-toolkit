@@ -52,11 +52,11 @@ class BookmarkViewController: UITableViewController {
 
     public override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell: BookMarkCell = {
-            if let theCell = tableView.dequeueReusableCell(withIdentifier: kBookmarkInfoCell) as? BookMarkCell {
+        let cell: BookmarkCell = {
+            if let theCell = tableView.dequeueReusableCell(withIdentifier: kBookmarkInfoCell) as? BookmarkCell {
                 return theCell
             }
-            return BookMarkCell(style: UITableViewCellStyle.subtitle, reuseIdentifier: kBookmarkInfoCell)
+            return BookmarkCell(style: UITableViewCellStyle.subtitle, reuseIdentifier: kBookmarkInfoCell)
         } ()
         
         if let bookmark = dataSource.bookmark(at: indexPath.item) {
@@ -90,7 +90,7 @@ class BookmarkViewController: UITableViewController {
     }
 }
 
-class BookMarkCell: UITableViewCell {
+class BookmarkCell: UITableViewCell {
     
     lazy var dateFormatter: DateFormatter = {
         

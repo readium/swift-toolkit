@@ -85,7 +85,7 @@ class BookmarkDataSource {
         return bookmarkList[index]
     }
     
-    func addBookMark(newBookmark: Bookmark) -> Bool {
+    func addBookmark(newBookmark: Bookmark) -> Bool {
         
         if let dbID = try? BookmarkDatabase.shared.bookmarkTable.insert(newBookmark: newBookmark) {
             newBookmark.dbID = dbID
