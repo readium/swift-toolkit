@@ -86,7 +86,7 @@ class PublicationCollectionViewCell: UICollectionViewCell {
 
 extension PublicationCollectionViewCell {
     
-    /// Flip the PublicationCell and display a user menu.
+    /// Flip the PublicationCollectionViewCell and display a user menu.
     func flipMenu() {
         
         var transitionOptions: UIViewAnimationOptions!
@@ -101,7 +101,10 @@ extension PublicationCollectionViewCell {
             }
         }
         
+        // Reverse the UI. Display the menu and hide the cover or vice versa
         UIView.transition(with: contentView, duration: 0.5, options: transitionOptions, animations: {
+            // coverImageView.superview is the stack view embedding the cover image,
+            // the title label and the author label.
             self.coverImageView.superview!.isHidden = !self.isMenuDisplayed
             self.publicationMenuViewController.view.isHidden = self.isMenuDisplayed
         }, completion: { _ in

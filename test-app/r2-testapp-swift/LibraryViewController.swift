@@ -455,6 +455,8 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
         navigationController?.pushViewController(detailsView, animated: true)
     }
     
+    // Used to reset ui of the last flipped cell, we must not have two cells
+    // flipped at the same time
     func cellFlipped(_ cell: PublicationCollectionViewCell) {
         lastFlippedCell?.flipMenu()
         lastFlippedCell = cell
