@@ -184,6 +184,17 @@
 			name = OPDS;
 			sourceTree = "<group>";
 		};
+		AECC7730210F5BFA0012EBE2 /* Publication cell */ = {
+			isa = PBXGroup;
+			children = (
+				AE00DA982109C02C007EEA47 /* PublicationCollectionViewCell.swift */,
+				AE00DA992109C02C007EEA47 /* PublicationCollectionViewCell.xib */,
+				AECC772B210F32EC0012EBE2 /* PublicationMenuViewController.swift */,
+				AECC772C210F32EC0012EBE2 /* PublicationMenuViewController.xib */,
+			);
+			name = "Publication cell";
+			sourceTree = "<group>";
+		};
 		F32980ED1F7D464900BDEAF4 /* Samples */ = {
 			isa = PBXGroup;
 			children = (
@@ -295,10 +306,7 @@
 		F3E7D4731F4F030300DF166D /* Library */ = {
 			isa = PBXGroup;
 			children = (
-				AE00DA982109C02C007EEA47 /* PublicationCollectionViewCell.swift */,
-				AE00DA992109C02C007EEA47 /* PublicationCollectionViewCell.xib */,
-				AECC772B210F32EC0012EBE2 /* PublicationMenuViewController.swift */,
-				AECC772C210F32EC0012EBE2 /* PublicationMenuViewController.xib */,
+				AECC7730210F5BFA0012EBE2 /* Publication cell */,
 				113B12BD20800FC10074A5A2 /* OPDS */,
 				F3E7D4701F4EFEC200DF166D /* LibraryViewController.swift */,
 				F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */,
