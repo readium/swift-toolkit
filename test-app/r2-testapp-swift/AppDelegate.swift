@@ -118,12 +118,36 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 extension AppDelegate {
     
     internal func addPublicationToLibrary(url: URL, needUIUpdate:Bool) -> Bool {
+        
+        var documentsUrl = try! FileManager.default.url(for: .documentDirectory,
+                                                        in: .userDomainMask,
+                                                        appropriateFor: nil,
+                                                        create: true)
+        
+        documentsUrl.appendPathComponent(url.lastPathComponent)
+        
+        if FileManager().fileExists(atPath: documentsUrl.path) {
+            showInfoAlert(title: "Error", message: "File already exist")
+            return false
+        }
+        
+        /// Move Publication to documents.
+        do {
+            try FileManager.default.moveItem(at: url, to: documentsUrl)
+            let dateAttribute = [FileAttributeKey.modificationDate: Date()]
+            try FileManager.default.setAttributes(dateAttribute, ofItemAtPath: documentsUrl.path)
+            
+        } catch {
+            showInfoAlert(title: "Error", message: "Failed importing this publication \(error)")
+            return false
+        }
+        
         switch url.pathExtension {
         case "lcpl":
             #if LCP
             // Retrieve publication using the LCPL.
             firstly {
-                try publication(at: url)
+                try publication(at: documentsUrl)
                 }.then { (publicationUrl, downloadTask)-> Void in
                     
                     /// Parse publication. (tomove?)
@@ -138,41 +162,23 @@ extension AppDelegate {
                 }.catch { error in
                     print("Error -- \(error.localizedDescription)")
                     self.showInfoAlert(title: "Error", message: error.localizedDescription)
+                    if FileManager.default.fileExists(atPath: documentsUrl.path) {
+                        try? FileManager.default.removeItem(at: documentsUrl)
+                    }
             }
             #endif
         default:
-            /// Move Publication to documents.
-            var documentsUrl = try! FileManager.default.url(for: .documentDirectory,
-                                                            in: .userDomainMask,
-                                                            appropriateFor: nil,
-                                                            create: true)
             
-            documentsUrl.appendPathComponent(url.lastPathComponent)
-            
-            if FileManager().fileExists(atPath: documentsUrl.path) {
-                showInfoAlert(title: "Error", message: "Publication already added to library.")
+            /// Add the publication to the publication server.
+            let location = Location(absolutePath: documentsUrl.path,
+                                    relativePath: documentsUrl.lastPathComponent,
+                                    type: getTypeForPublicationAt(url: url))
+            if !lightParsePublication(at: location) {
+                showInfoAlert(title: "Error", message: "The publication isn't valid.")
                 return false
             } else {
-                do {
-                    try FileManager.default.moveItem(at: url, to: documentsUrl)
-                    let dateAttribute = [FileAttributeKey.modificationDate: Date()]
-                    try FileManager.default.setAttributes(dateAttribute, ofItemAtPath: documentsUrl.path)
-                    
-                } catch {
-                    showInfoAlert(title: "Error", message: "Couldn't retrieve the protected epub from the server \(error)")
-                    return false
-                }
-                /// Add the publication to the publication server.
-                let location = Location(absolutePath: documentsUrl.path,
-                                        relativePath: documentsUrl.lastPathComponent,
-                                        type: getTypeForPublicationAt(url: url))
-                if !lightParsePublication(at: location) {
-                    showInfoAlert(title: "Error", message: "The publication isn't valid.")
-                    return false
-                } else {
-                    if needUIUpdate {
-                        reload(downloadTask: nil)
-                    }
+                if needUIUpdate {
+                    reload(downloadTask: nil)
                 }
             }
         }
