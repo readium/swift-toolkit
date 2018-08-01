@@ -19,7 +19,7 @@ final class BookmarkDatabase {
     
     /// Connection.
     let connection: Connection
-    /// Tables.
+    /// The DB table for bookmark.
     let bookmarkTable: BookmarkDBTable!
     
     private init() {
@@ -47,7 +47,7 @@ class BookmarkDBTable {
     
     let publicationID = Expression<String>("publicationID")
     let spineIndex = Expression<Int>("spineIndex")
-    let progress = Expression<Double>("progress")
+    let progression = Expression<Double>("progression")
     let description =  Expression<String>("description")
     
     init(_ connection: Connection) {
@@ -57,7 +57,7 @@ class BookmarkDBTable {
             t.column(createdDate)
             t.column(publicationID)
             t.column(spineIndex)
-            t.column(progress)
+            t.column(progression)
             t.column(description)
         })
     }
@@ -65,7 +65,7 @@ class BookmarkDBTable {
     func insert(newBookmark: Bookmark) throws -> Int64 {
         let db = BookmarkDatabase.shared.connection
         
-        let bookmark = bookmarkTable.filter(self.publicationID == newBookmark.publicationID && self.spineIndex == newBookmark.spineIndex && self.progress == newBookmark.progress)
+        let bookmark = bookmarkTable.filter(self.publicationID == newBookmark.publicationID && self.spineIndex == newBookmark.spineIndex && self.progression == newBookmark.progression)
         
         // Check if empty.
         guard try db.scalar(bookmark.count) == 0 else {
@@ -76,7 +76,7 @@ class BookmarkDBTable {
             createdDate <- newBookmark.createdDate,
             publicationID <- newBookmark.publicationID,
             spineIndex <- newBookmark.spineIndex,
-            progress <- newBookmark.progress,
+            progression <- newBookmark.progression,
             description <- newBookmark.description
         )
         
@@ -93,7 +93,6 @@ class BookmarkDBTable {
         
         // Check if empty.
         guard try db.scalar(bookmark.count) > 0 else {
-            //throw LcpError.licenseNotFound
             return false
         }
         
@@ -126,10 +125,10 @@ class BookmarkDBTable {
             let thisCreatedDate = bookmarkRow[createdDate]
             let thisPublicationID = bookmarkRow[publicationID]
             let thisSpineIndex = bookmarkRow[spineIndex]
-            let thisProgress = bookmarkRow[progress]
+            let thisProgression = bookmarkRow[progression]
             let thisDescription = bookmarkRow[description]
             
-            let theBookmark = Bookmark(dbID: thisDBID, date: thisCreatedDate, spineIndex: thisSpineIndex, progress: thisProgress, description: thisDescription, publicationID: thisPublicationID)
+            let theBookmark = Bookmark(dbID: thisDBID, date: thisCreatedDate, spineIndex: thisSpineIndex, progression: thisProgression, description: thisDescription, publicationID: thisPublicationID)
             return theBookmark
         }
         

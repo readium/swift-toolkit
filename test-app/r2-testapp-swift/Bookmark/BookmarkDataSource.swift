@@ -18,27 +18,16 @@ class Bookmark {
     
     let publicationID: String
     let spineIndex: Int
-    let progress: Double
+    let progression: Double
     let description: String
     
-    
-    init() {
-        dbID = 14290490101840
-        spineIndex = 1
-        progress = 0.45
-        description = "The bookmark description"
-        
-        createdDate = Date(timeIntervalSinceNow: -99999999999)
-        publicationID = "The ID for publication"
-    }
-    
     init(dbID:Int64 = 0, date:Date = Date(),
-         spineIndex:Int, progress: Double, description: String, publicationID: String) {
+         spineIndex:Int, progression: Double, description: String, publicationID: String) {
         
         self.publicationID = publicationID
         self.description = description
         self.spineIndex = spineIndex
-        self.progress = progress
+        self.progression = progression
         
         self.dbID = dbID
         self.createdDate = date
@@ -67,7 +56,7 @@ class BookmarkDataSource {
             self.bookmarkList = theList ?? [Bookmark]()
             self.bookmarkList.sort { (thisBookmark, anotherBookmark) -> Bool in
                 if thisBookmark.spineIndex == anotherBookmark.spineIndex {
-                    return thisBookmark.progress < anotherBookmark.progress
+                    return thisBookmark.progression < anotherBookmark.progression
                 }
                 return thisBookmark.spineIndex < anotherBookmark.spineIndex
             }
@@ -89,7 +78,6 @@ class BookmarkDataSource {
         
         if let dbID = try? BookmarkDatabase.shared.bookmarkTable.insert(newBookmark: newBookmark) {
             newBookmark.dbID = dbID
-            //bookmarkList.append(newBookmark)
             self.reloadDate()
         }
         return true

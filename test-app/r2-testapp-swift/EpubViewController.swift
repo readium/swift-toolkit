@@ -40,7 +40,7 @@ class EpubViewController: UIViewController {
         let theVC = BookmarkViewController(dataSource: self.bookmarkDataSource)
         
         theVC.didSelectBookmark = { (theBookmark:Bookmark) -> Void in
-            self.navigator.displaySpineItem(at: theBookmark.spineIndex, progress: theBookmark.progress)
+            self.navigator.displaySpineItem(at: theBookmark.spineIndex, progression: theBookmark.progression)
             self.navigationController?.popViewController(animated: true)
         }
         return theVC
@@ -77,7 +77,7 @@ class EpubViewController: UIViewController {
         let position = navigator.currentPosition
         
         let spineIndex = position.0
-        let progress = position.1
+        let progression = position.1
         
         if spineIndex == 0 {return}
         
@@ -91,7 +91,7 @@ class EpubViewController: UIViewController {
         
         guard let publicationID = navigator.publication.metadata.identifier else {return}
         
-        let newBookmark = Bookmark(spineIndex: spineIndex, progress: progress, description: spineTitle, publicationID: publicationID)
+        let newBookmark = Bookmark(spineIndex: spineIndex, progression: progression, description: spineTitle, publicationID: publicationID)
         _ = self.bookmarkViewController.dataSource.addBookmark(newBookmark: newBookmark)
         self.bookmarkViewController.tableView.reloadData()
     }
@@ -297,15 +297,6 @@ extension EpubViewController: NavigatorDelegate {
         // Save current publication's document's progression. 
         // (<=> the position in the spine item)
         userDefaults.set(progression, forKey: "\(publicationIdentifier)-documentProgression")
-    }
-    
-    func didChangedDocumentPage(currentDocumentIndex: Int) {
-        
-    }
-    
-    func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int) {
-        let position = navigator.currentPosition
-        print(position)
     }
 }
 

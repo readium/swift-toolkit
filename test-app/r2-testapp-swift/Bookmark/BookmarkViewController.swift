@@ -62,7 +62,7 @@ class BookmarkViewController: UITableViewController {
         if let bookmark = dataSource.bookmark(at: indexPath.item) {
             cell.textLabel?.text = bookmark.description
             cell.date = bookmark.createdDate
-            let progress = String(format: "%.2f%%", bookmark.progress)
+            let progress = String(format: "%.2f%%", bookmark.progression)
             cell.detailTextLabel?.text = "\(progress) through the chapter"
         }
         

@@ -82,13 +82,13 @@ class CbzViewController: CbzNavigatorViewController {
     @objc func addBookmarkForCurrentPosition() {
         
         let spineIndex = pageNumber
-        let progress = 0.0
+        let progression = 0.0
         if spineIndex == 0 {return}
         
         guard let publicationID = publication.metadata.identifier else {return}
         let spineDescription = publication.spine[spineIndex].href ?? "Unknow"
         
-        let newBookmark = Bookmark(spineIndex: spineIndex, progress: progress, description: spineDescription, publicationID: publicationID)
+        let newBookmark = Bookmark(spineIndex: spineIndex, progression: progression, description: spineDescription, publicationID: publicationID)
         _ = self.bookmarkVC.dataSource.addBookmark(newBookmark: newBookmark)
         self.bookmarkVC.tableView.reloadData()
     }
