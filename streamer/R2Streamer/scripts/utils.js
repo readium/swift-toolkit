@@ -47,7 +47,7 @@ var scrollToPosition = function(position, dir) {
         offset = document.body.scrollWidth * position;
     }
     console.log(offset);
-    document.body.scrollLeft = offset;
+    document.body.scrollLeft = snapOffset(offset);
 };
 
 var scrollLeft = function(dir) {
