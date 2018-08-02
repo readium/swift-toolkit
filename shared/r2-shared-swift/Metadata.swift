@@ -85,7 +85,36 @@ public class Metadata {
 
     public var subjects = [Subject]()
     public var modified: Date?
-    public var publicationDate: String?
+    
+    /// https://github.com/readium/webpub-manifest/tree/master/contexts/default#publication-date
+    ///
+    /// Only accept valid ISO8601 date String with full date. Otherwise, it's nil.
+    /// Doesn't support other timezone except ZULU. Other timezone might be +XXXXX or -XXXXX.
+    public var published: String? {
+        set {
+            if let theNewValue = newValue {
+                if #available(iOS 10.0, *) {
+                    let formatter = ISO8601DateFormatter()
+                    formatter.formatOptions = [.withFullDate]
+                    if let _ = formatter.date(from: theNewValue) {
+                        _published = theNewValue
+                    }
+                } else {
+                    if DateFormatter.verifyISO8601String(dateString: theNewValue) {
+                        _published = theNewValue
+                    }
+                }
+                
+            } else {
+                _published = nil
+            }
+        }
+        get {
+            return _published
+        }
+    }
+    private var _published: String?
+    
     public var description: String?
     
     public var rendition = Rendition()
@@ -186,7 +215,7 @@ extension Metadata: Mappable {
             imprints <- map["imprints", ignoreNil: true]
         }
         modified <- map["modified", ignoreNil: true]
-        publicationDate <- map["publicationDate", ignoreNil: true]
+        published <- map["published", ignoreNil: true]
         if !rendition.isEmpty() {
             rendition <- map["rendition", ignoreNil: true]
         }
@@ -282,7 +311,7 @@ extension Metadata {
             case "imprint":
                 m.imprints.append(contentsOf: try Contributor.parse(contributors: v))
             case "published":
-                m.publicationDate = v as? String
+                m.published = v as? String
             case "description":
                 m.description = v as? String
             case "source":
@@ -373,4 +402,49 @@ extension Metadata {
         return m
     }
     
+}
+
+extension DateFormatter {
+    
+    /// https://developer.apple.com/documentation/foundation/dateformatter
+    /// Does't support timezones other than ZULU.
+    static func verifyISO8601String(dateString: String) -> Bool {
+        
+        let dateStringWithoutTimeZone = dateString.replacingOccurrences(of: "GMT", with: "").replacingOccurrences(of: "Z", with: "")
+        
+        if let _ = DateFormatter.iso8601ForDate.date(from: dateStringWithoutTimeZone) {
+            return true
+        }
+        if let _ = DateFormatter.iso8601ForDateTime.date(from: dateStringWithoutTimeZone) {
+            return true
+        }
+        if let _ = DateFormatter.iso8601ForDateTimeMS.date(from: dateStringWithoutTimeZone) {
+            return true
+        }
+        return false
+    }
+    
+    fileprivate static let iso8601ForDate: DateFormatter = {
+        let formatter = DateFormatter()
+        //let timeZone = TimeZone(name:"UTC")
+        formatter.dateFormat = "yyyy-MM-dd"
+        //formatter.timeZone = timeZone
+        return formatter
+    }()
+    
+    fileprivate static let iso8601ForDateTime: DateFormatter = {
+        let formatter = DateFormatter()
+        //let timeZone = TimeZone(name:"UTC")
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        //formatter.timeZone = timeZone
+        return formatter
+    }()
+    
+    fileprivate static let iso8601ForDateTimeMS: DateFormatter = {
+        let formatter = DateFormatter()
+        //let timeZone = TimeZone(name:"UTC")
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS"
+        //formatter.timeZone = timeZone
+        return formatter
+    }()
 }
