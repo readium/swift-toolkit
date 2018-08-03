@@ -88,23 +88,28 @@ public class Metadata {
     
     /// https://github.com/readium/webpub-manifest/tree/master/contexts/default#publication-date
     ///
-    /// Only accept valid ISO8601 date String with full date. Otherwise, it's nil.
-    /// Doesn't support other timezone except ZULU. Other timezone might be +XXXXX or -XXXXX.
+    /// Only accept valid RFC3339 date String with full date. Otherwise, it's nil.
+    /// Time part should be full if present, support timezone with full offset. Millisecond not supported.
     public var published: String? {
         set {
             if let theNewValue = newValue {
-                if #available(iOS 10.0, *) {
-                    let formatter = ISO8601DateFormatter()
-                    formatter.formatOptions = [.withFullDate]
-                    if let _ = formatter.date(from: theNewValue) {
-                        _published = theNewValue
-                    }
+                if DateFormatter.verifyRFC3339(dateString: theNewValue) {
+                    _published = theNewValue
                 } else {
-                    if DateFormatter.verifyISO8601String(dateString: theNewValue) {
-                        _published = theNewValue
-                    }
+                    _published = nil
                 }
                 
+// On iOS 10 and later, this API should be treated withFullTime or withTimeZone for different cases.
+// Otherwise it will accept bad format, for exmaple 2018-04-24XXXXXXXXX
+// Because it will only test the part you asssigned, date, time, timezone.
+// But we should also cover the optional cases. So there is not too much benefit.
+//                if #available(iOS 10.0, *) {
+//                    let formatter = ISO8601DateFormatter()
+//                    formatter.formatOptions = [.withFullDate]
+//                    if let _ = formatter.date(from: theNewValue) {
+//                        _published = theNewValue
+//                    }
+//                }
             } else {
                 _published = nil
             }
@@ -406,45 +411,32 @@ extension Metadata {
 
 extension DateFormatter {
     
+    static let formatSet = [
+        10: "yyyy-MM-dd",
+        11: "yyyy-MM-ddZ",
+        16: "yyyy-MM-ddZZZZZ",
+        19: "yyyy-MM-dd'T'HH:mm:ss",
+        20: "yyyy-MM-dd'T'HH:mm:ssZ",
+        25: "yyyy-MM-dd'T'HH:mm:ssZZZZZ"]
+    
     /// https://developer.apple.com/documentation/foundation/dateformatter
-    /// Does't support timezones other than ZULU.
-    static func verifyISO8601String(dateString: String) -> Bool {
+    /// Does't support millsecond or uncompleted part for date, time, timezone offset.
+    static func verifyRFC3339(dateString: String) -> Bool {
         
-        let dateStringWithoutTimeZone = dateString.replacingOccurrences(of: "GMT", with: "").replacingOccurrences(of: "Z", with: "")
+        let rfc3339Formatter = DateFormatter()
+        rfc3339Formatter.locale = Locale(identifier: "en_US_POSIX")
+        rfc3339Formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
+        rfc3339Formatter.timeZone = TimeZone(secondsFromGMT: 0)
         
-        if let _ = DateFormatter.iso8601ForDate.date(from: dateStringWithoutTimeZone) {
+        let length = dateString.count
+        if let format = formatSet[length], format != rfc3339Formatter.dateFormat {
+            rfc3339Formatter.dateFormat = format
+        }
+        
+        if let _ = rfc3339Formatter.date(from: dateString) {
             return true
         }
-        if let _ = DateFormatter.iso8601ForDateTime.date(from: dateStringWithoutTimeZone) {
-            return true
-        }
-        if let _ = DateFormatter.iso8601ForDateTimeMS.date(from: dateStringWithoutTimeZone) {
-            return true
-        }
+        
         return false
     }
-    
-    fileprivate static let iso8601ForDate: DateFormatter = {
-        let formatter = DateFormatter()
-        //let timeZone = TimeZone(name:"UTC")
-        formatter.dateFormat = "yyyy-MM-dd"
-        //formatter.timeZone = timeZone
-        return formatter
-    }()
-    
-    fileprivate static let iso8601ForDateTime: DateFormatter = {
-        let formatter = DateFormatter()
-        //let timeZone = TimeZone(name:"UTC")
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-        //formatter.timeZone = timeZone
-        return formatter
-    }()
-    
-    fileprivate static let iso8601ForDateTimeMS: DateFormatter = {
-        let formatter = DateFormatter()
-        //let timeZone = TimeZone(name:"UTC")
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS"
-        //formatter.timeZone = timeZone
-        return formatter
-    }()
 }
