@@ -19,21 +19,79 @@ class EpubViewController: UIViewController {
     let navigator: NavigatorViewController!
     let fixedTopBar: BarView!
     let fixedBottomBar: BarView!
-    var tableOfContentsTVC: TableOfContentsTableViewController!
+    var tableOfContentsTVC: OutlineTableViewController!
     var popoverUserconfigurationAnchor: UIBarButtonItem?
     var userSettingNavigationController: UserSettingsNavigationController!
     var drmManagementTVC: DrmManagementTableViewController!
     var haveDrm = false
+  
+    lazy var bookmarkDataSource: BookmarkDataSource = {
+        let publicationID = navigator.publication.metadata.identifier ?? ""
+        return BookmarkDataSource(publicationID:publicationID)
+    } ()
+  
+    lazy var bookmarkButton: UIBarButtonItem = {
+        let button = UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(addBookmarkForCurrentPosition))
+        return button
+    } ()
+    
+    lazy var hrefToTitle: [String: String] = {
+        
+        let linkList = self.navigator.getTableOfContents()
+        return self.fulfill(linkList: linkList)
+    } ()
+    
+    func fulfill(linkList: [Link]) -> [String: String] {
+        var result = [String: String]()
+        
+        for linkItem in linkList {
+            if let href = linkItem.href, let title = linkItem.title {
+                result[href] = title
+            }
+            let subResult = fulfill(linkList: linkItem.children)
+            result.merge(subResult) { (current, another) -> String in
+                return current
+            }
+        }
+        return result
+    }
+      
+  @objc func addBookmarkForCurrentPosition() {
+        
+        let position = navigator.currentPosition
+        
+        let resourceIndex = position.0
+        let progression = position.1
+    
+        let spine = self.navigator.getSpine()[resourceIndex]
+        let spineTitle: String = {
+            if let spineHref = spine.href {
+                return hrefToTitle[spineHref]
+            }
+            return nil
+        } () ?? "Unknow"
+        
+        guard let publicationID = navigator.publication.metadata.identifier else {return}
+        
+      let bookmark = Bookmark(resourceHref: spine.href!, resourceIndex: resourceIndex, progression: progression, resourceTitle: spineTitle, publicationID: publicationID)
+      
+      if (self.bookmarkDataSource.addBookmark(bookmark: bookmark)) {
+        toast(self.view, "Bookmark Added", 1)
+      } else {
+        toast(self.view, "Could not add Bookmark", 2)
+      }
+      
+    }
     
     init(with publication: Publication, atIndex index: Int, progression: Double?, _ drm: Drm?) {
         stackView = UIStackView(frame: UIScreen.main.bounds)
         navigator = NavigatorViewController(for: publication,
                                             initialIndex: index,
                                             initialProgression: progression)
+        
         fixedTopBar = BarView()
         fixedBottomBar = BarView()
-        tableOfContentsTVC = TableOfContentsTableViewController(for: navigator.getTableOfContents(),
-                                                                callWhenDismissed: navigator.displaySpineItem(with:))
+      
         // UserSettingsViewController.
         var storyboard = UIStoryboard(name: "UserSettings", bundle: nil)
         
@@ -73,6 +131,17 @@ class EpubViewController: UIViewController {
         
         view.addSubview(stackView)
         
+        if #available(iOS 11, *) {
+            let safeArea = view.safeAreaLayoutGuide
+            stackView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                stackView.topAnchor.constraint(equalTo: safeArea.topAnchor),
+                self.stackView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
+                self.stackView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
+                self.stackView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor),
+            ])
+        }
+      
         /// Set initial UI appearance.
         if let appearance = navigator.publication.userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) {
             setUIColor(for: appearance)
@@ -112,6 +181,8 @@ class EpubViewController: UIViewController {
                                                       action: #selector(presentDrmManagement))
             barButtons.append(drmManagementButton)
         }
+        
+        barButtons.append(self.bookmarkButton)
         
         popoverUserconfigurationAnchor = userSettingsButton
         /// Add spineItemViewController button to navBar.
@@ -178,7 +249,21 @@ extension EpubViewController {
         if let userSettingsTVC = userSettingNavigationController.userSettingsTableViewController {
             userSettingsTVC.dismiss(animated: true, completion: nil)
         }
-        navigationController?.pushViewController(tableOfContentsTVC, animated: true)
+      
+      let storyboard = UIStoryboard(name: "AppMain", bundle: nil)
+      let outlineTableVC =
+        storyboard.instantiateViewController(withIdentifier: "OutlineTableViewController") as! OutlineTableViewController
+      
+      outlineTableVC.tableOfContents = navigator.getTableOfContents()
+      outlineTableVC.callBack = navigator.displaySpineItem(with:)
+      
+      outlineTableVC.bookmarksDatasource = self.bookmarkDataSource
+      outlineTableVC.didSelectBookmark = { (bookmark:Bookmark) -> Void in
+          self.navigator.displaySpineItem(at: bookmark.resourceIndex, progression: bookmark.progression)
+      }
+
+      let outlineNavVC = UINavigationController.init(rootViewController: outlineTableVC)
+      present(outlineNavVC, animated: true, completion: nil)
     }
     
     @objc func presentDrmManagement() {
@@ -250,7 +335,6 @@ extension EpubViewController: UserSettingsNavigationControllerDelegate {
         navigationController?.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: colors.textColor]
         
         //
-        tableOfContentsTVC.setUIColor(for: appearance)
         if haveDrm {
             drmManagementTVC.appearance = appearance
         }

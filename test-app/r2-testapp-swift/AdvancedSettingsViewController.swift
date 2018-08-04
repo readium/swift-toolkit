@@ -32,6 +32,10 @@ protocol AdvancedSettingsDelegate: class {
     func incrementPageMargins()
     func decrementPageMargins()
     func updatePageMarginsLabel()
+    
+    func incrementLineHeight()
+    func decrementLineHeight()
+    func updateLineHeightLabel()
 }
 
 class AdvancedSettingsViewController: UIViewController {
@@ -41,6 +45,7 @@ class AdvancedSettingsViewController: UIViewController {
     @IBOutlet weak var wordSpacingLabel: UILabel!
     @IBOutlet weak var letterSpacingLabel: UILabel!
     @IBOutlet weak var pageMarginsLabel: UILabel!
+    @IBOutlet weak var lineHeightLabel: UILabel!
     weak var delegate: AdvancedSettingsDelegate?
     weak var userSettings: UserSettings?
     
@@ -48,6 +53,7 @@ class AdvancedSettingsViewController: UIViewController {
         super.viewDidAppear(true)
         delegate?.updateWordSpacingLabel()
         delegate?.updatePageMarginsLabel()
+        delegate?.updateLineHeightLabel()
         delegate?.updateLetterSpacingLabel()
     }
     override func viewWillAppear(_ animated: Bool) {
@@ -139,6 +145,24 @@ class AdvancedSettingsViewController: UIViewController {
 
     public func updatePageMargins(value: String) {
         pageMarginsLabel.text = value
+    }
+    
+    /// Line height.
+    
+    @IBAction func lineHeightPlusTapped() {
+        delegate?.incrementLineHeight()
+        delegate?.updateLineHeightLabel()
+        switchOffPublisherSettingsIfNeeded()
+    }
+    
+    @IBAction func lineHeightMinusTapped() {
+        delegate?.decrementLineHeight()
+        delegate?.updateLineHeightLabel()
+        switchOffPublisherSettingsIfNeeded()
+    }
+    
+    public func updateLineHeight(value: String) {
+        lineHeightLabel.text = value
     }
     
     /// Column count.

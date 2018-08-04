@@ -50,6 +50,11 @@ class LibraryViewController: UIViewController {
     
     @IBOutlet weak var collectionView: UICollectionView! {
         didSet {
+            // The contentInset of collectionVIew might be changed by iOS 9/10.
+            // This property has been set as false on storyboard.
+            // In case it's changed by mistake somewhere, set it again here.
+            self.automaticallyAdjustsScrollViewInsets = false
+            
             collectionView.backgroundColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
             collectionView.contentInset = UIEdgeInsets(top: 15, left: 20,
                                                        bottom: 20, right: 20)
@@ -63,7 +68,7 @@ class LibraryViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        publications = appDelegate.publicationServer.publications
+        publications = appDelegate.publicationServer?.publications
         appDelegate.libraryViewController = self
         
         // Add long press gesture recognizer.
