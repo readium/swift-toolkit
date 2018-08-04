@@ -109,10 +109,13 @@ extension NavigatorViewController {
         triptychView.moveTo(index: index)
     }
     
-    public func displaySpineItem(at index: Int, progress: Double) {
+    /// Display the spine item at `index` with scroll `progression`
+    ///
+    /// - Parameter index: The index of the spine item to display.
+    public func displaySpineItem(at index: Int, progression: Double) {
         displaySpineItem(at: index)
         if let webView = triptychView.currentView as? WebView {
-            webView.scrollAt(position: progress)
+            webView.scrollAt(position: progression)
         }
     }
     
