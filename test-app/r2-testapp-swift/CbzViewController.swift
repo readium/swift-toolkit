@@ -16,26 +16,8 @@ import R2Navigator
 
 class CbzViewController: CbzNavigatorViewController {
 
-    lazy var bookmarkDataSource = BookmarkDataSource(thePublicationID: self.publication.metadata.identifier ?? "")
-    lazy var bookmarkVC: BookmarkViewController = {
-        let result = BookmarkViewController(dataSource: self.bookmarkDataSource)
-        result.didSelectBookmark = { (theBookmark:Bookmark) -> Void in
-            self.load(at: theBookmark.spineIndex)
-            self.navigationController?.popViewController(animated: true)
-        }
-        return result
-    } ()
-    lazy var spineListVC = SpineItemsTableViewController(for: publication.spine) { (spineIndex) in
-        self.load(at: spineIndex)
-        self.navigationController?.popViewController(animated: true)
-    }
-    
-    lazy var locatorVC: LocatorViewController = {
-        let result = LocatorViewController()
-        result.setContent(tocVC: self.spineListVC, bookmarkVC: self.bookmarkVC)
-        return result
-    } ()
-    
+    lazy var bookmarkDataSource = BookmarkDataSource(publicationID: self.publication.metadata.identifier ?? "")
+  
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationController?.setNavigationBarHidden(true, animated: false)
@@ -80,26 +62,39 @@ class CbzViewController: CbzNavigatorViewController {
     }
     
     @objc func addBookmarkForCurrentPosition() {
+      let resourceIndex = pageNumber
+      let progression = 0.0
+    
+      guard let publicationID = publication.metadata.identifier else {return}
+      let spineDescription = publication.spine[resourceIndex].href ?? "Unknow"
         
-        let spineIndex = pageNumber
-        let progression = 0.0
-        if spineIndex == 0 {return}
-        
-        guard let publicationID = publication.metadata.identifier else {return}
-        let spineDescription = publication.spine[spineIndex].href ?? "Unknow"
-        
-        let newBookmark = Bookmark(spineIndex: spineIndex, progression: progression, description: spineDescription, publicationID: publicationID)
-        _ = self.bookmarkVC.dataSource.addBookmark(newBookmark: newBookmark)
-        self.bookmarkVC.tableView.reloadData()
+      let bookmark = Bookmark(resourceHref:spineDescription, resourceIndex: resourceIndex, progression: progression, resourceTitle: spineDescription, publicationID: publicationID)
+      if (self.bookmarkDataSource.addBookmark(bookmark: bookmark)) {
+        toast(self.view, "Bookmark Added", 1)
+      } else {
+        toast(self.view, "Could not add Bookmark", 2)
+      }
     }
 }
 
 extension CbzViewController {
     @objc func presentSpineItemsTVC() {
-        let backItem = UIBarButtonItem()
-        
-        backItem.title = "Back"
-        navigationItem.backBarButtonItem = backItem
-        navigationController?.pushViewController(self.locatorVC, animated: true)
+            
+      let storyboard = UIStoryboard(name: "AppMain", bundle: nil)
+      let outlineTableVC =
+        storyboard.instantiateViewController(withIdentifier: "OutlineTableViewController") as! OutlineTableViewController
+      
+      outlineTableVC.publicationType = .CBZ
+      outlineTableVC.tableOfContents = publication.spine
+      outlineTableVC.bookmarksDatasource = self.bookmarkDataSource
+      outlineTableVC.callBack = { (spineIndex) in
+        self.load(at: Int(spineIndex)!)
+      }
+      outlineTableVC.didSelectBookmark = { (bookmark:Bookmark) -> Void in
+        self.load(at: bookmark.resourceIndex)
+      }
+      
+      let outlineNavVC = UINavigationController.init(rootViewController: outlineTableVC)
+      present(outlineNavVC, animated: true, completion: nil)
     }
 }

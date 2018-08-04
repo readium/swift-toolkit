@@ -14,13 +14,13 @@ import Foundation
 import SQLite
 
 final class BookmarkDatabase {
-    /// Shared instance.
+    // Shared instance.
     public static let shared = BookmarkDatabase()
     
-    /// Connection.
+    // Connection.
     let connection: Connection
-    /// The DB table for bookmark.
-    let bookmarkTable: BookmarkDBTable!
+    // The DB table for bookmark.
+    let bookmarks: BookmarksTable!
     
     private init() {
         do {
@@ -28,68 +28,80 @@ final class BookmarkDatabase {
                                                   in: .userDomainMask,
                                                   appropriateFor: nil, create: true)
             
-            url.appendPathComponent("bookmarkdatabase.sqlite")
+            url.appendPathComponent("bookmarks_database")
             connection = try Connection(url.absoluteString)
-            bookmarkTable = BookmarkDBTable(connection)
+            bookmarks = BookmarksTable(connection)
+         
+//          if connection.userVersion == 0 {
+//            // handle first migration
+//            connection.userVersion = 1
+//            // upgrade database columns
+//          }
+
+          
         } catch {
             fatalError("Error initializing db.")
         }
     }
 }
-
-class BookmarkDBTable {
-    /// Table.
+class BookmarksTable {
+  
+    let tableName = Table("BOOKMARKS")
     
-    let bookmarkTable = Table("bookmarkTable")
-    
-    let dbID = Expression<Int64>("dbID")
-    let createdDate = Expression<Date>("createdDate")
-    
+    let bookmarkID = Expression<Int64>("id")
     let publicationID = Expression<String>("publicationID")
-    let spineIndex = Expression<Int>("spineIndex")
+  
+    let resourceIndex = Expression<Int>("resourceIndex")
+    let resourceHref = Expression<String>("resourceHref")
+    let resourceTitle =  Expression<String>("resourceTitle")
+  
     let progression = Expression<Double>("progression")
-    let description =  Expression<String>("description")
-    
+    let timestamp = Expression<Date>("timestamp")
+
+  
     init(_ connection: Connection) {
         
-        _ = try? connection.run(bookmarkTable.create(temporary: false, ifNotExists: true) { t in
-            t.column(dbID, primaryKey: PrimaryKey.autoincrement)
-            t.column(createdDate)
+        _ = try? connection.run(tableName.create(temporary: false, ifNotExists: true) { t in
+            t.column(bookmarkID, primaryKey: PrimaryKey.autoincrement)
+            t.column(timestamp)
             t.column(publicationID)
-            t.column(spineIndex)
+            t.column(resourceHref)
+            t.column(resourceIndex)
             t.column(progression)
-            t.column(description)
+            t.column(resourceTitle)
         })
+      connection.userVersion = 0
     }
     
-    func insert(newBookmark: Bookmark) throws -> Int64 {
+    func insert(newBookmark: Bookmark) throws -> Int64? {
         let db = BookmarkDatabase.shared.connection
         
-        let bookmark = bookmarkTable.filter(self.publicationID == newBookmark.publicationID && self.spineIndex == newBookmark.spineIndex && self.progression == newBookmark.progression)
+        let bookmark = tableName.filter(self.publicationID == newBookmark.publicationID && self.resourceHref == newBookmark.resourceHref && self.resourceIndex == newBookmark.resourceIndex && self.progression == newBookmark.progression)
         
         // Check if empty.
         guard try db.scalar(bookmark.count) == 0 else {
-            return -1
+            return nil
         }
         
-        let insertQuery = bookmarkTable.insert(
-            createdDate <- newBookmark.createdDate,
+        let insertQuery = tableName.insert(
+            timestamp <- newBookmark.timestamp,
             publicationID <- newBookmark.publicationID,
-            spineIndex <- newBookmark.spineIndex,
+            resourceHref <- newBookmark.resourceHref,
+            resourceIndex <- newBookmark.resourceIndex,
             progression <- newBookmark.progression,
-            description <- newBookmark.description
+            resourceTitle <- newBookmark.resourceTitle
         )
         
        return try db.run(insertQuery)
     }
     
-    func delete(theBookmark: Bookmark) throws -> Bool {
-        return try delete(bookmarkID: theBookmark.dbID)
+    func delete(bookmark: Bookmark) throws -> Bool {
+        return try delete(bookmarkID: bookmark.bookmarkID)
     }
     
     func delete(bookmarkID: Int64) throws -> Bool {
         let db = BookmarkDatabase.shared.connection
-        let bookmark = bookmarkTable.filter(self.dbID == bookmarkID)
+        let bookmark = tableName.filter(self.bookmarkID == bookmarkID)
         
         // Check if empty.
         guard try db.scalar(bookmark.count) > 0 else {
@@ -100,38 +112,46 @@ class BookmarkDBTable {
         return true
     }
     
-    func bookmarkList(for thePublicationID:String?=nil, theSpineIndex:Int?=nil) throws -> [Bookmark]? {
+    func bookmarkList(for publicationID:String?=nil, resourceIndex:Int?=nil) throws -> [Bookmark]? {
         
         let db = BookmarkDatabase.shared.connection
         // Check if empty.
-        guard try db.scalar(bookmarkTable.count) > 0 else {
+        guard try db.scalar(tableName.count) > 0 else {
             return nil
         }
         
         let resultList = try { () -> AnySequence<Row> in
-            if let fetchingID = thePublicationID {
-                if let fetchingIndex = theSpineIndex {
-                    let query = self.bookmarkTable.filter(self.publicationID == fetchingID && self.spineIndex == fetchingIndex)
+            if let fetchingID = publicationID {
+                if let fetchingIndex = resourceIndex {
+                    let query = self.tableName.filter(self.publicationID == fetchingID && self.resourceIndex == fetchingIndex)
                     return try db.prepare(query)
                 }
-                let query = self.bookmarkTable.filter(self.publicationID == fetchingID)
+                let query = self.tableName.filter(self.publicationID == fetchingID)
                 return try db.prepare(query)
             }
-            return try db.prepare(self.bookmarkTable)
+            return try db.prepare(self.tableName)
         } ()
         
         let bookmarkList = resultList.map { (bookmarkRow) -> Bookmark in
-            let thisDBID = bookmarkRow[dbID]
-            let thisCreatedDate = bookmarkRow[createdDate]
-            let thisPublicationID = bookmarkRow[publicationID]
-            let thisSpineIndex = bookmarkRow[spineIndex]
-            let thisProgression = bookmarkRow[progression]
-            let thisDescription = bookmarkRow[description]
+            let _bookmarkID = bookmarkRow[self.bookmarkID]
+            let _timestamp = bookmarkRow[self.timestamp]
+            let _publicationID = bookmarkRow[self.publicationID]
+            let _resourceHref = bookmarkRow[self.resourceHref]
+            let _resourceIndex = bookmarkRow[self.resourceIndex]
+            let _progression = bookmarkRow[self.progression]
+            let _resourceTitle = bookmarkRow[self.resourceTitle]
             
-            let theBookmark = Bookmark(dbID: thisDBID, date: thisCreatedDate, spineIndex: thisSpineIndex, progression: thisProgression, description: thisDescription, publicationID: thisPublicationID)
-            return theBookmark
+            let bookmark = Bookmark(bookmarkID: _bookmarkID, timestamp: _timestamp, resourceHref: _resourceHref, resourceIndex: _resourceIndex, progression: _progression, resourceTitle: _resourceTitle, publicationID: _publicationID)
+            return bookmark
         }
         
         return bookmarkList
     }
+}
+
+extension Connection {
+  public var userVersion: Int32 {
+    get { return Int32(try! scalar("PRAGMA user_version") as! Int64)}
+    set { try! run("PRAGMA user_version = \(newValue)") }
+  }
 }

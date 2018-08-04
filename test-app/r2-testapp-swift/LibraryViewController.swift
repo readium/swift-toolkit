@@ -68,7 +68,7 @@ class LibraryViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        publications = appDelegate.publicationServer.publications
+        publications = appDelegate.publicationServer?.publications
         appDelegate.libraryViewController = self
         
         // Add long press gesture recognizer.

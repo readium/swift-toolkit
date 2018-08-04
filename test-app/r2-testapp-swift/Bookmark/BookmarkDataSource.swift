@@ -13,87 +13,92 @@
 import Foundation
 
 class Bookmark {
-    var dbID: Int64
-    let createdDate: Date
-    
+    var bookmarkID: Int64
     let publicationID: String
-    let spineIndex: Int
+
+    let resourceHref: String
+    let resourceIndex: Int
+    let resourceTitle: String
+
     let progression: Double
-    let description: String
-    
-    init(dbID:Int64 = 0, date:Date = Date(),
-         spineIndex:Int, progression: Double, description: String, publicationID: String) {
+    let timestamp: Date
+
+    init(bookmarkID:Int64 = 0, timestamp:Date = Date(),
+         resourceHref:String, resourceIndex:Int, progression: Double, resourceTitle: String, publicationID: String) {
         
+        self.bookmarkID = bookmarkID
         self.publicationID = publicationID
-        self.description = description
-        self.spineIndex = spineIndex
+      
+        self.resourceHref = resourceHref
+        self.resourceIndex = resourceIndex
+        self.resourceTitle = resourceTitle
+      
         self.progression = progression
-        
-        self.dbID = dbID
-        self.createdDate = date
+        self.timestamp = timestamp
+      
     }
 }
 
 class BookmarkDataSource {
     
     let publicationID :String?
-    private(set) var bookmarkList = [Bookmark]()
+    private(set) var bookmarks = [Bookmark]()
     
     init() {
         self.publicationID = nil
-        self.reloadDate()
+        self.reloadBookmarks()
     }
     
-    init(thePublicationID: String) {
-        
-        self.publicationID = thePublicationID
-        self.reloadDate()
+    init(publicationID: String) {
+        self.publicationID = publicationID
+        self.reloadBookmarks()
     }
     
-    func reloadDate() {
-        
-        if let theList = try? BookmarkDatabase.shared.bookmarkTable.bookmarkList(for: self.publicationID) {
-            self.bookmarkList = theList ?? [Bookmark]()
-            self.bookmarkList.sort { (thisBookmark, anotherBookmark) -> Bool in
-                if thisBookmark.spineIndex == anotherBookmark.spineIndex {
-                    return thisBookmark.progression < anotherBookmark.progression
+    func reloadBookmarks() {
+        if let list = try? BookmarkDatabase.shared.bookmarks.bookmarkList(for: self.publicationID) {
+            self.bookmarks = list ?? [Bookmark]()
+            self.bookmarks.sort { (b1, b2) -> Bool in
+                if b1.resourceIndex == b2.resourceIndex {
+                    return b1.progression < b2.progression
                 }
-                return thisBookmark.spineIndex < anotherBookmark.spineIndex
+                return b1.resourceIndex < b2.resourceIndex
             }
         }
     }
     
-    func bookmarkCount() -> Int {
-        return bookmarkList.count
+    var count: Int {
+        return bookmarks.count
     }
     
     func bookmark(at index: Int) -> Bookmark? {
-        if index < 0 || index >= bookmarkList.count {
+        if index < 0 || index >= bookmarks.count {
             return nil
         }
-        return bookmarkList[index]
+        return bookmarks[index]
     }
     
-    func addBookmark(newBookmark: Bookmark) -> Bool {
-        
-        if let dbID = try? BookmarkDatabase.shared.bookmarkTable.insert(newBookmark: newBookmark) {
-            newBookmark.dbID = dbID
-            self.reloadDate()
+    func addBookmark(bookmark: Bookmark) -> Bool {
+        if let addedBookmarkID = try? BookmarkDatabase.shared.bookmarks.insert(newBookmark: bookmark) {
+          if let bookmarkID = addedBookmarkID {
+            bookmark.bookmarkID = bookmarkID
+            self.reloadBookmarks()
+            return true
+          }
         }
-        return true
+        return false
     }
     
     func removeBookmark(index: Int) -> Bool {
-        if index < 0 || index >= bookmarkList.count {
+        if index < 0 || index >= bookmarks.count {
             return false
         }
-        let theBookmark = bookmarkList[index]
-        guard let result =  try? BookmarkDatabase.shared.bookmarkTable.delete(theBookmark:theBookmark) else {
+        let bookmark = bookmarks[index]
+        guard let deleted =  try? BookmarkDatabase.shared.bookmarks.delete(bookmark:bookmark) else {
             return false
         }
         
-        if result {
-            bookmarkList.remove(at:index)
+        if deleted {
+            bookmarks.remove(at:index)
             return true
         }
         return false
