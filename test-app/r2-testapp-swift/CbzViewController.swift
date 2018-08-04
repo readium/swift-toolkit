@@ -16,6 +16,8 @@ import R2Navigator
 
 class CbzViewController: CbzNavigatorViewController {
 
+    lazy var bookmarkDataSource = BookmarkDataSource(publicationID: self.publication.metadata.identifier ?? "")
+  
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationController?.setNavigationBarHidden(true, animated: false)
@@ -36,8 +38,10 @@ class CbzViewController: CbzNavigatorViewController {
         // SpineItemView button.
         let spineItemButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self,
                                               action: #selector(presentSpineItemsTVC))
+        
+        let bookmarkButton = UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(addBookmarkForCurrentPosition))
         /// Add spineItemViewController button to navBar.
-        navigationItem.setRightBarButtonItems([spineItemButton], animated: true)
+        navigationItem.setRightBarButtonItems([spineItemButton, bookmarkButton], animated: true)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -56,15 +60,41 @@ class CbzViewController: CbzNavigatorViewController {
     open override var prefersStatusBarHidden: Bool {
         return true
     }
+    
+    @objc func addBookmarkForCurrentPosition() {
+      let resourceIndex = pageNumber
+      let progression = 0.0
+    
+      guard let publicationID = publication.metadata.identifier else {return}
+      let spineDescription = publication.spine[resourceIndex].href ?? "Unknow"
+        
+      let bookmark = Bookmark(resourceHref:spineDescription, resourceIndex: resourceIndex, progression: progression, resourceTitle: spineDescription, publicationID: publicationID)
+      if (self.bookmarkDataSource.addBookmark(bookmark: bookmark)) {
+        toast(self.view, "Bookmark Added", 1)
+      } else {
+        toast(self.view, "Could not add Bookmark", 2)
+      }
+    }
 }
 
 extension CbzViewController {
     @objc func presentSpineItemsTVC() {
-        let backItem = UIBarButtonItem()
-        let spineItemsTVC = SpineItemsTableViewController(for: publication.spine, callWhenDismissed: load(at:))
-    
-        backItem.title = "Back"
-        navigationItem.backBarButtonItem = backItem
-        navigationController?.pushViewController(spineItemsTVC, animated: true)
+            
+      let storyboard = UIStoryboard(name: "AppMain", bundle: nil)
+      let outlineTableVC =
+        storyboard.instantiateViewController(withIdentifier: "OutlineTableViewController") as! OutlineTableViewController
+      
+      outlineTableVC.publicationType = .CBZ
+      outlineTableVC.tableOfContents = publication.spine
+      outlineTableVC.bookmarksDatasource = self.bookmarkDataSource
+      outlineTableVC.callBack = { (spineIndex) in
+        self.load(at: Int(spineIndex)!)
+      }
+      outlineTableVC.didSelectBookmark = { (bookmark:Bookmark) -> Void in
+        self.load(at: bookmark.resourceIndex)
+      }
+      
+      let outlineNavVC = UINavigationController.init(rootViewController: outlineTableVC)
+      present(outlineNavVC, animated: true, completion: nil)
     }
 }

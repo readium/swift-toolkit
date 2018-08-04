@@ -11,6 +11,8 @@
 		03B8169220FD0118002A449E /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7646206A5F1900C3C24E /* R2Shared.framework */; };
 		03B8169320FD0118002A449E /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764B206A5F1A00C3C24E /* R2Streamer.framework */; };
 		03B8169420FD012C002A449E /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE2B6A862088949300C12072 /* ReadiumOPDS.framework */; };
+		03804906211662D7009F48BD /* MBProgressHUD.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03804905211662D7009F48BD /* MBProgressHUD.framework */; };
+		0380490B21166627009F48BD /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0380490A21166627009F48BD /* Toast.swift */; };
 		03D011F2208023360097A87C /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03D011F1208023360097A87C /* Minizip.framework */; };
 		03EF7653206A5F1A00C3C24E /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7647206A5F1900C3C24E /* CryptoSwift.framework */; };
 		03EF7654206A5F1A00C3C24E /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7648206A5F1A00C3C24E /* SQLite.framework */; };
@@ -25,6 +27,9 @@
 		113B12D220800FD60074A5A2 /* OPDSCatalogSelectorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */; };
 		113B12DA20800FD60074A5A2 /* OPDSFacetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12C920800FD50074A5A2 /* OPDSFacetViewController.swift */; };
 		113B12DD20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */; };
+		571585F02109E8F9008B34AD /* BookmarkCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571585ED2109E8F8008B34AD /* BookmarkCell.swift */; };
+		571585F12109E8F9008B34AD /* BookmarkDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571585EE2109E8F8008B34AD /* BookmarkDatabase.swift */; };
+		571585F22109E8F9008B34AD /* BookmarkDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571585EF2109E8F8008B34AD /* BookmarkDataSource.swift */; };
 		57B00B7B20DBF88400B076A2 /* R2TabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57B00B7A20DBF88400B076A2 /* R2TabBar.swift */; };
 		AE009A04207F5980001D82C5 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE009A03207F5980001D82C5 /* Fuzi.framework */; };
 		AE2B6A8920889C8700C12072 /* AppMain.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AE2B6A8820889C8700C12072 /* AppMain.storyboard */; };
@@ -62,9 +67,8 @@
 		F3E7D4801F4F03F500DF166D /* CbzViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D47F1F4F03F500DF166D /* CbzViewController.swift */; };
 		F3E7D4821F4F042600DF166D /* EpubViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4811F4F042600DF166D /* EpubViewController.swift */; };
 		F3E7D4861F4F044100DF166D /* BarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4831F4F044100DF166D /* BarView.swift */; };
-		F3E7D4871F4F044100DF166D /* TableOfContentsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4841F4F044100DF166D /* TableOfContentsTableViewController.swift */; };
+		F3E7D4871F4F044100DF166D /* OutlineTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4841F4F044100DF166D /* OutlineTableViewController.swift */; };
 		F3E7D4881F4F044100DF166D /* UserSettingsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4851F4F044100DF166D /* UserSettingsTableViewController.swift */; };
-		F3E7D48A1F4F049C00DF166D /* SpineItemTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4891F4F049C00DF166D /* SpineItemTableViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -74,6 +78,8 @@
 		03702C0620F16C4B0064F079 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03702C0920F16C4B0064F079 /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03702C0C20F16C4B0064F079 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumOPDS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		03804905211662D7009F48BD /* MBProgressHUD.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MBProgressHUD.framework; path = Carthage/Build/iOS/MBProgressHUD.framework; sourceTree = "<group>"; };
+		0380490A21166627009F48BD /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		03D011F1208023360097A87C /* Minizip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Minizip.framework; path = Carthage/Build/iOS/Minizip.framework; sourceTree = "<group>"; };
 		03EF7646206A5F1900C3C24E /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
 		03EF7647206A5F1900C3C24E /* CryptoSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoSwift.framework; path = Carthage/Build/iOS/CryptoSwift.framework; sourceTree = "<group>"; };
@@ -91,6 +97,9 @@
 		113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSCatalogSelectorViewController.swift; sourceTree = "<group>"; };
 		113B12C920800FD50074A5A2 /* OPDSFacetViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSFacetViewController.swift; sourceTree = "<group>"; };
 		113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSPublicationInfoViewController.swift; sourceTree = "<group>"; };
+		571585ED2109E8F8008B34AD /* BookmarkCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkCell.swift; sourceTree = "<group>"; };
+		571585EE2109E8F8008B34AD /* BookmarkDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkDatabase.swift; sourceTree = "<group>"; };
+		571585EF2109E8F8008B34AD /* BookmarkDataSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkDataSource.swift; sourceTree = "<group>"; };
 		57B00B7A20DBF88400B076A2 /* R2TabBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = R2TabBar.swift; sourceTree = "<group>"; };
 		57CADB3220D14B3100DF6675 /* r2-testapp-swift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "r2-testapp-swift.entitlements"; sourceTree = "<group>"; };
 		AE009A03207F5980001D82C5 /* Fuzi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Fuzi.framework; path = Carthage/Build/iOS/Fuzi.framework; sourceTree = "<group>"; };
@@ -136,9 +145,8 @@
 		F3E7D47F1F4F03F500DF166D /* CbzViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CbzViewController.swift; sourceTree = "<group>"; };
 		F3E7D4811F4F042600DF166D /* EpubViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpubViewController.swift; sourceTree = "<group>"; };
 		F3E7D4831F4F044100DF166D /* BarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BarView.swift; sourceTree = "<group>"; };
-		F3E7D4841F4F044100DF166D /* TableOfContentsTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TableOfContentsTableViewController.swift; sourceTree = "<group>"; };
+		F3E7D4841F4F044100DF166D /* OutlineTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OutlineTableViewController.swift; sourceTree = "<group>"; };
 		F3E7D4851F4F044100DF166D /* UserSettingsTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserSettingsTableViewController.swift; sourceTree = "<group>"; };
-		F3E7D4891F4F049C00DF166D /* SpineItemTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SpineItemTableViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -154,6 +162,7 @@
 				03EF7653206A5F1A00C3C24E /* CryptoSwift.framework in Frameworks */,
 				03EF7654206A5F1A00C3C24E /* SQLite.framework in Frameworks */,
 				03EF7655206A5F1A00C3C24E /* ZIPFoundation.framework in Frameworks */,
+				03804906211662D7009F48BD /* MBProgressHUD.framework in Frameworks */,
 				03EF7656206A5F1A00C3C24E /* ObjectMapper.framework in Frameworks */,
 				03EF7658206A5F1A00C3C24E /* SwiftyJSON.framework in Frameworks */,
 				03D011F2208023360097A87C /* Minizip.framework in Frameworks */,
@@ -184,6 +193,16 @@
 				113B12BF20800FD50074A5A2 /* ODPSPublicationCellInfoView.xib */,
 			);
 			name = OPDS;
+			sourceTree = "<group>";
+		};
+		571585F32109E903008B34AD /* Bookmark */ = {
+			isa = PBXGroup;
+			children = (
+				571585EE2109E8F8008B34AD /* BookmarkDatabase.swift */,
+				571585EF2109E8F8008B34AD /* BookmarkDataSource.swift */,
+				571585ED2109E8F8008B34AD /* BookmarkCell.swift */,
+			);
+			path = Bookmark;
 			sourceTree = "<group>";
 		};
 		F32980ED1F7D464900BDEAF4 /* Samples */ = {
@@ -276,6 +295,7 @@
 		F3E7D4691F4EFE8700DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				03804905211662D7009F48BD /* MBProgressHUD.framework */,
 				AE2B6A862088949300C12072 /* ReadiumOPDS.framework */,
 				AE009A03207F5980001D82C5 /* Fuzi.framework */,
 				03D011F1208023360097A87C /* Minizip.framework */,
@@ -319,8 +339,11 @@
 		F3E7D47A1F4F037D00DF166D /* Viewers */ = {
 			isa = PBXGroup;
 			children = (
+				571585F32109E903008B34AD /* Bookmark */,
+				F3E7D4841F4F044100DF166D /* OutlineTableViewController.swift */,
 				F3E7D47E1F4F03E500DF166D /* EPUB */,
 				F3E7D47D1F4F03E000DF166D /* CBZ */,
+				0380490A21166627009F48BD /* Toast.swift */,
 			);
 			name = Viewers;
 			sourceTree = "<group>";
@@ -329,7 +352,6 @@
 			isa = PBXGroup;
 			children = (
 				F3E7D47F1F4F03F500DF166D /* CbzViewController.swift */,
-				F3E7D4891F4F049C00DF166D /* SpineItemTableViewController.swift */,
 			);
 			name = CBZ;
 			sourceTree = "<group>";
@@ -341,7 +363,6 @@
 				F34CB28B1FCC20D4005E3A37 /* DrmManagementTableViewController.swift */,
 				F34CB28E1FCC54A2005E3A37 /* DrmManagement.storyboard */,
 				F3DCFFBC1F7CE0140056BA37 /* UserSettings */,
-				F3E7D4841F4F044100DF166D /* TableOfContentsTableViewController.swift */,
 				F3E7D4831F4F044100DF166D /* BarView.swift */,
 				AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */,
 			);
@@ -359,6 +380,7 @@
 				F3E7D4351F4EF6D400DF166D /* Frameworks */,
 				F3E7D4361F4EF6D400DF166D /* Resources */,
 				03EF765E206A5F2B00C3C24E /* Carthage Run Script */,
+				0380490421166264009F48BD /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -456,6 +478,7 @@
 				"$(SRCROOT)/Carthage/Build/iOS/R2Streamer.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/R2Navigator.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/ReadiumOPDS.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/MBProgressHUD.framework",
 			);
 			name = "Carthage Run Script";
 			outputPaths = (
@@ -484,21 +507,24 @@
 				F34CB28C1FCC20D4005E3A37 /* DrmManagementTableViewController.swift in Sources */,
 				AE53A074208F623E00737838 /* OPDSGroupTableViewCell.swift in Sources */,
 				AED681F220A32EBA0090DBCD /* OPDSPlaceholderView.swift in Sources */,
-				F3E7D48A1F4F049C00DF166D /* SpineItemTableViewController.swift in Sources */,
 				AE48F322208DE1E4000B7B44 /* OPDSNavigationTableViewCell.swift in Sources */,
 				F3E7D4771F4F033200DF166D /* CellMenuView.swift in Sources */,
 				F3E7D43C1F4EF6D400DF166D /* AppDelegate.swift in Sources */,
 				113B12D220800FD60074A5A2 /* OPDSCatalogSelectorViewController.swift in Sources */,
+				0380490B21166627009F48BD /* Toast.swift in Sources */,
 				57B00B7B20DBF88400B076A2 /* R2TabBar.swift in Sources */,
 				F3E7D4881F4F044100DF166D /* UserSettingsTableViewController.swift in Sources */,
+				571585F22109E8F9008B34AD /* BookmarkDataSource.swift in Sources */,
 				AE48F320208DD3A9000B7B44 /* OPDSRootTableViewController.swift in Sources */,
 				F3E7D47C1F4F03B800DF166D /* UIImageExtension.swift in Sources */,
 				F3BD53391F72B26700E46FFC /* FontSelectionViewController.swift in Sources */,
-				F3E7D4871F4F044100DF166D /* TableOfContentsTableViewController.swift in Sources */,
+				F3E7D4871F4F044100DF166D /* OutlineTableViewController.swift in Sources */,
 				F3E7D4751F4F031B00DF166D /* PublicationCell.swift in Sources */,
 				AE48F324208E0375000B7B44 /* OPDSPublicationTableViewCell.swift in Sources */,
+				571585F12109E8F9008B34AD /* BookmarkDatabase.swift in Sources */,
 				F3DCFFBE1F7CE0610056BA37 /* UserSettingsNavigationController.swift in Sources */,
 				F30AEE7A1FC312EA0073C9FD /* DetailsTableViewController.swift in Sources */,
+				571585F02109E8F9008B34AD /* BookmarkCell.swift in Sources */,
 				AE37DE432093291600079AA2 /* AboutTableViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
