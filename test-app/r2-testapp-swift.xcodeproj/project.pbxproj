@@ -11,10 +11,6 @@
 		03B8169220FD0118002A449E /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7646206A5F1900C3C24E /* R2Shared.framework */; };
 		03B8169320FD0118002A449E /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764B206A5F1A00C3C24E /* R2Streamer.framework */; };
 		03B8169420FD012C002A449E /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE2B6A862088949300C12072 /* ReadiumOPDS.framework */; };
-		032F7E2621167779009E5C24 /* PublicationMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032F7E2221167778009E5C24 /* PublicationMenuViewController.swift */; };
-		032F7E2721167779009E5C24 /* PublicationCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032F7E2321167778009E5C24 /* PublicationCollectionViewCell.swift */; };
-		032F7E2821167779009E5C24 /* PublicationCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 032F7E2421167778009E5C24 /* PublicationCollectionViewCell.xib */; };
-		032F7E2921167779009E5C24 /* PublicationMenuViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 032F7E2521167779009E5C24 /* PublicationMenuViewController.xib */; };
 		032F7E3421167E9B009E5C24 /* PublicationMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032F7E3021167E9A009E5C24 /* PublicationMenuViewController.swift */; };
 		032F7E3521167E9B009E5C24 /* PublicationCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032F7E3121167E9A009E5C24 /* PublicationCollectionViewCell.swift */; };
 		032F7E3621167E9B009E5C24 /* PublicationCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 032F7E3221167E9A009E5C24 /* PublicationCollectionViewCell.xib */; };
@@ -77,10 +73,6 @@
 
 /* Begin PBXFileReference section */
 		03702BFD20F16C4B0064F079 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		032F7E2221167778009E5C24 /* PublicationMenuViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationMenuViewController.swift; sourceTree = "<group>"; };
-		032F7E2321167778009E5C24 /* PublicationCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationCollectionViewCell.swift; sourceTree = "<group>"; };
-		032F7E2421167778009E5C24 /* PublicationCollectionViewCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = PublicationCollectionViewCell.xib; sourceTree = "<group>"; };
-		032F7E2521167779009E5C24 /* PublicationMenuViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = PublicationMenuViewController.xib; sourceTree = "<group>"; };
 		032F7E3021167E9A009E5C24 /* PublicationMenuViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationMenuViewController.swift; sourceTree = "<group>"; };
 		032F7E3121167E9A009E5C24 /* PublicationCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationCollectionViewCell.swift; sourceTree = "<group>"; };
 		032F7E3221167E9A009E5C24 /* PublicationCollectionViewCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = PublicationCollectionViewCell.xib; sourceTree = "<group>"; };
@@ -184,17 +176,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		032F7E2F21167E27009E5C24 /* Recovered References */ = {
-			isa = PBXGroup;
-			children = (
-				032F7E2321167778009E5C24 /* PublicationCollectionViewCell.swift */,
-				032F7E2221167778009E5C24 /* PublicationMenuViewController.swift */,
-				032F7E2421167778009E5C24 /* PublicationCollectionViewCell.xib */,
-				032F7E2521167779009E5C24 /* PublicationMenuViewController.xib */,
-			);
-			name = "Recovered References";
-			sourceTree = "<group>";
-		};
 		113B12BD20800FC10074A5A2 /* OPDS */ = {
 			isa = PBXGroup;
 			children = (
@@ -261,7 +242,6 @@
 				F3E7D45A1F4EF6D400DF166D /* r2-testapp-swiftUITests */,
 				F3E7D4391F4EF6D400DF166D /* Products */,
 				F3E7D4691F4EFE8700DF166D /* Frameworks */,
-				032F7E2F21167E27009E5C24 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -450,12 +430,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				F3120DE71FACB08E009ACFAD /* 1.epub in Resources */,
-				032F7E2821167779009E5C24 /* PublicationCollectionViewCell.xib in Resources */,
 				F3120DE81FACB090009ACFAD /* 2.epub in Resources */,
 				F3120DE91FACB092009ACFAD /* 3.epub in Resources */,
 				F3120DEA1FACB094009ACFAD /* 4.epub in Resources */,
 				F34CB28F1FCC54A2005E3A37 /* DrmManagement.storyboard in Resources */,
-				032F7E2921167779009E5C24 /* PublicationMenuViewController.xib in Resources */,
 				AE2B6A8920889C8700C12072 /* AppMain.storyboard in Resources */,
 				F3120DEB1FACB096009ACFAD /* 5.epub in Resources */,
 				032F7E3621167E9B009E5C24 /* PublicationCollectionViewCell.xib in Resources */,
@@ -511,7 +489,6 @@
 			files = (
 				AE955A2120EBA74B00A0D8D8 /* AssociatedColors.swift in Sources */,
 				F3E7D4861F4F044100DF166D /* BarView.swift in Sources */,
-				032F7E2721167779009E5C24 /* PublicationCollectionViewCell.swift in Sources */,
 				113B12DD20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift in Sources */,
 				F3E7D4801F4F03F500DF166D /* CbzViewController.swift in Sources */,
 				AE53A076208F62D200737838 /* OPDSGroupCollectionViewCell.swift in Sources */,
@@ -536,7 +513,6 @@
 				F3E7D4871F4F044100DF166D /* OutlineTableViewController.swift in Sources */,
 				AE48F324208E0375000B7B44 /* OPDSPublicationTableViewCell.swift in Sources */,
 				032F7E3521167E9B009E5C24 /* PublicationCollectionViewCell.swift in Sources */,
-				032F7E2621167779009E5C24 /* PublicationMenuViewController.swift in Sources */,
 				571585F12109E8F9008B34AD /* BookmarkDatabase.swift in Sources */,
 				F3DCFFBE1F7CE0610056BA37 /* UserSettingsNavigationController.swift in Sources */,
 				F30AEE7A1FC312EA0073C9FD /* DetailsTableViewController.swift in Sources */,
