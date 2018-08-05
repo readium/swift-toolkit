@@ -19,7 +19,6 @@ class EpubViewController: UIViewController {
     let navigator: NavigatorViewController!
     let fixedTopBar: BarView!
     let fixedBottomBar: BarView!
-    var tableOfContentsTVC: OutlineTableViewController!
     var popoverUserconfigurationAnchor: UIBarButtonItem?
     var userSettingNavigationController: UserSettingsNavigationController!
     var drmManagementTVC: DrmManagementTableViewController!
@@ -154,13 +153,11 @@ class EpubViewController: UIViewController {
         navigationController?.setNavigationBarHidden(true, animated: false)
         var barButtons = [UIBarButtonItem]()
         
-        if navigator.getTableOfContents().count > 0 {
-            // SpineItemView button.
-            let spineItemButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self,
-                                                  action: #selector(presentTableOfContents))
-            barButtons.append(spineItemButton)
-        }
-        
+        // SpineItemView button.
+        let spineItemButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self,
+                                              action: #selector(presentTableOfContents))
+        barButtons.append(spineItemButton)
+      
         // User configuration button
         let userSettingsButton = UIBarButtonItem(image: #imageLiteral(resourceName: "settingsIcon"), style: .plain, target: self,
                                                  action: #selector(presentUserSettings))
