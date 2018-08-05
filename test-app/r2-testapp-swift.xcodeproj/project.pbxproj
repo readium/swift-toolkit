@@ -33,7 +33,6 @@
 		571585F02109E8F9008B34AD /* BookmarkCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571585ED2109E8F8008B34AD /* BookmarkCell.swift */; };
 		571585F12109E8F9008B34AD /* BookmarkDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571585EE2109E8F8008B34AD /* BookmarkDatabase.swift */; };
 		571585F22109E8F9008B34AD /* BookmarkDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571585EF2109E8F8008B34AD /* BookmarkDataSource.swift */; };
-		57B00B7B20DBF88400B076A2 /* R2TabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57B00B7A20DBF88400B076A2 /* R2TabBar.swift */; };
 		AE009A04207F5980001D82C5 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE009A03207F5980001D82C5 /* Fuzi.framework */; };
 		AE2B6A8920889C8700C12072 /* AppMain.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AE2B6A8820889C8700C12072 /* AppMain.storyboard */; };
 		AE37DE432093291600079AA2 /* AboutTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE37DE422093291600079AA2 /* AboutTableViewController.swift */; };
@@ -103,7 +102,6 @@
 		571585ED2109E8F8008B34AD /* BookmarkCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkCell.swift; sourceTree = "<group>"; };
 		571585EE2109E8F8008B34AD /* BookmarkDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkDatabase.swift; sourceTree = "<group>"; };
 		571585EF2109E8F8008B34AD /* BookmarkDataSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkDataSource.swift; sourceTree = "<group>"; };
-		57B00B7A20DBF88400B076A2 /* R2TabBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = R2TabBar.swift; sourceTree = "<group>"; };
 		57CADB3220D14B3100DF6675 /* r2-testapp-swift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "r2-testapp-swift.entitlements"; sourceTree = "<group>"; };
 		AE009A03207F5980001D82C5 /* Fuzi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Fuzi.framework; path = Carthage/Build/iOS/Fuzi.framework; sourceTree = "<group>"; };
 		AE2B6A862088949300C12072 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReadiumOPDS.framework; path = Carthage/Build/iOS/ReadiumOPDS.framework; sourceTree = "<group>"; };
@@ -262,7 +260,6 @@
 				F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */,
 				AE2B6A8820889C8700C12072 /* AppMain.storyboard */,
 				F3E7D4471F4EF6D400DF166D /* Info.plist */,
-				57B00B7A20DBF88400B076A2 /* R2TabBar.swift */,
 				F3E7D43B1F4EF6D400DF166D /* AppDelegate.swift */,
 				F3E7D47B1F4F03B800DF166D /* UIImageExtension.swift */,
 				AE37DE422093291600079AA2 /* AboutTableViewController.swift */,
@@ -316,6 +313,10 @@
 		F3E7D4731F4F030300DF166D /* Library */ = {
 			isa = PBXGroup;
 			children = (
+				032F7E2321167778009E5C24 /* PublicationCollectionViewCell.swift */,
+				032F7E2421167778009E5C24 /* PublicationCollectionViewCell.xib */,
+				032F7E2221167778009E5C24 /* PublicationMenuViewController.swift */,
+				032F7E2521167779009E5C24 /* PublicationMenuViewController.xib */,
 				113B12BD20800FC10074A5A2 /* OPDS */,
 				F3E7D4701F4EFEC200DF166D /* LibraryViewController.swift */,
 				F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */,
@@ -504,7 +505,6 @@
 				F3E7D43C1F4EF6D400DF166D /* AppDelegate.swift in Sources */,
 				113B12D220800FD60074A5A2 /* OPDSCatalogSelectorViewController.swift in Sources */,
 				0380490B21166627009F48BD /* Toast.swift in Sources */,
-				57B00B7B20DBF88400B076A2 /* R2TabBar.swift in Sources */,
 				F3E7D4881F4F044100DF166D /* UserSettingsTableViewController.swift in Sources */,
 				571585F22109E8F9008B34AD /* BookmarkDataSource.swift in Sources */,
 				AE48F320208DD3A9000B7B44 /* OPDSRootTableViewController.swift in Sources */,
