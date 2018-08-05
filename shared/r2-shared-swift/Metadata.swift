@@ -85,7 +85,41 @@ public class Metadata {
 
     public var subjects = [Subject]()
     public var modified: Date?
-    public var publicationDate: String?
+    
+    /// https://github.com/readium/webpub-manifest/tree/master/contexts/default#publication-date
+    ///
+    /// Only accept valid RFC3339 date String with full date. Otherwise, it's nil.
+    /// Time part should be full if present, support timezone with full offset. Millisecond not supported.
+    public var published: String? {
+        set {
+            if let theNewValue = newValue {
+                if DateFormatter.verifyRFC3339(dateString: theNewValue) {
+                    _published = theNewValue
+                } else {
+                    _published = nil
+                }
+                
+// On iOS 10 and later, this API should be treated withFullTime or withTimeZone for different cases.
+// Otherwise it will accept bad format, for exmaple 2018-04-24XXXXXXXXX
+// Because it will only test the part you asssigned, date, time, timezone.
+// But we should also cover the optional cases. So there is not too much benefit.
+//                if #available(iOS 10.0, *) {
+//                    let formatter = ISO8601DateFormatter()
+//                    formatter.formatOptions = [.withFullDate]
+//                    if let _ = formatter.date(from: theNewValue) {
+//                        _published = theNewValue
+//                    }
+//                }
+            } else {
+                _published = nil
+            }
+        }
+        get {
+            return _published
+        }
+    }
+    private var _published: String?
+    
     public var description: String?
     
     public var rendition = Rendition()
@@ -186,7 +220,7 @@ extension Metadata: Mappable {
             imprints <- map["imprints", ignoreNil: true]
         }
         modified <- map["modified", ignoreNil: true]
-        publicationDate <- map["publicationDate", ignoreNil: true]
+        published <- map["published", ignoreNil: true]
         if !rendition.isEmpty() {
             rendition <- map["rendition", ignoreNil: true]
         }
@@ -282,7 +316,7 @@ extension Metadata {
             case "imprint":
                 m.imprints.append(contentsOf: try Contributor.parse(contributors: v))
             case "published":
-                m.publicationDate = v as? String
+                m.published = v as? String
             case "description":
                 m.description = v as? String
             case "source":
@@ -373,4 +407,36 @@ extension Metadata {
         return m
     }
     
+}
+
+extension DateFormatter {
+    
+    static let formatSet = [
+        10: "yyyy-MM-dd",
+        11: "yyyy-MM-ddZ",
+        16: "yyyy-MM-ddZZZZZ",
+        19: "yyyy-MM-dd'T'HH:mm:ss",
+        20: "yyyy-MM-dd'T'HH:mm:ssZ",
+        25: "yyyy-MM-dd'T'HH:mm:ssZZZZZ"]
+    
+    /// https://developer.apple.com/documentation/foundation/dateformatter
+    /// Does't support millsecond or uncompleted part for date, time, timezone offset.
+    static func verifyRFC3339(dateString: String) -> Bool {
+        
+        let rfc3339Formatter = DateFormatter()
+        rfc3339Formatter.locale = Locale(identifier: "en_US_POSIX")
+        rfc3339Formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
+        rfc3339Formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        
+        let length = dateString.count
+        if let format = formatSet[length], format != rfc3339Formatter.dateFormat {
+            rfc3339Formatter.dateFormat = format
+        }
+        
+        if let _ = rfc3339Formatter.date(from: dateString) {
+            return true
+        }
+        
+        return false
+    }
 }
