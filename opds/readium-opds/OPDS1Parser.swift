@@ -371,7 +371,7 @@ public class OPDS1Parser {
         }
         // Publication date.
         if let tmpDate = entry.firstChild(tag: "published")?.stringValue {
-            metadata.publicationDate = tmpDate
+            metadata.published = tmpDate
         }
 
         // Rights.
