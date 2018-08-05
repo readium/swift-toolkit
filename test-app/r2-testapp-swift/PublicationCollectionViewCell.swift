@@ -1,8 +1,8 @@
 //
-//  PublicationCell.swift
+//  PublicationCollectionViewCell.swift
 //  r2-testapp-swift
 //
-//  Created by Alexandre Camilleri on 6/13/17.
+//  Created by Geoffrey Bugniot on 26/07/2018.
 //
 //  Copyright 2018 European Digital Reading Lab. All rights reserved.
 //  Licensed to the Readium Foundation under one or more contributor license agreements.
@@ -12,20 +12,27 @@
 
 import UIKit
 
-protocol PublicationCellDelegate: class {
-    var lastFlippedCell: PublicationCell? { get set }
-
+protocol PublicationCollectionViewCellDelegate: AnyObject {
+    var lastFlippedCell: PublicationCollectionViewCell? { get set }
+    
     func displayInformation(forCellAt indexPath: IndexPath)
     func removePublicationFromLibrary(forCellAt indexPath: IndexPath)
-    func cellFlipped(_ cell: PublicationCell)
+    func cellFlipped(_ cell: PublicationCollectionViewCell)
 }
 
-class PublicationCell: UICollectionViewCell {
-    var imageView: UIImageView
-    var menuView: CellMenuView
-    var cardView: (frontView: UIView, backView: UIView)?
+class PublicationCollectionViewCell: UICollectionViewCell {
     
-    var progress:Float = 0.0 {
+    @IBOutlet weak var coverImageView: UIImageView!
+    @IBOutlet weak var titleLabel: UILabel!
+    @IBOutlet weak var authorLabel: UILabel!
+    
+    weak var delegate: PublicationCollectionViewCellDelegate?
+    
+    var publicationMenuViewController = PublicationMenuViewController()
+    var isMenuDisplayed = false
+    
+    var progress: Float = 0.0 {
+        
         didSet {
             progressView.progress = progress
             let hidden = (progress == 0 || progress == 1)
@@ -36,112 +43,98 @@ class PublicationCell: UICollectionViewCell {
                 } else {
                     self.backgroundColor = UIColor.lightGray
                 }
-            } //
+            }
         }
+        
     }
     
     private lazy var progressView: UIProgressView = {
         
         let pView = UIProgressView(progressViewStyle: .bar)
         pView.translatesAutoresizingMaskIntoConstraints = false
-        self.addSubview(pView)    
+        self.addSubview(pView)
         
         let leftConstraint = NSLayoutConstraint(item: pView, attribute: .left, relatedBy: .equal, toItem: self, attribute: .left, multiplier: 1.0, constant: 0.0)
         let rightConstraint = NSLayoutConstraint(item: pView, attribute: .right, relatedBy: .equal, toItem: self, attribute: .right, multiplier: 1.0, constant: 0.0)
         let verticalConstraint = NSLayoutConstraint(item: pView, attribute: .bottom, relatedBy: .equal, toItem: self, attribute: .bottom, multiplier: 1.0, constant: 0.0)
         
         self.addConstraints([leftConstraint, rightConstraint, verticalConstraint])
-
+        
         return pView
-    } ()
+        
+    }()
     
-    //
-    weak var delegate: PublicationCellDelegate?
-
-    override init(frame: CGRect) {
-        imageView = UIImageView()
-        menuView = CellMenuView(frame: frame)
-        super.init(frame: frame)
+    override func awakeFromNib() {
+        
+        super.awakeFromNib()
+        
+        publicationMenuViewController.delegate = self
+        publicationMenuViewController.view.isHidden = !isMenuDisplayed
+        contentView.addSubview(publicationMenuViewController.view)
+        
         isAccessibilityElement = true
         accessibilityHint = "Hold to access options."
-        imageView.contentMode = .scaleAspectFit
-        imageView.frame = self.bounds
-        menuView.delegate = self
-        contentView.addSubview(imageView)
-    }
-
-    @available(*, unavailable)
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        
     }
     
     override func layoutSubviews() {
-        contentView.frame = self.bounds
-        imageView.frame = self.bounds
-        imageView.layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: contentView.layer.cornerRadius).cgPath
-        menuView.frame = self.bounds
-        menuView.layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: contentView.layer.cornerRadius).cgPath
+        super.layoutSubviews()
+        publicationMenuViewController.view.frame = CGRect(x: 0, y: 0, width: frame.width, height: frame.height)
     }
+    
 }
 
-extension PublicationCell {
-
-    /// Flip the PublicationCell and display a user menu.
+extension PublicationCollectionViewCell {
+    
+    /// Flip the PublicationCollectionViewCell and display a user menu.
     func flipMenu() {
+        
         var transitionOptions: UIViewAnimationOptions!
-
-        if menuView.superview != nil {
+        
+        if isMenuDisplayed {
             transitionOptions = UIViewAnimationOptions.transitionFlipFromLeft
-            cardView = (frontView: imageView, backView: menuView)
             delegate?.lastFlippedCell = nil
         } else {
             transitionOptions = UIViewAnimationOptions.transitionFlipFromRight
-            cardView = (frontView: menuView, backView: imageView)
             if delegate?.lastFlippedCell != self {
                 delegate?.cellFlipped(self)
             }
         }
-
+        
+        // Reverse the UI. Display the menu and hide the cover or vice versa
         UIView.transition(with: contentView, duration: 0.5, options: transitionOptions, animations: {
-            self.cardView?.backView.removeFromSuperview()
-            self.contentView.addSubview(self.cardView!.frontView)
-        }, completion: nil)
-    }
-
-    // Add shadow to the views. To be called when the image has been loaded.
-    public func applyShadows() {
-        configureShadow(for: imageView, with: 0.3)
-        configureShadow(for: menuView, with: 0.3)
-    }
-
-    public func configureShadow(for view: UIView, with opacity: Float) {
-        view.layer.shadowColor = UIColor.lightGray.cgColor
-        view.layer.shadowOffset = CGSize.init(width: 0, height: 3.0)
-        view.layer.shadowOpacity = opacity
-        view.layer.masksToBounds = false
+            // coverImageView.superview is the stack view embedding the cover image,
+            // the title label and the author label.
+            self.coverImageView.superview!.isHidden = !self.isMenuDisplayed
+            self.publicationMenuViewController.view.isHidden = self.isMenuDisplayed
+        }, completion: { _ in
+            self.isMenuDisplayed = !self.isMenuDisplayed
+        })
+        
     }
     
 }
 
-// MARK: - Responds to action which occured in the PublicationCell's MenuView.
-extension PublicationCell: CellMenuViewDelegate {
-    func infoTapped() {
+extension PublicationCollectionViewCell: PublicationMenuViewControllerDelegate {
+    
+    func infosButtonTapped() {
         guard let indexPath = (superview as? UICollectionView)?.indexPath(for: self) else {
             return
         }
         flipMenu()
         delegate?.displayInformation(forCellAt: indexPath)
     }
-
-    func removeTapped() {
+    
+    func removeButtonTapped() {
         guard let indexPath = (superview as? UICollectionView)?.indexPath(for: self) else {
             return
         }
         flipMenu()
         delegate?.removePublicationFromLibrary(forCellAt: indexPath)
     }
-
-    func cancelTapped() {
+    
+    func cancelButtonTapped() {
         flipMenu()
     }
+    
 }

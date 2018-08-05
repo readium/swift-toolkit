@@ -367,7 +367,7 @@ extension AppDelegate {
         return firstly {
             /// 3.1/ Fetch the status document.
             /// 3.2/ Validate the status document.
-            return lcpLicense.fetchStatusDocument(initialDownloadAttempt: true)
+            return lcpLicense.fetchStatusDocument(shouldRejectError: true)
             }.then { _ -> Promise<Void> in
                 /// 3.3/ Check that the status is "ready" or "active".
                 try lcpLicense.checkStatus()

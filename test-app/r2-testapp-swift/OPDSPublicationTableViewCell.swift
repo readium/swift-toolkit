@@ -38,7 +38,8 @@ class OPDSPublicationTableViewCell: UITableViewCell {
 
     override func awakeFromNib() {
         super.awakeFromNib()
-        // Initialization code
+        collectionView.register(UINib(nibName: "PublicationCollectionViewCell", bundle: nil), forCellWithReuseIdentifier: "publicationCollectionViewCell")
+
     }
 
     override func setSelected(_ selected: Bool, animated: Bool) {
@@ -63,8 +64,8 @@ extension OPDSPublicationTableViewCell: UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "opdsPublicationCollectionViewCell",
-                                                      for: indexPath) as! OPDSPublicationCollectionViewCell
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "publicationCollectionViewCell",
+                                                      for: indexPath) as! PublicationCollectionViewCell
         
         if let publications = feed?.publications, let publication = feed?.publications[indexPath.row] {
             
@@ -83,7 +84,7 @@ extension OPDSPublicationTableViewCell: UICollectionViewDataSource {
             
             if let coverURL = coverURL {
                 UIApplication.shared.isNetworkActivityIndicatorVisible = true
-                cell.imageView.kf.setImage(with: coverURL,
+                cell.coverImageView.kf.setImage(with: coverURL,
                                            placeholder: titleTextView,
                                            options: [.transition(ImageTransition.fade(0.5))],
                                            progressBlock: nil) { (_, _, _, _) in
@@ -92,7 +93,7 @@ extension OPDSPublicationTableViewCell: UICollectionViewDataSource {
                                             }
                 }
             } else {
-                cell.imageView.addSubview(titleTextView)
+                cell.coverImageView.addSubview(titleTextView)
             }
             
             cell.titleLabel.text = publication.metadata.title
