@@ -424,8 +424,14 @@ public class LcpLicense: DrmLicense {
     public func saveLicenseDocumentWithoutStatus() -> Promise<Void> {
         return Promise<Void> { fulfill, reject in
             do {
-                try LCPDatabase.shared.licenses.insert(self.license, with: nil)
-                fulfill(())
+                
+                let exist = try LCPDatabase.shared.licenses.existingLicense(with: self.license.id)
+                if exist {
+                    reject(LcpError.licenseAlreadyExist)
+                } else {
+                    try LCPDatabase.shared.licenses.insert(self.license, with: nil)
+                    fulfill(())
+                }
             } catch {
                 reject(error)
             }

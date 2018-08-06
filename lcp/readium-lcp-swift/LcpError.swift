@@ -46,6 +46,7 @@ public enum LcpError: Error {
     
     case invalidRights
     case invalidPassphrase
+    case licenseAlreadyExist
     
 /// For the case (revoked, returned, cancelled, expired), app should notify the user and stop there. The message to the user must be clear about the status of the license: don't display "expired" if the status is "revoked". The date and time corresponding to the new status should be displayed (e.g. "The license expired on 01 January 2018").
     case licenseStatusCancelled(Date?)
@@ -156,6 +157,8 @@ extension LcpError: LocalizedError {
             return "The passphrase entered is not valid."
         case .renewPeriod:
             return "Incorrect renewal period, your publication could not be renewed."
+        case .licenseAlreadyExist:
+            return "The LCP license already exist, this import is ignored"
         }
     }
 }
