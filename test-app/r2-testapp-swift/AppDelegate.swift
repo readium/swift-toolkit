@@ -367,8 +367,10 @@ extension AppDelegate {
         return firstly {
             /// 3.1/ Fetch the status document.
             /// 3.2/ Validate the status document.
-            return lcpLicense.fetchStatusDocument(shouldRejectError: true)
-            }.then { _ -> Promise<Void> in
+            return lcpLicense.fetchStatusDocument(shouldRejectError: false)
+        }.then { error -> Promise<Void> in
+    
+            guard let serverError = error as NSError? else {
                 /// 3.3/ Check that the status is "ready" or "active".
                 try lcpLicense.checkStatus()
                 /// 3.4/ Check if the license has been updated. If it is the case,
@@ -379,18 +381,29 @@ extension AppDelegate {
                 /// 3.4.3/ Replace the current license by the updated one in the
                 ///        EPUB archive.
                 return lcpLicense.updateLicenseDocument()
-            }.then { _ -> Promise<(URL, URLSessionDownloadTask?)> in
-                /// 4/ Check the rights.
-                try lcpLicense.areRightsValid()
-                /// 5/ Register the device / license if needed.
-                lcpLicense.register()
-                /// 6/ Fetch the publication.
-                return lcpLicense.fetchPublication()
-            }.then { (publicationUrl, downloadTask) -> Promise<(URL, URLSessionDownloadTask?)> in
-                /// Move the license document in the publication.
-                try LcpLicense.moveLicense(from: lcpLicense.archivePath,
-                                           to: publicationUrl)
-                return Promise(value: (publicationUrl, downloadTask))
+            }
+            
+            if serverError.domain == "org.readium" {
+                let noteName = Notification.Name(kShouldPresentLCPMessage)
+                let userInfo = serverError.userInfo
+                let notification = Notification(name: noteName, object: nil, userInfo: userInfo)
+                NotificationCenter.default.post(notification)
+            }
+            
+            return lcpLicense.saveLicenseDocumentWithoutStatus(shouldRejectError: true)
+            
+        }.then { _ -> Promise<(URL, URLSessionDownloadTask?)> in
+            /// 4/ Check the rights.
+            try lcpLicense.areRightsValid()
+            /// 5/ Register the device / license if needed.
+            lcpLicense.register()
+            /// 6/ Fetch the publication.
+            return lcpLicense.fetchPublication()
+        }.then { (publicationUrl, downloadTask) -> Promise<(URL, URLSessionDownloadTask?)> in
+            /// Move the license document in the publication.
+            try LcpLicense.moveLicense(from: lcpLicense.archivePath,
+                                       to: publicationUrl)
+            return Promise(value: (publicationUrl, downloadTask))
         }
     }
     #endif
