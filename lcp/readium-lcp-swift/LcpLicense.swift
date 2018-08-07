@@ -420,14 +420,27 @@ public class LcpLicense: DrmLicense {
         }
     }
     
-    
-    public func saveLicenseDocumentWithoutStatus() -> Promise<Void> {
+    /// Try to save the license document without status document.
+    /// There is also no update logic for the license, because the license url belongs to status.
+    /// - Parameters:
+    ///   - shouldRejectError: should the function reject anny error emitted .
+    ///
+    public func saveLicenseDocumentWithoutStatus(shouldRejectError: Bool) -> Promise<Void> {
         return Promise<Void> { fulfill, reject in
             do {
-                try LCPDatabase.shared.licenses.insert(self.license, with: nil)
+                let exist = try LCPDatabase.shared.licenses.existingLicense(with: self.license.id)
+                if exist { // When the LCP license already exist
+                    if shouldRejectError {
+                        reject(LcpError.licenseAlreadyExist)
+                    }
+                } else {
+                    try LCPDatabase.shared.licenses.insert(self.license, with: nil)
+                }
                 fulfill(())
             } catch {
-                reject(error)
+                if shouldRejectError {
+                    reject(error)
+                } else {fulfill(())}
             }
         }
     }

@@ -57,7 +57,7 @@ public class LcpSession {
                     NotificationCenter.default.post(notification)
                 }
                 
-                return self.lcpLicense.saveLicenseDocumentWithoutStatus()
+                return self.lcpLicense.saveLicenseDocumentWithoutStatus(shouldRejectError: false)
                 
             }.then { _ -> Promise<LcpLicense> in
                 /// 4/ Check the rights.
