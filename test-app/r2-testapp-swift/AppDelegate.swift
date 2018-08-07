@@ -390,7 +390,7 @@ extension AppDelegate {
                 NotificationCenter.default.post(notification)
             }
             
-            return lcpLicense.saveLicenseDocumentWithoutStatus()
+            return lcpLicense.saveLicenseDocumentWithoutStatus(shouldRejectError: true)
             
         }.then { _ -> Promise<(URL, URLSessionDownloadTask?)> in
             /// 4/ Check the rights.
