@@ -290,7 +290,16 @@ extension AppDelegate {
                 print(url.absoluteString)
             }
         }
-        
+      
+        for sample in samples {
+          if let path = Bundle.main.path(forResource: sample, ofType: "cbz") {
+            let url = URL.init(fileURLWithPath: path)
+            
+            sampleUrls.append(url)
+            print(url.absoluteString)
+          }
+        }
+
         /// Find the types associated to the files, or unknown.
         let locations = sampleUrls.map({ url -> Location in
             let publicationType = getTypeForPublicationAt(url: url)
