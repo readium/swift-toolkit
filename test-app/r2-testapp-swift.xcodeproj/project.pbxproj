@@ -205,6 +205,10 @@
 		03B8169320FD0118002A449E /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764B206A5F1A00C3C24E /* R2Streamer.framework */; };
 		03B8169420FD012C002A449E /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE2B6A862088949300C12072 /* ReadiumOPDS.framework */; };
 		03D011F2208023360097A87C /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03D011F1208023360097A87C /* Minizip.framework */; };
+		03E1FD39211CE50500D4A320 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03E1FD38211CE50500D4A320 /* R2LCPClient.framework */; };
+		03E1FD3A211CE50500D4A320 /* R2LCPClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03E1FD38211CE50500D4A320 /* R2LCPClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		03E1FD3C211CE50500D4A320 /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03E1FD3B211CE50500D4A320 /* ReadiumLCP.framework */; };
+		03E1FD3D211CE50500D4A320 /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03E1FD3B211CE50500D4A320 /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		03EF7653206A5F1A00C3C24E /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7647206A5F1900C3C24E /* CryptoSwift.framework */; };
 		03EF7654206A5F1A00C3C24E /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7648206A5F1A00C3C24E /* SQLite.framework */; };
 		03EF7655206A5F1A00C3C24E /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */; };
@@ -284,6 +288,18 @@
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		03E1FD3E211CE50500D4A320 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				03E1FD3D211CE50500D4A320 /* ReadiumLCP.framework in Embed Frameworks */,
+				03E1FD3A211CE50500D4A320 /* R2LCPClient.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -306,6 +322,8 @@
 		03804905211662D7009F48BD /* MBProgressHUD.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MBProgressHUD.framework; path = Carthage/Build/iOS/MBProgressHUD.framework; sourceTree = "<group>"; };
 		0380490A21166627009F48BD /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		03D011F1208023360097A87C /* Minizip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Minizip.framework; path = Carthage/Build/iOS/Minizip.framework; sourceTree = "<group>"; };
+		03E1FD38211CE50500D4A320 /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		03E1FD3B211CE50500D4A320 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03EF7646206A5F1900C3C24E /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
 		03EF7647206A5F1900C3C24E /* CryptoSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoSwift.framework; path = Carthage/Build/iOS/CryptoSwift.framework; sourceTree = "<group>"; };
 		03EF7648206A5F1A00C3C24E /* SQLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SQLite.framework; path = Carthage/Build/iOS/SQLite.framework; sourceTree = "<group>"; };
@@ -400,10 +418,12 @@
 				0350FD5C211CD625006994C2 /* Fuzi.framework in Frameworks */,
 				0350FD5D211CD625006994C2 /* CryptoSwift.framework in Frameworks */,
 				0350FD5E211CD625006994C2 /* SQLite.framework in Frameworks */,
+				03E1FD39211CE50500D4A320 /* R2LCPClient.framework in Frameworks */,
 				0350FD5F211CD625006994C2 /* ZIPFoundation.framework in Frameworks */,
 				0350FD60211CD625006994C2 /* MBProgressHUD.framework in Frameworks */,
 				0350FD61211CD625006994C2 /* ObjectMapper.framework in Frameworks */,
 				0350FD62211CD625006994C2 /* SwiftyJSON.framework in Frameworks */,
+				03E1FD3C211CE50500D4A320 /* ReadiumLCP.framework in Frameworks */,
 				0350FD63211CD625006994C2 /* Minizip.framework in Frameworks */,
 				0350FD64211CD625006994C2 /* AEXML.framework in Frameworks */,
 				0350FD65211CD625006994C2 /* PromiseKit.framework in Frameworks */,
@@ -518,6 +538,8 @@
 		F3E7D42F1F4EF6D400DF166D = {
 			isa = PBXGroup;
 			children = (
+				03E1FD3B211CE50500D4A320 /* ReadiumLCP.framework */,
+				03E1FD38211CE50500D4A320 /* R2LCPClient.framework */,
 				033936E6211CD83F00F980B8 /* R2Streamer.framework */,
 				033936E3211CD83F00F980B8 /* R2Shared.framework */,
 				033936E0211CD83F00F980B8 /* R2Navigator.framework */,
@@ -683,6 +705,7 @@
 				0350FD57211CD625006994C2 /* Frameworks */,
 				0350FD68211CD625006994C2 /* Resources */,
 				0350FD78211CD625006994C2 /* Carthage Run Script */,
+				03E1FD3E211CE50500D4A320 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
