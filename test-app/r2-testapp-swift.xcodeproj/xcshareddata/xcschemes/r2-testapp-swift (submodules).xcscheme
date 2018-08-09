@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "0350FCE3211CD2CB006994C2"
-               BuildableName = "r2-testapp-swift (submodule).app"
-               BlueprintName = "r2-testapp-swift (submodule)"
+               BuildableName = "r2-testapp-swift (submodules).app"
+               BlueprintName = "r2-testapp-swift (submodules)"
                ReferencedContainer = "container:r2-testapp-swift.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -33,8 +33,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "0350FCE3211CD2CB006994C2"
-            BuildableName = "r2-testapp-swift (submodule).app"
-            BlueprintName = "r2-testapp-swift (submodule)"
+            BuildableName = "r2-testapp-swift (submodules).app"
+            BlueprintName = "r2-testapp-swift (submodules)"
             ReferencedContainer = "container:r2-testapp-swift.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -56,8 +56,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "0350FCE3211CD2CB006994C2"
-            BuildableName = "r2-testapp-swift (submodule).app"
-            BlueprintName = "r2-testapp-swift (submodule)"
+            BuildableName = "r2-testapp-swift (submodules).app"
+            BlueprintName = "r2-testapp-swift (submodules)"
             ReferencedContainer = "container:r2-testapp-swift.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -75,8 +75,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "0350FCE3211CD2CB006994C2"
-            BuildableName = "r2-testapp-swift (submodule).app"
-            BlueprintName = "r2-testapp-swift (submodule)"
+            BuildableName = "r2-testapp-swift (submodules).app"
+            BlueprintName = "r2-testapp-swift (submodules)"
             ReferencedContainer = "container:r2-testapp-swift.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
