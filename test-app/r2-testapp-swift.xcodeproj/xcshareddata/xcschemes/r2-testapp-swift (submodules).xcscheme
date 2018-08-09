@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "F3E7D4371F4EF6D400DF166D"
-               BuildableName = "r2-testapp-swift.app"
-               BlueprintName = "r2-testapp-swift"
+               BlueprintIdentifier = "0350FCE3211CD2CB006994C2"
+               BuildableName = "r2-testapp-swift (submodule).app"
+               BlueprintName = "r2-testapp-swift (submodule)"
                ReferencedContainer = "container:r2-testapp-swift.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -28,33 +28,13 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "F3E7D44B1F4EF6D400DF166D"
-               BuildableName = "r2-testapp-swiftTests.xctest"
-               BlueprintName = "r2-testapp-swiftTests"
-               ReferencedContainer = "container:r2-testapp-swift.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "F3E7D4561F4EF6D400DF166D"
-               BuildableName = "r2-testapp-swiftUITests.xctest"
-               BlueprintName = "r2-testapp-swiftUITests"
-               ReferencedContainer = "container:r2-testapp-swift.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "F3E7D4371F4EF6D400DF166D"
-            BuildableName = "r2-testapp-swift.app"
-            BlueprintName = "r2-testapp-swift"
+            BlueprintIdentifier = "0350FCE3211CD2CB006994C2"
+            BuildableName = "r2-testapp-swift (submodule).app"
+            BlueprintName = "r2-testapp-swift (submodule)"
             ReferencedContainer = "container:r2-testapp-swift.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -75,9 +55,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "F3E7D4371F4EF6D400DF166D"
-            BuildableName = "r2-testapp-swift.app"
-            BlueprintName = "r2-testapp-swift"
+            BlueprintIdentifier = "0350FCE3211CD2CB006994C2"
+            BuildableName = "r2-testapp-swift (submodule).app"
+            BlueprintName = "r2-testapp-swift (submodule)"
             ReferencedContainer = "container:r2-testapp-swift.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -94,9 +74,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "F3E7D4371F4EF6D400DF166D"
-            BuildableName = "r2-testapp-swift.app"
-            BlueprintName = "r2-testapp-swift"
+            BlueprintIdentifier = "0350FCE3211CD2CB006994C2"
+            BuildableName = "r2-testapp-swift (submodule).app"
+            BlueprintName = "r2-testapp-swift (submodule)"
             ReferencedContainer = "container:r2-testapp-swift.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
