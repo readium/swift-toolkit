@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		03079E7D211CF865002E9B9B /* 1.cbz in Resources */ = {isa = PBXBuildFile; fileRef = 03079E7C211CF864002E9B9B /* 1.cbz */; };
+		03079E7E211CF8A3002E9B9B /* 1.cbz in Resources */ = {isa = PBXBuildFile; fileRef = 03079E7C211CF864002E9B9B /* 1.cbz */; };
+		03079E7F211CF8A4002E9B9B /* 1.cbz in Resources */ = {isa = PBXBuildFile; fileRef = 03079E7C211CF864002E9B9B /* 1.cbz */; };
+		03079E80211CF8A4002E9B9B /* 1.cbz in Resources */ = {isa = PBXBuildFile; fileRef = 03079E7C211CF864002E9B9B /* 1.cbz */; };
 		0318D238211CEB5B009B6727 /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0318D237211CEB5B009B6727 /* ReadiumOPDS.framework */; };
 		0318D239211CEB5B009B6727 /* ReadiumOPDS.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0318D237211CEB5B009B6727 /* ReadiumOPDS.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		0318D23B211CEB5B009B6727 /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0318D23A211CEB5B009B6727 /* R2Navigator.framework */; };
@@ -315,6 +319,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		03079E7C211CF864002E9B9B /* 1.cbz */ = {isa = PBXFileReference; lastKnownFileType = file; path = 1.cbz; sourceTree = "<group>"; };
 		0318D237211CEB5B009B6727 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumOPDS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0318D23A211CEB5B009B6727 /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0318D23D211CEB5B009B6727 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -533,6 +538,7 @@
 		F32980ED1F7D464900BDEAF4 /* Samples */ = {
 			isa = PBXGroup;
 			children = (
+				03079E7C211CF864002E9B9B /* 1.cbz */,
 				F32980EE1F7D467B00BDEAF4 /* 1.epub */,
 				F32980F11F7D467C00BDEAF4 /* 2.epub */,
 				F32980F31F7D467C00BDEAF4 /* 3.epub */,
@@ -841,6 +847,7 @@
 				0350FD15211CD2CB006994C2 /* 1.epub in Resources */,
 				0350FD16211CD2CB006994C2 /* 2.epub in Resources */,
 				0350FD17211CD2CB006994C2 /* 3.epub in Resources */,
+				03079E7E211CF8A3002E9B9B /* 1.cbz in Resources */,
 				0350FD18211CD2CB006994C2 /* 4.epub in Resources */,
 				0350FD19211CD2CB006994C2 /* DrmManagement.storyboard in Resources */,
 				0350FD1A211CD2CB006994C2 /* AppMain.storyboard in Resources */,
@@ -863,6 +870,7 @@
 				0350FD69211CD625006994C2 /* 1.epub in Resources */,
 				0350FD6A211CD625006994C2 /* 2.epub in Resources */,
 				0350FD6B211CD625006994C2 /* 3.epub in Resources */,
+				03079E7F211CF8A4002E9B9B /* 1.cbz in Resources */,
 				0350FD6C211CD625006994C2 /* 4.epub in Resources */,
 				0350FD6D211CD625006994C2 /* DrmManagement.storyboard in Resources */,
 				0350FD6E211CD625006994C2 /* AppMain.storyboard in Resources */,
@@ -885,6 +893,7 @@
 				0350FDB0211CD634006994C2 /* 1.epub in Resources */,
 				0350FDB1211CD634006994C2 /* 2.epub in Resources */,
 				0350FDB2211CD634006994C2 /* 3.epub in Resources */,
+				03079E80211CF8A4002E9B9B /* 1.cbz in Resources */,
 				0350FDB3211CD634006994C2 /* 4.epub in Resources */,
 				0350FDB4211CD634006994C2 /* DrmManagement.storyboard in Resources */,
 				0350FDB5211CD634006994C2 /* AppMain.storyboard in Resources */,
@@ -907,6 +916,7 @@
 				F3120DE71FACB08E009ACFAD /* 1.epub in Resources */,
 				F3120DE81FACB090009ACFAD /* 2.epub in Resources */,
 				F3120DE91FACB092009ACFAD /* 3.epub in Resources */,
+				03079E7D211CF865002E9B9B /* 1.cbz in Resources */,
 				F3120DEA1FACB094009ACFAD /* 4.epub in Resources */,
 				F34CB28F1FCC54A2005E3A37 /* DrmManagement.storyboard in Resources */,
 				AE2B6A8920889C8700C12072 /* AppMain.storyboard in Resources */,
