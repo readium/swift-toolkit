@@ -81,6 +81,8 @@ final class WebView: WKWebView {
             }
         }
     }
+    
+    var sizeObservation: NSKeyValueObservation?
 
     init(frame: CGRect, initialLocation: BinaryLocation) {
         self.initialLocation = initialLocation
@@ -96,22 +98,15 @@ final class WebView: WKWebView {
         scrollView.showsVerticalScrollIndicator = false
         navigationDelegate = self
         
-        scrollView.addObserver(self, forKeyPath: "contentSize", options: .new, context: nil)
-    }
-    
-    deinit {
-        scrollView.removeObserver(self, forKeyPath: "contentSize", context: nil)
-    }
-    
-    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        if keyPath == "contentSize" {
-            if let value = change?[NSKeyValueChangeKey.newKey] as? CGSize {
-                // update total pages
-                let pageCount = Int(value.width / scrollView.frame.size.width);
-                if totalPages != pageCount {
-                    totalPages = pageCount
-                    viewDelegate?.documentPageDidChanged(webview: self, currentPage: currentPage(), totalPage: pageCount)
-                }
+        sizeObservation = scrollView.observe(\.contentSize, options: .new) { (thisScrollView, thisValue) in
+            // update total pages
+            guard let newWidth = thisValue.newValue?.width else {return}
+            let pageWidth = self.scrollView.frame.size.width
+            if pageWidth == 0.0 {return} // Possible zero value
+            let pageCount = Int(newWidth / self.scrollView.frame.size.width);
+            if self.totalPages != pageCount {
+                self.totalPages = pageCount
+                self.viewDelegate?.documentPageDidChanged(webview: self, currentPage: self.currentPage(), totalPage: pageCount)
             }
         }
     }
