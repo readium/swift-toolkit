@@ -23,15 +23,15 @@ var maxScreenUpdate = function() {
         maxScreenX = screen.height;
         maxScreenY = screen.width;
     }
-    // snapCurrentPosition();
+    snapCurrentPosition();
 };
 
-// var snapCurrentPosition = function() {
-//     var currentOffset = window.scrollX;
-//     var currentOffsetSnapped = snapOffset(currentOffset + 1);
-//
-//     document.body.scrollLeft = currentOffsetSnapped;
-// };
+var snapCurrentPosition = function() {
+    var currentOffset = window.scrollX;
+    var currentOffsetSnapped = snapOffset(currentOffset + 1);
+    
+    document.body.scrollLeft = currentOffsetSnapped;
+};
 
 // When a touch is detected records its starting coordinates and if it's a singleTouchGesture.
 var handleTouchStart = function(event) {
@@ -63,13 +63,19 @@ var handleTouchEnd = function(event) {
     var relativeDistanceY = Math.abs(((touch.screenY % maxScreenY) - startY) / maxScreenY);
     var touchDistance = Math.max(relativeDistanceX, relativeDistanceY);
 
-    var scrollWidth = document.scrollWidth;
-    var screenWidth = maxScreenX;
-    var tapAreaWidth = maxScreenX * 0.2;
-
-    // // Tap to turn.
+    // Tap to turn.
     if(touchDistance < 0.01) {
-        var position = Math.abs(touch.clientX % maxScreenX) / maxScreenX;
+        //var position = Math.abs(touch.clientX % maxScreenX) / maxScreenX;
+        var position;
+        
+        if (maxScreenX == window.innerWidth) {
+            // No scroll and default zoom
+            position = touch.clientX / document.body.clientWidth
+        } else {
+            // FXL
+            position = touch.screenX / document.body.clientWidth
+        }
+        
         if (position <= 0.2) {
             // TAP left.
             console.log("LeftTapped");

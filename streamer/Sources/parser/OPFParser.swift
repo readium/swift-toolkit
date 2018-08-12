@@ -91,9 +91,12 @@ final public class OPFParser {
         if let description = metadataElement["dc:description"].value {
             metadata.description = description
         }
-        // Date. (year?)
-        if let date = metadataElement["dc:date"].value {
-            metadata.publicationDate = date
+        // From the EPUB 2 and EPUB 3 specifications, only the `dc:date` element without any attribtes will be considered for the `published` property.
+        // And only the string with full date will be considered as valid date string. The string format validation happens in the `setter` of `published`.
+        if let dateString = metadataElement["dc:date"].all?.filter({ (thisElement) -> Bool in
+            return thisElement.attributes.count == 0
+        }).first?.value {
+            metadata.published = dateString
         }
         // Last modification date.
         metadata.modified = MetadataParser.modifiedDate(from: metadataElement)
@@ -344,15 +347,4 @@ final public class OPFParser {
         return properties
     }
 }
-
-
-
-
-
-
-
-
-
-
-
 
