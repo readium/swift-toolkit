@@ -212,6 +212,12 @@ public class OPDS1Parser {
                     let facetElementCount = Int(facetElementCountStr) {
                     newLink.properties.numberOfItems = facetElementCount
                 }
+                
+                // Active Facet Check
+                if link.attributes["activeFacet"] == "true" {
+                    newLink.rel.append("self")
+                }
+                
                 addFacet(feed: feed, to: newLink, named: facetGroupName)
             } else {
                 feed.links.append(newLink)
@@ -365,7 +371,7 @@ public class OPDS1Parser {
         }
         // Publication date.
         if let tmpDate = entry.firstChild(tag: "published")?.stringValue {
-            metadata.publicationDate = tmpDate
+            metadata.published = tmpDate
         }
 
         // Rights.
@@ -396,10 +402,7 @@ public class OPDS1Parser {
             let contributor = Contributor()
 
             if let uri = author.firstChild(tag: "uri")?.stringValue {
-                let link = Link()
-                link.href = uri
-                link.absoluteHref = URLHelper.getAbsolute(href: uri, base: feedURL)
-                contributor.links.append(link)
+                contributor.identifier = uri
             }
             
             contributor.multilangName.singleString = author.firstChild(tag: "name")?.stringValue
