@@ -33,6 +33,7 @@ public class UserSettings {
     private var wordSpacing: Float = 0
     private var letterSpacing: Float = 0
     private var pageMargins: Float = 1
+    private var lineHeight: Float = 1
     
     public var userSettingsUIPreset: [ReadiumCSSName: Bool]?
     public let userProperties = UserProperties()
@@ -120,6 +121,13 @@ public class UserSettings {
             pageMargins = userDefaults.float(forKey: ReadiumCSSName.pageMargins.rawValue)
         } else {
             pageMargins = 1
+        }
+        
+        // Line height
+        if isKeyPresentInUserDefaults(key: ReadiumCSSName.lineHeight) {
+            lineHeight = userDefaults.float(forKey: ReadiumCSSName.lineHeight.rawValue)
+        } else {
+            lineHeight = 1
         }
         
         buildCssProperties()
@@ -210,6 +218,15 @@ public class UserSettings {
                                         reference: ReadiumCSSReference.pageMargins.rawValue,
                                         name: ReadiumCSSName.pageMargins.rawValue)
         
+        // Line height
+        userProperties.addIncrementable(nValue: lineHeight,
+                                        min: 1,
+                                        max: 2,
+                                        step: 0.25,
+                                        suffix: "",
+                                        reference: ReadiumCSSReference.lineHeight.rawValue,
+                                        name: ReadiumCSSName.lineHeight.rawValue)
+        
     }
     
     // Save settings to UserDefaults
@@ -259,6 +276,10 @@ public class UserSettings {
         
         if let currentPageMargins = userProperties.getProperty(reference: ReadiumCSSReference.pageMargins.rawValue) as? Incrementable {
             userDefaults.set(currentPageMargins.value, forKey: ReadiumCSSName.pageMargins.rawValue)
+        }
+        
+        if let currentLineHeight = userProperties.getProperty(reference: ReadiumCSSReference.lineHeight.rawValue) as? Incrementable {
+            userDefaults.set(currentLineHeight.value, forKey: ReadiumCSSName.lineHeight.rawValue)
         }
         
     }
