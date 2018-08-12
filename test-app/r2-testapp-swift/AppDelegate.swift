@@ -118,12 +118,36 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 extension AppDelegate {
     
     internal func addPublicationToLibrary(url: URL, needUIUpdate:Bool) -> Bool {
+        
+        var documentsUrl = try! FileManager.default.url(for: .documentDirectory,
+                                                        in: .userDomainMask,
+                                                        appropriateFor: nil,
+                                                        create: true)
+        
+        documentsUrl.appendPathComponent(url.lastPathComponent)
+        
+        if FileManager().fileExists(atPath: documentsUrl.path) {
+            showInfoAlert(title: "Error", message: "File already exist")
+            return false
+        }
+        
+        /// Move Publication to documents.
+        do {
+            try FileManager.default.moveItem(at: url, to: documentsUrl)
+            let dateAttribute = [FileAttributeKey.modificationDate: Date()]
+            try FileManager.default.setAttributes(dateAttribute, ofItemAtPath: documentsUrl.path)
+            
+        } catch {
+            showInfoAlert(title: "Error", message: "Failed importing this publication \(error)")
+            return false
+        }
+        
         switch url.pathExtension {
         case "lcpl":
             #if LCP
             // Retrieve publication using the LCPL.
             firstly {
-                try publication(at: url)
+                try publication(at: documentsUrl)
                 }.then { (publicationUrl, downloadTask)-> Void in
                     
                     /// Parse publication. (tomove?)
@@ -138,41 +162,23 @@ extension AppDelegate {
                 }.catch { error in
                     print("Error -- \(error.localizedDescription)")
                     self.showInfoAlert(title: "Error", message: error.localizedDescription)
+                    if FileManager.default.fileExists(atPath: documentsUrl.path) {
+                        try? FileManager.default.removeItem(at: documentsUrl)
+                    }
             }
             #endif
         default:
-            /// Move Publication to documents.
-            var documentsUrl = try! FileManager.default.url(for: .documentDirectory,
-                                                            in: .userDomainMask,
-                                                            appropriateFor: nil,
-                                                            create: true)
             
-            documentsUrl.appendPathComponent(url.lastPathComponent)
-            
-            if FileManager().fileExists(atPath: documentsUrl.path) {
-                showInfoAlert(title: "Error", message: "Publication already added to library.")
+            /// Add the publication to the publication server.
+            let location = Location(absolutePath: documentsUrl.path,
+                                    relativePath: documentsUrl.lastPathComponent,
+                                    type: getTypeForPublicationAt(url: url))
+            if !lightParsePublication(at: location) {
+                showInfoAlert(title: "Error", message: "The publication isn't valid.")
                 return false
             } else {
-                do {
-                    try FileManager.default.moveItem(at: url, to: documentsUrl)
-                    let dateAttribute = [FileAttributeKey.modificationDate: Date()]
-                    try FileManager.default.setAttributes(dateAttribute, ofItemAtPath: documentsUrl.path)
-                    
-                } catch {
-                    showInfoAlert(title: "Error", message: "Couldn't retrieve the protected epub from the server \(error)")
-                    return false
-                }
-                /// Add the publication to the publication server.
-                let location = Location(absolutePath: documentsUrl.path,
-                                        relativePath: documentsUrl.lastPathComponent,
-                                        type: getTypeForPublicationAt(url: url))
-                if !lightParsePublication(at: location) {
-                    showInfoAlert(title: "Error", message: "The publication isn't valid.")
-                    return false
-                } else {
-                    if needUIUpdate {
-                        reload(downloadTask: nil)
-                    }
+                if needUIUpdate {
+                    reload(downloadTask: nil)
                 }
             }
         }
@@ -284,7 +290,16 @@ extension AppDelegate {
                 print(url.absoluteString)
             }
         }
-        
+      
+        for sample in samples {
+          if let path = Bundle.main.path(forResource: sample, ofType: "cbz") {
+            let url = URL.init(fileURLWithPath: path)
+            
+            sampleUrls.append(url)
+            print(url.absoluteString)
+          }
+        }
+
         /// Find the types associated to the files, or unknown.
         let locations = sampleUrls.map({ url -> Location in
             let publicationType = getTypeForPublicationAt(url: url)
@@ -361,8 +376,10 @@ extension AppDelegate {
         return firstly {
             /// 3.1/ Fetch the status document.
             /// 3.2/ Validate the status document.
-            return lcpLicense.fetchStatusDocument(initialDownloadAttempt: true)
-            }.then { _ -> Promise<Void> in
+            return lcpLicense.fetchStatusDocument(shouldRejectError: false)
+        }.then { error -> Promise<Void> in
+    
+            guard let serverError = error as NSError? else {
                 /// 3.3/ Check that the status is "ready" or "active".
                 try lcpLicense.checkStatus()
                 /// 3.4/ Check if the license has been updated. If it is the case,
@@ -373,18 +390,29 @@ extension AppDelegate {
                 /// 3.4.3/ Replace the current license by the updated one in the
                 ///        EPUB archive.
                 return lcpLicense.updateLicenseDocument()
-            }.then { _ -> Promise<(URL, URLSessionDownloadTask?)> in
-                /// 4/ Check the rights.
-                try lcpLicense.areRightsValid()
-                /// 5/ Register the device / license if needed.
-                lcpLicense.register()
-                /// 6/ Fetch the publication.
-                return lcpLicense.fetchPublication()
-            }.then { (publicationUrl, downloadTask) -> Promise<(URL, URLSessionDownloadTask?)> in
-                /// Move the license document in the publication.
-                try LcpLicense.moveLicense(from: lcpLicense.archivePath,
-                                           to: publicationUrl)
-                return Promise(value: (publicationUrl, downloadTask))
+            }
+            
+            if serverError.domain == "org.readium" {
+                let noteName = Notification.Name(kShouldPresentLCPMessage)
+                let userInfo = serverError.userInfo
+                let notification = Notification(name: noteName, object: nil, userInfo: userInfo)
+                NotificationCenter.default.post(notification)
+            }
+            
+            return lcpLicense.saveLicenseDocumentWithoutStatus(shouldRejectError: true)
+            
+        }.then { _ -> Promise<(URL, URLSessionDownloadTask?)> in
+            /// 4/ Check the rights.
+            try lcpLicense.areRightsValid()
+            /// 5/ Register the device / license if needed.
+            lcpLicense.register()
+            /// 6/ Fetch the publication.
+            return lcpLicense.fetchPublication()
+        }.then { (publicationUrl, downloadTask) -> Promise<(URL, URLSessionDownloadTask?)> in
+            /// Move the license document in the publication.
+            try LcpLicense.moveLicense(from: lcpLicense.archivePath,
+                                       to: publicationUrl)
+            return Promise(value: (publicationUrl, downloadTask))
         }
     }
     #endif
