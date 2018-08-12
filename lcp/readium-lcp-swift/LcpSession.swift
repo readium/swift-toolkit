@@ -33,7 +33,7 @@ public class LcpSession {
     public func resolve(using passphrase: String, pemCrl: String) -> Promise<LcpLicense> {
         return firstly {
             // 4/ Check the license status
-            lcpLicense.fetchStatusDocument(initialDownloadAttempt: false)
+            lcpLicense.fetchStatusDocument(shouldRejectError: false)
             }.then{ error -> Promise<Void> in
                 
                 guard let serverError = error as NSError? else {
@@ -57,9 +57,7 @@ public class LcpSession {
                     NotificationCenter.default.post(notification)
                 }
                 
-                return Promise<Void> { fulfill, reject in
-                    fulfill(())
-                }
+                return self.lcpLicense.saveLicenseDocumentWithoutStatus(shouldRejectError: false)
                 
             }.then { _ -> Promise<LcpLicense> in
                 /// 4/ Check the rights.

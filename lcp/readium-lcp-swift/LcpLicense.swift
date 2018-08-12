@@ -60,7 +60,7 @@ public class LcpLicense: DrmLicense {
     /// Update the Status Document.
     /// - Parametet initialDownloadAttempt: if serverError then Reject with error for initial download attempt otherwise fulfill with error
     /// - Parameter completion:
-    public func fetchStatusDocument(initialDownloadAttempt: Bool) -> Promise<Error?> {
+    public func fetchStatusDocument(shouldRejectError: Bool) -> Promise<Error?> {
         return Promise<Error?> { fulfill, reject in
             guard let statusLink = license.link(withRel: LicenseDocument.Rel.status) else {
                 reject(LcpError.statusLinkNotFound)
@@ -83,7 +83,7 @@ public class LcpLicense: DrmLicense {
                     } ()
                     
                     if let theServerError = serverError {
-                        if initialDownloadAttempt {
+                        if shouldRejectError {
                             reject(theServerError)
                         } else {
                             fulfill(theServerError)
@@ -387,7 +387,6 @@ public class LcpLicense: DrmLicense {
                 return
             }
             let request = URLRequest(url: publicationLink.href)
-            let title = publicationLink.title ?? "Unknow Title" //Todo
             let fileManager = FileManager.default
             // Document Directory always exists (hence try!).
             var destinationUrl = try! fileManager.url(for: .documentDirectory,
@@ -418,6 +417,31 @@ public class LcpLicense: DrmLicense {
                 }
                 return false
             })
+        }
+    }
+    
+    /// Try to save the license document without status document.
+    /// There is also no update logic for the license, because the license url belongs to status.
+    /// - Parameters:
+    ///   - shouldRejectError: should the function reject anny error emitted .
+    ///
+    public func saveLicenseDocumentWithoutStatus(shouldRejectError: Bool) -> Promise<Void> {
+        return Promise<Void> { fulfill, reject in
+            do {
+                let exist = try LCPDatabase.shared.licenses.existingLicense(with: self.license.id)
+                if exist { // When the LCP license already exist
+                    if shouldRejectError {
+                        reject(LcpError.licenseAlreadyExist)
+                    }
+                } else {
+                    try LCPDatabase.shared.licenses.insert(self.license, with: nil)
+                }
+                fulfill(())
+            } catch {
+                if shouldRejectError {
+                    reject(error)
+                } else {fulfill(())}
+            }
         }
     }
     

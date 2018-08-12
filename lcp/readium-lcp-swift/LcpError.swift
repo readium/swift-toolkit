@@ -43,13 +43,18 @@ public enum LcpError: Error {
     case invalidContext
     case crlFetching
     case missingLicenseStatus
-    case licenseStatusCancelled(Date?)
-    case licenseStatusReturned(Date?)
-    case licenseStatusRevoked(Date?, String?)
-    case licenseStatusExpired(Date?)
+    
     case invalidRights
     case invalidPassphrase
+    case licenseAlreadyExist
     
+/// For the case (revoked, returned, cancelled, expired), app should notify the user and stop there. The message to the user must be clear about the status of the license: don't display "expired" if the status is "revoked". The date and time corresponding to the new status should be displayed (e.g. "The license expired on 01 January 2018").
+    case licenseStatusCancelled(Date?)
+    case licenseStatusReturned(Date?)
+    case licenseStatusExpired(Date?)
+/// If the license has been revoked, the user message should display the number of devices which registered to the server. This count can be calculated from the number of "register" events in the status document. If no event is logged in the status document, no such message should appear (certainly not "The license was registered by 0 devices").
+    case licenseStatusRevoked(Date?, String?)
+
     func localizedString(for date: Date) -> String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "MMMM dd, yyyy HH:mm"
@@ -152,6 +157,8 @@ extension LcpError: LocalizedError {
             return "The passphrase entered is not valid."
         case .renewPeriod:
             return "Incorrect renewal period, your publication could not be renewed."
+        case .licenseAlreadyExist:
+            return "The LCP license already exist, this import is ignored"
         }
     }
 }

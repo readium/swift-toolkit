@@ -113,6 +113,11 @@ class Licenses {
         return count == 1
     }
     
+    /// Check if the table already contains an entry for the given ID.
+    ///
+    /// - Parameter licenseID: The ID to check.
+    /// - Returns: A boolean indicating the result of the search, true if found.
+    /// - Throws: .
     internal func localFileExisting(for licenseID: String) throws -> Bool {
         let db = LCPDatabase.shared.connection
         // Check if empty.
@@ -125,6 +130,12 @@ class Licenses {
         return count == 1
     }
     
+    /// Update the local file info for a given licenseID
+    ///
+    /// - Parameter licenseID: The ID to check.
+    /// - Parameter localURL: The URL of this local file.
+    /// - Parameter updatedAt: The updated date for this local file.
+    /// - Throws: .
     internal func updateLocalFile(for licenseID: String, localURL: String, updatedAt: Date) throws -> Void {
         
         let db = LCPDatabase.shared.connection
@@ -139,6 +150,10 @@ class Licenses {
                                   self.localFileUpdated <- updatedAt))
     }
     
+    /// Delete the local file info for a given licenseID
+    ///
+    /// - Parameter licenseID: The ID to check.
+    /// - Throws: .
     internal func deleteLocalFile(for licenseID: String) throws -> Void {
         
         let db = LCPDatabase.shared.connection
@@ -153,6 +168,10 @@ class Licenses {
                                   self.localFileUpdated <- nil))
     }
     
+    /// Delete the database item info for a given licenseID
+    ///
+    /// - Parameter licenseID: The ID to check.
+    /// - Throws: .
     internal func deleteData(for licenseID: String) throws -> Void {
         
         let db = LCPDatabase.shared.connection
