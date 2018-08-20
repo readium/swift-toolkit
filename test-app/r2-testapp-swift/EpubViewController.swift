@@ -142,6 +142,9 @@ class EpubViewController: UIViewController {
         fixedTopBar.delegate = self
         fixedBottomBar.delegate = self
         navigator.delegate = self
+        
+        let userSettings = navigator.userSettings
+        userSettingNavigationController.userSettings = userSettings
     }
     
     override func viewDidLoad() {
@@ -223,6 +226,9 @@ extension EpubViewController {
         
         popoverPresentationController.delegate = self
         popoverPresentationController.barButtonItem = popoverUserconfigurationAnchor
+        
+        let userSettingsUIPreset = self.navigator.publication.userSettingsUIPreset
+        userSettingNavigationController.userSettings.userSettingsUIPreset = userSettingsUIPreset
         
         present(userSettingNavigationController, animated: true, completion: nil)
     }

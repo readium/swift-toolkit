@@ -41,13 +41,15 @@ protocol AdvancedSettingsDelegate: class {
 class AdvancedSettingsViewController: UIViewController {
     
     @IBOutlet weak var defaultSwitch: UISwitch!
+    @IBOutlet weak var alignSegment: UISegmentedControl!
+    @IBOutlet weak var columnsSegment: UISegmentedControl!
     
     @IBOutlet weak var wordSpacingLabel: UILabel!
     @IBOutlet weak var letterSpacingLabel: UILabel!
     @IBOutlet weak var pageMarginsLabel: UILabel!
     @IBOutlet weak var lineHeightLabel: UILabel!
     weak var delegate: AdvancedSettingsDelegate?
-    weak var userSettings: UserSettings?
+    weak var userSettings: UserSettings? 
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(true)
@@ -71,6 +73,46 @@ class AdvancedSettingsViewController: UIViewController {
         if let publisherDefault = userSettings?.userProperties.getProperty(reference: ReadiumCSSReference.publisherDefault.rawValue) as? Switchable {
             defaultSwitch.isOn = publisherDefault.on
         }
+    }
+    
+    private func pinForeground(_ view: UIView, to stackView: UIStackView) {
+        view.translatesAutoresizingMaskIntoConstraints = false
+        stackView.addSubview(view)
+        view.pin(to: stackView)
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        let settingsUIPreset:[ReadiumCSSName: UIView?] = [
+            
+            ReadiumCSSName.hyphens: nil,
+            ReadiumCSSName.ligatures: nil,
+            ReadiumCSSName.paraIndent: nil,
+            ReadiumCSSName.columnCount: columnsSegment.superview,
+            ReadiumCSSName.textAlignment: alignSegment,
+            
+            ReadiumCSSName.lineHeight: lineHeightLabel.superview?.superview,
+            ReadiumCSSName.pageMargins: pageMarginsLabel.superview?.superview,
+            ReadiumCSSName.wordSpacing: wordSpacingLabel.superview?.superview,
+            ReadiumCSSName.letterSpacing: letterSpacingLabel.superview?.superview
+        ]
+        
+        userSettings?.userSettingsUIPreset?.forEach({ (key, value) in
+            if let theUIComponent = settingsUIPreset[key] {
+                if !value {
+                    let disabledColor = UIColor(white: 0.6, alpha: 0.4)
+                    theUIComponent?.isUserInteractionEnabled = false
+                    theUIComponent?.backgroundColor = disabledColor
+                    
+                    if let stack = theUIComponent as? UIStackView {
+                        let foreGround = UIView()
+                        foreGround.backgroundColor = disabledColor
+                        pinForeground(foreGround, to: stack)
+                    }
+                }
+            }
+        })
     }
     
     /// Publisher's default
@@ -173,3 +215,13 @@ class AdvancedSettingsViewController: UIViewController {
     }
 }
 
+public extension UIView {
+    public func pin(to view: UIView) {
+        NSLayoutConstraint.activate([
+            leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            topAnchor.constraint(equalTo: view.topAnchor),
+            bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            ])
+    }
+}
