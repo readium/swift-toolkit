@@ -49,7 +49,8 @@ class AdvancedSettingsViewController: UIViewController {
     @IBOutlet weak var pageMarginsLabel: UILabel!
     @IBOutlet weak var lineHeightLabel: UILabel!
     weak var delegate: AdvancedSettingsDelegate?
-    weak var userSettings: UserSettings? 
+    weak var userSettings: UserSettings?
+    weak var publication: Publication?
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(true)
@@ -98,7 +99,7 @@ class AdvancedSettingsViewController: UIViewController {
             ReadiumCSSName.letterSpacing: letterSpacingLabel.superview?.superview
         ]
         
-        userSettings?.userSettingsUIPreset?.forEach({ (key, value) in
+        publication?.userSettingsUIPreset?.forEach({ (key, value) in
             if let theUIComponent = settingsUIPreset[key] {
                 if !value {
                     let disabledColor = UIColor(white: 0.6, alpha: 0.4)

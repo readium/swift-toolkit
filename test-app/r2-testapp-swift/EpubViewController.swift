@@ -178,6 +178,21 @@ class EpubViewController: UIViewController {
         /// Add spineItemViewController button to navBar.
         navigationItem.setRightBarButtonItems(barButtons,
                                               animated: true)
+        
+        
+       
+        self.userSettingNavigationController.userSettingsTableViewController.publication = navigator.publication
+        
+        self.navigator.publication.userSettingsUIPresetUpdated = { (thisUserSettingsUIPreset) in
+            
+            guard let presetScrollValue:Bool = thisUserSettingsUIPreset?[.scroll] else {return}
+            
+            if let scroll = self.userSettingNavigationController.userSettings.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable {
+                if scroll.on != presetScrollValue {
+                    self.userSettingNavigationController.scrollModeDidChange()
+                }
+            }
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -227,9 +242,7 @@ extension EpubViewController {
         popoverPresentationController.delegate = self
         popoverPresentationController.barButtonItem = popoverUserconfigurationAnchor
         
-        let userSettingsUIPreset = self.navigator.publication.userSettingsUIPreset
-        userSettingNavigationController.userSettings.userSettingsUIPreset = userSettingsUIPreset
-        
+        userSettingNavigationController.publication = self.navigator.publication
         present(userSettingNavigationController, animated: true, completion: nil)
     }
     

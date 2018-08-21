@@ -18,7 +18,7 @@ import R2Shared
 protocol UserSettingsDelegate: class {
     func fontSizeDidChange(increase: Bool)
     func appearanceDidChange(to appearanceIndex: Int)
-    func scrollDidChange()
+    func scrollModeDidChange()
     func getFontSelectionViewController() -> FontSelectionViewController
     func getAdvancedSettingsViewController() -> AdvancedSettingsViewController
 }
@@ -34,6 +34,7 @@ class UserSettingsTableViewController: UITableViewController {
     @IBOutlet weak var scrollSwitch: UISwitch!
     weak var delegate: UserSettingsDelegate?
     weak var userSettings: UserSettings?
+    weak var publication: Publication? 
 
     private var brightnessObserver: NSObjectProtocol?
 
@@ -55,6 +56,18 @@ class UserSettingsTableViewController: UITableViewController {
             currentFontSize.max = 250.0
             currentFontSize.min = 75.0
             currentFontSize.step = 12.5
+        }
+        
+        checkScrollMode()
+    }
+    
+    func checkScrollMode() {
+        if let scrollMode = publication?.userSettingsUIPreset?[.scroll] {
+            scrollSwitch.isUserInteractionEnabled = false
+            scrollSwitch.backgroundColor = UIColor.gray
+            if scrollSwitch?.isOn != scrollMode {
+                scrollModeSwitched()
+            }
         }
     }
     
@@ -122,8 +135,8 @@ class UserSettingsTableViewController: UITableViewController {
         navigationController?.pushViewController(asvc, animated: true)
     }
 
-    @IBAction func scrollSwitched() {
-        delegate?.scrollDidChange()
+    @IBAction func scrollModeSwitched() {
+        delegate?.scrollModeDidChange()
     }
 }
 
