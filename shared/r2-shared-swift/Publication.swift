@@ -50,7 +50,13 @@ public class Publication {
     public var internalData = [String: String]()
     
     // The status of Settings properties. Enable or disable.
-    public var userSettingsUIPreset:[ReadiumCSSName: Bool]?
+    public var userSettingsUIPreset: [ReadiumCSSName: Bool]? {
+        didSet {
+            userSettingsUIPresetUpdated?(userSettingsUIPreset)
+        }
+    }
+    
+    public var userSettingsUIPresetUpdated:(([ReadiumCSSName: Bool]?) -> Void)?
 
     // MARK: - Public methods.
 
