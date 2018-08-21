@@ -53,6 +53,7 @@ internal class UserSettingsNavigationController: UINavigationController {
         fontSelectionViewController.userSettings = userSettings
         advancedSettingsViewController.delegate = self
         advancedSettingsViewController.userSettings = userSettings
+        advancedSettingsViewController.publication = publication
     }
     
     /// Publisher's default
