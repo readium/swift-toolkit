@@ -34,7 +34,7 @@ class UserSettingsTableViewController: UITableViewController {
     @IBOutlet weak var scrollSwitch: UISwitch!
     weak var delegate: UserSettingsDelegate?
     weak var userSettings: UserSettings?
-    weak var publication: Publication? 
+    weak var publication: Publication?
 
     private var brightnessObserver: NSObjectProtocol?
 
@@ -64,7 +64,9 @@ class UserSettingsTableViewController: UITableViewController {
     func checkScrollMode() {
         if let scrollMode = publication?.userSettingsUIPreset?[.scroll] {
             scrollSwitch.isUserInteractionEnabled = false
-            scrollSwitch.backgroundColor = UIColor.gray
+            scrollSwitch.thumbTintColor = UIColor.gray
+            scrollSwitch.tintColor = UIColor.lightGray
+            scrollSwitch.onTintColor = UIColor.lightGray
             if scrollSwitch?.isOn != scrollMode {
                 scrollModeSwitched()
             }
