@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "F3E7D4371F4EF6D400DF166D"
-               BuildableName = "r2-testapp-swift (carthage).app"
+               BuildableName = "r2-testapp-swift.app"
                BlueprintName = "r2-testapp-swift (carthage)"
                ReferencedContainer = "container:r2-testapp-swift.xcodeproj">
             </BuildableReference>
@@ -53,7 +53,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "F3E7D4371F4EF6D400DF166D"
-            BuildableName = "r2-testapp-swift (carthage).app"
+            BuildableName = "r2-testapp-swift.app"
             BlueprintName = "r2-testapp-swift (carthage)"
             ReferencedContainer = "container:r2-testapp-swift.xcodeproj">
          </BuildableReference>
@@ -76,7 +76,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "F3E7D4371F4EF6D400DF166D"
-            BuildableName = "r2-testapp-swift (carthage).app"
+            BuildableName = "r2-testapp-swift.app"
             BlueprintName = "r2-testapp-swift (carthage)"
             ReferencedContainer = "container:r2-testapp-swift.xcodeproj">
          </BuildableReference>
@@ -95,7 +95,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "F3E7D4371F4EF6D400DF166D"
-            BuildableName = "r2-testapp-swift (carthage).app"
+            BuildableName = "r2-testapp-swift.app"
             BlueprintName = "r2-testapp-swift (carthage)"
             ReferencedContainer = "container:r2-testapp-swift.xcodeproj">
          </BuildableReference>
