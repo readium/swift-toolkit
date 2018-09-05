@@ -253,7 +253,6 @@ final class TriptychView: UIView {
                 views = Views.two(firstView: firstView, secondView: secondView)
             }
         default:
-            let currentView = viewForIndex(index, location: leading)
             if index == 0 {
                 self.views = Views.many(
                     currentView: viewForIndex(index, location: leading),
@@ -266,7 +265,7 @@ final class TriptychView: UIView {
                         viewForIndex(index - 1, location: leading)))
             } else {
                 views = Views.many(
-                    currentView: currentView,
+                    currentView: viewForIndex(index, location: leading),
                     otherViews: Disjunction.both(
                         first: viewForIndex(index - 1, location: trailing),
                         second: viewForIndex(index + 1, location: leading)))
