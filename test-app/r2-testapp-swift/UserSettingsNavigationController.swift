@@ -22,20 +22,23 @@ protocol UserSettingsNavigationControllerDelegate: class {
 }
 
 internal class UserSettingsNavigationController: UINavigationController {
-    var userSettingsTableViewController: UserSettingsTableViewController!
+    var userSettingsTableViewController: UserSettingsTableViewController! {
+        get {
+            return viewControllers[0] as! UserSettingsTableViewController
+        }
+    }
     //
     var fontSelectionViewController: FontSelectionViewController!
     var advancedSettingsViewController: AdvancedSettingsViewController!
     //
     weak var usdelegate: UserSettingsNavigationControllerDelegate!
     var userSettings: UserSettings!
+    weak var publication: Publication?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         let storyboard = UIStoryboard(name: "UserSettings", bundle: nil)
         userSettings = usdelegate.getUserSettings()
-
-        userSettingsTableViewController = viewControllers[0] as! UserSettingsTableViewController
         
         fontSelectionViewController =
             storyboard.instantiateViewController(withIdentifier: "FontSelectionViewController") as! FontSelectionViewController
@@ -50,6 +53,7 @@ internal class UserSettingsNavigationController: UINavigationController {
         fontSelectionViewController.userSettings = userSettings
         advancedSettingsViewController.delegate = self
         advancedSettingsViewController.userSettings = userSettings
+        advancedSettingsViewController.publication = publication
     }
     
     /// Publisher's default
@@ -91,7 +95,7 @@ extension UserSettingsNavigationController: UserSettingsDelegate {
 
     /// Vertical scroll
     
-    func scrollDidChange() {
+    func scrollModeDidChange() {
         if let scroll = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable {
             scroll.switchValue()
             usdelegate?.updateUserSettingsStyle()

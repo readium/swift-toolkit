@@ -45,7 +45,9 @@ open class BarView: UIView {
             return
         }
         removeConstraints(constraints)
-        heightAnchor.constraint(equalToConstant: height).isActive = true
+        let heightConstraint = heightAnchor.constraint(equalToConstant: height)
+        heightConstraint.priority = UILayoutPriority(rawValue: 999)
+        heightConstraint.isActive = true
     }
 
     public func setLabel(title: String?) {
