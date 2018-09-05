@@ -65,17 +65,17 @@ var handleTouchEnd = function(event) {
 
     // Tap to turn.
     if(touchDistance < 0.01) {
-        //var position = Math.abs(touch.clientX % maxScreenX) / maxScreenX;
-        var position;
+        var position = touch.clientX / window.innerWidth;
         
-        if (maxScreenX == window.innerWidth) {
-            // No scroll and default zoom
-            position = touch.clientX / document.body.clientWidth
-        } else {
-            // FXL
-            position = touch.screenX / document.body.clientWidth
-        }
-        
+//        if (maxScreenX == window.innerWidth) {
+//            // No scroll and default zoom
+//            position = touch.clientX / window.innerWidth;
+//        } else {
+//            // FXL
+//            // Looks like this is the ratio in document space instead of screen space
+//            // position = touch.screenX / document.body.clientWidth;
+//        }
+
         if (position <= 0.2) {
             // TAP left.
             console.log("LeftTapped");
