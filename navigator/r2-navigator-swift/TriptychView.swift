@@ -279,10 +279,8 @@ final class TriptychView: UIView {
     }
 
     private func syncSubviews() {
+        let webViewsBefore = scrollView.subviews.compactMap { $0 as? WebView }
         scrollView.subviews.forEach({
-            if let webview = ($0 as? WebView) {
-                webview.removeMessageHandlers()
-            }
             $0.removeFromSuperview()
         })
 
@@ -293,6 +291,10 @@ final class TriptychView: UIView {
                 }
                 self.scrollView.addSubview($0)
             })
+        }
+        
+        webViewsBefore.forEach {
+            if $0.superview == nil { $0.removeMessageHandlers() }
         }
     }
 }

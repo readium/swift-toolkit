@@ -48,6 +48,7 @@ final class WebView: WKWebView {
 
     public var presentingFixedLayoutContent = false // TMP fix for fxl.
 
+    var hasLoadedJsEvents = false
     let jsEvents = ["leftTap": leftTapped,
                     "centerTap": centerTapped,
                     "rightTap": rightTapped,
@@ -186,9 +187,9 @@ extension WebView {
     /// - Parameter body: Unused.
     internal func documentDidLoad(body: String) {
         documentLoaded = true
-        UIView.animate(withDuration: 0.3, animations: {
-            self.alpha = 1
-        })
+        
+        fadeInWithDelay()
+        
         applyUserSettingsStyle()
         scrollToInitialPosition()
     }
@@ -288,10 +289,12 @@ extension WebView: WKScriptMessageHandler {
 
     /// Add a message handler for incoming javascript events.
     internal func addMessageHandlers() {
+        if hasLoadedJsEvents { return }
         // Add the message handlers.
         for eventName in jsEvents.keys {
             configuration.userContentController.add(self, name: eventName)
         }
+        hasLoadedJsEvents = true
     }
 
     // Deinit message handlers (preventing strong reference cycle).
@@ -299,6 +302,7 @@ extension WebView: WKScriptMessageHandler {
         for eventName in jsEvents.keys {
             configuration.userContentController.removeScriptMessageHandler(forName: eventName)
         }
+        hasLoadedJsEvents = false
     }
 }
 
@@ -350,7 +354,7 @@ extension WebView: UIScrollViewDelegate {
 }
 
 
-extension UIScrollView {
+private extension UIScrollView {
     
     func scrollToNextPage() {
         moveHorizontalContent(with: bounds.size.width)
@@ -367,6 +371,18 @@ extension UIScrollView {
         newOffset.x = rounded
         let area = CGRect.init(origin: newOffset, size: bounds.size)
         scrollRectToVisible(area, animated: true)
+    }
+}
+
+private extension UIView {
+    
+    func fadeInWithDelay() {
+        //We need to give the CSS and webview time to layout correctly. :( 0.2 seconds seems like a good value for it to work on an iPhone 5s.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            UIView.animate(withDuration: 0.3, animations: {
+                self.alpha = 1
+            })
+        }
     }
 }
 
