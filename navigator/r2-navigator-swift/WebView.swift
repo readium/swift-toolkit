@@ -353,19 +353,18 @@ extension WebView: UIScrollViewDelegate {
 extension UIScrollView {
     
     func scrollToNextPage() {
-        //FIXME: Fix bug with getting stuck between two pages
-        var newOffset = contentOffset
-        let incr = bounds.size.width
-        newOffset.x += incr
-        let area = CGRect.init(origin: newOffset, size: bounds.size)
-        scrollRectToVisible(area, animated: true)
+        moveHorizontalContent(with: bounds.size.width)
     }
     
     func scrollToPreviousPage() {
-        //FIXME: Fix bug with getting stuck between two pages
+        moveHorizontalContent(with: -bounds.size.width)
+    }
+    
+    private func moveHorizontalContent(with offsetX: CGFloat) {
         var newOffset = contentOffset
-        let incr = bounds.size.width
-        newOffset.x -= incr
+        newOffset.x += offsetX
+        let rounded = round(newOffset.x / offsetX) * offsetX
+        newOffset.x = rounded
         let area = CGRect.init(origin: newOffset, size: bounds.size)
         scrollRectToVisible(area, animated: true)
     }
