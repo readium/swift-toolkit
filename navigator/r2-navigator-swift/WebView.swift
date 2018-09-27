@@ -63,6 +63,18 @@ final class WebView: WKWebView {
         case right
         func proceed(on target: WebView) {
             
+            let scrollView = target.scrollView
+            if scrollView.isPagingEnabled {
+                switch self {
+                case .left:
+                    let isAtFirstPageInDocument = scrollView.contentOffset.x == 0
+                    if !isAtFirstPageInDocument { return scrollView.scrollToPreviousPage() }
+                case .right:
+                    let isAtLastPageInDocument = scrollView.contentOffset.x == scrollView.contentSize.width - scrollView.frame.size.width
+                    if !isAtLastPageInDocument { return scrollView.scrollToNextPage() }
+                }
+            }
+            
             let dir = target.direction?.rawValue ?? PageProgressionDirection.ltr.rawValue
             
             switch self {
@@ -109,6 +121,8 @@ final class WebView: WKWebView {
                 self.viewDelegate?.documentPageDidChanged(webview: self, currentPage: self.currentPage(), totalPage: pageCount)
             }
         }
+        
+        self.alpha = 0
     }
 
     @available(*, unavailable)
@@ -172,6 +186,9 @@ extension WebView {
     /// - Parameter body: Unused.
     internal func documentDidLoad(body: String) {
         documentLoaded = true
+        UIView.animate(withDuration: 0.3, animations: {
+            self.alpha = 1
+        })
         applyUserSettingsStyle()
         scrollToInitialPosition()
     }
@@ -329,6 +346,28 @@ extension WebView: UIScrollViewDelegate {
             }// tmp end
         }
         return nil
+    }
+}
+
+
+extension UIScrollView {
+    
+    func scrollToNextPage() {
+        //FIXME: Fix bug with getting stuck between two pages
+        var newOffset = contentOffset
+        let incr = bounds.size.width
+        newOffset.x += incr
+        let area = CGRect.init(origin: newOffset, size: bounds.size)
+        scrollRectToVisible(area, animated: true)
+    }
+    
+    func scrollToPreviousPage() {
+        //FIXME: Fix bug with getting stuck between two pages
+        var newOffset = contentOffset
+        let incr = bounds.size.width
+        newOffset.x -= incr
+        let area = CGRect.init(origin: newOffset, size: bounds.size)
+        scrollRectToVisible(area, animated: true)
     }
 }
 

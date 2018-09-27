@@ -105,7 +105,9 @@ extension NavigatorViewController {
         guard publication.spine.indices.contains(index) else {
             return
         }
-        triptychView.moveTo(index: index)
+        fadeInOutTriptychView {
+            self.triptychView.moveTo(index: index)
+        }
     }
     
     /// Display the spine item at `index` with scroll `progression`
@@ -135,7 +137,9 @@ extension NavigatorViewController {
         let id = (components.count > 1 ? components.last : "")
 
         // Jumping set to true to avoid clamping.
-        triptychView.moveTo(index: index, id: id)
+        fadeInOutTriptychView {
+            self.triptychView.moveTo(index: index, id: id)
+        }
     }
 
     public func getSpine() -> [Link] {
@@ -168,13 +172,13 @@ extension NavigatorViewController: ViewDelegate {
     /// Display next spine item (spine item).
     public func displayRightDocument() {
         let delta = triptychView.direction == .rtl ? -1:1
-        displaySpineItem(at: triptychView.index + delta)
+        self.displaySpineItem(at: self.triptychView.index + delta)
     }
 
     /// Display previous document (spine item).
     public func displayLeftDocument() {
         let delta = triptychView.direction == .rtl ? -1:1
-        displaySpineItem(at: triptychView.index - delta)
+        self.displaySpineItem(at: self.triptychView.index - delta)
     }
 
     /// Returns the currently presented Publication's identifier.
@@ -244,6 +248,21 @@ extension Delegatee: TriptychViewDelegate {
             if let pages = cw.totalPages {
                 parent.delegate?.didChangedPaginatedDocumentPage(currentPage: cw.currentPage(), documentTotalPage: pages)
             }
+        }
+    }
+}
+
+
+extension NavigatorViewController {
+    
+    func fadeInOutTriptychView(becameHidden: @escaping () -> ()) {
+        UIView.animate(withDuration: 0.3, animations: {
+            self.triptychView.alpha = 0
+        }) { (_) in
+            becameHidden()
+            UIView.animate(withDuration: 0.3, animations: {
+                self.triptychView.alpha = 1
+            })
         }
     }
 }
