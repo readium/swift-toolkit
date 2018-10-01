@@ -256,11 +256,11 @@ extension Delegatee: TriptychViewDelegate {
 extension NavigatorViewController {
     
     func fadeInOutTriptychView(becameHidden: @escaping () -> ()) {
-        UIView.animate(withDuration: 0.3, animations: {
+        UIView.animate(withDuration: 0.15, animations: {
             self.triptychView.alpha = 0
         }) { (_) in
             becameHidden()
-            UIView.animate(withDuration: 0.3, animations: {
+            UIView.animate(withDuration: 0.15, animations: {
                 self.triptychView.alpha = 1
             })
         }
