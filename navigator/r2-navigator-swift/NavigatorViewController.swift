@@ -71,6 +71,8 @@ open class NavigatorViewController: UIViewController {
     open override func viewDidLoad() {
         super.viewDidLoad()
         delegatee.parent = self
+        view.backgroundColor = .clear
+        triptychView.backgroundColor = .clear
         triptychView.delegate = delegatee
         triptychView.frame = view.bounds
         triptychView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
