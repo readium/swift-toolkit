@@ -113,6 +113,7 @@ final class WebView: WKWebView {
         
         sizeObservation = scrollView.observe(\.contentSize, options: .new) { (thisScrollView, thisValue) in
             // update total pages
+            guard self.documentLoaded else { return }
             guard let newWidth = thisValue.newValue?.width else {return}
             let pageWidth = self.scrollView.frame.size.width
             if pageWidth == 0.0 {return} // Possible zero value
