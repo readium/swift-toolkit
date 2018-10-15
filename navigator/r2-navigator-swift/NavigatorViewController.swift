@@ -116,6 +116,7 @@ extension NavigatorViewController {
     ///
     /// - Parameter index: The index of the spine item to display.
     public func displaySpineItem(at index: Int, progression: Double) {
+        self.initialProgression = progression //This is so the webview will move to it's correct progression
         displaySpineItem(at: index)
         if let webView = triptychView.currentView as? WebView {
             webView.scrollAt(position: progression)
