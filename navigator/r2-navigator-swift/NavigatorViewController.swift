@@ -107,7 +107,7 @@ extension NavigatorViewController {
         guard publication.spine.indices.contains(index) else {
             return
         }
-        fadeInOutTriptychView {
+        fadeTriptychView {
             self.triptychView.moveTo(index: index)
         }
     }
@@ -120,7 +120,7 @@ extension NavigatorViewController {
             return
         }
         
-        fadeInOutTriptychView {
+        fadeTriptychViewDelayed {
             self.initialProgression = progression //This is so the webview will move to it's correct progression if it's not loaded into the triptych view
             self.triptychView.moveTo(index: index)
             if let webView = self.triptychView.currentView as? WebView {
@@ -146,7 +146,7 @@ extension NavigatorViewController {
         let id = (components.count > 1 ? components.last : "")
 
         // Jumping set to true to avoid clamping.
-        fadeInOutTriptychView {
+        fadeTriptychView {
             self.triptychView.moveTo(index: index, id: id)
         }
     }
@@ -264,14 +264,30 @@ extension Delegatee: TriptychViewDelegate {
 
 extension NavigatorViewController {
     
-    func fadeInOutTriptychView(becameHidden: @escaping () -> ()) {
-        UIView.animate(withDuration: 0.15, animations: {
-            self.triptychView.alpha = 0
-        }) { (_) in
+    func fadeTriptychView(becameHidden: @escaping () -> ()) {
+        fadeTriptychView(alpha: 0) {
             becameHidden()
-            UIView.animate(withDuration: 0.15, animations: {
-                self.triptychView.alpha = 1
+            self.fadeTriptychView(alpha: 1, completion: { })
+        }
+    }
+    
+    /*
+     This is used when we want to jump to a document with proression. The rendering is sometimes very slow in this case so we have a generous delay before we show the view again.
+     */
+    func fadeTriptychViewDelayed(becameHidden: @escaping () -> ()) {
+        fadeTriptychView(alpha: 0) {
+            becameHidden()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
+                self.fadeTriptychView(alpha: 1, completion: { })
             })
+        }
+    }
+    
+    private func fadeTriptychView(alpha: CGFloat, completion: @escaping () -> ()) {
+        UIView.animate(withDuration: 0.15, animations: {
+            self.triptychView.alpha = alpha
+        }) { _ in
+            completion()
         }
     }
 }
