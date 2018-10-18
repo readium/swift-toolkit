@@ -20,7 +20,7 @@ protocol ViewDelegate: class {
     func handleCenterTap()
     func publicationIdentifier() -> String?
     func publicationBaseUrl() -> URL?
-    func displaySpineItem(with href: String)
+    func handleTapOnInternalLink(with href: String)
     func documentPageDidChanged(webview: WebView, currentPage: Int ,totalPage: Int)
 }
 
@@ -324,7 +324,7 @@ extension WebView: WKNavigationDelegate {
                     // Internal link.
                     let href = url.absoluteString.replacingOccurrences(of: baseUrlString, with: "")
 
-                    viewDelegate?.displaySpineItem(with: href)
+                    viewDelegate?.handleTapOnInternalLink(with: href)
                 } else if url.absoluteString.contains("http") { // TEMPORARY, better checks coming.
                     // External Link.
                     let view = SFSafariViewController(url: url)

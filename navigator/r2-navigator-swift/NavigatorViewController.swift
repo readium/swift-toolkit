@@ -20,6 +20,7 @@ public protocol NavigatorDelegate: class {
     /// It changes when html file resource changed
     func didChangedDocumentPage(currentDocumentIndex: Int)
     func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int)
+    func didNavigateViaInternalLinkTap(to link: Link)
 }
 
 public extension NavigatorDelegate {
@@ -172,6 +173,21 @@ extension NavigatorViewController {
 }
 
 extension NavigatorViewController: ViewDelegate {
+    
+    func handleTapOnInternalLink(with href: String) {
+        displaySpineItem(with: href)
+        
+        //I'd like to refactor the displaySpineItem to use a link instead of a string href, but I don't want to restructure the navigator too much. This therefore more or less copied from the displaySpineItem-function.
+        let components = href.components(separatedBy: "#")
+        guard let href = components.first else {
+            return
+        }
+        guard let link = publication.spine.first(where: { $0.href?.contains(href) ?? false }) else {
+            return
+        }
+        delegate?.didNavigateViaInternalLinkTap(to: link)
+    }
+    
     func documentPageDidChanged(webview: WebView, currentPage: Int, totalPage: Int) {
         if triptychView.currentView == webview {
             delegate?.didChangedPaginatedDocumentPage(currentPage: currentPage, documentTotalPage: totalPage)
