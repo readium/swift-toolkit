@@ -10,7 +10,6 @@
 //
 
 import WebKit
-import SafariServices
 
 import R2Shared
 
@@ -20,6 +19,7 @@ protocol ViewDelegate: class {
     func handleCenterTap()
     func publicationIdentifier() -> String?
     func publicationBaseUrl() -> URL?
+    func handleTapOnLink(with url: URL)
     func handleTapOnInternalLink(with href: String)
     func documentPageDidChanged(webview: WebView, currentPage: Int ,totalPage: Int)
 }
@@ -110,6 +110,7 @@ final class WebView: WKWebView {
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.showsVerticalScrollIndicator = false
         navigationDelegate = self
+        uiDelegate = self
         
         sizeObservation = scrollView.observe(\.contentSize, options: .new) { (thisScrollView, thisValue) in
             // update total pages
@@ -323,15 +324,9 @@ extension WebView: WKNavigationDelegate {
                     let baseUrlString = publicationBaseUrl?.absoluteString {
                     // Internal link.
                     let href = url.absoluteString.replacingOccurrences(of: baseUrlString, with: "")
-
                     viewDelegate?.handleTapOnInternalLink(with: href)
-                } else if url.absoluteString.contains("http") { // TEMPORARY, better checks coming.
-                    // External Link.
-                    let view = SFSafariViewController(url: url)
-
-                    UIApplication.shared.keyWindow?.rootViewController?.present(view,
-                                                                                animated: true,
-                                                                                completion: nil)
+                } else {
+                    viewDelegate?.handleTapOnLink(with: url)
                 }
             }
         }
@@ -351,6 +346,20 @@ extension WebView: UIScrollViewDelegate {
             }// tmp end
         }
         return nil
+    }
+}
+
+extension WebView: WKUIDelegate {
+    
+    
+    @available(iOS 10.0, *) //the property allowsLinkPreview is default false in iOS9, so this should be safe
+    func webView(_ webView: WKWebView, shouldPreviewElement elementInfo: WKPreviewElementInfo) -> Bool {
+        let publicationBaseUrl = viewDelegate?.publicationBaseUrl()
+        let url = elementInfo.linkURL
+        if url?.host == publicationBaseUrl?.host {
+            return false
+        }
+        return true
     }
 }
 

@@ -21,6 +21,7 @@ public protocol NavigatorDelegate: class {
     func didChangedDocumentPage(currentDocumentIndex: Int)
     func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int)
     func didNavigateViaInternalLinkTap(to documentIndex: Int)
+    func didTapExternalUrl(_ : URL)
 }
 
 public extension NavigatorDelegate {
@@ -175,6 +176,10 @@ extension NavigatorViewController {
 }
 
 extension NavigatorViewController: ViewDelegate {
+    
+    func handleTapOnLink(with url: URL) {
+        delegate?.didTapExternalUrl(url)
+    }
     
     func handleTapOnInternalLink(with href: String) {
         guard let index = displaySpineItem(with: href) else { return }
