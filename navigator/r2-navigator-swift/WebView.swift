@@ -347,6 +347,10 @@ extension WebView: UIScrollViewDelegate {
         }
         return nil
     }
+    
+    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        scrollView.isUserInteractionEnabled = true
+    }
 }
 
 extension WebView: WKUIDelegate {
@@ -375,6 +379,8 @@ private extension UIScrollView {
     }
     
     private func moveHorizontalContent(with offsetX: CGFloat) {
+        isUserInteractionEnabled = false
+        
         var newOffset = contentOffset
         newOffset.x += offsetX
         let rounded = round(newOffset.x / offsetX) * offsetX
