@@ -90,6 +90,7 @@ open class NavigatorViewController: UIViewController {
     }
 
     open override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
         // Save the currently opened document index and progression.
         if navigationController == nil {
             let progression = triptychView.getCurrentDocumentProgression()
@@ -277,6 +278,10 @@ extension Delegatee: TriptychViewDelegate {
 
 
 extension NavigatorViewController {
+    
+    public var contentView: UIView {
+        return triptychView
+    }
     
     func fadeTriptychView(becameHidden: @escaping () -> ()) {
         fadeTriptychView(alpha: 0) {
