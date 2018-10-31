@@ -1,2 +1,2 @@
-github "BookBeat/r2-shared-swift" "54bea7b9da2980da197b1b9208a0ef2f7c46c606"
-github "Hearst-DD/ObjectMapper" "3.3.0"
+github "Hearst-DD/ObjectMapper" "2.2.0"
+github "Readium/r2-shared-swift" "3dd222c34fcf658afd6bc4fd3e06218d773421bb"
