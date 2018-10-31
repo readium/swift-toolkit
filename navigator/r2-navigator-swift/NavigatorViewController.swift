@@ -135,7 +135,7 @@ extension NavigatorViewController {
     /// Load resource with the corresponding href.
     ///
     /// - Parameter href: The href of the resource to load. Can contain a tag id.
-    /// - Return: The document index for the link
+    /// - Returns: The spine index for the link
     public func displaySpineItem(with href: String) -> Int? {
         // remove id if any
         let components = href.components(separatedBy: "#")
