@@ -31,6 +31,8 @@ final class WebView: WKWebView {
     
     var direction: PageProgressionDirection?
 
+    var pageTransition: PageTransition
+
     public var initialId: String?
     // progression and totalPages only work on 'readium-scroll-off' mode
     public var progression: Double?
@@ -62,20 +64,17 @@ final class WebView: WKWebView {
     internal enum Scroll {
         case left
         case right
+        
         func proceed(on target: WebView) {
-            
-            let scrollView = target.scrollView
-            if scrollView.isPagingEnabled {
-                switch self {
-                case .left:
-                    let isAtFirstPageInDocument = scrollView.contentOffset.x == 0
-                    if !isAtFirstPageInDocument { return scrollView.scrollToPreviousPage() }
-                case .right:
-                    let isAtLastPageInDocument = scrollView.contentOffset.x == scrollView.contentSize.width - scrollView.frame.size.width
-                    if !isAtLastPageInDocument { return scrollView.scrollToNextPage() }
-                }
+            switch target.pageTransition {
+            case .none:
+                evaluateJavascriptForScroll(on: target)
+            case .animated:
+                performSwipeTransition(on: target)
             }
-            
+        }
+        
+        private func evaluateJavascriptForScroll(on target: WebView) {
             let dir = target.direction?.rawValue ?? PageProgressionDirection.ltr.rawValue
             
             switch self {
@@ -93,12 +92,30 @@ final class WebView: WKWebView {
                 })
             }
         }
+        
+        private func performSwipeTransition(on target: WebView) {
+            let scrollView = target.scrollView
+            switch self {
+            case .left:
+                let isAtFirstPageInDocument = scrollView.contentOffset.x == 0
+                if !isAtFirstPageInDocument {
+                    return scrollView.scrollToPreviousPage()
+                }
+            case .right:
+                let isAtLastPageInDocument = scrollView.contentOffset.x == scrollView.contentSize.width - scrollView.frame.size.width
+                if !isAtLastPageInDocument {
+                    return scrollView.scrollToNextPage()
+                }
+            }
+            evaluateJavascriptForScroll(on: target)
+        }
     }
     
     var sizeObservation: NSKeyValueObservation?
 
-    init(frame: CGRect, initialLocation: BinaryLocation) {
+    init(frame: CGRect, initialLocation: BinaryLocation, pageTransition: PageTransition = .none) {
         self.initialLocation = initialLocation
+        self.pageTransition = pageTransition
         super.init(frame: frame, configuration: .init())
 
         isOpaque = false
@@ -190,7 +207,12 @@ extension WebView {
     internal func documentDidLoad(body: String) {
         documentLoaded = true
         
-        fadeInWithDelay()
+        switch pageTransition {
+        case .none:
+            alpha = 1
+        case .animated:
+            fadeInWithDelay()
+        }
         
         applyUserSettingsStyle()
         scrollToInitialPosition()
@@ -355,8 +377,8 @@ extension WebView: UIScrollViewDelegate {
 
 extension WebView: WKUIDelegate {
     
-    
-    @available(iOS 10.0, *) //the property allowsLinkPreview is default false in iOS9, so this should be safe
+    // The property allowsLinkPreview is default false in iOS9, so it should be safe to use @available(iOS 10.0, *)
+    @available(iOS 10.0, *)
     func webView(_ webView: WKWebView, shouldPreviewElement elementInfo: WKPreviewElementInfo) -> Bool {
         let publicationBaseUrl = viewDelegate?.publicationBaseUrl()
         let url = elementInfo.linkURL
@@ -393,7 +415,7 @@ private extension UIScrollView {
 private extension UIView {
     
     func fadeInWithDelay() {
-        //We need to give the CSS and webview time to layout correctly. :( 0.2 seconds seems like a good value for it to work on an iPhone 5s.
+        //TODO: We need to give the CSS and webview time to layout correctly. 0.2 seconds seems like a good value for it to work on an iPhone 5s. Look into solving this better
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             UIView.animate(withDuration: 0.3, animations: {
                 self.alpha = 1

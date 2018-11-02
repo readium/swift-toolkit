@@ -43,12 +43,15 @@ open class NavigatorViewController: UIViewController {
     public let publication: Publication
     public weak var delegate: NavigatorDelegate?
 
+    public let pageTransition: PageTransition
+
     /// - Parameters:
     ///   - publication: The publication.
     ///   - initialIndex: Inital index of -1 will open the publication's at the end.
-    public init(for publication: Publication, initialIndex: Int, initialProgression: Double?) {
+    public init(for publication: Publication, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none) {
         self.publication = publication
         self.initialProgression = initialProgression
+        self.pageTransition = pageTransition
         userSettings = UserSettings()
         publication.userProperties.properties = userSettings.userProperties.properties
         delegatee = Delegatee()
@@ -110,7 +113,7 @@ extension NavigatorViewController {
         guard publication.spine.indices.contains(index) else {
             return
         }
-        fadeTriptychView {
+        performTriptychViewTransition {
             self.triptychView.moveTo(index: index)
         }
     }
@@ -123,10 +126,12 @@ extension NavigatorViewController {
             return
         }
         
-        fadeTriptychViewDelayed {
-            self.initialProgression = progression //This is so the webview will move to it's correct progression if it's not loaded into the triptych view
+        performTriptychViewTransitionDelayed {
+            // This is so the webview will move to it's correct progression if it's not loaded into the triptych view
+            self.initialProgression = progression
             self.triptychView.moveTo(index: index)
             if let webView = self.triptychView.currentView as? WebView {
+                // This is needed for when the webView is loaded into the triptychView
                 webView.scrollAt(position: progression)
             }
         }
@@ -150,7 +155,7 @@ extension NavigatorViewController {
         let id = (components.count > 1 ? components.last : "")
 
         // Jumping set to true to avoid clamping.
-        fadeTriptychView {
+        performTriptychViewTransition {
             self.triptychView.moveTo(index: index, id: id)
         }
         return index
@@ -233,7 +238,7 @@ extension Delegatee: TriptychViewDelegate {
     public func triptychView(_ view: TriptychView, viewForIndex index: Int,
                              location: BinaryLocation) -> UIView {
         
-        let webView = WebView(frame: view.bounds, initialLocation: location)
+        let webView = WebView(frame: view.bounds, initialLocation: location, pageTransition: parent.pageTransition)
         webView.direction = view.direction
         
         let link = parent.publication.spine[index]
@@ -283,22 +288,32 @@ extension NavigatorViewController {
         return triptychView
     }
     
-    func fadeTriptychView(becameHidden: @escaping () -> ()) {
-        fadeTriptychView(alpha: 0) {
-            becameHidden()
-            self.fadeTriptychView(alpha: 1, completion: { })
+    func performTriptychViewTransition(commitTransition: @escaping () -> ()) {
+        switch pageTransition {
+        case .none:
+            commitTransition()
+        case .animated:
+            fadeTriptychView(alpha: 0) {
+                commitTransition()
+                self.fadeTriptychView(alpha: 1, completion: { })
+            }
         }
     }
     
     /*
      This is used when we want to jump to a document with proression. The rendering is sometimes very slow in this case so we have a generous delay before we show the view again.
      */
-    func fadeTriptychViewDelayed(becameHidden: @escaping () -> ()) {
-        fadeTriptychView(alpha: 0) {
-            becameHidden()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
-                self.fadeTriptychView(alpha: 1, completion: { })
-            })
+    func performTriptychViewTransitionDelayed(commitTransition: @escaping () -> ()) {
+        switch pageTransition {
+        case .none:
+            commitTransition()
+        case .animated:
+            fadeTriptychView(alpha: 0) {
+                commitTransition()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
+                    self.fadeTriptychView(alpha: 1, completion: { })
+                })
+            }
         }
     }
     
