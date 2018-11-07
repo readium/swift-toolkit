@@ -261,7 +261,9 @@ extension EpubViewController {
         storyboard.instantiateViewController(withIdentifier: "OutlineTableViewController") as! OutlineTableViewController
       
       outlineTableVC.tableOfContents = navigator.getTableOfContents()
-      outlineTableVC.callBack = navigator.displaySpineItem(with:)
+      outlineTableVC.callBack = { [weak self] href in
+        _ = self?.navigator.displaySpineItem(with: href)
+      }
       
       outlineTableVC.bookmarksDatasource = self.bookmarkDataSource
       outlineTableVC.didSelectBookmark = { (bookmark:Bookmark) -> Void in
