@@ -12,6 +12,7 @@
 import UIKit
 import R2Shared
 import WebKit
+import SafariServices
 
 public protocol NavigatorDelegate: class {
     func middleTapHandler()
@@ -35,9 +36,15 @@ public extension NavigatorDelegate {
   func didNavigateViaInternalLinkTap(to documentIndex: Int) {
     // optional
   }
-  
-  func didTapExternalUrl(_: URL) {
+
+  func didTapExternalUrl(_ url: URL) {
     // optional
+    // TODO following lines have been moved from the original implementation and might need to be revisited at some point
+    let view = SFSafariViewController(url: url)
+
+    UIApplication.shared.keyWindow?.rootViewController?.present(view,
+                                                                animated: true,
+                                                                completion: nil)
   }
 }
 
