@@ -10,7 +10,6 @@
 //
 
 import WebKit
-import SafariServices
 
 import R2Shared
 
@@ -20,7 +19,8 @@ protocol ViewDelegate: class {
     func handleCenterTap()
     func publicationIdentifier() -> String?
     func publicationBaseUrl() -> URL?
-    func displaySpineItem(with href: String)
+    func handleTapOnLink(with url: URL)
+    func handleTapOnInternalLink(with href: String)
     func documentPageDidChanged(webview: WebView, currentPage: Int ,totalPage: Int)
 }
 
@@ -30,6 +30,8 @@ final class WebView: WKWebView {
     fileprivate let initialLocation: BinaryLocation
     
     var direction: PageProgressionDirection?
+
+    var pageTransition: PageTransition
 
     public var initialId: String?
     // progression and totalPages only work on 'readium-scroll-off' mode
@@ -48,6 +50,7 @@ final class WebView: WKWebView {
 
     public var presentingFixedLayoutContent = false // TMP fix for fxl.
 
+    var hasLoadedJsEvents = false
     let jsEvents = ["leftTap": leftTapped,
                     "centerTap": centerTapped,
                     "rightTap": rightTapped,
@@ -61,8 +64,17 @@ final class WebView: WKWebView {
     internal enum Scroll {
         case left
         case right
+        
         func proceed(on target: WebView) {
-            
+            switch target.pageTransition {
+            case .none:
+                evaluateJavascriptForScroll(on: target)
+            case .animated:
+                performSwipeTransition(on: target)
+            }
+        }
+        
+        private func evaluateJavascriptForScroll(on target: WebView) {
             let dir = target.direction?.rawValue ?? PageProgressionDirection.ltr.rawValue
             
             switch self {
@@ -80,12 +92,30 @@ final class WebView: WKWebView {
                 })
             }
         }
+        
+        private func performSwipeTransition(on target: WebView) {
+            let scrollView = target.scrollView
+            switch self {
+            case .left:
+                let isAtFirstPageInDocument = scrollView.contentOffset.x == 0
+                if !isAtFirstPageInDocument {
+                    return scrollView.scrollToPreviousPage()
+                }
+            case .right:
+                let isAtLastPageInDocument = scrollView.contentOffset.x == scrollView.contentSize.width - scrollView.frame.size.width
+                if !isAtLastPageInDocument {
+                    return scrollView.scrollToNextPage()
+                }
+            }
+            evaluateJavascriptForScroll(on: target)
+        }
     }
     
     var sizeObservation: NSKeyValueObservation?
 
-    init(frame: CGRect, initialLocation: BinaryLocation) {
+    init(frame: CGRect, initialLocation: BinaryLocation, pageTransition: PageTransition = .none) {
         self.initialLocation = initialLocation
+        self.pageTransition = pageTransition
         super.init(frame: frame, configuration: .init())
 
         isOpaque = false
@@ -97,9 +127,11 @@ final class WebView: WKWebView {
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.showsVerticalScrollIndicator = false
         navigationDelegate = self
+        uiDelegate = self
         
         sizeObservation = scrollView.observe(\.contentSize, options: .new) { (thisScrollView, thisValue) in
             // update total pages
+            guard self.documentLoaded else { return }
             guard let newWidth = thisValue.newValue?.width else {return}
             let pageWidth = self.scrollView.frame.size.width
             if pageWidth == 0.0 {return} // Possible zero value
@@ -109,6 +141,8 @@ final class WebView: WKWebView {
                 self.viewDelegate?.documentPageDidChanged(webview: self, currentPage: self.currentPage(), totalPage: pageCount)
             }
         }
+        
+        self.alpha = 0
     }
 
     @available(*, unavailable)
@@ -172,6 +206,14 @@ extension WebView {
     /// - Parameter body: Unused.
     internal func documentDidLoad(body: String) {
         documentLoaded = true
+        
+        switch pageTransition {
+        case .none:
+            alpha = 1
+        case .animated:
+            fadeInWithDelay()
+        }
+        
         applyUserSettingsStyle()
         scrollToInitialPosition()
     }
@@ -271,10 +313,12 @@ extension WebView: WKScriptMessageHandler {
 
     /// Add a message handler for incoming javascript events.
     internal func addMessageHandlers() {
+        if hasLoadedJsEvents { return }
         // Add the message handlers.
         for eventName in jsEvents.keys {
             configuration.userContentController.add(self, name: eventName)
         }
+        hasLoadedJsEvents = true
     }
 
     // Deinit message handlers (preventing strong reference cycle).
@@ -282,6 +326,7 @@ extension WebView: WKScriptMessageHandler {
         for eventName in jsEvents.keys {
             configuration.userContentController.removeScriptMessageHandler(forName: eventName)
         }
+        hasLoadedJsEvents = false
     }
 }
 
@@ -301,15 +346,9 @@ extension WebView: WKNavigationDelegate {
                     let baseUrlString = publicationBaseUrl?.absoluteString {
                     // Internal link.
                     let href = url.absoluteString.replacingOccurrences(of: baseUrlString, with: "")
-
-                    viewDelegate?.displaySpineItem(with: href)
-                } else if url.absoluteString.contains("http") { // TEMPORARY, better checks coming.
-                    // External Link.
-                    let view = SFSafariViewController(url: url)
-
-                    UIApplication.shared.keyWindow?.rootViewController?.present(view,
-                                                                                animated: true,
-                                                                                completion: nil)
+                    viewDelegate?.handleTapOnInternalLink(with: href)
+                } else {
+                    viewDelegate?.handleTapOnLink(with: url)
                 }
             }
         }
@@ -329,6 +368,59 @@ extension WebView: UIScrollViewDelegate {
             }// tmp end
         }
         return nil
+    }
+    
+    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        scrollView.isUserInteractionEnabled = true
+    }
+}
+
+extension WebView: WKUIDelegate {
+    
+    // The property allowsLinkPreview is default false in iOS9, so it should be safe to use @available(iOS 10.0, *)
+    @available(iOS 10.0, *)
+    func webView(_ webView: WKWebView, shouldPreviewElement elementInfo: WKPreviewElementInfo) -> Bool {
+        let publicationBaseUrl = viewDelegate?.publicationBaseUrl()
+        let url = elementInfo.linkURL
+        if url?.host == publicationBaseUrl?.host {
+            return false
+        }
+        return true
+    }
+}
+
+
+private extension UIScrollView {
+    
+    func scrollToNextPage() {
+        moveHorizontalContent(with: bounds.size.width)
+    }
+    
+    func scrollToPreviousPage() {
+        moveHorizontalContent(with: -bounds.size.width)
+    }
+    
+    private func moveHorizontalContent(with offsetX: CGFloat) {
+        isUserInteractionEnabled = false
+        
+        var newOffset = contentOffset
+        newOffset.x += offsetX
+        let rounded = round(newOffset.x / offsetX) * offsetX
+        newOffset.x = rounded
+        let area = CGRect.init(origin: newOffset, size: bounds.size)
+        scrollRectToVisible(area, animated: true)
+    }
+}
+
+private extension UIView {
+    
+    func fadeInWithDelay() {
+        //TODO: We need to give the CSS and webview time to layout correctly. 0.2 seconds seems like a good value for it to work on an iPhone 5s. Look into solving this better
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            UIView.animate(withDuration: 0.3, animations: {
+                self.alpha = 1
+            })
+        }
     }
 }
 
