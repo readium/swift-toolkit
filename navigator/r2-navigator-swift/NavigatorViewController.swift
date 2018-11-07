@@ -32,6 +32,13 @@ public extension NavigatorDelegate {
   func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int) {
     // optional
   }
+  func didNavigateViaInternalLinkTap(to documentIndex: Int) {
+    // optional
+  }
+  
+  func didTapExternalUrl(_: URL) {
+    // optional
+  }
 }
 
 open class NavigatorViewController: UIViewController {
