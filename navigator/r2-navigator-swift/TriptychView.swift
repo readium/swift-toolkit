@@ -399,6 +399,14 @@ extension TriptychView: UIScrollViewDelegate {
             }
         }
     }
+    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        // Set the clamping to .none here to prevent the bug introduced by
+        // the workaround in scrollViewDidEndDecelerating where the
+        // scrollview contentOffset is animated.
+        // When animating the contentOffset, scrollViewDidScroll is called
+        // without calling scrollViewDidEndDecelerating afterwards.
+        clamping = .none
+    }
 
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
 
