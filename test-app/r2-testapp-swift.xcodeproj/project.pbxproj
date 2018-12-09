@@ -334,9 +334,9 @@
 		033936E0211CD83F00F980B8 /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		033936E3211CD83F00F980B8 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		033936E6211CD83F00F980B8 /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		0350FD28211CD2CB006994C2 /* r2-testapp-swift (submodules).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift (submodules).app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0350FD28211CD2CB006994C2 /* r2-testapp-swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0350FD29211CD2CB006994C2 /* r2-testapp-swift (submodules)-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "r2-testapp-swift (submodules)-Info.plist"; path = "/Volumes/Data/EDRLab/Swift-Workspace/r2-workspace-swift/r2-testapp-swift/r2-testapp-swift (submodules)-Info.plist"; sourceTree = "<absolute>"; };
-		0350FD7C211CD625006994C2 /* r2-testapp-swift (carthage with lcp).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift (carthage with lcp).app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0350FD7C211CD625006994C2 /* r2-testapp-swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0350FD7D211CD625006994C2 /* r2-testapp-swift (carthage-with-lcp)-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "r2-testapp-swift (carthage-with-lcp)-Info.plist"; path = "/Volumes/Data/EDRLab/Swift-Workspace/r2-workspace-swift/r2-testapp-swift/r2-testapp-swift (carthage-with-lcp)-Info.plist"; sourceTree = "<absolute>"; };
 		0350FDC8211CD634006994C2 /* r2-testapp-swift (submodules with lcp).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift (submodules with lcp).app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0350FDC9211CD634006994C2 /* r2-testapp-swift (submodules-with-lcp)-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "r2-testapp-swift (submodules-with-lcp)-Info.plist"; path = "/Volumes/Data/EDRLab/Swift-Workspace/r2-workspace-swift/r2-testapp-swift/r2-testapp-swift (submodules-with-lcp)-Info.plist"; sourceTree = "<absolute>"; };
@@ -390,7 +390,7 @@
 		F3BD53381F72B26700E46FFC /* FontSelectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FontSelectionViewController.swift; sourceTree = "<group>"; };
 		F3BD533A1F72B27400E46FFC /* AdvancedSettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AdvancedSettingsViewController.swift; sourceTree = "<group>"; };
 		F3DCFFBD1F7CE0610056BA37 /* UserSettingsNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettingsNavigationController.swift; sourceTree = "<group>"; };
-		F3E7D4381F4EF6D400DF166D /* r2-testapp-swift (carthage).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift (carthage).app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F3E7D4381F4EF6D400DF166D /* r2-testapp-swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3E7D43B1F4EF6D400DF166D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		F3E7D4421F4EF6D400DF166D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F3E7D4451F4EF6D400DF166D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -590,9 +590,9 @@
 		F3E7D4391F4EF6D400DF166D /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				F3E7D4381F4EF6D400DF166D /* r2-testapp-swift (carthage).app */,
-				0350FD28211CD2CB006994C2 /* r2-testapp-swift (submodules).app */,
-				0350FD7C211CD625006994C2 /* r2-testapp-swift (carthage with lcp).app */,
+				F3E7D4381F4EF6D400DF166D /* r2-testapp-swift.app */,
+				0350FD28211CD2CB006994C2 /* r2-testapp-swift.app */,
+				0350FD7C211CD625006994C2 /* r2-testapp-swift.app */,
 				0350FDC8211CD634006994C2 /* r2-testapp-swift (submodules with lcp).app */,
 			);
 			name = Products;
@@ -724,7 +724,7 @@
 			);
 			name = "r2-testapp-swift (submodules)";
 			productName = "r2-testapp-swift";
-			productReference = 0350FD28211CD2CB006994C2 /* r2-testapp-swift (submodules).app */;
+			productReference = 0350FD28211CD2CB006994C2 /* r2-testapp-swift.app */;
 			productType = "com.apple.product-type.application";
 		};
 		0350FD37211CD625006994C2 /* r2-testapp-swift (carthage with lcp) */ = {
@@ -743,7 +743,7 @@
 			);
 			name = "r2-testapp-swift (carthage with lcp)";
 			productName = "r2-testapp-swift";
-			productReference = 0350FD7C211CD625006994C2 /* r2-testapp-swift (carthage with lcp).app */;
+			productReference = 0350FD7C211CD625006994C2 /* r2-testapp-swift.app */;
 			productType = "com.apple.product-type.application";
 		};
 		0350FD7E211CD634006994C2 /* r2-testapp-swift (submodules with lcp) */ = {
@@ -780,7 +780,7 @@
 			);
 			name = "r2-testapp-swift (carthage)";
 			productName = "r2-testapp-swift";
-			productReference = F3E7D4381F4EF6D400DF166D /* r2-testapp-swift (carthage).app */;
+			productReference = F3E7D4381F4EF6D400DF166D /* r2-testapp-swift.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -1237,7 +1237,7 @@
 				OTHER_LDFLAGS = "-lxml2";
 				OTHER_SWIFT_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.r2reader;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "r2-testapp-swift";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
@@ -1270,7 +1270,7 @@
 				OTHER_LDFLAGS = "-lxml2";
 				OTHER_SWIFT_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.r2reader;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "r2-testapp-swift";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
@@ -1303,7 +1303,7 @@
 				OTHER_LDFLAGS = "-lxml2";
 				OTHER_SWIFT_FLAGS = "-DLCP";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.r2reader;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "r2-testapp-swift";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
@@ -1336,7 +1336,7 @@
 				OTHER_LDFLAGS = "-lxml2";
 				OTHER_SWIFT_FLAGS = "-DLCP";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.r2reader;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "r2-testapp-swift";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
@@ -1369,7 +1369,7 @@
 				OTHER_LDFLAGS = "-lxml2";
 				OTHER_SWIFT_FLAGS = "-DLCP";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.r2reader;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "r2-testapp-swift";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
@@ -1402,7 +1402,7 @@
 				OTHER_LDFLAGS = "-lxml2";
 				OTHER_SWIFT_FLAGS = "-DLCP";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.r2reader;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "r2-testapp-swift";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
@@ -1546,7 +1546,7 @@
 				OTHER_LDFLAGS = "-lxml2";
 				OTHER_SWIFT_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.r2reader;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "r2-testapp-swift";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
@@ -1579,7 +1579,7 @@
 				OTHER_LDFLAGS = "-lxml2";
 				OTHER_SWIFT_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.r2reader;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "r2-testapp-swift";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;

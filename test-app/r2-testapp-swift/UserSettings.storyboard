@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14109" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14113" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
     <device id="retina5_9" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
@@ -12,7 +12,7 @@
         <!--User Settings Table View Controller-->
         <scene sceneID="ovK-uC-Ylj">
             <objects>
-                <tableViewController storyboardIdentifier="UserSettingsTableViewController" autoresizesArchivedViewToFullSize="NO" modalPresentationStyle="currentContext" id="Aip-CA-mbT" customClass="UserSettingsTableViewController" customModule="r2_testapp_swift" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController storyboardIdentifier="UserSettingsTableViewController" autoresizesArchivedViewToFullSize="NO" modalPresentationStyle="currentContext" id="Aip-CA-mbT" customClass="UserSettingsTableViewController" customModule="r2_testapp_swift__carthage_" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="plain" separatorStyle="default" allowsSelection="NO" rowHeight="40" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" springLoaded="YES" id="A0O-DF-dG0">
                         <rect key="frame" x="0.0" y="0.0" width="250" height="400"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -224,7 +224,7 @@
                                                     <rect key="frame" x="185" y="5" width="49" height="31"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
                                                     <connections>
-                                                        <action selector="scrollSwitched" destination="Aip-CA-mbT" eventType="valueChanged" id="bMI-VD-JyO"/>
+                                                        <action selector="scrollModeSwitched" destination="Aip-CA-mbT" eventType="valueChanged" id="1ol-DQ-nlM"/>
                                                     </connections>
                                                 </switch>
                                             </subviews>
@@ -260,7 +260,7 @@
         <!--User Settings Navigation Controller-->
         <scene sceneID="bsU-Qo-Mdw">
             <objects>
-                <navigationController storyboardIdentifier="UserSettingsNavigationController" modalPresentationStyle="currentContext" id="NKe-ob-OHM" customClass="UserSettingsNavigationController" customModule="r2_testapp_swift" customModuleProvider="target" sceneMemberID="viewController">
+                <navigationController storyboardIdentifier="UserSettingsNavigationController" modalPresentationStyle="currentContext" id="NKe-ob-OHM" customClass="UserSettingsNavigationController" customModule="r2_testapp_swift__carthage_" customModuleProvider="target" sceneMemberID="viewController">
                     <size key="freeformSize" width="250" height="305"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="o63-pz-oFj">
                         <rect key="frame" x="0.0" y="44" width="250" height="44"/>
@@ -277,7 +277,7 @@
         <!--Font selection-->
         <scene sceneID="ZFS-Ud-JNh">
             <objects>
-                <viewController storyboardIdentifier="FontSelectionViewController" title="Font selection" modalPresentationStyle="currentContext" id="UDV-9G-lDt" customClass="FontSelectionViewController" customModule="r2_testapp_swift" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="FontSelectionViewController" title="Font selection" modalPresentationStyle="currentContext" id="UDV-9G-lDt" customClass="FontSelectionViewController" customModule="r2_testapp_swift__carthage_" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="oF1-m6-Klw"/>
                         <viewControllerLayoutGuide type="bottom" id="eff-zX-RFw"/>
@@ -339,7 +339,7 @@
         <!--Advanced settings-->
         <scene sceneID="dQF-Q7-iPk">
             <objects>
-                <viewController storyboardIdentifier="AdvancedSettingsViewController" title="Advanced settings" modalPresentationStyle="currentContext" id="77D-Mk-Z01" customClass="AdvancedSettingsViewController" customModule="r2_testapp_swift" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="AdvancedSettingsViewController" title="Advanced settings" modalPresentationStyle="currentContext" id="77D-Mk-Z01" customClass="AdvancedSettingsViewController" customModule="r2_testapp_swift__carthage_" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="eVD-ic-Aqv"/>
                         <viewControllerLayoutGuide type="bottom" id="rhU-AK-ZwJ"/>
@@ -619,6 +619,8 @@
                     <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
                     <size key="freeformSize" width="250" height="400"/>
                     <connections>
+                        <outlet property="alignSegment" destination="wd1-SD-2dm" id="Tt3-A0-Vqe"/>
+                        <outlet property="columnsSegment" destination="El2-dy-YXY" id="F6O-T3-snA"/>
                         <outlet property="defaultSwitch" destination="a7V-SY-NbP" id="LEK-Y0-Ejf"/>
                         <outlet property="letterSpacingLabel" destination="7D5-LE-bsa" id="zUV-MC-nic"/>
                         <outlet property="lineHeightLabel" destination="oHs-C3-4vp" id="Phs-dc-Ap8"/>

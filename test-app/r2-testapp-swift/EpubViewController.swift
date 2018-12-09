@@ -142,6 +142,9 @@ class EpubViewController: UIViewController {
         fixedTopBar.delegate = self
         fixedBottomBar.delegate = self
         navigator.delegate = self
+        
+        let userSettings = navigator.userSettings
+        userSettingNavigationController.userSettings = userSettings
     }
     
     override func viewDidLoad() {
@@ -175,6 +178,21 @@ class EpubViewController: UIViewController {
         /// Add spineItemViewController button to navBar.
         navigationItem.setRightBarButtonItems(barButtons,
                                               animated: true)
+        
+        
+       
+        self.userSettingNavigationController.userSettingsTableViewController.publication = navigator.publication
+        
+        self.navigator.publication.userSettingsUIPresetUpdated = { (thisUserSettingsUIPreset) in
+            
+            guard let presetScrollValue:Bool = thisUserSettingsUIPreset?[.scroll] else {return}
+            
+            if let scroll = self.userSettingNavigationController.userSettings.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable {
+                if scroll.on != presetScrollValue {
+                    self.userSettingNavigationController.scrollModeDidChange()
+                }
+            }
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -224,6 +242,7 @@ extension EpubViewController {
         popoverPresentationController.delegate = self
         popoverPresentationController.barButtonItem = popoverUserconfigurationAnchor
         
+        userSettingNavigationController.publication = self.navigator.publication
         present(userSettingNavigationController, animated: true, completion: nil)
     }
     
@@ -242,7 +261,9 @@ extension EpubViewController {
         storyboard.instantiateViewController(withIdentifier: "OutlineTableViewController") as! OutlineTableViewController
       
       outlineTableVC.tableOfContents = navigator.getTableOfContents()
-      outlineTableVC.callBack = navigator.displaySpineItem(with:)
+      outlineTableVC.callBack = { [weak self] href in
+        _ = self?.navigator.displaySpineItem(with: href)
+      }
       
       outlineTableVC.bookmarksDatasource = self.bookmarkDataSource
       outlineTableVC.didSelectBookmark = { (bookmark:Bookmark) -> Void in
