@@ -67,14 +67,15 @@ var scrollLeft = function(dir) {
         } else {
             var oldOffset = window.scrollX;
             document.body.scrollLeft = newEdge;
-            if (oldOffset != newEdge) {
+            var diff = Math.abs(newEdge-oldOffset)/window.innerWidth;
+            // In some case the scrollX cannot reach the position respecting to innerWidth
+            if (diff > 0.01) {
                 return 0;
             } else {
                 return "edge";
             }
         }
     }
-    
 };
 
 var scrollRight = function(dir) {
@@ -95,14 +96,15 @@ var scrollRight = function(dir) {
         } else {
             var oldOffset = window.scrollX;
             document.body.scrollLeft = newEdge;
-            if (oldOffset != newEdge) {
+            var diff = Math.abs(newEdge-oldOffset)/window.innerWidth;
+            // In some case the scrollX cannot reach the position respecting to innerWidth
+            if (diff > 0.01) {
                 return 0;
             } else {
                 return "edge";
             }
         }
     }
-    
 };
 
 // Snap the offset to the screen width (page width).

@@ -310,6 +310,7 @@ let cjkHorizontalPreset: [ReadiumCSSName: Bool] = [
     .letterSpacing: false]
 
 let cjkVerticalPreset: [ReadiumCSSName: Bool] = [
+    .scroll: true,
     .columnCount: false,
     .textAlignment: false,
     .hyphens: false,

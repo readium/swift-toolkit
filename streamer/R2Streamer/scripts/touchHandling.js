@@ -3,6 +3,7 @@ var startX = 0;
 var startY = 0;
 var maxScreenX = 0;
 var maxScreenY = 0;
+var touchStartTime = null;
 
 window.addEventListener("load", function(){ // on page load
                         // Get screen X and Y sizes.
@@ -47,6 +48,8 @@ var handleTouchStart = function(event) {
 
     startX = touch.screenX % maxScreenX;
     startY = touch.screenY % maxScreenY;
+    
+    touchStartTime = Date.now();
 };
 
 // When a touch ends, check if any action has to be made, and contact native code.
@@ -54,6 +57,13 @@ var handleTouchEnd = function(event) {
     if(!singleTouchGesture) {
         return;
     }
+    
+    if(touchStartTime != null && Date.now() - touchStartTime > 500) {
+        touchStartTime = null;
+        return;
+    }
+    touchStartTime = null;
+    
     //https://stackoverflow.com/questions/4878484/difference-between-tagname-and-nodename
     if (event.target.nodeName == "input") {return}
 
@@ -65,17 +75,17 @@ var handleTouchEnd = function(event) {
 
     // Tap to turn.
     if(touchDistance < 0.01) {
-        //var position = Math.abs(touch.clientX % maxScreenX) / maxScreenX;
-        var position;
+        var position = touch.clientX / window.innerWidth;
         
-        if (maxScreenX == window.innerWidth) {
-            // No scroll and default zoom
-            position = touch.clientX / document.body.clientWidth
-        } else {
-            // FXL
-            position = touch.screenX / document.body.clientWidth
-        }
-        
+//        if (maxScreenX == window.innerWidth) {
+//            // No scroll and default zoom
+//            position = touch.clientX / window.innerWidth;
+//        } else {
+//            // FXL
+//            // Looks like this is the ratio in document space instead of screen space
+//            // position = touch.screenX / document.body.clientWidth;
+//        }
+
         if (position <= 0.2) {
             // TAP left.
             console.log("LeftTapped");
