@@ -12,6 +12,7 @@
 import UIKit
 import R2Shared
 import WebKit
+import SafariServices
 
 public protocol NavigatorDelegate: class {
     func middleTapHandler()
@@ -20,6 +21,8 @@ public protocol NavigatorDelegate: class {
     /// It changes when html file resource changed
     func didChangedDocumentPage(currentDocumentIndex: Int)
     func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int)
+    func didNavigateViaInternalLinkTap(to documentIndex: Int)
+    func didTapExternalUrl(_ : URL)
 }
 
 public extension NavigatorDelegate {
@@ -29,6 +32,19 @@ public extension NavigatorDelegate {
   
   func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int) {
     // optional
+  }
+  func didNavigateViaInternalLinkTap(to documentIndex: Int) {
+    // optional
+  }
+
+  func didTapExternalUrl(_ url: URL) {
+    // optional
+    // TODO following lines have been moved from the original implementation and might need to be revisited at some point
+    let view = SFSafariViewController(url: url)
+
+    UIApplication.shared.keyWindow?.rootViewController?.present(view,
+                                                                animated: true,
+                                                                completion: nil)
   }
 }
 
@@ -41,15 +57,17 @@ open class NavigatorViewController: UIViewController {
     public let publication: Publication
     public weak var delegate: NavigatorDelegate?
 
+    public let pageTransition: PageTransition
+
     /// - Parameters:
     ///   - publication: The publication.
     ///   - initialIndex: Inital index of -1 will open the publication's at the end.
-    public init(for publication: Publication, initialIndex: Int, initialProgression: Double?) {
+    public init(for publication: Publication, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none) {
         self.publication = publication
         self.initialProgression = initialProgression
+        self.pageTransition = pageTransition
         userSettings = UserSettings()
         publication.userProperties.properties = userSettings.userProperties.properties
-        userSettings.userSettingsUIPreset = publication.userSettingsUIPreset
         delegatee = Delegatee()
         var index = initialIndex
 
@@ -72,6 +90,8 @@ open class NavigatorViewController: UIViewController {
     open override func viewDidLoad() {
         super.viewDidLoad()
         delegatee.parent = self
+        view.backgroundColor = .clear
+        triptychView.backgroundColor = .clear
         triptychView.delegate = delegatee
         triptychView.frame = view.bounds
         triptychView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
@@ -87,6 +107,7 @@ open class NavigatorViewController: UIViewController {
     }
 
     open override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
         // Save the currently opened document index and progression.
         if navigationController == nil {
             let progression = triptychView.getCurrentDocumentProgression()
@@ -106,37 +127,52 @@ extension NavigatorViewController {
         guard publication.spine.indices.contains(index) else {
             return
         }
-        triptychView.moveTo(index: index)
+        performTriptychViewTransition {
+            self.triptychView.moveTo(index: index)
+        }
     }
     
     /// Display the spine item at `index` with scroll `progression`
     ///
     /// - Parameter index: The index of the spine item to display.
     public func displaySpineItem(at index: Int, progression: Double) {
-        displaySpineItem(at: index)
-        if let webView = triptychView.currentView as? WebView {
-            webView.scrollAt(position: progression)
+        guard publication.spine.indices.contains(index) else {
+            return
+        }
+        
+        performTriptychViewTransitionDelayed {
+            // This is so the webview will move to it's correct progression if it's not loaded into the triptych view
+            self.initialProgression = progression
+            self.triptychView.moveTo(index: index)
+            if let webView = self.triptychView.currentView as? WebView {
+                // This is needed for when the webView is loaded into the triptychView
+                webView.scrollAt(position: progression)
+            }
         }
     }
     
     /// Load resource with the corresponding href.
     ///
     /// - Parameter href: The href of the resource to load. Can contain a tag id.
-    public func displaySpineItem(with href: String) {
+    /// - Returns: The spine index for the link
+    public func displaySpineItem(with href: String) -> Int? {
         // remove id if any
         let components = href.components(separatedBy: "#")
         guard let href = components.first else {
-            return
+            return nil
         }
         guard let index = publication.spine.index(where: { $0.href?.contains(href) ?? false }) else {
-            return
+            return nil
         }
         // If any id found, set the scroll position to it, else to the
         // beggining of the document.
         let id = (components.count > 1 ? components.last : "")
 
         // Jumping set to true to avoid clamping.
-        triptychView.moveTo(index: index, id: id)
+        performTriptychViewTransition {
+            self.triptychView.moveTo(index: index, id: id)
+        }
+        return index
     }
 
     public func getSpine() -> [Link] {
@@ -160,6 +196,16 @@ extension NavigatorViewController {
 }
 
 extension NavigatorViewController: ViewDelegate {
+    
+    func handleTapOnLink(with url: URL) {
+        delegate?.didTapExternalUrl(url)
+    }
+    
+    func handleTapOnInternalLink(with href: String) {
+        guard let index = displaySpineItem(with: href) else { return }
+        delegate?.didNavigateViaInternalLinkTap(to: index)
+    }
+    
     func documentPageDidChanged(webview: WebView, currentPage: Int, totalPage: Int) {
         if triptychView.currentView == webview {
             delegate?.didChangedPaginatedDocumentPage(currentPage: currentPage, documentTotalPage: totalPage)
@@ -169,13 +215,13 @@ extension NavigatorViewController: ViewDelegate {
     /// Display next spine item (spine item).
     public func displayRightDocument() {
         let delta = triptychView.direction == .rtl ? -1:1
-        displaySpineItem(at: triptychView.index + delta)
+        self.displaySpineItem(at: self.triptychView.index + delta)
     }
 
     /// Display previous document (spine item).
     public func displayLeftDocument() {
         let delta = triptychView.direction == .rtl ? -1:1
-        displaySpineItem(at: triptychView.index - delta)
+        self.displaySpineItem(at: self.triptychView.index - delta)
     }
 
     /// Returns the currently presented Publication's identifier.
@@ -206,7 +252,7 @@ extension Delegatee: TriptychViewDelegate {
     public func triptychView(_ view: TriptychView, viewForIndex index: Int,
                              location: BinaryLocation) -> UIView {
         
-        let webView = WebView(frame: view.bounds, initialLocation: location)
+        let webView = WebView(frame: view.bounds, initialLocation: location, pageTransition: parent.pageTransition)
         webView.direction = view.direction
         
         let link = parent.publication.spine[index]
@@ -245,6 +291,51 @@ extension Delegatee: TriptychViewDelegate {
             if let pages = cw.totalPages {
                 parent.delegate?.didChangedPaginatedDocumentPage(currentPage: cw.currentPage(), documentTotalPage: pages)
             }
+        }
+    }
+}
+
+
+extension NavigatorViewController {
+    
+    public var contentView: UIView {
+        return triptychView
+    }
+    
+    func performTriptychViewTransition(commitTransition: @escaping () -> ()) {
+        switch pageTransition {
+        case .none:
+            commitTransition()
+        case .animated:
+            fadeTriptychView(alpha: 0) {
+                commitTransition()
+                self.fadeTriptychView(alpha: 1, completion: { })
+            }
+        }
+    }
+    
+    /*
+     This is used when we want to jump to a document with proression. The rendering is sometimes very slow in this case so we have a generous delay before we show the view again.
+     */
+    func performTriptychViewTransitionDelayed(commitTransition: @escaping () -> ()) {
+        switch pageTransition {
+        case .none:
+            commitTransition()
+        case .animated:
+            fadeTriptychView(alpha: 0) {
+                commitTransition()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
+                    self.fadeTriptychView(alpha: 1, completion: { })
+                })
+            }
+        }
+    }
+    
+    private func fadeTriptychView(alpha: CGFloat, completion: @escaping () -> ()) {
+        UIView.animate(withDuration: 0.15, animations: {
+            self.triptychView.alpha = alpha
+        }) { _ in
+            completion()
         }
     }
 }

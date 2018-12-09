@@ -35,7 +35,6 @@ public class UserSettings {
     private var pageMargins: Float = 1
     private var lineHeight: Float = 1
     
-    public var userSettingsUIPreset: [ReadiumCSSName: Bool]?
     public let userProperties = UserProperties()
     
     private let userDefaults = UserDefaults.standard

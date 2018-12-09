@@ -253,7 +253,6 @@ final class TriptychView: UIView {
                 views = Views.two(firstView: firstView, secondView: secondView)
             }
         default:
-            let currentView = viewForIndex(index, location: leading)
             if index == 0 {
                 self.views = Views.many(
                     currentView: viewForIndex(index, location: leading),
@@ -266,7 +265,7 @@ final class TriptychView: UIView {
                         viewForIndex(index - 1, location: leading)))
             } else {
                 views = Views.many(
-                    currentView: currentView,
+                    currentView: viewForIndex(index, location: leading),
                     otherViews: Disjunction.both(
                         first: viewForIndex(index - 1, location: trailing),
                         second: viewForIndex(index + 1, location: leading)))
@@ -280,10 +279,8 @@ final class TriptychView: UIView {
     }
 
     private func syncSubviews() {
+        let webViewsBefore = scrollView.subviews.compactMap { $0 as? WebView }
         scrollView.subviews.forEach({
-            if let webview = ($0 as? WebView) {
-                webview.removeMessageHandlers()
-            }
             $0.removeFromSuperview()
         })
 
@@ -294,6 +291,10 @@ final class TriptychView: UIView {
                 }
                 self.scrollView.addSubview($0)
             })
+        }
+        
+        webViewsBefore.forEach {
+            if $0.superview == nil { $0.removeMessageHandlers() }
         }
     }
 }
@@ -397,6 +398,21 @@ extension TriptychView: UIScrollViewDelegate {
                 scrollView.contentOffset.x = max(xOffset, width)
             }
         }
+    }
+    
+    // Set the clamping to .none in scrollViewDidEndScrollingAnimation
+    // and scrollViewDidEndDragging with decelerate == false,
+    // to prevent the bug introduced by the workaround in
+    // scrollViewDidEndDecelerating where the scrollview contentOffset
+    // is animated. When animating the contentOffset, scrollViewDidScroll
+    // is called without calling scrollViewDidEndDecelerating afterwards.
+    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        clamping = .none
+    }
+    
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        if decelerate { return }
+        clamping = .none
     }
 
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
