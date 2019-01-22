@@ -321,11 +321,7 @@
 		032F7E3221167E9A009E5C24 /* PublicationCollectionViewCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = PublicationCollectionViewCell.xib; sourceTree = "<group>"; };
 		032F7E3321167E9A009E5C24 /* PublicationMenuViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = PublicationMenuViewController.xib; sourceTree = "<group>"; };
 		0350FD28211CD2CB006994C2 /* r2-testapp-swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		0350FD29211CD2CB006994C2 /* r2-testapp-swift (submodules)-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "r2-testapp-swift (submodules)-Info.plist"; path = "/Volumes/Data/EDRLab/Swift-Workspace/r2-workspace-swift/r2-testapp-swift/r2-testapp-swift (submodules)-Info.plist"; sourceTree = "<absolute>"; };
 		0350FD7C211CD625006994C2 /* r2-testapp-swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		0350FD7D211CD625006994C2 /* r2-testapp-swift (carthage-with-lcp)-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "r2-testapp-swift (carthage-with-lcp)-Info.plist"; path = "/Volumes/Data/EDRLab/Swift-Workspace/r2-workspace-swift/r2-testapp-swift/r2-testapp-swift (carthage-with-lcp)-Info.plist"; sourceTree = "<absolute>"; };
-		0350FDC8211CD634006994C2 /* r2-testapp-swift (submodules with lcp).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "r2-testapp-swift (submodules with lcp).app"; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		0350FDC9211CD634006994C2 /* r2-testapp-swift (submodules-with-lcp)-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "r2-testapp-swift (submodules-with-lcp)-Info.plist"; path = "/Volumes/Data/EDRLab/Swift-Workspace/r2-workspace-swift/r2-testapp-swift/r2-testapp-swift (submodules-with-lcp)-Info.plist"; sourceTree = "<absolute>"; };
 		03804905211662D7009F48BD /* MBProgressHUD.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MBProgressHUD.framework; path = Carthage/Build/iOS/MBProgressHUD.framework; sourceTree = "<group>"; };
 		0380490A21166627009F48BD /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		03D011F1208023360097A87C /* Minizip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Minizip.framework; path = Carthage/Build/iOS/Minizip.framework; sourceTree = "<group>"; };
@@ -366,6 +362,9 @@
 		CA2AE36B221C4B96008BD18F /* R2Streamer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Streamer.framework; path = Carthage/Build/iOS/R2Streamer.framework; sourceTree = "<group>"; };
 		CA2AE36C221C4B96008BD18F /* ReadiumOPDS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReadiumOPDS.framework; path = Carthage/Build/iOS/ReadiumOPDS.framework; sourceTree = "<group>"; };
 		CA2AE36D221C4B96008BD18F /* R2Navigator.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Navigator.framework; path = Carthage/Build/iOS/R2Navigator.framework; sourceTree = "<group>"; };
+		CA2AE37A221C4C8F008BD18F /* r2-testapp-swift (submodules-with-lcp)-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "r2-testapp-swift (submodules-with-lcp)-Info.plist"; sourceTree = "<group>"; };
+		CA2AE37B221C4C8F008BD18F /* r2-testapp-swift (submodules)-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "r2-testapp-swift (submodules)-Info.plist"; sourceTree = "<group>"; };
+		CA2AE37C221C4C8F008BD18F /* r2-testapp-swift (carthage-with-lcp)-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "r2-testapp-swift (carthage-with-lcp)-Info.plist"; sourceTree = "<group>"; };
 		CA7F5A402204A05700B88141 /* DRMLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DRMLibraryService.swift; sourceTree = "<group>"; };
 		CA7F5A4F2204AF2900B88141 /* Result.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DRMViewModel.swift; sourceTree = "<group>"; };
@@ -614,9 +613,6 @@
 				F3E7D45A1F4EF6D400DF166D /* r2-testapp-swiftUITests */,
 				F3E7D4391F4EF6D400DF166D /* Products */,
 				F3E7D4691F4EFE8700DF166D /* Frameworks */,
-				0350FD29211CD2CB006994C2 /* r2-testapp-swift (submodules)-Info.plist */,
-				0350FD7D211CD625006994C2 /* r2-testapp-swift (carthage-with-lcp)-Info.plist */,
-				0350FDC9211CD634006994C2 /* r2-testapp-swift (submodules-with-lcp)-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -626,7 +622,6 @@
 				F3E7D4381F4EF6D400DF166D /* r2-testapp-swift.app */,
 				0350FD28211CD2CB006994C2 /* r2-testapp-swift.app */,
 				0350FD7C211CD625006994C2 /* r2-testapp-swift.app */,
-				0350FDC8211CD634006994C2 /* r2-testapp-swift (submodules with lcp).app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -634,12 +629,6 @@
 		F3E7D43A1F4EF6D400DF166D /* r2-testapp-swift */ = {
 			isa = PBXGroup;
 			children = (
-				57CADB3220D14B3100DF6675 /* r2-testapp-swift.entitlements */,
-				F32980ED1F7D464900BDEAF4 /* Samples */,
-				F3E7D4421F4EF6D400DF166D /* Assets.xcassets */,
-				F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */,
-				AE2B6A8820889C8700C12072 /* AppMain.storyboard */,
-				F3E7D4471F4EF6D400DF166D /* r2-testapp-swift (carthage)-Info.plist */,
 				F3E7D43B1F4EF6D400DF166D /* AppDelegate.swift */,
 				F3E7D47B1F4F03B800DF166D /* UIImageExtension.swift */,
 				AE37DE422093291600079AA2 /* AboutTableViewController.swift */,
@@ -647,6 +636,15 @@
 				CA7F5A4E2204AF1800B88141 /* Common */,
 				F3E7D4731F4F030300DF166D /* Library */,
 				F3E7D47A1F4F037D00DF166D /* Viewers */,
+				F32980ED1F7D464900BDEAF4 /* Samples */,
+				F3E7D4421F4EF6D400DF166D /* Assets.xcassets */,
+				F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */,
+				AE2B6A8820889C8700C12072 /* AppMain.storyboard */,
+				57CADB3220D14B3100DF6675 /* r2-testapp-swift.entitlements */,
+				F3E7D4471F4EF6D400DF166D /* r2-testapp-swift (carthage)-Info.plist */,
+				CA2AE37B221C4C8F008BD18F /* r2-testapp-swift (submodules)-Info.plist */,
+				CA2AE37C221C4C8F008BD18F /* r2-testapp-swift (carthage-with-lcp)-Info.plist */,
+				CA2AE37A221C4C8F008BD18F /* r2-testapp-swift (submodules-with-lcp)-Info.plist */,
 			);
 			path = "r2-testapp-swift";
 			sourceTree = "<group>";
@@ -794,7 +792,6 @@
 			);
 			name = "r2-testapp-swift (submodules with lcp)";
 			productName = "r2-testapp-swift";
-			productReference = 0350FDC8211CD634006994C2 /* r2-testapp-swift (submodules with lcp).app */;
 			productType = "com.apple.product-type.application";
 		};
 		F3E7D4371F4EF6D400DF166D /* r2-testapp-swift (carthage) */ = {
@@ -1275,7 +1272,7 @@
 					"$(PROJECT_DIR)",
 				);
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
-				INFOPLIST_FILE = "r2-testapp-swift (submodules)-Info.plist";
+				INFOPLIST_FILE = "r2-testapp-swift/r2-testapp-swift (submodules)-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
@@ -1308,7 +1305,7 @@
 					"$(PROJECT_DIR)",
 				);
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
-				INFOPLIST_FILE = "r2-testapp-swift (submodules)-Info.plist";
+				INFOPLIST_FILE = "r2-testapp-swift/r2-testapp-swift (submodules)-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
@@ -1341,7 +1338,7 @@
 					"$(PROJECT_DIR)",
 				);
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
-				INFOPLIST_FILE = "r2-testapp-swift (carthage-with-lcp)-Info.plist";
+				INFOPLIST_FILE = "r2-testapp-swift/r2-testapp-swift (carthage-with-lcp)-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
@@ -1374,7 +1371,7 @@
 					"$(PROJECT_DIR)",
 				);
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
-				INFOPLIST_FILE = "r2-testapp-swift (carthage-with-lcp)-Info.plist";
+				INFOPLIST_FILE = "r2-testapp-swift/r2-testapp-swift (carthage-with-lcp)-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
@@ -1407,7 +1404,7 @@
 					"$(PROJECT_DIR)",
 				);
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
-				INFOPLIST_FILE = "r2-testapp-swift (submodules-with-lcp)-Info.plist";
+				INFOPLIST_FILE = "r2-testapp-swift/r2-testapp-swift (submodules-with-lcp)-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
@@ -1440,7 +1437,7 @@
 					"$(PROJECT_DIR)",
 				);
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
-				INFOPLIST_FILE = "r2-testapp-swift (submodules-with-lcp)-Info.plist";
+				INFOPLIST_FILE = "r2-testapp-swift/r2-testapp-swift (submodules-with-lcp)-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (

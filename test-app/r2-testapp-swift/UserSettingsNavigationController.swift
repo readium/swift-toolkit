@@ -24,7 +24,7 @@ protocol UserSettingsNavigationControllerDelegate: class {
 internal class UserSettingsNavigationController: UINavigationController {
     var userSettingsTableViewController: UserSettingsTableViewController! {
         get {
-            return viewControllers[0] as! UserSettingsTableViewController
+            return (viewControllers[0] as! UserSettingsTableViewController)
         }
     }
     //
@@ -41,9 +41,9 @@ internal class UserSettingsNavigationController: UINavigationController {
         userSettings = usdelegate.getUserSettings()
         
         fontSelectionViewController =
-            storyboard.instantiateViewController(withIdentifier: "FontSelectionViewController") as! FontSelectionViewController
+            (storyboard.instantiateViewController(withIdentifier: "FontSelectionViewController") as! FontSelectionViewController)
         advancedSettingsViewController =
-            storyboard.instantiateViewController(withIdentifier: "AdvancedSettingsViewController") as! AdvancedSettingsViewController
+            (storyboard.instantiateViewController(withIdentifier: "AdvancedSettingsViewController") as! AdvancedSettingsViewController)
 
         userSettingsTableViewController.modalPresentationStyle = .popover
         userSettingsTableViewController.delegate = self
