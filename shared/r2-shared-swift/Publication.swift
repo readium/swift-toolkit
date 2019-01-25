@@ -15,7 +15,7 @@ import ObjectMapper
 /// The representation of EPUB publication, with its metadata, its spine and 
 /// other resources.
 /// It is created by the `EpubParser` from an EPUB file or directory.
-/// As it is extended by `Mappable`, it can be deserialized to `JSON`.
+/// As it is extended by `Mappable`, it can be serialized to `JSON`.
 public class Publication {
     /// The version of the publication, if the type needs any.
     public var version: Double

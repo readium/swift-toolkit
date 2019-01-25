@@ -7,8 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AEF39DF320E3895200A560F3 /* UserProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF39DF220E3895200A560F3 /* UserProperties.swift */; };
 		57470F7E20ED0D1A000CDCA3 /* DownloadSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */; };
+		AEF39DF320E3895200A560F3 /* UserProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF39DF220E3895200A560F3 /* UserProperties.swift */; };
+		CA6161EF21FB257700D2CFE3 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D3F41F4EBE2100DF166D /* R2Shared.framework */; };
+		CA6161F721FB273B00D2CFE3 /* PublicationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6161F621FB273B00D2CFE3 /* PublicationTests.swift */; };
+		CA6161FB21FB2B1500D2CFE3 /* ObjectMapper.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D4201F4ECA9800DF166D /* ObjectMapper.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CA6161FC21FB2C4400D2CFE3 /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D4201F4ECA9800DF166D /* ObjectMapper.framework */; };
+		CA6161FE21FB47EB00D2CFE3 /* MetadataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6161FD21FB47EB00D2CFE3 /* MetadataTests.swift */; };
+		CA61620121FB586200D2CFE3 /* ContributorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA61620021FB586200D2CFE3 /* ContributorTests.swift */; };
+		CA61621021FB5E4200D2CFE3 /* SubjectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA61620F21FB5E4200D2CFE3 /* SubjectTests.swift */; };
+		CA61621321FB617500D2CFE3 /* LinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA61621221FB617500D2CFE3 /* LinkTests.swift */; };
+		CA61621521FB65E000D2CFE3 /* PropertiesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA61621421FB65E000D2CFE3 /* PropertiesTests.swift */; };
+		CA61621721FB6E8800D2CFE3 /* EncryptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA61621621FB6E8800D2CFE3 /* EncryptionTests.swift */; };
+		CA61621921FB71B300D2CFE3 /* RenditionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA61621821FB71B300D2CFE3 /* RenditionTests.swift */; };
 		F32314A21F8616C2000FCFB0 /* Drm.swift in Sources */ = {isa = PBXBuildFile; fileRef = F32314A11F8616C2000FCFB0 /* Drm.swift */; };
 		F34CB2891FC56CAD005E3A37 /* DrmLicense.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34CB2881FC56CAD005E3A37 /* DrmLicense.swift */; };
 		F39E9E6F1FC2E1B70098F77E /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D4201F4ECA9800DF166D /* ObjectMapper.framework */; };
@@ -37,9 +48,43 @@
 		F3F41E1F1FA33AF800F97737 /* Collection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F41E1E1FA33AF800F97737 /* Collection.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		CA6161F021FB257700D2CFE3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F3E7D3EB1F4EBE2100DF166D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F3E7D3F31F4EBE2100DF166D;
+			remoteInfo = "r2-shared-swift";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		CA6161FA21FB2B0B00D2CFE3 /* Copy Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				CA6161FB21FB2B1500D2CFE3 /* ObjectMapper.framework in Copy Frameworks */,
+			);
+			name = "Copy Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
-		AEF39DF220E3895200A560F3 /* UserProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProperties.swift; sourceTree = "<group>"; };
 		57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadSession.swift; sourceTree = "<group>"; };
+		AEF39DF220E3895200A560F3 /* UserProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProperties.swift; sourceTree = "<group>"; };
+		CA6161EA21FB257700D2CFE3 /* r2-shared-swiftTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "r2-shared-swiftTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA6161EE21FB257700D2CFE3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CA6161F621FB273B00D2CFE3 /* PublicationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationTests.swift; sourceTree = "<group>"; };
+		CA6161FD21FB47EB00D2CFE3 /* MetadataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataTests.swift; sourceTree = "<group>"; };
+		CA61620021FB586200D2CFE3 /* ContributorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContributorTests.swift; sourceTree = "<group>"; };
+		CA61620F21FB5E4200D2CFE3 /* SubjectTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectTests.swift; sourceTree = "<group>"; };
+		CA61621221FB617500D2CFE3 /* LinkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkTests.swift; sourceTree = "<group>"; };
+		CA61621421FB65E000D2CFE3 /* PropertiesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertiesTests.swift; sourceTree = "<group>"; };
+		CA61621621FB6E8800D2CFE3 /* EncryptionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncryptionTests.swift; sourceTree = "<group>"; };
+		CA61621821FB71B300D2CFE3 /* RenditionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenditionTests.swift; sourceTree = "<group>"; };
 		F32314A11F8616C2000FCFB0 /* Drm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Drm.swift; sourceTree = "<group>"; };
 		F34CB2881FC56CAD005E3A37 /* DrmLicense.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrmLicense.swift; sourceTree = "<group>"; };
 		F3B1879F1FA33D4D00BB46BF /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
@@ -71,6 +116,15 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		CA6161E721FB257700D2CFE3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA6161EF21FB257700D2CFE3 /* R2Shared.framework in Frameworks */,
+				CA6161FC21FB2C4400D2CFE3 /* ObjectMapper.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F3E7D3F01F4EBE2100DF166D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -88,6 +142,46 @@
 				57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */,
 			);
 			path = Toolkit;
+			sourceTree = "<group>";
+		};
+		CA6161EB21FB257700D2CFE3 /* r2-shared-swiftTests */ = {
+			isa = PBXGroup;
+			children = (
+				CA6161F521FB26FA00D2CFE3 /* Publication */,
+				CA6161EE21FB257700D2CFE3 /* Info.plist */,
+			);
+			path = "r2-shared-swiftTests";
+			sourceTree = "<group>";
+		};
+		CA6161F521FB26FA00D2CFE3 /* Publication */ = {
+			isa = PBXGroup;
+			children = (
+				CA61621121FB616A00D2CFE3 /* Link */,
+				CA6161FF21FB585200D2CFE3 /* Metadata */,
+				CA6161F621FB273B00D2CFE3 /* PublicationTests.swift */,
+				CA6161FD21FB47EB00D2CFE3 /* MetadataTests.swift */,
+			);
+			path = Publication;
+			sourceTree = "<group>";
+		};
+		CA6161FF21FB585200D2CFE3 /* Metadata */ = {
+			isa = PBXGroup;
+			children = (
+				CA61620021FB586200D2CFE3 /* ContributorTests.swift */,
+				CA61620F21FB5E4200D2CFE3 /* SubjectTests.swift */,
+			);
+			path = Metadata;
+			sourceTree = "<group>";
+		};
+		CA61621121FB616A00D2CFE3 /* Link */ = {
+			isa = PBXGroup;
+			children = (
+				CA61621221FB617500D2CFE3 /* LinkTests.swift */,
+				CA61621421FB65E000D2CFE3 /* PropertiesTests.swift */,
+				CA61621621FB6E8800D2CFE3 /* EncryptionTests.swift */,
+				CA61621821FB71B300D2CFE3 /* RenditionTests.swift */,
+			);
+			path = Link;
 			sourceTree = "<group>";
 		};
 		F34CB28A1FC5714D005E3A37 /* Drm */ = {
@@ -114,6 +208,7 @@
 			isa = PBXGroup;
 			children = (
 				F3E7D3F61F4EBE2100DF166D /* r2-shared-swift */,
+				CA6161EB21FB257700D2CFE3 /* r2-shared-swiftTests */,
 				F3E7D3F51F4EBE2100DF166D /* Products */,
 				F3E7D41F1F4ECA9800DF166D /* Frameworks */,
 			);
@@ -123,6 +218,7 @@
 			isa = PBXGroup;
 			children = (
 				F3E7D3F41F4EBE2100DF166D /* R2Shared.framework */,
+				CA6161EA21FB257700D2CFE3 /* r2-shared-swiftTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -220,6 +316,25 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		CA6161E921FB257700D2CFE3 /* r2-shared-swiftTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA6161F421FB257700D2CFE3 /* Build configuration list for PBXNativeTarget "r2-shared-swiftTests" */;
+			buildPhases = (
+				CA6161E621FB257700D2CFE3 /* Sources */,
+				CA6161E721FB257700D2CFE3 /* Frameworks */,
+				CA6161E821FB257700D2CFE3 /* Resources */,
+				CA6161FA21FB2B0B00D2CFE3 /* Copy Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA6161F121FB257700D2CFE3 /* PBXTargetDependency */,
+			);
+			name = "r2-shared-swiftTests";
+			productName = "r2-shared-swiftTests";
+			productReference = CA6161EA21FB257700D2CFE3 /* r2-shared-swiftTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		F3E7D3F31F4EBE2100DF166D /* r2-shared-swift */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = F3E7D3FC1F4EBE2100DF166D /* Build configuration list for PBXNativeTarget "r2-shared-swift" */;
@@ -244,9 +359,16 @@
 		F3E7D3EB1F4EBE2100DF166D /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 0940;
 				LastUpgradeCheck = 0930;
 				ORGANIZATIONNAME = Readium;
 				TargetAttributes = {
+					CA6161E921FB257700D2CFE3 = {
+						CreatedOnToolsVersion = 9.4.1;
+						DevelopmentTeam = WN4T94RAPH;
+						LastSwiftMigration = 0940;
+						ProvisioningStyle = Automatic;
+					};
 					F3E7D3F31F4EBE2100DF166D = {
 						CreatedOnToolsVersion = 8.3.3;
 						LastSwiftMigration = 0930;
@@ -267,11 +389,19 @@
 			projectRoot = "";
 			targets = (
 				F3E7D3F31F4EBE2100DF166D /* r2-shared-swift */,
+				CA6161E921FB257700D2CFE3 /* r2-shared-swiftTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		CA6161E821FB257700D2CFE3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F3E7D3F21F4EBE2100DF166D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -282,6 +412,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		CA6161E621FB257700D2CFE3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA61621021FB5E4200D2CFE3 /* SubjectTests.swift in Sources */,
+				CA61621721FB6E8800D2CFE3 /* EncryptionTests.swift in Sources */,
+				CA6161FE21FB47EB00D2CFE3 /* MetadataTests.swift in Sources */,
+				CA61621521FB65E000D2CFE3 /* PropertiesTests.swift in Sources */,
+				CA61620121FB586200D2CFE3 /* ContributorTests.swift in Sources */,
+				CA61621321FB617500D2CFE3 /* LinkTests.swift in Sources */,
+				CA61621921FB71B300D2CFE3 /* RenditionTests.swift in Sources */,
+				CA6161F721FB273B00D2CFE3 /* PublicationTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F3E7D3EF1F4EBE2100DF166D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -317,7 +462,66 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		CA6161F121FB257700D2CFE3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F3E7D3F31F4EBE2100DF166D /* r2-shared-swift */;
+			targetProxy = CA6161F021FB257700D2CFE3 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		CA6161F221FB257700D2CFE3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = WN4T94RAPH;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = "r2-shared-swiftTests/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-shared-swiftTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CA6161F321FB257700D2CFE3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = WN4T94RAPH;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = "r2-shared-swiftTests/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-shared-swiftTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		F3E7D3FA1F4EBE2100DF166D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -501,6 +705,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		CA6161F421FB257700D2CFE3 /* Build configuration list for PBXNativeTarget "r2-shared-swiftTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA6161F221FB257700D2CFE3 /* Debug */,
+				CA6161F321FB257700D2CFE3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		F3E7D3EE1F4EBE2100DF166D /* Build configuration list for PBXProject "r2-shared-swift" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
