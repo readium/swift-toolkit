@@ -32,6 +32,8 @@ final class WebView: WKWebView {
     var direction: PageProgressionDirection?
 
     var pageTransition: PageTransition
+    
+    weak var activityIndicatorView: UIActivityIndicatorView?
 
     public var initialId: String?
     // progression and totalPages only work on 'readium-scroll-off' mode
@@ -142,7 +144,8 @@ final class WebView: WKWebView {
             }
         }
         
-        self.alpha = 0
+        scrollView.alpha = 0
+        addActivityIndicator()
     }
 
     @available(*, unavailable)
@@ -158,6 +161,17 @@ final class WebView: WKWebView {
         else {
             scrollView.delegate = self
         }
+    }
+    
+    private func addActivityIndicator() {
+        if pageTransition == .none { return }
+        let view = UIActivityIndicatorView(activityIndicatorStyle: .gray)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        self.addSubview(view)
+        view.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
+        view.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
+        view.startAnimating()
+        self.activityIndicatorView = view
     }
 }
 
@@ -209,7 +223,8 @@ extension WebView {
         
         switch pageTransition {
         case .none:
-            alpha = 1
+            scrollView.alpha = 1
+            activityIndicatorView?.stopAnimating()
         case .animated:
             fadeInWithDelay()
         }
@@ -412,13 +427,14 @@ private extension UIScrollView {
     }
 }
 
-private extension UIView {
+private extension WebView {
     
     func fadeInWithDelay() {
         //TODO: We need to give the CSS and webview time to layout correctly. 0.2 seconds seems like a good value for it to work on an iPhone 5s. Look into solving this better
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.activityIndicatorView?.stopAnimating()
             UIView.animate(withDuration: 0.3, animations: {
-                self.alpha = 1
+                self.scrollView.alpha = 1
             })
         }
     }
