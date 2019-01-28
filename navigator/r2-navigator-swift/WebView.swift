@@ -46,7 +46,12 @@ final class WebView: WKWebView {
         return Int(progression! * Double(totalPages!)) + 1
     }
     
-    internal var userSettings: UserSettings?
+    internal var userSettings: UserSettings? {
+        didSet {
+            guard let userSettings = userSettings else { return }
+            updateActivityIndicator(for: userSettings)
+        }
+    }
 
     public var documentLoaded = false
 
@@ -145,7 +150,6 @@ final class WebView: WKWebView {
         }
         
         scrollView.alpha = 0
-        addActivityIndicator()
     }
 
     @available(*, unavailable)
@@ -161,17 +165,6 @@ final class WebView: WKWebView {
         else {
             scrollView.delegate = self
         }
-    }
-    
-    private func addActivityIndicator() {
-        if pageTransition == .none { return }
-        let view = UIActivityIndicatorView(activityIndicatorStyle: .gray)
-        view.translatesAutoresizingMaskIntoConstraints = false
-        self.addSubview(view)
-        view.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
-        view.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
-        view.startAnimating()
-        self.activityIndicatorView = view
     }
 }
 
@@ -437,6 +430,32 @@ private extension WebView {
                 self.scrollView.alpha = 1
             })
         }
+    }
+    
+    func updateActivityIndicator(for userSettings: UserSettings) {
+        guard let appearance = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) as? Enumerable else { return }
+        guard appearance.values.count > appearance.index else { return }
+        let value = appearance.values[appearance.index]
+        switch value {
+        case "readium-night-on":
+            createActivityIndicator(style: .white)
+        default:
+            createActivityIndicator(style: .gray)
+        }
+    }
+    
+    func createActivityIndicator(style: UIActivityIndicatorViewStyle) {
+        if pageTransition == .none { return }
+        if documentLoaded { return }
+        if activityIndicatorView?.activityIndicatorViewStyle == style { return }
+        activityIndicatorView?.removeFromSuperview()
+        let view = UIActivityIndicatorView(activityIndicatorStyle: style)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        self.addSubview(view)
+        view.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
+        view.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
+        view.startAnimating()
+        activityIndicatorView = view
     }
 }
 
