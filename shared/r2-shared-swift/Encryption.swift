@@ -10,7 +10,6 @@
 //
 
 import Foundation
-import ObjectMapper
 
 /// Contains metadata parsed from Encryption.xml.
 public struct Encryption {
@@ -28,14 +27,14 @@ public struct Encryption {
     public init() {}
 }
 
-extension Encryption: Mappable {
-    public init?(map: Map) {}
-
-    public mutating func mapping(map: Map) {
-        algorithm <- map["algorithm", ignoreNil: true]
-        compression <- map["compression", ignoreNil: true]
-        originalLength <- map["originalLength", ignoreNil: true]
-        profile <- map["profile", ignoreNil: true]
-        scheme <- map["scheme", ignoreNil: true]
+extension Encryption: Encodable {
+    
+    enum CodingKeys: String, CodingKey {
+        case algorithm
+        case compression
+        case originalLength
+        case profile
+        case scheme
     }
+
 }

@@ -10,13 +10,12 @@
 //
 
 import Foundation
-import ObjectMapper
 
 /// The rendition layout property of an EPUB publication
 ///
 /// - Reflowable: Apply dynamic pagination when rendering.
 /// - Fixed: Fixed layout.
-public enum RenditionLayout: String {
+public enum RenditionLayout: String, Encodable {
     case reflowable = "reflowable"
     case fixed = "pre-paginated"
 }
@@ -31,7 +30,7 @@ public enum RenditionLayout: String {
 ///             overflow content, and each spine item with this property is to 
 ///             be rendered as separate scrollable document.
 /// - Fixed:
-public enum RenditionFlow: String {
+public enum RenditionFlow: String, Encodable {
     case paginated = "paginated"
     case continuous = "continuous"
     case document = "document"
@@ -46,7 +45,7 @@ public enum RenditionFlow: String {
 ///              landscape orientation.
 /// - Portrait: Specifies that the given spine item is to be rendered in portrait
 ///             orientation.
-public enum RenditionOrientation: String {
+public enum RenditionOrientation: String, Encodable {
     case auto = "auto"
     case landscape = "landscape"
     case portrait = "portrait"
@@ -64,7 +63,7 @@ public enum RenditionOrientation: String {
 ///         spine item in both portrait and landscape orientations.
 /// - none: Specifies the Reading System should not render a synthetic spread 
 ///         for the spine item.
-public enum RenditionSpread: String {
+public enum RenditionSpread: String, Encodable {
     case auto = "auto"
     case landscape = "landscape"
     case portrait = "portrait"
@@ -89,8 +88,6 @@ public class Rendition {
 
     public init() {}
 
-    required public init?(map: Map) {}
-
     public func isEmpty() -> Bool {
         guard layout != nil || flow != nil
             || orientation != nil || spread != nil
@@ -103,12 +100,14 @@ public class Rendition {
 
 }
 
-extension Rendition: Mappable {
-    public func mapping(map: Map) {
-        layout <- map["layout", ignoreNil: true]
-        flow <- map["flow", ignoreNil: true]
-        orientation <- map["orientation", ignoreNil: true]
-        spread <- map["spread", ignoreNil: true]
-        viewport <- map["viewport", ignoreNil: true]
+extension Rendition: Encodable {
+    
+    enum CodingKeys: String, CodingKey {
+        case layout
+        case flow
+        case orientation
+        case spread
+        case viewport
     }
+    
 }

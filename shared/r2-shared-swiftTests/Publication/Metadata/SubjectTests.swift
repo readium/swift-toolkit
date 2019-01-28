@@ -7,19 +7,14 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
-import ObjectMapper
 import XCTest
 @testable import R2Shared
 
 class SubjectTests: XCTestCase {
-    
-    func toJSON(_ publication: Subject) -> String? {
-        return Mapper().toJSONString(publication)
-    }
 
     func testEmptyJSONSerialization() {
         let sut = Subject()
-
+        
         XCTAssertEqual(toJSON(sut), """
             {}
             """)
@@ -39,9 +34,9 @@ class SubjectTests: XCTestCase {
         sut.scheme = "a-scheme"
         sut.code = "a-code"
         sut.links = [link("link1"), link("link2")]
-
+        
         XCTAssertEqual(toJSON(sut), """
-            {"name":"Name","scheme":"a-scheme","sortAs":"sorting","code":"a-code"}
+            {"code":"a-code","name":"Name","scheme":"a-scheme","sortAs":"sorting"}
             """)
     }
 

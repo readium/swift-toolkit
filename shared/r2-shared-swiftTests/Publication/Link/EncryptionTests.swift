@@ -7,15 +7,10 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
-import ObjectMapper
 import XCTest
 @testable import R2Shared
 
 class EncryptionTests: XCTestCase {
-    
-    func toJSON(_ publication: Encryption) -> String? {
-        return Mapper().toJSONString(publication)
-    }
     
     func testEmptyJSONSerialization() {
         let sut = Encryption()
@@ -34,7 +29,7 @@ class EncryptionTests: XCTestCase {
         sut.scheme = "http://scheme"
 
         XCTAssertEqual(toJSON(sut), """
-            {"profile":"http:\\/\\/profile","scheme":"http:\\/\\/scheme","compression":"gzip","algorithm":"http:\\/\\/algorithm","originalLength":12030}
+            {"algorithm":"http:\\/\\/algorithm","compression":"gzip","originalLength":12030,"profile":"http:\\/\\/profile","scheme":"http:\\/\\/scheme"}
             """)
     }
     

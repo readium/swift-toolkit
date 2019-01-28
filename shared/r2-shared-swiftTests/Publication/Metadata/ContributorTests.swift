@@ -7,15 +7,10 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
-import ObjectMapper
 import XCTest
 @testable import R2Shared
 
 class ContributorTests: XCTestCase {
-    
-    func toJSON(_ publication: Contributor) -> String? {
-        return Mapper().toJSONString(publication)
-    }
     
     func multilangString(_ title: String?, _ strings: [String: String] = [:]) -> MultilangString {
         let string = MultilangString()
@@ -45,9 +40,9 @@ class ContributorTests: XCTestCase {
         sut.identifier = "identifier"
         sut.roles = ["role1", "role2"]
         sut.links = [link("link1"), link("link2")]
-
+        
         XCTAssertEqual(toJSON(sut), """
-            {"name":"Name","sortAs":"sorting","roles":["role1","role2"],"identifier":"identifier"}
+            {"identifier":"identifier","name":"Name","roles":["role1","role2"],"sortAs":"sorting"}
             """)
     }
     
@@ -56,7 +51,7 @@ class ContributorTests: XCTestCase {
         sut.multilangName = multilangString("Michael", ["fr": "Mickaël", "en": "Michael"])
 
         XCTAssertEqual(toJSON(sut), """
-            {"name":{"fr":"Mickaël","en":"Michael"}}
+            {"name":{"en":"Michael","fr":"Mickaël"}}
             """)
     }
     

@@ -7,15 +7,10 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
-import ObjectMapper
 import XCTest
 @testable import R2Shared
 
 class LinkTests: XCTestCase {
-    
-    func toJSON(_ publication: Link) -> String? {
-        return Mapper().toJSONString(publication)
-    }
     
     func testEmptyJSONSerialization() {
         let sut = Link()
@@ -40,7 +35,7 @@ class LinkTests: XCTestCase {
         sut.bitrate = 50
         
         XCTAssertEqual(toJSON(sut), """
-            {"height":100,"href":"http:\\/\\/my.link","width":200,"title":"Title","type":"text\\/html","rel":["rel1","rel2"],"duration":120,"properties":{"orientation":"landscape"}}
+            {"duration":120,"height":100,"href":"http:\\/\\/my.link","properties":{"orientation":"landscape"},"rel":["rel1","rel2"],"title":"Title","type":"text\\/html","width":200}
             """)
     }
 

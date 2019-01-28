@@ -7,21 +7,16 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
-import ObjectMapper
 import XCTest
 @testable import R2Shared
 
 class MetadataTests: XCTestCase {
-
-    func toJSON(_ publication: Metadata) -> String? {
-        return Mapper().toJSONString(publication)
-    }
     
     func testEmptyJSONSerialization() {
         let sut = Metadata()
-        
+       
         XCTAssertEqual(toJSON(sut), """
-            {"languages":[],"title":"","subtitle":""}
+            {"languages":[],"title":""}
             """)
     }
     
@@ -106,7 +101,7 @@ class MetadataTests: XCTestCase {
         sut.duration = 56
         
         XCTAssertEqual(toJSON(sut), """
-            {"rendition":{"viewport":"1280x760","layout":"reflowable","flow":"paginated","spread":"landscape","orientation":"auto"},"source":"Source","pencilers":[{"name":"Penciler"}],"authors":[{"name":"Author"}],"editors":[{"name":"Editor"}],"languages":["fr","en"],"narrators":[{"name":"Narrator"}],"inkers":[{"name":"Inker"}],"letterers":[{"name":"Letterer"}],"artists":[{"name":"Artist"}],"colorists":[{"name":"Colorist"}],"identifier":"1234","modified":"2001-01-01T00:39:10+0000","published":"2016-09-02","subtitle":"Title","illustrators":[{"name":"Illustrator"}],"contributors":[{"name":"Contributor"}],"imprints":[{"name":"Imprint"}],"title":"Title","rights":"rights","translators":[{"name":"Translator"}],"publishers":[{"name":"Publisher 1"},{"name":"Publisher 2"}],"subjects":[{"name":"tourism"},{"name":"exploration"}]}
+            {"artists":[{"name":"Artist"}],"authors":[{"name":"Author"}],"colorists":[{"name":"Colorist"}],"contributors":[{"name":"Contributor"}],"editors":[{"name":"Editor"}],"identifier":"1234","illustrators":[{"name":"Illustrator"}],"imprints":[{"name":"Imprint"}],"inkers":[{"name":"Inker"}],"languages":["fr","en"],"letterers":[{"name":"Letterer"}],"modified":"2001-01-01T00:39:10+0000","narrators":[{"name":"Narrator"}],"pencilers":[{"name":"Penciler"}],"published":"2016-09-02","publishers":[{"name":"Publisher 1"},{"name":"Publisher 2"}],"rendition":{"flow":"paginated","layout":"reflowable","orientation":"auto","spread":"landscape","viewport":"1280x760"},"rights":"rights","source":"Source","subjects":[{"name":"tourism"},{"name":"exploration"}],"subtitle":"Subtitle","title":"Title","translators":[{"name":"Translator"}]}
             """)
     }
     
@@ -124,7 +119,7 @@ class MetadataTests: XCTestCase {
         sut.multilangSubtitle = multilangString(nil, ["fr": "Sous-titre"])
 
         XCTAssertEqual(toJSON(sut), """
-            {"languages":[],"title":{"fr":"Titre","de":"Titel"},"subtitle":{"fr":"Titre","de":"Titel"}}
+            {"languages":[],"subtitle":{"fr":"Sous-titre"},"title":{"de":"Titel","fr":"Titre"}}
             """)
     }
 

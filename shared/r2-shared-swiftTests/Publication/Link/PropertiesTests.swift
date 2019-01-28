@@ -7,15 +7,10 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
-import ObjectMapper
 import XCTest
 @testable import R2Shared
 
 class PropertiesTests: XCTestCase {
-    
-    func toJSON(_ publication: Properties) -> String? {
-        return Mapper().toJSONString(publication)
-    }
     
     func testEmptyJSONSerialization() {
         let sut = Properties()
@@ -45,7 +40,7 @@ class PropertiesTests: XCTestCase {
         sut.price = Price(currency: "EUR", value: 3.29)
 
         XCTAssertEqual(toJSON(sut), """
-            {"encryption":{"algorithm":"http:\\/\\/algorithm"},"page":"center","contains":["stuff","thing"],"spread":"auto","layout":"reflowable","mediaOverlay":"http:\\/\\/media-overlay-location.com","overflow":"paginated","orientation":"portrait"}
+            {"contains":["stuff","thing"],"encryption":{"algorithm":"http:\\/\\/algorithm"},"layout":"reflowable","mediaOverlay":"http:\\/\\/media-overlay-location.com","orientation":"portrait","overflow":"paginated","page":"center","spread":"auto"}
             """)
     }
     

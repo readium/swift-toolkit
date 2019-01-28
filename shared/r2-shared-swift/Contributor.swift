@@ -10,7 +10,6 @@
 //
 
 import Foundation
-import ObjectMapper
 
 /// Generated from <dc:contributor>.
 /// An entity responsible for making contributions to the resource.
@@ -32,26 +31,27 @@ public class Contributor {
 
     public init() {}
 
-    public required init?(map: Map) {}
-
 }
-extension Contributor: Mappable {
-    /// JSON Serialisation function.
-    public func mapping(map: Map) {
-        // If multiString is not empty, then serialize it.
-        if !multilangName.multiString.isEmpty {
-            multilangName.multiString <- map["name"]
-        } else {
-            var nameForSinglestring = multilangName.singleString ?? ""
 
-            nameForSinglestring <- map["name"]
-        }
-        sortAs <- map["sortAs", ignoreNil: true]
-        identifier <- map["identifier", ignoreNil: true]
-        if !roles.isEmpty {
-            roles <- map["roles", ignoreNil: true]
-        }
+extension Contributor: Encodable {
+    
+    enum CodingKeys: String, CodingKey {
+        case name
+        case sortAs
+        case identifier
+        case roles
     }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(identifier, forKey: .identifier)
+        try container.encode(multilangName, forKey: .name)
+        if !roles.isEmpty {
+            try container.encode(roles, forKey: .roles)
+        }
+        try container.encodeIfPresent(sortAs, forKey: .sortAs)
+    }
+    
 }
 
 // MARK: - Parsing related errors

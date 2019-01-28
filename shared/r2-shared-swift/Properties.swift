@@ -10,7 +10,6 @@
 //
 
 import Foundation
-import ObjectMapper
 
 /// Properties object used for `Link`s properties.
 public struct Properties {
@@ -42,12 +41,7 @@ public struct Properties {
     public var indirectAcquisition: [IndirectAcquisition]?
 
     public init() {}
-}
-
-extension Properties: Mappable {
-
-    public init?(map: Map) {}
-
+    
     /// Return a Boolean indicating wether the property contains informations or
     /// not.
     ///
@@ -61,18 +55,35 @@ extension Properties: Mappable {
         }
         return false
     }
+    
+}
 
-    /// JSON mapping utility function.
-    public mutating func mapping(map: Map) {
+
+extension Properties: Encodable {
+    
+    enum CodingKeys: String, CodingKey {
+        case contains
+        case encryption
+        case layout
+        case mediaOverlay
+        case orientation
+        case overflow
+        case page
+        case spread
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
         if !contains.isEmpty {
-            contains <- map["contains", ignoreNil: true]
+            try container.encode(contains, forKey: .contains)
         }
-        mediaOverlay <- map["mediaOverlay", ignoreNil: true]
-        encryption <- map["encryption", ignoreNil: true]
-        layout <- map["layout", ignoreNil: true]
-        orientation <- map["orientation", ignoreNil: true]
-        overflow <- map["overflow", ignoreNil: true]
-        page <- map["page", ignoreNil: true]
-        spread <- map["spread", ignoreNil: true]
-    }    
+        try container.encodeIfPresent(encryption, forKey: .encryption)
+        try container.encodeIfPresent(layout, forKey: .layout)
+        try container.encodeIfPresent(mediaOverlay, forKey: .mediaOverlay)
+        try container.encodeIfPresent(orientation, forKey: .orientation)
+        try container.encodeIfPresent(overflow, forKey: .overflow)
+        try container.encodeIfPresent(page, forKey: .page)
+        try container.encodeIfPresent(spread, forKey: .spread)
+    }
+        
 }

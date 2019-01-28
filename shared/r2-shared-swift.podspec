@@ -21,6 +21,5 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = "9.0"
   s.source       = { :git => "https://github.com/readium/r2-shared-swift.git", :tag => "#{s.version}" }
   s.source_files  = "r2-shared-swift/**/*"
-  s.dependency 'ObjectMapper', '~> 2.2'
 
 end

@@ -10,7 +10,6 @@
 //
 
 import Foundation
-import ObjectMapper
 
 /// A Link to a resource.
 public class Link {
@@ -44,8 +43,6 @@ public class Link {
 
     public init() {}
 
-    public required init?(map: Map) {}
-
     /// Check wether a link's resource is encrypted by checking is 
     /// properties.encrypted is set.
     ///
@@ -58,21 +55,35 @@ public class Link {
     }
 }
 
-extension Link: Mappable {
-    public func mapping(map: Map) {
-        href <- map["href", ignoreNil: true]
-        typeLink <- map["type", ignoreNil: true]
-        if !rel.isEmpty {
-            rel <- map["rel", ignoreNil: true]
-        }
-        height <- map["height", ignoreNil: true]
-        width <- map["width", ignoreNil: true]
-        duration <- map["duration", ignoreNil: true]
-        title <- map["title", ignoreNil: true]
-        if !properties.isEmpty() {
-            properties <- map["properties", ignoreNil: true]
-        }
+extension Link: Encodable {
+    
+    enum CodingKeys: String, CodingKey {
+        case duration
+        case height
+        case href
+        case properties
+        case rel
+        case title
+        case type
+        case width
     }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(duration, forKey: .duration)
+        try container.encodeIfPresent(height, forKey: .height)
+        try container.encodeIfPresent(href, forKey: .href)
+        if !properties.isEmpty() {
+            try container.encodeIfPresent(properties, forKey: .properties)
+        }
+        if !rel.isEmpty {
+            try container.encode(rel, forKey: .rel)
+        }
+        try container.encodeIfPresent(title, forKey: .title)
+        try container.encodeIfPresent(typeLink, forKey: .type)
+        try container.encodeIfPresent(width, forKey: .width)
+    }
+    
 }
 
 // MARK: - Parsing related errors

@@ -7,15 +7,10 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
-import ObjectMapper
 import XCTest
 @testable import R2Shared
 
 class RenditionTests: XCTestCase {
-    
-    func toJSON(_ publication: Rendition) -> String? {
-        return Mapper().toJSONString(publication)
-    }
     
     func testEmptyJSONSerialization() {
         let sut = Rendition()
@@ -34,7 +29,7 @@ class RenditionTests: XCTestCase {
         sut.viewport = "1280x720"
 
         XCTAssertEqual(toJSON(sut), """
-            {"viewport":"1280x720","layout":"reflowable","flow":"paginated","spread":"auto","orientation":"landscape"}
+            {"flow":"paginated","layout":"reflowable","orientation":"landscape","spread":"auto","viewport":"1280x720"}
             """)
     }
     
