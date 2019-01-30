@@ -10,10 +10,9 @@
 //
 
 import Foundation
-import ObjectMapper
 
 /// Contains metadata parsed from Encryption.xml.
-public struct Encryption {
+public struct Encryption: Encodable {
     /// Identifies the algorithm used to encrypt the resource.
     public var algorithm: String?
     /// Compression method used on the resource.
@@ -26,16 +25,13 @@ public struct Encryption {
     public var scheme: String?
 
     public init() {}
-}
 
-extension Encryption: Mappable {
-    public init?(map: Map) {}
-
-    public mutating func mapping(map: Map) {
-        algorithm <- map["algorithm", ignoreNil: true]
-        compression <- map["compression", ignoreNil: true]
-        originalLength <- map["originalLength", ignoreNil: true]
-        profile <- map["profile", ignoreNil: true]
-        scheme <- map["scheme", ignoreNil: true]
+    enum CodingKeys: String, CodingKey {
+        case algorithm
+        case compression
+        case originalLength
+        case profile
+        case scheme
     }
+
 }

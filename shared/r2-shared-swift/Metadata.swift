@@ -10,7 +10,6 @@
 //
 
 import Foundation
-import ObjectMapper
 
 /// The data representation of the <metadata> element of the ".opf" file.
 public class Metadata {
@@ -137,10 +136,6 @@ public class Metadata {
     public init() {
         direction = .Default
     }
-
-    required public init?(map: Map) {
-        direction = .Default
-    }
     
     /// Get the title for the given `lang`, if it exists in the dictionnary.
     ///
@@ -156,80 +151,96 @@ public class Metadata {
 }
 
 // JSON Serialisation extension.
-extension Metadata: Mappable {
-    public func mapping(map: Map) {
-        var modified = self.modified?.iso8601
-
-        identifier <- map["identifier", ignoreNil: true]
-        // If multiString is not empty, then serialize it.
-        if var titlesFromMultistring = multilangTitle?.multiString,
-            !titlesFromMultistring.isEmpty {
-            titlesFromMultistring <- map["title"]
-        } else {
-            var titleForSinglestring = multilangTitle?.singleString ?? ""
-
-            titleForSinglestring <- map["title"]
-        }
-        
-        if var subtitlesFromMultistring = multilangTitle?.multiString,
-            !subtitlesFromMultistring.isEmpty {
-            subtitlesFromMultistring <- map["subtitle"]
-        } else {
-            var subtitleForSinglestring = multilangTitle?.singleString ?? ""
-            subtitleForSinglestring <- map["subtitle"]
-        }
-        
-        languages <- map["languages", ignoreNil: true]
-        if !authors.isEmpty {
-            authors <- map["authors", ignoreNil: true]
-        }
-        if !translators.isEmpty {
-            translators <- map["translators", ignoreNil: true]
-        }
-        if !editors.isEmpty {
-            editors <- map["editors", ignoreNil: true]
-        }
+extension Metadata: Encodable {
+    
+    enum CodingKeys: String, CodingKey {
+        case artists
+        case authors
+        case colorists
+        case contributors
+        case identifier
+        case illustrators
+        case imprints
+        case inkers
+        case editors
+        case languages
+        case letterers
+        case modified
+        case narrators
+        case pencilers
+        case published
+        case publishers
+        case rendition
+        case rights
+        case source
+        case subjects
+        case subtitle
+        case title
+        case translators
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
         if !artists.isEmpty {
-            artists <- map["artists", ignoreNil: true]
+            try container.encode(artists, forKey: .artists)
         }
-        if !illustrators.isEmpty {
-            illustrators <- map["illustrators", ignoreNil: true]
-        }
-        if !letterers.isEmpty {
-            letterers <- map["letterers", ignoreNil: true]
-        }
-        if !pencilers.isEmpty {
-            pencilers <- map["pencilers", ignoreNil: true]
+        if !authors.isEmpty {
+            try container.encode(authors, forKey: .authors)
         }
         if !colorists.isEmpty {
-            colorists <- map["colorists", ignoreNil: true]
-        }
-        if !inkers.isEmpty {
-            inkers <- map["inkers", ignoreNil: true]
-        }
-        if !narrators.isEmpty {
-            narrators <- map["narrators", ignoreNil: true]
+            try container.encode(colorists, forKey: .colorists)
         }
         if !contributors.isEmpty {
-            contributors <- map["contributors", ignoreNil: true]
+            try container.encode(contributors, forKey: .contributors)
         }
-        if !publishers.isEmpty {
-            publishers <- map["publishers", ignoreNil: true]
+        try container.encodeIfPresent(identifier, forKey: .identifier)
+        if !illustrators.isEmpty {
+            try container.encode(illustrators, forKey: .illustrators)
         }
         if !imprints.isEmpty {
-            imprints <- map["imprints", ignoreNil: true]
+            try container.encode(imprints, forKey: .imprints)
         }
-        modified <- map["modified", ignoreNil: true]
-        published <- map["published", ignoreNil: true]
+        if !inkers.isEmpty {
+            try container.encode(inkers, forKey: .inkers)
+        }
+        if !editors.isEmpty {
+            try container.encode(editors, forKey: .editors)
+        }
+        try container.encode(languages, forKey: .languages)
+        if !letterers.isEmpty {
+            try container.encode(letterers, forKey: .letterers)
+        }
+        try container.encodeIfPresent(modified?.iso8601, forKey: .modified)
+        if !narrators.isEmpty {
+            try container.encode(narrators, forKey: .narrators)
+        }
+        if !pencilers.isEmpty {
+            try container.encode(pencilers, forKey: .pencilers)
+        }
+        try container.encodeIfPresent(published, forKey: .published)
+        if !publishers.isEmpty {
+            try container.encode(publishers, forKey: .publishers)
+        }
         if !rendition.isEmpty() {
-            rendition <- map["rendition", ignoreNil: true]
+            try container.encode(rendition, forKey: .rendition)
         }
-        source <- map["source", ignoreNil: true]
-        rights <- map["rights", ignoreNil: true]
+        try container.encodeIfPresent(rights, forKey: .rights)
+        try container.encodeIfPresent(source, forKey: .source)
         if !subjects.isEmpty {
-            subjects <- map["subjects", ignoreNil: true]
+            try container.encode(subjects, forKey: .subjects)
+        }
+        try container.encodeIfPresent(multilangSubtitle, forKey: .subtitle)
+        // title is required (https://readium.org/webpub-manifest/schema/extensions/epub/metadata.schema.json)
+        if let multilangTitle = multilangTitle {
+            try container.encode(multilangTitle, forKey: .title)
+        } else {
+            try container.encode("", forKey: .title)
+        }
+        if !translators.isEmpty {
+            try container.encode(translators, forKey: .translators)
         }
     }
+    
 }
 
 public enum PageProgressionDirection: String {

@@ -25,3 +25,16 @@ public class MultilangString {
 
     public init() {}
 }
+
+extension MultilangString: Encodable {
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        if multiString.isEmpty {
+            try container.encode(singleString ?? "")
+        } else {
+            try container.encode(multiString)
+        }
+    }
+    
+}

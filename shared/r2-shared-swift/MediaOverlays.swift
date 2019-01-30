@@ -10,7 +10,6 @@
 //
 
 import Foundation
-import ObjectMapper
 
 
 /// Errors related to MediaOverlays.

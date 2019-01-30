@@ -10,12 +10,11 @@
 //
 
 import Foundation
-import ObjectMapper
 
 /// The representation of EPUB publication, with its metadata, its spine and 
 /// other resources.
 /// It is created by the `EpubParser` from an EPUB file or directory.
-/// As it is extended by `Mappable`, it can be deserialized to `JSON`.
+/// As it extends `Encodable`, it can be serialized to `JSON`.
 public class Publication {
     /// The version of the publication, if the type needs any.
     public var version: Double
@@ -88,38 +87,52 @@ public class Publication {
     /// Return the serialized JSON for the Publication object: the WebPubManifest
     /// (canonical).
     public var manifest: String {
-        var jsonString = self.toJSONString(prettyPrint: true) ?? ""
-
-        jsonString = jsonString.replacingOccurrences(of: "\\", with: "")
-        return jsonString
+        let jsonEncoder = JSONEncoder()
+        jsonEncoder.outputFormatting.insert(.prettyPrinted);
+        
+        guard let jsonData = try? jsonEncoder.encode(self),
+            let json = String(data: jsonData, encoding: .utf8)
+            else {
+                return "{}"
+        }
+        
+        // Unescape slashes
+        return json.replacingOccurrences(of: "\\/", with: "/")
     }
 
     public var manifestCanonical: String {
-        // Not needed so far.
-        let canonicalPublication = self
-
-        // Remove links.
-        canonicalPublication.links = []
+        var manifest = manifestDictionnary
+        // Remove links from the canonical manifest
+        manifest.removeValue(forKey: CodingKeys.links.rawValue)
         
-        var jsonString = canonicalPublication.toJSONString(prettyPrint: false) ?? ""
-
-        jsonString = jsonString.replacingOccurrences(of: "\\", with: "")
-        return jsonString
+        var options = JSONSerialization.WritingOptions()
+        if #available(iOS 11.0, *) {
+            options.insert(.sortedKeys)
+        }
         
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: manifest, options: options),
+            let json = String(data: jsonData, encoding: .utf8)
+            else {
+                return "{}"
+        }
+        
+        // Unescape slashes
+        return json.replacingOccurrences(of: "\\/", with: "/")
     }
 
     /// Returns the JSON dictionnary.
     public var manifestDictionnary: [String: Any] {
-        return self.toJSON()
+        guard let jsonData = try? JSONEncoder().encode(self),
+              let manifestDict = try? JSONSerialization.jsonObject(with: jsonData),
+              let manifest = manifestDict as? [String: Any]
+        else {
+            return [:]
+        }
+        
+        return manifest
     }
 
     public init() {
-        version = 0.0
-        metadata = Metadata()
-    }
-
-    /// Mappable JSON protocol initializer
-    required public init?(map: Map) {
         version = 0.0
         metadata = Metadata()
     }
@@ -228,36 +241,49 @@ public class Publication {
     }
 }
 
-extension Publication: Mappable {
-
-    /// Mapping declaration
-    public func mapping(map: Map) {
-        metadata <- map["metadata", ignoreNil: true]
-        if !links.isEmpty {
-            links <- map["links", ignoreNil: true]
-        }
-        if !spine.isEmpty {
-            spine <- map["spine", ignoreNil: true]
-        }
-        if !resources.isEmpty {
-            resources <- map["resources", ignoreNil: true]
-        }
-        if !tableOfContents.isEmpty {
-            tableOfContents <- map["toc", ignoreNil: true]
-        }
-        if !pageList.isEmpty {
-            pageList <- map["page-list", ignoreNil: true]
-        }
+extension Publication: Encodable {
+    
+    enum CodingKeys: String, CodingKey {
+        case landmarks
+        case links
+        case listOfIllustrations = "loi"
+        case listOfTables = "lot"
+        case metadata
+        case pageList = "page-list"
+        case resources
+        case spine
+        case tableOfContents = "toc"
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
         if !landmarks.isEmpty {
-            landmarks <- map["landmarks", ignoreNil: true]
+            try container.encode(landmarks, forKey: .landmarks)
+        }
+        if !links.isEmpty {
+            try container.encode(links, forKey: .links)
         }
         if !listOfIllustrations.isEmpty {
-            listOfIllustrations <- map["loi", ignoreNil: true]
+            try container.encode(listOfIllustrations, forKey: .listOfIllustrations)
         }
         if !listOfTables.isEmpty {
-            listOfTables <- map["lot", ignoreNil: true]
+            try container.encode(listOfTables, forKey: .listOfTables)
+        }
+        try container.encode(metadata, forKey: .metadata)
+        if !pageList.isEmpty {
+            try container.encode(pageList, forKey: .pageList)
+        }
+        if !resources.isEmpty {
+            try container.encode(resources, forKey: .resources)
+        }
+        if !spine.isEmpty {
+            try container.encode(spine, forKey: .spine)
+        }
+        if !tableOfContents.isEmpty {
+            try container.encode(tableOfContents, forKey: .tableOfContents)
         }
     }
+
 }
 
 /// List of strings that can identify a user setting

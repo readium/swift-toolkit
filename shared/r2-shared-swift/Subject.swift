@@ -10,13 +10,12 @@
 //
 
 import Foundation
-import ObjectMapper
 
 /// WebPub manifest spec
 /// https://github.com/readium/webpub-manifest/blob/master/contexts/default/definitions.md#subjects
 /// Epub 3.1
 /// http://www.idpf.org/epub/31/spec/epub-packages.html#sec-opf-dcsubject
-public class Subject {
+public class Subject: Encodable {
     public var name: String?
     /// The WebPubManifest elements
     public var sortAs: String?
@@ -29,14 +28,11 @@ public class Subject {
     
     public init() {}
     
-    public required init?(map: Map) {}
-}
-
-extension Subject: Mappable {
-    public func mapping(map: Map) {
-        name <- map["name", ignoreNil: true]
-        sortAs <- map["sortAs", ignoreNil: true]
-        scheme <- map["scheme", ignoreNil: true]
-        code <- map["code", ignoreNil: true]
+    enum CodingKeys: String, CodingKey {
+        case name
+        case sortAs
+        case scheme
+        case code
     }
+    
 }
