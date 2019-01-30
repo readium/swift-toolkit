@@ -270,10 +270,10 @@ public class PublicationServer {
 
         /// The webserver handler to process the HTTP GET
         func manifestHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
-            let manifestJSON = publication.toJSONString()
+            let manifestJSON = publication.manifestCanonical
             let type = "application/webpub+json; charset=utf-8"
 
-            guard let manifestData = manifestJSON?.data(using: .utf8) else {
+            guard let manifestData = manifestJSON.data(using: .utf8) else {
                 return GCDWebServerResponse(statusCode: 404)
             }
             return GCDWebServerDataResponse(data: manifestData, contentType: type)
