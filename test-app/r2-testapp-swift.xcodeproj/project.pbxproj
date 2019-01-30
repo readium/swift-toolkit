@@ -70,7 +70,6 @@
 		0350FD0A211CD2CB006994C2 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7648206A5F1A00C3C24E /* SQLite.framework */; };
 		0350FD0B211CD2CB006994C2 /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */; };
 		0350FD0C211CD2CB006994C2 /* MBProgressHUD.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03804905211662D7009F48BD /* MBProgressHUD.framework */; };
-		0350FD0D211CD2CB006994C2 /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764A206A5F1A00C3C24E /* ObjectMapper.framework */; };
 		0350FD0E211CD2CB006994C2 /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */; };
 		0350FD0F211CD2CB006994C2 /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03D011F1208023360097A87C /* Minizip.framework */; };
 		0350FD10211CD2CB006994C2 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764D206A5F1A00C3C24E /* AEXML.framework */; };
@@ -131,7 +130,6 @@
 		0350FD5E211CD625006994C2 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7648206A5F1A00C3C24E /* SQLite.framework */; };
 		0350FD5F211CD625006994C2 /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */; };
 		0350FD60211CD625006994C2 /* MBProgressHUD.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03804905211662D7009F48BD /* MBProgressHUD.framework */; };
-		0350FD61211CD625006994C2 /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764A206A5F1A00C3C24E /* ObjectMapper.framework */; };
 		0350FD62211CD625006994C2 /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */; };
 		0350FD63211CD625006994C2 /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03D011F1208023360097A87C /* Minizip.framework */; };
 		0350FD64211CD625006994C2 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764D206A5F1A00C3C24E /* AEXML.framework */; };
@@ -188,7 +186,6 @@
 		0350FDA3211CD634006994C2 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7648206A5F1A00C3C24E /* SQLite.framework */; };
 		0350FDA4211CD634006994C2 /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */; };
 		0350FDA5211CD634006994C2 /* MBProgressHUD.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03804905211662D7009F48BD /* MBProgressHUD.framework */; };
-		0350FDA7211CD634006994C2 /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764A206A5F1A00C3C24E /* ObjectMapper.framework */; };
 		0350FDA8211CD634006994C2 /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */; };
 		0350FDA9211CD634006994C2 /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03D011F1208023360097A87C /* Minizip.framework */; };
 		0350FDAA211CD634006994C2 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764D206A5F1A00C3C24E /* AEXML.framework */; };
@@ -224,7 +221,6 @@
 		03EF7653206A5F1A00C3C24E /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7647206A5F1900C3C24E /* CryptoSwift.framework */; };
 		03EF7654206A5F1A00C3C24E /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7648206A5F1A00C3C24E /* SQLite.framework */; };
 		03EF7655206A5F1A00C3C24E /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */; };
-		03EF7656206A5F1A00C3C24E /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764A206A5F1A00C3C24E /* ObjectMapper.framework */; };
 		03EF7658206A5F1A00C3C24E /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */; };
 		03EF7659206A5F1A00C3C24E /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764D206A5F1A00C3C24E /* AEXML.framework */; };
 		03EF765A206A5F1A00C3C24E /* PromiseKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764E206A5F1A00C3C24E /* PromiseKit.framework */; };
@@ -349,7 +345,6 @@
 		03EF7647206A5F1900C3C24E /* CryptoSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoSwift.framework; path = Carthage/Build/iOS/CryptoSwift.framework; sourceTree = "<group>"; };
 		03EF7648206A5F1A00C3C24E /* SQLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SQLite.framework; path = Carthage/Build/iOS/SQLite.framework; sourceTree = "<group>"; };
 		03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ZIPFoundation.framework; path = Carthage/Build/iOS/ZIPFoundation.framework; sourceTree = "<group>"; };
-		03EF764A206A5F1A00C3C24E /* ObjectMapper.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ObjectMapper.framework; path = Carthage/Build/iOS/ObjectMapper.framework; sourceTree = "<group>"; };
 		03EF764B206A5F1A00C3C24E /* R2Streamer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Streamer.framework; path = Carthage/Build/iOS/R2Streamer.framework; sourceTree = "<group>"; };
 		03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
 		03EF764D206A5F1A00C3C24E /* AEXML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AEXML.framework; path = Carthage/Build/iOS/AEXML.framework; sourceTree = "<group>"; };
@@ -421,7 +416,6 @@
 				0350FD0B211CD2CB006994C2 /* ZIPFoundation.framework in Frameworks */,
 				0350FD0C211CD2CB006994C2 /* MBProgressHUD.framework in Frameworks */,
 				0318D241211CEB5B009B6727 /* R2Streamer.framework in Frameworks */,
-				0350FD0D211CD2CB006994C2 /* ObjectMapper.framework in Frameworks */,
 				0350FD0E211CD2CB006994C2 /* SwiftyJSON.framework in Frameworks */,
 				0350FD0F211CD2CB006994C2 /* Minizip.framework in Frameworks */,
 				0350FD10211CD2CB006994C2 /* AEXML.framework in Frameworks */,
@@ -446,7 +440,6 @@
 				03E1FD39211CE50500D4A320 /* R2LCPClient.framework in Frameworks */,
 				0350FD5F211CD625006994C2 /* ZIPFoundation.framework in Frameworks */,
 				0350FD60211CD625006994C2 /* MBProgressHUD.framework in Frameworks */,
-				0350FD61211CD625006994C2 /* ObjectMapper.framework in Frameworks */,
 				0350FD62211CD625006994C2 /* SwiftyJSON.framework in Frameworks */,
 				03E1FD3C211CE50500D4A320 /* ReadiumLCP.framework in Frameworks */,
 				0350FD63211CD625006994C2 /* Minizip.framework in Frameworks */,
@@ -469,7 +462,6 @@
 				033936DE211CD83F00F980B8 /* ReadiumOPDS.framework in Frameworks */,
 				0350FDA4211CD634006994C2 /* ZIPFoundation.framework in Frameworks */,
 				0350FDA5211CD634006994C2 /* MBProgressHUD.framework in Frameworks */,
-				0350FDA7211CD634006994C2 /* ObjectMapper.framework in Frameworks */,
 				0350FDA8211CD634006994C2 /* SwiftyJSON.framework in Frameworks */,
 				0350FDA9211CD634006994C2 /* Minizip.framework in Frameworks */,
 				033936DB211CD83F00F980B8 /* ReadiumLCP.framework in Frameworks */,
@@ -495,7 +487,6 @@
 				03EF7654206A5F1A00C3C24E /* SQLite.framework in Frameworks */,
 				03EF7655206A5F1A00C3C24E /* ZIPFoundation.framework in Frameworks */,
 				03804906211662D7009F48BD /* MBProgressHUD.framework in Frameworks */,
-				03EF7656206A5F1A00C3C24E /* ObjectMapper.framework in Frameworks */,
 				03EF7658206A5F1A00C3C24E /* SwiftyJSON.framework in Frameworks */,
 				03D011F2208023360097A87C /* Minizip.framework in Frameworks */,
 				03EF7659206A5F1A00C3C24E /* AEXML.framework in Frameworks */,
@@ -645,7 +636,6 @@
 				03EF7647206A5F1900C3C24E /* CryptoSwift.framework */,
 				03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */,
 				03EF764F206A5F1A00C3C24E /* Kingfisher.framework */,
-				03EF764A206A5F1A00C3C24E /* ObjectMapper.framework */,
 				03EF764E206A5F1A00C3C24E /* PromiseKit.framework */,
 				03EF7650206A5F1A00C3C24E /* R2Navigator.framework */,
 				03EF7646206A5F1900C3C24E /* R2Shared.framework */,
@@ -945,7 +935,6 @@
 				"$(SRCROOT)/Carthage/Build/iOS/CryptoSwift.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/GCDWebServers.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/Kingfisher.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/ObjectMapper.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/PromiseKit.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/SQLite.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/SwiftyJSON.framework",
@@ -971,7 +960,6 @@
 				"$(SRCROOT)/Carthage/Build/iOS/CryptoSwift.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/GCDWebServers.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/Kingfisher.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/ObjectMapper.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/PromiseKit.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/SQLite.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/SwiftyJSON.framework",
@@ -1001,7 +989,6 @@
 				"$(SRCROOT)/Carthage/Build/iOS/CryptoSwift.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/GCDWebServers.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/Kingfisher.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/ObjectMapper.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/PromiseKit.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/SQLite.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/SwiftyJSON.framework",
@@ -1027,7 +1014,6 @@
 				"$(SRCROOT)/Carthage/Build/iOS/CryptoSwift.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/GCDWebServers.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/Kingfisher.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/ObjectMapper.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/PromiseKit.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/SQLite.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/SwiftyJSON.framework",
