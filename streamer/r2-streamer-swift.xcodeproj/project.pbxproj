@@ -46,7 +46,6 @@
 		F3E6A2D61E70111500BBD81C /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E6A2D51E70111500BBD81C /* Logger.swift */; };
 		F3E6A2D81E70113600BBD81C /* LoggerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E6A2D71E70113600BBD81C /* LoggerStub.swift */; };
 		F3E7D4251F4ED05F00DF166D /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D4241F4ED05F00DF166D /* R2Shared.framework */; };
-		F3E7D4261F4EDD7800DF166D /* ObjectMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */; };
 		F3ED92D61E9F702E00E15C8F /* FontDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3ED92D51E9F702E00E15C8F /* FontDecoder.swift */; };
 		F3ED92DA1EA0AF0000E15C8F /* DataInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3ED92D91EA0AF0000E15C8F /* DataInputStream.swift */; };
 		F3ED92DC1EA0C93F00E15C8F /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3ED92DB1EA0C93F00E15C8F /* CryptoSwift.framework */; };
@@ -74,7 +73,6 @@
 		59501E011E2FB16600D1B4BF /* ZipArchive.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZipArchive.swift; sourceTree = "<group>"; };
 		59501E181E2FB1F500D1B4BF /* AEXML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AEXML.framework; path = Carthage/Build/iOS/AEXML.framework; sourceTree = "<group>"; };
 		59501E191E2FB1F500D1B4BF /* GCDWebServers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDWebServers.framework; path = Carthage/Build/iOS/GCDWebServers.framework; sourceTree = "<group>"; };
-		59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ObjectMapper.framework; path = Carthage/Build/iOS/ObjectMapper.framework; sourceTree = "<group>"; };
 		59501E1F1E2FB2AD00D1B4BF /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		AEBE1F3C20EF903700418960 /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = fonts; sourceTree = "<group>"; };
 		F300FA361F8E1D7700442332 /* DrmDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DrmDecoder.swift; path = Sources/fetcher/DrmDecoder.swift; sourceTree = SOURCE_ROOT; };
@@ -114,7 +112,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F3E7D4261F4EDD7800DF166D /* ObjectMapper.framework in Frameworks */,
 				F3E7D4251F4ED05F00DF166D /* R2Shared.framework in Frameworks */,
 				03D011F0208020270097A87C /* Minizip.framework in Frameworks */,
 				59501E201E2FB2AD00D1B4BF /* libz.tbd in Frameworks */,
@@ -244,7 +241,6 @@
 				59501E1F1E2FB2AD00D1B4BF /* libz.tbd */,
 				59501E181E2FB1F500D1B4BF /* AEXML.framework */,
 				59501E191E2FB1F500D1B4BF /* GCDWebServers.framework */,
-				59501E1A1E2FB1F500D1B4BF /* ObjectMapper.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -394,7 +390,6 @@
 			);
 			inputPaths = (
 				"$(SRCROOT)/Carthage/Build/iOS/AEXML.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/ObjectMapper.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/GCDWebServers.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/CryptoSwift.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/Minizip.framework",
