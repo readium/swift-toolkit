@@ -74,7 +74,7 @@ public enum RenditionSpread: String, Encodable {
 /// The information relative to the rendering of the publication.
 /// It includes if it's reflowable or pre-paginated, the orientation, the synthetic spread
 /// behaviour and if the content flow should be scrolled, continuous or paginated.
-public class Rendition {
+public class Rendition: Encodable {
     /// The rendition layout (reflowable or fixed).
     public var layout: RenditionLayout?
     /// The rendition flow.
@@ -97,10 +97,6 @@ public class Rendition {
         }
         return false
     }
-
-}
-
-extension Rendition: Encodable {
     
     enum CodingKeys: String, CodingKey {
         case layout
