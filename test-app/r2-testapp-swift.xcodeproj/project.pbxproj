@@ -243,6 +243,10 @@
 		AE53A076208F62D200737838 /* OPDSGroupCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */; };
 		AE955A2120EBA74B00A0D8D8 /* AssociatedColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */; };
 		AED681F220A32EBA0090DBCD /* OPDSPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AED681F120A32EBA0090DBCD /* OPDSPlaceholderView.swift */; };
+		CA07DE1A22036FF600BB0C86 /* AppDelegate+LCP.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA07DE1922036FF600BB0C86 /* AppDelegate+LCP.swift */; };
+		CA07DE1B2203729000BB0C86 /* AppDelegate+LCP.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA07DE1922036FF600BB0C86 /* AppDelegate+LCP.swift */; };
+		CA07DE1C2203729000BB0C86 /* AppDelegate+LCP.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA07DE1922036FF600BB0C86 /* AppDelegate+LCP.swift */; };
+		CA07DE1D2203729100BB0C86 /* AppDelegate+LCP.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA07DE1922036FF600BB0C86 /* AppDelegate+LCP.swift */; };
 		F30AEE7A1FC312EA0073C9FD /* DetailsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */; };
 		F30AEE7D1FC316430073C9FD /* Details.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F30AEE7C1FC316430073C9FD /* Details.storyboard */; };
 		F3120DE71FACB08E009ACFAD /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
@@ -334,7 +338,7 @@
 		0350FD29211CD2CB006994C2 /* r2-testapp-swift (submodules)-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "r2-testapp-swift (submodules)-Info.plist"; path = "/Volumes/Data/EDRLab/Swift-Workspace/r2-workspace-swift/r2-testapp-swift/r2-testapp-swift (submodules)-Info.plist"; sourceTree = "<absolute>"; };
 		0350FD7C211CD625006994C2 /* r2-testapp-swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0350FD7D211CD625006994C2 /* r2-testapp-swift (carthage-with-lcp)-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "r2-testapp-swift (carthage-with-lcp)-Info.plist"; path = "/Volumes/Data/EDRLab/Swift-Workspace/r2-workspace-swift/r2-testapp-swift/r2-testapp-swift (carthage-with-lcp)-Info.plist"; sourceTree = "<absolute>"; };
-		0350FDC8211CD634006994C2 /* r2-testapp-swift (submodules with lcp).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift (submodules with lcp).app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0350FDC8211CD634006994C2 /* r2-testapp-swift (submodules with lcp).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "r2-testapp-swift (submodules with lcp).app"; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0350FDC9211CD634006994C2 /* r2-testapp-swift (submodules-with-lcp)-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "r2-testapp-swift (submodules-with-lcp)-Info.plist"; path = "/Volumes/Data/EDRLab/Swift-Workspace/r2-workspace-swift/r2-testapp-swift/r2-testapp-swift (submodules-with-lcp)-Info.plist"; sourceTree = "<absolute>"; };
 		03804905211662D7009F48BD /* MBProgressHUD.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MBProgressHUD.framework; path = Carthage/Build/iOS/MBProgressHUD.framework; sourceTree = "<group>"; };
 		0380490A21166627009F48BD /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
@@ -371,6 +375,7 @@
 		AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSGroupCollectionViewCell.swift; sourceTree = "<group>"; };
 		AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssociatedColors.swift; sourceTree = "<group>"; };
 		AED681F120A32EBA0090DBCD /* OPDSPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPlaceholderView.swift; sourceTree = "<group>"; };
+		CA07DE1922036FF600BB0C86 /* AppDelegate+LCP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+LCP.swift"; sourceTree = "<group>"; };
 		F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsTableViewController.swift; sourceTree = "<group>"; };
 		F30AEE7C1FC316430073C9FD /* Details.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Details.storyboard; sourceTree = "<group>"; };
 		F32980EE1F7D467B00BDEAF4 /* 1.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 1.epub; sourceTree = "<group>"; };
@@ -599,6 +604,7 @@
 				AE2B6A8820889C8700C12072 /* AppMain.storyboard */,
 				F3E7D4471F4EF6D400DF166D /* r2-testapp-swift (carthage)-Info.plist */,
 				F3E7D43B1F4EF6D400DF166D /* AppDelegate.swift */,
+				CA07DE1922036FF600BB0C86 /* AppDelegate+LCP.swift */,
 				F3E7D47B1F4F03B800DF166D /* UIImageExtension.swift */,
 				AE37DE422093291600079AA2 /* AboutTableViewController.swift */,
 				F3E7D4731F4F030300DF166D /* Library */,
@@ -1068,6 +1074,7 @@
 				0350FCFE211CD2CB006994C2 /* BookmarkDatabase.swift in Sources */,
 				0350FCFF211CD2CB006994C2 /* UserSettingsNavigationController.swift in Sources */,
 				0350FD00211CD2CB006994C2 /* DetailsTableViewController.swift in Sources */,
+				CA07DE1B2203729000BB0C86 /* AppDelegate+LCP.swift in Sources */,
 				0350FD01211CD2CB006994C2 /* BookmarkCell.swift in Sources */,
 				0350FD02211CD2CB006994C2 /* AboutTableViewController.swift in Sources */,
 			);
@@ -1105,6 +1112,7 @@
 				0350FD52211CD625006994C2 /* BookmarkDatabase.swift in Sources */,
 				0350FD53211CD625006994C2 /* UserSettingsNavigationController.swift in Sources */,
 				0350FD54211CD625006994C2 /* DetailsTableViewController.swift in Sources */,
+				CA07DE1C2203729000BB0C86 /* AppDelegate+LCP.swift in Sources */,
 				0350FD55211CD625006994C2 /* BookmarkCell.swift in Sources */,
 				0350FD56211CD625006994C2 /* AboutTableViewController.swift in Sources */,
 			);
@@ -1142,6 +1150,7 @@
 				0350FD99211CD634006994C2 /* BookmarkDatabase.swift in Sources */,
 				0350FD9A211CD634006994C2 /* UserSettingsNavigationController.swift in Sources */,
 				0350FD9B211CD634006994C2 /* DetailsTableViewController.swift in Sources */,
+				CA07DE1D2203729100BB0C86 /* AppDelegate+LCP.swift in Sources */,
 				0350FD9C211CD634006994C2 /* BookmarkCell.swift in Sources */,
 				0350FD9D211CD634006994C2 /* AboutTableViewController.swift in Sources */,
 			);
@@ -1179,6 +1188,7 @@
 				571585F12109E8F9008B34AD /* BookmarkDatabase.swift in Sources */,
 				F3DCFFBE1F7CE0610056BA37 /* UserSettingsNavigationController.swift in Sources */,
 				F30AEE7A1FC312EA0073C9FD /* DetailsTableViewController.swift in Sources */,
+				CA07DE1A22036FF600BB0C86 /* AppDelegate+LCP.swift in Sources */,
 				571585F02109E8F9008B34AD /* BookmarkCell.swift in Sources */,
 				AE37DE432093291600079AA2 /* AboutTableViewController.swift in Sources */,
 			);

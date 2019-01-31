@@ -16,11 +16,6 @@ import R2Streamer
 import PromiseKit
 import CryptoSwift
 
-#if LCP
-import ReadiumLCP
-import R2LCPClient
-#endif
-
 struct Location {
     let absolutePath: String
     let relativePath: String
@@ -81,7 +76,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return addPublicationToLibrary(url: url, needUIUpdate: true)
     }
     
-    fileprivate func showInfoAlert(title: String, message: String) {
+    func showInfoAlert(title: String, message: String) {
         let alert = UIAlertController(title: "", message: "", preferredStyle: .alert)
         let dismissButton = UIAlertAction(title: "OK", style: .cancel)
         
@@ -99,7 +94,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
     }
 
-    fileprivate func reload(downloadTask: URLSessionDownloadTask?) {
+    func reload(downloadTask: URLSessionDownloadTask?) {
         // Update library publications.
         
         guard let theDownloadTask = downloadTask else {
@@ -139,33 +134,10 @@ extension AppDelegate {
         }
         
         switch url.pathExtension {
-        #if LCP
+#if LCP
         case "lcpl":
-            showInfoAlert(title: "Importing", message: "R2Reader is trying to import the LCP publication and will be available soon.")
-            // Retrieve publication using the LCPL.
-            firstly { () -> Promise<(URL, URLSessionDownloadTask?)> in
-                let session = try LcpSession(licenseDocument: documentsUrl)
-                return session.downloadPublication()
-                
-            }.then { (publicationUrl, downloadTask)-> Void in
-
-                /// Parse publication. (tomove?)
-                if self.lightParsePublication(at: Location(absolutePath: publicationUrl.path,
-                                                           relativePath: "",
-                                                           type: .epub)) {
-
-                    self.reload(downloadTask: downloadTask)
-                } else {
-                    self.showInfoAlert(title: "Error", message: "The LCP Publication couldn't be loaded.")
-                }
-            }.catch { error in
-                print("Error -- \(error.localizedDescription)")
-                self.showInfoAlert(title: "Error", message: error.localizedDescription)
-                if FileManager.default.fileExists(atPath: documentsUrl.path) {
-                    try? FileManager.default.removeItem(at: documentsUrl)
-                }
-            }
-        #endif
+            importLcpPublication(documentsUrl)
+#endif
         default:
             
             /// Add the publication to the publication server.
@@ -383,259 +355,32 @@ extension AppDelegate: LibraryViewControllerDelegate {
             completion(nil, nil)
             return
         }
+        
         let publicationPath = item.0.associatedContainer.rootFile.rootPath
-        #if LCP
-        // Drm handling.
-        switch drm.brand {
-        case .lcp:
-            try handleLcpPublication(atPath: publicationPath,
-                                     with: drm,
-                                     parsingCallback: parsingCallback,
-                                     completion)
-        }
-        #endif
-    }
-    
-    #if LCP
-    /// Handle the processing of a publication protected with a LCP DRM.
-    ///
-    /// - Parameters:
-    ///   - publicationPath: The path of the publication.
-    ///   - drm: The drm object associated with the Publication.
-    ///   - completion: The completion handler.
-    /// - Throws: .
-    
-    @objc func fetchCRL(success: ((String)->Void)? = nil,
-                        fail: (() -> Void)? = nil) {
-        // Get Certificat Revocation List. from "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl"
-        guard let url = URL(string: "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl") else {
-            //reject(LcpError.crlFetching)
-            fail?()
-            return
-        }
-        
-        let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, response, error) in
-            guard let httpResponse = response as? HTTPURLResponse else {
-                if let _ = error {fail?()}
-                return
-            }
-            if error == nil {
-                switch httpResponse.statusCode {
-                case 200:
-                    // update the status document
-                    if let data = data {
-                        let pem = "-----BEGIN X509 CRL-----\(data.base64EncodedString())-----END X509 CRL-----";
-                        success?(pem)
-                    }
-                default:
-                    fail?()
-                }
-            } else {fail?()}
-        })
-        task.resume()
-    }
-    
-    func handleLcpPublication(atPath publicationPath: String, with drm: Drm,
-                              parsingCallback: @escaping PubParsingCallback,
-                              _ completion: @escaping (Drm?, Error?) -> Void) throws
-    {
-        guard let epubUrl = URL.init(string: publicationPath) else {
-            print("URL error")
-            return
-        }
-        
-        let kCRLDate = "kCRLDate"
-        let kCRLString = "kCRLString"
-        
-        let updateCRL = { (newCRL:String) -> Void in
-            UserDefaults.standard.set(newCRL, forKey: kCRLString)
-            UserDefaults.standard.set(Date(), forKey: kCRLDate)
-        }
-        
-        let session = try LcpSession.init(protectedEpubUrl: epubUrl)
-        
-        func validatePassphrase(passphraseHash: String) -> Promise<LcpLicense> {
-            return firstly {
-                
-                let promiseCRL =  { () -> Promise<String> in
-                    return Promise<String> { fulfill, reject in
-                        let fallback:(()->Void) = { () -> Void in
-                            let stringCRL = UserDefaults.standard.value(forKey: "kCRLString") as? String
-                            //let dateCRL = UserDefaults.standard.value(forKey: "kCRLStringUpdatedDate") as? Date
-                            fulfill(stringCRL ?? "")
-                        }
-                        self.fetchCRL(success: { (pem:String) in
-                            updateCRL(pem)
-                            fulfill(pem)
-                        }, fail: {
-                            fallback()
-                        })
-                    }
-                }
-                
-                guard let updatedDate = UserDefaults.standard.value(forKey: kCRLDate) as? Date else {
-                    return promiseCRL()
-                }
-                
-                let calendar = NSCalendar.current
-                
-                let updatedCal = calendar.startOfDay(for: updatedDate)
-                let currentCal = calendar.startOfDay(for: Date())
-                
-                let components = calendar.dateComponents([.day], from: updatedCal, to: currentCal)
-                let dayCount = components.day ?? Int.max
-                if dayCount < 7 {
-                    guard let stringCRL = UserDefaults.standard.value(forKey: kCRLString) as? String else {
-                        return promiseCRL()
-                    }
-                    return Promise<String> { fulfill, reject in
-                        fulfill(stringCRL)
-                    }
-                } else {
-                    return promiseCRL()
-                }
-                
-                }.then { pemCrl -> Promise<LcpLicense> in
-                    // Get a decipherer object for the given passphrase,
-                    // also checking that it's not revoqued using the crl.
-                    return session.resolve(using: passphraseHash, pemCrl: pemCrl)
-            }
-        }
-        
-        // Fonction used in the async code below.
-        func promptPassphrase(reason:String? = nil) -> Promise<String> {
-            let hint = session.getHint()
-            
-            return firstly {
-                self.promptPassphrase(hint, reason: reason)
-                }.then { clearPassphrase -> Promise<String?> in
-                    let passphraseHash = clearPassphrase.sha256()
-                    
-                    return session.checkPassphrases([passphraseHash])
-                }.then { validPassphraseHash -> Promise<String> in
-                    guard let validPassphraseHash = validPassphraseHash else {
-                        throw LcpError.unknown
-                    }
-                    try session.storePassphrase(validPassphraseHash)
-                    return Promise(value: validPassphraseHash)
-            }
-        }
-        
-        //https://stackoverflow.com/questions/30523285/how-do-i-create-an-inline-recursive-closure-in-swift
-        // Quick fix for error catch, because it's using Promise and there are so many func(closure) with captured values, there will be alot trouble to make them as seprated funcions. That's a dirty fix, shoud be refactored later all together.
-        var catchError:((Error) -> Void)!
-        catchError = { error in
-            
-            guard let lcpClientError = error as? LCPClientError else {
-                
-                if ((error as NSError) != NSError.cancelledError()) {
-                    self.showInfoAlert(title: "Error", message: error.localizedDescription)
-                }
-                completion(nil, error)
-                return
-            }
-            
-            let askPassphrase = { (reason: String) -> Void in
-                firstly {
-                    return promptPassphrase(reason: reason)
-                    }.then { passphraseHash -> Promise<LcpLicense> in
-                        return validatePassphrase(passphraseHash: passphraseHash)
-                    }.then { lcpLicense -> Void in
-                        
-                        var drm = drm
-                        drm.license = lcpLicense
-                        drm.profile = session.getProfile()
-                        /// Update container.drm to drm and parse the remaining elements.
-                        try? parsingCallback(drm)
-                        // Tell the caller than we done.
-                        completion(drm, nil)
-                    }.catch(policy: CatchPolicy.allErrors, execute:catchError)
-            }
-            
-            switch lcpClientError {
-            case .userKeyCheckInvalid:
-                askPassphrase("LCP Passphrase updated")
-            case .noValidPassphraseFound:
-                askPassphrase("Wrong LCP Passphrase")
-            default:
+        try loadDrmProtectedPublication(atPath: publicationPath, with: drm) { parsedDrm, error in
+            if let error = error as? LocalizedError {
                 self.showInfoAlert(title: "Error", message: error.localizedDescription)
-                completion(nil, nil)
-                return
             }
-        }
-        
-        // get passphrase from DB, if not found prompt user, validate, go on
-        firstly {
-            // 1/ Validate the license structure (Nothing yet)
-            try session.validateLicense()
-            }.then { _ in
-                // 2/ Get the passphrase associated with the license
-                // 2.1/ Check if a passphrase hash has already been stored for the license.
-                // 2.2/ Check if one or more passphrase hash associated with
-                //      licenses from the same provider have been stored.
-                //      + calls the r2-lcp-client library  to validate it.
-                try session.passphraseFromDb()
-            }.then { passphraseHash -> Promise<String> in
-                switch passphraseHash {
-                // In case passphrase from db isn't found/valid.
-                case nil:
-                    // 3/ Display the hint and ask the passphrase to the user.
-                    //      + calls the r2-lcp-client library  to validate it.
-                    return promptPassphrase()
-                // Passphrase from db was already ok.
-                default:
-                    return Promise(value: passphraseHash!)
-                }
-            }.then { passphraseHash -> Promise<LcpLicense> in
-                return validatePassphrase(passphraseHash: passphraseHash)
-            }.then { lcpLicense -> Void in
-                var drm = drm
-                
-                drm.license = lcpLicense
-                drm.profile = session.getProfile()
+            
+            if let parsedDrm = parsedDrm {
                 /// Update container.drm to drm and parse the remaining elements.
-                try? parsingCallback(drm)
-                // Tell the caller than we done.
-                completion(drm, nil)
-            }.catch(policy: CatchPolicy.allErrors, execute:catchError)
-    }
-    
-    // Ask a passphrase to the user and verify it
-    fileprivate func promptPassphrase(_ hint: String, reason: String? = nil) -> Promise<String>
-    {
-        return Promise<String> { fullfil, reject in
-            
-            let title = reason ?? "LCP Passphrase"
-            let alert = UIAlertController(title: title,
-                                          message: hint, preferredStyle: .alert)
-            let dismissButton = UIAlertAction(title: "Cancel", style: .cancel) { (_) in
-                reject(NSError.cancelledError())
+                try? parsingCallback(parsedDrm)
             }
             
-            let confirmButton = UIAlertAction(title: "Submit", style: .default) { (_) in
-                let passphrase = alert.textFields?[0].text
-                
-                if let passphrase = passphrase {
-                    fullfil(passphrase)
-                } else {
-                    reject(LcpError.emptyPassphrase)
-                }
-            }
-            
-            //adding textfields to our dialog box
-            alert.addTextField { (textField) in
-                textField.placeholder = "Passphrase"
-                textField.isSecureTextEntry = true
-            }
-            
-            alert.addAction(dismissButton)
-            alert.addAction(confirmButton)
-            // Present alert.
-            window!.rootViewController!.present(alert, animated: true)
+            completion(parsedDrm, error)
         }
     }
-    #endif
     
+    func loadDrmProtectedPublication(atPath publicationPath: String, with drm: Drm, completion: @escaping (Drm?, Error?) -> Void) throws
+    {
+        switch drm.brand {
+#if LCP
+        case .lcp:
+            try loadLcpProtectedPublication(atPath: publicationPath, with: drm, completion: completion)
+#endif
+        }
+    }
+
     func remove(_ publication: Publication) {
         // Find associated container.
         guard let pubBox = publicationServer.pubBoxes.values.first(where: {
@@ -649,16 +394,9 @@ extension AppDelegate: LibraryViewControllerDelegate {
         if let url = URL(string: path) {
             let filename = url.lastPathComponent
             
-            #if LCP
-            if let lcpLicense = try? LcpLicense(withLicenseDocumentIn: url) {
-                try? lcpLicense.removeDataBaseItem()
-            }
-            // In case, the epub download succeed but the process inserting lcp into epub failed
-            if filename.starts(with: "lcp.") {
-                let possibleLCPID = url.deletingPathExtension().lastPathComponent.replacingOccurrences(of: "lcp.", with: "")
-                try? LcpLicense.removeDataBaseItem(licenseID: possibleLCPID)
-            }
-            #endif
+#if LCP
+            removeLcpPublication(at: url)
+#endif
             
             removeFromDocumentsDirectory(fileName: filename)
         }
