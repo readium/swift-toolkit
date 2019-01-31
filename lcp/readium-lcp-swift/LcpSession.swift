@@ -18,15 +18,26 @@ import CryptoSwift
 
 public let kShouldPresentLCPMessage = "kShouldPresentLCPMessage"
 
+public protocol LcpSessionDelegate: AnyObject {
+    
+    /// Request a passphrase for the given License Document.
+    /// Most likely, a prompt will be presented to the user, but the app might fetch the passphrase another way.
+    func requestPassphrase(for license: LicenseDocument, reason: String?) -> Promise<String>
+    
+}
+
 public class LcpSession {
     internal let lcpLicense: LcpLicense
+    internal let delegate: LcpSessionDelegate
     
-    public init(licenseDocument url: URL) throws {
-        lcpLicense = try LcpLicense.init(withLicenseDocumentAt: url)
+    public init(licenseDocument url: URL, delegate: LcpSessionDelegate) throws {
+        self.lcpLicense = try LcpLicense.init(withLicenseDocumentAt: url)
+        self.delegate = delegate
     }
     
-    public init(protectedEpubUrl url: URL) throws {
-        lcpLicense = try LcpLicense.init(withLicenseDocumentIn: url)
+    public init(protectedEpubUrl url: URL, delegate: LcpSessionDelegate) throws {
+        self.lcpLicense = try LcpLicense.init(withLicenseDocumentIn: url)
+        self.delegate = delegate
     }
 
     /// Process a LCP License Document (LCPL).
@@ -122,10 +133,6 @@ public class LcpSession {
         }
     }
     
-    public func getHint() -> String {
-        return lcpLicense.license.getHint()
-    }
-    
     public func getProfile() -> String {
         return lcpLicense.license.encryption.profile.absoluteString
     }
@@ -196,4 +203,188 @@ public class LcpSession {
         // JSON Schema or something // TODO
         return Promise<Void>()
     }
+    
+    public func loadDrm(_ drm: Drm, _ completion: @escaping (Drm?, Error?) -> Void) throws
+    {
+        let kCRLDate = "kCRLDate"
+        let kCRLString = "kCRLString"
+        
+        let updateCRL = { (newCRL:String) -> Void in
+            UserDefaults.standard.set(newCRL, forKey: kCRLString)
+            UserDefaults.standard.set(Date(), forKey: kCRLDate)
+        }
+        
+        func validatePassphrase(passphraseHash: String) -> Promise<LcpLicense> {
+            return firstly {
+                let promiseCRL =  { () -> Promise<String> in
+                    return Promise<String> { fulfill, reject in
+                        let fallback:(()->Void) = { () -> Void in
+                            let stringCRL = UserDefaults.standard.value(forKey: "kCRLString") as? String
+                            //let dateCRL = UserDefaults.standard.value(forKey: "kCRLStringUpdatedDate") as? Date
+                            fulfill(stringCRL ?? "")
+                        }
+                        self.fetchCRL(success: { (pem:String) in
+                            updateCRL(pem)
+                            fulfill(pem)
+                        }, fail: {
+                            fallback()
+                        })
+                    }
+                }
+                
+                guard let updatedDate = UserDefaults.standard.value(forKey: kCRLDate) as? Date else {
+                    return promiseCRL()
+                }
+                
+                let calendar = NSCalendar.current
+                
+                let updatedCal = calendar.startOfDay(for: updatedDate)
+                let currentCal = calendar.startOfDay(for: Date())
+                
+                let components = calendar.dateComponents([.day], from: updatedCal, to: currentCal)
+                let dayCount = components.day ?? Int.max
+                if dayCount < 7 {
+                    guard let stringCRL = UserDefaults.standard.value(forKey: kCRLString) as? String else {
+                        return promiseCRL()
+                    }
+                    return Promise<String> { fulfill, reject in
+                        fulfill(stringCRL)
+                    }
+                } else {
+                    return promiseCRL()
+                }
+                
+            }.then { pemCrl -> Promise<LcpLicense> in
+                // Get a decipherer object for the given passphrase,
+                // also checking that it's not revoqued using the crl.
+                return self.resolve(using: passphraseHash, pemCrl: pemCrl)
+            }
+        }
+        
+        // Fonction used in the async code below.
+        func promptPassphrase(reason:String? = nil) -> Promise<String> {
+            return firstly {
+                self.delegate.requestPassphrase(for: self.lcpLicense.license, reason: reason)
+                
+            }.then { clearPassphrase -> Promise<String?> in
+                guard !clearPassphrase.isEmpty else {
+                    throw LcpError.emptyPassphrase
+                }
+                let passphraseHash = clearPassphrase.sha256()
+                return self.checkPassphrases([passphraseHash])
+                
+            }.then { validPassphraseHash -> Promise<String> in
+                guard let validPassphraseHash = validPassphraseHash else {
+                    throw LcpError.unknown
+                }
+                try self.storePassphrase(validPassphraseHash)
+                return Promise(value: validPassphraseHash)
+            }
+        }
+        
+        //https://stackoverflow.com/questions/30523285/how-do-i-create-an-inline-recursive-closure-in-swift
+        // Quick fix for error catch, because it's using Promise and there are so many func(closure) with captured values, there will be alot trouble to make them as seprated funcions. That's a dirty fix, shoud be refactored later all together.
+        var catchError:((Error) -> Void)!
+        catchError = { error in
+            
+            guard let lcpClientError = error as? LCPClientError else {
+                completion(nil, error)
+                return
+            }
+            
+            let askPassphrase = { (reason: String) -> Void in
+                firstly {
+                    return promptPassphrase(reason: reason)
+                }.then { passphraseHash -> Promise<LcpLicense> in
+                    return validatePassphrase(passphraseHash: passphraseHash)
+                }.then { lcpLicense -> Void in
+                    var drm = drm
+                    drm.license = lcpLicense
+                    drm.profile = self.getProfile()
+                    completion(drm, nil)
+                }.catch(policy: CatchPolicy.allErrors, execute:catchError)
+            }
+            
+            switch lcpClientError {
+            case .userKeyCheckInvalid:
+                askPassphrase("LCP Passphrase updated")
+            case .noValidPassphraseFound:
+                askPassphrase("Wrong LCP Passphrase")
+            default:
+                completion(nil, error)
+                return
+            }
+        }
+        
+        // get passphrase from DB, if not found prompt user, validate, go on
+        firstly {
+            // 1/ Validate the license structure (Nothing yet)
+            try self.validateLicense()
+            }.then { _ in
+                // 2/ Get the passphrase associated with the license
+                // 2.1/ Check if a passphrase hash has already been stored for the license.
+                // 2.2/ Check if one or more passphrase hash associated with
+                //      licenses from the same provider have been stored.
+                //      + calls the r2-lcp-client library  to validate it.
+                try self.passphraseFromDb()
+            }.then { passphraseHash -> Promise<String> in
+                switch passphraseHash {
+                // In case passphrase from db isn't found/valid.
+                case nil:
+                    // 3/ Display the hint and ask the passphrase to the user.
+                    //      + calls the r2-lcp-client library  to validate it.
+                    return promptPassphrase()
+                // Passphrase from db was already ok.
+                default:
+                    return Promise(value: passphraseHash!)
+                }
+            }.then { passphraseHash -> Promise<LcpLicense> in
+                return validatePassphrase(passphraseHash: passphraseHash)
+            }.then { lcpLicense -> Void in
+                var drm = drm
+                
+                drm.license = lcpLicense
+                drm.profile = self.getProfile()
+                completion(drm, nil)
+            }.catch(policy: CatchPolicy.allErrors, execute:catchError)
+    }
+    
+    /// Handle the processing of a publication protected with a LCP DRM.
+    ///
+    /// - Parameters:
+    ///   - publicationPath: The path of the publication.
+    ///   - drm: The drm object associated with the Publication.
+    ///   - completion: The completion handler.
+    /// - Throws: .
+    
+    @objc func fetchCRL(success: ((String)->Void)? = nil,
+                        fail: (() -> Void)? = nil) {
+        // Get Certificat Revocation List. from "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl"
+        guard let url = URL(string: "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl") else {
+            //reject(LcpError.crlFetching)
+            fail?()
+            return
+        }
+        
+        let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, response, error) in
+            guard let httpResponse = response as? HTTPURLResponse else {
+                if let _ = error {fail?()}
+                return
+            }
+            if error == nil {
+                switch httpResponse.statusCode {
+                case 200:
+                    // update the status document
+                    if let data = data {
+                        let pem = "-----BEGIN X509 CRL-----\(data.base64EncodedString())-----END X509 CRL-----";
+                        success?(pem)
+                    }
+                default:
+                    fail?()
+                }
+            } else {fail?()}
+        })
+        task.resume()
+    }
+    
 }
