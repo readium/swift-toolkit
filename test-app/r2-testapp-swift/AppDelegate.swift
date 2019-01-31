@@ -49,11 +49,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     /// Publications waiting to be added to the PublicationServer (first opening).
     /// publication identifier : data
     var items = [String: (PubBox, PubParsingCallback)]()
-    
-    #if LCP
-    private var messageObserverLCP: NSObjectProtocol?
-    #endif
-    
+
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         
         /// Init R2.
@@ -143,30 +139,33 @@ extension AppDelegate {
         }
         
         switch url.pathExtension {
+        #if LCP
         case "lcpl":
-            #if LCP
+            showInfoAlert(title: "Importing", message: "R2Reader is trying to import the LCP publication and will be available soon.")
             // Retrieve publication using the LCPL.
-            firstly {
-                try publication(at: documentsUrl)
-                }.then { (publicationUrl, downloadTask)-> Void in
-                    
-                    /// Parse publication. (tomove?)
-                    if self.lightParsePublication(at: Location(absolutePath: publicationUrl.path,
-                                                               relativePath: "",
-                                                               type: .epub)) {
-                        
-                        self.reload(downloadTask: downloadTask)
-                    } else {
-                        self.showInfoAlert(title: "Error", message: "The LCP Publication couldn't be loaded.")
-                    }
-                }.catch { error in
-                    print("Error -- \(error.localizedDescription)")
-                    self.showInfoAlert(title: "Error", message: error.localizedDescription)
-                    if FileManager.default.fileExists(atPath: documentsUrl.path) {
-                        try? FileManager.default.removeItem(at: documentsUrl)
-                    }
+            firstly { () -> Promise<(URL, URLSessionDownloadTask?)> in
+                let session = try LcpSession(licenseDocument: documentsUrl)
+                return session.downloadPublication()
+                
+            }.then { (publicationUrl, downloadTask)-> Void in
+
+                /// Parse publication. (tomove?)
+                if self.lightParsePublication(at: Location(absolutePath: publicationUrl.path,
+                                                           relativePath: "",
+                                                           type: .epub)) {
+
+                    self.reload(downloadTask: downloadTask)
+                } else {
+                    self.showInfoAlert(title: "Error", message: "The LCP Publication couldn't be loaded.")
+                }
+            }.catch { error in
+                print("Error -- \(error.localizedDescription)")
+                self.showInfoAlert(title: "Error", message: error.localizedDescription)
+                if FileManager.default.fileExists(atPath: documentsUrl.path) {
+                    try? FileManager.default.removeItem(at: documentsUrl)
+                }
             }
-            #endif
+        #endif
         default:
             
             /// Add the publication to the publication server.
@@ -359,63 +358,6 @@ extension AppDelegate {
         return publicationType
     }
     
-    #if LCP
-    /// Process a LCP License Document (LCPL).
-    /// Fetching Status Document, updating License Document, Fetching Publication,
-    /// and moving the (updated) License Document into the publication archive.
-    ///
-    /// - Parameters:
-    ///   - path: The path of the License Document (LCPL).
-    ///   - completion: The handler to be called on completion.
-    internal func publication(at url: URL) throws -> Promise<(URL, URLSessionDownloadTask?)> {
-        showInfoAlert(title: "Importing", message: "R2Reader is trying to import the LCP publication and will be available soon.")
-        /// Here we use a lcpLicense, and that's avoidable.
-        /// Normally the streamer scan for DRM
-        let lcpLicense = try LcpLicense.init(withLicenseDocumentAt: url)
-        
-        return firstly {
-            /// 3.1/ Fetch the status document.
-            /// 3.2/ Validate the status document.
-            return lcpLicense.fetchStatusDocument(shouldRejectError: false)
-        }.then { error -> Promise<Void> in
-    
-            guard let serverError = error as NSError? else {
-                /// 3.3/ Check that the status is "ready" or "active".
-                try lcpLicense.checkStatus()
-                /// 3.4/ Check if the license has been updated. If it is the case,
-                //       the app must:
-                /// 3.4.1/ Fetch the updated license.
-                /// 3.4.2/ Validate the updated license. If the updated license
-                ///        is not valid, the app must keep the current one.
-                /// 3.4.3/ Replace the current license by the updated one in the
-                ///        EPUB archive.
-                return lcpLicense.updateLicenseDocument()
-            }
-            
-            if serverError.domain == "org.readium" {
-                let noteName = Notification.Name(kShouldPresentLCPMessage)
-                let userInfo = serverError.userInfo
-                let notification = Notification(name: noteName, object: nil, userInfo: userInfo)
-                NotificationCenter.default.post(notification)
-            }
-            
-            return lcpLicense.saveLicenseDocumentWithoutStatus(shouldRejectError: true)
-            
-        }.then { _ -> Promise<(URL, URLSessionDownloadTask?)> in
-            /// 4/ Check the rights.
-            try lcpLicense.areRightsValid()
-            /// 5/ Register the device / license if needed.
-            lcpLicense.register()
-            /// 6/ Fetch the publication.
-            return lcpLicense.fetchPublication()
-        }.then { (publicationUrl, downloadTask) -> Promise<(URL, URLSessionDownloadTask?)> in
-            /// Move the license document in the publication.
-            try LcpLicense.moveLicense(from: lcpLicense.archivePath,
-                                       to: publicationUrl)
-            return Promise(value: (publicationUrl, downloadTask))
-        }
-    }
-    #endif
 }
 
 extension AppDelegate: LibraryViewControllerDelegate {
