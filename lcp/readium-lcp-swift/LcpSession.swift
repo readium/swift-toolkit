@@ -21,8 +21,31 @@ public let kShouldPresentLCPMessage = "kShouldPresentLCPMessage"
 public class LcpSession {
     internal let lcpLicense: LcpLicense
     
+    public init(licenseDocument url: URL) throws {
+        lcpLicense = try LcpLicense.init(withLicenseDocumentAt: url)
+    }
+    
     public init(protectedEpubUrl url: URL) throws {
         lcpLicense = try LcpLicense.init(withLicenseDocumentIn: url)
+    }
+
+    /// Process a LCP License Document (LCPL).
+    /// Fetching Status Document, updating License Document, Fetching Publication,
+    /// and moving the (updated) License Document into the publication archive.
+    ///
+    /// - Parameters:
+    ///   - path: The path of the License Document (LCPL).
+    ///   - completion: The handler to be called on completion.
+    public func downloadPublication() -> Promise<(URL, URLSessionDownloadTask?)> {
+        return evaluate()
+            .then { _ -> Promise<(URL, URLSessionDownloadTask?)> in
+                return self.lcpLicense.fetchPublication()
+            }
+            .then { (publicationUrl, downloadTask) -> Promise<(URL, URLSessionDownloadTask?)> in
+                /// Move the license document in the publication.
+                try LcpLicense.moveLicense(from: self.lcpLicense.archivePath, to: publicationUrl)
+                return Promise(value: (publicationUrl, downloadTask))
+            }
     }
     
     /// Generate a Decipherer for the LCP drm.
@@ -31,9 +54,18 @@ public class LcpSession {
     ///   - passphrase: The passphrase.
     ///   - completion: The code to be executed on success.
     public func resolve(using passphrase: String, pemCrl: String) -> Promise<LcpLicense> {
+        return evaluate()
+            .then { _ -> Promise<LcpLicense> in
+                return self.getLcpContext(jsonLicense: self.lcpLicense.license.json,
+                                          passphrase: passphrase,
+                                          pemCrl: pemCrl)
+            }
+    }
+    
+    internal func evaluate() -> Promise<Void> {
         return firstly {
-            // 4/ Check the license status
-            lcpLicense.fetchStatusDocument(shouldRejectError: false)
+                // 4/ Check the license status
+                self.lcpLicense.fetchStatusDocument(shouldRejectError: false)
             }.then{ error -> Promise<Void> in
                 
                 guard let serverError = error as NSError? else {
@@ -59,15 +91,13 @@ public class LcpSession {
                 
                 return self.lcpLicense.saveLicenseDocumentWithoutStatus(shouldRejectError: false)
                 
-            }.then { _ -> Promise<LcpLicense> in
+            }.then {
                 /// 4/ Check the rights.
                 try self.lcpLicense.areRightsValid()
                 /// 5/ Register the device / license if needed.
                 self.lcpLicense.register()
-
-                return self.getLcpContext(jsonLicense: self.lcpLicense.license.json,
-                                          passphrase: passphrase,
-                                          pemCrl: pemCrl)
+                
+                return Promise<Void>()
             }
     }
 
