@@ -44,8 +44,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     /// Publications waiting to be added to the PublicationServer (first opening).
     /// publication identifier : data
     var items = [String: (PubBox, PubParsingCallback)]()
+    
+    var drmLibraryServices = [DrmLibraryService]()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+        #if LCP
+        drmLibraryServices.append(LcpLibraryService())
+        #endif
         
         /// Init R2.
         // Set logging minimum level.
@@ -108,53 +113,60 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 extension AppDelegate {
     
-    internal func addPublicationToLibrary(url: URL, needUIUpdate:Bool) -> Bool {
+    internal func addPublicationToLibrary(url sourceUrl: URL, needUIUpdate:Bool) -> Bool {
         
-        var documentsUrl = try! FileManager.default.url(for: .documentDirectory,
-                                                        in: .userDomainMask,
-                                                        appropriateFor: nil,
-                                                        create: true)
+        var url = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+        url.appendPathComponent(sourceUrl.lastPathComponent)
         
-        documentsUrl.appendPathComponent(url.lastPathComponent)
-        
-        if FileManager().fileExists(atPath: documentsUrl.path) {
+        if FileManager().fileExists(atPath: url.path) {
             showInfoAlert(title: "Error", message: "File already exist")
             return false
         }
         
         /// Move Publication to documents.
         do {
-            try FileManager.default.moveItem(at: url, to: documentsUrl)
+            try FileManager.default.moveItem(at: sourceUrl, to: url)
             let dateAttribute = [FileAttributeKey.modificationDate: Date()]
-            try FileManager.default.setAttributes(dateAttribute, ofItemAtPath: documentsUrl.path)
+            try FileManager.default.setAttributes(dateAttribute, ofItemAtPath: url.path)
             
         } catch {
             showInfoAlert(title: "Error", message: "Failed importing this publication \(error)")
             return false
         }
         
-        switch url.pathExtension {
-#if LCP
-        case "lcpl":
-            importLcpPublication(documentsUrl)
-#endif
-        default:
-            
+        @discardableResult
+        func addPublication(url: URL, downloadTask: URLSessionDownloadTask?) -> Bool {
             /// Add the publication to the publication server.
-            let location = Location(absolutePath: documentsUrl.path,
-                                    relativePath: documentsUrl.lastPathComponent,
+            let location = Location(absolutePath: url.path,
+                                    relativePath: url.lastPathComponent,
                                     type: getTypeForPublicationAt(url: url))
-            if !lightParsePublication(at: location) {
+            guard lightParsePublication(at: location) else {
                 showInfoAlert(title: "Error", message: "The publication isn't valid.")
                 return false
-            } else {
-                if needUIUpdate {
-                    reload(downloadTask: nil)
-                }
             }
+            
+            if needUIUpdate {
+                reload(downloadTask: downloadTask)
+            }
+            return true
         }
         
-        return true
+        if let drmService = drmLibraryServices.first(where: { $0.canFulfill(url) }) {
+            drmService.fulfill(url) { result in
+                switch result {
+                case .success((let publicationUrl, let downloadTask)):
+                    addPublication(url: publicationUrl, downloadTask: downloadTask)
+                case .failure(let error):
+                    self.showInfoAlert(title: "Error", message: error?.localizedDescription ?? "Error fulfilling DRM \(drmService.brand.rawValue)")
+                case .cancelled:
+                    break
+                }
+            }
+            return true
+            
+        } else {
+            return addPublication(url: url, downloadTask: nil)
+        }
     }
     
     fileprivate func lightParsePublications() {
@@ -356,28 +368,30 @@ extension AppDelegate: LibraryViewControllerDelegate {
             return
         }
         
-        let publicationPath = item.0.associatedContainer.rootFile.rootPath
-        try loadDrmProtectedPublication(atPath: publicationPath, with: drm) { parsedDrm, error in
-            if let error = error as? LocalizedError {
-                self.showInfoAlert(title: "Error", message: error.localizedDescription)
-            }
-            
-            if let parsedDrm = parsedDrm {
-                /// Update container.drm to drm and parse the remaining elements.
-                try? parsingCallback(parsedDrm)
-            }
-            
-            completion(parsedDrm, error)
+        guard let drmService = drmLibraryServices.first(where: { $0.brand == drm.brand }),
+            let url = URL(string: item.0.associatedContainer.rootFile.rootPath)
+        else {
+            self.showInfoAlert(title: "Error", message: "DRM not supported \(drm.brand)")
+            completion(nil, nil)
+            return
         }
-    }
-    
-    func loadDrmProtectedPublication(atPath publicationPath: String, with drm: Drm, completion: @escaping (Drm?, Error?) -> Void) throws
-    {
-        switch drm.brand {
-#if LCP
-        case .lcp:
-            try loadLcpProtectedPublication(atPath: publicationPath, with: drm, completion: completion)
-#endif
+        
+        drmService.loadPublication(at: url, drm: drm) { result in
+            switch result {
+            case .success(let drm):
+                /// Update container.drm to drm and parse the remaining elements.
+                try? parsingCallback(drm)
+                completion(drm, nil)
+                
+            case .failure(let error):
+                if let error = error as? LocalizedError {
+                    self.showInfoAlert(title: "Error", message: error.localizedDescription)
+                }
+                completion(nil, error)
+                
+            case .cancelled:
+                completion(nil, NSError.cancelledError())
+            }
         }
     }
 
@@ -394,10 +408,10 @@ extension AppDelegate: LibraryViewControllerDelegate {
         if let url = URL(string: path) {
             let filename = url.lastPathComponent
             
-#if LCP
-            removeLcpPublication(at: url)
-#endif
-            
+            for drm in drmLibraryServices {
+                drm.removePublication(at: url)
+            }
+
             removeFromDocumentsDirectory(fileName: filename)
         }
         // Remove publication from publicationServer.
