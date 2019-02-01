@@ -18,6 +18,7 @@ import R2Shared
 import R2LCPClient
 
 public class LcpLicense: DrmLicense {
+
     public var archivePath: URL
     var license: LicenseDocument
     var status: StatusDocument?
@@ -102,7 +103,7 @@ public class LcpLicense: DrmLicense {
                 } else if let error = error {
                     fulfill(error)
                 } else {
-                    reject(LcpError.unknown)
+                    reject(LcpError.unknown(nil))
                 }
             }
             task.resume()
@@ -413,7 +414,7 @@ public class LcpLicense: DrmLicense {
                 } else if let error = error {
                     reject(error)
                 } else {
-                    reject(LcpError.unknown)
+                    reject(LcpError.unknown(nil))
                 }
                 return false
             })
@@ -572,6 +573,10 @@ public class LcpLicense: DrmLicense {
     
     public static func removeDataBaseItem(licenseID: String) throws {
         try LCPDatabase.shared.licenses.deleteData(for: licenseID)
+    }
+    
+    public var profile: String? {
+        return license.encryption.profile.absoluteString
     }
 
     public func currentStatus() -> String {

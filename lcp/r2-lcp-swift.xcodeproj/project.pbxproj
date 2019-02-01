@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0394DBA9211C9201008D0524 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0394DBA8211C9201008D0524 /* R2LCPClient.framework */; };
+		CAB57BC12204811100E4CB12 /* LcpService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB57BC02204811100E4CB12 /* LcpService.swift */; };
 		F331FBF81F8228F8007F16DF /* LCPDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = F331FBF71F8228F8007F16DF /* LCPDatabase.swift */; };
 		F35AF9F91F6AB8C700D3F670 /* LcpSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35AF9F81F6AB8C700D3F670 /* LcpSession.swift */; };
 		F35AF9FF1F6ACD3900D3F670 /* LcpParsingError.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35AF9FE1F6ACD3900D3F670 /* LcpParsingError.swift */; };
@@ -33,6 +34,7 @@
 /* Begin PBXFileReference section */
 		03254C0A206A7E41008C68ED /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0394DBA8211C9201008D0524 /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CAB57BC02204811100E4CB12 /* LcpService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LcpService.swift; sourceTree = "<group>"; };
 		F300FA341F8E1AEB00442332 /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
 		F3314BF31FE42F2300C3B790 /* R2LCPClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2LCPClient.framework; path = Carthage/Build/iOS/R2LCPClient.framework; sourceTree = "<group>"; };
 		F331FBF71F8228F8007F16DF /* LCPDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDatabase.swift; sourceTree = "<group>"; };
@@ -167,6 +169,7 @@
 				F35AF9FE1F6ACD3900D3F670 /* LcpParsingError.swift */,
 				F35AFA001F6AD54400D3F670 /* LcpLicense.swift */,
 				F35AF9F81F6AB8C700D3F670 /* LcpSession.swift */,
+				CAB57BC02204811100E4CB12 /* LcpService.swift */,
 				F38FB04B1F66BF8A00F9D602 /* Model */,
 			);
 			path = "readium-lcp-swift";
@@ -320,6 +323,7 @@
 				F3B2C8AC1F66727C007601E4 /* Link.swift in Sources */,
 				F38FB03E1F66840900F9D602 /* ContentKey.swift in Sources */,
 				F331FBF81F8228F8007F16DF /* LCPDatabase.swift in Sources */,
+				CAB57BC12204811100E4CB12 /* LcpService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

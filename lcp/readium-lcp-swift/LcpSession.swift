@@ -16,26 +16,26 @@ import R2Shared
 import R2LCPClient
 import CryptoSwift
 
-public let kShouldPresentLCPMessage = "kShouldPresentLCPMessage"
+let kShouldPresentLCPMessage = "kShouldPresentLCPMessage"
 
-public protocol LcpSessionDelegate: AnyObject {
+protocol LcpSessionDelegate: AnyObject {
     
     /// Request a passphrase for the given License Document.
     /// Most likely, a prompt will be presented to the user, but the app might fetch the passphrase another way.
-    func requestPassphrase(for license: LicenseDocument, reason: String?) -> Promise<String>
+    func requestPassphrase(for license: LicenseDocument, reason: LcpPassphraseRequestReason) -> Promise<LcpPassphraseRequest>
     
 }
 
-public class LcpSession {
+internal class LcpSession {
     internal let lcpLicense: LcpLicense
     internal let delegate: LcpSessionDelegate
     
-    public init(licenseDocument url: URL, delegate: LcpSessionDelegate) throws {
+    init(licenseDocument url: URL, delegate: LcpSessionDelegate) throws {
         self.lcpLicense = try LcpLicense.init(withLicenseDocumentAt: url)
         self.delegate = delegate
     }
     
-    public init(protectedEpubUrl url: URL, delegate: LcpSessionDelegate) throws {
+    init(protectedEpubUrl url: URL, delegate: LcpSessionDelegate) throws {
         self.lcpLicense = try LcpLicense.init(withLicenseDocumentIn: url)
         self.delegate = delegate
     }
@@ -47,7 +47,7 @@ public class LcpSession {
     /// - Parameters:
     ///   - path: The path of the License Document (LCPL).
     ///   - completion: The handler to be called on completion.
-    public func downloadPublication() -> Promise<(URL, URLSessionDownloadTask?)> {
+    func downloadPublication() -> Promise<(URL, URLSessionDownloadTask?)> {
         return evaluate()
             .then { _ -> Promise<(URL, URLSessionDownloadTask?)> in
                 return self.lcpLicense.fetchPublication()
@@ -64,7 +64,7 @@ public class LcpSession {
     /// - Parameters:
     ///   - passphrase: The passphrase.
     ///   - completion: The code to be executed on success.
-    public func resolve(using passphrase: String, pemCrl: String) -> Promise<LcpLicense> {
+    func resolve(using passphrase: String, pemCrl: String) -> Promise<LcpLicense> {
         return evaluate()
             .then { _ -> Promise<LcpLicense> in
                 return self.getLcpContext(jsonLicense: self.lcpLicense.license.json,
@@ -133,16 +133,12 @@ public class LcpSession {
         }
     }
     
-    public func getProfile() -> String {
-        return lcpLicense.license.encryption.profile.absoluteString
-    }
-    
     /// Call R2LCPClient to check if any of the provided passphrases are valid,
     /// for the given license.
     ///
     /// - Parameter passphrases: Passphrases hashes to test for validity.
     /// - Returns: A validated passphrase hash if found, else nil.
-    public func checkPassphrases(_ passphrases: [String]) -> Promise<String?> {
+    func checkPassphrases(_ passphrases: [String]) -> Promise<String?> {
         return Promise<String?> { fulfill, reject in
             
             func completionHandler(error: Error?, passphrase: String?) {
@@ -167,7 +163,7 @@ public class LcpSession {
     ///
     /// - Returns: <#return value description#>
     /// - Throws: <#throws value description#>
-    public func passphraseFromDb() throws -> Promise<String?> {
+    func passphraseFromDb() throws -> Promise<String?> {
         /// 2.1/ Check if a passphrase hash has already been stored for the license.
         /// 2.2/ Check if one or more passphrase hash associated with licenses
         ///      from the same provider have been stored.
@@ -185,7 +181,7 @@ public class LcpSession {
     /// Store a passphrase hash to the database
     ///
     /// - Parameter passphraseHash: the hash to store
-    public func storePassphrase(_ passphraseHash: String) throws
+    func storePassphrase(_ passphraseHash: String) throws
     {
         let db = LCPDatabase.shared
         let licenseId = lcpLicense.license.id
@@ -199,12 +195,12 @@ public class LcpSession {
     ///
     /// - Returns: <#return value description#>
     /// - Throws: <#throws value description#>
-    public func validateLicense() throws -> Promise<Void> {
+    func validateLicense() throws -> Promise<Void> {
         // JSON Schema or something // TODO
         return Promise<Void>()
     }
     
-    public func loadDrm(_ drm: Drm, _ completion: @escaping (Drm?, Error?) -> Void) throws
+    func loadDrm(_ completion: @escaping (LcpLicense?, LcpError?) -> Void) throws
     {
         let kCRLDate = "kCRLDate"
         let kCRLString = "kCRLString"
@@ -262,20 +258,23 @@ public class LcpSession {
         }
         
         // Fonction used in the async code below.
-        func promptPassphrase(reason:String? = nil) -> Promise<String> {
+        func promptPassphrase(reason: LcpPassphraseRequestReason = .unknownPassphrase) -> Promise<String> {
             return firstly {
                 self.delegate.requestPassphrase(for: self.lcpLicense.license, reason: reason)
                 
-            }.then { clearPassphrase -> Promise<String?> in
-                guard !clearPassphrase.isEmpty else {
-                    throw LcpError.emptyPassphrase
+            }.then { request -> Promise<String?> in
+                switch request {
+                case .cancelled:
+                    throw LcpError.cancelled
+                    
+                case .passphrase(let clearPassphrase):
+                    let passphraseHash = clearPassphrase.sha256()
+                    return self.checkPassphrases([passphraseHash])
                 }
-                let passphraseHash = clearPassphrase.sha256()
-                return self.checkPassphrases([passphraseHash])
-                
+
             }.then { validPassphraseHash -> Promise<String> in
                 guard let validPassphraseHash = validPassphraseHash else {
-                    throw LcpError.unknown
+                    throw LcpError.unknown(nil)
                 }
                 try self.storePassphrase(validPassphraseHash)
                 return Promise(value: validPassphraseHash)
@@ -288,30 +287,27 @@ public class LcpSession {
         catchError = { error in
             
             guard let lcpClientError = error as? LCPClientError else {
-                completion(nil, error)
+                completion(nil, LcpError.wrap(error))
                 return
             }
             
-            let askPassphrase = { (reason: String) -> Void in
+            let askPassphrase = { (reason: LcpPassphraseRequestReason) -> Void in
                 firstly {
                     return promptPassphrase(reason: reason)
                 }.then { passphraseHash -> Promise<LcpLicense> in
                     return validatePassphrase(passphraseHash: passphraseHash)
                 }.then { lcpLicense -> Void in
-                    var drm = drm
-                    drm.license = lcpLicense
-                    drm.profile = self.getProfile()
-                    completion(drm, nil)
+                    completion(lcpLicense, nil)
                 }.catch(policy: CatchPolicy.allErrors, execute:catchError)
             }
             
             switch lcpClientError {
             case .userKeyCheckInvalid:
-                askPassphrase("LCP Passphrase updated")
+                askPassphrase(.changedPassphrase)
             case .noValidPassphraseFound:
-                askPassphrase("Wrong LCP Passphrase")
+                askPassphrase(.invalidPassphrase)
             default:
-                completion(nil, error)
+                completion(nil, LcpError.wrap(error))
                 return
             }
         }
@@ -341,11 +337,7 @@ public class LcpSession {
             }.then { passphraseHash -> Promise<LcpLicense> in
                 return validatePassphrase(passphraseHash: passphraseHash)
             }.then { lcpLicense -> Void in
-                var drm = drm
-                
-                drm.license = lcpLicense
-                drm.profile = self.getProfile()
-                completion(drm, nil)
+                completion(lcpLicense, nil)
             }.catch(policy: CatchPolicy.allErrors, execute:catchError)
     }
     

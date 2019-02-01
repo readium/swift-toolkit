@@ -12,7 +12,8 @@
 import Foundation
 
 public enum LcpError: Error {
-    case unknown
+    case cancelled
+    case unknown(Error?)
     case invalidPath
     case invalidLcpl
     case statusLinkNotFound
@@ -38,12 +39,11 @@ public enum LcpError: Error {
     case archive
     case fileNotInArchive
     case noPassphraseFound
-    case emptyPassphrase
     case invalidJson
     case invalidContext
     case crlFetching
     case missingLicenseStatus
-    
+
     case invalidRights
     case invalidPassphrase
     case licenseAlreadyExist
@@ -70,12 +70,27 @@ public enum LcpError: Error {
         }
         return ""
     }
+    
+    internal static func wrap(_ error: Error) -> LcpError {
+        if let lcpError = error as? LcpError {
+            return lcpError
+        } else {
+            return .unknown(error)
+        }
+    }
+    
 }
 
 extension LcpError: LocalizedError {
+    
     public var errorDescription: String? {
         switch self {
-        case .unknown:
+        case .cancelled:
+            return "Operation cancelled."
+        case .unknown(let error):
+            if let localizedError = error as? LocalizedError {
+                return localizedError.errorDescription
+            }
             return "Unknown error."
         case .invalidPath:
             return "The provided license file path is incorrect."
@@ -145,8 +160,6 @@ extension LcpError: LocalizedError {
             return "The file you requested couldn't be found in the archive."
         case .noPassphraseFound:
             return "Couldn't find a valide passphrase in the database, please provide a passphrase."
-        case .emptyPassphrase:
-            return "The passphrase provided is empty."
         case .invalidJson:
             return "The JSON license is not valid."
         case .invalidContext:
