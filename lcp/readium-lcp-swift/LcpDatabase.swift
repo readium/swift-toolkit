@@ -1,5 +1,5 @@
 //
-//  LCPDatabase.swift
+//  LcpDatabase.swift
 //  readium-lcp-swift
 //
 //  Created by Alexandre Camilleri on 10/2/17.
@@ -12,12 +12,9 @@
 import Foundation
 import SQLite
 
-enum LCPDatabaseError: Error {
-}
-
-final class LCPDatabase {
+final class LcpDatabase {
     /// Shared instance.
-    public static let shared = LCPDatabase()
+    public static let shared = LcpDatabase()
 
     /// Connection.
     let connection: Connection

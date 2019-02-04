@@ -33,7 +33,7 @@ class Transactions {
     }
 
     func add(_ licenseId: String, _ origin: String, _ userId: String?, _ passphrase: String) throws {
-        let db = LCPDatabase.shared.connection
+        let db = LcpDatabase.shared.connection
 
         let insertQuery = transactions.insert(
             self.licenseId <- licenseId,
@@ -72,7 +72,7 @@ class Transactions {
     /// - Returns: <#return value description#>
     /// - Throws: <#throws value description#>
     func passphrase(for license: String) throws -> String? {
-        let db = LCPDatabase.shared.connection
+        let db = LcpDatabase.shared.connection
         let query = transactions.select(passphrase).filter(licenseId == license)
 
         for row in try db.prepare(query) {
@@ -86,7 +86,7 @@ class Transactions {
     /// - Parameter provider: The book provider URL.
     /// - Returns: The passhrases found in DB for the given provider.
     func passphrases(for userId: String) throws -> [String] {
-        let db = LCPDatabase.shared.connection
+        let db = LcpDatabase.shared.connection
         let query = transactions.select(passphrase).filter(self.userId == userId)
 
         return try db.prepare(query).compactMap({ try? $0.get(passphrase) })

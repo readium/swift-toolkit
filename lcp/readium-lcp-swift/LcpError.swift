@@ -43,6 +43,7 @@ public enum LcpError: Error {
     case invalidContext
     case crlFetching
     case missingLicenseStatus
+    case network(Error?)
 
     case invalidRights
     case invalidPassphrase
@@ -74,7 +75,13 @@ public enum LcpError: Error {
     internal static func wrap(_ error: Error) -> LcpError {
         if let lcpError = error as? LcpError {
             return lcpError
-        } else {
+        }
+            
+        let nsError = error as NSError
+        switch nsError.domain {
+        case NSURLErrorDomain:
+            return .network(nsError)
+        default:
             return .unknown(error)
         }
     }
@@ -172,6 +179,8 @@ extension LcpError: LocalizedError {
             return "Incorrect renewal period, your publication could not be renewed."
         case .licenseAlreadyExist:
             return "The LCP license already exist, this import is ignored"
+        case .network(_):
+            return "Can't reach server"
         }
     }
 }

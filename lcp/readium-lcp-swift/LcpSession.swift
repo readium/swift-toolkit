@@ -16,7 +16,7 @@ import R2Shared
 import R2LCPClient
 import CryptoSwift
 
-let kShouldPresentLCPMessage = "kShouldPresentLCPMessage"
+let kShouldPresentLcpMessage = "kShouldPresentLcpMessage"
 
 protocol LcpSessionDelegate: AnyObject {
     
@@ -93,7 +93,7 @@ internal class LcpSession {
                 }
                 
                 if serverError.domain == "org.readium" {
-                    let noteName = Notification.Name(kShouldPresentLCPMessage)
+                    let noteName = Notification.Name(kShouldPresentLcpMessage)
                     let userInfo = serverError.userInfo
                     
                     let notification = Notification(name: noteName, object: nil, userInfo: userInfo)
@@ -168,7 +168,7 @@ internal class LcpSession {
         /// 2.2/ Check if one or more passphrase hash associated with licenses
         ///      from the same provider have been stored.
         var passphrases = [String]()
-        let db = LCPDatabase.shared
+        let db = LcpDatabase.shared
         passphrases = (try? db.transactions.possiblePassphrases(for: lcpLicense.license.id,
                                                                 and: lcpLicense.license.user.id)) ?? []
         
@@ -183,7 +183,7 @@ internal class LcpSession {
     /// - Parameter passphraseHash: the hash to store
     func storePassphrase(_ passphraseHash: String) throws
     {
-        let db = LCPDatabase.shared
+        let db = LcpDatabase.shared
         let licenseId = lcpLicense.license.id
         let provider = lcpLicense.license.provider.absoluteString
         let userId = lcpLicense.license.user.id

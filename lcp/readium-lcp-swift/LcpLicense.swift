@@ -162,7 +162,7 @@ public class LcpLicense: DrmLicense {
     /// Note: This function fail without blocking the flow of LCP process.
     /// If not registered this time, will be the next time.
     public func register() {
-        let database = LCPDatabase.shared
+        let database = LcpDatabase.shared
 
         // Check that no existing license with license.id are in the base.
         guard let registered = try? database.licenses.checkRegister(with: license.id), !registered
@@ -204,7 +204,7 @@ public class LcpLicense: DrmLicense {
             } else if httpResponse.statusCode == 200 {
                 //  5.3/ Store the fact the the device / license has been registered.
                 do {
-                    try LCPDatabase.shared.licenses.register(forLicenseWith: self.license.id)
+                    try LcpDatabase.shared.licenses.register(forLicenseWith: self.license.id)
                     return // SUCCESS
                 } catch {
                     print(error.localizedDescription)
@@ -256,7 +256,7 @@ public class LcpLicense: DrmLicense {
                             // Update local license in Lcp object
                             self.status = try StatusDocument.init(with: data)
                             // Update license status (to 'returned' normally)
-                            try LCPDatabase.shared.licenses.updateState(forLicenseWith: self.license.id,
+                            try LcpDatabase.shared.licenses.updateState(forLicenseWith: self.license.id,
                                                                         to: self.status!.status.rawValue)
                             completion(nil)
                         } catch {
@@ -312,7 +312,7 @@ public class LcpLicense: DrmLicense {
                                 // Update local license in Lcp object
                                 self.status = try StatusDocument.init(with: data)
                                 // Update license status (to 'returned' normally)
-                                try LCPDatabase.shared.licenses.updateState(forLicenseWith: self.license.id,
+                                try LcpDatabase.shared.licenses.updateState(forLicenseWith: self.license.id,
                                                                             to: self.status!.status.rawValue)
                                 // Update license document.
                                 firstly {
@@ -373,16 +373,6 @@ public class LcpLicense: DrmLicense {
     /// - Returns: The URL representing the path of the publication localy.
     public func fetchPublication() -> Promise<(URL, URLSessionDownloadTask?)> {
         return Promise<(URL, URLSessionDownloadTask?)> { fulfill, reject in
-            
-            let exist = try LCPDatabase.shared.licenses.localFileExisting(for: self.license.id)
-            
-            if exist {
-                let info = [NSLocalizedDescriptionKey : "LCP book already imported before."]
-                let duplicateError = NSError(domain: "org.readium", code: 0, userInfo: info)
-                reject(duplicateError)
-                return
-            }
-            
             guard let publicationLink = license.link(withRel: LicenseDocument.Rel.publication) else {
                 reject(LcpError.publicationLinkNotFound)
                 return
@@ -403,7 +393,6 @@ public class LcpLicense: DrmLicense {
                 if let localUrl = tmpLocalUrl, error == nil {
                     do {
                         try FileManager.default.moveItem(at: localUrl, to: destinationUrl)
-                        try LCPDatabase.shared.licenses.updateLocalFile(for: self.license.id, localURL: destinationUrl.absoluteString, updatedAt: Date())
                     } catch {
                         print(error.localizedDescription)
                         reject(error)
@@ -429,13 +418,13 @@ public class LcpLicense: DrmLicense {
     public func saveLicenseDocumentWithoutStatus(shouldRejectError: Bool) -> Promise<Void> {
         return Promise<Void> { fulfill, reject in
             do {
-                let exist = try LCPDatabase.shared.licenses.existingLicense(with: self.license.id)
+                let exist = try LcpDatabase.shared.licenses.existingLicense(with: self.license.id)
                 if exist { // When the LCP license already exist
                     if shouldRejectError {
                         reject(LcpError.licenseAlreadyExist)
                     }
                 } else {
-                    try LCPDatabase.shared.licenses.insert(self.license, with: nil)
+                    try LcpDatabase.shared.licenses.insert(self.license, with: nil)
                 }
                 fulfill(())
             } catch {
@@ -465,7 +454,7 @@ public class LcpLicense: DrmLicense {
             // Compare last update date
             let latestUpdate = license.dateOfLastUpdate()
 
-            if let lastUpdate = LCPDatabase.shared.licenses.dateOfLastUpdate(forLicenseWith: license.id),
+            if let lastUpdate = LcpDatabase.shared.licenses.dateOfLastUpdate(forLicenseWith: license.id),
                 lastUpdate > latestUpdate {
                     fulfill(())
                 return
@@ -490,7 +479,7 @@ public class LcpLicense: DrmLicense {
                 } else if let error = error {
                     print(error.localizedDescription)
                 }
-                try? LCPDatabase.shared.licenses.insert(self.license, with: status.status)
+                try? LcpDatabase.shared.licenses.insert(self.license, with: status.status)
               fulfill(())
             })
             task.resume()
@@ -568,11 +557,11 @@ public class LcpLicense: DrmLicense {
     }
     
     public func removeDataBaseItem() throws {
-        try LCPDatabase.shared.licenses.deleteData(for: self.license.id)
+        try LcpDatabase.shared.licenses.deleteData(for: self.license.id)
     }
     
     public static func removeDataBaseItem(licenseID: String) throws {
-        try LCPDatabase.shared.licenses.deleteData(for: licenseID)
+        try LcpDatabase.shared.licenses.deleteData(for: licenseID)
     }
     
     public var profile: String? {

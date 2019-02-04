@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		0394DBA9211C9201008D0524 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0394DBA8211C9201008D0524 /* R2LCPClient.framework */; };
 		CAB57BC12204811100E4CB12 /* LcpService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB57BC02204811100E4CB12 /* LcpService.swift */; };
-		F331FBF81F8228F8007F16DF /* LCPDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = F331FBF71F8228F8007F16DF /* LCPDatabase.swift */; };
+		F331FBF81F8228F8007F16DF /* LcpDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = F331FBF71F8228F8007F16DF /* LcpDatabase.swift */; };
 		F35AF9F91F6AB8C700D3F670 /* LcpSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35AF9F81F6AB8C700D3F670 /* LcpSession.swift */; };
 		F35AF9FF1F6ACD3900D3F670 /* LcpParsingError.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35AF9FE1F6ACD3900D3F670 /* LcpParsingError.swift */; };
 		F35AFA011F6AD54400D3F670 /* LcpLicense.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35AFA001F6AD54400D3F670 /* LcpLicense.swift */; };
@@ -37,7 +37,7 @@
 		CAB57BC02204811100E4CB12 /* LcpService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LcpService.swift; sourceTree = "<group>"; };
 		F300FA341F8E1AEB00442332 /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
 		F3314BF31FE42F2300C3B790 /* R2LCPClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2LCPClient.framework; path = Carthage/Build/iOS/R2LCPClient.framework; sourceTree = "<group>"; };
-		F331FBF71F8228F8007F16DF /* LCPDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDatabase.swift; sourceTree = "<group>"; };
+		F331FBF71F8228F8007F16DF /* LcpDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LcpDatabase.swift; sourceTree = "<group>"; };
 		F35AF9F11F6AB14300D3F670 /* PromiseKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PromiseKit.framework; path = Carthage/Build/iOS/PromiseKit.framework; sourceTree = "<group>"; };
 		F35AF9F81F6AB8C700D3F670 /* LcpSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LcpSession.swift; sourceTree = "<group>"; };
 		F35AF9FE1F6ACD3900D3F670 /* LcpParsingError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LcpParsingError.swift; sourceTree = "<group>"; };
@@ -163,7 +163,7 @@
 			children = (
 				F3B2C88B1F667223007601E4 /* Info.plist */,
 				F3B2C88A1F667223007601E4 /* readium-lcp-swift.h */,
-				F331FBF71F8228F8007F16DF /* LCPDatabase.swift */,
+				F331FBF71F8228F8007F16DF /* LcpDatabase.swift */,
 				F36F9E241F826C05001D0DB4 /* Tables */,
 				F3B2C8A51F66727C007601E4 /* LcpError.swift */,
 				F35AF9FE1F6ACD3900D3F670 /* LcpParsingError.swift */,
@@ -322,7 +322,7 @@
 				F38FB03A1F6683D800F9D602 /* Encryption.swift in Sources */,
 				F3B2C8AC1F66727C007601E4 /* Link.swift in Sources */,
 				F38FB03E1F66840900F9D602 /* ContentKey.swift in Sources */,
-				F331FBF81F8228F8007F16DF /* LCPDatabase.swift in Sources */,
+				F331FBF81F8228F8007F16DF /* LcpDatabase.swift in Sources */,
 				CAB57BC12204811100E4CB12 /* LcpService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
