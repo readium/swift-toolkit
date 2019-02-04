@@ -73,19 +73,17 @@ class LcpLibraryService: DrmLibraryService {
 
 extension LcpLibraryService: LcpServiceDelegate {
     
-    func requestPassphrase(for license: LicenseDocument, reason: LcpPassphraseRequestReason, completion: @escaping (LcpPassphraseRequest) -> Void) {
+    func requestPassphrase(for license: LicenseDocument, reason: PassphraseRequestReason, completion: @escaping (String?) -> Void) {
         guard let viewController = UIApplication.shared.keyWindow?.rootViewController else {
-            completion(.cancelled)
+            completion(nil)
             return
         }
         
         let title: String
         switch reason {
-        case .unknownPassphrase:
+        case .notFound:
             title = "LCP Passphrase"
-        case .changedPassphrase:
-            title = "Passphrase was changed"
-        case .invalidPassphrase:
+        case .invalid:
             title = "The passphrase is incorrect"
         }
     
@@ -93,12 +91,12 @@ extension LcpLibraryService: LcpServiceDelegate {
         let alert = UIAlertController(title: title,
                                       message: message, preferredStyle: .alert)
         let dismissButton = UIAlertAction(title: "Cancel", style: .cancel) { (_) in
-            completion(.cancelled)
+            completion(nil)
         }
     
         let confirmButton = UIAlertAction(title: "Submit", style: .default) { (_) in
             let passphrase = alert.textFields?[0].text
-            completion(.passphrase(passphrase ?? ""))
+            completion(passphrase ?? "")
         }
     
         //adding textfields to our dialog box

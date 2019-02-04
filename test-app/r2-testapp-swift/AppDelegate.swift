@@ -153,6 +153,8 @@ extension AppDelegate {
         
         if let drmService = drmLibraryServices.first(where: { $0.canFulfill(url) }) {
             drmService.fulfill(url) { result in
+                try? FileManager.default.removeItem(at: url)
+                
                 switch result {
                 case .success((let publicationUrl, let downloadTask)):
                     addPublication(url: publicationUrl, downloadTask: downloadTask)
