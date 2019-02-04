@@ -14,6 +14,7 @@ import Foundation
 public enum LcpError: Error {
     case cancelled
     case unknown(Error?)
+    case network(Error?)
     case invalidPath
     case invalidLcpl
     case statusLinkNotFound
@@ -38,17 +39,15 @@ public enum LcpError: Error {
     case invalidHintData
     case archive
     case fileNotInArchive
-    case noPassphraseFound
     case invalidJson
     case invalidContext
     case crlFetching
     case missingLicenseStatus
-    case network(Error?)
 
     case invalidRights
     case invalidPassphrase
     case licenseAlreadyExist
-    
+
 /// For the case (revoked, returned, cancelled, expired), app should notify the user and stop there. The message to the user must be clear about the status of the license: don't display "expired" if the status is "revoked". The date and time corresponding to the new status should be displayed (e.g. "The license expired on 01 January 2018").
     case licenseStatusCancelled(Date?)
     case licenseStatusReturned(Date?)
@@ -165,8 +164,6 @@ extension LcpError: LocalizedError {
             return "Coudn't instantiate the archive object."
         case .fileNotInArchive:
             return "The file you requested couldn't be found in the archive."
-        case .noPassphraseFound:
-            return "Couldn't find a valide passphrase in the database, please provide a passphrase."
         case .invalidJson:
             return "The JSON license is not valid."
         case .invalidContext:

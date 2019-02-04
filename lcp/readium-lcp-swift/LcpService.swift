@@ -11,37 +11,31 @@ import Foundation
 import PromiseKit
 
 
-public enum LcpPassphraseRequest {
-    case passphrase(String)
-    case cancelled
-}
-
-public enum LcpPassphraseRequestReason {
-    case unknownPassphrase
-    case changedPassphrase
-    case invalidPassphrase
-}
-
 public protocol LcpServiceDelegate: AnyObject {
     
-    func requestPassphrase(for license: LicenseDocument, reason: LcpPassphraseRequestReason, completion: @escaping (LcpPassphraseRequest) -> Void)
+    func requestPassphrase(for license: LicenseDocument, reason: PassphraseRequestReason, completion: @escaping (String?) -> Void)
     
 }
 
 public class LcpService {
-    
-    public weak var delegate: LcpServiceDelegate?
-    
+
     public struct ImportedPublication {
         public let localUrl: URL
         public let downloadTask: URLSessionDownloadTask?
     }
+    
+    public weak var delegate: LcpServiceDelegate?
 
-    public init() {}
+    private let passphrases: PassphrasesService
+
+    public init() {
+        self.passphrases = PassphrasesService(repository: LcpDatabase.shared.transactions)
+        self.passphrases.delegate = self
+    }
         
     public func importLicenseDocument(_ lcpl: URL, completion: @escaping (ImportedPublication?, LcpError?) -> Void) {
         firstly { () -> Promise<(URL, URLSessionDownloadTask?)> in
-            let session = try LcpSession(licenseDocument: lcpl, delegate: self)
+            let session = try LcpSession(licenseDocument: lcpl, passphrases: passphrases)
             return session.downloadPublication()
             
         }.then { (result) -> Void in
@@ -55,7 +49,7 @@ public class LcpService {
     
     public func openLicense(in publication: URL, completion: @escaping (LcpLicense?, LcpError?) -> Void) -> Void {
         do {
-            let session = try LcpSession(protectedEpubUrl: publication, delegate: self)
+            let session = try LcpSession(protectedEpubUrl: publication, passphrases: passphrases)
             try session.loadDrm(completion)
         } catch {
             completion(nil, LcpError.wrap(error))
@@ -75,16 +69,15 @@ public class LcpService {
     
 }
 
-extension LcpService: LcpSessionDelegate {
-
-    public func requestPassphrase(for license: LicenseDocument, reason: LcpPassphraseRequestReason) -> Promise<LcpPassphraseRequest> {
-        return Promise<LcpPassphraseRequest> { [weak self] fulfill, reject in
-            guard let delegate = self?.delegate else {
-                fulfill(.cancelled)
-                return
-            }
-            
-            delegate.requestPassphrase(for: license, reason: reason, completion: fulfill)
+extension LcpService: PassphrasesServiceDelegate {
+    
+    func requestPassphrase(for license: LicenseDocument, reason: PassphraseRequestReason, completion: @escaping (String?) -> Void) {
+        guard let delegate = self.delegate else {
+            completion(nil)
+            return
         }
+        
+        delegate.requestPassphrase(for: license, reason: reason, completion: completion)
     }
+
 }

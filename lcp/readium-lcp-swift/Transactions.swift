@@ -24,71 +24,67 @@ class Transactions {
     let passphrase = Expression<String>("passphrase") // hashed.
     
     init(_ connection: Connection)  {
-        _ = try? connection.run(transactions.create(temporary: false, ifNotExists: true) { t in
-            t.column(licenseId)
-            t.column(origin)
-            t.column(userId)
-            t.column(passphrase)
-        })
+        do {
+            try connection.run(transactions.create(temporary: false, ifNotExists: true) { t in
+                t.column(licenseId)
+                t.column(origin)
+                t.column(userId)
+                t.column(passphrase)
+            })
+        } catch {
+            log(error)
+        }
+    }
+    
+    fileprivate func log(_ error: Error) {
+        print("LCP database error: \(error)")
     }
 
-    func add(_ licenseId: String, _ origin: String, _ userId: String?, _ passphrase: String) throws {
+}
+
+
+extension Transactions: PassphrasesRepository {
+    
+    func passphrase(forLicenseId licenseId: String) -> String? {
+        do {
+            let db = LcpDatabase.shared.connection
+            let query = transactions.select(passphrase).filter(self.licenseId == licenseId)
+    
+            for row in try db.prepare(query) {
+                return try row.get(passphrase)
+            }
+        } catch {
+            log(error)
+        }
+        
+        return nil
+    }
+    
+    func passphrases(forUserId userId: String) -> [String] {
+        let db = LcpDatabase.shared.connection
+        let query = transactions.select(passphrase).filter(self.userId == userId)
+        do {
+            return try db.prepare(query).compactMap({ try $0.get(passphrase) })
+        } catch {
+            log(error)
+            return []
+        }
+    }
+    
+    func addPassphrase(_ passphraseHash: String, forLicenseId licenseId: String, provider: String, userId: String?) {
         let db = LcpDatabase.shared.connection
 
         let insertQuery = transactions.insert(
             self.licenseId <- licenseId,
-            self.origin <- origin,
+            self.origin <- provider,
             self.userId <- userId,
-            self.passphrase <- passphrase
+            self.passphrase <- passphraseHash
         )
-        try db.run(insertQuery)
-    }
-
-    /// Try to find the possible passphrases for the license/provider tuple.
-    ///
-    /// - Parameters:
-    ///   - licenseId: <#licenseId description#>
-    ///   - provider: <#provider description#>
-    /// - Returns: <#return value description#>
-    func possiblePassphrases(for licenseId: String, and userId: String?) throws -> [String] {
-        var possiblePassphrases = [String]()
-        let licensePassphrase: String?
-        let userIdPassphrases: [String]
-
-        licensePassphrase = try passphrase(for: licenseId)
-        if let userId = userId {
-            userIdPassphrases = try passphrases(for: userId)
-            possiblePassphrases.append(contentsOf: userIdPassphrases)
+        do {
+            try db.run(insertQuery)
+        } catch {
+            log(error)
         }
-        if let licensePassphrase = licensePassphrase {
-            possiblePassphrases.append(licensePassphrase)
-        }
-        return possiblePassphrases
     }
-
-    /// Returns the passphrase found for given license.
-    ///
-    /// - Parameter id: <#id description#>
-    /// - Returns: <#return value description#>
-    /// - Throws: <#throws value description#>
-    func passphrase(for license: String) throws -> String? {
-        let db = LcpDatabase.shared.connection
-        let query = transactions.select(passphrase).filter(licenseId == license)
-
-        for row in try db.prepare(query) {
-            return try row.get(passphrase)
-        }
-        return nil
-    }
-
-    /// Return a passphrases array found for the given provider.
-    ///
-    /// - Parameter provider: The book provider URL.
-    /// - Returns: The passhrases found in DB for the given provider.
-    func passphrases(for userId: String) throws -> [String] {
-        let db = LcpDatabase.shared.connection
-        let query = transactions.select(passphrase).filter(self.userId == userId)
-
-        return try db.prepare(query).compactMap({ try? $0.get(passphrase) })
-    }
+    
 }

@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		0394DBA9211C9201008D0524 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0394DBA8211C9201008D0524 /* R2LCPClient.framework */; };
+		CA4A38742208647400599297 /* PassphrasesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A38732208647400599297 /* PassphrasesRepository.swift */; };
+		CA4A388722086F7500599297 /* PassphrasesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388622086F7500599297 /* PassphrasesService.swift */; };
+		CA4A38892208775F00599297 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A38882208775F00599297 /* Result.swift */; };
 		CAB57BC12204811100E4CB12 /* LcpService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB57BC02204811100E4CB12 /* LcpService.swift */; };
 		F331FBF81F8228F8007F16DF /* LcpDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = F331FBF71F8228F8007F16DF /* LcpDatabase.swift */; };
 		F35AF9F91F6AB8C700D3F670 /* LcpSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35AF9F81F6AB8C700D3F670 /* LcpSession.swift */; };
@@ -34,6 +37,9 @@
 /* Begin PBXFileReference section */
 		03254C0A206A7E41008C68ED /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0394DBA8211C9201008D0524 /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA4A38732208647400599297 /* PassphrasesRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassphrasesRepository.swift; sourceTree = "<group>"; };
+		CA4A388622086F7500599297 /* PassphrasesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassphrasesService.swift; sourceTree = "<group>"; };
+		CA4A38882208775F00599297 /* Result.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		CAB57BC02204811100E4CB12 /* LcpService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LcpService.swift; sourceTree = "<group>"; };
 		F300FA341F8E1AEB00442332 /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
 		F3314BF31FE42F2300C3B790 /* R2LCPClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2LCPClient.framework; path = Carthage/Build/iOS/R2LCPClient.framework; sourceTree = "<group>"; };
@@ -80,6 +86,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		CA4A388522086BDE00599297 /* Passphrases */ = {
+			isa = PBXGroup;
+			children = (
+				CA4A38732208647400599297 /* PassphrasesRepository.swift */,
+				CA4A388622086F7500599297 /* PassphrasesService.swift */,
+			);
+			name = Passphrases;
+			sourceTree = "<group>";
+		};
 		F36F9E241F826C05001D0DB4 /* Tables */ = {
 			isa = PBXGroup;
 			children = (
@@ -164,12 +179,14 @@
 				F3B2C88B1F667223007601E4 /* Info.plist */,
 				F3B2C88A1F667223007601E4 /* readium-lcp-swift.h */,
 				F331FBF71F8228F8007F16DF /* LcpDatabase.swift */,
+				CA4A38882208775F00599297 /* Result.swift */,
 				F36F9E241F826C05001D0DB4 /* Tables */,
 				F3B2C8A51F66727C007601E4 /* LcpError.swift */,
 				F35AF9FE1F6ACD3900D3F670 /* LcpParsingError.swift */,
 				F35AFA001F6AD54400D3F670 /* LcpLicense.swift */,
 				F35AF9F81F6AB8C700D3F670 /* LcpSession.swift */,
 				CAB57BC02204811100E4CB12 /* LcpService.swift */,
+				CA4A388522086BDE00599297 /* Passphrases */,
 				F38FB04B1F66BF8A00F9D602 /* Model */,
 			);
 			path = "readium-lcp-swift";
@@ -304,8 +321,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA4A38742208647400599297 /* PassphrasesRepository.swift in Sources */,
 				F35AF9F91F6AB8C700D3F670 /* LcpSession.swift in Sources */,
 				F38CDB221F697D3A004156CB /* PotentialRights.swift in Sources */,
+				CA4A388722086F7500599297 /* PassphrasesService.swift in Sources */,
 				F36F9E261F826C17001D0DB4 /* Licenses.swift in Sources */,
 				F35AFA011F6AD54400D3F670 /* LcpLicense.swift in Sources */,
 				F38FB03C1F6683F300F9D602 /* UserKey.swift in Sources */,
@@ -315,6 +334,7 @@
 				F38FB0381F66839600F9D602 /* Rights.swift in Sources */,
 				F36F9E281F8270FC001D0DB4 /* Transactions.swift in Sources */,
 				F3B2C8A81F66727C007601E4 /* StatusDocument.swift in Sources */,
+				CA4A38892208775F00599297 /* Result.swift in Sources */,
 				F38FB0361F66837800F9D602 /* User.swift in Sources */,
 				F38FB0421F66847E00F9D602 /* Signature.swift in Sources */,
 				F3B2C8A71F66727C007601E4 /* LicenseDocument.swift in Sources */,
