@@ -1,6 +1,8 @@
 //
+//  LcpService.swift
+//  r2-lcp-swift
+//
 //  Created by Mickaël Menu on 01.02.19.
-//  Copyright © 2019 Readium. All rights reserved.
 //
 //  Copyright 2019 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by a BSD-style license which is detailed
