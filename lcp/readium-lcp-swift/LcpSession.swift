@@ -22,16 +22,11 @@ internal class LcpSession {
     internal let lcpLicense: LcpLicense
     internal let passphrases: PassphrasesService
     
-    init(licenseDocument url: URL, passphrases: PassphrasesService) throws {
-        self.lcpLicense = try LcpLicense.init(withLicenseDocumentAt: url)
+    init(container: LicenseContainer, passphrases: PassphrasesService) throws {
+        self.lcpLicense = try LcpLicense(container: container)
         self.passphrases = passphrases
     }
     
-    init(protectedEpubUrl url: URL, passphrases: PassphrasesService) throws {
-        self.lcpLicense = try LcpLicense.init(withLicenseDocumentIn: url)
-        self.passphrases = passphrases
-    }
-
     /// Process a LCP License Document (LCPL).
     /// Fetching Status Document, updating License Document, Fetching Publication,
     /// and moving the (updated) License Document into the publication archive.
@@ -43,11 +38,6 @@ internal class LcpSession {
         return evaluate()
             .then { _ -> Promise<(URL, URLSessionDownloadTask?)> in
                 return self.lcpLicense.fetchPublication()
-            }
-            .then { (publicationUrl, downloadTask) -> Promise<(URL, URLSessionDownloadTask?)> in
-                /// Move the license document in the publication.
-                try LcpLicense.moveLicense(from: self.lcpLicense.archivePath, to: publicationUrl)
-                return Promise(value: (publicationUrl, downloadTask))
             }
     }
     

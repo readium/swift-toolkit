@@ -41,7 +41,8 @@ public class LcpService {
         
     public func importLicenseDocument(_ lcpl: URL, completion: @escaping (ImportedPublication?, LcpError?) -> Void) {
         firstly { () -> Promise<(URL, URLSessionDownloadTask?)> in
-            let session = try LcpSession(licenseDocument: lcpl, passphrases: passphrases)
+            let container = LcplLicenseContainer(lcpl: lcpl)
+            let session = try LcpSession(container: container, passphrases: passphrases)
             return session.downloadPublication()
             
         }.then { (result) -> Void in
@@ -56,11 +57,13 @@ public class LcpService {
     public func openLicense(in publication: URL, completion: @escaping (LcpLicense?, LcpError?) -> Void) -> Void {
         do {
             let supportedProfiles = self.supportedProfiles
-            let session = try LcpSession(protectedEpubUrl: publication, passphrases: passphrases)
+            let container = EpubLicenseContainer(epub: publication)
+            let session = try LcpSession(container: container, passphrases: passphrases)
             try session.loadDrm { result in
                 switch result {
                 case .success(let license):
                     // Checks if the license's profile is supported
+                    // FIXME: to move in the step "1/ validate the license structure"
                     guard supportedProfiles.contains(license.profile ?? "") else {
                         completion(nil, LcpError.profileNotSupported)
                         return
@@ -77,7 +80,8 @@ public class LcpService {
     }
     
     public func removePublication(at url: URL) -> Void {
-        if let lcpLicense = try? LcpLicense(withLicenseDocumentIn: url) {
+        let container = EpubLicenseContainer(epub: url)
+        if let lcpLicense = try? LcpLicense(container: container) {
             try? lcpLicense.removeDataBaseItem()
         }
         // In case, the epub download succeed but the process inserting lcp into epub failed

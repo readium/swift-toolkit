@@ -37,8 +37,8 @@ public enum LcpError: Error {
     case deviceId
     case unexpectedServerError
     case invalidHintData
-    case archive
-    case fileNotInArchive
+    case container
+    case licenseNotInContainer
     case invalidJson
     case invalidContext
     case crlFetching
@@ -161,10 +161,10 @@ extension LcpError: LocalizedError {
             return "An unexpected error has occured."
         case .invalidHintData:
             return "The data returned by the server for the hint is not valid."
-        case .archive:
-            return "Coudn't instantiate the archive object."
-        case .fileNotInArchive:
-            return "The file you requested couldn't be found in the archive."
+        case .container:
+            return "Can't access the License Document container."
+        case .licenseNotInContainer:
+            return "The License Document can't be found in the container."
         case .invalidJson:
             return "The JSON license is not valid."
         case .invalidContext:

@@ -19,33 +19,16 @@ import R2LCPClient
 
 public class LcpLicense: DrmLicense {
 
-    public var archivePath: URL
     var license: LicenseDocument
     var status: StatusDocument?
     internal var context: DRMContext?
+    private var container: LicenseContainer
     
-    public init(withLicenseDocumentAt path: URL) throws {
-        archivePath = path
-        
-        let data = try Data.init(contentsOf: path.absoluteURL)
-        let license = try LicenseDocument.init(with: data)
-        
-        self.license = license
+    init(container: LicenseContainer) throws {
+        self.container = container
+        self.license = try container.read()
     }
-
-    public init(withLicenseDocumentIn archive: URL) throws {
-        guard let url = URL.init(string: "META-INF/license.lcpl") else {
-            throw LcpError.invalidPath
-        }
-        archivePath = archive
-        let data = try LcpLicense.getData(forFile: url, fromArchive: archive)
-
-        guard let license = try? LicenseDocument.init(with: data) else {
-            throw LcpError.invalidLcpl
-        }
-        self.license = license
-    }
-
+    
     /// Decipher encrypted content.
     ///
     /// - Parameter data: <#data description#>
@@ -372,6 +355,7 @@ public class LcpLicense: DrmLicense {
     ///
     /// - Returns: The URL representing the path of the publication localy.
     public func fetchPublication() -> Promise<(URL, URLSessionDownloadTask?)> {
+        let license = self.license
         return Promise<(URL, URLSessionDownloadTask?)> { fulfill, reject in
             guard let publicationLink = license.link(withRel: LicenseDocument.Rel.publication) else {
                 reject(LcpError.publicationLinkNotFound)
@@ -384,7 +368,7 @@ public class LcpLicense: DrmLicense {
                                                       in: .userDomainMask,
                                                       appropriateFor: nil,
                                                       create: true)
-            let fileName = "lcp." + self.license.id
+            let fileName = "lcp." + license.id
             destinationUrl.appendPathComponent("\(fileName).epub")
             
             let publicationTitle = publicationLink.title ?? "..."
@@ -392,6 +376,10 @@ public class LcpLicense: DrmLicense {
             DownloadSession.shared.launch(request: request, description: publicationTitle, completionHandler: { (tmpLocalUrl, response, error, downloadTask) -> Bool? in
                 if let localUrl = tmpLocalUrl, error == nil {
                     do {
+                        // Saves the License Document into the downloaded publication
+                        let container = EpubLicenseContainer(epub: localUrl)
+                        try container.write(license)
+                        
                         try FileManager.default.moveItem(at: localUrl, to: destinationUrl)
                     } catch {
                         print(error.localizedDescription)
@@ -470,9 +458,7 @@ public class LcpLicense: DrmLicense {
                         /// freshly fetched one.
                         content = try Data.init(contentsOf: localUrl)
                         self.license = try LicenseDocument.init(with: content)
-                        /// Replace the current licenseDocument on disk with the
-                        /// new one.
-                        try LcpLicense.moveLicense(from: localUrl, to: self.archivePath)
+                        try self.container.write(self.license)
                     } catch {
                         print(error.localizedDescription)
                     }
@@ -486,76 +472,6 @@ public class LcpLicense: DrmLicense {
         }
     }
 
-    /// Get the data of a file from an archive.
-    ///
-    /// - Parameters:
-    ///   - file: Absolute path.
-    ///   - url: Relative path.
-    /// - Returns: If found, the Data object representing the file.
-    /// - Throws: .
-    static fileprivate func getData(forFile fileUrl: URL, fromArchive url: URL) throws -> Data {
-
-        guard let archive = Archive(url: url, accessMode: .read) else  {
-            throw LcpError.archive
-        }
-        guard let entry = archive[fileUrl.absoluteString] else {
-            throw LcpError.fileNotInArchive
-        }
-        var destPath = url.deletingLastPathComponent()
-
-        destPath.appendPathComponent("extracted_file.tmp")
-
-        let destUrl = URL.init(fileURLWithPath: destPath.absoluteString)
-        let data: Data
-
-        // Extract file.
-        _ = try archive.extract(entry, to: destUrl)
-        data = try Data.init(contentsOf: destUrl)
-
-        // Remove temporary file.
-        try FileManager.default.removeItem(at: destUrl)
-
-        return data
-    }
-    
-    /// Moves the license.lcpl file from the "Documents/Inbox/" folder to the Zip archive
-    /// META-INF folder.
-    ///
-    /// - Parameters:
-    ///   - licenseUrl: The url of the license.lcpl file on the file system.
-    ///   - publicationUrl: The url of the publication archive
-    /// - Throws: ``.
-    static public func moveLicense(from licenseUrl: URL, to publicationUrl: URL) throws {
-        guard let archive = Archive(url: publicationUrl, accessMode: .update) else  {
-            throw LcpError.archive
-        }
-        // Create local META-INF folder to respect the zip file hierachy.
-        let fileManager = FileManager.default
-        var urlMetaInf = publicationUrl.deletingLastPathComponent()
-        
-        urlMetaInf.appendPathComponent("META-INF", isDirectory: true)
-        if !fileManager.fileExists(atPath: urlMetaInf.path) {
-            try fileManager.createDirectory(atPath: urlMetaInf.path, withIntermediateDirectories: false, attributes: nil)
-        }
-        // Move license in the META-INF local folder.
-        try fileManager.moveItem(atPath: licenseUrl.path, toPath: urlMetaInf.path + "/license.lcpl")
-        
-        // Remove the old license if already exist.a
-        if let oldLicense = archive["META-INF/license.lcpl"] {
-            do {
-                try archive.remove(oldLicense)
-            } catch {
-                print("Removing old LCP License from EPUB archive failed with error:\(error)")
-            }
-        }
-        
-        // Copy META-INF/license.lcpl to archive.
-        try archive.addEntry(with: urlMetaInf.lastPathComponent.appending("/license.lcpl"),
-                             relativeTo: urlMetaInf.deletingLastPathComponent())
-        // Delete META-INF/license.lcpl from inbox.
-        try fileManager.removeItem(atPath: urlMetaInf.path)
-    }
-    
     public func removeDataBaseItem() throws {
         try LcpDatabase.shared.licenses.deleteData(for: self.license.id)
     }
