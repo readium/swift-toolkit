@@ -57,7 +57,7 @@ final class PassphrasesService {
         }
         
         delegate.requestPassphrase(for: license, reason: reason) { [weak self] clearPassphrase in
-            guard let self = self, let clearPassphrase = clearPassphrase else {
+            guard let `self` = self, let clearPassphrase = clearPassphrase else {
                 completion(.failure(LcpError.cancelled))
                 return
             }
