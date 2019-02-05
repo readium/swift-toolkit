@@ -43,6 +43,7 @@ public enum LcpError: Error {
     case invalidContext
     case crlFetching
     case missingLicenseStatus
+    case profileNotSupported
 
     case invalidRights
     case invalidPassphrase
@@ -176,6 +177,8 @@ extension LcpError: LocalizedError {
             return "Incorrect renewal period, your publication could not be renewed."
         case .licenseAlreadyExist:
             return "The LCP license already exist, this import is ignored"
+        case .profileNotSupported:
+            return "The LCP profile of this license is not supported."
         case .network(_):
             return "Can't reach server"
         }

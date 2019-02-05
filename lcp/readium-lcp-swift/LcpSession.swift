@@ -125,7 +125,7 @@ internal class LcpSession {
         return Promise<Void>()
     }
     
-    func loadDrm(_ completion: @escaping (LcpLicense?, LcpError?) -> Void) throws
+    func loadDrm(_ completion: @escaping (Result<LcpLicense>) -> Void) throws
     {
         let kCRLDate = "kCRLDate"
         let kCRLString = "kCRLString"
@@ -190,9 +190,9 @@ internal class LcpSession {
         }.then { passphrase -> Promise<LcpLicense> in
             return resolveLicense(passphraseHash: passphrase)
         }.then { lcpLicense -> Void in
-            completion(lcpLicense, nil)
+            completion(.success(lcpLicense))
         }.catch { error in
-            completion(nil, LcpError.wrap(error))
+            completion(.failure(LcpError.wrap(error)))
         }
     }
     

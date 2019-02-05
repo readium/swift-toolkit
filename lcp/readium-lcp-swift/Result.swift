@@ -8,7 +8,7 @@ import PromiseKit
 
 enum Result<T> {
     case success(T)
-    case failure(Error)
+    case failure(LcpError)
 }
 
 /// Wraps a result-based completion block with PromisesKit

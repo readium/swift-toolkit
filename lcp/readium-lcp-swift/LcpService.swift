@@ -27,6 +27,12 @@ public class LcpService {
     public weak var delegate: LcpServiceDelegate?
 
     private let passphrases: PassphrasesService
+    
+    /// To modify depending of the profile of the liblcp.a used
+    private let supportedProfiles = [
+        "http://readium.org/lcp/basic-profile",
+        "http://readium.org/lcp/profile-1.0",
+    ]
 
     public init() {
         self.passphrases = PassphrasesService(repository: LcpDatabase.shared.transactions)
@@ -49,8 +55,22 @@ public class LcpService {
     
     public func openLicense(in publication: URL, completion: @escaping (LcpLicense?, LcpError?) -> Void) -> Void {
         do {
+            let supportedProfiles = self.supportedProfiles
             let session = try LcpSession(protectedEpubUrl: publication, passphrases: passphrases)
-            try session.loadDrm(completion)
+            try session.loadDrm { result in
+                switch result {
+                case .success(let license):
+                    // Checks if the license's profile is supported
+                    guard supportedProfiles.contains(license.profile ?? "") else {
+                        completion(nil, LcpError.profileNotSupported)
+                        return
+                    }
+                    completion(license, nil)
+                    
+                case .failure(let error):
+                    completion(nil, error)
+                }
+            }
         } catch {
             completion(nil, LcpError.wrap(error))
         }
