@@ -8,7 +8,15 @@
 
 /* Begin PBXBuildFile section */
 		0394DBA9211C9201008D0524 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0394DBA8211C9201008D0524 /* R2LCPClient.framework */; };
-		F331FBF81F8228F8007F16DF /* LCPDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = F331FBF71F8228F8007F16DF /* LCPDatabase.swift */; };
+		CA4A38742208647400599297 /* PassphrasesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A38732208647400599297 /* PassphrasesRepository.swift */; };
+		CA4A388722086F7500599297 /* PassphrasesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388622086F7500599297 /* PassphrasesService.swift */; };
+		CA4A38892208775F00599297 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A38882208775F00599297 /* Result.swift */; };
+		CA4A388C2209873B00599297 /* LicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388B2209873B00599297 /* LicenseContainer.swift */; };
+		CA4A388E220988C800599297 /* LcplLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388D220988C800599297 /* LcplLicenseContainer.swift */; };
+		CA4A389022098A9400599297 /* ZipLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388F22098A9400599297 /* ZipLicenseContainer.swift */; };
+		CA4A3892220994E300599297 /* EpubLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A3891220994E300599297 /* EpubLicenseContainer.swift */; };
+		CAB57BC12204811100E4CB12 /* LcpService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB57BC02204811100E4CB12 /* LcpService.swift */; };
+		F331FBF81F8228F8007F16DF /* LcpDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = F331FBF71F8228F8007F16DF /* LcpDatabase.swift */; };
 		F35AF9F91F6AB8C700D3F670 /* LcpSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35AF9F81F6AB8C700D3F670 /* LcpSession.swift */; };
 		F35AF9FF1F6ACD3900D3F670 /* LcpParsingError.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35AF9FE1F6ACD3900D3F670 /* LcpParsingError.swift */; };
 		F35AFA011F6AD54400D3F670 /* LcpLicense.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35AFA001F6AD54400D3F670 /* LcpLicense.swift */; };
@@ -33,9 +41,17 @@
 /* Begin PBXFileReference section */
 		03254C0A206A7E41008C68ED /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0394DBA8211C9201008D0524 /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA4A38732208647400599297 /* PassphrasesRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassphrasesRepository.swift; sourceTree = "<group>"; };
+		CA4A388622086F7500599297 /* PassphrasesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassphrasesService.swift; sourceTree = "<group>"; };
+		CA4A38882208775F00599297 /* Result.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
+		CA4A388B2209873B00599297 /* LicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseContainer.swift; sourceTree = "<group>"; };
+		CA4A388D220988C800599297 /* LcplLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LcplLicenseContainer.swift; sourceTree = "<group>"; };
+		CA4A388F22098A9400599297 /* ZipLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZipLicenseContainer.swift; sourceTree = "<group>"; };
+		CA4A3891220994E300599297 /* EpubLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpubLicenseContainer.swift; sourceTree = "<group>"; };
+		CAB57BC02204811100E4CB12 /* LcpService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LcpService.swift; sourceTree = "<group>"; };
 		F300FA341F8E1AEB00442332 /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
 		F3314BF31FE42F2300C3B790 /* R2LCPClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2LCPClient.framework; path = Carthage/Build/iOS/R2LCPClient.framework; sourceTree = "<group>"; };
-		F331FBF71F8228F8007F16DF /* LCPDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDatabase.swift; sourceTree = "<group>"; };
+		F331FBF71F8228F8007F16DF /* LcpDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LcpDatabase.swift; sourceTree = "<group>"; };
 		F35AF9F11F6AB14300D3F670 /* PromiseKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PromiseKit.framework; path = Carthage/Build/iOS/PromiseKit.framework; sourceTree = "<group>"; };
 		F35AF9F81F6AB8C700D3F670 /* LcpSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LcpSession.swift; sourceTree = "<group>"; };
 		F35AF9FE1F6ACD3900D3F670 /* LcpParsingError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LcpParsingError.swift; sourceTree = "<group>"; };
@@ -78,6 +94,26 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		CA4A388522086BDE00599297 /* Passphrases */ = {
+			isa = PBXGroup;
+			children = (
+				CA4A38732208647400599297 /* PassphrasesRepository.swift */,
+				CA4A388622086F7500599297 /* PassphrasesService.swift */,
+			);
+			name = Passphrases;
+			sourceTree = "<group>";
+		};
+		CA4A388A2209872800599297 /* Container */ = {
+			isa = PBXGroup;
+			children = (
+				CA4A388B2209873B00599297 /* LicenseContainer.swift */,
+				CA4A388D220988C800599297 /* LcplLicenseContainer.swift */,
+				CA4A388F22098A9400599297 /* ZipLicenseContainer.swift */,
+				CA4A3891220994E300599297 /* EpubLicenseContainer.swift */,
+			);
+			name = Container;
+			sourceTree = "<group>";
+		};
 		F36F9E241F826C05001D0DB4 /* Tables */ = {
 			isa = PBXGroup;
 			children = (
@@ -161,12 +197,16 @@
 			children = (
 				F3B2C88B1F667223007601E4 /* Info.plist */,
 				F3B2C88A1F667223007601E4 /* readium-lcp-swift.h */,
-				F331FBF71F8228F8007F16DF /* LCPDatabase.swift */,
+				F331FBF71F8228F8007F16DF /* LcpDatabase.swift */,
+				CA4A38882208775F00599297 /* Result.swift */,
 				F36F9E241F826C05001D0DB4 /* Tables */,
 				F3B2C8A51F66727C007601E4 /* LcpError.swift */,
 				F35AF9FE1F6ACD3900D3F670 /* LcpParsingError.swift */,
 				F35AFA001F6AD54400D3F670 /* LcpLicense.swift */,
 				F35AF9F81F6AB8C700D3F670 /* LcpSession.swift */,
+				CAB57BC02204811100E4CB12 /* LcpService.swift */,
+				CA4A388A2209872800599297 /* Container */,
+				CA4A388522086BDE00599297 /* Passphrases */,
 				F38FB04B1F66BF8A00F9D602 /* Model */,
 			);
 			path = "readium-lcp-swift";
@@ -301,17 +341,24 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA4A38742208647400599297 /* PassphrasesRepository.swift in Sources */,
 				F35AF9F91F6AB8C700D3F670 /* LcpSession.swift in Sources */,
+				CA4A3892220994E300599297 /* EpubLicenseContainer.swift in Sources */,
+				CA4A388E220988C800599297 /* LcplLicenseContainer.swift in Sources */,
 				F38CDB221F697D3A004156CB /* PotentialRights.swift in Sources */,
+				CA4A388722086F7500599297 /* PassphrasesService.swift in Sources */,
 				F36F9E261F826C17001D0DB4 /* Licenses.swift in Sources */,
 				F35AFA011F6AD54400D3F670 /* LcpLicense.swift in Sources */,
 				F38FB03C1F6683F300F9D602 /* UserKey.swift in Sources */,
+				CA4A388C2209873B00599297 /* LicenseContainer.swift in Sources */,
 				F3B2C8AB1F66727C007601E4 /* LcpError.swift in Sources */,
 				F3B2C8AA1F66727C007601E4 /* Event.swift in Sources */,
+				CA4A389022098A9400599297 /* ZipLicenseContainer.swift in Sources */,
 				F35AF9FF1F6ACD3900D3F670 /* LcpParsingError.swift in Sources */,
 				F38FB0381F66839600F9D602 /* Rights.swift in Sources */,
 				F36F9E281F8270FC001D0DB4 /* Transactions.swift in Sources */,
 				F3B2C8A81F66727C007601E4 /* StatusDocument.swift in Sources */,
+				CA4A38892208775F00599297 /* Result.swift in Sources */,
 				F38FB0361F66837800F9D602 /* User.swift in Sources */,
 				F38FB0421F66847E00F9D602 /* Signature.swift in Sources */,
 				F3B2C8A71F66727C007601E4 /* LicenseDocument.swift in Sources */,
@@ -319,7 +366,8 @@
 				F38FB03A1F6683D800F9D602 /* Encryption.swift in Sources */,
 				F3B2C8AC1F66727C007601E4 /* Link.swift in Sources */,
 				F38FB03E1F66840900F9D602 /* ContentKey.swift in Sources */,
-				F331FBF81F8228F8007F16DF /* LCPDatabase.swift in Sources */,
+				F331FBF81F8228F8007F16DF /* LcpDatabase.swift in Sources */,
+				CAB57BC12204811100E4CB12 /* LcpService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

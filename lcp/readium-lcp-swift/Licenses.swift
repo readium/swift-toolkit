@@ -29,9 +29,6 @@ class Licenses {
     
     let registered = Expression<Bool>("registered")
     
-    let localFileURL = Expression<String?>("localFileURL")
-    let localFileUpdated = Expression<Date?>("localFileUpdated")
-
     init(_ connection: Connection) {
         
         _ = try? connection.run(licenses.create(temporary: false, ifNotExists: true) { t in
@@ -50,14 +47,15 @@ class Licenses {
             connection.userVersion = 1
         }
         if 1 == connection.userVersion {
-            _ = try? connection.run(licenses.addColumn(localFileURL))
-            _ = try? connection.run(licenses.addColumn(localFileUpdated))
+            // DEPRECATED: We don't use those columns anymore
+//            _ = try? connection.run(licenses.addColumn(localFileURL))
+//            _ = try? connection.run(licenses.addColumn(localFileUpdated))
             connection.userVersion = 2
         }
     }
 
     internal func dateOfLastUpdate(forLicenseWith id: String) -> Date? {
-        let db = LCPDatabase.shared.connection
+        let db = LcpDatabase.shared.connection
         let query = licenses.filter(self.id == id).select(updated).order(updated.desc)
 
         do {
@@ -75,7 +73,7 @@ class Licenses {
     }
 
     internal func updateState(forLicenseWith id: String, to state: String) throws {
-        let db = LCPDatabase.shared.connection
+        let db = LcpDatabase.shared.connection
         let license = licenses.filter(self.id == id)
 
         // Check if empty.
@@ -86,7 +84,7 @@ class Licenses {
     }
     
     internal func register(forLicenseWith id: String) throws {
-        let db = LCPDatabase.shared.connection
+        let db = LcpDatabase.shared.connection
         let license = licenses.filter(self.id == id)
         
         // Check if empty.
@@ -102,7 +100,7 @@ class Licenses {
     /// - Returns: A boolean indicating the result of the search, true if found.
     /// - Throws: .
     internal func existingLicense(with id: String) throws -> Bool {
-        let db = LCPDatabase.shared.connection
+        let db = LcpDatabase.shared.connection
         // Check if empty.
         guard try db.scalar(licenses.count) > 0 else {
             return false
@@ -112,69 +110,14 @@ class Licenses {
 
         return count == 1
     }
-    
-    /// Check if the table already contains an entry for the given ID.
-    ///
-    /// - Parameter licenseID: The ID to check.
-    /// - Returns: A boolean indicating the result of the search, true if found.
-    /// - Throws: .
-    internal func localFileExisting(for licenseID: String) throws -> Bool {
-        let db = LCPDatabase.shared.connection
-        // Check if empty.
-        guard try db.scalar(licenses.count) > 0 else {
-            return false
-        }
-        let query = licenses.filter(self.id == licenseID && self.localFileURL != nil)
-        let count = try db.scalar(query.count)
-        
-        return count == 1
-    }
-    
-    /// Update the local file info for a given licenseID
-    ///
-    /// - Parameter licenseID: The ID to check.
-    /// - Parameter localURL: The URL of this local file.
-    /// - Parameter updatedAt: The updated date for this local file.
-    /// - Throws: .
-    internal func updateLocalFile(for licenseID: String, localURL: String, updatedAt: Date) throws -> Void {
-        
-        let db = LCPDatabase.shared.connection
-        let license = licenses.filter(self.id == id)
-        
-        // Check if empty.
-        guard try db.scalar(license.count) > 0 else {
-            throw LcpError.licenseNotFound
-        }
-        
-        try db.run(license.update(self.localFileURL <- localURL,
-                                  self.localFileUpdated <- updatedAt))
-    }
-    
-    /// Delete the local file info for a given licenseID
-    ///
-    /// - Parameter licenseID: The ID to check.
-    /// - Throws: .
-    internal func deleteLocalFile(for licenseID: String) throws -> Void {
-        
-        let db = LCPDatabase.shared.connection
-        let license = licenses.filter(self.id == id)
-        
-        // Check if empty.
-        guard try db.scalar(license.count) > 0 else {
-            throw LcpError.licenseNotFound
-        }
-        
-        try db.run(license.update(self.localFileURL <- nil,
-                                  self.localFileUpdated <- nil))
-    }
-    
+
     /// Delete the database item info for a given licenseID
     ///
     /// - Parameter licenseID: The ID to check.
     /// - Throws: .
     internal func deleteData(for licenseID: String) throws -> Void {
         
-        let db = LCPDatabase.shared.connection
+        let db = LcpDatabase.shared.connection
         let license = licenses.filter(self.id == id)
         
         // Check if empty.
@@ -191,7 +134,7 @@ class Licenses {
     /// - Returns: A boolean indicating the result of the search, true if found.
     /// - Throws: .
     internal func checkRegister(with id: String) throws -> Bool {
-        let db = LCPDatabase.shared.connection
+        let db = LcpDatabase.shared.connection
         // Check if empty.
         guard try db.scalar(licenses.count) > 0 else {
             return false
@@ -209,7 +152,7 @@ class Licenses {
     ///   - status: <#status description#>
     /// - Throws: <#throws value description#>
     internal func insert(_ license: LicenseDocument, with status: StatusDocument.Status?) throws {
-        let db = LCPDatabase.shared.connection
+        let db = LcpDatabase.shared.connection
 
         let insertQuery = licenses.insert(
             id <- license.id,

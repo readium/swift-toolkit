@@ -12,7 +12,9 @@
 import Foundation
 
 public enum LcpError: Error {
-    case unknown
+    case cancelled
+    case unknown(Error?)
+    case network(Error?)
     case invalidPath
     case invalidLcpl
     case statusLinkNotFound
@@ -35,19 +37,18 @@ public enum LcpError: Error {
     case deviceId
     case unexpectedServerError
     case invalidHintData
-    case archive
-    case fileNotInArchive
-    case noPassphraseFound
-    case emptyPassphrase
+    case container
+    case licenseNotInContainer
     case invalidJson
     case invalidContext
     case crlFetching
     case missingLicenseStatus
-    
+    case profileNotSupported
+
     case invalidRights
     case invalidPassphrase
     case licenseAlreadyExist
-    
+
 /// For the case (revoked, returned, cancelled, expired), app should notify the user and stop there. The message to the user must be clear about the status of the license: don't display "expired" if the status is "revoked". The date and time corresponding to the new status should be displayed (e.g. "The license expired on 01 January 2018").
     case licenseStatusCancelled(Date?)
     case licenseStatusReturned(Date?)
@@ -70,12 +71,33 @@ public enum LcpError: Error {
         }
         return ""
     }
+    
+    internal static func wrap(_ error: Error) -> LcpError {
+        if let lcpError = error as? LcpError {
+            return lcpError
+        }
+            
+        let nsError = error as NSError
+        switch nsError.domain {
+        case NSURLErrorDomain:
+            return .network(nsError)
+        default:
+            return .unknown(error)
+        }
+    }
+    
 }
 
 extension LcpError: LocalizedError {
+    
     public var errorDescription: String? {
         switch self {
-        case .unknown:
+        case .cancelled:
+            return "Operation cancelled."
+        case .unknown(let error):
+            if let localizedError = error as? LocalizedError {
+                return localizedError.errorDescription
+            }
             return "Unknown error."
         case .invalidPath:
             return "The provided license file path is incorrect."
@@ -139,14 +161,10 @@ extension LcpError: LocalizedError {
             return "An unexpected error has occured."
         case .invalidHintData:
             return "The data returned by the server for the hint is not valid."
-        case .archive:
-            return "Coudn't instantiate the archive object."
-        case .fileNotInArchive:
-            return "The file you requested couldn't be found in the archive."
-        case .noPassphraseFound:
-            return "Couldn't find a valide passphrase in the database, please provide a passphrase."
-        case .emptyPassphrase:
-            return "The passphrase provided is empty."
+        case .container:
+            return "Can't access the License Document container."
+        case .licenseNotInContainer:
+            return "The License Document can't be found in the container."
         case .invalidJson:
             return "The JSON license is not valid."
         case .invalidContext:
@@ -159,6 +177,10 @@ extension LcpError: LocalizedError {
             return "Incorrect renewal period, your publication could not be renewed."
         case .licenseAlreadyExist:
             return "The LCP license already exist, this import is ignored"
+        case .profileNotSupported:
+            return "The LCP profile of this license is not supported."
+        case .network(_):
+            return "Can't reach server"
         }
     }
 }

@@ -18,33 +18,17 @@ import R2Shared
 import R2LCPClient
 
 public class LcpLicense: DrmLicense {
-    public var archivePath: URL
+
     var license: LicenseDocument
     var status: StatusDocument?
     internal var context: DRMContext?
+    private var container: LicenseContainer
     
-    public init(withLicenseDocumentAt path: URL) throws {
-        archivePath = path
-        
-        let data = try Data.init(contentsOf: path.absoluteURL)
-        let license = try LicenseDocument.init(with: data)
-        
-        self.license = license
+    init(container: LicenseContainer) throws {
+        self.container = container
+        self.license = try container.read()
     }
-
-    public init(withLicenseDocumentIn archive: URL) throws {
-        guard let url = URL.init(string: "META-INF/license.lcpl") else {
-            throw LcpError.invalidPath
-        }
-        archivePath = archive
-        let data = try LcpLicense.getData(forFile: url, fromArchive: archive)
-
-        guard let license = try? LicenseDocument.init(with: data) else {
-            throw LcpError.invalidLcpl
-        }
-        self.license = license
-    }
-
+    
     /// Decipher encrypted content.
     ///
     /// - Parameter data: <#data description#>
@@ -102,7 +86,7 @@ public class LcpLicense: DrmLicense {
                 } else if let error = error {
                     fulfill(error)
                 } else {
-                    reject(LcpError.unknown)
+                    reject(LcpError.unknown(nil))
                 }
             }
             task.resume()
@@ -161,7 +145,7 @@ public class LcpLicense: DrmLicense {
     /// Note: This function fail without blocking the flow of LCP process.
     /// If not registered this time, will be the next time.
     public func register() {
-        let database = LCPDatabase.shared
+        let database = LcpDatabase.shared
 
         // Check that no existing license with license.id are in the base.
         guard let registered = try? database.licenses.checkRegister(with: license.id), !registered
@@ -203,7 +187,7 @@ public class LcpLicense: DrmLicense {
             } else if httpResponse.statusCode == 200 {
                 //  5.3/ Store the fact the the device / license has been registered.
                 do {
-                    try LCPDatabase.shared.licenses.register(forLicenseWith: self.license.id)
+                    try LcpDatabase.shared.licenses.register(forLicenseWith: self.license.id)
                     return // SUCCESS
                 } catch {
                     print(error.localizedDescription)
@@ -255,7 +239,7 @@ public class LcpLicense: DrmLicense {
                             // Update local license in Lcp object
                             self.status = try StatusDocument.init(with: data)
                             // Update license status (to 'returned' normally)
-                            try LCPDatabase.shared.licenses.updateState(forLicenseWith: self.license.id,
+                            try LcpDatabase.shared.licenses.updateState(forLicenseWith: self.license.id,
                                                                         to: self.status!.status.rawValue)
                             completion(nil)
                         } catch {
@@ -311,7 +295,7 @@ public class LcpLicense: DrmLicense {
                                 // Update local license in Lcp object
                                 self.status = try StatusDocument.init(with: data)
                                 // Update license status (to 'returned' normally)
-                                try LCPDatabase.shared.licenses.updateState(forLicenseWith: self.license.id,
+                                try LcpDatabase.shared.licenses.updateState(forLicenseWith: self.license.id,
                                                                             to: self.status!.status.rawValue)
                                 // Update license document.
                                 firstly {
@@ -371,17 +355,8 @@ public class LcpLicense: DrmLicense {
     ///
     /// - Returns: The URL representing the path of the publication localy.
     public func fetchPublication() -> Promise<(URL, URLSessionDownloadTask?)> {
+        let license = self.license
         return Promise<(URL, URLSessionDownloadTask?)> { fulfill, reject in
-            
-            let exist = try LCPDatabase.shared.licenses.localFileExisting(for: self.license.id)
-            
-            if exist {
-                let info = [NSLocalizedDescriptionKey : "LCP book already imported before."]
-                let duplicateError = NSError(domain: "org.readium", code: 0, userInfo: info)
-                reject(duplicateError)
-                return
-            }
-            
             guard let publicationLink = license.link(withRel: LicenseDocument.Rel.publication) else {
                 reject(LcpError.publicationLinkNotFound)
                 return
@@ -393,7 +368,7 @@ public class LcpLicense: DrmLicense {
                                                       in: .userDomainMask,
                                                       appropriateFor: nil,
                                                       create: true)
-            let fileName = "lcp." + self.license.id
+            let fileName = "lcp." + license.id
             destinationUrl.appendPathComponent("\(fileName).epub")
             
             let publicationTitle = publicationLink.title ?? "..."
@@ -401,8 +376,11 @@ public class LcpLicense: DrmLicense {
             DownloadSession.shared.launch(request: request, description: publicationTitle, completionHandler: { (tmpLocalUrl, response, error, downloadTask) -> Bool? in
                 if let localUrl = tmpLocalUrl, error == nil {
                     do {
+                        // Saves the License Document into the downloaded publication
+                        let container = EpubLicenseContainer(epub: localUrl)
+                        try container.write(license)
+                        
                         try FileManager.default.moveItem(at: localUrl, to: destinationUrl)
-                        try LCPDatabase.shared.licenses.updateLocalFile(for: self.license.id, localURL: destinationUrl.absoluteString, updatedAt: Date())
                     } catch {
                         print(error.localizedDescription)
                         reject(error)
@@ -413,7 +391,7 @@ public class LcpLicense: DrmLicense {
                 } else if let error = error {
                     reject(error)
                 } else {
-                    reject(LcpError.unknown)
+                    reject(LcpError.unknown(nil))
                 }
                 return false
             })
@@ -428,13 +406,13 @@ public class LcpLicense: DrmLicense {
     public func saveLicenseDocumentWithoutStatus(shouldRejectError: Bool) -> Promise<Void> {
         return Promise<Void> { fulfill, reject in
             do {
-                let exist = try LCPDatabase.shared.licenses.existingLicense(with: self.license.id)
+                let exist = try LcpDatabase.shared.licenses.existingLicense(with: self.license.id)
                 if exist { // When the LCP license already exist
                     if shouldRejectError {
                         reject(LcpError.licenseAlreadyExist)
                     }
                 } else {
-                    try LCPDatabase.shared.licenses.insert(self.license, with: nil)
+                    try LcpDatabase.shared.licenses.insert(self.license, with: nil)
                 }
                 fulfill(())
             } catch {
@@ -464,7 +442,7 @@ public class LcpLicense: DrmLicense {
             // Compare last update date
             let latestUpdate = license.dateOfLastUpdate()
 
-            if let lastUpdate = LCPDatabase.shared.licenses.dateOfLastUpdate(forLicenseWith: license.id),
+            if let lastUpdate = LcpDatabase.shared.licenses.dateOfLastUpdate(forLicenseWith: license.id),
                 lastUpdate > latestUpdate {
                     fulfill(())
                 return
@@ -480,98 +458,30 @@ public class LcpLicense: DrmLicense {
                         /// freshly fetched one.
                         content = try Data.init(contentsOf: localUrl)
                         self.license = try LicenseDocument.init(with: content)
-                        /// Replace the current licenseDocument on disk with the
-                        /// new one.
-                        try LcpLicense.moveLicense(from: localUrl, to: self.archivePath)
+                        try self.container.write(self.license)
                     } catch {
                         print(error.localizedDescription)
                     }
                 } else if let error = error {
                     print(error.localizedDescription)
                 }
-                try? LCPDatabase.shared.licenses.insert(self.license, with: status.status)
+                try? LcpDatabase.shared.licenses.insert(self.license, with: status.status)
               fulfill(())
             })
             task.resume()
         }
     }
 
-    /// Get the data of a file from an archive.
-    ///
-    /// - Parameters:
-    ///   - file: Absolute path.
-    ///   - url: Relative path.
-    /// - Returns: If found, the Data object representing the file.
-    /// - Throws: .
-    static fileprivate func getData(forFile fileUrl: URL, fromArchive url: URL) throws -> Data {
-
-        guard let archive = Archive(url: url, accessMode: .read) else  {
-            throw LcpError.archive
-        }
-        guard let entry = archive[fileUrl.absoluteString] else {
-            throw LcpError.fileNotInArchive
-        }
-        var destPath = url.deletingLastPathComponent()
-
-        destPath.appendPathComponent("extracted_file.tmp")
-
-        let destUrl = URL.init(fileURLWithPath: destPath.absoluteString)
-        let data: Data
-
-        // Extract file.
-        _ = try archive.extract(entry, to: destUrl)
-        data = try Data.init(contentsOf: destUrl)
-
-        // Remove temporary file.
-        try FileManager.default.removeItem(at: destUrl)
-
-        return data
-    }
-    
-    /// Moves the license.lcpl file from the "Documents/Inbox/" folder to the Zip archive
-    /// META-INF folder.
-    ///
-    /// - Parameters:
-    ///   - licenseUrl: The url of the license.lcpl file on the file system.
-    ///   - publicationUrl: The url of the publication archive
-    /// - Throws: ``.
-    static public func moveLicense(from licenseUrl: URL, to publicationUrl: URL) throws {
-        guard let archive = Archive(url: publicationUrl, accessMode: .update) else  {
-            throw LcpError.archive
-        }
-        // Create local META-INF folder to respect the zip file hierachy.
-        let fileManager = FileManager.default
-        var urlMetaInf = publicationUrl.deletingLastPathComponent()
-        
-        urlMetaInf.appendPathComponent("META-INF", isDirectory: true)
-        if !fileManager.fileExists(atPath: urlMetaInf.path) {
-            try fileManager.createDirectory(atPath: urlMetaInf.path, withIntermediateDirectories: false, attributes: nil)
-        }
-        // Move license in the META-INF local folder.
-        try fileManager.moveItem(atPath: licenseUrl.path, toPath: urlMetaInf.path + "/license.lcpl")
-        
-        // Remove the old license if already exist.a
-        if let oldLicense = archive["META-INF/license.lcpl"] {
-            do {
-                try archive.remove(oldLicense)
-            } catch {
-                print("Removing old LCP License from EPUB archive failed with error:\(error)")
-            }
-        }
-        
-        // Copy META-INF/license.lcpl to archive.
-        try archive.addEntry(with: urlMetaInf.lastPathComponent.appending("/license.lcpl"),
-                             relativeTo: urlMetaInf.deletingLastPathComponent())
-        // Delete META-INF/license.lcpl from inbox.
-        try fileManager.removeItem(atPath: urlMetaInf.path)
-    }
-    
     public func removeDataBaseItem() throws {
-        try LCPDatabase.shared.licenses.deleteData(for: self.license.id)
+        try LcpDatabase.shared.licenses.deleteData(for: self.license.id)
     }
     
     public static func removeDataBaseItem(licenseID: String) throws {
-        try LCPDatabase.shared.licenses.deleteData(for: licenseID)
+        try LcpDatabase.shared.licenses.deleteData(for: licenseID)
+    }
+    
+    public var profile: String? {
+        return license.encryption.profile.absoluteString
     }
 
     public func currentStatus() -> String {
