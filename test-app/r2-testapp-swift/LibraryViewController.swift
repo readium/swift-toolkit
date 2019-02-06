@@ -21,10 +21,6 @@ import ReadiumOPDS
 
 import MobileCoreServices
 
-/// To modify depending of the profile of the liblcp.a used
-let supportedProfiles = ["http://readium.org/lcp/basic-profile",
-                         "http://readium.org/lcp/profile-1.0"]
-
 protocol LibraryViewControllerDelegate: class {
     func loadPublication(withId id: String?, completion: @escaping (Drm?, Error?) -> Void) throws
     func remove(_ publication: Publication)
@@ -377,19 +373,11 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
             do {
                 // Ask delegate to load that document.
                 try delegate?.loadPublication(withId: publicationIdentifier, completion: { drm, error in
-                    // Check if profile is supported.
-                    
                     if let _ = error {
-                        fail?(nil) // slient error
+                        fail?(nil) // silent error
                         return
                     }
-                    
-                    if let profile = drm?.profile, !supportedProfiles.contains(profile) {
-                        let message = "The profile of this DRM is not supported."
-                        fail?(message)
-                        return
-                    }
-                    
+
                     let epubViewer = EpubViewController(with: publication,
                                                         atIndex: index,
                                                         progression: progression, drm)
