@@ -14,7 +14,7 @@ import Foundation
 /// Encapsulates the read/write access to the packaged License Document (eg. in an EPUB container, or a standalone LCPL file)
 protocol LicenseContainer {
     
-    func read() throws -> LicenseDocument
+    func read() throws -> Data
     func write(_ license: LicenseDocument) throws
 
 }

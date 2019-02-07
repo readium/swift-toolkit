@@ -38,6 +38,10 @@ public class LicenseDocument {
     public var signature: Signature
 
     public var json: String
+    
+    public var data: Data {
+        return json.data(using: .utf8) ?? Data()
+    }
 
     // The possible rel of Links.
     public enum Rel: String {
@@ -104,3 +108,10 @@ public class LicenseDocument {
 
 }
 
+extension LicenseDocument: CustomStringConvertible {
+    
+    public var description: String {
+        return "License(\(id))"
+    }
+    
+}

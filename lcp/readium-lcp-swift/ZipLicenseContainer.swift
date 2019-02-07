@@ -24,7 +24,7 @@ class ZipLicenseContainer: LicenseContainer {
         self.pathInZip = pathInZip
     }
     
-    func read() throws -> LicenseDocument {
+    func read() throws -> Data {
         guard let archive = Archive(url: zip, accessMode: .read) else  {
             throw LcpError.container
         }
@@ -41,11 +41,7 @@ class ZipLicenseContainer: LicenseContainer {
             throw LcpError.container
         }
 
-        guard let license = try? LicenseDocument(with: data) else {
-            throw LcpError.invalidLcpl
-        }
-        
-        return license
+        return data
     }
     
     func write(_ license: LicenseDocument) throws {

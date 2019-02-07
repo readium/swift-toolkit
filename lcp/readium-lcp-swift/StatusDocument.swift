@@ -62,7 +62,7 @@ public class StatusDocument {
         case renew = "renew"
     }
 
-    public init(with data: Data) throws {
+    public init(data: Data) throws {
         let json = JSON(data: data)
 
         // Retrieves the non optional fields.
@@ -96,4 +96,14 @@ public class StatusDocument {
     public func link(withRel rel: Rel) -> Link? {
         return links.first(where: { $0.rel.contains(rel.rawValue) })
     }
+    
+}
+
+
+extension StatusDocument: CustomStringConvertible {
+    
+    public var description: String {
+        return "Status(\(status.rawValue))"
+    }
+    
 }

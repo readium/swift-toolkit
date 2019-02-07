@@ -82,17 +82,6 @@ class Licenses {
         }
         try db.run(license.update(self.state <- state))
     }
-    
-    internal func register(forLicenseWith id: String) throws {
-        let db = LcpDatabase.shared.connection
-        let license = licenses.filter(self.id == id)
-        
-        // Check if empty.
-        guard try db.scalar(license.count) > 0 else {
-            throw LcpError.licenseNotFound
-        }
-        try db.run(license.update(self.registered <- true))
-    }
 
     /// Check if the table already contains an entry for the given ID.
     ///
@@ -127,23 +116,6 @@ class Licenses {
         
         try db.run(license.delete())
     }
-    
-    /// Check if the table already contains an entry for the given ID which is registered
-    ///
-    /// - Parameter id: The ID to check for.
-    /// - Returns: A boolean indicating the result of the search, true if found.
-    /// - Throws: .
-    internal func checkRegister(with id: String) throws -> Bool {
-        let db = LcpDatabase.shared.connection
-        // Check if empty.
-        guard try db.scalar(licenses.count) > 0 else {
-            return false
-        }
-        let query = licenses.filter(self.id == id && self.registered == true)
-        let count = try db.scalar(query.count)
-        
-        return count == 1
-    }
 
     /// Add a registered license to the database.
     ///
@@ -169,4 +141,21 @@ class Licenses {
         try db.run(insertQuery)
     }
     
+}
+
+extension Licenses: DeviceRepository {
+    
+    func isDeviceRegistered(for license: LicenseDocument) throws -> Bool {
+        let db = LcpDatabase.shared.connection
+        let query = licenses.filter(self.id == license.id && self.registered == true)
+        let count = try db.scalar(query.count)
+        return count == 1
+    }
+    
+    func registerDevice(for license: LicenseDocument) throws {
+        let db = LcpDatabase.shared.connection
+        let license = licenses.filter(self.id == id)
+        try db.run(license.update(self.registered <- true))
+    }
+
 }

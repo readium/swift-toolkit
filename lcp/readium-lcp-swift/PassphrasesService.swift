@@ -11,6 +11,7 @@
 
 import Foundation
 import R2LCPClient
+import CryptoSwift
 
 
 public enum PassphraseRequestReason {

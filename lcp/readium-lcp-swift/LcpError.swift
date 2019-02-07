@@ -11,13 +11,17 @@
 
 import Foundation
 
-public enum LcpError: Error {
+public enum LcpError: Error, Equatable {
+    public static func == (lhs: LcpError, rhs: LcpError) -> Bool {
+        return false
+    }
+    
     case cancelled
     case unknown(Error?)
     case network(Error?)
+    case invalidLicense(Error?)
     case invalidPath
     case invalidLcpl
-    case statusLinkNotFound
     case licenseNotFound
     case licenseLinkNotFound
     case publicationLinkNotFound
@@ -42,6 +46,7 @@ public enum LcpError: Error {
     case invalidJson
     case invalidContext
     case crlFetching
+    case licenseFetching
     case missingLicenseStatus
     case profileNotSupported
 
@@ -54,7 +59,7 @@ public enum LcpError: Error {
     case licenseStatusReturned(Date?)
     case licenseStatusExpired(Date?)
 /// If the license has been revoked, the user message should display the number of devices which registered to the server. This count can be calculated from the number of "register" events in the status document. If no event is logged in the status document, no such message should appear (certainly not "The license was registered by 0 devices").
-    case licenseStatusRevoked(Date?, String?)
+    case licenseStatusRevoked(Date?, devicesCount: Int)
 
     func localizedString(for date: Date) -> String {
         let dateFormatter = DateFormatter()
@@ -105,8 +110,6 @@ extension LcpError: LocalizedError {
             return "The provided license isn't a correctly formatted LCPL file. "
         case .licenseNotFound:
             return "No license found in base for the given identifier."
-        case .statusLinkNotFound:
-            return "The status link is missing from the license document."
         case .licenseLinkNotFound:
             return "The license link is missing from the status document."
         case .publicationLinkNotFound:
@@ -130,13 +133,9 @@ extension LcpError: LocalizedError {
         case .licenseStatusReturned(let updatedDate):
             let suffix = self.localizedSuffix(for: updatedDate)
             return "This license has been returned\(suffix)."
-        case .licenseStatusRevoked(let updatedDate, let extra):
+        case .licenseStatusRevoked(let updatedDate, let devicesCount):
             let suffix = self.localizedSuffix(for: updatedDate)
-            let message = "This license has been revoked by its provider" + suffix + "."
-            guard let extraInfo = extra else {
-                return message
-            }
-            return message + "\n" + extraInfo
+            return "This license has been revoked by its provider" + suffix + ".\nThe license was registered by \(devicesCount) devices."
         case .licenseStatusCancelled(let updatedDate):
             let suffix = self.localizedSuffix(for: updatedDate)
             return "You have cancelled this license\(suffix)."
@@ -165,12 +164,16 @@ extension LcpError: LocalizedError {
             return "Can't access the License Document container."
         case .licenseNotInContainer:
             return "The License Document can't be found in the container."
+        case .invalidLicense(_):
+            return "The License is not in a valid state."
         case .invalidJson:
             return "The JSON license is not valid."
         case .invalidContext:
             return "The context provided is invalid."
         case .crlFetching:
             return "Error while fetching the certificate revocation list."
+        case .licenseFetching:
+            return "Error while fetching the License Document."
         case .invalidPassphrase:
             return "The passphrase entered is not valid."
         case .renewPeriod:
@@ -178,7 +181,7 @@ extension LcpError: LocalizedError {
         case .licenseAlreadyExist:
             return "The LCP license already exist, this import is ignored"
         case .profileNotSupported:
-            return "The LCP profile of this license is not supported."
+            return "This Readium LCP license has a profile identifier that this app cannot handle, the publication cannot be processed"
         case .network(_):
             return "Can't reach server"
         }
