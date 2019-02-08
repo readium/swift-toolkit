@@ -12,19 +12,20 @@
 		CA4A388722086F7500599297 /* PassphrasesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388622086F7500599297 /* PassphrasesService.swift */; };
 		CA4A38892208775F00599297 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A38882208775F00599297 /* Result.swift */; };
 		CA4A388C2209873B00599297 /* LicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388B2209873B00599297 /* LicenseContainer.swift */; };
-		CA4A388E220988C800599297 /* LcplLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388D220988C800599297 /* LcplLicenseContainer.swift */; };
-		CA4A389022098A9400599297 /* ZipLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388F22098A9400599297 /* ZipLicenseContainer.swift */; };
-		CA4A3892220994E300599297 /* EpubLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A3891220994E300599297 /* EpubLicenseContainer.swift */; };
+		CA4A388E220988C800599297 /* LCPLLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388D220988C800599297 /* LCPLLicenseContainer.swift */; };
+		CA4A389022098A9400599297 /* ZIPLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388F22098A9400599297 /* ZIPLicenseContainer.swift */; };
+		CA4A3892220994E300599297 /* EPUBLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A3891220994E300599297 /* EPUBLicenseContainer.swift */; };
 		CAB131F6220D81E60097DFB5 /* LicensesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB131F5220D81E60097DFB5 /* LicensesRepository.swift */; };
 		CAB131F9220D8EEF0097DFB5 /* Concurrency.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB131F8220D8EEF0097DFB5 /* Concurrency.swift */; };
 		CAB131FB220D91500097DFB5 /* PopVariable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB131FA220D914F0097DFB5 /* PopVariable.swift */; };
-		CAB1320B220D9B200097DFB5 /* LcpService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB1320A220D9B200097DFB5 /* LcpService.swift */; };
+		CAB1320B220D9B200097DFB5 /* LCPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB1320A220D9B200097DFB5 /* LCPService.swift */; };
+		CAB13211220DB2B10097DFB5 /* LCPAuthenticating.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */; };
 		CAB57BC12204811100E4CB12 /* LicensesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB57BC02204811100E4CB12 /* LicensesService.swift */; };
 		CAE7FB7A220C2E6F00D03587 /* LicenseValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE7FB79220C2E6F00D03587 /* LicenseValidation.swift */; };
 		CAE7FB7C220C4B7700D03587 /* DeviceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE7FB7B220C4B7700D03587 /* DeviceService.swift */; };
 		CAE7FB7E220C4C5C00D03587 /* DeviceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE7FB7D220C4C5C00D03587 /* DeviceRepository.swift */; };
 		CAE7FB82220C64D100D03587 /* CrlService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE7FB81220C64D100D03587 /* CrlService.swift */; };
-		F331FBF81F8228F8007F16DF /* LcpDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = F331FBF71F8228F8007F16DF /* LcpDatabase.swift */; };
+		F331FBF81F8228F8007F16DF /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = F331FBF71F8228F8007F16DF /* Database.swift */; };
 		F35AF9FF1F6ACD3900D3F670 /* ParsingError.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35AF9FE1F6ACD3900D3F670 /* ParsingError.swift */; };
 		F35AFA011F6AD54400D3F670 /* License.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35AFA001F6AD54400D3F670 /* License.swift */; };
 		F36F9E261F826C17001D0DB4 /* Licenses.swift in Sources */ = {isa = PBXBuildFile; fileRef = F36F9E251F826C17001D0DB4 /* Licenses.swift */; };
@@ -41,7 +42,7 @@
 		F3B2C8A81F66727C007601E4 /* StatusDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B2C8A21F66727C007601E4 /* StatusDocument.swift */; };
 		F3B2C8A91F66727C007601E4 /* Updated.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B2C8A31F66727C007601E4 /* Updated.swift */; };
 		F3B2C8AA1F66727C007601E4 /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B2C8A41F66727C007601E4 /* Event.swift */; };
-		F3B2C8AB1F66727C007601E4 /* LcpError.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B2C8A51F66727C007601E4 /* LcpError.swift */; };
+		F3B2C8AB1F66727C007601E4 /* LCPError.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B2C8A51F66727C007601E4 /* LCPError.swift */; };
 		F3B2C8AC1F66727C007601E4 /* Link.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B2C8A61F66727C007601E4 /* Link.swift */; };
 /* End PBXBuildFile section */
 
@@ -52,13 +53,14 @@
 		CA4A388622086F7500599297 /* PassphrasesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassphrasesService.swift; sourceTree = "<group>"; };
 		CA4A38882208775F00599297 /* Result.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		CA4A388B2209873B00599297 /* LicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseContainer.swift; sourceTree = "<group>"; };
-		CA4A388D220988C800599297 /* LcplLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LcplLicenseContainer.swift; sourceTree = "<group>"; };
-		CA4A388F22098A9400599297 /* ZipLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZipLicenseContainer.swift; sourceTree = "<group>"; };
-		CA4A3891220994E300599297 /* EpubLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpubLicenseContainer.swift; sourceTree = "<group>"; };
+		CA4A388D220988C800599297 /* LCPLLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPLLicenseContainer.swift; sourceTree = "<group>"; };
+		CA4A388F22098A9400599297 /* ZIPLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZIPLicenseContainer.swift; sourceTree = "<group>"; };
+		CA4A3891220994E300599297 /* EPUBLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBLicenseContainer.swift; sourceTree = "<group>"; };
 		CAB131F5220D81E60097DFB5 /* LicensesRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensesRepository.swift; sourceTree = "<group>"; };
 		CAB131F8220D8EEF0097DFB5 /* Concurrency.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Concurrency.swift; sourceTree = "<group>"; };
 		CAB131FA220D914F0097DFB5 /* PopVariable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopVariable.swift; sourceTree = "<group>"; };
-		CAB1320A220D9B200097DFB5 /* LcpService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LcpService.swift; sourceTree = "<group>"; };
+		CAB1320A220D9B200097DFB5 /* LCPService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPService.swift; sourceTree = "<group>"; };
+		CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPAuthenticating.swift; sourceTree = "<group>"; };
 		CAB57BC02204811100E4CB12 /* LicensesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensesService.swift; sourceTree = "<group>"; };
 		CAE7FB79220C2E6F00D03587 /* LicenseValidation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseValidation.swift; sourceTree = "<group>"; };
 		CAE7FB7B220C4B7700D03587 /* DeviceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceService.swift; sourceTree = "<group>"; };
@@ -66,7 +68,7 @@
 		CAE7FB81220C64D100D03587 /* CrlService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrlService.swift; sourceTree = "<group>"; };
 		F300FA341F8E1AEB00442332 /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
 		F3314BF31FE42F2300C3B790 /* R2LCPClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2LCPClient.framework; path = Carthage/Build/iOS/R2LCPClient.framework; sourceTree = "<group>"; };
-		F331FBF71F8228F8007F16DF /* LcpDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LcpDatabase.swift; sourceTree = "<group>"; };
+		F331FBF71F8228F8007F16DF /* Database.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
 		F35AF9F11F6AB14300D3F670 /* PromiseKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PromiseKit.framework; path = Carthage/Build/iOS/PromiseKit.framework; sourceTree = "<group>"; };
 		F35AF9FE1F6ACD3900D3F670 /* ParsingError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ParsingError.swift; sourceTree = "<group>"; };
 		F35AFA001F6AD54400D3F670 /* License.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = License.swift; sourceTree = "<group>"; };
@@ -89,7 +91,7 @@
 		F3B2C8A21F66727C007601E4 /* StatusDocument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatusDocument.swift; sourceTree = "<group>"; };
 		F3B2C8A31F66727C007601E4 /* Updated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Updated.swift; sourceTree = "<group>"; };
 		F3B2C8A41F66727C007601E4 /* Event.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
-		F3B2C8A51F66727C007601E4 /* LcpError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LcpError.swift; sourceTree = "<group>"; };
+		F3B2C8A51F66727C007601E4 /* LCPError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCPError.swift; sourceTree = "<group>"; };
 		F3B2C8A61F66727C007601E4 /* Link.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Link.swift; sourceTree = "<group>"; };
 		F3B2C8AE1F6672E1007601E4 /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
 		F3E2DEA01FB1B3DC009A1CC4 /* ZIPFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ZIPFoundation.framework; path = Carthage/Build/iOS/ZIPFoundation.framework; sourceTree = "<group>"; };
@@ -108,37 +110,83 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		CA4A388A2209872800599297 /* Container */ = {
+		CAB13212220DB55C0097DFB5 /* Public */ = {
+			isa = PBXGroup;
+			children = (
+				CAB1320A220D9B200097DFB5 /* LCPService.swift */,
+				F3B2C8A51F66727C007601E4 /* LCPError.swift */,
+				CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */,
+			);
+			path = Public;
+			sourceTree = "<group>";
+		};
+		CAB13214220DB5930097DFB5 /* License */ = {
+			isa = PBXGroup;
+			children = (
+				F35AFA001F6AD54400D3F670 /* License.swift */,
+				CAE7FB79220C2E6F00D03587 /* LicenseValidation.swift */,
+				CAB13216220DB5C70097DFB5 /* Model */,
+				CAB13215220DB5BA0097DFB5 /* Container */,
+			);
+			path = License;
+			sourceTree = "<group>";
+		};
+		CAB13215220DB5BA0097DFB5 /* Container */ = {
 			isa = PBXGroup;
 			children = (
 				CA4A388B2209873B00599297 /* LicenseContainer.swift */,
-				CA4A388D220988C800599297 /* LcplLicenseContainer.swift */,
-				CA4A388F22098A9400599297 /* ZipLicenseContainer.swift */,
-				CA4A3891220994E300599297 /* EpubLicenseContainer.swift */,
+				CA4A388D220988C800599297 /* LCPLLicenseContainer.swift */,
+				CA4A388F22098A9400599297 /* ZIPLicenseContainer.swift */,
+				CA4A3891220994E300599297 /* EPUBLicenseContainer.swift */,
 			);
-			name = Container;
+			path = Container;
 			sourceTree = "<group>";
 		};
-		CAB131F7220D8EE00097DFB5 /* Common */ = {
+		CAB13216220DB5C70097DFB5 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				CA4A38882208775F00599297 /* Result.swift */,
-				CAB131F8220D8EEF0097DFB5 /* Concurrency.swift */,
-				CAB131FA220D914F0097DFB5 /* PopVariable.swift */,
+				F35AF9FE1F6ACD3900D3F670 /* ParsingError.swift */,
+				F3B2C8A11F66727C007601E4 /* LicenseDocument.swift */,
+				F3B2C8A21F66727C007601E4 /* StatusDocument.swift */,
+				CAB13217220DB5DB0097DFB5 /* Components */,
 			);
-			name = Common;
+			path = Model;
 			sourceTree = "<group>";
 		};
-		CAB13209220D9ABA0097DFB5 /* Public */ = {
+		CAB13217220DB5DB0097DFB5 /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				CAB1320A220D9B200097DFB5 /* LcpService.swift */,
-				F3B2C8A51F66727C007601E4 /* LcpError.swift */,
+				F3B2C8A61F66727C007601E4 /* Link.swift */,
+				F3B2C8A31F66727C007601E4 /* Updated.swift */,
+				CAB13218220DB60C0097DFB5 /* LCP */,
+				CAB13219220DB6110097DFB5 /* LSD */,
 			);
-			name = Public;
+			path = Components;
 			sourceTree = "<group>";
 		};
-		CAE7FB78220C2E6000D03587 /* Services */ = {
+		CAB13218220DB60C0097DFB5 /* LCP */ = {
+			isa = PBXGroup;
+			children = (
+				F38FB0391F6683D800F9D602 /* Encryption.swift */,
+				F38FB03B1F6683F300F9D602 /* UserKey.swift */,
+				F38FB03D1F66840900F9D602 /* ContentKey.swift */,
+				F38FB0371F66839600F9D602 /* Rights.swift */,
+				F38FB0351F66837800F9D602 /* User.swift */,
+				F38FB0411F66847E00F9D602 /* Signature.swift */,
+			);
+			path = LCP;
+			sourceTree = "<group>";
+		};
+		CAB13219220DB6110097DFB5 /* LSD */ = {
+			isa = PBXGroup;
+			children = (
+				F3B2C8A41F66727C007601E4 /* Event.swift */,
+				F38CDB211F697D3A004156CB /* PotentialRights.swift */,
+			);
+			path = LSD;
+			sourceTree = "<group>";
+		};
+		CAB1321B220DB6430097DFB5 /* Services */ = {
 			isa = PBXGroup;
 			children = (
 				CAB57BC02204811100E4CB12 /* LicensesService.swift */,
@@ -149,88 +197,27 @@
 				CAE7FB7D220C4C5C00D03587 /* DeviceRepository.swift */,
 				CAE7FB81220C64D100D03587 /* CrlService.swift */,
 			);
-			name = Services;
+			path = Services;
 			sourceTree = "<group>";
 		};
-		CAE7FB7F220C574500D03587 /* Persistence */ = {
+		CAB1321C220DB6570097DFB5 /* Persistence */ = {
 			isa = PBXGroup;
 			children = (
-				F331FBF71F8228F8007F16DF /* LcpDatabase.swift */,
-				F36F9E241F826C05001D0DB4 /* Tables */,
-			);
-			name = Persistence;
-			sourceTree = "<group>";
-		};
-		CAE7FB80220C575500D03587 /* License */ = {
-			isa = PBXGroup;
-			children = (
-				F35AFA001F6AD54400D3F670 /* License.swift */,
-				CAE7FB79220C2E6F00D03587 /* LicenseValidation.swift */,
-				CA4A388A2209872800599297 /* Container */,
-				F38FB04B1F66BF8A00F9D602 /* Model */,
-			);
-			name = License;
-			sourceTree = "<group>";
-		};
-		F36F9E241F826C05001D0DB4 /* Tables */ = {
-			isa = PBXGroup;
-			children = (
+				F331FBF71F8228F8007F16DF /* Database.swift */,
 				F36F9E251F826C17001D0DB4 /* Licenses.swift */,
 				F36F9E271F8270FC001D0DB4 /* Transactions.swift */,
 			);
-			name = Tables;
+			path = Persistence;
 			sourceTree = "<group>";
 		};
-		F38FB0331F6678E300F9D602 /* SubParts */ = {
+		CAB1321D220DB6700097DFB5 /* Common */ = {
 			isa = PBXGroup;
 			children = (
-				F3B2C8A61F66727C007601E4 /* Link.swift */,
-				F3B2C8A31F66727C007601E4 /* Updated.swift */,
-				F38FB0401F66842800F9D602 /* lcp */,
-				F38FB03F1F66841D00F9D602 /* lsd */,
+				CA4A38882208775F00599297 /* Result.swift */,
+				CAB131F8220D8EEF0097DFB5 /* Concurrency.swift */,
+				CAB131FA220D914F0097DFB5 /* PopVariable.swift */,
 			);
-			name = SubParts;
-			sourceTree = "<group>";
-		};
-		F38FB0341F6678FD00F9D602 /* Documents */ = {
-			isa = PBXGroup;
-			children = (
-				F3B2C8A11F66727C007601E4 /* LicenseDocument.swift */,
-				F3B2C8A21F66727C007601E4 /* StatusDocument.swift */,
-			);
-			name = Documents;
-			sourceTree = "<group>";
-		};
-		F38FB03F1F66841D00F9D602 /* lsd */ = {
-			isa = PBXGroup;
-			children = (
-				F3B2C8A41F66727C007601E4 /* Event.swift */,
-				F38CDB211F697D3A004156CB /* PotentialRights.swift */,
-			);
-			name = lsd;
-			sourceTree = "<group>";
-		};
-		F38FB0401F66842800F9D602 /* lcp */ = {
-			isa = PBXGroup;
-			children = (
-				F38FB0391F6683D800F9D602 /* Encryption.swift */,
-				F38FB03B1F6683F300F9D602 /* UserKey.swift */,
-				F38FB03D1F66840900F9D602 /* ContentKey.swift */,
-				F38FB0371F66839600F9D602 /* Rights.swift */,
-				F38FB0351F66837800F9D602 /* User.swift */,
-				F38FB0411F66847E00F9D602 /* Signature.swift */,
-			);
-			name = lcp;
-			sourceTree = "<group>";
-		};
-		F38FB04B1F66BF8A00F9D602 /* Model */ = {
-			isa = PBXGroup;
-			children = (
-				F35AF9FE1F6ACD3900D3F670 /* ParsingError.swift */,
-				F38FB0341F6678FD00F9D602 /* Documents */,
-				F38FB0331F6678E300F9D602 /* SubParts */,
-			);
-			name = Model;
+			path = Common;
 			sourceTree = "<group>";
 		};
 		F3B2C87D1F667222007601E4 = {
@@ -254,13 +241,13 @@
 		F3B2C8891F667222007601E4 /* readium-lcp-swift */ = {
 			isa = PBXGroup;
 			children = (
+				CAB13212220DB55C0097DFB5 /* Public */,
+				CAB13214220DB5930097DFB5 /* License */,
+				CAB1321B220DB6430097DFB5 /* Services */,
+				CAB1321C220DB6570097DFB5 /* Persistence */,
+				CAB1321D220DB6700097DFB5 /* Common */,
 				F3B2C88B1F667223007601E4 /* Info.plist */,
 				F3B2C88A1F667223007601E4 /* readium-lcp-swift.h */,
-				CAB13209220D9ABA0097DFB5 /* Public */,
-				CAE7FB80220C575500D03587 /* License */,
-				CAE7FB78220C2E6000D03587 /* Services */,
-				CAE7FB7F220C574500D03587 /* Persistence */,
-				CAB131F7220D8EE00097DFB5 /* Common */,
 			);
 			path = "readium-lcp-swift";
 			sourceTree = "<group>";
@@ -396,8 +383,8 @@
 			files = (
 				CAE7FB7A220C2E6F00D03587 /* LicenseValidation.swift in Sources */,
 				CA4A38742208647400599297 /* PassphrasesRepository.swift in Sources */,
-				CA4A3892220994E300599297 /* EpubLicenseContainer.swift in Sources */,
-				CA4A388E220988C800599297 /* LcplLicenseContainer.swift in Sources */,
+				CA4A3892220994E300599297 /* EPUBLicenseContainer.swift in Sources */,
+				CA4A388E220988C800599297 /* LCPLLicenseContainer.swift in Sources */,
 				CAB131F6220D81E60097DFB5 /* LicensesRepository.swift in Sources */,
 				F38CDB221F697D3A004156CB /* PotentialRights.swift in Sources */,
 				CA4A388722086F7500599297 /* PassphrasesService.swift in Sources */,
@@ -406,10 +393,11 @@
 				F35AFA011F6AD54400D3F670 /* License.swift in Sources */,
 				F38FB03C1F6683F300F9D602 /* UserKey.swift in Sources */,
 				CA4A388C2209873B00599297 /* LicenseContainer.swift in Sources */,
-				F3B2C8AB1F66727C007601E4 /* LcpError.swift in Sources */,
-				CAB1320B220D9B200097DFB5 /* LcpService.swift in Sources */,
+				F3B2C8AB1F66727C007601E4 /* LCPError.swift in Sources */,
+				CAB1320B220D9B200097DFB5 /* LCPService.swift in Sources */,
 				F3B2C8AA1F66727C007601E4 /* Event.swift in Sources */,
-				CA4A389022098A9400599297 /* ZipLicenseContainer.swift in Sources */,
+				CAB13211220DB2B10097DFB5 /* LCPAuthenticating.swift in Sources */,
+				CA4A389022098A9400599297 /* ZIPLicenseContainer.swift in Sources */,
 				F35AF9FF1F6ACD3900D3F670 /* ParsingError.swift in Sources */,
 				F38FB0381F66839600F9D602 /* Rights.swift in Sources */,
 				F36F9E281F8270FC001D0DB4 /* Transactions.swift in Sources */,
@@ -425,7 +413,7 @@
 				F38FB03A1F6683D800F9D602 /* Encryption.swift in Sources */,
 				F3B2C8AC1F66727C007601E4 /* Link.swift in Sources */,
 				F38FB03E1F66840900F9D602 /* ContentKey.swift in Sources */,
-				F331FBF81F8228F8007F16DF /* LcpDatabase.swift in Sources */,
+				F331FBF81F8228F8007F16DF /* Database.swift in Sources */,
 				CAB57BC12204811100E4CB12 /* LicensesService.swift in Sources */,
 				CAE7FB7C220C4B7700D03587 /* DeviceService.swift in Sources */,
 			);

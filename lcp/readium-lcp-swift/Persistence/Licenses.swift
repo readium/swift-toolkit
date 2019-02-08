@@ -59,7 +59,7 @@ class Licenses {
 extension Licenses: LicensesRepository {
     
     func addOrUpdateLicense(_ license: LicenseDocument) throws {
-        let db = LcpDatabase.shared.connection
+        let db = Database.shared.connection
         
         let filterLicense = licenses.filter(id == license.id)
         let exists = try db.scalar(filterLicense.count) != 0
@@ -88,7 +88,7 @@ extension Licenses: LicensesRepository {
     }
     
     func updateLicenseStatus(_ license: LicenseDocument, to status: StatusDocument) throws {
-        let db = LcpDatabase.shared.connection
+        let db = Database.shared.connection
         let query = licenses
             .filter(id == license.id)
             .update(state <- status.status.rawValue)
@@ -100,14 +100,14 @@ extension Licenses: LicensesRepository {
 extension Licenses: DeviceRepository {
     
     func isDeviceRegistered(for license: LicenseDocument) throws -> Bool {
-        let db = LcpDatabase.shared.connection
+        let db = Database.shared.connection
         let query = licenses.filter(id == license.id && registered == true)
         let count = try db.scalar(query.count)
         return count != 0
     }
     
     func registerDevice(for license: LicenseDocument) throws {
-        let db = LcpDatabase.shared.connection
+        let db = Database.shared.connection
         let filterLicense = licenses.filter(id == license.id)
         try db.run(filterLicense.update(registered <- true))
     }

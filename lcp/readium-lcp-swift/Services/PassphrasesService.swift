@@ -18,11 +18,11 @@ final class PassphrasesService {
 
     /// Called when the service can't find any valid passphrase in the repository, as a fallback.
     /// Can be used, for example, to prompt the user for the passphrase.
-    private let authenticating: LcpAuthenticating?
+    private let authenticating: LCPAuthenticating?
     
     private let repository: PassphrasesRepository
 
-    init(repository: PassphrasesRepository, authenticating: LcpAuthenticating?) {
+    init(repository: PassphrasesRepository, authenticating: LCPAuthenticating?) {
         self.repository = repository
         self.authenticating = authenticating
     }
@@ -39,15 +39,16 @@ final class PassphrasesService {
     }
     
     /// Called when the service can't find any valid passphrase in the repository, as a fallback.
-    private func authenticate(for license: LicenseDocument, reason: LcpAuthenticationReason, completion: @escaping (Result<String>) -> Void) {
+    private func authenticate(for license: LicenseDocument, reason: LCPAuthenticationReason, completion: @escaping (Result<String>) -> Void) {
         guard let authenticating = self.authenticating else {
-            completion(.failure(LcpError.cancelled))
+            completion(.failure(LCPError.cancelled))
             return
         }
         
-        authenticating.requestPassphrase(for: license, reason: reason) { [weak self] clearPassphrase in
+        let data = LCPAuthenticationData(license: license)
+        authenticating.requestPassphrase(for: data, reason: reason) { [weak self] clearPassphrase in
             guard let `self` = self, let clearPassphrase = clearPassphrase else {
-                completion(.failure(LcpError.cancelled))
+                completion(.failure(LCPError.cancelled))
                 return
             }
             

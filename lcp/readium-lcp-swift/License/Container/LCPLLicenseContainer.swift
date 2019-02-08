@@ -1,5 +1,5 @@
 //
-//  LcplLicenseContainer.swift
+//  LCPLLicenseContainer.swift
 //  r2-lcp-swift
 //
 //  Created by Mickaël Menu on 05.02.19.
@@ -12,7 +12,7 @@
 import Foundation
 
 /// Access to a License Document packaged as a standalone LCPL file.
-final class LcplLicenseContainer: LicenseContainer {
+final class LCPLLicenseContainer: LicenseContainer {
     
     private let lcpl: URL
     
@@ -22,7 +22,7 @@ final class LcplLicenseContainer: LicenseContainer {
     
     func read() throws -> Data {
         guard let data = try? Data(contentsOf: lcpl) else {
-            throw LcpError.container
+            throw LCPError.container
         }
         return data
     }
@@ -31,7 +31,7 @@ final class LcplLicenseContainer: LicenseContainer {
         do {
             try license.json.write(to: lcpl, atomically: true, encoding: .utf8)
         } catch {
-            throw LcpError.container
+            throw LCPError.container
         }
     }
 

@@ -70,7 +70,7 @@ extension LicenseValidation {
         case retrievedStatus(StatusDocument)
         case checkedStatus
         case registeredDevice(skipped: Bool)
-        case failed(LcpError)
+        case failed(LCPError)
     }
 
     fileprivate enum State {
@@ -87,7 +87,7 @@ extension LicenseValidation {
 
         // final states
         case valid(LicenseDocument, StatusDocument?, DRMContext)
-        case failure(LcpError)
+        case failure(LCPError)
         
         /// Statechart's transitions
         /// This is where the decisions are taken: what to do next, should we go back to a previous state, etc.
@@ -172,7 +172,7 @@ extension LicenseValidation {
                 do {
                     try self.licenses.addOrUpdateLicense(license)
                 } catch {
-                    event = .failed(LcpError.wrap(error))
+                    event = .failed(LCPError.wrap(error))
                 }
 
             case let (.checkStatus(license, status, context), .checkedStatus):
@@ -198,7 +198,7 @@ extension LicenseValidation {
 
     private func validateLicense(data: Data) {
         guard let license = try? LicenseDocument(with: data) else {
-            return raise(.failed(.invalidLcpl))
+            return raise(.failed(.invalidLCPL))
         }
 
         // 1.a/ Validate the license structure
@@ -303,7 +303,7 @@ extension LicenseValidation {
         completion(.success((license, status, context)))
     }
     
-    private func reportFailure(_ error: LcpError) {
+    private func reportFailure(_ error: LCPError) {
         if let (license, status, context) = fallbackLicense {
             reportSuccess(license: license, status: status, context: context)
         } else {

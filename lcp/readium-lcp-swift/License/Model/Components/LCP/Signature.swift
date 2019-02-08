@@ -13,7 +13,7 @@ import Foundation
 import SwiftyJSON
 
 /// Signature allowing to certify the License Document integrity.
-public struct Signature {
+struct Signature {
     /// Algorithm used to calculate the signature, identified using the URIs 
     /// given in [XML-SIG]. This MUST match the signature algorithm named in the
     /// Encryption Profile identified in `encryption/profile`.

@@ -12,7 +12,7 @@
 import Foundation
 import SwiftyJSON
 
-public struct Encryption {
+struct Encryption {
     /// Identifies the Encryption Profile used by this LCP-protected Publication.
     var profile: URL
     /// Used to encrypt the Publication Resources.

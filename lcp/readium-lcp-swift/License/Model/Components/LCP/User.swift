@@ -12,7 +12,7 @@
 import Foundation
 import SwiftyJSON
 
-public struct User {
+struct User {
     /// Unique identifier for the User at a specific Provider.
     var id: String?
     /// The User’s e-mail address.

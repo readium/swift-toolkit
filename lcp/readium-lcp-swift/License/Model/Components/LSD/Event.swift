@@ -13,17 +13,17 @@ import Foundation
 import SwiftyJSON
 
 /// Event related to the change in status of a License Document.
-public struct Event {
+struct Event {
     /// Identifies the type of event.
-    public var type: String // Type TODO
+    var type: String // Type TODO
     /// Name of the client, as provided by the client during an interaction.
-    public var name: String
+    var name: String
     /// Identifies the client, as provided by the client during an interaction.
-    public var id: String
+    var id: String
     /// Time and date when the event occurred.
-    public var date: Date // Named timestamp in spec.
+    var date: Date // Named timestamp in spec.
 
-    public init(with json: JSON) throws {
+    init(with json: JSON) throws {
         guard let name = json["name"].string,
             let dateData = json["timestamp"].string,
             let type = json["type"].string,

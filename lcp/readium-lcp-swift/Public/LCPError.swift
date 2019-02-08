@@ -1,5 +1,5 @@
 //
-//  LcpError.swift
+//  LCPError.swift
 //  readium-lcp-swift
 //
 //  Created by Alexandre Camilleri on 9/6/17.
@@ -11,18 +11,14 @@
 
 import Foundation
 
-public enum LcpError: Error, Equatable {
-    public static func == (lhs: LcpError, rhs: LcpError) -> Bool {
-        return false
-    }
-    
+public enum LCPError: Error {
     case cancelled
     case unknown(Error?)
     case network(Error)
     case database(Error)
     case invalidLicense(Error?)
     case invalidPath
-    case invalidLcpl
+    case invalidLCPL
     case licenseNotFound
     case licenseLinkNotFound
     case publicationLinkNotFound
@@ -44,7 +40,7 @@ public enum LcpError: Error, Equatable {
     case invalidHintData
     case container
     case licenseNotInContainer
-    case invalidJson
+    case invalidJSON
     case invalidContext
     case crlFetching
     case licenseFetching
@@ -78,8 +74,8 @@ public enum LcpError: Error, Equatable {
         return ""
     }
     
-    internal static func wrap(_ error: Error) -> LcpError {
-        if let lcpError = error as? LcpError {
+    internal static func wrap(_ error: Error) -> LCPError {
+        if let lcpError = error as? LCPError {
             return lcpError
         }
             
@@ -94,7 +90,7 @@ public enum LcpError: Error, Equatable {
     
 }
 
-extension LcpError: LocalizedError {
+extension LCPError: LocalizedError {
     
     public var errorDescription: String? {
         switch self {
@@ -107,7 +103,7 @@ extension LcpError: LocalizedError {
             return "Unknown error."
         case .invalidPath:
             return "The provided license file path is incorrect."
-        case .invalidLcpl:
+        case .invalidLCPL:
             return "The provided license isn't a correctly formatted LCPL file. "
         case .licenseNotFound:
             return "No license found in base for the given identifier."
@@ -167,7 +163,7 @@ extension LcpError: LocalizedError {
             return "The License Document can't be found in the container."
         case .invalidLicense(_):
             return "The License is not in a valid state."
-        case .invalidJson:
+        case .invalidJSON:
             return "The JSON license is not valid."
         case .invalidContext:
             return "The context provided is invalid."

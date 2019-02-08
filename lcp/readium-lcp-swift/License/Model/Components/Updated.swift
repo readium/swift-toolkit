@@ -12,11 +12,11 @@
 import Foundation
 import SwiftyJSON
 
-public class Updated {
+class Updated {
     /// Time and Date when the License Document was last updated.
-    public var license: Date
+    var license: Date
     /// Time and Date when the Status Document was last updated.
-    public var status: Date
+    var status: Date
 
     init(with json: JSON) throws {
         guard let license = json["license"].string,

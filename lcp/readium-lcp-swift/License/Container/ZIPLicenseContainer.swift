@@ -1,5 +1,5 @@
 //
-//  ZipLicenseContainer.swift
+//  ZIPLicenseContainer.swift
 //  r2-lcp-swift
 //
 //  Created by Mickaël Menu on 05.02.19.
@@ -13,23 +13,23 @@ import Foundation
 import ZIPFoundation
 
 /// Access to a License Document stored in a ZIP archive.
-/// Meant to be subclassed to customize the pathInZip property, eg. EpubLicenseContainer.
-class ZipLicenseContainer: LicenseContainer {
+/// Meant to be subclassed to customize the pathInZIP property, eg. EPUBLicenseContainer.
+class ZIPLicenseContainer: LicenseContainer {
     
     private let zip: URL
-    private let pathInZip: String
+    private let pathInZIP: String
     
-    init(zip: URL, pathInZip: String) {
+    init(zip: URL, pathInZIP: String) {
         self.zip = zip
-        self.pathInZip = pathInZip
+        self.pathInZIP = pathInZIP
     }
     
     func read() throws -> Data {
         guard let archive = Archive(url: zip, accessMode: .read) else  {
-            throw LcpError.container
+            throw LCPError.container
         }
-        guard let entry = archive[pathInZip] else {
-            throw LcpError.licenseNotInContainer
+        guard let entry = archive[pathInZIP] else {
+            throw LCPError.licenseNotInContainer
         }
         
         var data = Data()
@@ -38,7 +38,7 @@ class ZipLicenseContainer: LicenseContainer {
                 data.append(part)
             }
         } catch {
-            throw LcpError.container
+            throw LCPError.container
         }
 
         return data
@@ -46,24 +46,24 @@ class ZipLicenseContainer: LicenseContainer {
     
     func write(_ license: LicenseDocument) throws {
         guard let archive = Archive(url: zip, accessMode: .update) else  {
-            throw LcpError.container
+            throw LCPError.container
         }
         guard let data = license.json.data(using: .utf8) else {
-            throw LcpError.invalidJson
+            throw LCPError.invalidJSON
         }
         
         do {
             // Removes the old License if it already exists in the archive, otherwise we get duplicated entries
-            if let oldLicense = archive[pathInZip] {
+            if let oldLicense = archive[pathInZIP] {
                 try archive.remove(oldLicense)
             }
 
             // Stores the License into the ZIP file
-            try archive.addEntry(with: pathInZip, type: .file, uncompressedSize: UInt32(data.count), provider: { (position, size) -> Data in
+            try archive.addEntry(with: pathInZIP, type: .file, uncompressedSize: UInt32(data.count), provider: { (position, size) -> Data in
                 return data[position..<size]
             })
         } catch {
-            throw LcpError.container
+            throw LCPError.container
         }
     }
     

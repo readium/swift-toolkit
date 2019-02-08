@@ -14,22 +14,22 @@ import SwiftyJSON
 
 /// Document that contains information about the history of a License Document,
 /// along with its current status and available interactions.
-public class StatusDocument {
-    public var id: String
-    public var status: Status
+class StatusDocument {
+    var id: String
+    var status: Status
     /// A message meant to be displayed to the User regarding the current status
     /// of the license.
-    public var message: String
+    var message: String
     /// Must contain at least a link to the LicenseDocument associated to this.
     /// Status Document.
-    public var links = [Link]()
+    var links = [Link]()
 
-    public var updated: Updated?
+    var updated: Updated?
     /// Dictionnary of potential rights associated with Dates.
-    public var potentialRights: PotentialRights?
+    var potentialRights: PotentialRights?
     /// Ordered list of events related to the change in status of a License
     /// Document.
-    public var events: [Event]!
+    var events: [Event]!
 
     /// Describes the status of the license.
     ///
@@ -46,7 +46,7 @@ public class StatusDocument {
     /// - cancelled: The license is no longer active because it was cancelled
     ///              prior to activation.
     /// - expired: The license is no longer active because it has expired.
-    public enum Status: String {
+    enum Status: String {
         case ready
         case active
         case revoked
@@ -55,14 +55,14 @@ public class StatusDocument {
         case expired
     }
 
-    public enum Rel: String {
+    enum Rel: String {
         case register = "register"
         case license = "license"
         case `return` = "return"
         case renew = "renew"
     }
 
-    public init(data: Data) throws {
+    init(data: Data) throws {
         let json = JSON(data: data)
 
         // Retrieves the non optional fields.
@@ -85,7 +85,7 @@ public class StatusDocument {
     /// Returns the date of the latest license update.
     ///
     /// - Returns: The date.
-    public func dateOfLatestLicenseDocumentUpdate() -> Date? {
+    func dateOfLatestLicenseDocumentUpdate() -> Date? {
         return updated?.license
     }
 
@@ -93,7 +93,7 @@ public class StatusDocument {
     ///
     /// - Parameter rel: The rel to look for.
     /// - Returns: The first link containing the rel.
-    public func link(withRel rel: Rel) -> Link? {
+    func link(withRel rel: Rel) -> Link? {
         return links.first(where: { $0.rel.contains(rel.rawValue) })
     }
     
@@ -102,7 +102,7 @@ public class StatusDocument {
 
 extension StatusDocument: CustomStringConvertible {
     
-    public var description: String {
+    var description: String {
         return "Status(\(status.rawValue))"
     }
     

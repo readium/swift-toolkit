@@ -16,40 +16,40 @@ import R2Shared
 /// Document that contains references to the various keys, links to related
 /// external resources, rights and restrictions that are applied to the
 /// Protected Publication, and user information.
-public class LicenseDocument {
-    public var id: String
+class LicenseDocument {
+    var id: String
     /// Date when the license was first issued.
-    public var issued: Date
+    var issued: Date
     /// Date when the license was last updated.
-    public var updated: Date?
+    var updated: Date?
     /// Unique identifier for the Provider (URI).
-    public var provider: URL
+    var provider: URL
     // Encryption object.
-    public var encryption: Encryption
+    var encryption: Encryption
     /// Used to associate the License Document with resources that are not 
     /// locally available.
-    public var links = [Link]()
+    var links = [Link]()
     /// Rights informations associated with the License Document
-    public var rights: Rights
+    var rights: Rights
     /// The user owning the License.
-    public var user: User
+    var user: User
     /// Used to validate the license integrity.
-    public var signature: Signature
+    var signature: Signature
 
-    public var json: String
+    var json: String
     
-    public var data: Data {
+    var data: Data {
         return json.data(using: .utf8) ?? Data()
     }
 
     // The possible rel of Links.
-    public enum Rel: String {
+    enum Rel: String {
         case hint = "hint"
         case publication = "publication"
         case status = "status"
     }
 
-    public init(with data: Data) throws {
+    init(with data: Data) throws {
         let json = JSON(data: data)
 
         guard let id = json["id"].string,
@@ -81,15 +81,15 @@ public class LicenseDocument {
         }
         /// Check that links contains rel for Hint and Publication.
         guard (link(withRel: Rel.hint) != nil) else {
-            throw LcpError.hintLinkNotFound
+            throw LCPError.hintLinkNotFound
         }
         guard (link(withRel: Rel.publication) != nil) else {
-            throw LcpError.publicationLinkNotFound
+            throw LCPError.publicationLinkNotFound
         }
     }
 
     /// Returns the date of last update if any, or issued date.
-    public func dateOfLastUpdate() -> Date {
+    func dateOfLastUpdate() -> Date {
         return ((updated != nil) ? updated! : issued)
     }
 
@@ -97,11 +97,11 @@ public class LicenseDocument {
     ///
     /// - Parameter rel: The rel to look for.
     /// - Returns: The first link containing the rel.
-    public func link(withRel rel: Rel) -> Link? {
+    func link(withRel rel: Rel) -> Link? {
         return links.first(where: { $0.rel.contains(rel.rawValue) })
     }
 
-    public func getHint() -> String {
+    func getHint() -> String {
         return encryption.userKey.hint
     }
 
@@ -109,7 +109,7 @@ public class LicenseDocument {
 
 extension LicenseDocument: CustomStringConvertible {
     
-    public var description: String {
+    var description: String {
         return "License(\(id))"
     }
     

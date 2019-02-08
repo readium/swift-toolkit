@@ -12,7 +12,7 @@
 import Foundation
 import SwiftyJSON
 
-public struct Rights {
+struct Rights {
     /// Maximum number of pages that can be printed over the lifetime of the
     /// license.
     var print: Int?

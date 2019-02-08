@@ -1,5 +1,5 @@
 //
-//  LcpDatabase.swift
+//  Database.swift
 //  readium-lcp-swift
 //
 //  Created by Alexandre Camilleri on 10/2/17.
@@ -12,9 +12,9 @@
 import Foundation
 import SQLite
 
-final class LcpDatabase {
+final class Database {
     /// Shared instance.
-    public static let shared = LcpDatabase()
+    static let shared = Database()
 
     /// Connection.
     let connection: Connection
@@ -39,8 +39,10 @@ final class LcpDatabase {
 }
 
 extension Connection {
-    public var userVersion: Int32 {
+    
+    var userVersion: Int32 {
         get { return Int32(try! scalar("PRAGMA user_version") as! Int64)}
         set { try! run("PRAGMA user_version = \(newValue)") }
     }
+    
 }

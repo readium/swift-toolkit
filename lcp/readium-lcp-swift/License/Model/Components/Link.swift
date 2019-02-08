@@ -13,29 +13,29 @@ import Foundation
 import SwiftyJSON
 
 /// A Link to a resource.
-public class Link {
+class Link {
     /// The link destination.
-    public var href: URL
+    var href: URL
     /// Indicates the relationship between the resource and its containing collection.
-    public var rel = [String]()
+    var rel = [String]()
     /// Title for the Link.
-    public var title: String?
+    var title: String?
     /// MIME type of resource.
-    public var type: String?
+    var type: String?
     /// Indicates that the linked resource is a URI template.
-    public var templated: Bool?
+    var templated: Bool?
     /// Expected profile used to identify the external resource. (URI)
-    public var profile: URL?
+    var profile: URL?
     /// Content length in octets.
-    public var length: Int?
+    var length: Int?
     /// SHA-256 hash of the resource.
-    public var hash: String?
+    var hash: String?
 
     /// Link initializer
     ///
     /// - Parameter json: The JSON representation of the Link object.
-    /// - Throws: LcpErrors.
-    public init(with json: JSON) throws {
+    /// - Throws: LCPError
+    init(with json: JSON) throws {
         // Retrieves the non optional fields.
         guard let href = json["href"].url else {
             throw ParsingError.link

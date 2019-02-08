@@ -13,7 +13,7 @@ import Foundation
 
 enum Result<T> {
     case success(T)
-    case failure(LcpError)
+    case failure(LCPError)
     
     func get() throws -> T {
         switch self {
@@ -24,7 +24,7 @@ enum Result<T> {
         }
     }
     
-    func map<V>(success: (T) -> V, failure: (LcpError) -> V) -> V {
+    func map<V>(success: (T) -> V, failure: (LCPError) -> V) -> V {
         switch self {
         case .success(let value):
             return success(value)
@@ -46,7 +46,7 @@ enum Result<T> {
         )
     }
 
-    func completion(_ completion: (T?, LcpError?) -> Void) {
+    func completion(_ completion: (T?, LCPError?) -> Void) {
         map(success: { completion($0, nil) },
             failure: { completion(nil, $0) }
         )
@@ -68,7 +68,7 @@ final class DeferredResult<T> {
         }
     }
     
-    static func failure(_ error: LcpError) -> DeferredResult {
+    static func failure(_ error: LCPError) -> DeferredResult {
         return DeferredResult { completion in
             completion(.failure(error))
         }
@@ -80,11 +80,11 @@ final class DeferredResult<T> {
         closure(completion)
     }
     
-    func resolve(_ completion: @escaping (T?, LcpError?) -> Void) {
+    func resolve(_ completion: @escaping (T?, LCPError?) -> Void) {
         resolve { $0.completion(completion) }
     }
     
-    func map<V>(success: @escaping (T) -> V, failure: @escaping (LcpError) -> V) -> DeferredResult<V> {
+    func map<V>(success: @escaping (T) -> V, failure: @escaping (LCPError) -> V) -> DeferredResult<V> {
         return DeferredResult<V> { completion in
             self.resolve { result in
                 let mappedResult = result.map(success: success, failure: failure)

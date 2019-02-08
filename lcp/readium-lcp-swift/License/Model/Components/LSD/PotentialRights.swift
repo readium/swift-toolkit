@@ -12,7 +12,7 @@
 import Foundation
 import SwiftyJSON
 
-public struct PotentialRights {
+struct PotentialRights {
     /// Time and Date when the license ends.
     var end: Date?
 

@@ -16,13 +16,13 @@ import ZIPFoundation
 import R2Shared
 import R2LCPClient
 
-public class License {
+final class License {
     
     enum State {
         case pendingValidation
         case validating(LicenseValidation)
         case valid(LicenseDocument, StatusDocument?, DRMContext)
-        case invalid(LcpError)
+        case invalid(LCPError)
     }
 
     private let container: LicenseContainer
@@ -95,21 +95,21 @@ public class License {
             if let localUrl = tmpLocalUrl, error == nil {
                 do {
                     // Saves the License Document into the downloaded publication
-                    let container = EpubLicenseContainer(epub: localUrl)
+                    let container = EPUBLicenseContainer(epub: localUrl)
                     try container.write(license)
                     
                     try FileManager.default.moveItem(at: localUrl, to: destinationUrl)
                 } catch {
                     print(error.localizedDescription)
-                    completion(.failure(LcpError.wrap(error)))
+                    completion(.failure(LCPError.wrap(error)))
                     return false
                 }
                 completion(.success((destinationUrl, downloadTask)))
                 return true
             } else if let error = error {
-                completion(.failure(LcpError.wrap(error)))
+                completion(.failure(LCPError.wrap(error)))
             } else {
-                completion(.failure(LcpError.unknown(nil)))
+                completion(.failure(LCPError.unknown(nil)))
             }
             return false
         })
@@ -119,12 +119,12 @@ public class License {
 
 
 /// Public API
-extension License: LcpLicense {
+extension License: LCPLicense {
 
     /// Decipher encrypted content.
     public func decipher(_ data: Data) throws -> Data? {
         guard case let .valid(_, _, context) = state else {
-            throw LcpError.invalidContext
+            throw LCPError.invalidContext
         }
         return decrypt(data: data, using: context)
     }
@@ -133,16 +133,16 @@ extension License: LcpLicense {
     // FIXME: Is it useful? it seems to be checked by the lcplib (LCPClientError.licenseOutOfDate)
     public func areRightsValid() throws {
         guard case .valid(let license, _, _) = state else {
-            throw LcpError.invalidLicense(nil)
+            throw LCPError.invalidLicense(nil)
         }
         let now = Date.init()
         if let start = license.rights.start,
             !(now > start) {
-            throw LcpError.invalidRights
+            throw LCPError.invalidRights
         }
         if let end = license.rights.end,
             !(now < end) {
-            throw LcpError.invalidRights
+            throw LCPError.invalidRights
         }
     }
 
@@ -157,12 +157,12 @@ extension License: LcpLicense {
     public func renew(endDate: Date?, completion: @escaping (Error?) -> Void) {
 //        // Is the Status document fetched.
 //        guard let status = status else {
-//            completion(LcpError.noStatusDocument)
+//            completion(LCPError.noStatusDocument)
 //            return
 //        }
 //        // Get device ID and Name.
 //        guard let deviceId = getDeviceId() else {
-//            completion(LcpError.deviceId)
+//            completion(LCPError.deviceId)
 //            return
 //        }
 //        let deviceName = getDeviceName()
@@ -170,7 +170,7 @@ extension License: LcpLicense {
 //        guard let url = status.link(withRel: StatusDocument.Rel.renew)?.href,
 //            var renewUrl = URL(string: url.absoluteString.replacingOccurrences(of: "%7B?end,id,name%7D", with: "")) else
 //        {
-//            completion(LcpError.renewLinkNotFound)
+//            completion(LCPError.renewLinkNotFound)
 //            return
 //        }
 //
@@ -187,10 +187,10 @@ extension License: LcpLicense {
 //                        // update the status document
 //                        if let data = data {
 //                            do {
-//                                // Update local license in Lcp object
+//                                // Update local license in LCP object
 //                                self.status = try StatusDocument(data: data)
 //                                // Update license status (to 'returned' normally)
-//                                try LcpDatabase.shared.licenses.updateState(forLicenseWith: self.license.id,
+//                                try Database.shared.licenses.updateState(forLicenseWith: self.license.id,
 //                                                                            to: self.status!.status.rawValue)
 //                                // Update license document.
 //                                firstly {
@@ -201,15 +201,15 @@ extension License: LcpLicense {
 //                                        completion(error)
 //                                }
 //                            } catch {
-//                                completion(LcpError.licenseDocumentData)
+//                                completion(LCPError.licenseDocumentData)
 //                            }
 //                        }
 //                    case 400:
-//                        completion(LcpError.renewFailure)
+//                        completion(LCPError.renewFailure)
 //                    case 403:
-//                        completion(LcpError.renewPeriod)
+//                        completion(LCPError.renewPeriod)
 //                    default:
-//                        completion(LcpError.unexpectedServerError)
+//                        completion(LCPError.unexpectedServerError)
 //                    }
 //                } else if let error = error {
 //                    completion(error)
@@ -221,14 +221,14 @@ extension License: LcpLicense {
 
     public func `return`(completion: @escaping (Error?) -> Void){
         guard case let .valid(license, optionalStatus, _) = state, let status = optionalStatus else {
-            completion(LcpError.noStatusDocument)
+            completion(LCPError.noStatusDocument)
             return
         }
         
         guard let url = status.link(withRel: StatusDocument.Rel.return)?.href,
             var returnUrl = URL(string: url.absoluteString.replacingOccurrences(of: "%7B?id,name%7D", with: "")) else
         {
-            completion(LcpError.returnLinkNotFound)
+            completion(LCPError.returnLinkNotFound)
             return
         }
         //
@@ -248,22 +248,22 @@ extension License: LcpLicense {
         //                    // update the status document
         //                    if let data = data {
         //                        do {
-        //                            // Update local license in Lcp object
+        //                            // Update local license in LCP object
         //                            self.status = try StatusDocument(data: data)
         //                            // Update license status (to 'returned' normally)
-        //                            try LcpDatabase.shared.licenses.updateState(forLicenseWith: self.license.id,
+        //                            try Database.shared.licenses.updateState(forLicenseWith: self.license.id,
         //                                                                        to: self.status!.status.rawValue)
         //                            completion(nil)
         //                        } catch {
-        //                            completion(LcpError.licenseDocumentData)
+        //                            completion(LCPError.licenseDocumentData)
         //                        }
         //                    }
         //                case 400:
-        //                    completion(LcpError.returnFailure)
+        //                    completion(LCPError.returnFailure)
         //                case 403:
-        //                    completion(LcpError.alreadyReturned)
+        //                    completion(LCPError.alreadyReturned)
         //                default:
-        //                    completion(LcpError.unexpectedServerError)
+        //                    completion(LCPError.unexpectedServerError)
         //                }
         //            }
         //        })

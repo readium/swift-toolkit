@@ -13,7 +13,7 @@ import Foundation
 import SwiftyJSON
 
 /// Used to encrypt the ContentKey.
-public struct UserKey {
+struct UserKey {
     /// A hint to be displayed to the User to help them remember the User
     /// Passphrase.
     var hint: String

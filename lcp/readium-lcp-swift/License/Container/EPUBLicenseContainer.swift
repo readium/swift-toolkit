@@ -1,5 +1,5 @@
 //
-//  EpubLicenseContainer.swift
+//  EPUBLicenseContainer.swift
 //  r2-lcp-swift
 //
 //  Created by Mickaël Menu on 05.02.19.
@@ -12,10 +12,10 @@
 import Foundation
 
 /// Access a License Document stored in an EPUB archive, under META-INF/license.lcpl.
-final class EpubLicenseContainer: ZipLicenseContainer {
+final class EPUBLicenseContainer: ZIPLicenseContainer {
     
     init(epub: URL) {
-        super.init(zip: epub, pathInZip: "META-INF/license.lcpl")
+        super.init(zip: epub, pathInZIP: "META-INF/license.lcpl")
     }
     
 }

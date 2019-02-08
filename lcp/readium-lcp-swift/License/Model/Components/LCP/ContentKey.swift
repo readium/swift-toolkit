@@ -13,7 +13,7 @@ import Foundation
 import SwiftyJSON
 
 /// (encrypted using the User Key) Used to encrypt the Publication Resources.
-public struct ContentKey {
+struct ContentKey {
     /// Encrypted Content Key.
     var encryptedValue: String
     /// Algorithm used to encrypt the Content Key, identified using the URIs 

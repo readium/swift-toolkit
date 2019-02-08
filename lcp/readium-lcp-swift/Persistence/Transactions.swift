@@ -47,7 +47,7 @@ extension Transactions: PassphrasesRepository {
     
     func passphrase(forLicenseId licenseId: String) -> String? {
         do {
-            let db = LcpDatabase.shared.connection
+            let db = Database.shared.connection
             let query = transactions.select(passphrase).filter(self.licenseId == licenseId)
     
             for row in try db.prepare(query) {
@@ -61,7 +61,7 @@ extension Transactions: PassphrasesRepository {
     }
     
     func passphrases(forUserId userId: String) -> [String] {
-        let db = LcpDatabase.shared.connection
+        let db = Database.shared.connection
         let query = transactions.select(passphrase).filter(self.userId == userId)
         do {
             return try db.prepare(query).compactMap({ try $0.get(passphrase) })
@@ -72,7 +72,7 @@ extension Transactions: PassphrasesRepository {
     }
     
     func addPassphrase(_ passphraseHash: String, forLicenseId licenseId: String, provider: String, userId: String?) {
-        let db = LcpDatabase.shared.connection
+        let db = Database.shared.connection
 
         let insertQuery = transactions.insert(
             self.licenseId <- licenseId,
