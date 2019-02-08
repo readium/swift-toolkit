@@ -27,7 +27,7 @@ final class CRLService {
     }
     
     /// Retrieves the CRL either from the cache, or from EDRLab if the cache is outdated.
-    func retrieve(completion: @escaping (Result<String>) -> Void) {
+    func retrieve(_ completion: @escaping (Result<String>) -> Void) {
         guard let (crl, date) = readLocal(),
             daysSince(date) < CRLService.expiration
         else {

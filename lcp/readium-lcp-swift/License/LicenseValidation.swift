@@ -13,7 +13,7 @@ import Foundation
 import R2LCPClient
 
 // When true, will show the state and transitions in the console.
-private let DEBUG = false
+private let DEBUG = true
 
 
 final class LicenseValidation {
@@ -25,6 +25,9 @@ final class LicenseValidation {
     fileprivate let licenses: LicensesRepository
     fileprivate let device: DeviceService
     fileprivate let crl: CRLService
+    fileprivate let network: NetworkService
+    fileprivate weak var authenticating: LCPAuthenticating?
+    
     fileprivate var completion = PopVariable<(Result<ValidatedLicense>) -> Void>()
     
     // Already validated license used as a fallback when the newly fetched one fails to validate.
@@ -38,12 +41,14 @@ final class LicenseValidation {
         }
     }
 
-    init(supportedProfiles: [String], passphrases: PassphrasesService, licenses: LicensesRepository, device: DeviceService, crl: CRLService) {
+    init(supportedProfiles: [String], passphrases: PassphrasesService, licenses: LicensesRepository, device: DeviceService, crl: CRLService, network: NetworkService, authenticating: LCPAuthenticating?) {
         self.supportedProfiles = supportedProfiles
         self.passphrases = passphrases
         self.licenses = licenses
         self.device = device
         self.crl = crl
+        self.network = network
+        self.authenticating = authenticating
     }
     
     func validateLicenseData(_ data: Data, _ completion: @escaping (Result<ValidatedLicense>) -> Void) {
@@ -190,6 +195,15 @@ extension LicenseValidation {
         }
     }
     
+    /// Syntactic sugar to raise an event from a Result enum.
+    /// If the result is a failure, then the error is raised as an Event.failed.
+    fileprivate func raise(_ result: Result<Event>) {
+        raise(result.map(
+            success: { $0 },
+            failure: { .failed($0) }
+        ))
+    }
+    
 }
 
 
@@ -214,19 +228,16 @@ extension LicenseValidation {
     }
     
     private func requestPassphrase(for license: LicenseDocument) {
-        passphrases.request(for: license) { [weak self] result in
-            self?.raise(result.map(
-                success: { .retrievedPassphrase($0) },
-                failure: { .failed($0) }
-            ))
+        passphrases.request(for: license, authenticating: authenticating) { [weak self] passphrase in
+            self?.raise(
+                passphrase.map { .retrievedPassphrase($0) }
+            )
         }
     }
     
     private func validateIntegrity(of license: LicenseDocument, with passphrase: String) {
-        crl.retrieve { [weak self] result in
-            guard let `self` = self else { return }
-            
-            do {
+        deferred { self.crl.retrieve($0) }
+            .map { pemCRL -> Event in
                 // FIXME: Is this really useful? According to the spec this is already checked by the lcplib.a
                 try {
                     /// Check that current date is inside the [end - start] right's dates range.
@@ -240,15 +251,11 @@ extension LicenseValidation {
                         throw LCPError.invalidRights
                     }
                 }()
-
-                let pemCRL = try result.get()
-                let context = try createContext(jsonLicense: license.json, hashedPassphrase: passphrase, pemCrl: pemCRL)
-                self.raise(.validatedIntegrity(context))
                 
-            } catch {
-                self.raise(.failed(.invalidLicense(error)))
+                let context = try createContext(jsonLicense: license.json, hashedPassphrase: passphrase, pemCrl: pemCRL)
+                return .validatedIntegrity(context)
             }
-        }
+            .resolve(raise)
     }
     
     private func fetchStatus(of license: LicenseDocument) {
@@ -256,21 +263,21 @@ extension LicenseValidation {
             return raise(.failed(.noStatusDocument))
         }
         
-        URLSession.shared.dataTask(with: link.href) { (data, response, error) in
-            guard (response as? HTTPURLResponse)?.statusCode == 200,
-                let data = data,
-                let status = try? StatusDocument(data: data)
-            else {
-                return self.raise(.failed(.noStatusDocument))
+        deferred { self.network.fetch(link.href, $0) }
+            .map { status, data -> Event in
+                guard status == 200 else {
+                    throw LCPError.noStatusDocument
+                }
+                
+                let document = try StatusDocument(data: data)
+                return .retrievedStatus(document)
             }
-            
-            self.raise(.retrievedStatus(status))
-        }.resume()
+            .resolve(raise)
     }
     
     private func checkStatus(_ document: StatusDocument) {
         // Checks the status according to 4.3/ in the specification.
-        raise({
+        let event: Event = {
             let updatedDate = document.updated?.status
             
             switch document.status {
@@ -286,7 +293,8 @@ extension LicenseValidation {
             case .cancelled:
                 return .failed(.licenseStatusCancelled(updatedDate))
             }
-        }())
+        }()
+        raise(event)
     }
     
     private func registerDevice(for license: LicenseDocument, using status: StatusDocument) {
@@ -300,14 +308,14 @@ extension LicenseValidation {
             return raise(.failed(.licenseFetching))
         }
         
-        URLSession.shared.dataTask(with: link.href) { [weak self] (data, response, error) in
-            guard let data = data, (response as? HTTPURLResponse)?.statusCode == 200 else {
-                self?.raise(.failed(.licenseFetching))
-                return
+        deferred { self.network.fetch(link.href, $0) }
+            .map { status, data -> Event in
+                guard status == 200 else {
+                    throw LCPError.licenseFetching
+                }
+                return .retrievedLicenseData(data)
             }
-            
-            self?.raise(.retrievedLicenseData(data))
-        }.resume()
+            .resolve(raise)
     }
     
     private func reportSuccess(license: LicenseDocument, status: StatusDocument?, context: DRMContext) {

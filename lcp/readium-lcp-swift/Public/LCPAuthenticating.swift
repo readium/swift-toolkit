@@ -31,6 +31,7 @@ public struct LCPAuthenticationData {
     public let userEmail: String?
     public let userName: String?
     public let hint: String
+    // FIXME: Expose all links
     public let hintUrl: URL?
     
     init(license: LicenseDocument) {

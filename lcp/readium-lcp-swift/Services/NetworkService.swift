@@ -13,7 +13,7 @@ import Foundation
 import R2Shared
 
 // When true, will show the requests made from the Network service in the console.
-private let DEBUG = false
+private let DEBUG = true
 
 
 final class NetworkService {

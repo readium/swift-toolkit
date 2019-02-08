@@ -171,6 +171,7 @@ extension LCPError: LocalizedError {
         case .profileNotSupported:
             return "This Readium LCP license has a profile identifier that this app cannot handle, the publication cannot be processed"
         case .network(let error):
+            // FIXME: use localized description
             return "Can't reach server: \(String(describing: error))"
         case .database(let error):
             return "Internal database error: \(error)"

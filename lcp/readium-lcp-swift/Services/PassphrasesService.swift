@@ -16,35 +16,27 @@ import CryptoSwift
 
 final class PassphrasesService {
 
-    /// Called when the service can't find any valid passphrase in the repository, as a fallback.
-    /// Can be used, for example, to prompt the user for the passphrase.
-    private let authenticating: LCPAuthenticating?
-    
     private let repository: PassphrasesRepository
 
-    init(repository: PassphrasesRepository, authenticating: LCPAuthenticating?) {
+    init(repository: PassphrasesRepository) {
         self.repository = repository
-        self.authenticating = authenticating
     }
     
     /// Finds any valid passphrase for the given license in the passphrases repository.
     /// If none is found, requests a passphrase from the request delegate (ie. user prompt) until one is valid, or the request is cancelled.
-    func request(for license: LicenseDocument, completion: @escaping (Result<String>) -> Void) {
+    func request(for license: LicenseDocument, authenticating: LCPAuthenticating?, completion: @escaping (Result<String>) -> Void) {
         let candidates = possiblePassphrasesFromRepository(for: license)
         if let passphrase = findOneValidPassphrase(jsonLicense: license.json, hashedPassphrases: candidates) {
             completion(.success(passphrase))
+        } else if let authenticating = authenticating {
+            authenticate(for: license, reason: .passphraseNotFound, using: authenticating, completion: completion)
         } else {
-            authenticate(for: license, reason: .passphraseNotFound, completion: completion)
+            completion(.failure(.cancelled))
         }
     }
     
     /// Called when the service can't find any valid passphrase in the repository, as a fallback.
-    private func authenticate(for license: LicenseDocument, reason: LCPAuthenticationReason, completion: @escaping (Result<String>) -> Void) {
-        guard let authenticating = self.authenticating else {
-            completion(.failure(LCPError.cancelled))
-            return
-        }
-        
+    private func authenticate(for license: LicenseDocument, reason: LCPAuthenticationReason, using authenticating: LCPAuthenticating, completion: @escaping (Result<String>) -> Void) {
         let data = LCPAuthenticationData(license: license)
         authenticating.requestPassphrase(for: data, reason: reason) { [weak self] clearPassphrase in
             guard let `self` = self, let clearPassphrase = clearPassphrase else {
@@ -55,7 +47,7 @@ final class PassphrasesService {
             let hashedPassphrase = clearPassphrase.sha256()
             guard let passphrase = findOneValidPassphrase(jsonLicense: license.json, hashedPassphrases: [hashedPassphrase]) else {
                 // Tries again if the passphrase is invalid, until cancelled
-                self.authenticate(for: license, reason: .invalidPassphrase, completion: completion)
+                self.authenticate(for: license, reason: .invalidPassphrase, using: authenticating, completion: completion)
                 return
             }
             

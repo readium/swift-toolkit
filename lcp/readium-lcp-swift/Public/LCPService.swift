@@ -45,6 +45,23 @@ public func setupLCPService() -> LCPService {
         "http://readium.org/lcp/basic-profile",
         "http://readium.org/lcp/profile-1.0",
     ]
+
+    // Composition root
     
-    return LicensesService(supportedProfiles: supportedProfiles)
+    let db = Database.shared
+    let network = NetworkService()
+    let device = DeviceService(repository: db.licenses, network: network)
+    let crl = CRLService(network: network)
+    let passphrases = PassphrasesService(repository: db.transactions)
+    
+    func makeLicense(container: LicenseContainer, authenticating: LCPAuthenticating?) -> License {
+        let makeValidation = {
+            LicenseValidation(supportedProfiles: supportedProfiles, passphrases: passphrases, licenses: db.licenses, device: device, crl: crl, network: network, authenticating: authenticating)
+        }
+        return License(container: container, makeValidation: makeValidation, device: device, network: network)
+    }
+    
+    let licenses = LicensesService(makeLicense: makeLicense)
+    
+    return licenses
 }
