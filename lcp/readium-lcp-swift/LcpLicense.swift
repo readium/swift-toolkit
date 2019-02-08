@@ -26,8 +26,8 @@ public class LcpLicense: DrmLicense {
         case invalid(LcpError)
     }
 
-    private let makeValidation: () -> LicenseValidation
     private let container: LicenseContainer
+    private let makeValidation: () -> LicenseValidation
     private let device: DeviceService
     private var state: State
 
@@ -39,28 +39,31 @@ public class LcpLicense: DrmLicense {
     }
     
     /// Reads and validates the License Document in the container.
-    func validate() -> AsyncResult<LcpLicense> {
+    func validate(_ completion: @escaping (Result<LcpLicense>) -> Void) {
         guard let containerLicenseData = try? container.read() else {
-            return .failure(.licenseNotInContainer) // FIXME: wrong error?
+            completion(.failure(.licenseNotInContainer)) // FIXME: wrong error?
+            return
         }
         
         let validation = makeValidation()
         state = .validating(validation)
         
-        return validation
-            .validate(containerLicenseData)
-            .map { [unowned self] license, status, context -> LcpLicense in
-                self.state = .valid(license, status, context)
-                // Overwrites the License Document in the container if it was updated
-                if containerLicenseData != license.data {
-                    try? self.container.write(license) // FIXME: should we report an error here?
+        validation.validateLicenseData(containerLicenseData) { result in
+            result.map(
+                success: { license, status, context in
+                    self.state = .valid(license, status, context)
+                    // Overwrites the License Document in the container if it was updated
+                    if containerLicenseData != license.data {
+                        try? self.container.write(license) // FIXME: should we report an error here?
+                    }
+                    completion(.success(self))
+                },
+                failure: { error in
+                    self.state = .invalid(error)
+                    completion(.failure(error))
                 }
-                
-                return self
-            }
-            .failure { error in
-                self.state = .invalid(error)
-            }
+            )
+        }
     }
 
     /// Decipher encrypted content.
@@ -223,51 +226,50 @@ public class LcpLicense: DrmLicense {
     /// resource.
     ///
     /// - Returns: The URL representing the path of the publication localy.
-    func fetchPublication() -> AsyncResult<(URL, URLSessionDownloadTask?)> {
+    func fetchPublication(_ completion: @escaping (Result<(URL, URLSessionDownloadTask?)>) -> Void) {
         guard case .valid(let license, _, _) = state else {
-            return AsyncResult<(URL, URLSessionDownloadTask?)>.failure(.invalidLicense(nil))
+            completion(.failure(.invalidLicense(nil)))
+            return
         }
         
-        return AsyncResult { completion in
-            guard let publicationLink = license.link(withRel: LicenseDocument.Rel.publication) else {
-                completion(.failure(.publicationLinkNotFound))
-                return
-            }
-            let request = URLRequest(url: publicationLink.href)
-            let fileManager = FileManager.default
-            // Document Directory always exists (hence try!).
-            var destinationUrl = try! fileManager.url(for: .documentDirectory,
-                                                      in: .userDomainMask,
-                                                      appropriateFor: nil,
-                                                      create: true)
-            let fileName = "lcp." + license.id
-            destinationUrl.appendPathComponent("\(fileName).epub")
-            
-            let publicationTitle = publicationLink.title ?? "..."
-            
-            DownloadSession.shared.launch(request: request, description: publicationTitle, completionHandler: { (tmpLocalUrl, response, error, downloadTask) -> Bool? in
-                if let localUrl = tmpLocalUrl, error == nil {
-                    do {
-                        // Saves the License Document into the downloaded publication
-                        let container = EpubLicenseContainer(epub: localUrl)
-                        try container.write(license)
-                        
-                        try FileManager.default.moveItem(at: localUrl, to: destinationUrl)
-                    } catch {
-                        print(error.localizedDescription)
-                        completion(.failure(LcpError.wrap(error)))
-                        return false
-                    }
-                    completion(.success((destinationUrl, downloadTask)))
-                    return true
-                } else if let error = error {
-                    completion(.failure(LcpError.wrap(error)))
-                } else {
-                    completion(.failure(LcpError.unknown(nil)))
-                }
-                return false
-            })
+        guard let publicationLink = license.link(withRel: LicenseDocument.Rel.publication) else {
+            completion(.failure(.publicationLinkNotFound))
+            return
         }
+        let request = URLRequest(url: publicationLink.href)
+        let fileManager = FileManager.default
+        // Document Directory always exists (hence try!).
+        var destinationUrl = try! fileManager.url(for: .documentDirectory,
+                                                  in: .userDomainMask,
+                                                  appropriateFor: nil,
+                                                  create: true)
+        let fileName = "lcp." + license.id
+        destinationUrl.appendPathComponent("\(fileName).epub")
+
+        let publicationTitle = publicationLink.title ?? "..."
+
+        DownloadSession.shared.launch(request: request, description: publicationTitle, completionHandler: { (tmpLocalUrl, response, error, downloadTask) -> Bool? in
+            if let localUrl = tmpLocalUrl, error == nil {
+                do {
+                    // Saves the License Document into the downloaded publication
+                    let container = EpubLicenseContainer(epub: localUrl)
+                    try container.write(license)
+
+                    try FileManager.default.moveItem(at: localUrl, to: destinationUrl)
+                } catch {
+                    print(error.localizedDescription)
+                    completion(.failure(LcpError.wrap(error)))
+                    return false
+                }
+                completion(.success((destinationUrl, downloadTask)))
+                return true
+            } else if let error = error {
+                completion(.failure(LcpError.wrap(error)))
+            } else {
+                completion(.failure(LcpError.unknown(nil)))
+            }
+            return false
+        })
     }
     
     /// Try to save the license document without status document.

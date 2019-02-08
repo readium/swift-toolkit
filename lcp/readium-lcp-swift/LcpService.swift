@@ -45,8 +45,8 @@ public class LcpService {
     public func importLicenseDocument(_ lcpl: URL, completion: @escaping (ImportedPublication?, LcpError?) -> Void) {
         let container = LcplLicenseContainer(lcpl: lcpl)
         openLicense(from: container)
-            .map { license in
-                license.fetchPublication()
+            .map { license, completion in
+                license.fetchPublication(completion)
             }
             .map { ImportedPublication(localUrl: $0.0, downloadTask: $0.1) }
             .resolve(completion)
@@ -69,15 +69,15 @@ public class LcpService {
 //            try? LcpLicense.removeDataBaseItem(licenseID: possibleLCPID)
 //        }
     }
-    
-    private func openLicense(from container: LicenseContainer) -> AsyncResult<LcpLicense> {
+
+    private func openLicense(from container: LicenseContainer) -> DeferredResult<LcpLicense> {
         let supportedProfiles = self.supportedProfiles
         let passphrases = self.passphrases
         let device = self.device
         let crl = self.crl
-        let makeValidation = { LicenseValidation(supportedProfiles: supportedProfiles, passphrases: passphrases, device: device, crl: crl) }
+        let makeValidation = { LicenseValidation(supportedProfiles: supportedProfiles, passphrases: passphrases, licenses: LcpDatabase.shared.licenses, device: device, crl: crl) }
         let license = LcpLicense(container: container, makeValidation: makeValidation, device: device)
-        return license.validate()
+        return deferred { license.validate($0) }
     }
 
 }

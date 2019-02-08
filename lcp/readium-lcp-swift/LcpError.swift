@@ -18,7 +18,8 @@ public enum LcpError: Error, Equatable {
     
     case cancelled
     case unknown(Error?)
-    case network(Error?)
+    case network(Error)
+    case database(Error)
     case invalidLicense(Error?)
     case invalidPath
     case invalidLcpl
@@ -182,8 +183,10 @@ extension LcpError: LocalizedError {
             return "The LCP license already exist, this import is ignored"
         case .profileNotSupported:
             return "This Readium LCP license has a profile identifier that this app cannot handle, the publication cannot be processed"
-        case .network(_):
-            return "Can't reach server"
+        case .network(let error):
+            return "Can't reach server: \(error)"
+        case .database(let error):
+            return "Internal database error: \(error)"
         }
     }
 }

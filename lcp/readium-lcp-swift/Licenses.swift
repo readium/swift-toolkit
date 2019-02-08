@@ -54,108 +54,62 @@ class Licenses {
         }
     }
 
-    internal func dateOfLastUpdate(forLicenseWith id: String) -> Date? {
+}
+
+extension Licenses: LicensesRepository {
+    
+    func addOrUpdateLicense(_ license: LicenseDocument) throws {
         let db = LcpDatabase.shared.connection
-        let query = licenses.filter(self.id == id).select(updated).order(updated.desc)
-
-        do {
-            for result in try db.prepare(query) {
-                do {
-                    return try result.get(updated)
-                } catch {
-                    return nil
-                }
-            }
-        } catch {
-            return nil
-        }
-        return nil
-    }
-
-    internal func updateState(forLicenseWith id: String, to state: String) throws {
-        let db = LcpDatabase.shared.connection
-        let license = licenses.filter(self.id == id)
-
-        // Check if empty.
-        guard try db.scalar(license.count) > 0 else {
-            throw LcpError.licenseNotFound
-        }
-        try db.run(license.update(self.state <- state))
-    }
-
-    /// Check if the table already contains an entry for the given ID.
-    ///
-    /// - Parameter id: The ID to check for.
-    /// - Returns: A boolean indicating the result of the search, true if found.
-    /// - Throws: .
-    internal func existingLicense(with id: String) throws -> Bool {
-        let db = LcpDatabase.shared.connection
-        // Check if empty.
-        guard try db.scalar(licenses.count) > 0 else {
-            return false
-        }
-        let query = licenses.filter(self.id == id)
-        let count = try db.scalar(query.count)
-
-        return count == 1
-    }
-
-    /// Delete the database item info for a given licenseID
-    ///
-    /// - Parameter licenseID: The ID to check.
-    /// - Throws: .
-    internal func deleteData(for licenseID: String) throws -> Void {
         
-        let db = LcpDatabase.shared.connection
-        let license = licenses.filter(self.id == id)
-        
-        // Check if empty.
-        guard try db.scalar(license.count) > 0 else {
-            throw LcpError.licenseNotFound
+        let filterLicense = licenses.filter(id == license.id)
+        let exists = try db.scalar(filterLicense.count) != 0
+        if !exists {
+            let query = licenses.insert(
+                id <- license.id,
+                printsLeft <- license.rights.print,
+                copiesLeft <- license.rights.copy,
+                provider <- license.provider.absoluteString,
+                issued <- license.issued,
+                updated <- license.updated,
+                end <- license.rights.end,
+                state <- nil
+            )
+            try db.run(query)
+
+        } else {
+            let query = filterLicense.update(
+                provider <- license.provider.absoluteString,
+                issued <- license.issued,
+                updated <- license.updated,
+                end <- license.rights.end
+            )
+            try db.run(query)
         }
-        
-        try db.run(license.delete())
-    }
-
-    /// Add a registered license to the database.
-    ///
-    /// - Parameters:
-    ///   - license: <#license description#>
-    ///   - status: <#status description#>
-    /// - Throws: <#throws value description#>
-    internal func insert(_ license: LicenseDocument, with status: StatusDocument.Status?) throws {
-        let db = LcpDatabase.shared.connection
-
-        let insertQuery = licenses.insert(
-            id <- license.id,
-            printsLeft <- license.rights.print,
-            copiesLeft <- license.rights.copy,
-            provider <- license.provider.absoluteString,
-            issued <- license.issued,
-            updated <- license.updated,
-            end <- license.rights.end,
-            state <- status?.rawValue ?? nil,
-            registered <- false
-        )
-        
-        try db.run(insertQuery)
     }
     
+    func updateLicenseStatus(_ license: LicenseDocument, to status: StatusDocument) throws {
+        let db = LcpDatabase.shared.connection
+        let query = licenses
+            .filter(id == license.id)
+            .update(state <- status.status.rawValue)
+        try db.run(query)
+    }
+
 }
 
 extension Licenses: DeviceRepository {
     
     func isDeviceRegistered(for license: LicenseDocument) throws -> Bool {
         let db = LcpDatabase.shared.connection
-        let query = licenses.filter(self.id == license.id && self.registered == true)
+        let query = licenses.filter(id == license.id && registered == true)
         let count = try db.scalar(query.count)
-        return count == 1
+        return count != 0
     }
     
     func registerDevice(for license: LicenseDocument) throws {
         let db = LcpDatabase.shared.connection
-        let license = licenses.filter(self.id == id)
-        try db.run(license.update(self.registered <- true))
+        let filterLicense = licenses.filter(id == license.id)
+        try db.run(filterLicense.update(registered <- true))
     }
 
 }
