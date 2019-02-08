@@ -20,12 +20,9 @@ public enum LCPError: Error {
     case invalidPath
     case invalidLCPL
     case licenseNotFound
-    case licenseLinkNotFound
     case publicationLinkNotFound
     case hintLinkNotFound
-    case registerLinkNotFound
-    case returnLinkNotFound
-    case renewLinkNotFound
+    case statusLinkNotFound  // FIXME: expose Rel?
     case noStatusDocument
     case licenseDocumentData
     case publicationData
@@ -107,18 +104,12 @@ extension LCPError: LocalizedError {
             return "The provided license isn't a correctly formatted LCPL file. "
         case .licenseNotFound:
             return "No license found in base for the given identifier."
-        case .licenseLinkNotFound:
-            return "The license link is missing from the status document."
         case .publicationLinkNotFound:
             return "The publication link is missing from the license document."
         case .hintLinkNotFound:
             return "The hint link is missing from the license document."
-        case .registerLinkNotFound:
-            return "The register link is missing from the status document."
-        case .returnLinkNotFound:
-            return "The return link is missing from the status document."
-        case .renewLinkNotFound:
-            return "The renew link is missing from the status document."
+        case .statusLinkNotFound:
+            return "The requested status link is missing from the Status Document."
         case .noStatusDocument:
             return "Updating the license failed, there is no status document."
         case .licenseDocumentData:

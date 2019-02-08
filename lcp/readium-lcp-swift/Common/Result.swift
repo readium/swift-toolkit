@@ -24,6 +24,13 @@ enum Result<T> {
         }
     }
     
+    var error: LCPError? {
+        return map(
+            success: { _ in nil },
+            failure: { $0 }
+        )
+    }
+    
     func map<V>(success: (T) -> V, failure: (LCPError) -> V) -> V {
         switch self {
         case .success(let value):
@@ -184,6 +191,23 @@ final class DeferredResult<T> {
                     transform(value).resolve(completion)
                 case .failure(let error):
                     completion(.failure(error))
+                }
+            }
+        }
+    }
+    
+    func `catch`(_ transform: @escaping(LCPError) throws -> T) -> DeferredResult<T> {
+        return DeferredResult<T> { completion in
+            self.resolve { result in
+                switch result {
+                case .success(let value):
+                    completion(.success(value))
+                case .failure(let error):
+                    do {
+                        completion(.success(try transform(error)))
+                    } catch {
+                        completion(.failure(LCPError.wrap(error)))
+                    }
                 }
             }
         }

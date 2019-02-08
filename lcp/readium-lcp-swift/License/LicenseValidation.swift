@@ -227,6 +227,20 @@ extension LicenseValidation {
             guard let `self` = self else { return }
             
             do {
+                // FIXME: Is this really useful? According to the spec this is already checked by the lcplib.a
+                try {
+                    /// Check that current date is inside the [end - start] right's dates range.
+                    let now = Date.init()
+                    if let start = license.rights.start,
+                        !(now > start) {
+                        throw LCPError.invalidRights
+                    }
+                    if let end = license.rights.end,
+                        !(now < end) {
+                        throw LCPError.invalidRights
+                    }
+                }()
+
                 let pemCRL = try result.get()
                 let context = try createContext(jsonLicense: license.json, hashedPassphrase: passphrase, pemCrl: pemCRL)
                 self.raise(.validatedIntegrity(context))

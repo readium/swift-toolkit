@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import R2Shared
 
 // When true, will show the requests made from the Network service in the console.
 private let DEBUG = false
@@ -17,14 +18,13 @@ private let DEBUG = false
 
 final class NetworkService {
     
-    typealias Response = (status: Int, data: Data)
-    
     enum Method: String {
         case get = "GET"
         case post = "POST"
+        case put = "PUT"
     }
     
-    func makeURL(_ link: Link, parameters: [String: CustomStringConvertible]) -> URL? {
+    func makeURL(_ link: Link, parameters: [String: CustomStringConvertible] = [:]) -> URL? {
         let templated = (link.templated ?? false)
         return makeURL(link.href, templated: templated, parameters: parameters)
     }
@@ -55,11 +55,11 @@ final class NetworkService {
         return urlBuilder.url
     }
     
-    func fetch(_ url: URL, method: Method = .get, _ completion: @escaping (Result<Response>) -> Void) {
+    func fetch(_ url: URL, method: Method = .get, _ completion: @escaping (Result<(status: Int, data: Data)>) -> Void) {
+        if (DEBUG) { print("#network \(method.rawValue) \(url)") }
+        
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
-        
-        if (DEBUG) { print("#network \(method.rawValue) \(url)") }
         
         URLSession.shared.dataTask(with: request) { (data, response, error) in
             guard let status = (response as? HTTPURLResponse)?.statusCode,
@@ -71,6 +71,21 @@ final class NetworkService {
             
             completion(.success((status, data)))
         }.resume()
+    }
+    
+    func download(_ url: URL, description: String?, _ completion: @escaping (Result<(file: URL, task: URLSessionDownloadTask?)>) -> Void) {
+        if (DEBUG) { print("#network download \(url)") }
+        
+        let request = URLRequest(url: url)
+        DownloadSession.shared.launch(request: request, description: description) { tmpLocalURL, response, error, downloadTask in
+            guard let file = tmpLocalURL, error == nil else {
+                completion(.failure(.network(error)))
+                return false
+            }
+
+            completion(.success((file, downloadTask)))
+            return true
+        }
     }
     
 }

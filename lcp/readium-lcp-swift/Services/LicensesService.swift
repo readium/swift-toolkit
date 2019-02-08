@@ -14,12 +14,14 @@ import Foundation
 final class LicensesService {
 
     private let supportedProfiles: [String]
+    private let network: NetworkService
     private let device: DeviceService
     private let crl: CRLService
 
     init(supportedProfiles: [String]) {
         self.supportedProfiles = supportedProfiles
         let network = NetworkService()
+        self.network = network
         self.device = DeviceService(repository: Database.shared.licenses, network: network)
         self.crl = CRLService(network: network)
     }
@@ -30,7 +32,7 @@ final class LicensesService {
         let device = self.device
         let crl = self.crl
         let makeValidation = { LicenseValidation(supportedProfiles: supportedProfiles, passphrases: passphrases, licenses: Database.shared.licenses, device: device, crl: crl) }
-        let license = License(container: container, makeValidation: makeValidation, device: device)
+        let license = License(container: container, makeValidation: makeValidation, device: device, network: network)
         return deferred { license.validate($0) }
     }
 

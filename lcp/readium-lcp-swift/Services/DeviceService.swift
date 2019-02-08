@@ -59,7 +59,7 @@ final class DeviceService {
         guard let link = status.link(withRel: .register),
             let url = network.makeURL(link, parameters: asQueryParameters)
             else {
-                completion?(.failure(.registerLinkNotFound))
+                completion?(.failure(.statusLinkNotFound))
                 return true
         }
         
