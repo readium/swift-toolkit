@@ -1,5 +1,5 @@
 //
-//  LcpParsingError.swift
+//  ParsingError.swift
 //  readium-lcp-swift
 //
 //  Created by Alexandre Camilleri on 9/14/17.
@@ -11,7 +11,7 @@
 
 import Foundation
 
-public enum LcpParsingError: Error {
+enum ParsingError: Error {
     case json
     case date
     case link
@@ -21,7 +21,9 @@ public enum LcpParsingError: Error {
     case signature
 
 }
-extension LcpParsingError: LocalizedError {
+
+extension ParsingError: LocalizedError {
+    
     public var errorDescription: String? {
         switch self {
         case .json:
@@ -40,4 +42,5 @@ extension LcpParsingError: LocalizedError {
             return "Invalid Updated object date."
         }
     }
+    
 }

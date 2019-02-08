@@ -29,10 +29,10 @@ public struct Event {
             let type = json["type"].string,
             let id = json["id"].string else
         {
-            throw LcpParsingError.json
+            throw ParsingError.json
         }
         guard let date = dateData.dateFromISO8601 else {
-            throw LcpParsingError.date
+            throw ParsingError.date
         }
         self.type = type
         self.name = name

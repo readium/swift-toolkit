@@ -28,7 +28,7 @@ public struct Signature {
         guard let algorithm = json["algorithm"].url,
             let certificate = json["certificate"].string,
             let value = json["value"].string else {
-                throw LcpParsingError.signature
+                throw ParsingError.signature
         }
         self.algorithm = algorithm
         self.certificate = certificate

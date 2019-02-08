@@ -1,10 +1,10 @@
 //
-//  Lcp.swift
+//  License.swift
 //  readium-lcp-swift
 //
-//  Created by Alexandre Camilleri on 9/14/17.
+//  Created by Mickaël Menu on 08.02.19.
 //
-//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Copyright 2019 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by a BSD-style license which is detailed
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
@@ -16,7 +16,7 @@ import ZIPFoundation
 import R2Shared
 import R2LCPClient
 
-public class LcpLicense: DrmLicense {
+public class License {
     
     enum State {
         case pendingValidation
@@ -38,7 +38,7 @@ public class LcpLicense: DrmLicense {
     }
     
     /// Reads and validates the License Document in the container.
-    func validate(_ completion: @escaping (Result<LcpLicense>) -> Void) {
+    func validate(_ completion: @escaping (Result<License>) -> Void) {
         guard let containerLicenseData = try? container.read() else {
             completion(.failure(.licenseNotInContainer)) // FIXME: wrong error?
             return
@@ -64,6 +64,62 @@ public class LcpLicense: DrmLicense {
             )
         }
     }
+
+    /// Download publication to inbox and return the path to the downloaded
+    /// resource.
+    ///
+    /// - Returns: The URL representing the path of the publication localy.
+    func fetchPublication(_ completion: @escaping (Result<(URL, URLSessionDownloadTask?)>) -> Void) {
+        guard case .valid(let license, _, _) = state else {
+            completion(.failure(.invalidLicense(nil)))
+            return
+        }
+        
+        guard let publicationLink = license.link(withRel: LicenseDocument.Rel.publication) else {
+            completion(.failure(.publicationLinkNotFound))
+            return
+        }
+        let request = URLRequest(url: publicationLink.href)
+        let fileManager = FileManager.default
+        // Document Directory always exists (hence try!).
+        var destinationUrl = try! fileManager.url(for: .documentDirectory,
+                                                  in: .userDomainMask,
+                                                  appropriateFor: nil,
+                                                  create: true)
+        let fileName = "lcp." + license.id
+        destinationUrl.appendPathComponent("\(fileName).epub")
+        
+        let publicationTitle = publicationLink.title ?? "..."
+        
+        DownloadSession.shared.launch(request: request, description: publicationTitle, completionHandler: { (tmpLocalUrl, response, error, downloadTask) -> Bool? in
+            if let localUrl = tmpLocalUrl, error == nil {
+                do {
+                    // Saves the License Document into the downloaded publication
+                    let container = EpubLicenseContainer(epub: localUrl)
+                    try container.write(license)
+                    
+                    try FileManager.default.moveItem(at: localUrl, to: destinationUrl)
+                } catch {
+                    print(error.localizedDescription)
+                    completion(.failure(LcpError.wrap(error)))
+                    return false
+                }
+                completion(.success((destinationUrl, downloadTask)))
+                return true
+            } else if let error = error {
+                completion(.failure(LcpError.wrap(error)))
+            } else {
+                completion(.failure(LcpError.unknown(nil)))
+            }
+            return false
+        })
+    }
+
+}
+
+
+/// Public API
+extension License: LcpLicense {
 
     /// Decipher encrypted content.
     public func decipher(_ data: Data) throws -> Data? {
@@ -96,57 +152,6 @@ public class LcpLicense: DrmLicense {
         }
         
         device.registerLicense(license, using: status, completion: nil)
-    }
-
-    public func `return`(completion: @escaping (Error?) -> Void){
-        guard case let .valid(license, optionalStatus, _) = state, let status = optionalStatus else {
-            completion(LcpError.noStatusDocument)
-            return
-        }
-        
-        guard let url = status.link(withRel: StatusDocument.Rel.return)?.href,
-            var returnUrl = URL(string: url.absoluteString.replacingOccurrences(of: "%7B?id,name%7D", with: "")) else
-        {
-            completion(LcpError.returnLinkNotFound)
-            return
-        }
-//
-//        returnUrl = URL(string: returnUrl.absoluteString + "?id=\(device.id)&name=\(device.name)")!
-//        var request = URLRequest(url: returnUrl)
-//        request.httpMethod = "PUT"
-//        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data, response, error) in
-//            guard let httpResponse = response as? HTTPURLResponse else {
-//                if let error = error {
-//                    completion(error)
-//                }
-//                return
-//            }
-//            if error == nil {
-//                switch httpResponse.statusCode {
-//                case 200:
-//                    // update the status document
-//                    if let data = data {
-//                        do {
-//                            // Update local license in Lcp object
-//                            self.status = try StatusDocument(data: data)
-//                            // Update license status (to 'returned' normally)
-//                            try LcpDatabase.shared.licenses.updateState(forLicenseWith: self.license.id,
-//                                                                        to: self.status!.status.rawValue)
-//                            completion(nil)
-//                        } catch {
-//                            completion(LcpError.licenseDocumentData)
-//                        }
-//                    }
-//                case 400:
-//                    completion(LcpError.returnFailure)
-//                case 403:
-//                    completion(LcpError.alreadyReturned)
-//                default:
-//                    completion(LcpError.unexpectedServerError)
-//                }
-//            }
-//        })
-//        task.resume()
     }
 
     public func renew(endDate: Date?, completion: @escaping (Error?) -> Void) {
@@ -214,72 +219,64 @@ public class LcpLicense: DrmLicense {
 //        task.resume()
     }
 
-    public func getStatus() -> StatusDocument.Status? {
-        guard case .valid(_, let status, _) = state else {
-            return nil
-        }
-        return status?.status
-    }
-    
-    /// Download publication to inbox and return the path to the downloaded
-    /// resource.
-    ///
-    /// - Returns: The URL representing the path of the publication localy.
-    func fetchPublication(_ completion: @escaping (Result<(URL, URLSessionDownloadTask?)>) -> Void) {
-        guard case .valid(let license, _, _) = state else {
-            completion(.failure(.invalidLicense(nil)))
+    public func `return`(completion: @escaping (Error?) -> Void){
+        guard case let .valid(license, optionalStatus, _) = state, let status = optionalStatus else {
+            completion(LcpError.noStatusDocument)
             return
         }
         
-        guard let publicationLink = license.link(withRel: LicenseDocument.Rel.publication) else {
-            completion(.failure(.publicationLinkNotFound))
+        guard let url = status.link(withRel: StatusDocument.Rel.return)?.href,
+            var returnUrl = URL(string: url.absoluteString.replacingOccurrences(of: "%7B?id,name%7D", with: "")) else
+        {
+            completion(LcpError.returnLinkNotFound)
             return
         }
-        let request = URLRequest(url: publicationLink.href)
-        let fileManager = FileManager.default
-        // Document Directory always exists (hence try!).
-        var destinationUrl = try! fileManager.url(for: .documentDirectory,
-                                                  in: .userDomainMask,
-                                                  appropriateFor: nil,
-                                                  create: true)
-        let fileName = "lcp." + license.id
-        destinationUrl.appendPathComponent("\(fileName).epub")
-
-        let publicationTitle = publicationLink.title ?? "..."
-
-        DownloadSession.shared.launch(request: request, description: publicationTitle, completionHandler: { (tmpLocalUrl, response, error, downloadTask) -> Bool? in
-            if let localUrl = tmpLocalUrl, error == nil {
-                do {
-                    // Saves the License Document into the downloaded publication
-                    let container = EpubLicenseContainer(epub: localUrl)
-                    try container.write(license)
-
-                    try FileManager.default.moveItem(at: localUrl, to: destinationUrl)
-                } catch {
-                    print(error.localizedDescription)
-                    completion(.failure(LcpError.wrap(error)))
-                    return false
-                }
-                completion(.success((destinationUrl, downloadTask)))
-                return true
-            } else if let error = error {
-                completion(.failure(LcpError.wrap(error)))
-            } else {
-                completion(.failure(LcpError.unknown(nil)))
-            }
-            return false
-        })
-    }
-    
-    public var profile: String {
-        guard case let .valid(license, _, _) = state else {
-            return ""
-        }
-        return license.encryption.profile.absoluteString
+        //
+        //        returnUrl = URL(string: returnUrl.absoluteString + "?id=\(device.id)&name=\(device.name)")!
+        //        var request = URLRequest(url: returnUrl)
+        //        request.httpMethod = "PUT"
+        //        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data, response, error) in
+        //            guard let httpResponse = response as? HTTPURLResponse else {
+        //                if let error = error {
+        //                    completion(error)
+        //                }
+        //                return
+        //            }
+        //            if error == nil {
+        //                switch httpResponse.statusCode {
+        //                case 200:
+        //                    // update the status document
+        //                    if let data = data {
+        //                        do {
+        //                            // Update local license in Lcp object
+        //                            self.status = try StatusDocument(data: data)
+        //                            // Update license status (to 'returned' normally)
+        //                            try LcpDatabase.shared.licenses.updateState(forLicenseWith: self.license.id,
+        //                                                                        to: self.status!.status.rawValue)
+        //                            completion(nil)
+        //                        } catch {
+        //                            completion(LcpError.licenseDocumentData)
+        //                        }
+        //                    }
+        //                case 400:
+        //                    completion(LcpError.returnFailure)
+        //                case 403:
+        //                    completion(LcpError.alreadyReturned)
+        //                default:
+        //                    completion(LcpError.unexpectedServerError)
+        //                }
+        //            }
+        //        })
+        //        task.resume()
     }
 
     public func currentStatus() -> String {
-        return getStatus()?.rawValue ?? ""
+        guard case .valid(_, let optionalStatus, _) = state,
+            let status = optionalStatus
+            else {
+                return ""
+        }
+        return status.status.rawValue
     }
 
     public func lastUpdate() -> Date {
@@ -310,6 +307,13 @@ public class LcpLicense: DrmLicense {
         return license.rights.end
     }
 
+    public func potentialRightsEnd() -> Date? {
+        guard case let .valid(license, _, _) = state else {
+            return nil
+        }
+        return license.rights.potentialEnd
+    }
+
     public func rightsStart() -> Date? {
         guard case let .valid(license, _, _) = state else {
             return nil
@@ -331,10 +335,11 @@ public class LcpLicense: DrmLicense {
         return license.rights.copy
     }
 
-    public func potentialRightsEnd() -> Date? {
+    public var profile: String {
         guard case let .valid(license, _, _) = state else {
-            return nil
+            return ""
         }
-        return license.rights.potentialEnd
+        return license.encryption.profile.absoluteString
     }
+    
 }

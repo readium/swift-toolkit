@@ -14,31 +14,17 @@ import R2LCPClient
 import CryptoSwift
 
 
-public enum PassphraseRequestReason {
-    /// No matching passphrase was found.
-    case notFound
-    /// The provided passphrase was invalid.
-    case invalid
-}
-
-
-protocol PassphrasesServiceDelegate: AnyObject {
-    
-    /// Called when the service can't find any valid passphrase in the repository, as a fallback.
-    /// Can be used, for example, to prompt the user for the passphrase.
-    func requestPassphrase(for license: LicenseDocument, reason: PassphraseRequestReason, completion: @escaping (String?) -> Void)
-    
-}
-
-
 final class PassphrasesService {
 
-    public weak var delegate: PassphrasesServiceDelegate?
+    /// Called when the service can't find any valid passphrase in the repository, as a fallback.
+    /// Can be used, for example, to prompt the user for the passphrase.
+    private let authenticating: LcpAuthenticating?
     
     private let repository: PassphrasesRepository
 
-    init(repository: PassphrasesRepository) {
+    init(repository: PassphrasesRepository, authenticating: LcpAuthenticating?) {
         self.repository = repository
+        self.authenticating = authenticating
     }
     
     /// Finds any valid passphrase for the given license in the passphrases repository.
@@ -48,18 +34,18 @@ final class PassphrasesService {
         if let passphrase = findOneValidPassphrase(jsonLicense: license.json, hashedPassphrases: candidates) {
             completion(.success(passphrase))
         } else {
-            requestFromDelegate(for: license, reason: .notFound, completion: completion)
+            authenticate(for: license, reason: .passphraseNotFound, completion: completion)
         }
     }
     
     /// Called when the service can't find any valid passphrase in the repository, as a fallback.
-    private func requestFromDelegate(for license: LicenseDocument, reason: PassphraseRequestReason, completion: @escaping (Result<String>) -> Void) {
-        guard let delegate = self.delegate else {
+    private func authenticate(for license: LicenseDocument, reason: LcpAuthenticationReason, completion: @escaping (Result<String>) -> Void) {
+        guard let authenticating = self.authenticating else {
             completion(.failure(LcpError.cancelled))
             return
         }
         
-        delegate.requestPassphrase(for: license, reason: reason) { [weak self] clearPassphrase in
+        authenticating.requestPassphrase(for: license, reason: reason) { [weak self] clearPassphrase in
             guard let `self` = self, let clearPassphrase = clearPassphrase else {
                 completion(.failure(LcpError.cancelled))
                 return
@@ -68,7 +54,7 @@ final class PassphrasesService {
             let hashedPassphrase = clearPassphrase.sha256()
             guard let passphrase = findOneValidPassphrase(jsonLicense: license.json, hashedPassphrases: [hashedPassphrase]) else {
                 // Tries again if the passphrase is invalid, until cancelled
-                self.requestFromDelegate(for: license, reason: .invalid, completion: completion)
+                self.authenticate(for: license, reason: .invalidPassphrase, completion: completion)
                 return
             }
             

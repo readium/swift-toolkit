@@ -38,7 +38,7 @@ public class Link {
     public init(with json: JSON) throws {
         // Retrieves the non optional fields.
         guard let href = json["href"].url else {
-            throw LcpParsingError.link
+            throw ParsingError.link
         }
         self.href = href
         if let rel = json["rel"].array {
@@ -50,10 +50,10 @@ public class Link {
         } else if let rel = json["rel"].string {
             self.rel.append(rel)
         } else {
-            throw LcpParsingError.link
+            throw ParsingError.link
         }
         guard !self.rel.isEmpty else {
-            throw LcpParsingError.link
+            throw ParsingError.link
         }
         title = json["title"].string
         type = json["type"].string
@@ -70,7 +70,7 @@ public class Link {
 /// - Throws: LsdErrors.
 func parseLinks(_ json: JSON) throws -> [Link] {
     guard let jsonLinks = json.array else {
-        throw LcpParsingError.json
+        throw ParsingError.json
     }
     var links = [Link]()
 

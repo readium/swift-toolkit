@@ -13,7 +13,7 @@ import Foundation
 import R2LCPClient
 
 // When true, will show the state and transitions in the console.
-private let DEBUG = true
+private let DEBUG = false
 
 
 final class LicenseValidation {

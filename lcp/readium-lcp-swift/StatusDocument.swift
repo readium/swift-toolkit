@@ -71,7 +71,7 @@ public class StatusDocument {
             let status = Status(rawValue: statusData),
             let message = json["message"].string else
         {
-            throw LcpParsingError.json
+            throw ParsingError.json
         }
         self.id = id
         self.status = status

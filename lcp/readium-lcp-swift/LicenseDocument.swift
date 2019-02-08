@@ -57,10 +57,10 @@ public class LicenseDocument {
             let issuedDate = issued.dateFromISO8601,
             let provider = json["provider"].url else
         {
-            throw LcpParsingError.json
+            throw ParsingError.json
         }
         guard let jsonString = String.init(data: data, encoding: String.Encoding.utf8) else {
-            throw LcpParsingError.json
+            throw ParsingError.json
         }
         self.json = jsonString
         self.id = id

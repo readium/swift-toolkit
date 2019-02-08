@@ -25,7 +25,7 @@ public struct ContentKey {
     init(with json: JSON) throws {
         guard let encryptedValue = json["encrypted_value"].string,
             let algorithm = json["algorithm"].url else {
-                throw LcpParsingError.json
+                throw ParsingError.json
         }
         self.encryptedValue = encryptedValue
         self.algorithm = algorithm
