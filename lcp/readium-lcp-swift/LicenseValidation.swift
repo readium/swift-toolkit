@@ -12,6 +12,10 @@
 import Foundation
 import R2LCPClient
 
+// When true, will show the state and transitions in the console.
+private let DEBUG = true
+
+
 final class LicenseValidation {
     
     typealias ValidatedLicense = (LicenseDocument, StatusDocument?, DRMContext)
@@ -29,7 +33,7 @@ final class LicenseValidation {
     // Current state in the validation steps.
     fileprivate var state: State = .start {
         didSet {
-            print("* State \(state)")
+            if DEBUG { print("* State \(state)") }
             handle(state)
         }
     }
@@ -149,7 +153,7 @@ extension LicenseValidation {
                 self = .failure(error)
 
             default:
-                print("Ignoring unexpected event \(event) for state \(self)")
+                if DEBUG { print("Ignoring unexpected event \(event) for state \(self)") }
             }
         }
     }
@@ -168,7 +172,6 @@ extension LicenseValidation {
                 do {
                     try self.licenses.addOrUpdateLicense(license)
                 } catch {
-                    print("ERROR")
                     event = .failed(LcpError.wrap(error))
                 }
 
@@ -182,7 +185,7 @@ extension LicenseValidation {
                 break
             }
 
-            print(" -> on \(event)")
+            if DEBUG { print(" -> on \(event)") }
             self.state.transition(event)
         }
     }

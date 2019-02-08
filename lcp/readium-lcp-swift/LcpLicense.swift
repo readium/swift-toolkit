@@ -11,7 +11,6 @@
 
 import Foundation
 import UIKit
-import PromiseKit
 import SwiftyJSON
 import ZIPFoundation
 import R2Shared
@@ -270,88 +269,6 @@ public class LcpLicense: DrmLicense {
             }
             return false
         })
-    }
-    
-    /// Try to save the license document without status document.
-    /// There is also no update logic for the license, because the license url belongs to status.
-    /// - Parameters:
-    ///   - shouldRejectError: should the function reject anny error emitted .
-    ///
-    public func saveLicenseDocumentWithoutStatus(shouldRejectError: Bool) -> Promise<Void> {
-        return Promise<Void> { fulfill, reject in
-//            do {
-//                let exist = try LcpDatabase.shared.licenses.existingLicense(with: self.license.id)
-//                if exist { // When the LCP license already exist
-//                    if shouldRejectError {
-//                        reject(LcpError.licenseAlreadyExist)
-//                    }
-//                } else {
-//                    try LcpDatabase.shared.licenses.insert(self.license, with: nil)
-//                }
-//                fulfill(())
-//            } catch {
-//                if shouldRejectError {
-//                    reject(error)
-//                } else {fulfill(())}
-//            }
-        }
-    }
-    
-    /// Update the License Document.
-    ///
-    /// - Parameter completion:
-    public func updateLicenseDocument() -> Promise<Void> {
-        return Promise<Void> { fulfill, reject in
-//            guard let status = self.status else {
-//                reject(LcpError.noStatusDocument)
-//                return
-//            }
-//            guard let licenseLink = status.link(withRel: StatusDocument.Rel.license) else {
-//                reject(LcpError.licenseLinkNotFound)
-//                return
-//            }
-//            print(licenseLink.href.absoluteString)
-//            let request = URLRequest(url: licenseLink.href)
-//
-//            // Compare last update date
-//            let latestUpdate = license.dateOfLastUpdate()
-//
-//            if let lastUpdate = LcpDatabase.shared.licenses.dateOfLastUpdate(forLicenseWith: license.id),
-//                lastUpdate > latestUpdate {
-//                    fulfill(())
-//                return
-//            }
-//
-//            /// 3.4.1/ Fetch the updated license.
-//            let task = URLSession.shared.downloadTask(with: request, completionHandler: { tmpLocalUrl, response, error in
-//                if let localUrl = tmpLocalUrl, error == nil {
-//                    let content: Data
-//
-//                    do {
-//                        /// Refresh the current LicenseDocument in memory with the
-//                        /// freshly fetched one.
-//                        content = try Data.init(contentsOf: localUrl)
-//                        self.license = try LicenseDocument.init(with: content)
-//                        try self.container.write(self.license)
-//                    } catch {
-//                        print(error.localizedDescription)
-//                    }
-//                } else if let error = error {
-//                    print(error.localizedDescription)
-//                }
-//                try? LcpDatabase.shared.licenses.insert(self.license, with: status.status)
-//              fulfill(())
-//            })
-//            task.resume()
-        }
-    }
-
-    public func removeDataBaseItem() throws {
-//        try LcpDatabase.shared.licenses.deleteData(for: self.license.id)
-    }
-    
-    public static func removeDataBaseItem(licenseID: String) throws {
-//        try LcpDatabase.shared.licenses.deleteData(for: licenseID)
     }
     
     public var profile: String {

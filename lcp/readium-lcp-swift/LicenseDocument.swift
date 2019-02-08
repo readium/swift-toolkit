@@ -11,7 +11,6 @@
 
 import Foundation
 import SwiftyJSON
-import PromiseKit
 import R2Shared
 
 /// Document that contains references to the various keys, links to related

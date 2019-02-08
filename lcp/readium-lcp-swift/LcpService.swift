@@ -10,7 +10,6 @@
 //
 
 import Foundation
-import PromiseKit
 
 
 public protocol LcpServiceDelegate: AnyObject {
@@ -58,18 +57,6 @@ public class LcpService {
             .resolve(completion)
     }
     
-    public func removePublication(at url: URL) -> Void {
-//        let container = EpubLicenseContainer(epub: url)
-//        if let lcpLicense = try? LcpLicense(container: container) {
-//            try? lcpLicense.removeDataBaseItem()
-//        }
-//        // In case, the epub download succeed but the process inserting lcp into epub failed
-//        if url.lastPathComponent.starts(with: "lcp.") {
-//            let possibleLCPID = url.deletingPathExtension().lastPathComponent.replacingOccurrences(of: "lcp.", with: "")
-//            try? LcpLicense.removeDataBaseItem(licenseID: possibleLCPID)
-//        }
-    }
-
     private func openLicense(from container: LicenseContainer) -> DeferredResult<LcpLicense> {
         let supportedProfiles = self.supportedProfiles
         let passphrases = self.passphrases
