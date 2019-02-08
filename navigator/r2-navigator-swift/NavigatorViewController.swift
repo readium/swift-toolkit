@@ -197,6 +197,14 @@ extension NavigatorViewController {
 
 extension NavigatorViewController: ViewDelegate {
     
+    func willAnimatePageChange() {
+        triptychView.isUserInteractionEnabled = false
+    }
+    
+    func didAnimatePageChange() {
+        triptychView.isUserInteractionEnabled = true
+    }
+    
     func handleTapOnLink(with url: URL) {
         delegate?.didTapExternalUrl(url)
     }
