@@ -1,5 +1,5 @@
 //
-//  CrlService.swift
+//  CRLService.swift
 //  r2-lcp-swift
 //
 //  Created by Mickaël Menu on 07.02.19.
@@ -12,15 +12,24 @@
 import Foundation
 
 /// Certificate Revocation List
-final class CrlService {
+final class CRLService {
+    
+    // Number of days before the CRL cache expires.
+    private static let expiration = 7
     
     private static let dateKey = "kCRLDate"
     private static let crlKey = "kCRLString"
+
+    private let network: NetworkService
+    
+    init(network: NetworkService) {
+        self.network = network
+    }
     
     /// Retrieves the CRL either from the cache, or from EDRLab if the cache is outdated.
     func retrieve(completion: @escaping (Result<String>) -> Void) {
         guard let (crl, date) = readLocal(),
-            daysSince(date) < 7
+            daysSince(date) < CRLService.expiration
         else {
             fetch(completion: completion)
             return
@@ -32,23 +41,25 @@ final class CrlService {
     /// Fetches the updated Certificate Revocation List from EDRLab.
     private func fetch(completion: @escaping (Result<String>) -> Void) {
         let url = URL(string: "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl")!
-        URLSession.shared.dataTask(with: url) { (data, response, error) in
-            guard (response as? HTTPURLResponse)?.statusCode == 200, let data = data else {
-                completion(.failure(.crlFetching))
-                return
+        
+        deferred { self.network.fetch(url, $0) }
+            .map { status, data in
+                guard status == 200 else {
+                    throw LCPError.crlFetching
+                }
+                
+                let crl = "-----BEGIN X509 CRL-----\(data.base64EncodedString())-----END X509 CRL-----";
+                self.saveLocal(crl)
+                return crl
             }
-            
-            let crl = "-----BEGIN X509 CRL-----\(data.base64EncodedString())-----END X509 CRL-----";
-            self.saveLocal(crl)
-            completion(.success(crl))
-        }.resume()
+            .resolve(completion)
     }
     
     /// Reads the local CRL.
     private func readLocal() -> (String, Date)? {
         let defaults = UserDefaults.standard
-        guard let crl = defaults.string(forKey: CrlService.crlKey),
-            let date = defaults.value(forKey: CrlService.dateKey) as? Date
+        guard let crl = defaults.string(forKey: CRLService.crlKey),
+            let date = defaults.value(forKey: CRLService.dateKey) as? Date
             else {
                 return nil
         }
@@ -59,8 +70,8 @@ final class CrlService {
     /// Caches the given CRL.
     private func saveLocal(_ crl: String) {
         let defaults = UserDefaults.standard
-        defaults.set(crl, forKey: CrlService.crlKey)
-        defaults.set(Date(), forKey: CrlService.dateKey)
+        defaults.set(crl, forKey: CRLService.crlKey)
+        defaults.set(Date(), forKey: CRLService.dateKey)
     }
     
     private func daysSince(_ date: Date) -> Int {

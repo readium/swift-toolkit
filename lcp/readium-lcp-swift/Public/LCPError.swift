@@ -14,7 +14,7 @@ import Foundation
 public enum LCPError: Error {
     case cancelled
     case unknown(Error?)
-    case network(Error)
+    case network(Error?)
     case database(Error)
     case invalidLicense(Error?)
     case invalidPath
@@ -180,7 +180,7 @@ extension LCPError: LocalizedError {
         case .profileNotSupported:
             return "This Readium LCP license has a profile identifier that this app cannot handle, the publication cannot be processed"
         case .network(let error):
-            return "Can't reach server: \(error)"
+            return "Can't reach server: \(String(describing: error))"
         case .database(let error):
             return "Internal database error: \(error)"
         }

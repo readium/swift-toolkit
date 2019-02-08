@@ -12,7 +12,6 @@
 import Foundation
 
 /// Protocol to implement in the client app to request passphrases from the user (or any other means).
-/// If not provided when opening a license, the request is cancelled if no passphrase is found in the local database. This can be the desired behavior when trying to import a license in the background, without prompting the user for its passphrase.
 public protocol LCPAuthenticating: AnyObject {
     
     func requestPassphrase(for data: LCPAuthenticationData, reason: LCPAuthenticationReason, completion: @escaping (String?) -> Void)

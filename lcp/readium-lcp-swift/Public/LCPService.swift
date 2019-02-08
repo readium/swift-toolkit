@@ -13,8 +13,9 @@ import Foundation
 import R2Shared
 
 /// Service used to fulfill and access protected publications.
+/// If an LCPAuthenticating instance is not given when expected, the request is cancelled if no passphrase is found in the local database. This can be the desired behavior when trying to import a license in the background, without prompting the user for its passphrase.
 public protocol LCPService {
-    
+
     /// Imports a protected publication from a standalone LCPL file.
     func importLicenseDocument(_ lcpl: URL, authenticating: LCPAuthenticating?, completion: @escaping (LCPImportedPublication?, LCPError?) -> Void)
     

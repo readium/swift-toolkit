@@ -24,7 +24,7 @@ final class LicenseValidation {
     fileprivate let passphrases: PassphrasesService
     fileprivate let licenses: LicensesRepository
     fileprivate let device: DeviceService
-    fileprivate let crl: CrlService
+    fileprivate let crl: CRLService
     fileprivate var completion = PopVariable<(Result<ValidatedLicense>) -> Void>()
     
     // Already validated license used as a fallback when the newly fetched one fails to validate.
@@ -38,7 +38,7 @@ final class LicenseValidation {
         }
     }
 
-    init(supportedProfiles: [String], passphrases: PassphrasesService, licenses: LicensesRepository, device: DeviceService, crl: CrlService) {
+    init(supportedProfiles: [String], passphrases: PassphrasesService, licenses: LicensesRepository, device: DeviceService, crl: CRLService) {
         self.supportedProfiles = supportedProfiles
         self.passphrases = passphrases
         self.licenses = licenses
@@ -227,8 +227,8 @@ extension LicenseValidation {
             guard let `self` = self else { return }
             
             do {
-                let pemCrl = try result.get()
-                let context = try createContext(jsonLicense: license.json, hashedPassphrase: passphrase, pemCrl: pemCrl)
+                let pemCRL = try result.get()
+                let context = try createContext(jsonLicense: license.json, hashedPassphrase: passphrase, pemCrl: pemCRL)
                 self.raise(.validatedIntegrity(context))
                 
             } catch {

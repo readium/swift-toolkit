@@ -14,11 +14,14 @@ import Foundation
 final class LicensesService {
 
     private let supportedProfiles: [String]
-    private let device = DeviceService(repository: Database.shared.licenses)
-    private let crl = CrlService()
+    private let device: DeviceService
+    private let crl: CRLService
 
     init(supportedProfiles: [String]) {
         self.supportedProfiles = supportedProfiles
+        let network = NetworkService()
+        self.device = DeviceService(repository: Database.shared.licenses, network: network)
+        self.crl = CRLService(network: network)
     }
 
     fileprivate func openLicense(from container: LicenseContainer, authenticating: LCPAuthenticating?) -> DeferredResult<License> {

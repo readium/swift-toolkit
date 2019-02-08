@@ -15,9 +15,11 @@ import UIKit
 final class DeviceService {
     
     private let repository: DeviceRepository
+    private let network: NetworkService
     
-    init(repository: DeviceRepository) {
+    init(repository: DeviceRepository, network: NetworkService) {
         self.repository = repository
+        self.network = network
     }
     
     /// Returns the device ID, creates it if needed.
@@ -36,6 +38,14 @@ final class DeviceService {
         return UIDevice.current.name
     }
     
+    // Device ID and name as query parameters for HTTP requests.
+    var asQueryParameters: [String: String] {
+        return [
+            "id": id,
+            "name": name
+        ]
+    }
+    
     /// Registers the device for the given license.
     /// If the call was made, the updated Status Document data is given to the completion closure.
     /// - Returns: Whether the device was already registered.
@@ -46,40 +56,22 @@ final class DeviceService {
             return true
         }
         
-        // Removing the template {?id,name}
-        // FIXME: this might fail if the server doesn't use strictly {?id,name}, but for example {?name,id}
-        guard let href = status.link(withRel: .register)?.href.absoluteString.replacingOccurrences(of: "%7B?id,name%7D", with: ""),
-            var urlBuilder = URLComponents(string: href)
+        guard let link = status.link(withRel: .register),
+            let url = network.makeURL(link, parameters: asQueryParameters)
             else {
                 completion?(.failure(.registerLinkNotFound))
                 return true
         }
-
-        urlBuilder.queryItems = [
-            URLQueryItem(name: "id", value: id),
-            URLQueryItem(name: "name", value: name)
-        ]
         
-        guard let url = urlBuilder.url else {
-            completion?(.failure(.registerLinkNotFound))
-            return true
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        URLSession.shared.dataTask(with: request) { (data, response, error) in
-            guard (response as? HTTPURLResponse)?.statusCode == 200 else {
-                completion?(.failure(.registrationFailure))
-                return
+        deferred { self.network.fetch(url, method: .post, $0) }
+            .map { status, data in
+                guard status == 200 else {
+                    throw LCPError.registrationFailure
+                }
+                try? self.repository.registerDevice(for: license)
+                return data
             }
-            
-            do {
-                try self.repository.registerDevice(for: license)
-                completion?(.success(data))
-            } catch {
-                completion?(.failure(.registrationFailure))
-            }
-        }.resume()
+            .resolve(completion)
         
         return false
     }

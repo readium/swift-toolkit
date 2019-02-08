@@ -33,9 +33,15 @@ enum Result<T> {
         }
     }
     
-    func map<V>(_ transform: (T) -> V) -> Result<V> {
+    func map<V>(_ transform: (T) throws -> V) -> Result<V> {
         return map(
-            success: { .success(transform($0)) },
+            success: {
+                do {
+                    return .success(try transform($0))
+                } catch {
+                    return .failure(LCPError.wrap(error))
+                }
+            },
             failure: { .failure($0) }
         )
     }
@@ -51,6 +57,40 @@ enum Result<T> {
             failure: { completion(nil, $0) }
         )
     }
+}
+
+
+/// Monad-like encapsulation of an asynchronous Result.
+/// This is NOT a Promise implementation, because much more lightweight and not thread-safe. It's only meant to flatten in-place a group of Result completion-based calls into a monadic chain.
+/// It works with regular functions taking completion closures, so not too invasive. Only the call site knows about DeferredResult and it doesn't leak throughout the codebase.
+///
+/// eg.
+/// fetchFoo { result1 in
+///     switch result1 {
+///     case .success(let val1):
+///         parseBar(val1) {
+///             switch result2 {
+///             case .success(let val2):
+///                 processThing(val2, completion)
+///             case .failure(let err):
+///                 completion(.failure(err))
+///         }
+///     case .failure(let err):
+///         completion(.failure(err))
+/// }
+///
+/// becomes:
+///
+/// deferred { fetchFoo($0) }
+///     .map { parseBar($0, $1) }
+///     .map { processThing($0, $1) }
+///     .map { val in val + 100 }  // Can also replace synchronously a Result value
+///     .resolve(completion)
+///
+
+/// Syntactic sugar.
+func deferred<T>(_ closure: @escaping (@escaping (Result<T>) -> Void) -> Void) -> DeferredResult<T> {
+    return DeferredResult(closure)
 }
 
 final class DeferredResult<T> {
@@ -74,10 +114,10 @@ final class DeferredResult<T> {
         }
     }
 
-    func resolve(_ completion: @escaping (Result<T>) -> Void) {
-        assert(!resolved)
+    func resolve(_ completion: ((Result<T>) -> Void)? = nil) {
+        assert(!resolved, "DeferredResult doesn't cache the closure's value. It must only be called once.")
         resolved = true
-        closure(completion)
+        closure(completion ?? { _ in })
     }
     
     func resolve(_ completion: @escaping (T?, LCPError?) -> Void) {
@@ -119,6 +159,23 @@ final class DeferredResult<T> {
         }
     }
     
+    func map<V>(_ transform: @escaping (T) throws -> V) -> DeferredResult<V> {
+        return DeferredResult<V> { completion in
+            self.resolve { result in
+                switch result {
+                case .success(let value):
+                    do {
+                        completion(.success(try transform(value)))
+                    } catch {
+                        completion(.failure(LCPError.wrap(error)))
+                    }
+                case .failure(let error):
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
+    
     func map<V>(_ transform: @escaping (T) -> DeferredResult<V>) -> DeferredResult<V> {
         return DeferredResult<V> { completion in
             self.resolve { result in
@@ -132,9 +189,4 @@ final class DeferredResult<T> {
         }
     }
 
-}
-
-/// Syntactic sugar.
-func deferred<T>(_ closure: @escaping (@escaping (Result<T>) -> Void) -> Void) -> DeferredResult<T> {
-    return DeferredResult(closure)
 }
