@@ -22,7 +22,7 @@ public enum LCPError: Error {
     case licenseNotFound
     case publicationLinkNotFound
     case hintLinkNotFound
-    case statusLinkNotFound  // FIXME: expose Rel?
+    case statusLinkNotFound(String)
     case noStatusDocument
     case licenseDocumentData
     case publicationData
@@ -108,8 +108,8 @@ extension LCPError: LocalizedError {
             return "The publication link is missing from the license document."
         case .hintLinkNotFound:
             return "The hint link is missing from the license document."
-        case .statusLinkNotFound:
-            return "The requested status link is missing from the Status Document."
+        case .statusLinkNotFound(let rel):
+            return "The link \(rel) is missing from the Status Document."
         case .noStatusDocument:
             return "Updating the license failed, there is no status document."
         case .licenseDocumentData:

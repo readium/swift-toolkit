@@ -71,7 +71,6 @@
 		F300FA341F8E1AEB00442332 /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
 		F3314BF31FE42F2300C3B790 /* R2LCPClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2LCPClient.framework; path = Carthage/Build/iOS/R2LCPClient.framework; sourceTree = "<group>"; };
 		F331FBF71F8228F8007F16DF /* Database.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
-		F35AF9F11F6AB14300D3F670 /* PromiseKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PromiseKit.framework; path = Carthage/Build/iOS/PromiseKit.framework; sourceTree = "<group>"; };
 		F35AF9FE1F6ACD3900D3F670 /* ParsingError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ParsingError.swift; sourceTree = "<group>"; };
 		F35AFA001F6AD54400D3F670 /* License.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = License.swift; sourceTree = "<group>"; };
 		F36F9E251F826C17001D0DB4 /* Licenses.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Licenses.swift; sourceTree = "<group>"; };
@@ -273,7 +272,6 @@
 				F3E2DEA01FB1B3DC009A1CC4 /* ZIPFoundation.framework */,
 				F3F41E0D1FA0C26600F97737 /* CryptoSwift.framework */,
 				F300FA341F8E1AEB00442332 /* R2Shared.framework */,
-				F35AF9F11F6AB14300D3F670 /* PromiseKit.framework */,
 				F38FB0501F67DC2F00F9D602 /* SQLite.framework */,
 				F3B2C8AE1F6672E1007601E4 /* SwiftyJSON.framework */,
 			);

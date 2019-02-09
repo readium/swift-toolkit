@@ -31,6 +31,7 @@ enum Result<T> {
         )
     }
     
+    /// Maps a result's value or error to another identical type.
     func map<V>(success: (T) -> V, failure: (LCPError) -> V) -> V {
         switch self {
         case .success(let value):
@@ -40,6 +41,7 @@ enum Result<T> {
         }
     }
     
+    /// Transforms a result's value, or forwards its error.
     func map<V>(_ transform: (T) throws -> V) -> Result<V> {
         return map(
             success: {
@@ -53,17 +55,35 @@ enum Result<T> {
         )
     }
     
+    /// Calls an asynchronous closure with the result's value and forwards the completion handler with the transformed result.
     func map<V>(_ transform: ((T, @escaping (Result<V>) -> Void) -> Void), _ completion: @escaping (Result<V>) -> Void) {
         map(success: { transform($0, completion) },
             failure: { completion(.failure($0)) }
         )
     }
+    
+    /// Attempts to recover a result's error.
+    /// Throw another (or the same) error in the recover closure if it fails.
+    func `catch`(_ recover: @escaping (LCPError) throws -> T) -> Result<T> {
+        return map(
+            success: { .success($0) },
+            failure: {
+                do {
+                    return .success(try recover($0))
+                } catch {
+                    return .failure(LCPError.wrap(error))
+                }
+            }
+        )
+    }
 
-    func completion(_ completion: (T?, LCPError?) -> Void) {
+    /// Calls the given classical completion closure with the result's value and error.
+    func send(to completion: (T?, LCPError?) -> Void) {
         map(success: { completion($0, nil) },
             failure: { completion(nil, $0) }
         )
     }
+    
 }
 
 
@@ -108,108 +128,50 @@ final class DeferredResult<T> {
     init(_ closure: @escaping (@escaping (Result<T>) -> Void) -> Void) {
         self.closure = closure
     }
-    
-    static func success<T>(_ value: T) -> DeferredResult<T> {
-        return DeferredResult<T> { completion in
-            completion(.success(value))
-        }
-    }
-    
-    static func failure(_ error: LCPError) -> DeferredResult {
-        return DeferredResult { completion in
-            completion(.failure(error))
-        }
-    }
 
+    /// Resolves the result and send it back to the given completion closure.
     func resolve(_ completion: ((Result<T>) -> Void)? = nil) {
         assert(!resolved, "DeferredResult doesn't cache the closure's value. It must only be called once.")
         resolved = true
         closure(completion ?? { _ in })
     }
     
+    /// Resolves the result and send it back to the given classical completion closure.
     func resolve(_ completion: @escaping (T?, LCPError?) -> Void) {
-        resolve { $0.completion(completion) }
+        resolve { $0.send(to: completion) }
     }
     
-    func map<V>(success: @escaping (T) -> V, failure: @escaping (LCPError) -> V) -> DeferredResult<V> {
+    /// Wraps the deferred result in another deferred task that will use the value of the wrapped result, or forward its error.
+    private func wrap<V>(_ wrapper: @escaping (Result<T>, @escaping (Result<V>) -> Void) -> Void) -> DeferredResult<V> {
         return DeferredResult<V> { completion in
             self.resolve { result in
-                let mappedResult = result.map(success: success, failure: failure)
-                completion(.success(mappedResult))
+                wrapper(result, completion)
             }
         }
     }
+    
+    func map<V>(success: @escaping (T) -> V, failure: @escaping (LCPError) -> V) -> DeferredResult<V> {
+        return wrap { result, completion in
+            let mappedResult = result.map(success: success, failure: failure)
+            completion(.success(mappedResult))
+        }
+    }
 
-    func map<V>(_ transform: @escaping (T) -> V) -> DeferredResult<V> {
-        return DeferredResult<V> { completion in
-            self.resolve { result in
-                switch result {
-                case .success(let value):
-                    completion(.success(transform(value)))
-                case .failure(let error):
-                    completion(.failure(error))
-                }
-            }
+    func map<V>(_ transform: @escaping (T) throws -> V) -> DeferredResult<V> {
+        return wrap { result, completion in
+            completion(result.map(transform))
         }
     }
     
     func map<V>(_ transform: @escaping (T, @escaping (Result<V>) -> Void) -> Void) -> DeferredResult<V> {
-        return DeferredResult<V> { completion in
-            self.resolve { result in
-                switch result {
-                case .success(let value):
-                    transform(value, completion)
-                case .failure(let error):
-                    completion(.failure(error))
-                }
-            }
+        return wrap { result, completion in
+            result.map(transform, completion)
         }
     }
-    
-    func map<V>(_ transform: @escaping (T) throws -> V) -> DeferredResult<V> {
-        return DeferredResult<V> { completion in
-            self.resolve { result in
-                switch result {
-                case .success(let value):
-                    do {
-                        completion(.success(try transform(value)))
-                    } catch {
-                        completion(.failure(LCPError.wrap(error)))
-                    }
-                case .failure(let error):
-                    completion(.failure(error))
-                }
-            }
-        }
-    }
-    
-    func map<V>(_ transform: @escaping (T) -> DeferredResult<V>) -> DeferredResult<V> {
-        return DeferredResult<V> { completion in
-            self.resolve { result in
-                switch result {
-                case .success(let value):
-                    transform(value).resolve(completion)
-                case .failure(let error):
-                    completion(.failure(error))
-                }
-            }
-        }
-    }
-    
-    func `catch`(_ transform: @escaping(LCPError) throws -> T) -> DeferredResult<T> {
-        return DeferredResult<T> { completion in
-            self.resolve { result in
-                switch result {
-                case .success(let value):
-                    completion(.success(value))
-                case .failure(let error):
-                    do {
-                        completion(.success(try transform(error)))
-                    } catch {
-                        completion(.failure(LCPError.wrap(error)))
-                    }
-                }
-            }
+
+    func `catch`(_ recover: @escaping (LCPError) throws -> T) -> DeferredResult<T> {
+        return wrap { result, completion in
+            completion(result.catch(recover))
         }
     }
 

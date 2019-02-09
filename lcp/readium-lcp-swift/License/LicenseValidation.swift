@@ -36,7 +36,7 @@ final class LicenseValidation {
     // Current state in the validation steps.
     fileprivate var state: State = .start {
         didSet {
-            if DEBUG { print("* State \(state)") }
+            if DEBUG { print("#validation * \(state)") }
             handle(state)
         }
     }
@@ -158,7 +158,7 @@ extension LicenseValidation {
                 self = .failure(error)
 
             default:
-                if DEBUG { print("Ignoring unexpected event \(event) for state \(self)") }
+                if DEBUG { print("#validation Ignoring unexpected event \(event) for state \(self)") }
             }
         }
     }
@@ -190,7 +190,7 @@ extension LicenseValidation {
                 break
             }
 
-            if DEBUG { print(" -> on \(event)") }
+            if DEBUG { print("#validation -> on \(event)") }
             self.state.transition(event)
         }
     }
@@ -228,11 +228,9 @@ extension LicenseValidation {
     }
     
     private func requestPassphrase(for license: LicenseDocument) {
-        passphrases.request(for: license, authenticating: authenticating) { [weak self] passphrase in
-            self?.raise(
-                passphrase.map { .retrievedPassphrase($0) }
-            )
-        }
+        deferred { self.passphrases.request(for: license, authenticating: self.authenticating, completion: $0) }
+            .map { Event.retrievedPassphrase($0) }
+            .resolve(raise)
     }
     
     private func validateIntegrity(of license: LicenseDocument, with passphrase: String) {
@@ -277,30 +275,27 @@ extension LicenseValidation {
     
     private func checkStatus(_ document: StatusDocument) {
         // Checks the status according to 4.3/ in the specification.
-        let event: Event = {
-            let updatedDate = document.updated?.status
-            
-            switch document.status {
-            case .ready, .active:
-                return .checkedStatus
-            case .returned:
-                return .failed(.licenseStatusReturned(updatedDate))
-            case .expired:
-                return .failed(.licenseStatusExpired(updatedDate))
-            case .revoked:
-                let devicesCount = document.events.filter({ $0.type == "register" }).count
-                return .failed(.licenseStatusRevoked(updatedDate, devicesCount: devicesCount))
-            case .cancelled:
-                return .failed(.licenseStatusCancelled(updatedDate))
-            }
-        }()
-        raise(event)
+        let updatedDate = document.updated?.status
+
+        switch document.status {
+        case .ready, .active:
+            raise(.checkedStatus)
+        case .returned:
+            raise(.failed(.licenseStatusReturned(updatedDate)))
+        case .expired:
+            raise(.failed(.licenseStatusExpired(updatedDate)))
+        case .revoked:
+            let devicesCount = document.events.filter({ $0.type == "register" }).count
+            raise(.failed(.licenseStatusRevoked(updatedDate, devicesCount: devicesCount)))
+        case .cancelled:
+            raise(.failed(.licenseStatusCancelled(updatedDate)))
+        }
     }
     
     private func registerDevice(for license: LicenseDocument, using status: StatusDocument) {
         // FIXME: Right now we ignore the Status Document returned by the register API, should we revalidate it instead?
         let skipped = device.registerLicense(license, using: status)
-        self.raise(.registeredDevice(skipped: skipped))
+        raise(.registeredDevice(skipped: skipped))
     }
     
     private func fetchLicense(from status: StatusDocument) {

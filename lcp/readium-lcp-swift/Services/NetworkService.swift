@@ -24,37 +24,30 @@ final class NetworkService {
         case put = "PUT"
     }
     
-    func makeURL(_ link: Link, parameters: [String: CustomStringConvertible] = [:]) -> URL? {
-        let templated = (link.templated ?? false)
-        return makeURL(link.href, templated: templated, parameters: parameters)
-    }
-    
-    func makeURL(_ url: URL, templated: Bool = false, parameters: [String: CustomStringConvertible] = [:]) -> URL? {
-        if !templated && parameters.isEmpty {
-            return url
+    /// Applies a set of parameters to a templated URL.
+    /// eg. http://url?{id,name} + [id: x, name: y] -> http://url?id=x&name=y
+    /// There's a quick hack to remove the templating info, we shoud probably use an actual templating library to replace the parameters propertly.
+    func urlFromLink(_ link: Link, context: [String: CustomStringConvertible] = [:]) -> URL? {
+        guard (link.templated ?? false) else {
+            // No-op if the URL is not templated
+            return link.href
         }
-        return makeURL(url.absoluteString, templated: templated, parameters: parameters)
-    }
-    
-    func makeURL(_ urlString: String, templated: Bool = false, parameters: [String: CustomStringConvertible] = [:]) -> URL? {
-        var urlString = urlString
-        if templated {
-            // Quick hack to remove the templating info (eg. {?id,name})
-            // Should probably use an actual templating framework to replace the parameters propertly.
-            urlString = urlString.replacingOccurrences(of: "%7B\\?.+?\\%7D", with: "", options: [.regularExpression])
-        }
-        
+
+        let urlString = link.href.absoluteString
+            .replacingOccurrences(of: "%7B\\?.+?\\%7D", with: "", options: [.regularExpression])
+
         guard var urlBuilder = URLComponents(string: urlString) else {
             return nil
         }
-
-        urlBuilder.queryItems = parameters.map { param in
+        
+        // Add the template context as query parameters
+        urlBuilder.queryItems = context.map { param in
             URLQueryItem(name: param.key, value: param.value.description)
         }
 
         return urlBuilder.url
     }
-    
+
     func fetch(_ url: URL, method: Method = .get, _ completion: @escaping (Result<(status: Int, data: Data)>) -> Void) {
         if (DEBUG) { print("#network \(method.rawValue) \(url)") }
         

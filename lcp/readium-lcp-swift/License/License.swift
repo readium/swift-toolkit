@@ -51,9 +51,6 @@ final class License {
         
         deferred { validation.validateLicenseData(containerLicenseData, $0) }
             .map { (license, status, context) -> License in
-                // FIXME: Is it useful? it seems to be checked by the lcplib (LCPClientError.licenseOutOfDate)
-                try self.areRightsValid()
-                
                 self.state = .valid(license, status, context)
                 // Overwrites the License Document in the container if it was updated
                 if containerLicenseData != license.data {
@@ -120,17 +117,17 @@ final class License {
     }
     
     /// Calls a Status Document interaction from its `rel`.
-    /// The Status Document will be updated (and validated) with the one returned by the LSD server.
-    fileprivate func callInteraction(_ rel: StatusDocument.Rel, errors: [Int: LCPError] = [:], _ completion: @escaping (Result<Void>) -> Void) {
+    /// The Status Document will be updated with the one returned by the LSD server, after validation.
+    fileprivate func callLSDInteraction(_ rel: StatusDocument.Rel, errors: [Int: LCPError] = [:], _ completion: @escaping (Result<Void>) -> Void) {
         guard let status = status else {
             completion(.failure(.noStatusDocument))
             return
         }
         
         guard let link = status.link(withRel: .renew),
-            let url = network.makeURL(link, parameters: device.asQueryParameters)
+            let url = network.urlFromLink(link, context: device.asQueryParameters)
             else {
-                completion(.failure(.statusLinkNotFound))
+                completion(.failure(.statusLinkNotFound(rel.rawValue)))
                 return
         }
         
@@ -171,14 +168,14 @@ extension License: LCPLicense {
     }
 
     public func renew(endDate: Date?, completion: @escaping (Error?) -> Void) {
-        callInteraction(.renew, errors: [
+        callLSDInteraction(.renew, errors: [
             400: .renewFailure,
             403: .renewPeriod,
         ]) { completion($0.error) }
     }
 
     public func `return`(completion: @escaping (Error?) -> Void){
-        callInteraction(.return, errors: [
+        callLSDInteraction(.return, errors: [
             400: .returnFailure,
             403: .alreadyReturned,
         ]) { completion($0.error) }

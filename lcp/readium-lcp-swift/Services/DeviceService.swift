@@ -57,9 +57,9 @@ final class DeviceService {
         }
         
         guard let link = status.link(withRel: .register),
-            let url = network.makeURL(link, parameters: asQueryParameters)
+            let url = network.urlFromLink(link, context: asQueryParameters)
             else {
-                completion?(.failure(.statusLinkNotFound))
+                completion?(.failure(.statusLinkNotFound(StatusDocument.Rel.register.rawValue)))
                 return true
         }
         
