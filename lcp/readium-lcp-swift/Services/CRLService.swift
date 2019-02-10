@@ -27,22 +27,19 @@ final class CRLService {
     }
     
     /// Retrieves the CRL either from the cache, or from EDRLab if the cache is outdated.
-    func retrieve(_ completion: @escaping (Result<String>) -> Void) {
-        guard let (crl, date) = readLocal(),
-            daysSince(date) < CRLService.expiration
-        else {
-            fetch(completion: completion)
-            return
+    func retrieve() -> Deferred<String> {
+        guard let (crl, date) = readLocal(), daysSince(date) < CRLService.expiration else {
+            return fetch()
         }
         
-        completion(.success(crl))
+        return .success(crl)
     }
     
     /// Fetches the updated Certificate Revocation List from EDRLab.
-    private func fetch(completion: @escaping (Result<String>) -> Void) {
+    private func fetch() -> Deferred<String> {
         let url = URL(string: "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl")!
         
-        deferred { self.network.fetch(url, $0) }
+        return network.fetch(url)
             .map { status, data in
                 guard status == 200 else {
                     throw LCPError.crlFetching
@@ -52,7 +49,6 @@ final class CRLService {
                 self.saveLocal(crl)
                 return crl
             }
-            .resolve(completion)
     }
     
     /// Reads the local CRL.

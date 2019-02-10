@@ -24,38 +24,47 @@ final class PassphrasesService {
     
     /// Finds any valid passphrase for the given license in the passphrases repository.
     /// If none is found, requests a passphrase from the request delegate (ie. user prompt) until one is valid, or the request is cancelled.
-    func request(for license: LicenseDocument, authenticating: LCPAuthenticating?, completion: @escaping (Result<String>) -> Void) {
-        let candidates = possiblePassphrasesFromRepository(for: license)
-        if let passphrase = findOneValidPassphrase(jsonLicense: license.json, hashedPassphrases: candidates) {
-            completion(.success(passphrase))
-        } else if let authenticating = authenticating {
-            authenticate(for: license, reason: .passphraseNotFound, using: authenticating, completion: completion)
-        } else {
-            completion(.failure(.cancelled))
+    func request(for license: LicenseDocument, authenticating: LCPAuthenticating?) -> Deferred<String> {
+        return Deferred {
+            let candidates = self.possiblePassphrasesFromRepository(for: license)
+            if let passphrase = findOneValidPassphrase(jsonLicense: license.json, hashedPassphrases: candidates) {
+                return .success(passphrase)
+            } else if let authenticating = authenticating {
+                return self.authenticate(for: license, reason: .passphraseNotFound, using: authenticating)
+            } else {
+                throw LCPError.cancelled
+            }
         }
     }
     
     /// Called when the service can't find any valid passphrase in the repository, as a fallback.
-    private func authenticate(for license: LicenseDocument, reason: LCPAuthenticationReason, using authenticating: LCPAuthenticating, completion: @escaping (Result<String>) -> Void) {
-        let data = LCPAuthenticationData(license: license)
-        authenticating.requestPassphrase(for: data, reason: reason) { [weak self] clearPassphrase in
-            guard let `self` = self, let clearPassphrase = clearPassphrase else {
-                completion(.failure(LCPError.cancelled))
-                return
+    private func authenticate(for license: LicenseDocument, reason: LCPAuthenticationReason, using authenticating: LCPAuthenticating) -> Deferred<String> {
+        return Deferred<String?> { success, _ in
+                let data = LCPAuthenticationData(license: license)
+                authenticating.requestPassphrase(for: data, reason: reason, completion: success)
             }
-            
-            let hashedPassphrase = clearPassphrase.sha256()
-            guard let passphrase = findOneValidPassphrase(jsonLicense: license.json, hashedPassphrases: [hashedPassphrase]) else {
+            .map { clearPassphrase in
+                guard let clearPassphrase = clearPassphrase else {
+                    throw LCPError.cancelled
+                }
+    
+                let hashedPassphrase = clearPassphrase.sha256()
+                guard let passphrase = findOneValidPassphrase(jsonLicense: license.json, hashedPassphrases: [hashedPassphrase]) else {
+                    throw LCPError.invalidPassphrase
+                }
+
+                // Saves the passphrase to open the publication right away next time
+                self.repository.addPassphrase(passphrase, forLicenseId: license.id, provider: license.provider.absoluteString, userId: license.user.id)
+                
+                return passphrase
+            }
+            .flatCatch { error in
                 // Tries again if the passphrase is invalid, until cancelled
-                self.authenticate(for: license, reason: .invalidPassphrase, using: authenticating, completion: completion)
-                return
+                guard case LCPError.invalidPassphrase = error else {
+                    throw error
+                }
+                return self.authenticate(for: license, reason: .invalidPassphrase, using: authenticating)
             }
-            
-            // Saves the passphrase to open the publication right away next time
-            self.repository.addPassphrase(passphrase, forLicenseId: license.id, provider: license.provider.absoluteString, userId: license.user.id)
-            
-            completion(.success(passphrase))
-        }
     }
     
     /// Finds any potential passphrase candidates (eg. similar user ID) for the given license, from the passphrases repository.

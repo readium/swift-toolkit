@@ -47,37 +47,41 @@ final class NetworkService {
 
         return urlBuilder.url
     }
-
-    func fetch(_ url: URL, method: Method = .get, _ completion: @escaping (Result<(status: Int, data: Data)>) -> Void) {
-        if (DEBUG) { print("#network \(method.rawValue) \(url)") }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = method.rawValue
-        
-        URLSession.shared.dataTask(with: request) { (data, response, error) in
-            guard let status = (response as? HTTPURLResponse)?.statusCode,
-                let data = data
-                else {
-                    completion(.failure(.network(error)))
-                    return
-            }
-            
-            completion(.success((status, data)))
-        }.resume()
-    }
     
-    func download(_ url: URL, description: String?, _ completion: @escaping (Result<(file: URL, task: URLSessionDownloadTask?)>) -> Void) {
-        if (DEBUG) { print("#network download \(url)") }
-        
-        let request = URLRequest(url: url)
-        DownloadSession.shared.launch(request: request, description: description) { tmpLocalURL, response, error, downloadTask in
-            guard let file = tmpLocalURL, error == nil else {
-                completion(.failure(.network(error)))
-                return false
-            }
+    func fetch(_ url: URL, method: Method = .get) -> Deferred<(status: Int, data: Data)> {
+        return Deferred { success, failure in
+            if (DEBUG) { print("#network \(method.rawValue) \(url)") }
+    
+            var request = URLRequest(url: url)
+            request.httpMethod = method.rawValue
+    
+            URLSession.shared.dataTask(with: request) { (data, response, error) in
+                guard let status = (response as? HTTPURLResponse)?.statusCode,
+                    let data = data
+                    else {
+                        failure(LCPError.network(error))
+                        return
+                }
+    
+                success((status, data))
+            }.resume()
+        }
+    }
 
-            completion(.success((file, downloadTask)))
-            return true
+    func download(_ url: URL, description: String?) -> Deferred<(file: URL, task: URLSessionDownloadTask?)> {
+        return Deferred { success, failure in
+            if (DEBUG) { print("#network download \(url)") }
+    
+            let request = URLRequest(url: url)
+            DownloadSession.shared.launch(request: request, description: description) { tmpLocalURL, response, error, downloadTask in
+                guard let file = tmpLocalURL, error == nil else {
+                    failure(LCPError.network(error))
+                    return false
+                }
+
+                success((file, downloadTask))
+                return true
+            }
         }
     }
     

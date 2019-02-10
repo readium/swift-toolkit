@@ -50,30 +50,27 @@ final class DeviceService {
     /// If the call was made, the updated Status Document data is given to the completion closure.
     /// - Returns: Whether the device was already registered.
     @discardableResult
-    func registerLicense(_ license: LicenseDocument, using status: StatusDocument, completion: ((Result<Data?>) -> Void)? = nil) -> Bool {
-        guard let registered = try? repository.isDeviceRegistered(for: license), !registered else {
-            completion?(.success(nil))
-            return true
-        }
-        
-        guard let link = status.link(withRel: .register),
-            let url = network.urlFromLink(link, context: asQueryParameters)
-            else {
-                completion?(.failure(.statusLinkNotFound(StatusDocument.Rel.register.rawValue)))
-                return true
-        }
-        
-        deferred { self.network.fetch(url, method: .post, $0) }
-            .map { status, data in
-                guard status == 200 else {
-                    throw LCPError.registrationFailure
-                }
-                try? self.repository.registerDevice(for: license)
-                return data
+    func registerLicense(_ license: LicenseDocument, using status: StatusDocument) -> Deferred<(skipped: Bool, statusData: Data?)> {
+        return Deferred {
+            guard let registered = try? self.repository.isDeviceRegistered(for: license), !registered else {
+                return .success((skipped: true, statusData: nil))
             }
-            .resolve(completion)
-        
-        return false
+    
+            guard let link = status.link(withRel: .register),
+                let url = self.network.urlFromLink(link, context: self.asQueryParameters)
+                else {
+                    throw LCPError.statusLinkNotFound(StatusDocument.Rel.register.rawValue)
+            }
+    
+            return self.network.fetch(url, method: .post)
+                .map { status, data in
+                    guard status == 200 else {
+                        throw LCPError.registrationFailure
+                    }
+                    try? self.repository.registerDevice(for: license)
+                    return (skipped: false, statusData: data)
+                }
+        }
     }
-
+    
 }

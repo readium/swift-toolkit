@@ -28,7 +28,7 @@ final class LicenseValidation {
     fileprivate let network: NetworkService
     fileprivate weak var authenticating: LCPAuthenticating?
     
-    fileprivate var completion = PopVariable<(Result<ValidatedLicense>) -> Void>()
+    fileprivate var completion = PopVariable<(ValidatedLicense?, Error?) -> Void>()
     
     // Already validated license used as a fallback when the newly fetched one fails to validate.
     fileprivate var fallbackLicense: ValidatedLicense?
@@ -51,14 +51,15 @@ final class LicenseValidation {
         self.authenticating = authenticating
     }
     
-    func validateLicenseData(_ data: Data, _ completion: @escaping (Result<ValidatedLicense>) -> Void) {
-        guard case .start = self.state else {
-            completion(.failure(.cancelled))  // FIXME: better error?
-            return
-        }
+    func validateLicenseData(_ data: Data) -> Deferred<ValidatedLicense> {
+        return Deferred { completion in
+            guard case .start = self.state else {
+                throw LCPError.cancelled // FIXME: better error?
+            }
 
-        self.completion.set(completion)
-        self.raise(.retrievedLicenseData(data))
+            self.completion.set(completion)
+            self.raise(.retrievedLicenseData(data))
+        }
     }
     
 }
@@ -75,7 +76,7 @@ extension LicenseValidation {
         case retrievedStatus(StatusDocument)
         case checkedStatus
         case registeredDevice(skipped: Bool)
-        case failed(LCPError)
+        case failed(Error)
     }
 
     fileprivate enum State {
@@ -92,7 +93,7 @@ extension LicenseValidation {
 
         // final states
         case valid(LicenseDocument, StatusDocument?, DRMContext)
-        case failure(LCPError)
+        case failure(Error)
         
         /// Statechart's transitions
         /// This is where the decisions are taken: what to do next, should we go back to a previous state, etc.
@@ -177,7 +178,7 @@ extension LicenseValidation {
                 do {
                     try self.licenses.addOrUpdateLicense(license)
                 } catch {
-                    event = .failed(LCPError.wrap(error))
+                    event = .failed(error)
                 }
 
             case let (.checkStatus(license, status, context), .checkedStatus):
@@ -195,13 +196,14 @@ extension LicenseValidation {
         }
     }
     
-    /// Syntactic sugar to raise an event from a Result enum.
-    /// If the result is a failure, then the error is raised as an Event.failed.
-    fileprivate func raise(_ result: Result<Event>) {
-        raise(result.map(
-            success: { $0 },
-            failure: { .failed($0) }
-        ))
+    /// Syntactic sugar to raise either the given event, or an error wrapped as an Event.failed.
+    /// Can be used to resolve a Deferred<Event>.
+    fileprivate func raise(_ event: Event?, or error: Error?) {
+        if let event = event {
+            raise(event)
+        } else if let error = error {
+            raise(.failed(error))
+        }
     }
     
 }
@@ -212,7 +214,7 @@ extension LicenseValidation {
 
     private func validateLicense(data: Data) {
         guard let license = try? LicenseDocument(with: data) else {
-            return raise(.failed(.invalidLCPL))
+            return raise(.failed(LCPError.invalidLCPL))
         }
 
         // 1.a/ Validate the license structure
@@ -221,20 +223,20 @@ extension LicenseValidation {
         // 1.b/ Check its profile identifier
         let profile = license.encryption.profile.absoluteString
         guard supportedProfiles.contains(profile) else {
-            return raise(.failed(.profileNotSupported))
+            return raise(.failed(LCPError.profileNotSupported))
         }
         
         raise(.validatedLicense(license))
     }
     
     private func requestPassphrase(for license: LicenseDocument) {
-        deferred { self.passphrases.request(for: license, authenticating: self.authenticating, completion: $0) }
+        passphrases.request(for: license, authenticating: authenticating)
             .map { Event.retrievedPassphrase($0) }
             .resolve(raise)
     }
     
     private func validateIntegrity(of license: LicenseDocument, with passphrase: String) {
-        deferred { self.crl.retrieve($0) }
+        crl.retrieve()
             .map { pemCRL -> Event in
                 // FIXME: Is this really useful? According to the spec this is already checked by the lcplib.a
                 try {
@@ -258,10 +260,10 @@ extension LicenseValidation {
     
     private func fetchStatus(of license: LicenseDocument) {
         guard let link = license.link(withRel: .status) else {
-            return raise(.failed(.noStatusDocument))
+            return raise(.failed(LCPError.noStatusDocument))
         }
         
-        deferred { self.network.fetch(link.href, $0) }
+        network.fetch(link.href)
             .map { status, data -> Event in
                 guard status == 200 else {
                     throw LCPError.noStatusDocument
@@ -281,29 +283,32 @@ extension LicenseValidation {
         case .ready, .active:
             raise(.checkedStatus)
         case .returned:
-            raise(.failed(.licenseStatusReturned(updatedDate)))
+            raise(.failed(LCPError.licenseStatusReturned(updatedDate)))
         case .expired:
-            raise(.failed(.licenseStatusExpired(updatedDate)))
+            raise(.failed(LCPError.licenseStatusExpired(updatedDate)))
         case .revoked:
             let devicesCount = document.events.filter({ $0.type == "register" }).count
-            raise(.failed(.licenseStatusRevoked(updatedDate, devicesCount: devicesCount)))
+            raise(.failed(LCPError.licenseStatusRevoked(updatedDate, devicesCount: devicesCount)))
         case .cancelled:
-            raise(.failed(.licenseStatusCancelled(updatedDate)))
+            raise(.failed(LCPError.licenseStatusCancelled(updatedDate)))
         }
     }
     
     private func registerDevice(for license: LicenseDocument, using status: StatusDocument) {
-        // FIXME: Right now we ignore the Status Document returned by the register API, should we revalidate it instead?
-        let skipped = device.registerLicense(license, using: status)
-        raise(.registeredDevice(skipped: skipped))
+        device.registerLicense(license, using: status)
+            .map { skipped, _ -> Event in
+                // FIXME: Right now we ignore the Status Document returned by the register API, should we revalidate it instead?
+                return .registeredDevice(skipped: skipped)
+            }
+            .resolve(raise)
     }
     
     private func fetchLicense(from status: StatusDocument) {
         guard let link = status.link(withRel: .license) else {
-            return raise(.failed(.licenseFetching))
+            return raise(.failed(LCPError.licenseFetching))
         }
         
-        deferred { self.network.fetch(link.href, $0) }
+        network.fetch(link.href)
             .map { status, data -> Event in
                 guard status == 200 else {
                     throw LCPError.licenseFetching
@@ -317,17 +322,17 @@ extension LicenseValidation {
         guard let completion = self.completion.pop() else {
             return
         }
-        completion(.success((license, status, context)))
+        completion((license, status, context), nil)
     }
     
-    private func reportFailure(_ error: LCPError) {
+    private func reportFailure(_ error: Error) {
         if let (license, status, context) = fallbackLicense {
             reportSuccess(license: license, status: status, context: context)
         } else {
             guard let completion = self.completion.pop() else {
                 return
             }
-            completion(.failure(error))
+            completion(nil, error)
         }
     }
 

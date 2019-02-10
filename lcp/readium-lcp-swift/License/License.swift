@@ -40,34 +40,35 @@ final class License {
     }
     
     /// Reads and validates the License Document in the container.
-    func validate(_ completion: @escaping (Result<License>) -> Void) {
-        guard let containerLicenseData = try? container.read() else {
-            completion(.failure(.licenseNotInContainer)) // FIXME: wrong error?
-            return
-        }
-        
-        let validation = makeValidation()
-        state = .validating(validation)
-        
-        deferred { validation.validateLicenseData(containerLicenseData, $0) }
-            .map { (license, status, context) -> License in
-                self.state = .valid(license, status, context)
-                // Overwrites the License Document in the container if it was updated
-                if containerLicenseData != license.data {
-                    try? self.container.write(license) // FIXME: should we report an error here?
+    func validate() -> Deferred<License> {
+        return Deferred {
+            guard let containerLicenseData = try? self.container.read() else {
+                throw LCPError.licenseNotInContainer // FIXME: wrong error?
+            }
+    
+            let validation = self.makeValidation()
+            self.state = .validating(validation)
+    
+            return validation.validateLicenseData(containerLicenseData)
+                .map { (license, status, context) -> License in
+                    self.state = .valid(license, status, context)
+                    // Overwrites the License Document in the container if it was updated
+                    if containerLicenseData != license.data {
+                        try? self.container.write(license) // FIXME: should we report an error here?
+                    }
+    
+                    return self
                 }
-                
-                return self
-            }
-            .catch { error in
-                self.state = .invalid(error)
-                throw error  // forwards the error to the completion handler
-            }
-            .resolve(completion)
+                .catch { error in
+                    self.state = .invalid(LCPError.wrap(error))
+                    throw error  // forwards the error to the completion handler
+                }
+        }
     }
     
-    fileprivate func updateStatus(from data: Data, _ completion: @escaping (Result<Void>) -> Void) {
-        completion(.success(()))
+    fileprivate func updateStatus(from data: Data) -> Deferred<Void> {
+        // FIXME: todo
+        return .success(())
     }
 
     fileprivate var license: LicenseDocument? {
@@ -83,66 +84,64 @@ final class License {
         }
         return status
     }
-
-    /// Downloads the publication and return the path to the downloaded resource.
-    func fetchPublication(_ completion: @escaping (Result<(URL, URLSessionDownloadTask?)>) -> Void) {
-        guard case .valid(let license, _, _) = state else {
-            completion(.failure(.invalidLicense(nil)))
-            return
-        }
-        
-        guard let link = license.link(withRel: LicenseDocument.Rel.publication) else {
-            completion(.failure(.publicationLinkNotFound))
-            return
-        }
-        
-        deferred { self.network.download(link.href, description: link.title, $0) }
-            .map { downloadedFile, task in
-                // Saves the License Document into the downloaded publication
-                let container = EPUBLicenseContainer(epub: downloadedFile)
-                try container.write(license)
-                
-                // FIXME: don't move to Documents/ keep it as a temp dir and let the client app choose where to move the file
-                // FIXME: support other kind of publication extensions, using mimetype
-                let fileManager = FileManager.default
-                let destinationFile = try! fileManager
-                    .url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-                    .appendingPathComponent("lcp.\(license.id).epub")
-                
-                try fileManager.moveItem(at: downloadedFile, to: destinationFile)
-                
-                return (destinationFile, task)
-            }
-            .resolve(completion)
-    }
     
+    /// Downloads the publication and return the path to the downloaded resource.
+    func fetchPublication() -> Deferred<(URL, URLSessionDownloadTask?)> {
+        return Deferred {
+            guard case .valid(let license, _, _) = self.state else {
+                throw LCPError.invalidLicense(nil)
+            }
+
+            guard let link = license.link(withRel: LicenseDocument.Rel.publication) else {
+                throw LCPError.publicationLinkNotFound
+            }
+
+            return self.network.download(link.href, description: link.title)
+                .map { downloadedFile, task in
+                    // Saves the License Document into the downloaded publication
+                    let container = EPUBLicenseContainer(epub: downloadedFile)
+                    try container.write(license)
+
+                    // FIXME: don't move to Documents/ keep it as a temp dir and let the client app choose where to move the file
+                    // FIXME: support other kind of publication extensions, using mimetype
+                    let fileManager = FileManager.default
+                    let destinationFile = try! fileManager
+                        .url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+                        .appendingPathComponent("lcp.\(license.id).epub")
+
+                    try fileManager.moveItem(at: downloadedFile, to: destinationFile)
+
+                    return (destinationFile, task)
+                }
+            }
+    }
+
     /// Calls a Status Document interaction from its `rel`.
     /// The Status Document will be updated with the one returned by the LSD server, after validation.
-    fileprivate func callLSDInteraction(_ rel: StatusDocument.Rel, errors: [Int: LCPError] = [:], _ completion: @escaping (Result<Void>) -> Void) {
-        guard let status = status else {
-            completion(.failure(.noStatusDocument))
-            return
-        }
-        
-        guard let link = status.link(withRel: .renew),
-            let url = network.urlFromLink(link, context: device.asQueryParameters)
+    fileprivate func callLSDInteraction(_ rel: StatusDocument.Rel, errors: [Int: LCPError] = [:]) -> Deferred<Void> {
+        return Deferred {
+            guard let status = self.status else {
+                throw LCPError.noStatusDocument
+            }
+    
+            guard let link = status.link(withRel: .renew),
+                  let url = self.network.urlFromLink(link, context: self.device.asQueryParameters)
             else {
-                completion(.failure(.statusLinkNotFound(rel.rawValue)))
-                return
-        }
-        
-        deferred { self.network.fetch(url, method: .put, $0) }
-            .map { status, data -> Data in
-                guard status == 200 else {
-                    throw errors[status] ?? LCPError.unexpectedServerError
+                throw LCPError.statusLinkNotFound(rel.rawValue)
+            }
+    
+            return self.network.fetch(url, method: .put)
+                .map { status, data -> Data in
+                    guard status == 200 else {
+                        throw errors[status] ?? LCPError.unexpectedServerError
+                    }
+    
+                    return data
                 }
-                
-                return data
-            }
-            .map { data, completion in
-                self.updateStatus(from: data, completion)
-            }
-            .resolve(completion)
+                .flatMap { data in
+                    self.updateStatus(from: data)
+                }
+        }
     }
 
 }
@@ -171,14 +170,14 @@ extension License: LCPLicense {
         callLSDInteraction(.renew, errors: [
             400: .renewFailure,
             403: .renewPeriod,
-        ]) { completion($0.error) }
+        ]).resolve(completion)
     }
 
     public func `return`(completion: @escaping (Error?) -> Void){
         callLSDInteraction(.return, errors: [
             400: .returnFailure,
             403: .alreadyReturned,
-        ]) { completion($0.error) }
+        ]).resolve(completion)
     }
 
     public func currentStatus() -> String {
