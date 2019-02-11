@@ -24,8 +24,5 @@ protocol DrmLibraryService {
     
     /// Fills the DRM context of the given protected publication.
     func loadPublication(at publication: URL, drm: Drm, completion: @escaping (CancellableResult<Drm>) -> Void)
-    
-    /// Handles the deletion of DRM-related data for this publication, if there's any.
-    func removePublication(at publication: URL)
-    
+
 }

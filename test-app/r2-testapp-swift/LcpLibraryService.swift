@@ -19,11 +19,10 @@ import ReadiumLCP
 
 class LcpLibraryService: DrmLibraryService {
 
-    private let lcpService: LcpService
+    private let lcpService: LCPService
     
     init() {
-        self.lcpService = LcpService()
-        self.lcpService.delegate = self
+        self.lcpService = setupLCPService()
     }
     
     var brand: Drm.Brand {
@@ -35,8 +34,8 @@ class LcpLibraryService: DrmLibraryService {
     }
     
     func fulfill(_ file: URL, completion: @escaping (CancellableResult<(URL, URLSessionDownloadTask?)>) -> Void) {
-        lcpService.importLicenseDocument(file) { (result, error) in
-            if case LcpError.cancelled? = error {
+        lcpService.importLicenseDocument(file, authenticating: self) { (result, error) in
+            if case LCPError.cancelled? = error {
                 completion(.cancelled)
                 return
             }
@@ -50,8 +49,8 @@ class LcpLibraryService: DrmLibraryService {
     }
     
     func loadPublication(at publication: URL, drm: Drm, completion: @escaping (CancellableResult<Drm>) -> Void) {
-        lcpService.openLicense(in: publication) { (license, error) in
-            if case LcpError.cancelled? = error {
+        lcpService.openLicense(in: publication, authenticating: self) { (license, error) in
+            if case LCPError.cancelled? = error {
                 completion(.cancelled)
                 return
             }
@@ -67,15 +66,11 @@ class LcpLibraryService: DrmLibraryService {
         }
     }
     
-    func removePublication(at publication: URL) {
-        lcpService.removePublication(at: publication)
-    }
-
 }
 
-extension LcpLibraryService: LcpServiceDelegate {
+extension LcpLibraryService: LCPAuthenticating {
     
-    func requestPassphrase(for license: LicenseDocument, reason: PassphraseRequestReason, completion: @escaping (String?) -> Void) {
+    func requestPassphrase(for data: LCPAuthenticationData, reason: LCPAuthenticationReason, completion: @escaping (String?) -> Void) {
         guard let viewController = UIApplication.shared.keyWindow?.rootViewController else {
             completion(nil)
             return
@@ -83,15 +78,14 @@ extension LcpLibraryService: LcpServiceDelegate {
         
         let title: String
         switch reason {
-        case .notFound:
+        case .passphraseNotFound:
             title = "LCP Passphrase"
-        case .invalid:
+        case .invalidPassphrase:
             title = "The passphrase is incorrect"
         }
     
-        let message = license.getHint()
         let alert = UIAlertController(title: title,
-                                      message: message, preferredStyle: .alert)
+                                      message: data.hint, preferredStyle: .alert)
         let dismissButton = UIAlertAction(title: "Cancel", style: .cancel) { (_) in
             completion(nil)
         }

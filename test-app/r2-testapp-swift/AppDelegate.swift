@@ -409,11 +409,6 @@ extension AppDelegate: LibraryViewControllerDelegate {
         
         if let url = URL(string: path) {
             let filename = url.lastPathComponent
-            
-            for drm in drmLibraryServices {
-                drm.removePublication(at: url)
-            }
-
             removeFromDocumentsDirectory(fileName: filename)
         }
         // Remove publication from publicationServer.
