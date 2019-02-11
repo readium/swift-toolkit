@@ -22,7 +22,10 @@ final class LicensesService {
     }
 
     fileprivate func openLicense(from container: LicenseContainer, authenticating: LCPAuthenticating?) -> Deferred<License> {
-        return makeLicense(container, authenticating).validate()
+        let license = makeLicense(container, authenticating)
+        return license.open()
+            // Forwards the created license, to apply more transformations on it.
+            .map { license }
     }
 
 }

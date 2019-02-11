@@ -13,6 +13,8 @@ import Foundation
 
 public enum LCPError: Error {
     case cancelled
+    case busyLicense
+    case runtime(String)
     case unknown(Error?)
     case network(Error?)
     case database(Error)
@@ -103,6 +105,8 @@ extension LCPError: LocalizedError {
         switch self {
         case .cancelled:
             return "Operation cancelled."
+        case .busyLicense:
+            return "Can't perform the LCP operation at the moment, this license is busy."
         case .unknown(let error):
             if let localizedError = error as? LocalizedError {
                 return localizedError.errorDescription
@@ -185,6 +189,8 @@ extension LCPError: LocalizedError {
             return "Can't reach server: \(String(describing: error))"
         case .database(let error):
             return "Internal database error: \(error)"
+        case .runtime(let message):
+            return "LCP internal error: \(message)"
         }
     }
 }

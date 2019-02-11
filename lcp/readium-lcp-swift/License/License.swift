@@ -16,82 +16,77 @@ import ZIPFoundation
 import R2Shared
 import R2LCPClient
 
-final class License {
-    
-    enum State {
-        case pendingValidation
-        case validating(LicenseValidation)
-        case valid(LicenseDocument, StatusDocument?, DRMContext)
-        case invalid(LCPError)
-    }
+private let DEBUG = true
 
+
+final class License {
+
+    // Dependencies
     private let container: LicenseContainer
-    private let makeValidation: () -> LicenseValidation
+    private let validation: LicenseValidation
     private let device: DeviceService
     private let network: NetworkService
-    private var state: State
 
-    init(container: LicenseContainer, makeValidation: @escaping () -> LicenseValidation, device: DeviceService, network: NetworkService) {
+    init(container: LicenseContainer, validation: LicenseValidation, device: DeviceService, network: NetworkService) {
         self.container = container
-        self.makeValidation = makeValidation
+        self.validation = validation
         self.device = device
         self.network = network
-        self.state = .pendingValidation
-    }
-    
-    /// Reads and validates the License Document in the container.
-    func validate() -> Deferred<License> {
-        return Deferred {
-            guard let containerLicenseData = try? self.container.read() else {
-                throw LCPError.licenseNotInContainer // FIXME: wrong error?
+        
+        // Updates the documents once the integrity is checked.
+        validation.observe { [weak self] documents, error in
+            if let documents = documents {
+                self?.documents = documents
             }
-    
-            let validation = self.makeValidation()
-            self.state = .validating(validation)
-    
-            return validation.validateLicenseData(containerLicenseData)
-                .map { (license, status, context) -> License in
-                    self.state = .valid(license, status, context)
-                    // Overwrites the License Document in the container if it was updated
-                    if containerLicenseData != license.data {
-                        try? self.container.write(license) // FIXME: should we report an error here?
-                    }
-    
-                    return self
-                }
-                .catch { error in
-                    self.state = .invalid(LCPError.wrap(error))
-                    throw error  // forwards the error to the completion handler
-                }
         }
-    }
-    
-    fileprivate func updateStatus(from data: Data) -> Deferred<Void> {
-        // FIXME: todo
-        return .success(())
     }
 
-    fileprivate var license: LicenseDocument? {
-        guard case .valid(let license, _, _) = state else {
-            return nil
+    // Last validated License and Status documents.
+    private var documents: ValidatedDocuments? {
+        didSet {
+            // Overwrites the License Document in the container if it was updated
+            if let newLicense = documents?.license, containerLicenseData != newLicense.data {
+                if (DEBUG) { print("#license Write updated License Document in container") }
+                try? self.container.write(newLicense) // FIXME: should we report an error here?
+            }
         }
-        return license
     }
     
-    fileprivate var status: StatusDocument? {
-        guard case .valid(_, let optionalStatus, _) = state, let status = optionalStatus else {
-            return nil
+    // Used to check if we need to update the license in the container.
+    private var containerLicenseData: Data?
+
+}
+
+
+/// License activies
+extension License {
+    
+    /// Reads and validates the License Document in the container, if needed.
+    func open() -> Deferred<Void> {
+        return Deferred {
+            guard self.documents == nil else {
+                throw LCPError.runtime("\(type(of: self)): A License can only be opened once")
+            }
+            guard let data = try? self.container.read() else {
+                throw LCPError.licenseNotInContainer  // FIXME: wrong error?
+            }
+            
+            self.containerLicenseData = data
+            
+            return self.validation.validate(.license(data))
+                .map { documents in
+                    // Forwards any status error (eg. revoked)
+                    try documents.checkStatus()
+                }
         }
-        return status
     }
     
     /// Downloads the publication and return the path to the downloaded resource.
     func fetchPublication() -> Deferred<(URL, URLSessionDownloadTask?)> {
         return Deferred {
-            guard case .valid(let license, _, _) = self.state else {
-                throw LCPError.invalidLicense(nil)
+            guard let license = self.documents?.license else {
+                throw LCPError.runtime("\(type(of: self)): Can't fetch the publication of a License pending validation")
             }
-
             guard let link = license.link(withRel: LicenseDocument.Rel.publication) else {
                 throw LCPError.publicationLinkNotFound
             }
@@ -109,6 +104,8 @@ final class License {
                         .url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
                         .appendingPathComponent("lcp.\(license.id).epub")
 
+                    // FIXME: for now we overwrite the destination file, but this needs to be handled on the test app
+                    try? fileManager.removeItem(at: destinationFile)
                     try fileManager.moveItem(at: downloadedFile, to: destinationFile)
 
                     return (destinationFile, task)
@@ -120,11 +117,16 @@ final class License {
     /// The Status Document will be updated with the one returned by the LSD server, after validation.
     fileprivate func callLSDInteraction(_ rel: StatusDocument.Rel, errors: [Int: LCPError] = [:]) -> Deferred<Void> {
         return Deferred {
-            guard let status = self.status else {
+            guard let documents = self.documents else {
+                throw LCPError.runtime("\(type(of: self)): Can't call an LSD interaction on a License pending validation")
+            }
+            try documents.checkStatus()
+            
+            guard let status = documents.status else {
                 throw LCPError.noStatusDocument
             }
-    
-            guard let link = status.link(withRel: .renew),
+
+            guard let link = status.link(withRel: rel),
                   let url = self.network.urlFromLink(link, context: self.device.asQueryParameters)
             else {
                 throw LCPError.statusLinkNotFound(rel.rawValue)
@@ -139,7 +141,9 @@ final class License {
                     return data
                 }
                 .flatMap { data in
-                    self.updateStatus(from: data)
+                    // Updates the returned Status Document, after validation
+                    self.validation.validate(.status(data))
+                        .map { _ in () }  // We don't want to forward the validated documents
                 }
         }
     }
@@ -152,8 +156,8 @@ extension License: LCPLicense {
 
     /// Decipher encrypted content.
     public func decipher(_ data: Data) throws -> Data? {
-        guard case let .valid(_, _, context) = state else {
-            throw LCPError.invalidContext
+        guard let context = documents?.context else {
+            throw LCPError.runtime("\(type(of: self)): Can't decipher using a License pending validation")
         }
         return decrypt(data: data, using: context)
     }
@@ -177,47 +181,49 @@ extension License: LCPLicense {
         callLSDInteraction(.return, errors: [
             400: .returnFailure,
             403: .alreadyReturned,
-        ]).resolve(completion)
+        ])
+        .resolve(completion)
+        // FIXME: I expect the returned Status Document to have a "revoked" status, which will be returned to the caller as an error. Maybe we should catch this specific error and consider that it's actually a success?
     }
 
     public func currentStatus() -> String {
-        return status?.status.rawValue ?? ""
+        return documents?.status?.status.rawValue ?? ""
     }
 
     public func lastUpdate() -> Date {
-        return license?.dateOfLastUpdate() ?? Date(timeIntervalSinceReferenceDate: 0)
+        return documents?.license.dateOfLastUpdate() ?? Date(timeIntervalSinceReferenceDate: 0)
     }
 
     public func issued() -> Date {
-        return license?.issued ?? Date(timeIntervalSinceReferenceDate: 0)
+        return documents?.license.issued ?? Date(timeIntervalSinceReferenceDate: 0)
     }
 
     public func provider() -> URL {
-        return license?.provider ?? URL(fileURLWithPath: "/")
+        return documents?.license.provider ?? URL(fileURLWithPath: "/")
     }
 
     public func rightsEnd() -> Date? {
-        return license?.rights.end
+        return documents?.license.rights.end
     }
 
     public func potentialRightsEnd() -> Date? {
-        return license?.rights.potentialEnd
+        return documents?.license.rights.potentialEnd
     }
 
     public func rightsStart() -> Date? {
-        return license?.rights.start
+        return documents?.license.rights.start
     }
 
     public func rightsPrints() -> Int? {
-        return license?.rights.print
+        return documents?.license.rights.print
     }
 
     public func rightsCopies() -> Int? {
-        return license?.rights.copy
+        return documents?.license.rights.copy
     }
 
     public var profile: String {
-        return license?.encryption.profile.absoluteString ?? ""
+        return documents?.license.encryption.profile.absoluteString ?? ""
     }
     
 }

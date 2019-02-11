@@ -48,12 +48,11 @@ final class DeviceService {
     
     /// Registers the device for the given license.
     /// If the call was made, the updated Status Document data is given to the completion closure.
-    /// - Returns: Whether the device was already registered.
     @discardableResult
-    func registerLicense(_ license: LicenseDocument, using status: StatusDocument) -> Deferred<(skipped: Bool, statusData: Data?)> {
+    func registerLicense(_ license: LicenseDocument, using status: StatusDocument) -> Deferred<Data?> {
         return Deferred {
             guard let registered = try? self.repository.isDeviceRegistered(for: license), !registered else {
-                return .success((skipped: true, statusData: nil))
+                return .success(nil)
             }
     
             guard let link = status.link(withRel: .register),
@@ -68,7 +67,7 @@ final class DeviceService {
                         throw LCPError.registrationFailure
                     }
                     try? self.repository.registerDevice(for: license)
-                    return (skipped: false, statusData: data)
+                    return data
                 }
         }
     }

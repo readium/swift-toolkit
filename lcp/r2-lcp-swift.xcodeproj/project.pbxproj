@@ -17,7 +17,6 @@
 		CA4A3892220994E300599297 /* EPUBLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A3891220994E300599297 /* EPUBLicenseContainer.swift */; };
 		CAB131F6220D81E60097DFB5 /* LicensesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB131F5220D81E60097DFB5 /* LicensesRepository.swift */; };
 		CAB131F9220D8EEF0097DFB5 /* Concurrency.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB131F8220D8EEF0097DFB5 /* Concurrency.swift */; };
-		CAB131FB220D91500097DFB5 /* PopVariable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB131FA220D914F0097DFB5 /* PopVariable.swift */; };
 		CAB1320B220D9B200097DFB5 /* LCPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB1320A220D9B200097DFB5 /* LCPService.swift */; };
 		CAB13211220DB2B10097DFB5 /* LCPAuthenticating.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */; };
 		CAB1321F220DBA470097DFB5 /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB1321E220DBA470097DFB5 /* NetworkService.swift */; };
@@ -59,7 +58,6 @@
 		CA4A3891220994E300599297 /* EPUBLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBLicenseContainer.swift; sourceTree = "<group>"; };
 		CAB131F5220D81E60097DFB5 /* LicensesRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensesRepository.swift; sourceTree = "<group>"; };
 		CAB131F8220D8EEF0097DFB5 /* Concurrency.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Concurrency.swift; sourceTree = "<group>"; };
-		CAB131FA220D914F0097DFB5 /* PopVariable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopVariable.swift; sourceTree = "<group>"; };
 		CAB1320A220D9B200097DFB5 /* LCPService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPService.swift; sourceTree = "<group>"; };
 		CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPAuthenticating.swift; sourceTree = "<group>"; };
 		CAB1321E220DBA470097DFB5 /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
@@ -217,7 +215,6 @@
 			children = (
 				CA4A38882208775F00599297 /* Deferred.swift */,
 				CAB131F8220D8EEF0097DFB5 /* Concurrency.swift */,
-				CAB131FA220D914F0097DFB5 /* PopVariable.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -410,7 +407,6 @@
 				F3B2C8A71F66727C007601E4 /* LicenseDocument.swift in Sources */,
 				CAB131F9220D8EEF0097DFB5 /* Concurrency.swift in Sources */,
 				F3B2C8A91F66727C007601E4 /* Updated.swift in Sources */,
-				CAB131FB220D91500097DFB5 /* PopVariable.swift in Sources */,
 				CAE7FB7E220C4C5C00D03587 /* DeviceRepository.swift in Sources */,
 				F38FB03A1F6683D800F9D602 /* Encryption.swift in Sources */,
 				F3B2C8AC1F66727C007601E4 /* Link.swift in Sources */,

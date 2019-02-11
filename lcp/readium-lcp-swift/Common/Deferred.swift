@@ -175,7 +175,7 @@ final class Deferred<T> {
     /// Transforms the value synchronously.
     ///
     /// .map { user in
-    ///    return "Hello, \(val.name)"
+    ///    return "Hello, \(user.name)"
     /// }
     func map<V>(_ transform: @escaping (T) throws -> V) -> Deferred<V> {
         return map(

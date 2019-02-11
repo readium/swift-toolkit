@@ -55,10 +55,8 @@ public func setupLCPService() -> LCPService {
     let passphrases = PassphrasesService(repository: db.transactions)
     
     func makeLicense(container: LicenseContainer, authenticating: LCPAuthenticating?) -> License {
-        let makeValidation = {
-            LicenseValidation(supportedProfiles: supportedProfiles, passphrases: passphrases, licenses: db.licenses, device: device, crl: crl, network: network, authenticating: authenticating)
-        }
-        return License(container: container, makeValidation: makeValidation, device: device, network: network)
+        let validation = LicenseValidation(supportedProfiles: supportedProfiles, passphrases: passphrases, licenses: db.licenses, device: device, crl: crl, network: network, authenticating: authenticating)
+        return License(container: container, validation: validation, device: device, network: network)
     }
     
     let licenses = LicensesService(makeLicense: makeLicense)
