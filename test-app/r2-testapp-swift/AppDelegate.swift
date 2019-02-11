@@ -142,6 +142,7 @@ extension AppDelegate {
                                     type: getTypeForPublicationAt(url: url))
             guard lightParsePublication(at: location) else {
                 showInfoAlert(title: "Error", message: "The publication isn't valid.")
+                try? FileManager.default.removeItem(at: url)
                 return false
             }
             
