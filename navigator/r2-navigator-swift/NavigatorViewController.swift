@@ -201,7 +201,7 @@ extension NavigatorViewController: ViewDelegate {
         triptychView.isUserInteractionEnabled = false
     }
     
-    func didAnimatePageChange() {
+    func didEndPageAnimation() {
         triptychView.isUserInteractionEnabled = true
     }
     

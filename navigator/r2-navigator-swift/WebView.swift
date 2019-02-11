@@ -15,7 +15,7 @@ import R2Shared
 
 protocol ViewDelegate: class {
     func willAnimatePageChange()
-    func didAnimatePageChange()
+    func didEndPageAnimation()
     func displayRightDocument()
     func displayLeftDocument()
     func handleCenterTap()
@@ -384,7 +384,15 @@ extension WebView: UIScrollViewDelegate {
     
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         scrollView.isUserInteractionEnabled = true
-        viewDelegate?.didAnimatePageChange()
+        viewDelegate?.didEndPageAnimation()
+    }
+    
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        viewDelegate?.didEndPageAnimation()
+    }
+    
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        viewDelegate?.didEndPageAnimation()
     }
 }
 
