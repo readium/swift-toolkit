@@ -87,10 +87,8 @@ extension License {
             guard let license = self.documents?.license else {
                 throw LCPError.runtime("\(type(of: self)): Can't fetch the publication of a License pending validation")
             }
-            guard let link = license.link(withRel: LicenseDocument.Rel.publication) else {
-                throw LCPError.publicationLinkNotFound
-            }
-
+            
+            let link = try license.link(withRel: LicenseDocument.Rel.publication)
             return self.network.download(link.href, description: link.title)
                 .map { downloadedFile, task in
                     // Saves the License Document into the downloaded publication
@@ -120,18 +118,10 @@ extension License {
             guard let documents = self.documents else {
                 throw LCPError.runtime("\(type(of: self)): Can't call an LSD interaction on a License pending validation")
             }
-            try documents.checkStatus()
-            
-            guard let status = documents.status else {
-                throw LCPError.noStatusDocument
-            }
+            let status = try documents.getStatus()
+            let link = try status.link(withRel: rel)
+            let url = try self.network.urlFromLink(link, context: self.device.asQueryParameters)
 
-            guard let link = status.link(withRel: rel),
-                  let url = self.network.urlFromLink(link, context: self.device.asQueryParameters)
-            else {
-                throw LCPError.statusLinkNotFound(rel.rawValue)
-            }
-    
             return self.network.fetch(url, method: .put)
                 .map { status, data -> Data in
                     guard status == 200 else {
@@ -187,11 +177,14 @@ extension License: LCPLicense {
     }
 
     public func currentStatus() -> String {
-        return documents?.status?.status.rawValue ?? ""
+        guard let documents = documents, let status = try? documents.getStatus() else {
+            return ""
+        }
+        return status.status.rawValue
     }
 
     public func lastUpdate() -> Date {
-        return documents?.license.dateOfLastUpdate() ?? Date(timeIntervalSinceReferenceDate: 0)
+        return documents?.license.updated ?? Date(timeIntervalSinceReferenceDate: 0)
     }
 
     public func issued() -> Date {

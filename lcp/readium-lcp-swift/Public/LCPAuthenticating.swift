@@ -39,7 +39,7 @@ public struct LCPAuthenticationData {
         self.userEmail = license.user.email
         self.userName = license.user.name
         self.hint = license.encryption.userKey.hint
-        self.hintUrl = license.link(withRel: .hint)?.href
+        self.hintUrl = (try? license.link(withRel: .hint))?.href
     }
 
 }

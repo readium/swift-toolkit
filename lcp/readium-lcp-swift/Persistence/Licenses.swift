@@ -70,7 +70,7 @@ extension Licenses: LicensesRepository {
                 copiesLeft <- license.rights.copy,
                 provider <- license.provider.absoluteString,
                 issued <- license.issued,
-                updated <- license.dateOfLastUpdate(),
+                updated <- license.updated,
                 end <- license.rights.end,
                 state <- nil
             )
@@ -80,7 +80,7 @@ extension Licenses: LicensesRepository {
             let query = filterLicense.update(
                 provider <- license.provider.absoluteString,
                 issued <- license.issued,
-                updated <- license.dateOfLastUpdate(),
+                updated <- license.updated,
                 end <- license.rights.end
             )
             try db.run(query)

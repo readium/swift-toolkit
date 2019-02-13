@@ -27,7 +27,8 @@ final class NetworkService {
     /// Applies a set of parameters to a templated URL.
     /// eg. http://url?{id,name} + [id: x, name: y] -> http://url?id=x&name=y
     /// There's a quick hack to remove the templating info, we shoud probably use an actual templating library to replace the parameters propertly.
-    func urlFromLink(_ link: Link, context: [String: CustomStringConvertible] = [:]) -> URL? {
+    /// - Throws: `LCPError.invalidURL` if the URL can't be built.
+    func urlFromLink(_ link: Link, context: [String: CustomStringConvertible] = [:]) throws -> URL {
         guard (link.templated ?? false) else {
             // No-op if the URL is not templated
             return link.href
@@ -37,7 +38,7 @@ final class NetworkService {
             .replacingOccurrences(of: "%7B\\?.+?\\%7D", with: "", options: [.regularExpression])
 
         guard var urlBuilder = URLComponents(string: urlString) else {
-            return nil
+            throw LCPError.invalidURL(urlString)
         }
         
         // Add the template context as query parameters
@@ -45,7 +46,11 @@ final class NetworkService {
             URLQueryItem(name: param.key, value: param.value.description)
         }
 
-        return urlBuilder.url
+        guard let url = urlBuilder.url else {
+            throw LCPError.invalidURL(urlString)
+        }
+        
+        return url
     }
     
     func fetch(_ url: URL, method: Method = .get) -> Deferred<(status: Int, data: Data)> {

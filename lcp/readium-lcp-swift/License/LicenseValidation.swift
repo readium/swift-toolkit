@@ -20,21 +20,29 @@ private let DEBUG = true
 struct ValidatedDocuments {
     let license: LicenseDocument
     let context: DRMContext
-    let status: StatusDocument?
-    let statusError: Error?
+    private let status: StatusDocument?
+    private let statusError: LCPStatusError?
 
-    init(_ license: LicenseDocument, _ context: DRMContext, _ status: StatusDocument? = nil, statusError: Error? = nil) {
+    init(_ license: LicenseDocument, _ context: DRMContext, _ status: StatusDocument? = nil, statusError: LCPStatusError? = nil) {
         self.license = license
         self.context = context
         self.status = status
         self.statusError = statusError
     }
     
+    func getStatus() throws -> StatusDocument {
+        guard let status = status else {
+            throw LCPError.noStatusDocument
+        }
+        return status
+    }
+    
     func checkStatus() throws {
         if let statusError = statusError {
-            throw statusError
+            throw LCPError.licenseStatus(statusError)
         }
     }
+
 }
 
 
@@ -197,8 +205,7 @@ extension LicenseValidation {
             case let (.registerDevice(license, status, context), .registeredDevice),
                  let (.registerDevice(license, status, context), .failed(_)):  // Failures when registrating the device are ignored
                 // Fetches the License Document if it was updated
-                if let updateDate = status.updated?.license,
-                    license.dateOfLastUpdate() < updateDate {
+                if license.updated < status.updated.license {
                     self = .fetchLicense(status)
                 } else {
                     self = .done(ValidatedDocuments(license, context, status))
@@ -234,7 +241,7 @@ extension LicenseValidation {
         // Raised after fetching the Status Document, or receiving it as a response of an LSD interaction.
         case retrievedStatus(StatusDocument)
         // Raised after the License's status was checked, with any status error.
-        case checkedStatus(Error?)
+        case checkedStatus(LCPStatusError?)
         // Raised when the device got registered.
         case registeredDevice
         // Raised when any error occurs during the validation workflow.
@@ -322,10 +329,7 @@ extension LicenseValidation {
     }
     
     private func fetchStatus(of license: LicenseDocument) throws {
-        guard let link = license.link(withRel: .status) else {
-            throw LCPError.noStatusDocument
-        }
-        
+        let link = try license.link(withRel: .status)
         network.fetch(link.href)
             .map { status, data -> Event in
                 guard status == 200 else {
@@ -340,21 +344,21 @@ extension LicenseValidation {
     
     private func checkStatus(_ document: StatusDocument) throws {
         // Checks the status according to 4.3/ in the specification.
-        let updatedDate = document.updated?.status
+        let date = document.updated.status
 
-        let error: Error?
+        let error: LCPStatusError?
         switch document.status {
         case .ready, .active:
             error = nil
         case .returned:
-            error = LCPError.licenseStatusReturned(updatedDate)
+            error = .returned(date)
         case .expired:
-            error = LCPError.licenseStatusExpired(updatedDate)
+            error = .expired(date)
         case .revoked:
             let devicesCount = document.events.filter({ $0.type == "register" }).count
-            error = LCPError.licenseStatusRevoked(updatedDate, devicesCount: devicesCount)
+            error = .revoked(date, devicesCount: devicesCount)
         case .cancelled:
-            error = LCPError.licenseStatusCancelled(updatedDate)
+            error = .cancelled(date)
         }
         
         try raise(.checkedStatus(error))
@@ -375,9 +379,7 @@ extension LicenseValidation {
     }
     
     private func fetchLicense(from status: StatusDocument) throws {
-        guard let link = status.link(withRel: .license) else {
-            throw LCPError.licenseFetching
-        }
+        let link = try status.link(withRel: .license)
         
         network.fetch(link.href)
             .map { status, data -> Event in
@@ -457,7 +459,7 @@ extension LicenseValidation {
         for observer in observers {
             observer.callback(documents, error)
         }
-        observers.removeAll { $0.policy == .once }
+        observers = observers.filter { $0.policy != .once }
     }
     
 }

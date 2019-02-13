@@ -55,16 +55,13 @@ final class DeviceService {
                 return .success(nil)
             }
     
-            guard let link = status.link(withRel: .register),
-                let url = self.network.urlFromLink(link, context: self.asQueryParameters)
-                else {
-                    throw LCPError.statusLinkNotFound(StatusDocument.Rel.register.rawValue)
-            }
-    
+            let link = try status.link(withRel: .register)
+            let url = try self.network.urlFromLink(link, context: self.asQueryParameters)
+            
             return self.network.fetch(url, method: .post)
                 .map { status, data in
                     guard status == 200 else {
-                        throw LCPError.registrationFailure
+                        throw LCPError.deviceRegistration
                     }
                     try? self.repository.registerDevice(for: license)
                     return data

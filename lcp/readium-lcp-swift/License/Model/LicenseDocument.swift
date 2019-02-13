@@ -21,7 +21,7 @@ class LicenseDocument {
     /// Date when the license was first issued.
     var issued: Date
     /// Date when the license was last updated.
-    var updated: Date?
+    var updated: Date
     /// Unique identifier for the Provider (URI).
     var provider: URL
     // Encryption object.
@@ -75,30 +75,20 @@ class LicenseDocument {
         }
         user = User.init(with: json["user"])
         signature = try Signature.init(with: json["signature"])
-        if let updated = json["updated"].string,
-            let updatedDate = updated.dateFromISO8601 {
-            self.updated = updatedDate
-        }
+        self.updated = json["updated"].string?.dateFromISO8601 ?? issuedDate
         /// Check that links contains rel for Hint and Publication.
-        guard (link(withRel: Rel.hint) != nil) else {
-            throw LCPError.hintLinkNotFound
-        }
-        guard (link(withRel: Rel.publication) != nil) else {
-            throw LCPError.publicationLinkNotFound
-        }
-    }
-
-    /// Returns the date of last update if any, or issued date.
-    func dateOfLastUpdate() -> Date {
-        return ((updated != nil) ? updated! : issued)
+        _ = try link(withRel: Rel.hint)
+        _ = try link(withRel: Rel.publication)
     }
 
     /// Returns the first link containing the given rel.
-    ///
-    /// - Parameter rel: The rel to look for.
+    /// - Throws: `LCPError.linkNotFound` if no link is found with this rel.
     /// - Returns: The first link containing the rel.
-    func link(withRel rel: Rel) -> Link? {
-        return links.first(where: { $0.rel.contains(rel.rawValue) })
+    func link(withRel rel: Rel) throws -> Link {
+        guard let link = links.first(where: { $0.rel.contains(rel.rawValue) }) else {
+            throw LCPError.linkNotFound(rel: rel.rawValue)
+        }
+        return link
     }
 
     func getHint() -> String {

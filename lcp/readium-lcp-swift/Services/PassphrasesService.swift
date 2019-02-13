@@ -43,27 +43,21 @@ final class PassphrasesService {
                 let data = LCPAuthenticationData(license: license)
                 authenticating.requestPassphrase(for: data, reason: reason, completion: success)
             }
-            .map { clearPassphrase in
+            .flatMap { clearPassphrase in
                 guard let clearPassphrase = clearPassphrase else {
                     throw LCPError.cancelled
                 }
     
                 let hashedPassphrase = clearPassphrase.sha256()
                 guard let passphrase = findOneValidPassphrase(jsonLicense: license.json, hashedPassphrases: [hashedPassphrase]) else {
-                    throw LCPError.invalidPassphrase
+                    // Tries again if the passphrase is invalid, until cancelled
+                    return self.authenticate(for: license, reason: .invalidPassphrase, using: authenticating)
                 }
 
                 // Saves the passphrase to open the publication right away next time
                 self.repository.addPassphrase(passphrase, forLicenseId: license.id, provider: license.provider.absoluteString, userId: license.user.id)
                 
-                return passphrase
-            }
-            .flatCatch { error in
-                // Tries again if the passphrase is invalid, until cancelled
-                guard case LCPError.invalidPassphrase = error else {
-                    throw error
-                }
-                return self.authenticate(for: license, reason: .invalidPassphrase, using: authenticating)
+                return .success(passphrase)
             }
     }
     

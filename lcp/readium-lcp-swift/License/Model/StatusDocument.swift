@@ -24,7 +24,7 @@ class StatusDocument {
     /// Status Document.
     var links = [Link]()
 
-    var updated: Updated?
+    var updated: Updated
     /// Dictionnary of potential rights associated with Dates.
     var potentialRights: PotentialRights?
     /// Ordered list of events related to the change in status of a License
@@ -82,19 +82,14 @@ class StatusDocument {
         potentialRights = PotentialRights.init(with: json["potential_rights"])
     }
 
-    /// Returns the date of the latest license update.
-    ///
-    /// - Returns: The date.
-    func dateOfLatestLicenseDocumentUpdate() -> Date? {
-        return updated?.license
-    }
-
     /// Returns the first link containing the given rel.
-    ///
-    /// - Parameter rel: The rel to look for.
+    /// - Throws: `LCPError.linkNotFound` if no link is found with this rel.
     /// - Returns: The first link containing the rel.
-    func link(withRel rel: Rel) -> Link? {
-        return links.first(where: { $0.rel.contains(rel.rawValue) })
+    func link(withRel rel: Rel) throws -> Link {
+        guard let link = links.first(where: { $0.rel.contains(rel.rawValue) }) else {
+            throw LCPError.linkNotFound(rel: rel.rawValue)
+        }
+        return link
     }
     
 }
