@@ -42,13 +42,21 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
     }
     
     public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
-        
-        let done = self.taskMap[downloadTask]?(location, nil, nil, downloadTask) ?? false
+        let done: Bool?
+        let tempURL = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension(location.pathExtension)
+        do {
+            try FileManager.default.moveItem(at: location, to: tempURL)
+            done = taskMap[downloadTask]?(tempURL, nil, nil, downloadTask)
+        } catch {
+            done = taskMap[downloadTask]?(nil, nil, error, downloadTask)
+        }
         
         DispatchQueue.main.async {
             self.taskMap.removeValue(forKey: downloadTask)
             
-            if done {
+            if done ?? false {
                 self.displayDelegate?.didFinishDownload(task: downloadTask)
             } else {
                 self.displayDelegate?.didFailWithError(task: downloadTask, error: nil)
