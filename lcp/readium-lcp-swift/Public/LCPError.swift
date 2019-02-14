@@ -35,13 +35,13 @@ public enum LCPError: Error {
     case licenseFetching
     case profileNotSupported
     case invalidRights
-    case licenseStatus(LCPStatusError)
+    case status(LCPStatusError)
     
     internal static func wrap(_ error: Error) -> LCPError {
         if let lcpError = error as? LCPError {
             return lcpError
         } else if let statusError = error as? LCPStatusError {
-            return .licenseStatus(statusError)
+            return .status(statusError)
         }
             
         let nsError = error as NSError
@@ -68,14 +68,23 @@ public enum LCPError: Error {
 extension LCPError: LocalizedError {
     
     public var errorDescription: String? {
+        func localizedDescription(of error: Error?) -> String? {
+            if let error = error as? LocalizedError {
+                return error.errorDescription
+            } else if let error = error as NSError? {
+                return error.localizedDescription
+            }
+            return nil
+        }
+        
         switch self {
         case .cancelled:
             return "Operation cancelled."
         case .busyLicense:
             return "Can't perform the LCP operation at the moment, this license is busy."
         case .unknown(let error):
-            if let localizedError = error as? LocalizedError {
-                return localizedError.errorDescription
+            if let message = localizedDescription(of: error) {
+                return message
             }
             return "Unknown error."
         case .invalidLCPL:
@@ -115,11 +124,14 @@ extension LCPError: LocalizedError {
         case .profileNotSupported:
             return "This Readium LCP license has a profile identifier that this app cannot handle, the publication cannot be processed"
         case .network(let error):
-            // FIXME: use localized description
-            return "Can't reach server: \(String(describing: error))"
+            if let message = localizedDescription(of: error) {
+                return "Can't reach server: \(message)"
+            } else {
+                return "Network error."
+            }
         case .runtime(let message):
             return "LCP internal error: \(message)"
-        case .licenseStatus(let error):
+        case .status(let error):
             return error.errorDescription ?? "This license's status is invalid."
         }
     }

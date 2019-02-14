@@ -17,10 +17,10 @@ import R2Shared
 public protocol LCPService {
 
     /// Imports a protected publication from a standalone LCPL file.
-    func importLicenseDocument(_ lcpl: URL, authenticating: LCPAuthenticating?, completion: @escaping (LCPImportedPublication?, LCPError?) -> Void)
+    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, completion: @escaping (LCPImportedPublication?, LCPError?) -> Void)
     
     /// Opens the LCP license of a protected publication, to access its DRM metadata and decipher its content.
-    func openLicense(in publication: URL, authenticating: LCPAuthenticating?, completion: @escaping (LCPLicense?, LCPError?) -> Void) -> Void
+    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, completion: @escaping (LCPLicense?, LCPError?) -> Void) -> Void
     
 }
 
@@ -54,8 +54,8 @@ public func setupLCPService() -> LCPService {
     let crl = CRLService(network: network)
     let passphrases = PassphrasesService(repository: db.transactions)
     
-    func makeLicense(container: LicenseContainer, authenticating: LCPAuthenticating?) -> License {
-        let validation = LicenseValidation(supportedProfiles: supportedProfiles, passphrases: passphrases, licenses: db.licenses, device: device, crl: crl, network: network, authenticating: authenticating)
+    func makeLicense(container: LicenseContainer, authentication: LCPAuthenticating?) -> License {
+        let validation = LicenseValidation(supportedProfiles: supportedProfiles, passphrases: passphrases, licenses: db.licenses, device: device, crl: crl, network: network, authentication: authentication)
         return License(container: container, validation: validation, device: device, network: network)
     }
     

@@ -11,6 +11,7 @@
 
 import Foundation
 import R2LCPClient
+import R2Shared
 
 // When true, will show the state and transitions in the console.
 private let DEBUG = true
@@ -37,9 +38,9 @@ struct ValidatedDocuments {
         return status
     }
     
-    func checkStatus() throws {
+    func checkLicenseStatus() throws {
         if let statusError = statusError {
-            throw LCPError.licenseStatus(statusError)
+            throw LCPError.status(statusError)
         }
     }
 
@@ -59,7 +60,7 @@ final class LicenseValidation {
     fileprivate let device: DeviceService
     fileprivate let crl: CRLService
     fileprivate let network: NetworkService
-    fileprivate weak var authenticating: LCPAuthenticating?
+    fileprivate weak var authentication: LCPAuthenticating?
 
     // Last successfully validated documents used as a fallback when the newly fetched License Document fail to validate.
     // This is used to be tolerant of the Status Document's failures.
@@ -76,14 +77,14 @@ final class LicenseValidation {
         }
     }
 
-    init(supportedProfiles: [String], passphrases: PassphrasesService, licenses: LicensesRepository, device: DeviceService, crl: CRLService, network: NetworkService, authenticating: LCPAuthenticating?) {
+    init(supportedProfiles: [String], passphrases: PassphrasesService, licenses: LicensesRepository, device: DeviceService, crl: CRLService, network: NetworkService, authentication: LCPAuthenticating?) {
         self.supportedProfiles = supportedProfiles
         self.passphrases = passphrases
         self.licenses = licenses
         self.device = device
         self.crl = crl
         self.network = network
-        self.authenticating = authenticating
+        self.authentication = authentication
     }
 
     // Raw Document's data to validate.
@@ -302,7 +303,7 @@ extension LicenseValidation {
     }
     
     private func requestPassphrase(for license: LicenseDocument) {
-        passphrases.request(for: license, authenticating: authenticating)
+        passphrases.request(for: license, authentication: authentication)
             .map { Event.retrievedPassphrase($0) }
             .resolve(raise)
     }

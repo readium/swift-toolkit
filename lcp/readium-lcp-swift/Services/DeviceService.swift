@@ -11,6 +11,7 @@
 
 import Foundation
 import UIKit
+import R2Shared
 
 final class DeviceService {
     

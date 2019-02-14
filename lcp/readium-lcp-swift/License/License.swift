@@ -13,8 +13,8 @@ import Foundation
 import UIKit
 import SwiftyJSON
 import ZIPFoundation
-import R2Shared
 import R2LCPClient
+import R2Shared
 
 private let DEBUG = true
 
@@ -61,8 +61,9 @@ final class License {
 /// License activies
 extension License {
     
-    /// Reads and validates the License Document in the container, if needed.
-    func open() -> Deferred<Void> {
+    /// Reads and validates the License Document in the container.
+    /// Returns itself to apply more transformations on the License.
+    func evaluate() -> Deferred<License> {
         return Deferred {
             guard self.documents == nil else {
                 throw LCPError.runtime("\(type(of: self)): A License can only be opened once")
@@ -76,7 +77,9 @@ extension License {
             return self.validation.validate(.license(data))
                 .map { documents in
                     // Forwards any status error (eg. revoked)
-                    try documents.checkStatus()
+                    try documents.checkLicenseStatus()
+                    
+                    return self
                 }
         }
     }

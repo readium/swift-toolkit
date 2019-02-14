@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import R2Shared
 
 /// Certificate Revocation List
 final class CRLService {
@@ -17,8 +18,8 @@ final class CRLService {
     // Number of days before the CRL cache expires.
     private static let expiration = 7
     
-    private static let dateKey = "kCRLDate"
-    private static let crlKey = "kCRLString"
+    private static let crlKey = "org.readium.r2-lcp-swift.CRL"
+    private static let dateKey = "org.readium.r2-lcp-swift.CRLDate"
 
     private let network: NetworkService
     

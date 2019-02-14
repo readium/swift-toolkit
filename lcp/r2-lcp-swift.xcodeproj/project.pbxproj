@@ -10,13 +10,11 @@
 		0394DBA9211C9201008D0524 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0394DBA8211C9201008D0524 /* R2LCPClient.framework */; };
 		CA4A38742208647400599297 /* PassphrasesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A38732208647400599297 /* PassphrasesRepository.swift */; };
 		CA4A388722086F7500599297 /* PassphrasesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388622086F7500599297 /* PassphrasesService.swift */; };
-		CA4A38892208775F00599297 /* Deferred.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A38882208775F00599297 /* Deferred.swift */; };
 		CA4A388C2209873B00599297 /* LicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388B2209873B00599297 /* LicenseContainer.swift */; };
 		CA4A388E220988C800599297 /* LCPLLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388D220988C800599297 /* LCPLLicenseContainer.swift */; };
 		CA4A389022098A9400599297 /* ZIPLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388F22098A9400599297 /* ZIPLicenseContainer.swift */; };
 		CA4A3892220994E300599297 /* EPUBLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A3891220994E300599297 /* EPUBLicenseContainer.swift */; };
 		CAB131F6220D81E60097DFB5 /* LicensesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB131F5220D81E60097DFB5 /* LicensesRepository.swift */; };
-		CAB131F9220D8EEF0097DFB5 /* Concurrency.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB131F8220D8EEF0097DFB5 /* Concurrency.swift */; };
 		CAB1320B220D9B200097DFB5 /* LCPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB1320A220D9B200097DFB5 /* LCPService.swift */; };
 		CAB13211220DB2B10097DFB5 /* LCPAuthenticating.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */; };
 		CAB1321F220DBA470097DFB5 /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB1321E220DBA470097DFB5 /* NetworkService.swift */; };
@@ -51,13 +49,11 @@
 		0394DBA8211C9201008D0524 /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA4A38732208647400599297 /* PassphrasesRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassphrasesRepository.swift; sourceTree = "<group>"; };
 		CA4A388622086F7500599297 /* PassphrasesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassphrasesService.swift; sourceTree = "<group>"; };
-		CA4A38882208775F00599297 /* Deferred.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deferred.swift; sourceTree = "<group>"; };
 		CA4A388B2209873B00599297 /* LicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseContainer.swift; sourceTree = "<group>"; };
 		CA4A388D220988C800599297 /* LCPLLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPLLicenseContainer.swift; sourceTree = "<group>"; };
 		CA4A388F22098A9400599297 /* ZIPLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZIPLicenseContainer.swift; sourceTree = "<group>"; };
 		CA4A3891220994E300599297 /* EPUBLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBLicenseContainer.swift; sourceTree = "<group>"; };
 		CAB131F5220D81E60097DFB5 /* LicensesRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensesRepository.swift; sourceTree = "<group>"; };
-		CAB131F8220D8EEF0097DFB5 /* Concurrency.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Concurrency.swift; sourceTree = "<group>"; };
 		CAB1320A220D9B200097DFB5 /* LCPService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPService.swift; sourceTree = "<group>"; };
 		CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPAuthenticating.swift; sourceTree = "<group>"; };
 		CAB1321E220DBA470097DFB5 /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
@@ -210,15 +206,6 @@
 			path = Persistence;
 			sourceTree = "<group>";
 		};
-		CAB1321D220DB6700097DFB5 /* Common */ = {
-			isa = PBXGroup;
-			children = (
-				CA4A38882208775F00599297 /* Deferred.swift */,
-				CAB131F8220D8EEF0097DFB5 /* Concurrency.swift */,
-			);
-			path = Common;
-			sourceTree = "<group>";
-		};
 		F3B2C87D1F667222007601E4 = {
 			isa = PBXGroup;
 			children = (
@@ -244,7 +231,6 @@
 				CAB13214220DB5930097DFB5 /* License */,
 				CAB1321B220DB6430097DFB5 /* Services */,
 				CAB1321C220DB6570097DFB5 /* Persistence */,
-				CAB1321D220DB6700097DFB5 /* Common */,
 				F3B2C88B1F667223007601E4 /* Info.plist */,
 				F3B2C88A1F667223007601E4 /* readium-lcp-swift.h */,
 			);
@@ -401,11 +387,9 @@
 				F38FB0381F66839600F9D602 /* Rights.swift in Sources */,
 				F36F9E281F8270FC001D0DB4 /* Transactions.swift in Sources */,
 				F3B2C8A81F66727C007601E4 /* StatusDocument.swift in Sources */,
-				CA4A38892208775F00599297 /* Deferred.swift in Sources */,
 				F38FB0361F66837800F9D602 /* User.swift in Sources */,
 				F38FB0421F66847E00F9D602 /* Signature.swift in Sources */,
 				F3B2C8A71F66727C007601E4 /* LicenseDocument.swift in Sources */,
-				CAB131F9220D8EEF0097DFB5 /* Concurrency.swift in Sources */,
 				F3B2C8A91F66727C007601E4 /* Updated.swift in Sources */,
 				CAE7FB7E220C4C5C00D03587 /* DeviceRepository.swift in Sources */,
 				F38FB03A1F6683D800F9D602 /* Encryption.swift in Sources */,

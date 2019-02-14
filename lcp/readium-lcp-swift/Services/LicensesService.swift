@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import R2Shared
 
 final class LicensesService {
     
@@ -21,28 +22,25 @@ final class LicensesService {
         self.makeLicense = makeLicense
     }
 
-    fileprivate func openLicense(from container: LicenseContainer, authenticating: LCPAuthenticating?) -> Deferred<License> {
-        let license = makeLicense(container, authenticating)
-        return license.open()
-            // Forwards the created license, to apply more transformations on it.
-            .map { license }
+    fileprivate func retrieveLicense(from container: LicenseContainer, authentication: LCPAuthenticating?) -> Deferred<License> {
+        return makeLicense(container, authentication).evaluate()
     }
 
 }
 
 extension LicensesService: LCPService {
     
-    public func importLicenseDocument(_ lcpl: URL, authenticating: LCPAuthenticating?, completion: @escaping (LCPImportedPublication?, LCPError?) -> Void) {
+    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, completion: @escaping (LCPImportedPublication?, LCPError?) -> Void) {
         let container = LCPLLicenseContainer(lcpl: lcpl)
-        openLicense(from: container, authenticating: authenticating)
+        retrieveLicense(from: container, authentication: authentication)
             .flatMap { $0.fetchPublication() }
             .map { LCPImportedPublication(localUrl: $0.0, downloadTask: $0.1) }
             .resolve(LCPError.wrap(completion))
     }
     
-    public func openLicense(in publication: URL, authenticating: LCPAuthenticating?, completion: @escaping (LCPLicense?, LCPError?) -> Void) {
+    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, completion: @escaping (LCPLicense?, LCPError?) -> Void) {
         let container = EPUBLicenseContainer(epub: publication)
-        openLicense(from: container, authenticating: authenticating)
+        retrieveLicense(from: container, authentication: authentication)
             .resolve(LCPError.wrap(completion))
     }
     
