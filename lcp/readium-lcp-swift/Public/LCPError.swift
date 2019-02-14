@@ -17,9 +17,7 @@ public enum LCPError: Error {
     case runtime(String)
     case unknown(Error?)
     case network(Error?)
-    case invalidLCPL
-    case linkNotFound(rel: String)
-    case invalidURL(String)
+    case invalidLink(rel: String)
     case noStatusDocument
     case deviceRegistration
     case returnFailure
@@ -35,13 +33,16 @@ public enum LCPError: Error {
     case licenseFetching
     case profileNotSupported
     case invalidRights
-    case status(LCPStatusError)
-    
+    case status(StatusError)
+    case parsing(ParsingError)
+
     internal static func wrap(_ error: Error) -> LCPError {
-        if let lcpError = error as? LCPError {
-            return lcpError
-        } else if let statusError = error as? LCPStatusError {
-            return .status(statusError)
+        if let error = error as? LCPError {
+            return error
+        } else if let error = error as? StatusError {
+            return .status(error)
+        } else if let error = error as? ParsingError {
+            return .parsing(error)
         }
             
         let nsError = error as NSError
@@ -87,12 +88,8 @@ extension LCPError: LocalizedError {
                 return message
             }
             return "Unknown error."
-        case .invalidLCPL:
-            return "The provided license isn't a correctly formatted LCPL file. "
-        case .linkNotFound(rel: let rel):
-            return "The link \(rel) is missing from the Document."
-        case .invalidURL(let url):
-            return "The given URL is not valid: \(url)"
+        case .invalidLink(rel: let rel):
+            return "The link \(rel) is not valid."
         case .noStatusDocument:
             return "Updating the license failed, there is no status document."
         case .invalidRights:
@@ -133,41 +130,8 @@ extension LCPError: LocalizedError {
             return "LCP internal error: \(message)"
         case .status(let error):
             return error.errorDescription ?? "This license's status is invalid."
+        case .parsing(let error):
+            return error.errorDescription ?? "Failed to parse the Document."
         }
     }
-}
-
-
-public enum LCPStatusError: Error {
-    // For the case (revoked, returned, cancelled, expired), app should notify the user and stop there. The message to the user must be clear about the status of the license: don't display "expired" if the status is "revoked". The date and time corresponding to the new status should be displayed (e.g. "The license expired on 01 January 2018").
-    case cancelled(Date)
-    case returned(Date)
-    case expired(Date)
-    // If the license has been revoked, the user message should display the number of devices which registered to the server. This count can be calculated from the number of "register" events in the status document. If no event is logged in the status document, no such message should appear (certainly not "The license was registered by 0 devices").
-    case revoked(Date, devicesCount: Int)
-    
-}
-
-extension LCPStatusError: LocalizedError {
-    
-    public var errorDescription: String? {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "MMMM dd, yyyy HH:mm"
-        dateFormatter.locale = Locale(identifier:"en")
-        
-        switch self {
-        case .cancelled(let date):
-            return "You have cancelled this license on \(dateFormatter.string(from: date))."
-
-        case .returned(let date):
-            return "This license has been returned on \(dateFormatter.string(from: date))."
-            
-        case .expired(let date):
-            return "This license expired on \(dateFormatter.string(from: date)).\nIf your provider allows it, you may be able to renew it."
-
-        case .revoked(let date, let devicesCount):
-            return "This license has been revoked by its provider on \(dateFormatter.string(from: date)).\nThe license was registered by \(devicesCount) device\(devicesCount > 1 ? "s" : "")."
-        }
-    }
-    
 }

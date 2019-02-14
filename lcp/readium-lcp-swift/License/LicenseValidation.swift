@@ -22,9 +22,9 @@ struct ValidatedDocuments {
     let license: LicenseDocument
     let context: DRMContext
     private let status: StatusDocument?
-    private let statusError: LCPStatusError?
+    private let statusError: StatusError?
 
-    init(_ license: LicenseDocument, _ context: DRMContext, _ status: StatusDocument? = nil, statusError: LCPStatusError? = nil) {
+    init(_ license: LicenseDocument, _ context: DRMContext, _ status: StatusDocument? = nil, statusError: StatusError? = nil) {
         self.license = license
         self.context = context
         self.status = status
@@ -206,7 +206,7 @@ extension LicenseValidation {
             case let (.registerDevice(license, status, context), .registeredDevice),
                  let (.registerDevice(license, status, context), .failed(_)):  // Failures when registrating the device are ignored
                 // Fetches the License Document if it was updated
-                if license.updated < status.updated.license {
+                if license.updated < status.licenseUpdated {
                     self = .fetchLicense(status)
                 } else {
                     self = .done(ValidatedDocuments(license, context, status))
@@ -242,7 +242,7 @@ extension LicenseValidation {
         // Raised after fetching the Status Document, or receiving it as a response of an LSD interaction.
         case retrievedStatus(StatusDocument)
         // Raised after the License's status was checked, with any status error.
-        case checkedStatus(LCPStatusError?)
+        case checkedStatus(StatusError?)
         // Raised when the device got registered.
         case registeredDevice
         // Raised when any error occurs during the validation workflow.
@@ -286,15 +286,13 @@ extension LicenseValidation {
 extension LicenseValidation {
 
     private func validateLicense(data: Data) throws {
-        guard let license = try? LicenseDocument(with: data) else {
-            throw LCPError.invalidLCPL
-        }
+        let license = try LicenseDocument(data: data)
 
         // 1.a/ Validate the license structure
         // TODO: The app checks that the license is valid (EDRLab provides a JSON schema for LCP licenses in the EDRLab github, lcp-testing-tools). It the license is invalid, the user gets a notification like "This Readium LCP license is invalid, the publication cannot be processed".
 
         // 1.b/ Check its profile identifier
-        let profile = license.encryption.profile.absoluteString
+        let profile = license.encryption.profile
         guard supportedProfiles.contains(profile) else {
             throw LCPError.profileNotSupported
         }
@@ -330,8 +328,8 @@ extension LicenseValidation {
     }
     
     private func fetchStatus(of license: LicenseDocument) throws {
-        let link = try license.link(withRel: .status)
-        network.fetch(link.href)
+        let url = try license.url(for: .status)
+        network.fetch(url)
             .map { status, data -> Event in
                 guard status == 200 else {
                     throw LCPError.noStatusDocument
@@ -343,12 +341,12 @@ extension LicenseValidation {
             .resolve(raise)
     }
     
-    private func checkStatus(_ document: StatusDocument) throws {
+    private func checkStatus(_ status: StatusDocument) throws {
         // Checks the status according to 4.3/ in the specification.
-        let date = document.updated.status
+        let date = status.updated
 
-        let error: LCPStatusError?
-        switch document.status {
+        let error: StatusError?
+        switch status.status {
         case .ready, .active:
             error = nil
         case .returned:
@@ -356,7 +354,7 @@ extension LicenseValidation {
         case .expired:
             error = .expired(date)
         case .revoked:
-            let devicesCount = document.events.filter({ $0.type == "register" }).count
+            let devicesCount = status.events(for: .register).count
             error = .revoked(date, devicesCount: devicesCount)
         case .cancelled:
             error = .cancelled(date)
@@ -380,9 +378,8 @@ extension LicenseValidation {
     }
     
     private func fetchLicense(from status: StatusDocument) throws {
-        let link = try status.link(withRel: .license)
-        
-        network.fetch(link.href)
+        let url = try status.url(for: .license)
+        network.fetch(url)
             .map { status, data -> Event in
                 guard status == 200 else {
                     throw LCPError.licenseFetching

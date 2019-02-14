@@ -10,37 +10,23 @@
 //
 
 import Foundation
-import SwiftyJSON
 
-struct Rights {
-    /// Maximum number of pages that can be printed over the lifetime of the
-    /// license.
-    var print: Int?
-    /// Maximum number of characters that can be copied to the clipboard
-    /// over the lifetime of the license.
-    var copy: Int?
+public struct Rights {
+    
+    /// Maximum number of pages that can be printed over the lifetime of the license.
+    public let print: Int?
+    /// Maximum number of characters that can be copied to the clipboard over the lifetime of the license.
+    public let copy: Int?
     /// Date and time when the license begins.
-    var start: Date?
+    public let start: Date?
     /// Date and time when the license ends.
-    var end: Date?
-    /// Possible extenssion date. Set to end + 1 month by default.
-    var potentialEnd: Date?
+    public let end: Date?
 
-    init(with json: JSON) {
-        print = json["print"].int
-        copy = json["copy"].int
-        if let start = json["start"].string,
-            let startDate = start.dateFromISO8601
-        {
-            self.start = startDate
-        }
-        if let end =  json["end"].string,
-            let endDate = end.dateFromISO8601
-        {
-            self.end = endDate
-            self.potentialEnd = Calendar.current.date(byAdding: .month,
-                                                      value: 1,
-                                                      to: endDate)
-        }
+    init(json: [String: Any]) throws {
+        self.print = json["print"] as? Int
+        self.copy = json["copy"] as? Int
+        self.start = (json["start"] as? String)?.dateFromISO8601
+        self.end = (json["end"] as? String)?.dateFromISO8601
     }
+    
 }

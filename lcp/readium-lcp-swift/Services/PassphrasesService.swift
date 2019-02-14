@@ -41,8 +41,8 @@ final class PassphrasesService {
     /// Called when the service can't find any valid passphrase in the repository, as a fallback.
     private func authenticate(for license: LicenseDocument, reason: LCPAuthenticationReason, using authentication: LCPAuthenticating) -> Deferred<String> {
         return Deferred<String?> { success, _ in
-                let data = LCPAuthenticationData(license: license)
-                authentication.requestPassphrase(for: data, reason: reason, completion: success)
+                let authenticatedLicense = LCPAuthenticatedLicense(document: license)
+                authentication.requestPassphrase(for: authenticatedLicense, reason: reason, completion: success)
             }
             .flatMap { clearPassphrase in
                 guard let clearPassphrase = clearPassphrase else {
@@ -56,7 +56,7 @@ final class PassphrasesService {
                 }
 
                 // Saves the passphrase to open the publication right away next time
-                self.repository.addPassphrase(passphrase, forLicenseId: license.id, provider: license.provider.absoluteString, userId: license.user.id)
+                self.repository.addPassphrase(passphrase, forLicenseId: license.id, provider: license.provider, userId: license.user.id)
                 
                 return .success(passphrase)
             }

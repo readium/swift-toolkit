@@ -68,7 +68,7 @@ extension Licenses: LicensesRepository {
                 id <- license.id,
                 printsLeft <- license.rights.print,
                 copiesLeft <- license.rights.copy,
-                provider <- license.provider.absoluteString,
+                provider <- license.provider,
                 issued <- license.issued,
                 updated <- license.updated,
                 end <- license.rights.end,
@@ -78,7 +78,7 @@ extension Licenses: LicensesRepository {
 
         } else {
             let query = filterLicense.update(
-                provider <- license.provider.absoluteString,
+                provider <- license.provider,
                 issued <- license.issued,
                 updated <- license.updated,
                 end <- license.rights.end

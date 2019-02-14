@@ -56,9 +56,7 @@ final class DeviceService {
                 return .success(nil)
             }
     
-            let link = try status.link(withRel: .register)
-            let url = try self.network.urlFromLink(link, context: self.asQueryParameters)
-            
+            let url = try status.url(for: .register, with: self.asQueryParameters)
             return self.network.fetch(url, method: .post)
                 .map { status, data in
                     guard status == 200 else {

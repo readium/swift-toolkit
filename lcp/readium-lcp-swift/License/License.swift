@@ -11,7 +11,6 @@
 
 import Foundation
 import UIKit
-import SwiftyJSON
 import ZIPFoundation
 import R2LCPClient
 import R2Shared
@@ -91,8 +90,10 @@ extension License {
                 throw LCPError.runtime("\(type(of: self)): Can't fetch the publication of a License pending validation")
             }
             
-            let link = try license.link(withRel: LicenseDocument.Rel.publication)
-            return self.network.download(link.href, description: link.title)
+            let title = license.link(for: .publication)?.title
+            let url = try license.url(for: .publication)
+
+            return self.network.download(url, title: title)
                 .map { downloadedFile, task in
                     // Saves the License Document into the downloaded publication
                     let container = EPUBLicenseContainer(epub: downloadedFile)
@@ -121,9 +122,9 @@ extension License {
             guard let documents = self.documents else {
                 throw LCPError.runtime("\(type(of: self)): Can't call an LSD interaction on a License pending validation")
             }
+            
             let status = try documents.getStatus()
-            let link = try status.link(withRel: rel)
-            let url = try self.network.urlFromLink(link, context: self.device.asQueryParameters)
+            let url = try status.url(for: rel, with: self.device.asQueryParameters)
 
             return self.network.fetch(url, method: .put)
                 .map { status, data -> Data in
@@ -195,7 +196,11 @@ extension License: LCPLicense {
     }
 
     public func provider() -> URL {
-        return documents?.license.provider ?? URL(fileURLWithPath: "/")
+        guard let providerString = documents?.license.provider,
+            let provider = URL(string: providerString) else {
+            return URL(fileURLWithPath: "/")
+        }
+        return provider
     }
 
     public func rightsEnd() -> Date? {
@@ -203,7 +208,10 @@ extension License: LCPLicense {
     }
 
     public func potentialRightsEnd() -> Date? {
-        return documents?.license.rights.potentialEnd
+        guard let documents = documents, let status = try? documents.getStatus() else {
+            return nil
+        }
+        return status.potentialRights?.end
     }
 
     public func rightsStart() -> Date? {
@@ -219,7 +227,7 @@ extension License: LCPLicense {
     }
 
     public var profile: String {
-        return documents?.license.encryption.profile.absoluteString ?? ""
+        return documents?.license.encryption.profile ?? ""
     }
     
 }

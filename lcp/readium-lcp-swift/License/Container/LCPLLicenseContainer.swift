@@ -29,7 +29,7 @@ final class LCPLLicenseContainer: LicenseContainer {
     
     func write(_ license: LicenseDocument) throws {
         do {
-            try license.json.write(to: lcpl, atomically: true, encoding: .utf8)
+            try license.data.write(to: lcpl, options: .atomic)
         } catch {
             throw LCPError.container
         }

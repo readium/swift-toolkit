@@ -10,24 +10,25 @@
 //
 
 import Foundation
-import SwiftyJSON
 
-/// (encrypted using the User Key) Used to encrypt the Publication Resources.
-struct ContentKey {
+/// Used to encrypt the Publication Resources.
+/// This is encrypted using the User Key.
+public struct ContentKey {
+    
+    /// Algorithm used to encrypt the Content Key, identified using the URIs defined in [XML-ENC]. This MUST match the Content Key encryption algorithm named in the Encryption Profile identified in `encryption/profile`.
+    public let algorithm: String
     /// Encrypted Content Key.
-    var encryptedValue: String
-    /// Algorithm used to encrypt the Content Key, identified using the URIs 
-    /// defined in [XML-ENC]. This MUST match the Content Key encryption 
-    /// algorithm named in the Encryption Profile identified in 
-    /// `encryption/profile`.
-    var algorithm: URL
+    public let encryptedValue: String
 
-    init(with json: JSON) throws {
-        guard let encryptedValue = json["encrypted_value"].string,
-            let algorithm = json["algorithm"].url else {
-                throw ParsingError.json
+    init(json: [String: Any]) throws {
+        guard let algorithm = json["algorithm"] as? String,
+            let encryptedValue = json["encrypted_value"] as? String else
+        {
+            throw ParsingError.encryption
         }
+        
         self.encryptedValue = encryptedValue
         self.algorithm = algorithm
     }
+    
 }

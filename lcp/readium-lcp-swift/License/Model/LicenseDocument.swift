@@ -10,96 +10,106 @@
 //
 
 import Foundation
-import SwiftyJSON
 import R2Shared
 
-/// Document that contains references to the various keys, links to related
-/// external resources, rights and restrictions that are applied to the
-/// Protected Publication, and user information.
-class LicenseDocument {
-    var id: String
-    /// Date when the license was first issued.
-    var issued: Date
-    /// Date when the license was last updated.
-    var updated: Date
-    /// Unique identifier for the Provider (URI).
-    var provider: URL
-    // Encryption object.
-    var encryption: Encryption
-    /// Used to associate the License Document with resources that are not 
-    /// locally available.
-    var links = [Link]()
-    /// Rights informations associated with the License Document
-    var rights: Rights
-    /// The user owning the License.
-    var user: User
-    /// Used to validate the license integrity.
-    var signature: Signature
-
-    var json: String
-    
-    var data: Data {
-        return json.data(using: .utf8) ?? Data()
-    }
+/// Document that contains references to the various keys, links to related external resources, rights and restrictions that are applied to the Protected Publication, and user information.
+public struct LicenseDocument {
 
     // The possible rel of Links.
-    enum Rel: String {
-        case hint = "hint"
-        case publication = "publication"
-        case status = "status"
+    public enum Rel: String {
+        // Location where a Reading System can redirect a User looking for additional information about the User Passphrase.
+        case hint
+        // Location where the Publication associated with the License Document can be downloaded
+        case publication
+        // As defined in the IANA registry of link relations: "Conveys an identifier for the link's context."
+        case `self`
+        // Support resources for the user (either a website, an email or a telephone number).
+        case support
+        // Location to the Status Document for this license.
+        case status
     }
+    
+    /// Unique identifier for the Provider (URI).
+    public let provider: String
+    /// Unique identifier for the License.
+    public let id: String
+    /// Date when the license was first issued.
+    public let issued: Date
+    /// Date when the license was last updated.
+    public let updated: Date
+    // Encryption object.
+    public let encryption: Encryption
+    /// Used to associate the License Document with resources that are not locally available.
+    public let links: Links
+    /// The user owning the License.
+    public let user: User
+    /// Rights informations associated with the License Document
+    public let rights: Rights
+    /// Used to validate the license integrity.
+    public let signature: Signature
 
-    init(with data: Data) throws {
-        let json = JSON(data: data)
+    /// JSON representation used to parse the License Document.
+    let json: String
+    let data: Data
 
-        guard let id = json["id"].string,
-            let issued = json["issued"].string,
-            let issuedDate = issued.dateFromISO8601,
-            let provider = json["provider"].url else
+    init(data: Data) throws {
+        guard let jsonString = String(data: data, encoding: .utf8),
+            let deserializedJSON = try? JSONSerialization.jsonObject(with: data) else
         {
-            throw ParsingError.json
+            throw ParsingError.malformedJSON
         }
-        guard let jsonString = String.init(data: data, encoding: String.Encoding.utf8) else {
-            throw ParsingError.json
+
+        guard let json = deserializedJSON as? [String: Any],
+            let provider = json["provider"] as? String,
+            let id = json["id"] as? String,
+            let issued = (json["issued"] as? String)?.dateFromISO8601,
+            let encryption = json["encryption"] as? [String: Any],
+            let links = json["links"] as? [[String : Any]],
+            let user = json["user"] as? [String: Any],
+            let rights = json["rights"] as? [String: Any],
+            let signature = json["signature"] as? [String: Any] else
+        {
+            throw ParsingError.licenseDocument
         }
-        self.json = jsonString
-        self.id = id
-        self.issued = issuedDate
+        
         self.provider = provider
-        //
-        encryption = try Encryption.init(with: json["encryption"])
-        links = try parseLinks(json["links"])
-        rights = Rights.init(with: json["rights"])
-        if let potentialEnd = json["potential_rights"]["end"].string?.dateFromISO8601 {
-            rights.potentialEnd = potentialEnd
+        self.id = id
+        self.issued = issued
+        self.updated = (json["updated"] as? String)?.dateFromISO8601 ?? issued
+        self.encryption = try Encryption(json: encryption)
+        self.links = try Links(json: links)
+        self.user = try User(json: user)
+        self.rights = try Rights(json: rights)
+        self.signature = try Signature(json: signature)
+        self.json = jsonString
+        self.data = data
+
+        /// Check that links contain rel for Hint and Publication.
+        guard link(for: .hint) != nil, link(for: .publication) != nil else {
+            throw ParsingError.licenseDocument
         }
-        user = User.init(with: json["user"])
-        signature = try Signature.init(with: json["signature"])
-        self.updated = json["updated"].string?.dateFromISO8601 ?? issuedDate
-        /// Check that links contains rel for Hint and Publication.
-        _ = try link(withRel: Rel.hint)
-        _ = try link(withRel: Rel.publication)
     }
 
     /// Returns the first link containing the given rel.
-    /// - Throws: `LCPError.linkNotFound` if no link is found with this rel.
-    /// - Returns: The first link containing the rel.
-    func link(withRel rel: Rel) throws -> Link {
-        guard let link = links.first(where: { $0.rel.contains(rel.rawValue) }) else {
-            throw LCPError.linkNotFound(rel: rel.rawValue)
-        }
-        return link
+    public func link(for rel: Rel) -> Link? {
+        return links[rel.rawValue]
     }
 
-    func getHint() -> String {
-        return encryption.userKey.hint
+    /// Gets and expands the URL for the given rel, if it exits.
+    /// - Throws: `LCPError.invalidLink` if the URL can't be built.
+    func url(for rel: Rel, with parameters: [String: CustomStringConvertible] = [:]) throws -> URL {
+        guard let url = link(for: rel)?.url(with: parameters) else {
+            throw LCPError.invalidLink(rel: rel.rawValue)
+        }
+        
+        return url
     }
 
 }
 
 extension LicenseDocument: CustomStringConvertible {
     
-    var description: String {
+    public var description: String {
         return "License(\(id))"
     }
     

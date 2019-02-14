@@ -10,22 +10,27 @@
 //
 
 import Foundation
-import SwiftyJSON
 
-struct Encryption {
+public struct Encryption {
+    
     /// Identifies the Encryption Profile used by this LCP-protected Publication.
-    var profile: URL
+    public let profile: String
     /// Used to encrypt the Publication Resources.
-    var contentKey: ContentKey
+    public let contentKey: ContentKey
     /// Used to encrypt the Content Key.
-    var userKey: UserKey
+    public let userKey: UserKey
 
-    init(with json: JSON) throws {
-        guard let profile = json["profile"].url else {
+    init(json: [String: Any]) throws {
+        guard let profile = json["profile"] as? String,
+            let contentKey = json["content_key"] as? [String: Any],
+            let userKey = json["user_key"] as? [String: Any] else
+        {
             throw ParsingError.encryption
         }
+        
         self.profile = profile
-        try contentKey = ContentKey.init(with: json["content_key"])
-        try userKey = UserKey.init(with: json["user_key"])
+        self.contentKey = try ContentKey(json: contentKey)
+        self.userKey = try UserKey(json: userKey)
     }
+    
 }

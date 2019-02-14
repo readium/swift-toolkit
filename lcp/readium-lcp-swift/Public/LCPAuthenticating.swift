@@ -11,10 +11,15 @@
 
 import Foundation
 
-/// Protocol to implement in the client app to request passphrases from the user (or any other means).
 public protocol LCPAuthenticating: AnyObject {
     
-    func requestPassphrase(for data: LCPAuthenticationData, reason: LCPAuthenticationReason, completion: @escaping (String?) -> Void)
+    /// Requests a passphrase to decrypt the given license.
+    /// The client app can prompt the user to enter the passphrase, or retrieve it by any other means (eg. web service).
+    ///
+    /// - Parameter license: Information to show to the user about the license being opened.
+    /// - Parameter reason: Reason why the passphrase is requested. It should be used to prompt the user.
+    /// - Parameter completion: Used to return the retrieved passphrase. If the user cancelled, send nil.
+    func requestPassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, completion: @escaping (String?) -> Void)
     
 }
 
@@ -25,21 +30,33 @@ public enum LCPAuthenticationReason {
     case invalidPassphrase
 }
 
-public struct LCPAuthenticationData {
+public struct LCPAuthenticatedLicense {
+
+    /// A hint to be displayed to the User to help them remember the User Passphrase.
+    public var hint: String {
+        return document.encryption.userKey.textHint
+    }
     
-    public let licenseId: String
-    public let userEmail: String?
-    public let userName: String?
-    public let hint: String
-    // FIXME: Expose all links
-    public let hintUrl: URL?
+    /// Location where a Reading System can redirect a User looking for additional information about the User Passphrase.
+    public var hintLink: Link? {
+        return document.link(for: .hint)
+    }
     
-    init(license: LicenseDocument) {
-        self.licenseId = license.id
-        self.userEmail = license.user.email
-        self.userName = license.user.name
-        self.hint = license.encryption.userKey.hint
-        self.hintUrl = (try? license.link(withRel: .hint))?.href
+    /// Support resources for the user (either a website, an email or a telephone number).
+    public var supportLink: Link? {
+        return document.link(for: .support)
+    }
+    
+    /// Informations about the user owning the license.
+    public var user: User? {
+        return document.user
+    }
+    
+    /// License Document being opened.
+    public let document: LicenseDocument
+
+    init(document: LicenseDocument) {
+        self.document = document
     }
 
 }

@@ -48,10 +48,7 @@ class ZIPLicenseContainer: LicenseContainer {
         guard let archive = Archive(url: zip, accessMode: .update) else  {
             throw LCPError.container
         }
-        guard let data = license.json.data(using: .utf8) else {
-            throw LCPError.invalidJSON
-        }
-        
+
         do {
             // Removes the old License if it already exists in the archive, otherwise we get duplicated entries
             if let oldLicense = archive[pathInZIP] {
@@ -59,6 +56,7 @@ class ZIPLicenseContainer: LicenseContainer {
             }
 
             // Stores the License into the ZIP file
+            let data = license.data
             try archive.addEntry(with: pathInZIP, type: .file, uncompressedSize: UInt32(data.count), provider: { (position, size) -> Data in
                 return data[position..<size]
             })

@@ -10,28 +10,27 @@
 //
 
 import Foundation
-import SwiftyJSON
 
 /// Signature allowing to certify the License Document integrity.
-struct Signature {
-    /// Algorithm used to calculate the signature, identified using the URIs 
-    /// given in [XML-SIG]. This MUST match the signature algorithm named in the
-    /// Encryption Profile identified in `encryption/profile`.
-    var algorithm: URL
-    /// The Provider Certificate: an X509 certificate used by the Content 
-    /// Provider.
-    var certificate: String
+public struct Signature {
+    /// Algorithm used to calculate the signature, identified using the URIs given in [XML-SIG]. This MUST match the signature algorithm named in the Encryption Profile identified in `encryption/profile`.
+    public let algorithm: String
+    /// The Provider Certificate: an X509 certificate used by the Content Provider.
+    public let certificate: String
     /// Value of the signature.
-    var value: String
+    public let value: String
 
-    init(with json: JSON) throws {
-        guard let algorithm = json["algorithm"].url,
-            let certificate = json["certificate"].string,
-            let value = json["value"].string else {
-                throw ParsingError.signature
+    init(json: [String: Any]) throws {
+        guard let algorithm = json["algorithm"] as? String,
+            let certificate = json["certificate"] as? String,
+            let value = json["value"] as? String else
+        {
+            throw ParsingError.signature
         }
+        
         self.algorithm = algorithm
         self.certificate = certificate
         self.value = value
     }
+    
 }

@@ -10,51 +10,46 @@
 //
 
 import Foundation
-import SwiftyJSON
 
 /// Event related to the change in status of a License Document.
-struct Event {
-    /// Identifies the type of event.
-    var type: String // Type TODO
-    /// Name of the client, as provided by the client during an interaction.
-    var name: String
-    /// Identifies the client, as provided by the client during an interaction.
-    var id: String
-    /// Time and date when the event occurred.
-    var date: Date // Named timestamp in spec.
+public struct Event {
+    
+    public enum EventType: String {
+        // Signals a successful registration event by a device.
+        case register
+        // Signals a successful renew event.
+        case renew
+        // Signals a successful return event.
+        case `return`
+        // Signals a revocation event.
+        case revoke
+        // Signals a cancellation event.
+        case cancel
+    }
 
-    init(with json: JSON) throws {
-        guard let name = json["name"].string,
-            let dateData = json["timestamp"].string,
-            let type = json["type"].string,
-            let id = json["id"].string else
+    /// Identifies the type of event.
+    /// Note: we don't use an enum here in case a LSD server extends the event types.
+    public let type: String
+    /// Name of the client, as provided by the client during an interaction.
+    public let name: String
+    /// Identifies the client, as provided by the client during an interaction.
+    public let id: String
+    /// Time and date when the event occurred.
+    public let date: Date  // Named timestamp in spec.
+
+    init(json: [String: Any]) throws {
+        guard let type = json["type"] as? String,
+            let name = json["name"] as? String,
+            let id = json["id"] as? String,
+            let date = (json["timestamp"] as? String)?.dateFromISO8601 else
         {
-            throw ParsingError.json
+            throw ParsingError.event
         }
-        guard let date = dateData.dateFromISO8601 else {
-            throw ParsingError.date
-        }
+        
         self.type = type
         self.name = name
         self.id = id
         self.date = date
     }
-}
-
-/// Parses the Events.
-///
-/// - Parameter json: The JSON representing the Events.
-/// - Throws: LsdErrors.
-func parseEvents(_ json: JSON) throws -> [Event] {
-    guard let jsonEvents = json.array else {
-        return []
-    }
-    var events = [Event]()
-
-    for jsonEvent in jsonEvents {
-        let event = try Event.init(with: jsonEvent)
-
-        events.append(event)
-    }
-    return events
+    
 }
