@@ -11,7 +11,6 @@
 		AEF39DF320E3895200A560F3 /* UserProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF39DF220E3895200A560F3 /* UserProperties.swift */; };
 		CA40C07621FF1BA70069A50E /* MultilangStringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA40C07521FF1BA70069A50E /* MultilangStringTests.swift */; };
 		CA40C07A21FF25F80069A50E /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA40C07921FF25F80069A50E /* JSON.swift */; };
-		CA6161EF21FB257700D2CFE3 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D3F41F4EBE2100DF166D /* R2Shared.framework */; };
 		CA6161F721FB273B00D2CFE3 /* PublicationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6161F621FB273B00D2CFE3 /* PublicationTests.swift */; };
 		CA6161FE21FB47EB00D2CFE3 /* MetadataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6161FD21FB47EB00D2CFE3 /* MetadataTests.swift */; };
 		CA61620121FB586200D2CFE3 /* ContributorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA61620021FB586200D2CFE3 /* ContributorTests.swift */; };
@@ -20,6 +19,19 @@
 		CA61621521FB65E000D2CFE3 /* PropertiesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA61621421FB65E000D2CFE3 /* PropertiesTests.swift */; };
 		CA61621721FB6E8800D2CFE3 /* EncryptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA61621621FB6E8800D2CFE3 /* EncryptionTests.swift */; };
 		CA61621921FB71B300D2CFE3 /* RenditionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA61621821FB71B300D2CFE3 /* RenditionTests.swift */; };
+		CABEB3DC2215698600090B6C /* Deferred.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABEB3DB2215698600090B6C /* Deferred.swift */; };
+		CAD67D8F220E21BB00496BFF /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D87220E217600496BFF /* R2LCPClient.framework */; };
+		CAD67D90220E21BB00496BFF /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D83220E210F00496BFF /* ZIPFoundation.framework */; };
+		CAD67D91220E21BB00496BFF /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D85220E210F00496BFF /* CryptoSwift.framework */; };
+		CAD67D92220E21BB00496BFF /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D89220E219F00496BFF /* R2Shared.framework */; };
+		CAD67D93220E21BB00496BFF /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D8B220E219F00496BFF /* SQLite.framework */; };
+		CAD67D94220E21BB00496BFF /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D8D220E219F00496BFF /* SwiftyJSON.framework */; };
+		CAD67D95220E222000496BFF /* R2LCPClient.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D87220E217600496BFF /* R2LCPClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CAD67D96220E222000496BFF /* ZIPFoundation.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D83220E210F00496BFF /* ZIPFoundation.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CAD67D97220E222000496BFF /* CryptoSwift.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D85220E210F00496BFF /* CryptoSwift.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CAD67D98220E222000496BFF /* R2Shared.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D89220E219F00496BFF /* R2Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CAD67D99220E222000496BFF /* SQLite.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D8B220E219F00496BFF /* SQLite.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CAD67D9A220E222000496BFF /* SwiftyJSON.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D8D220E219F00496BFF /* SwiftyJSON.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F32314A21F8616C2000FCFB0 /* Drm.swift in Sources */ = {isa = PBXBuildFile; fileRef = F32314A11F8616C2000FCFB0 /* Drm.swift */; };
 		F34CB2891FC56CAD005E3A37 /* DrmLicense.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34CB2881FC56CAD005E3A37 /* DrmLicense.swift */; };
 		F3B187A01FA33D4D00BB46BF /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B1879F1FA33D4D00BB46BF /* Feed.swift */; };
@@ -64,6 +76,12 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				CAD67D95220E222000496BFF /* R2LCPClient.framework in Copy Frameworks */,
+				CAD67D96220E222000496BFF /* ZIPFoundation.framework in Copy Frameworks */,
+				CAD67D97220E222000496BFF /* CryptoSwift.framework in Copy Frameworks */,
+				CAD67D98220E222000496BFF /* R2Shared.framework in Copy Frameworks */,
+				CAD67D99220E222000496BFF /* SQLite.framework in Copy Frameworks */,
+				CAD67D9A220E222000496BFF /* SwiftyJSON.framework in Copy Frameworks */,
 			);
 			name = "Copy Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -85,6 +103,13 @@
 		CA61621421FB65E000D2CFE3 /* PropertiesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertiesTests.swift; sourceTree = "<group>"; };
 		CA61621621FB6E8800D2CFE3 /* EncryptionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncryptionTests.swift; sourceTree = "<group>"; };
 		CA61621821FB71B300D2CFE3 /* RenditionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenditionTests.swift; sourceTree = "<group>"; };
+		CABEB3DB2215698600090B6C /* Deferred.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Deferred.swift; sourceTree = "<group>"; };
+		CAD67D83220E210F00496BFF /* ZIPFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ZIPFoundation.framework; path = "../r2-lcp-swift/Carthage/Build/iOS/ZIPFoundation.framework"; sourceTree = "<group>"; };
+		CAD67D85220E210F00496BFF /* CryptoSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoSwift.framework; path = "../r2-lcp-swift/Carthage/Build/iOS/CryptoSwift.framework"; sourceTree = "<group>"; };
+		CAD67D87220E217600496BFF /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CAD67D89220E219F00496BFF /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = "../r2-lcp-swift/Carthage/Build/iOS/R2Shared.framework"; sourceTree = "<group>"; };
+		CAD67D8B220E219F00496BFF /* SQLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SQLite.framework; path = "../r2-lcp-swift/Carthage/Build/iOS/SQLite.framework"; sourceTree = "<group>"; };
+		CAD67D8D220E219F00496BFF /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = "../r2-lcp-swift/Carthage/Build/iOS/SwiftyJSON.framework"; sourceTree = "<group>"; };
 		F32314A11F8616C2000FCFB0 /* Drm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Drm.swift; sourceTree = "<group>"; };
 		F34CB2881FC56CAD005E3A37 /* DrmLicense.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrmLicense.swift; sourceTree = "<group>"; };
 		F3B1879F1FA33D4D00BB46BF /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
@@ -119,7 +144,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA6161EF21FB257700D2CFE3 /* R2Shared.framework in Frameworks */,
+				CAD67D8F220E21BB00496BFF /* R2LCPClient.framework in Frameworks */,
+				CAD67D90220E21BB00496BFF /* ZIPFoundation.framework in Frameworks */,
+				CAD67D91220E21BB00496BFF /* CryptoSwift.framework in Frameworks */,
+				CAD67D92220E21BB00496BFF /* R2Shared.framework in Frameworks */,
+				CAD67D93220E21BB00496BFF /* SQLite.framework in Frameworks */,
+				CAD67D94220E21BB00496BFF /* SwiftyJSON.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -136,6 +166,7 @@
 		57470F7F20ED0D25000CDCA3 /* Toolkit */ = {
 			isa = PBXGroup;
 			children = (
+				CABEB3DB2215698600090B6C /* Deferred.swift */,
 				57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */,
 			);
 			path = Toolkit;
@@ -287,6 +318,12 @@
 		F3E7D41F1F4ECA9800DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CAD67D87220E217600496BFF /* R2LCPClient.framework */,
+				CAD67D83220E210F00496BFF /* ZIPFoundation.framework */,
+				CAD67D85220E210F00496BFF /* CryptoSwift.framework */,
+				CAD67D89220E219F00496BFF /* R2Shared.framework */,
+				CAD67D8B220E219F00496BFF /* SQLite.framework */,
+				CAD67D8D220E219F00496BFF /* SwiftyJSON.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -363,7 +400,7 @@
 				TargetAttributes = {
 					CA6161E921FB257700D2CFE3 = {
 						CreatedOnToolsVersion = 9.4.1;
-						DevelopmentTeam = WN4T94RAPH;
+						DevelopmentTeam = 327YA3JNGT;
 						LastSwiftMigration = 0940;
 						ProvisioningStyle = Automatic;
 					};
@@ -441,6 +478,7 @@
 				AEF39DF320E3895200A560F3 /* UserProperties.swift in Sources */,
 				F3F41E181FA3377E00F97737 /* Price.swift in Sources */,
 				F3E7D4101F4EC69100DF166D /* Link.swift in Sources */,
+				CABEB3DC2215698600090B6C /* Deferred.swift in Sources */,
 				F34CB2891FC56CAD005E3A37 /* DrmLicense.swift in Sources */,
 				F3E7D4181F4EC69100DF166D /* Rendition.swift in Sources */,
 				F3E7D4121F4EC69100DF166D /* MediaOverlays.swift in Sources */,
@@ -480,14 +518,14 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = WN4T94RAPH;
+				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "r2-shared-swiftTests/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-shared-swiftTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -506,14 +544,14 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = WN4T94RAPH;
+				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "r2-shared-swiftTests/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-shared-swiftTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
