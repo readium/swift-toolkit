@@ -17,11 +17,18 @@ import R2Shared
 private let DEBUG = true
 
 
+/// To modify depending of the profiles supported by liblcp.a.
+private let supportedProfiles = [
+    "http://readium.org/lcp/basic-profile",
+    "http://readium.org/lcp/profile-1.0",
+]
+
+
 // Holds the License/Status Documents and the DRM context, once validated.
 struct ValidatedDocuments {
     let license: LicenseDocument
     let context: DRMContext
-    private let status: StatusDocument?
+    let status: StatusDocument?
     private let statusError: StatusError?
 
     init(_ license: LicenseDocument, _ context: DRMContext, _ status: StatusDocument? = nil, statusError: StatusError? = nil) {
@@ -31,16 +38,9 @@ struct ValidatedDocuments {
         self.statusError = statusError
     }
     
-    func getStatus() throws -> StatusDocument {
-        guard let status = status else {
-            throw LCPError.noStatusDocument
-        }
-        return status
-    }
-    
     func checkLicenseStatus() throws {
         if let statusError = statusError {
-            throw LCPError.status(statusError)
+            throw LCPError.licenseStatus(statusError)
         }
     }
 
@@ -54,7 +54,6 @@ struct ValidatedDocuments {
 final class LicenseValidation {
 
     // Dependencies for the State's handlers
-    fileprivate let supportedProfiles: [String]
     fileprivate let passphrases: PassphrasesService
     fileprivate let licenses: LicensesRepository
     fileprivate let device: DeviceService
@@ -77,8 +76,7 @@ final class LicenseValidation {
         }
     }
 
-    init(supportedProfiles: [String], passphrases: PassphrasesService, licenses: LicensesRepository, device: DeviceService, crl: CRLService, network: NetworkService, authentication: LCPAuthenticating?) {
-        self.supportedProfiles = supportedProfiles
+    init(passphrases: PassphrasesService, licenses: LicensesRepository, device: DeviceService, crl: CRLService, network: NetworkService, authentication: LCPAuthenticating?) {
         self.passphrases = passphrases
         self.licenses = licenses
         self.device = device
@@ -94,7 +92,7 @@ final class LicenseValidation {
     }
     
     /// Validates the given License or Status Document.
-    /// If a validation is already running, LCPError.busyLicense will be reported.
+    /// If a validation is already running, LCPError.licenseIsBusy will be reported.
     func validate(_ document: Document) -> Deferred<ValidatedDocuments> {
         return Deferred { completion in
             let event: Event
@@ -117,7 +115,7 @@ final class LicenseValidation {
                 throw error
                 
             default:
-                throw LCPError.busyLicense
+                throw LCPError.licenseIsBusy
             }
             
             self.observe(.once, completion)
@@ -218,7 +216,7 @@ extension LicenseValidation {
             case let (.fetchLicense(status), .retrievedLicenseData(data)):
                 self = .validateLicense(data, status)
             case let (.fetchLicense(_), .failed(error)):
-                self = .failure(error)
+                self = .failure(error) // FIXME: should be .done
                 
             // Re-validate a new Status Document (for example, after calling an LSD interaction
             case let (.done(documents), .retrievedStatus(status)):
@@ -294,7 +292,7 @@ extension LicenseValidation {
         // 1.b/ Check its profile identifier
         let profile = license.encryption.profile
         guard supportedProfiles.contains(profile) else {
-            throw LCPError.profileNotSupported
+            throw LCPError.licenseProfileNotSupported
         }
 
         try raise(.validatedLicense(license))
@@ -309,20 +307,12 @@ extension LicenseValidation {
     private func validateIntegrity(of license: LicenseDocument, with passphrase: String) {
         crl.retrieve()
             .map { pemCRL -> Event in
-                /// Check that current date is inside the [end - start] right's dates range.
-                // FIXME: Is this really useful? According to the spec this is already checked by the lcplib.a
-                let now = Date.init()
-                if let start = license.rights.start,
-                    !(now > start) {
-                    throw LCPError.invalidRights
+                do {
+                    let context = try createContext(jsonLicense: license.json, hashedPassphrase: passphrase, pemCrl: pemCRL)
+                    return .validatedIntegrity(context)
+                } catch {
+                    throw LCPError.licenseIntegrity(error)
                 }
-                if let end = license.rights.end,
-                    !(now < end) {
-                    throw LCPError.invalidRights
-                }
-
-                let context = try createContext(jsonLicense: license.json, hashedPassphrase: passphrase, pemCrl: pemCRL)
-                return .validatedIntegrity(context)
             }
             .resolve(raise)
     }
@@ -332,7 +322,7 @@ extension LicenseValidation {
         network.fetch(url)
             .map { status, data -> Event in
                 guard status == 200 else {
-                    throw LCPError.noStatusDocument
+                    throw LCPError.cancelled
                 }
                 
                 let document = try StatusDocument(data: data)
@@ -382,7 +372,7 @@ extension LicenseValidation {
         network.fetch(url)
             .map { status, data -> Event in
                 guard status == 200 else {
-                    throw LCPError.licenseFetching
+                    throw LCPError.cancelled
                 }
                 return .retrievedLicenseData(data)
             }

@@ -45,8 +45,14 @@ final class License {
         didSet {
             // Overwrites the License Document in the container if it was updated
             if let newLicense = documents?.license, containerLicenseData != newLicense.data {
-                if (DEBUG) { print("#license Write updated License Document in container") }
-                try? self.container.write(newLicense) // FIXME: should we report an error here?
+                do {
+                    try self.container.write(newLicense)
+                    containerLicenseData = newLicense.data
+                    if (DEBUG) { print("#license Wrote updated License Document in container") }
+                } catch {
+                    // FIXME: should we forward an error here?
+                    if (DEBUG) { print("#license Failed to write updated License Document in container: \(error)") }
+                }
             }
         }
     }
@@ -67,10 +73,8 @@ extension License {
             guard self.documents == nil else {
                 throw LCPError.runtime("\(type(of: self)): A License can only be opened once")
             }
-            guard let data = try? self.container.read() else {
-                throw LCPError.licenseNotInContainer  // FIXME: wrong error?
-            }
             
+            let data = try self.container.read()
             self.containerLicenseData = data
             
             return self.validation.validate(.license(data))
@@ -117,19 +121,22 @@ extension License {
 
     /// Calls a Status Document interaction from its `rel`.
     /// The Status Document will be updated with the one returned by the LSD server, after validation.
-    fileprivate func callLSDInteraction(_ rel: StatusDocument.Rel, errors: [Int: LCPError] = [:]) -> Deferred<Void> {
+    fileprivate func callLSDInteraction(_ rel: StatusDocument.Rel, errors: [Int: InteractionError] = [:]) -> Deferred<Void> {
         return Deferred {
             guard let documents = self.documents else {
                 throw LCPError.runtime("\(type(of: self)): Can't call an LSD interaction on a License pending validation")
             }
             
-            let status = try documents.getStatus()
-            let url = try status.url(for: rel, with: self.device.asQueryParameters)
+            guard let status = documents.status,
+                let url = try? status.url(for: rel, with: self.device.asQueryParameters) else
+            {
+                throw InteractionError.notAvailable
+            }
 
             return self.network.fetch(url, method: .put)
                 .map { status, data -> Data in
                     guard status == 200 else {
-                        throw errors[status] ?? LCPError.unexpectedServerError
+                        throw errors[status] ?? InteractionError.unexpectedServerError
                     }
     
                     return data
@@ -166,25 +173,22 @@ extension License: LCPLicense {
 
     public func renew(endDate: Date?, completion: @escaping (Error?) -> Void) {
         callLSDInteraction(.renew, errors: [
-            400: .renewFailure,
-            403: .renewPeriod,
+            400: .renewFailed,
+            403: .invalidRenewalPeriod,
         ]).resolve(completion)
     }
 
     public func `return`(completion: @escaping (Error?) -> Void){
         callLSDInteraction(.return, errors: [
-            400: .returnFailure,
-            403: .alreadyReturned,
+            400: .returnFailed,
+            403: .alreadyReturnedOrExpired,
         ])
         .resolve(completion)
         // FIXME: I expect the returned Status Document to have a "revoked" status, which will be returned to the caller as an error. Maybe we should catch this specific error and consider that it's actually a success?
     }
 
     public func currentStatus() -> String {
-        guard let documents = documents, let status = try? documents.getStatus() else {
-            return ""
-        }
-        return status.status.rawValue
+        return documents?.status?.status.rawValue ?? ""
     }
 
     public func lastUpdate() -> Date {
@@ -208,10 +212,7 @@ extension License: LCPLicense {
     }
 
     public func potentialRightsEnd() -> Date? {
-        guard let documents = documents, let status = try? documents.getStatus() else {
-            return nil
-        }
-        return status.potentialRights?.end
+        return documents?.status?.potentialRights?.end
     }
 
     public func rightsStart() -> Date? {

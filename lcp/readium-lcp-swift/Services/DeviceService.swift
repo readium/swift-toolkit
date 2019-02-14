@@ -55,12 +55,14 @@ final class DeviceService {
             guard let registered = try? self.repository.isDeviceRegistered(for: license), !registered else {
                 return .success(nil)
             }
-    
-            let url = try status.url(for: .register, with: self.asQueryParameters)
+            guard let url = try? status.url(for: .register, with: self.asQueryParameters) else {
+                throw InteractionError.notAvailable
+            }
+            
             return self.network.fetch(url, method: .post)
                 .map { status, data in
                     guard status == 200 else {
-                        throw LCPError.deviceRegistration
+                        throw InteractionError.registerFailed
                     }
                     try? self.repository.registerDevice(for: license)
                     return data

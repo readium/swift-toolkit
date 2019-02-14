@@ -22,7 +22,7 @@ final class LCPLLicenseContainer: LicenseContainer {
     
     func read() throws -> Data {
         guard let data = try? Data(contentsOf: lcpl) else {
-            throw LCPError.container
+            throw LCPError.licenseContainer
         }
         return data
     }
@@ -31,7 +31,7 @@ final class LCPLLicenseContainer: LicenseContainer {
         do {
             try license.data.write(to: lcpl, options: .atomic)
         } catch {
-            throw LCPError.container
+            throw LCPError.licenseContainer
         }
     }
 

@@ -29,11 +29,19 @@ final class CRLService {
     
     /// Retrieves the CRL either from the cache, or from EDRLab if the cache is outdated.
     func retrieve() -> Deferred<String> {
-        guard let (crl, date) = readLocal(), daysSince(date) < CRLService.expiration else {
-            return fetch()
+        if let (crl, date) = readLocal(), daysSince(date) >= CRLService.expiration {
+            return .success(crl)
         }
         
-        return .success(crl)
+        return fetch()
+            .map(saveLocal)
+            .catch { error in
+                // Fallback on the locally cached CRL if available
+                guard let (crl, _) = self.readLocal() else {
+                    throw error
+                }
+                return crl
+            }
     }
     
     /// Fetches the updated Certificate Revocation List from EDRLab.
@@ -45,11 +53,9 @@ final class CRLService {
                 guard status == 200 else {
                     throw LCPError.crlFetching
                 }
-                
-                let crl = "-----BEGIN X509 CRL-----\(data.base64EncodedString())-----END X509 CRL-----";
-                self.saveLocal(crl)
-                return crl
+                return "-----BEGIN X509 CRL-----\(data.base64EncodedString())-----END X509 CRL-----";
             }
+        
     }
     
     /// Reads the local CRL.
@@ -65,10 +71,11 @@ final class CRLService {
     }
     
     /// Caches the given CRL.
-    private func saveLocal(_ crl: String) {
+    private func saveLocal(_ crl: String) -> String {
         let defaults = UserDefaults.standard
         defaults.set(crl, forKey: CRLService.crlKey)
         defaults.set(Date(), forKey: CRLService.dateKey)
+        return crl
     }
     
     private func daysSince(_ date: Date) -> Int {

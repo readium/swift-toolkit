@@ -17,7 +17,6 @@ public enum StatusError: Error {
     case expired(Date)
     // If the license has been revoked, the user message should display the number of devices which registered to the server. This count can be calculated from the number of "register" events in the status document. If no event is logged in the status document, no such message should appear (certainly not "The license was registered by 0 devices").
     case revoked(Date, devicesCount: Int)
-    
 }
 
 extension StatusError: LocalizedError {

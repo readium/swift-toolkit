@@ -12,126 +12,65 @@
 import Foundation
 
 public enum LCPError: Error {
+    // The operation was cancelled by the user. It should be handled silently.
     case cancelled
-    case busyLicense
-    case runtime(String)
-    case unknown(Error?)
-    case network(Error?)
-    case invalidLink(rel: String)
-    case noStatusDocument
-    case deviceRegistration
-    case returnFailure
-    case alreadyReturned
-    case renewFailure
-    case renewPeriod
-    case unexpectedServerError
-    case container
-    case licenseNotInContainer
-    case invalidJSON
-    case invalidContext
+    
+    // The operation can't be done right now because another License operation is running.
+    case licenseIsBusy
+    // An error occured while checking the integrity of the License, it can't be retrieved.
+    case licenseIntegrity(Error)
+    // The status of the License is not valid, it can't be used to decrypt the publication.
+    case licenseStatus(StatusError)
+    // The License Status (LSD) interaction failed.
+    case licenseInteraction(InteractionError)
+    // Can't read or write the License Document from its container.
+    case licenseContainer
+    // This License's profile is not supported by liblcp.
+    case licenseProfileNotSupported
+    
+    // Failed to retrieve the Certificate Revocation List.
     case crlFetching
-    case licenseFetching
-    case profileNotSupported
-    case invalidRights
-    case status(StatusError)
-    case parsing(ParsingError)
 
-    internal static func wrap(_ error: Error) -> LCPError {
-        if let error = error as? LCPError {
-            return error
-        } else if let error = error as? StatusError {
-            return .status(error)
-        } else if let error = error as? ParsingError {
-            return .parsing(error)
-        }
-            
-        let nsError = error as NSError
-        switch nsError.domain {
-        case NSURLErrorDomain:
-            return .network(nsError)
-        default:
-            return .unknown(error)
-        }
-    }
-    
-    internal static func wrap<T>(_ completion: @escaping (T?, LCPError?) -> Void) -> (T?, Error?) -> Void {
-        return { value, error in
-            if let error = error {
-                completion(value, LCPError.wrap(error))
-            } else {
-                completion(value, nil)
-            }
-        }
-    }
-    
+    // Failed to parse information from the License or Status Documents.
+    case parsing(ParsingError)
+    // A network request failed with the given error.
+    case network(Error?)
+    // An unexpected LCP error occured. Please post an issue on r2-lcp-swift with the error message and how to reproduce it.
+    case runtime(String)
+    // An unknown low-level error was reported.
+    case unknown(Error?)
+
 }
 
 extension LCPError: LocalizedError {
     
     public var errorDescription: String? {
-        func localizedDescription(of error: Error?) -> String? {
-            if let error = error as? LocalizedError {
-                return error.errorDescription
-            } else if let error = error as NSError? {
-                return error.localizedDescription
-            }
-            return nil
-        }
-        
         switch self {
         case .cancelled:
-            return "Operation cancelled."
-        case .busyLicense:
-            return "Can't perform the LCP operation at the moment, this license is busy."
-        case .unknown(let error):
-            if let message = localizedDescription(of: error) {
-                return message
-            }
-            return "Unknown error."
-        case .invalidLink(rel: let rel):
-            return "The link \(rel) is not valid."
-        case .noStatusDocument:
-            return "Updating the license failed, there is no status document."
-        case .invalidRights:
-            return "The rights of this license aren't valid."
-        case .deviceRegistration:
-            return "The device could not be registered properly."
-        case .returnFailure:
-            return "Your publication could not be returned properly."
-        case .alreadyReturned:
-            return "Your publication has already been returned before."
-        case .renewFailure:
-            return "Your publication could not be renewed properly."
-        case .unexpectedServerError:
-            return "An unexpected error has occured."
-        case .container:
-            return "Can't access the License Document container."
-        case .licenseNotInContainer:
-            return "The License Document can't be found in the container."
-        case .invalidJSON:
-            return "The JSON license is not valid."
-        case .invalidContext:
-            return "The context provided is invalid."
+            return nil
+        case .licenseIsBusy:
+            return "Can't perform this operation at the moment."
+        case .licenseIntegrity(let error):
+            return error.localizedDescription
+        case .licenseStatus(let error):
+            return error.localizedDescription
+        case .licenseInteraction(let error):
+            return error.localizedDescription
+        case .licenseContainer:
+            return "Can't access the License Document."
+        case .licenseProfileNotSupported:
+            return "This License has a profile identifier that this app cannot handle, the publication cannot be processed."
         case .crlFetching:
-            return "Error while fetching the certificate revocation list."
-        case .licenseFetching:
-            return "Error while fetching the License Document."
-        case .renewPeriod:
-            return "Incorrect renewal period, your publication could not be renewed."
-        case .profileNotSupported:
-            return "This Readium LCP license has a profile identifier that this app cannot handle, the publication cannot be processed"
-        case .network(let error):
-            if let message = localizedDescription(of: error) {
-                return "Can't reach server: \(message)"
-            } else {
-                return "Network error."
-            }
-        case .runtime(let message):
-            return "LCP internal error: \(message)"
-        case .status(let error):
-            return error.errorDescription ?? "This license's status is invalid."
+            return "Can't retrieve the Certificate Revocation List."
         case .parsing(let error):
-            return error.errorDescription ?? "Failed to parse the Document."
+            return error.localizedDescription
+        case .network(let error):
+            return error?.localizedDescription ?? "Network error."
+        case .runtime(let error):
+            return error
+        case .unknown(let error):
+            return error?.localizedDescription
         }
     }
+    
 }

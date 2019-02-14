@@ -26,10 +26,10 @@ class ZIPLicenseContainer: LicenseContainer {
     
     func read() throws -> Data {
         guard let archive = Archive(url: zip, accessMode: .read) else  {
-            throw LCPError.container
+            throw LCPError.licenseContainer
         }
         guard let entry = archive[pathInZIP] else {
-            throw LCPError.licenseNotInContainer
+            throw LCPError.licenseContainer
         }
         
         var data = Data()
@@ -38,7 +38,7 @@ class ZIPLicenseContainer: LicenseContainer {
                 data.append(part)
             }
         } catch {
-            throw LCPError.container
+            throw LCPError.licenseContainer
         }
 
         return data
@@ -46,7 +46,7 @@ class ZIPLicenseContainer: LicenseContainer {
     
     func write(_ license: LicenseDocument) throws {
         guard let archive = Archive(url: zip, accessMode: .update) else  {
-            throw LCPError.container
+            throw LCPError.licenseContainer
         }
 
         do {
@@ -61,7 +61,7 @@ class ZIPLicenseContainer: LicenseContainer {
                 return data[position..<size]
             })
         } catch {
-            throw LCPError.container
+            throw LCPError.licenseContainer
         }
     }
     

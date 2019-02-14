@@ -99,7 +99,7 @@ public struct LicenseDocument {
     /// - Throws: `LCPError.invalidLink` if the URL can't be built.
     func url(for rel: Rel, with parameters: [String: CustomStringConvertible] = [:]) throws -> URL {
         guard let url = link(for: rel)?.url(with: parameters) else {
-            throw LCPError.invalidLink(rel: rel.rawValue)
+            throw ParsingError.url(rel: rel.rawValue)
         }
         
         return url

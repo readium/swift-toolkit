@@ -39,15 +39,7 @@ public struct LCPImportedPublication {
 
 /// LCP service factory.
 public func setupLCPService() -> LCPService {
-    /// To modify depending of the profile of the liblcp.a used
-    /// FIXME: Shouldn't the liblcp provide the supported profiles if it needs to be updated with it?
-    let supportedProfiles = [
-        "http://readium.org/lcp/basic-profile",
-        "http://readium.org/lcp/profile-1.0",
-    ]
-
     // Composition root
-    
     let db = Database.shared
     let network = NetworkService()
     let device = DeviceService(repository: db.licenses, network: network)
@@ -55,11 +47,9 @@ public func setupLCPService() -> LCPService {
     let passphrases = PassphrasesService(repository: db.transactions)
     
     func makeLicense(container: LicenseContainer, authentication: LCPAuthenticating?) -> License {
-        let validation = LicenseValidation(supportedProfiles: supportedProfiles, passphrases: passphrases, licenses: db.licenses, device: device, crl: crl, network: network, authentication: authentication)
+        let validation = LicenseValidation(passphrases: passphrases, licenses: db.licenses, device: device, crl: crl, network: network, authentication: authentication)
         return License(container: container, validation: validation, device: device, network: network)
     }
     
-    let licenses = LicensesService(makeLicense: makeLicense)
-    
-    return licenses
+    return LicensesService(makeLicense: makeLicense)
 }
