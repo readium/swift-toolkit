@@ -27,7 +27,7 @@ private let supportedProfiles = [
 protocol LicenseValidationDelegate: AnyObject {
     
     /// Called everytime we validate the integrity of a License Document.
-    /// - Parameter updated: Whether the validated License was updated from the Status Document
+    /// - Parameter updated: Whether this was the first License to be validated or not (eg. if we validate a newly fetched License Document)
     func didValidateIntegrity(of license: LicenseDocument, updated: Bool) throws
 
 }
@@ -279,21 +279,24 @@ extension LicenseValidation {
     
     private func validateIntegrity(of license: LicenseDocument, with passphrase: String) {
         crl.retrieve()
-            .map { pemCRL -> (LicenseDocument, DRMContext) in
-                let context: DRMContext
-                do {
-                    context = try createContext(jsonLicense: license.json, hashedPassphrase: passphrase, pemCrl: pemCRL)
-                } catch {
-                    throw LCPError.licenseIntegrity(error)
-                }
-                
+            .map { crl -> (LicenseDocument, DRMContext) in
+                let context = try createContext(jsonLicense: license.json, hashedPassphrase: passphrase, pemCrl: crl)
+
                 try self.didValidateIntegrity(of: license)
                 self.previousLicense = (license, context)
                 return (license, context)
             }
             .catch { error in
+                // Small hack to be able to save the license in the container when it is expired. Since it's considered as an integrity error by lcplib, we have to manually handle it.
+                // FIXME: If possible, lcplib should provide a way to test the integrity of a license without checking its rights.
+                if case LCPClientError.licenseOutOfDate = error {
+                    try self.didValidateIntegrity(of: license)
+                    self.previousLicense = nil  // Resets previous license to avoid the fallback in this case
+                }
+                
                 // Recovers the previously validated license to continue the workflow if the current license is compromised.
                 if let license = self.previousLicense {
+                    if (DEBUG) { print("#validation Recovers from compromised License Document using previous License") }
                     return license
                 }
                 throw error

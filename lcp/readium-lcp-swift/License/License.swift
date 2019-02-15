@@ -187,8 +187,14 @@ extension License: LCPLicense {
             400: .returnFailed,
             403: .alreadyReturnedOrExpired,
         ])
+        .catch { error in
+            // If the return is successful, then the validation will fail with a "returned" StatusError. We catch it as it should be considered a success.
+            guard case StatusError.returned = error else {
+                throw error
+            }
+            return ()
+        }
         .resolve(completion)
-        // FIXME: I expect the returned Status Document to have a "revoked" status, which will be returned to the caller as an error. Maybe we should catch this specific error and consider that it's actually a success?
     }
 
     public func currentStatus() -> String {

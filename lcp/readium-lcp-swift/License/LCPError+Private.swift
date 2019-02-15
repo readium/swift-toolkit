@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import R2LCPClient
 
 extension LCPError {
     
@@ -22,6 +23,8 @@ extension LCPError {
             return error
         } else if let error = error as? StatusError {
             return .licenseStatus(error)
+        } else if let error = error as? LCPClientError {
+            return .licenseIntegrity(error)
         } else if let error = error as? ParsingError {
             return .parsing(error)
         }
