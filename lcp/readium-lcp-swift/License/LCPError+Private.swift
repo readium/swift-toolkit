@@ -13,7 +13,11 @@ import Foundation
 
 extension LCPError {
     
-    static func wrap(_ error: Error) -> LCPError {
+    static func wrap(_ optionalError: Error?) -> LCPError {
+        guard let error = optionalError else {
+            return .unknown(nil)
+        }
+        
         if let error = error as? LCPError {
             return error
         } else if let error = error as? StatusError {

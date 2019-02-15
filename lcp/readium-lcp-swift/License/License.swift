@@ -20,46 +20,70 @@ private let DEBUG = true
 
 final class License {
 
+    // Result of the last validation.
+    private var state: State
+
     // Dependencies
     private let container: LicenseContainer
     private let validation: LicenseValidation
+    private let licenses: LicensesRepository
     private let device: DeviceService
     private let network: NetworkService
 
-    init(container: LicenseContainer, validation: LicenseValidation, device: DeviceService, network: NetworkService) {
+    init(container: LicenseContainer, validation: LicenseValidation, licenses: LicensesRepository, device: DeviceService, network: NetworkService) {
+        self.state = .invalid(.runtime("The License is pending validation"))
         self.container = container
         self.validation = validation
+        self.licenses = licenses
         self.device = device
         self.network = network
-        
-        // Updates the documents once the integrity is checked.
-        validation.observe { [weak self] documents, error in
-            if let documents = documents {
-                self?.documents = documents
-            }
-        }
-    }
 
-    // Last validated License and Status documents.
-    private var documents: ValidatedDocuments? {
-        didSet {
-            // Overwrites the License Document in the container if it was updated
-            if let newLicense = documents?.license, containerLicenseData != newLicense.data {
-                do {
-                    try self.container.write(newLicense)
-                    containerLicenseData = newLicense.data
-                    if (DEBUG) { print("#license Wrote updated License Document in container") }
-                } catch {
-                    // FIXME: should we forward an error here?
-                    if (DEBUG) { print("#license Failed to write updated License Document in container: \(error)") }
-                }
+        validation.delegate = self
+        validation.observe { [weak self] documents, error in
+            if let (license, context, status) = documents {
+                self?.state = .valid(license, context, status)
+            } else {
+                self?.state = .invalid(.wrap(error))
             }
         }
     }
     
-    // Used to check if we need to update the license in the container.
-    private var containerLicenseData: Data?
+    fileprivate enum State {
+        case valid(LicenseDocument, DRMContext, StatusDocument?)
+        case invalid(LCPError)
+        
+        /// Accesses the validated Documents and context, or throws the validation error.
+        func get() throws -> (license: LicenseDocument, context: DRMContext, status: StatusDocument?) {
+            switch self {
+            case let .valid(license, context, status):
+                return (license, context, status)
+            case let .invalid(error):
+                throw error
+            }
+        }
+    }
 
+}
+
+
+extension License: LicenseValidationDelegate {
+    
+    func didValidateIntegrity(of license: LicenseDocument, updated: Bool) throws {
+        // FIXME: Should we forward the errors here? This would block the validation.
+        
+        try? licenses.addOrUpdateLicense(license)
+        
+        // Updates the License Document in its container if it was updated.
+        if (updated) {
+            do {
+                try self.container.write(license)
+                if (DEBUG) { print("#license Wrote updated License Document in container") }
+            } catch {
+                if (DEBUG) { print("#license Failed to write updated License Document in container: \(error)") }
+            }
+        }
+    }
+    
 }
 
 
@@ -70,30 +94,16 @@ extension License {
     /// Returns itself to apply more transformations on the License.
     func evaluate() -> Deferred<License> {
         return Deferred {
-            guard self.documents == nil else {
-                throw LCPError.runtime("\(type(of: self)): A License can only be opened once")
-            }
-            
             let data = try self.container.read()
-            self.containerLicenseData = data
-            
             return self.validation.validate(.license(data))
-                .map { documents in
-                    // Forwards any status error (eg. revoked)
-                    try documents.checkLicenseStatus()
-                    
-                    return self
-                }
+                .map { _ in self }
         }
     }
     
     /// Downloads the publication and return the path to the downloaded resource.
     func fetchPublication() -> Deferred<(URL, URLSessionDownloadTask?)> {
         return Deferred {
-            guard let license = self.documents?.license else {
-                throw LCPError.runtime("\(type(of: self)): Can't fetch the publication of a License pending validation")
-            }
-            
+            let license = try self.state.get().license
             let title = license.link(for: .publication)?.title
             let url = try license.url(for: .publication)
 
@@ -123,11 +133,7 @@ extension License {
     /// The Status Document will be updated with the one returned by the LSD server, after validation.
     fileprivate func callLSDInteraction(_ rel: StatusDocument.Rel, errors: [Int: InteractionError] = [:]) -> Deferred<Void> {
         return Deferred {
-            guard let documents = self.documents else {
-                throw LCPError.runtime("\(type(of: self)): Can't call an LSD interaction on a License pending validation")
-            }
-            
-            guard let status = documents.status,
+            guard let status = try self.state.get().status,
                 let url = try? status.url(for: rel, with: self.device.asQueryParameters) else
             {
                 throw InteractionError.notAvailable
@@ -157,9 +163,7 @@ extension License: LCPLicense {
 
     /// Decipher encrypted content.
     public func decipher(_ data: Data) throws -> Data? {
-        guard let context = documents?.context else {
-            throw LCPError.runtime("\(type(of: self)): Can't decipher using a License pending validation")
-        }
+        let context = try state.get().context
         return decrypt(data: data, using: context)
     }
 
@@ -188,19 +192,23 @@ extension License: LCPLicense {
     }
 
     public func currentStatus() -> String {
-        return documents?.status?.status.rawValue ?? ""
+        let status = try? state.get().status
+        return status??.status.rawValue ?? ""
     }
 
     public func lastUpdate() -> Date {
-        return documents?.license.updated ?? Date(timeIntervalSinceReferenceDate: 0)
+        let license = try? state.get().license
+        return license?.updated ?? Date(timeIntervalSinceReferenceDate: 0)
     }
 
     public func issued() -> Date {
-        return documents?.license.issued ?? Date(timeIntervalSinceReferenceDate: 0)
+        let license = try? state.get().license
+        return license?.issued ?? Date(timeIntervalSinceReferenceDate: 0)
     }
 
     public func provider() -> URL {
-        guard let providerString = documents?.license.provider,
+        let license = try? state.get().license
+        guard let providerString = license?.provider,
             let provider = URL(string: providerString) else {
             return URL(fileURLWithPath: "/")
         }
@@ -208,27 +216,33 @@ extension License: LCPLicense {
     }
 
     public func rightsEnd() -> Date? {
-        return documents?.license.rights.end
+        let license = try? state.get().license
+        return license?.rights.end
     }
 
     public func potentialRightsEnd() -> Date? {
-        return documents?.status?.potentialRights?.end
+        let status = try? state.get().status
+        return status??.potentialRights?.end
     }
 
     public func rightsStart() -> Date? {
-        return documents?.license.rights.start
+        let license = try? state.get().license
+        return license?.rights.start
     }
 
     public func rightsPrints() -> Int? {
-        return documents?.license.rights.print
+        let license = try? state.get().license
+        return license?.rights.print
     }
 
     public func rightsCopies() -> Int? {
-        return documents?.license.rights.copy
+        let license = try? state.get().license
+        return license?.rights.copy
     }
 
     public var profile: String {
-        return documents?.license.encryption.profile ?? ""
+        let license = try? state.get().license
+        return license?.encryption.profile ?? ""
     }
     
 }

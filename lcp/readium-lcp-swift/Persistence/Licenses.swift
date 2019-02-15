@@ -25,8 +25,7 @@ class Licenses {
     let issued = Expression<Date>("issued")
     let updated = Expression<Date?>("updated")
     let end = Expression<Date?>("end")
-    let state = Expression<String?>("state")
-    
+
     let registered = Expression<Bool>("registered")
     
     init(_ connection: Connection) {
@@ -39,7 +38,7 @@ class Licenses {
             t.column(issued)
             t.column(updated)
             t.column(end)
-            t.column(state)
+//            t.column(state)
         })
         
         if 0 == connection.userVersion {
@@ -71,8 +70,7 @@ extension Licenses: LicensesRepository {
                 provider <- license.provider,
                 issued <- license.issued,
                 updated <- license.updated,
-                end <- license.rights.end,
-                state <- nil
+                end <- license.rights.end
             )
             try db.run(query)
 
@@ -85,14 +83,6 @@ extension Licenses: LicensesRepository {
             )
             try db.run(query)
         }
-    }
-    
-    func updateLicenseStatus(_ license: LicenseDocument, to status: StatusDocument) throws {
-        let db = Database.shared.connection
-        let query = licenses
-            .filter(id == license.id)
-            .update(state <- status.status.rawValue)
-        try db.run(query)
     }
 
 }

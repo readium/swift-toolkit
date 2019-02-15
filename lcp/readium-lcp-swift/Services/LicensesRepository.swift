@@ -14,6 +14,5 @@ import Foundation
 protocol LicensesRepository {
     
     func addOrUpdateLicense(_ license: LicenseDocument) throws
-    func updateLicenseStatus(_ license: LicenseDocument, to status: StatusDocument) throws
 
 }

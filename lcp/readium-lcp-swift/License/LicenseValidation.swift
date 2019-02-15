@@ -24,25 +24,11 @@ private let supportedProfiles = [
 ]
 
 
-// Holds the License/Status Documents and the DRM context, once validated.
-struct ValidatedDocuments {
-    let license: LicenseDocument
-    let context: DRMContext
-    let status: StatusDocument?
-    private let statusError: StatusError?
-
-    init(_ license: LicenseDocument, _ context: DRMContext, _ status: StatusDocument? = nil, statusError: StatusError? = nil) {
-        self.license = license
-        self.context = context
-        self.status = status
-        self.statusError = statusError
-    }
+protocol LicenseValidationDelegate: AnyObject {
     
-    func checkLicenseStatus() throws {
-        if let statusError = statusError {
-            throw LCPError.licenseStatus(statusError)
-        }
-    }
+    /// Called everytime we validate the integrity of a License Document.
+    /// - Parameter updated: Whether the validated License was updated from the Status Document
+    func didValidateIntegrity(of license: LicenseDocument, updated: Bool) throws
 
 }
 
@@ -53,21 +39,24 @@ struct ValidatedDocuments {
 /// Use `observe` to be notified when any validation is done or if an error occurs.
 final class LicenseValidation {
 
+    // Holds the License/Status Documents and the DRM context, once validated.
+    typealias ValidatedDocuments = (license: LicenseDocument, context: DRMContext, status: StatusDocument?)
+
     // Dependencies for the State's handlers
     fileprivate let passphrases: PassphrasesService
-    fileprivate let licenses: LicensesRepository
     fileprivate let device: DeviceService
     fileprivate let crl: CRLService
     fileprivate let network: NetworkService
     fileprivate weak var authentication: LCPAuthenticating?
 
-    // Last successfully validated documents used as a fallback when the newly fetched License Document fail to validate.
-    // This is used to be tolerant of the Status Document's failures.
-    fileprivate var fallbackDocuments: ValidatedDocuments?
+    // Last License and DRM context after a successful integrity check. Used as a fallback if the Status Document requires to update the License but the new one fails the integrity check.
+    fileprivate var previousLicense: (LicenseDocument, DRMContext)?
     
     // List of observers notified when the Documents are validated, or if an error occurred.
     fileprivate var observers: [(callback: Observer, policy: ObserverPolicy)] = []
     
+    weak var delegate: LicenseValidationDelegate?
+
     // Current state in the validation steps.
     private(set) var state: State = .start {
         didSet {
@@ -76,9 +65,8 @@ final class LicenseValidation {
         }
     }
 
-    init(passphrases: PassphrasesService, licenses: LicensesRepository, device: DeviceService, crl: CRLService, network: NetworkService, authentication: LCPAuthenticating?) {
+    init(passphrases: PassphrasesService, device: DeviceService, crl: CRLService, network: NetworkService, authentication: LCPAuthenticating?) {
         self.passphrases = passphrases
-        self.licenses = licenses
         self.device = device
         self.crl = crl
         self.network = network
@@ -97,20 +85,15 @@ final class LicenseValidation {
         return Deferred { completion in
             let event: Event
             switch (self.state, document) {
-            
-            // A Status Document can only be validated when the License validation is done.
-            case let (.done(documents), .status(data)):
-                guard let status = try? StatusDocument(data: data) else {
-                    // We ignore malformed Status Document
-                    completion(documents, nil)
-                    return
-                }
-                event = .retrievedStatus(status)
                 
             // A License Document can only be validated when opening intially the License, or when a Status Document requires a License update.
             case let (.start, .license(data)):
                 event = .retrievedLicenseData(data)
-                
+            
+            // A Status Document can only be validated when the License validation is done.
+            case let (.valid, .status(data)):
+                event = .retrievedStatusData(data)
+
             case let (.failure(error), _):
                 throw error
                 
@@ -142,12 +125,13 @@ extension LicenseValidation {
         case requestPassphrase(LicenseDocument, StatusDocument?)
         case validateIntegrity(LicenseDocument, StatusDocument?, passphrase: String)
         case fetchStatus(LicenseDocument, DRMContext)
-        case checkStatus(LicenseDocument, StatusDocument, DRMContext)
-        case registerDevice(LicenseDocument, StatusDocument, DRMContext)
-        case fetchLicense(StatusDocument)
+        case validateStatus(LicenseDocument, DRMContext, Data)
+        case fetchLicense(LicenseDocument, DRMContext, StatusDocument)
+        case checkLicenseStatus(LicenseDocument, DRMContext, StatusDocument)
+        case registerDevice(LicenseDocument, DRMContext, StatusDocument)
 
         // Final states
-        case done(ValidatedDocuments)
+        case valid(LicenseDocument, DRMContext, StatusDocument?)
         case failure(Error)
         
         /// Transitions the State when an Event is raised.
@@ -173,54 +157,61 @@ extension LicenseValidation {
                 self = .failure(error)
 
             // 3/ Validate the license integrity
-            case let (.validateIntegrity(license, status, _), .validatedIntegrity(context)):
+            case let (.validateIntegrity(_, status, _), .validatedIntegrity(license, context)):
                 // If we already have a Status Document, we skip the re-fetching to avoid any risk of infinite loop
                 if let status = status {
-                    self = .registerDevice(license, status, context)
+                    self = .checkLicenseStatus(license, context, status)
                 } else {
                     self = .fetchStatus(license, context)
                 }
             case let (.validateIntegrity(_, _, _), .failed(error)):
                 self = .failure(error)
 
-            // 4/ Check the license status
-
-            // 4.1/ Fetch the status document + 4.2/ Validate the structure of the status document
-            case let (.fetchStatus(license, context), .retrievedStatus(status)):
-                self = .checkStatus(license, status, context)
+            // 4.1/ Fetch the status document
+            case let (.fetchStatus(license, context), .retrievedStatusData(data)):
+                self = .validateStatus(license, context, data)
             case let (.fetchStatus(license, context), .failed(_)):
                 // We ignore any error while fetching the Status Document, as it is optional
-                self = .done(ValidatedDocuments(license, context))
-
-            // 4.3/ Check that the status is "ready" or "active".
-            case let (.checkStatus(license, status, context), .checkedStatus(error)):
-                if let error = error {
-                    self = .done(ValidatedDocuments(license, context, status, statusError: error))
-                } else {
-                    self = .registerDevice(license, status, context)
-                }
-
-            // 5/ Register the device / license
-            case let (.registerDevice(license, status, context), .registeredDevice),
-                 let (.registerDevice(license, status, context), .failed(_)):  // Failures when registrating the device are ignored
+                self = .valid(license, context, nil)
+                
+            // 4.2/ Validate the structure of the status document
+            case let (.validateStatus(license, context, _), .validatedStatus(status)):
                 // Fetches the License Document if it was updated
                 if license.updated < status.licenseUpdated {
-                    self = .fetchLicense(status)
+                    self = .fetchLicense(license, context, status)
                 } else {
-                    self = .done(ValidatedDocuments(license, context, status))
+                    self = .checkLicenseStatus(license, context, status)
                 }
-            case let (.registerDevice(license, _, context), .retrievedStatus(status)):
-                self = .checkStatus(license, status, context)
+            case let (.validateStatus(license, context, _), .failed(_)):
+                // We ignore any error while validating the Status Document, as it is optional
+                self = .valid(license, context, nil)
 
-            // 6/ Get an updated license if needed
-            case let (.fetchLicense(status), .retrievedLicenseData(data)):
+            // 5/ Get an updated license if needed
+            case let (.fetchLicense(_, _, status), .retrievedLicenseData(data)):
                 self = .validateLicense(data, status)
-            case let (.fetchLicense(_), .failed(error)):
-                self = .failure(error) // FIXME: should be .done
-                
+            case let (.fetchLicense(license, context, status), .failed(_)):
+                // Failures when updating the license are ignored
+                self = .checkLicenseStatus(license, context, status)
+
+            // 6/ Check the license status
+            case let (.checkLicenseStatus(license, context, status), .checkedLicenseStatus):
+                self = .registerDevice(license, context, status)
+            case let (.checkLicenseStatus(_, _, _), .failed(error)):
+                self = .failure(error)
+
+            // 7/ Register the device / license
+            case let (.registerDevice(license, context, status), .registeredDevice(statusData)):
+                if let statusData = statusData {
+                    self = .validateStatus(license, context, statusData)
+                } else {
+                    self = .valid(license, context, status)
+                }
+            case let (.registerDevice(license, context, status), .failed(_)):  // Failures when registrating the device are ignored
+                self = .valid(license, context, status)
+
             // Re-validate a new Status Document (for example, after calling an LSD interaction
-            case let (.done(documents), .retrievedStatus(status)):
-                self = .checkStatus(documents.license, status, documents.context)
+            case let (.valid(license, context, _), .retrievedStatusData(data)):
+                self = .validateStatus(license, context, data)
 
             default:
                 throw LCPError.runtime("\(type(of: self)): Unexpected event \(event) for state \(self)")
@@ -235,14 +226,16 @@ extension LicenseValidation {
         case validatedLicense(LicenseDocument)
         // Raised when we retrieved the passphrase from the local database, or from prompting the user.
         case retrievedPassphrase(String)
-        // Raised after validating the integrity of the License using liblcp.a
-        case validatedIntegrity(DRMContext)
+        // Raised after validating the integrity of the License using liblcp.a. If it fails, then the previously validated License is returned.
+        case validatedIntegrity(LicenseDocument, DRMContext)
         // Raised after fetching the Status Document, or receiving it as a response of an LSD interaction.
-        case retrievedStatus(StatusDocument)
-        // Raised after the License's status was checked, with any status error.
-        case checkedStatus(StatusError?)
-        // Raised when the device got registered.
-        case registeredDevice
+        case retrievedStatusData(Data)
+        // Raised after parsing and validating a Status Document's data.
+        case validatedStatus(StatusDocument)
+        // Raised after the License's status was successfully checked.
+        case checkedLicenseStatus
+        // Raised when the device is registered, with an optional updated Status Document.
+        case registeredDevice(Data?)
         // Raised when any error occurs during the validation workflow.
         case failed(Error)
     }
@@ -254,29 +247,9 @@ extension LicenseValidation {
             throw LCPError.runtime("\(type(of: self)): To be safe, events must only be raised from the main thread")
         }
         
-        try willRaise(event)
         try state.transition(event)
     }
 
-    fileprivate func willRaise(_ event: Event) throws {
-        // FIXME: A few dirty side-effects, it should probably be refactored somewhere else... External event handlers maybe?
-        switch (state, event) {
-            
-        case (.validateIntegrity(let license, _, _), .validatedIntegrity(_)):
-            // Saves the license in the local database once we validated its integrity
-            try licenses.addOrUpdateLicense(license)
-
-        case let (.checkStatus(license, status, context), .checkedStatus(error)):
-            // Updates the license's state in the local database
-            try? licenses.updateLicenseStatus(license, to: status)
-            // Saves the now-validated License Document as a fallback, in case we update the License later and it fails structure and integrity validation
-            fallbackDocuments = ValidatedDocuments(license, context, status, statusError: error)
-            
-        default:
-            break
-        }
-    }
-    
 }
 
 
@@ -306,15 +279,33 @@ extension LicenseValidation {
     
     private func validateIntegrity(of license: LicenseDocument, with passphrase: String) {
         crl.retrieve()
-            .map { pemCRL -> Event in
+            .map { pemCRL -> (LicenseDocument, DRMContext) in
+                let context: DRMContext
                 do {
-                    let context = try createContext(jsonLicense: license.json, hashedPassphrase: passphrase, pemCrl: pemCRL)
-                    return .validatedIntegrity(context)
+                    context = try createContext(jsonLicense: license.json, hashedPassphrase: passphrase, pemCrl: pemCRL)
                 } catch {
                     throw LCPError.licenseIntegrity(error)
                 }
+                
+                try self.didValidateIntegrity(of: license)
+                self.previousLicense = (license, context)
+                return (license, context)
             }
+            .catch { error in
+                // Recovers the previously validated license to continue the workflow if the current license is compromised.
+                if let license = self.previousLicense {
+                    return license
+                }
+                throw error
+            }
+            .map { .validatedIntegrity($0, $1) }
             .resolve(raise)
+    }
+    
+    private func didValidateIntegrity(of license: LicenseDocument) throws {
+        // If this is not the first validated license, it means we updated it from the Status Document.
+        let updated = (previousLicense != nil)
+        try delegate?.didValidateIntegrity(of: license, updated: updated)
     }
     
     private func fetchStatus(of license: LicenseDocument) throws {
@@ -325,48 +316,16 @@ extension LicenseValidation {
                     throw LCPError.cancelled
                 }
                 
-                let document = try StatusDocument(data: data)
-                return .retrievedStatus(document)
+                return .retrievedStatusData(data)
             }
             .resolve(raise)
     }
     
-    private func checkStatus(_ status: StatusDocument) throws {
-        // Checks the status according to 4.3/ in the specification.
-        let date = status.updated
+    private func validateStatus(data: Data) throws {
+        let status = try StatusDocument(data: data)
+        try raise(.validatedStatus(status))
+    }
 
-        let error: StatusError?
-        switch status.status {
-        case .ready, .active:
-            error = nil
-        case .returned:
-            error = .returned(date)
-        case .expired:
-            error = .expired(date)
-        case .revoked:
-            let devicesCount = status.events(for: .register).count
-            error = .revoked(date, devicesCount: devicesCount)
-        case .cancelled:
-            error = .cancelled(date)
-        }
-        
-        try raise(.checkedStatus(error))
-    }
-    
-    private func registerDevice(for license: LicenseDocument, using status: StatusDocument) {
-        device.registerLicense(license, using: status)
-            .map { statusData -> Event in
-                // If no status data is provided, it means the device was already registered.
-                guard let statusData = statusData else {
-                    return .registeredDevice
-                }
-                
-                let status = try StatusDocument(data: statusData)
-                return .retrievedStatus(status)
-            }
-            .resolve(raise)
-    }
-    
     private func fetchLicense(from status: StatusDocument) throws {
         let url = try status.url(for: .license)
         network.fetch(url)
@@ -376,6 +335,31 @@ extension LicenseValidation {
                 }
                 return .retrievedLicenseData(data)
             }
+            .resolve(raise)
+    }
+    
+    private func checkLicenseStatus(_ status: StatusDocument) throws {
+        // Checks the status according to 4.3/ in the specification.
+        let date = status.updated
+        
+        switch status.status {
+        case .ready, .active:
+            try raise(.checkedLicenseStatus)
+        case .returned:
+            throw StatusError.returned(date)
+        case .expired:
+            throw StatusError.expired(date)
+        case .revoked:
+            let devicesCount = status.events(for: .register).count
+            throw StatusError.revoked(date, devicesCount: devicesCount)
+        case .cancelled:
+            throw StatusError.cancelled(date)
+        }
+    }
+    
+    private func registerDevice(for license: LicenseDocument, using status: StatusDocument) {
+        device.registerLicense(license, using: status)
+            .map { data in .registeredDevice(data) }
             .resolve(raise)
     }
 
@@ -393,17 +377,18 @@ extension LicenseValidation {
                 validateIntegrity(of: license, with: passphrase)
             case let .fetchStatus(license, _):
                 try fetchStatus(of: license)
-            case let .checkStatus(_, status, _):
-                try checkStatus(status)
-            case let .registerDevice(license, status, _):
-                registerDevice(for: license, using: status)
-            case let .fetchLicense(status):
+            case let .validateStatus(_, _, data):
+                try validateStatus(data: data)
+            case let .fetchLicense(_, _, status):
                 try fetchLicense(from: status)
-            case let .done(documents):
-                notifyObservers(documents: documents, error: nil)
+            case let .checkLicenseStatus(_, _, status):
+                try checkLicenseStatus(status)
+            case let .registerDevice(license, _, status):
+                registerDevice(for: license, using: status)
+            case let .valid(license, context, status):
+                notifyObservers(documents: (license, context, status), error: nil)
             case let .failure(error):
-                let error = (fallbackDocuments == nil) ? error : nil
-                notifyObservers(documents: fallbackDocuments, error: error)
+                notifyObservers(documents: nil, error: error)
             }
         } catch {
             try? raise(.failed(error))
