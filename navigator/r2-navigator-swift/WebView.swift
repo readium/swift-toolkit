@@ -120,11 +120,11 @@ final class WebView: WKWebView {
     
     var sizeObservation: NSKeyValueObservation?
 
-    init(frame: CGRect, initialLocation: BinaryLocation, pageTransition: PageTransition = .none) {
+    init(frame: CGRect, initialLocation: BinaryLocation, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false) {
         self.initialLocation = initialLocation
         self.pageTransition = pageTransition
         super.init(frame: frame, configuration: .init())
-
+        if disableDragAndDrop { disableDragAndDropInteraction() }
         isOpaque = false
         backgroundColor = UIColor.clear
         scrollView.backgroundColor = UIColor.clear
@@ -457,5 +457,13 @@ private extension WebView {
         view.startAnimating()
         activityIndicatorView = view
     }
+    
+    func disableDragAndDropInteraction() {
+        if #available(iOS 11.0, *) {
+            guard let webScrollView = subviews.compactMap( { $0 as? UIScrollView }).first,
+                let contentView = webScrollView.subviews.first(where: { $0.interactions.count > 1 }),
+                let dragInteraction = contentView.interactions.compactMap({ $0 as? UIDragInteraction }).first else { return }
+            contentView.removeInteraction(dragInteraction)
+        }
+    }
 }
-
