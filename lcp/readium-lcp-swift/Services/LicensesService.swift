@@ -12,18 +12,57 @@
 import Foundation
 import R2Shared
 
+private let DEBUG = true
+
+
 final class LicensesService {
     
-    typealias LicenseFactory = (LicenseContainer, LCPAuthenticating?) -> License
+    private let licenses: LicensesRepository
+    private let crl: CRLService
+    private let device: DeviceService
+    private let network: NetworkService
+    private let passphrases: PassphrasesService
 
-    private let makeLicense: LicenseFactory
-
-    init(makeLicense: @escaping LicenseFactory) {
-        self.makeLicense = makeLicense
+    init(licenses: LicensesRepository, crl: CRLService, device: DeviceService, network: NetworkService, passphrases: PassphrasesService) {
+        self.licenses = licenses
+        self.crl = crl
+        self.device = device
+        self.network = network
+        self.passphrases = passphrases
     }
 
     fileprivate func retrieveLicense(from container: LicenseContainer, authentication: LCPAuthenticating?) -> Deferred<License> {
-        return makeLicense(container, authentication).evaluate()
+        return Deferred {
+            let initialData = try container.read()
+            
+            func onValidateIntegrity(of license: LicenseDocument) throws {
+                // FIXME: Should we do something with the errors here?
+                
+                try? self.licenses.addOrUpdateLicense(license)
+                
+                // Updates the License in the container if needed
+                if license.data != initialData {
+                    do {
+                        try container.write(license)
+                        if (DEBUG) { print("#license Wrote updated License Document in container") }
+                    } catch {
+                        if (DEBUG) { print("#license Failed to write updated License Document in container: \(error)") }
+                    }
+                }
+            }
+            
+            let validation = LicenseValidation(authentication: authentication, crl: self.crl, device: self.device, network: self.network, passphrases: self.passphrases, onValidateIntegrity: onValidateIntegrity)
+
+            return validation.validate(.license(initialData))
+                .map { documents in
+                    // Check the license status error if there's any
+                    // Note: Right now we don't want to return a License if it fails the Status check, that's why we attempt to get the DRM context. But it could change if we want to access, for example, the License metadata or perform an LSD interaction, but without being able to decrypt the book. In which case, we could remove this line.
+                    // Note2: The License already gets in this state when we perform a `return` successfully. We can't decrypt anymore but we still have access to the License Documents and LSD interactions.
+                    _ = try documents.getContext()
+                    
+                    return License(documents: documents, validation: validation, licenses: self.licenses, device: self.device, network: self.network)
+                }
+        }
     }
 
 }

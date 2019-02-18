@@ -20,90 +20,39 @@ private let DEBUG = true
 
 final class License {
 
-    // Result of the last validation.
-    private var state: State
+    // Last Documents which passed the integrity checks.
+    private var documents: ValidatedDocuments
 
     // Dependencies
-    private let container: LicenseContainer
     private let validation: LicenseValidation
     private let licenses: LicensesRepository
     private let device: DeviceService
     private let network: NetworkService
 
-    init(container: LicenseContainer, validation: LicenseValidation, licenses: LicensesRepository, device: DeviceService, network: NetworkService) {
-        self.state = .invalid(.runtime("The License is pending validation"))
-        self.container = container
+    init(documents: ValidatedDocuments, validation: LicenseValidation, licenses: LicensesRepository, device: DeviceService, network: NetworkService) {
+        self.documents = documents
         self.validation = validation
         self.licenses = licenses
         self.device = device
         self.network = network
 
-        validation.delegate = self
         validation.observe { [weak self] documents, error in
-            if let (license, context, status) = documents {
-                self?.state = .valid(license, context, status)
-            } else {
-                self?.state = .invalid(.wrap(error))
-            }
-        }
-    }
-    
-    fileprivate enum State {
-        case valid(LicenseDocument, DRMContext, StatusDocument?)
-        case invalid(LCPError)
-        
-        /// Accesses the validated Documents and context, or throws the validation error.
-        func get() throws -> (license: LicenseDocument, context: DRMContext, status: StatusDocument?) {
-            switch self {
-            case let .valid(license, context, status):
-                return (license, context, status)
-            case let .invalid(error):
-                throw error
+            if let documents = documents {
+                self?.documents = documents
             }
         }
     }
 
-}
-
-
-extension License: LicenseValidationDelegate {
-    
-    func didValidateIntegrity(of license: LicenseDocument, updated: Bool) throws {
-        // FIXME: Should we forward the errors here? This would block the validation.
-        
-        try? licenses.addOrUpdateLicense(license)
-        
-        // Updates the License Document in its container if it was updated.
-        if (updated) {
-            do {
-                try self.container.write(license)
-                if (DEBUG) { print("#license Wrote updated License Document in container") }
-            } catch {
-                if (DEBUG) { print("#license Failed to write updated License Document in container: \(error)") }
-            }
-        }
-    }
-    
 }
 
 
 /// License activies
 extension License {
-    
-    /// Reads and validates the License Document in the container.
-    /// Returns itself to apply more transformations on the License.
-    func evaluate() -> Deferred<License> {
-        return Deferred {
-            let data = try self.container.read()
-            return self.validation.validate(.license(data))
-                .map { _ in self }
-        }
-    }
-    
+
     /// Downloads the publication and return the path to the downloaded resource.
     func fetchPublication() -> Deferred<(URL, URLSessionDownloadTask?)> {
         return Deferred {
-            let license = try self.state.get().license
+            let license = self.documents.license
             let title = license.link(for: .publication)?.title
             let url = try license.url(for: .publication)
 
@@ -131,20 +80,17 @@ extension License {
 
     /// Calls a Status Document interaction from its `rel`.
     /// The Status Document will be updated with the one returned by the LSD server, after validation.
-    fileprivate func callLSDInteraction(_ rel: StatusDocument.Rel, errors: [Int: InteractionError] = [:]) -> Deferred<Void> {
+    fileprivate func callLSDInteraction(_ rel: StatusDocument.Rel, check: @escaping (Int) throws -> Void) -> Deferred<Void> {
         return Deferred {
-            guard let status = try self.state.get().status,
+            guard let status = self.documents.status,
                 let url = try? status.url(for: rel, with: self.device.asQueryParameters) else
             {
-                throw InteractionError.notAvailable
+                throw LCPError.licenseInteractionNotAvailable
             }
 
             return self.network.fetch(url, method: .put)
                 .map { status, data -> Data in
-                    guard status == 200 else {
-                        throw errors[status] ?? InteractionError.unexpectedServerError
-                    }
-    
+                    try check(status)
                     return data
                 }
                 .flatMap { data in
@@ -161,94 +107,110 @@ extension License {
 /// Public API
 extension License: LCPLicense {
 
-    /// Decipher encrypted content.
+    public var license: LicenseDocument {
+        return documents.license
+    }
+    
+    public var status: StatusDocument? {
+        return documents.status
+    }
+    
+    public var encryptionProfile: String? {
+        return license.encryption.profile
+    }
+    
     public func decipher(_ data: Data) throws -> Data? {
-        let context = try state.get().context
+        let context = try documents.getContext()
         return decrypt(data: data, using: context)
     }
 
-    public func areRightsValid() throws {
-        // FIXME: to remove? this is done in the License Integrity check per the specification
-    }
-
-    public func register() {
-        // FIXME: to remove? this is a DRM-specific concern and shouldn't leak into the client app
-    }
-
-    public func renew(endDate: Date?, completion: @escaping (Error?) -> Void) {
-        callLSDInteraction(.renew, errors: [
-            400: .renewFailed,
-            403: .invalidRenewalPeriod,
-        ]).resolve(completion)
-    }
-
-    public func `return`(completion: @escaping (Error?) -> Void){
-        callLSDInteraction(.return, errors: [
-            400: .returnFailed,
-            403: .alreadyReturnedOrExpired,
-        ])
-        .catch { error in
-            // If the return is successful, then the validation will fail with a "returned" StatusError. We catch it as it should be considered a success.
-            guard case StatusError.returned = error else {
-                throw error
-            }
-            return ()
-        }
-        .resolve(completion)
-    }
-
-    public func currentStatus() -> String {
-        let status = try? state.get().status
-        return status??.status.rawValue ?? ""
-    }
-
-    public func lastUpdate() -> Date {
-        let license = try? state.get().license
-        return license?.updated ?? Date(timeIntervalSinceReferenceDate: 0)
-    }
-
-    public func issued() -> Date {
-        let license = try? state.get().license
-        return license?.issued ?? Date(timeIntervalSinceReferenceDate: 0)
-    }
-
-    public func provider() -> URL {
-        let license = try? state.get().license
-        guard let providerString = license?.provider,
-            let provider = URL(string: providerString) else {
-            return URL(fileURLWithPath: "/")
-        }
-        return provider
-    }
-
-    public func rightsEnd() -> Date? {
-        let license = try? state.get().license
-        return license?.rights.end
-    }
-
-    public func potentialRightsEnd() -> Date? {
-        let status = try? state.get().status
-        return status??.potentialRights?.end
-    }
-
-    public func rightsStart() -> Date? {
-        let license = try? state.get().license
-        return license?.rights.start
-    }
-
-    public func rightsPrints() -> Int? {
-        let license = try? state.get().license
-        return license?.rights.print
-    }
-
-    public func rightsCopies() -> Int? {
-        let license = try? state.get().license
-        return license?.rights.copy
-    }
-
-    public var profile: String {
-        let license = try? state.get().license
-        return license?.encryption.profile ?? ""
+    public var rights: DrmRights? {
+        return self
     }
     
+    public var loan: DrmLoan? {
+        return self
+    }
+
+}
+
+
+/// Rights API
+extension License: DrmRights {
+    
+    func can(_ right: DrmRight) -> Bool {
+        switch right {
+        case .display:
+            let now = Date()
+            let start = license.rights.start ?? now
+            let end = license.rights.end ?? now
+            return start <= now && now <= end
+        default:
+            return true
+        }
+    }
+    
+    func remainingQuantity(for right: DrmConsumableRight) -> DrmRightQuantity {
+        // FIXME: TODO using database
+        return .unlimited
+    }
+    
+    func consume(_ right: DrmConsumableRight, quantity: DrmRightQuantity?) throws {
+        // FIXME: TODO
+    }
+
+}
+
+
+/// Loan API
+extension License: DrmLoan {
+    
+    var canReturnLicense: Bool {
+        return status?.link(for: .return) != nil
+    }
+    
+    func returnLicense(completion: @escaping (Error?) -> Void) {
+        func check(status: Int) throws {
+            switch status {
+            case 200:
+                return
+            case 400:
+                throw DrmReturnError.returnFailed(message: nil)
+            case 403:
+                throw DrmReturnError.alreadyReturnedOrExpired
+            default:
+                throw DrmReturnError.unexpectedServerError(nil)
+            }
+        }
+        
+        callLSDInteraction(.return, check: check)
+            .resolve(completion)
+    }
+    
+    var maxRenewDate: Date? {
+        return status?.potentialRights?.end
+    }
+    
+    var canRenewLicense: Bool {
+        return status?.link(for: .renew) != nil
+    }
+    
+    func renewLicense(to end: Date?, completion: @escaping (Error?) -> Void) {
+        func check(status: Int) throws {
+            switch status {
+            case 200:
+                return
+            case 400:
+                throw DrmRenewError.renewFailed(message: nil)
+            case 403:
+                throw DrmRenewError.invalidRenewalPeriod(maxRenewDate: maxRenewDate)
+            default:
+                throw DrmRenewError.unexpectedServerError(nil)
+            }
+        }
+        
+        callLSDInteraction(.renew, check: check)
+            .resolve(completion)
+    }
+
 }

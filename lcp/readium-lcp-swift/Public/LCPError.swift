@@ -21,10 +21,10 @@ public enum LCPError: Error {
     case licenseIntegrity(Error)
     // The status of the License is not valid, it can't be used to decrypt the publication.
     case licenseStatus(StatusError)
-    // The License Status (LSD) interaction failed.
-    case licenseInteraction(InteractionError)
     // Can't read or write the License Document from its container.
     case licenseContainer
+    // The interaction is not available with this License.
+    case licenseInteractionNotAvailable
     // This License's profile is not supported by liblcp.
     case licenseProfileNotSupported
     
@@ -54,10 +54,10 @@ extension LCPError: LocalizedError {
             return error.localizedDescription
         case .licenseStatus(let error):
             return error.localizedDescription
-        case .licenseInteraction(let error):
-            return error.localizedDescription
         case .licenseContainer:
             return "Can't access the License Document."
+        case .licenseInteractionNotAvailable:
+            return "This interaction is not available."
         case .licenseProfileNotSupported:
             return "This License has a profile identifier that this app cannot handle, the publication cannot be processed."
         case .crlFetching:

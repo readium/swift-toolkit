@@ -21,7 +21,6 @@
 		CAB57BC12204811100E4CB12 /* LicensesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB57BC02204811100E4CB12 /* LicensesService.swift */; };
 		CABEB3DE2215713F00090B6C /* StatusError.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABEB3DD2215713F00090B6C /* StatusError.swift */; };
 		CABEB3E32215756D00090B6C /* Links.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABEB3E22215756D00090B6C /* Links.swift */; };
-		CABEB3F42215C18800090B6C /* InteractionError.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABEB3F32215C18800090B6C /* InteractionError.swift */; };
 		CABEB3F62215C86C00090B6C /* LCPError+Private.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABEB3F52215C86C00090B6C /* LCPError+Private.swift */; };
 		CAE7FB7A220C2E6F00D03587 /* LicenseValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE7FB79220C2E6F00D03587 /* LicenseValidation.swift */; };
 		CAE7FB7C220C4B7700D03587 /* DeviceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE7FB7B220C4B7700D03587 /* DeviceService.swift */; };
@@ -62,7 +61,6 @@
 		CAB57BC02204811100E4CB12 /* LicensesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensesService.swift; sourceTree = "<group>"; };
 		CABEB3DD2215713F00090B6C /* StatusError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusError.swift; sourceTree = "<group>"; };
 		CABEB3E22215756D00090B6C /* Links.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Links.swift; sourceTree = "<group>"; };
-		CABEB3F32215C18800090B6C /* InteractionError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionError.swift; sourceTree = "<group>"; };
 		CABEB3F52215C86C00090B6C /* LCPError+Private.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LCPError+Private.swift"; sourceTree = "<group>"; };
 		CAE7FB79220C2E6F00D03587 /* LicenseValidation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseValidation.swift; sourceTree = "<group>"; };
 		CAE7FB7B220C4B7700D03587 /* DeviceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceService.swift; sourceTree = "<group>"; };
@@ -124,7 +122,6 @@
 				F35AFA001F6AD54400D3F670 /* License.swift */,
 				CAE7FB79220C2E6F00D03587 /* LicenseValidation.swift */,
 				CABEB3DD2215713F00090B6C /* StatusError.swift */,
-				CABEB3F32215C18800090B6C /* InteractionError.swift */,
 				CABEB3F52215C86C00090B6C /* LCPError+Private.swift */,
 				CAB13216220DB5C70097DFB5 /* Model */,
 				CAB13215220DB5BA0097DFB5 /* Container */,
@@ -382,7 +379,6 @@
 				F38FB03C1F6683F300F9D602 /* UserKey.swift in Sources */,
 				CA4A388C2209873B00599297 /* LicenseContainer.swift in Sources */,
 				F3B2C8AB1F66727C007601E4 /* LCPError.swift in Sources */,
-				CABEB3F42215C18800090B6C /* InteractionError.swift in Sources */,
 				CAB1320B220D9B200097DFB5 /* LCPService.swift in Sources */,
 				F3B2C8AA1F66727C007601E4 /* Event.swift in Sources */,
 				CAB13211220DB2B10097DFB5 /* LCPAuthenticating.swift in Sources */,

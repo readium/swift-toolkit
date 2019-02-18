@@ -27,9 +27,9 @@ public protocol LCPService {
 /// Opened license, used to decipher a protected publication or read its DRM metadata.
 public protocol LCPLicense: DrmLicense {
     
-    /// Encryption profile.
-    var profile: String { get }
-    
+    var license: LicenseDocument { get }
+    var status: StatusDocument? { get }
+
 }
 
 public struct LCPImportedPublication {
@@ -45,11 +45,7 @@ public func setupLCPService() -> LCPService {
     let device = DeviceService(repository: db.licenses, network: network)
     let crl = CRLService(network: network)
     let passphrases = PassphrasesService(repository: db.transactions)
+    let licenses = LicensesService(licenses: db.licenses, crl: crl, device: device, network: network, passphrases: passphrases)
     
-    func makeLicense(container: LicenseContainer, authentication: LCPAuthenticating?) -> License {
-        let validation = LicenseValidation(passphrases: passphrases, device: device, crl: crl, network: network, authentication: authentication)
-        return License(container: container, validation: validation, licenses: db.licenses, device: device, network: network)
-    }
-    
-    return LicensesService(makeLicense: makeLicense)
+    return licenses
 }
