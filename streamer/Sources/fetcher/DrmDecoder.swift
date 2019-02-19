@@ -24,7 +24,7 @@ class DrmDecoder {
     /// - Returns: The decrypted stream.
     static internal func decoding(_ input: SeekableInputStream,
                                   of resourceLink: Link,
-                                  with drm: Drm?) -> SeekableInputStream
+                                  with drm: DRM?) -> SeekableInputStream
     {
         /// Check if the resource is encrypted.
         guard let drm = drm,
@@ -63,7 +63,7 @@ class DrmDecoder {
     ///   - drm: The DRM object to use for decryption.
     /// - Returns: The decrypted Data.
     static fileprivate func decipher(_ input: SeekableInputStream,
-                                     drm: Drm) -> Data?
+                                     drm: DRM) -> Data?
     {
         // Check that the DRM object contain a decipherer.
         guard let drmLicense = drm.license else {

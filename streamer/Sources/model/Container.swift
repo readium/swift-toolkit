@@ -57,7 +57,7 @@ public protocol Container {
     var rootFile: RootFile { get set }
 
     /// The DRM protecting resources (some) in the container.
-    var drm: Drm? { get set }
+    var drm: DRM? { get set }
 
     /// Get the raw (possibly encrypted) data of an asset in the container
     ///
