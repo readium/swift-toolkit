@@ -54,7 +54,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         /// Init R2.
         // Set logging minimum level.
-        R2StreamerEnableLog(withMinimumSeverityLevel: .debug)
+        R2EnableLog(withMinimumSeverityLevel: .debug)
         // Init R2 Publication server.
         guard let publicationServer = PublicationServer() else {
             print("Error while instanciating R2 Publication Server.")
