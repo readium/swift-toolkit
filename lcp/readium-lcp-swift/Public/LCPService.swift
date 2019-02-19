@@ -25,7 +25,7 @@ public protocol LCPService {
 }
 
 /// Opened license, used to decipher a protected publication or read its DRM metadata.
-public protocol LCPLicense: DrmLicense {
+public protocol LCPLicense: DRMLicense {
     
     var license: LicenseDocument { get }
     var status: StatusDocument? { get }

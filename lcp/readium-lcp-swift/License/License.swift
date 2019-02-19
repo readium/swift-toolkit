@@ -124,11 +124,11 @@ extension License: LCPLicense {
         return decrypt(data: data, using: context)
     }
 
-    public var rights: DrmRights? {
+    public var rights: DRMRights? {
         return self
     }
     
-    public var loan: DrmLoan? {
+    public var loan: DRMLoan? {
         return self
     }
 
@@ -136,9 +136,9 @@ extension License: LCPLicense {
 
 
 /// Rights API
-extension License: DrmRights {
+extension License: DRMRights {
     
-    func can(_ right: DrmRight) -> Bool {
+    func can(_ right: DRMRight) -> Bool {
         switch right {
         case .display:
             let now = Date()
@@ -150,12 +150,12 @@ extension License: DrmRights {
         }
     }
     
-    func remainingQuantity(for right: DrmConsumableRight) -> DrmRightQuantity {
+    func remainingQuantity(for right: DRMConsumableRight) -> DRMRightQuantity {
         // FIXME: TODO using database
         return .unlimited
     }
     
-    func consume(_ right: DrmConsumableRight, quantity: DrmRightQuantity?) throws {
+    func consume(_ right: DRMConsumableRight, quantity: DRMRightQuantity?) throws {
         // FIXME: TODO
     }
 
@@ -163,7 +163,7 @@ extension License: DrmRights {
 
 
 /// Loan API
-extension License: DrmLoan {
+extension License: DRMLoan {
     
     var canReturnLicense: Bool {
         return status?.link(for: .return) != nil
@@ -175,11 +175,11 @@ extension License: DrmLoan {
             case 200:
                 return
             case 400:
-                throw DrmReturnError.returnFailed(message: nil)
+                throw DRMReturnError.returnFailed(message: nil)
             case 403:
-                throw DrmReturnError.alreadyReturnedOrExpired
+                throw DRMReturnError.alreadyReturnedOrExpired
             default:
-                throw DrmReturnError.unexpectedServerError(nil)
+                throw DRMReturnError.unexpectedServerError(nil)
             }
         }
         
@@ -201,11 +201,11 @@ extension License: DrmLoan {
             case 200:
                 return
             case 400:
-                throw DrmRenewError.renewFailed(message: nil)
+                throw DRMRenewError.renewFailed(message: nil)
             case 403:
-                throw DrmRenewError.invalidRenewalPeriod(maxRenewDate: maxRenewDate)
+                throw DRMRenewError.invalidRenewalPeriod(maxRenewDate: maxRenewDate)
             default:
-                throw DrmRenewError.unexpectedServerError(nil)
+                throw DRMRenewError.unexpectedServerError(nil)
             }
         }
         
