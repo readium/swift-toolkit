@@ -1,5 +1,5 @@
 //
-//  Drm.swift
+//  DRM.swift
 //  r2-shared-swift
 //
 //  Created by Mickaël Menu on 18.02.19.
@@ -13,12 +13,12 @@ import Foundation
 
 /// An object giving info about the DRM encrypting a publication.
 /// This object come back from the streamer, and can be filled by a DRM module, then sent back to the streamer (with the decypher func filled) in order to allow the fetcher to be able to decypher content later on.
-public struct Drm {
+public struct DRM {
     public let brand: Brand
     public let scheme: Scheme
     
     /// The license will be filled when passed back to the DRM module.
-    public var license: DrmLicense?
+    public var license: DRMLicense?
 
     public enum Brand: String {
         case lcp
@@ -37,7 +37,7 @@ public struct Drm {
     }
 }
 
-public protocol DrmLicense {
+public protocol DRMLicense {
 
     /// Encryption profile, if available.
     var encryptionProfile: String? { get }
@@ -47,24 +47,24 @@ public protocol DrmLicense {
 
     /// Interface to manage the user rights for this license.
     /// If nil, then every rights are allowed in the reader.
-    var rights: DrmRights? { get }
+    var rights: DRMRights? { get }
     
     /// Interface to manage the loan, if this publication is borrowed.
-    var loan: DrmLoan? { get }
+    var loan: DRMLoan? { get }
     
 }
 
-public extension DrmLicense {
+public extension DRMLicense {
     
     public var encryptionProfile: String? {
         return nil
     }
     
-    public var rights: DrmRights? {
+    public var rights: DRMRights? {
         return nil
     }
     
-    public var loan: DrmLoan? {
+    public var loan: DRMLoan? {
         return nil
     }
     

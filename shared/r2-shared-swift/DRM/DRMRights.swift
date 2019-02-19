@@ -1,5 +1,5 @@
 //
-//  DrmRights.swift
+//  DRMRights.swift
 //  r2-shared-swift
 //
 //  Created by Mickaël Menu on 18.02.19.
@@ -13,7 +13,7 @@ import Foundation
 
 
 /// A non-consumable right.
-public enum DrmRight {
+public enum DRMRight {
     /// Displaying the content in the reader.
     case display
     /// Reading the content out loud with a TTS engine.
@@ -22,7 +22,7 @@ public enum DrmRight {
 
 
 /// A consumable right, can be limited by a certain quantity.
-public enum DrmConsumableRight {
+public enum DRMConsumableRight {
     /// Printing the content.
     case print
     /// Copying the content for excerpting.
@@ -30,7 +30,7 @@ public enum DrmConsumableRight {
 }
 
 
-public enum DrmRightQuantity {
+public enum DRMRightQuantity {
     // This right is forbidden or all consumed.
     case none
     // No limit on the quantity of right that can be consumed.
@@ -43,7 +43,7 @@ public enum DrmRightQuantity {
     case pages(UInt)
 }
 
-extension DrmRightQuantity: CustomStringConvertible {
+extension DRMRightQuantity: CustomStringConvertible {
     
     public var description: String {
         switch self {
@@ -62,42 +62,42 @@ extension DrmRightQuantity: CustomStringConvertible {
     
 }
 
-public enum DrmRightError: Error {
+public enum DRMRightError: Error {
     /// This right is forbidden for this license.
     case forbidden
     /// The user tried to consume more than available.
-    case exceeded(quantity: DrmRightQuantity)
+    case exceeded(quantity: DRMRightQuantity)
 }
 
 
-public protocol DrmRights {
+public protocol DRMRights {
     
     /// Returns whether this right is allowed.
     /// The default implementation allows all the rights.
-    func can(_ right: DrmRight) -> Bool
+    func can(_ right: DRMRight) -> Bool
 
     /// Returns whether this consumable right is allowed right now.
     /// The default implementation uses `remaining`.
-    func can(_ right: DrmConsumableRight) -> Bool
+    func can(_ right: DRMConsumableRight) -> Bool
 
     /// Returns the amount of quantity left for the given consumable right.
     /// The default implementation has an unlimited quantity for all consumable rights.
-    func remainingQuantity(for right: DrmConsumableRight) -> DrmRightQuantity
+    func remainingQuantity(for right: DRMConsumableRight) -> DRMRightQuantity
     
     /// Use the given quantity of the consumable right.
     /// An error might be thrown if the right is not allowed or exceeds the remaining quantitiy.
     /// The default implementation does nothing.
-    func consume(_ right: DrmConsumableRight, quantity: DrmRightQuantity?) throws
+    func consume(_ right: DRMConsumableRight, quantity: DRMRightQuantity?) throws
 
 }
 
-public extension DrmRights {
+public extension DRMRights {
     
-    public func can(_ right: DrmRight) -> Bool {
+    public func can(_ right: DRMRight) -> Bool {
         return true
     }
     
-    public func can(_ right: DrmConsumableRight) -> Bool {
+    public func can(_ right: DRMConsumableRight) -> Bool {
         switch remainingQuantity(for: right) {
         case .none:
             return false
@@ -108,11 +108,11 @@ public extension DrmRights {
         }
     }
     
-    public func remainingQuantity(for right: DrmConsumableRight) -> DrmRightQuantity {
+    public func remainingQuantity(for right: DRMConsumableRight) -> DRMRightQuantity {
         return .unlimited
     }
     
-    public func consume(_ right: DrmConsumableRight, quantity: DrmRightQuantity?) throws {
+    public func consume(_ right: DRMConsumableRight, quantity: DRMRightQuantity?) throws {
     }
     
 }

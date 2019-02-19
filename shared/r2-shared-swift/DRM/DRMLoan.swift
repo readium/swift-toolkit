@@ -13,7 +13,7 @@ import Foundation
 
 
 /// Interface to manage a loaned publication.
-public protocol DrmLoan {
+public protocol DRMLoan {
 
     /// The maximum potential date to renew to.
     /// If nil, then the renew date might not be customizable.
@@ -31,7 +31,7 @@ public protocol DrmLoan {
 
 
 /// Errors occurring while renewing a loan.
-public enum DrmRenewError: LocalizedError {
+public enum DRMRenewError: LocalizedError {
     // Your publication could not be renewed properly.
     case renewFailed(message: String?)
     // Incorrect renewal period, your publication could not be renewed.
@@ -54,7 +54,7 @@ public enum DrmRenewError: LocalizedError {
 
 
 /// Errors occurring while returning a loan.
-public enum DrmReturnError: LocalizedError {
+public enum DRMReturnError: LocalizedError {
     // Your publication could not be returned properly.
     case returnFailed(message: String?)
     // Your publication has already been returned before or is expired.
