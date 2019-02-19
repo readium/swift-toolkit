@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		57470F7E20ED0D1A000CDCA3 /* DownloadSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */; };
 		AEF39DF320E3895200A560F3 /* UserProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF39DF220E3895200A560F3 /* UserProperties.swift */; };
-		CA2AE326221C39C9008BD18F /* Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE325221C39C9008BD18F /* Deprecated.swift */; };
 		CA2AE320221C1DCB008BD18F /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31D221C1DCB008BD18F /* Logger.swift */; };
 		CA2AE321221C1DCB008BD18F /* LoggerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31E221C1DCB008BD18F /* LoggerStub.swift */; };
 		CA2AE322221C1DCB008BD18F /* Loggable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31F221C1DCB008BD18F /* Loggable.swift */; };
@@ -23,10 +22,12 @@
 		CA61621521FB65E000D2CFE3 /* PropertiesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA61621421FB65E000D2CFE3 /* PropertiesTests.swift */; };
 		CA61621721FB6E8800D2CFE3 /* EncryptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA61621621FB6E8800D2CFE3 /* EncryptionTests.swift */; };
 		CA61621921FB71B300D2CFE3 /* RenditionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA61621821FB71B300D2CFE3 /* RenditionTests.swift */; };
-		CA9A40CB221AD20000531EA1 /* DRMLoan.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40CA221AD20000531EA1 /* DRMLoan.swift */; };
-		CA9A40CD221AD21E00531EA1 /* DRMRights.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40CC221AD21E00531EA1 /* DRMRights.swift */; };
 		CA9A40D1221B0AA200531EA1 /* Either.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D0221B0AA200531EA1 /* Either.swift */; };
 		CABEB3DC2215698600090B6C /* Deferred.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABEB3DB2215698600090B6C /* Deferred.swift */; };
+		CAC34F09221C61BD002C452E /* DRMRights.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC34F05221C61BD002C452E /* DRMRights.swift */; };
+		CAC34F0A221C61BD002C452E /* DRM.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC34F06221C61BD002C452E /* DRM.swift */; };
+		CAC34F0B221C61BD002C452E /* DRMLoan.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC34F07221C61BD002C452E /* DRMLoan.swift */; };
+		CAC34F0C221C61BD002C452E /* Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC34F08221C61BD002C452E /* Deprecated.swift */; };
 		CAD67D8F220E21BB00496BFF /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D87220E217600496BFF /* R2LCPClient.framework */; };
 		CAD67D90220E21BB00496BFF /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D83220E210F00496BFF /* ZIPFoundation.framework */; };
 		CAD67D91220E21BB00496BFF /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D85220E210F00496BFF /* CryptoSwift.framework */; };
@@ -39,7 +40,6 @@
 		CAD67D98220E222000496BFF /* R2Shared.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D89220E219F00496BFF /* R2Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		CAD67D99220E222000496BFF /* SQLite.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D8B220E219F00496BFF /* SQLite.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		CAD67D9A220E222000496BFF /* SwiftyJSON.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D8D220E219F00496BFF /* SwiftyJSON.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		F32314A21F8616C2000FCFB0 /* DRM.swift in Sources */ = {isa = PBXBuildFile; fileRef = F32314A11F8616C2000FCFB0 /* DRM.swift */; };
 		F3B187A01FA33D4D00BB46BF /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B1879F1FA33D4D00BB46BF /* Feed.swift */; };
 		F3B187A21FA33DFA00BB46BF /* Facet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B187A11FA33DFA00BB46BF /* Facet.swift */; };
 		F3B187A41FA33E1D00BB46BF /* OpdsMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B187A31FA33E1D00BB46BF /* OpdsMetadata.swift */; };
@@ -97,7 +97,6 @@
 /* Begin PBXFileReference section */
 		57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadSession.swift; sourceTree = "<group>"; };
 		AEF39DF220E3895200A560F3 /* UserProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProperties.swift; sourceTree = "<group>"; };
-		CA2AE325221C39C9008BD18F /* Deprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deprecated.swift; sourceTree = "<group>"; };
 		CA2AE31D221C1DCB008BD18F /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		CA2AE31E221C1DCB008BD18F /* LoggerStub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoggerStub.swift; sourceTree = "<group>"; };
 		CA2AE31F221C1DCB008BD18F /* Loggable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Loggable.swift; sourceTree = "<group>"; };
@@ -113,17 +112,18 @@
 		CA61621421FB65E000D2CFE3 /* PropertiesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertiesTests.swift; sourceTree = "<group>"; };
 		CA61621621FB6E8800D2CFE3 /* EncryptionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncryptionTests.swift; sourceTree = "<group>"; };
 		CA61621821FB71B300D2CFE3 /* RenditionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenditionTests.swift; sourceTree = "<group>"; };
-		CA9A40CA221AD20000531EA1 /* DRMLoan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DRMLoan.swift; sourceTree = "<group>"; };
-		CA9A40CC221AD21E00531EA1 /* DRMRights.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DRMRights.swift; sourceTree = "<group>"; };
 		CA9A40D0221B0AA200531EA1 /* Either.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Either.swift; sourceTree = "<group>"; };
 		CABEB3DB2215698600090B6C /* Deferred.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Deferred.swift; sourceTree = "<group>"; };
+		CAC34F05221C61BD002C452E /* DRMRights.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DRMRights.swift; sourceTree = "<group>"; };
+		CAC34F06221C61BD002C452E /* DRM.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DRM.swift; sourceTree = "<group>"; };
+		CAC34F07221C61BD002C452E /* DRMLoan.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DRMLoan.swift; sourceTree = "<group>"; };
+		CAC34F08221C61BD002C452E /* Deprecated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Deprecated.swift; sourceTree = "<group>"; };
 		CAD67D83220E210F00496BFF /* ZIPFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ZIPFoundation.framework; path = "../r2-lcp-swift/Carthage/Build/iOS/ZIPFoundation.framework"; sourceTree = "<group>"; };
 		CAD67D85220E210F00496BFF /* CryptoSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoSwift.framework; path = "../r2-lcp-swift/Carthage/Build/iOS/CryptoSwift.framework"; sourceTree = "<group>"; };
 		CAD67D87220E217600496BFF /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAD67D89220E219F00496BFF /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = "../r2-lcp-swift/Carthage/Build/iOS/R2Shared.framework"; sourceTree = "<group>"; };
 		CAD67D8B220E219F00496BFF /* SQLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SQLite.framework; path = "../r2-lcp-swift/Carthage/Build/iOS/SQLite.framework"; sourceTree = "<group>"; };
 		CAD67D8D220E219F00496BFF /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = "../r2-lcp-swift/Carthage/Build/iOS/SwiftyJSON.framework"; sourceTree = "<group>"; };
-		F32314A11F8616C2000FCFB0 /* DRM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DRM.swift; sourceTree = "<group>"; };
 		F3B1879F1FA33D4D00BB46BF /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
 		F3B187A11FA33DFA00BB46BF /* Facet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Facet.swift; sourceTree = "<group>"; };
 		F3B187A31FA33E1D00BB46BF /* OpdsMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpdsMetadata.swift; sourceTree = "<group>"; };
@@ -237,13 +237,13 @@
 			path = Link;
 			sourceTree = "<group>";
 		};
-		CA9A40C9221AD1EE00531EA1 /* DRM */ = {
+		CAC34F04221C61BD002C452E /* DRM */ = {
 			isa = PBXGroup;
 			children = (
-				F32314A11F8616C2000FCFB0 /* DRM.swift */,
-				CA9A40CC221AD21E00531EA1 /* DRMRights.swift */,
-				CA9A40CA221AD20000531EA1 /* DRMLoan.swift */,
-				CA2AE325221C39C9008BD18F /* Deprecated.swift */,
+				CAC34F06221C61BD002C452E /* DRM.swift */,
+				CAC34F05221C61BD002C452E /* DRMRights.swift */,
+				CAC34F07221C61BD002C452E /* DRMLoan.swift */,
+				CAC34F08221C61BD002C452E /* Deprecated.swift */,
 			);
 			path = DRM;
 			sourceTree = "<group>";
@@ -285,7 +285,7 @@
 				F3E7D3F81F4EBE2100DF166D /* Info.plist */,
 				F3E7D40C1F4EC69100DF166D /* RootFile.swift */,
 				F3E7D4221F4ECB3D00DF166D /* ISO8601DateString.swift */,
-				CA9A40C9221AD1EE00531EA1 /* DRM */,
+				CAC34F04221C61BD002C452E /* DRM */,
 				CA2AE31C221C1DCB008BD18F /* Logger */,
 				57470F7F20ED0D25000CDCA3 /* Toolkit */,
 				F3E7D41B1F4EC69C00DF166D /* Publication */,
@@ -500,14 +500,11 @@
 				57470F7E20ED0D1A000CDCA3 /* DownloadSession.swift in Sources */,
 				CA2AE320221C1DCB008BD18F /* Logger.swift in Sources */,
 				F3B187A61FA33E4900BB46BF /* Group.swift in Sources */,
-				CA9A40CB221AD20000531EA1 /* DRMLoan.swift in Sources */,
 				F3E7D4191F4EC69100DF166D /* RootFile.swift in Sources */,
 				F3E7D4141F4EC69100DF166D /* MetadataItem.swift in Sources */,
 				AEF39DF320E3895200A560F3 /* UserProperties.swift in Sources */,
 				F3F41E181FA3377E00F97737 /* Price.swift in Sources */,
-				CA9A40CD221AD21E00531EA1 /* DRMRights.swift in Sources */,
 				F3E7D4101F4EC69100DF166D /* Link.swift in Sources */,
-				CA2AE326221C39C9008BD18F /* Deprecated.swift in Sources */,
 				CABEB3DC2215698600090B6C /* Deferred.swift in Sources */,
 				F3E7D4181F4EC69100DF166D /* Rendition.swift in Sources */,
 				F3E7D4121F4EC69100DF166D /* MediaOverlays.swift in Sources */,
@@ -517,15 +514,17 @@
 				CA2AE321221C1DCB008BD18F /* LoggerStub.swift in Sources */,
 				F3F41E1F1FA33AF800F97737 /* Collection.swift in Sources */,
 				F3B187A41FA33E1D00BB46BF /* OpdsMetadata.swift in Sources */,
-				F32314A21F8616C2000FCFB0 /* DRM.swift in Sources */,
 				CA2AE322221C1DCB008BD18F /* Loggable.swift in Sources */,
-				F32314A21F8616C2000FCFB0 /* Drm.swift in Sources */,
+				CAC34F0B221C61BD002C452E /* DRMLoan.swift in Sources */,
 				F3E7D4111F4EC69100DF166D /* MediaOverlayNode.swift in Sources */,
 				CA9A40D1221B0AA200531EA1 /* Either.swift in Sources */,
 				F3E7D4151F4EC69100DF166D /* MultilangString.swift in Sources */,
+				CAC34F09221C61BD002C452E /* DRMRights.swift in Sources */,
 				F3E7D4171F4EC69100DF166D /* Publication.swift in Sources */,
+				CAC34F0C221C61BD002C452E /* Deprecated.swift in Sources */,
 				F3E7D40F1F4EC69100DF166D /* Encryption.swift in Sources */,
 				F3F41E1A1FA3378900F97737 /* IndirectAcquisition.swift in Sources */,
+				CAC34F0A221C61BD002C452E /* DRM.swift in Sources */,
 				F3E7D4131F4EC69100DF166D /* Metadata.swift in Sources */,
 				F3E7D40E1F4EC69100DF166D /* Contributor.swift in Sources */,
 			);
