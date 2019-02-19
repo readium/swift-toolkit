@@ -422,12 +422,12 @@ final public class EpubParser {
         }
         for link in publication.resources {
             if link.properties.encryption?.scheme == drm.scheme.rawValue{
-                link.properties.encryption?.profile = drm.profile
+                link.properties.encryption?.profile = drm.license?.encryptionProfile
             }
         }
         for link in publication.spine {
             if link.properties.encryption?.scheme == drm.scheme.rawValue {
-                link.properties.encryption?.profile = drm.profile
+                link.properties.encryption?.profile = drm.license?.encryptionProfile
             }
         }
     }
