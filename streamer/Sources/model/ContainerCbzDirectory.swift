@@ -26,7 +26,7 @@ public class ContainerCbzDirectory: CbzContainer, DirectoryContainer {
     /// - Parameter dirPath: The root directory path.
     public init?(directory path: String) {
         guard FileManager.default.fileExists(atPath: path) else {
-            ContainerCbzDirectory.log(level: .error, "File not found.")
+            ContainerCbzDirectory.log(.error, "File not found.")
             return nil
         }
         rootFile = RootFile.init(rootPath: path, mimetype: CbzConstant.mimetype)

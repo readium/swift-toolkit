@@ -87,8 +87,7 @@ public class PublicationServer {
             try webServer.start(options: [GCDWebServerOption_Port: port,
                                           GCDWebServerOption_BindToLocalhost: true])
         } catch {
-            log(level: .error, "Failed to start the HTTP server.")
-            logValue(level: .error, error)
+            log(.error, "Failed to start the HTTP server: \(error)")
             return false
         }
         return true
@@ -182,11 +181,11 @@ public class PublicationServer {
                     at endpoint: String = UUID().uuidString) throws {
         // TODO: verif that endpoint is a simple string and not a path.
         guard pubBoxes[endpoint] == nil else {
-            log(level: .error, "\(endpoint) is already in use.")
+            log(.error, "\(endpoint) is already in use.")
             throw PublicationServerError.usedEndpoint
         }
         guard let baseUrl = baseUrl else {
-            log(level: .error, "Base URL is nil.")
+            log(.error, "Base URL is nil.")
             throw PublicationServerError.nilBaseUrl
         }
 
@@ -207,7 +206,7 @@ public class PublicationServer {
         /// Add manifest handler.
         addManifestHandler(for: pubBox, at: endpoint)
 
-        log(level: .info, "Publication at \(endpoint) has been successfully added.")
+        log(.info, "Publication at \(endpoint) has been successfully added.")
     }
 
     fileprivate func addResourcesHandler(for pubBox: PubBox, at endpoint: String) throws {
@@ -219,7 +218,7 @@ public class PublicationServer {
         do {
             fetcher = try Fetcher(publication: publication, container: container)
         } catch {
-            log(level: .error, "Fetcher initialisation failed.")
+            log(.error, "Fetcher initialisation failed.")
             throw PublicationServerError.fetcher(underlyingError: error)
         }
 
@@ -228,7 +227,7 @@ public class PublicationServer {
             let response: GCDWebServerResponse
 
             guard let request = request else {
-                log(level: .error, "The request received is nil.")
+                log(.error, "The request received is nil.")
                 return GCDWebServerErrorResponse(statusCode: 500)
             }
 
@@ -246,13 +245,13 @@ public class PublicationServer {
                                                      range: range,
                                                      contentType: contentType)
             } catch FetcherError.missingFile {
-                log(level: .error, "File not found, couldn't create stream.")
+                log(.error, "File not found, couldn't create stream.")
                 response = GCDWebServerErrorResponse(statusCode: 404)
             } catch FetcherError.container {
-                log(level: .error, "Error while getting data stream from container.")
+                log(.error, "Error while getting data stream from container.")
                 response = GCDWebServerErrorResponse(statusCode: 500)
             } catch {
-                logValue(level: .error, error)
+                log(.error, error)
                 response = GCDWebServerErrorResponse(statusCode: 500)
             }
             return response
@@ -304,13 +303,13 @@ public class PublicationServer {
     /// - Parameter endpoint: The URI postfix of the ressource.
     public func remove(at endpoint: String) {
         guard let pubBox = pubBoxes[endpoint] else {
-            log(level: .warning, "Nothing at endpoint \(endpoint).")
+            log(.warning, "Nothing at endpoint \(endpoint).")
             return
         }
         // Remove self link from publication.
         pubBox.publication.links = pubBox.publication.links.filter { !$0.rel.contains("self") }
         // Remove the pubBox from the array.
         pubBoxes[endpoint] = nil
-        log(level: .info, "Publication at \(endpoint) has been successfully removed.")
+        log(.info, "Publication at \(endpoint) has been successfully removed.")
     }
 }

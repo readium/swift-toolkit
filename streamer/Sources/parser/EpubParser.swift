@@ -153,7 +153,7 @@ final public class EpubParser {
         }
         // Are any files encrypted.
         guard let encryptedDataElements = document["encryption"]["EncryptedData"].all else {
-            log(level: .info, "No <EncryptedData> elements")
+            log(.info, "No <EncryptedData> elements")
             return
         }
 
@@ -286,7 +286,7 @@ final public class EpubParser {
         let mediaOverlays = publication.resources.filter({ $0.typeLink ==  "application/smil+xml"})
 
         guard !mediaOverlays.isEmpty else {
-            log(level: .info, "No media-overlays found in the Publication.")
+            log(.info, "No media-overlays found in the Publication.")
             return
         }
         for mediaOverlayLink in mediaOverlays {

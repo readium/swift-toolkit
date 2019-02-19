@@ -21,7 +21,7 @@ class PublicationServerTest: XCTestCase {
         R2StreamerEnableLog(withMinimumSeverityLevel: .verbose)
         publicationServer = PublicationServer()
         guard publicationServer != nil else {
-            log(level: .error, "Error instanciating the publicationServer")
+            log(.error, "Error instanciating the publicationServer")
             XCTFail()
             return
         }
@@ -46,7 +46,7 @@ class PublicationServerTest: XCTestCase {
             } catch {
                 let title = publication.metadata.title
                 XCTFail("An exception occured while adding epub [\(title)] to the server")
-                logValue(level: .error, error)
+                log(.error, error)
             }
             verifyManifestJson(atEndpoint: endPoint)
         }
@@ -66,12 +66,12 @@ class PublicationServerTest: XCTestCase {
         // Define the request.
         let task = URLSession.shared.dataTask(with: publicationUrl, completionHandler: { (data, response, error) in
             guard error == nil else {
-                self.logValue(level: .error, error)
+                self.log(.error, error)
                 XCTFail()
                 return
             }
             guard data != nil else {
-                self.logValue(level: .error, "Data is empty.")
+                self.log(.error, "Data is empty.")
                 XCTFail()
                 return
             }
