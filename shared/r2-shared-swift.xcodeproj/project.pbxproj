@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		57470F7E20ED0D1A000CDCA3 /* DownloadSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */; };
 		AEF39DF320E3895200A560F3 /* UserProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF39DF220E3895200A560F3 /* UserProperties.swift */; };
+		CA2AE320221C1DCB008BD18F /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31D221C1DCB008BD18F /* Logger.swift */; };
+		CA2AE321221C1DCB008BD18F /* LoggerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31E221C1DCB008BD18F /* LoggerStub.swift */; };
+		CA2AE322221C1DCB008BD18F /* Loggable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31F221C1DCB008BD18F /* Loggable.swift */; };
 		CA40C07621FF1BA70069A50E /* MultilangStringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA40C07521FF1BA70069A50E /* MultilangStringTests.swift */; };
 		CA40C07A21FF25F80069A50E /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA40C07921FF25F80069A50E /* JSON.swift */; };
 		CA6161EF21FB257700D2CFE3 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D3F41F4EBE2100DF166D /* R2Shared.framework */; };
@@ -73,6 +76,9 @@
 /* Begin PBXFileReference section */
 		57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadSession.swift; sourceTree = "<group>"; };
 		AEF39DF220E3895200A560F3 /* UserProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProperties.swift; sourceTree = "<group>"; };
+		CA2AE31D221C1DCB008BD18F /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		CA2AE31E221C1DCB008BD18F /* LoggerStub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoggerStub.swift; sourceTree = "<group>"; };
+		CA2AE31F221C1DCB008BD18F /* Loggable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Loggable.swift; sourceTree = "<group>"; };
 		CA40C07521FF1BA70069A50E /* MultilangStringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultilangStringTests.swift; sourceTree = "<group>"; };
 		CA40C07921FF25F80069A50E /* JSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSON.swift; sourceTree = "<group>"; };
 		CA6161EA21FB257700D2CFE3 /* r2-shared-swiftTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "r2-shared-swiftTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -139,6 +145,16 @@
 				57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */,
 			);
 			path = Toolkit;
+			sourceTree = "<group>";
+		};
+		CA2AE31C221C1DCB008BD18F /* Logger */ = {
+			isa = PBXGroup;
+			children = (
+				CA2AE31D221C1DCB008BD18F /* Logger.swift */,
+				CA2AE31E221C1DCB008BD18F /* LoggerStub.swift */,
+				CA2AE31F221C1DCB008BD18F /* Loggable.swift */,
+			);
+			path = Logger;
 			sourceTree = "<group>";
 		};
 		CA6161EB21FB257700D2CFE3 /* r2-shared-swiftTests */ = {
@@ -229,6 +245,7 @@
 				F3E7D3F81F4EBE2100DF166D /* Info.plist */,
 				F3E7D40C1F4EC69100DF166D /* RootFile.swift */,
 				F3E7D4221F4ECB3D00DF166D /* ISO8601DateString.swift */,
+				CA2AE31C221C1DCB008BD18F /* Logger */,
 				57470F7F20ED0D25000CDCA3 /* Toolkit */,
 				F34CB28A1FC5714D005E3A37 /* Drm */,
 				F3E7D41B1F4EC69C00DF166D /* Publication */,
@@ -435,6 +452,7 @@
 				F3E7D4231F4ECB3D00DF166D /* ISO8601DateString.swift in Sources */,
 				F3E7D41A1F4EC69100DF166D /* Subject.swift in Sources */,
 				57470F7E20ED0D1A000CDCA3 /* DownloadSession.swift in Sources */,
+				CA2AE320221C1DCB008BD18F /* Logger.swift in Sources */,
 				F3B187A61FA33E4900BB46BF /* Group.swift in Sources */,
 				F3E7D4191F4EC69100DF166D /* RootFile.swift in Sources */,
 				F3E7D4141F4EC69100DF166D /* MetadataItem.swift in Sources */,
@@ -447,8 +465,10 @@
 				F3B187A01FA33D4D00BB46BF /* Feed.swift in Sources */,
 				F3B187A21FA33DFA00BB46BF /* Facet.swift in Sources */,
 				F3F41E1D1FA33AAA00F97737 /* BelongsTo.swift in Sources */,
+				CA2AE321221C1DCB008BD18F /* LoggerStub.swift in Sources */,
 				F3F41E1F1FA33AF800F97737 /* Collection.swift in Sources */,
 				F3B187A41FA33E1D00BB46BF /* OpdsMetadata.swift in Sources */,
+				CA2AE322221C1DCB008BD18F /* Loggable.swift in Sources */,
 				F32314A21F8616C2000FCFB0 /* Drm.swift in Sources */,
 				F3E7D4111F4EC69100DF166D /* MediaOverlayNode.swift in Sources */,
 				F3E7D4151F4EC69100DF166D /* MultilangString.swift in Sources */,
