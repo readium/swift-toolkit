@@ -45,7 +45,6 @@ The project dependencies are managed with [Carthage](https://github.com/Carthage
 Run `carthage update --platform ios` to fetch and build the dependencies:
 
   - [r2-shared-swift](https://github.com/readium/r2-shared-swift) : Custom types shared by several readium-2 Swift modules.
-  - [PromiseKit](https://github.com/mxcl/PromiseKit) : Promises for Swift & ObjC.
   - [Fuzi](https://github.com/cezheng/Fuzi) : A fast & lightweight XML & HTML parser in Swift with XPath & CSS support.
 
 Then, in Xcode:
@@ -58,7 +57,6 @@ Parsing an OPDS feed (v1.x or 2.x):
 
 ```Swift
 import ReadiumOPDS
-import PromiseKit
 
 let myURL = URL(string: "https://your/custom/url")
 var parseData: ParseData?
@@ -66,15 +64,12 @@ var parseData: ParseData?
 override func viewDidLoad() {
     super.viewDidLoad()
     
-    firstly {
-      // Fetch and parse data from the specified URL
-      OPDSParser.parseURL(url: myURL)
-    }.then { newParseData -> Void in
-      // parseData property holds the OPDS related data
-      self.parseData = newParseData
-    }.always {
-      // Here, you can perform some checks on your own and refresh your UI
-      self.refreshUI()
+    // Fetch and parse data from the specified URL
+    OPDSParser.parseURL(url: myURL) { data, error in
+        if let data = data {
+            // parseData property holds the OPDS related data
+            self.parseData = data
+        }
     }
 }
 
@@ -101,7 +96,7 @@ public enum Version {
 
 ```Swift
 /// An intermediate structure return when the generic helper method public static
-/// func parseURL(url: URL) -> Promise<ParseData> from OPDSParser class is called.
+/// func parseURL(url: URL, completion: (ParseData?, Error?) -> Void) from OPDSParser class is called.
 public struct ParseData {
     /// The ressource URL
     public var url: URL
@@ -126,6 +121,5 @@ public struct ParseData {
 /// Parse an OPDS feed or publication.
 /// Feed can be v1 (XML) or v2 (JSON).
 /// - parameter url: The feed URL
-/// - Returns: A promise with the intermediate structure of type ParseData
-public static func parseURL(url: URL) -> Promise<ParseData>
+public static func parseURL(url: URL, completion: (ParseData?, Error?) -> Void)
 ```

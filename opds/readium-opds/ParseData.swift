@@ -21,7 +21,7 @@ public enum Version {
 }
 
 /// An intermediate structure return when the generic helper method public static
-/// func parseURL(url: URL) -> Promise<ParseData> from OPDSParser class is called.
+/// func parseURL(url: URL, completion: (ParseData?, Error?) -> Void) from OPDSParser class is called.
 public struct ParseData {
     
     /// The ressource URL

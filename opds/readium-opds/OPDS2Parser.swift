@@ -12,7 +12,6 @@
 import Foundation
 
 import R2Shared
-import PromiseKit
 
 public enum OPDS2ParserError: Error {
     case invalidJSON
@@ -47,36 +46,27 @@ public enum OPDS2ParserError: Error {
 }
 
 public class OPDS2Parser {
-  static var feedURL: URL?
-    
-  /// Parse an OPDS feed or publication.
-  /// Feed can only be v2 (JSON).
-  /// - parameter url: The feed URL
-  /// - Returns: A promise with the intermediate structure of type ParseData
-  public static func parseURL(url: URL) -> Promise<ParseData> {
+    static var feedURL: URL?
+
+    /// Parse an OPDS feed or publication.
+    /// Feed can only be v2 (JSON).
+    /// - parameter url: The feed URL
+    public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
         feedURL = url
     
-        return Promise<ParseData> {fulfill, reject in
-          let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, response, error) in
-            guard error == nil else {
-              reject(error!)
-              return
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            guard let data = data, let response = response else {
+                completion(nil, error ?? OPDSParserError.documentNotFound)
+                return
             }
-            guard let data = data else {
-              reject(OPDSParserError.documentNotFound)
-              return
-            }
+
             do {
-              let parseData = try self.parse(jsonData: data, url: url, response: response!)
-              fulfill(parseData)
+                let parseData = try self.parse(jsonData: data, url: url, response: response)
+                completion(parseData, nil)
+            } catch {
+                completion(nil, error)
             }
-            catch {
-              reject(error)
-            }
-    
-          })
-          task.resume()
-        }
+        }.resume()
     }
     
     /// Parse an OPDS feed or publication.
