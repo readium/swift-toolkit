@@ -706,10 +706,10 @@
 		F3E7D4731F4F030300DF166D /* Library */ = {
 			isa = PBXGroup;
 			children = (
-				113B12BD20800FC10074A5A2 /* OPDS */,
 				F3E7D4701F4EFEC200DF166D /* LibraryViewController.swift */,
 				F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */,
 				F30AEE7C1FC316430073C9FD /* Details.storyboard */,
+				113B12BD20800FC10074A5A2 /* OPDS */,
 			);
 			name = Library;
 			sourceTree = "<group>";

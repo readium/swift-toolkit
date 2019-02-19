@@ -14,7 +14,6 @@ import UIKit
 import Foundation
 import R2Shared
 import ReadiumOPDS
-import PromiseKit
 
 class OPDSCatalogSelectorViewController: UITableViewController {
     var catalogData: [[String: String]]? // An array of dicts in the form ["title": title, "url": url]
@@ -120,24 +119,22 @@ class OPDSCatalogSelectorViewController: UITableViewController {
             let title = alertController.textFields?[0].text
             let urlString = alertController.textFields?[1].text
             if let url = URL(string: urlString!) {
-                UIApplication.shared.isNetworkActivityIndicatorVisible = true
-                firstly {
-                    OPDSParser.parseURL(url: url)
-                    }.then { newFeed -> Void in
-                        DispatchQueue.main.async {
-                            if feedIndex == nil {
-                                self.catalogData?.append(["title": title!, "url": urlString!])
-                            }
-                            else {
-                                self.catalogData?[feedIndex!] = ["title": title!, "url": urlString!]
-                            }
-                            UserDefaults.standard.set(self.catalogData, forKey: self.userDefaultsID)
-                            self.tableView.reloadData()
+                OPDSParser.parseURL(url: url) { _, error in
+                    DispatchQueue.main.async {
+                        guard error == nil  else {
+                            self.showEditPopup(feedIndex: feedIndex, retry: true)
+                            return
                         }
-                    }.catch(execute: { (_) in
-                        self.showEditPopup(feedIndex: feedIndex, retry: true)
-                    }).always {
-                        UIApplication.shared.isNetworkActivityIndicatorVisible = false
+
+                        if feedIndex == nil {
+                            self.catalogData?.append(["title": title!, "url": urlString!])
+                        }
+                        else {
+                            self.catalogData?[feedIndex!] = ["title": title!, "url": urlString!]
+                        }
+                        UserDefaults.standard.set(self.catalogData, forKey: self.userDefaultsID)
+                        self.tableView.reloadData()
+                    }
                 }
             } else {
                 self.showEditPopup(feedIndex: feedIndex, retry: true)

@@ -13,8 +13,6 @@
 import UIKit
 import R2Shared
 import R2Streamer
-import PromiseKit
-import CryptoSwift
 
 struct Location {
     let absolutePath: String
@@ -393,7 +391,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
                 completion(nil, error)
                 
             case .cancelled:
-                completion(nil, NSError.cancelledError())
+                completion(nil, nil)
             }
         }
     }

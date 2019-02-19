@@ -13,7 +13,6 @@
 import UIKit
 import R2Shared
 import ReadiumOPDS
-import PromiseKit
 
 enum FeedBrowsingState {
     case Navigation
@@ -68,13 +67,13 @@ class OPDSRootTableViewController: UITableViewController {
     
     func parseFeed() {
         if let url = originalFeedURL {
-            UIApplication.shared.isNetworkActivityIndicatorVisible = true
-            firstly {
-                OPDSParser.parseURL(url: url)
-                }.then { newParseData -> Void in
-                    self.parseData = newParseData
-                }.always {
+            OPDSParser.parseURL(url: url) { data, _ in
+                DispatchQueue.main.async {
+                    if let data = data {
+                        self.parseData = data
+                    }
                     self.finishFeedInitialization()
+                }
             }
         }
     }
@@ -147,7 +146,6 @@ class OPDSRootTableViewController: UITableViewController {
         }
         
         DispatchQueue.main.async {
-            UIApplication.shared.isNetworkActivityIndicatorVisible = false
             self.tableView.reloadData()
         }
     }
@@ -170,14 +168,16 @@ class OPDSRootTableViewController: UITableViewController {
     
     public func loadNextPage(completionHandler: @escaping (Feed?) -> ()) {
         if let nextPageURL = nextPageURL {
-            firstly {
-                OPDSParser.parseURL(url: nextPageURL)
-                }.then { newParseData -> Void in
-                    if let newFeed = newParseData.feed {
-                        self.nextPageURL = self.findNextPageURL(feed: newFeed)
-                        self.feed?.publications.append(contentsOf: newFeed.publications)
-                        completionHandler(self.feed)
+            OPDSParser.parseURL(url: nextPageURL) { data, _ in
+                DispatchQueue.main.async {
+                    guard let newFeed = data?.feed else {
+                        return
                     }
+
+                    self.nextPageURL = self.findNextPageURL(feed: newFeed)
+                    self.feed?.publications.append(contentsOf: newFeed.publications)
+                    completionHandler(self.feed)
+                }
             }
         }
     }

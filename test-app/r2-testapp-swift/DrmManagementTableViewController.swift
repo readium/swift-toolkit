@@ -11,7 +11,6 @@
 //
 
 import UIKit
-import PromiseKit
 import R2Shared
 import R2Navigator
 

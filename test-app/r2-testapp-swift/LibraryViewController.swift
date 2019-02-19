@@ -16,7 +16,6 @@ import R2Shared
 import R2Streamer
 import R2Navigator
 import Kingfisher
-import PromiseKit
 import ReadiumOPDS
 
 import MobileCoreServices
