@@ -151,14 +151,14 @@ final public class OPFParser {
     {
         // Get the manifest children items
         guard let manifestItems = manifest["item"].all else {
-            log(level: .warning, "Manifest have no children elements.")
+            log(.warning, "Manifest have no children elements.")
             return
         }
         /// Creates an Link for each of them and add it to the ressources.
         for item in manifestItems {
             // Must have an ID.
             guard let id = item.attributes["id"] else {
-                log(level: .warning, "Manifest item MUST have an id, item ignored.")
+                log(.warning, "Manifest item MUST have an id, item ignored.")
                 continue
             }
             let link = linkFromManifest(item, rootFilePath)
@@ -207,7 +207,7 @@ final public class OPFParser {
     static internal func parseSpine(from spine: AEXMLElement, to publication: inout Publication) {
         // Get the spine children items.
         guard let spineItems = spine["itemref"].all else {
-            log(level: .warning, "Spine have no children elements.")
+            log(.warning, "Spine have no children elements.")
             return
         }
         // Create a `Link` for each spine item and add it to `Publication.spine`.

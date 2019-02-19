@@ -28,7 +28,7 @@ public class ContainerEpub: ZipArchiveContainer {
     /// - Parameter path: Path to the epub file.
     public init?(path: String) {
         guard let arc = ZipArchive(url: URL(fileURLWithPath: path)) else {
-            ContainerEpub.log(level: .error, "File at \(path) not found.")
+            ContainerEpub.log(.error, "File at \(path) not found.")
             return nil
         }
 

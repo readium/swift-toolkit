@@ -60,7 +60,7 @@ internal class SampleGenerator: XCTest {
             pubBox = try parser.parse(fileAtPath: url.path)
         } catch {
             XCTFail("An exception occured while parsing publication at \(url.path)")
-            logValue(level: .error, error)
+            log(.error, error)
             return nil
         }
         XCTAssertNotNil(pubBox.publication)
@@ -81,7 +81,7 @@ internal class SampleGenerator: XCTest {
             pubBox = try parser.parse(fileAtPath: url.path)
         } catch {
             XCTFail("An exception occured while parsing publication at \(url.path)")
-            logValue(level: .error, error)
+            log(.error, error)
             return nil
         }
         XCTAssertNotNil(pubBox.publication)

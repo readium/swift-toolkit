@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import R2Shared
 
 /// FileInputStream errors
 ///
@@ -78,7 +79,7 @@ internal class FileInputStream: SeekableInputStream {
     internal init?(fileAtPath: String) {
         // Does file `atFilePath` exists
         guard FileManager.default.fileExists(atPath: fileAtPath) else {
-            FileInputStream.log(level: .error, "File not found: \(fileAtPath).")
+            FileInputStream.log(.error, "File not found: \(fileAtPath).")
             return nil
         }
         filePath = fileAtPath
@@ -87,13 +88,12 @@ internal class FileInputStream: SeekableInputStream {
         do {
             attributes = try FileManager.default.attributesOfItem(atPath: filePath)
         } catch {
-            FileInputStream.log(level: .error, "Exception retrieving attrs for \(filePath).")
-            FileInputStream.logValue(level: .error, error)
+            FileInputStream.log(.error, "Exception retrieving attrs for \(filePath): \(error)")
             return nil
         }
         // Verify the size attribute of the file at `fileAtPath`
         guard let fileSize = attributes[FileAttributeKey.size] as? UInt64 else {
-            FileInputStream.log(level: .error, "Error accessing size attribute.")
+            FileInputStream.log(.error, "Error accessing size attribute.")
             return nil
         }
         _length = fileSize

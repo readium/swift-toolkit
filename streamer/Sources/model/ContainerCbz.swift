@@ -37,7 +37,7 @@ public class ContainerCbz: CbzContainer, ZipArchiveContainer {
         do {
             try zipArchive.buildFilesList()
         } catch {
-            ContainerCbz.log(level: .error, "zipArchive error generating file List")
+            ContainerCbz.log(.error, "zipArchive error generating file List")
             return nil
         }
     }

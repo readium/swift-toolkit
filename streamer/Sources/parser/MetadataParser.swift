@@ -75,7 +75,7 @@ final public class MetadataParser {
     static internal func titleFor(titleType: EPUBTitleType, from metadata: AEXMLElement) -> MultilangString? {
         // Return if there isn't any `<dc:title>` element
         guard let titles = metadata["dc:title"].all else {
-            log(level: .error, "Error: Publication have no title")
+            log(.error, "Error: Publication have no title")
             return nil
         }
         
@@ -153,7 +153,7 @@ final public class MetadataParser {
         // Convert the XML element ISO8601DateString into a Date.
         // See Formatter/Date/String extensions for details.
         guard let dateFromString = iso8601DateString.dateFromISO8601 else {
-            log(level: .warning, "Error converting the modifiedDate to a Date object")
+            log(.warning, "Error converting the modifiedDate to a Date object")
             return nil
         }
         return dateFromString
@@ -172,7 +172,7 @@ final public class MetadataParser {
         }
         /// Check if there is a value, mandatory field.
         guard let name = subjectElement.value else {
-            log(level: .warning, "Invalid Epub, no value for <dc:subject>")
+            log(.warning, "Invalid Epub, no value for <dc:subject>")
             return nil
         }
         let subject = Subject()

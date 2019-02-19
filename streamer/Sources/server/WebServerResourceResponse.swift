@@ -10,6 +10,7 @@
 //
 
 import GCDWebServers
+import R2Shared
 
 extension GCDWebServerResponse: Loggable {}
 
