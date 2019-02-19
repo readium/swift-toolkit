@@ -11,30 +11,10 @@
 		03079E7E211CF8A3002E9B9B /* 1.cbz in Resources */ = {isa = PBXBuildFile; fileRef = 03079E7C211CF864002E9B9B /* 1.cbz */; };
 		03079E7F211CF8A4002E9B9B /* 1.cbz in Resources */ = {isa = PBXBuildFile; fileRef = 03079E7C211CF864002E9B9B /* 1.cbz */; };
 		03079E80211CF8A4002E9B9B /* 1.cbz in Resources */ = {isa = PBXBuildFile; fileRef = 03079E7C211CF864002E9B9B /* 1.cbz */; };
-		0318D238211CEB5B009B6727 /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0318D237211CEB5B009B6727 /* ReadiumOPDS.framework */; };
-		0318D239211CEB5B009B6727 /* ReadiumOPDS.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0318D237211CEB5B009B6727 /* ReadiumOPDS.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		0318D23B211CEB5B009B6727 /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0318D23A211CEB5B009B6727 /* R2Navigator.framework */; };
-		0318D23C211CEB5B009B6727 /* R2Navigator.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0318D23A211CEB5B009B6727 /* R2Navigator.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		0318D23E211CEB5B009B6727 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0318D23D211CEB5B009B6727 /* R2Shared.framework */; };
-		0318D23F211CEB5B009B6727 /* R2Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0318D23D211CEB5B009B6727 /* R2Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		0318D241211CEB5B009B6727 /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0318D240211CEB5B009B6727 /* R2Streamer.framework */; };
-		0318D242211CEB5B009B6727 /* R2Streamer.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0318D240211CEB5B009B6727 /* R2Streamer.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		032F7E3421167E9B009E5C24 /* PublicationMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032F7E3021167E9A009E5C24 /* PublicationMenuViewController.swift */; };
 		032F7E3521167E9B009E5C24 /* PublicationCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032F7E3121167E9A009E5C24 /* PublicationCollectionViewCell.swift */; };
 		032F7E3621167E9B009E5C24 /* PublicationCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 032F7E3221167E9A009E5C24 /* PublicationCollectionViewCell.xib */; };
 		032F7E3721167E9B009E5C24 /* PublicationMenuViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 032F7E3321167E9A009E5C24 /* PublicationMenuViewController.xib */; };
-		033936D8211CD83F00F980B8 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 033936D7211CD83F00F980B8 /* R2LCPClient.framework */; };
-		033936D9211CD83F00F980B8 /* R2LCPClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 033936D7211CD83F00F980B8 /* R2LCPClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		033936DB211CD83F00F980B8 /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 033936DA211CD83F00F980B8 /* ReadiumLCP.framework */; };
-		033936DC211CD83F00F980B8 /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 033936DA211CD83F00F980B8 /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		033936DE211CD83F00F980B8 /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 033936DD211CD83F00F980B8 /* ReadiumOPDS.framework */; };
-		033936DF211CD83F00F980B8 /* ReadiumOPDS.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 033936DD211CD83F00F980B8 /* ReadiumOPDS.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		033936E1211CD83F00F980B8 /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 033936E0211CD83F00F980B8 /* R2Navigator.framework */; };
-		033936E2211CD83F00F980B8 /* R2Navigator.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 033936E0211CD83F00F980B8 /* R2Navigator.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		033936E4211CD83F00F980B8 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 033936E3211CD83F00F980B8 /* R2Shared.framework */; };
-		033936E5211CD83F00F980B8 /* R2Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 033936E3211CD83F00F980B8 /* R2Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		033936E7211CD83F00F980B8 /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 033936E6211CD83F00F980B8 /* R2Streamer.framework */; };
-		033936E8211CD83F00F980B8 /* R2Streamer.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 033936E6211CD83F00F980B8 /* R2Streamer.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		0350FCE5211CD2CB006994C2 /* AssociatedColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */; };
 		0350FCE6211CD2CB006994C2 /* BarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4831F4F044100DF166D /* BarView.swift */; };
 		0350FCE7211CD2CB006994C2 /* OPDSPublicationInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */; };
@@ -121,10 +101,6 @@
 		0350FD54211CD625006994C2 /* DetailsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */; };
 		0350FD55211CD625006994C2 /* BookmarkCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571585ED2109E8F8008B34AD /* BookmarkCell.swift */; };
 		0350FD56211CD625006994C2 /* AboutTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE37DE422093291600079AA2 /* AboutTableViewController.swift */; };
-		0350FD58211CD625006994C2 /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE2B6A862088949300C12072 /* ReadiumOPDS.framework */; };
-		0350FD59211CD625006994C2 /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7650206A5F1A00C3C24E /* R2Navigator.framework */; };
-		0350FD5A211CD625006994C2 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7646206A5F1900C3C24E /* R2Shared.framework */; };
-		0350FD5B211CD625006994C2 /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764B206A5F1A00C3C24E /* R2Streamer.framework */; };
 		0350FD5C211CD625006994C2 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE009A03207F5980001D82C5 /* Fuzi.framework */; };
 		0350FD5D211CD625006994C2 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7647206A5F1900C3C24E /* CryptoSwift.framework */; };
 		0350FD5E211CD625006994C2 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7648206A5F1A00C3C24E /* SQLite.framework */; };
@@ -209,15 +185,7 @@
 		0350FDBE211CD634006994C2 /* UserSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F36D24DD1F580B8800A00BF1 /* UserSettings.storyboard */; };
 		03804906211662D7009F48BD /* MBProgressHUD.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03804905211662D7009F48BD /* MBProgressHUD.framework */; };
 		0380490B21166627009F48BD /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0380490A21166627009F48BD /* Toast.swift */; };
-		03B8169120FD0118002A449E /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7650206A5F1A00C3C24E /* R2Navigator.framework */; };
-		03B8169220FD0118002A449E /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7646206A5F1900C3C24E /* R2Shared.framework */; };
-		03B8169320FD0118002A449E /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764B206A5F1A00C3C24E /* R2Streamer.framework */; };
-		03B8169420FD012C002A449E /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE2B6A862088949300C12072 /* ReadiumOPDS.framework */; };
 		03D011F2208023360097A87C /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03D011F1208023360097A87C /* Minizip.framework */; };
-		03E1FD39211CE50500D4A320 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03E1FD38211CE50500D4A320 /* R2LCPClient.framework */; };
-		03E1FD3A211CE50500D4A320 /* R2LCPClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03E1FD38211CE50500D4A320 /* R2LCPClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		03E1FD3C211CE50500D4A320 /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03E1FD3B211CE50500D4A320 /* ReadiumLCP.framework */; };
-		03E1FD3D211CE50500D4A320 /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03E1FD3B211CE50500D4A320 /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		03EF7653206A5F1A00C3C24E /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7647206A5F1900C3C24E /* CryptoSwift.framework */; };
 		03EF7654206A5F1A00C3C24E /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7648206A5F1A00C3C24E /* SQLite.framework */; };
 		03EF7655206A5F1A00C3C24E /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */; };
@@ -243,26 +211,50 @@
 		AE53A076208F62D200737838 /* OPDSGroupCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */; };
 		AE955A2120EBA74B00A0D8D8 /* AssociatedColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */; };
 		AED681F220A32EBA0090DBCD /* OPDSPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AED681F120A32EBA0090DBCD /* OPDSPlaceholderView.swift */; };
-		CA2AE316221C11F5008BD18F /* LcpLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE315221C11F4008BD18F /* LcpLibraryService.swift */; };
-		CA2AE317221C11F5008BD18F /* LcpLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE315221C11F4008BD18F /* LcpLibraryService.swift */; };
-		CA2AE318221C11F5008BD18F /* LcpLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE315221C11F4008BD18F /* LcpLibraryService.swift */; };
-		CA2AE319221C11F5008BD18F /* LcpLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE315221C11F4008BD18F /* LcpLibraryService.swift */; };
-		CA7F5A4A2204A42000B88141 /* DrmLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DrmLibraryService.swift */; };
-		CA7F5A4B2204A42100B88141 /* DrmLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DrmLibraryService.swift */; };
-		CA7F5A4C2204A42100B88141 /* DrmLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DrmLibraryService.swift */; };
-		CA7F5A4D2204A42100B88141 /* DrmLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DrmLibraryService.swift */; };
+		CA2AE316221C11F5008BD18F /* LCPLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE315221C11F4008BD18F /* LCPLibraryService.swift */; };
+		CA2AE317221C11F5008BD18F /* LCPLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE315221C11F4008BD18F /* LCPLibraryService.swift */; };
+		CA2AE318221C11F5008BD18F /* LCPLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE315221C11F4008BD18F /* LCPLibraryService.swift */; };
+		CA2AE319221C11F5008BD18F /* LCPLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE315221C11F4008BD18F /* LCPLibraryService.swift */; };
+		CA2AE35D221C4B46008BD18F /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE35C221C4B2D008BD18F /* R2LCPClient.framework */; };
+		CA2AE35E221C4B46008BD18F /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE358221C4B2C008BD18F /* R2Navigator.framework */; };
+		CA2AE35F221C4B46008BD18F /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE359221C4B2C008BD18F /* R2Shared.framework */; };
+		CA2AE360221C4B46008BD18F /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE35B221C4B2D008BD18F /* R2Streamer.framework */; };
+		CA2AE361221C4B46008BD18F /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE357221C4B2C008BD18F /* ReadiumLCP.framework */; };
+		CA2AE362221C4B46008BD18F /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE35A221C4B2D008BD18F /* ReadiumOPDS.framework */; };
+		CA2AE363221C4B4E008BD18F /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE35C221C4B2D008BD18F /* R2LCPClient.framework */; };
+		CA2AE364221C4B4E008BD18F /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE358221C4B2C008BD18F /* R2Navigator.framework */; };
+		CA2AE365221C4B4E008BD18F /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE359221C4B2C008BD18F /* R2Shared.framework */; };
+		CA2AE366221C4B4E008BD18F /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE35B221C4B2D008BD18F /* R2Streamer.framework */; };
+		CA2AE367221C4B4E008BD18F /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE357221C4B2C008BD18F /* ReadiumLCP.framework */; };
+		CA2AE368221C4B4E008BD18F /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE35A221C4B2D008BD18F /* ReadiumOPDS.framework */; };
+		CA2AE36E221C4B97008BD18F /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36A221C4B96008BD18F /* R2Shared.framework */; };
+		CA2AE36F221C4B97008BD18F /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36A221C4B96008BD18F /* R2Shared.framework */; };
+		CA2AE370221C4B97008BD18F /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36B221C4B96008BD18F /* R2Streamer.framework */; };
+		CA2AE371221C4B97008BD18F /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36B221C4B96008BD18F /* R2Streamer.framework */; };
+		CA2AE372221C4B97008BD18F /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36C221C4B96008BD18F /* ReadiumOPDS.framework */; };
+		CA2AE373221C4B97008BD18F /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36C221C4B96008BD18F /* ReadiumOPDS.framework */; };
+		CA2AE374221C4B97008BD18F /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36D221C4B96008BD18F /* R2Navigator.framework */; };
+		CA2AE375221C4B97008BD18F /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36D221C4B96008BD18F /* R2Navigator.framework */; };
+		CA2AE376221C4B9F008BD18F /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE35C221C4B2D008BD18F /* R2LCPClient.framework */; };
+		CA2AE377221C4B9F008BD18F /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE357221C4B2C008BD18F /* ReadiumLCP.framework */; };
+		CA2AE378221C4BA0008BD18F /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE35C221C4B2D008BD18F /* R2LCPClient.framework */; };
+		CA2AE379221C4BA0008BD18F /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE357221C4B2C008BD18F /* ReadiumLCP.framework */; };
+		CA7F5A4A2204A42000B88141 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
+		CA7F5A4B2204A42100B88141 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
+		CA7F5A4C2204A42100B88141 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
+		CA7F5A4D2204A42100B88141 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
 		CA7F5A502204AF2900B88141 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A4F2204AF2900B88141 /* Result.swift */; };
 		CA7F5A512204AF5C00B88141 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A4F2204AF2900B88141 /* Result.swift */; };
 		CA7F5A522204AF5D00B88141 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A4F2204AF2900B88141 /* Result.swift */; };
 		CA7F5A532204AF5D00B88141 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A4F2204AF2900B88141 /* Result.swift */; };
-		CA9A40D3221C054C00531EA1 /* DrmViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DrmViewModel.swift */; };
-		CA9A40D8221C069D00531EA1 /* LcpViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D7221C069D00531EA1 /* LcpViewModel.swift */; };
-		CA9A40D9221C069D00531EA1 /* LcpViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D7221C069D00531EA1 /* LcpViewModel.swift */; };
-		CA9A40DA221C069D00531EA1 /* LcpViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D7221C069D00531EA1 /* LcpViewModel.swift */; };
-		CA9A40DB221C069D00531EA1 /* LcpViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D7221C069D00531EA1 /* LcpViewModel.swift */; };
-		CA9A40DC221C06A300531EA1 /* DrmViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DrmViewModel.swift */; };
-		CA9A40DD221C06A400531EA1 /* DrmViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DrmViewModel.swift */; };
-		CA9A40DE221C06A500531EA1 /* DrmViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DrmViewModel.swift */; };
+		CA9A40D3221C054C00531EA1 /* DRMViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */; };
+		CA9A40D8221C069D00531EA1 /* LCPViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */; };
+		CA9A40D9221C069D00531EA1 /* LCPViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */; };
+		CA9A40DA221C069D00531EA1 /* LCPViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */; };
+		CA9A40DB221C069D00531EA1 /* LCPViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */; };
+		CA9A40DC221C06A300531EA1 /* DRMViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */; };
+		CA9A40DD221C06A400531EA1 /* DRMViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */; };
+		CA9A40DE221C06A500531EA1 /* DRMViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */; };
 		F30AEE7A1FC312EA0073C9FD /* DetailsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */; };
 		F30AEE7D1FC316430073C9FD /* Details.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F30AEE7C1FC316430073C9FD /* Details.storyboard */; };
 		F3120DE71FACB08E009ACFAD /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
@@ -296,12 +288,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				033936E2211CD83F00F980B8 /* R2Navigator.framework in Embed Frameworks */,
-				033936E5211CD83F00F980B8 /* R2Shared.framework in Embed Frameworks */,
-				033936DF211CD83F00F980B8 /* ReadiumOPDS.framework in Embed Frameworks */,
-				033936DC211CD83F00F980B8 /* ReadiumLCP.framework in Embed Frameworks */,
-				033936D9211CD83F00F980B8 /* R2LCPClient.framework in Embed Frameworks */,
-				033936E8211CD83F00F980B8 /* R2Streamer.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -312,10 +298,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				0318D23C211CEB5B009B6727 /* R2Navigator.framework in Embed Frameworks */,
-				0318D23F211CEB5B009B6727 /* R2Shared.framework in Embed Frameworks */,
-				0318D239211CEB5B009B6727 /* ReadiumOPDS.framework in Embed Frameworks */,
-				0318D242211CEB5B009B6727 /* R2Streamer.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -326,8 +308,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				03E1FD3D211CE50500D4A320 /* ReadiumLCP.framework in Embed Frameworks */,
-				03E1FD3A211CE50500D4A320 /* R2LCPClient.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -336,20 +316,10 @@
 
 /* Begin PBXFileReference section */
 		03079E7C211CF864002E9B9B /* 1.cbz */ = {isa = PBXFileReference; lastKnownFileType = file; path = 1.cbz; sourceTree = "<group>"; };
-		0318D237211CEB5B009B6727 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumOPDS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		0318D23A211CEB5B009B6727 /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		0318D23D211CEB5B009B6727 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		0318D240211CEB5B009B6727 /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		032F7E3021167E9A009E5C24 /* PublicationMenuViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationMenuViewController.swift; sourceTree = "<group>"; };
 		032F7E3121167E9A009E5C24 /* PublicationCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationCollectionViewCell.swift; sourceTree = "<group>"; };
 		032F7E3221167E9A009E5C24 /* PublicationCollectionViewCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = PublicationCollectionViewCell.xib; sourceTree = "<group>"; };
 		032F7E3321167E9A009E5C24 /* PublicationMenuViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = PublicationMenuViewController.xib; sourceTree = "<group>"; };
-		033936D7211CD83F00F980B8 /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		033936DA211CD83F00F980B8 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		033936DD211CD83F00F980B8 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumOPDS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		033936E0211CD83F00F980B8 /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		033936E3211CD83F00F980B8 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		033936E6211CD83F00F980B8 /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0350FD28211CD2CB006994C2 /* r2-testapp-swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0350FD29211CD2CB006994C2 /* r2-testapp-swift (submodules)-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "r2-testapp-swift (submodules)-Info.plist"; path = "/Volumes/Data/EDRLab/Swift-Workspace/r2-workspace-swift/r2-testapp-swift/r2-testapp-swift (submodules)-Info.plist"; sourceTree = "<absolute>"; };
 		0350FD7C211CD625006994C2 /* r2-testapp-swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -359,18 +329,13 @@
 		03804905211662D7009F48BD /* MBProgressHUD.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MBProgressHUD.framework; path = Carthage/Build/iOS/MBProgressHUD.framework; sourceTree = "<group>"; };
 		0380490A21166627009F48BD /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		03D011F1208023360097A87C /* Minizip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Minizip.framework; path = Carthage/Build/iOS/Minizip.framework; sourceTree = "<group>"; };
-		03E1FD38211CE50500D4A320 /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		03E1FD3B211CE50500D4A320 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		03EF7646206A5F1900C3C24E /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
 		03EF7647206A5F1900C3C24E /* CryptoSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoSwift.framework; path = Carthage/Build/iOS/CryptoSwift.framework; sourceTree = "<group>"; };
 		03EF7648206A5F1A00C3C24E /* SQLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SQLite.framework; path = Carthage/Build/iOS/SQLite.framework; sourceTree = "<group>"; };
 		03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ZIPFoundation.framework; path = Carthage/Build/iOS/ZIPFoundation.framework; sourceTree = "<group>"; };
-		03EF764B206A5F1A00C3C24E /* R2Streamer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Streamer.framework; path = Carthage/Build/iOS/R2Streamer.framework; sourceTree = "<group>"; };
 		03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
 		03EF764D206A5F1A00C3C24E /* AEXML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AEXML.framework; path = Carthage/Build/iOS/AEXML.framework; sourceTree = "<group>"; };
 		03EF764E206A5F1A00C3C24E /* PromiseKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PromiseKit.framework; path = Carthage/Build/iOS/PromiseKit.framework; sourceTree = "<group>"; };
 		03EF764F206A5F1A00C3C24E /* Kingfisher.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Kingfisher.framework; path = Carthage/Build/iOS/Kingfisher.framework; sourceTree = "<group>"; };
-		03EF7650206A5F1A00C3C24E /* R2Navigator.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Navigator.framework; path = Carthage/Build/iOS/R2Navigator.framework; sourceTree = "<group>"; };
 		03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDWebServers.framework; path = Carthage/Build/iOS/GCDWebServers.framework; sourceTree = "<group>"; };
 		113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSCatalogSelectorViewController.swift; sourceTree = "<group>"; };
 		113B12C920800FD50074A5A2 /* OPDSFacetViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSFacetViewController.swift; sourceTree = "<group>"; };
@@ -380,7 +345,6 @@
 		571585EF2109E8F8008B34AD /* BookmarkDataSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkDataSource.swift; sourceTree = "<group>"; };
 		57CADB3220D14B3100DF6675 /* r2-testapp-swift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "r2-testapp-swift.entitlements"; sourceTree = "<group>"; };
 		AE009A03207F5980001D82C5 /* Fuzi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Fuzi.framework; path = Carthage/Build/iOS/Fuzi.framework; sourceTree = "<group>"; };
-		AE2B6A862088949300C12072 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReadiumOPDS.framework; path = Carthage/Build/iOS/ReadiumOPDS.framework; sourceTree = "<group>"; };
 		AE2B6A8820889C8700C12072 /* AppMain.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = AppMain.storyboard; sourceTree = "<group>"; };
 		AE37DE422093291600079AA2 /* AboutTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutTableViewController.swift; sourceTree = "<group>"; };
 		AE48F31D208DD056000B7B44 /* OPDS.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = OPDS.storyboard; sourceTree = "<group>"; };
@@ -391,11 +355,21 @@
 		AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSGroupCollectionViewCell.swift; sourceTree = "<group>"; };
 		AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssociatedColors.swift; sourceTree = "<group>"; };
 		AED681F120A32EBA0090DBCD /* OPDSPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPlaceholderView.swift; sourceTree = "<group>"; };
-		CA2AE315221C11F4008BD18F /* LcpLibraryService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LcpLibraryService.swift; sourceTree = "<group>"; };
-		CA7F5A402204A05700B88141 /* DrmLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrmLibraryService.swift; sourceTree = "<group>"; };
+		CA2AE315221C11F4008BD18F /* LCPLibraryService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCPLibraryService.swift; sourceTree = "<group>"; };
+		CA2AE357221C4B2C008BD18F /* ReadiumLCP.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReadiumLCP.framework; path = "../../../../Library/Developer/Xcode/DerivedData/r2-workspace-swift-aqmoygtbpslivmecadtpwokljitw/Build/Products/Debug-iphoneos/ReadiumLCP.framework"; sourceTree = "<group>"; };
+		CA2AE358221C4B2C008BD18F /* R2Navigator.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Navigator.framework; path = "../../../../Library/Developer/Xcode/DerivedData/r2-workspace-swift-aqmoygtbpslivmecadtpwokljitw/Build/Products/Debug-iphoneos/R2Navigator.framework"; sourceTree = "<group>"; };
+		CA2AE359221C4B2C008BD18F /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = "../../../../Library/Developer/Xcode/DerivedData/r2-workspace-swift-aqmoygtbpslivmecadtpwokljitw/Build/Products/Debug-iphoneos/R2Shared.framework"; sourceTree = "<group>"; };
+		CA2AE35A221C4B2D008BD18F /* ReadiumOPDS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReadiumOPDS.framework; path = "../../../../Library/Developer/Xcode/DerivedData/r2-workspace-swift-aqmoygtbpslivmecadtpwokljitw/Build/Products/Debug-iphoneos/ReadiumOPDS.framework"; sourceTree = "<group>"; };
+		CA2AE35B221C4B2D008BD18F /* R2Streamer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Streamer.framework; path = "../../../../Library/Developer/Xcode/DerivedData/r2-workspace-swift-aqmoygtbpslivmecadtpwokljitw/Build/Products/Debug-iphoneos/R2Streamer.framework"; sourceTree = "<group>"; };
+		CA2AE35C221C4B2D008BD18F /* R2LCPClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2LCPClient.framework; path = "../../../../Library/Developer/Xcode/DerivedData/r2-workspace-swift-aqmoygtbpslivmecadtpwokljitw/Build/Products/Debug-iphoneos/R2LCPClient.framework"; sourceTree = "<group>"; };
+		CA2AE36A221C4B96008BD18F /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
+		CA2AE36B221C4B96008BD18F /* R2Streamer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Streamer.framework; path = Carthage/Build/iOS/R2Streamer.framework; sourceTree = "<group>"; };
+		CA2AE36C221C4B96008BD18F /* ReadiumOPDS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReadiumOPDS.framework; path = Carthage/Build/iOS/ReadiumOPDS.framework; sourceTree = "<group>"; };
+		CA2AE36D221C4B96008BD18F /* R2Navigator.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Navigator.framework; path = Carthage/Build/iOS/R2Navigator.framework; sourceTree = "<group>"; };
+		CA7F5A402204A05700B88141 /* DRMLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DRMLibraryService.swift; sourceTree = "<group>"; };
 		CA7F5A4F2204AF2900B88141 /* Result.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
-		CA9A40D2221C054B00531EA1 /* DrmViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrmViewModel.swift; sourceTree = "<group>"; };
-		CA9A40D7221C069D00531EA1 /* LcpViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LcpViewModel.swift; sourceTree = "<group>"; };
+		CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DRMViewModel.swift; sourceTree = "<group>"; };
+		CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPViewModel.swift; sourceTree = "<group>"; };
 		F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsTableViewController.swift; sourceTree = "<group>"; };
 		F30AEE7C1FC316430073C9FD /* Details.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Details.storyboard; sourceTree = "<group>"; };
 		F32980EE1F7D467B00BDEAF4 /* 1.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 1.epub; sourceTree = "<group>"; };
@@ -434,18 +408,20 @@
 			buildActionMask = 2147483647;
 			files = (
 				0350FD08211CD2CB006994C2 /* Fuzi.framework in Frameworks */,
-				0318D23E211CEB5B009B6727 /* R2Shared.framework in Frameworks */,
 				0350FD09211CD2CB006994C2 /* CryptoSwift.framework in Frameworks */,
-				0318D23B211CEB5B009B6727 /* R2Navigator.framework in Frameworks */,
+				CA2AE368221C4B4E008BD18F /* ReadiumOPDS.framework in Frameworks */,
 				0350FD0A211CD2CB006994C2 /* SQLite.framework in Frameworks */,
 				0350FD0B211CD2CB006994C2 /* ZIPFoundation.framework in Frameworks */,
 				0350FD0C211CD2CB006994C2 /* MBProgressHUD.framework in Frameworks */,
-				0318D241211CEB5B009B6727 /* R2Streamer.framework in Frameworks */,
 				0350FD0E211CD2CB006994C2 /* SwiftyJSON.framework in Frameworks */,
+				CA2AE367221C4B4E008BD18F /* ReadiumLCP.framework in Frameworks */,
 				0350FD0F211CD2CB006994C2 /* Minizip.framework in Frameworks */,
+				CA2AE365221C4B4E008BD18F /* R2Shared.framework in Frameworks */,
+				CA2AE366221C4B4E008BD18F /* R2Streamer.framework in Frameworks */,
+				CA2AE363221C4B4E008BD18F /* R2LCPClient.framework in Frameworks */,
+				CA2AE364221C4B4E008BD18F /* R2Navigator.framework in Frameworks */,
 				0350FD10211CD2CB006994C2 /* AEXML.framework in Frameworks */,
 				0350FD11211CD2CB006994C2 /* PromiseKit.framework in Frameworks */,
-				0318D238211CEB5B009B6727 /* ReadiumOPDS.framework in Frameworks */,
 				0350FD12211CD2CB006994C2 /* Kingfisher.framework in Frameworks */,
 				0350FD13211CD2CB006994C2 /* GCDWebServers.framework in Frameworks */,
 			);
@@ -455,18 +431,18 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0350FD58211CD625006994C2 /* ReadiumOPDS.framework in Frameworks */,
-				0350FD59211CD625006994C2 /* R2Navigator.framework in Frameworks */,
-				0350FD5A211CD625006994C2 /* R2Shared.framework in Frameworks */,
-				0350FD5B211CD625006994C2 /* R2Streamer.framework in Frameworks */,
 				0350FD5C211CD625006994C2 /* Fuzi.framework in Frameworks */,
+				CA2AE371221C4B97008BD18F /* R2Streamer.framework in Frameworks */,
+				CA2AE36F221C4B97008BD18F /* R2Shared.framework in Frameworks */,
+				CA2AE378221C4BA0008BD18F /* R2LCPClient.framework in Frameworks */,
 				0350FD5D211CD625006994C2 /* CryptoSwift.framework in Frameworks */,
+				CA2AE373221C4B97008BD18F /* ReadiumOPDS.framework in Frameworks */,
+				CA2AE379221C4BA0008BD18F /* ReadiumLCP.framework in Frameworks */,
 				0350FD5E211CD625006994C2 /* SQLite.framework in Frameworks */,
-				03E1FD39211CE50500D4A320 /* R2LCPClient.framework in Frameworks */,
 				0350FD5F211CD625006994C2 /* ZIPFoundation.framework in Frameworks */,
 				0350FD60211CD625006994C2 /* MBProgressHUD.framework in Frameworks */,
 				0350FD62211CD625006994C2 /* SwiftyJSON.framework in Frameworks */,
-				03E1FD3C211CE50500D4A320 /* ReadiumLCP.framework in Frameworks */,
+				CA2AE375221C4B97008BD18F /* R2Navigator.framework in Frameworks */,
 				0350FD63211CD625006994C2 /* Minizip.framework in Frameworks */,
 				0350FD64211CD625006994C2 /* AEXML.framework in Frameworks */,
 				0350FD65211CD625006994C2 /* PromiseKit.framework in Frameworks */,
@@ -479,23 +455,23 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				033936E1211CD83F00F980B8 /* R2Navigator.framework in Frameworks */,
-				033936E4211CD83F00F980B8 /* R2Shared.framework in Frameworks */,
+				CA2AE35D221C4B46008BD18F /* R2LCPClient.framework in Frameworks */,
+				CA2AE35E221C4B46008BD18F /* R2Navigator.framework in Frameworks */,
+				CA2AE35F221C4B46008BD18F /* R2Shared.framework in Frameworks */,
+				CA2AE360221C4B46008BD18F /* R2Streamer.framework in Frameworks */,
+				CA2AE361221C4B46008BD18F /* ReadiumLCP.framework in Frameworks */,
+				CA2AE362221C4B46008BD18F /* ReadiumOPDS.framework in Frameworks */,
 				0350FD9F211CD634006994C2 /* Fuzi.framework in Frameworks */,
 				0350FDA1211CD634006994C2 /* CryptoSwift.framework in Frameworks */,
 				0350FDA3211CD634006994C2 /* SQLite.framework in Frameworks */,
-				033936DE211CD83F00F980B8 /* ReadiumOPDS.framework in Frameworks */,
 				0350FDA4211CD634006994C2 /* ZIPFoundation.framework in Frameworks */,
 				0350FDA5211CD634006994C2 /* MBProgressHUD.framework in Frameworks */,
 				0350FDA8211CD634006994C2 /* SwiftyJSON.framework in Frameworks */,
 				0350FDA9211CD634006994C2 /* Minizip.framework in Frameworks */,
-				033936DB211CD83F00F980B8 /* ReadiumLCP.framework in Frameworks */,
-				033936D8211CD83F00F980B8 /* R2LCPClient.framework in Frameworks */,
 				0350FDAA211CD634006994C2 /* AEXML.framework in Frameworks */,
 				0350FDAB211CD634006994C2 /* PromiseKit.framework in Frameworks */,
 				0350FDAD211CD634006994C2 /* Kingfisher.framework in Frameworks */,
 				0350FDAE211CD634006994C2 /* GCDWebServers.framework in Frameworks */,
-				033936E7211CD83F00F980B8 /* R2Streamer.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -503,16 +479,18 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				03B8169420FD012C002A449E /* ReadiumOPDS.framework in Frameworks */,
-				03B8169120FD0118002A449E /* R2Navigator.framework in Frameworks */,
-				03B8169220FD0118002A449E /* R2Shared.framework in Frameworks */,
-				03B8169320FD0118002A449E /* R2Streamer.framework in Frameworks */,
 				AE009A04207F5980001D82C5 /* Fuzi.framework in Frameworks */,
+				CA2AE370221C4B97008BD18F /* R2Streamer.framework in Frameworks */,
+				CA2AE36E221C4B97008BD18F /* R2Shared.framework in Frameworks */,
+				CA2AE376221C4B9F008BD18F /* R2LCPClient.framework in Frameworks */,
 				03EF7653206A5F1A00C3C24E /* CryptoSwift.framework in Frameworks */,
+				CA2AE372221C4B97008BD18F /* ReadiumOPDS.framework in Frameworks */,
+				CA2AE377221C4B9F008BD18F /* ReadiumLCP.framework in Frameworks */,
 				03EF7654206A5F1A00C3C24E /* SQLite.framework in Frameworks */,
 				03EF7655206A5F1A00C3C24E /* ZIPFoundation.framework in Frameworks */,
 				03804906211662D7009F48BD /* MBProgressHUD.framework in Frameworks */,
 				03EF7658206A5F1A00C3C24E /* SwiftyJSON.framework in Frameworks */,
+				CA2AE374221C4B97008BD18F /* R2Navigator.framework in Frameworks */,
 				03D011F2208023360097A87C /* Minizip.framework in Frameworks */,
 				03EF7659206A5F1A00C3C24E /* AEXML.framework in Frameworks */,
 				03EF765A206A5F1A00C3C24E /* PromiseKit.framework in Frameworks */,
@@ -551,6 +529,30 @@
 			path = Bookmark;
 			sourceTree = "<group>";
 		};
+		CA2AE356221C4AF4008BD18F /* Submodules */ = {
+			isa = PBXGroup;
+			children = (
+				CA2AE35C221C4B2D008BD18F /* R2LCPClient.framework */,
+				CA2AE358221C4B2C008BD18F /* R2Navigator.framework */,
+				CA2AE359221C4B2C008BD18F /* R2Shared.framework */,
+				CA2AE35B221C4B2D008BD18F /* R2Streamer.framework */,
+				CA2AE357221C4B2C008BD18F /* ReadiumLCP.framework */,
+				CA2AE35A221C4B2D008BD18F /* ReadiumOPDS.framework */,
+			);
+			name = Submodules;
+			sourceTree = "<group>";
+		};
+		CA2AE369221C4B5F008BD18F /* Carthage */ = {
+			isa = PBXGroup;
+			children = (
+				CA2AE36D221C4B96008BD18F /* R2Navigator.framework */,
+				CA2AE36A221C4B96008BD18F /* R2Shared.framework */,
+				CA2AE36B221C4B96008BD18F /* R2Streamer.framework */,
+				CA2AE36C221C4B96008BD18F /* ReadiumOPDS.framework */,
+			);
+			name = Carthage;
+			sourceTree = "<group>";
+		};
 		CA7F5A4E2204AF1800B88141 /* Common */ = {
 			isa = PBXGroup;
 			children = (
@@ -562,8 +564,8 @@
 		CA9A40D5221C066600531EA1 /* DRM */ = {
 			isa = PBXGroup;
 			children = (
-				CA7F5A402204A05700B88141 /* DrmLibraryService.swift */,
-				CA9A40D2221C054B00531EA1 /* DrmViewModel.swift */,
+				CA7F5A402204A05700B88141 /* DRMLibraryService.swift */,
+				CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */,
 				CA9A40D6221C067700531EA1 /* LCP */,
 			);
 			path = DRM;
@@ -572,8 +574,8 @@
 		CA9A40D6221C067700531EA1 /* LCP */ = {
 			isa = PBXGroup;
 			children = (
-				CA2AE315221C11F4008BD18F /* LcpLibraryService.swift */,
-				CA9A40D7221C069D00531EA1 /* LcpViewModel.swift */,
+				CA2AE315221C11F4008BD18F /* LCPLibraryService.swift */,
+				CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */,
 			);
 			path = LCP;
 			sourceTree = "<group>";
@@ -607,18 +609,6 @@
 		F3E7D42F1F4EF6D400DF166D = {
 			isa = PBXGroup;
 			children = (
-				0318D240211CEB5B009B6727 /* R2Streamer.framework */,
-				0318D23D211CEB5B009B6727 /* R2Shared.framework */,
-				0318D23A211CEB5B009B6727 /* R2Navigator.framework */,
-				0318D237211CEB5B009B6727 /* ReadiumOPDS.framework */,
-				03E1FD3B211CE50500D4A320 /* ReadiumLCP.framework */,
-				03E1FD38211CE50500D4A320 /* R2LCPClient.framework */,
-				033936E6211CD83F00F980B8 /* R2Streamer.framework */,
-				033936E3211CD83F00F980B8 /* R2Shared.framework */,
-				033936E0211CD83F00F980B8 /* R2Navigator.framework */,
-				033936DD211CD83F00F980B8 /* ReadiumOPDS.framework */,
-				033936DA211CD83F00F980B8 /* ReadiumLCP.framework */,
-				033936D7211CD83F00F980B8 /* R2LCPClient.framework */,
 				F3E7D43A1F4EF6D400DF166D /* r2-testapp-swift */,
 				F3E7D44F1F4EF6D400DF166D /* r2-testapp-swiftTests */,
 				F3E7D45A1F4EF6D400DF166D /* r2-testapp-swiftUITests */,
@@ -682,8 +672,9 @@
 		F3E7D4691F4EFE8700DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CA2AE369221C4B5F008BD18F /* Carthage */,
+				CA2AE356221C4AF4008BD18F /* Submodules */,
 				03804905211662D7009F48BD /* MBProgressHUD.framework */,
-				AE2B6A862088949300C12072 /* ReadiumOPDS.framework */,
 				AE009A03207F5980001D82C5 /* Fuzi.framework */,
 				03D011F1208023360097A87C /* Minizip.framework */,
 				03EF764D206A5F1A00C3C24E /* AEXML.framework */,
@@ -691,9 +682,6 @@
 				03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */,
 				03EF764F206A5F1A00C3C24E /* Kingfisher.framework */,
 				03EF764E206A5F1A00C3C24E /* PromiseKit.framework */,
-				03EF7650206A5F1A00C3C24E /* R2Navigator.framework */,
-				03EF7646206A5F1900C3C24E /* R2Shared.framework */,
-				03EF764B206A5F1A00C3C24E /* R2Streamer.framework */,
 				03EF7648206A5F1A00C3C24E /* SQLite.framework */,
 				03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */,
 				03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */,
@@ -1108,15 +1096,15 @@
 				0350FCF0211CD2CB006994C2 /* PublicationMenuViewController.swift in Sources */,
 				0350FCF1211CD2CB006994C2 /* OPDSPlaceholderView.swift in Sources */,
 				0350FCF2211CD2CB006994C2 /* OPDSNavigationTableViewCell.swift in Sources */,
-				CA9A40DC221C06A300531EA1 /* DrmViewModel.swift in Sources */,
+				CA9A40DC221C06A300531EA1 /* DRMViewModel.swift in Sources */,
 				0350FCF3211CD2CB006994C2 /* AppDelegate.swift in Sources */,
 				0350FCF4211CD2CB006994C2 /* OPDSCatalogSelectorViewController.swift in Sources */,
 				CA7F5A512204AF5C00B88141 /* Result.swift in Sources */,
 				0350FCF5211CD2CB006994C2 /* Toast.swift in Sources */,
-				CA7F5A4C2204A42100B88141 /* DrmLibraryService.swift in Sources */,
-				CA2AE317221C11F5008BD18F /* LcpLibraryService.swift in Sources */,
+				CA7F5A4C2204A42100B88141 /* DRMLibraryService.swift in Sources */,
+				CA2AE317221C11F5008BD18F /* LCPLibraryService.swift in Sources */,
 				0350FCF6211CD2CB006994C2 /* UserSettingsTableViewController.swift in Sources */,
-				CA9A40D9221C069D00531EA1 /* LcpViewModel.swift in Sources */,
+				CA9A40D9221C069D00531EA1 /* LCPViewModel.swift in Sources */,
 				0350FCF7211CD2CB006994C2 /* BookmarkDataSource.swift in Sources */,
 				0350FCF8211CD2CB006994C2 /* OPDSRootTableViewController.swift in Sources */,
 				0350FCF9211CD2CB006994C2 /* UIImageExtension.swift in Sources */,
@@ -1150,15 +1138,15 @@
 				0350FD44211CD625006994C2 /* PublicationMenuViewController.swift in Sources */,
 				0350FD45211CD625006994C2 /* OPDSPlaceholderView.swift in Sources */,
 				0350FD46211CD625006994C2 /* OPDSNavigationTableViewCell.swift in Sources */,
-				CA9A40DE221C06A500531EA1 /* DrmViewModel.swift in Sources */,
+				CA9A40DE221C06A500531EA1 /* DRMViewModel.swift in Sources */,
 				0350FD47211CD625006994C2 /* AppDelegate.swift in Sources */,
 				0350FD48211CD625006994C2 /* OPDSCatalogSelectorViewController.swift in Sources */,
 				CA7F5A522204AF5D00B88141 /* Result.swift in Sources */,
 				0350FD49211CD625006994C2 /* Toast.swift in Sources */,
-				CA7F5A4B2204A42100B88141 /* DrmLibraryService.swift in Sources */,
-				CA2AE318221C11F5008BD18F /* LcpLibraryService.swift in Sources */,
+				CA7F5A4B2204A42100B88141 /* DRMLibraryService.swift in Sources */,
+				CA2AE318221C11F5008BD18F /* LCPLibraryService.swift in Sources */,
 				0350FD4A211CD625006994C2 /* UserSettingsTableViewController.swift in Sources */,
-				CA9A40DA221C069D00531EA1 /* LcpViewModel.swift in Sources */,
+				CA9A40DA221C069D00531EA1 /* LCPViewModel.swift in Sources */,
 				0350FD4B211CD625006994C2 /* BookmarkDataSource.swift in Sources */,
 				0350FD4C211CD625006994C2 /* OPDSRootTableViewController.swift in Sources */,
 				0350FD4D211CD625006994C2 /* UIImageExtension.swift in Sources */,
@@ -1192,15 +1180,15 @@
 				0350FD8B211CD634006994C2 /* PublicationMenuViewController.swift in Sources */,
 				0350FD8C211CD634006994C2 /* OPDSPlaceholderView.swift in Sources */,
 				0350FD8D211CD634006994C2 /* OPDSNavigationTableViewCell.swift in Sources */,
-				CA9A40DD221C06A400531EA1 /* DrmViewModel.swift in Sources */,
+				CA9A40DD221C06A400531EA1 /* DRMViewModel.swift in Sources */,
 				0350FD8E211CD634006994C2 /* AppDelegate.swift in Sources */,
 				0350FD8F211CD634006994C2 /* OPDSCatalogSelectorViewController.swift in Sources */,
 				CA7F5A532204AF5D00B88141 /* Result.swift in Sources */,
 				0350FD90211CD634006994C2 /* Toast.swift in Sources */,
-				CA7F5A4A2204A42000B88141 /* DrmLibraryService.swift in Sources */,
-				CA2AE319221C11F5008BD18F /* LcpLibraryService.swift in Sources */,
+				CA7F5A4A2204A42000B88141 /* DRMLibraryService.swift in Sources */,
+				CA2AE319221C11F5008BD18F /* LCPLibraryService.swift in Sources */,
 				0350FD91211CD634006994C2 /* UserSettingsTableViewController.swift in Sources */,
-				CA9A40DB221C069D00531EA1 /* LcpViewModel.swift in Sources */,
+				CA9A40DB221C069D00531EA1 /* LCPViewModel.swift in Sources */,
 				0350FD92211CD634006994C2 /* BookmarkDataSource.swift in Sources */,
 				0350FD93211CD634006994C2 /* OPDSRootTableViewController.swift in Sources */,
 				0350FD94211CD634006994C2 /* UIImageExtension.swift in Sources */,
@@ -1238,13 +1226,13 @@
 				113B12D220800FD60074A5A2 /* OPDSCatalogSelectorViewController.swift in Sources */,
 				CA7F5A502204AF2900B88141 /* Result.swift in Sources */,
 				0380490B21166627009F48BD /* Toast.swift in Sources */,
-				CA7F5A4D2204A42100B88141 /* DrmLibraryService.swift in Sources */,
+				CA7F5A4D2204A42100B88141 /* DRMLibraryService.swift in Sources */,
 				F3E7D4881F4F044100DF166D /* UserSettingsTableViewController.swift in Sources */,
-				CA2AE316221C11F5008BD18F /* LcpLibraryService.swift in Sources */,
+				CA2AE316221C11F5008BD18F /* LCPLibraryService.swift in Sources */,
 				571585F22109E8F9008B34AD /* BookmarkDataSource.swift in Sources */,
 				AE48F320208DD3A9000B7B44 /* OPDSRootTableViewController.swift in Sources */,
-				CA9A40D3221C054C00531EA1 /* DrmViewModel.swift in Sources */,
-				CA9A40D8221C069D00531EA1 /* LcpViewModel.swift in Sources */,
+				CA9A40D3221C054C00531EA1 /* DRMViewModel.swift in Sources */,
+				CA9A40D8221C069D00531EA1 /* LCPViewModel.swift in Sources */,
 				F3E7D47C1F4F03B800DF166D /* UIImageExtension.swift in Sources */,
 				F3BD53391F72B26700E46FFC /* FontSelectionViewController.swift in Sources */,
 				F3E7D4871F4F044100DF166D /* OutlineTableViewController.swift in Sources */,

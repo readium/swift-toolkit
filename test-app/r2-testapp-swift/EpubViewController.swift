@@ -82,7 +82,7 @@ class EpubViewController: UIViewController {
       
     }
     
-    init(with publication: Publication, atIndex index: Int, progression: Double?, _ drm: Drm?) {
+    init(with publication: Publication, atIndex index: Int, progression: Double?, _ drm: DRM?) {
         stackView = UIStackView(frame: UIScreen.main.bounds)
         navigator = NavigatorViewController(for: publication,
                                             initialIndex: index,
@@ -103,7 +103,7 @@ class EpubViewController: UIViewController {
             storyboard = UIStoryboard(name: "DrmManagement", bundle: nil)
             drmManagementTVC =
                 (storyboard.instantiateViewController(withIdentifier: "DrmManagementTableViewController") as! DrmManagementTableViewController)
-            drmManagementTVC.viewModel = DrmViewModel.make(drm: drm)
+            drmManagementTVC.viewModel = DRMViewModel.make(drm: drm)
         }
         super.init(nibName: nil, bundle: nil)
     }

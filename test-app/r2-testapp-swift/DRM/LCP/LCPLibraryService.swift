@@ -1,5 +1,5 @@
 //
-//  LcpLibraryService.swift
+//  LCPLibraryService.swift
 //  r2-testapp-swift
 //
 //  Created by Mickaël Menu on 01.02.19.
@@ -17,7 +17,7 @@ import R2Shared
 import ReadiumLCP
 
 
-class LcpLibraryService: DrmLibraryService {
+class LCPLibraryService: DRMLibraryService {
 
     private let lcpService: LCPService
     
@@ -25,7 +25,7 @@ class LcpLibraryService: DrmLibraryService {
         self.lcpService = setupLCPService()
     }
     
-    var brand: Drm.Brand {
+    var brand: DRM.Brand {
         return .lcp
     }
     
@@ -48,7 +48,7 @@ class LcpLibraryService: DrmLibraryService {
         }
     }
     
-    func loadPublication(at publication: URL, drm: Drm, completion: @escaping (CancellableResult<Drm>) -> Void) {
+    func loadPublication(at publication: URL, drm: DRM, completion: @escaping (CancellableResult<DRM>) -> Void) {
         lcpService.retrieveLicense(from: publication, authentication: self) { (license, error) in
             if case LCPError.cancelled? = error {
                 completion(.cancelled)
@@ -67,7 +67,7 @@ class LcpLibraryService: DrmLibraryService {
     
 }
 
-extension LcpLibraryService: LCPAuthenticating {
+extension LCPLibraryService: LCPAuthenticating {
     
     func requestPassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, completion: @escaping (String?) -> Void) {
         guard let viewController = UIApplication.shared.keyWindow?.rootViewController else {

@@ -30,7 +30,7 @@ class DrmManagementTableViewController: UITableViewController {
     @IBOutlet weak var renewButton: UIButton!
     @IBOutlet weak var returnButton: UIButton!
     
-    public var viewModel: DrmViewModel!
+    public var viewModel: DRMViewModel!
     public var appearance: UserProperty?
     
     override func viewWillAppear(_ animated: Bool) {

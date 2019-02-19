@@ -45,11 +45,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     /// publication identifier : data
     var items = [String: (PubBox, PubParsingCallback)]()
     
-    var drmLibraryServices = [DrmLibraryService]()
+    var drmLibraryServices = [DRMLibraryService]()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         #if LCP
-        drmLibraryServices.append(LcpLibraryService())
+        drmLibraryServices.append(LCPLibraryService())
         #endif
         
         /// Init R2.
@@ -358,7 +358,7 @@ extension AppDelegate: LibraryViewControllerDelegate {
     ///   - id: <#id description#>
     ///   - completion: <#completion description#>
     /// - Throws: <#throws value description#>
-    func loadPublication(withId id: String?, completion: @escaping (Drm?, Error?) -> Void) throws {
+    func loadPublication(withId id: String?, completion: @escaping (DRM?, Error?) -> Void) throws {
         guard let id = id, let item = items[id] else {
             print("Error no id")
             return

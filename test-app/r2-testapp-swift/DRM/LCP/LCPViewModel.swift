@@ -1,5 +1,5 @@
 //
-//  LcpViewModel.swift
+//  LCPViewModel.swift
 //  r2-testapp-swift
 //
 //  Created by Mickaël Menu on 19.02.19.
@@ -16,7 +16,7 @@ import R2Shared
 import ReadiumLCP
 
 
-final class LcpViewModel: DrmViewModel {
+final class LCPViewModel: DRMViewModel {
 
     private var lcpLicense: LCPLicense? {
         guard let license = license else {
