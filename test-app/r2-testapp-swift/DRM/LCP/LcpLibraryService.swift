@@ -34,7 +34,7 @@ class LcpLibraryService: DrmLibraryService {
     }
     
     func fulfill(_ file: URL, completion: @escaping (CancellableResult<(URL, URLSessionDownloadTask?)>) -> Void) {
-        lcpService.importLicenseDocument(file, authenticating: self) { (result, error) in
+        lcpService.importPublication(from: file, authentication: self) { (result, error) in
             if case LCPError.cancelled? = error {
                 completion(.cancelled)
                 return
@@ -49,7 +49,7 @@ class LcpLibraryService: DrmLibraryService {
     }
     
     func loadPublication(at publication: URL, drm: Drm, completion: @escaping (CancellableResult<Drm>) -> Void) {
-        lcpService.openLicense(in: publication, authenticating: self) { (license, error) in
+        lcpService.retrieveLicense(from: publication, authentication: self) { (license, error) in
             if case LCPError.cancelled? = error {
                 completion(.cancelled)
                 return
@@ -61,7 +61,6 @@ class LcpLibraryService: DrmLibraryService {
             
             var drm = drm
             drm.license = license
-            drm.profile = license.profile
             completion(.success(drm))
         }
     }
@@ -70,7 +69,7 @@ class LcpLibraryService: DrmLibraryService {
 
 extension LcpLibraryService: LCPAuthenticating {
     
-    func requestPassphrase(for data: LCPAuthenticationData, reason: LCPAuthenticationReason, completion: @escaping (String?) -> Void) {
+    func requestPassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, completion: @escaping (String?) -> Void) {
         guard let viewController = UIApplication.shared.keyWindow?.rootViewController else {
             completion(nil)
             return
@@ -84,18 +83,15 @@ extension LcpLibraryService: LCPAuthenticating {
             title = "The passphrase is incorrect"
         }
     
-        let alert = UIAlertController(title: title,
-                                      message: data.hint, preferredStyle: .alert)
-        let dismissButton = UIAlertAction(title: "Cancel", style: .cancel) { (_) in
+        let alert = UIAlertController(title: title, message: license.hint, preferredStyle: .alert)
+        let dismissButton = UIAlertAction(title: "Cancel", style: .cancel) { _ in
             completion(nil)
         }
-    
-        let confirmButton = UIAlertAction(title: "Submit", style: .default) { (_) in
+        let confirmButton = UIAlertAction(title: "Submit", style: .default) { _ in
             let passphrase = alert.textFields?[0].text
             completion(passphrase ?? "")
         }
     
-        //adding textfields to our dialog box
         alert.addTextField { (textField) in
             textField.placeholder = "Passphrase"
             textField.isSecureTextEntry = true

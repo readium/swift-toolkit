@@ -30,7 +30,7 @@ class DrmManagementTableViewController: UITableViewController {
     @IBOutlet weak var renewButton: UIButton!
     @IBOutlet weak var returnButton: UIButton!
     
-    public var drm: Drm?
+    public var viewModel: DrmViewModel!
     public var appearance: UserProperty?
     
     override func viewWillAppear(_ animated: Bool) {
@@ -65,19 +65,18 @@ class DrmManagementTableViewController: UITableViewController {
                                       message: "The provider will receive you query and process it.",
                                       preferredStyle: .alert)
         let confirmButton = UIAlertAction(title: "Confirm", style: .default, handler: { (_) in
+            guard let loan = self.viewModel.license?.loan else {
+                return
+            }
             // Make endate selection. let server decide date.
-            self.drm?.license?.renew(endDate: nil, completion: { error in
+            loan.renewLicense(to: nil) { error in
                 if let error = error {
-                    DispatchQueue.main.async {
-                        self.infoAlert(title: "Error", message: error.localizedDescription)
-                    }
+                    self.infoAlert(title: "Error", message: error.localizedDescription)
                 } else {
-                    DispatchQueue.main.async {
-                        self.reload()
-                        self.infoAlert(title: "Succes", message: "Publication renewed successfully.")
-                    }
+                    self.reload()
+                    self.infoAlert(title: "Succes", message: "Publication renewed successfully.")
                 }
-            })
+            }
         })
         let dismissButton = UIAlertAction(title: "Cancel", style: .cancel)
         
@@ -92,18 +91,17 @@ class DrmManagementTableViewController: UITableViewController {
                                       message: "Returning the loan will prevent you from accessing the publication.",
                                       preferredStyle: .alert)
         let confirmButton = UIAlertAction(title: "Confirm", style: .destructive, handler: { (_) in
-            self.drm?.license?.`return`(completion: { error in
+            guard let loan = self.viewModel.license?.loan else {
+                return
+            }
+            loan.returnLicense() { error in
                 if let error = error {
-                    DispatchQueue.main.async {
-                        self.infoAlert(title: "Error", message: error.localizedDescription)
-                    }
+                    self.infoAlert(title: "Error", message: error.localizedDescription)
                 } else {
-                    DispatchQueue.main.async {
-                        self.navigationController?.popToRootViewController(animated: true)
-                        self.infoAlert(title: "Succes", message: "Publication returned successfully.")
-                    }
+                    self.navigationController?.popToRootViewController(animated: true)
+                    self.infoAlert(title: "Succes", message: "Publication returned successfully.")
                 }
-            })
+            }
         })
         let dismissButton = UIAlertAction(title: "Cancel", style: .cancel)
         
@@ -115,22 +113,23 @@ class DrmManagementTableViewController: UITableViewController {
     }
     
     internal func reload() {
-        guard let drm = drm else {
-            return
-        }
-        typeLabel.text = drm.brand.rawValue
-        stateLabel.text = drm.license?.currentStatus()
-        providerLabel.text = drm.license?.provider().absoluteString
-        issuedLabel.text = drm.license?.issued().description
-        updatedLabel.text = drm.license?.lastUpdate().description
-        startLabel.text = drm.license?.rightsStart()?.description
-        endLabel.text = drm.license?.rightsEnd()?.description
-        if let prints = drm.license?.rightsPrints() {
-            printsLeftLabel.text =  String(prints)
-        }
-        if let copies = drm.license?.rightsCopies() {
-            copiesLeftLabel.text = String(copies)
-        }
+        typeLabel.text = viewModel.type
+        stateLabel.text = viewModel.state
+        providerLabel.text = viewModel.provider
+        issuedLabel.text = viewModel.issued?.description
+        updatedLabel.text = viewModel.updated?.description
+        startLabel.text = viewModel.start?.description ?? "-"
+        endLabel.text = viewModel.end?.description ?? "-"
+        
+        let rights = viewModel.license?.rights
+        let printQuantity = rights?.remainingQuantity(for: .print) ?? .unlimited
+        let copyQuantity = rights?.remainingQuantity(for: .print) ?? .unlimited
+        printsLeftLabel.text = printQuantity.description
+        copiesLeftLabel.text = copyQuantity.description
+        
+        let loan = viewModel.license?.loan
+        renewButton.isEnabled = loan?.canRenewLicense ?? false
+        returnButton.isEnabled = loan?.canReturnLicense ?? false
     }
     
     internal func infoAlert(title: String, message: String) {
@@ -142,23 +141,4 @@ class DrmManagementTableViewController: UITableViewController {
         present(alert, animated: true)
     }
     
-    // MARK: - UITableView
-    
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        let count = super.numberOfSections(in: tableView)
-        if drm?.license?.rightsEnd() == nil {
-            // remove last section
-            return count - 1
-        }
-        return count
-    }
-    
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        let count = super.tableView(tableView, numberOfRowsInSection: section)
-        if (section == 1 && drm?.license?.rightsEnd() == nil) {
-            // remove last two rows
-            return count - 2
-        }
-        return count
-    }
 }

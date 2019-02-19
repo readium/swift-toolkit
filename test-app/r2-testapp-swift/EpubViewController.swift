@@ -95,15 +95,15 @@ class EpubViewController: UIViewController {
         var storyboard = UIStoryboard(name: "UserSettings", bundle: nil)
         
         userSettingNavigationController =
-            storyboard.instantiateViewController(withIdentifier: "UserSettingsNavigationController") as! UserSettingsNavigationController
+            (storyboard.instantiateViewController(withIdentifier: "UserSettingsNavigationController") as! UserSettingsNavigationController)
         
-        if drm != nil {
+        if let drm = drm {
             haveDrm = true
             // DrmManagementViewController?
             storyboard = UIStoryboard(name: "DrmManagement", bundle: nil)
             drmManagementTVC =
-                storyboard.instantiateViewController(withIdentifier: "DrmManagementTableViewController") as! DrmManagementTableViewController
-            drmManagementTVC.drm = drm
+                (storyboard.instantiateViewController(withIdentifier: "DrmManagementTableViewController") as! DrmManagementTableViewController)
+            drmManagementTVC.viewModel = DrmViewModel.make(drm: drm)
         }
         super.init(nibName: nil, bundle: nil)
     }
