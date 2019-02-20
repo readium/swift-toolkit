@@ -58,17 +58,19 @@ open class NavigatorViewController: UIViewController {
     public weak var delegate: NavigatorDelegate?
 
     public let pageTransition: PageTransition
-  public let editingActions: [EditingAction]
+    public let editingActions: [EditingAction]
+    public let disableDragAndDrop: Bool
 
     /// - Parameters:
     ///   - publication: The publication.
     ///   - initialIndex: Inital index of -1 will open the publication's at the end.
-  public init(for publication: Publication, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, editingActions: [EditingAction] = []) {
+    public init(for publication: Publication, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = []) {
         self.publication = publication
         self.initialProgression = initialProgression
         self.pageTransition = pageTransition
+        self.disableDragAndDrop = disableDragAndDrop
         self.editingActions = editingActions
-    
+
         userSettings = UserSettings()
         publication.userProperties.properties = userSettings.userProperties.properties
         delegatee = Delegatee()
@@ -200,6 +202,14 @@ extension NavigatorViewController {
 
 extension NavigatorViewController: ViewDelegate {
     
+    func willAnimatePageChange() {
+        triptychView.isUserInteractionEnabled = false
+    }
+    
+    func didEndPageAnimation() {
+        triptychView.isUserInteractionEnabled = true
+    }
+    
     func handleTapOnLink(with url: URL) {
         delegate?.didTapExternalUrl(url)
     }
@@ -255,7 +265,7 @@ extension Delegatee: TriptychViewDelegate {
     public func triptychView(_ view: TriptychView, viewForIndex index: Int,
                              location: BinaryLocation) -> UIView {
         
-        let webView = WebView(frame: view.bounds, initialLocation: location, pageTransition: parent.pageTransition, editingActions: parent.editingActions)
+        let webView = WebView(frame: view.bounds, initialLocation: location, pageTransition: parent.pageTransition, disableDragAndDrop: parent.disableDragAndDrop, editingActions: parent.editingActions)
         webView.direction = view.direction
         
         let link = parent.publication.spine[index]

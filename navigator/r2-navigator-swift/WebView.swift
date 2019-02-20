@@ -14,6 +14,8 @@ import WebKit
 import R2Shared
 
 protocol ViewDelegate: class {
+    func willAnimatePageChange()
+    func didEndPageAnimation()
     func displayRightDocument()
     func displayLeftDocument()
     func handleCenterTap()
@@ -107,11 +109,13 @@ final class WebView: WKWebView {
             case .left:
                 let isAtFirstPageInDocument = scrollView.contentOffset.x == 0
                 if !isAtFirstPageInDocument {
+                    target.viewDelegate?.willAnimatePageChange()
                     return scrollView.scrollToPreviousPage()
                 }
             case .right:
                 let isAtLastPageInDocument = scrollView.contentOffset.x == scrollView.contentSize.width - scrollView.frame.size.width
                 if !isAtLastPageInDocument {
+                    target.viewDelegate?.willAnimatePageChange()
                     return scrollView.scrollToNextPage()
                 }
             }
@@ -121,13 +125,13 @@ final class WebView: WKWebView {
     
     var sizeObservation: NSKeyValueObservation?
 
-    init(frame: CGRect, initialLocation: BinaryLocation, pageTransition: PageTransition = .none, editingActions: [EditingAction] = []) {
+    init(frame: CGRect, initialLocation: BinaryLocation, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = []) {
         self.initialLocation = initialLocation
         self.pageTransition = pageTransition
         self.editingActions = editingActions
       
         super.init(frame: frame, configuration: .init())
-
+        if disableDragAndDrop { disableDragAndDropInteraction() }
         isOpaque = false
         backgroundColor = UIColor.clear
         scrollView.backgroundColor = UIColor.clear
@@ -394,6 +398,15 @@ extension WebView: UIScrollViewDelegate {
     
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         scrollView.isUserInteractionEnabled = true
+        viewDelegate?.didEndPageAnimation()
+    }
+    
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        viewDelegate?.didEndPageAnimation()
+    }
+    
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        viewDelegate?.didEndPageAnimation()
     }
 }
 
@@ -471,5 +484,13 @@ private extension WebView {
         view.startAnimating()
         activityIndicatorView = view
     }
+    
+    func disableDragAndDropInteraction() {
+        if #available(iOS 11.0, *) {
+            guard let webScrollView = subviews.compactMap( { $0 as? UIScrollView }).first,
+                let contentView = webScrollView.subviews.first(where: { $0.interactions.count > 1 }),
+                let dragInteraction = contentView.interactions.compactMap({ $0 as? UIDragInteraction }).first else { return }
+            contentView.removeInteraction(dragInteraction)
+        }
+    }
 }
-
