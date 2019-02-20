@@ -39,13 +39,11 @@ public struct EpubConstant {
 /// - missingFile: A file is missing from the container at `path`.
 /// - xmlParse: An XML parsing error occurred.
 /// - missingElement: An XML element is missing.
-/// - unsupportedDrm: ACS and URMS.
 public enum EpubParserError: Error {
     case wrongMimeType
     case missingFile(path: String)
     case xmlParse(underlyingError: Error)
     case missingElement(message: String)
-    case unsupportedDrm
 
     public var localizedDescription: String {
         switch self {
@@ -57,8 +55,6 @@ public enum EpubParserError: Error {
             return "Error while parsing XML (\(underlyingError))."
         case .missingElement(let message):
             return "Missing element: \(message)."
-        case .unsupportedDrm:
-            return "This epub is protected by a DRM which cannot be opened."
         }
     }
 }
@@ -66,7 +62,7 @@ public enum EpubParserError: Error {
 /// `Publication` and the associated `Container`.
 public typealias PubBox = (publication: Publication, associatedContainer: Container)
 /// A callback taking care of the
-public typealias PubParsingCallback = (Drm?) throws -> Void
+public typealias PubParsingCallback = (DRM?) throws -> Void
 
 extension EpubParser: Loggable {}
 
@@ -79,9 +75,9 @@ final public class EpubParser {
     /// - Parameter fileAtPath: The path to the epub file.
     /// - Returns: The Resulting publication, and a callback for parsing the
     ///            possibly DRM encrypted in the publication. The callback need
-    ///            to be called by sending back the Drm object (or nil).
-    ///            The point is to get DRM informations in the Drm object, and
-    ///            inform the decypher() function in  the Drm object to allow
+    ///            to be called by sending back the DRM object (or nil).
+    ///            The point is to get DRM informations in the DRM object, and
+    ///            inform the decypher() function in  the DRM object to allow
     ///            the fetcher to decypher encrypted resources.
     /// - Throws: `EpubParserError.wrongMimeType`,
     ///           `EpubParserError.xmlParse`,
@@ -112,14 +108,14 @@ final public class EpubParser {
         }
  
         // Check if the publication is DRM protected.
-        let drm = scanForDrm(in: container)
+        let drm = scanForDRM(in: container)
         // Parse the META-INF/Encryption.xml.
         parseEncryption(from: container, to: &publication, drm)
 
         /// The folowing resources could be encrypted, hence we use the fetcher.
         let fetcher = try Fetcher.init(publication: publication, container: container)
 
-        func parseRemainingResource(protectedBy drm: Drm?) throws {
+        func parseRemainingResource(protectedBy drm: DRM?) throws {
             container.drm = drm
 
             fillEncryptionProfile(forLinksIn: publication, using: drm)
@@ -143,7 +139,7 @@ final public class EpubParser {
     ///   - container: The EPUB Container.
     ///   - publication: The Publication.
     /// - Throws: 
-    static internal func parseEncryption(from container: Container, to publication: inout Publication, _ drm: Drm?) {
+    static internal func parseEncryption(from container: Container, to publication: inout Publication, _ drm: DRM?) {
         //if publication.metadata.title ==
         // Check if there is an encryption file.
         guard let documentData = try? container.data(relativePath: EpubConstant.encryptionDotXmlPath),
@@ -164,7 +160,7 @@ final public class EpubParser {
             let keyInfoUri = encryptedDataElement["KeyInfo"]["RetrievalMethod"].attributes["URI"]
 
             if keyInfoUri == "license.lcpl#/encryption/content_key",
-                drm?.brand == Drm.Brand.lcp
+                drm?.brand == DRM.Brand.lcp
             {
                 encryption.scheme = drm?.scheme.rawValue
             }
@@ -182,12 +178,12 @@ final public class EpubParser {
     /// are protecting the publication.
     ///
     /// - Parameter in: The Publication's Container.
-    /// - Returns: The Drm if any found.
-    static internal func scanForDrm(in container: Container) -> Drm? {
+    /// - Returns: The DRM if any found.
+    static internal func scanForDRM(in container: Container) -> DRM? {
         /// LCP.
         // Check if a LCP license file is present in the container.
         if ((try? container.data(relativePath: EpubConstant.lcplFilePath)) != nil) {
-            return Drm.init(brand: .lcp)
+            return DRM(brand: .lcp)
         }
         /// ADOBE.
         // TODO
@@ -413,21 +409,21 @@ final public class EpubParser {
     ///
     /// - Parameters:
     ///   - publication: The Publication.
-    ///   - drm: The `Drm` object.
+    ///   - drm: The `DRM` object.
     static fileprivate func fillEncryptionProfile(forLinksIn publication: Publication,
-                                                  using drm: Drm?)
+                                                  using drm: DRM?)
     {
         guard let drm = drm else {
             return
         }
         for link in publication.resources {
             if link.properties.encryption?.scheme == drm.scheme.rawValue{
-                link.properties.encryption?.profile = drm.profile
+                link.properties.encryption?.profile = drm.license?.encryptionProfile
             }
         }
         for link in publication.spine {
             if link.properties.encryption?.scheme == drm.scheme.rawValue {
-                link.properties.encryption?.profile = drm.profile
+                link.properties.encryption?.profile = drm.license?.encryptionProfile
             }
         }
     }

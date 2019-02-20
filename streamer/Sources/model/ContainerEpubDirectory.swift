@@ -19,7 +19,7 @@ public class ContainerEpubDirectory: DirectoryContainer {
     
     /// See `RootFile`.
     public var rootFile: RootFile
-    public var drm: Drm?    
+    public var drm: DRM?    
 
     /// Public failable initializer for the EpubDirectoryContainer class.
     ///
