@@ -19,6 +19,17 @@ public typealias completionHandlerType = ((URL?, URLResponse?, Error?, URLSessio
 
 public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDelegate {
     
+    enum RequestError: LocalizedError {
+        case notFound
+        
+        var errorDescription: String? {
+            switch self {
+            case .notFound:
+                return "Request failed: not found"
+            }
+        }
+    }
+    
     public static let shared = DownloadSession()
     private override init() { super.init() }
     
@@ -42,13 +53,27 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
     }
     
     public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+        let done: Bool?
         
-        let done = self.taskMap[downloadTask]?(location, nil, nil, downloadTask) ?? false
+        do {
+            guard let response = downloadTask.response as? HTTPURLResponse, response.statusCode == 200 else {
+                throw RequestError.notFound
+            }
+            
+            let tempURL = URL(fileURLWithPath: NSTemporaryDirectory())
+                .appendingPathComponent(UUID().uuidString)
+                .appendingPathExtension(location.pathExtension)
+            
+            try FileManager.default.moveItem(at: location, to: tempURL)
+            done = taskMap[downloadTask]?(tempURL, nil, nil, downloadTask)
+        } catch {
+            done = taskMap[downloadTask]?(nil, nil, error, downloadTask)
+        }
         
         DispatchQueue.main.async {
             self.taskMap.removeValue(forKey: downloadTask)
             
-            if done {
+            if done ?? false {
                 self.displayDelegate?.didFinishDownload(task: downloadTask)
             } else {
                 self.displayDelegate?.didFailWithError(task: downloadTask, error: nil)
