@@ -58,14 +58,17 @@ open class NavigatorViewController: UIViewController {
     public weak var delegate: NavigatorDelegate?
 
     public let pageTransition: PageTransition
+  public let editingActions: [EditingAction]
 
     /// - Parameters:
     ///   - publication: The publication.
     ///   - initialIndex: Inital index of -1 will open the publication's at the end.
-    public init(for publication: Publication, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none) {
+  public init(for publication: Publication, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, editingActions: [EditingAction] = []) {
         self.publication = publication
         self.initialProgression = initialProgression
         self.pageTransition = pageTransition
+        self.editingActions = editingActions
+    
         userSettings = UserSettings()
         publication.userProperties.properties = userSettings.userProperties.properties
         delegatee = Delegatee()
@@ -252,7 +255,7 @@ extension Delegatee: TriptychViewDelegate {
     public func triptychView(_ view: TriptychView, viewForIndex index: Int,
                              location: BinaryLocation) -> UIView {
         
-        let webView = WebView(frame: view.bounds, initialLocation: location, pageTransition: parent.pageTransition)
+        let webView = WebView(frame: view.bounds, initialLocation: location, pageTransition: parent.pageTransition, editingActions: parent.editingActions)
         webView.direction = view.direction
         
         let link = parent.publication.spine[index]
