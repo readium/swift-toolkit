@@ -14,6 +14,8 @@ import WebKit
 import R2Shared
 
 protocol ViewDelegate: class {
+    func willAnimatePageChange()
+    func didEndPageAnimation()
     func displayRightDocument()
     func displayLeftDocument()
     func handleCenterTap()
@@ -106,11 +108,13 @@ final class WebView: WKWebView {
             case .left:
                 let isAtFirstPageInDocument = scrollView.contentOffset.x == 0
                 if !isAtFirstPageInDocument {
+                    target.viewDelegate?.willAnimatePageChange()
                     return scrollView.scrollToPreviousPage()
                 }
             case .right:
                 let isAtLastPageInDocument = scrollView.contentOffset.x == scrollView.contentSize.width - scrollView.frame.size.width
                 if !isAtLastPageInDocument {
+                    target.viewDelegate?.willAnimatePageChange()
                     return scrollView.scrollToNextPage()
                 }
             }
@@ -380,6 +384,15 @@ extension WebView: UIScrollViewDelegate {
     
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         scrollView.isUserInteractionEnabled = true
+        viewDelegate?.didEndPageAnimation()
+    }
+    
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        viewDelegate?.didEndPageAnimation()
+    }
+    
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        viewDelegate?.didEndPageAnimation()
     }
 }
 
