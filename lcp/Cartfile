@@ -1,7 +1,5 @@
 github "readium/r2-shared-swift" "develop"
 #github "readium/r2-lcp-wrapper-swift" "develop"
-github "SwiftyJSON/SwiftyJSON" == 3.1.4
-github "mxcl/PromiseKit" == 4.5.2
 github "stephencelis/SQLite.swift" == 0.11.4
 github "krzyzanowskim/CryptoSwift" == 0.7.0
 github "edrlab/ZIPFoundation" "master"
