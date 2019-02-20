@@ -10,31 +10,10 @@
 		03079E7D211CF865002E9B9B /* 1.cbz in Resources */ = {isa = PBXBuildFile; fileRef = 03079E7C211CF864002E9B9B /* 1.cbz */; };
 		03079E7E211CF8A3002E9B9B /* 1.cbz in Resources */ = {isa = PBXBuildFile; fileRef = 03079E7C211CF864002E9B9B /* 1.cbz */; };
 		03079E7F211CF8A4002E9B9B /* 1.cbz in Resources */ = {isa = PBXBuildFile; fileRef = 03079E7C211CF864002E9B9B /* 1.cbz */; };
-		03079E80211CF8A4002E9B9B /* 1.cbz in Resources */ = {isa = PBXBuildFile; fileRef = 03079E7C211CF864002E9B9B /* 1.cbz */; };
-		0318D238211CEB5B009B6727 /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0318D237211CEB5B009B6727 /* ReadiumOPDS.framework */; };
-		0318D239211CEB5B009B6727 /* ReadiumOPDS.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0318D237211CEB5B009B6727 /* ReadiumOPDS.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		0318D23B211CEB5B009B6727 /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0318D23A211CEB5B009B6727 /* R2Navigator.framework */; };
-		0318D23C211CEB5B009B6727 /* R2Navigator.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0318D23A211CEB5B009B6727 /* R2Navigator.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		0318D23E211CEB5B009B6727 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0318D23D211CEB5B009B6727 /* R2Shared.framework */; };
-		0318D23F211CEB5B009B6727 /* R2Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0318D23D211CEB5B009B6727 /* R2Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		0318D241211CEB5B009B6727 /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0318D240211CEB5B009B6727 /* R2Streamer.framework */; };
-		0318D242211CEB5B009B6727 /* R2Streamer.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0318D240211CEB5B009B6727 /* R2Streamer.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		032F7E3421167E9B009E5C24 /* PublicationMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032F7E3021167E9A009E5C24 /* PublicationMenuViewController.swift */; };
 		032F7E3521167E9B009E5C24 /* PublicationCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032F7E3121167E9A009E5C24 /* PublicationCollectionViewCell.swift */; };
 		032F7E3621167E9B009E5C24 /* PublicationCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 032F7E3221167E9A009E5C24 /* PublicationCollectionViewCell.xib */; };
 		032F7E3721167E9B009E5C24 /* PublicationMenuViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 032F7E3321167E9A009E5C24 /* PublicationMenuViewController.xib */; };
-		033936D8211CD83F00F980B8 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 033936D7211CD83F00F980B8 /* R2LCPClient.framework */; };
-		033936D9211CD83F00F980B8 /* R2LCPClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 033936D7211CD83F00F980B8 /* R2LCPClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		033936DB211CD83F00F980B8 /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 033936DA211CD83F00F980B8 /* ReadiumLCP.framework */; };
-		033936DC211CD83F00F980B8 /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 033936DA211CD83F00F980B8 /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		033936DE211CD83F00F980B8 /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 033936DD211CD83F00F980B8 /* ReadiumOPDS.framework */; };
-		033936DF211CD83F00F980B8 /* ReadiumOPDS.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 033936DD211CD83F00F980B8 /* ReadiumOPDS.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		033936E1211CD83F00F980B8 /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 033936E0211CD83F00F980B8 /* R2Navigator.framework */; };
-		033936E2211CD83F00F980B8 /* R2Navigator.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 033936E0211CD83F00F980B8 /* R2Navigator.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		033936E4211CD83F00F980B8 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 033936E3211CD83F00F980B8 /* R2Shared.framework */; };
-		033936E5211CD83F00F980B8 /* R2Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 033936E3211CD83F00F980B8 /* R2Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		033936E7211CD83F00F980B8 /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 033936E6211CD83F00F980B8 /* R2Streamer.framework */; };
-		033936E8211CD83F00F980B8 /* R2Streamer.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 033936E6211CD83F00F980B8 /* R2Streamer.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		0350FCE5211CD2CB006994C2 /* AssociatedColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */; };
 		0350FCE6211CD2CB006994C2 /* BarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4831F4F044100DF166D /* BarView.swift */; };
 		0350FCE7211CD2CB006994C2 /* OPDSPublicationInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */; };
@@ -121,10 +100,6 @@
 		0350FD54211CD625006994C2 /* DetailsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */; };
 		0350FD55211CD625006994C2 /* BookmarkCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571585ED2109E8F8008B34AD /* BookmarkCell.swift */; };
 		0350FD56211CD625006994C2 /* AboutTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE37DE422093291600079AA2 /* AboutTableViewController.swift */; };
-		0350FD58211CD625006994C2 /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE2B6A862088949300C12072 /* ReadiumOPDS.framework */; };
-		0350FD59211CD625006994C2 /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7650206A5F1A00C3C24E /* R2Navigator.framework */; };
-		0350FD5A211CD625006994C2 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7646206A5F1900C3C24E /* R2Shared.framework */; };
-		0350FD5B211CD625006994C2 /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764B206A5F1A00C3C24E /* R2Streamer.framework */; };
 		0350FD5C211CD625006994C2 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE009A03207F5980001D82C5 /* Fuzi.framework */; };
 		0350FD5D211CD625006994C2 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7647206A5F1900C3C24E /* CryptoSwift.framework */; };
 		0350FD5E211CD625006994C2 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7648206A5F1A00C3C24E /* SQLite.framework */; };
@@ -151,73 +126,9 @@
 		0350FD75211CD625006994C2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */; };
 		0350FD76211CD625006994C2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4421F4EF6D400DF166D /* Assets.xcassets */; };
 		0350FD77211CD625006994C2 /* UserSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F36D24DD1F580B8800A00BF1 /* UserSettings.storyboard */; };
-		0350FD80211CD634006994C2 /* AssociatedColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */; };
-		0350FD81211CD634006994C2 /* BarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4831F4F044100DF166D /* BarView.swift */; };
-		0350FD82211CD634006994C2 /* OPDSPublicationInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */; };
-		0350FD83211CD634006994C2 /* CbzViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D47F1F4F03F500DF166D /* CbzViewController.swift */; };
-		0350FD84211CD634006994C2 /* OPDSGroupCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */; };
-		0350FD85211CD634006994C2 /* OPDSFacetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12C920800FD50074A5A2 /* OPDSFacetViewController.swift */; };
-		0350FD86211CD634006994C2 /* EpubViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4811F4F042600DF166D /* EpubViewController.swift */; };
-		0350FD87211CD634006994C2 /* LibraryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4701F4EFEC200DF166D /* LibraryViewController.swift */; };
-		0350FD88211CD634006994C2 /* AdvancedSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BD533A1F72B27400E46FFC /* AdvancedSettingsViewController.swift */; };
-		0350FD89211CD634006994C2 /* DrmManagementTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34CB28B1FCC20D4005E3A37 /* DrmManagementTableViewController.swift */; };
-		0350FD8A211CD634006994C2 /* OPDSGroupTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53A073208F623E00737838 /* OPDSGroupTableViewCell.swift */; };
-		0350FD8B211CD634006994C2 /* PublicationMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032F7E3021167E9A009E5C24 /* PublicationMenuViewController.swift */; };
-		0350FD8C211CD634006994C2 /* OPDSPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AED681F120A32EBA0090DBCD /* OPDSPlaceholderView.swift */; };
-		0350FD8D211CD634006994C2 /* OPDSNavigationTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE48F321208DE1E4000B7B44 /* OPDSNavigationTableViewCell.swift */; };
-		0350FD8E211CD634006994C2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D43B1F4EF6D400DF166D /* AppDelegate.swift */; };
-		0350FD8F211CD634006994C2 /* OPDSCatalogSelectorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */; };
-		0350FD90211CD634006994C2 /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0380490A21166627009F48BD /* Toast.swift */; };
-		0350FD91211CD634006994C2 /* UserSettingsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4851F4F044100DF166D /* UserSettingsTableViewController.swift */; };
-		0350FD92211CD634006994C2 /* BookmarkDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571585EF2109E8F8008B34AD /* BookmarkDataSource.swift */; };
-		0350FD93211CD634006994C2 /* OPDSRootTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE48F31F208DD3A9000B7B44 /* OPDSRootTableViewController.swift */; };
-		0350FD94211CD634006994C2 /* UIImageExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D47B1F4F03B800DF166D /* UIImageExtension.swift */; };
-		0350FD95211CD634006994C2 /* FontSelectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BD53381F72B26700E46FFC /* FontSelectionViewController.swift */; };
-		0350FD96211CD634006994C2 /* OutlineTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4841F4F044100DF166D /* OutlineTableViewController.swift */; };
-		0350FD97211CD634006994C2 /* OPDSPublicationTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE48F323208E0375000B7B44 /* OPDSPublicationTableViewCell.swift */; };
-		0350FD98211CD634006994C2 /* PublicationCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032F7E3121167E9A009E5C24 /* PublicationCollectionViewCell.swift */; };
-		0350FD99211CD634006994C2 /* BookmarkDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571585EE2109E8F8008B34AD /* BookmarkDatabase.swift */; };
-		0350FD9A211CD634006994C2 /* UserSettingsNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3DCFFBD1F7CE0610056BA37 /* UserSettingsNavigationController.swift */; };
-		0350FD9B211CD634006994C2 /* DetailsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */; };
-		0350FD9C211CD634006994C2 /* BookmarkCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571585ED2109E8F8008B34AD /* BookmarkCell.swift */; };
-		0350FD9D211CD634006994C2 /* AboutTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE37DE422093291600079AA2 /* AboutTableViewController.swift */; };
-		0350FD9F211CD634006994C2 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE009A03207F5980001D82C5 /* Fuzi.framework */; };
-		0350FDA1211CD634006994C2 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7647206A5F1900C3C24E /* CryptoSwift.framework */; };
-		0350FDA3211CD634006994C2 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7648206A5F1A00C3C24E /* SQLite.framework */; };
-		0350FDA4211CD634006994C2 /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */; };
-		0350FDA5211CD634006994C2 /* MBProgressHUD.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03804905211662D7009F48BD /* MBProgressHUD.framework */; };
-		0350FDA8211CD634006994C2 /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */; };
-		0350FDA9211CD634006994C2 /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03D011F1208023360097A87C /* Minizip.framework */; };
-		0350FDAA211CD634006994C2 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764D206A5F1A00C3C24E /* AEXML.framework */; };
-		0350FDAB211CD634006994C2 /* PromiseKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764E206A5F1A00C3C24E /* PromiseKit.framework */; };
-		0350FDAD211CD634006994C2 /* Kingfisher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764F206A5F1A00C3C24E /* Kingfisher.framework */; };
-		0350FDAE211CD634006994C2 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */; };
-		0350FDB0211CD634006994C2 /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
-		0350FDB1211CD634006994C2 /* 2.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F11F7D467C00BDEAF4 /* 2.epub */; };
-		0350FDB2211CD634006994C2 /* 3.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F31F7D467C00BDEAF4 /* 3.epub */; };
-		0350FDB3211CD634006994C2 /* 4.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F21F7D467C00BDEAF4 /* 4.epub */; };
-		0350FDB4211CD634006994C2 /* DrmManagement.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F34CB28E1FCC54A2005E3A37 /* DrmManagement.storyboard */; };
-		0350FDB5211CD634006994C2 /* AppMain.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AE2B6A8820889C8700C12072 /* AppMain.storyboard */; };
-		0350FDB6211CD634006994C2 /* 5.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EF1F7D467B00BDEAF4 /* 5.epub */; };
-		0350FDB7211CD634006994C2 /* PublicationCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 032F7E3221167E9A009E5C24 /* PublicationCollectionViewCell.xib */; };
-		0350FDB8211CD634006994C2 /* Details.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F30AEE7C1FC316430073C9FD /* Details.storyboard */; };
-		0350FDB9211CD634006994C2 /* 6.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F01F7D467B00BDEAF4 /* 6.epub */; };
-		0350FDBA211CD634006994C2 /* PublicationMenuViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 032F7E3321167E9A009E5C24 /* PublicationMenuViewController.xib */; };
-		0350FDBB211CD634006994C2 /* OPDS.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AE48F31D208DD056000B7B44 /* OPDS.storyboard */; };
-		0350FDBC211CD634006994C2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */; };
-		0350FDBD211CD634006994C2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4421F4EF6D400DF166D /* Assets.xcassets */; };
-		0350FDBE211CD634006994C2 /* UserSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F36D24DD1F580B8800A00BF1 /* UserSettings.storyboard */; };
 		03804906211662D7009F48BD /* MBProgressHUD.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03804905211662D7009F48BD /* MBProgressHUD.framework */; };
 		0380490B21166627009F48BD /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0380490A21166627009F48BD /* Toast.swift */; };
-		03B8169120FD0118002A449E /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7650206A5F1A00C3C24E /* R2Navigator.framework */; };
-		03B8169220FD0118002A449E /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7646206A5F1900C3C24E /* R2Shared.framework */; };
-		03B8169320FD0118002A449E /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764B206A5F1A00C3C24E /* R2Streamer.framework */; };
-		03B8169420FD012C002A449E /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE2B6A862088949300C12072 /* ReadiumOPDS.framework */; };
 		03D011F2208023360097A87C /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03D011F1208023360097A87C /* Minizip.framework */; };
-		03E1FD39211CE50500D4A320 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03E1FD38211CE50500D4A320 /* R2LCPClient.framework */; };
-		03E1FD3A211CE50500D4A320 /* R2LCPClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03E1FD38211CE50500D4A320 /* R2LCPClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		03E1FD3C211CE50500D4A320 /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03E1FD3B211CE50500D4A320 /* ReadiumLCP.framework */; };
-		03E1FD3D211CE50500D4A320 /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03E1FD3B211CE50500D4A320 /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		03EF7653206A5F1A00C3C24E /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7647206A5F1900C3C24E /* CryptoSwift.framework */; };
 		03EF7654206A5F1A00C3C24E /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7648206A5F1A00C3C24E /* SQLite.framework */; };
 		03EF7655206A5F1A00C3C24E /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */; };
@@ -243,6 +154,121 @@
 		AE53A076208F62D200737838 /* OPDSGroupCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */; };
 		AE955A2120EBA74B00A0D8D8 /* AssociatedColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */; };
 		AED681F220A32EBA0090DBCD /* OPDSPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AED681F120A32EBA0090DBCD /* OPDSPlaceholderView.swift */; };
+		CA2AE316221C11F5008BD18F /* LCPLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE315221C11F4008BD18F /* LCPLibraryService.swift */; };
+		CA2AE317221C11F5008BD18F /* LCPLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE315221C11F4008BD18F /* LCPLibraryService.swift */; };
+		CA2AE318221C11F5008BD18F /* LCPLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE315221C11F4008BD18F /* LCPLibraryService.swift */; };
+		CA2AE36E221C4B97008BD18F /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36A221C4B96008BD18F /* R2Shared.framework */; };
+		CA2AE36F221C4B97008BD18F /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36A221C4B96008BD18F /* R2Shared.framework */; };
+		CA2AE370221C4B97008BD18F /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36B221C4B96008BD18F /* R2Streamer.framework */; };
+		CA2AE371221C4B97008BD18F /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36B221C4B96008BD18F /* R2Streamer.framework */; };
+		CA2AE372221C4B97008BD18F /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36C221C4B96008BD18F /* ReadiumOPDS.framework */; };
+		CA2AE373221C4B97008BD18F /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36C221C4B96008BD18F /* ReadiumOPDS.framework */; };
+		CA2AE374221C4B97008BD18F /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36D221C4B96008BD18F /* R2Navigator.framework */; };
+		CA2AE375221C4B97008BD18F /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36D221C4B96008BD18F /* R2Navigator.framework */; };
+		CA415EE9221D64D7003A0F7F /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EE8221D64D7003A0F7F /* R2LCPClient.framework */; };
+		CA415EEB221D64D7003A0F7F /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEA221D64D7003A0F7F /* R2Navigator.framework */; };
+		CA415EED221D64D7003A0F7F /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEC221D64D7003A0F7F /* R2Shared.framework */; };
+		CA415EEF221D64D7003A0F7F /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEE221D64D7003A0F7F /* R2Streamer.framework */; };
+		CA415EF1221D64D7003A0F7F /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EF0221D64D7003A0F7F /* ReadiumLCP.framework */; };
+		CA415EF3221D64D7003A0F7F /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EF2221D64D7003A0F7F /* ReadiumOPDS.framework */; };
+		CA415EF4221D651A003A0F7F /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEA221D64D7003A0F7F /* R2Navigator.framework */; };
+		CA415EF5221D651A003A0F7F /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEC221D64D7003A0F7F /* R2Shared.framework */; };
+		CA415EF6221D651A003A0F7F /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEE221D64D7003A0F7F /* R2Streamer.framework */; };
+		CA415EF7221D651A003A0F7F /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EF2221D64D7003A0F7F /* ReadiumOPDS.framework */; };
+		CA415EF8221D66DA003A0F7F /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEA221D64D7003A0F7F /* R2Navigator.framework */; };
+		CA415EF9221D66DA003A0F7F /* R2Navigator.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEA221D64D7003A0F7F /* R2Navigator.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CA415EFA221D66DA003A0F7F /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEC221D64D7003A0F7F /* R2Shared.framework */; };
+		CA415EFB221D66DA003A0F7F /* R2Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEC221D64D7003A0F7F /* R2Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CA415EFC221D66DA003A0F7F /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEE221D64D7003A0F7F /* R2Streamer.framework */; };
+		CA415EFD221D66DA003A0F7F /* R2Streamer.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEE221D64D7003A0F7F /* R2Streamer.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CA415EFE221D66DA003A0F7F /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EF2221D64D7003A0F7F /* ReadiumOPDS.framework */; };
+		CA415EFF221D66DA003A0F7F /* ReadiumOPDS.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EF2221D64D7003A0F7F /* ReadiumOPDS.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CA415F00221D66EA003A0F7F /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEA221D64D7003A0F7F /* R2Navigator.framework */; };
+		CA415F01221D66EA003A0F7F /* R2Navigator.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEA221D64D7003A0F7F /* R2Navigator.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CA415F02221D66EA003A0F7F /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEC221D64D7003A0F7F /* R2Shared.framework */; };
+		CA415F03221D66EA003A0F7F /* R2Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEC221D64D7003A0F7F /* R2Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CA415F04221D66EA003A0F7F /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEE221D64D7003A0F7F /* R2Streamer.framework */; };
+		CA415F05221D66EA003A0F7F /* R2Streamer.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEE221D64D7003A0F7F /* R2Streamer.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CA415F06221D66EA003A0F7F /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EF2221D64D7003A0F7F /* ReadiumOPDS.framework */; };
+		CA415F07221D66EA003A0F7F /* ReadiumOPDS.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EF2221D64D7003A0F7F /* ReadiumOPDS.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CA415F08221D66EA003A0F7F /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EE8221D64D7003A0F7F /* R2LCPClient.framework */; };
+		CA415F09221D66EA003A0F7F /* R2LCPClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EE8221D64D7003A0F7F /* R2LCPClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CA415F0A221D66EA003A0F7F /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EF0221D64D7003A0F7F /* ReadiumLCP.framework */; };
+		CA415F0B221D66EA003A0F7F /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EF0221D64D7003A0F7F /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CA7F5A4B2204A42100B88141 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
+		CA7F5A4C2204A42100B88141 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
+		CA7F5A4D2204A42100B88141 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
+		CA7F5A502204AF2900B88141 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A4F2204AF2900B88141 /* Result.swift */; };
+		CA7F5A512204AF5C00B88141 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A4F2204AF2900B88141 /* Result.swift */; };
+		CA7F5A522204AF5D00B88141 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A4F2204AF2900B88141 /* Result.swift */; };
+		CA822C73221C5737005800D1 /* AssociatedColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */; };
+		CA822C74221C5737005800D1 /* BarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4831F4F044100DF166D /* BarView.swift */; };
+		CA822C75221C5737005800D1 /* OPDSPublicationInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */; };
+		CA822C76221C5737005800D1 /* CbzViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D47F1F4F03F500DF166D /* CbzViewController.swift */; };
+		CA822C77221C5737005800D1 /* OPDSGroupCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */; };
+		CA822C78221C5737005800D1 /* OPDSFacetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12C920800FD50074A5A2 /* OPDSFacetViewController.swift */; };
+		CA822C79221C5737005800D1 /* EpubViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4811F4F042600DF166D /* EpubViewController.swift */; };
+		CA822C7A221C5737005800D1 /* LibraryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4701F4EFEC200DF166D /* LibraryViewController.swift */; };
+		CA822C7B221C5737005800D1 /* AdvancedSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BD533A1F72B27400E46FFC /* AdvancedSettingsViewController.swift */; };
+		CA822C7C221C5737005800D1 /* DrmManagementTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34CB28B1FCC20D4005E3A37 /* DrmManagementTableViewController.swift */; };
+		CA822C7D221C5737005800D1 /* OPDSGroupTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53A073208F623E00737838 /* OPDSGroupTableViewCell.swift */; };
+		CA822C7E221C5737005800D1 /* PublicationMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032F7E3021167E9A009E5C24 /* PublicationMenuViewController.swift */; };
+		CA822C7F221C5737005800D1 /* OPDSPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AED681F120A32EBA0090DBCD /* OPDSPlaceholderView.swift */; };
+		CA822C80221C5737005800D1 /* OPDSNavigationTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE48F321208DE1E4000B7B44 /* OPDSNavigationTableViewCell.swift */; };
+		CA822C81221C5737005800D1 /* DRMViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */; };
+		CA822C82221C5737005800D1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D43B1F4EF6D400DF166D /* AppDelegate.swift */; };
+		CA822C83221C5737005800D1 /* OPDSCatalogSelectorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */; };
+		CA822C84221C5737005800D1 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A4F2204AF2900B88141 /* Result.swift */; };
+		CA822C85221C5737005800D1 /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0380490A21166627009F48BD /* Toast.swift */; };
+		CA822C86221C5737005800D1 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
+		CA822C87221C5737005800D1 /* LCPLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE315221C11F4008BD18F /* LCPLibraryService.swift */; };
+		CA822C88221C5737005800D1 /* UserSettingsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4851F4F044100DF166D /* UserSettingsTableViewController.swift */; };
+		CA822C89221C5737005800D1 /* LCPViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */; };
+		CA822C8A221C5737005800D1 /* BookmarkDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571585EF2109E8F8008B34AD /* BookmarkDataSource.swift */; };
+		CA822C8B221C5737005800D1 /* OPDSRootTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE48F31F208DD3A9000B7B44 /* OPDSRootTableViewController.swift */; };
+		CA822C8C221C5737005800D1 /* UIImageExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D47B1F4F03B800DF166D /* UIImageExtension.swift */; };
+		CA822C8D221C5737005800D1 /* FontSelectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BD53381F72B26700E46FFC /* FontSelectionViewController.swift */; };
+		CA822C8E221C5737005800D1 /* OutlineTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4841F4F044100DF166D /* OutlineTableViewController.swift */; };
+		CA822C8F221C5737005800D1 /* OPDSPublicationTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE48F323208E0375000B7B44 /* OPDSPublicationTableViewCell.swift */; };
+		CA822C90221C5737005800D1 /* PublicationCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032F7E3121167E9A009E5C24 /* PublicationCollectionViewCell.swift */; };
+		CA822C91221C5737005800D1 /* BookmarkDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571585EE2109E8F8008B34AD /* BookmarkDatabase.swift */; };
+		CA822C92221C5737005800D1 /* UserSettingsNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3DCFFBD1F7CE0610056BA37 /* UserSettingsNavigationController.swift */; };
+		CA822C93221C5737005800D1 /* DetailsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */; };
+		CA822C94221C5737005800D1 /* BookmarkCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571585ED2109E8F8008B34AD /* BookmarkCell.swift */; };
+		CA822C95221C5737005800D1 /* AboutTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE37DE422093291600079AA2 /* AboutTableViewController.swift */; };
+		CA822C97221C5737005800D1 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE009A03207F5980001D82C5 /* Fuzi.framework */; };
+		CA822C98221C5737005800D1 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7647206A5F1900C3C24E /* CryptoSwift.framework */; };
+		CA822C9A221C5737005800D1 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7648206A5F1A00C3C24E /* SQLite.framework */; };
+		CA822C9B221C5737005800D1 /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */; };
+		CA822C9C221C5737005800D1 /* MBProgressHUD.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03804905211662D7009F48BD /* MBProgressHUD.framework */; };
+		CA822C9D221C5737005800D1 /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */; };
+		CA822C9F221C5737005800D1 /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03D011F1208023360097A87C /* Minizip.framework */; };
+		CA822CA4221C5737005800D1 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764D206A5F1A00C3C24E /* AEXML.framework */; };
+		CA822CA5221C5737005800D1 /* PromiseKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764E206A5F1A00C3C24E /* PromiseKit.framework */; };
+		CA822CA6221C5737005800D1 /* Kingfisher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764F206A5F1A00C3C24E /* Kingfisher.framework */; };
+		CA822CA7221C5737005800D1 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */; };
+		CA822CA9221C5737005800D1 /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
+		CA822CAA221C5737005800D1 /* 2.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F11F7D467C00BDEAF4 /* 2.epub */; };
+		CA822CAB221C5737005800D1 /* 3.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F31F7D467C00BDEAF4 /* 3.epub */; };
+		CA822CAC221C5737005800D1 /* 1.cbz in Resources */ = {isa = PBXBuildFile; fileRef = 03079E7C211CF864002E9B9B /* 1.cbz */; };
+		CA822CAD221C5737005800D1 /* 4.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F21F7D467C00BDEAF4 /* 4.epub */; };
+		CA822CAE221C5737005800D1 /* DrmManagement.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F34CB28E1FCC54A2005E3A37 /* DrmManagement.storyboard */; };
+		CA822CAF221C5737005800D1 /* AppMain.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AE2B6A8820889C8700C12072 /* AppMain.storyboard */; };
+		CA822CB0221C5737005800D1 /* 5.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EF1F7D467B00BDEAF4 /* 5.epub */; };
+		CA822CB1221C5737005800D1 /* PublicationCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 032F7E3221167E9A009E5C24 /* PublicationCollectionViewCell.xib */; };
+		CA822CB2221C5737005800D1 /* Details.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F30AEE7C1FC316430073C9FD /* Details.storyboard */; };
+		CA822CB3221C5737005800D1 /* 6.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F01F7D467B00BDEAF4 /* 6.epub */; };
+		CA822CB4221C5737005800D1 /* PublicationMenuViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 032F7E3321167E9A009E5C24 /* PublicationMenuViewController.xib */; };
+		CA822CB5221C5737005800D1 /* OPDS.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AE48F31D208DD056000B7B44 /* OPDS.storyboard */; };
+		CA822CB6221C5737005800D1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */; };
+		CA822CB7221C5737005800D1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4421F4EF6D400DF166D /* Assets.xcassets */; };
+		CA822CB8221C5737005800D1 /* UserSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F36D24DD1F580B8800A00BF1 /* UserSettings.storyboard */; };
+		CA9A40D3221C054C00531EA1 /* DRMViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */; };
+		CA9A40D8221C069D00531EA1 /* LCPViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */; };
+		CA9A40D9221C069D00531EA1 /* LCPViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */; };
+		CA9A40DA221C069D00531EA1 /* LCPViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */; };
+		CA9A40DC221C06A300531EA1 /* DRMViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */; };
+		CA9A40DE221C06A500531EA1 /* DRMViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */; };
 		F30AEE7A1FC312EA0073C9FD /* DetailsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */; };
 		F30AEE7D1FC316430073C9FD /* Details.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F30AEE7C1FC316430073C9FD /* Details.storyboard */; };
 		F3120DE71FACB08E009ACFAD /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
@@ -270,32 +296,16 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		033936E9211CD84000F980B8 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				033936E2211CD83F00F980B8 /* R2Navigator.framework in Embed Frameworks */,
-				033936E5211CD83F00F980B8 /* R2Shared.framework in Embed Frameworks */,
-				033936DF211CD83F00F980B8 /* ReadiumOPDS.framework in Embed Frameworks */,
-				033936DC211CD83F00F980B8 /* ReadiumLCP.framework in Embed Frameworks */,
-				033936D9211CD83F00F980B8 /* R2LCPClient.framework in Embed Frameworks */,
-				033936E8211CD83F00F980B8 /* R2Streamer.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		0350FD36211CD2E0006994C2 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				0318D23C211CEB5B009B6727 /* R2Navigator.framework in Embed Frameworks */,
-				0318D23F211CEB5B009B6727 /* R2Shared.framework in Embed Frameworks */,
-				0318D239211CEB5B009B6727 /* ReadiumOPDS.framework in Embed Frameworks */,
-				0318D242211CEB5B009B6727 /* R2Streamer.framework in Embed Frameworks */,
+				CA415EF9221D66DA003A0F7F /* R2Navigator.framework in Embed Frameworks */,
+				CA415EFB221D66DA003A0F7F /* R2Shared.framework in Embed Frameworks */,
+				CA415EFF221D66DA003A0F7F /* ReadiumOPDS.framework in Embed Frameworks */,
+				CA415EFD221D66DA003A0F7F /* R2Streamer.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -306,8 +316,22 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				03E1FD3D211CE50500D4A320 /* ReadiumLCP.framework in Embed Frameworks */,
-				03E1FD3A211CE50500D4A320 /* R2LCPClient.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA822CBA221C5737005800D1 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				CA415F0B221D66EA003A0F7F /* ReadiumLCP.framework in Embed Frameworks */,
+				CA415F09221D66EA003A0F7F /* R2LCPClient.framework in Embed Frameworks */,
+				CA415F01221D66EA003A0F7F /* R2Navigator.framework in Embed Frameworks */,
+				CA415F03221D66EA003A0F7F /* R2Shared.framework in Embed Frameworks */,
+				CA415F07221D66EA003A0F7F /* ReadiumOPDS.framework in Embed Frameworks */,
+				CA415F05221D66EA003A0F7F /* R2Streamer.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -316,41 +340,22 @@
 
 /* Begin PBXFileReference section */
 		03079E7C211CF864002E9B9B /* 1.cbz */ = {isa = PBXFileReference; lastKnownFileType = file; path = 1.cbz; sourceTree = "<group>"; };
-		0318D237211CEB5B009B6727 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumOPDS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		0318D23A211CEB5B009B6727 /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		0318D23D211CEB5B009B6727 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		0318D240211CEB5B009B6727 /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		032F7E3021167E9A009E5C24 /* PublicationMenuViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationMenuViewController.swift; sourceTree = "<group>"; };
 		032F7E3121167E9A009E5C24 /* PublicationCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationCollectionViewCell.swift; sourceTree = "<group>"; };
 		032F7E3221167E9A009E5C24 /* PublicationCollectionViewCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = PublicationCollectionViewCell.xib; sourceTree = "<group>"; };
 		032F7E3321167E9A009E5C24 /* PublicationMenuViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = PublicationMenuViewController.xib; sourceTree = "<group>"; };
-		033936D7211CD83F00F980B8 /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		033936DA211CD83F00F980B8 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		033936DD211CD83F00F980B8 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumOPDS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		033936E0211CD83F00F980B8 /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		033936E3211CD83F00F980B8 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		033936E6211CD83F00F980B8 /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0350FD28211CD2CB006994C2 /* r2-testapp-swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		0350FD29211CD2CB006994C2 /* r2-testapp-swift (submodules)-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "r2-testapp-swift (submodules)-Info.plist"; path = "/Volumes/Data/EDRLab/Swift-Workspace/r2-workspace-swift/r2-testapp-swift/r2-testapp-swift (submodules)-Info.plist"; sourceTree = "<absolute>"; };
 		0350FD7C211CD625006994C2 /* r2-testapp-swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		0350FD7D211CD625006994C2 /* r2-testapp-swift (carthage-with-lcp)-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "r2-testapp-swift (carthage-with-lcp)-Info.plist"; path = "/Volumes/Data/EDRLab/Swift-Workspace/r2-workspace-swift/r2-testapp-swift/r2-testapp-swift (carthage-with-lcp)-Info.plist"; sourceTree = "<absolute>"; };
-		0350FDC8211CD634006994C2 /* r2-testapp-swift (submodules with lcp).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift (submodules with lcp).app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		0350FDC9211CD634006994C2 /* r2-testapp-swift (submodules-with-lcp)-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "r2-testapp-swift (submodules-with-lcp)-Info.plist"; path = "/Volumes/Data/EDRLab/Swift-Workspace/r2-workspace-swift/r2-testapp-swift/r2-testapp-swift (submodules-with-lcp)-Info.plist"; sourceTree = "<absolute>"; };
 		03804905211662D7009F48BD /* MBProgressHUD.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MBProgressHUD.framework; path = Carthage/Build/iOS/MBProgressHUD.framework; sourceTree = "<group>"; };
 		0380490A21166627009F48BD /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		03D011F1208023360097A87C /* Minizip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Minizip.framework; path = Carthage/Build/iOS/Minizip.framework; sourceTree = "<group>"; };
-		03E1FD38211CE50500D4A320 /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		03E1FD3B211CE50500D4A320 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		03EF7646206A5F1900C3C24E /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
 		03EF7647206A5F1900C3C24E /* CryptoSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoSwift.framework; path = Carthage/Build/iOS/CryptoSwift.framework; sourceTree = "<group>"; };
 		03EF7648206A5F1A00C3C24E /* SQLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SQLite.framework; path = Carthage/Build/iOS/SQLite.framework; sourceTree = "<group>"; };
 		03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ZIPFoundation.framework; path = Carthage/Build/iOS/ZIPFoundation.framework; sourceTree = "<group>"; };
-		03EF764B206A5F1A00C3C24E /* R2Streamer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Streamer.framework; path = Carthage/Build/iOS/R2Streamer.framework; sourceTree = "<group>"; };
 		03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
 		03EF764D206A5F1A00C3C24E /* AEXML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AEXML.framework; path = Carthage/Build/iOS/AEXML.framework; sourceTree = "<group>"; };
 		03EF764E206A5F1A00C3C24E /* PromiseKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PromiseKit.framework; path = Carthage/Build/iOS/PromiseKit.framework; sourceTree = "<group>"; };
 		03EF764F206A5F1A00C3C24E /* Kingfisher.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Kingfisher.framework; path = Carthage/Build/iOS/Kingfisher.framework; sourceTree = "<group>"; };
-		03EF7650206A5F1A00C3C24E /* R2Navigator.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Navigator.framework; path = Carthage/Build/iOS/R2Navigator.framework; sourceTree = "<group>"; };
 		03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDWebServers.framework; path = Carthage/Build/iOS/GCDWebServers.framework; sourceTree = "<group>"; };
 		113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSCatalogSelectorViewController.swift; sourceTree = "<group>"; };
 		113B12C920800FD50074A5A2 /* OPDSFacetViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSFacetViewController.swift; sourceTree = "<group>"; };
@@ -360,7 +365,6 @@
 		571585EF2109E8F8008B34AD /* BookmarkDataSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkDataSource.swift; sourceTree = "<group>"; };
 		57CADB3220D14B3100DF6675 /* r2-testapp-swift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "r2-testapp-swift.entitlements"; sourceTree = "<group>"; };
 		AE009A03207F5980001D82C5 /* Fuzi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Fuzi.framework; path = Carthage/Build/iOS/Fuzi.framework; sourceTree = "<group>"; };
-		AE2B6A862088949300C12072 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReadiumOPDS.framework; path = Carthage/Build/iOS/ReadiumOPDS.framework; sourceTree = "<group>"; };
 		AE2B6A8820889C8700C12072 /* AppMain.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = AppMain.storyboard; sourceTree = "<group>"; };
 		AE37DE422093291600079AA2 /* AboutTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutTableViewController.swift; sourceTree = "<group>"; };
 		AE48F31D208DD056000B7B44 /* OPDS.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = OPDS.storyboard; sourceTree = "<group>"; };
@@ -371,6 +375,22 @@
 		AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSGroupCollectionViewCell.swift; sourceTree = "<group>"; };
 		AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssociatedColors.swift; sourceTree = "<group>"; };
 		AED681F120A32EBA0090DBCD /* OPDSPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPlaceholderView.swift; sourceTree = "<group>"; };
+		CA2AE315221C11F4008BD18F /* LCPLibraryService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCPLibraryService.swift; sourceTree = "<group>"; };
+		CA2AE36A221C4B96008BD18F /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
+		CA2AE36B221C4B96008BD18F /* R2Streamer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Streamer.framework; path = Carthage/Build/iOS/R2Streamer.framework; sourceTree = "<group>"; };
+		CA2AE36C221C4B96008BD18F /* ReadiumOPDS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReadiumOPDS.framework; path = Carthage/Build/iOS/ReadiumOPDS.framework; sourceTree = "<group>"; };
+		CA2AE36D221C4B96008BD18F /* R2Navigator.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Navigator.framework; path = Carthage/Build/iOS/R2Navigator.framework; sourceTree = "<group>"; };
+		CA415EE8221D64D7003A0F7F /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA415EEA221D64D7003A0F7F /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA415EEC221D64D7003A0F7F /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA415EEE221D64D7003A0F7F /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA415EF0221D64D7003A0F7F /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA415EF2221D64D7003A0F7F /* ReadiumOPDS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumOPDS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA7F5A402204A05700B88141 /* DRMLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DRMLibraryService.swift; sourceTree = "<group>"; };
+		CA7F5A4F2204AF2900B88141 /* Result.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
+		CA822CBE221C5737005800D1 /* r2-testapp-swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DRMViewModel.swift; sourceTree = "<group>"; };
+		CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPViewModel.swift; sourceTree = "<group>"; };
 		F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsTableViewController.swift; sourceTree = "<group>"; };
 		F30AEE7C1FC316430073C9FD /* Details.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Details.storyboard; sourceTree = "<group>"; };
 		F32980EE1F7D467B00BDEAF4 /* 1.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 1.epub; sourceTree = "<group>"; };
@@ -389,7 +409,7 @@
 		F3E7D43B1F4EF6D400DF166D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		F3E7D4421F4EF6D400DF166D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F3E7D4451F4EF6D400DF166D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		F3E7D4471F4EF6D400DF166D /* r2-testapp-swift (carthage)-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "r2-testapp-swift (carthage)-Info.plist"; sourceTree = "<group>"; };
+		F3E7D4471F4EF6D400DF166D /* r2-testapp-swift-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "r2-testapp-swift-Info.plist"; sourceTree = "<group>"; };
 		F3E7D4501F4EF6D400DF166D /* r2_testapp_swiftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = r2_testapp_swiftTests.swift; sourceTree = "<group>"; };
 		F3E7D4521F4EF6D400DF166D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F3E7D45B1F4EF6D400DF166D /* r2_testapp_swiftUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = r2_testapp_swiftUITests.swift; sourceTree = "<group>"; };
@@ -408,21 +428,25 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA415EF8221D66DA003A0F7F /* R2Navigator.framework in Frameworks */,
+				CA415EFA221D66DA003A0F7F /* R2Shared.framework in Frameworks */,
+				CA415EF4221D651A003A0F7F /* R2Navigator.framework in Frameworks */,
 				0350FD08211CD2CB006994C2 /* Fuzi.framework in Frameworks */,
-				0318D23E211CEB5B009B6727 /* R2Shared.framework in Frameworks */,
+				CA415EF5221D651A003A0F7F /* R2Shared.framework in Frameworks */,
+				CA415EF7221D651A003A0F7F /* ReadiumOPDS.framework in Frameworks */,
 				0350FD09211CD2CB006994C2 /* CryptoSwift.framework in Frameworks */,
-				0318D23B211CEB5B009B6727 /* R2Navigator.framework in Frameworks */,
 				0350FD0A211CD2CB006994C2 /* SQLite.framework in Frameworks */,
+				CA415EF6221D651A003A0F7F /* R2Streamer.framework in Frameworks */,
 				0350FD0B211CD2CB006994C2 /* ZIPFoundation.framework in Frameworks */,
 				0350FD0C211CD2CB006994C2 /* MBProgressHUD.framework in Frameworks */,
-				0318D241211CEB5B009B6727 /* R2Streamer.framework in Frameworks */,
 				0350FD0E211CD2CB006994C2 /* SwiftyJSON.framework in Frameworks */,
 				0350FD0F211CD2CB006994C2 /* Minizip.framework in Frameworks */,
 				0350FD10211CD2CB006994C2 /* AEXML.framework in Frameworks */,
 				0350FD11211CD2CB006994C2 /* PromiseKit.framework in Frameworks */,
-				0318D238211CEB5B009B6727 /* ReadiumOPDS.framework in Frameworks */,
 				0350FD12211CD2CB006994C2 /* Kingfisher.framework in Frameworks */,
 				0350FD13211CD2CB006994C2 /* GCDWebServers.framework in Frameworks */,
+				CA415EFE221D66DA003A0F7F /* ReadiumOPDS.framework in Frameworks */,
+				CA415EFC221D66DA003A0F7F /* R2Streamer.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -430,18 +454,16 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0350FD58211CD625006994C2 /* ReadiumOPDS.framework in Frameworks */,
-				0350FD59211CD625006994C2 /* R2Navigator.framework in Frameworks */,
-				0350FD5A211CD625006994C2 /* R2Shared.framework in Frameworks */,
-				0350FD5B211CD625006994C2 /* R2Streamer.framework in Frameworks */,
 				0350FD5C211CD625006994C2 /* Fuzi.framework in Frameworks */,
+				CA2AE371221C4B97008BD18F /* R2Streamer.framework in Frameworks */,
+				CA2AE36F221C4B97008BD18F /* R2Shared.framework in Frameworks */,
 				0350FD5D211CD625006994C2 /* CryptoSwift.framework in Frameworks */,
+				CA2AE373221C4B97008BD18F /* ReadiumOPDS.framework in Frameworks */,
 				0350FD5E211CD625006994C2 /* SQLite.framework in Frameworks */,
-				03E1FD39211CE50500D4A320 /* R2LCPClient.framework in Frameworks */,
 				0350FD5F211CD625006994C2 /* ZIPFoundation.framework in Frameworks */,
 				0350FD60211CD625006994C2 /* MBProgressHUD.framework in Frameworks */,
 				0350FD62211CD625006994C2 /* SwiftyJSON.framework in Frameworks */,
-				03E1FD3C211CE50500D4A320 /* ReadiumLCP.framework in Frameworks */,
+				CA2AE375221C4B97008BD18F /* R2Navigator.framework in Frameworks */,
 				0350FD63211CD625006994C2 /* Minizip.framework in Frameworks */,
 				0350FD64211CD625006994C2 /* AEXML.framework in Frameworks */,
 				0350FD65211CD625006994C2 /* PromiseKit.framework in Frameworks */,
@@ -450,27 +472,33 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		0350FD9E211CD634006994C2 /* Frameworks */ = {
+		CA822C96221C5737005800D1 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				033936E1211CD83F00F980B8 /* R2Navigator.framework in Frameworks */,
-				033936E4211CD83F00F980B8 /* R2Shared.framework in Frameworks */,
-				0350FD9F211CD634006994C2 /* Fuzi.framework in Frameworks */,
-				0350FDA1211CD634006994C2 /* CryptoSwift.framework in Frameworks */,
-				0350FDA3211CD634006994C2 /* SQLite.framework in Frameworks */,
-				033936DE211CD83F00F980B8 /* ReadiumOPDS.framework in Frameworks */,
-				0350FDA4211CD634006994C2 /* ZIPFoundation.framework in Frameworks */,
-				0350FDA5211CD634006994C2 /* MBProgressHUD.framework in Frameworks */,
-				0350FDA8211CD634006994C2 /* SwiftyJSON.framework in Frameworks */,
-				0350FDA9211CD634006994C2 /* Minizip.framework in Frameworks */,
-				033936DB211CD83F00F980B8 /* ReadiumLCP.framework in Frameworks */,
-				033936D8211CD83F00F980B8 /* R2LCPClient.framework in Frameworks */,
-				0350FDAA211CD634006994C2 /* AEXML.framework in Frameworks */,
-				0350FDAB211CD634006994C2 /* PromiseKit.framework in Frameworks */,
-				0350FDAD211CD634006994C2 /* Kingfisher.framework in Frameworks */,
-				0350FDAE211CD634006994C2 /* GCDWebServers.framework in Frameworks */,
-				033936E7211CD83F00F980B8 /* R2Streamer.framework in Frameworks */,
+				CA415EE9221D64D7003A0F7F /* R2LCPClient.framework in Frameworks */,
+				CA415EEB221D64D7003A0F7F /* R2Navigator.framework in Frameworks */,
+				CA415EED221D64D7003A0F7F /* R2Shared.framework in Frameworks */,
+				CA415F08221D66EA003A0F7F /* R2LCPClient.framework in Frameworks */,
+				CA415F04221D66EA003A0F7F /* R2Streamer.framework in Frameworks */,
+				CA415EEF221D64D7003A0F7F /* R2Streamer.framework in Frameworks */,
+				CA415EF1221D64D7003A0F7F /* ReadiumLCP.framework in Frameworks */,
+				CA415EF3221D64D7003A0F7F /* ReadiumOPDS.framework in Frameworks */,
+				CA415F00221D66EA003A0F7F /* R2Navigator.framework in Frameworks */,
+				CA822C97221C5737005800D1 /* Fuzi.framework in Frameworks */,
+				CA822C98221C5737005800D1 /* CryptoSwift.framework in Frameworks */,
+				CA822C9A221C5737005800D1 /* SQLite.framework in Frameworks */,
+				CA822C9B221C5737005800D1 /* ZIPFoundation.framework in Frameworks */,
+				CA822C9C221C5737005800D1 /* MBProgressHUD.framework in Frameworks */,
+				CA415F0A221D66EA003A0F7F /* ReadiumLCP.framework in Frameworks */,
+				CA822C9D221C5737005800D1 /* SwiftyJSON.framework in Frameworks */,
+				CA415F02221D66EA003A0F7F /* R2Shared.framework in Frameworks */,
+				CA822C9F221C5737005800D1 /* Minizip.framework in Frameworks */,
+				CA822CA4221C5737005800D1 /* AEXML.framework in Frameworks */,
+				CA822CA5221C5737005800D1 /* PromiseKit.framework in Frameworks */,
+				CA415F06221D66EA003A0F7F /* ReadiumOPDS.framework in Frameworks */,
+				CA822CA6221C5737005800D1 /* Kingfisher.framework in Frameworks */,
+				CA822CA7221C5737005800D1 /* GCDWebServers.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -478,16 +506,16 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				03B8169420FD012C002A449E /* ReadiumOPDS.framework in Frameworks */,
-				03B8169120FD0118002A449E /* R2Navigator.framework in Frameworks */,
-				03B8169220FD0118002A449E /* R2Shared.framework in Frameworks */,
-				03B8169320FD0118002A449E /* R2Streamer.framework in Frameworks */,
 				AE009A04207F5980001D82C5 /* Fuzi.framework in Frameworks */,
+				CA2AE370221C4B97008BD18F /* R2Streamer.framework in Frameworks */,
+				CA2AE36E221C4B97008BD18F /* R2Shared.framework in Frameworks */,
 				03EF7653206A5F1A00C3C24E /* CryptoSwift.framework in Frameworks */,
+				CA2AE372221C4B97008BD18F /* ReadiumOPDS.framework in Frameworks */,
 				03EF7654206A5F1A00C3C24E /* SQLite.framework in Frameworks */,
 				03EF7655206A5F1A00C3C24E /* ZIPFoundation.framework in Frameworks */,
 				03804906211662D7009F48BD /* MBProgressHUD.framework in Frameworks */,
 				03EF7658206A5F1A00C3C24E /* SwiftyJSON.framework in Frameworks */,
+				CA2AE374221C4B97008BD18F /* R2Navigator.framework in Frameworks */,
 				03D011F2208023360097A87C /* Minizip.framework in Frameworks */,
 				03EF7659206A5F1A00C3C24E /* AEXML.framework in Frameworks */,
 				03EF765A206A5F1A00C3C24E /* PromiseKit.framework in Frameworks */,
@@ -526,6 +554,55 @@
 			path = Bookmark;
 			sourceTree = "<group>";
 		};
+		CA2AE369221C4B5F008BD18F /* Carthage */ = {
+			isa = PBXGroup;
+			children = (
+				CA2AE36D221C4B96008BD18F /* R2Navigator.framework */,
+				CA2AE36A221C4B96008BD18F /* R2Shared.framework */,
+				CA2AE36B221C4B96008BD18F /* R2Streamer.framework */,
+				CA2AE36C221C4B96008BD18F /* ReadiumOPDS.framework */,
+				03804905211662D7009F48BD /* MBProgressHUD.framework */,
+				AE009A03207F5980001D82C5 /* Fuzi.framework */,
+				03D011F1208023360097A87C /* Minizip.framework */,
+				03EF764D206A5F1A00C3C24E /* AEXML.framework */,
+				03EF7647206A5F1900C3C24E /* CryptoSwift.framework */,
+				03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */,
+				03EF764F206A5F1A00C3C24E /* Kingfisher.framework */,
+				03EF764E206A5F1A00C3C24E /* PromiseKit.framework */,
+				03EF7648206A5F1A00C3C24E /* SQLite.framework */,
+				03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */,
+				03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */,
+			);
+			name = Carthage;
+			sourceTree = "<group>";
+		};
+		CA7F5A4E2204AF1800B88141 /* Common */ = {
+			isa = PBXGroup;
+			children = (
+				CA7F5A4F2204AF2900B88141 /* Result.swift */,
+			);
+			name = Common;
+			sourceTree = "<group>";
+		};
+		CA9A40D5221C066600531EA1 /* DRM */ = {
+			isa = PBXGroup;
+			children = (
+				CA7F5A402204A05700B88141 /* DRMLibraryService.swift */,
+				CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */,
+				CA9A40D6221C067700531EA1 /* LCP */,
+			);
+			path = DRM;
+			sourceTree = "<group>";
+		};
+		CA9A40D6221C067700531EA1 /* LCP */ = {
+			isa = PBXGroup;
+			children = (
+				CA2AE315221C11F4008BD18F /* LCPLibraryService.swift */,
+				CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */,
+			);
+			path = LCP;
+			sourceTree = "<group>";
+		};
 		F32980ED1F7D464900BDEAF4 /* Samples */ = {
 			isa = PBXGroup;
 			children = (
@@ -555,26 +632,11 @@
 		F3E7D42F1F4EF6D400DF166D = {
 			isa = PBXGroup;
 			children = (
-				0318D240211CEB5B009B6727 /* R2Streamer.framework */,
-				0318D23D211CEB5B009B6727 /* R2Shared.framework */,
-				0318D23A211CEB5B009B6727 /* R2Navigator.framework */,
-				0318D237211CEB5B009B6727 /* ReadiumOPDS.framework */,
-				03E1FD3B211CE50500D4A320 /* ReadiumLCP.framework */,
-				03E1FD38211CE50500D4A320 /* R2LCPClient.framework */,
-				033936E6211CD83F00F980B8 /* R2Streamer.framework */,
-				033936E3211CD83F00F980B8 /* R2Shared.framework */,
-				033936E0211CD83F00F980B8 /* R2Navigator.framework */,
-				033936DD211CD83F00F980B8 /* ReadiumOPDS.framework */,
-				033936DA211CD83F00F980B8 /* ReadiumLCP.framework */,
-				033936D7211CD83F00F980B8 /* R2LCPClient.framework */,
 				F3E7D43A1F4EF6D400DF166D /* r2-testapp-swift */,
 				F3E7D44F1F4EF6D400DF166D /* r2-testapp-swiftTests */,
 				F3E7D45A1F4EF6D400DF166D /* r2-testapp-swiftUITests */,
 				F3E7D4391F4EF6D400DF166D /* Products */,
 				F3E7D4691F4EFE8700DF166D /* Frameworks */,
-				0350FD29211CD2CB006994C2 /* r2-testapp-swift (submodules)-Info.plist */,
-				0350FD7D211CD625006994C2 /* r2-testapp-swift (carthage-with-lcp)-Info.plist */,
-				0350FDC9211CD634006994C2 /* r2-testapp-swift (submodules-with-lcp)-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -584,7 +646,7 @@
 				F3E7D4381F4EF6D400DF166D /* r2-testapp-swift.app */,
 				0350FD28211CD2CB006994C2 /* r2-testapp-swift.app */,
 				0350FD7C211CD625006994C2 /* r2-testapp-swift.app */,
-				0350FDC8211CD634006994C2 /* r2-testapp-swift (submodules with lcp).app */,
+				CA822CBE221C5737005800D1 /* r2-testapp-swift.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -592,17 +654,19 @@
 		F3E7D43A1F4EF6D400DF166D /* r2-testapp-swift */ = {
 			isa = PBXGroup;
 			children = (
-				57CADB3220D14B3100DF6675 /* r2-testapp-swift.entitlements */,
+				F3E7D43B1F4EF6D400DF166D /* AppDelegate.swift */,
+				F3E7D47B1F4F03B800DF166D /* UIImageExtension.swift */,
+				AE37DE422093291600079AA2 /* AboutTableViewController.swift */,
+				CA9A40D5221C066600531EA1 /* DRM */,
+				CA7F5A4E2204AF1800B88141 /* Common */,
+				F3E7D4731F4F030300DF166D /* Library */,
+				F3E7D47A1F4F037D00DF166D /* Viewers */,
 				F32980ED1F7D464900BDEAF4 /* Samples */,
 				F3E7D4421F4EF6D400DF166D /* Assets.xcassets */,
 				F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */,
 				AE2B6A8820889C8700C12072 /* AppMain.storyboard */,
-				F3E7D4471F4EF6D400DF166D /* r2-testapp-swift (carthage)-Info.plist */,
-				F3E7D43B1F4EF6D400DF166D /* AppDelegate.swift */,
-				F3E7D47B1F4F03B800DF166D /* UIImageExtension.swift */,
-				AE37DE422093291600079AA2 /* AboutTableViewController.swift */,
-				F3E7D4731F4F030300DF166D /* Library */,
-				F3E7D47A1F4F037D00DF166D /* Viewers */,
+				57CADB3220D14B3100DF6675 /* r2-testapp-swift.entitlements */,
+				F3E7D4471F4EF6D400DF166D /* r2-testapp-swift-Info.plist */,
 			);
 			path = "r2-testapp-swift";
 			sourceTree = "<group>";
@@ -628,21 +692,13 @@
 		F3E7D4691F4EFE8700DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				03804905211662D7009F48BD /* MBProgressHUD.framework */,
-				AE2B6A862088949300C12072 /* ReadiumOPDS.framework */,
-				AE009A03207F5980001D82C5 /* Fuzi.framework */,
-				03D011F1208023360097A87C /* Minizip.framework */,
-				03EF764D206A5F1A00C3C24E /* AEXML.framework */,
-				03EF7647206A5F1900C3C24E /* CryptoSwift.framework */,
-				03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */,
-				03EF764F206A5F1A00C3C24E /* Kingfisher.framework */,
-				03EF764E206A5F1A00C3C24E /* PromiseKit.framework */,
-				03EF7650206A5F1A00C3C24E /* R2Navigator.framework */,
-				03EF7646206A5F1900C3C24E /* R2Shared.framework */,
-				03EF764B206A5F1A00C3C24E /* R2Streamer.framework */,
-				03EF7648206A5F1A00C3C24E /* SQLite.framework */,
-				03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */,
-				03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */,
+				CA415EEA221D64D7003A0F7F /* R2Navigator.framework */,
+				CA415EEC221D64D7003A0F7F /* R2Shared.framework */,
+				CA415EEE221D64D7003A0F7F /* R2Streamer.framework */,
+				CA415EF2221D64D7003A0F7F /* ReadiumOPDS.framework */,
+				CA415EE8221D64D7003A0F7F /* R2LCPClient.framework */,
+				CA415EF0221D64D7003A0F7F /* ReadiumLCP.framework */,
+				CA2AE369221C4B5F008BD18F /* Carthage */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -736,15 +792,15 @@
 			productReference = 0350FD7C211CD625006994C2 /* r2-testapp-swift.app */;
 			productType = "com.apple.product-type.application";
 		};
-		0350FD7E211CD634006994C2 /* r2-testapp-swift (submodules with lcp) */ = {
+		CA822C71221C5737005800D1 /* r2-testapp-swift (submodules with lcp) */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 0350FDC5211CD634006994C2 /* Build configuration list for PBXNativeTarget "r2-testapp-swift (submodules with lcp)" */;
+			buildConfigurationList = CA822CBB221C5737005800D1 /* Build configuration list for PBXNativeTarget "r2-testapp-swift (submodules with lcp)" */;
 			buildPhases = (
-				0350FD7F211CD634006994C2 /* Sources */,
-				0350FD9E211CD634006994C2 /* Frameworks */,
-				0350FDAF211CD634006994C2 /* Resources */,
-				0350FDBF211CD634006994C2 /* Carthage Run Script */,
-				033936E9211CD84000F980B8 /* Embed Frameworks */,
+				CA822C72221C5737005800D1 /* Sources */,
+				CA822C96221C5737005800D1 /* Frameworks */,
+				CA822CA8221C5737005800D1 /* Resources */,
+				CA822CB9221C5737005800D1 /* Carthage Run Script */,
+				CA822CBA221C5737005800D1 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -752,7 +808,7 @@
 			);
 			name = "r2-testapp-swift (submodules with lcp)";
 			productName = "r2-testapp-swift";
-			productReference = 0350FDC8211CD634006994C2 /* r2-testapp-swift (submodules with lcp).app */;
+			productReference = CA822CBE221C5737005800D1 /* r2-testapp-swift.app */;
 			productType = "com.apple.product-type.application";
 		};
 		F3E7D4371F4EF6D400DF166D /* r2-testapp-swift (carthage) */ = {
@@ -791,7 +847,7 @@
 						DevelopmentTeam = 327YA3JNGT;
 						ProvisioningStyle = Automatic;
 					};
-					0350FD7E211CD634006994C2 = {
+					CA822C71221C5737005800D1 = {
 						DevelopmentTeam = 327YA3JNGT;
 						ProvisioningStyle = Automatic;
 					};
@@ -824,7 +880,7 @@
 				F3E7D4371F4EF6D400DF166D /* r2-testapp-swift (carthage) */,
 				0350FCE3211CD2CB006994C2 /* r2-testapp-swift (submodules) */,
 				0350FD37211CD625006994C2 /* r2-testapp-swift (carthage with lcp) */,
-				0350FD7E211CD634006994C2 /* r2-testapp-swift (submodules with lcp) */,
+				CA822C71221C5737005800D1 /* r2-testapp-swift (submodules with lcp) */,
 			);
 		};
 /* End PBXProject section */
@@ -876,26 +932,26 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		0350FDAF211CD634006994C2 /* Resources */ = {
+		CA822CA8221C5737005800D1 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0350FDB0211CD634006994C2 /* 1.epub in Resources */,
-				0350FDB1211CD634006994C2 /* 2.epub in Resources */,
-				0350FDB2211CD634006994C2 /* 3.epub in Resources */,
-				03079E80211CF8A4002E9B9B /* 1.cbz in Resources */,
-				0350FDB3211CD634006994C2 /* 4.epub in Resources */,
-				0350FDB4211CD634006994C2 /* DrmManagement.storyboard in Resources */,
-				0350FDB5211CD634006994C2 /* AppMain.storyboard in Resources */,
-				0350FDB6211CD634006994C2 /* 5.epub in Resources */,
-				0350FDB7211CD634006994C2 /* PublicationCollectionViewCell.xib in Resources */,
-				0350FDB8211CD634006994C2 /* Details.storyboard in Resources */,
-				0350FDB9211CD634006994C2 /* 6.epub in Resources */,
-				0350FDBA211CD634006994C2 /* PublicationMenuViewController.xib in Resources */,
-				0350FDBB211CD634006994C2 /* OPDS.storyboard in Resources */,
-				0350FDBC211CD634006994C2 /* LaunchScreen.storyboard in Resources */,
-				0350FDBD211CD634006994C2 /* Assets.xcassets in Resources */,
-				0350FDBE211CD634006994C2 /* UserSettings.storyboard in Resources */,
+				CA822CA9221C5737005800D1 /* 1.epub in Resources */,
+				CA822CAA221C5737005800D1 /* 2.epub in Resources */,
+				CA822CAB221C5737005800D1 /* 3.epub in Resources */,
+				CA822CAC221C5737005800D1 /* 1.cbz in Resources */,
+				CA822CAD221C5737005800D1 /* 4.epub in Resources */,
+				CA822CAE221C5737005800D1 /* DrmManagement.storyboard in Resources */,
+				CA822CAF221C5737005800D1 /* AppMain.storyboard in Resources */,
+				CA822CB0221C5737005800D1 /* 5.epub in Resources */,
+				CA822CB1221C5737005800D1 /* PublicationCollectionViewCell.xib in Resources */,
+				CA822CB2221C5737005800D1 /* Details.storyboard in Resources */,
+				CA822CB3221C5737005800D1 /* 6.epub in Resources */,
+				CA822CB4221C5737005800D1 /* PublicationMenuViewController.xib in Resources */,
+				CA822CB5221C5737005800D1 /* OPDS.storyboard in Resources */,
+				CA822CB6221C5737005800D1 /* LaunchScreen.storyboard in Resources */,
+				CA822CB7221C5737005800D1 /* Assets.xcassets in Resources */,
+				CA822CB8221C5737005800D1 /* UserSettings.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -979,31 +1035,6 @@
 			shellPath = /bin/sh;
 			shellScript = "/usr/local/bin/carthage copy-frameworks";
 		};
-		0350FDBF211CD634006994C2 /* Carthage Run Script */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 12;
-			files = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/Carthage/Build/iOS/AEXML.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/CryptoSwift.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/GCDWebServers.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/Kingfisher.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/PromiseKit.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/SQLite.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/SwiftyJSON.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/ZIPFoundation.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/Fuzi.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/Minizip.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/MBProgressHUD.framework",
-			);
-			name = "Carthage Run Script";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "/usr/local/bin/carthage copy-frameworks";
-		};
 		03EF765E206A5F2B00C3C24E /* Carthage Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 12;
@@ -1024,6 +1055,31 @@
 				"$(SRCROOT)/Carthage/Build/iOS/R2Streamer.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/R2Navigator.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/ReadiumOPDS.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/MBProgressHUD.framework",
+			);
+			name = "Carthage Run Script";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/local/bin/carthage copy-frameworks";
+		};
+		CA822CB9221C5737005800D1 /* Carthage Run Script */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 12;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/Carthage/Build/iOS/AEXML.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/CryptoSwift.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/GCDWebServers.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/Kingfisher.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/PromiseKit.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/SQLite.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/SwiftyJSON.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/ZIPFoundation.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/Fuzi.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/Minizip.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/MBProgressHUD.framework",
 			);
 			name = "Carthage Run Script";
@@ -1054,10 +1110,15 @@
 				0350FCF0211CD2CB006994C2 /* PublicationMenuViewController.swift in Sources */,
 				0350FCF1211CD2CB006994C2 /* OPDSPlaceholderView.swift in Sources */,
 				0350FCF2211CD2CB006994C2 /* OPDSNavigationTableViewCell.swift in Sources */,
+				CA9A40DC221C06A300531EA1 /* DRMViewModel.swift in Sources */,
 				0350FCF3211CD2CB006994C2 /* AppDelegate.swift in Sources */,
 				0350FCF4211CD2CB006994C2 /* OPDSCatalogSelectorViewController.swift in Sources */,
+				CA7F5A512204AF5C00B88141 /* Result.swift in Sources */,
 				0350FCF5211CD2CB006994C2 /* Toast.swift in Sources */,
+				CA7F5A4C2204A42100B88141 /* DRMLibraryService.swift in Sources */,
+				CA2AE317221C11F5008BD18F /* LCPLibraryService.swift in Sources */,
 				0350FCF6211CD2CB006994C2 /* UserSettingsTableViewController.swift in Sources */,
+				CA9A40D9221C069D00531EA1 /* LCPViewModel.swift in Sources */,
 				0350FCF7211CD2CB006994C2 /* BookmarkDataSource.swift in Sources */,
 				0350FCF8211CD2CB006994C2 /* OPDSRootTableViewController.swift in Sources */,
 				0350FCF9211CD2CB006994C2 /* UIImageExtension.swift in Sources */,
@@ -1091,10 +1152,15 @@
 				0350FD44211CD625006994C2 /* PublicationMenuViewController.swift in Sources */,
 				0350FD45211CD625006994C2 /* OPDSPlaceholderView.swift in Sources */,
 				0350FD46211CD625006994C2 /* OPDSNavigationTableViewCell.swift in Sources */,
+				CA9A40DE221C06A500531EA1 /* DRMViewModel.swift in Sources */,
 				0350FD47211CD625006994C2 /* AppDelegate.swift in Sources */,
 				0350FD48211CD625006994C2 /* OPDSCatalogSelectorViewController.swift in Sources */,
+				CA7F5A522204AF5D00B88141 /* Result.swift in Sources */,
 				0350FD49211CD625006994C2 /* Toast.swift in Sources */,
+				CA7F5A4B2204A42100B88141 /* DRMLibraryService.swift in Sources */,
+				CA2AE318221C11F5008BD18F /* LCPLibraryService.swift in Sources */,
 				0350FD4A211CD625006994C2 /* UserSettingsTableViewController.swift in Sources */,
+				CA9A40DA221C069D00531EA1 /* LCPViewModel.swift in Sources */,
 				0350FD4B211CD625006994C2 /* BookmarkDataSource.swift in Sources */,
 				0350FD4C211CD625006994C2 /* OPDSRootTableViewController.swift in Sources */,
 				0350FD4D211CD625006994C2 /* UIImageExtension.swift in Sources */,
@@ -1110,40 +1176,45 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		0350FD7F211CD634006994C2 /* Sources */ = {
+		CA822C72221C5737005800D1 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0350FD80211CD634006994C2 /* AssociatedColors.swift in Sources */,
-				0350FD81211CD634006994C2 /* BarView.swift in Sources */,
-				0350FD82211CD634006994C2 /* OPDSPublicationInfoViewController.swift in Sources */,
-				0350FD83211CD634006994C2 /* CbzViewController.swift in Sources */,
-				0350FD84211CD634006994C2 /* OPDSGroupCollectionViewCell.swift in Sources */,
-				0350FD85211CD634006994C2 /* OPDSFacetViewController.swift in Sources */,
-				0350FD86211CD634006994C2 /* EpubViewController.swift in Sources */,
-				0350FD87211CD634006994C2 /* LibraryViewController.swift in Sources */,
-				0350FD88211CD634006994C2 /* AdvancedSettingsViewController.swift in Sources */,
-				0350FD89211CD634006994C2 /* DrmManagementTableViewController.swift in Sources */,
-				0350FD8A211CD634006994C2 /* OPDSGroupTableViewCell.swift in Sources */,
-				0350FD8B211CD634006994C2 /* PublicationMenuViewController.swift in Sources */,
-				0350FD8C211CD634006994C2 /* OPDSPlaceholderView.swift in Sources */,
-				0350FD8D211CD634006994C2 /* OPDSNavigationTableViewCell.swift in Sources */,
-				0350FD8E211CD634006994C2 /* AppDelegate.swift in Sources */,
-				0350FD8F211CD634006994C2 /* OPDSCatalogSelectorViewController.swift in Sources */,
-				0350FD90211CD634006994C2 /* Toast.swift in Sources */,
-				0350FD91211CD634006994C2 /* UserSettingsTableViewController.swift in Sources */,
-				0350FD92211CD634006994C2 /* BookmarkDataSource.swift in Sources */,
-				0350FD93211CD634006994C2 /* OPDSRootTableViewController.swift in Sources */,
-				0350FD94211CD634006994C2 /* UIImageExtension.swift in Sources */,
-				0350FD95211CD634006994C2 /* FontSelectionViewController.swift in Sources */,
-				0350FD96211CD634006994C2 /* OutlineTableViewController.swift in Sources */,
-				0350FD97211CD634006994C2 /* OPDSPublicationTableViewCell.swift in Sources */,
-				0350FD98211CD634006994C2 /* PublicationCollectionViewCell.swift in Sources */,
-				0350FD99211CD634006994C2 /* BookmarkDatabase.swift in Sources */,
-				0350FD9A211CD634006994C2 /* UserSettingsNavigationController.swift in Sources */,
-				0350FD9B211CD634006994C2 /* DetailsTableViewController.swift in Sources */,
-				0350FD9C211CD634006994C2 /* BookmarkCell.swift in Sources */,
-				0350FD9D211CD634006994C2 /* AboutTableViewController.swift in Sources */,
+				CA822C73221C5737005800D1 /* AssociatedColors.swift in Sources */,
+				CA822C74221C5737005800D1 /* BarView.swift in Sources */,
+				CA822C75221C5737005800D1 /* OPDSPublicationInfoViewController.swift in Sources */,
+				CA822C76221C5737005800D1 /* CbzViewController.swift in Sources */,
+				CA822C77221C5737005800D1 /* OPDSGroupCollectionViewCell.swift in Sources */,
+				CA822C78221C5737005800D1 /* OPDSFacetViewController.swift in Sources */,
+				CA822C79221C5737005800D1 /* EpubViewController.swift in Sources */,
+				CA822C7A221C5737005800D1 /* LibraryViewController.swift in Sources */,
+				CA822C7B221C5737005800D1 /* AdvancedSettingsViewController.swift in Sources */,
+				CA822C7C221C5737005800D1 /* DrmManagementTableViewController.swift in Sources */,
+				CA822C7D221C5737005800D1 /* OPDSGroupTableViewCell.swift in Sources */,
+				CA822C7E221C5737005800D1 /* PublicationMenuViewController.swift in Sources */,
+				CA822C7F221C5737005800D1 /* OPDSPlaceholderView.swift in Sources */,
+				CA822C80221C5737005800D1 /* OPDSNavigationTableViewCell.swift in Sources */,
+				CA822C81221C5737005800D1 /* DRMViewModel.swift in Sources */,
+				CA822C82221C5737005800D1 /* AppDelegate.swift in Sources */,
+				CA822C83221C5737005800D1 /* OPDSCatalogSelectorViewController.swift in Sources */,
+				CA822C84221C5737005800D1 /* Result.swift in Sources */,
+				CA822C85221C5737005800D1 /* Toast.swift in Sources */,
+				CA822C86221C5737005800D1 /* DRMLibraryService.swift in Sources */,
+				CA822C87221C5737005800D1 /* LCPLibraryService.swift in Sources */,
+				CA822C88221C5737005800D1 /* UserSettingsTableViewController.swift in Sources */,
+				CA822C89221C5737005800D1 /* LCPViewModel.swift in Sources */,
+				CA822C8A221C5737005800D1 /* BookmarkDataSource.swift in Sources */,
+				CA822C8B221C5737005800D1 /* OPDSRootTableViewController.swift in Sources */,
+				CA822C8C221C5737005800D1 /* UIImageExtension.swift in Sources */,
+				CA822C8D221C5737005800D1 /* FontSelectionViewController.swift in Sources */,
+				CA822C8E221C5737005800D1 /* OutlineTableViewController.swift in Sources */,
+				CA822C8F221C5737005800D1 /* OPDSPublicationTableViewCell.swift in Sources */,
+				CA822C90221C5737005800D1 /* PublicationCollectionViewCell.swift in Sources */,
+				CA822C91221C5737005800D1 /* BookmarkDatabase.swift in Sources */,
+				CA822C92221C5737005800D1 /* UserSettingsNavigationController.swift in Sources */,
+				CA822C93221C5737005800D1 /* DetailsTableViewController.swift in Sources */,
+				CA822C94221C5737005800D1 /* BookmarkCell.swift in Sources */,
+				CA822C95221C5737005800D1 /* AboutTableViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1167,10 +1238,15 @@
 				AE48F322208DE1E4000B7B44 /* OPDSNavigationTableViewCell.swift in Sources */,
 				F3E7D43C1F4EF6D400DF166D /* AppDelegate.swift in Sources */,
 				113B12D220800FD60074A5A2 /* OPDSCatalogSelectorViewController.swift in Sources */,
+				CA7F5A502204AF2900B88141 /* Result.swift in Sources */,
 				0380490B21166627009F48BD /* Toast.swift in Sources */,
+				CA7F5A4D2204A42100B88141 /* DRMLibraryService.swift in Sources */,
 				F3E7D4881F4F044100DF166D /* UserSettingsTableViewController.swift in Sources */,
+				CA2AE316221C11F5008BD18F /* LCPLibraryService.swift in Sources */,
 				571585F22109E8F9008B34AD /* BookmarkDataSource.swift in Sources */,
 				AE48F320208DD3A9000B7B44 /* OPDSRootTableViewController.swift in Sources */,
+				CA9A40D3221C054C00531EA1 /* DRMViewModel.swift in Sources */,
+				CA9A40D8221C069D00531EA1 /* LCPViewModel.swift in Sources */,
 				F3E7D47C1F4F03B800DF166D /* UIImageExtension.swift in Sources */,
 				F3BD53391F72B26700E46FFC /* FontSelectionViewController.swift in Sources */,
 				F3E7D4871F4F044100DF166D /* OutlineTableViewController.swift in Sources */,
@@ -1213,7 +1289,7 @@
 					"$(PROJECT_DIR)",
 				);
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
-				INFOPLIST_FILE = "r2-testapp-swift (submodules)-Info.plist";
+				INFOPLIST_FILE = "r2-testapp-swift/r2-testapp-swift-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
@@ -1246,7 +1322,7 @@
 					"$(PROJECT_DIR)",
 				);
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
-				INFOPLIST_FILE = "r2-testapp-swift (submodules)-Info.plist";
+				INFOPLIST_FILE = "r2-testapp-swift/r2-testapp-swift-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
@@ -1279,7 +1355,7 @@
 					"$(PROJECT_DIR)",
 				);
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
-				INFOPLIST_FILE = "r2-testapp-swift (carthage-with-lcp)-Info.plist";
+				INFOPLIST_FILE = "r2-testapp-swift/r2-testapp-swift-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
@@ -1312,7 +1388,7 @@
 					"$(PROJECT_DIR)",
 				);
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
-				INFOPLIST_FILE = "r2-testapp-swift (carthage-with-lcp)-Info.plist";
+				INFOPLIST_FILE = "r2-testapp-swift/r2-testapp-swift-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
@@ -1330,7 +1406,7 @@
 			};
 			name = Release;
 		};
-		0350FDC6211CD634006994C2 /* Debug */ = {
+		CA822CBC221C5737005800D1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -1345,7 +1421,7 @@
 					"$(PROJECT_DIR)",
 				);
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
-				INFOPLIST_FILE = "r2-testapp-swift (submodules-with-lcp)-Info.plist";
+				INFOPLIST_FILE = "r2-testapp-swift/r2-testapp-swift-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
@@ -1363,7 +1439,7 @@
 			};
 			name = Debug;
 		};
-		0350FDC7211CD634006994C2 /* Release */ = {
+		CA822CBD221C5737005800D1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -1378,7 +1454,7 @@
 					"$(PROJECT_DIR)",
 				);
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
-				INFOPLIST_FILE = "r2-testapp-swift (submodules-with-lcp)-Info.plist";
+				INFOPLIST_FILE = "r2-testapp-swift/r2-testapp-swift-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
@@ -1522,7 +1598,7 @@
 					"$(PROJECT_DIR)",
 				);
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
-				INFOPLIST_FILE = "r2-testapp-swift/r2-testapp-swift (carthage)-Info.plist";
+				INFOPLIST_FILE = "r2-testapp-swift/r2-testapp-swift-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
@@ -1555,7 +1631,7 @@
 					"$(PROJECT_DIR)",
 				);
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
-				INFOPLIST_FILE = "r2-testapp-swift/r2-testapp-swift (carthage)-Info.plist";
+				INFOPLIST_FILE = "r2-testapp-swift/r2-testapp-swift-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
@@ -1594,11 +1670,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		0350FDC5211CD634006994C2 /* Build configuration list for PBXNativeTarget "r2-testapp-swift (submodules with lcp)" */ = {
+		CA822CBB221C5737005800D1 /* Build configuration list for PBXNativeTarget "r2-testapp-swift (submodules with lcp)" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				0350FDC6211CD634006994C2 /* Debug */,
-				0350FDC7211CD634006994C2 /* Release */,
+				CA822CBC221C5737005800D1 /* Debug */,
+				CA822CBD221C5737005800D1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
