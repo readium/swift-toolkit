@@ -1,5 +1,5 @@
 //
-//  DrmLibraryService.swift
+//  DRMLibraryService.swift
 //  r2-testapp-swift
 //
 //  Created by Mickaël Menu on 01.02.19.
@@ -12,9 +12,9 @@
 import Foundation
 import R2Shared
 
-protocol DrmLibraryService {
+protocol DRMLibraryService {
     
-    var brand: Drm.Brand { get }
+    var brand: DRM.Brand { get }
     
     /// Returns whether this DRM can fulfill the given file into a protected publication.
     func canFulfill(_ file: URL) -> Bool
@@ -23,9 +23,6 @@ protocol DrmLibraryService {
     func fulfill(_ file: URL, completion: @escaping (CancellableResult<(URL, URLSessionDownloadTask?)>) -> Void)
     
     /// Fills the DRM context of the given protected publication.
-    func loadPublication(at publication: URL, drm: Drm, completion: @escaping (CancellableResult<Drm>) -> Void)
-    
-    /// Handles the deletion of DRM-related data for this publication, if there's any.
-    func removePublication(at publication: URL)
-    
+    func loadPublication(at publication: URL, drm: DRM, completion: @escaping (CancellableResult<DRM>) -> Void)
+
 }

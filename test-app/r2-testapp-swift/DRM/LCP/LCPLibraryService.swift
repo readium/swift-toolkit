@@ -1,5 +1,5 @@
 //
-//  LcpLibraryService.swift
+//  LCPLibraryService.swift
 //  r2-testapp-swift
 //
 //  Created by Mickaël Menu on 01.02.19.
@@ -17,16 +17,15 @@ import R2Shared
 import ReadiumLCP
 
 
-class LcpLibraryService: DrmLibraryService {
+class LCPLibraryService: DRMLibraryService {
 
-    private let lcpService: LcpService
+    private let lcpService: LCPService
     
     init() {
-        self.lcpService = LcpService()
-        self.lcpService.delegate = self
+        self.lcpService = setupLCPService()
     }
     
-    var brand: Drm.Brand {
+    var brand: DRM.Brand {
         return .lcp
     }
     
@@ -35,8 +34,8 @@ class LcpLibraryService: DrmLibraryService {
     }
     
     func fulfill(_ file: URL, completion: @escaping (CancellableResult<(URL, URLSessionDownloadTask?)>) -> Void) {
-        lcpService.importLicenseDocument(file) { (result, error) in
-            if case LcpError.cancelled? = error {
+        lcpService.importPublication(from: file, authentication: self) { (result, error) in
+            if case LCPError.cancelled? = error {
                 completion(.cancelled)
                 return
             }
@@ -49,9 +48,9 @@ class LcpLibraryService: DrmLibraryService {
         }
     }
     
-    func loadPublication(at publication: URL, drm: Drm, completion: @escaping (CancellableResult<Drm>) -> Void) {
-        lcpService.openLicense(in: publication) { (license, error) in
-            if case LcpError.cancelled? = error {
+    func loadPublication(at publication: URL, drm: DRM, completion: @escaping (CancellableResult<DRM>) -> Void) {
+        lcpService.retrieveLicense(from: publication, authentication: self) { (license, error) in
+            if case LCPError.cancelled? = error {
                 completion(.cancelled)
                 return
             }
@@ -62,20 +61,15 @@ class LcpLibraryService: DrmLibraryService {
             
             var drm = drm
             drm.license = license
-            drm.profile = license.profile
             completion(.success(drm))
         }
     }
     
-    func removePublication(at publication: URL) {
-        lcpService.removePublication(at: publication)
-    }
-
 }
 
-extension LcpLibraryService: LcpServiceDelegate {
+extension LCPLibraryService: LCPAuthenticating {
     
-    func requestPassphrase(for license: LicenseDocument, reason: PassphraseRequestReason, completion: @escaping (String?) -> Void) {
+    func requestPassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, completion: @escaping (String?) -> Void) {
         guard let viewController = UIApplication.shared.keyWindow?.rootViewController else {
             completion(nil)
             return
@@ -83,25 +77,21 @@ extension LcpLibraryService: LcpServiceDelegate {
         
         let title: String
         switch reason {
-        case .notFound:
+        case .passphraseNotFound:
             title = "LCP Passphrase"
-        case .invalid:
+        case .invalidPassphrase:
             title = "The passphrase is incorrect"
         }
     
-        let message = license.getHint()
-        let alert = UIAlertController(title: title,
-                                      message: message, preferredStyle: .alert)
-        let dismissButton = UIAlertAction(title: "Cancel", style: .cancel) { (_) in
+        let alert = UIAlertController(title: title, message: license.hint, preferredStyle: .alert)
+        let dismissButton = UIAlertAction(title: "Cancel", style: .cancel) { _ in
             completion(nil)
         }
-    
-        let confirmButton = UIAlertAction(title: "Submit", style: .default) { (_) in
+        let confirmButton = UIAlertAction(title: "Submit", style: .default) { _ in
             let passphrase = alert.textFields?[0].text
             completion(passphrase ?? "")
         }
     
-        //adding textfields to our dialog box
         alert.addTextField { (textField) in
             textField.placeholder = "Passphrase"
             textField.isSecureTextEntry = true

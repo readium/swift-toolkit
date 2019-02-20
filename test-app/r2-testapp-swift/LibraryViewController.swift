@@ -22,7 +22,7 @@ import ReadiumOPDS
 import MobileCoreServices
 
 protocol LibraryViewControllerDelegate: class {
-    func loadPublication(withId id: String?, completion: @escaping (Drm?, Error?) -> Void) throws
+    func loadPublication(withId id: String?, completion: @escaping (DRM?, Error?) -> Void) throws
     func remove(_ publication: Publication)
 }
 
