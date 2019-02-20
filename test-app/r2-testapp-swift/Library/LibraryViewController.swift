@@ -11,6 +11,7 @@
 //
 
 import UIKit
+import MobileCoreServices
 import WebKit
 import R2Shared
 import R2Streamer
@@ -18,25 +19,26 @@ import R2Navigator
 import Kingfisher
 import ReadiumOPDS
 
-import MobileCoreServices
-
-protocol LibraryViewControllerDelegate: class {
-    func loadPublication(withId id: String?, completion: @escaping (DRM?, Error?) -> Void) throws
-    func remove(_ publication: Publication)
-}
 
 class LibraryViewController: UIViewController {
-    var publications: [Publication]!
+    
+    typealias Factories =
+        DetailsTableViewControllerFactory
+      & EpubViewControllerFactory
+      & CbzViewControllerFactory
+    
+    var container: Factories!
+    private var publications: [Publication]!
     
     weak var lastFlippedCell: PublicationCollectionViewCell?
     
-    let appDelegate = UIApplication.shared.delegate as! AppDelegate
-    var delegate: LibraryViewControllerDelegate? {
-        get {
-            return self.appDelegate
+    var library: LibraryService! {
+        didSet {
+            oldValue?.delegate = nil
+            library.delegate = self
         }
     }
-    
+
     lazy var loadingIndicator = PublicationIndicator()
     
     private var downloadSet =  NSMutableOrderedSet()
@@ -63,9 +65,8 @@ class LibraryViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        publications = appDelegate.publicationServer?.publications
-        appDelegate.libraryViewController = self
-        
+        publications = library.publicationServer.publications
+
         // Add long press gesture recognizer.
         let recognizer = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
         
@@ -190,17 +191,13 @@ extension LibraryViewController: UIDocumentPickerDelegate {
         
         if controller.documentPickerMode != UIDocumentPickerMode.import {return}
         
-        if let appDelegate = self.delegate as? AppDelegate {
-            for url in urls {
-                _ = appDelegate.addPublicationToLibrary(url: url, needUIUpdate: true)
-            }
+        for url in urls {
+            library.addPublicationToLibrary(url: url, needUIUpdate: true)
         }
     }
     
     public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
-        if let appDelegate = self.delegate as? AppDelegate {
-            _ = appDelegate.addPublicationToLibrary(url: url, needUIUpdate: true)
-        }
+        library.addPublicationToLibrary(url: url, needUIUpdate: true)
     }
 }
 
@@ -357,7 +354,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
         
         switch publicationType {
         case .cbz:
-            let cbzViewer = CbzViewController(for: publication, initialIndex: 0)
+            let cbzViewer: CbzViewController = container.make(publication: publication)
             cbzViewer.hidesBottomBarWhenPushed = true
             success?(cbzViewer)
         case .epub:
@@ -371,15 +368,13 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
             let progression = userDefaults.double(forKey: "\(publicationIdentifier)-documentProgression")
             do {
                 // Ask delegate to load that document.
-                try delegate?.loadPublication(withId: publicationIdentifier, completion: { drm, error in
+                try library.loadPublication(withId: publicationIdentifier, completion: { drm, error in
                     if let _ = error {
                         fail?(nil) // silent error
                         return
                     }
 
-                    let epubViewer = EpubViewController(with: publication,
-                                                        atIndex: index,
-                                                        progression: progression, drm)
+                    let epubViewer: EpubViewController = self.container.make(publication: publication, at: index, progression: progression, drm: drm)
                     epubViewer.hidesBottomBarWhenPushed = true
                     success?(epubViewer)
                 })
@@ -422,7 +417,9 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
             }) else {return}
             let newIndexPath = IndexPath(item: newOffset+newIndex, section: 0)
             
-            self.delegate?.remove(publication)
+            self.library.remove(publication)
+            self.publications = self.library.publicationServer.publications
+            
             // Remove item from UI colletionView.
             self.collectionView.performBatchUpdates({
                 self.collectionView.deleteItems(at: [newIndexPath])
@@ -438,13 +435,10 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
     }
     
     func displayInformation(forCellAt indexPath: IndexPath) {
-        
-        let storyboard = UIStoryboard(name: "Details", bundle: nil)
-        let detailsView = storyboard.instantiateViewController(withIdentifier: "DetailsTableViewController") as! DetailsTableViewController
         let publication = publications[indexPath.row]
-        
-        detailsView.setup(publication: publication)
-        navigationController?.pushViewController(detailsView, animated: true)
+        let detailsViewController = container.make(publication: publication)
+        detailsViewController.modalPresentationStyle = .popover
+        navigationController?.pushViewController(detailsViewController, animated: true)
     }
     
     // Used to reset ui of the last flipped cell, we must not have two cells
@@ -472,7 +466,7 @@ extension LibraryViewController: DownloadDisplayDelegate {
     
     func didFinishDownload(task:URLSessionDownloadTask) {
         
-        let newList = appDelegate.publicationServer.publications
+        let newList = library.publicationServer.publications
         if newList.count == publications.count {return}
         
         publications = newList
@@ -529,13 +523,13 @@ extension LibraryViewController: DownloadDisplayDelegate {
             cell.progress = percentage
         }
     }
-    
+
     func reloadWith(downloadTask: URLSessionDownloadTask) {
         self.didFinishDownload(task: downloadTask)
     }
     
     func insertNewItemWithUpdatedDataSource() {
-        self.publications = appDelegate.publicationServer.publications
+        self.publications = library.publicationServer.publications
         
         let offset = downloadSet.count
         let newIndexPath = IndexPath(item: offset, section: 0)
@@ -546,6 +540,18 @@ extension LibraryViewController: DownloadDisplayDelegate {
             self.infoAlert(title: "Success", message: "Publication added to library.")
         })
     }
+}
+
+extension LibraryViewController: LibraryServiceDelegate {
+    
+    func reloadLibrary(with downloadTask: URLSessionDownloadTask?) {
+        if let downloadTask = downloadTask {
+            reloadWith(downloadTask: downloadTask)
+        } else {
+            insertNewItemWithUpdatedDataSource()
+        }
+    }
+    
 }
 
 class PublicationIndicator: UIView  {

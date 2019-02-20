@@ -13,22 +13,21 @@
 import UIKit
 import R2Shared
 
-class DetailsTableViewController: UITableViewController {
+protocol DetailsTableViewControllerFactory {
+    func make(publication: Publication) -> DetailsTableViewController
+}
+
+final class DetailsTableViewController: UITableViewController {
+
+    var publication: Publication!
+    
     // Informations
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var idLabel: UILabel!
-
-    weak var publication: Publication? = nil
-
-    func setup(publication: Publication) {
-        self.publication = publication
-        modalPresentationStyle = .popover
-    }
 
     override func viewDidLoad() {
         titleLabel.text = publication?.metadata.multilangTitle?.singleString
         idLabel.text = publication?.metadata.identifier
     }
-
 
 }

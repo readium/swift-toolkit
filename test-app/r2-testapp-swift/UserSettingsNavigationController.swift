@@ -14,6 +14,10 @@ import UIKit
 import R2Navigator
 import R2Shared
 
+protocol UserSettingsNavigationControllerFactory {
+    func make() -> UserSettingsNavigationController
+}
+
 protocol UserSettingsNavigationControllerDelegate: class {
     func getUserSettings() -> UserSettings
     func updateUserSettingsStyle()
@@ -22,29 +26,21 @@ protocol UserSettingsNavigationControllerDelegate: class {
 }
 
 internal class UserSettingsNavigationController: UINavigationController {
-    var userSettingsTableViewController: UserSettingsTableViewController! {
-        get {
-            return (viewControllers[0] as! UserSettingsTableViewController)
-        }
-    }
-    //
-    var fontSelectionViewController: FontSelectionViewController!
-    var advancedSettingsViewController: AdvancedSettingsViewController!
-    //
+
     weak var usdelegate: UserSettingsNavigationControllerDelegate!
     var userSettings: UserSettings!
     weak var publication: Publication?
 
+    var fontSelectionViewController: FontSelectionViewController!
+    var advancedSettingsViewController: AdvancedSettingsViewController!
+    var userSettingsTableViewController: UserSettingsTableViewController! {
+        return findChildViewController()
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        let storyboard = UIStoryboard(name: "UserSettings", bundle: nil)
         userSettings = usdelegate.getUserSettings()
         
-        fontSelectionViewController =
-            (storyboard.instantiateViewController(withIdentifier: "FontSelectionViewController") as! FontSelectionViewController)
-        advancedSettingsViewController =
-            (storyboard.instantiateViewController(withIdentifier: "AdvancedSettingsViewController") as! AdvancedSettingsViewController)
-
         userSettingsTableViewController.modalPresentationStyle = .popover
         userSettingsTableViewController.delegate = self
         userSettingsTableViewController.userSettings = userSettings

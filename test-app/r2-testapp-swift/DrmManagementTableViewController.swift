@@ -14,6 +14,10 @@ import UIKit
 import R2Shared
 import R2Navigator
 
+protocol DrmManagementTableViewControllerFactory {
+    func make(drm: DRM) -> DrmManagementTableViewController
+}
+
 class DrmManagementTableViewController: UITableViewController {
     @IBOutlet weak var stateLabel: UILabel!
     @IBOutlet weak var typeLabel: UILabel!

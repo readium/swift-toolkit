@@ -14,15 +14,44 @@ import UIKit
 import R2Shared
 import R2Navigator
 
+protocol EpubViewControllerFactory {
+    func make(publication: Publication, at index: Int, progression: Double?, drm: DRM?) -> EpubViewController
+}
+
 class EpubViewController: UIViewController {
+    
+    typealias Factories =
+        UserSettingsNavigationControllerFactory
+      & OutlineTableViewControllerFactory
+      & DrmManagementTableViewControllerFactory
+    
+    let container: Factories
     let stackView: UIStackView!
     let navigator: NavigatorViewController!
     let fixedTopBar: BarView!
     let fixedBottomBar: BarView!
     var popoverUserconfigurationAnchor: UIBarButtonItem?
-    var userSettingNavigationController: UserSettingsNavigationController!
-    var drmManagementTVC: DrmManagementTableViewController!
-    var haveDrm = false
+    var userSettingNavigationController: UserSettingsNavigationController
+    var drmManagementTVC: DrmManagementTableViewController?
+
+    init(container: Factories, publication: Publication, atIndex index: Int, progression: Double?, _ drm: DRM?) {
+        self.container = container
+        stackView = UIStackView(frame: UIScreen.main.bounds)
+        navigator = NavigatorViewController(for: publication, initialIndex: index, initialProgression: progression)
+        
+        fixedTopBar = BarView()
+        fixedBottomBar = BarView()
+        
+        userSettingNavigationController = container.make()
+        if let drm = drm {
+            drmManagementTVC = container.make(drm: drm)
+        }
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    deinit {
+        navigator.userSettings.save()
+    }
   
     lazy var bookmarkDataSource: BookmarkDataSource = {
         let publicationID = navigator.publication.metadata.identifier ?? ""
@@ -81,37 +110,7 @@ class EpubViewController: UIViewController {
       }
       
     }
-    
-    init(with publication: Publication, atIndex index: Int, progression: Double?, _ drm: DRM?) {
-        stackView = UIStackView(frame: UIScreen.main.bounds)
-        navigator = NavigatorViewController(for: publication,
-                                            initialIndex: index,
-                                            initialProgression: progression)
-        
-        fixedTopBar = BarView()
-        fixedBottomBar = BarView()
-      
-        // UserSettingsViewController.
-        var storyboard = UIStoryboard(name: "UserSettings", bundle: nil)
-        
-        userSettingNavigationController =
-            (storyboard.instantiateViewController(withIdentifier: "UserSettingsNavigationController") as! UserSettingsNavigationController)
-        
-        if let drm = drm {
-            haveDrm = true
-            // DrmManagementViewController?
-            storyboard = UIStoryboard(name: "DrmManagement", bundle: nil)
-            drmManagementTVC =
-                (storyboard.instantiateViewController(withIdentifier: "DrmManagementTableViewController") as! DrmManagementTableViewController)
-            drmManagementTVC.viewModel = DRMViewModel.make(drm: drm)
-        }
-        super.init(nibName: nil, bundle: nil)
-    }
-    
-    deinit {
-        navigator.userSettings.save()
-    }
-    
+
     @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -166,7 +165,7 @@ class EpubViewController: UIViewController {
                                                  action: #selector(presentUserSettings))
         barButtons.append(userSettingsButton)
         
-        if haveDrm {
+        if drmManagementTVC != nil {
             let drmManagementButton = UIBarButtonItem(image: #imageLiteral(resourceName: "drm"), style: .plain, target: self,
                                                       action: #selector(presentDrmManagement))
             barButtons.append(drmManagementButton)
@@ -255,26 +254,25 @@ extension EpubViewController {
         if let userSettingsTVC = userSettingNavigationController.userSettingsTableViewController {
             userSettingsTVC.dismiss(animated: true, completion: nil)
         }
-      
-      let storyboard = UIStoryboard(name: "AppMain", bundle: nil)
-      let outlineTableVC =
-        storyboard.instantiateViewController(withIdentifier: "OutlineTableViewController") as! OutlineTableViewController
-      
-      outlineTableVC.tableOfContents = navigator.getTableOfContents()
-      outlineTableVC.callBack = { [weak self] href in
-        _ = self?.navigator.displaySpineItem(with: href)
-      }
-      
-      outlineTableVC.bookmarksDatasource = self.bookmarkDataSource
-      outlineTableVC.didSelectBookmark = { (bookmark:Bookmark) -> Void in
-          self.navigator.displaySpineItem(at: bookmark.resourceIndex, progression: bookmark.progression)
-      }
-
-      let outlineNavVC = UINavigationController.init(rootViewController: outlineTableVC)
-      present(outlineNavVC, animated: true, completion: nil)
+        
+        let outlineTableVC: OutlineTableViewController = container.make(tableOfContents: navigator.getTableOfContents(), publicationType: .EPUB)
+        outlineTableVC.bookmarksDataSource = self.bookmarkDataSource
+        outlineTableVC.callBack = { [weak self] href in
+            _ = self?.navigator.displaySpineItem(with: href)
+        }
+        outlineTableVC.didSelectBookmark = { (bookmark:Bookmark) -> Void in
+            self.navigator.displaySpineItem(at: bookmark.resourceIndex, progression: bookmark.progression)
+        }
+        
+        let outlineNavVC = UINavigationController(rootViewController: outlineTableVC)
+        present(outlineNavVC, animated: true, completion: nil)
     }
     
     @objc func presentDrmManagement() {
+        guard let drmManagementTVC = drmManagementTVC else {
+            return
+        }
+        
         let backItem = UIBarButtonItem()
         
         backItem.title = ""
@@ -342,10 +340,7 @@ extension EpubViewController: UserSettingsNavigationControllerDelegate {
         
         navigationController?.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: colors.textColor]
         
-        //
-        if haveDrm {
-            drmManagementTVC.appearance = appearance
-        }
+        drmManagementTVC?.appearance = appearance
     }
     
     // Toggle hide/show fixed bot and top bars.

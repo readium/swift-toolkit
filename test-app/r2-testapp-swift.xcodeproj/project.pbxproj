@@ -195,6 +195,22 @@
 		CA415F09221D66EA003A0F7F /* R2LCPClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EE8221D64D7003A0F7F /* R2LCPClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		CA415F0A221D66EA003A0F7F /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EF0221D64D7003A0F7F /* ReadiumLCP.framework */; };
 		CA415F0B221D66EA003A0F7F /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EF0221D64D7003A0F7F /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CA415F12221D6CE6003A0F7F /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA415F0D221D6CE5003A0F7F /* AppCoordinator.swift */; };
+		CA415F13221D6CE6003A0F7F /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA415F0D221D6CE5003A0F7F /* AppCoordinator.swift */; };
+		CA415F14221D6CE6003A0F7F /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA415F0D221D6CE5003A0F7F /* AppCoordinator.swift */; };
+		CA415F15221D6CE6003A0F7F /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA415F0D221D6CE5003A0F7F /* AppCoordinator.swift */; };
+		CA415F1C221D74C3003A0F7F /* UIViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA415F1B221D74C3003A0F7F /* UIViewController.swift */; };
+		CA415F1D221D74C3003A0F7F /* UIViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA415F1B221D74C3003A0F7F /* UIViewController.swift */; };
+		CA415F1E221D74C3003A0F7F /* UIViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA415F1B221D74C3003A0F7F /* UIViewController.swift */; };
+		CA415F1F221D74C3003A0F7F /* UIViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA415F1B221D74C3003A0F7F /* UIViewController.swift */; };
+		CA415F28221D7753003A0F7F /* LibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA415F27221D7753003A0F7F /* LibraryService.swift */; };
+		CA415F29221D7753003A0F7F /* LibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA415F27221D7753003A0F7F /* LibraryService.swift */; };
+		CA415F2A221D7753003A0F7F /* LibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA415F27221D7753003A0F7F /* LibraryService.swift */; };
+		CA415F2B221D7753003A0F7F /* LibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA415F27221D7753003A0F7F /* LibraryService.swift */; };
+		CA415F2D221D851B003A0F7F /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA415F2C221D851B003A0F7F /* AppContainer.swift */; };
+		CA415F2E221D851B003A0F7F /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA415F2C221D851B003A0F7F /* AppContainer.swift */; };
+		CA415F2F221D851B003A0F7F /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA415F2C221D851B003A0F7F /* AppContainer.swift */; };
+		CA415F30221D851B003A0F7F /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA415F2C221D851B003A0F7F /* AppContainer.swift */; };
 		CA7F5A4B2204A42100B88141 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
 		CA7F5A4C2204A42100B88141 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
 		CA7F5A4D2204A42100B88141 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
@@ -386,6 +402,10 @@
 		CA415EEE221D64D7003A0F7F /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA415EF0221D64D7003A0F7F /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA415EF2221D64D7003A0F7F /* ReadiumOPDS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumOPDS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA415F0D221D6CE5003A0F7F /* AppCoordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
+		CA415F1B221D74C3003A0F7F /* UIViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIViewController.swift; sourceTree = "<group>"; };
+		CA415F27221D7753003A0F7F /* LibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryService.swift; sourceTree = "<group>"; };
+		CA415F2C221D851B003A0F7F /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
 		CA7F5A402204A05700B88141 /* DRMLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DRMLibraryService.swift; sourceTree = "<group>"; };
 		CA7F5A4F2204AF2900B88141 /* Result.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		CA822CBE221C5737005800D1 /* r2-testapp-swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -527,23 +547,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		113B12BD20800FC10074A5A2 /* OPDS */ = {
-			isa = PBXGroup;
-			children = (
-				AE48F31F208DD3A9000B7B44 /* OPDSRootTableViewController.swift */,
-				AE48F321208DE1E4000B7B44 /* OPDSNavigationTableViewCell.swift */,
-				AE53A073208F623E00737838 /* OPDSGroupTableViewCell.swift */,
-				AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */,
-				AE48F323208E0375000B7B44 /* OPDSPublicationTableViewCell.swift */,
-				113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */,
-				113B12C920800FD50074A5A2 /* OPDSFacetViewController.swift */,
-				113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */,
-				AED681F120A32EBA0090DBCD /* OPDSPlaceholderView.swift */,
-				AE48F31D208DD056000B7B44 /* OPDS.storyboard */,
-			);
-			name = OPDS;
-			sourceTree = "<group>";
-		};
 		571585F32109E903008B34AD /* Bookmark */ = {
 			isa = PBXGroup;
 			children = (
@@ -576,12 +579,76 @@
 			name = Carthage;
 			sourceTree = "<group>";
 		};
-		CA7F5A4E2204AF1800B88141 /* Common */ = {
+		CA415F20221D7559003A0F7F /* Library */ = {
+			isa = PBXGroup;
+			children = (
+				CA415F27221D7753003A0F7F /* LibraryService.swift */,
+				F3E7D4701F4EFEC200DF166D /* LibraryViewController.swift */,
+				032F7E3121167E9A009E5C24 /* PublicationCollectionViewCell.swift */,
+				032F7E3221167E9A009E5C24 /* PublicationCollectionViewCell.xib */,
+				032F7E3021167E9A009E5C24 /* PublicationMenuViewController.swift */,
+				032F7E3321167E9A009E5C24 /* PublicationMenuViewController.xib */,
+				F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */,
+				F30AEE7C1FC316430073C9FD /* Details.storyboard */,
+				CA415F21221D7565003A0F7F /* OPDS */,
+			);
+			path = Library;
+			sourceTree = "<group>";
+		};
+		CA415F21221D7565003A0F7F /* OPDS */ = {
+			isa = PBXGroup;
+			children = (
+				AE48F31F208DD3A9000B7B44 /* OPDSRootTableViewController.swift */,
+				AE48F321208DE1E4000B7B44 /* OPDSNavigationTableViewCell.swift */,
+				AE53A073208F623E00737838 /* OPDSGroupTableViewCell.swift */,
+				AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */,
+				AE48F323208E0375000B7B44 /* OPDSPublicationTableViewCell.swift */,
+				113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */,
+				113B12C920800FD50074A5A2 /* OPDSFacetViewController.swift */,
+				113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */,
+				AED681F120A32EBA0090DBCD /* OPDSPlaceholderView.swift */,
+				AE48F31D208DD056000B7B44 /* OPDS.storyboard */,
+			);
+			path = OPDS;
+			sourceTree = "<group>";
+		};
+		CA415F22221D7591003A0F7F /* Common */ = {
+			isa = PBXGroup;
+			children = (
+				CA415F23221D7599003A0F7F /* Toolkit */,
+			);
+			path = Common;
+			sourceTree = "<group>";
+		};
+		CA415F23221D7599003A0F7F /* Toolkit */ = {
 			isa = PBXGroup;
 			children = (
 				CA7F5A4F2204AF2900B88141 /* Result.swift */,
+				CA415F1B221D74C3003A0F7F /* UIViewController.swift */,
+				F3E7D47B1F4F03B800DF166D /* UIImageExtension.swift */,
 			);
-			name = Common;
+			path = Toolkit;
+			sourceTree = "<group>";
+		};
+		CA415F24221D75D6003A0F7F /* App */ = {
+			isa = PBXGroup;
+			children = (
+				CA415F2C221D851B003A0F7F /* AppContainer.swift */,
+				CA415F0D221D6CE5003A0F7F /* AppCoordinator.swift */,
+				AE37DE422093291600079AA2 /* AboutTableViewController.swift */,
+				AE2B6A8820889C8700C12072 /* AppMain.storyboard */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		CA415F25221D75F5003A0F7F /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */,
+				F3E7D4421F4EF6D400DF166D /* Assets.xcassets */,
+				F32980ED1F7D464900BDEAF4 /* Samples */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		CA9A40D5221C066600531EA1 /* DRM */ = {
@@ -655,16 +722,12 @@
 			isa = PBXGroup;
 			children = (
 				F3E7D43B1F4EF6D400DF166D /* AppDelegate.swift */,
-				F3E7D47B1F4F03B800DF166D /* UIImageExtension.swift */,
-				AE37DE422093291600079AA2 /* AboutTableViewController.swift */,
+				CA415F24221D75D6003A0F7F /* App */,
+				CA415F20221D7559003A0F7F /* Library */,
 				CA9A40D5221C066600531EA1 /* DRM */,
-				CA7F5A4E2204AF1800B88141 /* Common */,
-				F3E7D4731F4F030300DF166D /* Library */,
 				F3E7D47A1F4F037D00DF166D /* Viewers */,
-				F32980ED1F7D464900BDEAF4 /* Samples */,
-				F3E7D4421F4EF6D400DF166D /* Assets.xcassets */,
-				F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */,
-				AE2B6A8820889C8700C12072 /* AppMain.storyboard */,
+				CA415F22221D7591003A0F7F /* Common */,
+				CA415F25221D75F5003A0F7F /* Resources */,
 				57CADB3220D14B3100DF6675 /* r2-testapp-swift.entitlements */,
 				F3E7D4471F4EF6D400DF166D /* r2-testapp-swift-Info.plist */,
 			);
@@ -703,24 +766,9 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		F3E7D4731F4F030300DF166D /* Library */ = {
-			isa = PBXGroup;
-			children = (
-				F3E7D4701F4EFEC200DF166D /* LibraryViewController.swift */,
-				F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */,
-				F30AEE7C1FC316430073C9FD /* Details.storyboard */,
-				113B12BD20800FC10074A5A2 /* OPDS */,
-			);
-			name = Library;
-			sourceTree = "<group>";
-		};
 		F3E7D47A1F4F037D00DF166D /* Viewers */ = {
 			isa = PBXGroup;
 			children = (
-				032F7E3121167E9A009E5C24 /* PublicationCollectionViewCell.swift */,
-				032F7E3221167E9A009E5C24 /* PublicationCollectionViewCell.xib */,
-				032F7E3021167E9A009E5C24 /* PublicationMenuViewController.swift */,
-				032F7E3321167E9A009E5C24 /* PublicationMenuViewController.xib */,
 				571585F32109E903008B34AD /* Bookmark */,
 				F3E7D4841F4F044100DF166D /* OutlineTableViewController.swift */,
 				F3E7D47E1F4F03E500DF166D /* EPUB */,
@@ -1097,6 +1145,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0350FCE5211CD2CB006994C2 /* AssociatedColors.swift in Sources */,
+				CA415F13221D6CE6003A0F7F /* AppCoordinator.swift in Sources */,
 				0350FCE6211CD2CB006994C2 /* BarView.swift in Sources */,
 				0350FCE7211CD2CB006994C2 /* OPDSPublicationInfoViewController.swift in Sources */,
 				0350FCE8211CD2CB006994C2 /* CbzViewController.swift in Sources */,
@@ -1108,13 +1157,16 @@
 				0350FCEE211CD2CB006994C2 /* DrmManagementTableViewController.swift in Sources */,
 				0350FCEF211CD2CB006994C2 /* OPDSGroupTableViewCell.swift in Sources */,
 				0350FCF0211CD2CB006994C2 /* PublicationMenuViewController.swift in Sources */,
+				CA415F29221D7753003A0F7F /* LibraryService.swift in Sources */,
 				0350FCF1211CD2CB006994C2 /* OPDSPlaceholderView.swift in Sources */,
 				0350FCF2211CD2CB006994C2 /* OPDSNavigationTableViewCell.swift in Sources */,
 				CA9A40DC221C06A300531EA1 /* DRMViewModel.swift in Sources */,
+				CA415F2E221D851B003A0F7F /* AppContainer.swift in Sources */,
 				0350FCF3211CD2CB006994C2 /* AppDelegate.swift in Sources */,
 				0350FCF4211CD2CB006994C2 /* OPDSCatalogSelectorViewController.swift in Sources */,
 				CA7F5A512204AF5C00B88141 /* Result.swift in Sources */,
 				0350FCF5211CD2CB006994C2 /* Toast.swift in Sources */,
+				CA415F1D221D74C3003A0F7F /* UIViewController.swift in Sources */,
 				CA7F5A4C2204A42100B88141 /* DRMLibraryService.swift in Sources */,
 				CA2AE317221C11F5008BD18F /* LCPLibraryService.swift in Sources */,
 				0350FCF6211CD2CB006994C2 /* UserSettingsTableViewController.swift in Sources */,
@@ -1139,6 +1191,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0350FD39211CD625006994C2 /* AssociatedColors.swift in Sources */,
+				CA415F14221D6CE6003A0F7F /* AppCoordinator.swift in Sources */,
 				0350FD3A211CD625006994C2 /* BarView.swift in Sources */,
 				0350FD3B211CD625006994C2 /* OPDSPublicationInfoViewController.swift in Sources */,
 				0350FD3C211CD625006994C2 /* CbzViewController.swift in Sources */,
@@ -1150,13 +1203,16 @@
 				0350FD42211CD625006994C2 /* DrmManagementTableViewController.swift in Sources */,
 				0350FD43211CD625006994C2 /* OPDSGroupTableViewCell.swift in Sources */,
 				0350FD44211CD625006994C2 /* PublicationMenuViewController.swift in Sources */,
+				CA415F2A221D7753003A0F7F /* LibraryService.swift in Sources */,
 				0350FD45211CD625006994C2 /* OPDSPlaceholderView.swift in Sources */,
 				0350FD46211CD625006994C2 /* OPDSNavigationTableViewCell.swift in Sources */,
 				CA9A40DE221C06A500531EA1 /* DRMViewModel.swift in Sources */,
+				CA415F2F221D851B003A0F7F /* AppContainer.swift in Sources */,
 				0350FD47211CD625006994C2 /* AppDelegate.swift in Sources */,
 				0350FD48211CD625006994C2 /* OPDSCatalogSelectorViewController.swift in Sources */,
 				CA7F5A522204AF5D00B88141 /* Result.swift in Sources */,
 				0350FD49211CD625006994C2 /* Toast.swift in Sources */,
+				CA415F1E221D74C3003A0F7F /* UIViewController.swift in Sources */,
 				CA7F5A4B2204A42100B88141 /* DRMLibraryService.swift in Sources */,
 				CA2AE318221C11F5008BD18F /* LCPLibraryService.swift in Sources */,
 				0350FD4A211CD625006994C2 /* UserSettingsTableViewController.swift in Sources */,
@@ -1181,6 +1237,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA822C73221C5737005800D1 /* AssociatedColors.swift in Sources */,
+				CA415F15221D6CE6003A0F7F /* AppCoordinator.swift in Sources */,
 				CA822C74221C5737005800D1 /* BarView.swift in Sources */,
 				CA822C75221C5737005800D1 /* OPDSPublicationInfoViewController.swift in Sources */,
 				CA822C76221C5737005800D1 /* CbzViewController.swift in Sources */,
@@ -1192,13 +1249,16 @@
 				CA822C7C221C5737005800D1 /* DrmManagementTableViewController.swift in Sources */,
 				CA822C7D221C5737005800D1 /* OPDSGroupTableViewCell.swift in Sources */,
 				CA822C7E221C5737005800D1 /* PublicationMenuViewController.swift in Sources */,
+				CA415F2B221D7753003A0F7F /* LibraryService.swift in Sources */,
 				CA822C7F221C5737005800D1 /* OPDSPlaceholderView.swift in Sources */,
 				CA822C80221C5737005800D1 /* OPDSNavigationTableViewCell.swift in Sources */,
 				CA822C81221C5737005800D1 /* DRMViewModel.swift in Sources */,
+				CA415F30221D851B003A0F7F /* AppContainer.swift in Sources */,
 				CA822C82221C5737005800D1 /* AppDelegate.swift in Sources */,
 				CA822C83221C5737005800D1 /* OPDSCatalogSelectorViewController.swift in Sources */,
 				CA822C84221C5737005800D1 /* Result.swift in Sources */,
 				CA822C85221C5737005800D1 /* Toast.swift in Sources */,
+				CA415F1F221D74C3003A0F7F /* UIViewController.swift in Sources */,
 				CA822C86221C5737005800D1 /* DRMLibraryService.swift in Sources */,
 				CA822C87221C5737005800D1 /* LCPLibraryService.swift in Sources */,
 				CA822C88221C5737005800D1 /* UserSettingsTableViewController.swift in Sources */,
@@ -1223,6 +1283,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AE955A2120EBA74B00A0D8D8 /* AssociatedColors.swift in Sources */,
+				CA415F12221D6CE6003A0F7F /* AppCoordinator.swift in Sources */,
 				F3E7D4861F4F044100DF166D /* BarView.swift in Sources */,
 				113B12DD20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift in Sources */,
 				F3E7D4801F4F03F500DF166D /* CbzViewController.swift in Sources */,
@@ -1234,13 +1295,16 @@
 				F34CB28C1FCC20D4005E3A37 /* DrmManagementTableViewController.swift in Sources */,
 				AE53A074208F623E00737838 /* OPDSGroupTableViewCell.swift in Sources */,
 				032F7E3421167E9B009E5C24 /* PublicationMenuViewController.swift in Sources */,
+				CA415F28221D7753003A0F7F /* LibraryService.swift in Sources */,
 				AED681F220A32EBA0090DBCD /* OPDSPlaceholderView.swift in Sources */,
 				AE48F322208DE1E4000B7B44 /* OPDSNavigationTableViewCell.swift in Sources */,
 				F3E7D43C1F4EF6D400DF166D /* AppDelegate.swift in Sources */,
+				CA415F2D221D851B003A0F7F /* AppContainer.swift in Sources */,
 				113B12D220800FD60074A5A2 /* OPDSCatalogSelectorViewController.swift in Sources */,
 				CA7F5A502204AF2900B88141 /* Result.swift in Sources */,
 				0380490B21166627009F48BD /* Toast.swift in Sources */,
 				CA7F5A4D2204A42100B88141 /* DRMLibraryService.swift in Sources */,
+				CA415F1C221D74C3003A0F7F /* UIViewController.swift in Sources */,
 				F3E7D4881F4F044100DF166D /* UserSettingsTableViewController.swift in Sources */,
 				CA2AE316221C11F5008BD18F /* LCPLibraryService.swift in Sources */,
 				571585F22109E8F9008B34AD /* BookmarkDataSource.swift in Sources */,

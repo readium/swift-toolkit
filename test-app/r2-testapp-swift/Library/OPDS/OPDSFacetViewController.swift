@@ -13,10 +13,19 @@
 import UIKit
 import R2Shared
 
-class OPDSFacetViewController : UIViewController {
-    var feed: Feed?
-    var rootViewController: OPDSRootTableViewController?
-    
+
+protocol OPDSFacetViewControllerFactory {
+    func make(feed: Feed) -> OPDSFacetViewController
+}
+
+protocol OPDSFacetViewControllerDelegate: AnyObject {
+    func opdsFacetViewController(_ opdsFacetViewController: OPDSFacetViewController, presentOPDSFeedAt href: String)
+}
+
+final class OPDSFacetViewController : UIViewController {
+    var feed: Feed!
+    weak var delegate: OPDSFacetViewControllerDelegate?
+
     override func viewDidLoad() {
         super.viewDidLoad()
     }
@@ -31,18 +40,18 @@ class OPDSFacetViewController : UIViewController {
 extension OPDSFacetViewController: UITableViewDataSource {
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        return feed!.facets.count
+        return feed.facets.count
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return feed!.facets[section].links.count
+        return feed.facets[section].links.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "opdsFacetTableViewCell", for: indexPath)
         
-        cell.textLabel?.text = feed!.facets[indexPath.section].links[indexPath.row].title
-        if let count = feed!.facets[indexPath.section].links[indexPath.row].properties.numberOfItems {
+        cell.textLabel?.text = feed.facets[indexPath.section].links[indexPath.row].title
+        if let count = feed.facets[indexPath.section].links[indexPath.row].properties.numberOfItems {
             cell.detailTextLabel?.text  = "\(count)"
         } else {
             cell.detailTextLabel?.text  = ""
@@ -62,12 +71,14 @@ extension OPDSFacetViewController: UITableViewDataSource {
 extension OPDSFacetViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        rootViewController?.applyFacetAt(indexPath: indexPath)
+        if let href = feed.facets[indexPath.section].links[indexPath.row].absoluteHref {
+            delegate?.opdsFacetViewController(self, presentOPDSFeedAt: href)
+        }
         dismiss(animated: true, completion: nil)
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return feed!.facets[section].metadata.title
+        return feed.facets[section].metadata.title
     }
     
     func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {

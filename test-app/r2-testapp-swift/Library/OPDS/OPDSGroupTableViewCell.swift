@@ -208,24 +208,15 @@ extension OPDSGroupTableViewCell: UICollectionViewDelegateFlowLayout {
         if browsingState == . Publication {
             
             if let publication = group?.publications[indexPath.row] {
-                let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
-                let opdsPublicationInfoViewController =
-                    opdsStoryboard.instantiateViewController(withIdentifier: "opdsPublicationInfoViewController") as? OPDSPublicationInfoViewController
-                if let opdsPublicationInfoViewController = opdsPublicationInfoViewController {
-                    opdsPublicationInfoViewController.publication = publication
-                    opdsRootTableViewController?.navigationController?.pushViewController(opdsPublicationInfoViewController, animated: true)
-                }
+                let opdsPublicationInfoViewController: OPDSPublicationInfoViewController = AppContainer.shared.make(publication: publication)
+                opdsRootTableViewController?.navigationController?.pushViewController(opdsPublicationInfoViewController, animated: true)
             }
             
         } else {
             
-            if let absoluteHref = group?.navigation[indexPath.row].absoluteHref {
-                let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
-                let newOpdsRootViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsRootViewController") as? OPDSRootTableViewController
-                if let newOpdsRootViewController = newOpdsRootViewController {
-                    newOpdsRootViewController.originalFeedURL = URL(string: absoluteHref)
-                    opdsRootTableViewController?.navigationController?.pushViewController(newOpdsRootViewController, animated: true)
-                }
+            if let absoluteHref = group?.navigation[indexPath.row].absoluteHref, let url = URL(string: absoluteHref) {
+                let newOPDSRootTableViewController: OPDSRootTableViewController = AppContainer.shared.make(feedURL: url, indexPath: nil)
+                opdsRootTableViewController?.navigationController?.pushViewController(newOPDSRootTableViewController, animated: true)
             }
             
         }

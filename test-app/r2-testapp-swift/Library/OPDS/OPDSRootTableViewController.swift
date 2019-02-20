@@ -24,9 +24,19 @@ enum FeedBrowsingState {
     case None
 }
 
+protocol OPDSRootTableViewControllerFactory {
+    func make(feedURL: URL, indexPath: IndexPath?) -> OPDSRootTableViewController
+}
+
 class OPDSRootTableViewController: UITableViewController {
     
+    typealias Factories =
+        OPDSRootTableViewControllerFactory
+      & OPDSFacetViewControllerFactory
+    
+    var container: Factories!
     var originalFeedURL: URL?
+    
     var nextPageURL: URL?
     var originalFeedIndexPath: IndexPath?
     var mustEditFeed = false
@@ -185,26 +195,17 @@ class OPDSRootTableViewController: UITableViewController {
     //MARK: - Facets
     
     @objc func filterMenuClicked(_ sender: UIBarButtonItem) {
-        
-        let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
-        
-        if let opdsFacetViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsFacetViewController") as? OPDSFacetViewController {
-            opdsFacetViewController.modalPresentationStyle = UIModalPresentationStyle.popover
-            opdsFacetViewController.feed = feed!
-            opdsFacetViewController.rootViewController = self
-            
-            present(opdsFacetViewController, animated: true, completion: nil)
-            
-            if let popoverPresentationController = opdsFacetViewController.popoverPresentationController {
-                popoverPresentationController.barButtonItem = sender
-            }
+        guard let feed = self.feed else {
+            return
         }
         
-    }
-    
-    public func applyFacetAt(indexPath: IndexPath) {
-        if let absoluteHref = feed!.facets[indexPath.section].links[indexPath.row].absoluteHref {
-            pushOpdsRootViewController(href: absoluteHref)
+        let facetViewController: OPDSFacetViewController = container.make(feed: feed)
+        facetViewController.delegate = self
+        facetViewController.modalPresentationStyle = UIModalPresentationStyle.popover
+        present(facetViewController, animated: true, completion: nil)
+
+        if let popoverPresentationController = facetViewController.popoverPresentationController {
+            popoverPresentationController.barButtonItem = sender
         }
     }
     
@@ -628,6 +629,14 @@ class OPDSRootTableViewController: UITableViewController {
     
 }
 
+extension OPDSRootTableViewController: OPDSFacetViewControllerDelegate {
+    
+    func opdsFacetViewController(_ opdsFacetViewController: OPDSFacetViewController, presentOPDSFeedAt href: String) {
+        pushOpdsRootViewController(href: href)
+    }
+    
+}
+
 //MARK: - UINavigationController delegate and tooling
 
 extension OPDSRootTableViewController: UINavigationControllerDelegate {
@@ -639,12 +648,12 @@ extension OPDSRootTableViewController: UINavigationControllerDelegate {
     }
     
     fileprivate func pushOpdsRootViewController(href: String) {
-        let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
-        let opdsRootViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsRootViewController") as? OPDSRootTableViewController
-        if let opdsRootViewController = opdsRootViewController {
-            opdsRootViewController.originalFeedURL = URL(string: href)
-            navigationController?.pushViewController(opdsRootViewController, animated: true)
+        guard let url = URL(string: href) else {
+            return
         }
+        
+        let viewController: OPDSRootTableViewController = container.make(feedURL: url, indexPath: nil)
+        navigationController?.pushViewController(viewController, animated: true)
     }
     
 }

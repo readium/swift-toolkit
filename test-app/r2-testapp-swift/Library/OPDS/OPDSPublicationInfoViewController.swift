@@ -14,7 +14,14 @@ import UIKit
 import R2Shared
 import Kingfisher
 
+protocol OPDSPublicationInfoViewControllerFactory {
+    func make(publication: Publication) -> OPDSPublicationInfoViewController
+}
+
 class OPDSPublicationInfoViewController : UIViewController {
+    
+    var library: LibraryService!
+    
     var publication: Publication?
     var downloadURL: URL?
 
@@ -25,7 +32,7 @@ class OPDSPublicationInfoViewController : UIViewController {
     @IBOutlet weak var descriptionLabel: UILabel!
     @IBOutlet weak var downloadButton: UIButton!
     @IBOutlet weak var downloadActivityIndicator: UIActivityIndicatorView!
-
+    
     override func viewDidLoad() {
         fxImageView.clipsToBounds = true
         fxImageView!.contentMode = .scaleAspectFill
@@ -108,11 +115,7 @@ class OPDSPublicationInfoViewController : UIViewController {
                         print("\(error)")
                     }
                     
-                    guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-                        return false
-                    }
-                    
-                    return appDelegate.addPublicationToLibrary(url: fixedURL, needUIUpdate: false)
+                    return self.library.addPublicationToLibrary(url: fixedURL, needUIUpdate: false)
                     
                 } else {
                     // Download failed

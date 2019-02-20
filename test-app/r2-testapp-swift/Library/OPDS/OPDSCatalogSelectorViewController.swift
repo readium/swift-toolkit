@@ -75,17 +75,13 @@ class OPDSCatalogSelectorViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         self.tableView.deselectRow(at: indexPath, animated: false)
         guard let urlString = catalogData![indexPath.row]["url"],
-            let url = URL(string: urlString) else {
-                return
+            let url = URL(string: urlString) else
+        {
+            return
         }
       
-        let opdsStoryboard = UIStoryboard(name: "OPDS", bundle: nil)
-        let opdsRootViewController = opdsStoryboard.instantiateViewController(withIdentifier: "opdsRootViewController") as? OPDSRootTableViewController
-        if let opdsRootViewController = opdsRootViewController {
-            opdsRootViewController.originalFeedURL = url
-            opdsRootViewController.originalFeedIndexPath = indexPath
-            navigationController?.pushViewController(opdsRootViewController, animated: true)
-        }
+        let viewController: OPDSRootTableViewController = AppContainer.shared.make(feedURL: url, indexPath: indexPath)
+        navigationController?.pushViewController(viewController, animated: true)
     }
 
     override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {

@@ -11,12 +11,30 @@
 //
 
 import UIKit
-import R2Streamer
 import R2Navigator
+import R2Shared
+import R2Streamer
+
+protocol CbzViewControllerFactory {
+    func make(publication: Publication) -> CbzViewController
+}
 
 class CbzViewController: CbzNavigatorViewController {
+    
+    typealias Factories =
+        OutlineTableViewControllerFactory
 
+    private let container: Factories
     lazy var bookmarkDataSource = BookmarkDataSource(publicationID: self.publication.metadata.identifier ?? "")
+    
+    public init(container: Factories, publication: Publication) {
+        self.container = container
+        super.init(for: publication, initialIndex: 0)
+    }
+
+    required public init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
   
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -79,22 +97,16 @@ class CbzViewController: CbzNavigatorViewController {
 
 extension CbzViewController {
     @objc func presentSpineItemsTVC() {
-            
-      let storyboard = UIStoryboard(name: "AppMain", bundle: nil)
-      let outlineTableVC =
-        storyboard.instantiateViewController(withIdentifier: "OutlineTableViewController") as! OutlineTableViewController
-      
-      outlineTableVC.publicationType = .CBZ
-      outlineTableVC.tableOfContents = publication.spine
-      outlineTableVC.bookmarksDatasource = self.bookmarkDataSource
-      outlineTableVC.callBack = { (spineIndex) in
-        self.load(at: Int(spineIndex)!)
-      }
-      outlineTableVC.didSelectBookmark = { (bookmark:Bookmark) -> Void in
-        self.load(at: bookmark.resourceIndex)
-      }
-      
-      let outlineNavVC = UINavigationController.init(rootViewController: outlineTableVC)
-      present(outlineNavVC, animated: true, completion: nil)
+        let outlineTableVC: OutlineTableViewController = container.make(tableOfContents: publication.spine, publicationType: .CBZ)
+        outlineTableVC.bookmarksDataSource = self.bookmarkDataSource
+        outlineTableVC.callBack = { (spineIndex) in
+            self.load(at: Int(spineIndex)!)
+        }
+        outlineTableVC.didSelectBookmark = { (bookmark:Bookmark) -> Void in
+            self.load(at: bookmark.resourceIndex)
+        }
+        
+        let outlineNavVC = UINavigationController(rootViewController: outlineTableVC)
+        present(outlineNavVC, animated: true, completion: nil)
     }
 }

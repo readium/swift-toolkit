@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14113" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
     <device id="retina5_9" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14088"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14460.20"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
         <!--User Settings Table View Controller-->
         <scene sceneID="ovK-uC-Ylj">
             <objects>
-                <tableViewController storyboardIdentifier="UserSettingsTableViewController" autoresizesArchivedViewToFullSize="NO" modalPresentationStyle="currentContext" id="Aip-CA-mbT" customClass="UserSettingsTableViewController" customModule="r2_testapp_swift__carthage_" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController storyboardIdentifier="UserSettingsTableViewController" autoresizesArchivedViewToFullSize="NO" modalPresentationStyle="currentContext" id="Aip-CA-mbT" customClass="UserSettingsTableViewController" customModule="r2_testapp_swift" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="plain" separatorStyle="default" allowsSelection="NO" rowHeight="40" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" springLoaded="YES" id="A0O-DF-dG0">
                         <rect key="frame" x="0.0" y="0.0" width="250" height="400"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -82,7 +82,7 @@
                                                     </connections>
                                                 </button>
                                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="dau-vB-tiS">
-                                                    <rect key="frame" x="124.66666666666667" y="-0.66666666666666785" width="0.3333333333333286" height="45.666666666666671"/>
+                                                    <rect key="frame" x="124.66666666666667" y="-0.33333333333333215" width="0.6666666666666714" height="45.333333333333329"/>
                                                     <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="45" id="8d3-Ak-GC1"/>
@@ -260,7 +260,7 @@
         <!--User Settings Navigation Controller-->
         <scene sceneID="bsU-Qo-Mdw">
             <objects>
-                <navigationController storyboardIdentifier="UserSettingsNavigationController" modalPresentationStyle="currentContext" id="NKe-ob-OHM" customClass="UserSettingsNavigationController" customModule="r2_testapp_swift__carthage_" customModuleProvider="target" sceneMemberID="viewController">
+                <navigationController storyboardIdentifier="UserSettingsNavigationController" modalPresentationStyle="currentContext" id="NKe-ob-OHM" customClass="UserSettingsNavigationController" customModule="r2_testapp_swift" customModuleProvider="target" sceneMemberID="viewController">
                     <size key="freeformSize" width="250" height="305"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="o63-pz-oFj">
                         <rect key="frame" x="0.0" y="44" width="250" height="44"/>
@@ -277,7 +277,7 @@
         <!--Font selection-->
         <scene sceneID="ZFS-Ud-JNh">
             <objects>
-                <viewController storyboardIdentifier="FontSelectionViewController" title="Font selection" modalPresentationStyle="currentContext" id="UDV-9G-lDt" customClass="FontSelectionViewController" customModule="r2_testapp_swift__carthage_" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="FontSelectionViewController" title="Font selection" modalPresentationStyle="currentContext" id="UDV-9G-lDt" customClass="FontSelectionViewController" customModule="r2_testapp_swift" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="oF1-m6-Klw"/>
                         <viewControllerLayoutGuide type="bottom" id="eff-zX-RFw"/>
@@ -339,7 +339,7 @@
         <!--Advanced settings-->
         <scene sceneID="dQF-Q7-iPk">
             <objects>
-                <viewController storyboardIdentifier="AdvancedSettingsViewController" title="Advanced settings" modalPresentationStyle="currentContext" id="77D-Mk-Z01" customClass="AdvancedSettingsViewController" customModule="r2_testapp_swift__carthage_" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="AdvancedSettingsViewController" title="Advanced settings" modalPresentationStyle="currentContext" id="77D-Mk-Z01" customClass="AdvancedSettingsViewController" customModule="r2_testapp_swift" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="eVD-ic-Aqv"/>
                         <viewControllerLayoutGuide type="bottom" id="rhU-AK-ZwJ"/>
