@@ -12,6 +12,7 @@
 		AE49834720D902710013B912 /* ParseData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE49834620D902710013B912 /* ParseData.swift */; };
 		AE6B98E020CAB93200117197 /* OPDSParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE6B98DF20CAB93200117197 /* OPDSParser.swift */; };
 		AED681F020A316160090DBCD /* URLHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = AED681EF20A316160090DBCD /* URLHelper.swift */; };
+		CA415ECB221D5307003A0F7F /* Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA415EC9221D5182003A0F7F /* Deprecated.swift */; };
 		F34B7E5E1FA35B7900534FD3 /* readium_opds.h in Headers */ = {isa = PBXBuildFile; fileRef = F34B7E501FA35B7900534FD3 /* readium_opds.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F34B7E691FA35BB100534FD3 /* OPDS1Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34B7E681FA35BB100534FD3 /* OPDS1Parser.swift */; };
 		F34B7E701FA3771E00534FD3 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F34B7E6B1FA35CEA00534FD3 /* R2Shared.framework */; };
@@ -27,6 +28,7 @@
 		AE49834620D902710013B912 /* ParseData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ParseData.swift; sourceTree = "<group>"; };
 		AE6B98DF20CAB93200117197 /* OPDSParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSParser.swift; sourceTree = "<group>"; };
 		AED681EF20A316160090DBCD /* URLHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = URLHelper.swift; sourceTree = "<group>"; };
+		CA415EC9221D5182003A0F7F /* Deprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deprecated.swift; sourceTree = "<group>"; };
 		F34B7E4D1FA35B7900534FD3 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ReadiumOPDS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F34B7E501FA35B7900534FD3 /* readium_opds.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = readium_opds.h; sourceTree = "<group>"; };
 		F34B7E511FA35B7900534FD3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -82,6 +84,7 @@
 			children = (
 				F34B7E501FA35B7900534FD3 /* readium_opds.h */,
 				F34B7E511FA35B7900534FD3 /* Info.plist */,
+				CA415EC9221D5182003A0F7F /* Deprecated.swift */,
 				AE6B98DF20CAB93200117197 /* OPDSParser.swift */,
 				F34B7E681FA35BB100534FD3 /* OPDS1Parser.swift */,
 				111E54DB2021022700A7FE9A /* OPDS2Parser.swift */,
@@ -192,6 +195,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA415ECB221D5307003A0F7F /* Deprecated.swift in Sources */,
 				AED681F020A316160090DBCD /* URLHelper.swift in Sources */,
 				F34B7E691FA35BB100534FD3 /* OPDS1Parser.swift in Sources */,
 				AE6B98E020CAB93200117197 /* OPDSParser.swift in Sources */,
