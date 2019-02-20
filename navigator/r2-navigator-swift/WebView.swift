@@ -34,6 +34,7 @@ final class WebView: WKWebView {
     var direction: PageProgressionDirection?
 
     var pageTransition: PageTransition
+    var editingActions: [EditingAction]
     
     weak var activityIndicatorView: UIActivityIndicatorView?
 
@@ -124,9 +125,11 @@ final class WebView: WKWebView {
     
     var sizeObservation: NSKeyValueObservation?
 
-    init(frame: CGRect, initialLocation: BinaryLocation, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false) {
+    init(frame: CGRect, initialLocation: BinaryLocation, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = []) {
         self.initialLocation = initialLocation
         self.pageTransition = pageTransition
+        self.editingActions = editingActions
+      
         super.init(frame: frame, configuration: .init())
         if disableDragAndDrop { disableDragAndDropInteraction() }
         isOpaque = false
@@ -170,6 +173,17 @@ final class WebView: WKWebView {
             scrollView.delegate = self
         }
     }
+  
+    open override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+      for editingAction in self.editingActions {
+        if (action == Selector((editingAction.rawValue)))
+        {
+          return true
+        }
+      }
+      return false;
+    }
+  
 }
 
 extension WebView {
