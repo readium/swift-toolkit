@@ -157,10 +157,6 @@
 		CA2AE316221C11F5008BD18F /* LCPLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE315221C11F4008BD18F /* LCPLibraryService.swift */; };
 		CA2AE317221C11F5008BD18F /* LCPLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE315221C11F4008BD18F /* LCPLibraryService.swift */; };
 		CA2AE318221C11F5008BD18F /* LCPLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE315221C11F4008BD18F /* LCPLibraryService.swift */; };
-		CA2AE364221C4B4E008BD18F /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE358221C4B2C008BD18F /* R2Navigator.framework */; };
-		CA2AE365221C4B4E008BD18F /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE359221C4B2C008BD18F /* R2Shared.framework */; };
-		CA2AE366221C4B4E008BD18F /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE35B221C4B2D008BD18F /* R2Streamer.framework */; };
-		CA2AE368221C4B4E008BD18F /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE35A221C4B2D008BD18F /* ReadiumOPDS.framework */; };
 		CA2AE36E221C4B97008BD18F /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36A221C4B96008BD18F /* R2Shared.framework */; };
 		CA2AE36F221C4B97008BD18F /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36A221C4B96008BD18F /* R2Shared.framework */; };
 		CA2AE370221C4B97008BD18F /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36B221C4B96008BD18F /* R2Streamer.framework */; };
@@ -169,8 +165,36 @@
 		CA2AE373221C4B97008BD18F /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36C221C4B96008BD18F /* ReadiumOPDS.framework */; };
 		CA2AE374221C4B97008BD18F /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36D221C4B96008BD18F /* R2Navigator.framework */; };
 		CA2AE375221C4B97008BD18F /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE36D221C4B96008BD18F /* R2Navigator.framework */; };
-		CA2AE378221C4BA0008BD18F /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE35C221C4B2D008BD18F /* R2LCPClient.framework */; };
-		CA2AE379221C4BA0008BD18F /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE357221C4B2C008BD18F /* ReadiumLCP.framework */; };
+		CA415EE9221D64D7003A0F7F /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EE8221D64D7003A0F7F /* R2LCPClient.framework */; };
+		CA415EEB221D64D7003A0F7F /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEA221D64D7003A0F7F /* R2Navigator.framework */; };
+		CA415EED221D64D7003A0F7F /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEC221D64D7003A0F7F /* R2Shared.framework */; };
+		CA415EEF221D64D7003A0F7F /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEE221D64D7003A0F7F /* R2Streamer.framework */; };
+		CA415EF1221D64D7003A0F7F /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EF0221D64D7003A0F7F /* ReadiumLCP.framework */; };
+		CA415EF3221D64D7003A0F7F /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EF2221D64D7003A0F7F /* ReadiumOPDS.framework */; };
+		CA415EF4221D651A003A0F7F /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEA221D64D7003A0F7F /* R2Navigator.framework */; };
+		CA415EF5221D651A003A0F7F /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEC221D64D7003A0F7F /* R2Shared.framework */; };
+		CA415EF6221D651A003A0F7F /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEE221D64D7003A0F7F /* R2Streamer.framework */; };
+		CA415EF7221D651A003A0F7F /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EF2221D64D7003A0F7F /* ReadiumOPDS.framework */; };
+		CA415EF8221D66DA003A0F7F /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEA221D64D7003A0F7F /* R2Navigator.framework */; };
+		CA415EF9221D66DA003A0F7F /* R2Navigator.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEA221D64D7003A0F7F /* R2Navigator.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CA415EFA221D66DA003A0F7F /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEC221D64D7003A0F7F /* R2Shared.framework */; };
+		CA415EFB221D66DA003A0F7F /* R2Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEC221D64D7003A0F7F /* R2Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CA415EFC221D66DA003A0F7F /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEE221D64D7003A0F7F /* R2Streamer.framework */; };
+		CA415EFD221D66DA003A0F7F /* R2Streamer.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEE221D64D7003A0F7F /* R2Streamer.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CA415EFE221D66DA003A0F7F /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EF2221D64D7003A0F7F /* ReadiumOPDS.framework */; };
+		CA415EFF221D66DA003A0F7F /* ReadiumOPDS.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EF2221D64D7003A0F7F /* ReadiumOPDS.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CA415F00221D66EA003A0F7F /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEA221D64D7003A0F7F /* R2Navigator.framework */; };
+		CA415F01221D66EA003A0F7F /* R2Navigator.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEA221D64D7003A0F7F /* R2Navigator.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CA415F02221D66EA003A0F7F /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEC221D64D7003A0F7F /* R2Shared.framework */; };
+		CA415F03221D66EA003A0F7F /* R2Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEC221D64D7003A0F7F /* R2Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CA415F04221D66EA003A0F7F /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEE221D64D7003A0F7F /* R2Streamer.framework */; };
+		CA415F05221D66EA003A0F7F /* R2Streamer.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EEE221D64D7003A0F7F /* R2Streamer.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CA415F06221D66EA003A0F7F /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EF2221D64D7003A0F7F /* ReadiumOPDS.framework */; };
+		CA415F07221D66EA003A0F7F /* ReadiumOPDS.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EF2221D64D7003A0F7F /* ReadiumOPDS.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CA415F08221D66EA003A0F7F /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EE8221D64D7003A0F7F /* R2LCPClient.framework */; };
+		CA415F09221D66EA003A0F7F /* R2LCPClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EE8221D64D7003A0F7F /* R2LCPClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CA415F0A221D66EA003A0F7F /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EF0221D64D7003A0F7F /* ReadiumLCP.framework */; };
+		CA415F0B221D66EA003A0F7F /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA415EF0221D64D7003A0F7F /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		CA7F5A4B2204A42100B88141 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
 		CA7F5A4C2204A42100B88141 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
 		CA7F5A4D2204A42100B88141 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
@@ -214,16 +238,11 @@
 		CA822C95221C5737005800D1 /* AboutTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE37DE422093291600079AA2 /* AboutTableViewController.swift */; };
 		CA822C97221C5737005800D1 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE009A03207F5980001D82C5 /* Fuzi.framework */; };
 		CA822C98221C5737005800D1 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7647206A5F1900C3C24E /* CryptoSwift.framework */; };
-		CA822C99221C5737005800D1 /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE35A221C4B2D008BD18F /* ReadiumOPDS.framework */; };
 		CA822C9A221C5737005800D1 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7648206A5F1A00C3C24E /* SQLite.framework */; };
 		CA822C9B221C5737005800D1 /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */; };
 		CA822C9C221C5737005800D1 /* MBProgressHUD.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03804905211662D7009F48BD /* MBProgressHUD.framework */; };
 		CA822C9D221C5737005800D1 /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */; };
-		CA822C9E221C5737005800D1 /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE357221C4B2C008BD18F /* ReadiumLCP.framework */; };
 		CA822C9F221C5737005800D1 /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03D011F1208023360097A87C /* Minizip.framework */; };
-		CA822CA0221C5737005800D1 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE359221C4B2C008BD18F /* R2Shared.framework */; };
-		CA822CA1221C5737005800D1 /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE35B221C4B2D008BD18F /* R2Streamer.framework */; };
-		CA822CA3221C5737005800D1 /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE358221C4B2C008BD18F /* R2Navigator.framework */; };
 		CA822CA4221C5737005800D1 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764D206A5F1A00C3C24E /* AEXML.framework */; };
 		CA822CA5221C5737005800D1 /* PromiseKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764E206A5F1A00C3C24E /* PromiseKit.framework */; };
 		CA822CA6221C5737005800D1 /* Kingfisher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764F206A5F1A00C3C24E /* Kingfisher.framework */; };
@@ -244,19 +263,6 @@
 		CA822CB6221C5737005800D1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */; };
 		CA822CB7221C5737005800D1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4421F4EF6D400DF166D /* Assets.xcassets */; };
 		CA822CB8221C5737005800D1 /* UserSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F36D24DD1F580B8800A00BF1 /* UserSettings.storyboard */; };
-		CA822CC0221C5768005800D1 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE35C221C4B2D008BD18F /* R2LCPClient.framework */; };
-		CA822CC1221C5894005800D1 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE35C221C4B2D008BD18F /* R2LCPClient.framework */; };
-		CA822CC2221C5894005800D1 /* R2LCPClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE35C221C4B2D008BD18F /* R2LCPClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		CA822CC3221C5894005800D1 /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE357221C4B2C008BD18F /* ReadiumLCP.framework */; };
-		CA822CC4221C5894005800D1 /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE357221C4B2C008BD18F /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		CA822CC5221C58B8005800D1 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE35C221C4B2D008BD18F /* R2LCPClient.framework */; };
-		CA822CC6221C58B8005800D1 /* R2LCPClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE35C221C4B2D008BD18F /* R2LCPClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		CA822CC7221C58B8005800D1 /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE357221C4B2C008BD18F /* ReadiumLCP.framework */; };
-		CA822CC8221C58B8005800D1 /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE357221C4B2C008BD18F /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		CA822CC9221C5977005800D1 /* R2Navigator.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE358221C4B2C008BD18F /* R2Navigator.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		CA822CCA221C5977005800D1 /* R2Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE359221C4B2C008BD18F /* R2Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		CA822CCB221C5977005800D1 /* R2Streamer.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE35B221C4B2D008BD18F /* R2Streamer.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		CA822CCC221C5977005800D1 /* ReadiumOPDS.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CA2AE35A221C4B2D008BD18F /* ReadiumOPDS.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		CA9A40D3221C054C00531EA1 /* DRMViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */; };
 		CA9A40D8221C069D00531EA1 /* LCPViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */; };
 		CA9A40D9221C069D00531EA1 /* LCPViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */; };
@@ -296,6 +302,10 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				CA415EF9221D66DA003A0F7F /* R2Navigator.framework in Embed Frameworks */,
+				CA415EFB221D66DA003A0F7F /* R2Shared.framework in Embed Frameworks */,
+				CA415EFF221D66DA003A0F7F /* ReadiumOPDS.framework in Embed Frameworks */,
+				CA415EFD221D66DA003A0F7F /* R2Streamer.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -306,8 +316,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				CA822CC8221C58B8005800D1 /* ReadiumLCP.framework in Embed Frameworks */,
-				CA822CC6221C58B8005800D1 /* R2LCPClient.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -318,12 +326,12 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				CA822CC9221C5977005800D1 /* R2Navigator.framework in Embed Frameworks */,
-				CA822CCA221C5977005800D1 /* R2Shared.framework in Embed Frameworks */,
-				CA822CCB221C5977005800D1 /* R2Streamer.framework in Embed Frameworks */,
-				CA822CCC221C5977005800D1 /* ReadiumOPDS.framework in Embed Frameworks */,
-				CA822CC4221C5894005800D1 /* ReadiumLCP.framework in Embed Frameworks */,
-				CA822CC2221C5894005800D1 /* R2LCPClient.framework in Embed Frameworks */,
+				CA415F0B221D66EA003A0F7F /* ReadiumLCP.framework in Embed Frameworks */,
+				CA415F09221D66EA003A0F7F /* R2LCPClient.framework in Embed Frameworks */,
+				CA415F01221D66EA003A0F7F /* R2Navigator.framework in Embed Frameworks */,
+				CA415F03221D66EA003A0F7F /* R2Shared.framework in Embed Frameworks */,
+				CA415F07221D66EA003A0F7F /* ReadiumOPDS.framework in Embed Frameworks */,
+				CA415F05221D66EA003A0F7F /* R2Streamer.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -368,19 +376,19 @@
 		AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssociatedColors.swift; sourceTree = "<group>"; };
 		AED681F120A32EBA0090DBCD /* OPDSPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPlaceholderView.swift; sourceTree = "<group>"; };
 		CA2AE315221C11F4008BD18F /* LCPLibraryService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCPLibraryService.swift; sourceTree = "<group>"; };
-		CA2AE357221C4B2C008BD18F /* ReadiumLCP.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReadiumLCP.framework; path = "../../../../Library/Developer/Xcode/DerivedData/r2-workspace-swift-aqmoygtbpslivmecadtpwokljitw/Build/Products/Debug-iphoneos/ReadiumLCP.framework"; sourceTree = "<group>"; };
-		CA2AE358221C4B2C008BD18F /* R2Navigator.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Navigator.framework; path = "../../../../Library/Developer/Xcode/DerivedData/r2-workspace-swift-aqmoygtbpslivmecadtpwokljitw/Build/Products/Debug-iphoneos/R2Navigator.framework"; sourceTree = "<group>"; };
-		CA2AE359221C4B2C008BD18F /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = "../../../../Library/Developer/Xcode/DerivedData/r2-workspace-swift-aqmoygtbpslivmecadtpwokljitw/Build/Products/Debug-iphoneos/R2Shared.framework"; sourceTree = "<group>"; };
-		CA2AE35A221C4B2D008BD18F /* ReadiumOPDS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReadiumOPDS.framework; path = "../../../../Library/Developer/Xcode/DerivedData/r2-workspace-swift-aqmoygtbpslivmecadtpwokljitw/Build/Products/Debug-iphoneos/ReadiumOPDS.framework"; sourceTree = "<group>"; };
-		CA2AE35B221C4B2D008BD18F /* R2Streamer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Streamer.framework; path = "../../../../Library/Developer/Xcode/DerivedData/r2-workspace-swift-aqmoygtbpslivmecadtpwokljitw/Build/Products/Debug-iphoneos/R2Streamer.framework"; sourceTree = "<group>"; };
-		CA2AE35C221C4B2D008BD18F /* R2LCPClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2LCPClient.framework; path = "../../../../Library/Developer/Xcode/DerivedData/r2-workspace-swift-aqmoygtbpslivmecadtpwokljitw/Build/Products/Debug-iphoneos/R2LCPClient.framework"; sourceTree = "<group>"; };
 		CA2AE36A221C4B96008BD18F /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
 		CA2AE36B221C4B96008BD18F /* R2Streamer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Streamer.framework; path = Carthage/Build/iOS/R2Streamer.framework; sourceTree = "<group>"; };
 		CA2AE36C221C4B96008BD18F /* ReadiumOPDS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReadiumOPDS.framework; path = Carthage/Build/iOS/ReadiumOPDS.framework; sourceTree = "<group>"; };
 		CA2AE36D221C4B96008BD18F /* R2Navigator.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Navigator.framework; path = Carthage/Build/iOS/R2Navigator.framework; sourceTree = "<group>"; };
+		CA415EE8221D64D7003A0F7F /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA415EEA221D64D7003A0F7F /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA415EEC221D64D7003A0F7F /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA415EEE221D64D7003A0F7F /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA415EF0221D64D7003A0F7F /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA415EF2221D64D7003A0F7F /* ReadiumOPDS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumOPDS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA7F5A402204A05700B88141 /* DRMLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DRMLibraryService.swift; sourceTree = "<group>"; };
 		CA7F5A4F2204AF2900B88141 /* Result.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
-		CA822CBE221C5737005800D1 /* r2-testapp-swift (submodules with lcp).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift (submodules with lcp).app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA822CBE221C5737005800D1 /* r2-testapp-swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DRMViewModel.swift; sourceTree = "<group>"; };
 		CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPViewModel.swift; sourceTree = "<group>"; };
 		F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsTableViewController.swift; sourceTree = "<group>"; };
@@ -420,21 +428,25 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA415EF8221D66DA003A0F7F /* R2Navigator.framework in Frameworks */,
+				CA415EFA221D66DA003A0F7F /* R2Shared.framework in Frameworks */,
+				CA415EF4221D651A003A0F7F /* R2Navigator.framework in Frameworks */,
 				0350FD08211CD2CB006994C2 /* Fuzi.framework in Frameworks */,
+				CA415EF5221D651A003A0F7F /* R2Shared.framework in Frameworks */,
+				CA415EF7221D651A003A0F7F /* ReadiumOPDS.framework in Frameworks */,
 				0350FD09211CD2CB006994C2 /* CryptoSwift.framework in Frameworks */,
-				CA2AE368221C4B4E008BD18F /* ReadiumOPDS.framework in Frameworks */,
 				0350FD0A211CD2CB006994C2 /* SQLite.framework in Frameworks */,
+				CA415EF6221D651A003A0F7F /* R2Streamer.framework in Frameworks */,
 				0350FD0B211CD2CB006994C2 /* ZIPFoundation.framework in Frameworks */,
 				0350FD0C211CD2CB006994C2 /* MBProgressHUD.framework in Frameworks */,
 				0350FD0E211CD2CB006994C2 /* SwiftyJSON.framework in Frameworks */,
 				0350FD0F211CD2CB006994C2 /* Minizip.framework in Frameworks */,
-				CA2AE365221C4B4E008BD18F /* R2Shared.framework in Frameworks */,
-				CA2AE366221C4B4E008BD18F /* R2Streamer.framework in Frameworks */,
-				CA2AE364221C4B4E008BD18F /* R2Navigator.framework in Frameworks */,
 				0350FD10211CD2CB006994C2 /* AEXML.framework in Frameworks */,
 				0350FD11211CD2CB006994C2 /* PromiseKit.framework in Frameworks */,
 				0350FD12211CD2CB006994C2 /* Kingfisher.framework in Frameworks */,
 				0350FD13211CD2CB006994C2 /* GCDWebServers.framework in Frameworks */,
+				CA415EFE221D66DA003A0F7F /* ReadiumOPDS.framework in Frameworks */,
+				CA415EFC221D66DA003A0F7F /* R2Streamer.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -443,16 +455,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				0350FD5C211CD625006994C2 /* Fuzi.framework in Frameworks */,
-				CA822CC5221C58B8005800D1 /* R2LCPClient.framework in Frameworks */,
 				CA2AE371221C4B97008BD18F /* R2Streamer.framework in Frameworks */,
 				CA2AE36F221C4B97008BD18F /* R2Shared.framework in Frameworks */,
-				CA2AE378221C4BA0008BD18F /* R2LCPClient.framework in Frameworks */,
 				0350FD5D211CD625006994C2 /* CryptoSwift.framework in Frameworks */,
 				CA2AE373221C4B97008BD18F /* ReadiumOPDS.framework in Frameworks */,
-				CA2AE379221C4BA0008BD18F /* ReadiumLCP.framework in Frameworks */,
 				0350FD5E211CD625006994C2 /* SQLite.framework in Frameworks */,
 				0350FD5F211CD625006994C2 /* ZIPFoundation.framework in Frameworks */,
-				CA822CC7221C58B8005800D1 /* ReadiumLCP.framework in Frameworks */,
 				0350FD60211CD625006994C2 /* MBProgressHUD.framework in Frameworks */,
 				0350FD62211CD625006994C2 /* SwiftyJSON.framework in Frameworks */,
 				CA2AE375221C4B97008BD18F /* R2Navigator.framework in Frameworks */,
@@ -468,23 +476,27 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA822CC0221C5768005800D1 /* R2LCPClient.framework in Frameworks */,
-				CA822CC1221C5894005800D1 /* R2LCPClient.framework in Frameworks */,
+				CA415EE9221D64D7003A0F7F /* R2LCPClient.framework in Frameworks */,
+				CA415EEB221D64D7003A0F7F /* R2Navigator.framework in Frameworks */,
+				CA415EED221D64D7003A0F7F /* R2Shared.framework in Frameworks */,
+				CA415F08221D66EA003A0F7F /* R2LCPClient.framework in Frameworks */,
+				CA415F04221D66EA003A0F7F /* R2Streamer.framework in Frameworks */,
+				CA415EEF221D64D7003A0F7F /* R2Streamer.framework in Frameworks */,
+				CA415EF1221D64D7003A0F7F /* ReadiumLCP.framework in Frameworks */,
+				CA415EF3221D64D7003A0F7F /* ReadiumOPDS.framework in Frameworks */,
+				CA415F00221D66EA003A0F7F /* R2Navigator.framework in Frameworks */,
 				CA822C97221C5737005800D1 /* Fuzi.framework in Frameworks */,
 				CA822C98221C5737005800D1 /* CryptoSwift.framework in Frameworks */,
-				CA822C99221C5737005800D1 /* ReadiumOPDS.framework in Frameworks */,
 				CA822C9A221C5737005800D1 /* SQLite.framework in Frameworks */,
 				CA822C9B221C5737005800D1 /* ZIPFoundation.framework in Frameworks */,
 				CA822C9C221C5737005800D1 /* MBProgressHUD.framework in Frameworks */,
+				CA415F0A221D66EA003A0F7F /* ReadiumLCP.framework in Frameworks */,
 				CA822C9D221C5737005800D1 /* SwiftyJSON.framework in Frameworks */,
-				CA822C9E221C5737005800D1 /* ReadiumLCP.framework in Frameworks */,
-				CA822CC3221C5894005800D1 /* ReadiumLCP.framework in Frameworks */,
+				CA415F02221D66EA003A0F7F /* R2Shared.framework in Frameworks */,
 				CA822C9F221C5737005800D1 /* Minizip.framework in Frameworks */,
-				CA822CA0221C5737005800D1 /* R2Shared.framework in Frameworks */,
-				CA822CA1221C5737005800D1 /* R2Streamer.framework in Frameworks */,
-				CA822CA3221C5737005800D1 /* R2Navigator.framework in Frameworks */,
 				CA822CA4221C5737005800D1 /* AEXML.framework in Frameworks */,
 				CA822CA5221C5737005800D1 /* PromiseKit.framework in Frameworks */,
+				CA415F06221D66EA003A0F7F /* ReadiumOPDS.framework in Frameworks */,
 				CA822CA6221C5737005800D1 /* Kingfisher.framework in Frameworks */,
 				CA822CA7221C5737005800D1 /* GCDWebServers.framework in Frameworks */,
 			);
@@ -542,19 +554,6 @@
 			path = Bookmark;
 			sourceTree = "<group>";
 		};
-		CA2AE356221C4AF4008BD18F /* Submodules */ = {
-			isa = PBXGroup;
-			children = (
-				CA2AE35C221C4B2D008BD18F /* R2LCPClient.framework */,
-				CA2AE358221C4B2C008BD18F /* R2Navigator.framework */,
-				CA2AE359221C4B2C008BD18F /* R2Shared.framework */,
-				CA2AE35B221C4B2D008BD18F /* R2Streamer.framework */,
-				CA2AE357221C4B2C008BD18F /* ReadiumLCP.framework */,
-				CA2AE35A221C4B2D008BD18F /* ReadiumOPDS.framework */,
-			);
-			name = Submodules;
-			sourceTree = "<group>";
-		};
 		CA2AE369221C4B5F008BD18F /* Carthage */ = {
 			isa = PBXGroup;
 			children = (
@@ -562,6 +561,17 @@
 				CA2AE36A221C4B96008BD18F /* R2Shared.framework */,
 				CA2AE36B221C4B96008BD18F /* R2Streamer.framework */,
 				CA2AE36C221C4B96008BD18F /* ReadiumOPDS.framework */,
+				03804905211662D7009F48BD /* MBProgressHUD.framework */,
+				AE009A03207F5980001D82C5 /* Fuzi.framework */,
+				03D011F1208023360097A87C /* Minizip.framework */,
+				03EF764D206A5F1A00C3C24E /* AEXML.framework */,
+				03EF7647206A5F1900C3C24E /* CryptoSwift.framework */,
+				03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */,
+				03EF764F206A5F1A00C3C24E /* Kingfisher.framework */,
+				03EF764E206A5F1A00C3C24E /* PromiseKit.framework */,
+				03EF7648206A5F1A00C3C24E /* SQLite.framework */,
+				03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */,
+				03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */,
 			);
 			name = Carthage;
 			sourceTree = "<group>";
@@ -636,7 +646,7 @@
 				F3E7D4381F4EF6D400DF166D /* r2-testapp-swift.app */,
 				0350FD28211CD2CB006994C2 /* r2-testapp-swift.app */,
 				0350FD7C211CD625006994C2 /* r2-testapp-swift.app */,
-				CA822CBE221C5737005800D1 /* r2-testapp-swift (submodules with lcp).app */,
+				CA822CBE221C5737005800D1 /* r2-testapp-swift.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -682,19 +692,13 @@
 		F3E7D4691F4EFE8700DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CA415EEA221D64D7003A0F7F /* R2Navigator.framework */,
+				CA415EEC221D64D7003A0F7F /* R2Shared.framework */,
+				CA415EEE221D64D7003A0F7F /* R2Streamer.framework */,
+				CA415EF2221D64D7003A0F7F /* ReadiumOPDS.framework */,
+				CA415EE8221D64D7003A0F7F /* R2LCPClient.framework */,
+				CA415EF0221D64D7003A0F7F /* ReadiumLCP.framework */,
 				CA2AE369221C4B5F008BD18F /* Carthage */,
-				CA2AE356221C4AF4008BD18F /* Submodules */,
-				03804905211662D7009F48BD /* MBProgressHUD.framework */,
-				AE009A03207F5980001D82C5 /* Fuzi.framework */,
-				03D011F1208023360097A87C /* Minizip.framework */,
-				03EF764D206A5F1A00C3C24E /* AEXML.framework */,
-				03EF7647206A5F1900C3C24E /* CryptoSwift.framework */,
-				03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */,
-				03EF764F206A5F1A00C3C24E /* Kingfisher.framework */,
-				03EF764E206A5F1A00C3C24E /* PromiseKit.framework */,
-				03EF7648206A5F1A00C3C24E /* SQLite.framework */,
-				03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */,
-				03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -804,7 +808,7 @@
 			);
 			name = "r2-testapp-swift (submodules with lcp)";
 			productName = "r2-testapp-swift";
-			productReference = CA822CBE221C5737005800D1 /* r2-testapp-swift (submodules with lcp).app */;
+			productReference = CA822CBE221C5737005800D1 /* r2-testapp-swift.app */;
 			productType = "com.apple.product-type.application";
 		};
 		F3E7D4371F4EF6D400DF166D /* r2-testapp-swift (carthage) */ = {
