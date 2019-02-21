@@ -86,7 +86,8 @@ class EpubViewController: UIViewController {
         stackView = UIStackView(frame: UIScreen.main.bounds)
         navigator = NavigatorViewController(for: publication,
                                             initialIndex: index,
-                                            initialProgression: progression)
+                                            initialProgression: progression,
+                                            editingActions: [.lookup])
         
         fixedTopBar = BarView()
         fixedBottomBar = BarView()
