@@ -12,10 +12,8 @@
 import Foundation
 import R2Shared
 
-private let DEBUG = true
 
-
-final class LicensesService {
+final class LicensesService: Loggable {
     
     private let licenses: LicensesRepository
     private let crl: CRLService
@@ -44,9 +42,9 @@ final class LicensesService {
                 if license.data != initialData {
                     do {
                         try container.write(license)
-                        if (DEBUG) { print("#license Wrote updated License Document in container") }
+                        LicensesService.log(.debug, "Wrote updated License Document in container")
                     } catch {
-                        if (DEBUG) { print("#license Failed to write updated License Document in container: \(error)") }
+                        LicensesService.log(.error, "Failed to write updated License Document in container: \(error)")
                     }
                 }
             }

@@ -15,8 +15,6 @@ import ZIPFoundation
 import R2LCPClient
 import R2Shared
 
-private let DEBUG = true
-
 
 final class License {
 

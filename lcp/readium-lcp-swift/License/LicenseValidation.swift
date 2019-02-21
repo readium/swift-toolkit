@@ -13,9 +13,6 @@ import Foundation
 import R2LCPClient
 import R2Shared
 
-// When true, will show the state and transitions in the console.
-private let DEBUG = true
-
 
 /// To modify depending of the profiles supported by liblcp.a.
 private let supportedProfiles = [
@@ -55,7 +52,7 @@ struct ValidatedDocuments {
 ///
 /// Use `validate` to start the validation of a Document.
 /// Use `observe` to be notified when any validation is done or if an error occurs.
-final class LicenseValidation {
+final class LicenseValidation: Loggable {
 
     // Dependencies for the State's handlers
     fileprivate weak var authentication: LCPAuthenticating?
@@ -75,7 +72,7 @@ final class LicenseValidation {
     // Current state in the validation steps.
     private(set) var state: State = .start {
         didSet {
-            if DEBUG { print("#validation * \(state)") }
+            log(.debug, "* \(state)")
             handle(state)
         }
     }
@@ -260,7 +257,7 @@ extension LicenseValidation {
     
     /// Should be called by the state handlers once they're done, to go to the next State.
     fileprivate func raise(_ event: Event) throws {
-        if DEBUG { print("#validation -> on \(event)") }
+        log(.debug, "-> on \(event)")
         guard Thread.isMainThread else {
             throw LCPError.runtime("\(type(of: self)): To be safe, events must only be raised from the main thread")
         }
@@ -314,7 +311,7 @@ extension LicenseValidation {
                 
                 // Recovers the previously validated license to continue the workflow if the current license is compromised.
                 if let license = self.previousLicense {
-                    if (DEBUG) { print("#validation Recovers from compromised License Document using previous License") }
+                    self.log(.warning, "Recovers from compromised License Document using previous License")
                     return license
                 }
                 throw error
