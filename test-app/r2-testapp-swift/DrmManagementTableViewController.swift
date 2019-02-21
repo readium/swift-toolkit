@@ -71,7 +71,7 @@ class DrmManagementTableViewController: UITableViewController {
             guard let loan = self.viewModel.license?.loan else {
                 return
             }
-            // Make endate selection. let server decide date.
+
             loan.renewLicense(to: nil) { error in
                 if let error = error {
                     self.infoAlert(title: "Error", message: error.localizedDescription)

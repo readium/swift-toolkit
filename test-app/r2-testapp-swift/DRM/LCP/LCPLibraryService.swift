@@ -12,17 +12,20 @@
 #if LCP
 
 import Foundation
+import SafariServices
 import UIKit
 import R2Shared
 import ReadiumLCP
 
 
-class LCPLibraryService: DRMLibraryService {
+class LCPLibraryService: NSObject, DRMLibraryService {
 
-    private let lcpService: LCPService
+    private var lcpService: LCPService!
+    private var interactionsCallbacks: [Int: () -> Void] = [:]
     
-    init() {
-        self.lcpService = setupLCPService()
+    override init() {
+        super.init()
+        lcpService = R2MakeLCPService(interactionDelegate: self)
     }
     
     var brand: DRM.Brand {
@@ -102,6 +105,33 @@ extension LCPLibraryService: LCPAuthenticating {
         viewController.present(alert, animated: true)
     }
 
+}
+
+extension LCPLibraryService: LCPInteractionDelegate {
+    
+    func presentLCPInteraction(at url: URL, dismissed: @escaping () -> Void) {
+        guard let rootViewController = UIApplication.shared.delegate?.window??.rootViewController else {
+            dismissed()
+            return
+        }
+        
+        let safariVC = SFSafariViewController(url: url)
+        safariVC.delegate = self
+        safariVC.modalPresentationStyle = .formSheet
+        
+        interactionsCallbacks[safariVC.hash] = dismissed
+        rootViewController.present(safariVC, animated: true)
+    }
+
+}
+
+extension LCPLibraryService: SFSafariViewControllerDelegate {
+    
+    func safariViewControllerDidFinish(_ controller: SFSafariViewController) {
+        let dismissed = interactionsCallbacks.removeValue(forKey: controller.hash)
+        dismissed?()
+    }
+    
 }
 
 #endif
