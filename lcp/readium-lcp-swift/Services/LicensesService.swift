@@ -20,13 +20,15 @@ final class LicensesService: Loggable {
     private let device: DeviceService
     private let network: NetworkService
     private let passphrases: PassphrasesService
+    private weak var interactionDelegate: LCPInteractionDelegate?
 
-    init(licenses: LicensesRepository, crl: CRLService, device: DeviceService, network: NetworkService, passphrases: PassphrasesService) {
+    init(licenses: LicensesRepository, crl: CRLService, device: DeviceService, network: NetworkService, passphrases: PassphrasesService, interactionDelegate: LCPInteractionDelegate?) {
         self.licenses = licenses
         self.crl = crl
         self.device = device
         self.network = network
         self.passphrases = passphrases
+        self.interactionDelegate = interactionDelegate
     }
 
     fileprivate func retrieveLicense(from container: LicenseContainer, authentication: LCPAuthenticating?) -> Deferred<License> {
@@ -58,7 +60,7 @@ final class LicensesService: Loggable {
                     // Note2: The License already gets in this state when we perform a `return` successfully. We can't decrypt anymore but we still have access to the License Documents and LSD interactions.
                     _ = try documents.getContext()
                     
-                    return License(documents: documents, validation: validation, licenses: self.licenses, device: self.device, network: self.network)
+                    return License(documents: documents, validation: validation, licenses: self.licenses, device: self.device, network: self.network, interactionDelegate: self.interactionDelegate)
                 }
         }
     }

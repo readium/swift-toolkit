@@ -93,32 +93,19 @@ final class LicenseValidation: Loggable {
     }
     
     /// Validates the given License or Status Document.
-    /// If a validation is already running, LCPError.licenseIsBusy will be reported.
+    /// If a validation is already running, `LCPError.licenseIsBusy` will be reported.
     func validate(_ document: Document) -> Deferred<ValidatedDocuments> {
-        return Deferred { completion in
-            let event: Event
-            switch (self.state, document) {
-                
-            // A License Document can only be validated when opening intially the License, or when a Status Document requires a License update.
-            case let (.start, .license(data)):
-                event = .retrievedLicenseData(data)
-            
-            // A Status Document can only be validated when the License validation is done.
-            case let (.valid, .status(data)):
-                event = .retrievedStatusData(data)
-
-            case let (.failure(error), _):
-                throw error
-                
-            default:
-                throw LCPError.licenseIsBusy
-            }
-            
-            self.observe(.once, completion)
-            try self.raise(event)
+        let event: Event
+        switch document {
+        case .license(let data):
+            event = .retrievedLicenseData(data)
+        case .status(let data):
+            event = .retrievedStatusData(data)
         }
+        
+        return observe(raising: event)
     }
-
+    
 }
 
 
@@ -228,8 +215,12 @@ extension LicenseValidation {
             case let (.valid(documents), .retrievedStatusData(data)):
                 self = .validateStatus(documents.license, documents.context, data)
 
+            case let (.failure(error), _):
+                throw error
+                
             default:
-                throw LCPError.runtime("\(type(of: self)): Unexpected event \(event) for state \(self)")
+                log(.warning, "\(type(of: self)): Unexpected event \(event) for state \(self)")
+                throw LCPError.licenseIsBusy
             }
         }
     }
@@ -264,7 +255,7 @@ extension LicenseValidation {
         
         try state.transition(event)
     }
-
+    
 }
 
 
@@ -439,7 +430,29 @@ extension LicenseValidation {
         case always
     }
     
+    /// Observes the validation occured after raising the given event.
+    fileprivate func observe(raising event: Event) -> Deferred<ValidatedDocuments> {
+        return Deferred { completion in
+            try self.raise(event)
+            self.observe(.once, completion)
+        }
+    }
+    
     func observe(_ policy: ObserverPolicy = .always, _ observer: @escaping Observer) {
+        // If the state is already valid or a failure, we notify it to the observer right away.
+        var notified = true
+        switch (state) {
+        case .valid(let documents):
+            observer(documents, nil)
+        case .failure(let error):
+            observer(nil, error)
+        default:
+            notified = false
+        }
+        
+        guard !notified || policy == .always else {
+            return
+        }
         self.observers.append((observer, policy))
     }
     
