@@ -208,14 +208,14 @@ extension OPDSGroupTableViewCell: UICollectionViewDelegateFlowLayout {
         if browsingState == . Publication {
             
             if let publication = group?.publications[indexPath.row] {
-                let opdsPublicationInfoViewController: OPDSPublicationInfoViewController = AppContainer.shared.make(publication: publication)
+                let opdsPublicationInfoViewController: OPDSPublicationInfoViewController = OPDSFactory.shared.make(publication: publication)
                 opdsRootTableViewController?.navigationController?.pushViewController(opdsPublicationInfoViewController, animated: true)
             }
             
         } else {
             
             if let absoluteHref = group?.navigation[indexPath.row].absoluteHref, let url = URL(string: absoluteHref) {
-                let newOPDSRootTableViewController: OPDSRootTableViewController = AppContainer.shared.make(feedURL: url, indexPath: nil)
+                let newOPDSRootTableViewController: OPDSRootTableViewController = OPDSFactory.shared.make(feedURL: url, indexPath: nil)
                 opdsRootTableViewController?.navigationController?.pushViewController(newOPDSRootTableViewController, animated: true)
             }
             

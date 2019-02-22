@@ -19,8 +19,8 @@ protocol OPDSPublicationInfoViewControllerFactory {
 }
 
 class OPDSPublicationInfoViewController : UIViewController {
-    
-    var library: LibraryService!
+
+    weak var moduleDelegate: OPDSModuleDelegate?
     
     var publication: Publication?
     var downloadURL: URL?
@@ -85,6 +85,9 @@ class OPDSPublicationInfoViewController : UIViewController {
     }
     
     @IBAction func downloadBook(_ sender: UIButton) {
+        guard let delegate = moduleDelegate else {
+            return
+        }
         
         if let url = downloadURL {
             
@@ -115,8 +118,8 @@ class OPDSPublicationInfoViewController : UIViewController {
                         print("\(error)")
                     }
                     
-                    return self.library.addPublicationToLibrary(url: fixedURL, needUIUpdate: false)
-                    
+                    return delegate.opdsDidDownloadPublication(at: fixedURL, from: downloadTask)
+
                 } else {
                     // Download failed
                     print("Error while downloading a publication.")

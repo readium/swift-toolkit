@@ -11,32 +11,45 @@
 //
 
 import UIKit
-import R2Shared
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
-    var window: UIWindow?
-    var container: AppContainer!
-    var coordinator: AppCoordinator!
     
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        window = UIWindow(frame: UIScreen.main.bounds)
-        window?.makeKeyAndVisible()
-        
-        // Set Readium 2's logging minimum level.
-        R2EnableLog(withMinimumSeverityLevel: .debug)
+    var window: UIWindow?
+    
+    private var app: AppModule!
 
-        container = AppContainer.shared
-        coordinator = container.make()
-        coordinator.start { startViewController in
-            window?.rootViewController = startViewController
-        }
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+        app = try! AppModule()
+        
+        // Library
+        let libraryViewController = app.library.rootViewController
+        libraryViewController.tabBarItem = UITabBarItem(title: "Bookshelf", image: UIImage(named: "bookshelf"), tag: 0)
+        
+        // OPDS Feeds
+        let opdsViewController = app.opds.rootViewController
+        opdsViewController.tabBarItem = UITabBarItem(title: "OPDS Feeds", image: UIImage(named: "catalogs"), tag: 0)
+        
+        // About
+        let aboutViewController = app.aboutViewController
+        aboutViewController.tabBarItem = UITabBarItem(title: "About", image: UIImage(named: "about"), tag: 0)
+        
+        let tabBarController = UITabBarController()
+        tabBarController.viewControllers = [
+            libraryViewController,
+            opdsViewController,
+            aboutViewController
+        ]
+        
+        window = UIWindow(frame: UIScreen.main.bounds)
+        window?.rootViewController = tabBarController
+        window?.makeKeyAndVisible()
 
         return true
     }
     
-    func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
-        return coordinator.open(url: url)
+    func application(_ application: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
+        return app.library.addPublication(at: url, from: nil)
     }
 
 }

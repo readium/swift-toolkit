@@ -159,7 +159,7 @@ extension OPDSPublicationTableViewCell: UICollectionViewDelegateFlowLayout {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if let publication = feed?.publications[indexPath.row] {
-            let opdsPublicationInfoViewController: OPDSPublicationInfoViewController = AppContainer.shared.make(publication: publication)
+            let opdsPublicationInfoViewController: OPDSPublicationInfoViewController = OPDSFactory.shared.make(publication: publication)
             opdsRootTableViewController?.navigationController?.pushViewController(opdsPublicationInfoViewController, animated: true)
         }
     }

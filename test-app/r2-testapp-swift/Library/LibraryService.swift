@@ -21,16 +21,6 @@ struct Location {
     let type: PublicationType
 }
 
-public enum PublicationType: String {
-    case epub = "epub"
-    case cbz = "cbz"
-    case unknown = "unknown"
-    
-    init(rawString: String?) {
-        self = PublicationType(rawValue: rawString ?? "") ?? .unknown
-    }
-}
-
 protocol LibraryServiceDelegate: AnyObject {
     
     func reloadLibrary(with downloadTask: URLSessionDownloadTask?)
@@ -83,7 +73,7 @@ final class LibraryService {
     }
 
     @discardableResult
-    internal func addPublicationToLibrary(url sourceUrl: URL, needUIUpdate: Bool) -> Bool {
+    internal func addPublicationToLibrary(url sourceUrl: URL, from downloadTask: URLSessionDownloadTask?) -> Bool {
         
         var url = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         url.appendPathComponent(sourceUrl.lastPathComponent)
@@ -109,16 +99,14 @@ final class LibraryService {
             /// Add the publication to the publication server.
             let location = Location(absolutePath: url.path,
                                     relativePath: url.lastPathComponent,
-                                    type: getTypeForPublicationAt(url: url))
+                                    type: PublicationType.getForPublication(at: url))
             guard lightParsePublication(at: location) else {
                 showInfoAlert(title: "Error", message: "The publication isn't valid.")
                 try? FileManager.default.removeItem(at: url)
                 return false
             }
             
-            if needUIUpdate {
-                delegate?.reloadLibrary(with: downloadTask)
-            }
+            delegate?.reloadLibrary(with: downloadTask)
             return true
         }
         
@@ -138,7 +126,7 @@ final class LibraryService {
             return true
             
         } else {
-            return addPublication(url: url, downloadTask: nil)
+            return addPublication(url: url, downloadTask: downloadTask)
         }
     }
 
@@ -150,16 +138,21 @@ final class LibraryService {
     ///   - id: <#id description#>
     ///   - completion: <#completion description#>
     /// - Throws: <#throws value description#>
-    func loadPublication(withId id: String?, completion: @escaping (DRM?, Error?) -> Void) throws {
-        guard let id = id, let item = items[id] else {
-            print("Error no id")
+    func loadDRM(for publication: Publication, completion: @escaping (Result<DRM?>) -> Void) {
+        guard let id = publication.metadata.identifier, let item = items[id] else {
+            completion(.success(nil))
             return
         }
+        
         let parsingCallback = item.1
         guard let drm = item.0.associatedContainer.drm else {
             // No DRM, so the parsing callback can be directly called.
-            try parsingCallback(nil)
-            completion(nil, nil)
+            do {
+                try parsingCallback(nil)
+                completion(.success(nil))
+            } catch {
+                completion(.failure(error))
+            }
             return
         }
         
@@ -167,25 +160,29 @@ final class LibraryService {
             let url = URL(string: item.0.associatedContainer.rootFile.rootPath)
             else {
                 self.showInfoAlert(title: "Error", message: "DRM not supported \(drm.brand)")
-                completion(nil, nil)
+                completion(.success(nil))
                 return
         }
         
         drmService.loadPublication(at: url, drm: drm) { result in
             switch result {
             case .success(let drm):
-                /// Update container.drm to drm and parse the remaining elements.
-                try? parsingCallback(drm)
-                completion(drm, nil)
+                do {
+                    /// Update container.drm to drm and parse the remaining elements.
+                    try parsingCallback(drm)
+                    completion(.success(drm))
+                } catch {
+                    completion(.failure(error))
+                }
                 
             case .failure(let error):
                 if let error = error as? LocalizedError {
                     self.showInfoAlert(title: "Error", message: error.localizedDescription)
                 }
-                completion(nil, error)
+                completion(.failure(error ?? AppError.message("Unknown error")))
                 
             case .cancelled:
-                completion(nil, nil)
+                completion(.success(nil))
             }
         }
     }
@@ -272,7 +269,7 @@ final class LibraryService {
         /// Find the types associated to the files, or unknown.
         let locations = files.map({ fileName -> Location in
             let fileUrl = documentsUrl.appendingPathComponent(fileName)
-            let publicationType = getTypeForPublicationAt(url: fileUrl)
+            let publicationType = PublicationType.getForPublication(at: fileUrl)
             
             return Location(absolutePath: fileUrl.path, relativePath: fileName, type: publicationType)
         })
@@ -306,7 +303,7 @@ final class LibraryService {
         
         /// Find the types associated to the files, or unknown.
         let locations = sampleUrls.map({ url -> Location in
-            let publicationType = getTypeForPublicationAt(url: url)
+            let publicationType = PublicationType.getForPublication(at: url)
             
             return Location(absolutePath: url.path, relativePath: "sample", type: publicationType)
         })
@@ -349,36 +346,6 @@ final class LibraryService {
             }
             return
         }
-    }
-    
-    /// Find the type (epub/cbz for now) of the publication at url.
-    ///
-    /// - Parameter url: The location of the publication file.
-    /// - Returns: The type associated to this publication.
-    internal func getTypeForPublicationAt(url: URL) -> PublicationType {
-        let fileName = url.lastPathComponent
-        let fileType = fileName.contains(".") ? fileName.components(separatedBy: ".").last : ""
-        var publicationType = PublicationType.unknown
-        
-        // If directory.
-        if fileType!.isEmpty {
-            let mimetypePath = url.appendingPathComponent("mimetype").path
-            if let mimetype = try? String(contentsOfFile: mimetypePath, encoding: String.Encoding.utf8) {
-                switch mimetype {
-                case EpubConstant.mimetype:
-                    publicationType = PublicationType.epub
-                case EpubConstant.mimetypeOEBPS:
-                    publicationType = PublicationType.epub
-                case CbzConstant.mimetype:
-                    publicationType = PublicationType.cbz
-                default:
-                    publicationType = PublicationType.unknown
-                }
-            }
-        } else /* Determine type with file extension */ {
-            publicationType = PublicationType(rawValue: fileType!) ?? PublicationType.unknown
-        }
-        return publicationType
     }
 
 }

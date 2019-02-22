@@ -15,6 +15,11 @@ import Foundation
 import R2Shared
 import ReadiumOPDS
 
+
+protocol OPDSCatalogSelectorViewControllerFactory {
+    func make() -> OPDSCatalogSelectorViewController
+}
+
 class OPDSCatalogSelectorViewController: UITableViewController {
     var catalogData: [[String: String]]? // An array of dicts in the form ["title": title, "url": url]
     let cellReuseIdentifier = "catalogSelectorCell"
@@ -80,7 +85,7 @@ class OPDSCatalogSelectorViewController: UITableViewController {
             return
         }
       
-        let viewController: OPDSRootTableViewController = AppContainer.shared.make(feedURL: url, indexPath: indexPath)
+        let viewController: OPDSRootTableViewController = OPDSFactory.shared.make(feedURL: url, indexPath: indexPath)
         navigationController?.pushViewController(viewController, animated: true)
     }
 

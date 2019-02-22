@@ -14,10 +14,6 @@ import UIKit
 import R2Navigator
 import R2Shared
 
-protocol UserSettingsNavigationControllerFactory {
-    func make() -> UserSettingsNavigationController
-}
-
 protocol UserSettingsNavigationControllerDelegate: class {
     func getUserSettings() -> UserSettings
     func updateUserSettingsStyle()

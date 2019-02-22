@@ -20,14 +20,15 @@ import Kingfisher
 import ReadiumOPDS
 
 
+protocol LibraryViewControllerFactory {
+    func make() -> LibraryViewController
+}
+
 class LibraryViewController: UIViewController {
     
-    typealias Factories =
-        DetailsTableViewControllerFactory
-      & EpubViewControllerFactory
-      & CbzViewControllerFactory
-    
-    var container: Factories!
+    typealias Factory = DetailsTableViewControllerFactory
+
+    var factory: Factory!
     private var publications: [Publication]!
     
     weak var lastFlippedCell: PublicationCollectionViewCell?
@@ -38,6 +39,8 @@ class LibraryViewController: UIViewController {
             library.delegate = self
         }
     }
+    
+    weak var libraryDelegate: LibraryModuleDelegate?
 
     lazy var loadingIndicator = PublicationIndicator()
     
@@ -192,12 +195,12 @@ extension LibraryViewController: UIDocumentPickerDelegate {
         if controller.documentPickerMode != UIDocumentPickerMode.import {return}
         
         for url in urls {
-            library.addPublicationToLibrary(url: url, needUIUpdate: true)
+            library.addPublicationToLibrary(url: url, from: nil)
         }
     }
     
     public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
-        library.addPublicationToLibrary(url: url, needUIUpdate: true)
+        library.addPublicationToLibrary(url: url, from: nil)
     }
 }
 
@@ -312,6 +315,9 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard let libraryDelegate = libraryDelegate else {
+            return
+        }
       
         let offset = downloadSet.count
         let index = indexPath.item - offset
@@ -322,78 +328,13 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
         guard let cell = collectionView.cellForItem(at: indexPath) else {return}
         cell.contentView.addSubview(self.loadingIndicator)
         collectionView.isUserInteractionEnabled = false
-        
-        let cleanup = {
+
+        libraryDelegate.libraryDidSelectPublication(publication) {
             self.loadingIndicator.removeFromSuperview()
             collectionView.isUserInteractionEnabled = true
         }
-        
-        let successCallback = { (contentVC: UIViewController) in
-            cleanup()
-            let backItem = UIBarButtonItem()
-            backItem.title = ""
-            self.navigationItem.backBarButtonItem = backItem
-            self.navigationController?.pushViewController(contentVC, animated: true)
-        }
-        
-        let failCallback = { (message: String?) in
-            cleanup()
-            guard let failMessage = message else {return}
-            self.infoAlert(title: "Error", message: failMessage)
-        }
-        
-        loadPublication(publication: publication, success: successCallback, fail: failCallback)
     }
     
-    func loadPublication(publication: Publication,
-                         success: ((UIViewController)->Void)? = nil,
-                         fail: ((String?) -> Void)? = nil) {
-        
-        // Get publication type
-        let publicationType = PublicationType(rawString: publication.internalData["type"])
-        
-        switch publicationType {
-        case .cbz:
-            let cbzViewer: CbzViewController = container.make(publication: publication)
-            cbzViewer.hidesBottomBarWhenPushed = true
-            success?(cbzViewer)
-        case .epub:
-            guard let publicationIdentifier = publication.metadata.identifier else {
-                fail?("Invalid EPUB file")
-                return
-            }
-            // Retrieve last read document/progression in that document.
-            let userDefaults = UserDefaults.standard
-            let index = userDefaults.integer(forKey: "\(publicationIdentifier)-document")
-            let progression = userDefaults.double(forKey: "\(publicationIdentifier)-documentProgression")
-            do {
-                // Ask delegate to load that document.
-                try library.loadPublication(withId: publicationIdentifier, completion: { drm, error in
-                    if let _ = error {
-                        fail?(nil) // silent error
-                        return
-                    }
-
-                    let epubViewer: EpubViewController = self.container.make(publication: publication, at: index, progression: progression, drm: drm)
-                    epubViewer.hidesBottomBarWhenPushed = true
-                    success?(epubViewer)
-                })
-            } catch {
-                fail?(error.localizedDescription)
-            }
-        default:
-            fail?("Unsupported format")
-        }
-    }
-    
-    internal func infoAlert(title: String, message: String) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        let dismissButton = UIAlertAction(title: "Ok", style: .cancel)
-        
-        alert.addAction(dismissButton)
-        // Present alert.
-        present(alert, animated: true)
-    }
 }
 
 extension LibraryViewController: PublicationCollectionViewCellDelegate {
@@ -436,7 +377,7 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
     
     func displayInformation(forCellAt indexPath: IndexPath) {
         let publication = publications[indexPath.row]
-        let detailsViewController = container.make(publication: publication)
+        let detailsViewController = factory.make(publication: publication)
         detailsViewController.modalPresentationStyle = .popover
         navigationController?.pushViewController(detailsViewController, animated: true)
     }
@@ -480,8 +421,8 @@ extension LibraryViewController: DownloadDisplayDelegate {
         let theIndexPath = IndexPath(item: offset, section: 0)
         let newIndexPath = IndexPath(item: downloadSet.count, section: 0)
         
-        self.infoAlert(title: "Success", message: "[\(description)] added to library.")
-        
+        libraryDelegate?.presentAlert("Success", message: "[\(description)] added to library.", from: self)
+
         if newIndexPath == theIndexPath {
             self.collectionView.reloadItems(at: [newIndexPath])
             return
@@ -506,8 +447,9 @@ extension LibraryViewController: DownloadDisplayDelegate {
         
         self.collectionView.performBatchUpdates({
             collectionView.deleteItems(at: [theIndexPath])
-        }, completion: { (_) in
-            self.infoAlert(title: "Download Failed", message: description)
+        }, completion: { [weak self] _ in
+            guard let `self` = self else { return }
+            self.libraryDelegate?.presentAlert("Download failed", message: description, from: self)
         })
     }
     
@@ -536,8 +478,9 @@ extension LibraryViewController: DownloadDisplayDelegate {
         
         collectionView.performBatchUpdates({
             collectionView.insertItems(at: [newIndexPath])
-        }, completion: {(_) in
-            self.infoAlert(title: "Success", message: "Publication added to library.")
+        }, completion: { [weak self] _ in
+            guard let `self` = self else { return }
+            self.libraryDelegate?.presentAlert("Success", message: "Publication added to library", from: self)
         })
     }
 }

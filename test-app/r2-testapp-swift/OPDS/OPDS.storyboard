@@ -1,19 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14109" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14088"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14460.20"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
+        <!--Catalog Selector View Controller-->
+        <scene sceneID="im9-r8-fzs">
+            <objects>
+                <tableViewController storyboardIdentifier="OPDSCatalogSelectorViewController" id="nqu-DS-5kk" customClass="OPDSCatalogSelectorViewController" customModule="r2_testapp_swift" customModuleProvider="target" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="IKi-vk-nnq">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <prototypes>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="OPDSCatalogSelectorTableViewCell" id="b5C-R0-TKp">
+                                <rect key="frame" x="0.0" y="28" width="375" height="44"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="b5C-R0-TKp" id="bMJ-a1-t37">
+                                    <rect key="frame" x="0.0" y="0.0" width="375" height="43.5"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </tableViewCellContentView>
+                            </tableViewCell>
+                        </prototypes>
+                        <connections>
+                            <outlet property="dataSource" destination="nqu-DS-5kk" id="IIn-ZM-l0m"/>
+                            <outlet property="delegate" destination="nqu-DS-5kk" id="4iy-RY-vTN"/>
+                        </connections>
+                    </tableView>
+                    <navigationItem key="navigationItem" id="emb-8g-jov"/>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="oyk-mW-SWG" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-905" y="167"/>
+        </scene>
         <!--Root Table View Controller-->
         <scene sceneID="gA2-XH-zcH">
             <objects>
-                <tableViewController storyboardIdentifier="opdsRootViewController" id="InA-ml-EP5" customClass="OPDSRootTableViewController" customModule="r2_testapp_swift" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController storyboardIdentifier="OPDSRootTableViewController" id="InA-ml-EP5" customClass="OPDSRootTableViewController" customModule="r2_testapp_swift" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="YhC-0D-LmO">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -83,7 +112,7 @@
                                                         <rect key="frame" x="0.0" y="0.0" width="200" height="50"/>
                                                         <autoresizingMask key="autoresizingMask"/>
                                                         <subviews>
-                                                            <stackView opaque="NO" contentMode="scaleToFill" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="H7k-ps-hmx">
+                                                            <stackView opaque="NO" contentMode="scaleToFill" ambiguous="YES" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="H7k-ps-hmx">
                                                                 <rect key="frame" x="0.0" y="0.0" width="200" height="50"/>
                                                                 <subviews>
                                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Two lines Two lines Two lines" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="FGP-0C-KHm" userLabel="Navigation Title Label">
@@ -181,7 +210,7 @@
         <!--Facet View Controller-->
         <scene sceneID="wOV-Xj-Vwm">
             <objects>
-                <viewController storyboardIdentifier="opdsFacetViewController" id="nxv-y3-8gW" customClass="OPDSFacetViewController" customModule="r2_testapp_swift" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="OPDSFacetViewController" id="nxv-y3-8gW" customClass="OPDSFacetViewController" customModule="r2_testapp_swift" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="lVx-Y0-HRs">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -254,7 +283,7 @@
         <!--Publication Info View Controller-->
         <scene sceneID="uqu-Ka-dFr">
             <objects>
-                <viewController storyboardIdentifier="opdsPublicationInfoViewController" id="lur-JP-MVV" customClass="OPDSPublicationInfoViewController" customModule="r2_testapp_swift" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="OPDSPublicationInfoViewController" id="lur-JP-MVV" customClass="OPDSPublicationInfoViewController" customModule="r2_testapp_swift" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="HIB-E8-IjS">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="618"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -290,7 +319,7 @@
                                                 <blurEffect style="light"/>
                                             </visualEffectView>
                                             <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="57T-El-2sR">
-                                                <rect key="frame" x="8" y="8" width="359" height="283"/>
+                                                <rect key="frame" x="8" y="8" width="359" height="283.5"/>
                                             </imageView>
                                         </subviews>
                                         <constraints>
@@ -327,7 +356,7 @@
                                                 <color key="highlightedColor" red="0.38068733809999999" green="0.38068733809999999" blue="0.38068733809999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                             </label>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ZIq-yW-8qr">
-                                                <rect key="frame" x="133" y="251" width="110" height="40"/>
+                                                <rect key="frame" x="132.5" y="251" width="110" height="40"/>
                                                 <color key="backgroundColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" constant="110" id="EX9-Ev-0bu"/>
@@ -342,7 +371,7 @@
                                                 </connections>
                                             </button>
                                             <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="white" translatesAutoresizingMaskIntoConstraints="NO" id="bFT-zY-8al">
-                                                <rect key="frame" x="251" y="253" width="37" height="37"/>
+                                                <rect key="frame" x="250.5" y="252.5" width="37" height="37"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" constant="37" id="E0N-UB-k8X"/>
                                                     <constraint firstAttribute="height" constant="37" id="uu2-4h-hYE"/>
@@ -425,7 +454,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="XCR-vI-SnD" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="885.60000000000002" y="-201.04947526236884"/>
+            <point key="canvasLocation" x="886" y="-198"/>
         </scene>
     </scenes>
 </document>

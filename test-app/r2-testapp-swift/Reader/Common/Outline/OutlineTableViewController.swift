@@ -16,27 +16,33 @@ import UIKit
 
 
 protocol OutlineTableViewControllerFactory {
-    func make(tableOfContents: [Link], publicationType: OutlineTableViewController.PublicationType) -> OutlineTableViewController
+    func make(tableOfContents: [Link], publicationType: PublicationType) -> OutlineTableViewController
+}
+
+protocol OutlineTableViewControllerDelegate: AnyObject {
+    
+    var bookmarksDataSource: BookmarkDataSource? { get }
+    func outline(_ outlineTableViewController: OutlineTableViewController, didSelectItem item: String)
+    func outline(_ outlineTableViewController: OutlineTableViewController, didSelectBookmark bookmark: Bookmark)
+    
 }
 
 final class OutlineTableViewController: UITableViewController {
     
-    enum PublicationType {
-        case EPUB
-        case CBZ
-    }
+    weak var delegate: OutlineTableViewControllerDelegate?
     
     let kBookmarkCell = "kBookmarkCell"
     let kContentCell = "kContentCell"
     
-    var publicationType: PublicationType = .EPUB
+    var publicationType: PublicationType = .epub
     
     var tableOfContents = [Link]()
     var allElements = [Link]()
-    var callBack: ((String)->())?
-    weak var bookmarksDataSource: BookmarkDataSource?
-    var didSelectBookmark: ((Bookmark) -> Void)?
     
+    var bookmarksDataSource: BookmarkDataSource? {
+        return delegate?.bookmarksDataSource
+    }
+
     @IBOutlet weak var segments: UISegmentedControl!
     @IBAction func segmentChanged(_ sender: Any) {
         tableView.reloadData()
@@ -52,7 +58,7 @@ final class OutlineTableViewController: UITableViewController {
         tableView.delegate = self
         tableView.dataSource = self
         // Temporary - Get all the elements/subelements.
-        if (publicationType == .EPUB) {
+        if (publicationType == .epub) {
             for link in tableOfContents {
                 let childs = childsOf(parent: link)
                 
@@ -72,13 +78,13 @@ final class OutlineTableViewController: UITableViewController {
             defer {
                 tableView.deselectRow(at: indexPath, animated: true)
             }
-            if (publicationType == .EPUB) {
+            if (publicationType == .epub) {
                 guard let resourcePath = allElements[indexPath.row].href else {
                     return
                 }
-                self.callBack?(resourcePath)
+                delegate?.outline(self, didSelectItem: resourcePath)
             } else {
-                self.callBack?(String(indexPath.row))
+                delegate?.outline(self, didSelectItem: String(indexPath.row))
             }
             dismiss(animated: true, completion:nil)
             break
@@ -87,7 +93,7 @@ final class OutlineTableViewController: UITableViewController {
             let bookmarks = bookmarksDataSource?.bookmarks ?? []
             if selectedIndex < 0 || selectedIndex >= bookmarks.count {return}
             if let bookmark = bookmarksDataSource?.bookmarks[selectedIndex] {
-                self.didSelectBookmark?(bookmark)
+                delegate?.outline(self, didSelectBookmark: bookmark)
             }
             dismiss(animated: true, completion: nil)
             break
@@ -99,7 +105,7 @@ final class OutlineTableViewController: UITableViewController {
         switch segments.selectedSegmentIndex {
         case 0:
             let cell = UITableViewCell(style: .default, reuseIdentifier: kContentCell)
-            if (publicationType == .EPUB) {
+            if (publicationType == .epub) {
                 cell.textLabel?.text = allElements[indexPath.row].title
             } else {
                 cell.textLabel?.text = tableOfContents[indexPath.row].href
@@ -130,7 +136,7 @@ final class OutlineTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch segments.selectedSegmentIndex {
         case 0:
-            if (publicationType == .EPUB) {
+            if (publicationType == .epub) {
                 return allElements.count
             } else {
                 return tableOfContents.count

@@ -30,11 +30,11 @@ protocol OPDSRootTableViewControllerFactory {
 
 class OPDSRootTableViewController: UITableViewController {
     
-    typealias Factories =
+    typealias Factory =
         OPDSRootTableViewControllerFactory
       & OPDSFacetViewControllerFactory
     
-    var container: Factories!
+    var factory: Factory!
     var originalFeedURL: URL?
     
     var nextPageURL: URL?
@@ -199,7 +199,7 @@ class OPDSRootTableViewController: UITableViewController {
             return
         }
         
-        let facetViewController: OPDSFacetViewController = container.make(feed: feed)
+        let facetViewController: OPDSFacetViewController = factory.make(feed: feed)
         facetViewController.delegate = self
         facetViewController.modalPresentationStyle = UIModalPresentationStyle.popover
         present(facetViewController, animated: true, completion: nil)
@@ -652,7 +652,7 @@ extension OPDSRootTableViewController: UINavigationControllerDelegate {
             return
         }
         
-        let viewController: OPDSRootTableViewController = container.make(feedURL: url, indexPath: nil)
+        let viewController: OPDSRootTableViewController = factory.make(feedURL: url, indexPath: nil)
         navigationController?.pushViewController(viewController, animated: true)
     }
     

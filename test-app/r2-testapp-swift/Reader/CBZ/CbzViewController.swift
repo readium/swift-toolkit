@@ -15,20 +15,14 @@ import R2Navigator
 import R2Shared
 import R2Streamer
 
-protocol CbzViewControllerFactory {
-    func make(publication: Publication) -> CbzViewController
-}
 
 class CbzViewController: CbzNavigatorViewController {
     
-    typealias Factories =
-        OutlineTableViewControllerFactory
-
-    private let container: Factories
-    lazy var bookmarkDataSource = BookmarkDataSource(publicationID: self.publication.metadata.identifier ?? "")
+    weak var moduleDelegate: ReaderFormatModuleDelegate?
     
-    public init(container: Factories, publication: Publication) {
-        self.container = container
+    lazy var bookmarksDataSource: BookmarkDataSource? = BookmarkDataSource(publicationID: self.publication.metadata.identifier ?? "")
+    
+    public init(publication: Publication) {
         super.init(for: publication, initialIndex: 0)
     }
 
@@ -87,7 +81,7 @@ class CbzViewController: CbzNavigatorViewController {
       let spineDescription = publication.spine[resourceIndex].href ?? "Unknow"
         
       let bookmark = Bookmark(resourceHref:spineDescription, resourceIndex: resourceIndex, progression: progression, resourceTitle: spineDescription, publicationID: publicationID)
-      if (self.bookmarkDataSource.addBookmark(bookmark: bookmark)) {
+      if (bookmarksDataSource?.addBookmark(bookmark: bookmark) ?? false) {
         toast(self.view, "Bookmark Added", 1)
       } else {
         toast(self.view, "Could not add Bookmark", 2)
@@ -97,16 +91,18 @@ class CbzViewController: CbzNavigatorViewController {
 
 extension CbzViewController {
     @objc func presentSpineItemsTVC() {
-        let outlineTableVC: OutlineTableViewController = container.make(tableOfContents: publication.spine, publicationType: .CBZ)
-        outlineTableVC.bookmarksDataSource = self.bookmarkDataSource
-        outlineTableVC.callBack = { (spineIndex) in
-            self.load(at: Int(spineIndex)!)
-        }
-        outlineTableVC.didSelectBookmark = { (bookmark:Bookmark) -> Void in
-            self.load(at: bookmark.resourceIndex)
-        }
-        
-        let outlineNavVC = UINavigationController(rootViewController: outlineTableVC)
-        present(outlineNavVC, animated: true, completion: nil)
+        moduleDelegate?.presentOutline(publication.spine, type: .cbz, delegate: self, from: self)
     }
+}
+
+extension CbzViewController: OutlineTableViewControllerDelegate {
+    
+    func outline(_ outlineTableViewController: OutlineTableViewController, didSelectItem item: String) {
+        load(at: Int(item)!)
+    }
+    
+    func outline(_ outlineTableViewController: OutlineTableViewController, didSelectBookmark bookmark: Bookmark) {
+        load(at: bookmark.resourceIndex)
+    }
+    
 }
