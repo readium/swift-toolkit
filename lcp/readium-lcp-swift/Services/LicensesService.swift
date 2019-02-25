@@ -35,7 +35,7 @@ final class LicensesService: Loggable {
         return Deferred {
             let initialData = try container.read()
             
-            func onValidateIntegrity(of license: LicenseDocument) throws {
+            func onLicenseValidated(of license: LicenseDocument) throws {
                 // FIXME: Should we do something with the errors here?
                 
                 try? self.licenses.addOrUpdateLicense(license)
@@ -51,7 +51,7 @@ final class LicensesService: Loggable {
                 }
             }
             
-            let validation = LicenseValidation(authentication: authentication, crl: self.crl, device: self.device, network: self.network, passphrases: self.passphrases, onValidateIntegrity: onValidateIntegrity)
+            let validation = LicenseValidation(authentication: authentication, crl: self.crl, device: self.device, network: self.network, passphrases: self.passphrases, onLicenseValidated: onLicenseValidated)
 
             return validation.validate(.license(initialData))
                 .map { documents in
