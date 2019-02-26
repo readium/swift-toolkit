@@ -79,7 +79,7 @@ extension AppModule: LibraryModuleDelegate {
 
 extension AppModule: ReaderModuleDelegate {
     
-    func readerLoadDRM(for publication: Publication, completion: @escaping (Result<DRM?>) -> Void) {
+    func readerLoadDRM(for publication: Publication, completion: @escaping (CancellableResult<DRM?>) -> Void) {
         library.loadDRM(for: publication, completion: completion)
     }
     

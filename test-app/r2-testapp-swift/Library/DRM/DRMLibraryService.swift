@@ -23,6 +23,6 @@ protocol DRMLibraryService {
     func fulfill(_ file: URL, completion: @escaping (CancellableResult<(URL, URLSessionDownloadTask?)>) -> Void)
     
     /// Fills the DRM context of the given protected publication.
-    func loadPublication(at publication: URL, drm: DRM, completion: @escaping (CancellableResult<DRM>) -> Void)
+    func loadPublication(at publication: URL, drm: DRM, completion: @escaping (CancellableResult<DRM?>) -> Void)
 
 }

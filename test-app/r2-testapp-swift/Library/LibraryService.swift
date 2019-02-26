@@ -138,7 +138,7 @@ final class LibraryService {
     ///   - id: <#id description#>
     ///   - completion: <#completion description#>
     /// - Throws: <#throws value description#>
-    func loadDRM(for publication: Publication, completion: @escaping (Result<DRM?>) -> Void) {
+    func loadDRM(for publication: Publication, completion: @escaping (CancellableResult<DRM?>) -> Void) {
         guard let id = publication.metadata.identifier, let item = items[id] else {
             completion(.success(nil))
             return
@@ -174,15 +174,8 @@ final class LibraryService {
                 } catch {
                     completion(.failure(error))
                 }
-                
-            case .failure(let error):
-                if let error = error as? LocalizedError {
-                    self.showInfoAlert(title: "Error", message: error.localizedDescription)
-                }
-                completion(.failure(error ?? AppError.message("Unknown error")))
-                
-            case .cancelled:
-                completion(.success(nil))
+            default:
+                completion(result)
             }
         }
     }
