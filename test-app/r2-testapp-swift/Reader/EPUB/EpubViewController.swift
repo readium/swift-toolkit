@@ -61,53 +61,13 @@ class EpubViewController: UIViewController {
         let button = UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(addBookmarkForCurrentPosition))
         return button
     } ()
-    
-    lazy var hrefToTitle: [String: String] = {
-        
-        let linkList = self.navigator.getTableOfContents()
-        return self.fulfill(linkList: linkList)
-    } ()
-    
-    func fulfill(linkList: [Link]) -> [String: String] {
-        var result = [String: String]()
-        
-        for linkItem in linkList {
-            if let href = linkItem.href, let title = linkItem.title {
-                result[href] = title
-            }
-            let subResult = fulfill(linkList: linkItem.children)
-            result.merge(subResult) { (current, another) -> String in
-                return current
-            }
-        }
-        return result
-    }
-      
-  @objc func addBookmarkForCurrentPosition() {
-        
-        let position = navigator.currentPosition
-        
-        let resourceIndex = position.0
-        let progression = position.1
-    
-        let spine = self.navigator.getSpine()[resourceIndex]
-        let spineTitle: String = {
-            if let spineHref = spine.href {
-                return hrefToTitle[spineHref]
-            }
-            return nil
-        } () ?? "Unknow"
-        
-        guard let publicationID = navigator.publication.metadata.identifier else {return}
-        
-      let bookmark = Bookmark(resourceHref: spine.href!, resourceIndex: resourceIndex, progression: progression, resourceTitle: spineTitle, publicationID: publicationID)
-      
-      if (bookmarksDataSource?.addBookmark(bookmark: bookmark) ?? false) {
+  
+    @objc func addBookmarkForCurrentPosition() {
+      if (bookmarksDataSource?.addBookmark(bookmark: navigator.currentPosition) ?? false) {
         toast(self.view, "Bookmark Added", 1)
       } else {
         toast(self.view, "Could not add Bookmark", 2)
       }
-      
     }
 
     @available(*, unavailable)
@@ -278,7 +238,7 @@ extension EpubViewController: OutlineTableViewControllerDelegate {
     }
     
     func outline(_ outlineTableViewController: OutlineTableViewController, didSelectBookmark bookmark: Bookmark) {
-        navigator.displaySpineItem(at: bookmark.resourceIndex, progression: bookmark.progression)
+        navigator.displayReadingOrderItem(at: bookmark.resourceIndex, progression: bookmark.locations!.progression!)
     }
     
 }

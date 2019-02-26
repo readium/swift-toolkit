@@ -78,9 +78,13 @@ class CbzViewController: CbzNavigatorViewController {
       let progression = 0.0
     
       guard let publicationID = publication.metadata.identifier else {return}
-      let spineDescription = publication.spine[resourceIndex].href ?? "Unknow"
-        
-      let bookmark = Bookmark(resourceHref:spineDescription, resourceIndex: resourceIndex, progression: progression, resourceTitle: spineDescription, publicationID: publicationID)
+
+      let resourceTitle = publication.readingOrder[resourceIndex].title ?? "Unknow"
+      let resourceHref = publication.readingOrder[resourceIndex].href ?? "Unknow"
+      let resourceType = publication.readingOrder[resourceIndex].typeLink ?? "Unknow"
+
+      let bookmark = Bookmark(bookID: 0, publicationID: publicationID, resourceIndex: resourceIndex, resourceHref:resourceHref, resourceType: resourceType, resourceTitle: resourceTitle, location: Locations(progression:progression), locatorText: LocatorText())
+      
       if (bookmarksDataSource?.addBookmark(bookmark: bookmark) ?? false) {
         toast(self.view, "Bookmark Added", 1)
       } else {

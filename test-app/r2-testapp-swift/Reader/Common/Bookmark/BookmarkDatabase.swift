@@ -12,6 +12,7 @@
 
 import Foundation
 import SQLite
+import R2Shared
 
 final class BookmarkDatabase {
     // Shared instance.
@@ -32,18 +33,13 @@ final class BookmarkDatabase {
             connection = try Connection(url.absoluteString)
             bookmarks = BookmarksTable(connection)
          
-//          if connection.userVersion == 0 {
-//            // handle first migration
-//            connection.userVersion = 1
-//            // upgrade database columns
-//          }
-
           
         } catch {
             fatalError("Error initializing db.")
         }
     }
 }
+
 class BookmarksTable {
   
     let tableName = Table("BOOKMARKS")
@@ -54,29 +50,40 @@ class BookmarksTable {
     let resourceIndex = Expression<Int>("resourceIndex")
     let resourceHref = Expression<String>("resourceHref")
     let resourceTitle =  Expression<String>("resourceTitle")
-  
-    let progression = Expression<Double>("progression")
-    let timestamp = Expression<Date>("timestamp")
+    let resourceType =  Expression<String>("resourceType")
+
+    let locations = Expression<String>("locations")
+    let locatorText = Expression<String>("locatorText")
+    let creationDate = Expression<Date>("creationDate")
 
   
     init(_ connection: Connection) {
-        
+      //      connection.userVersion = 0
+        if connection.userVersion == 0 {
+          // handle first migration
+          connection.userVersion = 1
+          // upgrade database columns
+          // drop table and recreate, this will delete all prior bookmarks
+          _ = try? connection.run(tableName.drop())
+        }
+      
         _ = try? connection.run(tableName.create(temporary: false, ifNotExists: true) { t in
             t.column(bookmarkID, primaryKey: PrimaryKey.autoincrement)
-            t.column(timestamp)
+            t.column(creationDate)
             t.column(publicationID)
             t.column(resourceHref)
             t.column(resourceIndex)
-            t.column(progression)
+            t.column(resourceType)
+            t.column(locations)
+            t.column(locatorText)
             t.column(resourceTitle)
         })
-      connection.userVersion = 0
     }
     
     func insert(newBookmark: Bookmark) throws -> Int64? {
         let db = BookmarkDatabase.shared.connection
         
-        let bookmark = tableName.filter(self.publicationID == newBookmark.publicationID && self.resourceHref == newBookmark.resourceHref && self.resourceIndex == newBookmark.resourceIndex && self.progression == newBookmark.progression)
+        let bookmark = tableName.filter(self.publicationID == newBookmark.publicationID && self.resourceHref == newBookmark.resourceHref && self.resourceIndex == newBookmark.resourceIndex && self.locations == newBookmark.locations!.toString()!)
         
         // Check if empty.
         guard try db.scalar(bookmark.count) == 0 else {
@@ -84,11 +91,13 @@ class BookmarksTable {
         }
         
         let insertQuery = tableName.insert(
-            timestamp <- newBookmark.timestamp,
+            creationDate <- newBookmark.creationDate,
             publicationID <- newBookmark.publicationID,
             resourceHref <- newBookmark.resourceHref,
             resourceIndex <- newBookmark.resourceIndex,
-            progression <- newBookmark.progression,
+            resourceType <- newBookmark.resourceType,
+            locations <- newBookmark.locations!.toString()!,
+            locatorText <- newBookmark.locatorText.toString()!,
             resourceTitle <- newBookmark.resourceTitle
         )
         
@@ -96,7 +105,7 @@ class BookmarksTable {
     }
     
     func delete(bookmark: Bookmark) throws -> Bool {
-        return try delete(bookmarkID: bookmark.bookmarkID)
+        return try delete(bookmarkID: bookmark.id!)
     }
     
     func delete(bookmarkID: Int64) throws -> Bool {
@@ -134,14 +143,16 @@ class BookmarksTable {
         
         let bookmarkList = resultList.map { (bookmarkRow) -> Bookmark in
             let _bookmarkID = bookmarkRow[self.bookmarkID]
-            let _timestamp = bookmarkRow[self.timestamp]
+            let _creationDate = bookmarkRow[self.creationDate]
             let _publicationID = bookmarkRow[self.publicationID]
             let _resourceHref = bookmarkRow[self.resourceHref]
             let _resourceIndex = bookmarkRow[self.resourceIndex]
-            let _progression = bookmarkRow[self.progression]
+            let _locations = bookmarkRow[self.locations]
+            let _locatorText = bookmarkRow[self.locatorText]
             let _resourceTitle = bookmarkRow[self.resourceTitle]
-            
-            let bookmark = Bookmark(bookmarkID: _bookmarkID, timestamp: _timestamp, resourceHref: _resourceHref, resourceIndex: _resourceIndex, progression: _progression, resourceTitle: _resourceTitle, publicationID: _publicationID)
+            let _resourceType = bookmarkRow[self.resourceType]
+
+            let bookmark = Bookmark(bookID: 0, publicationID: _publicationID, resourceIndex: _resourceIndex, resourceHref: _resourceHref, resourceType: _resourceType, resourceTitle: _resourceTitle, location: Locations(fromString: _locations), locatorText: LocatorText(fromString: _locatorText), creationDate: _creationDate, id: _bookmarkID)
             return bookmark
         }
         
