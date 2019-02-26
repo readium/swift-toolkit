@@ -51,7 +51,7 @@ class LCPLibraryService: NSObject, DRMLibraryService {
         }
     }
     
-    func loadPublication(at publication: URL, drm: DRM, completion: @escaping (CancellableResult<DRM>) -> Void) {
+    func loadPublication(at publication: URL, drm: DRM, completion: @escaping (CancellableResult<DRM?>) -> Void) {
         lcpService.retrieveLicense(from: publication, authentication: self) { (license, error) in
             if case LCPError.cancelled? = error {
                 completion(.cancelled)

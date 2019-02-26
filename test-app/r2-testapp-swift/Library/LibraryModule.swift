@@ -31,8 +31,8 @@ protocol LibraryModuleAPI {
     func addPublication(at url: URL, from downloadTask: URLSessionDownloadTask?) -> Bool
     
     /// Loads the R2 DRM object for the given publication.
-    func loadDRM(for publication: Publication, completion: @escaping (Result<DRM?>) -> Void)
-    
+    func loadDRM(for publication: Publication, completion: @escaping (CancellableResult<DRM?>) -> Void)
+
 }
 
 protocol LibraryModuleDelegate: ModuleDelegate {
@@ -82,7 +82,7 @@ final class LibraryModule: LibraryModuleAPI {
         return library.addPublicationToLibrary(url: url, from: downloadTask)
     }
     
-    func loadDRM(for publication: Publication, completion: @escaping (Result<DRM?>) -> Void) {
+    func loadDRM(for publication: Publication, completion: @escaping (CancellableResult<DRM?>) -> Void) {
         library.loadDRM(for: publication, completion: completion)
     }
     

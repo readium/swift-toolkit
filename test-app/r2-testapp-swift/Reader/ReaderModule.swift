@@ -30,7 +30,7 @@ protocol ReaderModuleAPI {
 protocol ReaderModuleDelegate: ModuleDelegate {
     
     /// Called when the reader needs to load the R2 DRM object for the given publication.
-    func readerLoadDRM(for publication: Publication, completion: @escaping (Result<DRM?>) -> Void)
+    func readerLoadDRM(for publication: Publication, completion: @escaping (CancellableResult<DRM?>) -> Void)
     
 }
 
@@ -89,6 +89,9 @@ final class ReaderModule: ReaderModuleAPI {
                     delegate.presentError(error, from: navigationController)
                 }
                 
+                completion()
+                
+            case .cancelled:
                 completion()
             }
         }
