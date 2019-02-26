@@ -29,11 +29,12 @@ public class Link {
     /// Properties associated to the linked resource.
     public var properties = Properties()
     /// Indicates the length of the linked resource in seconds.
-    public var duration: TimeInterval?
+    public var duration: Float?
+  
     /// Indicates that the linked resource is a URI template.
     public var templated: Bool?
     /// Indicate the bitrate for the link resource.
-    public var bitrate: Int?
+    public var bitrate: Float?
     
 
     /// The underlaying nodes in a tree structure of `Link`s.
@@ -124,9 +125,9 @@ extension Link {
             case "width":
                 l.width = v as? Int
             case "bitrate":
-                l.bitrate = v as? Int
+                l.bitrate = v as? Float
             case "duration":
-                l.duration = v as? Double
+                l.duration = v as? Float
             case "templated":
                 l.templated = v as? Bool
             case "properties":

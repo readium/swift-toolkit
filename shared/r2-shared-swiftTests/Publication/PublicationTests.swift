@@ -120,7 +120,7 @@ class PublicationTests: XCTestCase {
         publication.metadata = Metadata()
         publication.metadata.multilangTitle = multilangString("Title")
         publication.links = [link("link1"), link("link2")]
-        publication.spine = [link("spine")]
+        publication.readingOrder = [link("spine")]
         publication.resources = [link("resource")]
         publication.tableOfContents = [link("toc")]
         publication.landmarks = [link("landmark")]

@@ -47,9 +47,14 @@ public struct Properties {
     ///
     /// - Returns: True if empty.
     public func isEmpty() -> Bool {
-        guard !contains.isEmpty || layout != nil || mediaOverlay != nil
-            || orientation != nil || overflow != nil || page != nil
-            || spread != nil || encryption != nil else
+        guard !contains.isEmpty
+          || layout != nil
+          || mediaOverlay != nil
+          || orientation != nil
+          || overflow != nil
+          || page != nil
+          || spread != nil
+          || encryption != nil else
         {
             return true
         }
