@@ -13,6 +13,6 @@ import Foundation
 
 protocol LicensesRepository {
     
-    func addOrUpdateLicense(_ license: LicenseDocument) throws
+    func addLicense(_ license: LicenseDocument) throws
 
 }

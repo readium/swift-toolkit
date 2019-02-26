@@ -61,9 +61,11 @@ final class DeviceService {
             
             return self.network.fetch(url, method: .post)
                 .map { status, data in
-                    if status == 200 {
-                        try? self.repository.registerDevice(for: license)
+                    guard status == 200 else {
+                        return nil
                     }
+                    
+                    try? self.repository.registerDevice(for: license)
                     return data
                 }
         }

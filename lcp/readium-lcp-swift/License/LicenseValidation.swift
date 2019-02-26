@@ -122,7 +122,7 @@ extension LicenseValidation {
         case fetchStatus(LicenseDocument)
         case validateStatus(LicenseDocument, Data)
         case fetchLicense(LicenseDocument, StatusDocument)
-        case checkLicenseStatus(LicenseDocument, StatusDocument)
+        case checkLicenseStatus(LicenseDocument, StatusDocument?)
         case requestPassphrase(LicenseDocument, StatusDocument?)
         case validateIntegrity(LicenseDocument, StatusDocument?, passphrase: String)
         case registerDevice(ValidatedDocuments, Link)
@@ -157,7 +157,7 @@ extension LicenseValidation {
                 self = .validateStatus(license, data)
             case let (.fetchStatus(license), .failed(_)):
                 // We ignore any error while fetching the Status Document, as it is optional
-                self = .requestPassphrase(license, nil)
+                self = .checkLicenseStatus(license, nil)
 
             // 2.2. Validate the structure of the status document
             case let (.validateStatus(license, _), .validatedStatus(status)):
@@ -169,7 +169,7 @@ extension LicenseValidation {
                 }
             case let (.validateStatus(license, _), .failed(_)):
                 // We ignore any error while validating the Status Document, as it is optional
-                self = .requestPassphrase(license, nil)
+                self = .checkLicenseStatus(license, nil)
 
             // 3. Get an updated license if needed
             case let (.fetchLicense(_, status), .retrievedLicenseData(data)):
@@ -301,7 +301,7 @@ extension LicenseValidation {
             .resolve(raise)
     }
     
-    private func checkLicenseStatus(of license: LicenseDocument, status: StatusDocument) throws {
+    private func checkLicenseStatus(of license: LicenseDocument, status: StatusDocument?) throws {
         var error: StatusError? = nil
         
         let now = Date()
@@ -309,20 +309,23 @@ extension LicenseValidation {
         let end = license.rights.end ?? now
         // We only check the Status Document's status if the License rights are not valid, to get a proper status error message.
         if start > now || now > end {
-            let date = status.updated
-            switch status.status {
-            case .ready, .active:
-                // If the status is "ready" or "active", the app MUST consider this is a server error and the correct status is "expired"
+            if let status = status {
+                let date = status.updated
+                switch status.status {
+                case .ready, .active, .expired:
+                    // If the status is "ready" or "active", the app MUST consider this is a server error and the correct status is "expired"
+                    error = .expired(end)
+                case .returned:
+                    error = .returned(date)
+                case .revoked:
+                    let devicesCount = status.events(for: .register).count
+                    error = .revoked(date, devicesCount: devicesCount)
+                case .cancelled:
+                    error = .cancelled(date)
+                }
+            } else {
+                // No Status Document? Fallback on a generic "expired" error.
                 error = .expired(end)
-            case .returned:
-                error = .returned(date)
-            case .expired:
-                error = .expired(date)
-            case .revoked:
-                let devicesCount = status.events(for: .register).count
-                error = .revoked(date, devicesCount: devicesCount)
-            case .cancelled:
-                error = .cancelled(date)
             }
         }
         

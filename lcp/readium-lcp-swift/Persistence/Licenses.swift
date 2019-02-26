@@ -21,11 +21,6 @@ class Licenses {
     let id = Expression<String>("id")
     let printsLeft = Expression<Int?>("printsLeft")
     let copiesLeft = Expression<Int?>("copiesLeft")
-    let provider = Expression<String>("provider")
-    let issued = Expression<Date>("issued")
-    let updated = Expression<Date?>("updated")
-    let end = Expression<Date?>("end")
-
     let registered = Expression<Bool>("registered")
     
     init(_ connection: Connection) {
@@ -34,11 +29,6 @@ class Licenses {
             t.column(id, unique: true)
             t.column(printsLeft)
             t.column(copiesLeft)
-            t.column(provider)
-            t.column(issued)
-            t.column(updated)
-            t.column(end)
-//            t.column(state)
         })
         
         if 0 == connection.userVersion {
@@ -46,9 +36,7 @@ class Licenses {
             connection.userVersion = 1
         }
         if 1 == connection.userVersion {
-            // DEPRECATED: We don't use those columns anymore
-//            _ = try? connection.run(licenses.addColumn(localFileURL))
-//            _ = try? connection.run(licenses.addColumn(localFileUpdated))
+            // This migration is empty because it got deprecated...
             connection.userVersion = 2
         }
     }
@@ -57,7 +45,7 @@ class Licenses {
 
 extension Licenses: LicensesRepository {
     
-    func addOrUpdateLicense(_ license: LicenseDocument) throws {
+    func addLicense(_ license: LicenseDocument) throws {
         let db = Database.shared.connection
         
         let filterLicense = licenses.filter(id == license.id)
@@ -66,20 +54,7 @@ extension Licenses: LicensesRepository {
             let query = licenses.insert(
                 id <- license.id,
                 printsLeft <- license.rights.print,
-                copiesLeft <- license.rights.copy,
-                provider <- license.provider,
-                issued <- license.issued,
-                updated <- license.updated,
-                end <- license.rights.end
-            )
-            try db.run(query)
-
-        } else {
-            let query = filterLicense.update(
-                provider <- license.provider,
-                issued <- license.issued,
-                updated <- license.updated,
-                end <- license.rights.end
+                copiesLeft <- license.rights.copy
             )
             try db.run(query)
         }

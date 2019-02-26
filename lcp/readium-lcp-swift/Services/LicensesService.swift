@@ -38,7 +38,7 @@ final class LicensesService: Loggable {
             func onLicenseValidated(of license: LicenseDocument) throws {
                 // FIXME: Should we do something with the errors here?
                 
-                try? self.licenses.addOrUpdateLicense(license)
+                try? self.licenses.addLicense(license)
                 
                 // Updates the License in the container if needed
                 if license.data != initialData {
