@@ -102,12 +102,46 @@ open class NavigatorViewController: UIViewController {
         triptychView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         view.addSubview(triptychView)
     }
-    
-    public var currentPosition:(Int, Double) {
+    public var currentPosition:Bookmark {
         get {
+          var hrefToTitle: [String: String] = {
+            let linkList = self.getTableOfContents()
+            return fulfill(linkList: linkList)
+          } ()
+          
+          func fulfill(linkList: [Link]) -> [String: String] {
+            var result = [String: String]()
+            
+            for linkItem in linkList {
+              if let href = linkItem.href, let title = linkItem.title {
+                result[href] = title
+              }
+              let subResult = fulfill(linkList: linkItem.children)
+              result.merge(subResult) { (current, another) -> String in
+                return current
+              }
+            }
+            return result
+          }
+
             let progression = triptychView.getCurrentDocumentProgression()
             let index = triptychView.getCurrentDocumentIndex()
-            return (index, progression ?? 0)
+            let readingOrder = self.getReadingOrder()[index]
+            let resourceTitle: String = {
+                if let href = readingOrder.href {
+                    return hrefToTitle[href]
+                }
+                return nil
+            } () ?? "Unknow"
+
+            return  Bookmark(bookID: 0,
+                           publicationID: publication.metadata.identifier!,
+                           resourceIndex: index,
+                           resourceHref: readingOrder.href!,
+                           resourceType: readingOrder.typeLink!,
+                           resourceTitle: resourceTitle,
+                           location: Locations(progression: progression ?? 0),
+                           locatorText: LocatorText())
         }
     }
 
