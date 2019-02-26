@@ -12,11 +12,8 @@
 import Foundation
 import R2Shared
 
-// When true, will show the requests made from the Network service in the console.
-private let DEBUG = true
 
-
-final class NetworkService {
+final class NetworkService: Loggable {
     
     enum Method: String {
         case get = "GET"
@@ -26,7 +23,7 @@ final class NetworkService {
 
     func fetch(_ url: URL, method: Method = .get) -> Deferred<(status: Int, data: Data)> {
         return Deferred { success, failure in
-            if (DEBUG) { print("#network \(method.rawValue) \(url)") }
+            self.log(.info, "\(method.rawValue) \(url)")
     
             var request = URLRequest(url: url)
             request.httpMethod = method.rawValue
@@ -46,7 +43,7 @@ final class NetworkService {
 
     func download(_ url: URL, title: String? = nil) -> Deferred<(file: URL, task: URLSessionDownloadTask?)> {
         return Deferred { success, failure in
-            if (DEBUG) { print("#network download \(url)") }
+            self.log(.info, "download \(url)")
     
             let request = URLRequest(url: url)
             DownloadSession.shared.launch(request: request, description: title) { tmpLocalURL, response, error, downloadTask in

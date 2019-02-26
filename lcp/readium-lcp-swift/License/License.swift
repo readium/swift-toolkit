@@ -10,12 +10,9 @@
 //
 
 import Foundation
-import UIKit
 import ZIPFoundation
 import R2LCPClient
 import R2Shared
-
-private let DEBUG = true
 
 
 final class License {
@@ -28,13 +25,15 @@ final class License {
     private let licenses: LicensesRepository
     private let device: DeviceService
     private let network: NetworkService
+    private weak var interactionDelegate: LCPInteractionDelegate?
 
-    init(documents: ValidatedDocuments, validation: LicenseValidation, licenses: LicensesRepository, device: DeviceService, network: NetworkService) {
+    init(documents: ValidatedDocuments, validation: LicenseValidation, licenses: LicensesRepository, device: DeviceService, network: NetworkService, interactionDelegate: LCPInteractionDelegate?) {
         self.documents = documents
         self.validation = validation
         self.licenses = licenses
         self.device = device
         self.network = network
+        self.interactionDelegate = interactionDelegate
 
         validation.observe { [weak self] documents, error in
             if let documents = documents {
@@ -80,27 +79,58 @@ extension License {
 
     /// Calls a Status Document interaction from its `rel`.
     /// The Status Document will be updated with the one returned by the LSD server, after validation.
-    fileprivate func callLSDInteraction(_ rel: StatusDocument.Rel, check: @escaping (Int) throws -> Void) -> Deferred<Void> {
-        return Deferred {
-            guard let status = self.documents.status,
-                let url = try? status.url(for: rel, with: self.device.asQueryParameters) else
+    fileprivate func callLSDInteraction(_ rel: StatusDocument.Rel, with parameters: [String: CustomStringConvertible] = [:], checkHTTPStatus: @escaping (Int) throws -> Void) -> Deferred<Void> {
+
+        func callPUT(_ url: URL, checkHTTPStatus: @escaping (Int) throws -> Void) -> Deferred<Data> {
+            return self.network.fetch(url, method: .put)
+                .map { status, data -> Data in
+                    try checkHTTPStatus(status)
+                    return data
+                }
+        }
+        
+        func callHTML(_ url: URL) throws -> Deferred<Data> {
+            guard let statusURL = try? self.license.url(for: .status),
+                let interactionDelegate = self.interactionDelegate else
             {
                 throw LCPError.licenseInteractionNotAvailable
             }
 
-            return self.network.fetch(url, method: .put)
-                .map { status, data -> Data in
-                    try check(status)
-                    return data
-                }
-                .flatMap { data in
-                    // Updates the returned Status Document, after validation
-                    self.validation.validate(.status(data))
-                        .map { _ in () }  // We don't want to forward the validated documents
-                }
+            return Deferred<Void> { success, _ in
+                interactionDelegate.presentLCPInteraction(at: url, dismissed: success)
+            }
+            .flatMap { _ in
+                // We fetch the Status Document again after the HTML interaction is done, in case the HTML interaction changed the License.
+                self.network.fetch(statusURL)
+            }
+            .map { status, data in
+                try checkHTTPStatus(status)
+                return data
+            }
         }
-    }
 
+        return Deferred<Data> {
+            let parameters = parameters.merging(self.device.asQueryParameters, uniquingKeysWith: { first, _ in first })
+            guard let status = self.documents.status,
+                let link = status.link(for: rel),
+                let url = link.url(with: parameters) else
+            {
+                throw LCPError.licenseInteractionNotAvailable
+            }
+
+            if link.type == "text/html" {
+                return try callHTML(url)
+            } else {
+                return callPUT(url, checkHTTPStatus: checkHTTPStatus)
+            }
+        }
+        .flatMap { data in
+            // Validates the received updated Status Document.
+            self.validation.validate(.status(data))
+        }
+        .map { _ in () }  // We don't want to forward the Validated Documents
+    }
+    
 }
 
 
@@ -170,7 +200,7 @@ extension License: DRMLoan {
     }
     
     func returnLicense(completion: @escaping (Error?) -> Void) {
-        func check(status: Int) throws {
+        func checkHTTPSTatus(status: Int) throws {
             switch status {
             case 200:
                 return
@@ -183,7 +213,7 @@ extension License: DRMLoan {
             }
         }
         
-        callLSDInteraction(.return, check: check)
+        callLSDInteraction(.return, checkHTTPStatus: checkHTTPSTatus)
             .resolve(completion)
     }
     
@@ -196,7 +226,7 @@ extension License: DRMLoan {
     }
     
     func renewLicense(to end: Date?, completion: @escaping (Error?) -> Void) {
-        func check(status: Int) throws {
+        func checkHTTPStatus(status: Int) throws {
             switch status {
             case 200:
                 return
@@ -209,7 +239,12 @@ extension License: DRMLoan {
             }
         }
         
-        callLSDInteraction(.renew, check: check)
+        var params: [String: CustomStringConvertible] = [:]
+        if let end = end {
+            params["end"] = end
+        }
+        
+        callLSDInteraction(.renew, with: params, checkHTTPStatus: checkHTTPStatus)
             .resolve(completion)
     }
 

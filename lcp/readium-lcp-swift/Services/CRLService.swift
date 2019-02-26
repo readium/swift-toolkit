@@ -29,7 +29,7 @@ final class CRLService {
     
     /// Retrieves the CRL either from the cache, or from EDRLab if the cache is outdated.
     func retrieve() -> Deferred<String> {
-        if let (crl, date) = readLocal(), daysSince(date) >= CRLService.expiration {
+        if let (crl, date) = readLocal(), daysSince(date) < CRLService.expiration {
             return .success(crl)
         }
         
