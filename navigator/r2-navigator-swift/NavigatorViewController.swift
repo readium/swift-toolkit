@@ -162,7 +162,7 @@ extension NavigatorViewController {
     /// Display the readingOrder item at `index`.
     ///
     /// - Parameter index: The index of the readingOrder item to display.
-    public func displaySpineItem(at index: Int) {
+    public func displayReadingOrderItem(at index: Int) {
         guard publication.readingOrder.indices.contains(index) else {
             return
         }
@@ -174,7 +174,7 @@ extension NavigatorViewController {
     /// Display the readingOrder item at `index` with scroll `progression`
     ///
     /// - Parameter index: The index of the readingOrder item to display.
-    public func displaySpineItem(at index: Int, progression: Double) {
+    public func displayReadingOrderItem(at index: Int, progression: Double) {
         guard publication.readingOrder.indices.contains(index) else {
             return
         }
@@ -194,7 +194,7 @@ extension NavigatorViewController {
     ///
     /// - Parameter href: The href of the resource to load. Can contain a tag id.
     /// - Returns: The readingOrder index for the link
-    public func displaySpineItem(with href: String) -> Int? {
+    public func displayReadingOrderItem(with href: String) -> Int? {
         // remove id if any
         let components = href.components(separatedBy: "#")
         guard let href = components.first else {
@@ -249,7 +249,7 @@ extension NavigatorViewController: ViewDelegate {
     }
     
     func handleTapOnInternalLink(with href: String) {
-        guard let index = displaySpineItem(with: href) else { return }
+        guard let index = displayReadingOrderItem(with: href) else { return }
         delegate?.didNavigateViaInternalLinkTap(to: index)
     }
     
@@ -262,13 +262,13 @@ extension NavigatorViewController: ViewDelegate {
     /// Display next document (readingOrder item).
     public func displayRightDocument() {
         let delta = triptychView.readingProgression == .rtl ? -1:1
-        self.displaySpineItem(at: self.triptychView.index + delta)
+        self.displayReadingOrderItem(at: self.triptychView.index + delta)
     }
 
     /// Display previous document (readingOrder item).
     public func displayLeftDocument() {
         let delta = triptychView.readingProgression == .rtl ? -1:1
-        self.displaySpineItem(at: self.triptychView.index - delta)
+        self.displayReadingOrderItem(at: self.triptychView.index - delta)
     }
 
     /// Returns the currently presented Publication's identifier.
