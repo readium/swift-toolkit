@@ -98,7 +98,7 @@ final public class EpubParser {
         let document = try AEXMLDocument(xml: documentData)
         let epubVersion = getEpubVersion(from: document)
         
-        // Parse OPF file (Metadata, Spine, Resource) and return the Publication.
+        // Parse OPF file (Metadata, ReadingOrder, Resource) and return the Publication.
         var publication = try OPFParser.parseOPF(from: document,
                                                  with: container.rootFile.rootFilePath,
                                                  and: epubVersion)
@@ -200,7 +200,7 @@ final public class EpubParser {
     ///   - container: The Epub container.
     ///   - publication: The Epub publication.
     static internal func parseNavigationDocument(from fetcher: Fetcher, to publication: inout Publication) {
-        // Get the link in the spine pointing to the Navigation Document.
+        // Get the link in the readingOrder pointing to the Navigation Document.
         guard let navLink = publication.link(withRel: "contents"),
             let navDocumentData = try? fetcher.data(forLink: navLink),
             navDocumentData != nil,
@@ -244,7 +244,7 @@ final public class EpubParser {
     ///   - container: The Epub container.
     ///   - publication: The Epub publication.
     static internal func parseNcxDocument(from fetcher: Fetcher, to publication: inout Publication) {
-        // Get the link in the spine pointing to the NCX document.
+        // Get the link in the readingOrder pointing to the NCX document.
         guard let ncxLink = publication.resources.first(where: { $0.typeLink == "application/x-dtbncx+xml" }),
             let ncxDocumentData = try? fetcher.data(forLink: ncxLink),
             ncxDocumentData != nil,
@@ -271,7 +271,7 @@ final public class EpubParser {
 
     /// Parse the mediaOverlays informations contained in the ressources then
     /// parse the associted SMIL files to populate the MediaOverlays objects
-    /// in each of the Spine's Links.
+    /// in each of the ReadingOrder's Links.
     ///
     /// - Parameters:
     ///   - container: The Epub Container.
@@ -304,11 +304,11 @@ final public class EpubParser {
             // get body parameters <par>a
             if let href = mediaOverlayLink.href {
                 SMILParser.parseParameters(in: body, withParent: node, base: href)
-                SMILParser.parseSequences(in: body, withParent: node, publicationSpine: &publication.spine, base: href)
+                SMILParser.parseSequences(in: body, withParent: node, publicationReadingOrder: &publication.readingOrder, base: href)
             }
             // "/??/xhtml/mo-002.xhtml#mo-1" => "/??/xhtml/mo-002.xhtml"
             guard let baseHref = node.text?.components(separatedBy: "#")[0],
-                let link = publication.spine.first(where: {
+                let link = publication.readingOrder.first(where: {
                     guard let linkRef = $0.href else {
                         return false
                     }
@@ -421,7 +421,7 @@ final public class EpubParser {
                 link.properties.encryption?.profile = drm.license?.encryptionProfile
             }
         }
-        for link in publication.spine {
+        for link in publication.readingOrder {
             if link.properties.encryption?.scheme == drm.scheme.rawValue {
                 link.properties.encryption?.profile = drm.license?.encryptionProfile
             }

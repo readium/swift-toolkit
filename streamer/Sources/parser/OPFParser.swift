@@ -61,7 +61,7 @@ final public class OPFParser {
         try parseMetadata(from: document, to: &publication)
         parseResources(from: document["package"]["manifest"], to: &publication, rootFilePath)
         coverLinkFromMeta(from: document["package"]["metadata"], to: &publication)
-        parseSpine(from: document["package"]["spine"], to: &publication)
+        parseReadingOrder(from: document["package"], to: &publication)
         return publication
     }
 
@@ -120,12 +120,15 @@ final public class OPFParser {
         let epubVersion = publication.version
         MetadataParser.parseContributors(from: metadataElement, to: &metadata, epubVersion)
         // Page progression direction.
-        if let direction = document["package"]["spine"].attributes["page-progression-direction"] {
-            metadata.direction = PageProgressionDirection(rawString: direction)
+            
+        if let readingProgression = document["package"]["readingOrder"].attributes["page-progression-direction"] {
+            metadata.readingProgression = ReadingProgression(rawString: readingProgression)
+        } else if let readingProgression = document["package"]["spine"].attributes["page-progression-direction"] {
+            metadata.readingProgression = ReadingProgression(rawString: readingProgression)
         } else {
             let langType = LangType(rawString: metadata.languages.first ?? "")
-            let rawDirection = Metadata.contentlayoutStyle(for: langType, pageDirection: nil).rawValue
-            metadata.direction = PageProgressionDirection(rawString: rawDirection)
+            let rawDirection = Metadata.contentlayoutStyle(for: langType, readingProgression: nil).rawValue
+            metadata.readingProgression = ReadingProgression(rawString: rawDirection)
         }
         
         // Rendition properties.
@@ -168,7 +171,7 @@ final public class OPFParser {
                 if let duration = publication.metadata.otherMetadata.first(where: {
                     $0.property == "#\(id)" })?.value
                 {
-                    link.duration = Double(SMILParser.smilTimeToSeconds(duration))
+                    link.duration = Float(SMILParser.smilTimeToSeconds(duration))
                 }
             }
             publication.resources.append(link)
@@ -195,23 +198,27 @@ final public class OPFParser {
         }
     }
 
-    /// Parse XML elements of the <Spine> in the package.opf file.
+    /// Parse XML elements of the <ReadingOrder> in the package.opf file.
     /// They are only composed of an `idref` referencing one of the previously
     /// parsed resource (XML: idref -> id). Since we normally don't keep
     /// the resource id, we store it in the `.title` property, temporarily.
     ///
     /// - Parameters:
-    ///   - spine: The Spine XML element.
-    ///   - publication: The `Publication` object with `.resource` and `.spine`
+    ///   - readingOrder: The ReadingOrder XML element.
+    ///   - publication: The `Publication` object with `.resource` and `.readingOrder`
     ///                  properties to fill.
-    static internal func parseSpine(from spine: AEXMLElement, to publication: inout Publication) {
-        // Get the spine children items.
-        guard let spineItems = spine["itemref"].all else {
-            log(.warning, "Spine have no children elements.")
-            return
+    static internal func parseReadingOrder(from package: AEXMLElement, to publication: inout Publication) {
+        // Get the readingOrder children items.
+      
+        var items = [AEXMLElement]()
+        if let readingOrderItems = package["readingOrder"]["itemref"].all {
+          items = readingOrderItems
+        } else if let spineItems = package["spine"]["itemref"].all {
+          items = spineItems
         }
-        // Create a `Link` for each spine item and add it to `Publication.spine`.
-        for item in spineItems {
+      
+        // Create a `Link` for each readingOrder item and add it to `Publication.readingOrder`.
+        for item in items {
             // Find the ressource `idref` is referencing to.
             guard let idref = item.attributes["idref"],
                 let index = publication.resources.index(where: { $0.title == idref }) else
@@ -225,14 +232,14 @@ final public class OPFParser {
                 publication.resources[index].properties = parse(propertiesArray: properties)
             }
             // Retrieve `idref`, referencing a resource id.
-            // Only linear items are added to the spine.
+            // Only linear items are added to the readingOrder.
             guard isLinear(item.attributes["linear"]) else {
                 continue
             }
             // Clean the title - used as a holder for the `idref`.
             publication.resources[index].title = nil
-            // Move ressource to `.spine` and remove it from `.ressources`.
-            publication.spine.append(publication.resources[index])
+            // Move ressource to `.readingOrder` and remove it from `.ressources`.
+            publication.readingOrder.append(publication.resources[index])
             publication.resources.remove(at: index)
         }
     }
@@ -258,8 +265,8 @@ final public class OPFParser {
         // The "to be built" link representing the manifest item.
         let link = Link()
 
-        // TMP used for storing the id (associated to the idref of the spine items).
-        // Will be cleared after the spine parsing.
+        // TMP used for storing the id (associated to the idref of the readingOrder items).
+        // Will be cleared after the readingOrder parsing.
         link.title = item.attributes["id"]
         link.href = normalize(base: rootFilePath, href: item.attributes["href"]!)
         link.typeLink = item.attributes["media-type"]
