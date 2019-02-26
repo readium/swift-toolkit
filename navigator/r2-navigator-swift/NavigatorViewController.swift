@@ -77,12 +77,12 @@ open class NavigatorViewController: UIViewController {
         var index = initialIndex
 
         if initialIndex == -1 {
-            index = publication.spine.count
+            index = publication.readingOrder.count
         }
         triptychView = TriptychView(frame: CGRect.zero,
-                                    viewCount: publication.spine.count,
+                                    viewCount: publication.readingOrder.count,
                                     initialIndex: index,
-                                    pageDirection:publication.metadata.direction)
+                                    readingProgression:publication.metadata.readingProgression)
         
         super.init(nibName: nil, bundle: nil)
     }
@@ -125,11 +125,11 @@ open class NavigatorViewController: UIViewController {
 
 extension NavigatorViewController {
 
-    /// Display the spine item at `index`.
+    /// Display the readingOrder item at `index`.
     ///
-    /// - Parameter index: The index of the spine item to display.
+    /// - Parameter index: The index of the readingOrder item to display.
     public func displaySpineItem(at index: Int) {
-        guard publication.spine.indices.contains(index) else {
+        guard publication.readingOrder.indices.contains(index) else {
             return
         }
         performTriptychViewTransition {
@@ -137,11 +137,11 @@ extension NavigatorViewController {
         }
     }
     
-    /// Display the spine item at `index` with scroll `progression`
+    /// Display the readingOrder item at `index` with scroll `progression`
     ///
-    /// - Parameter index: The index of the spine item to display.
+    /// - Parameter index: The index of the readingOrder item to display.
     public func displaySpineItem(at index: Int, progression: Double) {
-        guard publication.spine.indices.contains(index) else {
+        guard publication.readingOrder.indices.contains(index) else {
             return
         }
         
@@ -159,14 +159,14 @@ extension NavigatorViewController {
     /// Load resource with the corresponding href.
     ///
     /// - Parameter href: The href of the resource to load. Can contain a tag id.
-    /// - Returns: The spine index for the link
+    /// - Returns: The readingOrder index for the link
     public func displaySpineItem(with href: String) -> Int? {
         // remove id if any
         let components = href.components(separatedBy: "#")
         guard let href = components.first else {
             return nil
         }
-        guard let index = publication.spine.index(where: { $0.href?.contains(href) ?? false }) else {
+        guard let index = publication.readingOrder.index(where: { $0.href?.contains(href) ?? false }) else {
             return nil
         }
         // If any id found, set the scroll position to it, else to the
@@ -180,8 +180,8 @@ extension NavigatorViewController {
         return index
     }
 
-    public func getSpine() -> [Link] {
-        return publication.spine
+    public func getReadingOrder() -> [Link] {
+        return publication.readingOrder
     }
 
     public func getTableOfContents() -> [Link] {
@@ -225,15 +225,15 @@ extension NavigatorViewController: ViewDelegate {
         }
     }
     
-    /// Display next spine item (spine item).
+    /// Display next document (readingOrder item).
     public func displayRightDocument() {
-        let delta = triptychView.direction == .rtl ? -1:1
+        let delta = triptychView.readingProgression == .rtl ? -1:1
         self.displaySpineItem(at: self.triptychView.index + delta)
     }
 
-    /// Display previous document (spine item).
+    /// Display previous document (readingOrder item).
     public func displayLeftDocument() {
-        let delta = triptychView.direction == .rtl ? -1:1
+        let delta = triptychView.readingProgression == .rtl ? -1:1
         self.displaySpineItem(at: self.triptychView.index - delta)
     }
 
@@ -266,9 +266,9 @@ extension Delegatee: TriptychViewDelegate {
                              location: BinaryLocation) -> UIView {
         
         let webView = WebView(frame: view.bounds, initialLocation: location, pageTransition: parent.pageTransition, disableDragAndDrop: parent.disableDragAndDrop, editingActions: parent.editingActions)
-        webView.direction = view.direction
-        
-        let link = parent.publication.spine[index]
+        webView.readingProgression = view.readingProgression
+      
+        let link = parent.publication.readingOrder[index]
 
         if let url = parent.publication.uriTo(link: link) {
             let urlRequest = URLRequest(url: url)

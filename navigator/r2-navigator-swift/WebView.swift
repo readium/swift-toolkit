@@ -31,7 +31,7 @@ final class WebView: WKWebView {
     public weak var viewDelegate: ViewDelegate?
     fileprivate let initialLocation: BinaryLocation
     
-    var direction: PageProgressionDirection?
+    var readingProgression: ReadingProgression?
 
     var pageTransition: PageTransition
     var editingActions: [EditingAction]
@@ -85,7 +85,7 @@ final class WebView: WKWebView {
         }
         
         private func evaluateJavascriptForScroll(on target: WebView) {
-            let dir = target.direction?.rawValue ?? PageProgressionDirection.ltr.rawValue
+            let dir = target.readingProgression?.rawValue ?? ReadingProgression.ltr.rawValue
             
             switch self {
             case .left:
@@ -250,7 +250,7 @@ extension WebView {
     internal func scrollAt(position: Double) {
         guard position >= 0 && position <= 1 else { return }
         
-        let dir = self.direction?.rawValue ?? PageProgressionDirection.ltr.rawValue
+        let dir = self.readingProgression?.rawValue ?? ReadingProgression.ltr.rawValue
 
         self.evaluateJavaScript("scrollToPosition(\'\(position)\', \'\(dir)\')",
             completionHandler: nil)

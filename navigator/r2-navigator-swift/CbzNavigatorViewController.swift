@@ -19,9 +19,9 @@ import R2Shared
 ///     - pageNumber - The number of the page currently rendered.
 ///     - totalPageNumber - The number of pages in the publication.
 /// - Methods
-///     - loadNext() - render the next spine item, if any.
-///     - loadPrevious() - render the previous spine item, if any.
-///     - load(at index: Int) - render the spine item at index, if any.
+///     - loadNext() - render the next resource item, if any.
+///     - loadPrevious() - render the previous resource item, if any.
+///     - load(at index: Int) - render the resource item at index, if any.
 ///
 open class CbzNavigatorViewController: UIViewController {
     public var publication: Publication
@@ -38,7 +38,7 @@ open class CbzNavigatorViewController: UIViewController {
     public init(for publication: Publication, initialIndex: Int = 0) {
         self.publication = publication
         pageNumber = initialIndex
-        totalPageNumber = publication.spine.count
+        totalPageNumber = publication.readingOrder.count
         super.init(nibName: nil, bundle: nil)
         automaticallyAdjustsScrollViewInsets = false
     }
@@ -67,25 +67,25 @@ open class CbzNavigatorViewController: UIViewController {
         imageView.contentMode = .scaleAspectFit
         scrollView.addSubview(self.imageView)
         // Load content.
-        load(self.currentSpineItem())
+        load(self.currentReadingOrderItem())
     }
 }
 
 extension CbzNavigatorViewController {
 
     @objc public func loadNext() {
-        load(nextSpineItem())
+        load(nextReadingOrderItem())
     }
 
     @objc public func loadPrevious() {
-        load(previousSpineItem())
+        load(previousReadingOrderItem())
     }
 
     /// Load resource at given index.
     ///
     /// - Parameter index: The index of the resource to load.
     public func load(at index: Int) {
-        load(spineItem(at: index))
+        load(readingOrderItem(at: index))
     }
 
     /// Load `link` resource into the ImageView.
@@ -120,55 +120,55 @@ extension CbzNavigatorViewController {
             }.resume()
     }
 
-    /// Return the current spine item.
+    /// Return the current readingOrder item.
     ///
-    /// - Returns: The current spine item.
-    fileprivate func currentSpineItem() -> Link? {
-        return publication.spine[pageNumber]
+    /// - Returns: The current readingOrder item.
+    fileprivate func currentReadingOrderItem() -> Link? {
+        return publication.readingOrder[pageNumber]
     }
 
-    /// Return the next spine ite, if any, and move the index.
+    /// Return the next readingOrder item, if any, and move the index.
     ///
-    /// - Returns: The next spine item regarding current index.
-    fileprivate func nextSpineItem(updateIndex: Bool = true) -> Link? {
+    /// - Returns: The next readingOrder item regarding current index.
+    fileprivate func nextReadingOrderItem(updateIndex: Bool = true) -> Link? {
         let newIndex = pageNumber.advanced(by: 1)
 
-        guard publication.spine.indices.contains(newIndex) else {
+        guard publication.readingOrder.indices.contains(newIndex) else {
             return nil
         }
         if updateIndex {
             pageNumber = newIndex
         }
-        return publication.spine[newIndex]
+        return publication.readingOrder[newIndex]
     }
 
-    /// Return the previous spine item, if any, and move the index.
+    /// Return the previous readingOrder item, if any, and move the index.
     ///
-    /// - Returns: The previous spine item regarding current index.
-    fileprivate func previousSpineItem(updateIndex: Bool = true) -> Link? {
+    /// - Returns: The previous readingOrder item regarding current index.
+    fileprivate func previousReadingOrderItem(updateIndex: Bool = true) -> Link? {
         let newIndex = pageNumber.advanced(by: -1)
 
-        guard publication.spine.indices.contains(newIndex) else {
+        guard publication.readingOrder.indices.contains(newIndex) else {
             return nil
         }
         if updateIndex {
             pageNumber = newIndex
         }
-        return publication.spine[newIndex]
+        return publication.readingOrder[newIndex]
     }
 
-    /// Safely return the spine at index if any.
+    /// Safely return the readingOrder at index if any.
     ///
-    /// - Parameter index: The index of the desired spine item.
-    /// - Returns: The spine item if any.
-    fileprivate func spineItem(at index: Int, updateIndex: Bool = true) -> Link? {
-        guard publication.spine.indices.contains(index) else {
+    /// - Parameter index: The index of the desired readingOrder item.
+    /// - Returns: The readingOrder item if any.
+    fileprivate func readingOrderItem(at index: Int, updateIndex: Bool = true) -> Link? {
+        guard publication.readingOrder.indices.contains(index) else {
             return nil
         }
         if updateIndex {
             pageNumber = index
         }
-        return publication.spine[index]
+        return publication.readingOrder[index]
     }
 }
 
