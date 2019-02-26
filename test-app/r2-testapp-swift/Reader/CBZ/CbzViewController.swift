@@ -47,13 +47,13 @@ class CbzViewController: CbzNavigatorViewController {
         swipeRight.direction = UISwipeGestureRecognizerDirection.right
         view.addGestureRecognizer(swipeRight)
         view.addGestureRecognizer(swipeLeft)
-        // SpineItemView button.
-        let spineItemButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self,
-                                              action: #selector(presentSpineItemsTVC))
+        // tocItemView button.
+        let tocButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self,
+                                              action: #selector(presentTocTVC))
         
         let bookmarkButton = UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(addBookmarkForCurrentPosition))
-        /// Add spineItemViewController button to navBar.
-        navigationItem.setRightBarButtonItems([spineItemButton, bookmarkButton], animated: true)
+        /// Add tocViewController button to navBar.
+        navigationItem.setRightBarButtonItems([tocButton, bookmarkButton], animated: true)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -90,8 +90,8 @@ class CbzViewController: CbzNavigatorViewController {
 }
 
 extension CbzViewController {
-    @objc func presentSpineItemsTVC() {
-        moduleDelegate?.presentOutline(publication.spine, type: .cbz, delegate: self, from: self)
+    @objc func presentTocTVC() {
+        moduleDelegate?.presentOutline(publication.readingOrder, type: .cbz, delegate: self, from: self)
     }
 }
 

@@ -154,10 +154,10 @@ class EpubViewController: UIViewController {
         navigationController?.setNavigationBarHidden(true, animated: false)
         var barButtons = [UIBarButtonItem]()
         
-        // SpineItemView button.
-        let spineItemButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self,
+        // TocItemView button.
+        let tocItemButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self,
                                               action: #selector(presentTableOfContents))
-        barButtons.append(spineItemButton)
+        barButtons.append(tocItemButton)
       
         // User configuration button
         let userSettingsButton = UIBarButtonItem(image: #imageLiteral(resourceName: "settingsIcon"), style: .plain, target: self,
@@ -173,7 +173,7 @@ class EpubViewController: UIViewController {
         barButtons.append(self.bookmarkButton)
         
         popoverUserconfigurationAnchor = userSettingsButton
-        /// Add spineItemViewController button to navBar.
+        /// Add tocItemViewController button to navBar.
         navigationItem.setRightBarButtonItems(barButtons,
                                               animated: true)
         
@@ -274,7 +274,7 @@ extension EpubViewController {
 extension EpubViewController: OutlineTableViewControllerDelegate {
     
     func outline(_ outlineTableViewController: OutlineTableViewController, didSelectItem item: String) {
-        _ = navigator.displaySpineItem(with: item)
+        _ = navigator.displayReadingOrderItem(with: item)
     }
     
     func outline(_ outlineTableViewController: OutlineTableViewController, didSelectBookmark bookmark: Bookmark) {
@@ -307,10 +307,10 @@ extension EpubViewController: NavigatorDelegate {
         }
         let userDefaults = UserDefaults.standard
         // Save current publication's document's. 
-        // (<=> the spine item)
+        // (<=> the readingOrder item)
         userDefaults.set(documentIndex, forKey: "\(publicationIdentifier)-document")
         // Save current publication's document's progression. 
-        // (<=> the position in the spine item)
+        // (<=> the position in the readingOrder item)
         userDefaults.set(progression, forKey: "\(publicationIdentifier)-documentProgression")
     }
 }
