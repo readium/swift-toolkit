@@ -36,10 +36,11 @@ class LCPLibraryService: NSObject, DRMLibraryService {
         return file.pathExtension.lowercased() == "lcpl"
     }
     
-    func fulfill(_ file: URL, completion: @escaping (CancellableResult<(URL, URLSessionDownloadTask?)>) -> Void) {
+    func fulfill(_ file: URL, completion: @escaping (CancellableResult<DRMFulfilledPublication>) -> Void) {
         lcpService.importPublication(from: file, authentication: self) { result, error in
             if let result = result {
-                completion(.success((result.localUrl, result.downloadTask)))
+                let publication = DRMFulfilledPublication(localURL: result.localURL, downloadTask: result.downloadTask, suggestedFilename: result.suggestedFilename)
+                completion(.success(publication))
             } else if let error = error {
                 completion(.failure(error))
             } else {

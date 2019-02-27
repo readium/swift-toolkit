@@ -31,7 +31,6 @@ extension LibraryFactory: LibraryViewControllerFactory {
         let library = storyboard.instantiateViewController(withIdentifier: "LibraryViewController") as! LibraryViewController
         library.factory = self
         library.library = libraryService
-        // FIXME: libraryDelegate
         return library
     }
 }
