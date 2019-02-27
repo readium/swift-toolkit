@@ -18,7 +18,7 @@ Follow the project on [ZenHub](https://app.zenhub.com/workspace/o/readium/r2-tes
 - [x] Night & sepia modes
 - [x] Pagination and scrolling
 - [x] Table of contents
-- [ ] OPDS 1.x and 2.0 support
+- [x] OPDS 1.x and 2.0 support
 - [ ] FXL support
 - [ ] RTL support
 
