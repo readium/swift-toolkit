@@ -45,10 +45,6 @@ public protocol DRMLicense {
     /// Depichers the given encrypted data to be displayed in the reader.
     func decipher(_ data: Data) throws -> Data?
 
-    /// Interface to manage the user rights for this license.
-    /// If nil, then every rights are allowed in the reader.
-    var rights: DRMRights? { get }
-    
     /// Interface to manage the loan, if this publication is borrowed.
     var loan: DRMLoan? { get }
     
@@ -59,11 +55,7 @@ public extension DRMLicense {
     public var encryptionProfile: String? {
         return nil
     }
-    
-    public var rights: DRMRights? {
-        return nil
-    }
-    
+
     public var loan: DRMLoan? {
         return nil
     }

@@ -25,7 +25,6 @@
 		CA61621921FB71B300D2CFE3 /* RenditionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA61621821FB71B300D2CFE3 /* RenditionTests.swift */; };
 		CA9A40D1221B0AA200531EA1 /* Either.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D0221B0AA200531EA1 /* Either.swift */; };
 		CABEB3DC2215698600090B6C /* Deferred.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABEB3DB2215698600090B6C /* Deferred.swift */; };
-		CAC34F09221C61BD002C452E /* DRMRights.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC34F05221C61BD002C452E /* DRMRights.swift */; };
 		CAC34F0A221C61BD002C452E /* DRM.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC34F06221C61BD002C452E /* DRM.swift */; };
 		CAC34F0B221C61BD002C452E /* DRMLoan.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC34F07221C61BD002C452E /* DRMLoan.swift */; };
 		CAC34F0C221C61BD002C452E /* Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC34F08221C61BD002C452E /* Deprecated.swift */; };
@@ -116,7 +115,6 @@
 		CA61621821FB71B300D2CFE3 /* RenditionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenditionTests.swift; sourceTree = "<group>"; };
 		CA9A40D0221B0AA200531EA1 /* Either.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Either.swift; sourceTree = "<group>"; };
 		CABEB3DB2215698600090B6C /* Deferred.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Deferred.swift; sourceTree = "<group>"; };
-		CAC34F05221C61BD002C452E /* DRMRights.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DRMRights.swift; sourceTree = "<group>"; };
 		CAC34F06221C61BD002C452E /* DRM.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DRM.swift; sourceTree = "<group>"; };
 		CAC34F07221C61BD002C452E /* DRMLoan.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DRMLoan.swift; sourceTree = "<group>"; };
 		CAC34F08221C61BD002C452E /* Deprecated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Deprecated.swift; sourceTree = "<group>"; };
@@ -244,7 +242,6 @@
 			isa = PBXGroup;
 			children = (
 				CAC34F06221C61BD002C452E /* DRM.swift */,
-				CAC34F05221C61BD002C452E /* DRMRights.swift */,
 				CAC34F07221C61BD002C452E /* DRMLoan.swift */,
 				CAC34F08221C61BD002C452E /* Deprecated.swift */,
 			);
@@ -523,7 +520,6 @@
 				F3E7D4111F4EC69100DF166D /* MediaOverlayNode.swift in Sources */,
 				CA9A40D1221B0AA200531EA1 /* Either.swift in Sources */,
 				F3E7D4151F4EC69100DF166D /* MultilangString.swift in Sources */,
-				CAC34F09221C61BD002C452E /* DRMRights.swift in Sources */,
 				F3E7D4171F4EC69100DF166D /* Publication.swift in Sources */,
 				CAC34F0C221C61BD002C452E /* Deprecated.swift in Sources */,
 				F3E7D40F1F4EC69100DF166D /* Encryption.swift in Sources */,
