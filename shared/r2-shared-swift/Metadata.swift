@@ -30,14 +30,14 @@ public class Metadata {
         }
     }
     
-    public var direction: PageProgressionDirection {
+    public var readingProgression: ReadingProgression {
         didSet {
-            if direction == .rtl {
+            if readingProgression == .rtl {
                 for lang in languages {
                     let langType = LangType(rawString: lang)
                     if langType != .other {
                         self.primaryLanguage = lang
-                        let layout = Metadata.contentlayoutStyle(for: langType, pageDirection: direction)
+                        let layout = Metadata.contentlayoutStyle(for: langType, readingProgression: readingProgression)
                         self.primaryContentLayout = layout; break
                     }
                 }
@@ -45,20 +45,20 @@ public class Metadata {
             }
             self.primaryLanguage = languages.first // Unknow
             let langType = LangType(rawString: primaryLanguage ?? "")
-            let layout = Metadata.contentlayoutStyle(for: langType, pageDirection: direction)
+            let layout = Metadata.contentlayoutStyle(for: langType, readingProgression: readingProgression)
             self.primaryContentLayout = layout
         }
     }
     
-    public static func contentlayoutStyle(for lang:LangType, pageDirection:PageProgressionDirection?) -> ContentLayoutStyle {
+    public static func contentlayoutStyle(for lang:LangType, readingProgression:ReadingProgression?) -> ContentLayoutStyle {
         
         switch(lang) {
         case .ar, .fa, .he:
             return .rtl
         case .zh, .ja, .ko:
-            return pageDirection == .rtl ? .cjkVertical:.cjkHorizontal
+            return readingProgression == .rtl ? .cjkVertical:.cjkHorizontal
         default:
-            return pageDirection == .rtl ? .rtl:.ltr
+            return readingProgression == .rtl ? .rtl:.ltr
         }
     }
     
@@ -67,9 +67,10 @@ public class Metadata {
  
     public var languages = [String]()
     public var identifier: String?
-    // Contributors.
     public var publishers = [Contributor]()
     public var imprints = [Contributor]()
+  // Contributors.
+  // author, translator, editor, artist, illustrator, letterer, penciler, colorist, inker and narrator.
     public var contributors = [Contributor]()
     public var authors = [Contributor]()
     public var translators = [Contributor]()
@@ -131,10 +132,11 @@ public class Metadata {
     // TODO: support parsing from OPF.
     public var belongsTo: BelongsTo?
     
-    public var duration: Int?
+    public var duration: Float?
+    public var numberOfPages:Int?
 
     public init() {
-        direction = .Default
+        readingProgression = .Default
     }
     
     /// Get the title for the given `lang`, if it exists in the dictionnary.
@@ -243,13 +245,13 @@ extension Metadata: Encodable {
     
 }
 
-public enum PageProgressionDirection: String {
+public enum ReadingProgression: String {
     case Default = "default"
     case ltr
     case rtl
     
     public init(rawString: String) {
-        self = PageProgressionDirection(rawValue: rawString) ?? .ltr
+        self = ReadingProgression(rawValue: rawString) ?? .ltr
     }
 }
 
@@ -342,7 +344,7 @@ extension Metadata {
                             switch sk {
                             case "name":
                                 subject.name = sv as? String
-                            case "sort_as":
+                            case "sortAs", "sort_as":
                                 subject.sortAs = sv as? String
                             case "scheme":
                                 subject.scheme = sv as? String
@@ -363,7 +365,7 @@ extension Metadata {
                         m.subjects.append(subject)
                     }
                 }
-            case "belongs_to":
+            case "belongsTo", "belongs_to":
                 if let belongsDict = v as? [String: Any] {
                     let belongs = BelongsTo()
                     for (bk, bv) in belongsDict {
@@ -401,7 +403,9 @@ extension Metadata {
                     m.belongsTo = belongs
                 }
             case "duration":
-                m.duration = v as? Int
+                m.duration = v as? Float
+            case "numberOfPages":
+                m.numberOfPages = v as? Int
             case "language":
                 switch v {
                 case let s as String:
