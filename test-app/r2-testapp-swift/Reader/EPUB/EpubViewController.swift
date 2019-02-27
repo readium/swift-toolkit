@@ -61,53 +61,13 @@ class EpubViewController: UIViewController {
         let button = UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(addBookmarkForCurrentPosition))
         return button
     } ()
-    
-    lazy var hrefToTitle: [String: String] = {
-        
-        let linkList = self.navigator.getTableOfContents()
-        return self.fulfill(linkList: linkList)
-    } ()
-    
-    func fulfill(linkList: [Link]) -> [String: String] {
-        var result = [String: String]()
-        
-        for linkItem in linkList {
-            if let href = linkItem.href, let title = linkItem.title {
-                result[href] = title
-            }
-            let subResult = fulfill(linkList: linkItem.children)
-            result.merge(subResult) { (current, another) -> String in
-                return current
-            }
-        }
-        return result
-    }
-      
-  @objc func addBookmarkForCurrentPosition() {
-        
-        let position = navigator.currentPosition
-        
-        let resourceIndex = position.0
-        let progression = position.1
-    
-        let spine = self.navigator.getSpine()[resourceIndex]
-        let spineTitle: String = {
-            if let spineHref = spine.href {
-                return hrefToTitle[spineHref]
-            }
-            return nil
-        } () ?? "Unknow"
-        
-        guard let publicationID = navigator.publication.metadata.identifier else {return}
-        
-      let bookmark = Bookmark(resourceHref: spine.href!, resourceIndex: resourceIndex, progression: progression, resourceTitle: spineTitle, publicationID: publicationID)
-      
-      if (bookmarksDataSource?.addBookmark(bookmark: bookmark) ?? false) {
+  
+    @objc func addBookmarkForCurrentPosition() {
+      if (bookmarksDataSource?.addBookmark(bookmark: navigator.currentPosition) ?? false) {
         toast(self.view, "Bookmark Added", 1)
       } else {
         toast(self.view, "Could not add Bookmark", 2)
       }
-      
     }
 
     @available(*, unavailable)
@@ -154,10 +114,10 @@ class EpubViewController: UIViewController {
         navigationController?.setNavigationBarHidden(true, animated: false)
         var barButtons = [UIBarButtonItem]()
         
-        // SpineItemView button.
-        let spineItemButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self,
+        // TocItemView button.
+        let tocItemButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self,
                                               action: #selector(presentTableOfContents))
-        barButtons.append(spineItemButton)
+        barButtons.append(tocItemButton)
       
         // User configuration button
         let userSettingsButton = UIBarButtonItem(image: #imageLiteral(resourceName: "settingsIcon"), style: .plain, target: self,
@@ -173,7 +133,7 @@ class EpubViewController: UIViewController {
         barButtons.append(self.bookmarkButton)
         
         popoverUserconfigurationAnchor = userSettingsButton
-        /// Add spineItemViewController button to navBar.
+        /// Add tocItemViewController button to navBar.
         navigationItem.setRightBarButtonItems(barButtons,
                                               animated: true)
         
@@ -274,11 +234,11 @@ extension EpubViewController {
 extension EpubViewController: OutlineTableViewControllerDelegate {
     
     func outline(_ outlineTableViewController: OutlineTableViewController, didSelectItem item: String) {
-        _ = navigator.displaySpineItem(with: item)
+        _ = navigator.displayReadingOrderItem(with: item)
     }
     
     func outline(_ outlineTableViewController: OutlineTableViewController, didSelectBookmark bookmark: Bookmark) {
-        navigator.displaySpineItem(at: bookmark.resourceIndex, progression: bookmark.progression)
+        navigator.displayReadingOrderItem(at: bookmark.resourceIndex, progression: bookmark.locations!.progression!)
     }
     
 }
@@ -307,10 +267,10 @@ extension EpubViewController: NavigatorDelegate {
         }
         let userDefaults = UserDefaults.standard
         // Save current publication's document's. 
-        // (<=> the spine item)
+        // (<=> the readingOrder item)
         userDefaults.set(documentIndex, forKey: "\(publicationIdentifier)-document")
         // Save current publication's document's progression. 
-        // (<=> the position in the spine item)
+        // (<=> the position in the readingOrder item)
         userDefaults.set(progression, forKey: "\(publicationIdentifier)-documentProgression")
     }
 }

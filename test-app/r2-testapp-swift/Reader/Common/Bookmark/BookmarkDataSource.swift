@@ -11,33 +11,7 @@
 //
 
 import Foundation
-
-class Bookmark {
-    var bookmarkID: Int64
-    let publicationID: String
-
-    let resourceHref: String
-    let resourceIndex: Int
-    let resourceTitle: String
-
-    let progression: Double
-    let timestamp: Date
-
-    init(bookmarkID:Int64 = 0, timestamp:Date = Date(),
-         resourceHref:String, resourceIndex:Int, progression: Double, resourceTitle: String, publicationID: String) {
-        
-        self.bookmarkID = bookmarkID
-        self.publicationID = publicationID
-      
-        self.resourceHref = resourceHref
-        self.resourceIndex = resourceIndex
-        self.resourceTitle = resourceTitle
-      
-        self.progression = progression
-        self.timestamp = timestamp
-      
-    }
-}
+import R2Shared
 
 class BookmarkDataSource {
     
@@ -59,7 +33,7 @@ class BookmarkDataSource {
             self.bookmarks = list ?? [Bookmark]()
             self.bookmarks.sort { (b1, b2) -> Bool in
                 if b1.resourceIndex == b2.resourceIndex {
-                    return b1.progression < b2.progression
+                    return b1.locations!.progression! < b2.locations!.progression!
                 }
                 return b1.resourceIndex < b2.resourceIndex
             }
@@ -80,7 +54,7 @@ class BookmarkDataSource {
     func addBookmark(bookmark: Bookmark) -> Bool {
         if let addedBookmarkID = try? BookmarkDatabase.shared.bookmarks.insert(newBookmark: bookmark) {
           if let bookmarkID = addedBookmarkID {
-            bookmark.bookmarkID = bookmarkID
+            bookmark.id = bookmarkID
             self.reloadBookmarks()
             return true
           }

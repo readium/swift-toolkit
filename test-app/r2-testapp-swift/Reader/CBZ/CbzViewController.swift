@@ -47,13 +47,13 @@ class CbzViewController: CbzNavigatorViewController {
         swipeRight.direction = UISwipeGestureRecognizerDirection.right
         view.addGestureRecognizer(swipeRight)
         view.addGestureRecognizer(swipeLeft)
-        // SpineItemView button.
-        let spineItemButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self,
-                                              action: #selector(presentSpineItemsTVC))
+        // tocItemView button.
+        let tocButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self,
+                                              action: #selector(presentTocTVC))
         
         let bookmarkButton = UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(addBookmarkForCurrentPosition))
-        /// Add spineItemViewController button to navBar.
-        navigationItem.setRightBarButtonItems([spineItemButton, bookmarkButton], animated: true)
+        /// Add tocViewController button to navBar.
+        navigationItem.setRightBarButtonItems([tocButton, bookmarkButton], animated: true)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -78,9 +78,13 @@ class CbzViewController: CbzNavigatorViewController {
       let progression = 0.0
     
       guard let publicationID = publication.metadata.identifier else {return}
-      let spineDescription = publication.spine[resourceIndex].href ?? "Unknow"
-        
-      let bookmark = Bookmark(resourceHref:spineDescription, resourceIndex: resourceIndex, progression: progression, resourceTitle: spineDescription, publicationID: publicationID)
+
+      let resourceTitle = publication.readingOrder[resourceIndex].title ?? "Unknow"
+      let resourceHref = publication.readingOrder[resourceIndex].href ?? "Unknow"
+      let resourceType = publication.readingOrder[resourceIndex].typeLink ?? "Unknow"
+
+      let bookmark = Bookmark(bookID: 0, publicationID: publicationID, resourceIndex: resourceIndex, resourceHref:resourceHref, resourceType: resourceType, resourceTitle: resourceTitle, location: Locations(progression:progression), locatorText: LocatorText())
+      
       if (bookmarksDataSource?.addBookmark(bookmark: bookmark) ?? false) {
         toast(self.view, "Bookmark Added", 1)
       } else {
@@ -90,8 +94,8 @@ class CbzViewController: CbzNavigatorViewController {
 }
 
 extension CbzViewController {
-    @objc func presentSpineItemsTVC() {
-        moduleDelegate?.presentOutline(publication.spine, type: .cbz, delegate: self, from: self)
+    @objc func presentTocTVC() {
+        moduleDelegate?.presentOutline(publication.readingOrder, type: .cbz, delegate: self, from: self)
     }
 }
 
