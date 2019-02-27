@@ -118,7 +118,7 @@ final class LibraryService {
                 case .success((let publicationUrl, let downloadTask)):
                     addPublication(url: publicationUrl, downloadTask: downloadTask)
                 case .failure(let error):
-                    self.showInfoAlert(title: "Error", message: error?.localizedDescription ?? "Error fulfilling DRM \(drmService.brand.rawValue)")
+                    self.showInfoAlert(title: "Error", message: error.localizedDescription)
                 case .cancelled:
                     break
                 }
