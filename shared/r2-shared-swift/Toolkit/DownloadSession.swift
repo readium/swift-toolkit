@@ -15,9 +15,24 @@ public protocol DownloadDisplayDelegate {
     func didUpdateDownloadPercentage(task:URLSessionDownloadTask, percentage: Float);
 }
 
-public typealias completionHandlerType = ((URL?, URLResponse?, Error?, URLSessionDownloadTask) -> Bool?)
+
+/// Represents the percent-based progress of the download.
+public enum DownloadProgress {
+    /// Undetermined progress, a spinner should be shown to the user.
+    case infinite
+    /// A finite progress from 0.0 to 1.0, a progress bar should be shown to the user.
+    case finite(Float)
+}
+
 
 public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDelegate {
+
+    public typealias CompletionHandler = (URL?, URLResponse?, Error?, URLSessionDownloadTask) -> Bool?
+    
+    struct Download {
+        let progress = MutableObservable<DownloadProgress>(.infinite)
+        let completion: CompletionHandler
+    }
     
     enum RequestError: LocalizedError {
         case notFound
@@ -39,21 +54,26 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
     } ()
     
     public var displayDelegate:DownloadDisplayDelegate?
-    private var taskMap = [URLSessionTask:completionHandlerType]()
+    private var taskMap = [URLSessionTask: Download]()
     
-    public func launch(request: URLRequest, description:String?, completionHandler:completionHandlerType?) {
+    /// Returns: an observable download progress value, from 0.0 to 1.0
+    @discardableResult
+    public func launch(request: URLRequest, description: String?, completionHandler: CompletionHandler?) -> Observable<DownloadProgress> {
         let task = self.session.downloadTask(with: request); task.resume()
-        
+        let download = Download(completion: completionHandler ?? { _, _, _, _ in return true })
+        self.taskMap[task] = download
+
         DispatchQueue.main.async {
-            
-            self.taskMap[task] = completionHandler
             let localizedDescription = description ?? "..."
             self.displayDelegate?.didStartDownload(task: task, description: localizedDescription)
         }
+        
+        return download.progress
     }
     
     public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
         let done: Bool?
+        let download = taskMap[downloadTask]
         
         do {
             guard let response = downloadTask.response as? HTTPURLResponse, response.statusCode == 200 else {
@@ -65,9 +85,9 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
                 .appendingPathExtension(location.pathExtension)
             
             try FileManager.default.moveItem(at: location, to: tempURL)
-            done = taskMap[downloadTask]?(tempURL, nil, nil, downloadTask)
+            done = download?.completion(tempURL, nil, nil, downloadTask)
         } catch {
-            done = taskMap[downloadTask]?(nil, nil, error, downloadTask)
+            done = download?.completion(nil, nil, error, downloadTask)
         }
         
         DispatchQueue.main.async {
@@ -81,30 +101,29 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
         }
     }
     
+    private func didUpdateProgress(_ progress: Float, of task: URLSessionDownloadTask) {
+        DispatchQueue.main.async {
+            self.taskMap[task]?.progress.value = .finite(progress)
+            self.displayDelegate?.didUpdateDownloadPercentage(task: task, percentage: progress)
+        }
+    }
+    
     public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
         let progress = Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)
-        
-        DispatchQueue.main.async {
-            self.displayDelegate?.didUpdateDownloadPercentage(task: downloadTask, percentage: progress)
-        }
+        didUpdateProgress(progress, of: downloadTask)
     }
     
     public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didResumeAtOffset fileOffset: Int64, expectedTotalBytes: Int64) {
         let progress = Float(fileOffset) / Float(expectedTotalBytes)
-        
-        DispatchQueue.main.async {
-            self.displayDelegate?.didUpdateDownloadPercentage(task: downloadTask, percentage: progress)
-        }
+        didUpdateProgress(progress, of: downloadTask)
     }
     
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        
         DispatchQueue.main.async {
-            
             guard let downloadTask = task as? URLSessionDownloadTask else {return}
             
             guard let theError = error else {return}
-            _ = self.taskMap[task]?(nil, nil, error, downloadTask)
+            _ = self.taskMap[task]?.completion(nil, nil, error, downloadTask)
             self.taskMap.removeValue(forKey: task)
             
             self.displayDelegate?.didFailWithError(task: downloadTask, error: theError)
