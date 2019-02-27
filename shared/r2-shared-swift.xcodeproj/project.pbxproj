@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0318F70A221DD4CA004E5114 /* Locator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0318F709221DD4CA004E5114 /* Locator.swift */; };
 		57470F7E20ED0D1A000CDCA3 /* DownloadSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */; };
 		AEF39DF320E3895200A560F3 /* UserProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF39DF220E3895200A560F3 /* UserProperties.swift */; };
 		CA2006512225A1F300E6B3BD /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2006502225A1F300E6B3BD /* Observable.swift */; };
@@ -95,6 +96,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0318F709221DD4CA004E5114 /* Locator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Locator.swift; sourceTree = "<group>"; };
 		57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadSession.swift; sourceTree = "<group>"; };
 		AEF39DF220E3895200A560F3 /* UserProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProperties.swift; sourceTree = "<group>"; };
 		CA2006502225A1F300E6B3BD /* Observable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Observable.swift; sourceTree = "<group>"; };
@@ -297,6 +299,7 @@
 		F3E7D41B1F4EC69C00DF166D /* Publication */ = {
 			isa = PBXGroup;
 			children = (
+				0318F709221DD4CA004E5114 /* Locator.swift */,
 				F3E7D40A1F4EC69100DF166D /* Publication.swift */,
 				F3E7D4061F4EC69100DF166D /* Metadata.swift */,
 				AEF39DF220E3895200A560F3 /* UserProperties.swift */,
@@ -520,6 +523,7 @@
 				F3E7D4111F4EC69100DF166D /* MediaOverlayNode.swift in Sources */,
 				CA9A40D1221B0AA200531EA1 /* Either.swift in Sources */,
 				F3E7D4151F4EC69100DF166D /* MultilangString.swift in Sources */,
+				0318F70A221DD4CA004E5114 /* Locator.swift in Sources */,
 				F3E7D4171F4EC69100DF166D /* Publication.swift in Sources */,
 				CAC34F0C221C61BD002C452E /* Deprecated.swift in Sources */,
 				F3E7D40F1F4EC69100DF166D /* Encryption.swift in Sources */,
@@ -557,7 +561,7 @@
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "r2-shared-swiftTests/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-shared-swiftTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -583,7 +587,7 @@
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "r2-shared-swiftTests/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-shared-swiftTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";

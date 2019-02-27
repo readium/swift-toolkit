@@ -24,10 +24,10 @@ public enum RenditionLayout: String, Encodable {
 ///
 /// - Paginated: Indicates the Author preference is to dynamically paginate content overflow.
 /// - Continuous:Indicates the Author preference is to provide a scrolled view
-///              for overflow content, and that consecutive spine items with this
+///              for overflow content, and that consecutive readingOrder items with this
 ///              property are to be rendered as a continuous scroll.
 /// - Document: Indicates the Author preference is to provide a scrolled view for
-///             overflow content, and each spine item with this property is to 
+///             overflow content, and each readingOrder item with this property is to
 ///             be rendered as separate scrollable document.
 /// - Fixed:
 public enum RenditionFlow: String, Encodable {
@@ -40,10 +40,10 @@ public enum RenditionFlow: String, Encodable {
 /// The rendition orientation property of an EPUB publication.
 ///
 /// - Auto: Specifies that the Reading System can determine the orientation to
-///         rendered the spine item in.
-/// - Landscape: Specifies that the given spine item is to be rendered in
+///         rendered the readingOrder item in.
+/// - Landscape: Specifies that the given readingOrder item is to be rendered in
 ///              landscape orientation.
-/// - Portrait: Specifies that the given spine item is to be rendered in portrait
+/// - Portrait: Specifies that the given readingOrder item is to be rendered in portrait
 ///             orientation.
 public enum RenditionOrientation: String, Encodable {
     case auto = "auto"
@@ -54,15 +54,15 @@ public enum RenditionOrientation: String, Encodable {
 /// The rendition spread property of an EPUB publication.
 ///
 /// - auto: Specifies the Reading System can determine when to render a synthetic
-///         spread for the spine item.
+///         spread for the readingOrder item.
 /// - landscape: Specifies the Reading System should render a synthetic spread 
-///              for the spine item only when in landscape orientation.
+///              for the readingOrder item only when in landscape orientation.
 /// - portrait: The spread-portrait property is deprecated in [EPUB3]. Refer to 
 ///             its definition in [Publications301] for more information.
 /// - both: Specifies the Reading System should render a synthetic spread for the
-///         spine item in both portrait and landscape orientations.
+///         readingOrder item in both portrait and landscape orientations.
 /// - none: Specifies the Reading System should not render a synthetic spread 
-///         for the spine item.
+///         for the readingOrder item.
 public enum RenditionSpread: String, Encodable {
     case auto = "auto"
     case landscape = "landscape"

@@ -11,7 +11,7 @@
 
 import Foundation
 
-/// The representation of EPUB publication, with its metadata, its spine and 
+/// The representation of EPUB publication, with its metadata, its readingOrder item and
 /// other resources.
 /// It is created by the `EpubParser` from an EPUB file or directory.
 /// As it extends `Encodable`, it can be serialized to `JSON`.
@@ -22,8 +22,8 @@ public class Publication {
     public var metadata: Metadata
     /// Link to special ressources which are added to the publication.
     public var links = [Link]()
-    /// Links of the spine items of the publication.
-    public var spine = [Link]()
+    /// Links of the readingOrder items of the publication.
+    public var readingOrder = [Link]()
     /// Link to the ressources of the publication.
     public var resources = [Link]()
     /// Table of content of the publication.
@@ -60,7 +60,7 @@ public class Publication {
     // MARK: - Public methods.
 
     /// A link to the publication's cover.
-    /// The implementation scans the `links` for a link (spine/resources/links) where `rel` is `cover`.
+    /// The implementation scans the `links` for a link (readingOrder/resources/links) where `rel` is `cover`.
     /// If none is found, it is `nil`.
     public var coverLink: Link? {
         get {
@@ -139,28 +139,28 @@ public class Publication {
 
     // Mark: - Public methods.
 
-    /// Finds a resource (asset or spine item) with a matching relative path.
+    /// Finds a resource (asset or readingOrder item) with a matching relative path.
     ///
     /// - Parameter path: The relative path to match
     /// - Returns: a link with its `href` equal to the path if any was found,
     ///            else `nil`
     public func resource(withRelativePath path: String) -> Link? {
-        let matchingLinks = (spine + resources)
+        let matchingLinks = (readingOrder + resources)
 
         return matchingLinks.first(where: { $0.href == path })
     }
 
 
-    /// Return a link from the spine having the given Href.
+    /// Return a link from the readingOrder having the given Href.
     ///
     /// - Parameter href: The `href` being searched.
     /// - Returns: The corresponding `Link` if any.
-    public func spineLink(withHref href: String) -> Link? {
-        return spine.first(where: { $0.href == href })
+    public func readingOrderLink(withHref href: String) -> Link? {
+        return readingOrder.first(where: { $0.href == href })
     }
 
     /// Find the first Link having the given `rel` in the publications's [Link]
-    /// properties: `resources`, `spine`, `links`.
+    /// properties: `resources`, `readingOrder`, `links`.
     ///
     /// - Parameter rel: The `rel` being searched.
     /// - Returns: The corresponding `Link`, if any.
@@ -172,7 +172,7 @@ public class Publication {
     }
 
     /// Find the first Link having the given `href` in the publication's [Link]
-    /// properties: `resources`, `spine`, `links`.
+    /// properties: `resources`, `readingOrder`, `links`.
     ///
     /// - Parameter rel: The `href` being searched.
     /// - Returns: The corresponding `Link`, if any.
@@ -223,7 +223,7 @@ public class Publication {
     // Mark: - Fileprivate Methods.
     
     /// Find the first link conforming to the passed closure, using `.where()`
-    /// in the publications's [Link] properties: `resources`, `spine`, `links`.
+    /// in the publications's [Link] properties: `resources`, `readingOrder`, `links`.
     ///
     /// - Parameter closure: The closure to conform to.
     /// - Returns: The corresponding Link found, if any.
@@ -231,7 +231,7 @@ public class Publication {
         if let link = resources.first(where: closure) {
             return link
         }
-        if let link = spine.first(where: closure) {
+        if let link = readingOrder.first(where: closure) {
             return link
         }
         if let link = links.first(where: closure) {
@@ -251,7 +251,7 @@ extension Publication: Encodable {
         case metadata
         case pageList = "page-list"
         case resources
-        case spine
+        case readingOrder
         case tableOfContents = "toc"
     }
     
@@ -276,8 +276,8 @@ extension Publication: Encodable {
         if !resources.isEmpty {
             try container.encode(resources, forKey: .resources)
         }
-        if !spine.isEmpty {
-            try container.encode(spine, forKey: .spine)
+        if !readingOrder.isEmpty {
+          try container.encode(readingOrder, forKey: .readingOrder)
         }
         if !tableOfContents.isEmpty {
             try container.encode(tableOfContents, forKey: .tableOfContents)
