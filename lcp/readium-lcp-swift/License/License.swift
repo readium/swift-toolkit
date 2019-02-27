@@ -49,32 +49,35 @@ final class License {
 extension License {
 
     /// Downloads the publication and return the path to the downloaded resource.
-    func fetchPublication() -> Deferred<(URL, URLSessionDownloadTask?)> {
-        return Deferred {
+    func fetchPublication(completion: @escaping ((URL, URLSessionDownloadTask?)?, Error?) -> Void) -> Observable<DownloadProgress> {
+        do {
             let license = self.documents.license
             let title = license.link(for: .publication)?.title
             let url = try license.url(for: .publication)
 
-            return self.network.download(url, title: title)
-                .map { downloadedFile, task in
+            return self.network.download(url, title: title) { result, error in
+                guard let (downloadedFile, task) = result else {
+                    completion(nil, error)
+                    return
+                }
+                
+                do {
                     // Saves the License Document into the downloaded publication
                     let container = EPUBLicenseContainer(epub: downloadedFile)
                     try container.write(license)
-
-                    // FIXME: don't move to Documents/ keep it as a temp dir and let the client app choose where to move the file
-                    // FIXME: support other kind of publication extensions, using mimetype
-                    let fileManager = FileManager.default
-                    let destinationFile = try! fileManager
-                        .url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-                        .appendingPathComponent("lcp.\(license.id).epub")
-
-                    // FIXME: for now we overwrite the destination file, but this needs to be handled on the test app
-                    try? fileManager.removeItem(at: destinationFile)
-                    try fileManager.moveItem(at: downloadedFile, to: destinationFile)
-
-                    return (destinationFile, task)
+                    completion((downloadedFile, task), nil)
+                    
+                } catch {
+                    completion(nil, error)
                 }
             }
+            
+        } catch {
+            DispatchQueue.main.async {
+                completion(nil, error)
+            }
+            return Observable<DownloadProgress>(.infinite)
+        }
     }
 
     /// Calls a Status Document interaction from its `rel`.

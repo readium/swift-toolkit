@@ -18,7 +18,9 @@ import R2Shared
 public protocol LCPService {
 
     /// Imports a protected publication from a standalone LCPL file.
-    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, completion: @escaping (LCPImportedPublication?, LCPError?) -> Void)
+    /// - Returns: The download progress value as an `Observable`, from 0.0 to 1.0.
+    @discardableResult
+    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, completion: @escaping (LCPImportedPublication?, LCPError?) -> Void) -> Observable<DownloadProgress>
     
     /// Opens the LCP license of a protected publication, to access its DRM metadata and decipher its content.
     func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, completion: @escaping (LCPLicense?, LCPError?) -> Void) -> Void
@@ -46,8 +48,9 @@ public protocol LCPLicense: DRMLicense {
 
 
 public struct LCPImportedPublication {
-    public let localUrl: URL
+    public let localURL: URL
     public let downloadTask: URLSessionDownloadTask?
+    public let suggestedFilename: String
 }
 
 

@@ -25,7 +25,8 @@ final class PassphrasesService {
     
     /// Finds any valid passphrase for the given license in the passphrases repository.
     /// If none is found, requests a passphrase from the request delegate (ie. user prompt) until one is valid, or the request is cancelled.
-    func request(for license: LicenseDocument, authentication: LCPAuthenticating?) -> Deferred<String> {
+    /// The returned passphrase is nil if the request was cancelled by the user.
+    func request(for license: LicenseDocument, authentication: LCPAuthenticating?) -> Deferred<String?> {
         return Deferred {
             let candidates = self.possiblePassphrasesFromRepository(for: license)
             if let passphrase = findOneValidPassphrase(jsonLicense: license.json, hashedPassphrases: candidates) {
@@ -33,20 +34,20 @@ final class PassphrasesService {
             } else if let authentication = authentication {
                 return self.authenticate(for: license, reason: .passphraseNotFound, using: authentication)
             } else {
-                throw LCPError.cancelled
+                return .success(nil)
             }
         }
     }
     
     /// Called when the service can't find any valid passphrase in the repository, as a fallback.
-    private func authenticate(for license: LicenseDocument, reason: LCPAuthenticationReason, using authentication: LCPAuthenticating) -> Deferred<String> {
+    private func authenticate(for license: LicenseDocument, reason: LCPAuthenticationReason, using authentication: LCPAuthenticating) -> Deferred<String?> {
         return Deferred<String?> { success, _ in
                 let authenticatedLicense = LCPAuthenticatedLicense(document: license)
                 authentication.requestPassphrase(for: authenticatedLicense, reason: reason, completion: success)
             }
             .flatMap { clearPassphrase in
                 guard let clearPassphrase = clearPassphrase else {
-                    throw LCPError.cancelled
+                    return .success(nil)
                 }
     
                 let hashedPassphrase = clearPassphrase.sha256()

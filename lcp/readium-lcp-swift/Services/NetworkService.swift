@@ -41,20 +41,18 @@ final class NetworkService: Loggable {
         }
     }
 
-    func download(_ url: URL, title: String? = nil) -> Deferred<(file: URL, task: URLSessionDownloadTask?)> {
-        return Deferred { success, failure in
-            self.log(.info, "download \(url)")
-    
-            let request = URLRequest(url: url)
-            DownloadSession.shared.launch(request: request, description: title) { tmpLocalURL, response, error, downloadTask in
-                guard let file = tmpLocalURL, error == nil else {
-                    failure(LCPError.network(error))
-                    return false
-                }
+    func download(_ url: URL, title: String? = nil, completion: @escaping ((file: URL, task: URLSessionDownloadTask?)?, Error?) -> Void) -> Observable<DownloadProgress> {
+        self.log(.info, "download \(url)")
 
-                success((file, downloadTask))
-                return true
+        let request = URLRequest(url: url)
+        return DownloadSession.shared.launch(request: request, description: title) { tmpLocalURL, response, error, downloadTask in
+            guard let file = tmpLocalURL, error == nil else {
+                completion(nil, LCPError.network(error))
+                return false
             }
+
+            completion((file, downloadTask), nil)
+            return true
         }
     }
     

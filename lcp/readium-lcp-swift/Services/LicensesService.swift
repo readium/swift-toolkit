@@ -36,17 +36,21 @@ final class LicensesService: Loggable {
             let initialData = try container.read()
             
             func onLicenseValidated(of license: LicenseDocument) throws {
-                // FIXME: Should we do something with the errors here?
+                // Any errors are ignored to avoid blocking the publication.
                 
-                try? self.licenses.addLicense(license)
+                do {
+                    try self.licenses.addLicense(license)
+                } catch {
+                    self.log(.error, "Failed to add the LCP License to the local database: \(error)")
+                }
                 
                 // Updates the License in the container if needed
                 if license.data != initialData {
                     do {
                         try container.write(license)
-                        LicensesService.log(.debug, "Wrote updated License Document in container")
+                        self.log(.debug, "Wrote updated License Document in container")
                     } catch {
-                        LicensesService.log(.error, "Failed to write updated License Document in container: \(error)")
+                        self.log(.error, "Failed to write updated License Document in container: \(error)")
                     }
                 }
             }
@@ -69,12 +73,26 @@ final class LicensesService: Loggable {
 
 extension LicensesService: LCPService {
     
-    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, completion: @escaping (LCPImportedPublication?, LCPError?) -> Void) {
+    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, completion: @escaping (LCPImportedPublication?, LCPError?) -> Void) -> Observable<DownloadProgress> {
+        let progress = MutableObservable<DownloadProgress>(.infinite)
         let container = LCPLLicenseContainer(lcpl: lcpl)
         retrieveLicense(from: container, authentication: authentication)
-            .flatMap { $0.fetchPublication() }
-            .map { LCPImportedPublication(localUrl: $0.0, downloadTask: $0.1) }
+            .asyncMap { license, completion in
+                let downloadProgress = license.fetchPublication { result, error in
+                    progress.value = .infinite
+                    if let result = result {
+                        let publication = LCPImportedPublication(localURL: result.0, downloadTask: result.1, suggestedFilename: "\(license.license.id).epub")
+                        completion(publication, nil)
+                    } else {
+                        completion(nil, error)
+                    }
+                }
+                // Forwards the download progress to the global import progress
+                downloadProgress.observe(progress)
+            }
             .resolve(LCPError.wrap(completion))
+        
+        return progress
     }
     
     func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, completion: @escaping (LCPLicense?, LCPError?) -> Void) {

@@ -52,7 +52,8 @@ final class DeviceService {
     @discardableResult
     func registerLicense(_ license: LicenseDocument, at link: Link) -> Deferred<Data?> {
         return Deferred {
-            guard let registered = try? self.repository.isDeviceRegistered(for: license), !registered else {
+            let registered = try self.repository.isDeviceRegistered(for: license)
+            guard !registered else {
                 return .success(nil)
             }
             guard let url = link.url(with: self.asQueryParameters) else {
@@ -65,7 +66,7 @@ final class DeviceService {
                         return nil
                     }
                     
-                    try? self.repository.registerDevice(for: license)
+                    try self.repository.registerDevice(for: license)
                     return data
                 }
         }

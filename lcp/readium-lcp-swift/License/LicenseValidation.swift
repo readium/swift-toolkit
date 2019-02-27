@@ -130,7 +130,7 @@ extension LicenseValidation {
         // Final states
         case valid(ValidatedDocuments)
         case failure(Error)
-        
+
         /// Transitions the State when an Event is raised.
         /// This is where the decisions are taken: what to do next, should we go back to a previous state, etc.
         /// You should be able to draw the chart just by looking at the states and their possible transitions.
@@ -189,8 +189,10 @@ extension LicenseValidation {
             // 5. Get the passphrase associated with the license
             case let (.requestPassphrase(license, status), .retrievedPassphrase(passphrase)):
                 self = .validateIntegrity(license, status, passphrase: passphrase)
-            case let (.requestPassphrase(_, _), .failed(error)):
+            case (.requestPassphrase, .failed(let error)):
                 self = .failure(error)
+            case (.requestPassphrase, .cancelled):
+                self = .start
 
             // 6. Validate the license integrity
             case let (.validateIntegrity(license, status, _), .validatedIntegrity(context)):
@@ -247,6 +249,8 @@ extension LicenseValidation {
         case registeredDevice(Data?)
         // Raised when any error occurs during the validation workflow.
         case failed(Error)
+        // Raised when the user cancelled the validation.
+        case cancelled
     }
     
     /// Should be called by the state handlers once they're done, to go to the next State.
@@ -276,7 +280,7 @@ extension LicenseValidation {
         network.fetch(url)
             .map { status, data -> Event in
                 guard status == 200 else {
-                    throw LCPError.cancelled
+                    throw LCPError.network(nil)
                 }
                 
                 return .retrievedStatusData(data)
@@ -294,7 +298,7 @@ extension LicenseValidation {
         network.fetch(url)
             .map { status, data -> Event in
                 guard status == 200 else {
-                    throw LCPError.cancelled
+                    throw LCPError.network(nil)
                 }
                 return .retrievedLicenseData(data)
             }
@@ -334,7 +338,12 @@ extension LicenseValidation {
     
     private func requestPassphrase(for license: LicenseDocument) {
         passphrases.request(for: license, authentication: authentication)
-            .map { Event.retrievedPassphrase($0) }
+            .map { passphrase -> Event in
+                guard let passphrase = passphrase else {
+                    return .cancelled
+                }
+                return .retrievedPassphrase(passphrase)
+            }
             .resolve(raise)
     }
     
@@ -365,7 +374,8 @@ extension LicenseValidation {
         do {
             switch state {
             case .start:
-                break
+                // We are back to start? It means the validation was cancelled by the user.
+                notifyObservers(documents: nil, error: nil)
             case let .validateLicense(data, _):
                 try validateLicense(data: data)
             case let .fetchStatus(license):

@@ -40,6 +40,12 @@ class Licenses {
             connection.userVersion = 2
         }
     }
+    
+    private func exists(_ license: LicenseDocument) -> Bool {
+        let db = Database.shared.connection
+        let filterLicense = licenses.filter(id == license.id)
+        return ((try? db.scalar(filterLicense.count)) ?? 0) != 0
+    }
 
 }
 
@@ -47,17 +53,16 @@ extension Licenses: LicensesRepository {
     
     func addLicense(_ license: LicenseDocument) throws {
         let db = Database.shared.connection
-        
-        let filterLicense = licenses.filter(id == license.id)
-        let exists = try db.scalar(filterLicense.count) != 0
-        if !exists {
-            let query = licenses.insert(
-                id <- license.id,
-                printsLeft <- license.rights.print,
-                copiesLeft <- license.rights.copy
-            )
-            try db.run(query)
+        guard !exists(license) else {
+            return
         }
+        
+        let query = licenses.insert(
+            id <- license.id,
+            printsLeft <- license.rights.print,
+            copiesLeft <- license.rights.copy
+        )
+        try db.run(query)
     }
 
 }
@@ -65,6 +70,10 @@ extension Licenses: LicensesRepository {
 extension Licenses: DeviceRepository {
     
     func isDeviceRegistered(for license: LicenseDocument) throws -> Bool {
+        guard exists(license) else {
+            throw LCPError.runtime("The LCP License doesn't exist in the database")
+        }
+        
         let db = Database.shared.connection
         let query = licenses.filter(id == license.id && registered == true)
         let count = try db.scalar(query.count)
@@ -72,6 +81,10 @@ extension Licenses: DeviceRepository {
     }
     
     func registerDevice(for license: LicenseDocument) throws {
+        guard exists(license) else {
+            throw LCPError.runtime("The LCP License doesn't exist in the database")
+        }
+
         let db = Database.shared.connection
         let filterLicense = licenses.filter(id == license.id)
         try db.run(filterLicense.update(registered <- true))

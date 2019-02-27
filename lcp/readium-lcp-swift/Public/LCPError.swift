@@ -12,9 +12,6 @@
 import Foundation
 
 public enum LCPError: Error {
-    // The operation was cancelled by the user. It should be handled silently.
-    case cancelled
-    
     // The operation can't be done right now because another License operation is running.
     case licenseIsBusy
     // An error occured while checking the integrity of the License, it can't be retrieved.
@@ -46,8 +43,6 @@ extension LCPError: LocalizedError {
     
     public var errorDescription: String? {
         switch self {
-        case .cancelled:
-            return nil
         case .licenseIsBusy:
             return "Can't perform this operation at the moment."
         case .licenseIntegrity(let error):
