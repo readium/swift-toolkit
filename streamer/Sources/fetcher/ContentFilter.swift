@@ -189,8 +189,8 @@ final internal class ContentFiltersEpub: ContentFilters {
         let langAttribute = document.root?.attr("lang")
         let langType = LangType(rawString: langAttribute ?? "")
         
-        let pageDirection = publication.metadata.direction
-        let contentLayoutStyle = Metadata.contentlayoutStyle(for: langType, pageDirection: pageDirection)
+        let readingProgression = publication.metadata.readingProgression
+        let contentLayoutStyle = Metadata.contentlayoutStyle(for: langType, readingProgression: readingProgression)
         
         let styleSubFolder = contentLayoutStyle.rawValue
         

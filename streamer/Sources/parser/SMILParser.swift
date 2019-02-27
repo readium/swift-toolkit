@@ -22,11 +22,11 @@ final internal class SMILParser {
     /// - Parameters:
     ///   - element: The XML element which should contain <seq>.
     ///   - parent: The parent MediaOverlayNode of the "to be creatred" nodes.
-    ///   - spine: <#spine description#>
+    ///   - readingOrder:
     ///   - base: The base location of the file for path normalization.
     static internal func parseSequences(in element: AEXMLElement,
                                         withParent parent: MediaOverlayNode,
-                                        publicationSpine spine: inout [Link],
+                                        publicationReadingOrder readingOrder: inout [Link],
                                         base: String)
     {
         guard let sequenceElements = element["seq"].all,
@@ -43,7 +43,7 @@ final internal class SMILParser {
             newNode.text = normalize(base: base, href: sequence.attributes["epub:textref"]!)
             
             parseParameters(in: sequence, withParent: newNode, base: base)
-            parseSequences(in: sequence, withParent: newNode, publicationSpine: &spine, base: base)
+            parseSequences(in: sequence, withParent: newNode, publicationReadingOrder: &readingOrder, base: base)
             
             let baseHrefParent = parent.text?.components(separatedBy: "#")[0]
             
@@ -53,7 +53,7 @@ final internal class SMILParser {
                 parent.children.append(newNode)
                 continue
             }
-            guard let link = spine.first(where: {
+            guard let link = readingOrder.first(where: {
                 guard let linkRef = $0.href else {
                     return false
                 }

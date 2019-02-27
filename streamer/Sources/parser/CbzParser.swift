@@ -70,7 +70,7 @@ public class CbzParser {
                 hasCoverLink = true
             }
             link.href = normalize(base: container.rootFile.rootFilePath, href: filename)
-            publication.spine.append(link)
+            publication.readingOrder.append(link)
         }
         return (publication, container)
     }
