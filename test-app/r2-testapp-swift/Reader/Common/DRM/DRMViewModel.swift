@@ -65,5 +65,13 @@ class DRMViewModel {
     var end: Date? {
         return nil
     }
+    
+    var copiesLeft: String? {
+        return nil
+    }
+    
+    var printsLeft: String? {
+        return nil
+    }
 
 }

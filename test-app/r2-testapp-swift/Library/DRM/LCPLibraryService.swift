@@ -36,35 +36,30 @@ class LCPLibraryService: NSObject, DRMLibraryService {
         return file.pathExtension.lowercased() == "lcpl"
     }
     
-    func fulfill(_ file: URL, completion: @escaping (CancellableResult<(URL, URLSessionDownloadTask?)>) -> Void) {
-        lcpService.importPublication(from: file, authentication: self) { (result, error) in
-            if case LCPError.cancelled? = error {
-                completion(.cancelled)
-                return
-            }
-            guard let result = result else {
+    func fulfill(_ file: URL, completion: @escaping (CancellableResult<DRMFulfilledPublication>) -> Void) {
+        lcpService.importPublication(from: file, authentication: self) { result, error in
+            if let result = result {
+                let publication = DRMFulfilledPublication(localURL: result.localURL, downloadTask: result.downloadTask, suggestedFilename: result.suggestedFilename)
+                completion(.success(publication))
+            } else if let error = error {
                 completion(.failure(error))
-                return
+            } else {
+                completion(.cancelled)
             }
-            
-            completion(.success((result.localUrl, result.downloadTask)))
         }
     }
     
     func loadPublication(at publication: URL, drm: DRM, completion: @escaping (CancellableResult<DRM?>) -> Void) {
-        lcpService.retrieveLicense(from: publication, authentication: self) { (license, error) in
-            if case LCPError.cancelled? = error {
-                completion(.cancelled)
-                return
-            }
-            guard let license = license else {
+        lcpService.retrieveLicense(from: publication, authentication: self) { license, error in
+            if let license = license {
+                var drm = drm
+                drm.license = license
+                completion(.success(drm))
+            } else if let error = error {
                 completion(.failure(error))
-                return
+            } else {
+                completion(.cancelled)
             }
-            
-            var drm = drm
-            drm.license = license
-            completion(.success(drm))
         }
     }
     

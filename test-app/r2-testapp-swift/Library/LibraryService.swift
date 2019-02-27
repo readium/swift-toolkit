@@ -75,12 +75,10 @@ final class LibraryService {
     @discardableResult
     internal func addPublicationToLibrary(url sourceUrl: URL, from downloadTask: URLSessionDownloadTask?) -> Bool {
         
-        var url = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-        url.appendPathComponent(sourceUrl.lastPathComponent)
-        
+        let repository = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+        var url = repository.appendingPathComponent(sourceUrl.lastPathComponent)
         if FileManager().fileExists(atPath: url.path) {
-            showInfoAlert(title: "Error", message: "File already exist")
-            return false
+            url = repository.appendingPathComponent("\(UUID().uuidString).\(url.pathExtension)")
         }
         
         /// Move Publication to documents.
@@ -112,13 +110,29 @@ final class LibraryService {
         
         if let drmService = drmLibraryServices.first(where: { $0.canFulfill(url) }) {
             drmService.fulfill(url) { result in
-                try? FileManager.default.removeItem(at: url)
+                let fileManager = FileManager.default
+                try? fileManager.removeItem(at: url)
                 
                 switch result {
-                case .success((let publicationUrl, let downloadTask)):
-                    addPublication(url: publicationUrl, downloadTask: downloadTask)
+                case .success(let publication):
+                    do {
+                        // Moves the fulfilled publication to Documents/
+                        let repository = try! fileManager
+                            .url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+                        var destinationFile = repository
+                            .appendingPathComponent(publication.suggestedFilename)
+                        if fileManager.fileExists(atPath: destinationFile.path) {
+                            destinationFile = repository.appendingPathComponent("\(UUID().uuidString).\(destinationFile.pathExtension)")
+                        }
+                        try fileManager.moveItem(at: publication.localURL, to: destinationFile)
+    
+                        addPublication(url: destinationFile, downloadTask: publication.downloadTask)
+                    } catch {
+                        self.showInfoAlert(title: "Error", message: error.localizedDescription)
+                    }
+                    
                 case .failure(let error):
-                    self.showInfoAlert(title: "Error", message: error?.localizedDescription ?? "Error fulfilling DRM \(drmService.brand.rawValue)")
+                    self.showInfoAlert(title: "Error", message: error.localizedDescription)
                 case .cancelled:
                     break
                 }

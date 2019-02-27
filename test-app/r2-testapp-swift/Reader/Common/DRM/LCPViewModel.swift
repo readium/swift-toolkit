@@ -53,6 +53,20 @@ final class LCPViewModel: DRMViewModel {
         return lcpLicense?.license.rights.end
     }
     
+    override var copiesLeft: String? {
+        guard let quantity = lcpLicense?.remainingQuantity(for: .copy) else {
+            return super.copiesLeft
+        }
+        return "\(quantity) characters"
+    }
+    
+    override var printsLeft: String? {
+        guard let quantity = lcpLicense?.remainingQuantity(for: .print) else {
+            return super.printsLeft
+        }
+        return "\(quantity) pages"
+    }
+    
 }
 
 #endif

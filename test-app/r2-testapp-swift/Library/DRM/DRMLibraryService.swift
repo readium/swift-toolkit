@@ -12,6 +12,14 @@
 import Foundation
 import R2Shared
 
+
+struct DRMFulfilledPublication {
+    let localURL: URL
+    let downloadTask: URLSessionDownloadTask?
+    let suggestedFilename: String
+}
+
+
 protocol DRMLibraryService {
     
     var brand: DRM.Brand { get }
@@ -20,7 +28,7 @@ protocol DRMLibraryService {
     func canFulfill(_ file: URL) -> Bool
     
     /// Fulfills the given file to the fully protected publication.
-    func fulfill(_ file: URL, completion: @escaping (CancellableResult<(URL, URLSessionDownloadTask?)>) -> Void)
+    func fulfill(_ file: URL, completion: @escaping (CancellableResult<DRMFulfilledPublication>) -> Void)
     
     /// Fills the DRM context of the given protected publication.
     func loadPublication(at publication: URL, drm: DRM, completion: @escaping (CancellableResult<DRM?>) -> Void)

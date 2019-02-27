@@ -123,12 +123,8 @@ class DrmManagementTableViewController: UITableViewController {
         updatedLabel.text = viewModel.updated?.description
         startLabel.text = viewModel.start?.description ?? "-"
         endLabel.text = viewModel.end?.description ?? "-"
-        
-        let rights = viewModel.license?.rights
-        let printQuantity = rights?.remainingQuantity(for: .print) ?? .unlimited
-        let copyQuantity = rights?.remainingQuantity(for: .print) ?? .unlimited
-        printsLeftLabel.text = printQuantity.description
-        copiesLeftLabel.text = copyQuantity.description
+        printsLeftLabel.text = viewModel.printsLeft ?? "unlimited"
+        copiesLeftLabel.text = viewModel.copiesLeft ?? "unlimited"
         
         let loan = viewModel.license?.loan
         renewButton.isEnabled = loan?.canRenewLicense ?? false

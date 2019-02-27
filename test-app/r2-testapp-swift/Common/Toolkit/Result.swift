@@ -11,13 +11,9 @@
 
 import Foundation
 
-enum Result<A> {
-    case success(A)
-    case failure(Error)
-}
 
 enum CancellableResult<A> {
     case success(A)
-    case failure(Error?)
+    case failure(Error)
     case cancelled
 }
