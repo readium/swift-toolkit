@@ -23,7 +23,7 @@ public class LoggerStub: LoggerType {
             return
         }
         let fileName =  URL(fileURLWithPath: path).lastPathComponent
-        print("\(level.symbol) \(fileName):\(line): \(String(describing: value))")
+        print("\(level.symbol) \(fileName):\(line):\t\(String(describing: value))")
     }
 
 }

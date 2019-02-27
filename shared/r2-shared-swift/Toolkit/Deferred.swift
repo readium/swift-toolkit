@@ -179,7 +179,7 @@ public final class Deferred<T> {
     ///    }
     ///    traditionalAsync(value: val, completion)
     /// }
-    public func asyncMap<V>(_ transform: @escaping (T, Completion<V>) throws -> Void) -> Deferred<V> {
+    public func asyncMap<V>(_ transform: @escaping (T, @escaping Completion<V>) throws -> Void) -> Deferred<V> {
         return map(
             success: { val, compl in try transform(val, compl) }
         )

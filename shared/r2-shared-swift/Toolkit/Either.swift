@@ -11,7 +11,22 @@
 
 import Foundation
 
+
 public enum Either<L, R> {
     case left(L)
     case right(R)
+}
+
+
+extension Either: CustomStringConvertible {
+    
+    public var description: String {
+        switch self {
+        case .left(let l):
+            return "Either.left(\(l))"
+        case .right(let r):
+            return "Either.right(\(r))"
+        }
+    }
+    
 }
