@@ -28,13 +28,25 @@ public protocol LCPService {
 }
 
 
-/// Protocol to implement in the client app, to handle the presentation of LCP view controllers during an user interaction.
-public protocol LCPInteractionDelegate: AnyObject {
-    
-    /// Presents the given URL in a web browser (eg. SFSafariViewController).
-    /// You must call the dismissed closure once the browser is dismissed, to continue the interaction.
-    func presentLCPInteraction(at url: URL, dismissed: @escaping () -> Void)
+/// Consumable LCP rights, limited by a certain quantity.
+public enum LCPRight: String {
+    case print
+    case copy
+}
 
+
+/// Informations about a downloaded publication.
+public struct LCPImportedPublication {
+    /// Path to the downloaded publication.
+    /// You must move this file to the user library's folder.
+    public let localURL: URL
+    
+    /// Download task used to fetch the publication.
+    /// Note: this is for legacy purpose, when using R2Shared.DownloadSession.
+    public let downloadTask: URLSessionDownloadTask?
+    
+    /// Filename that should be used for the publication when importing it in the user library.
+    public let suggestedFilename: String
 }
 
 
@@ -44,13 +56,24 @@ public protocol LCPLicense: DRMLicense {
     var license: LicenseDocument { get }
     var status: StatusDocument? { get }
     
+    /// Returns the amount of quantity left for the given right.
+    /// If nil, it means that the right is unlimited.
+    func remainingQuantity(for right: LCPRight) -> Int?
+    
+    /// Consumes the given quantity for this right.
+    /// - Returns: false if the right quantity was exceeded, in which case you should interrupt the action.
+    func consume(_ right: LCPRight, quantity: Int) -> Bool
+    
 }
 
 
-public struct LCPImportedPublication {
-    public let localURL: URL
-    public let downloadTask: URLSessionDownloadTask?
-    public let suggestedFilename: String
+/// Protocol to implement in the client app, to handle the presentation of LCP view controllers during an user interaction.
+public protocol LCPInteractionDelegate: AnyObject {
+    
+    /// Presents the given URL in a web browser (eg. SFSafariViewController).
+    /// You must call the dismissed closure once the browser is dismissed, to continue the interaction.
+    func presentLCPInteraction(at url: URL, dismissed: @escaping () -> Void)
+    
 }
 
 

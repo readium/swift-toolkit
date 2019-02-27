@@ -139,7 +139,7 @@ extension License {
 
 /// Public API
 extension License: LCPLicense {
-
+    
     public var license: LicenseDocument {
         return documents.license
     }
@@ -148,6 +148,22 @@ extension License: LCPLicense {
         return documents.status
     }
     
+    func remainingQuantity(for right: LCPRight) -> Int? {
+        // FIXME: TODO using database
+        return nil
+    }
+    
+    func consume(_ right: LCPRight, quantity: Int) -> Bool {
+        // FIXME: TODO
+        return true
+    }
+    
+}
+
+
+/// Shared DRM API
+extension License: DRMLicense {
+
     public var encryptionProfile: String? {
         return license.encryption.profile
     }
@@ -157,39 +173,8 @@ extension License: LCPLicense {
         return decrypt(data: data, using: context)
     }
 
-    public var rights: DRMRights? {
-        return self
-    }
-    
     public var loan: DRMLoan? {
         return self
-    }
-
-}
-
-
-/// Rights API
-extension License: DRMRights {
-    
-    func can(_ right: DRMRight) -> Bool {
-        switch right {
-        case .display:
-            let now = Date()
-            let start = license.rights.start ?? now
-            let end = license.rights.end ?? now
-            return start <= now && now <= end
-        default:
-            return true
-        }
-    }
-    
-    func remainingQuantity(for right: DRMConsumableRight) -> DRMRightQuantity {
-        // FIXME: TODO using database
-        return .unlimited
-    }
-    
-    func consume(_ right: DRMConsumableRight, quantity: DRMRightQuantity?) throws {
-        // FIXME: TODO
     }
 
 }
