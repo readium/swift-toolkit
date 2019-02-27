@@ -18,10 +18,51 @@ import R2Shared
 public protocol LCPService {
 
     /// Imports a protected publication from a standalone LCPL file.
-    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, completion: @escaping (LCPImportedPublication?, LCPError?) -> Void)
+    /// - Returns: The download progress value as an `Observable`, from 0.0 to 1.0.
+    @discardableResult
+    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, completion: @escaping (LCPImportedPublication?, LCPError?) -> Void) -> Observable<DownloadProgress>
     
     /// Opens the LCP license of a protected publication, to access its DRM metadata and decipher its content.
     func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, completion: @escaping (LCPLicense?, LCPError?) -> Void) -> Void
+    
+}
+
+
+/// Consumable LCP rights, limited by a certain quantity.
+public enum LCPRight: String {
+    case print
+    case copy
+}
+
+
+/// Informations about a downloaded publication.
+public struct LCPImportedPublication {
+    /// Path to the downloaded publication.
+    /// You must move this file to the user library's folder.
+    public let localURL: URL
+    
+    /// Download task used to fetch the publication.
+    /// Note: this is for legacy purpose, when using R2Shared.DownloadSession.
+    public let downloadTask: URLSessionDownloadTask?
+    
+    /// Filename that should be used for the publication when importing it in the user library.
+    public let suggestedFilename: String
+}
+
+
+/// Opened license, used to decipher a protected publication or read its DRM metadata.
+public protocol LCPLicense: DRMLicense {
+    
+    var license: LicenseDocument { get }
+    var status: StatusDocument? { get }
+    
+    /// Returns the amount of quantity left for the given right.
+    /// If nil, it means that the right is unlimited.
+    func remainingQuantity(for right: LCPRight) -> Int?
+    
+    /// Consumes the given quantity for this right.
+    /// - Returns: false if the right quantity was exceeded, in which case you should interrupt the action.
+    func consume(_ right: LCPRight, quantity: Int) -> Bool
     
 }
 
@@ -32,22 +73,7 @@ public protocol LCPInteractionDelegate: AnyObject {
     /// Presents the given URL in a web browser (eg. SFSafariViewController).
     /// You must call the dismissed closure once the browser is dismissed, to continue the interaction.
     func presentLCPInteraction(at url: URL, dismissed: @escaping () -> Void)
-
-}
-
-
-/// Opened license, used to decipher a protected publication or read its DRM metadata.
-public protocol LCPLicense: DRMLicense {
     
-    var license: LicenseDocument { get }
-    var status: StatusDocument? { get }
-    
-}
-
-
-public struct LCPImportedPublication {
-    public let localUrl: URL
-    public let downloadTask: URLSessionDownloadTask?
 }
 
 
