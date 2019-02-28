@@ -33,7 +33,7 @@ class EpubViewController: UIViewController {
     init(publication: Publication, atIndex index: Int, progression: Double?, _ drm: DRM?) {
         self.drm = drm
         stackView = UIStackView(frame: UIScreen.main.bounds)
-        navigator = NavigatorViewController(for: publication, initialIndex: index, initialProgression: progression, editingActions: [.lookup])
+        navigator = NavigatorViewController(for: publication, license: drm?.license, initialIndex: index, initialProgression: progression, editingActions: [.lookup, .copy])
         
         fixedTopBar = BarView()
         fixedBottomBar = BarView()

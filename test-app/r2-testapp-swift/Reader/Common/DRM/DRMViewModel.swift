@@ -66,12 +66,28 @@ class DRMViewModel {
         return nil
     }
     
-    var copiesLeft: String? {
-        return nil
+    var copiesLeft: String {
+        return "unlimited"
     }
     
-    var printsLeft: String? {
-        return nil
+    var printsLeft: String {
+        return "unlimited"
+    }
+    
+    var canRenewLoan: Bool {
+        return false
+    }
+    
+    func renewLoan(completion: @escaping (Error?) -> Void) {
+        completion(nil)
+    }
+    
+    var canReturnPublication: Bool {
+        return false
+    }
+    
+    func returnPublication(completion: @escaping (Error?) -> Void) {
+        completion(nil)
     }
 
 }

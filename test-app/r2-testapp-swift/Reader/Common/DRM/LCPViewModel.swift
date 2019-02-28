@@ -53,18 +53,42 @@ final class LCPViewModel: DRMViewModel {
         return lcpLicense?.license.rights.end
     }
     
-    override var copiesLeft: String? {
-        guard let quantity = lcpLicense?.remainingQuantity(for: .copy) else {
+    override var copiesLeft: String {
+        guard let quantity = lcpLicense?.charactersToCopyLeft else {
             return super.copiesLeft
         }
         return "\(quantity) characters"
     }
     
-    override var printsLeft: String? {
-        guard let quantity = lcpLicense?.remainingQuantity(for: .print) else {
+    override var printsLeft: String {
+        guard let quantity = lcpLicense?.pagesToPrintLeft else {
             return super.printsLeft
         }
         return "\(quantity) pages"
+    }
+    
+    override var canRenewLoan: Bool {
+        return lcpLicense?.canRenewLoan ?? false
+    }
+    
+    override func renewLoan(completion: @escaping (Error?) -> Void) {
+        guard let lcpLicense = lcpLicense else {
+            completion(nil)
+            return
+        }
+        lcpLicense.renewLoan(to: nil, completion: completion)
+    }
+    
+    override var canReturnPublication: Bool {
+        return lcpLicense?.canReturnPublication ?? false
+    }
+    
+    override func returnPublication(completion: @escaping (Error?) -> Void) {
+        guard let lcpLicense = lcpLicense else {
+            completion(nil)
+            return
+        }
+        lcpLicense.returnPublication(completion: completion)
     }
     
 }
