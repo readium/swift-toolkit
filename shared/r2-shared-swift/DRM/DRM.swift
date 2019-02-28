@@ -37,6 +37,9 @@ public struct DRM {
     }
 }
 
+/// Shared DRM behavior for a particular license/publication.
+/// DRMs can be very different beasts, so DRMLicense is not meant to be a generic interface for all DRM behaviors (eg. loan return). The goal of DRMLicense is to provide generic features that are used inside Readium's projects directly. For example, data decryption or copy of text selection in the navigator.
+/// If there's a need for other generic DRM features, it can be implemented as a set of adapters in the client app, to cater to the interface's needs and capabilities.
 public protocol DRMLicense {
 
     /// Encryption profile, if available.
