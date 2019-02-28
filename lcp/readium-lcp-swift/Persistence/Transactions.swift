@@ -11,10 +11,11 @@
 
 import Foundation
 import SQLite
+import R2Shared
 
-/// Database's TransactionsTable , in charge of keeping tracks of
-/// the previous license checking.
-class Transactions {
+
+/// Database's TransactionsTable , in charge of keeping tracks of the previous license checking.
+class Transactions: Loggable {
     /// Table.
     let transactions = Table("Transactions")
     /// Fields.
@@ -32,12 +33,8 @@ class Transactions {
                 t.column(passphrase)
             })
         } catch {
-            log(error)
+            log(.error, error)
         }
-    }
-    
-    fileprivate func log(_ error: Error) {
-        print("LCP database error: \(error)")
     }
 
 }
@@ -54,7 +51,7 @@ extension Transactions: PassphrasesRepository {
                 return try row.get(passphrase)
             }
         } catch {
-            log(error)
+            log(.error, error)
         }
         
         return nil
@@ -66,7 +63,7 @@ extension Transactions: PassphrasesRepository {
         do {
             return try db.prepare(query).compactMap({ try $0.get(passphrase) })
         } catch {
-            log(error)
+            log(.error, error)
             return []
         }
     }
@@ -83,7 +80,7 @@ extension Transactions: PassphrasesRepository {
         do {
             try db.run(insertQuery)
         } catch {
-            log(error)
+            log(.error, error)
         }
     }
     

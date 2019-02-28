@@ -28,13 +28,6 @@ public protocol LCPService {
 }
 
 
-/// Consumable LCP rights, limited by a certain quantity.
-public enum LCPRight: String {
-    case print
-    case copy
-}
-
-
 /// Informations about a downloaded publication.
 public struct LCPImportedPublication {
     /// Path to the downloaded publication.
@@ -50,42 +43,60 @@ public struct LCPImportedPublication {
 }
 
 
-/// Opened license, used to decipher a protected publication or read its DRM metadata.
+/// Opened license, used to decipher a protected publication and manage its license.
 public protocol LCPLicense: DRMLicense {
+    
+    typealias URLPresenter = (URL, _ dismissed: @escaping () -> Void) -> Void
     
     var license: LicenseDocument { get }
     var status: StatusDocument? { get }
     
-    /// Returns the amount of quantity left for the given right.
-    /// If nil, it means that the right is unlimited.
-    func remainingQuantity(for right: LCPRight) -> Int?
+    /// Number of remaining characters allowed to be copied by the user.
+    /// If nil, there's no limit.
+    var charactersToCopyLeft: Int? { get }
     
-    /// Consumes the given quantity for this right.
-    /// - Returns: false if the right quantity was exceeded, in which case you should interrupt the action.
-    func consume(_ right: LCPRight, quantity: Int) -> Bool
+    /// Number of pages allowed to be printed by the user.
+    /// If nil, there's no limit.
+    var pagesToPrintLeft: Int? { get }
     
-}
+    /// Returns whether the user is allowed to print pages of the publication.
+    var canPrint: Bool { get }
+    
+    /// Requests to print the given number of pages.
+    /// The caller is responsible to perform the actual print. This method is only used to know if the action is allowed.
+    /// - Returns: Whether the user is allowed to print that many pages.
+    func print(pagesCount: Int) -> Bool
 
+    /// Can the user renew the loaned publication?
+    var canRenewLoan: Bool { get }
 
-/// Protocol to implement in the client app, to handle the presentation of LCP view controllers during an user interaction.
-public protocol LCPInteractionDelegate: AnyObject {
+    /// The maximum potential date to renew to.
+    /// If nil, then the renew date might not be customizable.
+    var maxRenewDate: Date? { get }
     
-    /// Presents the given URL in a web browser (eg. SFSafariViewController).
-    /// You must call the dismissed closure once the browser is dismissed, to continue the interaction.
-    func presentLCPInteraction(at url: URL, dismissed: @escaping () -> Void)
+    /// Renews the loan up to a certain date (if possible).
+    ///
+    /// - Parameter presenting: Used when the renew requires to present an HTML page to the user. The caller is responsible for presenting the URL (for example with SFSafariViewController) and then calling the `dismissed` callback once the website is closed by the user.
+    func renewLoan(to end: Date?, present: @escaping URLPresenter, completion: @escaping (LCPError?) -> Void)
+
+    /// Can the user return the loaned publication?
+    var canReturnPublication: Bool { get }
+    
+    /// Returns the publication to its provider.
+    func returnPublication(completion: @escaping (LCPError?) -> Void)
     
 }
 
 
 /// LCP service factory.
-public func R2MakeLCPService(interactionDelegate: LCPInteractionDelegate) -> LCPService {
+public func R2MakeLCPService() -> LCPService {
     // Composition root
     let db = Database.shared
     let network = NetworkService()
     let device = DeviceService(repository: db.licenses, network: network)
     let crl = CRLService(network: network)
     let passphrases = PassphrasesService(repository: db.transactions)
-    let licenses = LicensesService(licenses: db.licenses, crl: crl, device: device, network: network, passphrases: passphrases, interactionDelegate: interactionDelegate)
+    let licenses = LicensesService(licenses: db.licenses, crl: crl, device: device, network: network, passphrases: passphrases)
     
     return licenses
 }

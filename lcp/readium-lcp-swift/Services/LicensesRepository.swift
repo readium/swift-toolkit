@@ -14,5 +14,11 @@ import Foundation
 protocol LicensesRepository {
     
     func addLicense(_ license: LicenseDocument) throws
+    
+    func copiesLeft(for licenseId: String) throws -> Int?
+    func setCopiesLeft(_ quantity: Int, for licenseId: String) throws
+    
+    func printsLeft(for licenseId: String) throws -> Int?
+    func setPrintsLeft(_ quantity: Int, for licenseId: String) throws
 
 }

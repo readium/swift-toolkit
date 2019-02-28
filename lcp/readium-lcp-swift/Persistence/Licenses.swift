@@ -46,6 +46,21 @@ class Licenses {
         let filterLicense = licenses.filter(id == license.id)
         return ((try? db.scalar(filterLicense.count)) ?? 0) != 0
     }
+    
+    private func get(_ column: Expression<Int?>, for licenseId: String) throws -> Int? {
+        let db = Database.shared.connection
+        let query = licenses.select(column).filter(id == licenseId)
+        for row in try db.prepare(query) {
+            return try row.get(column)
+        }
+        return nil
+    }
+    
+    private func set(_ column: Expression<Int?>, to value: Int, for licenseId: String) throws {
+        let db = Database.shared.connection
+        let filterLicense = licenses.filter(id == licenseId)
+        try db.run(filterLicense.update(column <- value))
+    }
 
 }
 
@@ -63,6 +78,22 @@ extension Licenses: LicensesRepository {
             copiesLeft <- license.rights.copy
         )
         try db.run(query)
+    }
+    
+    func copiesLeft(for licenseId: String) throws -> Int? {
+        return try get(copiesLeft, for: licenseId)
+    }
+    
+    func setCopiesLeft(_ quantity: Int, for licenseId: String) throws {
+        try set(copiesLeft, to: quantity, for: licenseId)
+    }
+    
+    func printsLeft(for licenseId: String) throws -> Int? {
+        return try get(printsLeft, for: licenseId)
+    }
+    
+    func setPrintsLeft(_ quantity: Int, for licenseId: String) throws {
+        try set(printsLeft, to: quantity, for: licenseId)
     }
 
 }
