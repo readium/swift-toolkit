@@ -24,6 +24,9 @@ protocol ViewDelegate: class {
     func handleTapOnLink(with url: URL)
     func handleTapOnInternalLink(with href: String)
     func documentPageDidChanged(webview: WebView, currentPage: Int ,totalPage: Int)
+    
+    var canCopySelection: Bool { get }
+    func didCopySelection()
 }
 
 final class WebView: WKWebView {
@@ -124,6 +127,8 @@ final class WebView: WKWebView {
     }
     
     var sizeObservation: NSKeyValueObservation?
+    
+    private var shouldNotifyCopySelection = false
 
     init(frame: CGRect, initialLocation: BinaryLocation, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = []) {
         self.initialLocation = initialLocation
@@ -157,11 +162,17 @@ final class WebView: WKWebView {
         }
         
         scrollView.alpha = 0
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(pasteboardDidChange), name: .UIPasteboardChanged, object: nil)
     }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 
     override func didMoveToSuperview() {
@@ -174,16 +185,31 @@ final class WebView: WKWebView {
         }
     }
   
-    open override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
-      for editingAction in self.editingActions {
-        if (action == Selector((editingAction.rawValue)))
-        {
-          return true
+    public override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+        guard action != #selector(copy(_:)) || (viewDelegate?.canCopySelection ?? true) else {
+            return false
         }
-      }
-      return false;
+        for editingAction in self.editingActions {
+            if action == Selector(editingAction.rawValue) {
+                return true
+            }
+        }
+        return false
     }
-  
+    
+    @objc private func pasteboardDidChange() {
+        if shouldNotifyCopySelection {
+            shouldNotifyCopySelection = false
+            viewDelegate?.didCopySelection()
+        }
+    }
+    
+    override func copy(_ sender: Any?) {
+        // We rely on UIPasteboardChanged to notify the copy to the delegate because the WKWebView sets the selection in the UIPasteboard asynchronously
+        shouldNotifyCopySelection = true
+        super.copy(sender)
+    }
+
 }
 
 extension WebView {
