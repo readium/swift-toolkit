@@ -27,7 +27,6 @@
 		CA9A40D1221B0AA200531EA1 /* Either.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D0221B0AA200531EA1 /* Either.swift */; };
 		CABEB3DC2215698600090B6C /* Deferred.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABEB3DB2215698600090B6C /* Deferred.swift */; };
 		CAC34F0A221C61BD002C452E /* DRM.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC34F06221C61BD002C452E /* DRM.swift */; };
-		CAC34F0B221C61BD002C452E /* DRMLoan.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC34F07221C61BD002C452E /* DRMLoan.swift */; };
 		CAC34F0C221C61BD002C452E /* Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC34F08221C61BD002C452E /* Deprecated.swift */; };
 		CAD67D8F220E21BB00496BFF /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D87220E217600496BFF /* R2LCPClient.framework */; };
 		CAD67D90220E21BB00496BFF /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D83220E210F00496BFF /* ZIPFoundation.framework */; };
@@ -118,7 +117,6 @@
 		CA9A40D0221B0AA200531EA1 /* Either.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Either.swift; sourceTree = "<group>"; };
 		CABEB3DB2215698600090B6C /* Deferred.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Deferred.swift; sourceTree = "<group>"; };
 		CAC34F06221C61BD002C452E /* DRM.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DRM.swift; sourceTree = "<group>"; };
-		CAC34F07221C61BD002C452E /* DRMLoan.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DRMLoan.swift; sourceTree = "<group>"; };
 		CAC34F08221C61BD002C452E /* Deprecated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Deprecated.swift; sourceTree = "<group>"; };
 		CAD67D83220E210F00496BFF /* ZIPFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ZIPFoundation.framework; path = "../r2-lcp-swift/Carthage/Build/iOS/ZIPFoundation.framework"; sourceTree = "<group>"; };
 		CAD67D85220E210F00496BFF /* CryptoSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoSwift.framework; path = "../r2-lcp-swift/Carthage/Build/iOS/CryptoSwift.framework"; sourceTree = "<group>"; };
@@ -244,7 +242,6 @@
 			isa = PBXGroup;
 			children = (
 				CAC34F06221C61BD002C452E /* DRM.swift */,
-				CAC34F07221C61BD002C452E /* DRMLoan.swift */,
 				CAC34F08221C61BD002C452E /* Deprecated.swift */,
 			);
 			path = DRM;
@@ -519,7 +516,6 @@
 				F3F41E1F1FA33AF800F97737 /* Collection.swift in Sources */,
 				F3B187A41FA33E1D00BB46BF /* OpdsMetadata.swift in Sources */,
 				CA2AE322221C1DCB008BD18F /* Loggable.swift in Sources */,
-				CAC34F0B221C61BD002C452E /* DRMLoan.swift in Sources */,
 				F3E7D4111F4EC69100DF166D /* MediaOverlayNode.swift in Sources */,
 				CA9A40D1221B0AA200531EA1 /* Either.swift in Sources */,
 				F3E7D4151F4EC69100DF166D /* MultilangString.swift in Sources */,

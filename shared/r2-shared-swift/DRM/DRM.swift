@@ -45,19 +45,24 @@ public protocol DRMLicense {
     /// Depichers the given encrypted data to be displayed in the reader.
     func decipher(_ data: Data) throws -> Data?
 
-    /// Interface to manage the loan, if this publication is borrowed.
-    var loan: DRMLoan? { get }
+    /// Returns whether the user can copy extracts from the publication.
+    var canCopy: Bool { get }
+    
+    /// Processes the given text to be copied by the user.
+    /// For example, you can save how much characters was copied to limit the overall quantity.
+    /// - Returns: The (potentially modified) text to put in the user clipboard, or nil if the user is not allowed to copy it.
+    func copy(_ text: String) -> String?
     
 }
 
 public extension DRMLicense {
     
-    public var encryptionProfile: String? {
-        return nil
-    }
+    public var encryptionProfile: String? { return nil }
 
-    public var loan: DRMLoan? {
-        return nil
+    var canCopy: Bool { return true }
+    
+    func copy(_ text: String) -> String? {
+        return canCopy ? text : nil
     }
     
 }
