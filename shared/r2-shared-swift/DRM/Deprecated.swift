@@ -31,14 +31,14 @@ extension DRM {
 
 extension DRMLicense {
     
-    @available(*, deprecated, message: "Use `loan?.renewLicense` instead")
+    @available(*, deprecated, message: "Use `LCPLicense.renewLoan` instead")
     public func renew(endDate: Date?, completion: @escaping (Error?) -> Void) {
-        loan?.renewLicense(to: endDate, completion: completion)
+        completion(nil)
     }
 
-    @available(*, deprecated, message: "Use `loan?.returnLicense` instead")
+    @available(*, deprecated, message: "Use `LCPLicense.returnPublication` instead")
     public func `return`(completion: @escaping (Error?) -> Void) {
-        loan?.returnLicense(completion: completion)
+        completion(nil)
     }
     
     @available(*, deprecated, message: "Checking for the rights is handled by r2-lcp-swift now")
