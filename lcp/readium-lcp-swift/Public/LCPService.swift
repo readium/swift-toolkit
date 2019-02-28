@@ -46,6 +46,8 @@ public struct LCPImportedPublication {
 /// Opened license, used to decipher a protected publication and manage its license.
 public protocol LCPLicense: DRMLicense {
     
+    typealias URLPresenter = (URL, _ dismissed: @escaping () -> Void) -> Void
+    
     var license: LicenseDocument { get }
     var status: StatusDocument? { get }
     
@@ -73,7 +75,9 @@ public protocol LCPLicense: DRMLicense {
     var maxRenewDate: Date? { get }
     
     /// Renews the loan up to a certain date (if possible).
-    func renewLoan(to end: Date?, completion: @escaping (LCPError?) -> Void)
+    ///
+    /// - Parameter presenting: Used when the renew requires to present an HTML page to the user. The caller is responsible for presenting the URL (for example with SFSafariViewController) and then calling the `dismissed` callback once the website is closed by the user.
+    func renewLoan(to end: Date?, present: @escaping URLPresenter, completion: @escaping (LCPError?) -> Void)
 
     /// Can the user return the loaned publication?
     var canReturnPublication: Bool { get }
@@ -84,25 +88,15 @@ public protocol LCPLicense: DRMLicense {
 }
 
 
-/// Protocol to implement in the client app, to handle the presentation of LCP view controllers during an user interaction.
-public protocol LCPInteractionDelegate: AnyObject {
-    
-    /// Presents the given URL in a web browser (eg. SFSafariViewController).
-    /// You must call the dismissed closure once the browser is dismissed, to continue the interaction.
-    func presentLCPInteraction(at url: URL, dismissed: @escaping () -> Void)
-    
-}
-
-
 /// LCP service factory.
-public func R2MakeLCPService(interactionDelegate: LCPInteractionDelegate) -> LCPService {
+public func R2MakeLCPService() -> LCPService {
     // Composition root
     let db = Database.shared
     let network = NetworkService()
     let device = DeviceService(repository: db.licenses, network: network)
     let crl = CRLService(network: network)
     let passphrases = PassphrasesService(repository: db.transactions)
-    let licenses = LicensesService(licenses: db.licenses, crl: crl, device: device, network: network, passphrases: passphrases, interactionDelegate: interactionDelegate)
+    let licenses = LicensesService(licenses: db.licenses, crl: crl, device: device, network: network, passphrases: passphrases)
     
     return licenses
 }
