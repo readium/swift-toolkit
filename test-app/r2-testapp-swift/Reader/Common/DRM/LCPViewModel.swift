@@ -12,6 +12,7 @@
 #if LCP
 
 import Foundation
+import SafariServices
 import R2Shared
 import ReadiumLCP
 
@@ -71,12 +72,29 @@ final class LCPViewModel: DRMViewModel {
         return lcpLicense?.canRenewLoan ?? false
     }
     
+    private var renewCallbacks: [Int: () -> Void] = [:]
+    
     override func renewLoan(completion: @escaping (Error?) -> Void) {
         guard let lcpLicense = lcpLicense else {
             completion(nil)
             return
         }
-        lcpLicense.renewLoan(to: nil, completion: completion)
+        
+        func present(url: URL, dismissed: @escaping () -> Void) {
+            guard let presentingViewController = self.presentingViewController else {
+                dismissed()
+                return
+            }
+            
+            let safariVC = SFSafariViewController(url: url)
+            safariVC.delegate = self
+            safariVC.modalPresentationStyle = .formSheet
+            
+            renewCallbacks[safariVC.hash] = dismissed
+            presentingViewController.present(safariVC, animated: true)
+        }
+        
+        lcpLicense.renewLoan(to: nil, present: present, completion: completion)
     }
     
     override var canReturnPublication: Bool {
@@ -89,6 +107,16 @@ final class LCPViewModel: DRMViewModel {
             return
         }
         lcpLicense.returnPublication(completion: completion)
+    }
+    
+}
+
+
+extension LCPViewModel: SFSafariViewControllerDelegate {
+    
+    func safariViewControllerDidFinish(_ controller: SFSafariViewController) {
+        let dismissed = renewCallbacks.removeValue(forKey: controller.hash)
+        dismissed?()
     }
     
 }
