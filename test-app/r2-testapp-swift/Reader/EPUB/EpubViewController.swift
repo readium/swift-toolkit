@@ -47,11 +47,7 @@ class EpubViewController: UIViewController {
         
         super.init(nibName: nil, bundle: nil)
     }
-    
-    deinit {
-        navigator.userSettings.save()
-    }
-  
+
     lazy var bookmarksDataSource: BookmarkDataSource? = {
         let publicationID = navigator.publication.metadata.identifier ?? ""
         return BookmarkDataSource(publicationID:publicationID)
@@ -141,9 +137,10 @@ class EpubViewController: UIViewController {
        
         self.userSettingNavigationController.userSettingsTableViewController.publication = navigator.publication
         
-        self.navigator.publication.userSettingsUIPresetUpdated = { (thisUserSettingsUIPreset) in
-            
-            guard let presetScrollValue:Bool = thisUserSettingsUIPreset?[.scroll] else {return}
+        self.navigator.publication.userSettingsUIPresetUpdated = { [weak self] preset in
+            guard let `self` = self, let presetScrollValue:Bool = preset?[.scroll] else {
+                return
+            }
             
             if let scroll = self.userSettingNavigationController.userSettings.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable {
                 if scroll.on != presetScrollValue {
@@ -167,6 +164,7 @@ class EpubViewController: UIViewController {
     override open func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
+        navigator.userSettings.save()
         navigationController?.hidesBarsOnTap = false
     }
     
