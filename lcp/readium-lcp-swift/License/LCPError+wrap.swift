@@ -1,5 +1,5 @@
 //
-//  LCPError+Private.swift
+//  LCPError+wrap.swift
 //  r2-lcp-swift
 //
 //  Created by Mickaël Menu on 14.02.19.
@@ -23,6 +23,10 @@ extension LCPError {
             return error
         } else if let error = error as? StatusError {
             return .licenseStatus(error)
+        } else if let error = error as? RenewError {
+            return .licenseRenew(error)
+        } else if let error = error as? ReturnError {
+            return .licenseReturn(error)
         } else if let error = error as? LCPClientError {
             return .licenseIntegrity(error)
         } else if let error = error as? ParsingError {
@@ -44,6 +48,16 @@ extension LCPError {
                 completion(value, LCPError.wrap(error))
             } else {
                 completion(value, nil)
+            }
+        }
+    }
+    
+    static func wrap(_ completion: @escaping (LCPError?) -> Void) -> (Error?) -> Void {
+        return { error in
+            if let error = error {
+                completion(LCPError.wrap(error))
+            } else {
+                completion(nil)
             }
         }
     }

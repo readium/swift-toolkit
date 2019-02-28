@@ -28,13 +28,6 @@ public protocol LCPService {
 }
 
 
-/// Consumable LCP rights, limited by a certain quantity.
-public enum LCPRight: String {
-    case print
-    case copy
-}
-
-
 /// Informations about a downloaded publication.
 public struct LCPImportedPublication {
     /// Path to the downloaded publication.
@@ -50,19 +43,43 @@ public struct LCPImportedPublication {
 }
 
 
-/// Opened license, used to decipher a protected publication or read its DRM metadata.
+/// Opened license, used to decipher a protected publication and manage its license.
 public protocol LCPLicense: DRMLicense {
     
     var license: LicenseDocument { get }
     var status: StatusDocument? { get }
     
-    /// Returns the amount of quantity left for the given right.
-    /// If nil, it means that the right is unlimited.
-    func remainingQuantity(for right: LCPRight) -> Int?
+    /// Number of remaining characters allowed to be copied by the user.
+    /// If nil, there's no limit.
+    var charactersToCopyLeft: Int? { get }
     
-    /// Consumes the given quantity for this right.
-    /// - Returns: false if the right quantity was exceeded, in which case you should interrupt the action.
-    func consume(_ right: LCPRight, quantity: Int) -> Bool
+    /// Number of pages allowed to be printed by the user.
+    /// If nil, there's no limit.
+    var pagesToPrintLeft: Int? { get }
+    
+    /// Returns whether the user is allowed to print pages of the publication.
+    var canPrint: Bool { get }
+    
+    /// Requests to print the given number of pages.
+    /// The caller is responsible to perform the actual print. This method is only used to know if the action is allowed.
+    /// - Returns: Whether the user is allowed to print that many pages.
+    func print(pagesCount: Int) -> Bool
+
+    /// Can the user renew the loaned publication?
+    var canRenewLoan: Bool { get }
+
+    /// The maximum potential date to renew to.
+    /// If nil, then the renew date might not be customizable.
+    var maxRenewDate: Date? { get }
+    
+    /// Renews the loan up to a certain date (if possible).
+    func renewLoan(to end: Date?, completion: @escaping (LCPError?) -> Void)
+
+    /// Can the user return the loaned publication?
+    var canReturnPublication: Bool { get }
+    
+    /// Returns the publication to its provider.
+    func returnPublication(completion: @escaping (LCPError?) -> Void)
     
 }
 

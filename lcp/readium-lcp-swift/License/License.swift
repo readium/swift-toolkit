@@ -15,7 +15,7 @@ import R2LCPClient
 import R2Shared
 
 
-final class License {
+final class License: Loggable {
 
     // Last Documents which passed the integrity checks.
     private var documents: ValidatedDocuments
@@ -45,7 +45,155 @@ final class License {
 }
 
 
-/// License activies
+/// Public API
+extension License: LCPLicense {
+    
+    public var license: LicenseDocument {
+        return documents.license
+    }
+    
+    public var status: StatusDocument? {
+        return documents.status
+    }
+    
+    public var encryptionProfile: String? {
+        return license.encryption.profile
+    }
+    
+    public func decipher(_ data: Data) throws -> Data? {
+        let context = try documents.getContext()
+        return decrypt(data: data, using: context)
+    }
+    
+    var charactersToCopyLeft: Int? {
+        do {
+            if let charactersLeft = try licenses.copiesLeft(for: license.id) {
+                return charactersLeft
+            }
+        } catch {
+            log(.error, error)
+        }
+        return nil
+    }
+    
+    var canCopy: Bool {
+        return (charactersToCopyLeft ?? 1) > 0
+    }
+    
+    func copy(_ text: String) -> String? {
+        guard var charactersLeft = charactersToCopyLeft else {
+            return text
+        }
+        guard charactersLeft > 0 else {
+            return nil
+        }
+        
+        var text = text
+        if text.count > charactersLeft {
+            // Truncates the text to the amount of characters left.
+            let endIndex = text.index(text.startIndex, offsetBy: charactersLeft)
+            text = String(text[..<endIndex])
+        }
+        
+        do {
+            charactersLeft = max(0, charactersLeft - text.count)
+            try licenses.setCopiesLeft(charactersLeft, for: license.id)
+        } catch {
+            log(.error, error)
+        }
+        
+        return text
+    }
+    
+    var pagesToPrintLeft: Int? {
+        do {
+            if let pagesLeft = try licenses.printsLeft(for: license.id) {
+                return pagesLeft
+            }
+        } catch {
+            log(.error, error)
+        }
+        return nil
+    }
+    
+    var canPrint: Bool {
+        return (pagesToPrintLeft ?? 1) > 0
+    }
+    
+    func print(pagesCount: Int) -> Bool {
+        guard var pagesLeft = pagesToPrintLeft else {
+            return true
+        }
+        guard pagesLeft >= pagesCount else {
+            return false
+        }
+        
+        do {
+            pagesLeft = max(0, pagesLeft - pagesCount)
+            try licenses.setPrintsLeft(pagesLeft, for: license.id)
+        } catch {
+            log(.error, error)
+        }
+        return true
+    }
+    
+    var canRenewLoan: Bool {
+        return status?.link(for: .renew) != nil
+    }
+    
+    var maxRenewDate: Date? {
+        return status?.potentialRights?.end
+    }
+    
+    func renewLoan(to end: Date?, completion: @escaping (LCPError?) -> Void) {
+        func checkHTTPStatus(status: Int) throws {
+            switch status {
+            case 200:
+                break
+            case 400:
+                throw RenewError.renewFailed
+            case 403:
+                throw RenewError.invalidRenewalPeriod(maxRenewDate: maxRenewDate)
+            default:
+                throw RenewError.unexpectedServerError
+            }
+        }
+        
+        var params: [String: CustomStringConvertible] = [:]
+        if let end = end {
+            params["end"] = end
+        }
+        
+        callLSDInteraction(.renew, with: params, checkHTTPStatus: checkHTTPStatus)
+            .resolve(LCPError.wrap(completion))
+    }
+    
+    var canReturnPublication: Bool {
+        return status?.link(for: .return) != nil
+    }
+    
+    func returnPublication(completion: @escaping (LCPError?) -> Void) {
+        func checkHTTPSTatus(status: Int) throws {
+            switch status {
+            case 200:
+                break
+            case 400:
+                throw ReturnError.returnFailed
+            case 403:
+                throw ReturnError.alreadyReturnedOrExpired
+            default:
+                throw ReturnError.unexpectedServerError
+            }
+        }
+        
+        callLSDInteraction(.return, checkHTTPStatus: checkHTTPSTatus)
+            .resolve(LCPError.wrap(completion))
+    }
+    
+}
+
+
+/// Internal API
 extension License {
 
     /// Downloads the publication and return the path to the downloaded resource.
@@ -134,106 +282,4 @@ extension License {
         .map { _ in () }  // We don't want to forward the Validated Documents
     }
     
-}
-
-
-/// Public API
-extension License: LCPLicense {
-    
-    public var license: LicenseDocument {
-        return documents.license
-    }
-    
-    public var status: StatusDocument? {
-        return documents.status
-    }
-    
-    func remainingQuantity(for right: LCPRight) -> Int? {
-        // FIXME: TODO using database
-        return nil
-    }
-    
-    func consume(_ right: LCPRight, quantity: Int) -> Bool {
-        // FIXME: TODO
-        return true
-    }
-    
-}
-
-
-/// Shared DRM API
-extension License: DRMLicense {
-
-    public var encryptionProfile: String? {
-        return license.encryption.profile
-    }
-    
-    public func decipher(_ data: Data) throws -> Data? {
-        let context = try documents.getContext()
-        return decrypt(data: data, using: context)
-    }
-
-    public var loan: DRMLoan? {
-        return self
-    }
-
-}
-
-
-/// Loan API
-extension License: DRMLoan {
-    
-    var canReturnLicense: Bool {
-        return status?.link(for: .return) != nil
-    }
-    
-    func returnLicense(completion: @escaping (Error?) -> Void) {
-        func checkHTTPSTatus(status: Int) throws {
-            switch status {
-            case 200:
-                return
-            case 400:
-                throw DRMReturnError.returnFailed(message: nil)
-            case 403:
-                throw DRMReturnError.alreadyReturnedOrExpired
-            default:
-                throw DRMReturnError.unexpectedServerError(nil)
-            }
-        }
-        
-        callLSDInteraction(.return, checkHTTPStatus: checkHTTPSTatus)
-            .resolve(completion)
-    }
-    
-    var maxRenewDate: Date? {
-        return status?.potentialRights?.end
-    }
-    
-    var canRenewLicense: Bool {
-        return status?.link(for: .renew) != nil
-    }
-    
-    func renewLicense(to end: Date?, completion: @escaping (Error?) -> Void) {
-        func checkHTTPStatus(status: Int) throws {
-            switch status {
-            case 200:
-                return
-            case 400:
-                throw DRMRenewError.renewFailed(message: nil)
-            case 403:
-                throw DRMRenewError.invalidRenewalPeriod(maxRenewDate: maxRenewDate)
-            default:
-                throw DRMRenewError.unexpectedServerError(nil)
-            }
-        }
-        
-        var params: [String: CustomStringConvertible] = [:]
-        if let end = end {
-            params["end"] = end
-        }
-        
-        callLSDInteraction(.renew, with: params, checkHTTPStatus: checkHTTPStatus)
-            .resolve(completion)
-    }
-
 }
