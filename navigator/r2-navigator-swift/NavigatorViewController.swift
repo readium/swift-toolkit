@@ -14,6 +14,13 @@ import R2Shared
 import WebKit
 import SafariServices
 
+
+public enum NavigatorError: Error {
+    /// The user tried to copy the text selection but the DRM License doesn't allow it.
+    case copyForbidden
+}
+
+
 public protocol NavigatorDelegate: class {
     func middleTapHandler()
     func willExitPublication(documentIndex: Int, progression: Double?)
@@ -23,30 +30,32 @@ public protocol NavigatorDelegate: class {
     func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int)
     func didNavigateViaInternalLinkTap(to documentIndex: Int)
     func didTapExternalUrl(_ : URL)
+
+    /// Displays an error message to the user.
+    func presentError(_ error: NavigatorError)
 }
 
 public extension NavigatorDelegate {
-  func didChangedDocumentPage(currentDocumentIndex: Int) {
-    // optional
-  }
-  
-  func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int) {
-    // optional
-  }
-  func didNavigateViaInternalLinkTap(to documentIndex: Int) {
-    // optional
-  }
-
-  func didTapExternalUrl(_ url: URL) {
-    // optional
-    // TODO following lines have been moved from the original implementation and might need to be revisited at some point
-    let view = SFSafariViewController(url: url)
-
-    UIApplication.shared.keyWindow?.rootViewController?.present(view,
-                                                                animated: true,
-                                                                completion: nil)
-  }
+    func didChangedDocumentPage(currentDocumentIndex: Int) {
+        // optional
+    }
+    
+    func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int) {
+        // optional
+    }
+    
+    func didNavigateViaInternalLinkTap(to documentIndex: Int) {
+        // optional
+    }
+    
+    func didTapExternalUrl(_ url: URL) {
+        // optional
+        // TODO following lines have been moved from the original implementation and might need to be revisited at some point
+        let view = SFSafariViewController(url: url)
+        UIApplication.shared.keyWindow?.rootViewController?.present(view, animated: true, completion: nil)
+    }
 }
+
 
 open class NavigatorViewController: UIViewController {
     private let delegatee: Delegatee!
@@ -288,8 +297,12 @@ extension NavigatorViewController: ViewDelegate {
         delegate?.middleTapHandler()
     }
     
-    var canCopySelection: Bool {
-        return license?.canCopy ?? true
+    func requestCopySelection() -> Bool {
+        let allowed = license?.canCopy ?? true
+        if !allowed {
+            delegate?.presentError(.copyForbidden)
+        }
+        return allowed
     }
     
     func didCopySelection() {

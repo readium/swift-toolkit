@@ -25,7 +25,8 @@ protocol ViewDelegate: class {
     func handleTapOnInternalLink(with href: String)
     func documentPageDidChanged(webview: WebView, currentPage: Int ,totalPage: Int)
     
-    var canCopySelection: Bool { get }
+    /// Returns whether the web view is allowed to copy the text selection to the pasteboard.
+    func requestCopySelection() -> Bool
     func didCopySelection()
 }
 
@@ -186,9 +187,6 @@ final class WebView: WKWebView {
     }
   
     public override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
-        guard action != #selector(copy(_:)) || (viewDelegate?.canCopySelection ?? true) else {
-            return false
-        }
         for editingAction in self.editingActions {
             if action == Selector(editingAction.rawValue) {
                 return true
@@ -205,6 +203,9 @@ final class WebView: WKWebView {
     }
     
     override func copy(_ sender: Any?) {
+        guard viewDelegate?.requestCopySelection() ?? true else {
+            return
+        }
         // We rely on UIPasteboardChanged to notify the copy to the delegate because the WKWebView sets the selection in the UIPasteboard asynchronously
         shouldNotifyCopySelection = true
         super.copy(sender)
