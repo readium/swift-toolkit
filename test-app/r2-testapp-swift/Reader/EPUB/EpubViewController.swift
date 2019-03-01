@@ -33,7 +33,7 @@ class EpubViewController: UIViewController {
     init(publication: Publication, atIndex index: Int, progression: Double?, _ drm: DRM?) {
         self.drm = drm
         stackView = UIStackView(frame: UIScreen.main.bounds)
-        navigator = NavigatorViewController(for: publication, initialIndex: index, initialProgression: progression, editingActions: [.lookup])
+        navigator = NavigatorViewController(for: publication, license: drm?.license, initialIndex: index, initialProgression: progression, editingActions: [.lookup, .copy])
         
         fixedTopBar = BarView()
         fixedBottomBar = BarView()
@@ -270,6 +270,16 @@ extension EpubViewController: NavigatorDelegate {
         // Save current publication's document's progression. 
         // (<=> the position in the readingOrder item)
         userDefaults.set(progression, forKey: "\(publicationIdentifier)-documentProgression")
+    }
+    
+    func presentError(_ error: NavigatorError) {
+        let message: String = {
+            switch error {
+            case .copyForbidden:
+                return "You are not allowed to copy the contents of this publication."
+            }
+        }()
+        moduleDelegate?.presentAlert("Error", message: message, from: self)
     }
 }
 

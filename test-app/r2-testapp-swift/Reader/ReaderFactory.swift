@@ -38,7 +38,7 @@ extension ReaderFactory: DrmManagementTableViewControllerFactory {
     func make(drm: DRM) -> DrmManagementTableViewController {
         let controller =
             storyboards.drm.instantiateViewController(withIdentifier: "DrmManagementTableViewController") as! DrmManagementTableViewController
-        controller.viewModel = DRMViewModel.make(drm: drm)
+        controller.viewModel = DRMViewModel.make(drm: drm, presentingViewController: controller)
         return controller
     }
 }

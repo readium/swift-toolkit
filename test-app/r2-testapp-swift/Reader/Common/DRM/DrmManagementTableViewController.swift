@@ -68,11 +68,7 @@ class DrmManagementTableViewController: UITableViewController {
                                       message: "The provider will receive you query and process it.",
                                       preferredStyle: .alert)
         let confirmButton = UIAlertAction(title: "Confirm", style: .default, handler: { (_) in
-            guard let loan = self.viewModel.license?.loan else {
-                return
-            }
-
-            loan.renewLicense(to: nil) { error in
+            self.viewModel.renewLoan { error in
                 if let error = error {
                     self.infoAlert(title: "Error", message: error.localizedDescription)
                 } else {
@@ -94,10 +90,7 @@ class DrmManagementTableViewController: UITableViewController {
                                       message: "Returning the loan will prevent you from accessing the publication.",
                                       preferredStyle: .alert)
         let confirmButton = UIAlertAction(title: "Confirm", style: .destructive, handler: { (_) in
-            guard let loan = self.viewModel.license?.loan else {
-                return
-            }
-            loan.returnLicense() { error in
+            self.viewModel.returnPublication() { error in
                 if let error = error {
                     self.infoAlert(title: "Error", message: error.localizedDescription)
                 } else {
@@ -123,12 +116,10 @@ class DrmManagementTableViewController: UITableViewController {
         updatedLabel.text = viewModel.updated?.description
         startLabel.text = viewModel.start?.description ?? "-"
         endLabel.text = viewModel.end?.description ?? "-"
-        printsLeftLabel.text = viewModel.printsLeft ?? "unlimited"
-        copiesLeftLabel.text = viewModel.copiesLeft ?? "unlimited"
-        
-        let loan = viewModel.license?.loan
-        renewButton.isEnabled = loan?.canRenewLicense ?? false
-        returnButton.isEnabled = loan?.canReturnLicense ?? false
+        printsLeftLabel.text = viewModel.printsLeft
+        copiesLeftLabel.text = viewModel.copiesLeft
+        renewButton.isEnabled = viewModel.canRenewLoan
+        returnButton.isEnabled = viewModel.canReturnPublication
     }
     
     internal func infoAlert(title: String, message: String) {

@@ -10,28 +10,33 @@
 //
 
 import Foundation
+import UIKit
 import R2Shared
 
 /// Used to display a DRM license's informations
 /// Should be subclassed for specific DRM.
-class DRMViewModel {
+class DRMViewModel: NSObject {
 
     /// Class cluster factory.
     /// Use this instead of regular constructors to create the right DRM view model.
-    static func make(drm: DRM) -> DRMViewModel {
+    static func make(drm: DRM, presentingViewController: UIViewController) -> DRMViewModel {
         #if LCP
         if case .lcp = drm.brand {
-            return LCPViewModel(drm: drm)
+            return LCPViewModel(drm: drm, presentingViewController: presentingViewController)
         }
         #endif
         
-        return DRMViewModel(drm: drm)
+        return DRMViewModel(drm: drm, presentingViewController: presentingViewController)
     }
     
     let drm: DRM
+    
+    /// Host view controller to be used to present any dialog.
+    weak var presentingViewController: UIViewController?
 
-    init(drm: DRM) {
+    init(drm: DRM, presentingViewController: UIViewController) {
         self.drm = drm
+        self.presentingViewController = presentingViewController
     }
     
     var license: DRMLicense? {
@@ -66,12 +71,28 @@ class DRMViewModel {
         return nil
     }
     
-    var copiesLeft: String? {
-        return nil
+    var copiesLeft: String {
+        return "unlimited"
     }
     
-    var printsLeft: String? {
-        return nil
+    var printsLeft: String {
+        return "unlimited"
+    }
+    
+    var canRenewLoan: Bool {
+        return false
+    }
+    
+    func renewLoan(completion: @escaping (Error?) -> Void) {
+        completion(nil)
+    }
+    
+    var canReturnPublication: Bool {
+        return false
+    }
+    
+    func returnPublication(completion: @escaping (Error?) -> Void) {
+        completion(nil)
     }
 
 }
