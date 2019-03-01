@@ -101,7 +101,7 @@ final class ReaderModule: ReaderModuleAPI {
 
 
 extension ReaderModule: ReaderFormatModuleDelegate {
-    
+
     func presentDRM(_ drm: DRM, from viewController: UIViewController) {
         let drmViewController: DrmManagementTableViewController = factory.make(drm: drm)
         let backItem = UIBarButtonItem()
@@ -116,4 +116,12 @@ extension ReaderModule: ReaderFormatModuleDelegate {
         viewController.present(UINavigationController(rootViewController: outlineTableVC), animated: true)
     }
     
+    func presentAlert(_ title: String, message: String, from viewController: UIViewController) {
+        delegate?.presentAlert(title, message: message, from: viewController)
+    }
+    
+    func presentError(_ error: Error?, from viewController: UIViewController) {
+        delegate?.presentError(error, from: viewController)
+    }
+
 }

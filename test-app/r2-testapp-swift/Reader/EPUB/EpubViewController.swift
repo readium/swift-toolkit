@@ -271,6 +271,16 @@ extension EpubViewController: NavigatorDelegate {
         // (<=> the position in the readingOrder item)
         userDefaults.set(progression, forKey: "\(publicationIdentifier)-documentProgression")
     }
+    
+    func presentError(_ error: NavigatorError) {
+        let message: String = {
+            switch error {
+            case .copyForbidden:
+                return "You are not allowed to copy the contents of this publication."
+            }
+        }()
+        moduleDelegate?.presentAlert("Error", message: message, from: self)
+    }
 }
 
 extension EpubViewController: UserSettingsNavigationControllerDelegate {

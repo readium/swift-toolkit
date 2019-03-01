@@ -36,5 +36,8 @@ protocol ReaderFormatModuleDelegate: AnyObject {
     /// Shows the DRM management screen for the given DRM.
     func presentDRM(_ drm: DRM, from viewController: UIViewController)
     
+    func presentAlert(_ title: String, message: String, from viewController: UIViewController)
+    func presentError(_ error: Error?, from viewController: UIViewController)
+    
 }
 
