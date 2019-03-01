@@ -14,6 +14,13 @@ import R2Shared
 import WebKit
 import SafariServices
 
+
+public enum NavigatorError: Error {
+    /// The user tried to copy the text selection but the DRM License doesn't allow it.
+    case copyForbidden
+}
+
+
 public protocol NavigatorDelegate: class {
     func middleTapHandler()
     func willExitPublication(documentIndex: Int, progression: Double?)
@@ -23,30 +30,32 @@ public protocol NavigatorDelegate: class {
     func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int)
     func didNavigateViaInternalLinkTap(to documentIndex: Int)
     func didTapExternalUrl(_ : URL)
+
+    /// Displays an error message to the user.
+    func presentError(_ error: NavigatorError)
 }
 
 public extension NavigatorDelegate {
-  func didChangedDocumentPage(currentDocumentIndex: Int) {
-    // optional
-  }
-  
-  func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int) {
-    // optional
-  }
-  func didNavigateViaInternalLinkTap(to documentIndex: Int) {
-    // optional
-  }
-
-  func didTapExternalUrl(_ url: URL) {
-    // optional
-    // TODO following lines have been moved from the original implementation and might need to be revisited at some point
-    let view = SFSafariViewController(url: url)
-
-    UIApplication.shared.keyWindow?.rootViewController?.present(view,
-                                                                animated: true,
-                                                                completion: nil)
-  }
+    func didChangedDocumentPage(currentDocumentIndex: Int) {
+        // optional
+    }
+    
+    func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int) {
+        // optional
+    }
+    
+    func didNavigateViaInternalLinkTap(to documentIndex: Int) {
+        // optional
+    }
+    
+    func didTapExternalUrl(_ url: URL) {
+        // optional
+        // TODO following lines have been moved from the original implementation and might need to be revisited at some point
+        let view = SFSafariViewController(url: url)
+        UIApplication.shared.keyWindow?.rootViewController?.present(view, animated: true, completion: nil)
+    }
 }
+
 
 open class NavigatorViewController: UIViewController {
     private let delegatee: Delegatee!
@@ -55,6 +64,7 @@ open class NavigatorViewController: UIViewController {
     fileprivate var initialProgression: Double?
     //
     public let publication: Publication
+    public let license: DRMLicense?
     public weak var delegate: NavigatorDelegate?
 
     public let pageTransition: PageTransition
@@ -64,8 +74,9 @@ open class NavigatorViewController: UIViewController {
     /// - Parameters:
     ///   - publication: The publication.
     ///   - initialIndex: Inital index of -1 will open the publication's at the end.
-    public init(for publication: Publication, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = []) {
+    public init(for publication: Publication, license: DRMLicense? = nil, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = []) {
         self.publication = publication
+        self.license = license
         self.initialProgression = initialProgression
         self.pageTransition = pageTransition
         self.disableDragAndDrop = disableDragAndDrop
@@ -284,6 +295,35 @@ extension NavigatorViewController: ViewDelegate {
 
     internal func handleCenterTap() {
         delegate?.middleTapHandler()
+    }
+    
+    func requestCopySelection() -> Bool {
+        let allowed = license?.canCopy ?? true
+        if !allowed {
+            delegate?.presentError(.copyForbidden)
+        }
+        return allowed
+    }
+    
+    func didCopySelection() {
+        let pasteboard = UIPasteboard.general
+        
+        guard let license = license else {
+            return
+        }
+        guard license.canCopy else {
+            pasteboard.items = []
+            return
+        }
+        guard let text = pasteboard.string else {
+            return
+        }
+        
+        let authorizedText = license.copy(text)
+        if authorizedText != text {
+            // We overwrite the pasteboard only if the authorized text is different to avoid erasing formatting
+            pasteboard.string = authorizedText
+        }
     }
 
 }
