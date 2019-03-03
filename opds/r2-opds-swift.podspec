@@ -8,11 +8,11 @@
 
 Pod::Spec.new do |s|
 
- s.name          = "R2OPDS"
+ s.name          = "ReadiumOPDS"
   s.version      = "1.0.3"
-  s.summary      = "R2 OPDS"
+  s.summary      = "Readium OPDS"
   s.description  = <<-DESC
-            Shared R2 OPDS
+            Shared Readium OPDS
                    DESC
   s.homepage     = "http://readium.github.io"
   s.license      = "BSD 3-Clause License"
