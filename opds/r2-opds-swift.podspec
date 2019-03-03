@@ -9,7 +9,7 @@
 Pod::Spec.new do |s|
 
  s.name          = "R2OPDS"
-  s.version      = "1.0.5"
+  s.version      = "1.0.3"
   s.summary      = "R2 OPDS"
   s.description  = <<-DESC
             Shared R2 OPDS
