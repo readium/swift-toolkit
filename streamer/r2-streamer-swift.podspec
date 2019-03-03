@@ -21,7 +21,7 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = "9.0"
   s.source       = { :git => "https://github.com/readium/r2-streamer-swift.git", :branch => "develop" }
   s.source_files  = "r2-streamer-swift/**/*"
-  s.exclude_files = "**/Info*.plist"
+  s.exclude_files = "r2-streamer-swift/Info*.plist"
 
   s.frameworks = 'R2Shared'
 
