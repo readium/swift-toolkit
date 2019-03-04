@@ -164,7 +164,7 @@ final class WebView: WKWebView {
         
         scrollView.alpha = 0
         
-        NotificationCenter.default.addObserver(self, selector: #selector(pasteboardDidChange), name: .UIPasteboardChanged, object: nil)
+      NotificationCenter.default.addObserver(self, selector: #selector(pasteboardDidChange), name: UIPasteboard.changedNotification, object: nil)
     }
 
     @available(*, unavailable)
@@ -498,12 +498,12 @@ private extension WebView {
         }
     }
     
-    func createActivityIndicator(style: UIActivityIndicatorViewStyle) {
+    func createActivityIndicator(style: UIActivityIndicatorView.Style) {
         if pageTransition == .none { return }
         if documentLoaded { return }
-        if activityIndicatorView?.activityIndicatorViewStyle == style { return }
+      if activityIndicatorView?.style == style { return }
         activityIndicatorView?.removeFromSuperview()
-        let view = UIActivityIndicatorView(activityIndicatorStyle: style)
+      let view = UIActivityIndicatorView(style: style)
         view.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(view)
         view.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
