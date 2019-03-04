@@ -15,6 +15,8 @@
                 <outlet property="hintLabel" destination="bM8-E5-8Oh" id="oAd-kM-tLP"/>
                 <outlet property="messageLabel" destination="OPQ-YI-Mnv" id="qHd-iN-fnX"/>
                 <outlet property="passphraseField" destination="cyG-aj-Lv1" id="CRB-38-sCX"/>
+                <outlet property="scrollView" destination="4ch-z2-s2d" id="Qw6-fh-3er"/>
+                <outlet property="supportButton" destination="Q3C-o5-Rb5" id="VpV-Hh-TXO"/>
                 <outlet property="titleLabel" destination="OTG-yn-gMU" id="ZsI-KT-pRt"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
             </connections>
@@ -33,7 +35,7 @@
                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dJF-9a-QVp">
                                     <rect key="frame" x="487" y="300" width="151" height="28"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="13"/>
-                                    <state key="normal" title="Forgot Your Passphrase?"/>
+                                    <state key="normal" title="Forgot your passphrase?"/>
                                     <connections>
                                         <action selector="showHintLink:" destination="-1" eventType="touchUpInside" id="Dpp-rc-sz0"/>
                                     </connections>
@@ -75,15 +77,22 @@
                                 <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="3Np-9U-XE3" userLabel="Buttons">
                                     <rect key="frame" x="20" y="449" width="618" height="30"/>
                                     <subviews>
+                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Q3C-o5-Rb5">
+                                            <rect key="frame" x="0.0" y="0.0" width="206" height="30"/>
+                                            <state key="normal" title="Support"/>
+                                            <connections>
+                                                <action selector="showSupportLink:" destination="-1" eventType="touchUpInside" id="1kg-zo-OH0"/>
+                                            </connections>
+                                        </button>
                                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="YD2-UI-NDi">
-                                            <rect key="frame" x="0.0" y="0.0" width="309" height="30"/>
+                                            <rect key="frame" x="206" y="0.0" width="206" height="30"/>
                                             <state key="normal" title="Cancel"/>
                                             <connections>
                                                 <action selector="cancel:" destination="-1" eventType="touchUpInside" id="NwK-SP-HN9"/>
                                             </connections>
                                         </button>
                                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jit-MK-J0T">
-                                            <rect key="frame" x="309" y="0.0" width="309" height="30"/>
+                                            <rect key="frame" x="412" y="0.0" width="206" height="30"/>
                                             <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                             <state key="normal" title="OK"/>
                                             <connections>
@@ -124,9 +133,9 @@
                         <constraint firstItem="Hve-JO-2vR" firstAttribute="centerY" secondItem="4ch-z2-s2d" secondAttribute="centerY" id="8Ew-Mb-24j"/>
                         <constraint firstItem="Hve-JO-2vR" firstAttribute="width" secondItem="4ch-z2-s2d" secondAttribute="width" id="G5o-BX-EPc"/>
                         <constraint firstItem="Hve-JO-2vR" firstAttribute="height" secondItem="4ch-z2-s2d" secondAttribute="height" id="XJ1-YZ-LQB"/>
-                        <constraint firstAttribute="trailing" secondItem="Hve-JO-2vR" secondAttribute="trailing" constant="20" id="loL-dZ-7Dj"/>
+                        <constraint firstAttribute="trailing" secondItem="Hve-JO-2vR" secondAttribute="trailing" id="loL-dZ-7Dj"/>
                         <constraint firstItem="Hve-JO-2vR" firstAttribute="centerX" secondItem="4ch-z2-s2d" secondAttribute="centerX" id="m3p-kI-oSZ"/>
-                        <constraint firstAttribute="bottom" secondItem="Hve-JO-2vR" secondAttribute="bottom" constant="20" id="z7x-lg-KBf"/>
+                        <constraint firstAttribute="bottom" secondItem="Hve-JO-2vR" secondAttribute="bottom" id="z7x-lg-KBf"/>
                     </constraints>
                 </scrollView>
             </subviews>

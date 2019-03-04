@@ -9,6 +9,7 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
+import SafariServices
 import UIKit
 import ReadiumLCP
 
@@ -24,22 +25,40 @@ class LCPAuthenticationViewController: UIViewController {
     
     weak var delegate: LCPAuthenticationDelegate?
     
+    @IBOutlet weak var scrollView: UIScrollView!
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var hintLabel: UILabel!
     @IBOutlet weak var messageLabel: UILabel!
     @IBOutlet weak var passphraseField: UITextField!
-
+    @IBOutlet weak var supportButton: UIButton!
+    
     private let license: LCPAuthenticatedLicense
     private let reason: LCPAuthenticationReason
+    private let supportLinks: [(Link, URL)]
     
     init(license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason) {
         self.license = license
         self.reason = reason
+        self.supportLinks = license.supportLinks
+            .compactMap { link -> (Link, URL)? in
+                guard let url = URL(string: link.href), UIApplication.shared.canOpenURL(url) else {
+                    return nil
+                }
+                return (link, url)
+            }
+
         super.init(nibName: nil, bundle: nil)
+
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillChangeFrame(_:)), name: .UIKeyboardWillChangeFrame, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillChangeFrame(_:)), name: .UIKeyboardWillHide, object: nil)
     }
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     override func viewDidLoad() {
@@ -50,6 +69,8 @@ class LCPAuthenticationViewController: UIViewController {
             provider = providerHost
         }
         
+        supportButton.isHidden = supportLinks.isEmpty
+
         switch reason {
         case .passphraseNotFound:
             titleLabel.text = "Passphrase Required"
@@ -61,11 +82,6 @@ class LCPAuthenticationViewController: UIViewController {
         
         messageLabel.text = "In order to open it, we need to know the passphrase required by: \(provider).\nTo help you remember it, the following hint is available."
         hintLabel.text = license.hint
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        passphraseField.becomeFirstResponder()
     }
 
     @IBAction func authenticate(_ sender: Any) {
@@ -79,11 +95,95 @@ class LCPAuthenticationViewController: UIViewController {
         dismiss(animated: true)
     }
     
+    @IBAction func showSupportLink(_ sender: Any) {
+        guard !supportLinks.isEmpty else {
+            return
+        }
+        
+        func open(_ url: URL) {
+            if #available(iOS 10, *) {
+                UIApplication.shared.open(url)
+            } else {
+                UIApplication.shared.openURL(url)
+            }
+        }
+        
+        if let (_, url) = supportLinks.first, supportLinks.count == 1 {
+            open(url)
+            return
+        }
+        
+        let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        for (link, url) in supportLinks {
+            let title: String = {
+                if let title = link.title {
+                    return title
+                }
+                if let scheme = url.scheme {
+                    switch scheme {
+                    case "http", "https":
+                        return "Website"
+                    case "tel":
+                        return "Phone"
+                    case "mailto":
+                        return "Mail"
+                    default:
+                        break
+                    }
+                }
+                return "Support"
+            }()
+            
+            let action = UIAlertAction(title: title, style: .default) { _ in
+                open(url)
+            }
+            alert.addAction(action)
+        }
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
+        if let popover = alert.popoverPresentationController, let sender = sender as? UIView {
+            popover.sourceView = sender
+            var rect = sender.bounds
+            rect.origin.x = sender.center.x - 1
+            rect.size.width = 2
+            popover.sourceRect = rect
+        }
+        present(alert, animated: true)
+    }
+    
     @IBAction func showHintLink(_ sender: Any) {
         guard let href = license.hintLink?.href, let url = URL(string: href) else {
             return
         }
-        UIApplication.shared.openURL(url)
+        
+        let browser = SFSafariViewController(url: url)
+        browser.modalPresentationStyle = .currentContext
+        present(browser, animated: true)
+    }
+    
+    /// Makes sure the form contents in scrollable when the keyboard is visible.
+    @objc func keyboardWillChangeFrame(_ note: Notification) {
+        guard let window = UIApplication.shared.keyWindow, let scrollView = scrollView, let scrollViewSuperview = scrollView.superview, let info = note.userInfo else {
+            return
+        }
+
+        var keyboardHeight: CGFloat = 0
+        if note.name == .UIKeyboardWillChangeFrame {
+            guard let keyboardFrame = info[UIKeyboardFrameEndUserInfoKey] as? CGRect else {
+                return
+            }
+            keyboardHeight = keyboardFrame.height
+        }
+        
+        // Calculates the scroll view offsets in the coordinate space of of our window
+        let scrollViewFrame = scrollViewSuperview.convert(scrollView.frame, to: window)
+
+        var contentInset = scrollView.contentInset
+        // Bottom inset is the part of keyboard that is covering the tableView
+        contentInset.bottom = keyboardHeight - (window.frame.height - scrollViewFrame.height - scrollViewFrame.origin.y) + 16
+
+        self.scrollView.contentInset = contentInset
+        self.scrollView.scrollIndicatorInsets = contentInset
     }
 
 }
