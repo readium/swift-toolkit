@@ -21,12 +21,16 @@ public struct Rights {
     public let start: Date?
     /// Date and time when the license ends.
     public let end: Date?
+    /// Implementor-specific rights extensions. Each extension is identified by an URI.
+    public let extensions: [String: Any]
 
     init(json: [String: Any]) throws {
-        self.print = json["print"] as? Int
-        self.copy = json["copy"] as? Int
-        self.start = (json["start"] as? String)?.dateFromISO8601
-        self.end = (json["end"] as? String)?.dateFromISO8601
+        var json = json
+        self.print = json.removeValue(forKey: "print") as? Int
+        self.copy = json.removeValue(forKey: "copy") as? Int
+        self.start = (json.removeValue(forKey: "start") as? String)?.dateFromISO8601
+        self.end = (json.removeValue(forKey: "end") as? String)?.dateFromISO8601
+        self.extensions = json
     }
     
 }

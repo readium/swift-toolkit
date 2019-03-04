@@ -90,6 +90,11 @@ public struct StatusDocument {
 
     /// Returns the first link containing the given rel.
     public func link(for rel: Rel) -> Link? {
+        return links[rel.rawValue].first
+    }
+
+    /// Returns all the links containing the given rel.
+    public func links(for rel: Rel) -> [Link] {
         return links[rel.rawValue]
     }
 

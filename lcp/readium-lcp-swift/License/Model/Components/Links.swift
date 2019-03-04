@@ -19,11 +19,9 @@ public struct Links {
         links = try json.map(Link.init)
     }
 
-    /// Returns the first link containing the given rel.
-    /// - Throws: `LCPError.linkNotFound` if no link is found with this rel.
-    /// - Returns: The first link containing the rel.
-    public subscript(rel: String) -> Link? {
-        return links.first { $0.rel.contains(rel) }
+    /// Returns all the links with the given rel.
+    public subscript(rel: String) -> [Link] {
+        return links.filter { $0.rel.contains(rel) }
     }
     
 }

@@ -18,14 +18,18 @@ public struct User {
     public let email: String?
     /// The User’s name.
     public let name: String?
+    /// Implementor-specific extensions. Each extension is identified by an URI.
+    public let extensions: [String: Any]
     /// A list of which user object values are encrypted in this License Document.
     public let encrypted: [String]
 
     init(json: [String : Any]) throws {
-        self.id = json["id"] as? String
-        self.email = json["email"] as? String
-        self.name = json["name"] as? String
-        self.encrypted = (json["encrypted"] as? [String]) ?? []
+        var json = json
+        self.id = json.removeValue(forKey: "id") as? String
+        self.email = json.removeValue(forKey: "email") as? String
+        self.name = json.removeValue(forKey: "name") as? String
+        self.encrypted = (json.removeValue(forKey: "encrypted") as? [String]) ?? []
+        self.extensions = json
     }
     
 }
