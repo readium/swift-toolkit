@@ -1,5 +1,5 @@
 #
-#  Be sure to run `pod spec lint r2-opds-swift.podspec' to ensure this is a
+#  Be sure to run `pod spec lint r2-streamer-swift.podspec' to ensure this is a
 #  valid spec and to remove all comments including this before submitting the spec.
 #
 #  To learn more about Podspec attributes see http://docs.cocoapods.org/specification.html
@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
 
- s.name          = "ReadiumOPDS"
+  s.name         = "ReadiumOPDS"
   s.version      = "1.0.3"
   s.summary      = "Readium OPDS"
   s.description  = <<-DESC
@@ -20,6 +20,15 @@ Pod::Spec.new do |s|
   s.platform     = :ios
   s.ios.deployment_target = "9.0"
   s.source       = { :git => "https://github.com/readium/r2-opds-swift.git", :branch => "develop" }
-  s.source_files  = "r2-opds-swift/**/*"
+  s.source_files  = "**/*.{m,h,swift}"
+  s.exclude_files = ["**/Info*.plist","**/Carthage/*"]
+  s.preserve_paths      = 'ReadiumOPDS.framework'
+  s.vendored_frameworks = 'ReadiumOPDS.framework'
+  s.xcconfig            = { 'FRAMEWORK_SEARCH_PATHS' => '"$(PODS_ROOT)/ReadiumOPDS/**"' ,
+  'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2'}
+
+
+  s.dependency 'R2Shared'
+  s.dependency 'Fuzi'
 
 end
