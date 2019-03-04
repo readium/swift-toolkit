@@ -97,7 +97,7 @@ class OPDSRootTableViewController: UITableViewController {
             
             if feed.facets.count > 0 {
                 let filterButton = UIBarButtonItem(title: "Filter",
-                                                   style: UIBarButtonItemStyle.plain,
+                                                   style: UIBarButtonItem.Style.plain,
                                                    target: self,
                                                    action: #selector(OPDSRootTableViewController.filterMenuClicked))
                 navigationItem.rightBarButtonItem = filterButton

@@ -89,13 +89,13 @@ extension PublicationCollectionViewCell {
     /// Flip the PublicationCollectionViewCell and display a user menu.
     func flipMenu() {
         
-        var transitionOptions: UIViewAnimationOptions!
+        var transitionOptions: UIView.AnimationOptions!
         
         if isMenuDisplayed {
-            transitionOptions = UIViewAnimationOptions.transitionFlipFromLeft
+            transitionOptions = UIView.AnimationOptions.transitionFlipFromLeft
             delegate?.lastFlippedCell = nil
         } else {
-            transitionOptions = UIViewAnimationOptions.transitionFlipFromRight
+            transitionOptions = UIView.AnimationOptions.transitionFlipFromRight
             if delegate?.lastFlippedCell != self {
                 delegate?.cellFlipped(self)
             }
