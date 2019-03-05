@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		03BF0132221DAFDA0051050B /* EditingAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03BF0131221DAFDA0051050B /* EditingAction.swift */; };
 		1D3A2F56218C85A100108B31 /* PageTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3A2F55218C85A100108B31 /* PageTransition.swift */; };
+		CA0B3AC3222EE555006D9363 /* PDFNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */; };
 		F341C2711F506ED5005E6758 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F341C2701F506ED5005E6758 /* UserSettings.swift */; };
 		F3E7D3D41F4D83B000DF166D /* r2-navigator-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F3E7D3DE1F4D845B00DF166D /* BinaryLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3DD1F4D845B00DF166D /* BinaryLocation.swift */; };
@@ -23,6 +24,7 @@
 /* Begin PBXFileReference section */
 		03BF0131221DAFDA0051050B /* EditingAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditingAction.swift; sourceTree = "<group>"; };
 		1D3A2F55218C85A100108B31 /* PageTransition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageTransition.swift; sourceTree = "<group>"; };
+		CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFNavigatorViewController.swift; sourceTree = "<group>"; };
 		F341C2701F506ED5005E6758 /* UserSettings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
 		F3B2C86C1F603E79007601E4 /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
 		F3E7D3C31F4D83B000DF166D /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -51,6 +53,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		CA0B3AC1222EE530006D9363 /* PDF */ = {
+			isa = PBXGroup;
+			children = (
+				CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */,
+			);
+			path = PDF;
+			sourceTree = "<group>";
+		};
 		F3E7D3B91F4D83B000DF166D = {
 			isa = PBXGroup;
 			children = (
@@ -74,6 +84,7 @@
 			children = (
 				F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */,
 				F3E7D3C71F4D83B000DF166D /* Info.plist */,
+				CA0B3AC1222EE530006D9363 /* PDF */,
 				F3E7D42C1F4EE0DB00DF166D /* CBZ */,
 				F3E7D42B1F4EE0D200DF166D /* EPUB */,
 			);
@@ -204,6 +215,7 @@
 			files = (
 				F3E7D3E21F4D84A000DF166D /* NavigatorViewController.swift in Sources */,
 				03BF0132221DAFDA0051050B /* EditingAction.swift in Sources */,
+				CA0B3AC3222EE555006D9363 /* PDFNavigatorViewController.swift in Sources */,
 				F3E7D3E61F4D84EF00DF166D /* WebView.swift in Sources */,
 				F3E7D42E1F4EE0FE00DF166D /* CbzNavigatorViewController.swift in Sources */,
 				F3E7D3E01F4D847E00DF166D /* Disjunction.swift in Sources */,
