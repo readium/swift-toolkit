@@ -59,11 +59,6 @@ public enum EpubParserError: Error {
     }
 }
 
-/// `Publication` and the associated `Container`.
-public typealias PubBox = (publication: Publication, associatedContainer: Container)
-/// A callback taking care of the
-public typealias PubParsingCallback = (DRM?) throws -> Void
-
 extension EpubParser: Loggable {}
 
 /// An EPUB container parser that extracts the information from the relevant
@@ -86,13 +81,6 @@ final public class EpubParser {
         // Generate the `Container` for `fileAtPath`
         var container = try generateContainerFrom(fileAtPath: path)
 
-        // Retrieve container.xml data from the Container
-        guard let data = try? container.data(relativePath: EpubConstant.containerDotXmlPath) else {
-            throw EpubParserError.missingFile(path: EpubConstant.containerDotXmlPath)
-        }
-        container.rootFile.mimetype = EpubConstant.mimetype
-        // Parse the container.xml Data and fill the ContainerMetadata objectof the container
-        container.rootFile.rootFilePath = try getRootFilePath(from: data)
         // Get the package.opf XML document from the container.
         let documentData = try container.data(relativePath: container.rootFile.rootFilePath)
         let document = try AEXMLDocument(xml: documentData)
@@ -103,19 +91,17 @@ final public class EpubParser {
                                                  with: container.rootFile.rootFilePath,
                                                  and: epubVersion)
         
-        if let updatedDate = container.attribute?[FileAttributeKey.modificationDate] as? Date {
-            publication.updatedDate = updatedDate
-        }
- 
+        publication.updatedDate = container.modificationDate
+
         // Check if the publication is DRM protected.
         let drm = scanForDRM(in: container)
         // Parse the META-INF/Encryption.xml.
         parseEncryption(from: container, to: &publication, drm)
 
-        /// The folowing resources could be encrypted, hence we use the fetcher.
-        let fetcher = try Fetcher.init(publication: publication, container: container)
-
         func parseRemainingResource(protectedBy drm: DRM?) throws {
+            /// The folowing resources could be encrypted, hence we use the fetcher.
+            let fetcher = try Fetcher(publication: publication, container: container)
+
             container.drm = drm
 
             fillEncryptionProfile(forLinksIn: publication, using: drm)
@@ -385,22 +371,27 @@ final public class EpubParser {
     /// - Throws: `EpubParserError.missingFile`.
     static fileprivate func generateContainerFrom(fileAtPath path: String) throws -> Container {
         var isDirectory: ObjCBool = false
-        var container: Container?
-
         guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) else {
             throw EpubParserError.missingFile(path: path)
         }
+        
+        var container: Container?
         if isDirectory.boolValue {
-            container = ContainerEpubDirectory(directory: path)
+            container = DirectoryContainer(directory: path, mimetype: EpubConstant.mimetype)
         } else {
-            container = ContainerEpub(path: path)
+            container = ArchiveContainer(path: path, mimetype: EpubConstant.mimetype)
         }
         
-        container?.attribute = try? FileManager.default.attributesOfItem(atPath: path)
-        
-        guard let containerUnwrapped = container else {
+        guard var containerUnwrapped = container else {
             throw EpubParserError.missingFile(path: path)
         }
+        
+        // Retrieve container.xml data from the Container
+        guard let data = try? containerUnwrapped.data(relativePath: EpubConstant.containerDotXmlPath) else {
+            throw EpubParserError.missingFile(path: EpubConstant.containerDotXmlPath)
+        }
+        containerUnwrapped.rootFile.rootFilePath = try getRootFilePath(from: data)
+        
         return containerUnwrapped
     }
 

@@ -42,22 +42,18 @@ public class CbzParser {
     /// - Throws: Throws `CbzParserError.missingFile`.
     public func parse(fileAtPath path: String) throws -> PubBox {
         // Generate the `Container` for `fileAtPath`.
-        let container: CbzContainer = try generateContainerFrom(fileAtPath: path)
+        let container: CBZContainer = try generateContainerFrom(fileAtPath: path)
         let publication = Publication()
         
-        if let updatedDate = container.attribute?[FileAttributeKey.modificationDate] as? Date {
-            publication.updatedDate = updatedDate
-        }
-
+        publication.updatedDate = container.modificationDate
         publication.metadata.multilangTitle = title(from: path)
         publication.metadata.identifier = path
         publication.internalData["type"] = "cbz"
         publication.internalData["rootfile"] = container.rootFile.rootFilePath
 
-        let files = container.getFilesList()
         var hasCoverLink = false
 
-        for filename in files {
+        for filename in container.files {
             let link = Link()
 
             link.typeLink = getMediaType(from: filename).rawValue
@@ -90,25 +86,23 @@ public class CbzParser {
     }
 
     /// Generate a Container instance for the file at `fileAtPath`. It handles
-    /// 2 cases, epub files and unwrapped epub directories.
+    /// 2 cases, CBZ files and CBZ epub directories.
     ///
     /// - Parameter path: The absolute path of the file.
     /// - Returns: The generated Container.
     /// - Throws: `EpubParserError.missingFile`.
-    fileprivate func generateContainerFrom(fileAtPath path: String) throws -> CbzContainer {
-        var container: CbzContainer?
+    fileprivate func generateContainerFrom(fileAtPath path: String) throws -> CBZContainer {
+        var container: CBZContainer?
         var isDirectory: ObjCBool = false
 
         guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) else {
             throw CbzParserError.missingFile(path: path)
         }
         if isDirectory.boolValue {
-            container = ContainerCbzDirectory(directory: path)
+            container = CBZDirectoryContainer(directory: path)
         } else {
-            container = ContainerCbz(path: path)
+            container = CBZArchiveContainer(path: path)
         }
-        
-        container?.attribute = try? FileManager.default.attributesOfItem(atPath: path)
         
         guard let containerUnwrapped = container else {
             throw CbzParserError.missingFile(path: path)

@@ -27,22 +27,21 @@
 		59501E201E2FB2AD00D1B4BF /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E1F1E2FB2AD00D1B4BF /* libz.tbd */; };
 		AEBE1F3D20EF903700418960 /* fonts in Resources */ = {isa = PBXBuildFile; fileRef = AEBE1F3C20EF903700418960 /* fonts */; };
 		CA2AE324221C1F5E008BD18F /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE323221C1F5E008BD18F /* Logger.swift */; };
+		CAF8F035222EB570009B47D8 /* DirectoryContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF8F034222EB570009B47D8 /* DirectoryContainer.swift */; };
+		CAF8F037222EB58C009B47D8 /* ArchiveContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF8F036222EB58C009B47D8 /* ArchiveContainer.swift */; };
+		CAF8F03B222EB8F5009B47D8 /* CBZContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF8F03A222EB8F5009B47D8 /* CBZContainer.swift */; };
 		F300FA371F8E1D7700442332 /* DrmDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F300FA361F8E1D7700442332 /* DrmDecoder.swift */; };
 		F302CA271F0CD32800835B22 /* DataExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F302CA261F0CD32800835B22 /* DataExtension.swift */; };
 		F3098E711E7BFF87002358A1 /* NCXParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3098E701E7BFF87002358A1 /* NCXParser.swift */; };
 		F3098E731E7BFF9B002358A1 /* NavigationDocumentParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3098E721E7BFF9B002358A1 /* NavigationDocumentParser.swift */; };
 		F3098E751E7C02AD002358A1 /* MetadataParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3098E741E7C02AD002358A1 /* MetadataParser.swift */; };
 		F34510C21E938CAE0071C12C /* PublicationParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34510C11E938CAE0071C12C /* PublicationParser.swift */; };
-		F351DB721E54B6DB00D84BDF /* ContainerEpubDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = F351DB711E54B6DB00D84BDF /* ContainerEpubDirectory.swift */; };
-		F351DB741E54B71A00D84BDF /* ContainerEpub.swift in Sources */ = {isa = PBXBuildFile; fileRef = F351DB731E54B71A00D84BDF /* ContainerEpub.swift */; };
 		F36B18F41E64638E005E22B4 /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F36B18F31E64638E005E22B4 /* StringExtension.swift */; };
 		F3B8F01C1E9CD76A0052D64B /* SMILParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B8F01B1E9CD76A0052D64B /* SMILParser.swift */; };
 		F3B8F0221E9E244B0052D64B /* EncryptionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B8F0211E9E244B0052D64B /* EncryptionParser.swift */; };
 		F3B8F0241E9E62A50052D64B /* ContentFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B8F0231E9E62A50052D64B /* ContentFilter.swift */; };
 		F3D434241E8E9DA5008C379E /* CbzParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D434231E8E9DA5008C379E /* CbzParser.swift */; };
-		F3D434261E8E9ED0008C379E /* ContainerCbz.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D434251E8E9ED0008C379E /* ContainerCbz.swift */; };
 		F3DEE6E21E5C5A53007FE63D /* OPFParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */; };
-		F3E0214F1E9277A80094CFF7 /* ContainerCbzDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E0214E1E9277A80094CFF7 /* ContainerCbzDirectory.swift */; };
 		F3E7D4251F4ED05F00DF166D /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D4241F4ED05F00DF166D /* R2Shared.framework */; };
 		F3ED92D61E9F702E00E15C8F /* FontDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3ED92D51E9F702E00E15C8F /* FontDecoder.swift */; };
 		F3ED92DA1EA0AF0000E15C8F /* DataInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3ED92D91EA0AF0000E15C8F /* DataInputStream.swift */; };
@@ -74,28 +73,28 @@
 		59501E1F1E2FB2AD00D1B4BF /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		AEBE1F3C20EF903700418960 /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = fonts; sourceTree = "<group>"; };
 		CA2AE323221C1F5E008BD18F /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		CAF8F030222EA8F9009B47D8 /* PDFParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PDFParser.swift; path = Sources/parser/PDFParser.swift; sourceTree = SOURCE_ROOT; };
+		CAF8F034222EB570009B47D8 /* DirectoryContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryContainer.swift; sourceTree = "<group>"; };
+		CAF8F036222EB58C009B47D8 /* ArchiveContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveContainer.swift; sourceTree = "<group>"; };
+		CAF8F03A222EB8F5009B47D8 /* CBZContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBZContainer.swift; sourceTree = "<group>"; };
 		F300FA361F8E1D7700442332 /* DrmDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DrmDecoder.swift; path = Sources/fetcher/DrmDecoder.swift; sourceTree = SOURCE_ROOT; };
 		F302CA261F0CD32800835B22 /* DataExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataExtension.swift; sourceTree = "<group>"; };
-		F3098E701E7BFF87002358A1 /* NCXParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = NCXParser.swift; path = Sources/parser/NCXParser.swift; sourceTree = SOURCE_ROOT; };
+		F3098E701E7BFF87002358A1 /* NCXParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = NCXParser.swift; path = Sources/Parser/EPUB/NCXParser.swift; sourceTree = SOURCE_ROOT; };
 		F3098E721E7BFF9B002358A1 /* NavigationDocumentParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavigationDocumentParser.swift; sourceTree = "<group>"; };
 		F3098E741E7C02AD002358A1 /* MetadataParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MetadataParser.swift; sourceTree = "<group>"; };
 		F309BBDC1E696F660002F800 /* PublicationServerTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationServerTest.swift; sourceTree = "<group>"; };
 		F31D64D31E811EF5007BEA81 /* SmokeTestReferenceManifest.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = SmokeTestReferenceManifest.json; sourceTree = "<group>"; };
 		F3292B031EA5F452004848DE /* FontDeobfuscationTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FontDeobfuscationTest.swift; sourceTree = "<group>"; };
 		F34510C11E938CAE0071C12C /* PublicationParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = PublicationParser.swift; path = Sources/parser/PublicationParser.swift; sourceTree = SOURCE_ROOT; };
-		F351DB711E54B6DB00D84BDF /* ContainerEpubDirectory.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContainerEpubDirectory.swift; path = Sources/model/ContainerEpubDirectory.swift; sourceTree = SOURCE_ROOT; };
-		F351DB731E54B71A00D84BDF /* ContainerEpub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContainerEpub.swift; sourceTree = "<group>"; };
 		F36B18F31E64638E005E22B4 /* StringExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		F37B63541E6DC44300C6A3AC /* SampleGenerator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SampleGenerator.swift; sourceTree = "<group>"; };
 		F3B8F01B1E9CD76A0052D64B /* SMILParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = SMILParser.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
-		F3B8F0211E9E244B0052D64B /* EncryptionParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; name = EncryptionParser.swift; path = Sources/parser/EncryptionParser.swift; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
+		F3B8F0211E9E244B0052D64B /* EncryptionParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; name = EncryptionParser.swift; path = Sources/Parser/EPUB/EncryptionParser.swift; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		F3B8F0231E9E62A50052D64B /* ContentFilter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContentFilter.swift; path = Sources/fetcher/ContentFilter.swift; sourceTree = SOURCE_ROOT; };
-		F3D434231E8E9DA5008C379E /* CbzParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CbzParser.swift; path = Sources/parser/CbzParser.swift; sourceTree = SOURCE_ROOT; };
-		F3D434251E8E9ED0008C379E /* ContainerCbz.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContainerCbz.swift; path = Sources/model/ContainerCbz.swift; sourceTree = SOURCE_ROOT; };
+		F3D434231E8E9DA5008C379E /* CbzParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CbzParser.swift; path = Sources/Parser/CBZ/CbzParser.swift; sourceTree = SOURCE_ROOT; };
 		F3DE1D891E69757100D05F74 /* PublicationParsingTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationParsingTest.swift; sourceTree = "<group>"; };
 		F3DE1EC91E69801D00D05F74 /* Samples */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Samples; sourceTree = "<group>"; };
-		F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; name = OPFParser.swift; path = Sources/parser/OPFParser.swift; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
-		F3E0214E1E9277A80094CFF7 /* ContainerCbzDirectory.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContainerCbzDirectory.swift; path = Sources/model/ContainerCbzDirectory.swift; sourceTree = SOURCE_ROOT; };
+		F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; name = OPFParser.swift; path = Sources/Parser/EPUB/OPFParser.swift; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		F3E7D4241F4ED05F00DF166D /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
 		F3ED92D51E9F702E00E15C8F /* FontDecoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = FontDecoder.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		F3ED92D91EA0AF0000E15C8F /* DataInputStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataInputStream.swift; sourceTree = "<group>"; };
@@ -188,9 +187,9 @@
 			isa = PBXGroup;
 			children = (
 				F34510C11E938CAE0071C12C /* PublicationParser.swift */,
-				59501DED1E2FB16600D1B4BF /* EpubParser.swift */,
-				F3D434231E8E9DA5008C379E /* CbzParser.swift */,
-				F3D434221E8E98E9008C379E /* EpubParserSubClasses */,
+				CAF8F03D222EBD8B009B47D8 /* EPUB */,
+				CAF8F03C222EBD13009B47D8 /* CBZ */,
+				CAF8F030222EA8F9009B47D8 /* PDFParser.swift */,
 			);
 			name = Parser;
 			path = Sources/Parser;
@@ -241,6 +240,29 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		CAF8F03C222EBD13009B47D8 /* CBZ */ = {
+			isa = PBXGroup;
+			children = (
+				F3D434231E8E9DA5008C379E /* CbzParser.swift */,
+				CAF8F03A222EB8F5009B47D8 /* CBZContainer.swift */,
+			);
+			path = CBZ;
+			sourceTree = "<group>";
+		};
+		CAF8F03D222EBD8B009B47D8 /* EPUB */ = {
+			isa = PBXGroup;
+			children = (
+				59501DED1E2FB16600D1B4BF /* EpubParser.swift */,
+				F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */,
+				F3098E741E7C02AD002358A1 /* MetadataParser.swift */,
+				F3098E721E7BFF9B002358A1 /* NavigationDocumentParser.swift */,
+				F3098E701E7BFF87002358A1 /* NCXParser.swift */,
+				F3B8F01B1E9CD76A0052D64B /* SMILParser.swift */,
+				F3B8F0211E9E244B0052D64B /* EncryptionParser.swift */,
+			);
+			path = EPUB;
+			sourceTree = "<group>";
+		};
 		F302CA2E1F0D2BD900835B22 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -264,26 +286,11 @@
 			isa = PBXGroup;
 			children = (
 				59501DEA1E2FB16600D1B4BF /* Container.swift */,
-				F351DB731E54B71A00D84BDF /* ContainerEpub.swift */,
-				F351DB711E54B6DB00D84BDF /* ContainerEpubDirectory.swift */,
-				F3D434251E8E9ED0008C379E /* ContainerCbz.swift */,
-				F3E0214E1E9277A80094CFF7 /* ContainerCbzDirectory.swift */,
+				CAF8F034222EB570009B47D8 /* DirectoryContainer.swift */,
+				CAF8F036222EB58C009B47D8 /* ArchiveContainer.swift */,
 			);
 			name = Containers;
 			path = ../Model;
-			sourceTree = "<group>";
-		};
-		F3D434221E8E98E9008C379E /* EpubParserSubClasses */ = {
-			isa = PBXGroup;
-			children = (
-				F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */,
-				F3098E741E7C02AD002358A1 /* MetadataParser.swift */,
-				F3098E721E7BFF9B002358A1 /* NavigationDocumentParser.swift */,
-				F3098E701E7BFF87002358A1 /* NCXParser.swift */,
-				F3B8F01B1E9CD76A0052D64B /* SMILParser.swift */,
-				F3B8F0211E9E244B0052D64B /* EncryptionParser.swift */,
-			);
-			name = EpubParserSubClasses;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -385,7 +392,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#/usr/local/bin/carthage copy-frameworks";
+			shellScript = "#/usr/local/bin/carthage copy-frameworks\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -402,9 +409,8 @@
 				CA2AE324221C1F5E008BD18F /* Logger.swift in Sources */,
 				F300FA371F8E1D7700442332 /* DrmDecoder.swift in Sources */,
 				F3F41E151FA0EBDE00F97737 /* DataCompression.swift in Sources */,
-				F3E0214F1E9277A80094CFF7 /* ContainerCbzDirectory.swift in Sources */,
+				CAF8F035222EB570009B47D8 /* DirectoryContainer.swift in Sources */,
 				F3ED92D61E9F702E00E15C8F /* FontDecoder.swift in Sources */,
-				F3D434261E8E9ED0008C379E /* ContainerCbz.swift in Sources */,
 				59501E091E2FB16600D1B4BF /* WebServerResourceResponse.swift in Sources */,
 				F3B8F0221E9E244B0052D64B /* EncryptionParser.swift in Sources */,
 				59501E081E2FB16600D1B4BF /* PublicationServer.swift in Sources */,
@@ -414,15 +420,15 @@
 				F3B8F01C1E9CD76A0052D64B /* SMILParser.swift in Sources */,
 				F3B8F0241E9E62A50052D64B /* ContentFilter.swift in Sources */,
 				F3098E731E7BFF9B002358A1 /* NavigationDocumentParser.swift in Sources */,
+				CAF8F03B222EB8F5009B47D8 /* CBZContainer.swift in Sources */,
 				59501E031E2FB16600D1B4BF /* Fetcher.swift in Sources */,
+				CAF8F037222EB58C009B47D8 /* ArchiveContainer.swift in Sources */,
 				F3DEE6E21E5C5A53007FE63D /* OPFParser.swift in Sources */,
-				F351DB741E54B71A00D84BDF /* ContainerEpub.swift in Sources */,
 				F302CA271F0CD32800835B22 /* DataExtension.swift in Sources */,
 				59501E041E2FB16600D1B4BF /* Container.swift in Sources */,
 				F3ED92DA1EA0AF0000E15C8F /* DataInputStream.swift in Sources */,
 				F36B18F41E64638E005E22B4 /* StringExtension.swift in Sources */,
 				F34510C21E938CAE0071C12C /* PublicationParser.swift in Sources */,
-				F351DB721E54B6DB00D84BDF /* ContainerEpubDirectory.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
