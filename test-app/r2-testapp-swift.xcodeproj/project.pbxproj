@@ -52,7 +52,6 @@
 		0350FD0E211CD2CB006994C2 /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */; };
 		0350FD0F211CD2CB006994C2 /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03D011F1208023360097A87C /* Minizip.framework */; };
 		0350FD10211CD2CB006994C2 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764D206A5F1A00C3C24E /* AEXML.framework */; };
-		0350FD11211CD2CB006994C2 /* PromiseKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764E206A5F1A00C3C24E /* PromiseKit.framework */; };
 		0350FD12211CD2CB006994C2 /* Kingfisher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764F206A5F1A00C3C24E /* Kingfisher.framework */; };
 		0350FD13211CD2CB006994C2 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */; };
 		0350FD15211CD2CB006994C2 /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
@@ -106,7 +105,6 @@
 		0350FD62211CD625006994C2 /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */; };
 		0350FD63211CD625006994C2 /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03D011F1208023360097A87C /* Minizip.framework */; };
 		0350FD64211CD625006994C2 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764D206A5F1A00C3C24E /* AEXML.framework */; };
-		0350FD65211CD625006994C2 /* PromiseKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764E206A5F1A00C3C24E /* PromiseKit.framework */; };
 		0350FD66211CD625006994C2 /* Kingfisher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764F206A5F1A00C3C24E /* Kingfisher.framework */; };
 		0350FD67211CD625006994C2 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */; };
 		0350FD69211CD625006994C2 /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
@@ -130,7 +128,6 @@
 		03EF7655206A5F1A00C3C24E /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */; };
 		03EF7658206A5F1A00C3C24E /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */; };
 		03EF7659206A5F1A00C3C24E /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764D206A5F1A00C3C24E /* AEXML.framework */; };
-		03EF765A206A5F1A00C3C24E /* PromiseKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764E206A5F1A00C3C24E /* PromiseKit.framework */; };
 		03EF765B206A5F1A00C3C24E /* Kingfisher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764F206A5F1A00C3C24E /* Kingfisher.framework */; };
 		03EF765D206A5F1A00C3C24E /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */; };
 		113B12D220800FD60074A5A2 /* OPDSCatalogSelectorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */; };
@@ -149,6 +146,10 @@
 		AE53A076208F62D200737838 /* OPDSGroupCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */; };
 		AE955A2120EBA74B00A0D8D8 /* AssociatedColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */; };
 		AED681F220A32EBA0090DBCD /* OPDSPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AED681F120A32EBA0090DBCD /* OPDSPlaceholderView.swift */; };
+		CA0B3AC7222EE726006D9363 /* PDFModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0B3AC6222EE726006D9363 /* PDFModule.swift */; };
+		CA0B3AC8222EE726006D9363 /* PDFModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0B3AC6222EE726006D9363 /* PDFModule.swift */; };
+		CA0B3AC9222EE726006D9363 /* PDFModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0B3AC6222EE726006D9363 /* PDFModule.swift */; };
+		CA0B3ACA222EE726006D9363 /* PDFModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0B3AC6222EE726006D9363 /* PDFModule.swift */; };
 		CA200644222059F200E6B3BD /* ReaderFormatModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA200643222059F200E6B3BD /* ReaderFormatModule.swift */; };
 		CA200645222059F400E6B3BD /* ReaderFormatModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA200643222059F200E6B3BD /* ReaderFormatModule.swift */; };
 		CA200646222059F500E6B3BD /* ReaderFormatModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA200643222059F200E6B3BD /* ReaderFormatModule.swift */; };
@@ -307,7 +308,6 @@
 		CA822C9D221C5737005800D1 /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */; };
 		CA822C9F221C5737005800D1 /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03D011F1208023360097A87C /* Minizip.framework */; };
 		CA822CA4221C5737005800D1 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764D206A5F1A00C3C24E /* AEXML.framework */; };
-		CA822CA5221C5737005800D1 /* PromiseKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764E206A5F1A00C3C24E /* PromiseKit.framework */; };
 		CA822CA6221C5737005800D1 /* Kingfisher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF764F206A5F1A00C3C24E /* Kingfisher.framework */; };
 		CA822CA7221C5737005800D1 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */; };
 		CA822CA9221C5737005800D1 /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
@@ -414,7 +414,6 @@
 		03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ZIPFoundation.framework; path = Carthage/Build/iOS/ZIPFoundation.framework; sourceTree = "<group>"; };
 		03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
 		03EF764D206A5F1A00C3C24E /* AEXML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AEXML.framework; path = Carthage/Build/iOS/AEXML.framework; sourceTree = "<group>"; };
-		03EF764E206A5F1A00C3C24E /* PromiseKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PromiseKit.framework; path = Carthage/Build/iOS/PromiseKit.framework; sourceTree = "<group>"; };
 		03EF764F206A5F1A00C3C24E /* Kingfisher.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Kingfisher.framework; path = Carthage/Build/iOS/Kingfisher.framework; sourceTree = "<group>"; };
 		03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDWebServers.framework; path = Carthage/Build/iOS/GCDWebServers.framework; sourceTree = "<group>"; };
 		113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSCatalogSelectorViewController.swift; sourceTree = "<group>"; };
@@ -434,6 +433,7 @@
 		AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSGroupCollectionViewCell.swift; sourceTree = "<group>"; };
 		AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssociatedColors.swift; sourceTree = "<group>"; };
 		AED681F120A32EBA0090DBCD /* OPDSPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPlaceholderView.swift; sourceTree = "<group>"; };
+		CA0B3AC6222EE726006D9363 /* PDFModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFModule.swift; sourceTree = "<group>"; };
 		CA200643222059F200E6B3BD /* ReaderFormatModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderFormatModule.swift; sourceTree = "<group>"; };
 		CA29B6EF221FF2610037534C /* Library.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Library.storyboard; sourceTree = "<group>"; };
 		CA29B6F4221FF43E0037534C /* LibraryFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryFactory.swift; sourceTree = "<group>"; };
@@ -517,7 +517,6 @@
 				0350FD0E211CD2CB006994C2 /* SwiftyJSON.framework in Frameworks */,
 				0350FD0F211CD2CB006994C2 /* Minizip.framework in Frameworks */,
 				0350FD10211CD2CB006994C2 /* AEXML.framework in Frameworks */,
-				0350FD11211CD2CB006994C2 /* PromiseKit.framework in Frameworks */,
 				0350FD12211CD2CB006994C2 /* Kingfisher.framework in Frameworks */,
 				0350FD13211CD2CB006994C2 /* GCDWebServers.framework in Frameworks */,
 				CA415EFE221D66DA003A0F7F /* ReadiumOPDS.framework in Frameworks */,
@@ -541,7 +540,6 @@
 				CA2AE375221C4B97008BD18F /* R2Navigator.framework in Frameworks */,
 				0350FD63211CD625006994C2 /* Minizip.framework in Frameworks */,
 				0350FD64211CD625006994C2 /* AEXML.framework in Frameworks */,
-				0350FD65211CD625006994C2 /* PromiseKit.framework in Frameworks */,
 				0350FD66211CD625006994C2 /* Kingfisher.framework in Frameworks */,
 				0350FD67211CD625006994C2 /* GCDWebServers.framework in Frameworks */,
 			);
@@ -570,7 +568,6 @@
 				CA415F02221D66EA003A0F7F /* R2Shared.framework in Frameworks */,
 				CA822C9F221C5737005800D1 /* Minizip.framework in Frameworks */,
 				CA822CA4221C5737005800D1 /* AEXML.framework in Frameworks */,
-				CA822CA5221C5737005800D1 /* PromiseKit.framework in Frameworks */,
 				CA415F06221D66EA003A0F7F /* ReadiumOPDS.framework in Frameworks */,
 				CA822CA6221C5737005800D1 /* Kingfisher.framework in Frameworks */,
 				CA822CA7221C5737005800D1 /* GCDWebServers.framework in Frameworks */,
@@ -593,7 +590,6 @@
 				CA2AE374221C4B97008BD18F /* R2Navigator.framework in Frameworks */,
 				03D011F2208023360097A87C /* Minizip.framework in Frameworks */,
 				03EF7659206A5F1A00C3C24E /* AEXML.framework in Frameworks */,
-				03EF765A206A5F1A00C3C24E /* PromiseKit.framework in Frameworks */,
 				03EF765B206A5F1A00C3C24E /* Kingfisher.framework in Frameworks */,
 				03EF765D206A5F1A00C3C24E /* GCDWebServers.framework in Frameworks */,
 			);
@@ -612,6 +608,14 @@
 			path = Bookmark;
 			sourceTree = "<group>";
 		};
+		CA0B3AC5222EE714006D9363 /* PDF */ = {
+			isa = PBXGroup;
+			children = (
+				CA0B3AC6222EE726006D9363 /* PDFModule.swift */,
+			);
+			path = PDF;
+			sourceTree = "<group>";
+		};
 		CA29B718222000C30037534C /* Reader */ = {
 			isa = PBXGroup;
 			children = (
@@ -620,8 +624,9 @@
 				CA29B723222001740037534C /* ReaderFactory.swift */,
 				0380490A21166627009F48BD /* Toast.swift */,
 				CA29B743222039E20037534C /* Common */,
-				CA29B71A2220010E0037534C /* EPUB */,
 				CA29B71D2220014F0037534C /* CBZ */,
+				CA29B71A2220010E0037534C /* EPUB */,
+				CA0B3AC5222EE714006D9363 /* PDF */,
 			);
 			path = Reader;
 			sourceTree = "<group>";
@@ -722,7 +727,6 @@
 				03EF7647206A5F1900C3C24E /* CryptoSwift.framework */,
 				03EF7651206A5F1A00C3C24E /* GCDWebServers.framework */,
 				03EF764F206A5F1A00C3C24E /* Kingfisher.framework */,
-				03EF764E206A5F1A00C3C24E /* PromiseKit.framework */,
 				03EF7648206A5F1A00C3C24E /* SQLite.framework */,
 				03EF764C206A5F1A00C3C24E /* SwiftyJSON.framework */,
 				03EF7649206A5F1A00C3C24E /* ZIPFoundation.framework */,
@@ -1125,7 +1129,6 @@
 				"$(SRCROOT)/Carthage/Build/iOS/CryptoSwift.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/GCDWebServers.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/Kingfisher.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/PromiseKit.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/SQLite.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/SwiftyJSON.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/ZIPFoundation.framework",
@@ -1150,7 +1153,6 @@
 				"$(SRCROOT)/Carthage/Build/iOS/CryptoSwift.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/GCDWebServers.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/Kingfisher.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/PromiseKit.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/SQLite.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/SwiftyJSON.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/ZIPFoundation.framework",
@@ -1179,7 +1181,6 @@
 				"$(SRCROOT)/Carthage/Build/iOS/CryptoSwift.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/GCDWebServers.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/Kingfisher.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/PromiseKit.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/SQLite.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/SwiftyJSON.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/ZIPFoundation.framework",
@@ -1208,7 +1209,6 @@
 				"$(SRCROOT)/Carthage/Build/iOS/CryptoSwift.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/GCDWebServers.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/Kingfisher.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/PromiseKit.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/SQLite.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/SwiftyJSON.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/ZIPFoundation.framework",
@@ -1252,6 +1252,7 @@
 				0350FCF2211CD2CB006994C2 /* OPDSNavigationTableViewCell.swift in Sources */,
 				CA9A40DC221C06A300531EA1 /* DRMViewModel.swift in Sources */,
 				0350FCF3211CD2CB006994C2 /* AppDelegate.swift in Sources */,
+				CA0B3AC8222EE726006D9363 /* PDFModule.swift in Sources */,
 				0350FCF4211CD2CB006994C2 /* OPDSCatalogSelectorViewController.swift in Sources */,
 				CA7F5A512204AF5C00B88141 /* Result.swift in Sources */,
 				0350FCF5211CD2CB006994C2 /* Toast.swift in Sources */,
@@ -1308,6 +1309,7 @@
 				0350FD46211CD625006994C2 /* OPDSNavigationTableViewCell.swift in Sources */,
 				CA9A40DE221C06A500531EA1 /* DRMViewModel.swift in Sources */,
 				0350FD47211CD625006994C2 /* AppDelegate.swift in Sources */,
+				CA0B3AC9222EE726006D9363 /* PDFModule.swift in Sources */,
 				0350FD48211CD625006994C2 /* OPDSCatalogSelectorViewController.swift in Sources */,
 				CA7F5A522204AF5D00B88141 /* Result.swift in Sources */,
 				0350FD49211CD625006994C2 /* Toast.swift in Sources */,
@@ -1364,6 +1366,7 @@
 				CA822C80221C5737005800D1 /* OPDSNavigationTableViewCell.swift in Sources */,
 				CA822C81221C5737005800D1 /* DRMViewModel.swift in Sources */,
 				CA822C82221C5737005800D1 /* AppDelegate.swift in Sources */,
+				CA0B3ACA222EE726006D9363 /* PDFModule.swift in Sources */,
 				CA822C83221C5737005800D1 /* OPDSCatalogSelectorViewController.swift in Sources */,
 				CA822C84221C5737005800D1 /* Result.swift in Sources */,
 				CA822C85221C5737005800D1 /* Toast.swift in Sources */,
@@ -1420,6 +1423,7 @@
 				AE48F322208DE1E4000B7B44 /* OPDSNavigationTableViewCell.swift in Sources */,
 				F3E7D43C1F4EF6D400DF166D /* AppDelegate.swift in Sources */,
 				113B12D220800FD60074A5A2 /* OPDSCatalogSelectorViewController.swift in Sources */,
+				CA0B3AC7222EE726006D9363 /* PDFModule.swift in Sources */,
 				CA7F5A502204AF2900B88141 /* Result.swift in Sources */,
 				0380490B21166627009F48BD /* Toast.swift in Sources */,
 				CA7F5A4D2204A42100B88141 /* DRMLibraryService.swift in Sources */,

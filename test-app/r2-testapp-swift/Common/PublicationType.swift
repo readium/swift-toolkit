@@ -15,8 +15,9 @@ import R2Streamer
 
 enum PublicationType: String {
     
-    case epub = "epub"
     case cbz = "cbz"
+    case epub = "epub"
+    case pdf = "pdf"
     case unknown = "unknown"
     
     init(rawString: String?) {
