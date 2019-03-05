@@ -47,7 +47,7 @@ public enum ContainerError: Error {
 }
 
 /// Provide methods for accessing raw data from container's files.
-public protocol Container {
+public protocol Container: AnyObject {
 
     /// See `RootFile`.
     var rootFile: RootFile { get set }

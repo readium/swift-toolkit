@@ -18,6 +18,13 @@ public typealias PubBox = (publication: Publication, associatedContainer: Contai
 public typealias PubParsingCallback = (DRM?) throws -> Void
 
 
+public protocol PublicationParser {
+    
+    static func parse(fileAtPath path: String) throws -> (PubBox, PubParsingCallback)
+    
+}
+
+
 /// Normalize a path relative path given the base path.
 internal func normalize(base: String, href: String?) -> String {
     guard let href = href, !href.isEmpty else {

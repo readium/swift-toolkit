@@ -14,8 +14,15 @@ import R2Shared
 /// Errors related to the CBZ publications.
 ///
 /// - missingFile: The file at 'path' is missing from the container.
-public enum CbzParserError: Error {
+public enum CbzParserError: LocalizedError {
     case missingFile(path: String)
+    
+    public var errorDescription: String? {
+        switch self {
+        case .missingFile(let path):
+            return "The file '\(path)' is missing."
+        }
+    }
 }
 
 /// CBZ related constants.
@@ -26,21 +33,39 @@ public struct CbzConstant {
 public enum MediaType: String {
     case jpeg = "image/jpeg"
     case png = "image/png"
-    case invalid = ""
+    
+    init?(filename: String) {
+        switch filename.pathExtension.lowercased() {
+        case "jpg", "jpeg":
+            self = .jpeg
+        case "png":
+            self = .png
+        default:
+            return nil
+        }
+    }
+    
 }
 
 /// CBZ publication parsing class.
-public class CbzParser {
+public class CbzParser: PublicationParser {
 
+    @available(*, deprecated, message: "Use the static method `CbzParser.parse()` instead of instantiationg `CbzParser`")
     public init() {}
 
+    @available(*, deprecated, message: "Use the static method `CbzParser.parse()` instead of instantiationg `CbzParser`")
+    public func parse(fileAtPath path: String) throws -> PubBox {
+        // For legacy reason this parser used to be instantiated, compared to EPUBParser
+        return try CbzParser.parse(fileAtPath: path).0
+    }
+    
     /// Parse the file at `fileAtPath` and return a `PubBox` object containing
     /// the resulting `Publication` and `Container` objects.
     ///
     /// - Parameter path: The path of the file to parse.
     /// - Returns: The resulting `PubBox` object.
     /// - Throws: Throws `CbzParserError.missingFile`.
-    public func parse(fileAtPath path: String) throws -> PubBox {
+    public static func parse(fileAtPath path: String) throws -> (PubBox, PubParsingCallback) {
         // Generate the `Container` for `fileAtPath`.
         let container: CBZContainer = try generateContainerFrom(fileAtPath: path)
         let publication = Publication()
@@ -51,31 +76,37 @@ public class CbzParser {
         publication.internalData["type"] = "cbz"
         publication.internalData["rootfile"] = container.rootFile.rootFilePath
 
-        var hasCoverLink = false
-
-        for filename in container.files {
+        var addedCover = false
+        for (index, filename) in container.files.enumerated() {
             let link = Link()
 
-            link.typeLink = getMediaType(from: filename).rawValue
-            guard link.typeLink != MediaType.invalid.rawValue else {
+            guard let mediaType = MediaType(filename: filename) else {
                 continue
             }
-            // First resource is cover.
-            if !hasCoverLink {
+            link.typeLink = mediaType.rawValue
+
+            // First valid resource is cover.
+            if !addedCover {
                 link.rel.append("cover")
-                hasCoverLink = true
+                addedCover = true
             }
+            
             link.href = normalize(base: container.rootFile.rootFilePath, href: filename)
             publication.readingOrder.append(link)
         }
-        return (publication, container)
+        
+        func didLoadDRM(drm: DRM?) {
+            container.drm = drm
+        }
+        
+        return ((publication, container), didLoadDRM)
     }
 
     /// Generate a MultilangString title from the publication at `path`.
     ///
     /// - Parameter path: The path of the publication.
     /// - Returns: The resulting MultilangString.
-    private func title(from path: String) -> MultilangString {
+    private static func title(from path: String) -> MultilangString {
         let fileUrl = URL(fileURLWithPath: path)
         let multilangString = MultilangString()
         let filename = fileUrl.lastPathComponent
@@ -91,7 +122,7 @@ public class CbzParser {
     /// - Parameter path: The absolute path of the file.
     /// - Returns: The generated Container.
     /// - Throws: `EpubParserError.missingFile`.
-    fileprivate func generateContainerFrom(fileAtPath path: String) throws -> CBZContainer {
+    private static func generateContainerFrom(fileAtPath path: String) throws -> CBZContainer {
         var container: CBZContainer?
         var isDirectory: ObjCBool = false
 
@@ -110,24 +141,4 @@ public class CbzParser {
         return containerUnwrapped
     }
 
-    /// Return the mediatype (mimetype) of the given file, using it's extension.
-    ///
-    /// - Parameter filename: The filename.
-    /// - Returns: The associated MediaType.
-    fileprivate func getMediaType(from filename: String) -> MediaType {
-        let mediaType: MediaType
-        let pathExtension = filename.pathExtension
-
-        switch pathExtension.lowercased() {
-        case "jpg":
-            mediaType = .jpeg
-        case "jpeg":
-            mediaType = .jpeg
-        case "png":
-            mediaType = .png
-        default:
-            mediaType = .invalid
-        }
-        return mediaType
-    }
 }

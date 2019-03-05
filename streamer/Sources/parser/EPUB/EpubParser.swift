@@ -39,13 +39,13 @@ public struct EpubConstant {
 /// - missingFile: A file is missing from the container at `path`.
 /// - xmlParse: An XML parsing error occurred.
 /// - missingElement: An XML element is missing.
-public enum EpubParserError: Error {
+public enum EpubParserError: LocalizedError {
     case wrongMimeType
     case missingFile(path: String)
     case xmlParse(underlyingError: Error)
     case missingElement(message: String)
 
-    public var localizedDescription: String {
+    public var errorDescription: String? {
         switch self {
         case .wrongMimeType:
             return "The mimetype of the Epub is not valid."
@@ -63,7 +63,7 @@ extension EpubParser: Loggable {}
 
 /// An EPUB container parser that extracts the information from the relevant
 /// files and builds a `Publication` instance out of it.
-final public class EpubParser {
+final public class EpubParser: PublicationParser {
     /// Parses the EPUB (file/directory) at `fileAtPath` and generate the
     /// corresponding `Publication` and `Container`.
     ///
@@ -382,7 +382,7 @@ final public class EpubParser {
             container = ArchiveContainer(path: path, mimetype: EpubConstant.mimetype)
         }
         
-        guard var containerUnwrapped = container else {
+        guard let containerUnwrapped = container else {
             throw EpubParserError.missingFile(path: path)
         }
         
