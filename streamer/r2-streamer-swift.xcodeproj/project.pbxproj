@@ -27,9 +27,12 @@
 		59501E201E2FB2AD00D1B4BF /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E1F1E2FB2AD00D1B4BF /* libz.tbd */; };
 		AEBE1F3D20EF903700418960 /* fonts in Resources */ = {isa = PBXBuildFile; fileRef = AEBE1F3C20EF903700418960 /* fonts */; };
 		CA2AE324221C1F5E008BD18F /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE323221C1F5E008BD18F /* Logger.swift */; };
+		CA8A0B77223018650047B490 /* PDFFileMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8A0B76223018650047B490 /* PDFFileMetadata.swift */; };
 		CAF8F035222EB570009B47D8 /* DirectoryContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF8F034222EB570009B47D8 /* DirectoryContainer.swift */; };
 		CAF8F037222EB58C009B47D8 /* ArchiveContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF8F036222EB58C009B47D8 /* ArchiveContainer.swift */; };
 		CAF8F03B222EB8F5009B47D8 /* CBZContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF8F03A222EB8F5009B47D8 /* CBZContainer.swift */; };
+		CAF8F03F222EC310009B47D8 /* PDFParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF8F030222EA8F9009B47D8 /* PDFParser.swift */; };
+		CAF8F041222ED2AC009B47D8 /* FileContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF8F040222ED2AC009B47D8 /* FileContainer.swift */; };
 		F300FA371F8E1D7700442332 /* DrmDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F300FA361F8E1D7700442332 /* DrmDecoder.swift */; };
 		F302CA271F0CD32800835B22 /* DataExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F302CA261F0CD32800835B22 /* DataExtension.swift */; };
 		F3098E711E7BFF87002358A1 /* NCXParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3098E701E7BFF87002358A1 /* NCXParser.swift */; };
@@ -73,10 +76,12 @@
 		59501E1F1E2FB2AD00D1B4BF /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		AEBE1F3C20EF903700418960 /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = fonts; sourceTree = "<group>"; };
 		CA2AE323221C1F5E008BD18F /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
-		CAF8F030222EA8F9009B47D8 /* PDFParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PDFParser.swift; path = Sources/parser/PDFParser.swift; sourceTree = SOURCE_ROOT; };
+		CA8A0B76223018650047B490 /* PDFFileMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PDFFileMetadata.swift; path = Sources/parser/PDF/PDFFileMetadata.swift; sourceTree = SOURCE_ROOT; };
+		CAF8F030222EA8F9009B47D8 /* PDFParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PDFParser.swift; path = Sources/Parser/PDF/PDFParser.swift; sourceTree = SOURCE_ROOT; };
 		CAF8F034222EB570009B47D8 /* DirectoryContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryContainer.swift; sourceTree = "<group>"; };
 		CAF8F036222EB58C009B47D8 /* ArchiveContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveContainer.swift; sourceTree = "<group>"; };
 		CAF8F03A222EB8F5009B47D8 /* CBZContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBZContainer.swift; sourceTree = "<group>"; };
+		CAF8F040222ED2AC009B47D8 /* FileContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileContainer.swift; sourceTree = "<group>"; };
 		F300FA361F8E1D7700442332 /* DrmDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DrmDecoder.swift; path = Sources/fetcher/DrmDecoder.swift; sourceTree = SOURCE_ROOT; };
 		F302CA261F0CD32800835B22 /* DataExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataExtension.swift; sourceTree = "<group>"; };
 		F3098E701E7BFF87002358A1 /* NCXParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = NCXParser.swift; path = Sources/Parser/EPUB/NCXParser.swift; sourceTree = SOURCE_ROOT; };
@@ -187,9 +192,9 @@
 			isa = PBXGroup;
 			children = (
 				F34510C11E938CAE0071C12C /* PublicationParser.swift */,
-				CAF8F03D222EBD8B009B47D8 /* EPUB */,
 				CAF8F03C222EBD13009B47D8 /* CBZ */,
-				CAF8F030222EA8F9009B47D8 /* PDFParser.swift */,
+				CAF8F03D222EBD8B009B47D8 /* EPUB */,
+				CAF8F03E222EC2FB009B47D8 /* PDF */,
 			);
 			name = Parser;
 			path = Sources/Parser;
@@ -263,6 +268,15 @@
 			path = EPUB;
 			sourceTree = "<group>";
 		};
+		CAF8F03E222EC2FB009B47D8 /* PDF */ = {
+			isa = PBXGroup;
+			children = (
+				CAF8F030222EA8F9009B47D8 /* PDFParser.swift */,
+				CA8A0B76223018650047B490 /* PDFFileMetadata.swift */,
+			);
+			path = PDF;
+			sourceTree = "<group>";
+		};
 		F302CA2E1F0D2BD900835B22 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -288,6 +302,7 @@
 				59501DEA1E2FB16600D1B4BF /* Container.swift */,
 				CAF8F034222EB570009B47D8 /* DirectoryContainer.swift */,
 				CAF8F036222EB58C009B47D8 /* ArchiveContainer.swift */,
+				CAF8F040222ED2AC009B47D8 /* FileContainer.swift */,
 			);
 			name = Containers;
 			path = ../Model;
@@ -414,6 +429,7 @@
 				59501E091E2FB16600D1B4BF /* WebServerResourceResponse.swift in Sources */,
 				F3B8F0221E9E244B0052D64B /* EncryptionParser.swift in Sources */,
 				59501E081E2FB16600D1B4BF /* PublicationServer.swift in Sources */,
+				CAF8F041222ED2AC009B47D8 /* FileContainer.swift in Sources */,
 				59501E0B1E2FB16600D1B4BF /* Seekable.swift in Sources */,
 				F3098E711E7BFF87002358A1 /* NCXParser.swift in Sources */,
 				59501E151E2FB16600D1B4BF /* ZipArchive.swift in Sources */,
@@ -424,9 +440,11 @@
 				59501E031E2FB16600D1B4BF /* Fetcher.swift in Sources */,
 				CAF8F037222EB58C009B47D8 /* ArchiveContainer.swift in Sources */,
 				F3DEE6E21E5C5A53007FE63D /* OPFParser.swift in Sources */,
+				CA8A0B77223018650047B490 /* PDFFileMetadata.swift in Sources */,
 				F302CA271F0CD32800835B22 /* DataExtension.swift in Sources */,
 				59501E041E2FB16600D1B4BF /* Container.swift in Sources */,
 				F3ED92DA1EA0AF0000E15C8F /* DataInputStream.swift in Sources */,
+				CAF8F03F222EC310009B47D8 /* PDFParser.swift in Sources */,
 				F36B18F41E64638E005E22B4 /* StringExtension.swift in Sources */,
 				F34510C21E938CAE0071C12C /* PublicationParser.swift in Sources */,
 			);
