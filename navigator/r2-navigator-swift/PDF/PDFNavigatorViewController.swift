@@ -11,16 +11,22 @@
 
 import Foundation
 import UIKit
-import WebKit
+import PDFKit
 import R2Shared
 
 
 /// A view controller used to render a PDF `Publication`.
-open class PDFNavigatorViewController: UIViewController {
+@available(iOS 11.0, *)
+open class PDFNavigatorViewController: UIViewController, Loggable {
+    
+    enum Error: Swift.Error {
+        case openPDFFailed
+    }
+    
     public let publication: Publication
     
-    public var webView: WKWebView!
-    
+    public private(set) var pdfView: PDFView!
+
     public init(publication: Publication) {
         self.publication = publication
         super.init(nibName: nil, bundle: nil)
@@ -33,19 +39,28 @@ open class PDFNavigatorViewController: UIViewController {
     override open func viewDidLoad() {
         super.viewDidLoad()
         
-        webView = WKWebView(frame: view.bounds)
-        webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.addSubview(webView)
+        view.backgroundColor = .black
         
-        load(publication.readingOrder.first)
+        pdfView = PDFView(frame: view.bounds)
+        pdfView.autoScales = true
+        pdfView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(pdfView)
+        
+        if let link = publication.readingOrder.first {
+            load(link)
+        }
     }
     
     /// Loads `Link` resource into the PDF view.
-    func load(_ link: Link?) {
-        guard let url = publication.uriTo(link: link) else {
+    func load(_ link: Link) {
+        guard let url = publication.uriTo(link: link),
+            let document = PDFDocument(url: url) else
+        {
+            log(.error, "Can't open PDF document at \(link)")
             return
         }
-        webView.load(URLRequest(url: url))
+        
+        pdfView.document = document
     }
     
 }
