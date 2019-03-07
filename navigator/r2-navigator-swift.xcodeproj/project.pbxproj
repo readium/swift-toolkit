@@ -14,11 +14,11 @@
 		F3E7D3D41F4D83B000DF166D /* r2-navigator-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F3E7D3DE1F4D845B00DF166D /* BinaryLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3DD1F4D845B00DF166D /* BinaryLocation.swift */; };
 		F3E7D3E01F4D847E00DF166D /* Disjunction.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3DF1F4D847E00DF166D /* Disjunction.swift */; };
-		F3E7D3E21F4D84A000DF166D /* NavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3E11F4D84A000DF166D /* NavigatorViewController.swift */; };
+		F3E7D3E21F4D84A000DF166D /* EPUBNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3E11F4D84A000DF166D /* EPUBNavigatorViewController.swift */; };
 		F3E7D3E41F4D84DC00DF166D /* TriptychView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3E31F4D84DC00DF166D /* TriptychView.swift */; };
 		F3E7D3E61F4D84EF00DF166D /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3E51F4D84EF00DF166D /* WebView.swift */; };
 		F3E7D42A1F4EE07D00DF166D /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D4291F4EE07D00DF166D /* R2Shared.framework */; };
-		F3E7D42E1F4EE0FE00DF166D /* CbzNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D42D1F4EE0FE00DF166D /* CbzNavigatorViewController.swift */; };
+		F3E7D42E1F4EE0FE00DF166D /* CBZNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D42D1F4EE0FE00DF166D /* CBZNavigatorViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,11 +34,11 @@
 		F3E7D3D31F4D83B000DF166D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F3E7D3DD1F4D845B00DF166D /* BinaryLocation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BinaryLocation.swift; sourceTree = "<group>"; };
 		F3E7D3DF1F4D847E00DF166D /* Disjunction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Disjunction.swift; sourceTree = "<group>"; };
-		F3E7D3E11F4D84A000DF166D /* NavigatorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavigatorViewController.swift; sourceTree = "<group>"; };
+		F3E7D3E11F4D84A000DF166D /* EPUBNavigatorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPUBNavigatorViewController.swift; sourceTree = "<group>"; };
 		F3E7D3E31F4D84DC00DF166D /* TriptychView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TriptychView.swift; sourceTree = "<group>"; };
 		F3E7D3E51F4D84EF00DF166D /* WebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
 		F3E7D4291F4EE07D00DF166D /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
-		F3E7D42D1F4EE0FE00DF166D /* CbzNavigatorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CbzNavigatorViewController.swift; sourceTree = "<group>"; };
+		F3E7D42D1F4EE0FE00DF166D /* CBZNavigatorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CBZNavigatorViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -112,7 +112,7 @@
 		F3E7D42B1F4EE0D200DF166D /* EPUB */ = {
 			isa = PBXGroup;
 			children = (
-				F3E7D3E11F4D84A000DF166D /* NavigatorViewController.swift */,
+				F3E7D3E11F4D84A000DF166D /* EPUBNavigatorViewController.swift */,
 				F3E7D3E31F4D84DC00DF166D /* TriptychView.swift */,
 				F3E7D3E51F4D84EF00DF166D /* WebView.swift */,
 				F3E7D3DD1F4D845B00DF166D /* BinaryLocation.swift */,
@@ -127,7 +127,7 @@
 		F3E7D42C1F4EE0DB00DF166D /* CBZ */ = {
 			isa = PBXGroup;
 			children = (
-				F3E7D42D1F4EE0FE00DF166D /* CbzNavigatorViewController.swift */,
+				F3E7D42D1F4EE0FE00DF166D /* CBZNavigatorViewController.swift */,
 			);
 			name = CBZ;
 			sourceTree = "<group>";
@@ -213,11 +213,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F3E7D3E21F4D84A000DF166D /* NavigatorViewController.swift in Sources */,
+				F3E7D3E21F4D84A000DF166D /* EPUBNavigatorViewController.swift in Sources */,
 				03BF0132221DAFDA0051050B /* EditingAction.swift in Sources */,
 				CA0B3AC3222EE555006D9363 /* PDFNavigatorViewController.swift in Sources */,
 				F3E7D3E61F4D84EF00DF166D /* WebView.swift in Sources */,
-				F3E7D42E1F4EE0FE00DF166D /* CbzNavigatorViewController.swift in Sources */,
+				F3E7D42E1F4EE0FE00DF166D /* CBZNavigatorViewController.swift in Sources */,
 				F3E7D3E01F4D847E00DF166D /* Disjunction.swift in Sources */,
 				F341C2711F506ED5005E6758 /* UserSettings.swift in Sources */,
 				F3E7D3DE1F4D845B00DF166D /* BinaryLocation.swift in Sources */,

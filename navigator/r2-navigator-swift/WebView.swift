@@ -146,6 +146,10 @@ final class WebView: WKWebView {
         scrollView.isPagingEnabled = true
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.showsVerticalScrollIndicator = false
+        if #available(iOS 11.0, *) {
+            // Prevents the pages from jumping down when the status bar is toggled
+            scrollView.contentInsetAdjustmentBehavior = .never
+        }
         navigationDelegate = self
         uiDelegate = self
         

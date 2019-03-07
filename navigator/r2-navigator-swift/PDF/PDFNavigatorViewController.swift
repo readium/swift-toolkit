@@ -29,7 +29,10 @@ open class PDFNavigatorViewController: UIViewController, Loggable {
 
     public init(publication: Publication) {
         self.publication = publication
+        
         super.init(nibName: nil, bundle: nil)
+        
+        automaticallyAdjustsScrollViewInsets = false
     }
     
     public required init?(coder aDecoder: NSCoder) {
@@ -42,15 +45,22 @@ open class PDFNavigatorViewController: UIViewController, Loggable {
         view.backgroundColor = .black
         
         pdfView = PDFView(frame: view.bounds)
-        pdfView.autoScales = true
         pdfView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(pdfView)
+        
+        setupPDFView()
         
         if let link = publication.readingOrder.first {
             load(link)
         }
     }
     
+    /// Override to customize the PDFView.
+    open func setupPDFView() {
+        pdfView.displaysAsBook = true
+        pdfView.autoScales = true
+    }
+
     /// Loads `Link` resource into the PDF view.
     func load(_ link: Link) {
         guard let url = publication.uriTo(link: link),

@@ -1,5 +1,5 @@
 //
-//  CbzNavigatorViewController.swift
+//  CBZNavigatorViewController.swift
 //  r2-navigator-swift
 //
 //  Created by Alexandre Camilleri on 8/24/17.
@@ -12,6 +12,7 @@
 import UIKit
 import R2Shared
 
+
 /// A ViewController with hooks in order to render a CBZ `Publication`.
 /// Provides the following hooks:
 /// - Properties
@@ -23,7 +24,7 @@ import R2Shared
 ///     - loadPrevious() - render the previous resource item, if any.
 ///     - load(at index: Int) - render the resource item at index, if any.
 ///
-open class CbzNavigatorViewController: UIViewController {
+open class CBZNavigatorViewController: UIViewController {
     public var publication: Publication
     public var pageNumber: Int
     public var totalPageNumber: Int
@@ -71,7 +72,7 @@ open class CbzNavigatorViewController: UIViewController {
     }
 }
 
-extension CbzNavigatorViewController {
+extension CBZNavigatorViewController {
 
     @objc public func loadNext() {
         load(nextReadingOrderItem())
@@ -172,10 +173,12 @@ extension CbzNavigatorViewController {
     }
 }
 
-extension CbzNavigatorViewController: UIScrollViewDelegate {
+extension CBZNavigatorViewController: UIScrollViewDelegate {
     public func viewForZooming(in scrollView: UIScrollView) -> UIView? {
         return imageView
     }
 }
 
 
+@available(*, deprecated, renamed: "CBZNavigatorViewController")
+public typealias CbzNavigatorViewController = CBZNavigatorViewController

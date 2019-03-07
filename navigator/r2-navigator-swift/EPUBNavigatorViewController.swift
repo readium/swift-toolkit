@@ -1,5 +1,5 @@
 //
-//  NavigatorViewController.swift
+//  EPUBNavigatorViewController.swift
 //  r2-navigator-swift
 //
 //  Created by Winnie Quinn, Alexandre Camilleri on 8/23/17.
@@ -21,7 +21,7 @@ public enum NavigatorError: Error {
 }
 
 
-public protocol NavigatorDelegate: class {
+public protocol EPUBNavigatorDelegate: class {
     func middleTapHandler()
     func willExitPublication(documentIndex: Int, progression: Double?)
     /// invoked when publication's content change to another page of 'document', slide to next chapter for example
@@ -35,7 +35,7 @@ public protocol NavigatorDelegate: class {
     func presentError(_ error: NavigatorError)
 }
 
-public extension NavigatorDelegate {
+public extension EPUBNavigatorDelegate {
     func didChangedDocumentPage(currentDocumentIndex: Int) {
         // optional
     }
@@ -57,7 +57,7 @@ public extension NavigatorDelegate {
 }
 
 
-open class NavigatorViewController: UIViewController {
+open class EPUBNavigatorViewController: UIViewController {
     private let delegatee: Delegatee!
     fileprivate let triptychView: TriptychView
     public var userSettings: UserSettings
@@ -65,7 +65,7 @@ open class NavigatorViewController: UIViewController {
     //
     public let publication: Publication
     public let license: DRMLicense?
-    public weak var delegate: NavigatorDelegate?
+    public weak var delegate: EPUBNavigatorDelegate?
 
     public let pageTransition: PageTransition
     public let editingActions: [EditingAction]
@@ -90,12 +90,15 @@ open class NavigatorViewController: UIViewController {
         if initialIndex == -1 {
             index = publication.readingOrder.count
         }
+        
         triptychView = TriptychView(frame: CGRect.zero,
                                     viewCount: publication.readingOrder.count,
                                     initialIndex: index,
                                     readingProgression:publication.metadata.readingProgression)
         
         super.init(nibName: nil, bundle: nil)
+        
+        automaticallyAdjustsScrollViewInsets = false
     }
 
     @available(*, unavailable)
@@ -168,7 +171,7 @@ open class NavigatorViewController: UIViewController {
     }
 }
 
-extension NavigatorViewController {
+extension EPUBNavigatorViewController {
 
     /// Display the readingOrder item at `index`.
     ///
@@ -245,7 +248,7 @@ extension NavigatorViewController {
     }
 }
 
-extension NavigatorViewController: ViewDelegate {
+extension EPUBNavigatorViewController: ViewDelegate {
     
     func willAnimatePageChange() {
         triptychView.isUserInteractionEnabled = false
@@ -330,7 +333,7 @@ extension NavigatorViewController: ViewDelegate {
 
 /// Used to hide conformance to package-private delegate protocols.
 private final class Delegatee: NSObject {
-    weak var parent: NavigatorViewController!
+    weak var parent: EPUBNavigatorViewController!
     fileprivate var firstView = true
 }
 
@@ -383,7 +386,7 @@ extension Delegatee: TriptychViewDelegate {
 }
 
 
-extension NavigatorViewController {
+extension EPUBNavigatorViewController {
     
     public var contentView: UIView {
         return triptychView
@@ -427,3 +430,8 @@ extension NavigatorViewController {
     }
 }
 
+
+@available(*, deprecated, renamed: "EPUBNavigatorViewController")
+public typealias NavigatorViewController = EPUBNavigatorViewController
+@available(*, deprecated, renamed: "EPUBNavigatorDelegate")
+public typealias NavigatorDelegate = EPUBNavigatorDelegate
