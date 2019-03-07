@@ -14,177 +14,39 @@ import R2Shared
 
 
 /// Structure holding the metadata from a standalone PDF file.
-struct PDFFileMetadata: Loggable {
-
+public struct PDFFileMetadata: Loggable {
+    
+    // Permanent identifier based on the contents of the file at the time it was originally created.
     let identifier: String?
-    let version: Double
+    
+    // The version of the PDF specification to which the document conforms (for example, 1.4)
+    let version: String?
+
+    
+    /// Values extracted from the document information dictionary, defined in PDF specification.
+
+    // The document's title.
     let title: String?
+    // The name of the person who created the document.
     let author: String?
+    // The subject of the document.
     let subject: String?
+    // Keywords associated with the document.
     let keywords: [String]
 
-    /// Parses the metadata from a standalone PDF file.
-    static func parse(from stream: SeekableInputStream) throws -> PDFFileMetadata {
-        return try withPDFDocument(stream: stream) { document in
-            // FIXME: how should we handle PDF encrypted with a password?
-            guard !document.isEncrypted else {
-                throw PDFParserError.fileEncryptedWithPassword
-            }
-            
-            let info = document.info
-            return PDFFileMetadata(
-                identifier: identifier(of: document),
-                version: version(of: document),
-                title: string(forKey: "Title", in: info),
-                author: string(forKey: "Author", in: info),
-                subject: string(forKey: "Subject", in: info),
-                keywords: stringList(forKey: "Keywords", in: info)
-            )
-        }
-    }
-    
-    private static func identifier(of document: CGPDFDocument) -> String? {
-        guard let identifierArray = document.fileIdentifier,
-            CGPDFArrayGetCount(identifierArray) > 0 else
-        {
-            return nil
-        }
-        
-        var identifierString: CGPDFStringRef?
-        CGPDFArrayGetString(identifierArray, 0, &identifierString)
-        guard let identifierData = data(from: identifierString) else {
-            return nil
-        }
-        
-        // Converts the raw data to a hexadecimal string
-        return identifierData.reduce("") { $0 + String(format: "%02x", $1)}
-    }
-    
-    private static func version(of document: CGPDFDocument) -> Double {
-        var major: Int32 = 0
-        var minor: Int32 = 0
-        document.getVersion(majorVersion: &major, minorVersion: &minor)
-        return Double("\(major).\(minor)") ?? 0
-    }
-    
-    private static func stringList(forKey key: String, in dictionary: CGPDFDictionaryRef?) -> [String] {
-        guard let string = string(forKey: key, in: dictionary) else {
-            return []
-        }
-        
-        return string
-            .components(separatedBy: ",")
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-    }
-    
-    private static func string(forKey key: String, in dictionary: CGPDFDictionaryRef?) -> String? {
-        guard let dictionary = dictionary else {
-            return nil
-        }
-        var stringRef: CGPDFStringRef?
-        CGPDFDictionaryGetString(dictionary, key, &stringRef)
-        return string(from: stringRef)
-    }
+}
 
-    private static func string(from stringRef: CGPDFStringRef?) -> String? {
-        guard let data = data(from: stringRef) else {
-            return nil
-        }
-        return String(data: data, encoding: .utf8)
-    }
+
+/// Protocol to implement if you want to use a different PDF engine than the one provided with Readium 2 to parse the PDF's metadata.
+public protocol PDFFileMetadataParser {
     
-    private static func data(from stringRef: CGPDFStringRef?) -> Data? {
-        guard let stringRef = stringRef,
-            let bytes = CGPDFStringGetBytePtr(stringRef) else
-        {
-            return nil
-        }
-        return Data(bytes: bytes, count: CGPDFStringGetLength(stringRef))
-    }
-    
-    /// Opens a CGPDFDocument using the fetcher's stream and a CGDataProvider.
-    /// For now, the parser uses CGPDFDocument instead of PDFDocument to be the most compatible and efficient possible:
-    ///  - PDFDocument is only available on iOS 11+
-    ///  - CGPDFDocument can use a CGDataProvider to read through the PDF document without keeping all the data in memory.
+    /// Parses the PDF metadata from the given data stream.
+    /// Note: this is not used in the case of .lcpdf files, since the metadata are parsed from the manifest.json file.
     ///
-    /// - Parameter block: Code to execute using the CGPDFDocument. The stream is automatically released once the block is executed.
-    private static func withPDFDocument<T>(stream: SeekableInputStream, _ block: (CGPDFDocument) throws -> T) throws -> T {
-        var stream = stream
-        stream.open()
-        
-        return try withUnsafeMutablePointer(to: &stream) { streamPointer in
-            var callbacks = CGDataProviderSequentialCallbacks(
-                version: 0,
-                
-                getBytes: { info, buffer, count -> Int in
-                    guard let stream = PDFFileMetadata.streamWithInfo(info) else {
-                        return 0
-                    }
-                    
-                    let readBytes = stream.read(buffer.assumingMemoryBound(to: UInt8.self), maxLength: count)
-                    guard readBytes >= 0 else {
-                        PDFParser.log(.error, stream.streamError)
-                        return 0
-                    }
-                    return readBytes
-                },
-                
-                skipForward: { info, count -> off_t in
-                    guard let stream = PDFFileMetadata.streamWithInfo(info) else {
-                        return 0
-                    }
-                    
-                    let current = stream.offset
-                    // SeekWhence.currentPosition is not supported at this time
-                    do {
-                        try stream.seek(offset: Int64(current) + count, whence: .startOfFile)
-                    } catch {
-                        PDFParser.log(.error, error)
-                        return 0
-                    }
-                    return off_t(stream.offset - current)
-                },
-                
-                rewind: { info in
-                    guard let stream = PDFFileMetadata.streamWithInfo(info) else {
-                        return
-                    }
-                    do {
-                        try stream.seek(offset: 0, whence: .startOfFile)
-                    } catch {
-                        PDFParser.log(.error, error)
-                    }
-                },
-                
-                releaseInfo: { info in
-                    guard let stream = PDFFileMetadata.streamWithInfo(info) else {
-                        return
-                    }
-                    // The stream object is released automatically once we leave the `withUnsafeMutablePointer` block.
-                    stream.close()
-                }
-            )
-            
-            return try withUnsafePointer(to: &callbacks) { callbacksPointer in
-                guard let provider = CGDataProvider(sequentialInfo: streamPointer, callbacks: callbacksPointer),
-                    let document = CGPDFDocument(provider) else
-                {
-                    throw PDFParserError.openFailed
-                }
-                
-                return try block(document)
-            }
-        }
-    }
-    
-    /// This can't be a nested func in `withPDFDocument` because the C-function pointers of CGDataProvider's callbacks can't capture context.
-    private static func streamWithInfo(_ info: UnsafeMutableRawPointer?) -> SeekableInputStream? {
-        let stream = info?.assumingMemoryBound(to: SeekableInputStream.self).pointee
-        if stream == nil {
-            log(.error, "Can't get the stream from CGDataProvider.info")
-        }
-        return stream
-    }
+    /// - Parameter stream: Input stream to read the PDF data. You are responsible to open the stream before reading it and closing it when you're done.
+    /// - Returns: A named tuple containing:
+    ///   - `metadata` The parsed PDF file metadata
+    //    - `context` An optional object that will be stored in `PDFContainer.context` after parsing the `Publication`. You can reuse this object later to render the PDF with a custom navigator, for example. The goal is to avoid opening and parsing the PDF several time.
+    func parse(from stream: SeekableInputStream) throws -> (metadata: PDFFileMetadata, context: Any?)
     
 }

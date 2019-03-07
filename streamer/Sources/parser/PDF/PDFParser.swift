@@ -51,12 +51,18 @@ public final class PDFParser: PublicationParser, Loggable {
     /// PDFParser contains only static methods.
     private init() {}
     
+    public static func parse(fileAtPath path: String) throws -> (PubBox, PubParsingCallback) {
+        // Having `metadataParser` as an argument with default value doesn't satisfy the `PublicationParser` protocol...
+        return try parse(fileAtPath: path, metadataParser: PDFFileMetadataCGParser())
+    }
+    
     /// Parses the PDF (file/directory) at `fileAtPath` and generates the corresponding `Publication` and `Container`.
     ///
     /// - Parameter fileAtPath: The path to the PDF file.
+    /// - Parameter metadataParser: File metadata parser, you can provide your own implementation if you want to use a different PDF engine.
     /// - Returns: The Resulting publication, and a callback for parsing the possibly DRM encrypted metadata in the publication, once the DRM object is filled by a DRM module (eg. LCP).
     /// - Throws: `PDFParserError`
-    public static func parse(fileAtPath path: String) throws -> (PubBox, PubParsingCallback) {
+    public static func parse(fileAtPath path: String, metadataParser: PDFFileMetadataParser) throws -> (PubBox, PubParsingCallback) {
         let container = try generateContainerFrom(fileAtPath: path)
 
         let publication = Publication()
@@ -70,7 +76,7 @@ public final class PDFParser: PublicationParser, Loggable {
         publication.readingOrder.append(link)
         
         // FIXME: if the PDF is DRM-protected, this will not work here
-        try self.fillMetadata(of: publication, in: container)
+        try self.fillMetadata(of: publication, in: container, parser: metadataParser)
         
         func didLoadDRM(drm: DRM?) throws {
             container.drm = drm
@@ -79,27 +85,21 @@ public final class PDFParser: PublicationParser, Loggable {
         return ((publication, container), didLoadDRM)
     }
 
-    private static func generateContainerFrom(fileAtPath path: String) throws -> Container {
+    private static func generateContainerFrom(fileAtPath path: String) throws -> PDFContainer {
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) else {
             throw PDFParserError.missingFile(path: path)
         }
         
-        var container: Container?
-        if isDirectory.boolValue {
-            container = DirectoryContainer(directory: path, mimetype: PDFConstant.mimetype)
-        } else {
-            container = FileContainer(path: path, relativePath: PDFConstant.pdfFilePath, mimetype: PDFConstant.mimetype)
-        }
-        
-        guard let containerUnwrapped = container else {
+        guard let container = PDFFileContainer(path: path, relativePath: PDFConstant.pdfFilePath, mimetype: PDFConstant.mimetype) else {
             throw PDFParserError.missingFile(path: path)
         }
-        return containerUnwrapped
+        
+        return container
     }
     
     /// Extracts the metadata of a PDF file to fill the `Publication`.
-    private static func fillMetadata(of publication: Publication, in container: Container) throws {
+    private static func fillMetadata(of publication: Publication, in container: PDFContainer, parser: PDFFileMetadataParser) throws {
         /// The PDF might be encrypted, so we filter it with the fetcher.
         guard let fetcher = try? Fetcher(publication: publication, container: container),
             let link = publication.readingOrder.first,
@@ -109,10 +109,14 @@ public final class PDFParser: PublicationParser, Loggable {
             throw PDFParserError.openFailed
         }
         
-        let metadata = try PDFFileMetadata.parse(from: stream)
-
-        publication.version = metadata.version
+        let (metadata, context) = try parser.parse(from: stream)
+        container.context = context
+        
         publication.metadata.identifier = metadata.identifier ?? container.rootFile.rootPath
+
+        if let version = metadata.version {
+            publication.version = Double(version) ?? 0
+        }
 
         if let authorName = metadata.author {
             let author = Contributor()
