@@ -1,5 +1,5 @@
 //
-//  PDFFileMetadata.swift
+//  PDFFileParser.swift
 //  r2-streamer-swift
 //
 //  Created by Mickaël Menu on 06.03.19.
@@ -38,15 +38,26 @@ public struct PDFFileMetadata: Loggable {
 
 
 /// Protocol to implement if you want to use a different PDF engine than the one provided with Readium 2 to parse the PDF's metadata.
-public protocol PDFFileMetadataParser {
+/// Note: this is not used in the case of .lcpdf files, since the metadata are parsed from the manifest.json file.
+public protocol PDFFileParser {
     
-    /// Parses the PDF metadata from the given data stream.
-    /// Note: this is not used in the case of .lcpdf files, since the metadata are parsed from the manifest.json file.
-    ///
-    /// - Parameter stream: Input stream to read the PDF data. You are responsible to open the stream before reading it and closing it when you're done.
-    /// - Returns: A named tuple containing:
-    ///   - `metadata` The parsed PDF file metadata
-    //    - `context` An optional object that will be stored in `PDFContainer.context` after parsing the `Publication`. You can reuse this object later to render the PDF with a custom navigator, for example. The goal is to avoid opening and parsing the PDF several time.
-    func parse(from stream: SeekableInputStream) throws -> (metadata: PDFFileMetadata, context: Any?)
+    /// Initializes the parser with the given PDF data stream.
+    /// You must `open` and `close` the stream when needed.
+    init(stream: SeekableInputStream) throws
+    
+    /// An optional object that will be stored in `PDFContainer.context` after parsing the `Publication`. You can reuse this object later to render the PDF with a custom navigator, for example. This is a way to avoid opening and parsing the PDF several time with a custom PDF engine.
+    var context: Any? { get }
+    
+    /// Renders the PDF's first page.
+    func renderCover() throws -> UIImage?
+
+    /// Parses the PDF file metadata.
+    func parseMetadata() throws -> PDFFileMetadata
+
+}
+
+extension PDFFileParser {
+    
+    var context: Any? { return nil }
     
 }

@@ -18,8 +18,11 @@ import R2Shared
 public struct PDFConstant {
     /// PDF mime-type.
     public static let mimetype = "application/pdf"
+    
     /// Default PDF file path inside the container, for standalone PDF files.
     public static let pdfFilePath = "/publication.pdf"
+    /// HRef for the pre-rendered cover of standalone PDF files.
+    public static let pdfFileCoverPath = "/cover.png"
 }
 
 
@@ -53,7 +56,7 @@ public final class PDFParser: PublicationParser, Loggable {
     
     public static func parse(fileAtPath path: String) throws -> (PubBox, PubParsingCallback) {
         // Having `metadataParser` as an argument with default value doesn't satisfy the `PublicationParser` protocol...
-        return try parse(fileAtPath: path, metadataParser: PDFFileMetadataCGParser())
+        return try parse(fileAtPath: path, parserType: PDFFileCGParser.self)
     }
     
     /// Parses the PDF (file/directory) at `fileAtPath` and generates the corresponding `Publication` and `Container`.
@@ -62,7 +65,7 @@ public final class PDFParser: PublicationParser, Loggable {
     /// - Parameter metadataParser: File metadata parser, you can provide your own implementation if you want to use a different PDF engine.
     /// - Returns: The Resulting publication, and a callback for parsing the possibly DRM encrypted metadata in the publication, once the DRM object is filled by a DRM module (eg. LCP).
     /// - Throws: `PDFParserError`
-    public static func parse(fileAtPath path: String, metadataParser: PDFFileMetadataParser) throws -> (PubBox, PubParsingCallback) {
+    public static func parse(fileAtPath path: String, parserType: PDFFileParser.Type) throws -> (PubBox, PubParsingCallback) {
         let container = try generateContainerFrom(fileAtPath: path)
 
         let publication = Publication()
@@ -70,13 +73,17 @@ public final class PDFParser: PublicationParser, Loggable {
         publication.internalData["type"] = "pdf"
         publication.internalData["rootfile"] = container.rootFile.rootFilePath
 
-        let link = Link()
-        link.typeLink = PDFConstant.mimetype
-        link.href = PDFConstant.pdfFilePath
-        publication.readingOrder.append(link)
-        
         // FIXME: if the PDF is DRM-protected, this will not work here
-        try self.fillMetadata(of: publication, in: container, parser: metadataParser)
+        if let fileContainer: PDFFileContainer = container as? PDFFileContainer {
+            fileContainer.files[PDFConstant.pdfFilePath] = .path(path)
+            
+            let link = Link()
+            link.typeLink = PDFConstant.mimetype
+            link.href = PDFConstant.pdfFilePath
+            publication.readingOrder.append(link)
+
+            try self.fillMetadata(of: publication, in: fileContainer, parserType: parserType)
+        }
         
         func didLoadDRM(drm: DRM?) throws {
             container.drm = drm
@@ -87,19 +94,16 @@ public final class PDFParser: PublicationParser, Loggable {
 
     private static func generateContainerFrom(fileAtPath path: String) throws -> PDFContainer {
         var isDirectory: ObjCBool = false
-        guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) else {
+        guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory),
+            let container = PDFFileContainer(path: path, mimetype: PDFConstant.mimetype) else
+        {
             throw PDFParserError.missingFile(path: path)
         }
-        
-        guard let container = PDFFileContainer(path: path, relativePath: PDFConstant.pdfFilePath, mimetype: PDFConstant.mimetype) else {
-            throw PDFParserError.missingFile(path: path)
-        }
-        
         return container
     }
     
     /// Extracts the metadata of a PDF file to fill the `Publication`.
-    private static func fillMetadata(of publication: Publication, in container: PDFContainer, parser: PDFFileMetadataParser) throws {
+    private static func fillMetadata(of publication: Publication, in container: PDFFileContainer, parserType: PDFFileParser.Type) throws {
         /// The PDF might be encrypted, so we filter it with the fetcher.
         guard let fetcher = try? Fetcher(publication: publication, container: container),
             let link = publication.readingOrder.first,
@@ -109,9 +113,20 @@ public final class PDFParser: PublicationParser, Loggable {
             throw PDFParserError.openFailed
         }
         
-        let (metadata, context) = try parser.parse(from: stream)
-        container.context = context
+        let parser = try parserType.init(stream: stream)
+        let metadata = try parser.parseMetadata()
+        container.context = parser.context
         
+        if let cover = try parser.renderCover(), let coverData = UIImagePNGRepresentation(cover) {
+            container.files[PDFConstant.pdfFileCoverPath] = .data(coverData)
+            
+            let link = Link()
+            link.typeLink = "image/png"
+            link.href = PDFConstant.pdfFileCoverPath
+            link.rel.append("cover")
+            publication.resources.append(link)
+        }
+
         publication.metadata.identifier = metadata.identifier ?? container.rootFile.rootPath
 
         if let version = metadata.version {

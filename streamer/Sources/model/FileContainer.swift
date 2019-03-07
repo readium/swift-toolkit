@@ -13,46 +13,71 @@ import Foundation
 import R2Shared
 
 
-/// Container providing access to a single file.
+/// Container providing access to standalone files.
 class FileContainer: Container, Loggable {
+    
+    enum File {
+        case path(String)
+        case data(Data)
+    }
     
     var rootFile: RootFile
     var drm: DRM?
     
-    /// Relative path used to access the single file, using Container's API.
-    private let relativePath: String
-    
-    init?(path: String, relativePath: String, mimetype: String) {
-        guard FileManager.default.fileExists(atPath: path) else {
-            FileContainer.log(.error, "File at \(path) not found.")
-            return nil
-        }
-        
+    /// Maps between container relative paths, and the matching File to serve.
+    var files = [String: File]()
+
+    init?(path: String, mimetype: String) {
         self.rootFile = RootFile(rootPath: path, mimetype: mimetype)
-        self.relativePath = relativePath
     }
     
     func data(relativePath: String) throws -> Data {
-        guard relativePath == self.relativePath else {
+        guard let file = files[relativePath] else {
             throw ContainerError.missingFile(path: relativePath)
         }
         
-        return try Data(contentsOf: URL(fileURLWithPath: rootFile.rootPath))
+        switch file {
+        case .path(let path):
+            return try Data(contentsOf: URL(fileURLWithPath: path))
+        case .data(let data):
+            return data
+        }
     }
     
     func dataLength(relativePath: String) throws -> UInt64 {
-        let attributes = try FileManager.default.attributesOfItem(atPath: rootFile.rootPath)
-        guard let length = attributes[FileAttributeKey.size] as? UInt64 else {
-            throw ContainerError.fileError
+        guard let file = files[relativePath] else {
+            throw ContainerError.missingFile(path: relativePath)
         }
-        return length
+        
+        switch file {
+        case .path(let path):
+            let attributes = try FileManager.default.attributesOfItem(atPath: path)
+            guard let length = attributes[FileAttributeKey.size] as? UInt64 else {
+                throw ContainerError.fileError
+            }
+            return length
+        case .data(let data):
+            return UInt64(data.count)
+        }
     }
     
     func dataInputStream(relativePath: String) throws -> SeekableInputStream {
-        guard let inputStream = FileInputStream(fileAtPath: rootFile.rootPath) else {
+        guard let file = files[relativePath] else {
+            throw ContainerError.missingFile(path: relativePath)
+        }
+        
+        let inputStream: SeekableInputStream?
+        switch file {
+        case .path(let path):
+            inputStream = FileInputStream(fileAtPath: path)
+        case .data(let data):
+            inputStream = DataInputStream(data: data)
+        }
+        
+        guard let stream = inputStream else {
             throw ContainerError.streamInitFailed
         }
-        return inputStream
+        return stream
     }
     
 }
