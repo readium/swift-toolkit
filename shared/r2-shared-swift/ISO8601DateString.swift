@@ -16,17 +16,27 @@ public extension Date {
     public var iso8601: String {
         return Formatter.iso8601.string(from: self)
     }
+    
 }
 
 public extension Formatter {
     /// Format from the ISO8601 format to a Date format.
     public static let iso8601: DateFormatter = {
         let formatter = DateFormatter()
-
         formatter.calendar = Calendar(identifier: .iso8601)
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
+        return formatter
+    }()
+    
+    /// Format from the ISO8601 format without the time to a Date format.
+    public static let iso8601WithoutTime: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .iso8601)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd"
         return formatter
     }()
 }
@@ -42,6 +52,6 @@ public extension String {
             string.replaceSubrange(range, with: "")
         }
 
-        return Formatter.iso8601.date(from: string)   //  2012-01-20T12:47:00.SSSZ -> "Mar 22, 2017, 10:22 AM"
+        return Formatter.iso8601.date(from: string) ?? Formatter.iso8601WithoutTime.date(from: string)  //  2012-01-20T12:47:00.SSSZ -> "Mar 22, 2017, 10:22 AM"
     }
 }

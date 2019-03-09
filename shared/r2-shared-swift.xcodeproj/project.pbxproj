@@ -7,62 +7,37 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0318F70A221DD4CA004E5114 /* Locator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0318F709221DD4CA004E5114 /* Locator.swift */; };
 		57470F7E20ED0D1A000CDCA3 /* DownloadSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */; };
-		AEF39DF320E3895200A560F3 /* UserProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF39DF220E3895200A560F3 /* UserProperties.swift */; };
+		CA16A8592232C2A800E66255 /* WPContributor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A8582232C2A800E66255 /* WPContributor.swift */; };
+		CA16A85B2232C4E600E66255 /* WPLocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A85A2232C4E600E66255 /* WPLocalizedString.swift */; };
+		CA16A85D2232D0CE00E66255 /* WPErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A85C2232D0CE00E66255 /* WPErrors.swift */; };
+		CA16A8602232D1B800E66255 /* WPLocalizedStringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A85F2232D1B800E66255 /* WPLocalizedStringTests.swift */; };
+		CA16A8622232D5F200E66255 /* WPContributorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A8612232D5F200E66255 /* WPContributorTests.swift */; };
+		CA16A8642232DA2000E66255 /* Locator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0318F709221DD4CA004E5114 /* Locator.swift */; };
+		CA16A86C2232EF3700E66255 /* Asserts.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A86B2232EF3700E66255 /* Asserts.swift */; };
+		CA16A86E2232F7AC00E66255 /* WPLinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A86D2232F7AC00E66255 /* WPLinkTests.swift */; };
+		CA16A8702232F7CD00E66255 /* WPLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A86F2232F7CD00E66255 /* WPLink.swift */; };
+		CA16A8722232FBBB00E66255 /* WPProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A8712232FBBB00E66255 /* WPProperties.swift */; };
+		CA16A8742233004A00E66255 /* WPPropertiesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A8732233004A00E66255 /* WPPropertiesTests.swift */; };
+		CA16A8762233065F00E66255 /* JSONToolkit.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A8752233065F00E66255 /* JSONToolkit.swift */; };
+		CA16A8782233B6B900E66255 /* WPRendition.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A8772233B6B800E66255 /* WPRendition.swift */; };
+		CA16A87C2233BA4800E66255 /* WPRenditionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A87B2233BA4800E66255 /* WPRenditionTests.swift */; };
+		CA16A87E2233BD5B00E66255 /* WPEncrypted.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A87D2233BD5B00E66255 /* WPEncrypted.swift */; };
+		CA16A8802233BE6900E66255 /* WPEncryptedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A87F2233BE6900E66255 /* WPEncryptedTests.swift */; };
+		CA16A8822233FE3200E66255 /* WPMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A8812233FE3200E66255 /* WPMetadata.swift */; };
+		CA16A8862234021500E66255 /* WPMetadataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A8852234021400E66255 /* WPMetadataTests.swift */; };
 		CA2006512225A1F300E6B3BD /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2006502225A1F300E6B3BD /* Observable.swift */; };
 		CA2AE320221C1DCB008BD18F /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31D221C1DCB008BD18F /* Logger.swift */; };
 		CA2AE321221C1DCB008BD18F /* LoggerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31E221C1DCB008BD18F /* LoggerStub.swift */; };
 		CA2AE322221C1DCB008BD18F /* Loggable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31F221C1DCB008BD18F /* Loggable.swift */; };
-		CA40C07621FF1BA70069A50E /* MultilangStringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA40C07521FF1BA70069A50E /* MultilangStringTests.swift */; };
 		CA40C07A21FF25F80069A50E /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA40C07921FF25F80069A50E /* JSON.swift */; };
-		CA6161F721FB273B00D2CFE3 /* PublicationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6161F621FB273B00D2CFE3 /* PublicationTests.swift */; };
-		CA6161FE21FB47EB00D2CFE3 /* MetadataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6161FD21FB47EB00D2CFE3 /* MetadataTests.swift */; };
-		CA61620121FB586200D2CFE3 /* ContributorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA61620021FB586200D2CFE3 /* ContributorTests.swift */; };
-		CA61621021FB5E4200D2CFE3 /* SubjectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA61620F21FB5E4200D2CFE3 /* SubjectTests.swift */; };
-		CA61621321FB617500D2CFE3 /* LinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA61621221FB617500D2CFE3 /* LinkTests.swift */; };
-		CA61621521FB65E000D2CFE3 /* PropertiesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA61621421FB65E000D2CFE3 /* PropertiesTests.swift */; };
-		CA61621721FB6E8800D2CFE3 /* EncryptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA61621621FB6E8800D2CFE3 /* EncryptionTests.swift */; };
-		CA61621921FB71B300D2CFE3 /* RenditionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA61621821FB71B300D2CFE3 /* RenditionTests.swift */; };
 		CA9A40D1221B0AA200531EA1 /* Either.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D0221B0AA200531EA1 /* Either.swift */; };
 		CABEB3DC2215698600090B6C /* Deferred.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABEB3DB2215698600090B6C /* Deferred.swift */; };
 		CAC34F0A221C61BD002C452E /* DRM.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC34F06221C61BD002C452E /* DRM.swift */; };
 		CAC34F0C221C61BD002C452E /* Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC34F08221C61BD002C452E /* Deprecated.swift */; };
-		CAD67D8F220E21BB00496BFF /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D87220E217600496BFF /* R2LCPClient.framework */; };
-		CAD67D90220E21BB00496BFF /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D83220E210F00496BFF /* ZIPFoundation.framework */; };
-		CAD67D91220E21BB00496BFF /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D85220E210F00496BFF /* CryptoSwift.framework */; };
-		CAD67D92220E21BB00496BFF /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D89220E219F00496BFF /* R2Shared.framework */; };
-		CAD67D93220E21BB00496BFF /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D8B220E219F00496BFF /* SQLite.framework */; };
-		CAD67D94220E21BB00496BFF /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D8D220E219F00496BFF /* SwiftyJSON.framework */; };
-		CAD67D95220E222000496BFF /* R2LCPClient.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D87220E217600496BFF /* R2LCPClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		CAD67D96220E222000496BFF /* ZIPFoundation.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D83220E210F00496BFF /* ZIPFoundation.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		CAD67D97220E222000496BFF /* CryptoSwift.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D85220E210F00496BFF /* CryptoSwift.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		CAD67D98220E222000496BFF /* R2Shared.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D89220E219F00496BFF /* R2Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		CAD67D99220E222000496BFF /* SQLite.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D8B220E219F00496BFF /* SQLite.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		CAD67D9A220E222000496BFF /* SwiftyJSON.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = CAD67D8D220E219F00496BFF /* SwiftyJSON.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		F3B187A01FA33D4D00BB46BF /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B1879F1FA33D4D00BB46BF /* Feed.swift */; };
-		F3B187A21FA33DFA00BB46BF /* Facet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B187A11FA33DFA00BB46BF /* Facet.swift */; };
-		F3B187A41FA33E1D00BB46BF /* OpdsMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B187A31FA33E1D00BB46BF /* OpdsMetadata.swift */; };
-		F3B187A61FA33E4900BB46BF /* Group.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B187A51FA33E4900BB46BF /* Group.swift */; };
 		F3E7D3F91F4EBE2100DF166D /* r2-shared-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = F3E7D3F71F4EBE2100DF166D /* r2-shared-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		F3E7D40E1F4EC69100DF166D /* Contributor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4011F4EC69100DF166D /* Contributor.swift */; };
-		F3E7D40F1F4EC69100DF166D /* Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4021F4EC69100DF166D /* Encryption.swift */; };
-		F3E7D4101F4EC69100DF166D /* Link.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4031F4EC69100DF166D /* Link.swift */; };
-		F3E7D4111F4EC69100DF166D /* MediaOverlayNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4041F4EC69100DF166D /* MediaOverlayNode.swift */; };
-		F3E7D4121F4EC69100DF166D /* MediaOverlays.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4051F4EC69100DF166D /* MediaOverlays.swift */; };
-		F3E7D4131F4EC69100DF166D /* Metadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4061F4EC69100DF166D /* Metadata.swift */; };
-		F3E7D4141F4EC69100DF166D /* MetadataItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4071F4EC69100DF166D /* MetadataItem.swift */; };
-		F3E7D4151F4EC69100DF166D /* MultilangString.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4081F4EC69100DF166D /* MultilangString.swift */; };
-		F3E7D4161F4EC69100DF166D /* Properties.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4091F4EC69100DF166D /* Properties.swift */; };
-		F3E7D4171F4EC69100DF166D /* Publication.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D40A1F4EC69100DF166D /* Publication.swift */; };
-		F3E7D4181F4EC69100DF166D /* Rendition.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D40B1F4EC69100DF166D /* Rendition.swift */; };
 		F3E7D4191F4EC69100DF166D /* RootFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D40C1F4EC69100DF166D /* RootFile.swift */; };
-		F3E7D41A1F4EC69100DF166D /* Subject.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D40D1F4EC69100DF166D /* Subject.swift */; };
 		F3E7D4231F4ECB3D00DF166D /* ISO8601DateString.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4221F4ECB3D00DF166D /* ISO8601DateString.swift */; };
-		F3F41E181FA3377E00F97737 /* Price.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F41E171FA3377E00F97737 /* Price.swift */; };
-		F3F41E1A1FA3378900F97737 /* IndirectAcquisition.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F41E191FA3378900F97737 /* IndirectAcquisition.swift */; };
-		F3F41E1D1FA33AAA00F97737 /* BelongsTo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F41E1C1FA33AAA00F97737 /* BelongsTo.swift */; };
-		F3F41E1F1FA33AF800F97737 /* Collection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F41E1E1FA33AF800F97737 /* Collection.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -82,12 +57,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				CAD67D95220E222000496BFF /* R2LCPClient.framework in Copy Frameworks */,
-				CAD67D96220E222000496BFF /* ZIPFoundation.framework in Copy Frameworks */,
-				CAD67D97220E222000496BFF /* CryptoSwift.framework in Copy Frameworks */,
-				CAD67D98220E222000496BFF /* R2Shared.framework in Copy Frameworks */,
-				CAD67D99220E222000496BFF /* SQLite.framework in Copy Frameworks */,
-				CAD67D9A220E222000496BFF /* SwiftyJSON.framework in Copy Frameworks */,
 			);
 			name = "Copy Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -98,6 +67,23 @@
 		0318F709221DD4CA004E5114 /* Locator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Locator.swift; sourceTree = "<group>"; };
 		57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadSession.swift; sourceTree = "<group>"; };
 		AEF39DF220E3895200A560F3 /* UserProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProperties.swift; sourceTree = "<group>"; };
+		CA16A8582232C2A800E66255 /* WPContributor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WPContributor.swift; sourceTree = "<group>"; };
+		CA16A85A2232C4E600E66255 /* WPLocalizedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WPLocalizedString.swift; sourceTree = "<group>"; };
+		CA16A85C2232D0CE00E66255 /* WPErrors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WPErrors.swift; sourceTree = "<group>"; };
+		CA16A85F2232D1B800E66255 /* WPLocalizedStringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WPLocalizedStringTests.swift; sourceTree = "<group>"; };
+		CA16A8612232D5F200E66255 /* WPContributorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WPContributorTests.swift; sourceTree = "<group>"; };
+		CA16A86B2232EF3700E66255 /* Asserts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Asserts.swift; sourceTree = "<group>"; };
+		CA16A86D2232F7AC00E66255 /* WPLinkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WPLinkTests.swift; sourceTree = "<group>"; };
+		CA16A86F2232F7CD00E66255 /* WPLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WPLink.swift; sourceTree = "<group>"; };
+		CA16A8712232FBBB00E66255 /* WPProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WPProperties.swift; sourceTree = "<group>"; };
+		CA16A8732233004A00E66255 /* WPPropertiesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WPPropertiesTests.swift; sourceTree = "<group>"; };
+		CA16A8752233065F00E66255 /* JSONToolkit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONToolkit.swift; sourceTree = "<group>"; };
+		CA16A8772233B6B800E66255 /* WPRendition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WPRendition.swift; sourceTree = "<group>"; };
+		CA16A87B2233BA4800E66255 /* WPRenditionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WPRenditionTests.swift; sourceTree = "<group>"; };
+		CA16A87D2233BD5B00E66255 /* WPEncrypted.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WPEncrypted.swift; sourceTree = "<group>"; };
+		CA16A87F2233BE6900E66255 /* WPEncryptedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WPEncryptedTests.swift; sourceTree = "<group>"; };
+		CA16A8812233FE3200E66255 /* WPMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WPMetadata.swift; sourceTree = "<group>"; };
+		CA16A8852234021400E66255 /* WPMetadataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WPMetadataTests.swift; sourceTree = "<group>"; };
 		CA2006502225A1F300E6B3BD /* Observable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Observable.swift; sourceTree = "<group>"; };
 		CA2AE31D221C1DCB008BD18F /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		CA2AE31E221C1DCB008BD18F /* LoggerStub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoggerStub.swift; sourceTree = "<group>"; };
@@ -156,12 +142,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CAD67D8F220E21BB00496BFF /* R2LCPClient.framework in Frameworks */,
-				CAD67D90220E21BB00496BFF /* ZIPFoundation.framework in Frameworks */,
-				CAD67D91220E21BB00496BFF /* CryptoSwift.framework in Frameworks */,
-				CAD67D92220E21BB00496BFF /* R2Shared.framework in Frameworks */,
-				CAD67D93220E21BB00496BFF /* SQLite.framework in Frameworks */,
-				CAD67D94220E21BB00496BFF /* SwiftyJSON.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -186,6 +166,36 @@
 			path = Toolkit;
 			sourceTree = "<group>";
 		};
+		CA16A8572232C27F00E66255 /* Web Publication */ = {
+			isa = PBXGroup;
+			children = (
+				CA16A85C2232D0CE00E66255 /* WPErrors.swift */,
+				CA16A8812233FE3200E66255 /* WPMetadata.swift */,
+				CA16A8772233B6B800E66255 /* WPRendition.swift */,
+				CA16A8582232C2A800E66255 /* WPContributor.swift */,
+				CA16A86F2232F7CD00E66255 /* WPLink.swift */,
+				CA16A8712232FBBB00E66255 /* WPProperties.swift */,
+				CA16A87D2233BD5B00E66255 /* WPEncrypted.swift */,
+				CA16A85A2232C4E600E66255 /* WPLocalizedString.swift */,
+				CA16A8752233065F00E66255 /* JSONToolkit.swift */,
+			);
+			path = "Web Publication";
+			sourceTree = "<group>";
+		};
+		CA16A85E2232D19500E66255 /* Web Publication */ = {
+			isa = PBXGroup;
+			children = (
+				CA16A8852234021400E66255 /* WPMetadataTests.swift */,
+				CA16A87B2233BA4800E66255 /* WPRenditionTests.swift */,
+				CA16A8612232D5F200E66255 /* WPContributorTests.swift */,
+				CA16A86D2232F7AC00E66255 /* WPLinkTests.swift */,
+				CA16A8732233004A00E66255 /* WPPropertiesTests.swift */,
+				CA16A87F2233BE6900E66255 /* WPEncryptedTests.swift */,
+				CA16A85F2232D1B800E66255 /* WPLocalizedStringTests.swift */,
+			);
+			path = "Web Publication";
+			sourceTree = "<group>";
+		};
 		CA2AE31C221C1DCB008BD18F /* Logger */ = {
 			isa = PBXGroup;
 			children = (
@@ -200,8 +210,10 @@
 			isa = PBXGroup;
 			children = (
 				CA40C07921FF25F80069A50E /* JSON.swift */,
+				CA16A85E2232D19500E66255 /* Web Publication */,
 				CA6161F521FB26FA00D2CFE3 /* Publication */,
 				CA6161EE21FB257700D2CFE3 /* Info.plist */,
+				CA16A86B2232EF3700E66255 /* Asserts.swift */,
 			);
 			path = "r2-shared-swiftTests";
 			sourceTree = "<group>";
@@ -284,6 +296,7 @@
 				F3E7D3F81F4EBE2100DF166D /* Info.plist */,
 				F3E7D40C1F4EC69100DF166D /* RootFile.swift */,
 				F3E7D4221F4ECB3D00DF166D /* ISO8601DateString.swift */,
+				CA16A8572232C27F00E66255 /* Web Publication */,
 				CAC34F04221C61BD002C452E /* DRM */,
 				CA2AE31C221C1DCB008BD18F /* Logger */,
 				57470F7F20ED0D25000CDCA3 /* Toolkit */,
@@ -477,16 +490,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA61621021FB5E4200D2CFE3 /* SubjectTests.swift in Sources */,
+				CA16A8742233004A00E66255 /* WPPropertiesTests.swift in Sources */,
+				CA16A8802233BE6900E66255 /* WPEncryptedTests.swift in Sources */,
 				CA40C07A21FF25F80069A50E /* JSON.swift in Sources */,
-				CA61621721FB6E8800D2CFE3 /* EncryptionTests.swift in Sources */,
-				CA6161FE21FB47EB00D2CFE3 /* MetadataTests.swift in Sources */,
-				CA61621521FB65E000D2CFE3 /* PropertiesTests.swift in Sources */,
-				CA61620121FB586200D2CFE3 /* ContributorTests.swift in Sources */,
-				CA61621321FB617500D2CFE3 /* LinkTests.swift in Sources */,
-				CA61621921FB71B300D2CFE3 /* RenditionTests.swift in Sources */,
-				CA6161F721FB273B00D2CFE3 /* PublicationTests.swift in Sources */,
-				CA40C07621FF1BA70069A50E /* MultilangStringTests.swift in Sources */,
+				CA16A86C2232EF3700E66255 /* Asserts.swift in Sources */,
+				CA16A8602232D1B800E66255 /* WPLocalizedStringTests.swift in Sources */,
+				CA16A8862234021500E66255 /* WPMetadataTests.swift in Sources */,
+				CA16A86E2232F7AC00E66255 /* WPLinkTests.swift in Sources */,
+				CA16A87C2233BA4800E66255 /* WPRenditionTests.swift in Sources */,
+				CA16A8622232D5F200E66255 /* WPContributorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -494,39 +506,27 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F3E7D4161F4EC69100DF166D /* Properties.swift in Sources */,
 				F3E7D4231F4ECB3D00DF166D /* ISO8601DateString.swift in Sources */,
-				F3E7D41A1F4EC69100DF166D /* Subject.swift in Sources */,
 				57470F7E20ED0D1A000CDCA3 /* DownloadSession.swift in Sources */,
 				CA2AE320221C1DCB008BD18F /* Logger.swift in Sources */,
-				F3B187A61FA33E4900BB46BF /* Group.swift in Sources */,
+				CA16A8702232F7CD00E66255 /* WPLink.swift in Sources */,
 				F3E7D4191F4EC69100DF166D /* RootFile.swift in Sources */,
-				F3E7D4141F4EC69100DF166D /* MetadataItem.swift in Sources */,
-				AEF39DF320E3895200A560F3 /* UserProperties.swift in Sources */,
-				F3F41E181FA3377E00F97737 /* Price.swift in Sources */,
-				F3E7D4101F4EC69100DF166D /* Link.swift in Sources */,
+				CA16A85B2232C4E600E66255 /* WPLocalizedString.swift in Sources */,
 				CABEB3DC2215698600090B6C /* Deferred.swift in Sources */,
+				CA16A85D2232D0CE00E66255 /* WPErrors.swift in Sources */,
 				CA2006512225A1F300E6B3BD /* Observable.swift in Sources */,
-				F3E7D4181F4EC69100DF166D /* Rendition.swift in Sources */,
-				F3E7D4121F4EC69100DF166D /* MediaOverlays.swift in Sources */,
-				F3B187A01FA33D4D00BB46BF /* Feed.swift in Sources */,
-				F3B187A21FA33DFA00BB46BF /* Facet.swift in Sources */,
-				F3F41E1D1FA33AAA00F97737 /* BelongsTo.swift in Sources */,
 				CA2AE321221C1DCB008BD18F /* LoggerStub.swift in Sources */,
-				F3F41E1F1FA33AF800F97737 /* Collection.swift in Sources */,
-				F3B187A41FA33E1D00BB46BF /* OpdsMetadata.swift in Sources */,
 				CA2AE322221C1DCB008BD18F /* Loggable.swift in Sources */,
-				F3E7D4111F4EC69100DF166D /* MediaOverlayNode.swift in Sources */,
 				CA9A40D1221B0AA200531EA1 /* Either.swift in Sources */,
-				F3E7D4151F4EC69100DF166D /* MultilangString.swift in Sources */,
-				0318F70A221DD4CA004E5114 /* Locator.swift in Sources */,
-				F3E7D4171F4EC69100DF166D /* Publication.swift in Sources */,
+				CA16A8782233B6B900E66255 /* WPRendition.swift in Sources */,
+				CA16A87E2233BD5B00E66255 /* WPEncrypted.swift in Sources */,
+				CA16A8722232FBBB00E66255 /* WPProperties.swift in Sources */,
 				CAC34F0C221C61BD002C452E /* Deprecated.swift in Sources */,
-				F3E7D40F1F4EC69100DF166D /* Encryption.swift in Sources */,
-				F3F41E1A1FA3378900F97737 /* IndirectAcquisition.swift in Sources */,
+				CA16A8642232DA2000E66255 /* Locator.swift in Sources */,
+				CA16A8822233FE3200E66255 /* WPMetadata.swift in Sources */,
+				CA16A8592232C2A800E66255 /* WPContributor.swift in Sources */,
 				CAC34F0A221C61BD002C452E /* DRM.swift in Sources */,
-				F3E7D4131F4EC69100DF166D /* Metadata.swift in Sources */,
-				F3E7D40E1F4EC69100DF166D /* Contributor.swift in Sources */,
+				CA16A8762233065F00E66255 /* JSONToolkit.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
