@@ -13,13 +13,7 @@ import XCTest
 @testable import R2Shared
 
 class WPMetadataTests: XCTestCase {
-    
-    func testParseReadingProgression() {
-        XCTAssertEqual(WPReadingProgression(rawValue: "rtl"), .rtl)
-        XCTAssertEqual(WPReadingProgression(rawValue: "ltr"), .ltr)
-        XCTAssertEqual(WPReadingProgression(rawValue: "auto"), .auto)
-    }
-    
+
     func testReadingProgressionDefaultsToAuto() {
         XCTAssertEqual(try WPMetadata(json: ["title": "t"]).readingProgression, .auto)
         XCTAssertEqual(WPMetadata(title: "t").readingProgression, .auto)
@@ -43,6 +37,7 @@ class WPMetadataTests: XCTestCase {
                 "published": "2001-01-01",
                 "language": ["en", "fr"],
                 "sortAs": "sort key",
+                "subject": ["Science Fiction", "Fantasy"],
                 "author": "Author",
                 "translator": "Translator",
                 "editor": "Editor",
@@ -77,6 +72,7 @@ class WPMetadataTests: XCTestCase {
                 published: Date(timeIntervalSinceReferenceDate: 0),
                 languages: ["en", "fr"],
                 sortAs: "sort key",
+                subjects: [WPSubject(name: "Science Fiction"), WPSubject(name: "Fantasy")],
                 authors: [WPContributor(name: "Author")],
                 translators: [WPContributor(name: "Translator")],
                 editors: [WPContributor(name: "Editor")],
@@ -120,6 +116,23 @@ class WPMetadataTests: XCTestCase {
         )
     }
     
+    func testParseJSONOtherMetadata() {
+        XCTAssertEqual(
+            try? WPMetadata(json: [
+                "title": "Title",
+                "other-metadata1": "value",
+                "other-metadata2": [42],
+            ]),
+            WPMetadata(
+                title: "Title",
+                otherMetadata: [
+                    "other-metadata1": "value",
+                    "other-metadata2": [42]
+                ]
+            )
+        )
+    }
+    
     func testParseJSONRequiresTitle() {
         XCTAssertThrowsError(try WPMetadata(json: ["duration": 4.24]))
     }
@@ -159,6 +172,7 @@ class WPMetadataTests: XCTestCase {
                 published: Date(timeIntervalSinceReferenceDate: 0),
                 languages: ["en", "fr"],
                 sortAs: "sort key",
+                subjects: [WPSubject(name: "Science Fiction"), WPSubject(name: "Fantasy")],
                 authors: [WPContributor(name: "Author")],
                 translators: [WPContributor(name: "Translator")],
                 editors: [WPContributor(name: "Editor")],
@@ -180,7 +194,10 @@ class WPMetadataTests: XCTestCase {
                     collections: [WPContributor(name: "Collection")],
                     series: [WPContributor(name: "Series")]
                 ),
-                rendition: WPRendition(layout: .fixed)
+                rendition: WPRendition(layout: .fixed),
+                otherMetadata: [
+                    "other-metadata1": "value"
+                ]
             ).json,
             [
                 "identifier": "1234",
@@ -191,6 +208,10 @@ class WPMetadataTests: XCTestCase {
                 "published": "2001-01-01T00:00:00+0000",
                 "language": ["en", "fr"],
                 "sortAs": "sort key",
+                "subject": [
+                    ["name": "Science Fiction"],
+                    ["name": "Fantasy"]
+                ],
                 "author": [["name": "Author"]],
                 "translator": [["name": "Translator"]],
                 "editor": [["name": "Editor"]],
@@ -214,7 +235,8 @@ class WPMetadataTests: XCTestCase {
                 ],
                 "rendition": [
                     "layout": "fixed"
-                ]
+                ],
+                "other-metadata1": "value"
             ]
         )
     }

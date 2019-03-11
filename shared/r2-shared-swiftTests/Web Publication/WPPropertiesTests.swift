@@ -52,12 +52,29 @@ class WPPropertiesTests: XCTestCase {
         XCTAssertThrowsError(try WPProperties(json: ""))
     }
     
-    func testParseAllowsNil() {
+    func testParseJSONAllowsNil() {
         XCTAssertNil(try WPProperties(json: nil))
     }
     
+    func testParseJSONOtherProperties() {
+        XCTAssertEqual(
+            try? WPProperties(json: [
+                "orientation": "auto",
+                "other-property1": "value",
+                "other-property2": [42],
+            ]),
+            WPProperties(
+                orientation: .auto,
+                otherProperties: [
+                    "other-property1": "value",
+                    "other-property2": [42]
+                ]
+            )
+        )
+    }
+
     func testGetMinimalJSON() {
-        XCTAssertNil(WPProperties().json)
+        AssertJSONEqual(WPProperties().json, [:])
     }
     
     func testGetFullJSON() {
@@ -70,7 +87,10 @@ class WPPropertiesTests: XCTestCase {
                 mediaOverlay: "http://uri",
                 overflow: .scrolledContinuous,
                 spread: .landscape,
-                encrypted: WPEncrypted(algorithm: "http://algo")
+                encrypted: WPEncrypted(algorithm: "http://algo"),
+                otherProperties: [
+                    "other-property1": "value",
+                ]
             ).json as Any,
             [
                 "orientation": "landscape",
@@ -82,7 +102,8 @@ class WPPropertiesTests: XCTestCase {
                 "spread": "landscape",
                 "encrypted": [
                     "algorithm": "http://algo"
-                ]
+                ],
+                "other-property1": "value"
             ]
         )
     }

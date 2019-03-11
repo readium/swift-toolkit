@@ -12,9 +12,9 @@
 import Foundation
 
 
-public enum WPReadingProgression: String {
-    case rtl, ltr, auto
-}
+/// Collection struct used for collection/series metadata.
+/// For convenience, the JSON schema reuse the Contributor's definition.
+public typealias WPPublicationCollection = WPContributor
 
 
 /// https://readium.org/webpub-manifest/schema/metadata.schema.json
@@ -28,6 +28,7 @@ public struct WPMetadata: Equatable {
     public var published: Date?
     public var languages: [String]  // BCP 47 tag
     public var sortAs: String?
+    public var subjects: [WPSubject]
     public var authors: [WPContributor]
     public var translators: [WPContributor]
     public var editors: [WPContributor]
@@ -47,11 +48,21 @@ public struct WPMetadata: Equatable {
     public var numberOfPages: Int?
     public var belongsTo: BelongsTo?
 
+    
     // MARK: - EPUB Extension
     
     public var rendition: WPRendition?
+    
+    
+    /// Additional properties for extensions.
+    public var otherMetadata: [String: Any] {
+        return otherMetadataJSON.json
+    }
+    // Trick to keep the struct equatable despite [String: Any]
+    private var otherMetadataJSON: JSONDictionary
+    
 
-    public init(identifier: String? = nil, type: String? = nil, title: WPLocalizedString, subtitle: WPLocalizedString? = nil, modified: Date? = nil, published: Date? = nil, languages: [String] = [], sortAs: String? = nil, authors: [WPContributor] = [], translators: [WPContributor] = [], editors: [WPContributor] = [], artists: [WPContributor] = [], illustrators: [WPContributor] = [], letterers: [WPContributor] = [], pencilers: [WPContributor] = [], colorists: [WPContributor] = [], inkers: [WPContributor] = [], narrators: [WPContributor] = [], contributors: [WPContributor] = [], publishers: [WPContributor] = [], imprints: [WPContributor] = [], readingProgression: WPReadingProgression = .auto, description: String? = nil, duration: Double? = nil, numberOfPages: Int? = nil, belongsTo: BelongsTo? = nil, rendition: WPRendition? = nil) {
+    public init(identifier: String? = nil, type: String? = nil, title: WPLocalizedString, subtitle: WPLocalizedString? = nil, modified: Date? = nil, published: Date? = nil, languages: [String] = [], sortAs: String? = nil, subjects: [WPSubject] = [], authors: [WPContributor] = [], translators: [WPContributor] = [], editors: [WPContributor] = [], artists: [WPContributor] = [], illustrators: [WPContributor] = [], letterers: [WPContributor] = [], pencilers: [WPContributor] = [], colorists: [WPContributor] = [], inkers: [WPContributor] = [], narrators: [WPContributor] = [], contributors: [WPContributor] = [], publishers: [WPContributor] = [], imprints: [WPContributor] = [], readingProgression: WPReadingProgression = .auto, description: String? = nil, duration: Double? = nil, numberOfPages: Int? = nil, belongsTo: BelongsTo? = nil, rendition: WPRendition? = nil, otherMetadata: [String: Any] = [:]) {
         self.identifier = identifier
         self.type = type
         self.title = title
@@ -60,6 +71,7 @@ public struct WPMetadata: Equatable {
         self.published = published
         self.languages = languages
         self.sortAs = sortAs
+        self.subjects = subjects
         self.authors = authors
         self.translators = translators
         self.editors = editors
@@ -79,42 +91,45 @@ public struct WPMetadata: Equatable {
         self.numberOfPages = numberOfPages
         self.belongsTo = belongsTo
         self.rendition = rendition
+        self.otherMetadataJSON = JSONDictionary(otherMetadata) ?? JSONDictionary()
     }
     
-    init(json: Any) throws {
-        guard let json = json as? [String: Any],
-            let title = try WPLocalizedString(json: json["title"]) else
+    init(json: Any?) throws {
+        guard var json = JSONDictionary(json),
+            let title = try WPLocalizedString(json: json.pop("title")) else
         {
             throw WPParsingError.metadata
         }
         
-        self.identifier = json["identifier"] as? String
-        self.type = json["@type"] as? String
+        self.identifier = json.pop("identifier") as? String
+        self.type = json.pop("@type") as? String ?? json.pop("type") as? String
         self.title = title
-        self.subtitle = try WPLocalizedString(json: json["subtitle"])
-        self.modified = parseDate(json["modified"])
-        self.published = parseDate(json["published"])
-        self.languages = parseArray(json["language"], allowingSingle: true)
-        self.sortAs = json["sortAs"] as? String
-        self.authors = try .init(json: json["author"])
-        self.translators = try .init(json: json["translator"])
-        self.editors = try .init(json: json["editor"])
-        self.artists = try .init(json: json["artist"])
-        self.illustrators = try .init(json: json["illustrator"])
-        self.letterers = try .init(json: json["letterer"])
-        self.pencilers = try .init(json: json["penciler"])
-        self.colorists = try .init(json: json["colorist"])
-        self.inkers = try .init(json: json["inker"])
-        self.narrators = try .init(json: json["narrator"])
-        self.contributors = try .init(json: json["contributor"])
-        self.publishers = try .init(json: json["publisher"])
-        self.imprints = try .init(json: json["imprint"])
-        self.readingProgression = parseRaw(json["readingProgression"]) ?? .auto
-        self.description = json["description"] as? String
-        self.duration = parsePositiveDouble(json["duration"])
-        self.numberOfPages = parsePositive(json["numberOfPages"])
-        self.belongsTo = try BelongsTo(json: json["belongsTo"])
-        self.rendition = try WPRendition(json: json["rendition"])
+        self.subtitle = try WPLocalizedString(json: json.pop("subtitle"))
+        self.modified = parseDate(json.pop("modified"))
+        self.published = parseDate(json.pop("published"))
+        self.languages = parseArray(json.pop("language"), allowingSingle: true)
+        self.sortAs = json.pop("sortAs") as? String
+        self.subjects = [WPSubject](json: json.pop("subject"))
+        self.authors = [WPContributor](json: json.pop("author"))
+        self.translators = [WPContributor](json: json.pop("translator"))
+        self.editors = [WPContributor](json: json.pop("editor"))
+        self.artists = [WPContributor](json: json.pop("artist"))
+        self.illustrators = [WPContributor](json: json.pop("illustrator"))
+        self.letterers = [WPContributor](json: json.pop("letterer"))
+        self.pencilers = [WPContributor](json: json.pop("penciler"))
+        self.colorists = [WPContributor](json: json.pop("colorist"))
+        self.inkers = [WPContributor](json: json.pop("inker"))
+        self.narrators = [WPContributor](json: json.pop("narrator"))
+        self.contributors = [WPContributor](json: json.pop("contributor"))
+        self.publishers = [WPContributor](json: json.pop("publisher"))
+        self.imprints = [WPContributor](json: json.pop("imprint"))
+        self.readingProgression = parseRaw(json.pop("readingProgression")) ?? .auto
+        self.description = json.pop("description") as? String
+        self.duration = parsePositiveDouble(json.pop("duration"))
+        self.numberOfPages = parsePositive(json.pop("numberOfPages"))
+        self.belongsTo = try BelongsTo(json: json.pop("belongsTo"))
+        self.rendition = try WPRendition(json: json.pop("rendition"))
+        self.otherMetadataJSON = json
     }
     
     var json: [String: Any] {
@@ -127,6 +142,7 @@ public struct WPMetadata: Equatable {
             "published": encodeIfNotNil(published?.iso8601),
             "language": encodeIfNotEmpty(languages),
             "sortAs": encodeIfNotNil(sortAs),
+            "subject": encodeIfNotEmpty(subjects.json),
             "author": encodeIfNotEmpty(authors.json),
             "translator": encodeIfNotEmpty(translators.json),
             "editor": encodeIfNotEmpty(editors.json),
@@ -144,16 +160,16 @@ public struct WPMetadata: Equatable {
             "description": encodeIfNotNil(description),
             "duration": encodeIfNotNil(duration),
             "numberOfPages": encodeIfNotNil(numberOfPages),
-            "belongsTo": encodeIfNotNil(belongsTo?.json),
-            "rendition": encodeIfNotNil(rendition?.json)
-        ])
+            "belongsTo": encodeIfNotEmpty(belongsTo?.json),
+            "rendition": encodeIfNotEmpty(rendition?.json)
+        ]).merging(otherMetadata, uniquingKeysWith: { current, _ in current })
     }
 
     public struct BelongsTo: Equatable {
-        public var collections: [WPContributor]
-        public var series: [WPContributor]
+        public var collections: [WPPublicationCollection]
+        public var series: [WPPublicationCollection]
         
-        init(collections: [WPContributor] = [], series: [WPContributor] = []) {
+        init(collections: [WPPublicationCollection] = [], series: [WPPublicationCollection] = []) {
             self.collections = collections
             self.series = series
         }
@@ -163,21 +179,29 @@ public struct WPMetadata: Equatable {
                 return nil
             }
             guard let json = json as? [String: Any] else {
-                throw WPParsingError.belongsTo
+                throw WPParsingError.metadata
             }
-            collections = try .init(json: json["collection"])
-            series = try .init(json: json["series"])
+            collections = [WPPublicationCollection](json: json["collection"])
+            series = [WPPublicationCollection](json: json["series"])
         }
         
-        var json: [String: Any]? {
-            let json = makeJSON([
+        var json: [String: Any] {
+            return makeJSON([
                 "collection": encodeIfNotEmpty(collections.json),
                 "series": encodeIfNotEmpty(series.json)
             ])
-            // Nil if empty to not include in the parent structure.
-            return json.isEmpty ? nil : json
         }
         
+    }
+    
+    @available(*, deprecated, message: "Use `title.string(forLanguageCode:)` instead")
+    public func titleForLang(_ lang: String) -> String? {
+        return title.string(forLanguageCode: lang)
+    }
+    
+    @available(*, deprecated, message: "Use `subtitle.string(forLanguageCode:)` instead")
+    public func subtitleForLang(_ lang: String) -> String? {
+        return subtitle?.string(forLanguageCode: lang)
     }
     
 }

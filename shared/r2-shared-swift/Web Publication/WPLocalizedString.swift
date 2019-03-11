@@ -12,8 +12,10 @@
 import Foundation
 
 
-/// Represents a localized string defined by this JSON schema:
+/// Represents a potentially localized string.
+/// Can be either a single string, or a dictionary indexed by the BCP 47 language tag.
 ///
+/// Defined by this JSON schema:
 ///   "anyOf": [
 ///     {
 ///       "type": "string"

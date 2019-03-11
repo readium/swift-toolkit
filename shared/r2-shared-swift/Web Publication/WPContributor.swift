@@ -44,7 +44,7 @@ public struct WPContributor: Equatable {
             self.sortAs = json["sortAs"] as? String
             self.roles = parseArray(json["role"], allowingSingle: true)
             self.position =  parseDouble(json["position"])
-            self.links = try [WPLink](json: json["links"])
+            self.links = [WPLink](json: json["links"])
 
         } else {
             throw WPParsingError.contributor
@@ -68,17 +68,17 @@ public struct WPContributor: Equatable {
 /// eg. let authors = [WPContributor](json: ["Apple", "Pear"])
 extension Array where Element == WPContributor {
     
-    public init(json: Any?) throws {
+    public init(json: Any?) {
         self.init()
         guard let json = json else {
             return
         }
 
         if let json = json as? [Any] {
-            let contributors = try json.map { try WPContributor(json: $0) }
+            let contributors = json.compactMap { try? WPContributor(json: $0) }
             append(contentsOf: contributors)
-        } else {
-            append(try WPContributor(json: json))
+        } else if let contributor = try? WPContributor(json: json) {
+            append(contributor)
         }
     }
     

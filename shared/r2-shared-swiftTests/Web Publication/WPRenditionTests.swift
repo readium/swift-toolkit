@@ -26,6 +26,12 @@ class WPRenditionTests: XCTestCase {
         XCTAssertEqual(WPPage(rawValue: "center"), .center)
     }
     
+    func testParseReadingProgression() {
+        XCTAssertEqual(WPReadingProgression(rawValue: "rtl"), .rtl)
+        XCTAssertEqual(WPReadingProgression(rawValue: "ltr"), .ltr)
+        XCTAssertEqual(WPReadingProgression(rawValue: "auto"), .auto)
+    }
+    
     func testParseLayout() {
         XCTAssertEqual(WPLayout(rawValue: "fixed"), .fixed)
         XCTAssertEqual(WPLayout(rawValue: "reflowable"), .reflowable)
@@ -78,7 +84,7 @@ class WPRenditionTests: XCTestCase {
     }
     
     func testGetMinimalJSON() {
-        XCTAssertNil(WPRendition().json)
+        AssertJSONEqual(WPRendition().json, [:])
     }
     
     func testGetFullJSON() {

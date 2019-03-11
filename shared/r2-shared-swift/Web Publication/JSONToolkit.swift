@@ -12,6 +12,67 @@
 import Foundation
 
 
+/// Wraps a dictionary parsed from a JSON string.
+/// This is a trick to keep the Web Publication structs equatable without having to override `==` and compare all the other properties.
+public struct JSONDictionary {
+    
+    private(set) var json: [String: Any]
+    
+    init() {
+        self.json = [:]
+    }
+    
+    init?(_ json: Any?) {
+        guard let json = json as? [String: Any] else {
+            return nil
+        }
+        self.json = json
+    }
+    
+    mutating func pop(_ key: String) -> Any? {
+        return json.removeValue(forKey: key)
+    }
+    
+}
+
+extension JSONDictionary: Collection {
+    public typealias Index = DictionaryIndex<String, Any>
+    public typealias Element = (key: String, value: Any)
+
+    public var startIndex: Index {
+        return json.startIndex
+    }
+    
+    public var endIndex: Index {
+        return json.endIndex
+    }
+    
+    public subscript(index: Index) -> Iterator.Element {
+        return json[index]
+    }
+    
+    public func index(after i: Index) -> Index {
+        return json.index(after: i)
+    }
+    
+}
+
+extension JSONDictionary: Equatable {
+    
+    public static func == (lhs: JSONDictionary, rhs: JSONDictionary) -> Bool {
+        guard #available(iOS 11.0, *) else {
+            // The JSON comparison is not reliable before iOS 11, because the keys order is not deterministic. Since the equality is only tested during unit tests, it's not such a problem.
+            return false
+        }
+        
+        let l = try? JSONSerialization.data(withJSONObject: lhs.json, options: [.sortedKeys])
+        let r = try? JSONSerialization.data(withJSONObject: rhs.json, options: [.sortedKeys])
+        return l == r
+    }
+
+}
+
+
 // MARK: - JSON Parsing
 
 /// enum Example: String {
@@ -89,7 +150,10 @@ func encodeRawIfNotNil<T: RawRepresentable>(_ value: T?) -> Any {
     return value?.rawValue ?? NSNull()
 }
 
-/// Returns the array if not empty, or NSNull.
-func encodeIfNotEmpty(_ array: [Any]) -> Any {
-    return array.isEmpty ? NSNull() : array
+/// Returns the collection if not empty, or NSNull.
+func encodeIfNotEmpty<T: Collection>(_ collection: T?) -> Any {
+    guard let collection = collection else {
+        return NSNull()
+    }
+    return collection.isEmpty ? NSNull() : collection
 }

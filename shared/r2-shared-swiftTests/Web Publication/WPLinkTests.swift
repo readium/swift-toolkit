@@ -114,7 +114,7 @@ class WPLinkTests: XCTestCase {
 
     func testParseJSONArray() {
         XCTAssertEqual(
-            try? [WPLink](json: [
+            [WPLink](json: [
                 ["href": "http://child1"],
                 ["href": "http://child2"]
             ]),
@@ -127,8 +127,20 @@ class WPLinkTests: XCTestCase {
     
     func testParseJSONArrayWhenNil() {
         XCTAssertEqual(
-            try? [WPLink](json: nil),
+            [WPLink](json: nil),
             []
+        )
+    }
+    
+    func testParseJSONArrayIgnoresInvalidLinks() {
+        XCTAssertEqual(
+            [WPLink](json: [
+                ["title": "Title"],
+                ["href": "http://child2"]
+            ]),
+            [
+                WPLink(href: "http://child2")
+            ]
         )
     }
     

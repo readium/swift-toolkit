@@ -12,12 +12,14 @@
 import Foundation
 
 enum WPParsingError: Error {
-    case localizedString
+    case subcollection
+    case publication
+    case metadata
+    case rendition
+    case contributor
+    case subject
     case link
     case properties
     case encrypted
-    case contributor
-    case metadata
-    case belongsTo
-    case rendition
+    case localizedString
 }

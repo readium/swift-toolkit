@@ -26,6 +26,12 @@ public enum WPPage: String {
     case center
 }
 
+public enum WPReadingProgression: String {
+    case rtl
+    case ltr
+    case auto
+}
+
 
 // MARK: - EPUB Extension
 
@@ -88,15 +94,13 @@ public struct WPRendition: Equatable {
         self.spread = parseRaw(json["spread"])
     }
     
-    public var json: [String: Any]? {
-        let json = makeJSON([
+    public var json: [String: Any] {
+        return makeJSON([
             "layout": encodeRawIfNotNil(layout),
             "orientation": encodeRawIfNotNil(orientation),
             "overflow": encodeRawIfNotNil(overflow),
             "spread": encodeRawIfNotNil(spread)
         ])
-        // Nil if empty to not include the rendition in the parent structure.
-        return json.isEmpty ? nil : json
     }
 
 }

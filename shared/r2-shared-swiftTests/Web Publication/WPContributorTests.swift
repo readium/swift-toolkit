@@ -76,7 +76,7 @@ class WPContributorTests: XCTestCase {
     
     func testParseJSONArray() {
         XCTAssertEqual(
-            try? [WPContributor](json: [
+            [WPContributor](json: [
                 "Thom Yorke",
                 [
                     "name": ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
@@ -95,21 +95,35 @@ class WPContributorTests: XCTestCase {
     
     func testParseJSONArrayWhenNil() {
         XCTAssertEqual(
-            try? [WPContributor](json: nil),
+            [WPContributor](json: nil),
             []
+        )
+    }
+    
+    func testParseJSONArrayIgnoresInvalidContributors() {
+        XCTAssertEqual(
+            [WPContributor](json: [
+                "Thom Yorke",
+                [
+                    "role": "guitarist"
+                ]
+            ]),
+            [
+                WPContributor(name: "Thom Yorke"),
+            ]
         )
     }
     
     func testParseJSONArrayWhenString() {
         XCTAssertEqual(
-            try? [WPContributor](json: "Thom Yorke"),
+            [WPContributor](json: "Thom Yorke"),
             [WPContributor(name: "Thom Yorke")]
         )
     }
     
     func testParseJSONArrayWhenSingleObject() {
         XCTAssertEqual(
-            try? [WPContributor](json: [
+            [WPContributor](json: [
                 "name": ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
                 "role": "guitarist"
             ]),

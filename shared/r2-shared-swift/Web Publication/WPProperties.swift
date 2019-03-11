@@ -21,8 +21,8 @@ public struct WPProperties: Equatable {
 
     /// Indicates how the linked resource should be displayed in a reading environment that displays synthetic spreads.
     public var page: WPPage?
-
     
+
     // MARK: - EPUB Extension
     // https://readium.org/webpub-manifest/schema/extensions/epub/properties.schema.json
 
@@ -45,9 +45,17 @@ public struct WPProperties: Equatable {
     public var encrypted: WPEncrypted?
     
     
+    /// Additional properties for extensions.
+    public var otherProperties: [String: Any] {
+        return otherPropertiesJSON.json
+    }
+    // Trick to keep the struct equatable despite [String: Any]
+    private var otherPropertiesJSON: JSONDictionary
+    
+    
     // FIXME: OPDS: https://drafts.opds.io/schema/properties.schema.json
 
-    public init(orientation: WPOrientation? = nil, page: WPPage? = nil, contains: [String] = [], layout: WPLayout? = nil, mediaOverlay: String? = nil, overflow: WPOverflow? = nil, spread: WPSpread? = nil, encrypted: WPEncrypted? = nil) {
+    public init(orientation: WPOrientation? = nil, page: WPPage? = nil, contains: [String] = [], layout: WPLayout? = nil, mediaOverlay: String? = nil, overflow: WPOverflow? = nil, spread: WPSpread? = nil, encrypted: WPEncrypted? = nil, otherProperties: [String: Any] = [:]) {
         self.orientation = orientation
         self.page = page
         self.contains = contains
@@ -56,28 +64,30 @@ public struct WPProperties: Equatable {
         self.overflow = overflow
         self.spread = spread
         self.encrypted = encrypted
+        self.otherPropertiesJSON = JSONDictionary(otherProperties) ?? JSONDictionary()
     }
     
     public init?(json: Any?) throws {
         if json == nil {
             return nil
         }
-        guard let json = json as? [String: Any] else {
+        guard var json = JSONDictionary(json) else {
             throw WPParsingError.properties
         }
         
-        self.orientation = parseRaw(json["orientation"])
-        self.page = parseRaw(json["page"])
-        self.contains = parseArray(json["contains"])
-        self.layout = parseRaw(json["layout"])
-        self.mediaOverlay = json["media-overlay"] as? String
-        self.overflow = parseRaw(json["overflow"])
-        self.spread = parseRaw(json["spread"])
-        self.encrypted = try WPEncrypted(json: json["encrypted"])
+        self.orientation = parseRaw(json.pop("orientation"))
+        self.page = parseRaw(json.pop("page"))
+        self.contains = parseArray(json.pop("contains"))
+        self.layout = parseRaw(json.pop("layout"))
+        self.mediaOverlay = json.pop("media-overlay") as? String
+        self.overflow = parseRaw(json.pop("overflow"))
+        self.spread = parseRaw(json.pop("spread"))
+        self.encrypted = try WPEncrypted(json: json.pop("encrypted"))
+        self.otherPropertiesJSON = json
     }
     
-    public var json: [String: Any]? {
-        let json = makeJSON([
+    public var json: [String: Any] {
+        return makeJSON([
             "orientation": encodeRawIfNotNil(orientation),
             "page": encodeRawIfNotNil(page),
             "contains": encodeIfNotEmpty(contains),
@@ -86,9 +96,7 @@ public struct WPProperties: Equatable {
             "overflow": encodeRawIfNotNil(overflow),
             "spread": encodeRawIfNotNil(spread),
             "encrypted": encodeIfNotNil(encrypted?.json),
-        ])
-        // Nil if empty to not include the properties in the parent structure.
-        return json.isEmpty ? nil : json
+        ]).merging(otherProperties, uniquingKeysWith: { current, _ in current })
     }
 
 }
