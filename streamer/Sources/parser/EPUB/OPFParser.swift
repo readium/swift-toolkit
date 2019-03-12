@@ -59,8 +59,7 @@ final public class OPFParser {
         publication.internalData["type"] = "epub"
         publication.internalData["rootfile"] = rootFilePath
         try parseMetadata(from: document, to: &publication)
-        parseResources(from: document["package"]["manifest"], to: &publication, rootFilePath)
-        coverLinkFromMeta(from: document["package"]["metadata"], to: &publication)
+        parseResources(from: document["package"]["manifest"], metadata: document["package"]["metadata"], to: &publication, rootFilePath)
         parseReadingOrder(from: document["package"], to: &publication)
         return publication
     }
@@ -140,68 +139,57 @@ final public class OPFParser {
     }
 
     /// Parse XML elements of the <Manifest> in the package.opf file.
-    /// Temporarily store the XML elements ids into the `.title` property of the
-    /// `Link` created for each element.
     ///
     /// - Parameters:
     ///   - manifest: The Manifest XML element.
+    ///   - metadata: The metadata XML element.
     ///   - publication: The `Publication` object with `.resource` properties to
     ///                  fill.
     ///   - coverId: The coverId to identify the cover ressource and tag it.
-    static internal func parseResources(from manifest: AEXMLElement,
-                                        to publication: inout Publication,
-                                        _ rootFilePath: String)
-    {
+    static internal func parseResources(from manifest: AEXMLElement, metadata: AEXMLElement, to publication: inout Publication, _ rootFilePath: String) {
+        // Read meta to see if any Link is referenced as the Cover.
+        let coverId: String? = metadata["meta"].all(withAttributes: ["name" : "cover"])?.first?.attributes["content"]
+
         // Get the manifest children items
         guard let manifestItems = manifest["item"].all else {
             log(.warning, "Manifest have no children elements.")
             return
         }
-        /// Creates an Link for each of them and add it to the ressources.
+        
+        // Creates an Link for each of them and add it to the ressources.
         for item in manifestItems {
             // Must have an ID.
             guard let id = item.attributes["id"] else {
                 log(.warning, "Manifest item MUST have an id, item ignored.")
                 continue
             }
-            let link = linkFromManifest(item, rootFilePath)
-            /// If the link reference a Smil resource, retrieve and fill it's duration.
-            if link.typeLink == "application/smil+xml" {
+            guard let link = linkFromManifest(item, rootFilePath) else {
+                log(.warning, "Can't parse link with ID \(id)")
+                continue
+            }
+            
+            // If the link reference a Smil resource, retrieve and fill it's duration.
+            if link.type == "application/smil+xml" {
                 // Retrieve the duration of the smil file in the otherMetadata.
                 if let duration = publication.metadata.otherMetadata.first(where: {
                     $0.property == "#\(id)" })?.value
                 {
-                    link.duration = Float(SMILParser.smilTimeToSeconds(duration))
+                    link.duration = Double(SMILParser.smilTimeToSeconds(duration))
                 }
             }
-            publication.resources.append(link)
-        }
-    }
-
-    /// Add the "cover" rel to the link referenced as the cover in the meta
-    /// property, if any.
-    ///
-    /// - Parameters:
-    ///   - metadata: The metadata XML element.
-    ///   - publication: The publication object with the `coverLink` property to
-    ///                  fill.
-    static private func coverLinkFromMeta(from metadata: AEXMLElement, to publication: inout Publication) {
-        var coverId: String?
-
-        // Read meta to see if any Link is referenced as the Cover.
-        if let coverMeta = metadata["meta"].all(withAttributes: ["name" : "cover"])?.first {
-            coverId = coverMeta.attributes["content"]
-            // (The ids are still temporarily stored into the titles at this point).
-            if let coverLink = publication.resources.first(where: {$0.title == coverId}) {
-                coverLink.rel.append("cover")
+            
+            // Add the "cover" rel to the link if it is referenced as the cover in the meta property.
+            if let coverId = coverId, id == coverId {
+                link.rels.append("cover")
             }
+            
+            publication.resources.append(link)
         }
     }
 
     /// Parse XML elements of the <ReadingOrder> in the package.opf file.
     /// They are only composed of an `idref` referencing one of the previously
-    /// parsed resource (XML: idref -> id). Since we normally don't keep
-    /// the resource id, we store it in the `.title` property, temporarily.
+    /// parsed resource (XML: idref -> id).
     ///
     /// - Parameters:
     ///   - readingOrder: The ReadingOrder XML element.
@@ -209,37 +197,35 @@ final public class OPFParser {
     ///                  properties to fill.
     static internal func parseReadingOrder(from package: AEXMLElement, to publication: inout Publication) {
         // Get the readingOrder children items.
-      
         var items = [AEXMLElement]()
         if let readingOrderItems = package["readingOrder"]["itemref"].all {
-          items = readingOrderItems
+            items = readingOrderItems
         } else if let spineItems = package["spine"]["itemref"].all {
-          items = spineItems
+            items = spineItems
         }
       
         // Create a `Link` for each readingOrder item and add it to `Publication.readingOrder`.
         for item in items {
             // Find the ressource `idref` is referencing to.
             guard let idref = item.attributes["idref"],
-                let index = publication.resources.index(where: { $0.title == idref }) else
+                let index = publication.resources.index(where: { ($0.properties.otherProperties["id"] as? String) == idref }) else
             {
                 continue
             }
+            let link = publication.resources[index]
+            
             // Parse the ressource properties and add it to the corresponding resource.
             if let propertyAttribute = item.attributes["properties"] {
                 let properties = propertyAttribute.components(separatedBy: CharacterSet.whitespaces)
-
-                publication.resources[index].properties = parse(propertiesArray: properties)
+                parseProperties(&link.properties, from: properties)
             }
             // Retrieve `idref`, referencing a resource id.
             // Only linear items are added to the readingOrder.
             guard isLinear(item.attributes["linear"]) else {
                 continue
             }
-            // Clean the title - used as a holder for the `idref`.
-            publication.resources[index].title = nil
             // Move ressource to `.readingOrder` and remove it from `.ressources`.
-            publication.readingOrder.append(publication.resources[index])
+            publication.readingOrder.append(link)
             publication.resources.remove(at: index)
         }
     }
@@ -261,37 +247,41 @@ final public class OPFParser {
     ///
     /// - Parameter item: The XML element, or manifest XML item.
     /// - Returns: The `Link` representing the manifest XML item.
-    static fileprivate func linkFromManifest(_ item: AEXMLElement, _ rootFilePath: String) -> Link {
-        // The "to be built" link representing the manifest item.
-        let link = Link()
-
-        // TMP used for storing the id (associated to the idref of the readingOrder items).
-        // Will be cleared after the readingOrder parsing.
-        link.title = item.attributes["id"]
-        link.href = normalize(base: rootFilePath, href: item.attributes["href"]!)
-        link.typeLink = item.attributes["media-type"]
-        if let propertyAttribute = item.attributes["properties"] {
-            let properties = propertyAttribute.components(separatedBy: CharacterSet.whitespaces)
-
-            link.properties = parse(propertiesArray: properties)
-            /// Rels.
-            if properties.contains("nav") {
-                link.rel.append("contents")
-            }
-            if properties.contains("cover-image") {
-                link.rel.append("cover")
-            }
+    static fileprivate func linkFromManifest(_ item: AEXMLElement, _ rootFilePath: String) -> Link? {
+        guard let href = item.attributes["href"] else {
+            return nil
         }
-        return link
+        
+        let propertiesArray = item.attributes["properties"]?.components(separatedBy: .whitespaces) ?? []
+
+        var rels: [String] = []
+        if propertiesArray.contains("nav") {
+            rels.append("contents")
+        }
+        if propertiesArray.contains("cover-image") {
+            rels.append("cover")
+        }
+        
+        var properties = Properties()
+        parseProperties(&properties, from: propertiesArray)
+        
+        if let id = item.attributes["id"] {
+            properties.otherProperties["id"] = id
+        }
+
+        return Link(
+            href: normalize(base: rootFilePath, href: href),
+            type: item.attributes["media-type"],
+            rels: rels,
+            properties: properties
+        )
     }
 
     /// Parse properties string array and return a Properties object.
     ///
     /// - Parameter propertiesArray: The array of properties strings.
     /// - Returns: The Properties instance created from the strings array info.
-    static fileprivate func parse(propertiesArray: [String]) -> Properties {
-        var properties = Properties()
-
+    static fileprivate func parseProperties(_ properties: inout Properties, from propertiesArray: [String]) {
         // Look if item have any properties.
         for property in propertiesArray {
             switch property {
@@ -310,48 +300,49 @@ final public class OPFParser {
                 properties.contains.append("remote-resources")
             /// Page
             case "page-spread-left":
-                properties.page = "left"
+                properties.page = .left
             case "page-spread-right":
-                properties.page = "right"
+                properties.page = .right
             case "page-spread-center":
-                properties.page = "center"
+                properties.page = .center
             /// Spread
             case "rendition:spread-none":
-                properties.spread = "none"
+                properties.spread = .none
             case "rendition:spread-auto":
-                properties.spread = "none"
+                properties.spread = .none
             case "rendition:spread-landscape":
-                properties.spread = "landscape"
+                properties.spread = .landscape
             case "rendition:spread-portrait":
-                properties.spread = "portrait"
+                // `portrait` is deprecated and should fallback to `both`.
+                // See. https://readium.org/architecture/streamer/parser/metadata#epub-3x-11
+                properties.spread = .both
             case "rendition:spread-both":
-                properties.spread = "both"
+                properties.spread = .both
             /// Layout
             case "rendition:layout-reflowable":
-                properties.layout = "reflowable"
+                properties.layout = .reflowable
             case "rendition:layout-pre-paginated":
-                properties.layout = "fixed"
+                properties.layout = .fixed
             /// Orientation
             case "rendition:orientation-auto":
-                properties.orientation = "auto"
+                properties.orientation = .auto
             case "rendition:orientation-landscape":
-                properties.orientation = "landscape"
+                properties.orientation = .landscape
             case "rendition:orientation-portrait":
-                properties.orientation = "portrait"
+                properties.orientation = .portrait
             /// Rendition
             case "rendition:flow-auto":
-                properties.overflow = "auto"
+                properties.overflow = .auto
             case "rendition:flow-paginated":
-                properties.overflow = "paginated"
+                properties.overflow = .paginated
             case "rendition:flow-scrolled-continuous":
-                properties.overflow = "scrolled-continuous"
+                properties.overflow = .scrolledContinuous
             case "rendition:flow-scrolled-doc":
-                properties.overflow = "scrolled"
+                properties.overflow = .scrolled
             default:
                 continue
             }
         }
-        return properties
     }
 }
 

@@ -78,20 +78,21 @@ public class CbzParser: PublicationParser {
 
         var addedCover = false
         for (index, filename) in container.files.enumerated() {
-            let link = Link()
-
             guard let mediaType = MediaType(filename: filename) else {
                 continue
             }
-            link.typeLink = mediaType.rawValue
+            
+            let link = Link(
+                href: normalize(base: container.rootFile.rootFilePath, href: filename),
+                type: mediaType.rawValue
+            )
 
             // First valid resource is cover.
             if !addedCover {
-                link.rel.append("cover")
+                link.rels.append("cover")
                 addedCover = true
             }
             
-            link.href = normalize(base: container.rootFile.rootFilePath, href: filename)
             publication.readingOrder.append(link)
         }
         

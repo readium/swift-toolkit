@@ -77,10 +77,10 @@ public final class PDFParser: PublicationParser, Loggable {
         if let fileContainer: PDFFileContainer = container as? PDFFileContainer {
             fileContainer.files[PDFConstant.pdfFilePath] = .path(path)
             
-            let link = Link()
-            link.typeLink = PDFConstant.mimetype
-            link.href = PDFConstant.pdfFilePath
-            publication.readingOrder.append(link)
+            publication.readingOrder.append(Link(
+                href: PDFConstant.pdfFilePath,
+                type: PDFConstant.mimetype
+            ))
 
             try self.fillMetadata(of: publication, in: fileContainer, parserType: parserType)
         }
@@ -120,10 +120,13 @@ public final class PDFParser: PublicationParser, Loggable {
         if let cover = try parser.renderCover(), let coverData = UIImagePNGRepresentation(cover) {
             container.files[PDFConstant.pdfFileCoverPath] = .data(coverData)
             
-            let link = Link()
-            link.typeLink = "image/png"
-            link.href = PDFConstant.pdfFileCoverPath
-            link.rel.append("cover")
+            let link = Link(
+                href: PDFConstant.pdfFileCoverPath,
+                type: "image/png",
+                rels: ["cover"],
+                height: Int(cover.size.height),
+                width: Int(cover.size.width)
+            )
             publication.resources.append(link)
         }
 

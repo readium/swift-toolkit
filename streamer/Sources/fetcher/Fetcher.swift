@@ -76,12 +76,8 @@ internal class Fetcher {
     }
 
     internal func data(forLink link: Link) throws -> Data? {
-        // Get link.href
-        guard let path = link.href else {
-            throw FetcherError.linkNotFound
-        }
+        let path = link.href
         var data = try container.data(relativePath: path)
-
         data = try contentFilters.apply(to: data, of: publication, with: container, at: path)
         return data
     }
@@ -109,16 +105,11 @@ internal class Fetcher {
 
     internal func dataStream(forLink link: Link) throws -> SeekableInputStream? {
         var inputStream: SeekableInputStream
-
-        // Get link.href
-        guard let path = link.href else {
-            throw FetcherError.linkNotFound
-        }
+        let path = link.href
         // Get an input stream from the container
         inputStream = try container.dataInputStream(relativePath: path)
         // Apply content filters to inputStream data.
-        inputStream = try contentFilters.apply(to: inputStream, of: publication,
-                                               with: container, at: path)
+        inputStream = try contentFilters.apply(to: inputStream, of: publication, with: container, at: path)
 
         return inputStream
     }

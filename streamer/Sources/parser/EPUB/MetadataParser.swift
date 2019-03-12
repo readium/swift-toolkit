@@ -24,41 +24,77 @@ final public class MetadataParser {
     ///   - metadata: The `Metadata` object.
     static internal func parseRenditionProperties(from metadataElement: AEXMLElement,
                                            to metadata: inout Metadata) {
-        guard let metas = metadataElement["meta"].all else {
-            metadata.rendition.layout = RenditionLayout.reflowable
-            return
-        }
-        // TODO: factorize
+        let metas = metadataElement["meta"].all
+
         // Layout
-        if let renditionLayout = metas.first(where: { $0.attributes["property"] == "rendition:layout" }) {
-            let layout = renditionLayout.string
-
-            metadata.rendition.layout = RenditionLayout(rawValue: layout)
-        } else {
-            metadata.rendition.layout = RenditionLayout.reflowable
-        }
+        let layout = metas?.first(where: { $0.attributes["property"] == "rendition:layout" })?.string ?? ""
+        metadata.rendition.layout = {
+            switch layout {
+            case "reflowable":
+                return .reflowable
+            case "pre-paginated":
+                return .fixed
+            default:
+                return .reflowable
+            }
+        }()
+        
         // Flow
-        if let renditionFlow = metas.first(where: { $0.attributes["property"] == "rendition:flow" }) {
-            let flow = renditionFlow.string
-
-            metadata.rendition.flow = RenditionFlow(rawValue: flow)
-        }
+        let flow = metas?.first(where: { $0.attributes["property"] == "rendition:flow" })?.string ?? ""
+        metadata.rendition.overflow = {
+            switch flow {
+            case "auto":
+                return .auto
+            case "paginated":
+                return .paginated
+            case "scrolled-doc":
+                return .scrolled
+            case "scrolled-continous":
+                return .scrolledContinuous
+            default:
+                return .auto
+            }
+        }()
+        
         // Orientation
-        if let renditionOrientation = metas.first(where: { $0.attributes["property"] == "rendition:orientation" }) {
-            let orientation = renditionOrientation.string
-
-            metadata.rendition.orientation = RenditionOrientation(rawValue: orientation)
-        }
+        let orientation = metas?.first(where: { $0.attributes["property"] == "rendition:orientation" })?.string ?? ""
+        metadata.rendition.orientation = {
+            switch orientation {
+            case "landscape":
+                return .landscape
+            case "portrait":
+                return .portrait
+            case "auto":
+                return .auto
+            default:
+                return .auto
+            }
+        }()
+        
         // Spread
-        if let renditionSpread = metas.first(where: { $0.attributes["property"] == "rendition:spread" }) {
-            let spread = renditionSpread.string
-
-            metadata.rendition.spread = RenditionSpread(rawValue: spread)
-        }
+        let spread = metas?.first(where: { $0.attributes["property"] == "rendition:spread" })?.string ?? ""
+        metadata.rendition.spread = {
+            switch spread {
+            case "none":
+                return .none
+            case "auto":
+                return .auto
+            case "landscape":
+                return .landscape
+            // `portrait` is deprecated and should fallback to `both`.
+            // See. https://readium.org/architecture/streamer/parser/metadata#epub-3x-11
+            case "both", "portrait":
+                return .both
+            default:
+                return .auto
+            }
+        }()
+        
+        // FIXME: add all remaining metadatas to otherMetadata?
         // Viewport
-        if let renditionViewport = metas.first(where: { $0.attributes["property"] == "rendition:viewport" }) {
-            metadata.rendition.viewport = renditionViewport.string
-        }
+//        if let viewport = metas.first(where: { $0.attributes["property"] == "rendition:viewport" })?.string {
+//            metadata.otherMetadata["rendition:viewport"] = viewport
+//        }
     }
 
     /// Parse and return the title informations for different title types

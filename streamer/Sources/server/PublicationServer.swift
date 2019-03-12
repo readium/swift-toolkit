@@ -235,7 +235,7 @@ public class PublicationServer {
             let relativePath = String(request.path[request.path.index(endpoint.endIndex, offsetBy: 1)...])
             //
             let resource = publication.resource(withRelativePath: relativePath)
-            let contentType = resource?.typeLink ?? "application/octet-stream"
+            let contentType = resource?.type ?? "application/octet-stream"
             // Get a data input stream from the fetcher.
             do {
                 let dataStream = try fetcher.dataStream(forRelativePath: relativePath)
@@ -292,7 +292,7 @@ public class PublicationServer {
             {
                 pubBoxes.remove(at: index)
                 // Remove selfLinks from publication.
-                publication.links = publication.links.filter { !$0.rel.contains("self") }
+                publication.links = publication.links.filter { !$0.rels.contains("self") }
                 break
             }
         }
@@ -307,7 +307,7 @@ public class PublicationServer {
             return
         }
         // Remove self link from publication.
-        pubBox.publication.links = pubBox.publication.links.filter { !$0.rel.contains("self") }
+        pubBox.publication.links = pubBox.publication.links.filter { !$0.rels.contains("self") }
         // Remove the pubBox from the array.
         pubBoxes[endpoint] = nil
         log(.info, "Publication at \(endpoint) has been successfully removed.")
