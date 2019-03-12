@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
 
-  s.name         = "r2-shared-swift"
+  s.name         = "R2Shared"
   s.version      = "1.2.7"
   s.summary      = "R2 Shared"
   s.homepage     = "http://readium.github.io"
