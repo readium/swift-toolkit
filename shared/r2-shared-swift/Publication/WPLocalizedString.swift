@@ -45,7 +45,7 @@ public enum WPLocalizedString: Equatable {
         } else if let strings = json as? [String: String] {
             self = .localized(strings)
         } else {
-            throw WPParsingError.localizedString
+            throw JSONParsingError.localizedString
         }
     }
     

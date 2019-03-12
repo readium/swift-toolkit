@@ -1,6 +1,8 @@
 //
-//  Created by Mickaël Menu on 25.01.19.
-//  Copyright © 2019 Readium. All rights reserved.
+//  EncryptionTests.swift
+//  r2-shared-swiftTests
+//
+//  Created by Mickaël Menu on 09.03.19.
 //
 //  Copyright 2019 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by a BSD-style license which is detailed
@@ -12,25 +14,70 @@ import XCTest
 
 class EncryptionTests: XCTestCase {
     
-    func testEmptyJSONSerialization() {
-        let sut = Encryption()
-        
-        XCTAssertEqual(toJSON(sut), """
-            {}
-            """)
+    func testParseMinimalJSON() {
+        XCTAssertEqual(
+            try? Encryption(json: ["algorithm": "http://algo"]),
+            Encryption(algorithm: "http://algo")
+        )
     }
     
-    func testJSONSerialization() {
-        var sut = Encryption()
-        sut.algorithm = "http://algorithm"
-        sut.compression = "gzip"
-        sut.originalLength = 12030
-        sut.profile = "http://profile"
-        sut.scheme = "http://scheme"
+    func testParseFullJSON() {
+        XCTAssertEqual(
+            try? Encryption(json: [
+                "algorithm": "http://algo",
+                "compression": "gzip",
+                "original-length": 42099,
+                "profile": "http://profile",
+                "scheme": "http://scheme"
+            ]),
+            Encryption(
+                algorithm: "http://algo",
+                compression: "gzip",
+                originalLength: 42099,
+                profile: "http://profile",
+                scheme: "http://scheme"
+            )
+        )
+    }
+    
+    func testParseInvalidJSON() {
+        XCTAssertThrowsError(try Encryption(json: ""))
+    }
+    
+    func testParseJSONRequiresAlgorithm() {
+        XCTAssertThrowsError(try Encryption(json: [
+            "compression": "gzip"
+        ]))
+    }
+    
+    func testParseAllowsNil() {
+        XCTAssertNil(try Encryption(json: nil))
+    }
+    
+    func testGetMinimalJSON() {
+        AssertJSONEqual(
+            Encryption(algorithm: "http://algo").json,
+            ["algorithm": "http://algo"]
+        )
+    }
+    
+    func testGetFullJSON() {
+        AssertJSONEqual(
+            Encryption(
+                algorithm: "http://algo",
+                compression: "gzip",
+                originalLength: 42099,
+                profile: "http://profile",
+                scheme: "http://scheme"
+            ).json,
+            [
+                "algorithm": "http://algo",
+                "compression": "gzip",
+                "original-length": 42099,
+                "profile": "http://profile",
+                "scheme": "http://scheme"
+            ]
+        )
+    }
 
-        XCTAssertEqual(toJSON(sut), """
-            {"algorithm":"http:\\/\\/algorithm","compression":"gzip","originalLength":12030,"profile":"http:\\/\\/profile","scheme":"http:\\/\\/scheme"}
-            """)
-    }
-    
 }

@@ -13,6 +13,6 @@
 public class BelongsTo {
     public init() {}
 
-    public var series = [Collection]()
-    public var collection = [Collection]()
+    public var series = [PublicationCollection]()
+    public var collection = [PublicationCollection]()
 }

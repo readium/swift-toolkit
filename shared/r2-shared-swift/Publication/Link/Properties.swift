@@ -1,8 +1,8 @@
 //
-//  WPProperties.swift
+//  Properties.swift
 //  r2-shared-swift
 //
-//  Created by Mickaël Menu on 09.03.19.
+//  Created by Mickaël Menu, Alexandre Camilleri on 09.03.19.
 //
 //  Copyright 2019 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by a BSD-style license which is detailed
@@ -14,13 +14,13 @@ import Foundation
 
 /// Link Properties
 /// https://readium.org/webpub-manifest/schema/properties.schema.json
-public struct WPProperties: Equatable {
+public struct Properties: Equatable {
 
     /// Suggested orientation for the device when displaying the linked resource.
-    public var orientation: WPOrientation?
+    public var orientation: RenditionOrientation?
 
     /// Indicates how the linked resource should be displayed in a reading environment that displays synthetic spreads.
-    public var page: WPPage?
+    public var page: RenditionPage?
     
 
     // MARK: - EPUB Extension
@@ -30,32 +30,43 @@ public struct WPProperties: Equatable {
     public var contains: [String]
     
     /// Hints how the layout of the resource should be presented.
-    public var layout: WPLayout?
+    public var layout: RenditionLayout?
 
     /// Location of a media-overlay for the resource referenced in the Link Object.
     public var mediaOverlay: String?
     
     /// Suggested method for handling overflow while displaying the linked resource.
-    public var overflow: WPOverflow?
+    public var overflow: RenditionOverflow?
     
     /// Indicates the condition to be met for the linked resource to be rendered within a synthetic spread.
-    public var spread: WPSpread?
+    public var spread: RenditionSpread?
     
     /// Indicates that a resource is encrypted/obfuscated and provides relevant information for decryption.
-    public var encrypted: WPEncrypted?
+    public var encryption: Encryption?  // RWPM `encrypted`
+
     
+    // MARK: - OPDS Extension
+    // https://drafts.opds.io/schema/properties.schema.json
     
+    /// Provides a hint about the expected number of items returned.
+    public var numberOfItems: Int?
+    
+    /// The price of a publication is tied to its acquisition link.
+    public var price: OPDSPrice?
+    
+    /// Indirect acquisition provides a hint for the expected media type that will be acquired after additional steps.
+    public var indirectAcquisition: [OPDSAcquisition]
+    
+
     /// Additional properties for extensions.
     public var otherProperties: [String: Any] {
         return otherPropertiesJSON.json
     }
     // Trick to keep the struct equatable despite [String: Any]
     private var otherPropertiesJSON: JSONDictionary
-    
-    
-    // FIXME: OPDS: https://drafts.opds.io/schema/properties.schema.json
 
-    public init(orientation: WPOrientation? = nil, page: WPPage? = nil, contains: [String] = [], layout: WPLayout? = nil, mediaOverlay: String? = nil, overflow: WPOverflow? = nil, spread: WPSpread? = nil, encrypted: WPEncrypted? = nil, otherProperties: [String: Any] = [:]) {
+    
+    public init(orientation: RenditionOrientation? = nil, page: RenditionPage? = nil, contains: [String] = [], layout: RenditionLayout? = nil, mediaOverlay: String? = nil, overflow: RenditionOverflow? = nil, spread: RenditionSpread? = nil, encryption: Encryption? = nil, numberOfItems: Int? = nil, price: OPDSPrice? = nil, indirectAcquisition: [OPDSAcquisition] = [], otherProperties: [String: Any] = [:]) {
         self.orientation = orientation
         self.page = page
         self.contains = contains
@@ -63,7 +74,10 @@ public struct WPProperties: Equatable {
         self.mediaOverlay = mediaOverlay
         self.overflow = overflow
         self.spread = spread
-        self.encrypted = encrypted
+        self.encryption = encryption
+        self.numberOfItems = numberOfItems
+        self.price = price
+        self.indirectAcquisition = indirectAcquisition
         self.otherPropertiesJSON = JSONDictionary(otherProperties) ?? JSONDictionary()
     }
     
@@ -72,7 +86,7 @@ public struct WPProperties: Equatable {
             return nil
         }
         guard var json = JSONDictionary(json) else {
-            throw WPParsingError.properties
+            throw JSONParsingError.properties
         }
         
         self.orientation = parseRaw(json.pop("orientation"))
@@ -82,7 +96,10 @@ public struct WPProperties: Equatable {
         self.mediaOverlay = json.pop("media-overlay") as? String
         self.overflow = parseRaw(json.pop("overflow"))
         self.spread = parseRaw(json.pop("spread"))
-        self.encrypted = try WPEncrypted(json: json.pop("encrypted"))
+        self.encryption = try Encryption(json: json.pop("encrypted"))
+        self.numberOfItems = parsePositive(json.pop("numberOfItems"))
+        self.price = try OPDSPrice(json: json.pop("price"))
+        self.indirectAcquisition = [OPDSAcquisition](json: json.pop("indirectAcquisition"))
         self.otherPropertiesJSON = json
     }
     
@@ -95,8 +112,11 @@ public struct WPProperties: Equatable {
             "media-overlay": encodeIfNotNil(mediaOverlay),
             "overflow": encodeRawIfNotNil(overflow),
             "spread": encodeRawIfNotNil(spread),
-            "encrypted": encodeIfNotNil(encrypted?.json),
-        ]).merging(otherProperties, uniquingKeysWith: { current, _ in current })
+            "encrypted": encodeIfNotNil(encryption?.json),
+            "numberOfItems": encodeIfNotNil(numberOfItems),
+            "price": encodeIfNotNil(price?.json),
+            "indirectAcquisition": encodeIfNotEmpty(indirectAcquisition.json),
+        ], additional: otherProperties)
     }
 
 }

@@ -1,6 +1,8 @@
 //
-//  Created by Mickaël Menu on 25.01.19.
-//  Copyright © 2019 Readium. All rights reserved.
+//  PropertiesTests.swift
+//  r2-shared-swiftTests
+//
+//  Created by Mickaël Menu on 09.03.19.
 //
 //  Copyright 2019 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by a BSD-style license which is detailed
@@ -12,36 +14,120 @@ import XCTest
 
 class PropertiesTests: XCTestCase {
     
-    func testEmptyJSONSerialization() {
-        let sut = Properties()
-        
-        XCTAssertEqual(toJSON(sut), """
-            {}
-            """)
+    func testParseMinimalJSON() {
+        XCTAssertEqual(
+            try? Properties(json: [:]),
+            Properties()
+        )
     }
     
-    func testJSONSerialization() {
-        func encryption() -> Encryption {
-            var encryption = Encryption()
-            encryption.algorithm = "http://algorithm"
-            return encryption
-        }
+    func testParseFullJSON() {
+        XCTAssertEqual(
+            try? Properties(json: [
+                "orientation": "auto",
+                "page": "left",
+                "contains": ["mathml", "onix"],
+                "layout": "fixed",
+                "media-overlay": "http://uri",
+                "overflow": "scrolled-continuous",
+                "spread": "landscape",
+                "encrypted": [
+                    "algorithm": "http://algo"
+                ],
+                "numberOfItems": 42,
+                "price": [
+                    "currency": "EUR",
+                    "value": 3.65
+                ],
+                "indirectAcquisition": [
+                    [ "type": "acqtype" ]
+                ]
+            ]),
+            Properties(
+                orientation: .auto,
+                page: .left,
+                contains: ["mathml", "onix"],
+                layout: .fixed,
+                mediaOverlay: "http://uri",
+                overflow: .scrolledContinuous,
+                spread: .landscape,
+                encryption: Encryption(algorithm: "http://algo"),
+                numberOfItems: 42,
+                price: OPDSPrice(currency: "EUR", value: 3.65),
+                indirectAcquisition: [OPDSAcquisition(type: "acqtype")]
+            )
+        )
+    }
+    
+    func testParseInvalidJSON() {
+        XCTAssertThrowsError(try Properties(json: ""))
+    }
+    
+    func testParseJSONAllowsNil() {
+        XCTAssertNil(try Properties(json: nil))
+    }
+    
+    func testParseJSONOtherProperties() {
+        XCTAssertEqual(
+            try? Properties(json: [
+                "orientation": "auto",
+                "other-property1": "value",
+                "other-property2": [42],
+            ]),
+            Properties(
+                orientation: .auto,
+                otherProperties: [
+                    "other-property1": "value",
+                    "other-property2": [42]
+                ]
+            )
+        )
+    }
 
-        var sut = Properties()
-        sut.orientation = "portrait"
-        sut.page = "center"
-        sut.contains = ["stuff", "thing"]
-        sut.mediaOverlay = "http://media-overlay-location.com"
-        sut.encryption = encryption()
-        sut.layout = "reflowable"
-        sut.overflow = "paginated"
-        sut.spread = "auto"
-        sut.numberOfItems = 3
-        sut.price = Price(currency: "EUR", value: 3.29)
-
-        XCTAssertEqual(toJSON(sut), """
-            {"contains":["stuff","thing"],"encryption":{"algorithm":"http:\\/\\/algorithm"},"layout":"reflowable","mediaOverlay":"http:\\/\\/media-overlay-location.com","orientation":"portrait","overflow":"paginated","page":"center","spread":"auto"}
-            """)
+    func testGetMinimalJSON() {
+        AssertJSONEqual(Properties().json, [:])
+    }
+    
+    func testGetFullJSON() {
+        AssertJSONEqual(
+            Properties(
+                orientation: .landscape,
+                page: .right,
+                contains: ["mathml", "onix"],
+                layout: .fixed,
+                mediaOverlay: "http://uri",
+                overflow: .scrolledContinuous,
+                spread: .landscape,
+                encryption: Encryption(algorithm: "http://algo"),
+                numberOfItems: 42,
+                price: OPDSPrice(currency: "EUR", value: 3.65),
+                indirectAcquisition: [OPDSAcquisition(type: "acqtype")],
+                otherProperties: [
+                    "other-property1": "value",
+                ]
+            ).json as Any,
+            [
+                "orientation": "landscape",
+                "page": "right",
+                "contains": ["mathml", "onix"],
+                "layout": "fixed",
+                "media-overlay": "http://uri",
+                "overflow": "scrolled-continuous",
+                "spread": "landscape",
+                "encrypted": [
+                    "algorithm": "http://algo"
+                ],
+                "numberOfItems": 42,
+                "price": [
+                    "currency": "EUR",
+                    "value": 3.65
+                ],
+                "indirectAcquisition": [
+                    [ "type": "acqtype" ]
+                ],
+                "other-property1": "value"
+            ]
+        )
     }
     
 }

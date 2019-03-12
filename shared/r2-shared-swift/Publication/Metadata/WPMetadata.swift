@@ -17,6 +17,13 @@ import Foundation
 public typealias WPPublicationCollection = WPContributor
 
 
+public enum WPReadingProgression: String {
+    case rtl
+    case ltr
+    case auto
+}
+
+
 /// https://readium.org/webpub-manifest/schema/metadata.schema.json
 public struct WPMetadata: Equatable {
 
@@ -51,7 +58,7 @@ public struct WPMetadata: Equatable {
     
     // MARK: - EPUB Extension
     
-    public var rendition: WPRendition?
+    public var rendition: Rendition?
     
     
     /// Additional properties for extensions.
@@ -62,7 +69,7 @@ public struct WPMetadata: Equatable {
     private var otherMetadataJSON: JSONDictionary
     
 
-    public init(identifier: String? = nil, type: String? = nil, title: WPLocalizedString, subtitle: WPLocalizedString? = nil, modified: Date? = nil, published: Date? = nil, languages: [String] = [], sortAs: String? = nil, subjects: [WPSubject] = [], authors: [WPContributor] = [], translators: [WPContributor] = [], editors: [WPContributor] = [], artists: [WPContributor] = [], illustrators: [WPContributor] = [], letterers: [WPContributor] = [], pencilers: [WPContributor] = [], colorists: [WPContributor] = [], inkers: [WPContributor] = [], narrators: [WPContributor] = [], contributors: [WPContributor] = [], publishers: [WPContributor] = [], imprints: [WPContributor] = [], readingProgression: WPReadingProgression = .auto, description: String? = nil, duration: Double? = nil, numberOfPages: Int? = nil, belongsTo: BelongsTo? = nil, rendition: WPRendition? = nil, otherMetadata: [String: Any] = [:]) {
+    public init(identifier: String? = nil, type: String? = nil, title: WPLocalizedString, subtitle: WPLocalizedString? = nil, modified: Date? = nil, published: Date? = nil, languages: [String] = [], sortAs: String? = nil, subjects: [WPSubject] = [], authors: [WPContributor] = [], translators: [WPContributor] = [], editors: [WPContributor] = [], artists: [WPContributor] = [], illustrators: [WPContributor] = [], letterers: [WPContributor] = [], pencilers: [WPContributor] = [], colorists: [WPContributor] = [], inkers: [WPContributor] = [], narrators: [WPContributor] = [], contributors: [WPContributor] = [], publishers: [WPContributor] = [], imprints: [WPContributor] = [], readingProgression: WPReadingProgression = .auto, description: String? = nil, duration: Double? = nil, numberOfPages: Int? = nil, belongsTo: BelongsTo? = nil, rendition: Rendition? = nil, otherMetadata: [String: Any] = [:]) {
         self.identifier = identifier
         self.type = type
         self.title = title
@@ -98,7 +105,7 @@ public struct WPMetadata: Equatable {
         guard var json = JSONDictionary(json),
             let title = try WPLocalizedString(json: json.pop("title")) else
         {
-            throw WPParsingError.metadata
+            throw JSONParsingError.metadata
         }
         
         self.identifier = json.pop("identifier") as? String
@@ -128,7 +135,7 @@ public struct WPMetadata: Equatable {
         self.duration = parsePositiveDouble(json.pop("duration"))
         self.numberOfPages = parsePositive(json.pop("numberOfPages"))
         self.belongsTo = try BelongsTo(json: json.pop("belongsTo"))
-        self.rendition = try WPRendition(json: json.pop("rendition"))
+        self.rendition = try Rendition(json: json.pop("rendition"))
         self.otherMetadataJSON = json
     }
     
@@ -162,7 +169,7 @@ public struct WPMetadata: Equatable {
             "numberOfPages": encodeIfNotNil(numberOfPages),
             "belongsTo": encodeIfNotEmpty(belongsTo?.json),
             "rendition": encodeIfNotEmpty(rendition?.json)
-        ]).merging(otherMetadata, uniquingKeysWith: { current, _ in current })
+        ], additional: otherMetadata)
     }
 
     public struct BelongsTo: Equatable {
@@ -179,7 +186,7 @@ public struct WPMetadata: Equatable {
                 return nil
             }
             guard let json = json as? [String: Any] else {
-                throw WPParsingError.metadata
+                throw JSONParsingError.metadata
             }
             collections = [WPPublicationCollection](json: json["collection"])
             series = [WPPublicationCollection](json: json["series"])

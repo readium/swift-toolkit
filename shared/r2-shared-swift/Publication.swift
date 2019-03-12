@@ -75,8 +75,8 @@ public class Publication {
             print("Error: no selfLink found in publication.")
             return nil
         }
-        guard let selfLinkHref = selfLink.href,
-            var pubBaseUrl = URL(string: selfLinkHref)?.deletingLastPathComponent() else
+        let selfLinkHref = selfLink.href
+        guard var pubBaseUrl = URL(string: selfLinkHref)?.deletingLastPathComponent() else
         {
             print("Error: invalid publication self link")
             return nil
@@ -189,11 +189,11 @@ public class Publication {
     /// - Returns: The generated URI or nil.
     public func uriTo(link: Link?) -> URL? {
         guard let link = link,
-            let linkHref = link.href,
             let publicationBaseUrl = baseUrl else
         {
             return nil
         }
+        let linkHref = link.href
         // Remove trailing "/" before appending the href (href are absolute
         // relative to the publication, hence start with a "/".
         let trimmedBaseUrlString = publicationBaseUrl.absoluteString.trimmingCharacters(in: ["/"])
@@ -210,14 +210,14 @@ public class Publication {
     ///   - baseUrl: The base URL of the HTTP server.
     public func addSelfLink(endpoint: String, for baseUrl: URL) {
         let publicationURL: URL
-        let link = Link()
         let manifestPath = "\(endpoint)/manifest.json"
 
         publicationURL = baseUrl.appendingPathComponent(manifestPath, isDirectory: false)
-        link.href = publicationURL.absoluteString
-        link.typeLink = "application/webpub+json"
-        link.rel.append("self")
-        links.append(link)
+        links.append(Link(
+            href: publicationURL.absoluteString,
+            type: "application/webpub+json",
+            rels: ["self"]
+        ))
     }
 
     // Mark: - Fileprivate Methods.
@@ -256,32 +256,32 @@ extension Publication: Encodable {
     }
     
     public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        if !landmarks.isEmpty {
-            try container.encode(landmarks, forKey: .landmarks)
-        }
-        if !links.isEmpty {
-            try container.encode(links, forKey: .links)
-        }
-        if !listOfIllustrations.isEmpty {
-            try container.encode(listOfIllustrations, forKey: .listOfIllustrations)
-        }
-        if !listOfTables.isEmpty {
-            try container.encode(listOfTables, forKey: .listOfTables)
-        }
-        try container.encode(metadata, forKey: .metadata)
-        if !pageList.isEmpty {
-            try container.encode(pageList, forKey: .pageList)
-        }
-        if !resources.isEmpty {
-            try container.encode(resources, forKey: .resources)
-        }
-        if !readingOrder.isEmpty {
-          try container.encode(readingOrder, forKey: .readingOrder)
-        }
-        if !tableOfContents.isEmpty {
-            try container.encode(tableOfContents, forKey: .tableOfContents)
-        }
+//        var container = encoder.container(keyedBy: CodingKeys.self)
+//        if !landmarks.isEmpty {
+//            try container.encode(landmarks, forKey: .landmarks)
+//        }
+//        if !links.isEmpty {
+//            try container.encode(links, forKey: .links)
+//        }
+//        if !listOfIllustrations.isEmpty {
+//            try container.encode(listOfIllustrations, forKey: .listOfIllustrations)
+//        }
+//        if !listOfTables.isEmpty {
+//            try container.encode(listOfTables, forKey: .listOfTables)
+//        }
+//        try container.encode(metadata, forKey: .metadata)
+//        if !pageList.isEmpty {
+//            try container.encode(pageList, forKey: .pageList)
+//        }
+//        if !resources.isEmpty {
+//            try container.encode(resources, forKey: .resources)
+//        }
+//        if !readingOrder.isEmpty {
+//          try container.encode(readingOrder, forKey: .readingOrder)
+//        }
+//        if !tableOfContents.isEmpty {
+//            try container.encode(tableOfContents, forKey: .tableOfContents)
+//        }
     }
 
 }

@@ -13,6 +13,12 @@ import XCTest
 @testable import R2Shared
 
 class WPMetadataTests: XCTestCase {
+    
+    func testParseReadingProgression() {
+        XCTAssertEqual(WPReadingProgression(rawValue: "rtl"), .rtl)
+        XCTAssertEqual(WPReadingProgression(rawValue: "ltr"), .ltr)
+        XCTAssertEqual(WPReadingProgression(rawValue: "auto"), .auto)
+    }
 
     func testReadingProgressionDefaultsToAuto() {
         XCTAssertEqual(try WPMetadata(json: ["title": "t"]).readingProgression, .auto)
@@ -94,7 +100,7 @@ class WPMetadataTests: XCTestCase {
                     collections: [WPContributor(name: "Collection")],
                     series: [WPContributor(name: "Series")]
                 ),
-                rendition: WPRendition(layout: .fixed)
+                rendition: Rendition(layout: .fixed)
             )
         )
     }
@@ -194,7 +200,7 @@ class WPMetadataTests: XCTestCase {
                     collections: [WPContributor(name: "Collection")],
                     series: [WPContributor(name: "Series")]
                 ),
-                rendition: WPRendition(layout: .fixed),
+                rendition: Rendition(layout: .fixed),
                 otherMetadata: [
                     "other-metadata1": "value"
                 ]

@@ -1,5 +1,5 @@
 //
-//  WPLink.swift
+//  Link.swift
 //  r2-shared-swift
 //
 //  Created by Mickaël Menu on 09.03.19.
@@ -14,12 +14,12 @@ import Foundation
 
 /// Link Object for the Readium Web Publication Manifest.
 /// https://readium.org/webpub-manifest/schema/link.schema.json
-public struct WPLink: Equatable {
+public struct Link: Equatable {
     
     /// URI or URI template of the linked resource.
     /// Note: a String because templates are lost with URL.
     public var href: String  // URI
-    
+
     /// MIME type of the linked resource.
     public var type: String?
     
@@ -33,7 +33,7 @@ public struct WPLink: Equatable {
     public var rels: [String]
     
     /// Properties associated to the linked resource.
-    public var properties: WPProperties?
+    public var properties: Properties
     
     /// Height of the linked resource in pixels.
     public var height: Int?
@@ -48,9 +48,17 @@ public struct WPLink: Equatable {
     public var duration: Double?
     
     /// Resources that are children of the linked resource, in the context of a given collection role.
-    public var children: [WPLink]
+    public var children: [Link]
     
-    init(href: String, type: String? = nil, templated: Bool = false, title: String? = nil, rels: [String] = [], properties: WPProperties? = nil, height: Int? = nil, width: Int? = nil, bitrate: Double? = nil, duration: Double? = nil, children: [WPLink] = []) {
+    // FIXME: This is only used by the OPDS module. Maybe it should resolve the absoluteHref directly inside .href instead of using another property for that.
+    public var absoluteHref: String?
+    
+    /// FIXME: This is used when parsing EPUB's media overlays, but maybe it should be stored somewhere else?
+    /// The MediaOverlays associated to the resource of the `Link`.
+//    public var mediaOverlays = MediaOverlays()
+    
+    
+    init(href: String, type: String? = nil, templated: Bool = false, title: String? = nil, rels: [String] = [], properties: Properties = Properties(), height: Int? = nil, width: Int? = nil, bitrate: Double? = nil, duration: Double? = nil, children: [Link] = []) {
         self.href = href
         self.type = type
         self.templated = templated
@@ -68,19 +76,19 @@ public struct WPLink: Equatable {
         guard let json = json as? [String: Any],
             let href = json["href"] as? String else
         {
-            throw WPParsingError.link
+            throw JSONParsingError.link
         }
         self.href = href
         self.type = json["type"] as? String
         self.templated = (json["templated"] as? Bool) ?? false
         self.title = json["title"] as? String
         self.rels = parseArray(json["rel"], allowingSingle: true)
-        self.properties = try WPProperties(json: json["properties"])
+        self.properties = try Properties(json: json["properties"]) ?? Properties()
         self.height = parsePositive(json["height"])
         self.width = parsePositive(json["width"])
         self.bitrate = parsePositiveDouble(json["bitrate"])
         self.duration = parsePositiveDouble(json["duration"])
-        self.children = [WPLink](json: json["children"])
+        self.children = [Link](json: json["children"])
     }
     
     public var json: [String: Any] {
@@ -90,7 +98,7 @@ public struct WPLink: Equatable {
             "templated": templated,
             "title": encodeIfNotNil(title),
             "rel": encodeIfNotEmpty(rels),
-            "properties": encodeIfNotEmpty(properties?.json),
+            "properties": encodeIfNotEmpty(properties.json),
             "height": encodeIfNotNil(height),
             "width": encodeIfNotNil(width),
             "bitrate": encodeIfNotNil(bitrate),
@@ -99,19 +107,30 @@ public struct WPLink: Equatable {
         ])
     }
     
+    @available(*, deprecated, renamed: "type")
+    public var typeLink: String? { get { return type } set { type = newValue } }
+    
+    @available(*, deprecated, renamed: "rels")
+    public var rel: [String] { get { return rels } set { rels = newValue } }
+    
+    @available(*, deprecated, renamed: "init(json:)")
+    static public func parse(linkDict: [String: Any]) throws -> Link {
+        return try Link(json: linkDict)
+    }
+    
 }
 
-/// Syntactic sugar to parse multiple JSON links into an array of WPLink.
-/// eg. let links = [WPLink](json: [["href", "http://link1"], ["href", "http://link2"]])
-extension Array where Element == WPLink {
+extension Array where Element == Link {
     
+    /// Parses multiple JSON links into an array of Link.
+    /// eg. let links = [Link](json: [["href", "http://link1"], ["href", "http://link2"]])
     public init(json: Any?) {
         self.init()
         guard let json = json as? [Any] else {
             return
         }
         
-        let links = json.compactMap { try? WPLink(json: $0) }
+        let links = json.compactMap { try? Link(json: $0) }
         append(contentsOf: links)
     }
     

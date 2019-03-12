@@ -223,9 +223,9 @@ extension Metadata: Encodable {
         if !publishers.isEmpty {
             try container.encode(publishers, forKey: .publishers)
         }
-        if !rendition.isEmpty() {
-            try container.encode(rendition, forKey: .rendition)
-        }
+//        if !rendition.isEmpty() {
+//            try container.encode(rendition, forKey: .rendition)
+//        }
         try container.encodeIfPresent(rights, forKey: .rights)
         try container.encodeIfPresent(source, forKey: .source)
         if !subjects.isEmpty {
@@ -373,26 +373,26 @@ extension Metadata {
                         case "series":
                             switch bv {
                             case let s as String:
-                                belongs.series.append(R2Shared.Collection(name: s))
+                                belongs.series.append(PublicationCollection(name: s))
                             case let cArr as [[String: Any]]:
                                 for cDict in cArr {
-                                    belongs.series.append(try Collection.parse(cDict))
+                                    belongs.series.append(try PublicationCollection.parse(cDict))
                                 }
                             case let cDict as [String: Any]:
-                                belongs.series.append(try Collection.parse(cDict))
+                                belongs.series.append(try PublicationCollection.parse(cDict))
                             default:
                                 continue
                             }
                         case "collection":
                             switch bv {
                             case let s as String:
-                                belongs.collection.append(R2Shared.Collection(name: s))
+                                belongs.collection.append(PublicationCollection(name: s))
                             case let cArr as [[String: Any]]:
                                 for cDict in cArr {
-                                    belongs.collection.append(try Collection.parse(cDict))
+                                    belongs.collection.append(try PublicationCollection.parse(cDict))
                                 }
                             case let cDict as [String: Any]:
-                                belongs.collection.append(try Collection.parse(cDict))
+                                belongs.collection.append(try PublicationCollection.parse(cDict))
                             default:
                                 continue
                             }

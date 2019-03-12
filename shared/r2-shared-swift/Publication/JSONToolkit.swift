@@ -12,9 +12,25 @@
 import Foundation
 
 
+enum JSONParsingError: Error {
+    case subcollection
+    case publication
+    case metadata
+    case rendition
+    case contributor
+    case subject
+    case link
+    case properties
+    case encryption
+    case localizedString
+    case opdsPrice
+    case opdsAcquisition
+}
+
+
 /// Wraps a dictionary parsed from a JSON string.
 /// This is a trick to keep the Web Publication structs equatable without having to override `==` and compare all the other properties.
-public struct JSONDictionary {
+struct JSONDictionary {
     
     private(set) var json: [String: Any]
     
@@ -36,22 +52,22 @@ public struct JSONDictionary {
 }
 
 extension JSONDictionary: Collection {
-    public typealias Index = DictionaryIndex<String, Any>
-    public typealias Element = (key: String, value: Any)
+    typealias Index = DictionaryIndex<String, Any>
+    typealias Element = (key: String, value: Any)
 
-    public var startIndex: Index {
+    var startIndex: Index {
         return json.startIndex
     }
     
-    public var endIndex: Index {
+    var endIndex: Index {
         return json.endIndex
     }
     
-    public subscript(index: Index) -> Iterator.Element {
+    subscript(index: Index) -> Iterator.Element {
         return json[index]
     }
     
-    public func index(after i: Index) -> Index {
+    func index(after i: Index) -> Index {
         return json.index(after: i)
     }
     
@@ -59,7 +75,7 @@ extension JSONDictionary: Collection {
 
 extension JSONDictionary: Equatable {
     
-    public static func == (lhs: JSONDictionary, rhs: JSONDictionary) -> Bool {
+    static func == (lhs: JSONDictionary, rhs: JSONDictionary) -> Bool {
         guard #available(iOS 11.0, *) else {
             // The JSON comparison is not reliable before iOS 11, because the keys order is not deterministic. Since the equality is only tested during unit tests, it's not such a problem.
             return false
@@ -134,10 +150,10 @@ func parseDate(_ json: Any?) -> Date? {
 
 /// Returns the given JSON object after removing any key with NSNull value.
 /// To be used with `encodeIfX` functions for more compact serialization code.
-func makeJSON(_ object: [String: Any]) -> [String: Any] {
+func makeJSON(_ object: [String: Any], additional: [String: Any] = [:]) -> [String: Any] {
     return object.filter { _, value in
         !(value is NSNull)
-    }
+    }.merging(additional, uniquingKeysWith: { current, _ in current })
 }
 
 /// Returns the value if not nil, or NSNull.

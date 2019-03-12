@@ -20,10 +20,10 @@ public struct WPSubcollection: Equatable {
     public var role: String
     
     public var metadata: [String: Any] = [:]
-    public var links: [WPLink] = []
+    public var links: [Link] = []
     public var subcollections: [WPSubcollection] = []
     
-    public init(role: String, metadata: [String: Any] = [:], links: [WPLink], subcollections: [WPSubcollection] = []) {
+    public init(role: String, metadata: [String: Any] = [:], links: [Link], subcollections: [WPSubcollection] = []) {
         self.role = role
         self.metadata = metadata
         self.links = links
@@ -35,17 +35,17 @@ public struct WPSubcollection: Equatable {
         
         // Parses a list of links.
         if let json = json as? [[String: Any]] {
-            self.links = [WPLink](json: json)
+            self.links = [Link](json: json)
 
         // Parses a sub-collection object.
         } else if var json = JSONDictionary(json) {
             self.metadata = json.pop("metadata") as? [String: Any] ?? [:]
-            self.links = [WPLink](json: json.pop("links"))
+            self.links = [Link](json: json.pop("links"))
             self.subcollections = [WPSubcollection](json: json.json)
         }
 
         guard !links.isEmpty else {
-            throw WPParsingError.subcollection
+            throw JSONParsingError.subcollection
         }
     }
     
@@ -53,7 +53,7 @@ public struct WPSubcollection: Equatable {
         return makeJSON([
             "metadata": encodeIfNotEmpty(metadata),
             "links": links.json,
-        ]).merging(subcollections.json, uniquingKeysWith: { current, _ in current })
+        ], additional: subcollections.json)
     }
     
     public static func == (lhs: WPSubcollection, rhs: WPSubcollection) -> Bool {

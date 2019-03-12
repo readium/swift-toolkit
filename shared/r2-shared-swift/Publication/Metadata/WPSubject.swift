@@ -33,7 +33,7 @@ public struct WPSubject: Equatable {
             
         } else if let json = json as? [String: Any] {
             guard let name = try WPLocalizedString(json: json["name"]) else {
-                throw WPParsingError.contributor
+                throw JSONParsingError.contributor
             }
             self.name = name
             self.sortAs = json["sortAs"] as? String
@@ -41,7 +41,7 @@ public struct WPSubject: Equatable {
             self.code = json["code"] as? String
 
         } else {
-            throw WPParsingError.subject
+            throw JSONParsingError.subject
         }
     }
     
@@ -56,10 +56,10 @@ public struct WPSubject: Equatable {
     
 }
 
-/// Syntactic sugar to parse multiple JSON subjects into an array of WPSubjects.
-/// eg. let subjects = [WPSubject](json: ["Apple", "Pear"])
 extension Array where Element == WPSubject {
     
+    /// Parses multiple JSON subjects into an array of WPSubjects.
+    /// eg. let subjects = [WPSubject](json: ["Apple", "Pear"])
     public init(json: Any?) {
         self.init()
         guard let json = json else {

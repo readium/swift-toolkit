@@ -48,8 +48,8 @@ class WPContributorTests: XCTestCase {
                 roles: ["bassist"],
                 position: 4,
                 links: [
-                    WPLink(href: "http://link1"),
-                    WPLink(href: "http://link2")
+                    Link(href: "http://link1"),
+                    Link(href: "http://link2")
                 ]
             )
         )
@@ -152,8 +152,8 @@ class WPContributorTests: XCTestCase {
                 roles: ["guitarist", "pianist"],
                 position: 2.5,
                 links: [
-                    WPLink(href: "http://link1"),
-                    WPLink(href: "http://link2")
+                    Link(href: "http://link1"),
+                    Link(href: "http://link2")
                 ]
             ).json,
             [

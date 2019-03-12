@@ -1,5 +1,5 @@
 //
-//  Collection.swift
+//  PublicationCollection.swift
 //  r2-shared-swift
 //
 //  Created by Alexandre Camilleri on 10/27/17.
@@ -10,7 +10,7 @@
 //
 
 /// Collection construct used for collection/serie metadata
-public class Collection {
+public class PublicationCollection {
     /// The name of the colection.
     public var name: String
     ///
@@ -28,7 +28,7 @@ public class Collection {
 }
 
 // MARK: - Parsing related errors
-public enum CollectionError: Error {
+public enum PublicationCollectionError: Error {
     case invalidCollection
     
     var localizedDescription: String {
@@ -40,13 +40,13 @@ public enum CollectionError: Error {
 }
 
 // MARK: - Parsing related methods
-extension Collection {
+extension PublicationCollection {
     
-    static public func parse(_ collectionDict: [String: Any]) throws -> R2Shared.Collection {
+    static public func parse(_ collectionDict: [String: Any]) throws -> PublicationCollection {
         guard let name = collectionDict["name"] as? String else {
-            throw CollectionError.invalidCollection
+            throw PublicationCollectionError.invalidCollection
         }
-        let c = R2Shared.Collection(name: name)
+        let c = PublicationCollection(name: name)
         for (k, v) in collectionDict {
             switch k {
             case "name": // Already handled above
@@ -59,7 +59,7 @@ extension Collection {
                 c.position = v as? Double
             case "links":
                 guard let links = v as? [[String: Any]] else {
-                    throw CollectionError.invalidCollection
+                    throw PublicationCollectionError.invalidCollection
                 }
                 for link in links {
                     c.links.append(try Link.parse(linkDict: link))

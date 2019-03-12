@@ -27,8 +27,8 @@ class WPPublicationTests: XCTestCase {
             ]),
             WPPublication(
                 metadata: WPMetadata(title: "Title"),
-                links: [WPLink(href: "/manifest.json", rels: ["self"])],
-                readingOrder: [WPLink(href: "/chap1.html", type: "text/html")]
+                links: [Link(href: "/manifest.json", rels: ["self"])],
+                readingOrder: [Link(href: "/chap1.html", type: "text/html")]
             )
         )
     }
@@ -78,17 +78,17 @@ class WPPublicationTests: XCTestCase {
             WPPublication(
                 context: ["https://readium.org/webpub-manifest/context.jsonld"],
                 metadata: WPMetadata(title: "Title"),
-                links: [WPLink(href: "/manifest.json", rels: ["self"])],
-                readingOrder: [WPLink(href: "/chap1.html", type: "text/html")],
-                resources: [WPLink(href: "/image.png", type: "image/png")],
-                toc: [WPLink(href: "/cover.html"), WPLink(href: "/chap1.html")],
-                pageList: [WPLink(href: "/page1.html")],
-                landmarks: [WPLink(href: "/landmark.html")],
-                loa: [WPLink(href: "/audio.mp3")],
-                loi: [WPLink(href: "/image.jpg")],
-                lot: [WPLink(href: "/table.html")],
-                lov: [WPLink(href: "/video.mov")],
-                subcollections: [WPSubcollection(role: "sub", links: [WPLink(href: "/sublink")])]
+                links: [Link(href: "/manifest.json", rels: ["self"])],
+                readingOrder: [Link(href: "/chap1.html", type: "text/html")],
+                resources: [Link(href: "/image.png", type: "image/png")],
+                toc: [Link(href: "/cover.html"), Link(href: "/chap1.html")],
+                pageList: [Link(href: "/page1.html")],
+                landmarks: [Link(href: "/landmark.html")],
+                loa: [Link(href: "/audio.mp3")],
+                loi: [Link(href: "/image.jpg")],
+                lot: [Link(href: "/table.html")],
+                lov: [Link(href: "/video.mov")],
+                subcollections: [WPSubcollection(role: "sub", links: [Link(href: "/sublink")])]
             )
         )
     }
@@ -108,8 +108,8 @@ class WPPublicationTests: XCTestCase {
             WPPublication(
                 context: ["context1", "context2"],
                 metadata: WPMetadata(title: "Title"),
-                links: [WPLink(href: "/manifest.json", rels: ["self"])],
-                readingOrder: [WPLink(href: "/chap1.html", type: "text/html")]
+                links: [Link(href: "/manifest.json", rels: ["self"])],
+                readingOrder: [Link(href: "/chap1.html", type: "text/html")]
             )
         )
     }
@@ -161,8 +161,8 @@ class WPPublicationTests: XCTestCase {
             ]),
             WPPublication(
                 metadata: WPMetadata(title: "Title"),
-                links: [WPLink(href: "/manifest.json", rels: ["self"])],
-                readingOrder: [WPLink(href: "/chap1.html", type: "text/html")]
+                links: [Link(href: "/manifest.json", rels: ["self"])],
+                readingOrder: [Link(href: "/chap1.html", type: "text/html")]
             )
         )
     }
@@ -183,10 +183,10 @@ class WPPublicationTests: XCTestCase {
             WPPublication(
                 metadata: WPMetadata(title: "Title"),
                 links: [
-                    WPLink(href: "/manifest.json", rels: ["self"]),
-                    WPLink(href: "/withrel", rels: ["withrel"])
+                    Link(href: "/manifest.json", rels: ["self"]),
+                    Link(href: "/withrel", rels: ["withrel"])
                 ],
-                readingOrder: [WPLink(href: "/chap1.html", type: "text/html")]
+                readingOrder: [Link(href: "/chap1.html", type: "text/html")]
             )
         )
     }
@@ -206,9 +206,9 @@ class WPPublicationTests: XCTestCase {
             WPPublication(
                 metadata: WPMetadata(title: "Title"),
                 links: [
-                    WPLink(href: "/manifest.json", rels: ["self"]),
+                    Link(href: "/manifest.json", rels: ["self"]),
                 ],
-                readingOrder: [WPLink(href: "/chap1.html", type: "text/html")]
+                readingOrder: [Link(href: "/chap1.html", type: "text/html")]
             )
         )
     }
@@ -231,10 +231,10 @@ class WPPublicationTests: XCTestCase {
             WPPublication(
                 metadata: WPMetadata(title: "Title"),
                 links: [
-                    WPLink(href: "/manifest.json", rels: ["self"]),
+                    Link(href: "/manifest.json", rels: ["self"]),
                 ],
-                readingOrder: [WPLink(href: "/chap1.html", type: "text/html")],
-                resources: [WPLink(href: "/withtype", type: "text/html")]
+                readingOrder: [Link(href: "/chap1.html", type: "text/html")],
+                resources: [Link(href: "/withtype", type: "text/html")]
             )
         )
     }
@@ -243,8 +243,8 @@ class WPPublicationTests: XCTestCase {
         AssertJSONEqual(
             WPPublication(
                 metadata: WPMetadata(title: "Title"),
-                links: [WPLink(href: "/manifest.json", rels: ["self"])],
-                readingOrder: [WPLink(href: "/chap1.html", type: "text/html")]
+                links: [Link(href: "/manifest.json", rels: ["self"])],
+                readingOrder: [Link(href: "/chap1.html", type: "text/html")]
             ).json,
             [
                 "metadata": ["title": "Title", "readingProgression": "auto"],
@@ -263,17 +263,17 @@ class WPPublicationTests: XCTestCase {
             WPPublication(
                 context: ["https://readium.org/webpub-manifest/context.jsonld"],
                 metadata: WPMetadata(title: "Title"),
-                links: [WPLink(href: "/manifest.json", rels: ["self"])],
-                readingOrder: [WPLink(href: "/chap1.html", type: "text/html")],
-                resources: [WPLink(href: "/image.png", type: "image/png")],
-                toc: [WPLink(href: "/cover.html"), WPLink(href: "/chap1.html")],
-                pageList: [WPLink(href: "/page1.html")],
-                landmarks: [WPLink(href: "/landmark.html")],
-                loa: [WPLink(href: "/audio.mp3")],
-                loi: [WPLink(href: "/image.jpg")],
-                lot: [WPLink(href: "/table.html")],
-                lov: [WPLink(href: "/video.mov")],
-                subcollections: [WPSubcollection(role: "sub", links: [WPLink(href: "/sublink")])]
+                links: [Link(href: "/manifest.json", rels: ["self"])],
+                readingOrder: [Link(href: "/chap1.html", type: "text/html")],
+                resources: [Link(href: "/image.png", type: "image/png")],
+                toc: [Link(href: "/cover.html"), Link(href: "/chap1.html")],
+                pageList: [Link(href: "/page1.html")],
+                landmarks: [Link(href: "/landmark.html")],
+                loa: [Link(href: "/audio.mp3")],
+                loi: [Link(href: "/image.jpg")],
+                lot: [Link(href: "/table.html")],
+                lov: [Link(href: "/video.mov")],
+                subcollections: [WPSubcollection(role: "sub", links: [Link(href: "/sublink")])]
             ).json,
             [
                 "@context": ["https://readium.org/webpub-manifest/context.jsonld"],
@@ -323,16 +323,16 @@ class WPPublicationTests: XCTestCase {
             WPPublication(
                 context: ["https://readium.org/webpub-manifest/context.jsonld"],
                 metadata: WPMetadata(title: "Title"),
-                links: [WPLink(href: "/manifest.json", rels: ["self"])],
-                readingOrder: [WPLink(href: "/chap1.html", type: "text/html")],
-                resources: [WPLink(href: "/image.png", type: "image/png")],
-                toc: [WPLink(href: "/cover.html"), WPLink(href: "/chap1.html")],
-                pageList: [WPLink(href: "/page1.html")],
-                landmarks: [WPLink(href: "/landmark.html")],
-                loa: [WPLink(href: "/audio.mp3")],
-                loi: [WPLink(href: "/image.jpg")],
-                lot: [WPLink(href: "/table.html")],
-                lov: [WPLink(href: "/video.mov")]
+                links: [Link(href: "/manifest.json", rels: ["self"])],
+                readingOrder: [Link(href: "/chap1.html", type: "text/html")],
+                resources: [Link(href: "/image.png", type: "image/png")],
+                toc: [Link(href: "/cover.html"), Link(href: "/chap1.html")],
+                pageList: [Link(href: "/page1.html")],
+                landmarks: [Link(href: "/landmark.html")],
+                loa: [Link(href: "/audio.mp3")],
+                loi: [Link(href: "/image.jpg")],
+                lot: [Link(href: "/table.html")],
+                lov: [Link(href: "/video.mov")]
             ).jsonString!,
             """
             {"@context":["https://readium.org/webpub-manifest/context.jsonld"],"landmarks":[{"href":"/landmark.html","templated":false}],"links":[{"href":"/manifest.json","rel":["self"],"templated":false}],"loa":[{"href":"/audio.mp3","templated":false}],"loi":[{"href":"/image.jpg","templated":false}],"lot":[{"href":"/table.html","templated":false}],"lov":[{"href":"/video.mov","templated":false}],"metadata":{"readingProgression":"auto","title":"Title"},"page-list":[{"href":"/page1.html","templated":false}],"readingOrder":[{"href":"/chap1.html","templated":false,"type":"text/html"}],"resources":[{"href":"/image.png","templated":false,"type":"image/png"}],"toc":[{"href":"/cover.html","templated":false},{"href":"/chap1.html","templated":false}]}

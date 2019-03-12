@@ -1,8 +1,8 @@
 //
-//  WPEncrypted.swift
+//  Encryption.swift
 //  r2-shared-swift
 //
-//  Created by Mickaël Menu on 09.03.19.
+//  Created by Mickaël Menu, Alexandre Camilleri on 09.03.19.
 //
 //  Copyright 2019 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by a BSD-style license which is detailed
@@ -13,7 +13,7 @@ import Foundation
 
 
 /// Indicates that a resource is encrypted/obfuscated and provides relevant information for decryption.
-public struct WPEncrypted: Equatable {
+public struct Encryption: Equatable {
     
     /// Identifies the algorithm used to encrypt the resource.
     public var algorithm: String  // URI
@@ -47,7 +47,7 @@ public struct WPEncrypted: Equatable {
         guard let json = json as? [String: Any],
             let algorithm = json["algorithm"] as? String else
         {
-            throw WPParsingError.encrypted
+            throw JSONParsingError.encryption
         }
         
         self.algorithm = algorithm

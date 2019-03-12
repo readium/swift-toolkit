@@ -20,9 +20,9 @@ public struct WPContributor: Equatable {
     public var sortAs: String?
     public var roles: [String] = []
     public var position: Double?
-    public var links: [WPLink] = []
+    public var links: [Link] = []
     
-    public init(name: WPLocalizedString, identifier: String? = nil, sortAs: String? = nil, roles: [String] = [], position: Double? = nil, links: [WPLink] = []) {
+    public init(name: WPLocalizedString, identifier: String? = nil, sortAs: String? = nil, roles: [String] = [], position: Double? = nil, links: [Link] = []) {
         self.name = name
         self.identifier = identifier
         self.sortAs = sortAs
@@ -37,17 +37,17 @@ public struct WPContributor: Equatable {
             
         } else if let json = json as? [String: Any] {
             guard let name = try WPLocalizedString(json: json["name"]) else {
-                throw WPParsingError.contributor
+                throw JSONParsingError.contributor
             }
             self.name = name
             self.identifier = json["identifier"] as? String
             self.sortAs = json["sortAs"] as? String
             self.roles = parseArray(json["role"], allowingSingle: true)
             self.position =  parseDouble(json["position"])
-            self.links = [WPLink](json: json["links"])
+            self.links = [Link](json: json["links"])
 
         } else {
-            throw WPParsingError.contributor
+            throw JSONParsingError.contributor
         }
     }
     
@@ -64,10 +64,10 @@ public struct WPContributor: Equatable {
 
 }
 
-/// Syntactic sugar to parse multiple JSON contributors into an array of WPContributors.
-/// eg. let authors = [WPContributor](json: ["Apple", "Pear"])
 extension Array where Element == WPContributor {
     
+    /// Parses multiple JSON contributors into an array of WPContributors.
+    /// eg. let authors = [WPContributor](json: ["Apple", "Pear"])
     public init(json: Any?) {
         self.init()
         guard let json = json else {

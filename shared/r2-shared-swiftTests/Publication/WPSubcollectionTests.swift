@@ -21,7 +21,7 @@ class WPSubcollectionTests: XCTestCase {
                     ["href": "/link"]
                 ]
             ]),
-            WPSubcollection(role: "guided", links: [WPLink(href: "/link")])
+            WPSubcollection(role: "guided", links: [Link(href: "/link")])
         )
     }
     
@@ -61,12 +61,12 @@ class WPSubcollectionTests: XCTestCase {
                 metadata: [
                     "metadata1": "value"
                 ],
-                links: [WPLink(href: "/link")],
+                links: [Link(href: "/link")],
                 subcollections: [
-                    WPSubcollection(role: "sub1", links: [WPLink(href: "/sublink")]),
-                    WPSubcollection(role: "sub2", links: [WPLink(href: "/sublink1"), WPLink(href: "/sublink2")]),
-                    WPSubcollection(role: "sub3", links: [WPLink(href: "/sublink3")]),
-                    WPSubcollection(role: "sub3", links: [WPLink(href: "/sublink4")]),
+                    WPSubcollection(role: "sub1", links: [Link(href: "/sublink")]),
+                    WPSubcollection(role: "sub2", links: [Link(href: "/sublink1"), Link(href: "/sublink2")]),
+                    WPSubcollection(role: "sub3", links: [Link(href: "/sublink3")]),
+                    WPSubcollection(role: "sub3", links: [Link(href: "/sublink4")]),
                 ]
             )
         )
@@ -103,17 +103,17 @@ class WPSubcollectionTests: XCTestCase {
                 ]
             ]),
             [
-                WPSubcollection(role: "sub1", links: [WPLink(href: "/sublink")]),
-                WPSubcollection(role: "sub2", links: [WPLink(href: "/sublink1"), WPLink(href: "/sublink2")]),
-                WPSubcollection(role: "sub3", links: [WPLink(href: "/sublink3")]),
-                WPSubcollection(role: "sub3", links: [WPLink(href: "/sublink4")]),
+                WPSubcollection(role: "sub1", links: [Link(href: "/sublink")]),
+                WPSubcollection(role: "sub2", links: [Link(href: "/sublink1"), Link(href: "/sublink2")]),
+                WPSubcollection(role: "sub3", links: [Link(href: "/sublink3")]),
+                WPSubcollection(role: "sub3", links: [Link(href: "/sublink4")]),
             ]
         )
     }
     
     func testGetMinimalJSON() {
         AssertJSONEqual(
-            WPSubcollection(role: "guided", links: [WPLink(href: "/link")]).json,
+            WPSubcollection(role: "guided", links: [Link(href: "/link")]).json,
             [
                 "links": [
                     ["href": "/link", "templated": false]
@@ -129,12 +129,12 @@ class WPSubcollectionTests: XCTestCase {
                 metadata: [
                     "metadata1": "value"
                 ],
-                links: [WPLink(href: "/link")],
+                links: [Link(href: "/link")],
                 subcollections: [
-                    WPSubcollection(role: "sub1", links: [WPLink(href: "/sublink")]),
-                    WPSubcollection(role: "sub2", links: [WPLink(href: "/sublink1"), WPLink(href: "/sublink2")]),
-                    WPSubcollection(role: "sub3", links: [WPLink(href: "/sublink3")]),
-                    WPSubcollection(role: "sub3", links: [WPLink(href: "/sublink4")]),
+                    WPSubcollection(role: "sub1", links: [Link(href: "/sublink")]),
+                    WPSubcollection(role: "sub2", links: [Link(href: "/sublink1"), Link(href: "/sublink2")]),
+                    WPSubcollection(role: "sub3", links: [Link(href: "/sublink3")]),
+                    WPSubcollection(role: "sub3", links: [Link(href: "/sublink4")]),
                     ]
             ).json,
             [
@@ -174,10 +174,10 @@ class WPSubcollectionTests: XCTestCase {
     func testGetJSONArray() {
         AssertJSONEqual(
             [
-                WPSubcollection(role: "sub1", links: [WPLink(href: "/sublink")]),
-                WPSubcollection(role: "sub2", links: [WPLink(href: "/sublink1"), WPLink(href: "/sublink2")]),
-                WPSubcollection(role: "sub3", links: [WPLink(href: "/sublink3")]),
-                WPSubcollection(role: "sub3", links: [WPLink(href: "/sublink4")]),
+                WPSubcollection(role: "sub1", links: [Link(href: "/sublink")]),
+                WPSubcollection(role: "sub2", links: [Link(href: "/sublink1"), Link(href: "/sublink2")]),
+                WPSubcollection(role: "sub3", links: [Link(href: "/sublink3")]),
+                WPSubcollection(role: "sub3", links: [Link(href: "/sublink4")]),
             ].json,
             [
                 "sub1": [

@@ -18,33 +18,33 @@ public struct WPPublication: Equatable {
     
     public var context: [String]  // @context
     public var metadata: WPMetadata
-    public var links: [WPLink]
-    public var readingOrder: [WPLink]
-    public var resources: [WPLink]
-    public var toc: [WPLink]
+    public var links: [Link]
+    public var readingOrder: [Link]
+    public var resources: [Link]
+    public var toc: [Link]
 
     
     // MARK: - EPUB Extension
     
     /// Provides navigation to positions in the Publication content that correspond to the locations of page boundaries present in a print source being represented by this EPUB Publication.
-    public var pageList: [WPLink]
+    public var pageList: [Link]
     /// Identifies fundamental structural components of the publication in order to enable Reading Systems to provide the User efficient access to them..
-    public var landmarks: [WPLink]
+    public var landmarks: [Link]
     /// List of audio files.
-    public var loa: [WPLink]
+    public var loa: [Link]
     /// List of illustrations.
-    public var loi: [WPLink]
+    public var loi: [Link]
     /// List of tables.
-    public var lot: [WPLink]
+    public var lot: [Link]
     /// List of videos.
-    public var lov: [WPLink]
+    public var lov: [Link]
     
     
     // Sub-collections Extension
     public var subcollections: [WPSubcollection]
     
     
-    public init(context: [String] = [], metadata: WPMetadata, links: [WPLink], readingOrder: [WPLink], resources: [WPLink] = [], toc: [WPLink] = [], pageList: [WPLink] = [], landmarks: [WPLink] = [], loa: [WPLink] = [], loi: [WPLink] = [], lot: [WPLink] = [], lov: [WPLink] = [], subcollections: [WPSubcollection] = []) {
+    public init(context: [String] = [], metadata: WPMetadata, links: [Link], readingOrder: [Link], resources: [Link] = [], toc: [Link] = [], pageList: [Link] = [], landmarks: [Link] = [], loa: [Link] = [], loi: [Link] = [], lot: [Link] = [], lov: [Link] = [], subcollections: [WPSubcollection] = []) {
         self.context = context
         self.metadata = metadata
         self.links = links
@@ -62,32 +62,32 @@ public struct WPPublication: Equatable {
     
     public init(json: Any) throws {
         guard var json = JSONDictionary(json) else {
-            throw WPParsingError.publication
+            throw JSONParsingError.publication
         }
         
         self.context = parseArray(json.pop("@context"), allowingSingle: true)
         self.metadata = try WPMetadata(json: json.pop("metadata"))
         self.subcollections = []
-        self.links = [WPLink](json: json.pop("links"))
+        self.links = [Link](json: json.pop("links"))
             .filter { !$0.rels.isEmpty }
         // `readerOrder` used to be `spine`, so we parse `spine` as a fallback.
-        self.readingOrder = [WPLink](json: json.pop("readingOrder") ?? json.pop("spine"))
+        self.readingOrder = [Link](json: json.pop("readingOrder") ?? json.pop("spine"))
             .filter { $0.type != nil }
-        self.resources = [WPLink](json: json.pop("resources"))
+        self.resources = [Link](json: json.pop("resources"))
             .filter { $0.type != nil }
-        self.toc = [WPLink](json: json.pop("toc"))
-        self.pageList = [WPLink](json: json.pop("page-list"))
-        self.landmarks = [WPLink](json: json.pop("landmarks"))
-        self.loa = [WPLink](json: json.pop("loa"))
-        self.loi = [WPLink](json: json.pop("loi"))
-        self.lot = [WPLink](json: json.pop("lot"))
-        self.lov = [WPLink](json: json.pop("lov"))
+        self.toc = [Link](json: json.pop("toc"))
+        self.pageList = [Link](json: json.pop("page-list"))
+        self.landmarks = [Link](json: json.pop("landmarks"))
+        self.loa = [Link](json: json.pop("loa"))
+        self.loi = [Link](json: json.pop("loi"))
+        self.lot = [Link](json: json.pop("lot"))
+        self.lov = [Link](json: json.pop("lov"))
         
         // Parses sub-collections from remaining JSON properties.
         self.subcollections = [WPSubcollection](json: json.json)
         
         guard !links.isEmpty, !readingOrder.isEmpty else {
-            throw WPParsingError.publication
+            throw JSONParsingError.publication
         }
     }
     
@@ -105,7 +105,7 @@ public struct WPPublication: Equatable {
             "loi": encodeIfNotEmpty(loi.json),
             "lot": encodeIfNotEmpty(lot.json),
             "lov": encodeIfNotEmpty(lov.json)
-        ]).merging(subcollections.json, uniquingKeysWith: { current, _ in current })
+        ], additional: subcollections.json)
     }
     
     public var jsonString: String? {
