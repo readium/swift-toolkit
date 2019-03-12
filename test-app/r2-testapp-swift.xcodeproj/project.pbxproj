@@ -1009,7 +1009,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/usr/local/bin/carthage copy-frameworks\n";
+			shellScript = "/usr/local/bin/carthage copy-frameworks";
 			showEnvVarsInLog = 0;
 		};
 		A2DKZGJQK7HUBIYENIKZZMPP /* Carthage */ = {
@@ -1030,7 +1030,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/usr/local/bin/carthage copy-frameworks\n";
+			shellScript = "/usr/local/bin/carthage copy-frameworks";
 			showEnvVarsInLog = 0;
 		};
 		GL5IJJOLSL5Z9YV4O08UKO0V /* Carthage */ = {
@@ -1051,7 +1051,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/usr/local/bin/carthage copy-frameworks\n";
+			shellScript = "/usr/local/bin/carthage copy-frameworks";
 			showEnvVarsInLog = 0;
 		};
 		OUILK5G5SDFVTOCEOWJPKMMP /* Carthage */ = {
