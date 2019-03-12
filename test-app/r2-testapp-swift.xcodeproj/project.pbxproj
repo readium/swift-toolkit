@@ -122,6 +122,53 @@
 		0352073C222D68EA0000F0A4 /* MBProgressHUD.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0352073B222D68EA0000F0A4 /* MBProgressHUD.framework */; };
 		0352073E222D69330000F0A4 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0352073D222D69330000F0A4 /* SQLite.framework */; };
 		0380490B21166627009F48BD /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0380490A21166627009F48BD /* Toast.swift */; };
+		03BB67AC223874EE009A03C5 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192F222D936100646F1F /* AEXML.framework */; };
+		03BB67AD223874EE009A03C5 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192E222D936100646F1F /* CryptoSwift.framework */; };
+		03BB67AE223874EE009A03C5 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061933222D936100646F1F /* Fuzi.framework */; };
+		03BB67AF223874EE009A03C5 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061930222D936100646F1F /* GCDWebServers.framework */; };
+		03BB67B0223874EE009A03C5 /* Kingfisher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03520739222D68CC0000F0A4 /* Kingfisher.framework */; };
+		03BB67B1223874EE009A03C5 /* MBProgressHUD.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0352073B222D68EA0000F0A4 /* MBProgressHUD.framework */; };
+		03BB67B2223874EE009A03C5 /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061931222D936100646F1F /* Minizip.framework */; };
+		03BB67B3223874EE009A03C5 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0352073D222D69330000F0A4 /* SQLite.framework */; };
+		03BB67B4223874EE009A03C5 /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061932222D936100646F1F /* ZIPFoundation.framework */; };
+		03BB67B6223874FA009A03C5 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67B5223874FA009A03C5 /* R2LCPClient.framework */; };
+		03BB67B7223874FA009A03C5 /* R2LCPClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67B5223874FA009A03C5 /* R2LCPClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		03BB67B9223874FA009A03C5 /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67B8223874FA009A03C5 /* ReadiumLCP.framework */; };
+		03BB67BA223874FA009A03C5 /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67B8223874FA009A03C5 /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		03BB67BE223875CC009A03C5 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67BB223875CC009A03C5 /* R2Shared.framework */; };
+		03BB67BF223875CC009A03C5 /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67BC223875CC009A03C5 /* R2Navigator.framework */; };
+		03BB67C0223875CC009A03C5 /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67BD223875CC009A03C5 /* R2Streamer.framework */; };
+		03BB67C222387612009A03C5 /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67C122387612009A03C5 /* ReadiumOPDS.framework */; };
+		03BB67CC2238765C009A03C5 /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67CB2238765C009A03C5 /* ReadiumOPDS.framework */; };
+		03BB67CD2238765C009A03C5 /* ReadiumOPDS.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67CB2238765C009A03C5 /* ReadiumOPDS.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		03BB67CF2238765C009A03C5 /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67CE2238765C009A03C5 /* R2Navigator.framework */; };
+		03BB67D02238765C009A03C5 /* R2Navigator.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67CE2238765C009A03C5 /* R2Navigator.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		03BB67D42238765C009A03C5 /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67D32238765C009A03C5 /* R2Streamer.framework */; };
+		03BB67D52238765C009A03C5 /* R2Streamer.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67D32238765C009A03C5 /* R2Streamer.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		03BB67D822387668009A03C5 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67D722387668009A03C5 /* R2Shared.framework */; };
+		03BB67D922387668009A03C5 /* R2Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67D722387668009A03C5 /* R2Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		03BB67DA2238769D009A03C5 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192F222D936100646F1F /* AEXML.framework */; };
+		03BB67DB2238769D009A03C5 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192E222D936100646F1F /* CryptoSwift.framework */; };
+		03BB67DC2238769D009A03C5 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061933222D936100646F1F /* Fuzi.framework */; };
+		03BB67DD2238769D009A03C5 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061930222D936100646F1F /* GCDWebServers.framework */; };
+		03BB67DE2238769D009A03C5 /* Kingfisher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03520739222D68CC0000F0A4 /* Kingfisher.framework */; };
+		03BB67DF2238769D009A03C5 /* MBProgressHUD.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0352073B222D68EA0000F0A4 /* MBProgressHUD.framework */; };
+		03BB67E02238769D009A03C5 /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061931222D936100646F1F /* Minizip.framework */; };
+		03BB67E12238769D009A03C5 /* R2Navigator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67BC223875CC009A03C5 /* R2Navigator.framework */; };
+		03BB67E22238769D009A03C5 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67BB223875CC009A03C5 /* R2Shared.framework */; };
+		03BB67E32238769D009A03C5 /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67BD223875CC009A03C5 /* R2Streamer.framework */; };
+		03BB67E42238769D009A03C5 /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67C122387612009A03C5 /* ReadiumOPDS.framework */; };
+		03BB67E52238769D009A03C5 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0352073D222D69330000F0A4 /* SQLite.framework */; };
+		03BB67E62238769D009A03C5 /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061932222D936100646F1F /* ZIPFoundation.framework */; };
+		03BB67E7223876D1009A03C5 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192F222D936100646F1F /* AEXML.framework */; };
+		03BB67E8223876D1009A03C5 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192E222D936100646F1F /* CryptoSwift.framework */; };
+		03BB67E9223876D1009A03C5 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061933222D936100646F1F /* Fuzi.framework */; };
+		03BB67EA223876D1009A03C5 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061930222D936100646F1F /* GCDWebServers.framework */; };
+		03BB67EB223876D1009A03C5 /* Kingfisher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03520739222D68CC0000F0A4 /* Kingfisher.framework */; };
+		03BB67EC223876D1009A03C5 /* MBProgressHUD.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0352073B222D68EA0000F0A4 /* MBProgressHUD.framework */; };
+		03BB67ED223876D1009A03C5 /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061931222D936100646F1F /* Minizip.framework */; };
+		03BB67EE223876D1009A03C5 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0352073D222D69330000F0A4 /* SQLite.framework */; };
+		03BB67EF223876D1009A03C5 /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061932222D936100646F1F /* ZIPFoundation.framework */; };
 		113B12D220800FD60074A5A2 /* OPDSCatalogSelectorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */; };
 		113B12DA20800FD60074A5A2 /* OPDSFacetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12C920800FD50074A5A2 /* OPDSFacetViewController.swift */; };
 		113B12DD20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */; };
@@ -317,6 +364,10 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				03BB67D02238765C009A03C5 /* R2Navigator.framework in Embed Frameworks */,
+				03BB67D922387668009A03C5 /* R2Shared.framework in Embed Frameworks */,
+				03BB67CD2238765C009A03C5 /* ReadiumOPDS.framework in Embed Frameworks */,
+				03BB67D52238765C009A03C5 /* R2Streamer.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -327,6 +378,8 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				03BB67BA223874FA009A03C5 /* ReadiumLCP.framework in Embed Frameworks */,
+				03BB67B7223874FA009A03C5 /* R2LCPClient.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -357,6 +410,20 @@
 		0352073B222D68EA0000F0A4 /* MBProgressHUD.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MBProgressHUD.framework; path = Carthage/Build/iOS/MBProgressHUD.framework; sourceTree = "<group>"; };
 		0352073D222D69330000F0A4 /* SQLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SQLite.framework; path = Carthage/Build/iOS/SQLite.framework; sourceTree = "<group>"; };
 		0380490A21166627009F48BD /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
+		03BB67B5223874FA009A03C5 /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		03BB67B8223874FA009A03C5 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		03BB67BB223875CC009A03C5 /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
+		03BB67BC223875CC009A03C5 /* R2Navigator.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Navigator.framework; path = Carthage/Build/iOS/R2Navigator.framework; sourceTree = "<group>"; };
+		03BB67BD223875CC009A03C5 /* R2Streamer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Streamer.framework; path = Carthage/Build/iOS/R2Streamer.framework; sourceTree = "<group>"; };
+		03BB67C122387612009A03C5 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReadiumOPDS.framework; path = Carthage/Build/iOS/ReadiumOPDS.framework; sourceTree = "<group>"; };
+		03BB67C32238763E009A03C5 /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		03BB67C52238763E009A03C5 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		03BB67C72238763E009A03C5 /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		03BB67C92238763E009A03C5 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumOPDS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		03BB67CB2238765C009A03C5 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumOPDS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		03BB67CE2238765C009A03C5 /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		03BB67D32238765C009A03C5 /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		03BB67D722387668009A03C5 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSCatalogSelectorViewController.swift; sourceTree = "<group>"; };
 		113B12C920800FD50074A5A2 /* OPDSFacetViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSFacetViewController.swift; sourceTree = "<group>"; };
 		113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OPDSPublicationInfoViewController.swift; sourceTree = "<group>"; };
@@ -432,6 +499,19 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				03BB67E7223876D1009A03C5 /* AEXML.framework in Frameworks */,
+				03BB67E8223876D1009A03C5 /* CryptoSwift.framework in Frameworks */,
+				03BB67E9223876D1009A03C5 /* Fuzi.framework in Frameworks */,
+				03BB67EA223876D1009A03C5 /* GCDWebServers.framework in Frameworks */,
+				03BB67EB223876D1009A03C5 /* Kingfisher.framework in Frameworks */,
+				03BB67EC223876D1009A03C5 /* MBProgressHUD.framework in Frameworks */,
+				03BB67ED223876D1009A03C5 /* Minizip.framework in Frameworks */,
+				03BB67EE223876D1009A03C5 /* SQLite.framework in Frameworks */,
+				03BB67EF223876D1009A03C5 /* ZIPFoundation.framework in Frameworks */,
+				03BB67CF2238765C009A03C5 /* R2Navigator.framework in Frameworks */,
+				03BB67D822387668009A03C5 /* R2Shared.framework in Frameworks */,
+				03BB67CC2238765C009A03C5 /* ReadiumOPDS.framework in Frameworks */,
+				03BB67D42238765C009A03C5 /* R2Streamer.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -439,6 +519,21 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				03BB67C222387612009A03C5 /* ReadiumOPDS.framework in Frameworks */,
+				03BB67BE223875CC009A03C5 /* R2Shared.framework in Frameworks */,
+				03BB67BF223875CC009A03C5 /* R2Navigator.framework in Frameworks */,
+				03BB67C0223875CC009A03C5 /* R2Streamer.framework in Frameworks */,
+				03BB67AC223874EE009A03C5 /* AEXML.framework in Frameworks */,
+				03BB67AD223874EE009A03C5 /* CryptoSwift.framework in Frameworks */,
+				03BB67AE223874EE009A03C5 /* Fuzi.framework in Frameworks */,
+				03BB67AF223874EE009A03C5 /* GCDWebServers.framework in Frameworks */,
+				03BB67B0223874EE009A03C5 /* Kingfisher.framework in Frameworks */,
+				03BB67B6223874FA009A03C5 /* R2LCPClient.framework in Frameworks */,
+				03BB67B1223874EE009A03C5 /* MBProgressHUD.framework in Frameworks */,
+				03BB67B2223874EE009A03C5 /* Minizip.framework in Frameworks */,
+				03BB67B3223874EE009A03C5 /* SQLite.framework in Frameworks */,
+				03BB67B4223874EE009A03C5 /* ZIPFoundation.framework in Frameworks */,
+				03BB67B9223874FA009A03C5 /* ReadiumLCP.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -468,6 +563,19 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				03BB67DA2238769D009A03C5 /* AEXML.framework in Frameworks */,
+				03BB67DB2238769D009A03C5 /* CryptoSwift.framework in Frameworks */,
+				03BB67DC2238769D009A03C5 /* Fuzi.framework in Frameworks */,
+				03BB67DD2238769D009A03C5 /* GCDWebServers.framework in Frameworks */,
+				03BB67DE2238769D009A03C5 /* Kingfisher.framework in Frameworks */,
+				03BB67DF2238769D009A03C5 /* MBProgressHUD.framework in Frameworks */,
+				03BB67E02238769D009A03C5 /* Minizip.framework in Frameworks */,
+				03BB67E12238769D009A03C5 /* R2Navigator.framework in Frameworks */,
+				03BB67E22238769D009A03C5 /* R2Shared.framework in Frameworks */,
+				03BB67E32238769D009A03C5 /* R2Streamer.framework in Frameworks */,
+				03BB67E42238769D009A03C5 /* ReadiumOPDS.framework in Frameworks */,
+				03BB67E52238769D009A03C5 /* SQLite.framework in Frameworks */,
+				03BB67E62238769D009A03C5 /* ZIPFoundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -664,6 +772,12 @@
 		F3E7D42F1F4EF6D400DF166D = {
 			isa = PBXGroup;
 			children = (
+				03BB67D722387668009A03C5 /* R2Shared.framework */,
+				03BB67D32238765C009A03C5 /* R2Streamer.framework */,
+				03BB67CE2238765C009A03C5 /* R2Navigator.framework */,
+				03BB67CB2238765C009A03C5 /* ReadiumOPDS.framework */,
+				03BB67B8223874FA009A03C5 /* ReadiumLCP.framework */,
+				03BB67B5223874FA009A03C5 /* R2LCPClient.framework */,
 				03061921222D72AB00646F1F /* R2Streamer.framework */,
 				0306191E222D72AB00646F1F /* R2Shared.framework */,
 				0306191B222D72AB00646F1F /* R2Navigator.framework */,
@@ -726,6 +840,14 @@
 		F3E7D4691F4EFE8700DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				03BB67C32238763E009A03C5 /* R2Navigator.framework */,
+				03BB67C52238763E009A03C5 /* R2Shared.framework */,
+				03BB67C72238763E009A03C5 /* R2Streamer.framework */,
+				03BB67C92238763E009A03C5 /* ReadiumOPDS.framework */,
+				03BB67C122387612009A03C5 /* ReadiumOPDS.framework */,
+				03BB67BC223875CC009A03C5 /* R2Navigator.framework */,
+				03BB67BB223875CC009A03C5 /* R2Shared.framework */,
+				03BB67BD223875CC009A03C5 /* R2Streamer.framework */,
 				0306192F222D936100646F1F /* AEXML.framework */,
 				0306192E222D936100646F1F /* CryptoSwift.framework */,
 				03061933222D936100646F1F /* Fuzi.framework */,
@@ -1333,7 +1455,10 @@
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
 				INFOPLIST_FILE = "r2-testapp-swift/r2-testapp-swift-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -1366,7 +1491,10 @@
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
 				INFOPLIST_FILE = "r2-testapp-swift/r2-testapp-swift-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -1399,7 +1527,10 @@
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
 				INFOPLIST_FILE = "r2-testapp-swift/r2-testapp-swift-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -1432,7 +1563,10 @@
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
 				INFOPLIST_FILE = "r2-testapp-swift/r2-testapp-swift-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
