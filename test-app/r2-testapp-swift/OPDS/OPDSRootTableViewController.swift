@@ -132,7 +132,7 @@ class OPDSRootTableViewController: UITableViewController {
             let messageLabel = UILabel(frame: frame)
             messageLabel.textColor = UIColor.darkGray
             messageLabel.textAlignment = .center
-            messageLabel.text = "Something goes wrong."
+            messageLabel.text = "Something went wrong."
             
             let editButton = UIButton(type: .system)
             editButton.frame = frame
@@ -166,14 +166,10 @@ class OPDSRootTableViewController: UITableViewController {
     }
     
     func findNextPageURL(feed: Feed) -> URL? {
-        for link in feed.links {
-            for rel in link.rel {
-                if rel == "next" {
-                    return URL(string: link.absoluteHref!)
-                }
-            }
+        guard let href = feed.links.first(where: { $0.rels.contains("next") })?.href else {
+            return nil
         }
-        return nil
+        return URL(string: href)
     }
     
     public func loadNextPage(completionHandler: @escaping (Feed?) -> ()) {
@@ -548,18 +544,17 @@ class OPDSRootTableViewController: UITableViewController {
         switch browsingState {
             
         case .Navigation, .MixedNavigationPublication, .MixedNavigationGroup, .MixedNavigationGroupPublication:
+            var link: Link?
             if indexPath.section == 0 {
-                if let absoluteHref = feed!.navigation[indexPath.row].absoluteHref {
-                    pushOpdsRootViewController(href: absoluteHref)
-                }
-            } else if indexPath.section >= 1 && indexPath.section <= feed!.groups.count {
-                if feed!.groups[indexPath.section - 1].navigation.count > 0 {
-                    if let absoluteHref = feed!.groups[indexPath.section - 1].navigation[indexPath.row].absoluteHref {
-                        pushOpdsRootViewController(href: absoluteHref)
-                    }
-                }
+                link = feed!.navigation[indexPath.row]
+            } else if indexPath.section >= 1 && indexPath.section <= feed!.groups.count && feed!.groups[indexPath.section - 1].navigation.count > 0 {
+                link = feed!.groups[indexPath.section - 1].navigation[indexPath.row]
             }
             
+            if let link = link {
+                pushOpdsRootViewController(href: link.href)
+            }
+
         default:
             break
             

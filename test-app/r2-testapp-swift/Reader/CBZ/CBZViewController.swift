@@ -64,8 +64,8 @@ class CBZViewController: ReaderViewController {
       guard let publicationID = publication.metadata.identifier else {return}
 
       let resourceTitle = publication.readingOrder[resourceIndex].title ?? "Unknow"
-      let resourceHref = publication.readingOrder[resourceIndex].href ?? "Unknow"
-      let resourceType = publication.readingOrder[resourceIndex].typeLink ?? "Unknow"
+      let resourceHref = publication.readingOrder[resourceIndex].href
+      let resourceType = publication.readingOrder[resourceIndex].type ?? ""
 
       let bookmark = Bookmark(bookID: 0, publicationID: publicationID, resourceIndex: resourceIndex, resourceHref:resourceHref, resourceType: resourceType, resourceTitle: resourceTitle, location: Locations(progression:progression), locatorText: LocatorText())
       

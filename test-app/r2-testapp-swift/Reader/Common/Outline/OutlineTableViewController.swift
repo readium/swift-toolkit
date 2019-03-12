@@ -79,9 +79,7 @@ final class OutlineTableViewController: UITableViewController {
                 tableView.deselectRow(at: indexPath, animated: true)
             }
             if (publicationType == .epub) {
-                guard let resourcePath = allElements[indexPath.row].href else {
-                    return
-                }
+                let resourcePath = allElements[indexPath.row].href
                 delegate?.outline(self, didSelectItem: resourcePath)
             } else {
                 delegate?.outline(self, didSelectItem: String(indexPath.row))
