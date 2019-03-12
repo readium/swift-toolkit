@@ -214,8 +214,8 @@ public class OPDS2Parser {
                         throw OPDS2ParserError.invalidFacet
                     }
                     for linkDict in links {
-                        let link = try Link.parse(linkDict: linkDict)
-                        link.absoluteHref = URLHelper.getAbsolute(href: link.href, base: feedURL)
+                        let link = try Link(json: linkDict)
+                        link.href = URLHelper.getAbsolute(href: link.href, base: feedURL) ?? link.href
                         facet.links.append(link)
                     }
                 }
@@ -226,8 +226,8 @@ public class OPDS2Parser {
 
     static func parseLinks(feed: Feed, links: [[String: Any]]) throws {
         for linkDict in links {
-            let link = try Link.parse(linkDict: linkDict)
-            link.absoluteHref = URLHelper.getAbsolute(href: link.href, base: feedURL)
+            let link = try Link(json: linkDict)
+            link.href = URLHelper.getAbsolute(href: link.href, base: feedURL) ?? link.href
             feed.links.append(link)
         }
     }
@@ -241,8 +241,8 @@ public class OPDS2Parser {
 
     static func parseNavigation(feed: Feed, navLinks: [[String: Any]]) throws {
         for navDict in navLinks {
-            let link = try Link.parse(linkDict: navDict)
-            link.absoluteHref = URLHelper.getAbsolute(href: link.href, base: feedURL)
+            let link = try Link(json: navDict)
+            link.href = URLHelper.getAbsolute(href: link.href, base: feedURL) ?? link.href
             feed.navigation.append(link)
         }
     }
@@ -267,8 +267,8 @@ public class OPDS2Parser {
                         throw OPDS2ParserError.invalidGroup
                     }
                     for linkDict in links {
-                        let link = try Link.parse(linkDict: linkDict)
-                        link.absoluteHref = URLHelper.getAbsolute(href: link.href, base: feedURL)
+                        let link = try Link(json: linkDict)
+                        link.href = URLHelper.getAbsolute(href: link.href, base: feedURL) ?? link.href
                         group.links.append(link)
                     }
                 case "navigation":
@@ -276,8 +276,8 @@ public class OPDS2Parser {
                         throw OPDS2ParserError.invalidGroup
                     }
                     for linkDict in links {
-                        let link = try Link.parse(linkDict: linkDict)
-                        link.absoluteHref = URLHelper.getAbsolute(href: link.href, base: feedURL)
+                        let link = try Link(json: linkDict)
+                        link.href = URLHelper.getAbsolute(href: link.href, base: feedURL) ?? link.href
                         group.navigation.append(link)
                     }
                 case "publications":

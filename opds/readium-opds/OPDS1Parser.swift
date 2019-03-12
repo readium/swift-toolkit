@@ -129,7 +129,7 @@ public class OPDS1Parser {
 
         for entry in root.children(tag: "entry") {
             var isNavigation = true
-            let collectionLink = Link()
+            var collectionLink: Link?
 
             for link in entry.children(tag: "link") {
                 if let rel = link.attributes["rel"] {
@@ -137,12 +137,16 @@ public class OPDS1Parser {
                     if rel.range(of: "http://opds-spec.org/acquisition") != nil {
                         isNavigation = false
                     }
-                    // Check if there is a colelction.
-                    if rel == "collection" || rel == "http://opds-spec.org/group" {
-                        collectionLink.rel.append("collection")
-                        collectionLink.href = link.attributes["href"]
-                        collectionLink.absoluteHref = URLHelper.getAbsolute(href: link.attributes["href"], base: feedURL)
-                        collectionLink.title = link.attributes["title"]
+                    // Check if there is a collection.
+                    if rel == "collection" || rel == "http://opds-spec.org/group",
+                        let href = link.attributes["href"],
+                        let absoluteHref = URLHelper.getAbsolute(href: href, base: feedURL)
+                    {
+                        collectionLink = Link(
+                            href: absoluteHref,
+                            title: link.attributes["title"],
+                            rels: ["collection"]
+                        )
                     }
                 }
             }
@@ -151,33 +155,30 @@ public class OPDS1Parser {
                 let publication = parseEntry(entry: entry)
 
                 // Checking if this publication need to go into a group or in publications.
-                if collectionLink.href != nil {
+                if let collectionLink = collectionLink {
                     addPublicationInGroup(feed, publication, collectionLink)
                 } else {
                     feed.publications.append(publication)
                 }
-            } else {
-                let newLink = Link()
+                
+            } else if let link = entry.firstChild(tag: "link"),
+                let href = link.attr("href"),
+                let absoluteHref = URLHelper.getAbsolute(href: href, base: feedURL)
+            {
+                let newLink = Link(
+                    href: absoluteHref,
+                    type: link.attr("type"),
+                    title: entry.firstChild(tag: "title")?.stringValue,
+                    rels: [link.attr("rel")].compactMap { $0 }
+                )
 
-                if let entryTitle = entry.firstChild(tag: "title")?.stringValue {
-                    newLink.title = entryTitle
-                }
-                
-                if let rel = entry.firstChild(tag: "link")?.attr("rel") {
-                    newLink.rel.append(rel)
-                }
-                
-                if let facetElementCountStr = entry.firstChild(tag: "link")?.attr("count"),
+                if let facetElementCountStr = link.attr("count"),
                     let facetElementCount = Int(facetElementCountStr) {
                     newLink.properties.numberOfItems = facetElementCount
                 }
                 
-                newLink.typeLink = entry.firstChild(tag: "link")?.attr("type")
-                newLink.href = entry.firstChild(tag: "link")?.attr("href")
-                newLink.absoluteHref = URLHelper.getAbsolute(href: entry.firstChild(tag: "link")?.attr("href"), base: feedURL)
-                
                 // Check collection link
-                if collectionLink.href != nil {
+                if let collectionLink = collectionLink {
                     addNavigationInGroup(feed, newLink, collectionLink)
                 } else {
                     feed.navigation.append(newLink)
@@ -186,17 +187,19 @@ public class OPDS1Parser {
         }
 
         for link in root.children(tag: "link") {
-            let newLink = Link()
-
-            newLink.href = link.attributes["href"]
-            newLink.absoluteHref = URLHelper.getAbsolute(href: link.attributes["href"], base: feedURL)
-            newLink.title = link.attributes["title"]
-            newLink.typeLink = link.attributes["type"]
-            if let rel = link.attributes["rel"] {
-                newLink.rel.append(rel)
+            guard let href = link.attributes["href"], let absoluteHref = URLHelper.getAbsolute(href: href, base: feedURL) else {
+                continue
             }
+            
+            let newLink = Link(
+                href: absoluteHref,
+                type: link.attributes["type"],
+                title: link.attributes["title"],
+                rels: [link.attributes["rel"]].compactMap { $0 }
+            )
+
             if let facetGroupName = link.attributes["facetGroup"],
-                newLink.rel.contains("http://opds-spec.org/facet")
+                newLink.rels.contains("http://opds-spec.org/facet")
             {
                 if let facetElementCountStr = link.attributes["count"],
                     let facetElementCount = Int(facetElementCountStr) {
@@ -205,7 +208,7 @@ public class OPDS1Parser {
                 
                 // Active Facet Check
                 if link.attributes["activeFacet"] == "true" {
-                    newLink.rel.append("self")
+                    newLink.rels.append("self")
                 }
                 
                 addFacet(feed: feed, to: newLink, named: facetGroupName)
@@ -235,20 +238,15 @@ public class OPDS1Parser {
         var selfMimeType: String? = nil
 
         for link in feed.links {
-            if link.rel[0] == "self" {
-                if let linkType = link.typeLink {
+            if link.rels.contains("self") {
+                if let linkType = link.type {
                     selfMimeType = linkType
                     if openSearchURL != nil {
                         break
                     }
                 }
-            }
-            else if link.rel[0] == "search" {
-                guard let linkHref = link.href else {
-                    completion(nil, OPDSParserOpenSearchHelperError.searchLinkNotFound)
-                    return
-                }
-                openSearchURL = URL(string: linkHref)
+            } else if link.rels.contains("search") {
+                openSearchURL = URL(string: link.href)
                 if selfMimeType != nil {
                     break
                 }
@@ -399,35 +397,28 @@ public class OPDS1Parser {
         }
         // Links.
         for link in entry.children(tag: "link") {
-            let newLink = Link()
+            guard let href = link.attributes["href"], let absoluteHref = URLHelper.getAbsolute(href: href, base: feedURL) else {
+                continue
+            }
+            
+            let newLink = Link(
+                href: absoluteHref,
+                type: link.attributes["type"],
+                title: link.attributes["title"],
+                rels: [link.attributes["rel"]].compactMap { $0 },
+                properties: Properties(
+                    price: parsePrice(link: link),
+                    indirectAcquisition: parseIndirectAcquisition(children: link.children(tag: "indirectAcquisition"))
+                )
+            )
+            let rels = newLink.rels
 
-            newLink.href = link.attributes["href"]
-            newLink.absoluteHref = URLHelper.getAbsolute(href: link.attributes["href"], base: feedURL)
-            newLink.title = link.attributes["title"]
-            newLink.typeLink = link.attributes["type"]
-            if let rel = link.attributes["rel"] {
-                newLink.rel.append(rel)
-            }
-            let indirectAcquisitions = link.children(tag: "indirectAcquisition")
-            if !indirectAcquisitions.isEmpty {
-                newLink.properties.indirectAcquisition = parseIndirectAcquisition(children: indirectAcquisitions)
-            }
-            // Price.
-            if let price = link.firstChild(tag: "price")?.stringValue,
-                let priceDouble = Double(price),
-                let currency = link.firstChild(tag: "price")?.attr("currencycode")
-            {
-                let newPrice = Price(currency: currency, value: priceDouble)
-
-                newLink.properties.price = newPrice
-            }
-            if let rel = link.attributes["rel"] {
-                if rel == "collection" || rel == "http://opds-spec.org/group" {
-                } else if rel == "http://opds-spec.org/image" || rel == "http://opds-spec.org/image-thumbnail" {
-                    publication.images.append(newLink)
-                } else {
-                    publication.links.append(newLink)
-                }
+            if rels.contains("collection") || rels.contains("http://opds-spec.org/group") {
+                // no-op
+            } else if rels.contains("http://opds-spec.org/image") || rels.contains("http://opds-spec.org/image-thumbnail") {
+                publication.images.append(newLink)
+            } else {
+                publication.links.append(newLink)
             }
         }
 
@@ -461,12 +452,11 @@ public class OPDS1Parser {
         }
         if let title = collectionLink.title {
             let newGroup = Group.init(title: title)
-            let selfLink = Link()
-
-            selfLink.href = collectionLink.href
-            selfLink.absoluteHref = URLHelper.getAbsolute(href: selfLink.href, base: feedURL)
-            selfLink.title = collectionLink.title
-            selfLink.rel.append("self")
+            let selfLink = Link(
+                href: collectionLink.href,
+                title: collectionLink.title,
+                rels: ["self"]
+            )
             newGroup.links.append(selfLink)
             newGroup.publications.append(publication)
             feed.groups.append(newGroup)
@@ -487,32 +477,40 @@ public class OPDS1Parser {
         }
         if let title = collectionLink.title {
             let newGroup = Group.init(title: title)
-            let selfLink = Link()
-
-            selfLink.href = collectionLink.href
-            selfLink.absoluteHref = URLHelper.getAbsolute(href: collectionLink.href, base: feedURL)
-            selfLink.title = collectionLink.title
-            selfLink.rel.append("self")
+            let selfLink = Link(
+                href: collectionLink.href,
+                title: collectionLink.title,
+                rels: ["self"]
+            )
             newGroup.links.append(selfLink)
             newGroup.navigation.append(link)
             feed.groups.append(newGroup)
         }
     }
     
-    static func parseIndirectAcquisition(children: [XMLElement]) -> [IndirectAcquisition] {
-        var ret = [IndirectAcquisition]()
-
-        for child in children {
-            if let typeAcquisition = child.attributes["type"] {
-                let newIndAcq = IndirectAcquisition(typeAcquisition: typeAcquisition)
-
-                let grandChildren = child.children(tag: "indirectAcquisition")
-                if grandChildren.count > 0 {
-                    newIndAcq.child = parseIndirectAcquisition(children: grandChildren)
-                }
-                ret.append(newIndAcq)
+    static func parseIndirectAcquisition(children: [XMLElement]) -> [OPDSAcquisition] {
+        return children.compactMap { child in
+            guard let type = child.attributes["type"] else {
+                return nil
             }
+            var acquisition = OPDSAcquisition(type: type)
+            let grandChildren = child.children(tag: "indirectAcquisition")
+            if grandChildren.count > 0 {
+                acquisition.children = parseIndirectAcquisition(children: grandChildren)
+            }
+            return acquisition
         }
-        return ret
     }
+    
+    static func parsePrice(link: XMLElement) -> OPDSPrice? {
+        guard let price = link.firstChild(tag: "price")?.stringValue,
+            let value = Double(price),
+            let currency = link.firstChild(tag: "price")?.attr("currencycode") else
+        {
+            return nil
+        }
+        
+        return OPDSPrice(currency: currency, value: value)
+    }
+    
 }
