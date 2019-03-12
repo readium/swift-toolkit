@@ -42,11 +42,11 @@ public enum CollectionError: Error {
 // MARK: - Parsing related methods
 extension Collection {
     
-    static public func parse(_ collectionDict: [String: Any]) throws -> R2Shared.Collection {
+    static public func parse(_ collectionDict: [String: Any]) throws -> Collection {
         guard let name = collectionDict["name"] as? String else {
             throw CollectionError.invalidCollection
         }
-        let c = R2Shared.Collection(name: name)
+        let c = Collection(name: name)
         for (k, v) in collectionDict {
             switch k {
             case "name": // Already handled above

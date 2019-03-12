@@ -56,7 +56,7 @@ class MetadataTests: XCTestCase {
             return item
         }
         
-        func collection(_ name: String) -> R2Shared.Collection {
+        func collection(_ name: String) -> Collection {
             return Collection(name: name)
         }
         
