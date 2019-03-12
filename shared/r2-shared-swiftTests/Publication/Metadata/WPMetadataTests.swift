@@ -100,7 +100,7 @@ class WPMetadataTests: XCTestCase {
                     collections: [WPContributor(name: "Collection")],
                     series: [WPContributor(name: "Series")]
                 ),
-                rendition: Rendition(layout: .fixed)
+                rendition: EPUBRendition(layout: .fixed)
             )
         )
     }
@@ -200,7 +200,7 @@ class WPMetadataTests: XCTestCase {
                     collections: [WPContributor(name: "Collection")],
                     series: [WPContributor(name: "Series")]
                 ),
-                rendition: Rendition(layout: .fixed),
+                rendition: EPUBRendition(layout: .fixed),
                 otherMetadata: [
                     "other-metadata1": "value"
                 ]

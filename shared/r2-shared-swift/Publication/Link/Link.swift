@@ -14,8 +14,10 @@ import Foundation
 
 /// Link Object for the Readium Web Publication Manifest.
 /// https://readium.org/webpub-manifest/schema/link.schema.json
-public struct Link: Equatable {
-    
+///
+/// Note: This is not a struct because in certain situations Link has an Identity (eg. EPUB), and rely on a reference to manipulate the links.
+public class Link: Equatable {
+
     /// URI or URI template of the linked resource.
     /// Note: a String because templates are lost with URL.
     public var href: String  // URI
@@ -49,16 +51,13 @@ public struct Link: Equatable {
     
     /// Resources that are children of the linked resource, in the context of a given collection role.
     public var children: [Link]
-    
-    // FIXME: This is only used by the OPDS module. Maybe it should resolve the absoluteHref directly inside .href instead of using another property for that.
-    public var absoluteHref: String?
-    
+
     /// FIXME: This is used when parsing EPUB's media overlays, but maybe it should be stored somewhere else?
     /// The MediaOverlays associated to the resource of the `Link`.
-//    public var mediaOverlays = MediaOverlays()
+    public var mediaOverlays = MediaOverlays()
     
     
-    init(href: String, type: String? = nil, templated: Bool = false, title: String? = nil, rels: [String] = [], properties: Properties = Properties(), height: Int? = nil, width: Int? = nil, bitrate: Double? = nil, duration: Double? = nil, children: [Link] = []) {
+    public init(href: String, type: String? = nil, templated: Bool = false, title: String? = nil, rels: [String] = [], properties: Properties = Properties(), height: Int? = nil, width: Int? = nil, bitrate: Double? = nil, duration: Double? = nil, children: [Link] = []) {
         self.href = href
         self.type = type
         self.templated = templated
@@ -72,7 +71,7 @@ public struct Link: Equatable {
         self.children = children
     }
     
-    init(json: Any) throws {
+    public init(json: Any) throws {
         guard let json = json as? [String: Any],
             let href = json["href"] as? String else
         {
@@ -107,11 +106,25 @@ public struct Link: Equatable {
         ])
     }
     
+    public static func == (lhs: Link, rhs: Link) -> Bool {
+        guard #available(iOS 11.0, *) else {
+            // The JSON comparison is not reliable before iOS 11, because the keys order is not deterministic. Since the equality is only tested during unit tests, it's not such a problem.
+            return false
+        }
+        
+        let l = try? JSONSerialization.data(withJSONObject: lhs.json, options: [.sortedKeys])
+        let r = try? JSONSerialization.data(withJSONObject: rhs.json, options: [.sortedKeys])
+        return l == r
+    }
+
     @available(*, deprecated, renamed: "type")
     public var typeLink: String? { get { return type } set { type = newValue } }
     
     @available(*, deprecated, renamed: "rels")
     public var rel: [String] { get { return rels } set { rels = newValue } }
+    
+    @available(*, deprecated, renamed: "href")
+    public var absoluteHref: String? { get { return href } set { href = newValue ?? href } }
     
     @available(*, deprecated, renamed: "init(json:)")
     static public func parse(linkDict: [String: Any]) throws -> Link {

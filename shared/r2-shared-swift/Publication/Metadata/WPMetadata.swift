@@ -58,18 +58,19 @@ public struct WPMetadata: Equatable {
     
     // MARK: - EPUB Extension
     
-    public var rendition: Rendition?
+    public var rendition: EPUBRendition?
     
     
     /// Additional properties for extensions.
     public var otherMetadata: [String: Any] {
-        return otherMetadataJSON.json
+        get { return otherMetadataJSON.json }
+        set { otherMetadataJSON.json = newValue }
     }
     // Trick to keep the struct equatable despite [String: Any]
     private var otherMetadataJSON: JSONDictionary
     
 
-    public init(identifier: String? = nil, type: String? = nil, title: WPLocalizedString, subtitle: WPLocalizedString? = nil, modified: Date? = nil, published: Date? = nil, languages: [String] = [], sortAs: String? = nil, subjects: [WPSubject] = [], authors: [WPContributor] = [], translators: [WPContributor] = [], editors: [WPContributor] = [], artists: [WPContributor] = [], illustrators: [WPContributor] = [], letterers: [WPContributor] = [], pencilers: [WPContributor] = [], colorists: [WPContributor] = [], inkers: [WPContributor] = [], narrators: [WPContributor] = [], contributors: [WPContributor] = [], publishers: [WPContributor] = [], imprints: [WPContributor] = [], readingProgression: WPReadingProgression = .auto, description: String? = nil, duration: Double? = nil, numberOfPages: Int? = nil, belongsTo: BelongsTo? = nil, rendition: Rendition? = nil, otherMetadata: [String: Any] = [:]) {
+    public init(identifier: String? = nil, type: String? = nil, title: WPLocalizedString, subtitle: WPLocalizedString? = nil, modified: Date? = nil, published: Date? = nil, languages: [String] = [], sortAs: String? = nil, subjects: [WPSubject] = [], authors: [WPContributor] = [], translators: [WPContributor] = [], editors: [WPContributor] = [], artists: [WPContributor] = [], illustrators: [WPContributor] = [], letterers: [WPContributor] = [], pencilers: [WPContributor] = [], colorists: [WPContributor] = [], inkers: [WPContributor] = [], narrators: [WPContributor] = [], contributors: [WPContributor] = [], publishers: [WPContributor] = [], imprints: [WPContributor] = [], readingProgression: WPReadingProgression = .auto, description: String? = nil, duration: Double? = nil, numberOfPages: Int? = nil, belongsTo: BelongsTo? = nil, rendition: EPUBRendition? = nil, otherMetadata: [String: Any] = [:]) {
         self.identifier = identifier
         self.type = type
         self.title = title
@@ -135,7 +136,7 @@ public struct WPMetadata: Equatable {
         self.duration = parsePositiveDouble(json.pop("duration"))
         self.numberOfPages = parsePositive(json.pop("numberOfPages"))
         self.belongsTo = try BelongsTo(json: json.pop("belongsTo"))
-        self.rendition = try Rendition(json: json.pop("rendition"))
+        self.rendition = try EPUBRendition(json: json.pop("rendition"))
         self.otherMetadataJSON = json
     }
     

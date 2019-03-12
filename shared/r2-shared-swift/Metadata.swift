@@ -122,7 +122,7 @@ public class Metadata {
     
     public var description: String?
     
-    public var rendition = Rendition()
+    public var rendition = EPUBRendition()
     public var source: String?
     public var epubType = [String]()
     public var rights: String?

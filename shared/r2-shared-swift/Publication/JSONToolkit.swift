@@ -32,7 +32,7 @@ enum JSONParsingError: Error {
 /// This is a trick to keep the Web Publication structs equatable without having to override `==` and compare all the other properties.
 struct JSONDictionary {
     
-    private(set) var json: [String: Any]
+    var json: [String: Any]
     
     init() {
         self.json = [:]

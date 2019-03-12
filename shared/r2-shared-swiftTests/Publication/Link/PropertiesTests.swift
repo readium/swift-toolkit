@@ -14,6 +14,18 @@ import XCTest
 
 class PropertiesTests: XCTestCase {
     
+    func testParseOrientation() {
+        XCTAssertEqual(Properties.Orientation(rawValue: "auto"), .auto)
+        XCTAssertEqual(Properties.Orientation(rawValue: "landscape"), .landscape)
+        XCTAssertEqual(Properties.Orientation(rawValue: "portrait"), .portrait)
+    }
+    
+    func testParsePage() {
+        XCTAssertEqual(Properties.Page(rawValue: "left"), .left)
+        XCTAssertEqual(Properties.Page(rawValue: "right"), .right)
+        XCTAssertEqual(Properties.Page(rawValue: "center"), .center)
+    }
+    
     func testParseMinimalJSON() {
         XCTAssertEqual(
             try? Properties(json: [:]),

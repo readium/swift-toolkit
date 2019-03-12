@@ -15,12 +15,22 @@ import Foundation
 /// Link Properties
 /// https://readium.org/webpub-manifest/schema/properties.schema.json
 public struct Properties: Equatable {
+    
+    /// Suggested orientation for the device when displaying the linked resource.
+    public enum Orientation: String {
+        case auto, landscape, portrait
+    }
+    
+    /// Indicates how the linked resource should be displayed in a reading environment that displays synthetic spreads.
+    public enum Page: String {
+        case left, right, center
+    }
 
     /// Suggested orientation for the device when displaying the linked resource.
-    public var orientation: RenditionOrientation?
+    public var orientation: Orientation?
 
     /// Indicates how the linked resource should be displayed in a reading environment that displays synthetic spreads.
-    public var page: RenditionPage?
+    public var page: Page?
     
 
     // MARK: - EPUB Extension
@@ -30,19 +40,19 @@ public struct Properties: Equatable {
     public var contains: [String]
     
     /// Hints how the layout of the resource should be presented.
-    public var layout: RenditionLayout?
+    public var layout: EPUBRendition.Layout?
 
     /// Location of a media-overlay for the resource referenced in the Link Object.
     public var mediaOverlay: String?
     
     /// Suggested method for handling overflow while displaying the linked resource.
-    public var overflow: RenditionOverflow?
+    public var overflow: EPUBRendition.Overflow?
     
     /// Indicates the condition to be met for the linked resource to be rendered within a synthetic spread.
-    public var spread: RenditionSpread?
+    public var spread: EPUBRendition.Spread?
     
     /// Indicates that a resource is encrypted/obfuscated and provides relevant information for decryption.
-    public var encryption: Encryption?  // RWPM `encrypted`
+    public var encryption: Encryption?
 
     
     // MARK: - OPDS Extension
@@ -60,13 +70,14 @@ public struct Properties: Equatable {
 
     /// Additional properties for extensions.
     public var otherProperties: [String: Any] {
-        return otherPropertiesJSON.json
+        get { return otherPropertiesJSON.json }
+        set { otherPropertiesJSON.json = newValue }
     }
     // Trick to keep the struct equatable despite [String: Any]
     private var otherPropertiesJSON: JSONDictionary
 
     
-    public init(orientation: RenditionOrientation? = nil, page: RenditionPage? = nil, contains: [String] = [], layout: RenditionLayout? = nil, mediaOverlay: String? = nil, overflow: RenditionOverflow? = nil, spread: RenditionSpread? = nil, encryption: Encryption? = nil, numberOfItems: Int? = nil, price: OPDSPrice? = nil, indirectAcquisition: [OPDSAcquisition] = [], otherProperties: [String: Any] = [:]) {
+    public init(orientation: Orientation? = nil, page: Page? = nil, contains: [String] = [], layout: EPUBRendition.Layout? = nil, mediaOverlay: String? = nil, overflow: EPUBRendition.Overflow? = nil, spread: EPUBRendition.Spread? = nil, encryption: Encryption? = nil, numberOfItems: Int? = nil, price: OPDSPrice? = nil, indirectAcquisition: [OPDSAcquisition] = [], otherProperties: [String: Any] = [:]) {
         self.orientation = orientation
         self.page = page
         self.contains = contains
