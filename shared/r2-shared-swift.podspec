@@ -21,7 +21,7 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = "9.0"
   s.source       = { :git => "https://github.com/readium/r2-shared-swift.git", :branch => "develop" }
   s.source_files  = "r2-shared-swift/**/*.{m,h,swift}"
-  s.exclude_files = ["**/Info*.plist","**/Carthage/*"]
+  s.exclude_files = ["**/Info*.plist"]
   s.preserve_paths      = 'R2Shared.framework'
   s.vendored_frameworks = 'R2Shared.framework'
   s.xcconfig            = { 'FRAMEWORK_SEARCH_PATHS' => '"$(PODS_ROOT)/R2Shared/**"' }
