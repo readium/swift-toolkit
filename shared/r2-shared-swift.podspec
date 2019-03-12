@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   s.version      = "1.2.6"
   s.summary      = "R2 Shared"
   s.description  = <<-DESC
-            Shared R2 Shared
+             R2 Shared
                    DESC
   s.homepage     = "http://readium.github.io"
   s.license      = "BSD 3-Clause License"
