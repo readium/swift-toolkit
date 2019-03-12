@@ -116,7 +116,7 @@ final class OutlineTableViewController: UITableViewController {
                 if let cell = tableView.dequeueReusableCell(withIdentifier: kBookmarkCell) as? BookmarkCell {
                     return cell
                 }
-                return BookmarkCell(style: UITableViewCellStyle.subtitle, reuseIdentifier: kBookmarkCell)
+                return BookmarkCell(style: UITableViewCell.CellStyle.subtitle, reuseIdentifier: kBookmarkCell)
             } ()
             
             if let bookmark = bookmarksDataSource?.bookmark(at: indexPath.item) {
@@ -165,7 +165,7 @@ final class OutlineTableViewController: UITableViewController {
         }
     }
     
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         
         switch segments.selectedSegmentIndex {
         case 0:

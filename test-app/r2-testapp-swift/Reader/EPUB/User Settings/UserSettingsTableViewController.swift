@@ -43,7 +43,7 @@ class UserSettingsTableViewController: UITableViewController {
         initializeControlsValues()
         self.navigationController?.isNavigationBarHidden = true
         
-        brightnessObserver = NotificationCenter.default.addObserver(forName: NSNotification.Name.UIScreenBrightnessDidChange, object: nil, queue: nil) { (notification) in
+        brightnessObserver = NotificationCenter.default.addObserver(forName: UIScreen.brightnessDidChangeNotification, object: nil, queue: nil) { (notification) in
             
             let brightness = Float(UIScreen.main.brightness)
             if (brightness != self.brightnessSlider.value) {
