@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "r2-navigator-swift"
-  s.version      = "1.0.5"
+  s.version      = "1.0.6"
   s.summary      = "R2 Navigator"
   s.homepage     = "http://readium.github.io"
   s.license      = "BSD 3-Clause License"
@@ -11,10 +11,9 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/readium/r2-navigator-swift.git", :branch => "develop" }
   s.source_files  = "r2-navigator-swift/**/*.{m,h,swift}"
   s.exclude_files = ["**/Info*.plist","**/Carthage/*"]
-  s.preserve_paths      = 'R2Navigator.framework'
-  s.vendored_frameworks = 'R2Navigator.framework'
   s.xcconfig            = { 'FRAMEWORK_SEARCH_PATHS' => '"$(PODS_ROOT)/R2Navigator/**"' ,
   'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2'}
+  s.swift_version  = "4.2"
 
   s.dependency 'R2Shared'
 
