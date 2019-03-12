@@ -373,7 +373,7 @@ extension Metadata {
                         case "series":
                             switch bv {
                             case let s as String:
-                                belongs.series.append(R2Shared.Collection(name: s))
+                                belongs.series.append(Collection(name: s))
                             case let cArr as [[String: Any]]:
                                 for cDict in cArr {
                                     belongs.series.append(try Collection.parse(cDict))
@@ -386,7 +386,7 @@ extension Metadata {
                         case "collection":
                             switch bv {
                             case let s as String:
-                                belongs.collection.append(R2Shared.Collection(name: s))
+                                belongs.collection.append(Collection(name: s))
                             case let cArr as [[String: Any]]:
                                 for cDict in cArr {
                                     belongs.collection.append(try Collection.parse(cDict))
