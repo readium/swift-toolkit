@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
 
-  s.name         = "r2-streamer-swift"
+  s.name         = "R2Streamer"
   s.version      = "1.0.7"
   s.summary      = "R2 Streamer"
   s.homepage     = "http://readium.github.io"
