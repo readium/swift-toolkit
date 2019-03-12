@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   s.version      = "1.0.6"
   s.summary      = "R2 Streamer"
   s.description  = <<-DESC
-            Shared R2 Streamer
+             R2 Streamer
                    DESC
   s.homepage     = "http://readium.github.io"
   s.license      = "BSD 3-Clause License"
@@ -27,6 +27,7 @@ Pod::Spec.new do |s|
   s.xcconfig            = { 'FRAMEWORK_SEARCH_PATHS' => '"$(PODS_ROOT)/R2Streamer/**"' ,
   'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2'}
 
+  s.libraries =  'z'
 
   s.dependency 'R2Shared'
   s.dependency 'AEXML'
