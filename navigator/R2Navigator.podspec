@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
 
-  s.name         = "r2-navigator-swift"
+  s.name         = "R2Navigator"
   s.version      = "1.0.6"
   s.summary      = "R2 Navigator"
   s.homepage     = "http://readium.github.io"
