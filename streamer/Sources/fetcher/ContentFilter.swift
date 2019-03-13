@@ -91,7 +91,7 @@ final internal class ContentFiltersEpub: ContentFilters {
             ["application/xhtml+xml", "text/html"].contains(link.type),
             let baseUrl = publication.baseUrl?.deletingLastPathComponent()
         {
-            if publication.metadata.rendition.layout == .reflowable
+            if publication.metadata.rendition?.layout == .reflowable
                 && link.properties.layout == nil
                 || link.properties.layout == .reflowable
             {
@@ -161,18 +161,13 @@ final internal class ContentFiltersEpub: ContentFilters {
         //publication.metadata.primaryContentLayout
         guard let document = try? XMLDocument(string: resourceHtml) else {return stream}
         
-        let langAttribute = document.root?.attr("lang")
-        let langType = LangType(rawString: langAttribute ?? "")
+        let language = document.root?.attr("lang")
+        let contentLayout = publication.metadata.contentLayout(forLanguage: language)
+        let styleSubFolder = contentLayout.rawValue
         
-        let readingProgression = publication.metadata.readingProgression
-        let contentLayoutStyle = Metadata.contentlayoutStyle(for: langType, readingProgression: readingProgression)
-        
-        let styleSubFolder = contentLayoutStyle.rawValue
-        
-        if let primaryContentLayout = publication.metadata.primaryContentLayout {
-            if let preset = userSettingsUIPreset[primaryContentLayout] {
-                    publication.userSettingsUIPreset = preset
-            }
+        let primaryContentLayout = publication.metadata.contentLayout
+        if let preset = userSettingsUIPreset[primaryContentLayout] {
+            publication.userSettingsUIPreset = preset
         }
         
         let cssBefore = getHtmlLink(forResource: "\(baseUrl)styles/\(styleSubFolder)/ReadiumCSS-before.css")

@@ -95,13 +95,13 @@ final public class OPFParser {
         if let dateString = metadataElement["dc:date"].all?.filter({ (thisElement) -> Bool in
             return thisElement.attributes.count == 0
         }).first?.value {
-            metadata.published = dateString
+            metadata.published = dateString.dateFromISO8601
         }
         // Last modification date.
         metadata.modified = MetadataParser.modifiedDate(from: metadataElement)
         // Source.
         if let source = metadataElement["dc:source"].value {
-            metadata.source = source
+            metadata.otherMetadata["source"] = source
         }
         // Subject.
         if let subject = MetadataParser.subject(from: metadataElement) {
@@ -113,23 +113,28 @@ final public class OPFParser {
         }
         // Rights.
         if let rights = metadataElement["dc:rights"].all {
-            metadata.rights = rights.map({ $0.string }).joined(separator: " ")
+            metadata.otherMetadata["rights"] = rights.map({ $0.string }).joined(separator: " ")
         }
         // Publishers, Creators, Contributors.
         let epubVersion = publication.version
         MetadataParser.parseContributors(from: metadataElement, to: &metadata, epubVersion)
         // Page progression direction.
-            
-        if let readingProgression = document["package"]["readingOrder"].attributes["page-progression-direction"] {
-            metadata.readingProgression = ReadingProgression(rawString: readingProgression)
-        } else if let readingProgression = document["package"]["spine"].attributes["page-progression-direction"] {
-            metadata.readingProgression = ReadingProgression(rawString: readingProgression)
-        } else {
-            let langType = LangType(rawString: metadata.languages.first ?? "")
-            let rawDirection = Metadata.contentlayoutStyle(for: langType, readingProgression: nil).rawValue
-            metadata.readingProgression = ReadingProgression(rawString: rawDirection)
-        }
         
+        if let pageProgressionDirection = document["package"]["readingOrder"].attributes["page-progression-direction"] ?? document["package"]["spine"].attributes["page-progression-direction"] {
+            metadata.readingProgression = {
+                switch pageProgressionDirection {
+                case "ltr":
+                    return .ltr
+                case "rtl":
+                    return .rtl
+                case "default":
+                    return .auto
+                default:
+                    return .auto
+                }
+            }()
+        }
+
         // Rendition properties.
         MetadataParser.parseRenditionProperties(from: metadataElement, to: &metadata)
         publication.metadata = metadata
@@ -171,11 +176,7 @@ final public class OPFParser {
             // If the link reference a Smil resource, retrieve and fill it's duration.
             if link.type == "application/smil+xml" {
                 // Retrieve the duration of the smil file in the otherMetadata.
-                if let duration = publication.metadata.otherMetadata.first(where: {
-                    $0.property == "#\(id)" })?.value
-                {
-                    link.duration = Double(SMILParser.smilTimeToSeconds(duration))
-                }
+                link.duration = publication.metadata.otherMetadata["#\(id)"] as? Double
             }
             
             // Add the "cover" rel to the link if it is referenced as the cover in the meta property.

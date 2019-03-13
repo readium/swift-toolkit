@@ -103,18 +103,14 @@ public class CbzParser: PublicationParser {
         return ((publication, container), didLoadDRM)
     }
 
-    /// Generate a MultilangString title from the publication at `path`.
+    /// Generate a LocalizedString title from the publication at `path`.
     ///
-    /// - Parameter path: The path of the publication.
-    /// - Returns: The resulting MultilangString.
-    private static func title(from path: String) -> MultilangString {
-        let fileUrl = URL(fileURLWithPath: path)
-        let multilangString = MultilangString()
-        let filename = fileUrl.lastPathComponent
-        let title = filename.replacingOccurrences(of: "_", with: " ")
-
-        multilangString.singleString = title
-        return multilangString
+    /// - Parameter path: The path to the publication.
+    private static func title(from path: String) -> LocalizedString {
+        return URL(fileURLWithPath: path)
+            .lastPathComponent
+            .replacingOccurrences(of: "_", with: " ")
+            .localizedString
     }
 
     /// Generate a Container instance for the file at `fileAtPath`. It handles

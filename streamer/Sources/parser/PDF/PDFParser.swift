@@ -123,7 +123,7 @@ public final class PDFParser: PublicationParser, Loggable {
             let link = Link(
                 href: PDFConstant.pdfFileCoverPath,
                 type: "image/png",
-                rels: ["cover"],
+                rel: "cover",
                 height: Int(cover.size.height),
                 width: Int(cover.size.width)
             )
@@ -137,9 +137,9 @@ public final class PDFParser: PublicationParser, Loggable {
         }
 
         if let authorName = metadata.author {
-            let author = Contributor()
-            author.multilangName = MultilangString(single: authorName)
-            publication.metadata.authors.append(author)
+            publication.metadata.authors.append(
+                Contributor(name: authorName)
+            )
         }
 
         let title = metadata.title
@@ -147,7 +147,7 @@ public final class PDFParser: PublicationParser, Loggable {
                 .deletingPathExtension()
                 .lastPathComponent
                 .replacingOccurrences(of: "_", with: " ")
-        publication.metadata.multilangTitle = MultilangString(single: title)
+        publication.metadata.multilangTitle = title.localizedString
     }
 
 }
