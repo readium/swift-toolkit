@@ -13,7 +13,7 @@ The project documentation is available [here](https://readium.github.io/r2-strea
 
 ## Adding the library to your iOS project
 
-> _Note:_ requires Swift 4.2 (and [Xcode][] 10.1).
+> _Note:_ requires Swift 4.2 (and Xcode 10.1).
 
 ### Carthage
 
