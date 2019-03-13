@@ -10,7 +10,11 @@
 //
 
 import R2Shared
+#if COCOAPODS
+import GCDWebServer
+#else
 import GCDWebServers
+#endif
 
 extension PublicationServer: Loggable {}
 
@@ -96,11 +100,11 @@ public class PublicationServer {
     // Add handlers for the css/js/font resources.
     public func addSpecialResourcesHandlers() {
         func styleResourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
-            guard let request = request, let filename = request.path else {
+            guard let request = request else {
                 return GCDWebServerResponse(statusCode: 404)
             }
             let relativePath = request.path.deletingLastPathComponent
-            let resourceName = (filename as NSString).deletingPathExtension.lastPathComponent
+            let resourceName = (request.path as NSString).deletingPathExtension.lastPathComponent
 
             if let styleUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "css", subdirectory: relativePath),
                 let data = try? Data.init(contentsOf: styleUrl)
@@ -119,11 +123,11 @@ public class PublicationServer {
                              processBlock: styleResourcesHandler)
 
         func scriptResourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
-            guard let request = request, let filename = request.path else {
+            guard let request = request else {
                 return GCDWebServerResponse(statusCode: 404)
             }
             let relativePath = request.path.deletingLastPathComponent
-            let resourceName = (filename as NSString).deletingPathExtension.lastPathComponent
+            let resourceName = (request.path as NSString).deletingPathExtension.lastPathComponent
 
             if let scriptUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "js", subdirectory: relativePath),
                 let data = try? Data.init(contentsOf: scriptUrl)
@@ -142,11 +146,11 @@ public class PublicationServer {
                              processBlock: scriptResourcesHandler)
         
         func fontResourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
-            guard let request = request, let filename = request.path else {
+            guard let request = request else {
                 return GCDWebServerResponse(statusCode: 404)
             }
             let relativePath = request.path.deletingLastPathComponent
-            let resourceName = (filename as NSString).deletingPathExtension.lastPathComponent
+            let resourceName = (request.path as NSString).deletingPathExtension.lastPathComponent
             
             if let fontUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "otf", subdirectory: relativePath),
                 let data = try? Data.init(contentsOf: fontUrl)
