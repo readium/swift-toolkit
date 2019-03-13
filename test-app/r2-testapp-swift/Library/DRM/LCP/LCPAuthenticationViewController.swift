@@ -51,8 +51,8 @@ class LCPAuthenticationViewController: UIViewController {
 
         super.init(nibName: nil, bundle: nil)
 
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillChangeFrame(_:)), name: .UIKeyboardWillChangeFrame, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillChangeFrame(_:)), name: .UIKeyboardWillHide, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillChangeFrame(_:)), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillChangeFrame(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -170,8 +170,8 @@ class LCPAuthenticationViewController: UIViewController {
         }
 
         var keyboardHeight: CGFloat = 0
-        if note.name == .UIKeyboardWillChangeFrame {
-            guard let keyboardFrame = info[UIKeyboardFrameEndUserInfoKey] as? CGRect else {
+        if note.name == UIResponder.keyboardWillChangeFrameNotification {
+            guard let keyboardFrame = info[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else {
                 return
             }
             keyboardHeight = keyboardFrame.height
