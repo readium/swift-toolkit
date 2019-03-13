@@ -1,5 +1,5 @@
 //
-//  WPSubject.swift
+//  Subject.swift
 //  r2-shared-swift
 //
 //  Created by Mickaël Menu on 11.03.19.
@@ -13,15 +13,16 @@ import Foundation
 
 
 // https://github.com/readium/webpub-manifest/tree/master/contexts/default#subjects
-public struct WPSubject: Equatable {
+public struct Subject: Equatable {
     
-    public var name: WPLocalizedString
+    public var localizedName: LocalizedString
+    public var name: String { return localizedName.string }
     public var sortAs: String?
     public var scheme: String?  // URI
     public var code: String?
     
-    public init(name: WPLocalizedString, sortAs: String? = nil, scheme: String? = nil, code: String? = nil) {
-        self.name = name
+    public init(name: LocalizedStringConvertible, sortAs: String? = nil, scheme: String? = nil, code: String? = nil) {
+        self.localizedName = name.localizedString
         self.sortAs = sortAs
         self.scheme = scheme
         self.code = code
@@ -29,13 +30,13 @@ public struct WPSubject: Equatable {
     
     public init(json: Any) throws {
         if let name = json as? String {
-            self.name = .nonlocalized(name)
+            self.localizedName = name.localizedString
             
         } else if let json = json as? [String: Any] {
-            guard let name = try WPLocalizedString(json: json["name"]) else {
+            guard let name = try LocalizedString(json: json["name"]) else {
                 throw JSONParsingError.contributor
             }
-            self.name = name
+            self.localizedName = name
             self.sortAs = json["sortAs"] as? String
             self.scheme = json["scheme"] as? String
             self.code = json["code"] as? String
@@ -47,19 +48,24 @@ public struct WPSubject: Equatable {
     
     public var json: [String: Any] {
         return makeJSON([
-            "name": name.json,
+            "name": localizedName.json,
             "sortAs": encodeIfNotNil(sortAs),
             "scheme": encodeIfNotNil(scheme),
             "code": encodeIfNotNil(code)
         ])
     }
     
+    @available(*, deprecated, renamed: "Subject(name:)")
+    public init() {
+        self.init(name: "")
+    }
+    
 }
 
-extension Array where Element == WPSubject {
+extension Array where Element == Subject {
     
-    /// Parses multiple JSON subjects into an array of WPSubjects.
-    /// eg. let subjects = [WPSubject](json: ["Apple", "Pear"])
+    /// Parses multiple JSON subjects into an array of Subjects.
+    /// eg. let subjects = [Subject](json: ["Apple", "Pear"])
     public init(json: Any?) {
         self.init()
         guard let json = json else {
@@ -67,9 +73,9 @@ extension Array where Element == WPSubject {
         }
         
         if let json = json as? [Any] {
-            let subjects = json.compactMap { try? WPSubject(json: $0) }
+            let subjects = json.compactMap { try? Subject(json: $0) }
             append(contentsOf: subjects)
-        } else if let subject = try? WPSubject(json: json) {
+        } else if let subject = try? Subject(json: json) {
             append(subject)
         }
     }

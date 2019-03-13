@@ -1,5 +1,5 @@
 //
-//  WPSubjectTests.swift
+//  SubjectTests.swift
 //  r2-shared-swiftTests
 //
 //  Created by Mickaël Menu on 11.03.19.
@@ -12,31 +12,31 @@
 import XCTest
 @testable import R2Shared
 
-class WPSubjectTests: XCTestCase {
+class SubjectTests: XCTestCase {
     
     func testParseJSONString() {
         XCTAssertEqual(
-            try? WPSubject(json: "Fantasy"),
-            WPSubject(name: "Fantasy")
+            try? Subject(json: "Fantasy"),
+            Subject(name: "Fantasy")
         )
     }
     
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            try? WPSubject(json: ["name": "Science Fiction"]),
-            WPSubject(name: "Science Fiction")
+            try? Subject(json: ["name": "Science Fiction"]),
+            Subject(name: "Science Fiction")
         )
     }
     
     func testParseFullJSON() {
         XCTAssertEqual(
-            try? WPSubject(json: [
+            try? Subject(json: [
                 "name": "Science Fiction",
                 "sortAs": "science-fiction",
                 "scheme": "http://scheme",
                 "code": "CODE",
             ]),
-            WPSubject(
+            Subject(
                 name: "Science Fiction",
                 sortAs: "science-fiction",
                 scheme: "http://scheme",
@@ -46,14 +46,14 @@ class WPSubjectTests: XCTestCase {
     }
     
     func testParseJSONRequiresName() {
-        XCTAssertThrowsError(try WPSubject(json: [
+        XCTAssertThrowsError(try Subject(json: [
             "sortAs": "science-fiction"
         ]))
     }
     
     func testParseJSONArray() {
         XCTAssertEqual(
-            [WPSubject](json: [
+            [Subject](json: [
                 "Fantasy",
                 [
                     "name": "Science Fiction",
@@ -61,8 +61,8 @@ class WPSubjectTests: XCTestCase {
                 ]
             ]),
             [
-                WPSubject(name: "Fantasy"),
-                WPSubject(
+                Subject(name: "Fantasy"),
+                Subject(
                     name: "Science Fiction",
                     scheme: "http://scheme"
                 )
@@ -72,40 +72,40 @@ class WPSubjectTests: XCTestCase {
     
     func testParseJSONArrayWhenNil() {
         XCTAssertEqual(
-            [WPSubject](json: nil),
+            [Subject](json: nil),
             []
         )
     }
     
     func testParseJSONArrayIgnoresInvalidSubjects() {
         XCTAssertEqual(
-            [WPSubject](json: [
+            [Subject](json: [
                 "Fantasy",
                 [
                     "code": "CODE"
                 ]
             ]),
             [
-                WPSubject(name: "Fantasy"),
+                Subject(name: "Fantasy"),
             ]
         )
     }
     
     func testParseJSONArrayWhenString() {
         XCTAssertEqual(
-            [WPSubject](json: "Fantasy"),
-            [WPSubject(name: "Fantasy")]
+            [Subject](json: "Fantasy"),
+            [Subject(name: "Fantasy")]
         )
     }
     
     func testParseJSONArrayWhenSingleObject() {
         XCTAssertEqual(
-            [WPSubject](json: [
+            [Subject](json: [
                 "name": "Fantasy",
                 "code": "CODE"
             ]),
             [
-                WPSubject(
+                Subject(
                     name: "Fantasy",
                     code: "CODE"
                 )
@@ -115,14 +115,14 @@ class WPSubjectTests: XCTestCase {
     
     func testGetMinimalJSON() {
         AssertJSONEqual(
-            WPSubject(name: "Fantasy").json,
+            Subject(name: "Fantasy").json,
             ["name": "Fantasy"]
         )
     }
     
     func testGetFullJSON() {
         AssertJSONEqual(
-            WPSubject(
+            Subject(
                 name: "Science Fiction",
                 sortAs: "science-fiction",
                 scheme: "http://scheme",
@@ -140,8 +140,8 @@ class WPSubjectTests: XCTestCase {
     func testGetJSONArray() {
         AssertJSONEqual(
             [
-                WPSubject(name: "Fantasy"),
-                WPSubject(
+                Subject(name: "Fantasy"),
+                Subject(
                     name: "Science Fiction",
                     scheme: "http://scheme"
                 )

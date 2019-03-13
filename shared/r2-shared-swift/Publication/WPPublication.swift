@@ -17,7 +17,7 @@ import Foundation
 public struct WPPublication: Equatable {
     
     public var context: [String]  // @context
-    public var metadata: WPMetadata
+    public var metadata: Metadata
     public var links: [Link]
     public var readingOrder: [Link]
     public var resources: [Link]
@@ -44,7 +44,7 @@ public struct WPPublication: Equatable {
     public var subcollections: [WPSubcollection]
     
     
-    public init(context: [String] = [], metadata: WPMetadata, links: [Link], readingOrder: [Link], resources: [Link] = [], toc: [Link] = [], pageList: [Link] = [], landmarks: [Link] = [], loa: [Link] = [], loi: [Link] = [], lot: [Link] = [], lov: [Link] = [], subcollections: [WPSubcollection] = []) {
+    public init(context: [String] = [], metadata: Metadata, links: [Link], readingOrder: [Link], resources: [Link] = [], toc: [Link] = [], pageList: [Link] = [], landmarks: [Link] = [], loa: [Link] = [], loi: [Link] = [], lot: [Link] = [], lov: [Link] = [], subcollections: [WPSubcollection] = []) {
         self.context = context
         self.metadata = metadata
         self.links = links
@@ -66,7 +66,7 @@ public struct WPPublication: Equatable {
         }
         
         self.context = parseArray(json.pop("@context"), allowingSingle: true)
-        self.metadata = try WPMetadata(json: json.pop("metadata"))
+        self.metadata = try Metadata(json: json.pop("metadata"))
         self.subcollections = []
         self.links = [Link](json: json.pop("links"))
             .filter { !$0.rels.isEmpty }

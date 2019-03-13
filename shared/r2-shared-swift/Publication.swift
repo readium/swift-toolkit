@@ -216,7 +216,7 @@ public class Publication {
         links.append(Link(
             href: publicationURL.absoluteString,
             type: "application/webpub+json",
-            rels: ["self"]
+            rel: "self"
         ))
     }
 

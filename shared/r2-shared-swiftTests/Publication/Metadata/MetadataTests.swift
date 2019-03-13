@@ -1,5 +1,5 @@
 //
-//  WPMetadataTests.swift
+//  MetadataTests.swift
 //  r2-shared-swiftTests
 //
 //  Created by Mickaël Menu on 09.03.19.
@@ -12,29 +12,29 @@
 import XCTest
 @testable import R2Shared
 
-class WPMetadataTests: XCTestCase {
+class MetadataTests: XCTestCase {
     
     func testParseReadingProgression() {
-        XCTAssertEqual(WPReadingProgression(rawValue: "rtl"), .rtl)
-        XCTAssertEqual(WPReadingProgression(rawValue: "ltr"), .ltr)
-        XCTAssertEqual(WPReadingProgression(rawValue: "auto"), .auto)
+        XCTAssertEqual(ReadingProgression(rawValue: "rtl"), .rtl)
+        XCTAssertEqual(ReadingProgression(rawValue: "ltr"), .ltr)
+        XCTAssertEqual(ReadingProgression(rawValue: "auto"), .auto)
     }
 
     func testReadingProgressionDefaultsToAuto() {
-        XCTAssertEqual(try WPMetadata(json: ["title": "t"]).readingProgression, .auto)
-        XCTAssertEqual(WPMetadata(title: "t").readingProgression, .auto)
+        XCTAssertEqual(try Metadata(json: ["title": "t"]).readingProgression, .auto)
+        XCTAssertEqual(Metadata(title: "t").readingProgression, .auto)
     }
     
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            try? WPMetadata(json: ["title": "Title"]),
-            WPMetadata(title: "Title")
+            try? Metadata(json: ["title": "Title"]),
+            Metadata(title: "Title")
         )
     }
     
     func testParseFullJSON() {
         XCTAssertEqual(
-            try WPMetadata(json: [
+            try Metadata(json: [
                 "identifier": "1234",
                 "@type": "epub",
                 "title": ["en": "Title", "fr": "Titre"],
@@ -69,7 +69,7 @@ class WPMetadataTests: XCTestCase {
                     "layout": "fixed"
                 ]
             ]),
-            WPMetadata(
+            Metadata(
                 identifier: "1234",
                 type: "epub",
                 title: ["en": "Title", "fr": "Titre"],
@@ -78,27 +78,27 @@ class WPMetadataTests: XCTestCase {
                 published: Date(timeIntervalSinceReferenceDate: 0),
                 languages: ["en", "fr"],
                 sortAs: "sort key",
-                subjects: [WPSubject(name: "Science Fiction"), WPSubject(name: "Fantasy")],
-                authors: [WPContributor(name: "Author")],
-                translators: [WPContributor(name: "Translator")],
-                editors: [WPContributor(name: "Editor")],
-                artists: [WPContributor(name: "Artist")],
-                illustrators: [WPContributor(name: "Illustrator")],
-                letterers: [WPContributor(name: "Letterer")],
-                pencilers: [WPContributor(name: "Penciler")],
-                colorists: [WPContributor(name: "Colorist")],
-                inkers: [WPContributor(name: "Inker")],
-                narrators: [WPContributor(name: "Narrator")],
-                contributors: [WPContributor(name: "Contributor")],
-                publishers: [WPContributor(name: "Publisher")],
-                imprints: [WPContributor(name: "Imprint")],
+                subjects: [Subject(name: "Science Fiction"), Subject(name: "Fantasy")],
+                authors: [Contributor(name: "Author")],
+                translators: [Contributor(name: "Translator")],
+                editors: [Contributor(name: "Editor")],
+                artists: [Contributor(name: "Artist")],
+                illustrators: [Contributor(name: "Illustrator")],
+                letterers: [Contributor(name: "Letterer")],
+                pencilers: [Contributor(name: "Penciler")],
+                colorists: [Contributor(name: "Colorist")],
+                inkers: [Contributor(name: "Inker")],
+                narrators: [Contributor(name: "Narrator")],
+                contributors: [Contributor(name: "Contributor")],
+                publishers: [Contributor(name: "Publisher")],
+                imprints: [Contributor(name: "Imprint")],
                 readingProgression: .rtl,
                 description: "Description",
                 duration: 4.24,
                 numberOfPages: 240,
                 belongsTo: .init(
-                    collections: [WPContributor(name: "Collection")],
-                    series: [WPContributor(name: "Series")]
+                    collections: [Contributor(name: "Collection")],
+                    series: [Contributor(name: "Series")]
                 ),
                 rendition: EPUBRendition(layout: .fixed)
             )
@@ -106,16 +106,16 @@ class WPMetadataTests: XCTestCase {
     }
     
     func testParseInvalidJSON() {
-        XCTAssertThrowsError(try WPMetadata(json: []))
+        XCTAssertThrowsError(try Metadata(json: []))
     }
     
     func testParseJSONWithSingleLanguage() {
         XCTAssertEqual(
-            try WPMetadata(json: [
+            try Metadata(json: [
                 "title": "Title",
                 "language": "fr"
             ]),
-            WPMetadata(
+            Metadata(
                 title: "Title",
                 languages: ["fr"]
             )
@@ -124,12 +124,12 @@ class WPMetadataTests: XCTestCase {
     
     func testParseJSONOtherMetadata() {
         XCTAssertEqual(
-            try? WPMetadata(json: [
+            try? Metadata(json: [
                 "title": "Title",
                 "other-metadata1": "value",
                 "other-metadata2": [42],
             ]),
-            WPMetadata(
+            Metadata(
                 title: "Title",
                 otherMetadata: [
                     "other-metadata1": "value",
@@ -140,26 +140,26 @@ class WPMetadataTests: XCTestCase {
     }
     
     func testParseJSONRequiresTitle() {
-        XCTAssertThrowsError(try WPMetadata(json: ["duration": 4.24]))
+        XCTAssertThrowsError(try Metadata(json: ["duration": 4.24]))
     }
 
     func testParseJSONRequiresPositiveDuration() {
         XCTAssertEqual(
-            try? WPMetadata(json: ["title": "t", "duration": -20]),
-            WPMetadata(title: "t")
+            try? Metadata(json: ["title": "t", "duration": -20]),
+            Metadata(title: "t")
         )
     }
     
     func testParseJSONRequiresPositiveNumberOfPages() {
         XCTAssertEqual(
-            try? WPMetadata(json: ["title": "t", "numberOfPages": -20]),
-            WPMetadata(title: "t")
+            try? Metadata(json: ["title": "t", "numberOfPages": -20]),
+            Metadata(title: "t")
         )
     }
     
     func testGetMinimalJSON() {
         AssertJSONEqual(
-            WPMetadata(title: "Title").json,
+            Metadata(title: "Title").json,
             [
                 "title": "Title",
                 "readingProgression": "auto"
@@ -169,7 +169,7 @@ class WPMetadataTests: XCTestCase {
     
     func testGetFullJSON() {
         AssertJSONEqual(
-            WPMetadata(
+            Metadata(
                 identifier: "1234",
                 type: "epub",
                 title: ["en": "Title", "fr": "Titre"],
@@ -178,27 +178,27 @@ class WPMetadataTests: XCTestCase {
                 published: Date(timeIntervalSinceReferenceDate: 0),
                 languages: ["en", "fr"],
                 sortAs: "sort key",
-                subjects: [WPSubject(name: "Science Fiction"), WPSubject(name: "Fantasy")],
-                authors: [WPContributor(name: "Author")],
-                translators: [WPContributor(name: "Translator")],
-                editors: [WPContributor(name: "Editor")],
-                artists: [WPContributor(name: "Artist")],
-                illustrators: [WPContributor(name: "Illustrator")],
-                letterers: [WPContributor(name: "Letterer")],
-                pencilers: [WPContributor(name: "Penciler")],
-                colorists: [WPContributor(name: "Colorist")],
-                inkers: [WPContributor(name: "Inker")],
-                narrators: [WPContributor(name: "Narrator")],
-                contributors: [WPContributor(name: "Contributor")],
-                publishers: [WPContributor(name: "Publisher")],
-                imprints: [WPContributor(name: "Imprint")],
+                subjects: [Subject(name: "Science Fiction"), Subject(name: "Fantasy")],
+                authors: [Contributor(name: "Author")],
+                translators: [Contributor(name: "Translator")],
+                editors: [Contributor(name: "Editor")],
+                artists: [Contributor(name: "Artist")],
+                illustrators: [Contributor(name: "Illustrator")],
+                letterers: [Contributor(name: "Letterer")],
+                pencilers: [Contributor(name: "Penciler")],
+                colorists: [Contributor(name: "Colorist")],
+                inkers: [Contributor(name: "Inker")],
+                narrators: [Contributor(name: "Narrator")],
+                contributors: [Contributor(name: "Contributor")],
+                publishers: [Contributor(name: "Publisher")],
+                imprints: [Contributor(name: "Imprint")],
                 readingProgression: .rtl,
                 description: "Description",
                 duration: 4.24,
                 numberOfPages: 240,
                 belongsTo: .init(
-                    collections: [WPContributor(name: "Collection")],
-                    series: [WPContributor(name: "Series")]
+                    collections: [Contributor(name: "Collection")],
+                    series: [Contributor(name: "Series")]
                 ),
                 rendition: EPUBRendition(layout: .fixed),
                 otherMetadata: [

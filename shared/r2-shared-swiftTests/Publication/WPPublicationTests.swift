@@ -26,7 +26,7 @@ class WPPublicationTests: XCTestCase {
                 ]
             ]),
             WPPublication(
-                metadata: WPMetadata(title: "Title"),
+                metadata: Metadata(title: "Title"),
                 links: [Link(href: "/manifest.json", rels: ["self"])],
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")]
             )
@@ -77,7 +77,7 @@ class WPPublicationTests: XCTestCase {
             ]),
             WPPublication(
                 context: ["https://readium.org/webpub-manifest/context.jsonld"],
-                metadata: WPMetadata(title: "Title"),
+                metadata: Metadata(title: "Title"),
                 links: [Link(href: "/manifest.json", rels: ["self"])],
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")],
                 resources: [Link(href: "/image.png", type: "image/png")],
@@ -107,7 +107,7 @@ class WPPublicationTests: XCTestCase {
                 ]),
             WPPublication(
                 context: ["context1", "context2"],
-                metadata: WPMetadata(title: "Title"),
+                metadata: Metadata(title: "Title"),
                 links: [Link(href: "/manifest.json", rels: ["self"])],
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")]
             )
@@ -160,7 +160,7 @@ class WPPublicationTests: XCTestCase {
                 ]
             ]),
             WPPublication(
-                metadata: WPMetadata(title: "Title"),
+                metadata: Metadata(title: "Title"),
                 links: [Link(href: "/manifest.json", rels: ["self"])],
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")]
             )
@@ -181,7 +181,7 @@ class WPPublicationTests: XCTestCase {
                 ]
             ]),
             WPPublication(
-                metadata: WPMetadata(title: "Title"),
+                metadata: Metadata(title: "Title"),
                 links: [
                     Link(href: "/manifest.json", rels: ["self"]),
                     Link(href: "/withrel", rels: ["withrel"])
@@ -204,7 +204,7 @@ class WPPublicationTests: XCTestCase {
                 ]
             ]),
             WPPublication(
-                metadata: WPMetadata(title: "Title"),
+                metadata: Metadata(title: "Title"),
                 links: [
                     Link(href: "/manifest.json", rels: ["self"]),
                 ],
@@ -229,7 +229,7 @@ class WPPublicationTests: XCTestCase {
                 ]
             ]),
             WPPublication(
-                metadata: WPMetadata(title: "Title"),
+                metadata: Metadata(title: "Title"),
                 links: [
                     Link(href: "/manifest.json", rels: ["self"]),
                 ],
@@ -242,7 +242,7 @@ class WPPublicationTests: XCTestCase {
     func testGetMinimalJSON() {
         AssertJSONEqual(
             WPPublication(
-                metadata: WPMetadata(title: "Title"),
+                metadata: Metadata(title: "Title"),
                 links: [Link(href: "/manifest.json", rels: ["self"])],
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")]
             ).json,
@@ -262,7 +262,7 @@ class WPPublicationTests: XCTestCase {
         AssertJSONEqual(
             WPPublication(
                 context: ["https://readium.org/webpub-manifest/context.jsonld"],
-                metadata: WPMetadata(title: "Title"),
+                metadata: Metadata(title: "Title"),
                 links: [Link(href: "/manifest.json", rels: ["self"])],
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")],
                 resources: [Link(href: "/image.png", type: "image/png")],
@@ -322,7 +322,7 @@ class WPPublicationTests: XCTestCase {
         XCTAssertEqual(
             WPPublication(
                 context: ["https://readium.org/webpub-manifest/context.jsonld"],
-                metadata: WPMetadata(title: "Title"),
+                metadata: Metadata(title: "Title"),
                 links: [Link(href: "/manifest.json", rels: ["self"])],
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")],
                 resources: [Link(href: "/image.png", type: "image/png")],

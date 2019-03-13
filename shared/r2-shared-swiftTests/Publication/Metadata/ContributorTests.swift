@@ -1,5 +1,5 @@
 //
-//  WPContributorTests.swift
+//  ContributorTests.swift
 //  r2-shared-swiftTests
 //
 //  Created by Mickaël Menu on 09.03.19.
@@ -12,25 +12,25 @@
 import XCTest
 @testable import R2Shared
 
-class WPContributorTests: XCTestCase {
+class ContributorTests: XCTestCase {
 
     func testParseJSONString() {
         XCTAssertEqual(
-            try? WPContributor(json: "Thom Yorke"),
-            WPContributor(name: "Thom Yorke")
+            try? Contributor(json: "Thom Yorke"),
+            Contributor(name: "Thom Yorke")
         )
     }
     
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            try? WPContributor(json: ["name": "Colin Greenwood"]),
-            WPContributor(name: "Colin Greenwood")
+            try? Contributor(json: ["name": "Colin Greenwood"]),
+            Contributor(name: "Colin Greenwood")
         )
     }
     
     func testParseFullJSON() {
         XCTAssertEqual(
-            try? WPContributor(json: [
+            try? Contributor(json: [
                 "name": "Colin Greenwood",
                 "identifier": "colin",
                 "sortAs": "greenwood",
@@ -41,7 +41,7 @@ class WPContributorTests: XCTestCase {
                     ["href": "http://link2"]
                 ]
             ]),
-            WPContributor(
+            Contributor(
                 name: "Colin Greenwood",
                 identifier: "colin",
                 sortAs: "greenwood",
@@ -57,11 +57,11 @@ class WPContributorTests: XCTestCase {
     
     func testParseJSONWithMultipleRoles() {
         XCTAssertEqual(
-            try? WPContributor(json: [
+            try? Contributor(json: [
                 "name": "Thom Yorke",
                 "role": ["singer", "guitarist"]
             ]),
-            WPContributor(
+            Contributor(
                 name: "Thom Yorke",
                 roles: ["singer", "guitarist"]
             )
@@ -69,14 +69,14 @@ class WPContributorTests: XCTestCase {
     }
     
     func testParseJSONRequiresName() {
-        XCTAssertThrowsError(try WPContributor(json: [
+        XCTAssertThrowsError(try Contributor(json: [
             "identifier": "c1"
         ]))
     }
     
     func testParseJSONArray() {
         XCTAssertEqual(
-            [WPContributor](json: [
+            [Contributor](json: [
                 "Thom Yorke",
                 [
                     "name": ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
@@ -84,8 +84,8 @@ class WPContributorTests: XCTestCase {
                 ]
             ]),
             [
-                WPContributor(name: "Thom Yorke"),
-                WPContributor(
+                Contributor(name: "Thom Yorke"),
+                Contributor(
                     name: ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
                     roles: ["guitarist"]
                 )
@@ -95,40 +95,40 @@ class WPContributorTests: XCTestCase {
     
     func testParseJSONArrayWhenNil() {
         XCTAssertEqual(
-            [WPContributor](json: nil),
+            [Contributor](json: nil),
             []
         )
     }
     
     func testParseJSONArrayIgnoresInvalidContributors() {
         XCTAssertEqual(
-            [WPContributor](json: [
+            [Contributor](json: [
                 "Thom Yorke",
                 [
                     "role": "guitarist"
                 ]
             ]),
             [
-                WPContributor(name: "Thom Yorke"),
+                Contributor(name: "Thom Yorke"),
             ]
         )
     }
     
     func testParseJSONArrayWhenString() {
         XCTAssertEqual(
-            [WPContributor](json: "Thom Yorke"),
-            [WPContributor(name: "Thom Yorke")]
+            [Contributor](json: "Thom Yorke"),
+            [Contributor(name: "Thom Yorke")]
         )
     }
     
     func testParseJSONArrayWhenSingleObject() {
         XCTAssertEqual(
-            [WPContributor](json: [
+            [Contributor](json: [
                 "name": ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
                 "role": "guitarist"
             ]),
             [
-                WPContributor(
+                Contributor(
                     name: ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
                     roles: ["guitarist"]
                 )
@@ -138,14 +138,14 @@ class WPContributorTests: XCTestCase {
     
     func testGetMinimalJSON() {
         AssertJSONEqual(
-            WPContributor(name: "Thom Yorke").json,
+            Contributor(name: "Thom Yorke").json,
             ["name": "Thom Yorke"]
         )
     }
 
     func testGetFullJSON() {
         AssertJSONEqual(
-            WPContributor(
+            Contributor(
                 name: ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
                 identifier: "jonny",
                 sortAs: "greenwood",
@@ -173,8 +173,8 @@ class WPContributorTests: XCTestCase {
     func testGetJSONArray() {
         AssertJSONEqual(
             [
-                WPContributor(name: "Thom Yorke"),
-                WPContributor(
+                Contributor(name: "Thom Yorke"),
+                Contributor(
                     name: ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
                     roles: ["guitarist"]
                 )

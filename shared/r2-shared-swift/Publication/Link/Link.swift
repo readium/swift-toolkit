@@ -57,7 +57,7 @@ public class Link: Equatable {
     public var mediaOverlays = MediaOverlays()
     
     
-    public init(href: String, type: String? = nil, templated: Bool = false, title: String? = nil, rels: [String] = [], properties: Properties = Properties(), height: Int? = nil, width: Int? = nil, bitrate: Double? = nil, duration: Double? = nil, children: [Link] = []) {
+    public init(href: String, type: String? = nil, templated: Bool = false, title: String? = nil, rels: [String] = [], rel: String? = nil, properties: Properties = Properties(), height: Int? = nil, width: Int? = nil, bitrate: Double? = nil, duration: Double? = nil, children: [Link] = []) {
         self.href = href
         self.type = type
         self.templated = templated
@@ -69,6 +69,11 @@ public class Link: Equatable {
         self.bitrate = bitrate
         self.duration = duration
         self.children = children
+        
+        // convenience to set a single rel during construction
+        if let rel = rel {
+            self.rels.append(rel)
+        }
     }
     
     public init(json: Any) throws {
@@ -125,6 +130,11 @@ public class Link: Equatable {
     
     @available(*, deprecated, renamed: "href")
     public var absoluteHref: String? { get { return href } set { href = newValue ?? href } }
+    
+    @available(*, deprecated, renamed: "Link(href:)")
+    public convenience init() {
+        self.init(href: "")
+    }
     
     @available(*, deprecated, renamed: "init(json:)")
     static public func parse(linkDict: [String: Any]) throws -> Link {
