@@ -48,9 +48,13 @@ final class ReaderModule: ReaderModuleAPI {
         self.delegate = delegate
         
         formatModules = [
+            CBZModule(delegate: self),
             EPUBModule(delegate: self),
-            CBZModule(delegate: self)
         ]
+        
+        if #available(iOS 11.0, *) {
+            formatModules.append(PDFModule(delegate: self))
+        }
     }
     
     func presentPublication(publication: Publication, in navigationController: UINavigationController, completion: @escaping () -> Void) {

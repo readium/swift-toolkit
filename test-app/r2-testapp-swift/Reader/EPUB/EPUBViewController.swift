@@ -1,5 +1,5 @@
 //
-//  EpubViewController.swift
+//  EPUBViewController.swift
 //  r2-testapp-swift
 //
 //  Created by Alexandre Camilleri on 7/3/17.
@@ -14,26 +14,20 @@ import UIKit
 import R2Shared
 import R2Navigator
 
-protocol EpubViewControllerFactory {
-    func make(publication: Publication, at index: Int, progression: Double?, drm: DRM?) -> EpubViewController
-}
-
-class EpubViewController: UIViewController {
+class EPUBViewController: ReaderViewController {
     
     weak var moduleDelegate: ReaderFormatModuleDelegate?
     
-    let drm: DRM?
     let stackView: UIStackView!
-    let navigator: NavigatorViewController!
+    let navigator: EPUBNavigatorViewController!
     let fixedTopBar: BarView!
     let fixedBottomBar: BarView!
     var popoverUserconfigurationAnchor: UIBarButtonItem?
     var userSettingNavigationController: UserSettingsNavigationController
 
     init(publication: Publication, atIndex index: Int, progression: Double?, _ drm: DRM?) {
-        self.drm = drm
         stackView = UIStackView(frame: UIScreen.main.bounds)
-        navigator = NavigatorViewController(for: publication, license: drm?.license, initialIndex: index, initialProgression: progression, editingActions: [.lookup, .copy])
+        navigator = EPUBNavigatorViewController(for: publication, license: drm?.license, initialIndex: index, initialProgression: progression, editingActions: [.lookup, .copy])
         
         fixedTopBar = BarView()
         fixedBottomBar = BarView()
@@ -45,14 +39,9 @@ class EpubViewController: UIViewController {
         userSettingNavigationController.advancedSettingsViewController =
             (settingsStoryboard.instantiateViewController(withIdentifier: "AdvancedSettingsViewController") as! AdvancedSettingsViewController)
         
-        super.init(nibName: nil, bundle: nil)
+        super.init(publication: publication, drm: drm)
     }
 
-    lazy var bookmarksDataSource: BookmarkDataSource? = {
-        let publicationID = navigator.publication.metadata.identifier ?? ""
-        return BookmarkDataSource(publicationID:publicationID)
-    } ()
-  
     lazy var bookmarkButton: UIBarButtonItem = {
         let button = UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(addBookmarkForCurrentPosition))
         return button
@@ -66,22 +55,20 @@ class EpubViewController: UIViewController {
       }
     }
 
-    @available(*, unavailable)
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
     override func loadView() {
         super.loadView()
-        view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
         stackView.axis = .vertical
         stackView.distribution = .fill
         stackView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         
         stackView.addArrangedSubview(fixedTopBar)
-        stackView.addArrangedSubview(navigator.view)
-        stackView.addArrangedSubview(fixedBottomBar)
         
+        addChild(navigator)
+        stackView.addArrangedSubview(navigator.view)
+        navigator.didMove(toParent: self)
+
+        stackView.addArrangedSubview(fixedBottomBar)
+
         view.addSubview(stackView)
         
       
@@ -107,7 +94,6 @@ class EpubViewController: UIViewController {
         fixedTopBar.setLabel(title: navigator.publication.metadata.title)
         fixedBottomBar.setLabel(title: "")
         
-        navigationController?.setNavigationBarHidden(true, animated: false)
         var barButtons = [UIBarButtonItem]()
         
         // TocItemView button.
@@ -157,7 +143,6 @@ class EpubViewController: UIViewController {
     override open func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        navigationController?.hidesBarsOnTap = true
         toggleFixedBars()
     }
     
@@ -165,32 +150,15 @@ class EpubViewController: UIViewController {
         super.viewWillDisappear(animated)
         
         navigator.userSettings.save()
-        navigationController?.hidesBarsOnTap = false
     }
     
     override func willRotate(to toInterfaceOrientation: UIInterfaceOrientation, duration: TimeInterval) {
         fixedTopBar.setNeedsUpdateConstraints()
         fixedBottomBar.setNeedsUpdateConstraints()
     }
-    
-    override open var preferredStatusBarUpdateAnimation: UIStatusBarAnimation {
-        return UIStatusBarAnimation.slide
-    }
-    
-    open override var prefersStatusBarHidden: Bool {
-        // Prevent animation blinking when navigating back to the library
-        // by always showing status bar when navigation bar is visible
-        return navigationController?.isNavigationBarHidden == true
-    }
-    
-    override func willMove(toParentViewController parent: UIViewController?) {
-        // Restore library's default UI colors
-        navigationController?.navigationBar.tintColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
-        navigationController?.navigationBar.barTintColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
-    }
 }
 
-extension EpubViewController {
+extension EPUBViewController {
     
     @objc func presentUserSettings() {
         let popoverPresentationController = userSettingNavigationController.popoverPresentationController!
@@ -229,7 +197,7 @@ extension EpubViewController {
     }
 }
 
-extension EpubViewController: OutlineTableViewControllerDelegate {
+extension EPUBViewController: OutlineTableViewControllerDelegate {
     
     func outline(_ outlineTableViewController: OutlineTableViewController, didSelectItem item: String) {
         _ = navigator.displayReadingOrderItem(with: item)
@@ -241,7 +209,7 @@ extension EpubViewController: OutlineTableViewControllerDelegate {
     
 }
 
-extension EpubViewController: UIGestureRecognizerDelegate {
+extension EPUBViewController: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
                            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
@@ -249,13 +217,10 @@ extension EpubViewController: UIGestureRecognizerDelegate {
 }
 
 // MARK: - Delegate of the NavigatorViewController (R2Navigator).
-extension EpubViewController: NavigatorDelegate {
+extension EPUBViewController: EPUBNavigatorDelegate {
     
     func middleTapHandler() {
-        guard let state = navigationController?.navigationBar.isHidden else {
-            return
-        }
-        navigationController?.setNavigationBarHidden(!state, animated: true)
+        toggleNavigationBar()
     }
     
     // The publication is being closed, provide info for saving progress.
@@ -283,7 +248,7 @@ extension EpubViewController: NavigatorDelegate {
     }
 }
 
-extension EpubViewController: UserSettingsNavigationControllerDelegate {
+extension EPUBViewController: UserSettingsNavigationControllerDelegate {
     internal func getUserSettings() -> UserSettings {
         return navigator.userSettings
     }
@@ -304,7 +269,7 @@ extension EpubViewController: UserSettingsNavigationControllerDelegate {
         navigationController?.navigationBar.barTintColor = colors.mainColor
         navigationController?.navigationBar.tintColor = colors.textColor
         
-        navigationController?.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: colors.textColor]
+        navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: colors.textColor]
         
         // FIXME:
 //        drmManagementTVC?.appearance = appearance
@@ -327,7 +292,7 @@ extension EpubViewController: UserSettingsNavigationControllerDelegate {
     }
 }
 
-extension EpubViewController: UIPopoverPresentationControllerDelegate {
+extension EPUBViewController: UIPopoverPresentationControllerDelegate {
     // Prevent the popOver to be presented fullscreen on iPhones.
     func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
     {
