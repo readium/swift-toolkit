@@ -10,19 +10,62 @@ The project documentation is available [here](https://readium.github.io/r2-strea
 
 # Get started
 
+
 ## Adding the library to your iOS project
 
-##### Carthage
+> _Note:_ requires Swift 4.2 (and [Xcode][] 10.1).
 
-Add the following line to your Cartfile
+### Carthage
 
-`github "readium/r2-streamer-swift" "master"`
+[Carthage][] is a simple, decentralized dependency manager for Cocoa. To
+install R2Streamer with Carthage:
 
-Then run `carthage update --platform ios` to fetch and build the dependencies.
+ 1. Make sure Carthage is [installed][Carthage Installation].
 
-##### CocoaPods
+ 2. Update your Cartfile to include the following:
 
-//Todo
+    ```ruby
+    github "readium/r2-streamer-swift" ~> 1.0.7
+    ```
+
+ 3. Run `carthage update` and
+    [add the appropriate framework][Carthage Usage].
+
+
+[Carthage]: https://github.com/Carthage/Carthage
+[Carthage Installation]: https://github.com/Carthage/Carthage#installing-carthage
+[Carthage Usage]: https://github.com/Carthage/Carthage#adding-frameworks-to-an-application
+
+
+### CocoaPods
+
+[CocoaPods][] is a dependency manager for Cocoa projects. To install
+R2Streamer with CocoaPods:
+
+ 1. Make sure CocoaPods is [installed][CocoaPods Installation]. (R2Streamer
+    requires version 1.0.0 or greater.)
+
+    ```sh
+    # Using the default Ruby install will require you to use sudo when
+    # installing and updating gems.
+    [sudo] gem install cocoapods
+    ```
+
+ 2. Update your Podfile to include the following:
+
+    ```ruby
+    use_frameworks!
+
+    target 'YourAppTargetName' do
+        pod 'R2Shared', :git => 'https://github.com/readium/r2-shared-swift.git', '~> 1.0.7'
+    end
+    ```
+
+ 3. Run `pod install --repo-update`.
+
+[CocoaPods]: https://cocoapods.org
+[CocoaPods Installation]: https://guides.cocoapods.org/using/getting-started.html#getting-started
+
 
 ##### Import
 
@@ -137,6 +180,9 @@ Run carthage update --platform ios to fetch and build the dependencies:
 - [swisspol/GCDWebServer](https://github.com/swisspol/GCDWebServer) A modern and lightweight GCD based HTTP 1.1 server designed to be embedded in OS X & iOS apps.
 - [tadija/AEXML](https://github.com/tadija/AEXML) Simple and lightweight XML parser written in Swift.
 - [krzyzanowskim/CryptoSwift](https://github.com/krzyzanowskim/CryptoSwift) Crypto related functions and helpers for Swift implemented in Swift.
+- [cezheng/Fuzi](https://github.com/cezheng/Fuzi) A fast & lightweight XML & HTML parser in Swift with XPath & CSS support
+- [dexman/Minizip](https://github.com/dexman/Minizip) Minizip framework wrapper for iOS, OSX, tvOS, and watchOS.
+
 
 ## Documentation
 
