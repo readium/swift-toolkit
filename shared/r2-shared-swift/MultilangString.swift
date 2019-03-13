@@ -23,7 +23,10 @@ public class MultilangString {
     /// Contains the alternatives denominations and keyed by language codes, if any.
     public var multiString =  [String: String]()
 
-    public init() {}
+    public init(single: String? = nil) {
+        self.singleString = single
+    }
+    
 }
 
 extension MultilangString: Encodable {
