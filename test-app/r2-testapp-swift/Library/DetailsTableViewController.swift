@@ -26,7 +26,7 @@ final class DetailsTableViewController: UITableViewController {
     @IBOutlet weak var idLabel: UILabel!
 
     override func viewDidLoad() {
-        titleLabel.text = publication?.metadata.multilangTitle?.singleString
+        titleLabel.text = publication?.metadata.title
         idLabel.text = publication?.metadata.identifier
     }
 

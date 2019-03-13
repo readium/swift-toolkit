@@ -38,9 +38,13 @@ class OPDSPublicationInfoViewController : UIViewController {
         fxImageView!.contentMode = .scaleAspectFill
         imageView!.contentMode = .scaleAspectFit
         
-        let titleTextView = OPDSPlaceholderPublicationView(frame: imageView.frame,
-                                                           title: publication?.metadata.title,
-                                                           author: publication?.metadata.authors.map({$0.name ?? ""}).joined(separator: ", "))
+        let titleTextView = OPDSPlaceholderPublicationView(
+            frame: imageView.frame,
+            title: publication?.metadata.title,
+            author: publication?.metadata.authors
+                .map { $0.name }
+                .joined(separator: ", ")
+        )
     
         if let images = publication?.images {
             if images.count > 0 {
@@ -68,7 +72,9 @@ class OPDSPublicationInfoViewController : UIViewController {
         }
         
         titleLabel.text = publication?.metadata.title
-        authorLabel.text = publication?.metadata.authors.map({$0.name ?? ""}).joined(separator: ", ")
+        authorLabel.text = publication?.metadata.authors
+            .map { $0.name }
+            .joined(separator: ", ")
         descriptionLabel.text = publication?.metadata.description
         descriptionLabel.sizeToFit()
         

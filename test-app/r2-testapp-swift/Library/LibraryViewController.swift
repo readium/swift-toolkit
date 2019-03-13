@@ -250,7 +250,9 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
         cell.accessibilityLabel = publication.metadata.title
         
         cell.titleLabel.text = publication.metadata.title
-        cell.authorLabel.text = publication.metadata.authors.map({$0.name ?? ""}).joined(separator: ", ")
+        cell.authorLabel.text = publication.metadata.authors
+            .map { $0.name }
+            .joined(separator: ", ")
         
         let updateCellImage = { (theImage: UIImage) -> Void in
             let currentPubInfo = self.publications[offset]
