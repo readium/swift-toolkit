@@ -32,11 +32,10 @@ final class LibraryService {
     weak var delegate: LibraryServiceDelegate?
     
     let publicationServer: PublicationServer
-    private let cbzParser = CbzParser()
-    
+
     /// Publications waiting to be added to the PublicationServer (first opening).
     /// publication identifier : data
-    var items = [String: (PubBox, PubParsingCallback)]()
+    var items = [String: (Container, PubParsingCallback)]()
     
     var drmLibraryServices = [DRMLibraryService]()
     
@@ -153,13 +152,12 @@ final class LibraryService {
     ///   - completion: <#completion description#>
     /// - Throws: <#throws value description#>
     func loadDRM(for publication: Publication, completion: @escaping (CancellableResult<DRM?>) -> Void) {
-        guard let id = publication.metadata.identifier, let item = items[id] else {
+        guard let id = publication.metadata.identifier, let (container, parsingCallback) = items[id] else {
             completion(.success(nil))
             return
         }
         
-        let parsingCallback = item.1
-        guard let drm = item.0.associatedContainer.drm else {
+        guard let drm = container.drm else {
             // No DRM, so the parsing callback can be directly called.
             do {
                 try parsingCallback(nil)
@@ -171,7 +169,7 @@ final class LibraryService {
         }
         
         guard let drmService = drmLibraryServices.first(where: { $0.brand == drm.brand }),
-            let url = URL(string: item.0.associatedContainer.rootFile.rootPath)
+            let url = URL(string: container.rootFile.rootPath)
             else {
                 self.showInfoAlert(title: "Error", message: "DRM not supported \(drm.brand)")
                 completion(.success(nil))
@@ -221,35 +219,31 @@ final class LibraryService {
     /// Load publication at `location` on the server.
     ///
     internal func lightParsePublication(at location: Location) -> Bool {
-        let publication: Publication
-        let container: Container
+        let parsers: [PublicationType: PublicationParser.Type] = [
+            .cbz: CbzParser.self,
+            .epub: EpubParser.self,
+            .pdf: PDFParser.self
+        ]
         
+        guard let parser = parsers[location.type] else {
+            return false
+        }
+
         do {
-            switch location.type {
-            case .epub:
-                let parseResult = try EpubParser.parse(fileAtPath: location.absolutePath)
-                publication = parseResult.0.publication
-                container = parseResult.0.associatedContainer
-                
-                guard let id = publication.metadata.identifier else {
-                    return false
-                }
-                items[id] = (parseResult.0, parseResult.1)
-            case .cbz:
-                print("disabled")
-                let parseResult = try cbzParser.parse(fileAtPath: location.absolutePath)
-                
-                publication = parseResult.publication
-                container = parseResult.associatedContainer
-            case .unknown:
+            let (pubBox, parsingCallback) = try parser.parse(fileAtPath: location.absolutePath)
+            let (publication, container) = pubBox
+            guard let id = publication.metadata.identifier else {
                 return false
             }
+            items[id] = (container, parsingCallback)
             /// Add the publication to the server.
             try publicationServer.add(publication, with: container)
+            
         } catch {
             print("Error parsing publication at path '\(location.relativePath)': \(error)")
             return false
         }
+        
         return true
     }
     
@@ -290,24 +284,17 @@ final class LibraryService {
         let samples = ["1", "2", "3", "4", "5", "6"]
         var sampleUrls = [URL]()
         
-        for sample in samples {
-            if let path = Bundle.main.path(forResource: sample, ofType: "epub") {
-                let url = URL.init(fileURLWithPath: path)
-                
-                sampleUrls.append(url)
-                print(url.absoluteString)
+        for ext in ["epub", "cbz", "pdf"] {
+            for sample in samples {
+                if let path = Bundle.main.path(forResource: sample, ofType: ext) {
+                    let url = URL.init(fileURLWithPath: path)
+    
+                    sampleUrls.append(url)
+                    print(url.absoluteString)
+                }
             }
         }
-        
-        for sample in samples {
-            if let path = Bundle.main.path(forResource: sample, ofType: "cbz") {
-                let url = URL.init(fileURLWithPath: path)
-                
-                sampleUrls.append(url)
-                print(url.absoluteString)
-            }
-        }
-        
+
         /// Find the types associated to the files, or unknown.
         let locations = sampleUrls.map({ url -> Location in
             let publicationType = PublicationType.getForPublication(at: url)

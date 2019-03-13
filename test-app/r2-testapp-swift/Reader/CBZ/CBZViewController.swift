@@ -1,5 +1,5 @@
 //
-//  CbzViewController.swift
+//  CBZViewController.swift
 //  r2-testapp-swift
 //
 //  Created by Alexandre Camilleri on 6/28/17.
@@ -16,65 +16,49 @@ import R2Shared
 import R2Streamer
 
 
-class CbzViewController: CbzNavigatorViewController {
+class CBZViewController: ReaderViewController {
     
     weak var moduleDelegate: ReaderFormatModuleDelegate?
     
-    lazy var bookmarksDataSource: BookmarkDataSource? = BookmarkDataSource(publicationID: self.publication.metadata.identifier ?? "")
-    
+    let navigator: CBZNavigatorViewController
+
     public init(publication: Publication) {
-        super.init(for: publication, initialIndex: 0)
+        navigator = CBZNavigatorViewController(for: publication, initialIndex: 0)
+        
+        super.init(publication: publication, drm: nil)
     }
 
-    required public init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-  
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationController?.setNavigationBarHidden(true, animated: false)
-        navigationController?.navigationBar.tintColor = UIColor.black
+        
+        addChild(navigator)
+        navigator.view.frame = view.bounds
+        navigator.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(navigator.view)
+        navigator.didMove(toParent: self)
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
         /// Gesture recognisers.
-        let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(loadNext))
-        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(loadPrevious))
+        let swipeLeft = UISwipeGestureRecognizer(target: navigator, action: #selector(CBZNavigatorViewController.loadNext))
+        let swipeRight = UISwipeGestureRecognizer(target: navigator, action: #selector(CBZNavigatorViewController.loadPrevious))
 
         swipeLeft.direction = UISwipeGestureRecognizer.Direction.left
         swipeRight.direction = UISwipeGestureRecognizer.Direction.right
         view.addGestureRecognizer(swipeRight)
         view.addGestureRecognizer(swipeLeft)
         // tocItemView button.
-        let tocButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self,
-                                              action: #selector(presentTocTVC))
+        let tocButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self, action: #selector(presentTocTVC))
         
         let bookmarkButton = UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(addBookmarkForCurrentPosition))
         /// Add tocViewController button to navBar.
         navigationItem.setRightBarButtonItems([tocButton, bookmarkButton], animated: true)
     }
 
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        navigationController?.hidesBarsOnTap = true
-    }
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        navigationController?.hidesBarsOnTap = false
-    }
-
-    override var preferredStatusBarUpdateAnimation: UIStatusBarAnimation {
-        return UIStatusBarAnimation.slide
-    }
-
-    open override var prefersStatusBarHidden: Bool {
-        return true
-    }
-    
     @objc func addBookmarkForCurrentPosition() {
-      let resourceIndex = pageNumber
+      let resourceIndex = navigator.pageNumber
       let progression = 0.0
     
       guard let publicationID = publication.metadata.identifier else {return}
@@ -93,20 +77,20 @@ class CbzViewController: CbzNavigatorViewController {
     }
 }
 
-extension CbzViewController {
+extension CBZViewController {
     @objc func presentTocTVC() {
         moduleDelegate?.presentOutline(publication.readingOrder, type: .cbz, delegate: self, from: self)
     }
 }
 
-extension CbzViewController: OutlineTableViewControllerDelegate {
+extension CBZViewController: OutlineTableViewControllerDelegate {
     
     func outline(_ outlineTableViewController: OutlineTableViewController, didSelectItem item: String) {
-        load(at: Int(item)!)
+        navigator.load(at: Int(item)!)
     }
     
     func outline(_ outlineTableViewController: OutlineTableViewController, didSelectBookmark bookmark: Bookmark) {
-        load(at: bookmark.resourceIndex)
+        navigator.load(at: bookmark.resourceIndex)
     }
     
 }

@@ -37,7 +37,7 @@ final class EPUBModule: ReaderFormatModule {
         let index = userDefaults.integer(forKey: "\(publicationIdentifier)-document")
         let progression = userDefaults.double(forKey: "\(publicationIdentifier)-documentProgression")
 
-        let epubViewController = EpubViewController(publication: publication, atIndex: index, progression: progression, drm)
+        let epubViewController = EPUBViewController(publication: publication, atIndex: index, progression: progression, drm)
         epubViewController.moduleDelegate = delegate
         return epubViewController
     }
