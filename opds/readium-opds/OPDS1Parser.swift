@@ -45,7 +45,7 @@ struct MimeTypeParameters {
     var parameters = [String: String]()
 }
 
-public class OPDS1Parser {
+public class OPDS1Parser: Loggable {
     static var feedURL: URL?
     
     /// Parse an OPDS feed or publication.
@@ -88,7 +88,11 @@ public class OPDS1Parser {
             parseData.feed = try? parse(document: xmlDocument)
         } else if xmlDocument.root?.tag == "entry" {
             // Publication only
-            parseData.publication = try? parseEntry(document: xmlDocument)
+            do {
+                parseData.publication = try parseEntry(document: xmlDocument)
+            } catch {
+                log(.warning, "Failed to parse Publication at \(url)")
+            }
         } else {
             throw OPDS1ParserError.rootNotFound
         }
@@ -145,20 +149,20 @@ public class OPDS1Parser {
                         collectionLink = Link(
                             href: absoluteHref,
                             title: link.attributes["title"],
-                            rels: ["collection"]
+                            rel: "collection"
                         )
                     }
                 }
             }
 
             if (!isNavigation) {
-                let publication = parseEntry(entry: entry)
-
-                // Checking if this publication need to go into a group or in publications.
-                if let collectionLink = collectionLink {
-                    addPublicationInGroup(feed, publication, collectionLink)
-                } else {
-                    feed.publications.append(publication)
+                if let publication = parseEntry(entry: entry) {
+                    // Checking if this publication need to go into a group or in publications.
+                    if let collectionLink = collectionLink {
+                        addPublicationInGroup(feed, publication, collectionLink)
+                    } else {
+                        feed.publications.append(publication)
+                    }
                 }
                 
             } else if let link = entry.firstChild(tag: "link"),
@@ -169,7 +173,7 @@ public class OPDS1Parser {
                     href: absoluteHref,
                     type: link.attr("type"),
                     title: entry.firstChild(tag: "title")?.stringValue,
-                    rels: [link.attr("rel")].compactMap { $0 }
+                    rel: link.attr("rel")
                 )
 
                 if let facetElementCountStr = link.attr("count"),
@@ -195,7 +199,7 @@ public class OPDS1Parser {
                 href: absoluteHref,
                 type: link.attributes["type"],
                 title: link.attributes["title"],
-                rels: [link.attributes["rel"]].compactMap { $0 }
+                rel: link.attributes["rel"]
             )
 
             if let facetGroupName = link.attributes["facetGroup"],
@@ -224,7 +228,7 @@ public class OPDS1Parser {
     /// Publication can only be v1 (XML).
     /// - parameter document: The XMLDocument data
     /// - Returns: The resulting Publication
-    public static func parseEntry(document: XMLDocument) throws -> Publication {
+    public static func parseEntry(document: XMLDocument) throws -> Publication? {
         guard let root = document.root else {
             throw OPDS1ParserError.rootNotFound
         }
@@ -320,108 +324,89 @@ public class OPDS1Parser {
         return MimeTypeParameters(type: type, parameters: params)
     }
 
-    static func parseEntry(entry: XMLElement) -> Publication {
-        let publication = Publication()
-        /// METADATA (publication) ----
-        let metadata = Metadata()
-        publication.metadata = metadata
-
-        if let entryTitle = entry.firstChild(tag: "title")?.stringValue {
-            if metadata.multilangTitle == nil {
-                metadata.multilangTitle = MultilangString()
+    static func parseEntry(entry: XMLElement) -> Publication? {
+        
+        // Shortcuts to get tag(s)' string value.
+        func tag(_ name: String) -> String? {
+            return entry.firstChild(tag: name)?.stringValue
+        }
+        func tags(_ name: String) -> [String] {
+            return entry.children(tag: name).map { $0.stringValue }
+        }
+        
+        guard let title = tag("title") else {
+            return nil
+        }
+        
+        let authors: [Contributor] = entry.children(tag: "author").compactMap { author in
+            guard let name = author.firstChild(tag: "name")?.stringValue else {
+                return nil
             }
-            metadata.multilangTitle?.singleString = entryTitle
+            return Contributor(
+                name: name,
+                identifier: author.firstChild(tag: "uri")?.stringValue
+            )
         }
-
-        if let identifier = entry.firstChild(tag: "identifier")?.stringValue {
-            metadata.identifier = identifier
-        } else if let id = entry.firstChild(tag: "id")?.stringValue {
-            metadata.identifier = id
-        }
-
-        // Languages.
-        let languages = entry.children(tag: "language")
-        if languages.count > 0 {
-            metadata.languages = languages.map({ $0.stringValue })
-        }
-        // Last modification date.
-        if let tmpDate = entry.firstChild(tag: "updated")?.stringValue,
-            let date = tmpDate.dateFromISO8601
-        {
-            metadata.modified = date
-        }
-        // Publication date.
-        if let tmpDate = entry.firstChild(tag: "published")?.stringValue {
-            metadata.published = tmpDate
-        }
-
-        // Rights.
-        let rights = entry.children(tag: "rights")
-        if rights.count > 0 {
-            metadata.rights = rights.map({ $0.stringValue }).joined(separator: " ")
-        }
-        // TODO SERIES -------------
-        // Publisher
-        if let publisher = entry.firstChild(tag: "publisher")?.stringValue {
-            let contributor = Contributor()
-
-            contributor.multilangName.singleString = publisher
-            metadata.publishers.append(contributor)
-        }
-        // Categories.
-        for category in entry.children(tag: "category") {
-            let subject = Subject()
-
-            subject.code = category.attributes["term"]
-            subject.name = category.attributes["label"]
-            subject.scheme = category.attributes["scheme"]
-            metadata.subjects.append(subject)
-        }
-        /// Contributors.
-        // Author.
-        for author in entry.children(tag: "author") {
-            let contributor = Contributor()
-
-            if let uri = author.firstChild(tag: "uri")?.stringValue {
-                contributor.identifier = uri
+        
+        let subjects: [Subject] = entry.children(tag: "category").compactMap { category in
+            guard let name = category.attributes["label"] else {
+                return nil
             }
-            
-            contributor.multilangName.singleString = author.firstChild(tag: "name")?.stringValue
-            metadata.authors.append(contributor)
+            return Subject(
+                name: name,
+                scheme: category.attributes["scheme"],
+                code: category.attributes["term"]
+            )
         }
-        // Description.
-        if let content = entry.firstChild(tag: "content")?.stringValue {
-            metadata.description = content
-        } else if let summary = entry.firstChild(tag: "summary")?.stringValue {
-            metadata.description = summary
-        }
+
+        let metadata = Metadata(
+            identifier: tag("identifier") ?? tag("id"),
+            title: title,
+            modified: tag("updated")?.dateFromISO8601,
+            published: tag("published")?.dateFromISO8601,
+            languages: tags("language"),
+            subjects: subjects,
+            authors: authors,
+            publishers: tags("publisher").map { Contributor(name: $0) },
+            description: tag("content") ?? tag("summary"),
+            otherMetadata: [
+                "rights": tags("rights").joined(separator: " "),
+            ]
+        )
+
         // Links.
-        for link in entry.children(tag: "link") {
-            guard let href = link.attributes["href"], let absoluteHref = URLHelper.getAbsolute(href: href, base: feedURL) else {
+        var images: [Link] = []
+        var links: [Link] = []
+        for linkElement in entry.children(tag: "link") {
+            guard let href = linkElement.attributes["href"], let absoluteHref = URLHelper.getAbsolute(href: href, base: feedURL) else {
                 continue
             }
             
-            let newLink = Link(
+            let link = Link(
                 href: absoluteHref,
-                type: link.attributes["type"],
-                title: link.attributes["title"],
-                rels: [link.attributes["rel"]].compactMap { $0 },
+                type: linkElement.attributes["type"],
+                title: linkElement.attributes["title"],
+                rel: linkElement.attributes["rel"],
                 properties: Properties(
-                    price: parsePrice(link: link),
-                    indirectAcquisition: parseIndirectAcquisition(children: link.children(tag: "indirectAcquisition"))
+                    price: parsePrice(link: linkElement),
+                    indirectAcquisition: parseIndirectAcquisition(children: linkElement.children(tag: "indirectAcquisition"))
                 )
             )
-            let rels = newLink.rels
+            let rels = link.rels
 
             if rels.contains("collection") || rels.contains("http://opds-spec.org/group") {
                 // no-op
             } else if rels.contains("http://opds-spec.org/image") || rels.contains("http://opds-spec.org/image-thumbnail") {
-                publication.images.append(newLink)
+                images.append(link)
             } else {
-                publication.links.append(newLink)
+                links.append(link)
             }
         }
 
+        let publication = Publication()
+        publication.metadata = metadata
+        publication.links = links
+        publication.images = images
         return publication
     }
 
@@ -455,7 +440,7 @@ public class OPDS1Parser {
             let selfLink = Link(
                 href: collectionLink.href,
                 title: collectionLink.title,
-                rels: ["self"]
+                rel: "self"
             )
             newGroup.links.append(selfLink)
             newGroup.publications.append(publication)
@@ -480,7 +465,7 @@ public class OPDS1Parser {
             let selfLink = Link(
                 href: collectionLink.href,
                 title: collectionLink.title,
-                rels: ["self"]
+                rel: "self"
             )
             newGroup.links.append(selfLink)
             newGroup.navigation.append(link)
