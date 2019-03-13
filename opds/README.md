@@ -84,16 +84,12 @@ In your Swift files:
 import ReadiumOPDS
 ```
 
-#### Installing dependencies (for developers)
+#### Dependencies in this module
 
-The project dependencies are managed with [Carthage](https://github.com/Carthage/Carthage). 
-
-Run `carthage update --platform ios` to fetch and build the dependencies:
-
-  - [r2-shared-swift](https://github.com/readium/r2-shared-swift) : Custom types shared by several readium-2 Swift modules.
+  - [R2Shared](https://github.com/readium/r2-shared-swift) : Custom types shared by several readium-2 Swift modules.
   - [Fuzi](https://github.com/cezheng/Fuzi) : A fast & lightweight XML & HTML parser in Swift with XPath & CSS support.
 
-Then, in Xcode:
+Modifications needed in Xcode:
 
 In `Build Settings`, find `Search Paths`, add `$(SDKROOT)/usr/include/libxml2` to `Header Search Paths`.
 
