@@ -171,17 +171,14 @@ Supported formats:
 
 **EPUB 2/3/3.1- OEBPS - CBZ**
 
-## Dependencies
+## Dependencies in this module
 
-The project dependencies are managed with [Carthage](https://github.com/Carthage/Carthage).
-Run carthage update --platform ios to fetch and build the dependencies:
-
-- [r2-shared-swift](https://github.com/readium/r2-shared-swift) : Contains the definitions of shared custom types used across the readium-2 Swift projects.
-- [swisspol/GCDWebServer](https://github.com/swisspol/GCDWebServer) A modern and lightweight GCD based HTTP 1.1 server designed to be embedded in OS X & iOS apps.
-- [tadija/AEXML](https://github.com/tadija/AEXML) Simple and lightweight XML parser written in Swift.
-- [krzyzanowskim/CryptoSwift](https://github.com/krzyzanowskim/CryptoSwift) Crypto related functions and helpers for Swift implemented in Swift.
-- [cezheng/Fuzi](https://github.com/cezheng/Fuzi) A fast & lightweight XML & HTML parser in Swift with XPath & CSS support
-- [dexman/Minizip](https://github.com/dexman/Minizip) Minizip framework wrapper for iOS, OSX, tvOS, and watchOS.
+- [R2Shared](https://github.com/readium/r2-shared-swift) : Contains the definitions of shared custom types used across the readium-2 Swift projects.
+- [GCDWebServer](https://github.com/swisspol/GCDWebServer) A modern and lightweight GCD based HTTP 1.1 server designed to be embedded in OS X & iOS apps.
+- [AEXML](https://github.com/tadija/AEXML) Simple and lightweight XML parser written in Swift.
+- [CryptoSwift](https://github.com/krzyzanowskim/CryptoSwift) Crypto related functions and helpers for Swift implemented in Swift.
+- [Fuzi](https://github.com/cezheng/Fuzi) A fast & lightweight XML & HTML parser in Swift with XPath & CSS support
+- [Minizip](https://github.com/dexman/Minizip) Minizip framework wrapper for iOS, OSX, tvOS, and watchOS.
 
 
 ## Documentation
