@@ -69,9 +69,3 @@ In your Swift files :
 
 import R2Shared
 ```
-
-## Installing dependencies (for developers)
-
-The project dependencies are managed with [Carthage](https://github.com/Carthage/Carthage). 
-
-Run `carthage update --platform ios` to fetch and build the dependencies.
