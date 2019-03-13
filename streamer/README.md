@@ -57,7 +57,7 @@ R2Streamer with CocoaPods:
     use_frameworks!
 
     target 'YourAppTargetName' do
-        pod 'R2Shared', :git => 'https://github.com/readium/r2-shared-swift.git', '~> 1.0.7'
+        pod 'R2Streamer', :git => 'https://github.com/readium/r2-streamer-swift.git', '~> 1.0.7'
     end
     ```
 
