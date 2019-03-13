@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		03D011F0208020270097A87C /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03D011EF208020270097A87C /* Minizip.framework */; };
+		03BB67F12238852D009A03C5 /* OPFParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03BB67F02238852D009A03C5 /* OPFParser.swift */; };
+		03C3CC6A222DBD9E00A01731 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03C3CC69222DBD9E00A01731 /* R2Shared.framework */; };
 		57BFC4A7209C8EDC0018EC21 /* scripts in Resources */ = {isa = PBXBuildFile; fileRef = 57BFC4A5209C8EDC0018EC21 /* scripts */; };
 		57BFC4A8209C8EDC0018EC21 /* styles in Resources */ = {isa = PBXBuildFile; fileRef = 57BFC4A6209C8EDC0018EC21 /* styles */; };
 		59501DDE1E2FB0D700D1B4BF /* R2Streamer.h in Headers */ = {isa = PBXBuildFile; fileRef = 59501DD01E2FB0D700D1B4BF /* R2Streamer.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -22,8 +23,6 @@
 		59501E0C1E2FB16600D1B4BF /* ZipInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501DF51E2FB16600D1B4BF /* ZipInputStream.swift */; };
 		59501E141E2FB16600D1B4BF /* Zip.h in Headers */ = {isa = PBXBuildFile; fileRef = 59501E001E2FB16600D1B4BF /* Zip.h */; };
 		59501E151E2FB16600D1B4BF /* ZipArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501E011E2FB16600D1B4BF /* ZipArchive.swift */; };
-		59501E1B1E2FB1F500D1B4BF /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E181E2FB1F500D1B4BF /* AEXML.framework */; };
-		59501E1C1E2FB1F500D1B4BF /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E191E2FB1F500D1B4BF /* GCDWebServers.framework */; };
 		59501E201E2FB2AD00D1B4BF /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E1F1E2FB2AD00D1B4BF /* libz.tbd */; };
 		AEBE1F3D20EF903700418960 /* fonts in Resources */ = {isa = PBXBuildFile; fileRef = AEBE1F3C20EF903700418960 /* fonts */; };
 		CA16A83D223112BB00E66255 /* PDFFileCGParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A83C223112BB00E66255 /* PDFFileCGParser.swift */; };
@@ -46,16 +45,14 @@
 		F3B8F0221E9E244B0052D64B /* EncryptionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B8F0211E9E244B0052D64B /* EncryptionParser.swift */; };
 		F3B8F0241E9E62A50052D64B /* ContentFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B8F0231E9E62A50052D64B /* ContentFilter.swift */; };
 		F3D434241E8E9DA5008C379E /* CbzParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D434231E8E9DA5008C379E /* CbzParser.swift */; };
-		F3DEE6E21E5C5A53007FE63D /* OPFParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */; };
-		F3E7D4251F4ED05F00DF166D /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3E7D4241F4ED05F00DF166D /* R2Shared.framework */; };
 		F3ED92D61E9F702E00E15C8F /* FontDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3ED92D51E9F702E00E15C8F /* FontDecoder.swift */; };
 		F3ED92DA1EA0AF0000E15C8F /* DataInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3ED92D91EA0AF0000E15C8F /* DataInputStream.swift */; };
-		F3ED92DC1EA0C93F00E15C8F /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3ED92DB1EA0C93F00E15C8F /* CryptoSwift.framework */; };
 		F3F41E151FA0EBDE00F97737 /* DataCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F41E141FA0EBDE00F97737 /* DataCompression.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		03D011EF208020270097A87C /* Minizip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Minizip.framework; path = Carthage/Build/iOS/Minizip.framework; sourceTree = "<group>"; };
+		03BB67F02238852D009A03C5 /* OPFParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = OPFParser.swift; path = Sources/parser/EPUB/OPFParser.swift; sourceTree = SOURCE_ROOT; };
+		03C3CC69222DBD9E00A01731 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		57BFC4A5209C8EDC0018EC21 /* scripts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = scripts; sourceTree = "<group>"; };
 		57BFC4A6209C8EDC0018EC21 /* styles */ = {isa = PBXFileReference; lastKnownFileType = folder; path = styles; sourceTree = "<group>"; };
 		59501DCD1E2FB0D700D1B4BF /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -73,8 +70,6 @@
 		59501DF51E2FB16600D1B4BF /* ZipInputStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZipInputStream.swift; sourceTree = "<group>"; };
 		59501E001E2FB16600D1B4BF /* Zip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Zip.h; sourceTree = "<group>"; };
 		59501E011E2FB16600D1B4BF /* ZipArchive.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZipArchive.swift; sourceTree = "<group>"; };
-		59501E181E2FB1F500D1B4BF /* AEXML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AEXML.framework; path = Carthage/Build/iOS/AEXML.framework; sourceTree = "<group>"; };
-		59501E191E2FB1F500D1B4BF /* GCDWebServers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDWebServers.framework; path = Carthage/Build/iOS/GCDWebServers.framework; sourceTree = "<group>"; };
 		59501E1F1E2FB2AD00D1B4BF /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		AEBE1F3C20EF903700418960 /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = fonts; sourceTree = "<group>"; };
 		CA16A83C223112BB00E66255 /* PDFFileCGParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PDFFileCGParser.swift; path = Sources/parser/PDF/PDFFileCGParser.swift; sourceTree = SOURCE_ROOT; };
@@ -103,11 +98,8 @@
 		F3D434231E8E9DA5008C379E /* CbzParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CbzParser.swift; path = Sources/Parser/CBZ/CbzParser.swift; sourceTree = SOURCE_ROOT; };
 		F3DE1D891E69757100D05F74 /* PublicationParsingTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationParsingTest.swift; sourceTree = "<group>"; };
 		F3DE1EC91E69801D00D05F74 /* Samples */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Samples; sourceTree = "<group>"; };
-		F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; name = OPFParser.swift; path = Sources/Parser/EPUB/OPFParser.swift; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
-		F3E7D4241F4ED05F00DF166D /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
 		F3ED92D51E9F702E00E15C8F /* FontDecoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = FontDecoder.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		F3ED92D91EA0AF0000E15C8F /* DataInputStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataInputStream.swift; sourceTree = "<group>"; };
-		F3ED92DB1EA0C93F00E15C8F /* CryptoSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoSwift.framework; path = Carthage/Build/iOS/CryptoSwift.framework; sourceTree = "<group>"; };
 		F3F41E141FA0EBDE00F97737 /* DataCompression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DataCompression.swift; path = Sources/fetcher/DataCompression.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -116,12 +108,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F3E7D4251F4ED05F00DF166D /* R2Shared.framework in Frameworks */,
-				03D011F0208020270097A87C /* Minizip.framework in Frameworks */,
+				03C3CC6A222DBD9E00A01731 /* R2Shared.framework in Frameworks */,
 				59501E201E2FB2AD00D1B4BF /* libz.tbd in Frameworks */,
-				59501E1B1E2FB1F500D1B4BF /* AEXML.framework in Frameworks */,
-				59501E1C1E2FB1F500D1B4BF /* GCDWebServers.framework in Frameworks */,
-				F3ED92DC1EA0C93F00E15C8F /* CryptoSwift.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -239,12 +227,8 @@
 		59501E171E2FB1F500D1B4BF /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				03D011EF208020270097A87C /* Minizip.framework */,
-				F3E7D4241F4ED05F00DF166D /* R2Shared.framework */,
-				F3ED92DB1EA0C93F00E15C8F /* CryptoSwift.framework */,
+				03C3CC69222DBD9E00A01731 /* R2Shared.framework */,
 				59501E1F1E2FB2AD00D1B4BF /* libz.tbd */,
-				59501E181E2FB1F500D1B4BF /* AEXML.framework */,
-				59501E191E2FB1F500D1B4BF /* GCDWebServers.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -261,8 +245,8 @@
 		CAF8F03D222EBD8B009B47D8 /* EPUB */ = {
 			isa = PBXGroup;
 			children = (
+				03BB67F02238852D009A03C5 /* OPFParser.swift */,
 				59501DED1E2FB16600D1B4BF /* EpubParser.swift */,
-				F3DEE6E11E5C5A53007FE63D /* OPFParser.swift */,
 				F3098E741E7C02AD002358A1 /* MetadataParser.swift */,
 				F3098E721E7BFF9B002358A1 /* NavigationDocumentParser.swift */,
 				F3098E701E7BFF87002358A1 /* NCXParser.swift */,
@@ -338,7 +322,6 @@
 				59501DC91E2FB0D700D1B4BF /* Frameworks */,
 				59501DCA1E2FB0D700D1B4BF /* Headers */,
 				59501DCB1E2FB0D700D1B4BF /* Resources */,
-				59501E1E1E2FB1FC00D1B4BF /* Carthage Run Script */,
 			);
 			buildRules = (
 			);
@@ -361,7 +344,7 @@
 				TargetAttributes = {
 					59501DCC1E2FB0D700D1B4BF = {
 						CreatedOnToolsVersion = 8.2;
-						LastSwiftMigration = 0930;
+						LastSwiftMigration = 1010;
 						ProvisioningStyle = Manual;
 					};
 				};
@@ -396,27 +379,6 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		59501E1E1E2FB1FC00D1B4BF /* Carthage Run Script */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/Carthage/Build/iOS/AEXML.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/GCDWebServers.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/CryptoSwift.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/Minizip.framework",
-			);
-			name = "Carthage Run Script";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "#/usr/local/bin/carthage copy-frameworks\n";
-		};
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		59501DC81E2FB0D700D1B4BF /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -428,6 +390,7 @@
 				59501E0C1E2FB16600D1B4BF /* ZipInputStream.swift in Sources */,
 				59501E0A1E2FB16600D1B4BF /* FileInputStream.swift in Sources */,
 				CA2AE324221C1F5E008BD18F /* Logger.swift in Sources */,
+				03BB67F12238852D009A03C5 /* OPFParser.swift in Sources */,
 				F300FA371F8E1D7700442332 /* DrmDecoder.swift in Sources */,
 				F3F41E151FA0EBDE00F97737 /* DataCompression.swift in Sources */,
 				CAF8F035222EB570009B47D8 /* DirectoryContainer.swift in Sources */,
@@ -447,7 +410,6 @@
 				59501E031E2FB16600D1B4BF /* Fetcher.swift in Sources */,
 				CA16A83F2231193E00E66255 /* PDFContainer.swift in Sources */,
 				CAF8F037222EB58C009B47D8 /* ArchiveContainer.swift in Sources */,
-				F3DEE6E21E5C5A53007FE63D /* OPFParser.swift in Sources */,
 				CA8A0B77223018650047B490 /* PDFFileParser.swift in Sources */,
 				F302CA271F0CD32800835B22 /* DataExtension.swift in Sources */,
 				59501E041E2FB16600D1B4BF /* Container.swift in Sources */,
@@ -581,6 +543,7 @@
 		59501DE21E2FB0D700D1B4BF /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				CLANG_ENABLE_CODE_COVERAGE = NO;
 				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
@@ -597,19 +560,19 @@
 				INFOPLIST_FILE = R2Streamer/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = "-lxml2";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2Streamer;
 				PRODUCT_NAME = R2Streamer;
 				SKIP_INSTALL = YES;
-				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
 		59501DE31E2FB0D700D1B4BF /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				CLANG_ENABLE_CODE_COVERAGE = NO;
 				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
@@ -627,13 +590,12 @@
 				INFOPLIST_FILE = R2Streamer/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = "-lxml2";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2Streamer;
 				PRODUCT_NAME = R2Streamer;
 				SKIP_INSTALL = YES;
-				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
 		};
