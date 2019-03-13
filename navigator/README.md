@@ -69,10 +69,6 @@ In your Swift files :
 import R2Navigator
 ```
 
-## Installing dependencies (for developers)
+## Dependencies in this module
 
-The project dependencies are managed with [Carthage](https://github.com/Carthage/Carthage). 
-
-Run `carthage update --platform ios` to fetch and build the dependencies:
-
-  - [r2-shared-swift](https://github.com/readium/r2-shared-swift) : Contains the definitions of shared custom types used across the readium-2 Swift projects.
+  - [R2Shared](https://github.com/readium/r2-shared-swift) : Contains the definitions of shared custom types used across the readium-2 Swift projects.
