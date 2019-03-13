@@ -161,6 +161,9 @@ internal class Fetcher {
             return ContentFiltersEpub()
         case CbzConstant.mimetype :
             return ContentFiltersCbz()
+        case PDFConstant.mimetype:
+            // FIXME: proper PDF content filters?
+            return ContentFiltersCbz()
         default:
             throw FetcherError.missingContainerMimetype()
         }
