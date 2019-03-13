@@ -63,9 +63,9 @@ class EPUBViewController: ReaderViewController {
         
         stackView.addArrangedSubview(fixedTopBar)
         
-        addChildViewController(navigator)
+        addChild(navigator)
         stackView.addArrangedSubview(navigator.view)
-        navigator.didMove(toParentViewController: self)
+        navigator.didMove(toParent: self)
 
         stackView.addArrangedSubview(fixedBottomBar)
 
@@ -269,7 +269,7 @@ extension EPUBViewController: UserSettingsNavigationControllerDelegate {
         navigationController?.navigationBar.barTintColor = colors.mainColor
         navigationController?.navigationBar.tintColor = colors.textColor
         
-        navigationController?.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: colors.textColor]
+        navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: colors.textColor]
         
         // FIXME:
 //        drmManagementTVC?.appearance = appearance

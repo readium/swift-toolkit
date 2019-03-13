@@ -53,7 +53,7 @@ class ReaderViewController: UIViewController {
         navigationController?.hidesBarsOnTap = false
     }
     
-    override func willMove(toParentViewController parent: UIViewController?) {
+    override func willMove(toParent parent: UIViewController?) {
         // Restore library's default UI colors
         navigationController?.navigationBar.tintColor = .black
         navigationController?.navigationBar.barTintColor = .white

@@ -46,7 +46,7 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         tableView.cellLayoutMarginsFollowReadableWidth = false
         tableView.sizeToFit()
 
-        addFeedButton = UIBarButtonItem(title: "Add", style: UIBarButtonItemStyle.plain, target: self, action: #selector(OPDSCatalogSelectorViewController.showAddFeedPopup))
+        addFeedButton = UIBarButtonItem(title: "Add", style: UIBarButtonItem.Style.plain, target: self, action: #selector(OPDSCatalogSelectorViewController.showAddFeedPopup))
         navigationItem.rightBarButtonItem = addFeedButton
         
         navigationController?.navigationBar.tintColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)

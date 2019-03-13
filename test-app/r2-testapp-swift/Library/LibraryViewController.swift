@@ -162,7 +162,7 @@ class LibraryViewController: UIViewController {
 
 extension LibraryViewController {
     @objc func handleLongPress(gestureRecognizer: UILongPressGestureRecognizer) {
-        if (gestureRecognizer.state != UIGestureRecognizerState.began) {
+        if (gestureRecognizer.state != UIGestureRecognizer.State.began) {
             return
         }
         
@@ -351,7 +351,7 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
 
         let removePublicationAlert = UIAlertController(title: "Are you sure?",
                                                        message: "This will remove the Publication from your library.",
-                                                       preferredStyle: UIAlertControllerStyle.alert)
+                                                       preferredStyle: UIAlertController.Style.alert)
         let removeAction = UIAlertAction(title: "Remove", style: .destructive, handler: { alert in
             // Remove the publication from publicationServer and Documents folder.
             let newOffset = self.downloadSet.count
@@ -503,7 +503,7 @@ class PublicationIndicator: UIView  {
     
     lazy var indicator: UIActivityIndicatorView =  {
         
-        let result = UIActivityIndicatorView(activityIndicatorStyle: UIActivityIndicatorViewStyle.whiteLarge)
+        let result = UIActivityIndicatorView(style: UIActivityIndicatorView.Style.whiteLarge)
         result.translatesAutoresizingMaskIntoConstraints = false
         self.backgroundColor = UIColor(white: 0.3, alpha: 0.7)
         self.addSubview(result)

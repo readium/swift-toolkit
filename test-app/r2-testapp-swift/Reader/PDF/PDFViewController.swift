@@ -28,11 +28,11 @@ final class PDFViewController: ReaderViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        addChildViewController(navigator)
+        addChild(navigator)
         navigator.view.frame = view.bounds
         navigator.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(navigator.view)
-        navigator.didMove(toParentViewController: self)
+        navigator.didMove(toParent: self)
     }
     
 }
