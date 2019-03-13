@@ -117,7 +117,7 @@ public final class PDFParser: PublicationParser, Loggable {
         let metadata = try parser.parseMetadata()
         container.context = parser.context
         
-        if let cover = try parser.renderCover(), let coverData = UIImagePNGRepresentation(cover) {
+        if let cover = try parser.renderCover(), let coverData = cover.pngData() {
             container.files[PDFConstant.pdfFileCoverPath] = .data(coverData)
             
             let link = Link()
