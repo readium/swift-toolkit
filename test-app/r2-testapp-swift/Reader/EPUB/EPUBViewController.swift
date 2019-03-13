@@ -269,7 +269,7 @@ extension EPUBViewController: UserSettingsNavigationControllerDelegate {
         navigationController?.navigationBar.barTintColor = colors.mainColor
         navigationController?.navigationBar.tintColor = colors.textColor
         
-        navigationController?.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: colors.textColor]
+        navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: colors.textColor]
         
         // FIXME:
 //        drmManagementTVC?.appearance = appearance

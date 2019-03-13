@@ -45,8 +45,8 @@ class CBZViewController: ReaderViewController {
         let swipeLeft = UISwipeGestureRecognizer(target: navigator, action: #selector(CBZNavigatorViewController.loadNext))
         let swipeRight = UISwipeGestureRecognizer(target: navigator, action: #selector(CBZNavigatorViewController.loadPrevious))
 
-        swipeLeft.direction = UISwipeGestureRecognizerDirection.left
-        swipeRight.direction = UISwipeGestureRecognizerDirection.right
+        swipeLeft.direction = UISwipeGestureRecognizer.Direction.left
+        swipeRight.direction = UISwipeGestureRecognizer.Direction.right
         view.addGestureRecognizer(swipeRight)
         view.addGestureRecognizer(swipeLeft)
         // tocItemView button.

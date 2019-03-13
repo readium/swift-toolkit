@@ -41,7 +41,7 @@ class DrmManagementTableViewController: UITableViewController {
         reload()
         self.navigationController?.navigationBar.barTintColor = UIColor.white
         self.navigationController?.navigationBar.tintColor = UIColor.black
-        self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.black]
+        self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.black]
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -56,7 +56,7 @@ class DrmManagementTableViewController: UITableViewController {
         
         navigationController?.navigationBar.barTintColor = colors.mainColor
         navigationController?.navigationBar.tintColor = colors.textColor
-        navigationController?.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: colors.textColor]
+        navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: colors.textColor]
     }
     
     open override var prefersStatusBarHidden: Bool {
