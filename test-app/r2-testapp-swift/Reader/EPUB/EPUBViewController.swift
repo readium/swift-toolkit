@@ -63,9 +63,9 @@ class EPUBViewController: ReaderViewController {
         
         stackView.addArrangedSubview(fixedTopBar)
         
-        addChildViewController(navigator)
+        addChild(navigator)
         stackView.addArrangedSubview(navigator.view)
-        navigator.didMove(toParentViewController: self)
+        navigator.didMove(toParent: self)
 
         stackView.addArrangedSubview(fixedBottomBar)
 
