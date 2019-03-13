@@ -9,6 +9,8 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
+#if LCP
+
 import SafariServices
 import UIKit
 import ReadiumLCP
@@ -197,3 +199,5 @@ extension LCPAuthenticationViewController: UITextFieldDelegate {
     }
     
 }
+
+#endif
