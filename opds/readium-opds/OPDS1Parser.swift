@@ -386,12 +386,12 @@ public class OPDS1Parser: Loggable {
                 href: absoluteHref,
                 type: linkElement.attributes["type"],
                 title: linkElement.attributes["title"],
-                rel: linkElement.attributes["rel"],
-                properties: Properties(
-                    price: parsePrice(link: linkElement),
-                    indirectAcquisition: parseIndirectAcquisition(children: linkElement.children(tag: "indirectAcquisition"))
-                )
+                rel: linkElement.attributes["rel"]
             )
+            
+            link.properties.price = parsePrice(link: linkElement)
+            link.properties.indirectAcquisition = parseIndirectAcquisition(children: linkElement.children(tag: "indirectAcquisition"))
+
             let rels = link.rels
 
             if rels.contains("collection") || rels.contains("http://opds-spec.org/group") {
@@ -403,11 +403,13 @@ public class OPDS1Parser: Loggable {
             }
         }
 
-        let publication = Publication()
-        publication.metadata = metadata
-        publication.links = links
-        publication.images = images
-        return publication
+        return Publication(
+            metadata: metadata,
+            links: links,
+            otherCollections: [
+                PublicationCollection(role: "images", links: images)
+            ]
+        )
     }
 
     static func addFacet(feed: Feed, to link: Link, named title: String) {

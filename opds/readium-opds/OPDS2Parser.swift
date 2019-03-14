@@ -45,7 +45,7 @@ public enum OPDS2ParserError: Error {
     }
 }
 
-public class OPDS2Parser {
+public class OPDS2Parser: Loggable {
     static var feedURL: URL?
 
     /// Parse an OPDS feed or publication.
@@ -89,19 +89,21 @@ public class OPDS2Parser {
             throw OPDS2ParserError.invalidJSON
         }
         
-        if topLevelDict["navigation"] == nil
-            && topLevelDict["groups"] == nil
-            && topLevelDict["publications"] == nil
-            && topLevelDict["facets"] == nil {
-            
-            // Publication only
-            parseData.publication = try? Publication.parse(pubDict: topLevelDict)
-            
-        } else {
-            
-            // Feed
-            parseData.feed = try? parse(jsonDict: topLevelDict)
-            
+        do {
+            if topLevelDict["navigation"] == nil
+                && topLevelDict["groups"] == nil
+                && topLevelDict["publications"] == nil
+                && topLevelDict["facets"] == nil {
+    
+                // Publication only
+                parseData.publication = try Publication(json: topLevelDict)
+    
+            } else {
+                // Feed
+                parseData.feed = try parse(jsonDict: topLevelDict)
+            }
+        } catch {
+            log(.warning, error)
         }
 
         return parseData
@@ -234,7 +236,7 @@ public class OPDS2Parser {
 
     static func parsePublications(feed: Feed, publications: [[String: Any]]) throws {
         for pubDict in publications {
-            let pub = try Publication.parse(pubDict: pubDict)
+            let pub = try Publication(json: pubDict)
             feed.publications.append(pub)
         }
     }
@@ -285,7 +287,7 @@ public class OPDS2Parser {
                         throw OPDS2ParserError.invalidGroup
                     }
                     for pubDict in publications {
-                        let publication = try Publication.parse(pubDict: pubDict)
+                        let publication = try Publication(json: pubDict)
                         group.publications.append(publication)
                     }
                 default:
