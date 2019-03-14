@@ -89,7 +89,7 @@ final internal class ContentFiltersEpub: ContentFilters {
         //       - inject pagination
         if let link = publication.link(withHref: path),
             ["application/xhtml+xml", "text/html"].contains(link.type),
-            let baseUrl = publication.baseUrl?.deletingLastPathComponent()
+            let baseUrl = publication.baseURL?.deletingLastPathComponent()
         {
             if publication.metadata.rendition?.layout == .reflowable
                 && link.properties.layout == nil
@@ -153,7 +153,7 @@ final internal class ContentFiltersEpub: ContentFilters {
             abort()
         }
         
-        guard let baseUrl = publication.baseUrl?.deletingLastPathComponent() else {
+        guard let baseUrl = publication.baseURL?.deletingLastPathComponent() else {
             print("Invalid host")
             abort()
         }
@@ -162,10 +162,10 @@ final internal class ContentFiltersEpub: ContentFilters {
         guard let document = try? XMLDocument(string: resourceHtml) else {return stream}
         
         let language = document.root?.attr("lang")
-        let contentLayout = publication.metadata.contentLayout(forLanguage: language)
+        let contentLayout = publication.contentLayout(forLanguage: language)
         let styleSubFolder = contentLayout.rawValue
         
-        let primaryContentLayout = publication.metadata.contentLayout
+        let primaryContentLayout = publication.contentLayout
         if let preset = userSettingsUIPreset[primaryContentLayout] {
             publication.userSettingsUIPreset = preset
         }

@@ -50,18 +50,17 @@ public class PublicationServer {
         get { return webServer.serverURL }
     }
 
-    /// Return all the `Publications` sorted by title asc.
+    /// Returns all the `Publications`, sorted by the container's last modification date.
+    /// FIXME: the sorting should be done on the test app's side, to present the library according to the user's criteria.
     public var publications: [Publication] {
-        get {
-            let publications = pubBoxes.values.compactMap({ $0.publication })
-
-            return publications.sorted(by: {$0.updatedDate > $1.updatedDate})
-        }
+        return pubBoxes.values
+            .sorted { $0.associatedContainer.modificationDate > $1.associatedContainer.modificationDate }
+            .map { $0.publication }
     }
 
-    /// Return all the `Container` as an array.
+    /// Returns all the `Containers` as an array.
     public var containers: [Container] {
-        get { return  pubBoxes.values.compactMap({ $0.associatedContainer }) }
+        return pubBoxes.values.map { $0.associatedContainer }
     }
 
     // MARK: - Public methods
@@ -273,12 +272,10 @@ public class PublicationServer {
 
         /// The webserver handler to process the HTTP GET
         func manifestHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
-            let manifestJSON = publication.manifestCanonical
-            let type = "application/webpub+json; charset=utf-8"
-
-            guard let manifestData = manifestJSON.data(using: .utf8) else {
+            guard let manifestData = publication.manifest else {
                 return GCDWebServerResponse(statusCode: 404)
             }
+            let type = "application/webpub+json; charset=utf-8"
             return GCDWebServerDataResponse(data: manifestData, contentType: type)
         }
         webServer.addHandler(

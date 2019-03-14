@@ -68,10 +68,15 @@ public final class PDFParser: PublicationParser, Loggable {
     public static func parse(fileAtPath path: String, parserType: PDFFileParser.Type) throws -> (PubBox, PubParsingCallback) {
         let container = try generateContainerFrom(fileAtPath: path)
 
-        let publication = Publication()
-        publication.updatedDate = container.modificationDate
-        publication.internalData["type"] = "pdf"
-        publication.internalData["rootfile"] = container.rootFile.rootFilePath
+        let publication = Publication(
+            type: PDFConstant.mimetype,
+            metadata: Metadata(
+                title: URL(fileURLWithPath: container.rootFile.rootPath)
+                    .deletingPathExtension()
+                    .lastPathComponent
+                    .replacingOccurrences(of: "_", with: " ")
+            )
+        )
 
         // FIXME: if the PDF is DRM-protected, this will not work here
         if let fileContainer: PDFFileContainer = container as? PDFFileContainer {
@@ -114,7 +119,7 @@ public final class PDFParser: PublicationParser, Loggable {
         }
         
         let parser = try parserType.init(stream: stream)
-        let metadata = try parser.parseMetadata()
+        let pdfMetadata = try parser.parseMetadata()
         container.context = parser.context
         
         if let cover = try parser.renderCover(), let coverData = cover.pngData() {
@@ -130,24 +135,19 @@ public final class PDFParser: PublicationParser, Loggable {
             publication.resources.append(link)
         }
 
-        publication.metadata.identifier = metadata.identifier ?? container.rootFile.rootPath
+        publication.metadata.identifier = pdfMetadata.identifier ?? container.rootFile.rootPath
 
-        if let version = metadata.version {
-            publication.version = Double(version) ?? 0
-        }
-
-        if let authorName = metadata.author {
+        publication.formatVersion = pdfMetadata.version
+        
+        if let authorName = pdfMetadata.author {
             publication.metadata.authors.append(
                 Contributor(name: authorName)
             )
         }
 
-        let title = metadata.title
-            ?? URL(fileURLWithPath: container.rootFile.rootPath)
-                .deletingPathExtension()
-                .lastPathComponent
-                .replacingOccurrences(of: "_", with: " ")
-        publication.metadata.multilangTitle = title.localizedString
+        if let title = pdfMetadata.title {
+            publication.metadata.title = title
+        }
     }
 
 }

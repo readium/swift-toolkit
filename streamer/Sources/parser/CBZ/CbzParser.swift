@@ -66,51 +66,41 @@ public class CbzParser: PublicationParser {
     /// - Returns: The resulting `PubBox` object.
     /// - Throws: Throws `CbzParserError.missingFile`.
     public static func parse(fileAtPath path: String) throws -> (PubBox, PubParsingCallback) {
-        // Generate the `Container` for `fileAtPath`.
-        let container: CBZContainer = try generateContainerFrom(fileAtPath: path)
-        let publication = Publication()
-        
-        publication.updatedDate = container.modificationDate
-        publication.metadata.multilangTitle = title(from: path)
-        publication.metadata.identifier = path
-        publication.internalData["type"] = "cbz"
-        publication.internalData["rootfile"] = container.rootFile.rootFilePath
+        let container = try generateContainerFrom(fileAtPath: path)
+        let publication = parsePublication(in: container, at: path)
 
-        var addedCover = false
-        for (index, filename) in container.files.enumerated() {
-            guard let mediaType = MediaType(filename: filename) else {
-                continue
-            }
-            
-            let link = Link(
-                href: normalize(base: container.rootFile.rootFilePath, href: filename),
-                type: mediaType.rawValue
-            )
-
-            // First valid resource is cover.
-            if !addedCover {
-                link.rels.append("cover")
-                addedCover = true
-            }
-            
-            publication.readingOrder.append(link)
-        }
-        
         func didLoadDRM(drm: DRM?) {
             container.drm = drm
         }
         
         return ((publication, container), didLoadDRM)
     }
-
-    /// Generate a LocalizedString title from the publication at `path`.
-    ///
-    /// - Parameter path: The path to the publication.
-    private static func title(from path: String) -> LocalizedString {
-        return URL(fileURLWithPath: path)
-            .lastPathComponent
-            .replacingOccurrences(of: "_", with: " ")
-            .localizedString
+    
+    private static func parsePublication(in container: CBZContainer, at path: String) -> Publication {
+        let publication = Publication(
+            type: CbzConstant.mimetype,
+            metadata: Metadata(
+                identifier: path,
+                title: URL(fileURLWithPath: path)
+                    .lastPathComponent
+                    .replacingOccurrences(of: "_", with: " ")
+            ),
+            readingOrder: container.files
+                .compactMap { filename in
+                    guard let mediaType = MediaType(filename: filename) else {
+                        return nil
+                    }
+                    return Link(
+                        href: normalize(base: container.rootFile.rootFilePath, href: filename),
+                        type: mediaType.rawValue
+                    )
+                }
+        )
+        
+        // First valid resource is the cover.
+        publication.readingOrder.first?.rels.append("cover")
+        
+        return publication
     }
 
     /// Generate a Container instance for the file at `fileAtPath`. It handles

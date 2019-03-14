@@ -20,85 +20,72 @@ final public class MetadataParser {
     /// then into the Metadata object instance.
     ///
     /// - Parameters:
-    ///   - metadataElement: The XML element containing the metadatas.
-    ///   - metadata: The `Metadata` object.
-    static internal func parseRenditionProperties(from metadataElement: AEXMLElement,
-                                           to metadata: inout Metadata) {
-        let metas = metadataElement["meta"].all
+    ///   - metadata: The XML element containing the metadatas.
+    static internal func parseRenditionProperties(from metadata: AEXMLElement) -> EPUBRendition {
+        // Gets the string value for the <meta property="...">
+        func meta(_ property: String) -> String {
+            return metadata["meta"].all?
+                .first { $0.attributes["property"] == property }?
+                .string ?? ""
+        }
 
-        var rendition = metadata.rendition ?? EPUBRendition()
-        
-        // Layout
-        rendition.layout = {
-            let layout = metas?.first(where: { $0.attributes["property"] == "rendition:layout" })?.string ?? ""
-            switch layout {
-            case "reflowable":
-                return .reflowable
-            case "pre-paginated":
-                return .fixed
-            default:
-                return .reflowable
-            }
-        }()
-        
-        // Flow
-        rendition.overflow = {
-            let flow = metas?.first(where: { $0.attributes["property"] == "rendition:flow" })?.string ?? ""
-            switch flow {
-            case "auto":
-                return .auto
-            case "paginated":
-                return .paginated
-            case "scrolled-doc":
-                return .scrolled
-            case "scrolled-continous":
-                return .scrolledContinuous
-            default:
-                return .auto
-            }
-        }()
-        
-        // Orientation
-        rendition.orientation = {
-            let orientation = metas?.first(where: { $0.attributes["property"] == "rendition:orientation" })?.string ?? ""
-            switch orientation {
-            case "landscape":
-                return .landscape
-            case "portrait":
-                return .portrait
-            case "auto":
-                return .auto
-            default:
-                return .auto
-            }
-        }()
-        
-        // Spread
-        rendition.spread = {
-            let spread = metas?.first(where: { $0.attributes["property"] == "rendition:spread" })?.string ?? ""
-            switch spread {
-            case "none":
-                return .none
-            case "auto":
-                return .auto
-            case "landscape":
-                return .landscape
-            // `portrait` is deprecated and should fallback to `both`.
-            // See. https://readium.org/architecture/streamer/parser/metadata#epub-3x-11
-            case "both", "portrait":
-                return .both
-            default:
-                return .auto
-            }
-        }()
-        
-        // FIXME: add all remaining metadatas to otherMetadata?
-        // Viewport
-//        if let viewport = metas.first(where: { $0.attributes["property"] == "rendition:viewport" })?.string {
-//            metadata.otherMetadata["rendition:viewport"] = viewport
-//        }
-        
-        metadata.rendition = rendition
+        return EPUBRendition(
+            layout: {
+                switch meta("rendition:layout") {
+                case "reflowable":
+                    return .reflowable
+                case "pre-paginated":
+                    return .fixed
+                default:
+                    return .reflowable
+                }
+            }(),
+            
+            orientation: {
+                switch meta("rendition:orientation") {
+                case "landscape":
+                    return .landscape
+                case "portrait":
+                    return .portrait
+                case "auto":
+                    return .auto
+                default:
+                    return .auto
+                }
+            }(),
+            
+            overflow: {
+                switch meta("rendition:flow") {
+                case "auto":
+                    return .auto
+                case "paginated":
+                    return .paginated
+                case "scrolled-doc":
+                    return .scrolled
+                case "scrolled-continous":
+                    return .scrolledContinuous
+                default:
+                    return .auto
+                }
+            }(),
+            
+            spread: {
+                switch meta("rendition:spread") {
+                case "none":
+                    return .none
+                case "auto":
+                    return .auto
+                case "landscape":
+                    return .landscape
+                // `portrait` is deprecated and should fallback to `both`.
+                // See. https://readium.org/architecture/streamer/parser/metadata#epub-3x-11
+                case "both", "portrait":
+                    return .both
+                default:
+                    return .auto
+                }
+            }()
+        )
     }
 
     /// Parse and return the title informations for different title types
@@ -111,7 +98,6 @@ final public class MetadataParser {
     /// - Parameter metadata: The `<metadata>` element.
     /// - Returns: The content of the `<dc:title>` element, `nil` if the element
     ///            wasn't found.
-    
     static internal func titleFor(titleType: EPUBTitleType, from metadata: AEXMLElement) -> LocalizedString? {
         // Return if there isn't any `<dc:title>` element
         guard let titles = metadata["dc:title"].all,
@@ -150,15 +136,17 @@ final public class MetadataParser {
     ///   - Attributes: The XML document attributes.
     /// - Returns: The content of the `<dc:identifier>` element, `nil` if the
     ///            element wasn't found.
-    static internal func uniqueIdentifier(from metadata: AEXMLElement,
-                                   with documentattributes: [String : String]) -> String?
+    static internal func uniqueIdentifier(from document: AEXMLElement) -> String?
     {
+        let metadata = document["package"]["metadata"]
+        let attributes = document["package"].attributes
+        
         // Look for `<dc:identifier>` elements.
         guard let identifiers = metadata["dc:identifier"].all else {
             return nil
         }
         // Get the one defined as unique by the `<package>` attribute `unique-identifier`.
-        if identifiers.count > 1, let uniqueId = documentattributes["unique-identifier"] {
+        if identifiers.count > 1, let uniqueId = attributes["unique-identifier"] {
             let uniqueIdentifiers = identifiers.filter { $0.attributes["id"] == uniqueId }
             if !uniqueIdentifiers.isEmpty, let uid = uniqueIdentifiers.first {
                 return uid.string
@@ -198,24 +186,20 @@ final public class MetadataParser {
     ///
     /// - Parameters:
     ///   - metadataElement: The XML element representing the metadata.
-    ///   - metadata: The Metadata object to fill (inout).
-    static internal func subject(from metadataElement: AEXMLElement) -> Subject?
+    static internal func subjects(from metadataElement: AEXMLElement) -> [Subject]
     {
-        /// Find the first <dc:subject> (Epub 3.1)
-        guard let subjectElement = metadataElement["dc:subject"].first else {
-            return nil
-        }
-        /// Check if there is a value, mandatory field.
-        guard let name = subjectElement.value else {
-            log(.warning, "Invalid Epub, no value for <dc:subject>")
-            return nil
-        }
-        
-        return Subject(
-            name: name,
-            scheme: subjectElement.attributes["opf:authority"],
-            code: subjectElement.attributes["opf:term"]
-        )
+        return (metadataElement["dc:subject"].all ?? [])
+            .compactMap { element in
+                guard let name = element.value else {
+                    log(.warning, "Invalid Epub, no value for <dc:subject>")
+                    return nil
+                }
+                return Subject(
+                    name: name,
+                    scheme: element.attributes["opf:authority"],
+                    code: element.attributes["opf:term"]
+                )
+            }
     }
 
     /// Parse all the Contributors objects of the model (`creator`, `contributor`,
@@ -332,26 +316,53 @@ final public class MetadataParser {
     /// smil file audio playback time.
     /// Metadata -> e.g. : ["#smil-1": "00:01:24.687"]
     ///
-    /// - Parameters:
-    ///   - metadataElement: The Metadata XML element.
-    ///   - otherMetadata: The publication's `otherMetadata` property.
-    static internal func parseMediaDurations(from metadataElement: AEXMLElement, to otherMetadata: inout [String: Any])
+    /// - Parameter document: The OPF XML element.
+    /// - Returns: Mapping between the SMIL ID and its duration.
+    static internal func parseMediaDurations(from document: AEXMLElement) -> [String: Double]
     {
-        guard let metas = metadataElement["meta"].all else {
-            return
+        guard let metas = document["package"]["metadata"]["meta"].all else {
+            return [:]
         }
-        let mediaDurationItems = metas.filter({ $0.attributes["property"] == "media:duration" })
-        guard !mediaDurationItems.isEmpty else {
-            return
-        }
-        for mediaDurationItem in mediaDurationItems {
-            guard let property = mediaDurationItem.attributes["refines"],
-                let value = mediaDurationItem.value else
-            {
-                continue
+        
+        return metas
+            .filter { $0.attributes["property"] == "media:duration" }
+            .reduce([:]) { durations, item in
+                var durations = durations
+                if let property = item.attributes["refines"],
+                    let value = item.value,
+                    let duration = Double(SMILParser.smilTimeToSeconds(value))
+                {
+                    durations[property] = duration
+                }
+
+                return durations
             }
-            otherMetadata[property] = Double(SMILParser.smilTimeToSeconds(value))
+    }
+    
+    static internal func parseReadingProgression(from document: AEXMLElement) -> ReadingProgression {
+        let direction = document["package"]["readingOrder"].attributes["page-progression-direction"]
+            ?? document["package"]["spine"].attributes["page-progression-direction"]
+            ?? "default"
+
+        switch direction {
+        case "ltr":
+            return .ltr
+        case "rtl":
+            return .rtl
+        case "default":
+            return .auto
+        default:
+            return .auto
         }
+    }
+    
+    static internal func publishedDate(from metadata: AEXMLElement) -> Date? {
+        // From the EPUB 2 and EPUB 3 specifications, only the `dc:date` element without any attribtes will be considered for the `published` property.
+        // And only the string with full date will be considered as valid date string. The string format validation happens in the `setter` of `published`.
+        return (metadata["dc:date"].all ?? [])
+            .first { $0.attributes.count == 0 }?
+            .value?
+            .dateFromISO8601
     }
 
     // Mark: - Private Methods.

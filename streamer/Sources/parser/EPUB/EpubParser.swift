@@ -91,8 +91,6 @@ final public class EpubParser: PublicationParser {
                                                  with: container.rootFile.rootFilePath,
                                                  and: epubVersion)
         
-        publication.updatedDate = container.modificationDate
-
         // Check if the publication is DRM protected.
         let drm = scanForDRM(in: container)
         // Parse the META-INF/Encryption.xml.
@@ -108,7 +106,7 @@ final public class EpubParser: PublicationParser {
             try parseMediaOverlay(from: fetcher, to: &publication)
             parseNavigationDocument(from: fetcher, to: &publication)
             
-            if publication.tableOfContents.isEmpty || publication.pageList.isEmpty {
+            if publication.toc.isEmpty || publication.pageList.isEmpty {
                 parseNcxDocument(from: fetcher, to: &publication)
             }
         }
@@ -145,7 +143,7 @@ final public class EpubParser: PublicationParser {
                 continue
             }
             
-            var encryption = Encryption(algorithm: algorithm)
+            var encryption = EPUBEncryption(algorithm: algorithm)
             
             // LCP. Tag LCP protected resources.
             let keyInfoUri = encryptedDataElement["KeyInfo"]["RetrievalMethod"].attributes["URI"]
@@ -194,33 +192,33 @@ final public class EpubParser: PublicationParser {
             let navDocumentData = try? fetcher.data(forLink: navLink),
             navDocumentData != nil,
             let navDocument = try? AEXMLDocument.init(xml: navDocumentData!),
-            let navDocumentFuzi = try? XMLDocument.init(data: navDocumentData!) else {
-                return
+            let navDocumentFuzi = try? XMLDocument.init(data: navDocumentData!) else
+        {
+            return
         }
         // Get the location of the navigation document in order to normalize href pathes.
         let navigationDocumentPath = navLink.href
-        let newTableOfContentsItems = NavigationDocumentParser.tableOfContent(fromNavigationDocument: navDocumentFuzi,
-                                                                              locatedAt: navigationDocumentPath)
-        let newLandmarksItems = NavigationDocumentParser.landmarks(fromNavigationDocument: navDocument,
-                                                                   locatedAt: navigationDocumentPath)
-        let newListOfAudiofiles = NavigationDocumentParser.listOfAudiofiles(fromNavigationDocument: navDocument,
-                                                                            locatedAt: navigationDocumentPath)
-        let newListOfIllustrations = NavigationDocumentParser.listOfIllustrations(fromNavigationDocument: navDocument,
-                                                                                  locatedAt: navigationDocumentPath)
-        let newListOfTables = NavigationDocumentParser.listOfTables(fromNavigationDocument: navDocument,
-                                                                    locatedAt: navigationDocumentPath)
-        let newListOfVideos = NavigationDocumentParser.listOfVideos(fromNavigationDocument: navDocument,
-                                                                    locatedAt: navigationDocumentPath)
-        let newPageListItems = NavigationDocumentParser.pageList(fromNavigationDocument: navDocument,
-                                                                 locatedAt: navigationDocumentPath)
-
-        publication.tableOfContents = newTableOfContentsItems
-        publication.landmarks = newLandmarksItems
-        publication.listOfAudioFiles = newListOfAudiofiles
-        publication.listOfIllustrations = newListOfIllustrations
-        publication.listOfTables = newListOfTables
-        publication.listOfVideos = newListOfVideos
-        publication.pageList = newPageListItems
+        
+        publication.toc = NavigationDocumentParser
+            .tableOfContent(fromNavigationDocument: navDocumentFuzi, locatedAt: navigationDocumentPath)
+        
+        publication.pageList = NavigationDocumentParser
+            .pageList(fromNavigationDocument: navDocument, locatedAt: navigationDocumentPath)
+        
+        publication.landmarks = NavigationDocumentParser
+            .landmarks(fromNavigationDocument: navDocument, locatedAt: navigationDocumentPath)
+        
+        publication.listOfAudioFiles = NavigationDocumentParser
+            .listOfAudiofiles(fromNavigationDocument: navDocument, locatedAt: navigationDocumentPath)
+        
+        publication.listOfIllustrations = NavigationDocumentParser
+            .listOfIllustrations(fromNavigationDocument: navDocument, locatedAt: navigationDocumentPath)
+        
+        publication.listOfTables = NavigationDocumentParser
+            .listOfTables(fromNavigationDocument: navDocument, locatedAt: navigationDocumentPath)
+        
+        publication.listOfVideos = NavigationDocumentParser
+            .listOfVideos(fromNavigationDocument: navDocument, locatedAt: navigationDocumentPath)
     }
 
     /// Attempt to fill `Publication.tableOfContent`/`.pageList` using the NCX
@@ -240,16 +238,12 @@ final public class EpubParser: PublicationParser {
         }
         // Get the location of the NCX document in order to normalize href pathes.
         let ncxDocumentPath = ncxLink.href
-        if publication.tableOfContents.isEmpty {
-            let newTableOfContentItems = NCXParser.tableOfContents(fromNcxDocument: ncxDocument,
-                                                              locatedAt: ncxDocumentPath)
-
-            publication.tableOfContents.append(contentsOf: newTableOfContentItems)
+        if publication.toc.isEmpty {
+            let newTableOfContentItems = NCXParser.tableOfContents(fromNcxDocument: ncxDocument, locatedAt: ncxDocumentPath)
+            publication.toc.append(contentsOf: newTableOfContentItems)
         }
         if publication.pageList.isEmpty {
-            let newPageListItems = NCXParser.pageList(fromNcxDocument: ncxDocument,
-                                                 locatedAt: ncxDocumentPath)
-
+            let newPageListItems = NCXParser.pageList(fromNcxDocument: ncxDocument, locatedAt: ncxDocumentPath)
             publication.pageList.append(contentsOf: newPageListItems)
         }
     }
@@ -261,9 +255,7 @@ final public class EpubParser: PublicationParser {
     /// - Parameters:
     ///   - container: The Epub Container.
     ///   - publication: The Publication object representing the Epub data.
-    static internal func parseMediaOverlay(from fetcher: Fetcher,
-                                    to publication: inout Publication) throws
-    {
+    static internal func parseMediaOverlay(from fetcher: Fetcher, to publication: inout Publication) throws {
         let mediaOverlays = publication.resources.filter({ $0.type ==  "application/smil+xml"})
 
         guard !mediaOverlays.isEmpty else {

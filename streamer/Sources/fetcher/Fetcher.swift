@@ -15,13 +15,10 @@ import R2Shared
 ///
 /// - missingFile: The file is missing from the container.
 /// - container: An Container error occurred.
-/// - missingRootFile: The rootFile is missing from internalData
 public enum FetcherError: Error {
     case missingFile(path: String)
     /// An Container error occurred, **underlyingError** thrown.
     case container(underlyingError: Error)
-    /// No rootFile in internalData, unable to get path to publication
-    case missingRootFile()
     /// The mimetype of the container is empty.
     case missingContainerMimetype()
     /// The link href couldn't be found in the container.
