@@ -78,7 +78,7 @@ final class ReaderModule: ReaderModuleAPI {
                 
             case .success(let drm):
                 // Get publication type
-                let publicationType = PublicationType(rawString: publication.internalData["type"])
+                let publicationType = PublicationType(mimetype: publication.type)
     
                 guard let module = self.formatModules.first(where:{ $0.publicationType.contains(publicationType) }) else {
                     delegate.presentError(AppError.message("Unsupported format"), from: navigationController)

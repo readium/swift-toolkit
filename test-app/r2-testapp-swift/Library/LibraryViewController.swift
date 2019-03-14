@@ -262,7 +262,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
         }
         
         // Load image and then apply the shadow.
-        if let coverUrl = publication.uriTo(link: publication.coverLink) {
+        if let coverUrl = publication.url(to: publication.coverLink) {
             
             let cacheKey = coverUrl.absoluteString
             if (ImageCache.default.imageCachedType(forKey: cacheKey).cached) {

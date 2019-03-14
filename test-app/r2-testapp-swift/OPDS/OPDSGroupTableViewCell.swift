@@ -106,7 +106,7 @@ extension OPDSGroupTableViewCell: UICollectionViewDataSource {
                 
                 var coverURL: URL?
                 if publication.coverLink != nil {
-                    coverURL = publication.uriTo(link: publication.coverLink)
+                    coverURL = publication.url(to: publication.coverLink)
                 } else if publication.images.count > 0 {
                     let coverHref = publication.images[0].href
                     coverURL = URL(string: coverHref)
