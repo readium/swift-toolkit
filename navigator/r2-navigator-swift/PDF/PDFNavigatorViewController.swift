@@ -63,7 +63,7 @@ open class PDFNavigatorViewController: UIViewController, Loggable {
 
     /// Loads `Link` resource into the PDF view.
     func load(_ link: Link) {
-        guard let url = publication.uriTo(link: link),
+        guard let url = publication.url(to: link),
             let document = PDFDocument(url: url) else
         {
             log(.error, "Can't open PDF document at \(link)")

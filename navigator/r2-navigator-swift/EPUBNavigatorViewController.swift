@@ -231,7 +231,7 @@ extension EPUBNavigatorViewController {
     }
 
     public func getTableOfContents() -> [Link] {
-        return publication.tableOfContents
+        return publication.toc
     }
 
     public func updateUserSettingStyle() {
@@ -291,7 +291,7 @@ extension EPUBNavigatorViewController: ViewDelegate {
     }
 
     public func publicationBaseUrl() -> URL? {
-        return publication.baseUrl
+        return publication.baseURL
     }
 
     internal func handleCenterTap() {
@@ -345,7 +345,7 @@ extension Delegatee: TriptychViewDelegate {
       
         let link = parent.publication.readingOrder[index]
 
-        if let url = parent.publication.uriTo(link: link) {
+        if let url = parent.publication.url(to: link) {
             let urlRequest = URLRequest(url: url)
 
             webView.viewDelegate = parent
