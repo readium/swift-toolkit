@@ -31,7 +31,7 @@ public extension DateFormatter {
         return formatter
     }()
     
-    public static func iso8601Formatter(for string: String) -> DateFormatter? {
+    public static func iso8601Formatter(for string: String) -> DateFormatter {
         // On iOS 10 and later, this API should be treated withFullTime or withTimeZone for different cases.
         // Otherwise it will accept bad format, for exmaple 2018-04-24XXXXXXXXX
         // Because it will only test the part you asssigned, date, time, timezone.
@@ -43,20 +43,17 @@ public extension DateFormatter {
 //        }
         
         // https://developer.apple.com/documentation/foundation/dateformatter
-        // Does't support millsecond or uncompleted part for date, time, timezone offset.
+        // Doesn't support millisecond or uncompleted part for date, time, timezone offset.
         let formats = [
             10: "yyyy-MM-dd",
             11: "yyyy-MM-ddZ",
             16: "yyyy-MM-ddZZZZZ",
             19: "yyyy-MM-dd'T'HH:mm:ss",
-            20: "yyyy-MM-dd'T'HH:mm:ssZ",
             25: "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
         ]
+        let defaultFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
         
-        guard let format = formats[string.count] else {
-            return nil
-        }
-        
+        let format = formats[string.count] ?? defaultFormat
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .iso8601)
         formatter.locale = Locale(identifier: "en_US_POSIX")
@@ -77,7 +74,7 @@ public extension String {
             string.replaceSubrange(range, with: "")
         }
 
-        return DateFormatter.iso8601Formatter(for: string)?.date(from: string)
+        return DateFormatter.iso8601Formatter(for: string).date(from: string)
     }
     
 }
