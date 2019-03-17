@@ -73,8 +73,11 @@ extension LCPLibraryService: LCPAuthenticating {
         
         let authenticationVC = LCPAuthenticationViewController(license: license, reason: reason)
         authenticationVC.delegate = self
-        authenticationVC.modalPresentationStyle = .formSheet
-        viewController.present(authenticationVC, animated: true)
+      
+        let navController = UINavigationController(rootViewController: authenticationVC)
+        navController.modalPresentationStyle = .formSheet
+
+        viewController.present(navController, animated: true)
     }
 
 }

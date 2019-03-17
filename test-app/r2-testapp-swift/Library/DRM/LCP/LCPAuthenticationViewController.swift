@@ -28,7 +28,6 @@ class LCPAuthenticationViewController: UIViewController {
     weak var delegate: LCPAuthenticationDelegate?
     
     @IBOutlet weak var scrollView: UIScrollView!
-    @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var hintLabel: UILabel!
     @IBOutlet weak var messageLabel: UILabel!
     @IBOutlet weak var passphraseField: UITextField!
@@ -73,17 +72,27 @@ class LCPAuthenticationViewController: UIViewController {
         
         supportButton.isHidden = supportLinks.isEmpty
 
+        let label = UILabel()
+
         switch reason {
         case .passphraseNotFound:
-            titleLabel.text = "Passphrase Required"
+            label.text = "Passphrase Required"
         case .invalidPassphrase:
-            titleLabel.text = "Incorrect Passphrase"
+            label.text = "Incorrect Passphrase"
             passphraseField.layer.borderWidth = 1
             passphraseField.layer.borderColor = UIColor.red.cgColor
         }
-        
-        messageLabel.text = "In order to open it, we need to know the passphrase required by: \(provider).\nTo help you remember it, the following hint is available."
+      
+        label.sizeToFit()
+        let leftItem = UIBarButtonItem(customView: label)
+        self.navigationItem.leftBarButtonItem = leftItem
+
+        messageLabel.text = "In order to open it, we need to know the passphrase required by:\n\n\(provider).\n\nTo help you remember it, the following hint is available."
         hintLabel.text = license.hint
+      
+        let cancelItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.cancel, target: self, action: #selector(LCPAuthenticationViewController.cancel(_:)));
+        navigationItem.rightBarButtonItem = cancelItem;
+      
     }
 
     @IBAction func authenticate(_ sender: Any) {

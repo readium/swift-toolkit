@@ -16,8 +16,7 @@
                 <outlet property="messageLabel" destination="OPQ-YI-Mnv" id="qHd-iN-fnX"/>
                 <outlet property="passphraseField" destination="cyG-aj-Lv1" id="CRB-38-sCX"/>
                 <outlet property="scrollView" destination="4ch-z2-s2d" id="Qw6-fh-3er"/>
-                <outlet property="supportButton" destination="Q3C-o5-Rb5" id="VpV-Hh-TXO"/>
-                <outlet property="titleLabel" destination="OTG-yn-gMU" id="ZsI-KT-pRt"/>
+                <outlet property="supportButton" destination="jit-MK-J0T" id="LJQ-Xz-7Yp"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
             </connections>
         </placeholder>
@@ -33,40 +32,36 @@
                             <rect key="frame" x="0.0" y="0.0" width="658" height="487"/>
                             <subviews>
                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dJF-9a-QVp">
-                                    <rect key="frame" x="487" y="300" width="151" height="28"/>
+                                    <rect key="frame" x="20" y="283" width="151" height="28"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                     <state key="normal" title="Forgot your passphrase?"/>
                                     <connections>
                                         <action selector="showHintLink:" destination="-1" eventType="touchUpInside" id="Dpp-rc-sz0"/>
                                     </connections>
                                 </button>
-                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Passphrase Required" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="OTG-yn-gMU">
-                                    <rect key="frame" x="20" y="20" width="618" height="23"/>
-                                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="19"/>
-                                    <nil key="textColor"/>
-                                    <nil key="highlightedColor"/>
-                                </label>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="This publication is protected by Readium LCP." textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ahp-0z-soX">
-                                    <rect key="frame" x="20" y="87" width="618" height="20.5"/>
+                                    <rect key="frame" x="20" y="20" width="618" height="20.5"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                     <nil key="textColor"/>
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="OPQ-YI-Mnv">
-                                    <rect key="frame" x="20" y="127.5" width="618" height="41"/>
-                                    <string key="text">In order to open it, we need to know the passphrase required by: provider.com. To help you remember it, the following hint is available:</string>
+                                    <rect key="frame" x="20" y="60.5" width="618" height="61"/>
+                                    <string key="text">In order to open it, we need to know the passphrase required by: provider.com. 
+
+To help you remember it, the following hint is available:</string>
                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                     <nil key="textColor"/>
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Your favorite cake?" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="bM8-E5-8Oh">
-                                    <rect key="frame" x="20" y="212.5" width="618" height="21.5"/>
+                                    <rect key="frame" x="20" y="165.5" width="618" height="21.5"/>
                                     <fontDescription key="fontDescription" type="system" weight="medium" pointSize="18"/>
                                     <nil key="textColor"/>
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Passphrase" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="cyG-aj-Lv1">
-                                    <rect key="frame" x="20" y="254" width="618" height="30"/>
+                                    <rect key="frame" x="20" y="207" width="618" height="30"/>
                                     <nil key="textColor"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                     <textInputTraits key="textInputTraits" secureTextEntry="YES"/>
@@ -74,58 +69,50 @@
                                         <outlet property="delegate" destination="-1" id="ExO-0y-aPh"/>
                                     </connections>
                                 </textField>
-                                <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="3Np-9U-XE3" userLabel="Buttons">
-                                    <rect key="frame" x="20" y="449" width="618" height="30"/>
-                                    <subviews>
-                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Q3C-o5-Rb5">
-                                            <rect key="frame" x="0.0" y="0.0" width="206" height="30"/>
-                                            <state key="normal" title="Support"/>
-                                            <connections>
-                                                <action selector="showSupportLink:" destination="-1" eventType="touchUpInside" id="1kg-zo-OH0"/>
-                                            </connections>
-                                        </button>
-                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="YD2-UI-NDi">
-                                            <rect key="frame" x="206" y="0.0" width="206" height="30"/>
-                                            <state key="normal" title="Cancel"/>
-                                            <connections>
-                                                <action selector="cancel:" destination="-1" eventType="touchUpInside" id="NwK-SP-HN9"/>
-                                            </connections>
-                                        </button>
-                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jit-MK-J0T">
-                                            <rect key="frame" x="412" y="0.0" width="206" height="30"/>
-                                            <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
-                                            <state key="normal" title="OK"/>
-                                            <connections>
-                                                <action selector="authenticate:" destination="-1" eventType="touchUpInside" id="me5-cT-w51"/>
-                                            </connections>
-                                        </button>
-                                    </subviews>
-                                </stackView>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PWg-iR-COW">
+                                    <rect key="frame" x="20" y="245" width="618" height="30"/>
+                                    <color key="backgroundColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                    <color key="tintColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                    <state key="normal" title="Submit">
+                                        <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                    </state>
+                                    <connections>
+                                        <action selector="authenticate:" destination="-1" eventType="touchUpInside" id="sPo-f0-WTU"/>
+                                    </connections>
+                                </button>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jit-MK-J0T">
+                                    <rect key="frame" x="20" y="319" width="103" height="28"/>
+                                    <fontDescription key="fontDescription" type="system" pointSize="13"/>
+                                    <state key="normal" title="Need more help?"/>
+                                    <connections>
+                                        <action selector="showSupportLink:" destination="-1" eventType="touchUpInside" id="0x6-mi-GGq"/>
+                                    </connections>
+                                </button>
                             </subviews>
                             <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             <constraints>
-                                <constraint firstItem="OPQ-YI-Mnv" firstAttribute="leading" secondItem="OTG-yn-gMU" secondAttribute="leading" id="1Nw-Ir-qhV"/>
-                                <constraint firstItem="ahp-0z-soX" firstAttribute="top" secondItem="OTG-yn-gMU" secondAttribute="bottom" constant="44" id="63X-7Q-aL8"/>
-                                <constraint firstItem="bM8-E5-8Oh" firstAttribute="leading" secondItem="OTG-yn-gMU" secondAttribute="leading" id="7WU-dy-JLE"/>
-                                <constraint firstItem="ahp-0z-soX" firstAttribute="leading" secondItem="OTG-yn-gMU" secondAttribute="leading" id="AyN-le-XOC"/>
-                                <constraint firstItem="ahp-0z-soX" firstAttribute="trailing" secondItem="OTG-yn-gMU" secondAttribute="trailing" id="LSO-RB-En3"/>
-                                <constraint firstAttribute="trailing" secondItem="3Np-9U-XE3" secondAttribute="trailing" constant="20" id="Llj-ny-6I8"/>
-                                <constraint firstItem="cyG-aj-Lv1" firstAttribute="trailing" secondItem="OTG-yn-gMU" secondAttribute="trailing" id="UaN-IY-eA9"/>
-                                <constraint firstItem="OPQ-YI-Mnv" firstAttribute="trailing" secondItem="OTG-yn-gMU" secondAttribute="trailing" id="Uiu-JA-kYB"/>
-                                <constraint firstItem="OTG-yn-gMU" firstAttribute="leading" secondItem="Hve-JO-2vR" secondAttribute="leading" constant="20" id="Zb9-HA-C4t"/>
+                                <constraint firstItem="cyG-aj-Lv1" firstAttribute="leading" secondItem="Hve-JO-2vR" secondAttribute="leading" constant="20" id="CC2-xC-KWX"/>
+                                <constraint firstItem="OPQ-YI-Mnv" firstAttribute="leading" secondItem="Hve-JO-2vR" secondAttribute="leading" constant="20" id="G37-Cm-3sa"/>
+                                <constraint firstItem="PWg-iR-COW" firstAttribute="leading" secondItem="Hve-JO-2vR" secondAttribute="leading" constant="20" id="NVK-RR-5Nw"/>
+                                <constraint firstItem="PWg-iR-COW" firstAttribute="top" secondItem="cyG-aj-Lv1" secondAttribute="bottom" constant="8" id="Xr7-WO-UwQ"/>
                                 <constraint firstItem="OPQ-YI-Mnv" firstAttribute="top" secondItem="ahp-0z-soX" secondAttribute="bottom" constant="20" id="a0k-eo-CR7"/>
-                                <constraint firstAttribute="bottom" secondItem="3Np-9U-XE3" secondAttribute="bottom" constant="8" id="eOa-Ph-oSG"/>
-                                <constraint firstItem="bM8-E5-8Oh" firstAttribute="trailing" secondItem="OTG-yn-gMU" secondAttribute="trailing" id="gRW-1O-Tci"/>
-                                <constraint firstItem="3Np-9U-XE3" firstAttribute="top" relation="greaterThanOrEqual" secondItem="dJF-9a-QVp" secondAttribute="bottom" constant="20" id="h9T-nI-4d0"/>
-                                <constraint firstItem="OTG-yn-gMU" firstAttribute="top" secondItem="Hve-JO-2vR" secondAttribute="top" constant="20" id="jWA-g3-i6g"/>
-                                <constraint firstItem="dJF-9a-QVp" firstAttribute="top" secondItem="cyG-aj-Lv1" secondAttribute="bottom" constant="16" id="lpd-eW-vFp"/>
+                                <constraint firstAttribute="trailing" secondItem="PWg-iR-COW" secondAttribute="trailing" constant="20" id="erQ-2W-pMF"/>
+                                <constraint firstItem="bM8-E5-8Oh" firstAttribute="leading" secondItem="Hve-JO-2vR" secondAttribute="leading" constant="20" id="fVw-vH-SVt"/>
+                                <constraint firstAttribute="trailing" secondItem="ahp-0z-soX" secondAttribute="trailing" constant="20" id="gOl-ci-jm0"/>
+                                <constraint firstItem="jit-MK-J0T" firstAttribute="top" secondItem="dJF-9a-QVp" secondAttribute="bottom" constant="8" id="h43-10-RyZ"/>
+                                <constraint firstAttribute="trailing" secondItem="bM8-E5-8Oh" secondAttribute="trailing" constant="20" id="hq0-sI-kKe"/>
                                 <constraint firstItem="bM8-E5-8Oh" firstAttribute="top" secondItem="OPQ-YI-Mnv" secondAttribute="bottom" constant="44" id="mGY-A5-cPZ"/>
-                                <constraint firstAttribute="trailing" secondItem="OTG-yn-gMU" secondAttribute="trailing" constant="20" id="otV-U9-TlN"/>
-                                <constraint firstItem="dJF-9a-QVp" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="Hve-JO-2vR" secondAttribute="leading" constant="20" id="piu-Jw-LGs"/>
-                                <constraint firstItem="3Np-9U-XE3" firstAttribute="leading" secondItem="Hve-JO-2vR" secondAttribute="leading" constant="20" id="siI-GB-KIO"/>
+                                <constraint firstAttribute="trailing" secondItem="cyG-aj-Lv1" secondAttribute="trailing" constant="20" id="moK-ne-XaO"/>
+                                <constraint firstItem="dJF-9a-QVp" firstAttribute="top" secondItem="PWg-iR-COW" secondAttribute="bottom" constant="8" id="ohS-Gz-5Zv"/>
+                                <constraint firstItem="ahp-0z-soX" firstAttribute="leading" secondItem="Hve-JO-2vR" secondAttribute="leading" constant="20" id="pMC-wo-rnS"/>
+                                <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="jit-MK-J0T" secondAttribute="bottom" constant="20" id="pTT-77-v4J"/>
+                                <constraint firstItem="dJF-9a-QVp" firstAttribute="leading" secondItem="Hve-JO-2vR" secondAttribute="leading" constant="20" id="piu-Jw-LGs"/>
+                                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="jit-MK-J0T" secondAttribute="trailing" constant="20" id="qLP-8Q-niF"/>
                                 <constraint firstItem="cyG-aj-Lv1" firstAttribute="top" secondItem="bM8-E5-8Oh" secondAttribute="bottom" constant="20" id="teI-bW-1cz"/>
-                                <constraint firstItem="cyG-aj-Lv1" firstAttribute="leading" secondItem="OTG-yn-gMU" secondAttribute="leading" id="xpQ-2E-JMt"/>
-                                <constraint firstAttribute="trailing" secondItem="dJF-9a-QVp" secondAttribute="trailing" constant="20" id="yoA-fS-VdV"/>
+                                <constraint firstAttribute="trailing" secondItem="OPQ-YI-Mnv" secondAttribute="trailing" constant="20" id="txK-KJ-H1b"/>
+                                <constraint firstItem="ahp-0z-soX" firstAttribute="top" secondItem="Hve-JO-2vR" secondAttribute="top" constant="20" id="vLP-9R-PEg"/>
+                                <constraint firstItem="jit-MK-J0T" firstAttribute="leading" secondItem="Hve-JO-2vR" secondAttribute="leading" constant="20" id="xux-gE-Z4S"/>
+                                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="dJF-9a-QVp" secondAttribute="trailing" constant="20" id="yoA-fS-VdV"/>
                             </constraints>
                         </view>
                     </subviews>
