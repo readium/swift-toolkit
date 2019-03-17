@@ -64,7 +64,7 @@ To help you remember it, the following hint is available:</string>
                                     <rect key="frame" x="20" y="207" width="618" height="30"/>
                                     <nil key="textColor"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                    <textInputTraits key="textInputTraits" secureTextEntry="YES"/>
+                                    <textInputTraits key="textInputTraits" returnKeyType="continue" secureTextEntry="YES"/>
                                     <connections>
                                         <outlet property="delegate" destination="-1" id="ExO-0y-aPh"/>
                                     </connections>
@@ -73,7 +73,7 @@ To help you remember it, the following hint is available:</string>
                                     <rect key="frame" x="20" y="245" width="618" height="30"/>
                                     <color key="backgroundColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                     <color key="tintColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                    <state key="normal" title="Submit">
+                                    <state key="normal" title="Continue">
                                         <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                     </state>
                                     <connections>
