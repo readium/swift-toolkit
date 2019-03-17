@@ -87,7 +87,7 @@ class LCPAuthenticationViewController: UIViewController {
         let leftItem = UIBarButtonItem(customView: label)
         self.navigationItem.leftBarButtonItem = leftItem
 
-        messageLabel.text = "In order to open it, we need to know the passphrase required by:\n\n\(provider).\n\nTo help you remember it, the following hint is available."
+        messageLabel.text = "In order to open it, we need to know the passphrase required by:\n\n\(provider)\n\nTo help you remember it, the following hint is available:"
         hintLabel.text = license.hint
       
         let cancelItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.cancel, target: self, action: #selector(LCPAuthenticationViewController.cancel(_:)));

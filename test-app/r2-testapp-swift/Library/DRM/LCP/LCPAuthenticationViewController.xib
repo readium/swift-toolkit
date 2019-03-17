@@ -32,7 +32,7 @@
                             <rect key="frame" x="0.0" y="0.0" width="658" height="487"/>
                             <subviews>
                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dJF-9a-QVp">
-                                    <rect key="frame" x="20" y="283" width="151" height="28"/>
+                                    <rect key="frame" x="20" y="259" width="151" height="28"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                     <state key="normal" title="Forgot your passphrase?"/>
                                     <connections>
@@ -55,13 +55,13 @@ To help you remember it, the following hint is available:</string>
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Your favorite cake?" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="bM8-E5-8Oh">
-                                    <rect key="frame" x="20" y="165.5" width="618" height="21.5"/>
+                                    <rect key="frame" x="20" y="141.5" width="618" height="21.5"/>
                                     <fontDescription key="fontDescription" type="system" weight="medium" pointSize="18"/>
                                     <nil key="textColor"/>
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Passphrase" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="cyG-aj-Lv1">
-                                    <rect key="frame" x="20" y="207" width="618" height="30"/>
+                                    <rect key="frame" x="20" y="183" width="618" height="30"/>
                                     <nil key="textColor"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                     <textInputTraits key="textInputTraits" returnKeyType="continue" secureTextEntry="YES"/>
@@ -70,7 +70,7 @@ To help you remember it, the following hint is available:</string>
                                     </connections>
                                 </textField>
                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PWg-iR-COW">
-                                    <rect key="frame" x="20" y="245" width="618" height="30"/>
+                                    <rect key="frame" x="20" y="221" width="618" height="30"/>
                                     <color key="backgroundColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                     <color key="tintColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                     <state key="normal" title="Continue">
@@ -81,7 +81,7 @@ To help you remember it, the following hint is available:</string>
                                     </connections>
                                 </button>
                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jit-MK-J0T">
-                                    <rect key="frame" x="20" y="319" width="103" height="28"/>
+                                    <rect key="frame" x="20" y="295" width="103" height="28"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                     <state key="normal" title="Need more help?"/>
                                     <connections>
@@ -101,7 +101,7 @@ To help you remember it, the following hint is available:</string>
                                 <constraint firstAttribute="trailing" secondItem="ahp-0z-soX" secondAttribute="trailing" constant="20" id="gOl-ci-jm0"/>
                                 <constraint firstItem="jit-MK-J0T" firstAttribute="top" secondItem="dJF-9a-QVp" secondAttribute="bottom" constant="8" id="h43-10-RyZ"/>
                                 <constraint firstAttribute="trailing" secondItem="bM8-E5-8Oh" secondAttribute="trailing" constant="20" id="hq0-sI-kKe"/>
-                                <constraint firstItem="bM8-E5-8Oh" firstAttribute="top" secondItem="OPQ-YI-Mnv" secondAttribute="bottom" constant="44" id="mGY-A5-cPZ"/>
+                                <constraint firstItem="bM8-E5-8Oh" firstAttribute="top" secondItem="OPQ-YI-Mnv" secondAttribute="bottom" constant="20" id="mGY-A5-cPZ"/>
                                 <constraint firstAttribute="trailing" secondItem="cyG-aj-Lv1" secondAttribute="trailing" constant="20" id="moK-ne-XaO"/>
                                 <constraint firstItem="dJF-9a-QVp" firstAttribute="top" secondItem="PWg-iR-COW" secondAttribute="bottom" constant="8" id="ohS-Gz-5Zv"/>
                                 <constraint firstItem="ahp-0z-soX" firstAttribute="leading" secondItem="Hve-JO-2vR" secondAttribute="leading" constant="20" id="pMC-wo-rnS"/>
