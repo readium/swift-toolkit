@@ -91,10 +91,12 @@ open class EPUBNavigatorViewController: UIViewController {
             index = publication.readingOrder.count
         }
         
-        triptychView = TriptychView(frame: CGRect.zero,
-                                    viewCount: publication.readingOrder.count,
-                                    initialIndex: index,
-                                    readingProgression:publication.metadata.readingProgression)
+        triptychView = TriptychView(
+            frame: CGRect.zero,
+            viewCount: publication.readingOrder.count,
+            initialIndex: index,
+            readingProgression: publication.contentLayout.readingProgression
+        )
         
         super.init(nibName: nil, bundle: nil)
         
@@ -159,13 +161,11 @@ open class EPUBNavigatorViewController: UIViewController {
 
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        
         // Save the currently opened document index and progression.
-        if navigationController == nil {
-            let progression = triptychView.getCurrentDocumentProgression()
-            let index = triptychView.getCurrentDocumentIndex()
-
-            delegate?.willExitPublication(documentIndex: index, progression: progression)
-        }
+        let progression = triptychView.getCurrentDocumentProgression()
+        let index = triptychView.getCurrentDocumentIndex()
+        delegate?.willExitPublication(documentIndex: index, progression: progression)
     }
 }
 
