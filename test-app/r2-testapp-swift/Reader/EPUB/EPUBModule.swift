@@ -28,16 +28,11 @@ final class EPUBModule: ReaderFormatModule {
     }
     
     func makeReaderViewController(for publication: Publication, drm: DRM?) throws -> UIViewController {
-        guard let publicationIdentifier = publication.metadata.identifier else {
+        guard publication.metadata.identifier != nil else {
             throw AppError.message("Invalid EPUB file")
         }
         
-        // Retrieve last read document/progression in that document.
-        let userDefaults = UserDefaults.standard
-        let index = userDefaults.integer(forKey: "\(publicationIdentifier)-document")
-        let progression = userDefaults.double(forKey: "\(publicationIdentifier)-documentProgression")
-
-        let epubViewController = EPUBViewController(publication: publication, atIndex: index, progression: progression, drm)
+        let epubViewController = EPUBViewController(publication: publication, drm: drm)
         epubViewController.moduleDelegate = delegate
         return epubViewController
     }

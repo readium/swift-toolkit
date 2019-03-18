@@ -166,7 +166,7 @@ class OPDSRootTableViewController: UITableViewController {
     }
     
     func findNextPageURL(feed: Feed) -> URL? {
-        guard let href = feed.links.first(where: { $0.rels.contains("next") })?.href else {
+        guard let href = feed.links.first(withRel: "next")?.href else {
             return nil
         }
         return URL(string: href)
