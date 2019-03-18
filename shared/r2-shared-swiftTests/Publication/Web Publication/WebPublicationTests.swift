@@ -105,24 +105,6 @@ class WebPublicationTests: XCTestCase {
         ]))
     }
     
-    func testParseJSONRequiresLinks() {
-        XCTAssertThrowsError(try WebPublication(json: [
-            "metadata": ["title": "Title"],
-            "readingOrder": [
-                ["href": "/chap1.html", "type": "text/html"]
-            ]
-        ]))
-    }
-    
-    func testParseJSONRequiresReadingOrder() {
-        XCTAssertThrowsError(try WebPublication(json: [
-            "metadata": ["title": "Title"],
-            "links": [
-                ["href": "/manifest.json", "rel": "self"]
-            ]
-        ]))
-    }
-    
     func testParseJSONSpineAsReadingOrder() {
         // `readerOrder` used to be `spine`, so we parse `spine` as a fallback.
         XCTAssertEqual(

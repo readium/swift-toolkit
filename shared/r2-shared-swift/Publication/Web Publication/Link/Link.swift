@@ -52,7 +52,7 @@ public class Link: JSONEquatable {
     /// Resources that are children of the linked resource, in the context of a given collection role.
     public var children: [Link]
 
-    /// FIXME: This is used when parsing EPUB's media overlays, but maybe it should be stored somewhere else?
+    /// FIXME: This is used when parsing EPUB's media overlays, but maybe it should be stored somewhere else? For example, as a JSON object in Link.properties.otherProperties, with high-level helpers to get the MediaOverlayNode in the EPUBProperties extension.
     /// The MediaOverlays associated to the resource of the `Link`.
     public var mediaOverlays = MediaOverlays()
     

@@ -53,6 +53,7 @@ public struct Metadata: Equatable, Loggable {
     public var contributors: [Contributor]
     public var publishers: [Contributor]
     public var imprints: [Contributor]
+    /// WARNING: This contains the reading progression as declared in the publication, so it might be `auto`. To lay out the content, use `publication.contentLayout.readingProgression` to get the calculated reading progression from the declared direction and the language.
     public var readingProgression: ReadingProgression
     public var description: String?
     public var duration: Double?

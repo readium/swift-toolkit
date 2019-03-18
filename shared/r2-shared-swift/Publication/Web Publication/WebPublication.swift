@@ -58,11 +58,6 @@ public class WebPublication: JSONEquatable {
 
         // Parses sub-collections from remaining JSON properties.
         self.otherCollections = [PublicationCollection](json: json.json)
-        
-        // FIXME: this crashes OPDS 2 parser because the readingOrder is empty
-//        guard !links.isEmpty, !readingOrder.isEmpty else {
-//            throw JSONParsingError.publication
-//        }
     }
     
     public var json: [String: Any] {

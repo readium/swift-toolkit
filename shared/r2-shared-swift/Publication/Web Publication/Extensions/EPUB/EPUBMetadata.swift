@@ -35,7 +35,7 @@ extension Metadata: EPUBMetadata {
             }
         }
         set {
-            if let json = rendition?.json, !json.isEmpty {
+            if let json = newValue?.json, !json.isEmpty {
                 otherMetadata[renditionKey] = json
             } else {
                 otherMetadata.removeValue(forKey: renditionKey)
