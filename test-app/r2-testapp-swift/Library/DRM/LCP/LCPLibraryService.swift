@@ -20,6 +20,9 @@ import ReadiumLCP
 class LCPLibraryService: DRMLibraryService {
 
     private var lcpService = R2MakeLCPService()
+    
+    /// [LicenseDocument.id: passphrase callback]
+    private var authenticationCallbacks: [String: (String?) -> Void] = [:]
 
     var brand: DRM.Brand {
         return .lcp
@@ -66,33 +69,36 @@ extension LCPLibraryService: LCPAuthenticating {
             return
         }
         
-        let title: String
-        switch reason {
-        case .passphraseNotFound:
-            title = "LCP Passphrase"
-        case .invalidPassphrase:
-            title = "The passphrase is incorrect"
-        }
-    
-        let alert = UIAlertController(title: title, message: license.hint, preferredStyle: .alert)
-        let dismissButton = UIAlertAction(title: "Cancel", style: .cancel) { _ in
-            completion(nil)
-        }
-        let confirmButton = UIAlertAction(title: "Submit", style: .default) { _ in
-            let passphrase = alert.textFields?[0].text
-            completion(passphrase ?? "")
-        }
-    
-        alert.addTextField { (textField) in
-            textField.placeholder = "Passphrase"
-            textField.isSecureTextEntry = true
-        }
-    
-        alert.addAction(dismissButton)
-        alert.addAction(confirmButton)
-        viewController.present(alert, animated: true)
+        authenticationCallbacks[license.document.id] = completion
+        
+        let authenticationVC = LCPAuthenticationViewController(license: license, reason: reason)
+        authenticationVC.delegate = self
+      
+        let navController = UINavigationController(rootViewController: authenticationVC)
+        navController.modalPresentationStyle = .formSheet
+
+        viewController.present(navController, animated: true)
     }
 
+}
+
+
+extension LCPLibraryService: LCPAuthenticationDelegate {
+    
+    func authenticate(_ license: LCPAuthenticatedLicense, with passphrase: String) {
+        guard let callback = authenticationCallbacks.removeValue(forKey: license.document.id) else {
+            return
+        }
+        callback(passphrase)
+    }
+    
+    func didCancelAuthentication(of license: LCPAuthenticatedLicense) {
+        guard let callback = authenticationCallbacks.removeValue(forKey: license.document.id) else {
+            return
+        }
+        callback(nil)
+    }
+    
 }
 
 #endif

@@ -267,6 +267,14 @@
 		CA415F29221D7753003A0F7F /* LibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA415F27221D7753003A0F7F /* LibraryService.swift */; };
 		CA415F2A221D7753003A0F7F /* LibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA415F27221D7753003A0F7F /* LibraryService.swift */; };
 		CA415F2B221D7753003A0F7F /* LibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA415F27221D7753003A0F7F /* LibraryService.swift */; };
+		CA53A5F122296D4900A55397 /* LCPAuthenticationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA53A5EF22296D4900A55397 /* LCPAuthenticationViewController.swift */; };
+		CA53A5F222296D4900A55397 /* LCPAuthenticationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA53A5EF22296D4900A55397 /* LCPAuthenticationViewController.swift */; };
+		CA53A5F322296D4900A55397 /* LCPAuthenticationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA53A5EF22296D4900A55397 /* LCPAuthenticationViewController.swift */; };
+		CA53A5F422296D4900A55397 /* LCPAuthenticationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA53A5EF22296D4900A55397 /* LCPAuthenticationViewController.swift */; };
+		CA53A5F522296D4900A55397 /* LCPAuthenticationViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = CA53A5F022296D4900A55397 /* LCPAuthenticationViewController.xib */; };
+		CA53A5F622296D4900A55397 /* LCPAuthenticationViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = CA53A5F022296D4900A55397 /* LCPAuthenticationViewController.xib */; };
+		CA53A5F722296D4900A55397 /* LCPAuthenticationViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = CA53A5F022296D4900A55397 /* LCPAuthenticationViewController.xib */; };
+		CA53A5F822296D4900A55397 /* LCPAuthenticationViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = CA53A5F022296D4900A55397 /* LCPAuthenticationViewController.xib */; };
 		CA7F5A4B2204A42100B88141 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
 		CA7F5A4C2204A42100B88141 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
 		CA7F5A4D2204A42100B88141 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
@@ -473,6 +481,8 @@
 		CA2AE315221C11F4008BD18F /* LCPLibraryService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCPLibraryService.swift; sourceTree = "<group>"; };
 		CA415F0D221D6CE5003A0F7F /* AppModule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppModule.swift; sourceTree = "<group>"; };
 		CA415F27221D7753003A0F7F /* LibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryService.swift; sourceTree = "<group>"; };
+		CA53A5EF22296D4900A55397 /* LCPAuthenticationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPAuthenticationViewController.swift; sourceTree = "<group>"; };
+		CA53A5F022296D4900A55397 /* LCPAuthenticationViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = LCPAuthenticationViewController.xib; sourceTree = "<group>"; };
 		CA7F5A402204A05700B88141 /* DRMLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DRMLibraryService.swift; sourceTree = "<group>"; };
 		CA7F5A4F2204AF2900B88141 /* Result.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		CA822CBE221C5737005800D1 /* r2-testapp-swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -698,7 +708,7 @@
 			isa = PBXGroup;
 			children = (
 				CA7F5A402204A05700B88141 /* DRMLibraryService.swift */,
-				CA2AE315221C11F4008BD18F /* LCPLibraryService.swift */,
+				CA53A5EE22296CE900A55397 /* LCP */,
 			);
 			path = DRM;
 			sourceTree = "<group>";
@@ -779,6 +789,16 @@
 				F32980ED1F7D464900BDEAF4 /* Samples */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		CA53A5EE22296CE900A55397 /* LCP */ = {
+			isa = PBXGroup;
+			children = (
+				CA2AE315221C11F4008BD18F /* LCPLibraryService.swift */,
+				CA53A5EF22296D4900A55397 /* LCPAuthenticationViewController.swift */,
+				CA53A5F022296D4900A55397 /* LCPAuthenticationViewController.xib */,
+			);
+			path = LCP;
 			sourceTree = "<group>";
 		};
 		F32980ED1F7D464900BDEAF4 /* Samples */ = {
@@ -1032,6 +1052,7 @@
 				CA29B701221FF7680037534C /* Outline.storyboard in Resources */,
 				0350FD19211CD2CB006994C2 /* DRM.storyboard in Resources */,
 				0350FD1B211CD2CB006994C2 /* 5.epub in Resources */,
+				CA53A5F622296D4900A55397 /* LCPAuthenticationViewController.xib in Resources */,
 				CA29B6F1221FF2620037534C /* Library.storyboard in Resources */,
 				0350FD1C211CD2CB006994C2 /* PublicationCollectionViewCell.xib in Resources */,
 				0350FD1E211CD2CB006994C2 /* 6.epub in Resources */,
@@ -1056,6 +1077,7 @@
 				CA29B702221FF7680037534C /* Outline.storyboard in Resources */,
 				0350FD6D211CD625006994C2 /* DRM.storyboard in Resources */,
 				0350FD6F211CD625006994C2 /* 5.epub in Resources */,
+				CA53A5F722296D4900A55397 /* LCPAuthenticationViewController.xib in Resources */,
 				CA29B6F2221FF2620037534C /* Library.storyboard in Resources */,
 				0350FD70211CD625006994C2 /* PublicationCollectionViewCell.xib in Resources */,
 				0350FD72211CD625006994C2 /* 6.epub in Resources */,
@@ -1080,6 +1102,7 @@
 				CA29B703221FF7680037534C /* Outline.storyboard in Resources */,
 				CA822CAE221C5737005800D1 /* DRM.storyboard in Resources */,
 				CA822CB0221C5737005800D1 /* 5.epub in Resources */,
+				CA53A5F822296D4900A55397 /* LCPAuthenticationViewController.xib in Resources */,
 				CA29B6F3221FF2620037534C /* Library.storyboard in Resources */,
 				CA822CB1221C5737005800D1 /* PublicationCollectionViewCell.xib in Resources */,
 				CA822CB3221C5737005800D1 /* 6.epub in Resources */,
@@ -1104,6 +1127,7 @@
 				CA29B700221FF7680037534C /* Outline.storyboard in Resources */,
 				F34CB28F1FCC54A2005E3A37 /* DRM.storyboard in Resources */,
 				F3120DEB1FACB096009ACFAD /* 5.epub in Resources */,
+				CA53A5F522296D4900A55397 /* LCPAuthenticationViewController.xib in Resources */,
 				CA29B6F0221FF2620037534C /* Library.storyboard in Resources */,
 				032F7E3621167E9B009E5C24 /* PublicationCollectionViewCell.xib in Resources */,
 				F3120DEC1FACB098009ACFAD /* 6.epub in Resources */,
@@ -1151,6 +1175,7 @@
 				0350FCE8211CD2CB006994C2 /* CBZViewController.swift in Sources */,
 				CA29B73422200EAA0037534C /* UIViewController.swift in Sources */,
 				0350FCE9211CD2CB006994C2 /* OPDSGroupCollectionViewCell.swift in Sources */,
+				CA53A5F222296D4900A55397 /* LCPAuthenticationViewController.swift in Sources */,
 				0350FCEA211CD2CB006994C2 /* OPDSFacetViewController.swift in Sources */,
 				CA16A84222311F7E00E66255 /* PDFViewController.swift in Sources */,
 				0350FCEB211CD2CB006994C2 /* EPUBViewController.swift in Sources */,
@@ -1210,6 +1235,7 @@
 				0350FD3C211CD625006994C2 /* CBZViewController.swift in Sources */,
 				CA29B73522200EAA0037534C /* UIViewController.swift in Sources */,
 				0350FD3D211CD625006994C2 /* OPDSGroupCollectionViewCell.swift in Sources */,
+				CA53A5F322296D4900A55397 /* LCPAuthenticationViewController.swift in Sources */,
 				0350FD3E211CD625006994C2 /* OPDSFacetViewController.swift in Sources */,
 				CA16A84322311F7E00E66255 /* PDFViewController.swift in Sources */,
 				0350FD3F211CD625006994C2 /* EPUBViewController.swift in Sources */,
@@ -1269,6 +1295,7 @@
 				CA822C76221C5737005800D1 /* CBZViewController.swift in Sources */,
 				CA29B73622200EAA0037534C /* UIViewController.swift in Sources */,
 				CA822C77221C5737005800D1 /* OPDSGroupCollectionViewCell.swift in Sources */,
+				CA53A5F422296D4900A55397 /* LCPAuthenticationViewController.swift in Sources */,
 				CA822C78221C5737005800D1 /* OPDSFacetViewController.swift in Sources */,
 				CA16A84422311F7E00E66255 /* PDFViewController.swift in Sources */,
 				CA822C79221C5737005800D1 /* EPUBViewController.swift in Sources */,
@@ -1328,6 +1355,7 @@
 				F3E7D4801F4F03F500DF166D /* CBZViewController.swift in Sources */,
 				CA29B73322200EAA0037534C /* UIViewController.swift in Sources */,
 				AE53A076208F62D200737838 /* OPDSGroupCollectionViewCell.swift in Sources */,
+				CA53A5F122296D4900A55397 /* LCPAuthenticationViewController.swift in Sources */,
 				113B12DA20800FD60074A5A2 /* OPDSFacetViewController.swift in Sources */,
 				CA16A84122311F7E00E66255 /* PDFViewController.swift in Sources */,
 				F3E7D4821F4F042600DF166D /* EPUBViewController.swift in Sources */,
