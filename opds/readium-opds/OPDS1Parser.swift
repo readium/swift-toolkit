@@ -238,31 +238,14 @@ public class OPDS1Parser: Loggable {
     /// Fetch an Open Search template from an OPDS feed.
     /// - parameter feed: The OPDS feed
     public static func fetchOpenSearchTemplate(feed: Feed, completion: @escaping (String?, Error?) -> Void) {
-        var openSearchURL: URL? = nil
-        var selfMimeType: String? = nil
-
-        for link in feed.links {
-            if link.rels.contains("self") {
-                if let linkType = link.type {
-                    selfMimeType = linkType
-                    if openSearchURL != nil {
-                        break
-                    }
-                }
-            } else if link.rels.contains("search") {
-                openSearchURL = URL(string: link.href)
-                if selfMimeType != nil {
-                    break
-                }
-            }
-        }
-
-        guard let unwrappedURL = openSearchURL else {
+        guard let openSearchHref = feed.links.first(withRel: "search")?.href,
+            let openSearchURL = URL(string: openSearchHref) else
+        {
             completion(nil, OPDSParserOpenSearchHelperError.searchLinkNotFound)
             return
         }
 
-        URLSession.shared.dataTask(with: unwrappedURL) { data, _, error in
+        URLSession.shared.dataTask(with: openSearchURL) { data, _, error in
             guard let data = data else {
                 completion(nil, error ?? OPDSParserOpenSearchHelperError.searchDocumentIsInvalid)
                 return
@@ -283,8 +266,8 @@ public class OPDS1Parser: Loggable {
             // We match by mimetype and profile; if that fails, by mimetype; and if that fails, the first url is returned
             var typeAndProfileMatch: XMLElement? = nil
             var typeMatch: XMLElement? = nil
-            if let unwrappedSelfMimeType = selfMimeType {
-                let selfMimeParams = parseMimeType(mimeTypeString: unwrappedSelfMimeType)
+            if let selfMimeType = feed.links.first(withRel: "self")?.type {
+                let selfMimeParams = parseMimeType(mimeTypeString: selfMimeType)
                 for url in urls {
                     guard let urlMimeType = url.attributes["type"] else {
                         continue
