@@ -43,15 +43,20 @@ public struct LCPAuthenticatedLicense {
     }
     
     /// Support resources for the user (either a website, an email or a telephone number).
-    public var supportLink: Link? {
-        return document.link(for: .support)
+    public var supportLinks: [Link] {
+        return document.links(for: .support)
+    }
+    
+    /// URI of the license provider.
+    public var provider: String {
+        return document.provider
     }
     
     /// Informations about the user owning the license.
     public var user: User? {
         return document.user
     }
-    
+
     /// License Document being opened.
     public let document: LicenseDocument
 
