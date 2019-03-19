@@ -13,6 +13,13 @@
 import Foundation
 
 /// This is to simplify the refactoring, but should be removed in the end once the error enums are properly created.
-enum AppError: Error {
+enum AppError: LocalizedError {
     case message(String)
+    
+    var errorDescription: String? {
+        switch self {
+        case .message(let message):
+            return message
+        }
+    }
 }

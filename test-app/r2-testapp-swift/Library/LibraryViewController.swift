@@ -180,9 +180,11 @@ extension LibraryViewController: UIDocumentPickerDelegate {
     
     @objc func presentDoccumentPicker() {
         
+        // FIXME: Extract UTIs from Info.plist
         let listOfUTI = [String("org.idpf.epub-container"),
                          String("cx.c3.cbz-archive"),
                          String("com.readium.lcpl"),
+                         String("com.readium.lcpdf"),
                          String(kUTTypeText)]
         
         let documentPicker = UIDocumentPickerViewController(documentTypes: listOfUTI, in: .import)

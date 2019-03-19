@@ -94,9 +94,11 @@ final class LibraryService {
         @discardableResult
         func addPublication(url: URL, downloadTask: URLSessionDownloadTask?) -> Bool {
             /// Add the publication to the publication server.
-            let location = Location(absolutePath: url.path,
-                                    relativePath: url.lastPathComponent,
-                                    type: PublicationType.getForPublication(at: url))
+            let location = Location(
+                absolutePath: url.path,
+                relativePath: url.lastPathComponent,
+                type: PublicationType(url: url)
+            )
             guard lightParsePublication(at: location) else {
                 showInfoAlert(title: "Error", message: "The publication isn't valid.")
                 try? FileManager.default.removeItem(at: url)
@@ -270,7 +272,7 @@ final class LibraryService {
         /// Find the types associated to the files, or unknown.
         let locations = files.map({ fileName -> Location in
             let fileUrl = documentsUrl.appendingPathComponent(fileName)
-            let publicationType = PublicationType.getForPublication(at: fileUrl)
+            let publicationType = PublicationType(url: fileUrl)
             
             return Location(absolutePath: fileUrl.path, relativePath: fileName, type: publicationType)
         })
@@ -297,7 +299,7 @@ final class LibraryService {
 
         /// Find the types associated to the files, or unknown.
         let locations = sampleUrls.map({ url -> Location in
-            let publicationType = PublicationType.getForPublication(at: url)
+            let publicationType = PublicationType(url: url)
             
             return Location(absolutePath: url.path, relativePath: "sample", type: publicationType)
         })
