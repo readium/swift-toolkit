@@ -318,7 +318,7 @@ extension LicenseValidation {
                 switch status.status {
                 case .ready, .active, .expired:
                     // If the status is "ready" or "active", the app MUST consider this is a server error and the correct status is "expired"
-                    error = .expired(end)
+                    error = .expired(start: start, end: end)
                 case .returned:
                     error = .returned(date)
                 case .revoked:
@@ -329,7 +329,7 @@ extension LicenseValidation {
                 }
             } else {
                 // No Status Document? Fallback on a generic "expired" error.
-                error = .expired(end)
+                error = .expired(start: start, end: end)
             }
         }
         
