@@ -39,25 +39,25 @@ public class WebPublication: JSONEquatable {
     
     /// Parses a Readium Web Publication Manifest.
     /// https://readium.org/webpub-manifest/schema/publication.schema.json
-    public init(json: Any) throws {
+    public init(json: Any, normalizeHref: (String) -> String = { $0 }) throws {
         guard var json = JSONDictionary(json) else {
             throw JSONParsingError.publication
         }
         
         self.context = parseArray(json.pop("@context"), allowingSingle: true)
-        self.metadata = try Metadata(json: json.pop("metadata"))
+        self.metadata = try Metadata(json: json.pop("metadata"), normalizeHref: normalizeHref)
         self.otherCollections = []
-        self.links = [Link](json: json.pop("links"))
+        self.links = [Link](json: json.pop("links"), normalizeHref: normalizeHref)
             .filter { !$0.rels.isEmpty }
         // `readerOrder` used to be `spine`, so we parse `spine` as a fallback.
-        self.readingOrder = [Link](json: json.pop("readingOrder") ?? json.pop("spine"))
+        self.readingOrder = [Link](json: json.pop("readingOrder") ?? json.pop("spine"), normalizeHref: normalizeHref)
             .filter { $0.type != nil }
-        self.resources = [Link](json: json.pop("resources"))
+        self.resources = [Link](json: json.pop("resources"), normalizeHref: normalizeHref)
             .filter { $0.type != nil }
-        self.toc = [Link](json: json.pop("toc"))
+        self.toc = [Link](json: json.pop("toc"), normalizeHref: normalizeHref)
 
         // Parses sub-collections from remaining JSON properties.
-        self.otherCollections = [PublicationCollection](json: json.json)
+        self.otherCollections = [PublicationCollection](json: json.json, normalizeHref: normalizeHref)
     }
     
     public var json: [String: Any] {

@@ -56,8 +56,8 @@ public class Publication: WebPublication, Loggable {
         super.init(context: context, metadata: metadata, links: links, readingOrder: readingOrder, resources: resources, toc: toc, otherCollections: otherCollections)
     }
     
-    public override init(json: Any) throws {
-        try super.init(json: json)
+    public override init(json: Any, normalizeHref: (String) -> String = { $0 }) throws {
+        try super.init(json: json, normalizeHref: normalizeHref)
     }
 
     /// Appends the self/manifest link to links.
@@ -189,7 +189,7 @@ extension Publication {
     
     @available(*, deprecated, renamed: "init(json:)")
     public static func parse(pubDict: [String: Any]) throws -> Publication {
-        return try Publication(json: pubDict)
+        return try Publication(json: pubDict, normalizeHref: { $0 })
     }
     
     @available(*, deprecated, renamed: "url(to:)")

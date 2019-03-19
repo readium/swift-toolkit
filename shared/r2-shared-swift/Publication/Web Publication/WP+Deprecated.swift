@@ -99,7 +99,7 @@ extension Metadata {
     
     @available(*, deprecated, renamed: "init(json:)")
     public static func parse(metadataDict: [String: Any]) throws -> Metadata {
-        return try Metadata(json: metadataDict)
+        return try Metadata(json: metadataDict, normalizeHref: { $0 })
     }
     
 }
@@ -120,12 +120,12 @@ extension Contributor {
     
     @available(*, deprecated, renamed: "init(json:)")
     public static func parse(_ cDict: [String: Any]) throws -> Contributor {
-        return try Contributor(json: cDict)
+        return try Contributor(json: cDict, normalizeHref: { $0 })
     }
     
     @available(*, deprecated, message: "Use `[Contributor](json:)` instead")
     public static func parse(contributors: Any) throws -> [Contributor] {
-        return [Contributor](json: contributors)
+        return [Contributor](json: contributors, normalizeHref: { $0 })
     }
     
 }
@@ -159,7 +159,7 @@ extension Link {
     
     @available(*, deprecated, renamed: "init(json:)")
     static public func parse(linkDict: [String: Any]) throws -> Link {
-        return try Link(json: linkDict)
+        return try Link(json: linkDict, normalizeHref: { $0 })
     }
     
 }

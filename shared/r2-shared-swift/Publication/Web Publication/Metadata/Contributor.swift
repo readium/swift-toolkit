@@ -50,7 +50,7 @@ public struct Contributor: Equatable {
         }
     }
     
-    public init(json: Any) throws {
+    public init(json: Any, normalizeHref: (String) -> String = { $0 }) throws {
         if let name = json as? String {
             self.localizedName = name.localizedString
             
@@ -63,7 +63,7 @@ public struct Contributor: Equatable {
             self.sortAs = json["sortAs"] as? String
             self.roles = parseArray(json["role"], allowingSingle: true)
             self.position =  parseDouble(json["position"])
-            self.links = [Link](json: json["links"])
+            self.links = [Link](json: json["links"], normalizeHref: normalizeHref)
 
         } else {
             throw JSONParsingError.contributor
@@ -87,16 +87,16 @@ extension Array where Element == Contributor {
     
     /// Parses multiple JSON contributors into an array of Contributors.
     /// eg. let authors = [Contributor](json: ["Apple", "Pear"])
-    public init(json: Any?) {
+    public init(json: Any?, normalizeHref: (String) -> String = { $0 }) {
         self.init()
         guard let json = json else {
             return
         }
 
         if let json = json as? [Any] {
-            let contributors = json.compactMap { try? Contributor(json: $0) }
+            let contributors = json.compactMap { try? Contributor(json: $0, normalizeHref: normalizeHref) }
             append(contentsOf: contributors)
-        } else if let contributor = try? Contributor(json: json) {
+        } else if let contributor = try? Contributor(json: json, normalizeHref: normalizeHref) {
             append(contributor)
         }
     }

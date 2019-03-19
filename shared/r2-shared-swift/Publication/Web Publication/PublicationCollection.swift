@@ -31,18 +31,18 @@ public class PublicationCollection: JSONEquatable {
         self.otherCollections = otherCollections
     }
     
-    public init(role: String, json: Any) throws {
+    public init(role: String, json: Any, normalizeHref: (String) -> String = { $0 }) throws {
         self.role = role
         
         // Parses a list of links.
         if let json = json as? [[String: Any]] {
-            self.links = [Link](json: json)
+            self.links = [Link](json: json, normalizeHref: normalizeHref)
 
         // Parses a sub-collection object.
         } else if var json = JSONDictionary(json) {
             self.metadata = json.pop("metadata") as? [String: Any] ?? [:]
-            self.links = [Link](json: json.pop("links"))
-            self.otherCollections = [PublicationCollection](json: json.json)
+            self.links = [Link](json: json.pop("links"), normalizeHref: normalizeHref)
+            self.otherCollections = [PublicationCollection](json: json.json, normalizeHref: normalizeHref)
         }
 
         guard !links.isEmpty else {
@@ -77,7 +77,7 @@ public class PublicationCollection: JSONEquatable {
 /// eg. let collections = [PublicationCollection](json: [...])
 extension Array where Element == PublicationCollection {
     
-    public init(json: Any?) {
+    public init(json: Any?, normalizeHref: (String) -> String = { $0 }) {
         self.init()
         guard let json = json as? [String: Any] else {
             return
@@ -90,12 +90,12 @@ extension Array where Element == PublicationCollection {
             }
             
             // Parses list of links or a single collection object.
-            if let collection = try? PublicationCollection(role: role, json: subJSON) {
+            if let collection = try? PublicationCollection(role: role, json: subJSON, normalizeHref: normalizeHref) {
                 append(collection)
                 
             // Parses list of collection objects.
             } else if let subsJSON = subJSON as? [[String: Any]] {
-                let collections = subsJSON.compactMap { try? PublicationCollection(role: role, json: $0) }
+                let collections = subsJSON.compactMap { try? PublicationCollection(role: role, json: $0, normalizeHref: normalizeHref) }
                 append(contentsOf: collections)
             }
         }

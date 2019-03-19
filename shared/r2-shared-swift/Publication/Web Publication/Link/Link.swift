@@ -76,13 +76,13 @@ public class Link: JSONEquatable {
         }
     }
     
-    public init(json: Any) throws {
+    public init(json: Any, normalizeHref: (String) -> String = { $0 }) throws {
         guard let json = json as? [String: Any],
             let href = json["href"] as? String else
         {
             throw JSONParsingError.link
         }
-        self.href = href
+        self.href = normalizeHref(href)
         self.type = json["type"] as? String
         self.templated = (json["templated"] as? Bool) ?? false
         self.title = json["title"] as? String
@@ -92,7 +92,7 @@ public class Link: JSONEquatable {
         self.width = parsePositive(json["width"])
         self.bitrate = parsePositiveDouble(json["bitrate"])
         self.duration = parsePositiveDouble(json["duration"])
-        self.children = [Link](json: json["children"])
+        self.children = [Link](json: json["children"], normalizeHref: normalizeHref)
     }
     
     public var json: [String: Any] {
@@ -117,13 +117,13 @@ extension Array where Element == Link {
     
     /// Parses multiple JSON links into an array of Link.
     /// eg. let links = [Link](json: [["href", "http://link1"], ["href", "http://link2"]])
-    public init(json: Any?) {
+    public init(json: Any?, normalizeHref: (String) -> String = { $0 }) {
         self.init()
         guard let json = json as? [Any] else {
             return
         }
         
-        let links = json.compactMap { try? Link(json: $0) }
+        let links = json.compactMap { try? Link(json: $0, normalizeHref: normalizeHref) }
         append(contentsOf: links)
     }
     
