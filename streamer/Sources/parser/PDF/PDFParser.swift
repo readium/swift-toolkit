@@ -158,7 +158,7 @@ public final class PDFParser: PublicationParser, Loggable {
         publication.metadata.identifier = publication.metadata.identifier ?? container.rootFile.rootPath
         
         // Checks the requirements from the spec, see. https://readium.org/lcp-specs/drafts/lcpdf
-        guard publication.readingOrder.contains(where: { $0.rels.contains(PDFConstant.pdfMimetype) }) else {
+        guard publication.readingOrder.contains(where: { $0.type == PDFConstant.pdfMimetype }) else {
             throw PDFParserError.invalidLCPDF
         }
         
