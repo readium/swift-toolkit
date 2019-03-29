@@ -44,6 +44,7 @@
 		CA9E6BA4223A657900ECF6E4 /* JSONEquatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9E6BA3223A657900ECF6E4 /* JSONEquatable.swift */; };
 		CA9E6BA9223A749900ECF6E4 /* EPUBPublication.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9E6BA8223A749900ECF6E4 /* EPUBPublication.swift */; };
 		CA9E6BAE223A76C600ECF6E4 /* OPDSPublication.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9E6BAD223A76C600ECF6E4 /* OPDSPublication.swift */; };
+		CAB88C92224E766E00D36C99 /* LocatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB88C91224E766E00D36C99 /* LocatorTests.swift */; };
 		CABBB2E52237ADEB004EB039 /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B1879F1FA33D4D00BB46BF /* Feed.swift */; };
 		CABBB2E62237ADEB004EB039 /* OpdsMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B187A31FA33E1D00BB46BF /* OpdsMetadata.swift */; };
 		CABBB2E72237ADEB004EB039 /* Facet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B187A11FA33DFA00BB46BF /* Facet.swift */; };
@@ -135,6 +136,7 @@
 		CA9E6BA6223A67D300ECF6E4 /* Publication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Publication.swift; sourceTree = "<group>"; };
 		CA9E6BA8223A749900ECF6E4 /* EPUBPublication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBPublication.swift; sourceTree = "<group>"; };
 		CA9E6BAD223A76C600ECF6E4 /* OPDSPublication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPublication.swift; sourceTree = "<group>"; };
+		CAB88C91224E766E00D36C99 /* LocatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocatorTests.swift; sourceTree = "<group>"; };
 		CABBB2EF2237BEDF004EB039 /* EPUBRendition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBRendition.swift; sourceTree = "<group>"; };
 		CABBB2F32237BF42004EB039 /* OPDSPriceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPriceTests.swift; sourceTree = "<group>"; };
 		CABBB2F52237BF61004EB039 /* OPDSPrice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPrice.swift; sourceTree = "<group>"; };
@@ -267,6 +269,7 @@
 			isa = PBXGroup;
 			children = (
 				CA16A85E2232D19500E66255 /* Web Publication */,
+				CAB88C91224E766E00D36C99 /* LocatorTests.swift */,
 			);
 			path = Publication;
 			sourceTree = "<group>";
@@ -567,6 +570,7 @@
 				CA16A87C2233BA4800E66255 /* EPUBRenditionTests.swift in Sources */,
 				CACD75F52236B2AF004F20CA /* PublicationCollectionTests.swift in Sources */,
 				CA16A8622232D5F200E66255 /* ContributorTests.swift in Sources */,
+				CAB88C92224E766E00D36C99 /* LocatorTests.swift in Sources */,
 				CACD75E0223657AD004F20CA /* WebPublicationTests.swift in Sources */,
 				CA17637E223A7C0300959FEB /* EPUBPublicationTests.swift in Sources */,
 				CABBB2FA2237CA94004EB039 /* OPDSAcquisitionTests.swift in Sources */,

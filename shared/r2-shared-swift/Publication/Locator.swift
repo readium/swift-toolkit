@@ -12,14 +12,25 @@
 
 import Foundation
 
-public class Locator {
-    public var href: String
+/// https://github.com/readium/architecture/tree/master/locators
+public class Locator: JSONEquatable, CustomStringConvertible, Loggable {
+    
+    /// The URI of the resource that the Locator Object points to.
+    public var href: String  // URI
+    
+    /// The media type of the resource that the Locator Object points to.
     public var type: String
+    
+    /// The title of the chapter or section which is more relevant in the context of this locator.
     public var title: String?
+    
+    /// One or more alternative expressions of the location.
     public var locations: Locations?
+    
+    /// Textual context of the locator.
     public var text: LocatorText?
     
-    public init(href: String, type: String, title: String?, locations: Locations?, text: LocatorText?) {
+    public init(href: String, type: String, title: String? = nil, locations: Locations? = nil, text: LocatorText? = nil) {
         self.href = href
         self.type = type
         self.title = title
@@ -27,39 +38,109 @@ public class Locator {
         self.text = text
     }
     
+    public init?(json: Any?) throws {
+        if json == nil {
+            return nil
+        }
+        guard let json = json as? [String: Any],
+            let href = json["href"] as? String,
+            let type = json["type"] as? String else
+        {
+            throw JSONParsingError.locator
+        }
+        
+        self.href = href
+        self.type = type
+        self.title = json["title"] as? String
+        if let locations = json["locations"] {
+            self.locations = try Locations(json: locations)
+        }
+        if let text = json["text"] {
+            self.text = try LocatorText(json: text)
+        }
+    }
+    
+    public convenience init?(jsonString: String) throws {
+        let json: Any
+        do {
+            json = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
+        } catch {
+            Locator.log(.error, error)
+            throw JSONParsingError.locator
+        }
+        
+        try self.init(json: json)
+    }
+    
+    public var json: [String: Any] {
+        return makeJSON([
+            "href": href,
+            "type": type,
+            "title": encodeIfNotNil(title),
+            "locations": encodeIfNotEmpty(locations?.json),
+            "text": encodeIfNotEmpty(text?.json)
+        ])
+    }
+    
+    public func toString() -> String? {
+        return serializeJSONString(json)
+    }
+    
+    public var description: String {
+        return toString() ?? "{}"
+    }
+    
 }
 
-public struct LocatorText:Codable {
+public struct LocatorText: Equatable, Loggable {
     public var after: String?
     public var before: String?
-    public var hightlight: String?
-    public init(after: String? = nil, before: String? = nil, hightlight: String? = nil) {
+    public var highlight: String?
+    
+    public init(after: String? = nil, before: String? = nil, highlight: String? = nil) {
         self.after = after
         self.before = before
-        self.hightlight = hightlight
+        self.highlight = highlight
+    }
+    
+    public init(json: Any) throws {
+        guard let json = json as? [String: Any] else {
+            throw JSONParsingError.locatorText
+        }
+        self.after = json["after"] as? String
+        self.before = json["before"] as? String
+        self.highlight = json["highlight"] as? String
     }
     
     public init(fromString: String) {
         do {
-            let decodedSentences = try JSONDecoder().decode(LocatorText.self, from: fromString.data(using: .utf8)!)
-            self.after = decodedSentences.after
-            self.before = decodedSentences.before
-            self.hightlight = decodedSentences.hightlight
-        } catch { print(error) }
+            let json = try JSONSerialization.jsonObject(with: fromString.data(using: .utf8)!)
+            try self.init(json: json)
+        } catch {
+            self.init()
+            log(.error, error)
+        }
+    }
+
+    public var json: [String: Any]? {
+        return makeJSON([
+            "after": encodeIfNotNil(after),
+            "before": encodeIfNotNil(before),
+            "highlight": encodeIfNotNil(highlight)
+        ])
     }
     
     public func toString() -> String? {
-        do {
-            let jsonData = try JSONEncoder().encode(self)
-            return String(data: jsonData, encoding: .utf8)!
-        } catch { print(error) }
-        return nil
+        guard let json = self.json else {
+            return nil
+        }
+        return serializeJSONString(json)
     }
     
 }
 
 /// Location : Class that contain the different variables needed to localize a particular position
-public struct Locations:Codable {
+public struct Locations: Equatable, Loggable {
     /// Contains one or more fragment in the resource referenced by the Locator Object.
     public var fragment: String?      // 1 = fragment identifier (toc, page lists, landmarks)
     /// Progression in the resource expressed as a percentage.
@@ -73,22 +154,40 @@ public struct Locations:Codable {
         self.position = position
     }
     
+    public init(json: Any) throws {
+        guard let json = json as? [String: Any] else {
+            throw JSONParsingError.locatorText
+        }
+        self.fragment = json["fragment"] as? String
+        self.progression = json["progression"] as? Double
+        self.position = json["position"] as? Int
+    }
+    
     public init(fromString: String) {
         do {
-            let decodedSentences = try JSONDecoder().decode(Locations.self, from: fromString.data(using: .utf8)!)
-            self.fragment = decodedSentences.fragment
-            self.progression = decodedSentences.progression
-            self.position = decodedSentences.position
-        } catch { print(error) }
+            let json = try JSONSerialization.jsonObject(with: fromString.data(using: .utf8)!)
+            try self.init(json: json)
+        } catch {
+            self.init()
+            log(.error, error)
+        }
+    }
+    
+    public var json: [String: Any]? {
+        return makeJSON([
+            "fragment": encodeIfNotNil(fragment),
+            "progression": encodeIfNotNil(progression),
+            "position": encodeIfNotNil(position)
+        ])
     }
     
     public func toString() -> String? {
-        do {
-            let jsonData = try JSONEncoder().encode(self)
-            return String(data: jsonData, encoding: .utf8)!
-        } catch { print(error) }
-        return nil
+        guard let json = self.json else {
+            return nil
+        }
+        return serializeJSONString(json)
     }
+    
 }
 
 public class Bookmark: Locator {
