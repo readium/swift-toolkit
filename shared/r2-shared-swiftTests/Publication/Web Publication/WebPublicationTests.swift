@@ -63,7 +63,7 @@ class WebPublicationTests: XCTestCase {
                 links: [Link(href: "/manifest.json", rels: ["self"])],
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")],
                 resources: [Link(href: "/image.png", type: "image/png")],
-                toc: [Link(href: "/cover.html"), Link(href: "/chap1.html")],
+                tableOfContents: [Link(href: "/cover.html"), Link(href: "/chap1.html")],
                 otherCollections: [PublicationCollection(role: "sub", links: [Link(href: "/sublink")])]
             )
         )
@@ -224,7 +224,7 @@ class WebPublicationTests: XCTestCase {
                 links: [Link(href: "/manifest.json", rels: ["self"])],
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")],
                 resources: [Link(href: "/image.png", type: "image/png")],
-                toc: [Link(href: "/cover.html"), Link(href: "/chap1.html")],
+                tableOfContents: [Link(href: "/cover.html"), Link(href: "/chap1.html")],
                 otherCollections: [PublicationCollection(role: "sub", links: [Link(href: "/sublink")])]
             ).json,
             [
@@ -260,7 +260,7 @@ class WebPublicationTests: XCTestCase {
                 links: [Link(href: "/manifest.json", rels: ["self"])],
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")],
                 resources: [Link(href: "/image.png", type: "image/png")],
-                toc: [Link(href: "/cover.html"), Link(href: "/chap1.html")]
+                tableOfContents: [Link(href: "/cover.html"), Link(href: "/chap1.html")]
             ).manifest,
             """
             {"@context":["https://readium.org/webpub-manifest/context.jsonld"],"links":[{"href":"/manifest.json","rel":["self"],"templated":false}],"metadata":{"readingProgression":"auto","title":"Title"},"readingOrder":[{"href":"/chap1.html","templated":false,"type":"text/html"}],"resources":[{"href":"/image.png","templated":false,"type":"image/png"}],"toc":[{"href":"/cover.html","templated":false},{"href":"/chap1.html","templated":false}]}
