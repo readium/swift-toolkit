@@ -23,7 +23,7 @@ final class CBZModule: ReaderFormatModule {
         self.delegate = delegate
     }
     
-    var publicationType: [PublicationType] {
+    var publicationFormats: [Publication.Format] {
         return [.cbz]
     }
     
