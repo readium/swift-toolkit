@@ -49,7 +49,7 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
     private override init() { super.init() }
     
     private lazy var session: URLSession = {
-        let config = URLSessionConfiguration.default
+        let config = URLSessionConfiguration.background(withIdentifier: "org.readium.r2-shared.DownloadSession")
         return URLSession(configuration: config, delegate: self, delegateQueue: OperationQueue.main)
     } ()
     
