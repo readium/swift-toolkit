@@ -231,7 +231,7 @@ extension EPUBNavigatorViewController {
     }
 
     public func getTableOfContents() -> [Link] {
-        return publication.toc
+        return publication.tableOfContents
     }
 
     public func updateUserSettingStyle() {
