@@ -69,7 +69,7 @@ public final class PDFParser: PublicationParser, Loggable {
         let container = try generateContainerFrom(fileAtPath: path)
 
         let publication = Publication(
-            type: PDFConstant.mimetype,
+            format: .pdf,
             metadata: Metadata(
                 title: URL(fileURLWithPath: container.rootFile.rootPath)
                     .deletingPathExtension()
