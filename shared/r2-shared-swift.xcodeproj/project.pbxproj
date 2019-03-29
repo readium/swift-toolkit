@@ -18,7 +18,7 @@
 		CA16A8702232F7CD00E66255 /* Link.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A86F2232F7CD00E66255 /* Link.swift */; };
 		CA16A8722232FBBB00E66255 /* Properties.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A8712232FBBB00E66255 /* Properties.swift */; };
 		CA16A8742233004A00E66255 /* PropertiesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A8732233004A00E66255 /* PropertiesTests.swift */; };
-		CA16A8762233065F00E66255 /* WP+JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A8752233065F00E66255 /* WP+JSON.swift */; };
+		CA16A8762233065F00E66255 /* Publication+JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A8752233065F00E66255 /* Publication+JSON.swift */; };
 		CA16A87C2233BA4800E66255 /* EPUBRenditionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A87B2233BA4800E66255 /* EPUBRenditionTests.swift */; };
 		CA16A87E2233BD5B00E66255 /* EPUBEncryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A87D2233BD5B00E66255 /* EPUBEncryption.swift */; };
 		CA16A8802233BE6900E66255 /* EPUBEncryptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A87F2233BE6900E66255 /* EPUBEncryptionTests.swift */; };
@@ -107,7 +107,7 @@
 		CA16A86F2232F7CD00E66255 /* Link.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Link.swift; sourceTree = "<group>"; };
 		CA16A8712232FBBB00E66255 /* Properties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Properties.swift; sourceTree = "<group>"; };
 		CA16A8732233004A00E66255 /* PropertiesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertiesTests.swift; sourceTree = "<group>"; };
-		CA16A8752233065F00E66255 /* WP+JSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WP+JSON.swift"; sourceTree = "<group>"; };
+		CA16A8752233065F00E66255 /* Publication+JSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publication+JSON.swift"; sourceTree = "<group>"; };
 		CA16A87B2233BA4800E66255 /* EPUBRenditionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBRenditionTests.swift; sourceTree = "<group>"; };
 		CA16A87D2233BD5B00E66255 /* EPUBEncryption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBEncryption.swift; sourceTree = "<group>"; };
 		CA16A87F2233BE6900E66255 /* EPUBEncryptionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBEncryptionTests.swift; sourceTree = "<group>"; };
@@ -202,6 +202,7 @@
 				AEF39DF220E3895200A560F3 /* UserProperties.swift */,
 				CA176391223AAC1A00959FEB /* UserSettings.swift */,
 				0318F709221DD4CA004E5114 /* Locator.swift */,
+				CA16A8752233065F00E66255 /* Publication+JSON.swift */,
 				CA9E6BA5223A675B00ECF6E4 /* Web Publication */,
 				CA17638E223A99CA00959FEB /* Media Overlays */,
 			);
@@ -301,7 +302,6 @@
 				CABBB2E92237B0BD004EB039 /* Link */,
 				CA9E6BAA223A765E00ECF6E4 /* Extensions */,
 				CA9E6BA02239823300ECF6E4 /* WP+Deprecated.swift */,
-				CA16A8752233065F00E66255 /* WP+JSON.swift */,
 			);
 			path = "Web Publication";
 			sourceTree = "<group>";
@@ -618,7 +618,7 @@
 				CAC34F0A221C61BD002C452E /* DRM.swift in Sources */,
 				CABBB2FC22394450004EB039 /* ContentLayout.swift in Sources */,
 				CABBB2F62237BF61004EB039 /* OPDSPrice.swift in Sources */,
-				CA16A8762233065F00E66255 /* WP+JSON.swift in Sources */,
+				CA16A8762233065F00E66255 /* Publication+JSON.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
