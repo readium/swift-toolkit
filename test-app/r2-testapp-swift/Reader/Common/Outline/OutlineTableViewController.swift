@@ -62,7 +62,7 @@ final class OutlineTableViewController: UITableViewController {
         // Temporary - Get all the elements/subelements.
         if (publicationFormat == .epub) {
             for link in publication.tableOfContents {
-                let childs = childsOf(parent: link)
+                let childs = childrenOf(parent: link)
                 
                 // Append parent.
                 tableOfContents.append(link)
@@ -70,7 +70,7 @@ final class OutlineTableViewController: UITableViewController {
                 tableOfContents.append(contentsOf: childs)
             }
             for link in publication.landmarks {
-                let childs = childsOf(parent: link)
+                let childs = childrenOf(parent: link)
               
                 // Append parent.
                 landmarks.append(link)
@@ -78,7 +78,7 @@ final class OutlineTableViewController: UITableViewController {
                 landmarks.append(contentsOf: childs)
             }
             for link in publication.pageList {
-                let childs = childsOf(parent: link)
+                let childs = childrenOf(parent: link)
               
                 // Append parent.
                 pageList.append(link)
@@ -266,13 +266,13 @@ extension OutlineTableViewController {
         tableView.reloadData()
     }
     
-    fileprivate func childsOf(parent: Link) -> [Link] {
-        var childs = [Link]()
+    fileprivate func childrenOf(parent: Link) -> [Link] {
+        var children = [Link]()
         
         for link in parent.children {
-            childs.append(link)
-            childs.append(contentsOf: childsOf(parent: link))
+            children.append(link)
+            children.append(contentsOf: childrenOf(parent: link))
         }
-        return childs
+        return children
     }
 }
