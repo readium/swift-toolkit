@@ -25,7 +25,7 @@ class EPUBViewController: ReaderViewController {
     var popoverUserconfigurationAnchor: UIBarButtonItem?
     var userSettingNavigationController: UserSettingsNavigationController
 
-    init(publication: Publication, atIndex index: Int, progression: Double?, _ drm: DRM?) {
+    init(publication: Publication, atIndex index: Int, progression: Double?, drm: DRM?) {
         stackView = UIStackView(frame: UIScreen.main.bounds)
         navigator = EPUBNavigatorViewController(for: publication, license: drm?.license, initialIndex: index, initialProgression: progression, editingActions: [.lookup, .copy])
         
@@ -40,6 +40,20 @@ class EPUBViewController: ReaderViewController {
             (settingsStoryboard.instantiateViewController(withIdentifier: "AdvancedSettingsViewController") as! AdvancedSettingsViewController)
         
         super.init(publication: publication, drm: drm)
+    }
+
+    convenience override init(publication: Publication, drm: DRM?) {
+        var index: Int = 0
+        var progression: Double? = nil
+        
+        if let identifier = publication.metadata.identifier {
+            // Retrieve last read document/progression in that document.
+            let userDefaults = UserDefaults.standard
+            index = userDefaults.integer(forKey: "\(identifier)-document")
+            progression = userDefaults.double(forKey: "\(identifier)-documentProgression")
+        }
+        
+        self.init(publication: publication, atIndex: index, progression: progression, drm: drm)
     }
 
     lazy var bookmarkButton: UIBarButtonItem = {
@@ -70,16 +84,7 @@ class EPUBViewController: ReaderViewController {
         stackView.addArrangedSubview(fixedBottomBar)
 
         view.addSubview(stackView)
-        
-      
-        /// Set initial UI appearance.
-        if let appearance = navigator.publication.userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) {
-            setUIColor(for: appearance)
-        }
-        
-        userSettingNavigationController.modalPresentationStyle = .popover
-        userSettingNavigationController.usdelegate = self
-        
+
         fixedTopBar.delegate = self
         fixedBottomBar.delegate = self
         navigator.delegate = self
@@ -90,6 +95,14 @@ class EPUBViewController: ReaderViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        /// Set initial UI appearance.
+        if let appearance = navigator.publication.userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) {
+            setUIColor(for: appearance)
+        }
+        
+        userSettingNavigationController.modalPresentationStyle = .popover
+        userSettingNavigationController.usdelegate = self
         
         fixedTopBar.setLabel(title: navigator.publication.metadata.title)
         fixedBottomBar.setLabel(title: "")
@@ -180,7 +193,7 @@ extension EPUBViewController {
             userSettingsTVC.dismiss(animated: true, completion: nil)
         }
         
-        moduleDelegate?.presentOutline(navigator.getTableOfContents(), type: .epub, delegate: self, from: self)
+        moduleDelegate?.presentOutline(navigator.getTableOfContents(), format: .epub, delegate: self, from: self)
     }
     
     @objc func presentDrmManagement() {

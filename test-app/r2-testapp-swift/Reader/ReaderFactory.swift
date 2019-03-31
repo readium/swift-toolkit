@@ -26,9 +26,9 @@ final class ReaderFactory {
 }
 
 extension ReaderFactory: OutlineTableViewControllerFactory {
-    func make(tableOfContents: [Link], publicationType: PublicationType) -> OutlineTableViewController {
+    func make(tableOfContents: [Link], format: Publication.Format) -> OutlineTableViewController {
         let controller = storyboards.outline.instantiateViewController(withIdentifier: "OutlineTableViewController") as! OutlineTableViewController
-        controller.publicationType = publicationType
+        controller.publicationFormat = format
         controller.tableOfContents = tableOfContents
         return controller
     }

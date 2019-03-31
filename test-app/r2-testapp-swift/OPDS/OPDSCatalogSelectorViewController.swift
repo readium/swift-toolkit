@@ -31,8 +31,7 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         catalogData = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
         if catalogData == nil {
             catalogData = [
-                ["title": "Feedbooks", "url": "http://www.feedbooks.com/catalog.atom"],
-                ["title": "Open Textbooks", "url": "http://open.minitex.org"]
+              ["title": "R2 Test Catalog", "url": "https://d2g.dita.digital/opds/collections/10040"]
             ]
             UserDefaults.standard.set(catalogData, forKey: userDefaultsID)
         }

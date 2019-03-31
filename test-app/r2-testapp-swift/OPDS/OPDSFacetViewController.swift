@@ -71,9 +71,8 @@ extension OPDSFacetViewController: UITableViewDataSource {
 extension OPDSFacetViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if let href = feed.facets[indexPath.section].links[indexPath.row].absoluteHref {
-            delegate?.opdsFacetViewController(self, presentOPDSFeedAt: href)
-        }
+        let href = feed.facets[indexPath.section].links[indexPath.row].href
+        delegate?.opdsFacetViewController(self, presentOPDSFeedAt: href)
         dismiss(animated: true, completion: nil)
     }
     

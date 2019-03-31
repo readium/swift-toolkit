@@ -248,10 +248,6 @@
 		CA29B746222039FE0037534C /* CBZModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA29B744222039FE0037534C /* CBZModule.swift */; };
 		CA29B747222039FE0037534C /* CBZModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA29B744222039FE0037534C /* CBZModule.swift */; };
 		CA29B748222039FE0037534C /* CBZModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA29B744222039FE0037534C /* CBZModule.swift */; };
-		CA29B74A22203B460037534C /* PublicationType.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA29B74922203B460037534C /* PublicationType.swift */; };
-		CA29B74B22203B460037534C /* PublicationType.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA29B74922203B460037534C /* PublicationType.swift */; };
-		CA29B74C22203B460037534C /* PublicationType.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA29B74922203B460037534C /* PublicationType.swift */; };
-		CA29B74D22203B460037534C /* PublicationType.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA29B74922203B460037534C /* PublicationType.swift */; };
 		CA29B74F22204F320037534C /* EPUBModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA29B74E22204F320037534C /* EPUBModule.swift */; };
 		CA29B75022204F320037534C /* EPUBModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA29B74E22204F320037534C /* EPUBModule.swift */; };
 		CA29B75122204F320037534C /* EPUBModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA29B74E22204F320037534C /* EPUBModule.swift */; };
@@ -476,7 +472,6 @@
 		CA29B72D22200B9A0037534C /* OPDSModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSModule.swift; sourceTree = "<group>"; };
 		CA29B73222200EAA0037534C /* UIViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIViewController.swift; sourceTree = "<group>"; };
 		CA29B744222039FE0037534C /* CBZModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBZModule.swift; sourceTree = "<group>"; };
-		CA29B74922203B460037534C /* PublicationType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationType.swift; sourceTree = "<group>"; };
 		CA29B74E22204F320037534C /* EPUBModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBModule.swift; sourceTree = "<group>"; };
 		CA2AE315221C11F4008BD18F /* LCPLibraryService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCPLibraryService.swift; sourceTree = "<group>"; };
 		CA415F0D221D6CE5003A0F7F /* AppModule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppModule.swift; sourceTree = "<group>"; };
@@ -766,7 +761,6 @@
 			children = (
 				CA415F23221D7599003A0F7F /* Toolkit */,
 				CA29B70E221FFE240037534C /* Error.swift */,
-				CA29B74922203B460037534C /* PublicationType.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -1209,7 +1203,6 @@
 				CA29B72F22200B9A0037534C /* OPDSModule.swift in Sources */,
 				0350FCFA211CD2CB006994C2 /* FontSelectionViewController.swift in Sources */,
 				0350FCFB211CD2CB006994C2 /* OutlineTableViewController.swift in Sources */,
-				CA29B74B22203B460037534C /* PublicationType.swift in Sources */,
 				0350FCFC211CD2CB006994C2 /* OPDSPublicationTableViewCell.swift in Sources */,
 				CA29B6F6221FF43E0037534C /* LibraryFactory.swift in Sources */,
 				CA29B706221FF8F30037534C /* OPDSFactory.swift in Sources */,
@@ -1269,7 +1262,6 @@
 				CA29B73022200B9A0037534C /* OPDSModule.swift in Sources */,
 				0350FD4E211CD625006994C2 /* FontSelectionViewController.swift in Sources */,
 				0350FD4F211CD625006994C2 /* OutlineTableViewController.swift in Sources */,
-				CA29B74C22203B460037534C /* PublicationType.swift in Sources */,
 				0350FD50211CD625006994C2 /* OPDSPublicationTableViewCell.swift in Sources */,
 				CA29B6F7221FF43E0037534C /* LibraryFactory.swift in Sources */,
 				CA29B707221FF8F30037534C /* OPDSFactory.swift in Sources */,
@@ -1329,7 +1321,6 @@
 				CA29B73122200B9A0037534C /* OPDSModule.swift in Sources */,
 				CA822C8D221C5737005800D1 /* FontSelectionViewController.swift in Sources */,
 				CA822C8E221C5737005800D1 /* OutlineTableViewController.swift in Sources */,
-				CA29B74D22203B460037534C /* PublicationType.swift in Sources */,
 				CA822C8F221C5737005800D1 /* OPDSPublicationTableViewCell.swift in Sources */,
 				CA29B6F8221FF43E0037534C /* LibraryFactory.swift in Sources */,
 				CA29B708221FF8F30037534C /* OPDSFactory.swift in Sources */,
@@ -1389,7 +1380,6 @@
 				CA29B72E22200B9A0037534C /* OPDSModule.swift in Sources */,
 				F3BD53391F72B26700E46FFC /* FontSelectionViewController.swift in Sources */,
 				F3E7D4871F4F044100DF166D /* OutlineTableViewController.swift in Sources */,
-				CA29B74A22203B460037534C /* PublicationType.swift in Sources */,
 				AE48F324208E0375000B7B44 /* OPDSPublicationTableViewCell.swift in Sources */,
 				CA29B6F5221FF43E0037534C /* LibraryFactory.swift in Sources */,
 				CA29B705221FF8F30037534C /* OPDSFactory.swift in Sources */,

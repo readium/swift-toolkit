@@ -24,6 +24,21 @@ enum PublicationType: String {
         self = PublicationType(rawValue: rawString ?? "") ?? .unknown
     }
     
+    init(mimetype: String?) {
+        switch mimetype {
+        case EpubConstant.mimetype:
+            self = .epub
+        case EpubConstant.mimetypeOEBPS:
+            self = .epub
+        case CbzConstant.mimetype:
+            self = .cbz
+        case PDFConstant.mimetype:
+            self = .pdf
+        default:
+            self = .unknown
+        }
+    }
+    
     /// Find the type (epub/cbz for now) of the publication at url.
     ///
     /// - Parameter url: The location of the publication file.
@@ -36,18 +51,7 @@ enum PublicationType: String {
         // If directory.
         if fileType!.isEmpty {
             let mimetypePath = url.appendingPathComponent("mimetype").path
-            if let mimetype = try? String(contentsOfFile: mimetypePath, encoding: String.Encoding.utf8) {
-                switch mimetype {
-                case EpubConstant.mimetype:
-                    publicationType = PublicationType.epub
-                case EpubConstant.mimetypeOEBPS:
-                    publicationType = PublicationType.epub
-                case CbzConstant.mimetype:
-                    publicationType = PublicationType.cbz
-                default:
-                    publicationType = PublicationType.unknown
-                }
-            }
+            publicationType = PublicationType(mimetype: try? String(contentsOfFile: mimetypePath, encoding: String.Encoding.utf8))
         } else /* Determine type with file extension */ {
             publicationType = PublicationType(rawValue: fileType!) ?? PublicationType.unknown
         }

@@ -38,14 +38,17 @@ class OPDSPublicationInfoViewController : UIViewController {
         fxImageView!.contentMode = .scaleAspectFill
         imageView!.contentMode = .scaleAspectFit
         
-        let titleTextView = OPDSPlaceholderPublicationView(frame: imageView.frame,
-                                                           title: publication?.metadata.title,
-                                                           author: publication?.metadata.authors.map({$0.name ?? ""}).joined(separator: ", "))
+        let titleTextView = OPDSPlaceholderPublicationView(
+            frame: imageView.frame,
+            title: publication?.metadata.title,
+            author: publication?.metadata.authors
+                .map { $0.name }
+                .joined(separator: ", ")
+        )
     
         if let images = publication?.images {
             if images.count > 0 {
-                let absoluteHref = images[0].absoluteHref!
-                let coverURL = URL(string: absoluteHref)
+                let coverURL = URL(string: images[0].href)
                 if (coverURL != nil) {
                     UIApplication.shared.isNetworkActivityIndicatorVisible = true
                     imageView!.kf.setImage(with: coverURL,
@@ -69,7 +72,9 @@ class OPDSPublicationInfoViewController : UIViewController {
         }
         
         titleLabel.text = publication?.metadata.title
-        authorLabel.text = publication?.metadata.authors.map({$0.name ?? ""}).joined(separator: ", ")
+        authorLabel.text = publication?.metadata.authors
+            .map { $0.name }
+            .joined(separator: ", ")
         descriptionLabel.text = publication?.metadata.description
         descriptionLabel.sizeToFit()
         
@@ -138,11 +143,10 @@ class OPDSPublicationInfoViewController : UIViewController {
         
         if let links = publication?.links {
             for link in links {
-                if let absoluteHref = link.absoluteHref {
-                    if absoluteHref.contains(".epub") || absoluteHref.contains(".lcpl") {
-                        url = URL(string: absoluteHref)
-                        break
-                    }
+                let href = link.href
+                if href.contains(".epub") || href.contains(".lcpl") {
+                    url = URL(string: href)
+                    break
                 }
             }
         }

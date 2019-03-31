@@ -96,15 +96,20 @@ extension OPDSGroupTableViewCell: UICollectionViewDataSource {
                 
                 cell.accessibilityLabel = publication.metadata.title
                 
-                let titleTextView = OPDSPlaceholderListView(frame: cell.frame,
-                                                            title: publication.metadata.title,
-                                                            author: publication.metadata.authors.map({$0.name ?? ""}).joined(separator: ", "))
+                let titleTextView = OPDSPlaceholderListView(
+                    frame: cell.frame,
+                    title: publication.metadata.title,
+                    author: publication.metadata.authors
+                        .map { $0.name }
+                        .joined(separator: ", ")
+                )
                 
                 var coverURL: URL?
                 if publication.coverLink != nil {
-                    coverURL = publication.uriTo(link: publication.coverLink)
+                    coverURL = publication.url(to: publication.coverLink)
                 } else if publication.images.count > 0 {
-                    coverURL = URL(string: publication.images[0].absoluteHref!)
+                    let coverHref = publication.images[0].href
+                    coverURL = URL(string: coverHref)
                 }
                 
                 if let coverURL = coverURL {
@@ -120,7 +125,9 @@ extension OPDSGroupTableViewCell: UICollectionViewDataSource {
                 }
                 
                 cell.titleLabel.text = publication.metadata.title
-                cell.authorLabel.text = publication.metadata.authors.map({$0.name ?? ""}).joined(separator: ", ")
+                cell.authorLabel.text = publication.metadata.authors
+                    .map { $0.name }
+                    .joined(separator: ", ")
                 
             }
             
@@ -206,15 +213,13 @@ extension OPDSGroupTableViewCell: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         
         if browsingState == . Publication {
-            
             if let publication = group?.publications[indexPath.row] {
                 let opdsPublicationInfoViewController: OPDSPublicationInfoViewController = OPDSFactory.shared.make(publication: publication)
                 opdsRootTableViewController?.navigationController?.pushViewController(opdsPublicationInfoViewController, animated: true)
             }
             
         } else {
-            
-            if let absoluteHref = group?.navigation[indexPath.row].absoluteHref, let url = URL(string: absoluteHref) {
+            if let href = group?.navigation[indexPath.row].href, let url = URL(string: href) {
                 let newOPDSRootTableViewController: OPDSRootTableViewController = OPDSFactory.shared.make(feedURL: url, indexPath: nil)
                 opdsRootTableViewController?.navigationController?.pushViewController(newOPDSRootTableViewController, animated: true)
             }

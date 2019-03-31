@@ -16,7 +16,7 @@ import UIKit
 
 
 protocol OutlineTableViewControllerFactory {
-    func make(tableOfContents: [Link], publicationType: PublicationType) -> OutlineTableViewController
+    func make(tableOfContents: [Link], format: Publication.Format) -> OutlineTableViewController
 }
 
 protocol OutlineTableViewControllerDelegate: AnyObject {
@@ -34,7 +34,7 @@ final class OutlineTableViewController: UITableViewController {
     let kBookmarkCell = "kBookmarkCell"
     let kContentCell = "kContentCell"
     
-    var publicationType: PublicationType = .epub
+    var publicationFormat: Publication.Format = .epub
     
     var tableOfContents = [Link]()
     var allElements = [Link]()
@@ -58,7 +58,7 @@ final class OutlineTableViewController: UITableViewController {
         tableView.delegate = self
         tableView.dataSource = self
         // Temporary - Get all the elements/subelements.
-        if (publicationType == .epub) {
+        if (publicationFormat == .epub) {
             for link in tableOfContents {
                 let childs = childsOf(parent: link)
                 
@@ -78,10 +78,8 @@ final class OutlineTableViewController: UITableViewController {
             defer {
                 tableView.deselectRow(at: indexPath, animated: true)
             }
-            if (publicationType == .epub) {
-                guard let resourcePath = allElements[indexPath.row].href else {
-                    return
-                }
+            if (publicationFormat == .epub) {
+                let resourcePath = allElements[indexPath.row].href
                 delegate?.outline(self, didSelectItem: resourcePath)
             } else {
                 delegate?.outline(self, didSelectItem: String(indexPath.row))
@@ -105,7 +103,7 @@ final class OutlineTableViewController: UITableViewController {
         switch segments.selectedSegmentIndex {
         case 0:
             let cell = UITableViewCell(style: .default, reuseIdentifier: kContentCell)
-            if (publicationType == .epub) {
+            if (publicationFormat == .epub) {
                 cell.textLabel?.text = allElements[indexPath.row].title
             } else {
                 cell.textLabel?.text = tableOfContents[indexPath.row].href
@@ -136,7 +134,7 @@ final class OutlineTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch segments.selectedSegmentIndex {
         case 0:
-            if (publicationType == .epub) {
+            if (publicationFormat == .epub) {
                 return allElements.count
             } else {
                 return tableOfContents.count
