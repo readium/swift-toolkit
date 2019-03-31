@@ -16,7 +16,7 @@ import UIKit
 
 
 protocol OutlineTableViewControllerFactory {
-    func make(tableOfContents: [Link], format: Publication.Format) -> OutlineTableViewController
+    func make(publication: Publication, format: Publication.Format) -> OutlineTableViewController
 }
 
 protocol OutlineTableViewControllerDelegate: AnyObject {
@@ -35,10 +35,12 @@ final class OutlineTableViewController: UITableViewController {
     let kContentCell = "kContentCell"
     
     var publicationFormat: Publication.Format = .epub
-    
+    var publication: Publication!
+  
     var tableOfContents = [Link]()
-    var allElements = [Link]()
-    
+    var landmarks = [Link]()
+    var pageList = [Link]()
+
     var bookmarksDataSource: BookmarkDataSource? {
         return delegate?.bookmarksDataSource
     }
@@ -54,18 +56,34 @@ final class OutlineTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        title = "Table Of Contents"
+        title = publication.metadata.title
         tableView.delegate = self
         tableView.dataSource = self
         // Temporary - Get all the elements/subelements.
         if (publicationFormat == .epub) {
-            for link in tableOfContents {
+            for link in publication.tableOfContents {
                 let childs = childsOf(parent: link)
                 
                 // Append parent.
-                allElements.append(link)
+                tableOfContents.append(link)
                 // Append childs, and their childs... recursive.
-                allElements.append(contentsOf: childs)
+                tableOfContents.append(contentsOf: childs)
+            }
+            for link in publication.landmarks {
+                let childs = childsOf(parent: link)
+              
+                // Append parent.
+                landmarks.append(link)
+                // Append childs, and their childs... recursive.
+                landmarks.append(contentsOf: childs)
+            }
+            for link in publication.pageList {
+                let childs = childsOf(parent: link)
+              
+                // Append parent.
+                pageList.append(link)
+                // Append childs, and their childs... recursive.
+                pageList.append(contentsOf: childs)
             }
         }
         tableView.tintColor = UIColor.black
@@ -79,7 +97,7 @@ final class OutlineTableViewController: UITableViewController {
                 tableView.deselectRow(at: indexPath, animated: true)
             }
             if (publicationFormat == .epub) {
-                let resourcePath = allElements[indexPath.row].href
+                let resourcePath = tableOfContents[indexPath.row].href
                 delegate?.outline(self, didSelectItem: resourcePath)
             } else {
                 delegate?.outline(self, didSelectItem: String(indexPath.row))
@@ -95,6 +113,30 @@ final class OutlineTableViewController: UITableViewController {
             }
             dismiss(animated: true, completion: nil)
             break
+        case 2:
+            defer {
+                tableView.deselectRow(at: indexPath, animated: true)
+            }
+            if (publicationFormat == .epub) {
+                let resourcePath = pageList[indexPath.row].href
+                delegate?.outline(self, didSelectItem: resourcePath)
+            } else {
+                delegate?.outline(self, didSelectItem: String(indexPath.row))
+            }
+            dismiss(animated: true, completion:nil)
+            break
+        case 3:
+            defer {
+                tableView.deselectRow(at: indexPath, animated: true)
+            }
+            if (publicationFormat == .epub) {
+                let resourcePath = landmarks[indexPath.row].href
+                delegate?.outline(self, didSelectItem: resourcePath)
+            } else {
+                delegate?.outline(self, didSelectItem: String(indexPath.row))
+            }
+            dismiss(animated: true, completion:nil)
+            break
         default:break
         }
     }
@@ -104,9 +146,9 @@ final class OutlineTableViewController: UITableViewController {
         case 0:
             let cell = UITableViewCell(style: .default, reuseIdentifier: kContentCell)
             if (publicationFormat == .epub) {
-                cell.textLabel?.text = allElements[indexPath.row].title
+                cell.textLabel?.text = tableOfContents[indexPath.row].title
             } else {
-                cell.textLabel?.text = tableOfContents[indexPath.row].href
+                cell.textLabel?.text = publication.tableOfContents[indexPath.row].href
             }
             return cell
         case 1:
@@ -123,7 +165,22 @@ final class OutlineTableViewController: UITableViewController {
                 let progression = String(format: "%.f%%", bookmark.locations!.progression! * 100)
                 cell.detailTextLabel?.text = "\(progression) through the chapter"
             }
-            
+            return cell
+        case 2:
+            let cell = UITableViewCell(style: .default, reuseIdentifier: kContentCell)
+            if (publicationFormat == .epub) {
+                cell.textLabel?.text = pageList[indexPath.row].title
+            } else {
+                cell.textLabel?.text = publication.pageList[indexPath.row].href
+            }
+            return cell
+        case 3:
+            let cell = UITableViewCell(style: .default, reuseIdentifier: kContentCell)
+            if (publicationFormat == .epub) {
+                cell.textLabel?.text = landmarks[indexPath.row].title
+            } else {
+                cell.textLabel?.text = publication.landmarks[indexPath.row].href
+            }
             return cell
         default:
             let cell = UITableViewCell(style: .default, reuseIdentifier: "Cell")
@@ -135,12 +192,24 @@ final class OutlineTableViewController: UITableViewController {
         switch segments.selectedSegmentIndex {
         case 0:
             if (publicationFormat == .epub) {
-                return allElements.count
-            } else {
                 return tableOfContents.count
+            } else {
+                return publication.tableOfContents.count
             }
         case 1:
             return bookmarksDataSource?.count ?? 0
+        case 2:
+            if (publicationFormat == .epub) {
+                return pageList.count
+            } else {
+                return publication.pageList.count
+            }
+        case 3:
+            if (publicationFormat == .epub) {
+                return landmarks.count
+            } else {
+                return publication.landmarks.count
+            }
         default:
             return 0
         }
@@ -154,7 +223,7 @@ final class OutlineTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         switch segments.selectedSegmentIndex {
-        case 0:
+        case 0, 2, 3:
             return false
         case 1:
             return true
@@ -166,7 +235,7 @@ final class OutlineTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         
         switch segments.selectedSegmentIndex {
-        case 0:
+        case 0, 2, 3:
             break
         case 1:
             if editingStyle == .delete {
