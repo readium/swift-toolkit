@@ -68,19 +68,24 @@ public final class PDFParser: PublicationParser, Loggable {
     public static func parse(fileAtPath path: String, parserType: PDFFileParser.Type) throws -> (PubBox, PubParsingCallback) {
         let container = try generateContainerFrom(fileAtPath: path)
 
-        let publication = Publication()
-        publication.updatedDate = container.modificationDate
-        publication.internalData["type"] = "pdf"
-        publication.internalData["rootfile"] = container.rootFile.rootFilePath
+        let publication = Publication(
+            format: .pdf,
+            metadata: Metadata(
+                title: URL(fileURLWithPath: container.rootFile.rootPath)
+                    .deletingPathExtension()
+                    .lastPathComponent
+                    .replacingOccurrences(of: "_", with: " ")
+            )
+        )
 
         // FIXME: if the PDF is DRM-protected, this will not work here
         if let fileContainer: PDFFileContainer = container as? PDFFileContainer {
             fileContainer.files[PDFConstant.pdfFilePath] = .path(path)
             
-            let link = Link()
-            link.typeLink = PDFConstant.mimetype
-            link.href = PDFConstant.pdfFilePath
-            publication.readingOrder.append(link)
+            publication.readingOrder.append(Link(
+                href: PDFConstant.pdfFilePath,
+                type: PDFConstant.mimetype
+            ))
 
             try self.fillMetadata(of: publication, in: fileContainer, parserType: parserType)
         }
@@ -114,37 +119,35 @@ public final class PDFParser: PublicationParser, Loggable {
         }
         
         let parser = try parserType.init(stream: stream)
-        let metadata = try parser.parseMetadata()
+        let pdfMetadata = try parser.parseMetadata()
         container.context = parser.context
         
         if let cover = try parser.renderCover(), let coverData = cover.pngData() {
             container.files[PDFConstant.pdfFileCoverPath] = .data(coverData)
             
-            let link = Link()
-            link.typeLink = "image/png"
-            link.href = PDFConstant.pdfFileCoverPath
-            link.rel.append("cover")
+            let link = Link(
+                href: PDFConstant.pdfFileCoverPath,
+                type: "image/png",
+                rel: "cover",
+                height: Int(cover.size.height),
+                width: Int(cover.size.width)
+            )
             publication.resources.append(link)
         }
 
-        publication.metadata.identifier = metadata.identifier ?? container.rootFile.rootPath
+        publication.metadata.identifier = pdfMetadata.identifier ?? container.rootFile.rootPath
 
-        if let version = metadata.version {
-            publication.version = Double(version) ?? 0
+        publication.formatVersion = pdfMetadata.version
+        
+        if let authorName = pdfMetadata.author {
+            publication.metadata.authors.append(
+                Contributor(name: authorName)
+            )
         }
 
-        if let authorName = metadata.author {
-            let author = Contributor()
-            author.multilangName = MultilangString(single: authorName)
-            publication.metadata.authors.append(author)
+        if let title = pdfMetadata.title {
+            publication.metadata.title = title
         }
-
-        let title = metadata.title
-            ?? URL(fileURLWithPath: container.rootFile.rootPath)
-                .deletingPathExtension()
-                .lastPathComponent
-                .replacingOccurrences(of: "_", with: " ")
-        publication.metadata.multilangTitle = MultilangString(single: title)
     }
 
 }

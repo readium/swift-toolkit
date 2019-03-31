@@ -62,23 +62,10 @@ final public class NCXParser {
     ///           'pageTarget' for 'pageList'.
     /// - Returns: The Object representation of the data contained in the given
     ///            NCX XML element.
-    static fileprivate func nodeArray(forNcxElement element: AEXMLElement,
-                               ofType type: String, _ ncxDocumentPath: String) -> [Link]
+    static fileprivate func nodeArray(forNcxElement element: AEXMLElement, ofType type: String, _ ncxDocumentPath: String) -> [Link]
     {
-        // The "to be returned" node array.
-        var newNodeArray = [Link]()
-
-        // Find the elements of `type` in the XML element.
-        guard let elements = element[type].all else {
-            return []
-        }
-        // For each element create a new node of type `type`.
-        for element in elements {
-            let newNode = node(using: element, ofType: type, ncxDocumentPath)
-
-            newNodeArray.append(newNode)
-        }
-        return newNodeArray
+        return (element[type].all ?? [])
+            .compactMap { node(using: $0, ofType: type, ncxDocumentPath) }
     }
 
     /// [RECURSIVE]
@@ -87,19 +74,15 @@ final public class NCXParser {
     ///
     /// - Parameter element: The <navPoint> from the NCX Document.
     /// - Returns: The generated node(`Link`).
-    static fileprivate func node(using element: AEXMLElement, ofType type: String, _ ncxDocumentPath: String) -> Link {
-        let newNode = Link()
-
-        // Get current node informations.
-        newNode.href = normalize(base: ncxDocumentPath, href: element["content"].attributes["src"])
-        newNode.title = element["navLabel"]["text"].value
-        // Retrieve the children of the current node. // FIXME: really usefull?
-        if let childrenNodes = element[type].all {
-            // Add current node children recursively.
-            for childNode in childrenNodes {
-                newNode.children.append(node(using: childNode, ofType: type, ncxDocumentPath))
-            }
+    static fileprivate func node(using element: AEXMLElement, ofType type: String, _ ncxDocumentPath: String) -> Link? {
+        guard let href = element["content"].attributes["src"] else {
+            return nil
         }
-        return newNode
+
+        return Link(
+            href: normalize(base: ncxDocumentPath, href: href),
+            title: element["navLabel"]["text"].value,
+            children: nodeArray(forNcxElement: element, ofType: type, ncxDocumentPath)
+        )
     }
 }

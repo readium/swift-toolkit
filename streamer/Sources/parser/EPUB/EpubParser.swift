@@ -91,8 +91,6 @@ final public class EpubParser: PublicationParser {
                                                  with: container.rootFile.rootFilePath,
                                                  and: epubVersion)
         
-        publication.updatedDate = container.modificationDate
-
         // Check if the publication is DRM protected.
         let drm = scanForDRM(in: container)
         // Parse the META-INF/Encryption.xml.
@@ -141,17 +139,20 @@ final public class EpubParser: PublicationParser {
 
         // Loop through <EncryptedData> elements..
         for encryptedDataElement in encryptedDataElements {
-            var encryption = Encryption()
+            guard let algorithm = encryptedDataElement["EncryptionMethod"].attributes["Algorithm"] else {
+                continue
+            }
+            
+            var encryption = EPUBEncryption(algorithm: algorithm)
+            
             // LCP. Tag LCP protected resources.
             let keyInfoUri = encryptedDataElement["KeyInfo"]["RetrievalMethod"].attributes["URI"]
-
             if keyInfoUri == "license.lcpl#/encryption/content_key",
                 drm?.brand == DRM.Brand.lcp
             {
                 encryption.scheme = drm?.scheme.rawValue
             }
             // LCP END.
-            encryption.algorithm = encryptedDataElement["EncryptionMethod"].attributes["Algorithm"]
 
             EncryptionParser.parseEncryptionProperties(from: encryptedDataElement, to: &encryption)
             EncryptionParser.add(encryption: encryption, toLinkInPublication: &publication,
@@ -191,35 +192,33 @@ final public class EpubParser: PublicationParser {
             let navDocumentData = try? fetcher.data(forLink: navLink),
             navDocumentData != nil,
             let navDocument = try? AEXMLDocument.init(xml: navDocumentData!),
-            let navDocumentFuzi = try? XMLDocument.init(data: navDocumentData!) else {
-                return
-        }
-        // Get the location of the navigation document in order to normalize href pathes.
-        guard let navigationDocumentPath = navLink.href else {
+            let navDocumentFuzi = try? XMLDocument.init(data: navDocumentData!) else
+        {
             return
         }
-        let newTableOfContentsItems = NavigationDocumentParser.tableOfContent(fromNavigationDocument: navDocumentFuzi,
-                                                                              locatedAt: navigationDocumentPath)
-        let newLandmarksItems = NavigationDocumentParser.landmarks(fromNavigationDocument: navDocument,
-                                                                   locatedAt: navigationDocumentPath)
-        let newListOfAudiofiles = NavigationDocumentParser.listOfAudiofiles(fromNavigationDocument: navDocument,
-                                                                            locatedAt: navigationDocumentPath)
-        let newListOfIllustrations = NavigationDocumentParser.listOfIllustrations(fromNavigationDocument: navDocument,
-                                                                                  locatedAt: navigationDocumentPath)
-        let newListOfTables = NavigationDocumentParser.listOfTables(fromNavigationDocument: navDocument,
-                                                                    locatedAt: navigationDocumentPath)
-        let newListOfVideos = NavigationDocumentParser.listOfVideos(fromNavigationDocument: navDocument,
-                                                                    locatedAt: navigationDocumentPath)
-        let newPageListItems = NavigationDocumentParser.pageList(fromNavigationDocument: navDocument,
-                                                                 locatedAt: navigationDocumentPath)
-
-        publication.tableOfContents = newTableOfContentsItems
-        publication.landmarks = newLandmarksItems
-        publication.listOfAudioFiles = newListOfAudiofiles
-        publication.listOfIllustrations = newListOfIllustrations
-        publication.listOfTables = newListOfTables
-        publication.listOfVideos = newListOfVideos
-        publication.pageList = newPageListItems
+        // Get the location of the navigation document in order to normalize href pathes.
+        let navigationDocumentPath = navLink.href
+        
+        publication.tableOfContents = NavigationDocumentParser
+            .tableOfContent(fromNavigationDocument: navDocumentFuzi, locatedAt: navigationDocumentPath)
+        
+        publication.pageList = NavigationDocumentParser
+            .pageList(fromNavigationDocument: navDocument, locatedAt: navigationDocumentPath)
+        
+        publication.landmarks = NavigationDocumentParser
+            .landmarks(fromNavigationDocument: navDocument, locatedAt: navigationDocumentPath)
+        
+        publication.listOfAudioFiles = NavigationDocumentParser
+            .listOfAudiofiles(fromNavigationDocument: navDocument, locatedAt: navigationDocumentPath)
+        
+        publication.listOfIllustrations = NavigationDocumentParser
+            .listOfIllustrations(fromNavigationDocument: navDocument, locatedAt: navigationDocumentPath)
+        
+        publication.listOfTables = NavigationDocumentParser
+            .listOfTables(fromNavigationDocument: navDocument, locatedAt: navigationDocumentPath)
+        
+        publication.listOfVideos = NavigationDocumentParser
+            .listOfVideos(fromNavigationDocument: navDocument, locatedAt: navigationDocumentPath)
     }
 
     /// Attempt to fill `Publication.tableOfContent`/`.pageList` using the NCX
@@ -231,26 +230,20 @@ final public class EpubParser: PublicationParser {
     ///   - publication: The Epub publication.
     static internal func parseNcxDocument(from fetcher: Fetcher, to publication: inout Publication) {
         // Get the link in the readingOrder pointing to the NCX document.
-        guard let ncxLink = publication.resources.first(where: { $0.typeLink == "application/x-dtbncx+xml" }),
+        guard let ncxLink = publication.resources.first(where: { $0.type == "application/x-dtbncx+xml" }),
             let ncxDocumentData = try? fetcher.data(forLink: ncxLink),
             ncxDocumentData != nil,
             let ncxDocument = try? AEXMLDocument.init(xml: ncxDocumentData!) else {
                 return
         }
         // Get the location of the NCX document in order to normalize href pathes.
-        guard let ncxDocumentPath = ncxLink.href else {
-            return
-        }
+        let ncxDocumentPath = ncxLink.href
         if publication.tableOfContents.isEmpty {
-            let newTableOfContentItems = NCXParser.tableOfContents(fromNcxDocument: ncxDocument,
-                                                              locatedAt: ncxDocumentPath)
-
+            let newTableOfContentItems = NCXParser.tableOfContents(fromNcxDocument: ncxDocument, locatedAt: ncxDocumentPath)
             publication.tableOfContents.append(contentsOf: newTableOfContentItems)
         }
         if publication.pageList.isEmpty {
-            let newPageListItems = NCXParser.pageList(fromNcxDocument: ncxDocument,
-                                                 locatedAt: ncxDocumentPath)
-
+            let newPageListItems = NCXParser.pageList(fromNcxDocument: ncxDocument, locatedAt: ncxDocumentPath)
             publication.pageList.append(contentsOf: newPageListItems)
         }
     }
@@ -262,10 +255,8 @@ final public class EpubParser: PublicationParser {
     /// - Parameters:
     ///   - container: The Epub Container.
     ///   - publication: The Publication object representing the Epub data.
-    static internal func parseMediaOverlay(from fetcher: Fetcher,
-                                    to publication: inout Publication) throws
-    {
-        let mediaOverlays = publication.resources.filter({ $0.typeLink ==  "application/smil+xml"})
+    static internal func parseMediaOverlay(from fetcher: Fetcher, to publication: inout Publication) throws {
+        let mediaOverlays = publication.resources.filter({ $0.type ==  "application/smil+xml"})
 
         guard !mediaOverlays.isEmpty else {
             log(.info, "No media-overlays found in the Publication.")
@@ -285,25 +276,20 @@ final public class EpubParser: PublicationParser {
 
             node.role.append("section")
             if let textRef = body.attributes["epub:textref"] { // Prevent the crash on the japanese book
-                node.text = normalize(base: mediaOverlayLink.href!, href: textRef)
+                node.text = normalize(base: mediaOverlayLink.href, href: textRef)
             }
             // get body parameters <par>a
-            if let href = mediaOverlayLink.href {
-                SMILParser.parseParameters(in: body, withParent: node, base: href)
-                SMILParser.parseSequences(in: body, withParent: node, publicationReadingOrder: &publication.readingOrder, base: href)
-            }
+            let href = mediaOverlayLink.href
+            SMILParser.parseParameters(in: body, withParent: node, base: href)
+            SMILParser.parseSequences(in: body, withParent: node, publicationReadingOrder: &publication.readingOrder, base: href)
             // "/??/xhtml/mo-002.xhtml#mo-1" => "/??/xhtml/mo-002.xhtml"
             guard let baseHref = node.text?.components(separatedBy: "#")[0],
-                let link = publication.readingOrder.first(where: {
-                    guard let linkRef = $0.href else {
-                        return false
-                    }
-                    return baseHref.contains(linkRef)
-                }) else {
-                    continue
+                let link = publication.readingOrder.first(where: { baseHref.contains($0.href) }) else
+            {
+                continue
             }
             link.mediaOverlays.append(node)
-            link.properties.mediaOverlay = EpubConstant.mediaOverlayURL + link.href!
+            link.properties.mediaOverlay = EpubConstant.mediaOverlayURL + link.href
         }
     }
 

@@ -88,12 +88,12 @@ final internal class ContentFiltersEpub: ContentFilters {
         //     || resource is 'reflow'
         //       - inject pagination
         if let link = publication.link(withHref: path),
-            link.typeLink == "application/xhtml+xml" || link.typeLink == "text/html",
-            let baseUrl = publication.baseUrl?.deletingLastPathComponent()
+            ["application/xhtml+xml", "text/html"].contains(link.type),
+            let baseUrl = publication.baseURL?.deletingLastPathComponent()
         {
-            if publication.metadata.rendition.layout == .reflowable
+            if publication.metadata.rendition?.layout == .reflowable
                 && link.properties.layout == nil
-                || link.properties.layout == "reflowable"
+                || link.properties.layout == .reflowable
             {
                 decodedInputStream = injectReflowableHtml(in: decodedInputStream, for: publication)
             } else {
@@ -115,38 +115,13 @@ final internal class ContentFiltersEpub: ContentFilters {
                         with container: Container,
                         at path: String)  -> Data
     {
-        /// Get the link for the resource.
-        guard let resourceLink = publication.link(withHref: path) else {
-            return input
-        }
         let inputStream = DataInputStream(data: input)
-        let dataInputStream = DrmDecoder.decoding(inputStream, of: resourceLink, with: container.drm)
-        var decodedInputStream = FontDecoder.decoding(dataInputStream,
-                                                      of: resourceLink,
-                                                      publication.metadata.identifier)
-
-        // Inject additional content in the resource if test succeed.
-        if let link = publication.link(withHref: path),
-            link.typeLink == "application/xhtml+xml" || link.typeLink == "text/html",
-            let baseUrl = publication.baseUrl?.deletingLastPathComponent()
-        {
-            if publication.metadata.rendition.layout == .reflowable
-                && link.properties.layout == nil
-                || link.properties.layout == "reflowable"
-            {
-                decodedInputStream = injectReflowableHtml(in: decodedInputStream, for: publication) as! DataInputStream
-            } else {
-                decodedInputStream = injectFixedLayoutHtml(in: decodedInputStream, for: baseUrl) as! DataInputStream
-            }
-        }
-        //
+        let decodedInputStream = apply(to: inputStream, of: publication, with: container, at: path)
         guard let decodedDataStream = decodedInputStream as? DataInputStream else {
             return Data()
         }
         return decodedDataStream.data
     }
-
-    ////
 
     fileprivate func injectReflowableHtml(in stream: SeekableInputStream, for publication:Publication) -> SeekableInputStream {
 
@@ -178,7 +153,7 @@ final internal class ContentFiltersEpub: ContentFilters {
             abort()
         }
         
-        guard let baseUrl = publication.baseUrl?.deletingLastPathComponent() else {
+        guard let baseUrl = publication.baseURL?.deletingLastPathComponent() else {
             print("Invalid host")
             abort()
         }
@@ -186,18 +161,13 @@ final internal class ContentFiltersEpub: ContentFilters {
         //publication.metadata.primaryContentLayout
         guard let document = try? XMLDocument(string: resourceHtml) else {return stream}
         
-        let langAttribute = document.root?.attr("lang")
-        let langType = LangType(rawString: langAttribute ?? "")
+        let language = document.root?.attr("lang")
+        let contentLayout = publication.contentLayout(forLanguage: language)
+        let styleSubFolder = contentLayout.rawValue
         
-        let readingProgression = publication.metadata.readingProgression
-        let contentLayoutStyle = Metadata.contentlayoutStyle(for: langType, readingProgression: readingProgression)
-        
-        let styleSubFolder = contentLayoutStyle.rawValue
-        
-        if let primaryContentLayout = publication.metadata.primaryContentLayout {
-            if let preset = userSettingsUIPreset[primaryContentLayout] {
-                    publication.userSettingsUIPreset = preset
-            }
+        let primaryContentLayout = publication.contentLayout
+        if let preset = userSettingsUIPreset[primaryContentLayout] {
+            publication.userSettingsUIPreset = preset
         }
         
         let cssBefore = getHtmlLink(forResource: "\(baseUrl)styles/\(styleSubFolder)/ReadiumCSS-before.css")
