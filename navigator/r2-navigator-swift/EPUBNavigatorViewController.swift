@@ -91,10 +91,12 @@ open class EPUBNavigatorViewController: UIViewController {
             index = publication.readingOrder.count
         }
         
-        triptychView = TriptychView(frame: CGRect.zero,
-                                    viewCount: publication.readingOrder.count,
-                                    initialIndex: index,
-                                    readingProgression:publication.metadata.readingProgression)
+        triptychView = TriptychView(
+            frame: CGRect.zero,
+            viewCount: publication.readingOrder.count,
+            initialIndex: index,
+            readingProgression: publication.contentLayout.readingProgression
+        )
         
         super.init(nibName: nil, bundle: nil)
         
@@ -118,56 +120,52 @@ open class EPUBNavigatorViewController: UIViewController {
     }
     public var currentPosition:Bookmark {
         get {
-          var hrefToTitle: [String: String] = {
-            let linkList = self.getTableOfContents()
-            return fulfill(linkList: linkList)
-          } ()
-          
-          func fulfill(linkList: [Link]) -> [String: String] {
-            var result = [String: String]()
+            var hrefToTitle: [String: String] = {
+                let linkList = self.getTableOfContents()
+                return fulfill(linkList: linkList)
+            } ()
             
-            for linkItem in linkList {
-              if let href = linkItem.href, let title = linkItem.title {
-                result[href] = title
-              }
-              let subResult = fulfill(linkList: linkItem.children)
-              result.merge(subResult) { (current, another) -> String in
-                return current
-              }
+            func fulfill(linkList: [Link]) -> [String: String] {
+                var result = [String: String]()
+                
+                for link in linkList {
+                    if let title = link.title {
+                        result[link.href] = title
+                    }
+                    let subResult = fulfill(linkList: link.children)
+                    result.merge(subResult) { (current, another) -> String in
+                        return current
+                    }
+                }
+                return result
             }
-            return result
-          }
-
+            
             let progression = triptychView.getCurrentDocumentProgression()
             let index = triptychView.getCurrentDocumentIndex()
             let readingOrder = self.getReadingOrder()[index]
-            let resourceTitle: String = {
-                if let href = readingOrder.href {
-                    return hrefToTitle[href]
-                }
-                return nil
-            } () ?? "Unknow"
+            let resourceTitle: String = hrefToTitle[readingOrder.href] ?? "Unknown"
 
-            return  Bookmark(bookID: 0,
-                           publicationID: publication.metadata.identifier!,
-                           resourceIndex: index,
-                           resourceHref: readingOrder.href!,
-                           resourceType: readingOrder.typeLink!,
-                           resourceTitle: resourceTitle,
-                           location: Locations(progression: progression ?? 0),
-                           locatorText: LocatorText())
+            return Bookmark(
+                bookID: 0,
+                publicationID: publication.metadata.identifier!,
+                resourceIndex: index,
+                resourceHref: readingOrder.href,
+                resourceType: readingOrder.type ?? "",
+                resourceTitle: resourceTitle,
+                location: Locations(progression: progression ?? 0),
+                locatorText: LocatorText()
+            )
         }
+
     }
 
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        
         // Save the currently opened document index and progression.
-        if navigationController == nil {
-            let progression = triptychView.getCurrentDocumentProgression()
-            let index = triptychView.getCurrentDocumentIndex()
-
-            delegate?.willExitPublication(documentIndex: index, progression: progression)
-        }
+        let progression = triptychView.getCurrentDocumentProgression()
+        let index = triptychView.getCurrentDocumentIndex()
+        delegate?.willExitPublication(documentIndex: index, progression: progression)
     }
 }
 
@@ -214,7 +212,7 @@ extension EPUBNavigatorViewController {
         guard let href = components.first else {
             return nil
         }
-        guard let index = publication.readingOrder.index(where: { $0.href?.contains(href) ?? false }) else {
+        guard let index = publication.readingOrder.index(where: { $0.href.contains(href) }) else {
             return nil
         }
         // If any id found, set the scroll position to it, else to the
@@ -293,7 +291,7 @@ extension EPUBNavigatorViewController: ViewDelegate {
     }
 
     public func publicationBaseUrl() -> URL? {
-        return publication.baseUrl
+        return publication.baseURL
     }
 
     internal func handleCenterTap() {
@@ -347,7 +345,7 @@ extension Delegatee: TriptychViewDelegate {
       
         let link = parent.publication.readingOrder[index]
 
-        if let url = parent.publication.uriTo(link: link) {
+        if let url = parent.publication.url(to: link) {
             let urlRequest = URLRequest(url: url)
 
             webView.viewDelegate = parent
@@ -360,9 +358,9 @@ extension Delegatee: TriptychViewDelegate {
                 parent.initialProgression = nil
             }
             // Check if link is FXL.
-            if (parent.publication.metadata.rendition.layout == .fixed
+            if (parent.publication.metadata.rendition?.layout == .fixed
                 && link.properties.layout == nil)
-                || link.properties.layout == "fixed"{
+                || link.properties.layout == .fixed {
                 webView.scrollView.isPagingEnabled = false
                 webView.scrollView.minimumZoomScale = 1
                 webView.scrollView.maximumZoomScale = 5

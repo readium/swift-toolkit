@@ -94,7 +94,7 @@ extension CBZNavigatorViewController {
     ///
     /// - Parameter link: The resource to render.
     func load(_ link: Link?) {
-        guard let link = link, let url = publication.uriTo(link: link) else {
+        guard let link = link, let url = publication.url(to: link) else {
             return
         }
         getDataFromUrl(url: url) { (data, response, error)  in
