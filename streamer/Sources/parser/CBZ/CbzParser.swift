@@ -78,7 +78,7 @@ public class CbzParser: PublicationParser {
     
     private static func parsePublication(in container: CBZContainer, at path: String) -> Publication {
         let publication = Publication(
-            type: CbzConstant.mimetype,
+            format: .cbz,
             metadata: Metadata(
                 identifier: path,
                 title: URL(fileURLWithPath: path)

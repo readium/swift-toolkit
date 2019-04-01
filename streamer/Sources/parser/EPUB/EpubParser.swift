@@ -106,7 +106,7 @@ final public class EpubParser: PublicationParser {
             try parseMediaOverlay(from: fetcher, to: &publication)
             parseNavigationDocument(from: fetcher, to: &publication)
             
-            if publication.toc.isEmpty || publication.pageList.isEmpty {
+            if publication.tableOfContents.isEmpty || publication.pageList.isEmpty {
                 parseNcxDocument(from: fetcher, to: &publication)
             }
         }
@@ -199,7 +199,7 @@ final public class EpubParser: PublicationParser {
         // Get the location of the navigation document in order to normalize href pathes.
         let navigationDocumentPath = navLink.href
         
-        publication.toc = NavigationDocumentParser
+        publication.tableOfContents = NavigationDocumentParser
             .tableOfContent(fromNavigationDocument: navDocumentFuzi, locatedAt: navigationDocumentPath)
         
         publication.pageList = NavigationDocumentParser
@@ -238,9 +238,9 @@ final public class EpubParser: PublicationParser {
         }
         // Get the location of the NCX document in order to normalize href pathes.
         let ncxDocumentPath = ncxLink.href
-        if publication.toc.isEmpty {
+        if publication.tableOfContents.isEmpty {
             let newTableOfContentItems = NCXParser.tableOfContents(fromNcxDocument: ncxDocument, locatedAt: ncxDocumentPath)
-            publication.toc.append(contentsOf: newTableOfContentItems)
+            publication.tableOfContents.append(contentsOf: newTableOfContentItems)
         }
         if publication.pageList.isEmpty {
             let newPageListItems = NCXParser.pageList(fromNcxDocument: ncxDocument, locatedAt: ncxDocumentPath)

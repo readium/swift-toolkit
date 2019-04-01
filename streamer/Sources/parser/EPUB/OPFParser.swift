@@ -59,7 +59,7 @@ final public class OPFParser {
         let resources = manifestLinks.filter { !readingOrder.contains($0) }
         
         return Publication(
-            type: EpubConstant.mimetype,
+            format: .epub,
             formatVersion: String(epubVersion),
             metadata: try parseMetadata(from: document, epubVersion: epubVersion),
             readingOrder: readingOrder,

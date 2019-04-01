@@ -21,7 +21,7 @@ public struct PDFConstant {
     public static let lcpdfMimetype = "application/pdf+lcp"
     
     /// Default PDF file path inside the container, for standalone PDF files.
-    public static let pdfFilePath = "/publication.pdf"
+    public static let pdfFilePath = "/"
     /// HRef for the pre-rendered cover of standalone PDF files.
     public static let pdfFileCoverPath = "/cover.png"
     
@@ -126,7 +126,7 @@ public final class PDFParser: PublicationParser, Loggable {
         }
         
         let publication = Publication(
-            type: PDFConstant.pdfMimetype,
+            format: .pdf,
             formatVersion: pdfMetadata.version,
             metadata: Metadata(
                 identifier: pdfMetadata.identifier ?? container.rootFile.rootPath,
@@ -154,7 +154,7 @@ public final class PDFParser: PublicationParser, Loggable {
             json: manifestJSON,
             normalizeHref: { normalize(base: container.rootFile.rootFilePath, href: $0) }
         )
-        publication.type = PDFConstant.lcpdfMimetype
+        publication.format = .pdf
         publication.metadata.identifier = publication.metadata.identifier ?? container.rootFile.rootPath
         
         // Checks the requirements from the spec, see. https://readium.org/lcp-specs/drafts/lcpdf
