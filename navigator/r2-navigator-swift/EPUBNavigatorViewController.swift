@@ -15,12 +15,6 @@ import WebKit
 import SafariServices
 
 
-public enum NavigatorError: Error {
-    /// The user tried to copy the text selection but the DRM License doesn't allow it.
-    case copyForbidden
-}
-
-
 public protocol EPUBNavigatorDelegate: class {
     func middleTapHandler()
     func willExitPublication(documentIndex: Int, progression: Double?)

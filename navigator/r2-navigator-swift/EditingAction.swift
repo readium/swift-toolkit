@@ -12,7 +12,7 @@
 import Foundation
 
 public enum EditingAction: String {
-  case copy = "copy:"
-  case share = "_share:"
-  case lookup = "_lookup:"
+    case copy = "copy:"
+    case share = "_share:"
+    case lookup = "_lookup:"
 }
