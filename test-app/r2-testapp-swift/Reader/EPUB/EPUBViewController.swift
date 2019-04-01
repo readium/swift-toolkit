@@ -16,8 +16,6 @@ import R2Navigator
 
 class EPUBViewController: ReaderViewController {
     
-    weak var moduleDelegate: ReaderFormatModuleDelegate?
-    
     let stackView: UIStackView!
     let navigator: EPUBNavigatorViewController!
     let fixedTopBar: BarView!
@@ -129,10 +127,7 @@ class EPUBViewController: ReaderViewController {
         
         popoverUserconfigurationAnchor = userSettingsButton
         /// Add tocItemViewController button to navBar.
-        navigationItem.setRightBarButtonItems(barButtons,
-                                              animated: true)
-        
-        
+        navigationItem.setRightBarButtonItems(barButtons, animated: true)
        
         self.userSettingNavigationController.userSettingsTableViewController.publication = navigator.publication
         
@@ -193,7 +188,7 @@ extension EPUBViewController {
             userSettingsTVC.dismiss(animated: true, completion: nil)
         }
         
-        moduleDelegate?.presentOutline(navigator.getTableOfContents(), type: .epub, delegate: self, from: self)
+        moduleDelegate?.presentOutline(publication.toc, type: .epub, delegate: self, from: self)
     }
     
     @objc func presentDrmManagement() {

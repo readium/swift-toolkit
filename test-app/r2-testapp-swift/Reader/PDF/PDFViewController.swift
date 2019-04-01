@@ -36,3 +36,26 @@ final class PDFViewController: ReaderViewController {
     }
     
 }
+
+
+/// FIXME: This should be moved into ReaderViewController once the Navigator interface is generalized for all formats
+extension ReaderViewController: PDFNavigatorDelegate {
+    
+    func navigatorDidTap(_ navigator: Navigator) {
+        toggleNavigationBar()
+    }
+    
+    func navigator(_ navigator: Navigator, didGoTo locator: Locator) {
+        log(.warning, "did go to \(locator)")
+        // FIXME: Save last read location
+    }
+    
+    func navigator(_ navigator: Navigator, presentExternalURL url: URL) {
+        present(SFSafariViewController(url: url), animated: true)
+    }
+    
+    func navigator(_ navigator: Navigator, presentError error: NavigatorError) {
+        moduleDelegate?.presentAlert("Error", message: error.localizedDescription, from: self)
+    }
+    
+}

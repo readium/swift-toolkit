@@ -15,7 +15,9 @@ import R2Shared
 
 
 /// This class is meant to be subclassed by each publication format view controller. It contains the shared behavior, eg. navigation bar toggling.
-class ReaderViewController: UIViewController {
+class ReaderViewController: UIViewController, Loggable {
+    
+    weak var moduleDelegate: ReaderFormatModuleDelegate?
     
     let publication: Publication
     let drm: DRM?

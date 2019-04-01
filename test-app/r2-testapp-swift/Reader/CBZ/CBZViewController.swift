@@ -17,9 +17,7 @@ import R2Streamer
 
 
 class CBZViewController: ReaderViewController {
-    
-    weak var moduleDelegate: ReaderFormatModuleDelegate?
-    
+
     let navigator: CBZNavigatorViewController
 
     public init(publication: Publication) {
