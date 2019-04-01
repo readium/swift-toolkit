@@ -23,17 +23,17 @@ public class WebPublication: JSONEquatable {
     public var links: [Link]
     public var readingOrder: [Link]
     public var resources: [Link]
-    public var toc: [Link]
+    public var tableOfContents: [Link]
     public var otherCollections: [PublicationCollection]
     
     
-    public init(context: [String] = [], metadata: Metadata, links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = [], toc: [Link] = [], otherCollections: [PublicationCollection] = []) {
+    public init(context: [String] = [], metadata: Metadata, links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = [], tableOfContents: [Link] = [], otherCollections: [PublicationCollection] = []) {
         self.context = context
         self.metadata = metadata
         self.links = links
         self.readingOrder = readingOrder
         self.resources = resources
-        self.toc = toc
+        self.tableOfContents = tableOfContents
         self.otherCollections = otherCollections
     }
     
@@ -54,7 +54,7 @@ public class WebPublication: JSONEquatable {
             .filter { $0.type != nil }
         self.resources = [Link](json: json.pop("resources"), normalizeHref: normalizeHref)
             .filter { $0.type != nil }
-        self.toc = [Link](json: json.pop("toc"), normalizeHref: normalizeHref)
+        self.tableOfContents = [Link](json: json.pop("toc"), normalizeHref: normalizeHref)
 
         // Parses sub-collections from remaining JSON properties.
         self.otherCollections = [PublicationCollection](json: json.json, normalizeHref: normalizeHref)
@@ -67,7 +67,7 @@ public class WebPublication: JSONEquatable {
             "links": links.json,
             "readingOrder": readingOrder.json,
             "resources": encodeIfNotEmpty(resources.json),
-            "toc": encodeIfNotEmpty(toc.json),
+            "toc": encodeIfNotEmpty(tableOfContents.json),
         ], additional: otherCollections.json)
     }
     

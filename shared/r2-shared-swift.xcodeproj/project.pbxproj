@@ -45,6 +45,7 @@
 		CA9E6BA9223A749900ECF6E4 /* EPUBPublication.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9E6BA8223A749900ECF6E4 /* EPUBPublication.swift */; };
 		CA9E6BAE223A76C600ECF6E4 /* OPDSPublication.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9E6BAD223A76C600ECF6E4 /* OPDSPublication.swift */; };
 		CAB88C92224E766E00D36C99 /* LocatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB88C91224E766E00D36C99 /* LocatorTests.swift */; };
+		CAB88C90224E510000D36C99 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAB88C8F224E510000D36C99 /* MobileCoreServices.framework */; };
 		CABBB2E52237ADEB004EB039 /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B1879F1FA33D4D00BB46BF /* Feed.swift */; };
 		CABBB2E62237ADEB004EB039 /* OpdsMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B187A31FA33E1D00BB46BF /* OpdsMetadata.swift */; };
 		CABBB2E72237ADEB004EB039 /* Facet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B187A11FA33DFA00BB46BF /* Facet.swift */; };
@@ -137,6 +138,7 @@
 		CA9E6BA8223A749900ECF6E4 /* EPUBPublication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBPublication.swift; sourceTree = "<group>"; };
 		CA9E6BAD223A76C600ECF6E4 /* OPDSPublication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPublication.swift; sourceTree = "<group>"; };
 		CAB88C91224E766E00D36C99 /* LocatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocatorTests.swift; sourceTree = "<group>"; };
+		CAB88C8F224E510000D36C99 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		CABBB2EF2237BEDF004EB039 /* EPUBRendition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBRendition.swift; sourceTree = "<group>"; };
 		CABBB2F32237BF42004EB039 /* OPDSPriceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPriceTests.swift; sourceTree = "<group>"; };
 		CABBB2F52237BF61004EB039 /* OPDSPrice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPrice.swift; sourceTree = "<group>"; };
@@ -177,6 +179,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CAB88C90224E510000D36C99 /* MobileCoreServices.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -436,6 +439,7 @@
 		F3E7D41F1F4ECA9800DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CAB88C8F224E510000D36C99 /* MobileCoreServices.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
