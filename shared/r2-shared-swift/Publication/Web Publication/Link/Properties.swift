@@ -52,7 +52,7 @@ public struct Properties: Equatable, Loggable {
             return nil
         }
         guard var json = JSONDictionary(json) else {
-            throw JSONParsingError.properties
+            throw JSONError.parsing(Properties.self)
         }
         
         self.orientation = parseRaw(json.pop("orientation"))

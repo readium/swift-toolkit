@@ -47,7 +47,7 @@ public struct EPUBEncryption: Equatable {
         guard let json = json as? [String: Any],
             let algorithm = json["algorithm"] as? String else
         {
-            throw JSONParsingError.encryption
+            throw JSONError.parsing(EPUBEncryption.self)
         }
         
         self.algorithm = algorithm

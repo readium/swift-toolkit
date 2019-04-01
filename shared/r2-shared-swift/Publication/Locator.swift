@@ -46,7 +46,7 @@ public class Locator: JSONEquatable, CustomStringConvertible, Loggable {
             let href = json["href"] as? String,
             let type = json["type"] as? String else
         {
-            throw JSONParsingError.locator
+            throw JSONError.parsing(Locator.self)
         }
         
         self.href = href
@@ -66,7 +66,7 @@ public class Locator: JSONEquatable, CustomStringConvertible, Loggable {
             json = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
         } catch {
             Locator.log(.error, error)
-            throw JSONParsingError.locator
+            throw JSONError.parsing(Locator.self)
         }
         
         try self.init(json: json)
@@ -82,12 +82,12 @@ public class Locator: JSONEquatable, CustomStringConvertible, Loggable {
         ])
     }
     
-    public func toString() -> String? {
+    public var jsonString: String? {
         return serializeJSONString(json)
     }
     
     public var description: String {
-        return toString() ?? "{}"
+        return jsonString ?? "{}"
     }
     
 }
@@ -105,7 +105,7 @@ public struct LocatorText: Equatable, Loggable {
     
     public init(json: Any) throws {
         guard let json = json as? [String: Any] else {
-            throw JSONParsingError.locatorText
+            throw JSONError.parsing(LocatorText.self)
         }
         self.after = json["after"] as? String
         self.before = json["before"] as? String
@@ -156,7 +156,7 @@ public struct Locations: Equatable, Loggable {
     
     public init(json: Any) throws {
         guard let json = json as? [String: Any] else {
-            throw JSONParsingError.locatorText
+            throw JSONError.parsing(Locations.self)
         }
         self.fragment = json["fragment"] as? String
         self.progression = json["progression"] as? Double

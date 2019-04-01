@@ -46,7 +46,7 @@ public class PublicationCollection: JSONEquatable {
         }
 
         guard !links.isEmpty else {
-            throw JSONParsingError.collection
+            throw JSONError.parsing(PublicationCollection.self)
         }
     }
     

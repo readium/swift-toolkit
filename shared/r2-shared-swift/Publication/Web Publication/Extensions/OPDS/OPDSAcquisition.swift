@@ -28,7 +28,7 @@ public struct OPDSAcquisition: Equatable {
         guard let json = json as? [String: Any],
             let type = json["type"] as? String else
         {
-            throw JSONParsingError.opdsAcquisition
+            throw JSONError.parsing(OPDSAcquisition.self)
         }
         
         self.type = type

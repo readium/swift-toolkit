@@ -34,7 +34,7 @@ public struct Subject: Equatable {
             
         } else if let json = json as? [String: Any] {
             guard let name = try LocalizedString(json: json["name"]) else {
-                throw JSONParsingError.contributor
+                throw JSONError.parsing(Subject.self)
             }
             self.localizedName = name
             self.sortAs = json["sortAs"] as? String
@@ -42,7 +42,7 @@ public struct Subject: Equatable {
             self.code = json["code"] as? String
 
         } else {
-            throw JSONParsingError.subject
+            throw JSONError.parsing(Subject.self)
         }
     }
     

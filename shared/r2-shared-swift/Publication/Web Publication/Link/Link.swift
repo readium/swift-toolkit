@@ -81,7 +81,7 @@ public class Link: JSONEquatable {
         guard let json = json as? [String: Any],
             let href = json["href"] as? String else
         {
-            throw JSONParsingError.link
+            throw JSONError.parsing(Link.self)
         }
         self.href = normalizeHref(href)
         self.type = json["type"] as? String

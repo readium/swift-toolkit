@@ -12,25 +12,14 @@
 import Foundation
 
 
-enum JSONParsingError: String, LocalizedError {
-    case collection
-    case publication
-    case metadata
-    case rendition
-    case contributor
-    case subject
-    case link
-    case properties
-    case encryption
-    case localizedString
-    case opdsPrice
-    case opdsAcquisition
-    case locator
-    case locatorText
-    case locations
-    
+enum JSONError: LocalizedError {
+    case parsing(Any.Type)
+
     var errorDescription: String? {
-        return "Failed to parse \(rawValue) JSON"
+        switch self {
+        case .parsing(let type):
+            return "Failed to parse \(type) JSON"
+        }
     }
     
 }

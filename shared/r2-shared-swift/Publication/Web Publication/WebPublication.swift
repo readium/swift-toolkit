@@ -41,7 +41,7 @@ public class WebPublication: JSONEquatable {
     /// https://readium.org/webpub-manifest/schema/publication.schema.json
     public init(json: Any, normalizeHref: (String) -> String = { $0 }) throws {
         guard var json = JSONDictionary(json) else {
-            throw JSONParsingError.publication
+            throw JSONError.parsing(WebPublication.self)
         }
         
         self.context = parseArray(json.pop("@context"), allowingSingle: true)

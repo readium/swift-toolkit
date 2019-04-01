@@ -45,7 +45,7 @@ public enum LocalizedString: Equatable {
         } else if let strings = json as? [String: String] {
             self = .localized(strings)
         } else {
-            throw JSONParsingError.localizedString
+            throw JSONError.parsing(LocalizedString.self)
         }
     }
     
