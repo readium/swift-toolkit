@@ -77,10 +77,7 @@ final class ReaderModule: ReaderModuleAPI {
                 completion()
                 
             case .success(let drm):
-                // Get publication type
-                let publicationType = PublicationType(mimetype: publication.type)
-    
-                guard let module = self.formatModules.first(where:{ $0.publicationType.contains(publicationType) }) else {
+                guard let module = self.formatModules.first(where:{ $0.publicationFormats.contains(publication.format) }) else {
                     delegate.presentError(AppError.message("Unsupported format"), from: navigationController)
                     completion()
                     return
@@ -114,8 +111,8 @@ extension ReaderModule: ReaderFormatModuleDelegate {
         viewController.navigationController?.pushViewController(drmViewController, animated: true)
     }
     
-    func presentOutline(_ links: [Link], type: PublicationType, delegate: OutlineTableViewControllerDelegate?, from viewController: UIViewController) {
-        let outlineTableVC: OutlineTableViewController = factory.make(tableOfContents: links, publicationType: type)
+    func presentOutline(_ links: [Link], format: Publication.Format, delegate: OutlineTableViewControllerDelegate?, from viewController: UIViewController) {
+        let outlineTableVC: OutlineTableViewController = factory.make(tableOfContents: links, format: format)
         outlineTableVC.delegate = delegate
         viewController.present(UINavigationController(rootViewController: outlineTableVC), animated: true)
     }

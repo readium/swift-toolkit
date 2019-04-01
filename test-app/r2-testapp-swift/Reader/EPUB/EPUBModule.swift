@@ -23,7 +23,7 @@ final class EPUBModule: ReaderFormatModule {
         self.delegate = delegate
     }
 
-    var publicationType: [PublicationType] {
+    var publicationFormats: [Publication.Format] {
         return [.epub]
     }
     

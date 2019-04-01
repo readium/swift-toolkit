@@ -77,7 +77,7 @@ class CBZViewController: ReaderViewController {
 
 extension CBZViewController {
     @objc func presentTocTVC() {
-        moduleDelegate?.presentOutline(publication.readingOrder, type: .cbz, delegate: self, from: self)
+        moduleDelegate?.presentOutline(publication.readingOrder, format: .cbz, delegate: self, from: self)
     }
 }
 

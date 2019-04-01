@@ -21,7 +21,7 @@ protocol ReaderFormatModule {
     var delegate: ReaderFormatModuleDelegate? { get }
     
     /// Publication types handled by this sub-module.
-    var publicationType: [PublicationType] { get }
+    var publicationFormats: [Publication.Format] { get }
     
     /// Creates the view controller to present the publication.
     func makeReaderViewController(for publication: Publication, drm: DRM?) throws -> UIViewController
@@ -31,7 +31,7 @@ protocol ReaderFormatModule {
 protocol ReaderFormatModuleDelegate: AnyObject {
     
     /// Shows the reader's outline from the given links.
-    func presentOutline(_ links: [Link], type: PublicationType, delegate: OutlineTableViewControllerDelegate?, from viewController: UIViewController)
+    func presentOutline(_ links: [Link], format: Publication.Format, delegate: OutlineTableViewControllerDelegate?, from viewController: UIViewController)
     
     /// Shows the DRM management screen for the given DRM.
     func presentDRM(_ drm: DRM, from viewController: UIViewController)

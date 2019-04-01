@@ -18,7 +18,7 @@ import R2Streamer
 struct Location {
     let absolutePath: String
     let relativePath: String
-    let type: PublicationType
+    let format: Publication.Format
 }
 
 protocol LibraryServiceDelegate: AnyObject {
@@ -97,7 +97,7 @@ final class LibraryService {
             let location = Location(
                 absolutePath: url.path,
                 relativePath: url.lastPathComponent,
-                type: PublicationType(url: url)
+                format: Publication.Format(file: url)
             )
             guard lightParsePublication(at: location) else {
                 showInfoAlert(title: "Error", message: "The publication isn't valid.")
@@ -221,13 +221,13 @@ final class LibraryService {
     /// Load publication at `location` on the server.
     ///
     internal func lightParsePublication(at location: Location) -> Bool {
-        let parsers: [PublicationType: PublicationParser.Type] = [
+        let parsers: [Publication.Format: PublicationParser.Type] = [
             .cbz: CbzParser.self,
             .epub: EpubParser.self,
             .pdf: PDFParser.self
         ]
         
-        guard let parser = parsers[location.type] else {
+        guard let parser = parsers[location.format] else {
             return false
         }
 
@@ -270,13 +270,14 @@ final class LibraryService {
             return []
         }
         /// Find the types associated to the files, or unknown.
-        let locations = files.map({ fileName -> Location in
-            let fileUrl = documentsUrl.appendingPathComponent(fileName)
-            let publicationType = PublicationType(url: fileUrl)
-            
-            return Location(absolutePath: fileUrl.path, relativePath: fileName, type: publicationType)
-        })
-        return locations
+        return files.map { filename in
+            let fileURL = documentsUrl.appendingPathComponent(filename)
+            return Location(
+                absolutePath: fileURL.path,
+                relativePath: filename,
+                format: Publication.Format(file: fileURL)
+            )
+        }
     }
     
     /// Get the locations out of the application Documents/inbox directory.
@@ -298,12 +299,13 @@ final class LibraryService {
         }
 
         /// Find the types associated to the files, or unknown.
-        let locations = sampleUrls.map({ url -> Location in
-            let publicationType = PublicationType(url: url)
-            
-            return Location(absolutePath: url.path, relativePath: "sample", type: publicationType)
-        })
-        return locations
+        return sampleUrls.map { url in
+            return Location(
+                absolutePath: url.path,
+                relativePath: "sample",
+                format: Publication.Format(file: url)
+            )
+        }
     }
     
     func remove(_ publication: Publication) {
