@@ -56,7 +56,7 @@ extension ReaderViewController: PDFNavigatorDelegate {
     }
     
     func navigator(_ navigator: Navigator, presentError error: NavigatorError) {
-        moduleDelegate?.presentAlert("Error", message: error.localizedDescription, from: self)
+        moduleDelegate?.presentError(error, from: self)
     }
     
 }

@@ -13,7 +13,7 @@
 import Foundation
 import R2Shared
 
-class BookmarkDataSource {
+class BookmarkDataSource: Loggable {
     
     let publicationID :String?
     private(set) var bookmarks = [Bookmark]()
@@ -52,16 +52,18 @@ class BookmarkDataSource {
     }
     
     func addBookmark(bookmark: Bookmark) -> Bool {
-        if let addedBookmarkID = try? BookmarkDatabase.shared.bookmarks.insert(newBookmark: bookmark) {
-          if let bookmarkID = addedBookmarkID {
-            bookmark.id = bookmarkID
-            self.reloadBookmarks()
+        do {
+            if let bookmarkID = try BookmarkDatabase.shared.bookmarks.insert(newBookmark: bookmark) {
+                bookmark.id = bookmarkID
+                self.reloadBookmarks()
+            }
             return true
-          }
+        } catch {
+            log(.error, error)
+            return false
         }
-        return false
     }
-    
+
     func removeBookmark(index: Int) -> Bool {
         if index < 0 || index >= bookmarks.count {
             return false

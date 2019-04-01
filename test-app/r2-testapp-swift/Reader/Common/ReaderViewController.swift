@@ -35,12 +35,14 @@ class ReaderViewController: UIViewController, Loggable {
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
         view.backgroundColor = .white
         navigationController?.setNavigationBarHidden(true, animated: false)
+        
+        navigationItem.rightBarButtonItems = makeNavigationBarButtons()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -64,6 +66,12 @@ class ReaderViewController: UIViewController, Loggable {
     
     // MARK: - Navigation bar
     
+    func makeNavigationBarButtons() -> [UIBarButtonItem] {
+        let tocButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self, action: #selector(presentOutline))
+        let bookmarkButton = UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(bookmarkCurrentPosition))
+        return [tocButton, bookmarkButton]
+    }
+    
     func toggleNavigationBar() {
         guard let state = navigationController?.navigationBar.isHidden else {
             return
@@ -78,5 +86,64 @@ class ReaderViewController: UIViewController, Loggable {
     override var prefersStatusBarHidden: Bool {
         return navigationController?.isNavigationBarHidden ?? true
     }
+    
+    /// Called when the reader view controller will present any view controller. You can override this function to update the UX accordingly.
+    func willPresentViewController() {
+        // Default does nothing.
+    }
+    
+    
+    // MARK: - Locations
+    /// FIXME: This should be implemented in a shared Navigator interface, using Locators.
+    
+    var currentBookmark: Bookmark? {
+        fatalError("Not implemented")
+    }
+    
+    var outline: [Link] {
+        return publication.tableOfContents
+    }
+    
+    func goTo(item: String) {
+        fatalError("Not implemented")
+    }
+    
+    func goTo(bookmark: Bookmark) {
+        fatalError("Not implemented")
+    }
+    
+    
+    // MARK: - Table of Contents
 
+    @objc func presentOutline() {
+        moduleDelegate?.presentOutline(outline, format: publication.format, delegate: self, from: self)
+    }
+    
+    
+    // MARK: - Bookmarks
+    
+    @objc func bookmarkCurrentPosition() {
+        guard let dataSource = bookmarksDataSource,
+            let bookmark = currentBookmark,
+            dataSource.addBookmark(bookmark: bookmark) else
+        {
+            toast(self.view, "Could not add Bookmark", 2)
+            return
+        }
+        toast(self.view, "Bookmark Added", 1)
+    }
+
+}
+
+
+extension ReaderViewController: OutlineTableViewControllerDelegate {
+    
+    func outline(_ outlineTableViewController: OutlineTableViewController, didSelectItem item: String) {
+        goTo(item: item)
+    }
+    
+    func outline(_ outlineTableViewController: OutlineTableViewController, didSelectBookmark bookmark: Bookmark) {
+        goTo(bookmark: bookmark)
+    }
+    
 }
