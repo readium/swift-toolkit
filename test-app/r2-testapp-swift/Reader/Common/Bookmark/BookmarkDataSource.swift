@@ -33,7 +33,11 @@ class BookmarkDataSource: Loggable {
             self.bookmarks = list ?? [Bookmark]()
             self.bookmarks.sort { (b1, b2) -> Bool in
                 if b1.resourceIndex == b2.resourceIndex {
-                    return b1.locations!.progression! < b2.locations!.progression!
+                    if let position1 = b1.locations?.position, let position2 = b2.locations?.position {
+                        return position1 < position2
+                    } else if let progression1 = b1.locations?.progression, let progression2 = b2.locations?.progression {
+                        return progression1 < progression2
+                    }
                 }
                 return b1.resourceIndex < b2.resourceIndex
             }

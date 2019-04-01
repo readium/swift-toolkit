@@ -73,7 +73,7 @@ class ReaderViewController: UIViewController, Loggable {
     }
     
     func toggleNavigationBar() {
-        guard let state = navigationController?.navigationBar.isHidden else {
+        guard let state = navigationController?.isNavigationBarHidden else {
             return
         }
         navigationController?.setNavigationBarHidden(!state, animated: true)

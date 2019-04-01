@@ -120,8 +120,10 @@ final class OutlineTableViewController: UITableViewController {
             if let bookmark = bookmarksDataSource?.bookmark(at: indexPath.item) {
                 cell.textLabel?.text = bookmark.resourceTitle
                 cell.formattedDate = bookmark.creationDate
-                let progression = String(format: "%.f%%", bookmark.locations!.progression! * 100)
-                cell.detailTextLabel?.text = "\(progression) through the chapter"
+                cell.detailTextLabel?.text = nil
+                if let progression = bookmark.locations?.progression {
+                    cell.detailTextLabel?.text = String(format: "\(progression)%.f%% through the chapter", progression * 100)
+                }
             }
             
             return cell

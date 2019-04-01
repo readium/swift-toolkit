@@ -22,8 +22,19 @@ final class PDFViewController: ReaderViewController {
     let navigator: PDFNavigatorViewController
     
     override init(publication: Publication, drm: DRM?) {
-        navigator = PDFNavigatorViewController(publication: publication)
+        let startLocator: Locator? = {
+            guard let publicationID = publication.metadata.identifier,
+                let locatorJSON = UserDefaults.standard.string(forKey: "\(publicationID)-locator") else {
+                return nil
+            }
+            return (try? Locator(jsonString: locatorJSON)) as? Locator
+        }()
+    
+        navigator = PDFNavigatorViewController(publication: publication, startLocator: startLocator)
+        
         super.init(publication: publication, drm: drm)
+        
+        navigator.delegate = self
     }
     
     override func viewDidLoad() {
@@ -34,6 +45,34 @@ final class PDFViewController: ReaderViewController {
         navigator.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(navigator.view)
         navigator.didMove(toParent: self)
+    }
+    
+    override var currentBookmark: Bookmark? {
+        guard let publicationID = publication.metadata.identifier,
+            let locator = navigator.currentLocator else
+        {
+            return nil
+        }
+        
+        return Bookmark(
+            bookID: 0,
+            publicationID: publicationID,
+            resourceIndex: 0,
+            resourceHref: locator.href,
+            resourceType: locator.type,
+            resourceTitle: locator.title ?? "",
+            location: locator.locations ?? Locations(),
+            locatorText: locator.text ?? LocatorText()
+        )
+    }
+    
+    override func goTo(item: String) {
+        let locator = Locator(href: item, type: "application/pdf")
+        navigator.go(to: locator)
+    }
+    
+    override func goTo(bookmark: Bookmark) {
+        navigator.go(to: bookmark)
     }
     
 }
@@ -47,8 +86,10 @@ extension ReaderViewController: PDFNavigatorDelegate {
     }
     
     func navigator(_ navigator: Navigator, didGoTo locator: Locator) {
-        log(.warning, "did go to \(locator)")
-        // FIXME: Save last read location
+        guard let publicationID = navigator.publication.metadata.identifier else {
+            return
+        }
+        UserDefaults.standard.set(locator.jsonString, forKey: "\(publicationID)-locator")
     }
     
     func navigator(_ navigator: Navigator, presentExternalURL url: URL) {
