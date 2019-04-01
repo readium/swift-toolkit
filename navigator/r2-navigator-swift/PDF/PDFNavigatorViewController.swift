@@ -58,6 +58,7 @@ open class PDFNavigatorViewController: UIViewController, Loggable {
     
     public private(set) var pdfView: PDFView!
     private let startLocator: Locator?
+    private var currentLink: Link?
 
     public init(publication: Publication, startLocator: Locator? = nil) {
         self.publication = publication
@@ -71,6 +72,10 @@ open class PDFNavigatorViewController: UIViewController, Loggable {
     public required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
 
     override open func viewDidLoad() {
         super.viewDidLoad()
@@ -82,10 +87,11 @@ open class PDFNavigatorViewController: UIViewController, Loggable {
         view.addSubview(pdfView)
         
         setupPDFView()
+
+        NotificationCenter.default.addObserver(self, selector: #selector(pageDidChange), name: Notification.Name.PDFViewPageChanged, object: pdfView)
         
-        if let link = publication.readingOrder.first {
-            load(link)
-        }
+        let locator = startLocator ?? Locator(href: publication.readingOrder[0].href, type: "application/pdf")
+        go(to: locator)
     }
     
     /// Override to customize the PDFView.
@@ -95,17 +101,68 @@ open class PDFNavigatorViewController: UIViewController, Loggable {
         pdfView.maxScaleFactor = 4.0
         pdfView.minScaleFactor = pdfView.scaleFactorForSizeToFit
     }
-
-    /// Loads `Link` resource into the PDF view.
-    func load(_ link: Link) {
-        guard let url = publication.url(to: link),
-            let document = PDFDocument(url: url) else
-        {
-            log(.error, "Can't open PDF document at \(link)")
+    
+    @objc private func pageDidChange() {
+        guard let locator = currentLocator else {
             return
         }
+        delegate?.navigator(self, didGoTo: locator)
+    }
+
+    func go(to link: Link, pageNumber: Int? = nil) -> Bool {
+        if currentLink != link {
+            guard let url = publication.url(to: link),
+                let document = PDFDocument(url: url) else
+            {
+                log(.error, "Can't open PDF document at \(link)")
+                return false
+            }
+    
+            currentLink = link
+            pdfView.document = document
+        }
         
-        pdfView.document = document
+        guard let document = pdfView.document else {
+            return false
+        }
+        if let pageNumber = pageNumber {
+            let safePageNumber = min(max(0, pageNumber - 1), document.pageCount - 1)
+            guard let page = document.page(at: safePageNumber) else {
+                return false
+            }
+            pdfView.go(to: page)
+        }
+        return true
     }
     
+}
+
+@available(iOS 11.0, *)
+extension PDFNavigatorViewController: Navigator {
+    
+    public var currentLocator: Locator? {
+        guard let link = currentLink,
+            let pageNumber = pdfView.currentPage?.pageRef?.pageNumber else
+        {
+            return nil
+        }
+        
+        return Locator(
+            href: link.href,
+            type: "application/pdf",
+            title: link.title,
+            locations: Locations(
+                fragment: "page=\(pageNumber)",
+                position: pageNumber
+            )
+        )
+    }
+    
+    public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
+        guard let link = publication.readingOrder.first(withHref: locator.href) else {
+            return false
+        }
+        return go(to: link, pageNumber: locator.locations?.position)
+    }
+
 }

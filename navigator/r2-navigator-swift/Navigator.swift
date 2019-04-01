@@ -20,17 +20,19 @@ public protocol Navigator {
     var publication: Publication { get }
     
     /// Current position in the publication.
-    var currentLocator: Locator { get }
+    var currentLocator: Locator? { get }
     
     /// Moves to the position in the publication correponding to the given `Locator`.
     /// - Parameter completion: Called when the transition is completed.
     /// - Returns: Whether the navigator is able to move to the locator. The completion block will be called even if false was returned.
+    @discardableResult
     func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool
     
 }
 
 public extension Navigator {
     
+    @discardableResult
     func go(to locator: Locator, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
         return go(to: locator, animated: animated, completion: completion)
     }
