@@ -20,18 +20,21 @@ public struct Subject: Equatable {
     public var sortAs: String?
     public var scheme: String?  // URI
     public var code: String?
+    /// Used to retrieve similar publications for the given subjects.
+    public var links: [Link] = []
     
-    public init(name: LocalizedStringConvertible, sortAs: String? = nil, scheme: String? = nil, code: String? = nil) {
+    public init(name: LocalizedStringConvertible, sortAs: String? = nil, scheme: String? = nil, code: String? = nil, links: [Link] = []) {
         self.localizedName = name.localizedString
         self.sortAs = sortAs
         self.scheme = scheme
         self.code = code
+        self.links = links
     }
     
     public init(json: Any) throws {
         if let name = json as? String {
             self.localizedName = name.localizedString
-            
+
         } else if let json = json as? [String: Any] {
             guard let name = try LocalizedString(json: json["name"]) else {
                 throw JSONParsingError.contributor
@@ -40,6 +43,7 @@ public struct Subject: Equatable {
             self.sortAs = json["sortAs"] as? String
             self.scheme = json["scheme"] as? String
             self.code = json["code"] as? String
+            self.links = [Link](json: json["links"])
 
         } else {
             throw JSONParsingError.subject
@@ -51,7 +55,8 @@ public struct Subject: Equatable {
             "name": localizedName.json,
             "sortAs": encodeIfNotNil(sortAs),
             "scheme": encodeIfNotNil(scheme),
-            "code": encodeIfNotNil(code)
+            "code": encodeIfNotNil(code),
+            "links": encodeIfNotEmpty(links.json)
         ])
     }
 
