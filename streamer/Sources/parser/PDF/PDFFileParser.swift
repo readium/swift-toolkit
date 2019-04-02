@@ -14,7 +14,7 @@ import R2Shared
 
 
 /// Structure holding the metadata from a standalone PDF file.
-public struct PDFFileMetadata: Loggable {
+public struct PDFFileMetadata {
     
     // Permanent identifier based on the contents of the file at the time it was originally created.
     let identifier: String?
@@ -33,7 +33,31 @@ public struct PDFFileMetadata: Loggable {
     let subject: String?
     // Keywords associated with the document.
     let keywords: [String]
+    // Outline to build the table of contents.
+    let outline: [PDFOutlineNode]
 
+}
+
+
+public struct PDFOutlineNode {
+    let title: String?
+    let pageNumber: Int
+    let children: [PDFOutlineNode]
+}
+
+extension Array where Element == PDFOutlineNode {
+    
+    func links(withHref href: String) -> [Link] {
+        return map { node in
+            return Link(
+                href: "\(href)#page=\(node.pageNumber)",
+                type: PDFConstant.pdfMimetype,
+                title: node.title,
+                children: node.children.links(withHref: href)
+            )
+        }
+    }
+    
 }
 
 

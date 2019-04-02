@@ -125,6 +125,7 @@ public final class PDFParser: PublicationParser, Loggable {
             ))
         }
         
+        let documentHref = PDFConstant.pdfFilePath
         let publication = Publication(
             format: .pdf,
             formatVersion: pdfMetadata.version,
@@ -134,9 +135,10 @@ public final class PDFParser: PublicationParser, Loggable {
                 authors: authors
             ),
             readingOrder: [
-                Link(href: PDFConstant.pdfFilePath, type: PDFConstant.pdfMimetype)
+                Link(href: documentHref, type: PDFConstant.pdfMimetype)
             ],
-            resources: resources
+            resources: resources,
+            tableOfContents: pdfMetadata.outline.links(withHref: documentHref)
         )
         
         return (publication, container)
