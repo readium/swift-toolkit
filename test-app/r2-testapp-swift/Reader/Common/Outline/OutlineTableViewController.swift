@@ -58,7 +58,7 @@ final class OutlineTableViewController: UITableViewController {
         tableView.delegate = self
         tableView.dataSource = self
         // Temporary - Get all the elements/subelements.
-        if (publicationFormat == .epub) {
+        if (publicationFormat != .cbz) {
             for link in tableOfContents {
                 let childs = childsOf(parent: link)
                 
@@ -78,7 +78,7 @@ final class OutlineTableViewController: UITableViewController {
             defer {
                 tableView.deselectRow(at: indexPath, animated: true)
             }
-            if (publicationFormat == .epub) {
+            if (publicationFormat != .cbz) {
                 let resourcePath = allElements[indexPath.row].href
                 delegate?.outline(self, didSelectItem: resourcePath)
             } else {
@@ -103,7 +103,7 @@ final class OutlineTableViewController: UITableViewController {
         switch segments.selectedSegmentIndex {
         case 0:
             let cell = UITableViewCell(style: .default, reuseIdentifier: kContentCell)
-            if (publicationFormat == .epub) {
+            if (publicationFormat != .cbz) {
                 cell.textLabel?.text = allElements[indexPath.row].title
             } else {
                 cell.textLabel?.text = tableOfContents[indexPath.row].href
@@ -136,7 +136,7 @@ final class OutlineTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch segments.selectedSegmentIndex {
         case 0:
-            if (publicationFormat == .epub) {
+            if (publicationFormat != .cbz) {
                 return allElements.count
             } else {
                 return tableOfContents.count

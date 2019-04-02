@@ -67,7 +67,17 @@ final class PDFViewController: ReaderViewController {
     }
     
     override func goTo(item: String) {
-        let locator = Locator(href: item, type: "application/pdf")
+        // Extracts fragment, eg. /file.pdf#page=10
+        let components = item
+            .split(separator: "#", maxSplits: 1)
+            .map { String($0) }
+        let href = components.first ?? item
+        let fragment = components.count > 1 ? components[1] : nil
+        let locator = Locator(
+            href: href,
+            type: "application/pdf",
+            locations: Locations(fragment: fragment)
+        )
         navigator.go(to: locator)
     }
     
@@ -79,7 +89,8 @@ final class PDFViewController: ReaderViewController {
 
 
 /// FIXME: This should be moved into ReaderViewController once the Navigator interface is generalized for all formats
-extension ReaderViewController: PDFNavigatorDelegate {
+@available(iOS 11.0, *)
+extension PDFViewController: PDFNavigatorDelegate {
     
     func navigatorDidTap(_ navigator: Navigator) {
         toggleNavigationBar()
