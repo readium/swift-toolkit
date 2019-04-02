@@ -82,6 +82,8 @@ open class PDFNavigatorViewController: UIViewController, Loggable {
         
         view.backgroundColor = .black
         
+        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTap)))
+        
         pdfView = PDFView(frame: view.bounds)
         pdfView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(pdfView)
@@ -100,6 +102,10 @@ open class PDFNavigatorViewController: UIViewController, Loggable {
         pdfView.autoScales = true
         pdfView.maxScaleFactor = 4.0
         pdfView.minScaleFactor = pdfView.scaleFactorForSizeToFit
+    }
+    
+    @objc private func didTap() {
+        delegate?.navigatorDidTap(self)
     }
     
     @objc private func pageDidChange() {
@@ -141,6 +147,7 @@ open class PDFNavigatorViewController: UIViewController, Loggable {
 extension PDFNavigatorViewController: Navigator {
     
     public var currentLocator: Locator? {
+        // FIXME: take into account multiple PDF in a LCPDF publication
         guard let link = currentLink,
             let pageNumber = pdfView.currentPage?.pageRef?.pageNumber else
         {
@@ -162,7 +169,24 @@ extension PDFNavigatorViewController: Navigator {
         guard let link = publication.readingOrder.first(withHref: locator.href) else {
             return false
         }
-        return go(to: link, pageNumber: locator.locations?.position)
+        
+        let pageNumber: Int? = {
+            if let fragment = locator.locations?.fragment {
+                // https://tools.ietf.org/rfc/rfc3778
+                let optionalPageParam = fragment
+                    .components(separatedBy: CharacterSet(charactersIn: "&#"))
+                    .map { $0.components(separatedBy: "=") }
+                    .first { $0.first == "page" && $0.count == 2 }
+                if let pageParam = optionalPageParam, let pageNumber = Int(pageParam[1]) {
+                    return pageNumber
+                }
+            }
+            
+            // FIXME: take into account multiple PDF in a LCPDF publication
+            return locator.locations?.position
+        }()
+        
+        return go(to: link, pageNumber: pageNumber)
     }
 
 }
