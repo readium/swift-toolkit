@@ -45,6 +45,7 @@ public extension Navigator {
     
 }
 
+
 public enum NavigatorError: LocalizedError {
     /// The user tried to copy the text selection but the DRM License doesn't allow it.
     case copyForbidden

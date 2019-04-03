@@ -62,19 +62,20 @@ open class EPUBNavigatorViewController: UIViewController {
     public weak var delegate: EPUBNavigatorDelegate?
 
     public let pageTransition: PageTransition
-    public let editingActions: [EditingAction]
     public let disableDragAndDrop: Bool
+    
+    fileprivate let editingActions: EditingActionsController
 
     /// - Parameters:
     ///   - publication: The publication.
     ///   - initialIndex: Inital index of -1 will open the publication's at the end.
-    public init(for publication: Publication, license: DRMLicense? = nil, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = []) {
+    public init(for publication: Publication, license: DRMLicense? = nil, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = EditingAction.defaultActions) {
         self.publication = publication
         self.license = license
         self.initialProgression = initialProgression
         self.pageTransition = pageTransition
         self.disableDragAndDrop = disableDragAndDrop
-        self.editingActions = editingActions
+        self.editingActions = EditingActionsController(actions: editingActions, license: license)
 
         userSettings = UserSettings()
         publication.userProperties.properties = userSettings.userProperties.properties
@@ -95,6 +96,7 @@ open class EPUBNavigatorViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
         
         automaticallyAdjustsScrollViewInsets = false
+        self.editingActions.delegate = self
     }
 
     @available(*, unavailable)
@@ -291,36 +293,15 @@ extension EPUBNavigatorViewController: ViewDelegate {
     internal func handleCenterTap() {
         delegate?.middleTapHandler()
     }
-    
-    func requestCopySelection() -> Bool {
-        let allowed = license?.canCopy ?? true
-        if !allowed {
-            delegate?.presentError(.copyForbidden)
-        }
-        return allowed
-    }
-    
-    func didCopySelection() {
-        let pasteboard = UIPasteboard.general
-        
-        guard let license = license else {
-            return
-        }
-        guard license.canCopy else {
-            pasteboard.items = []
-            return
-        }
-        guard let text = pasteboard.string else {
-            return
-        }
-        
-        let authorizedText = license.copy(text)
-        if authorizedText != text {
-            // We overwrite the pasteboard only if the authorized text is different to avoid erasing formatting
-            pasteboard.string = authorizedText
-        }
-    }
 
+}
+
+extension EPUBNavigatorViewController: EditingActionsControllerDelegate {
+    
+    func editingActionsDidPreventCopy(_ editingActions: EditingActionsController) {
+        delegate?.presentError(.copyForbidden)
+    }
+    
 }
 
 /// Used to hide conformance to package-private delegate protocols.

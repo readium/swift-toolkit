@@ -10,8 +10,8 @@
 //
 
 import Foundation
-import UIKit
 import PDFKit
+import UIKit
 import R2Shared
 
 
@@ -55,7 +55,7 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
     
     public let publication: Publication
     public weak var delegate: PDFNavigatorDelegate?
-    public private(set) var pdfView: PDFView!
+    public private(set) var pdfView: PDFDocumentView!
     
     private let initialPosition: Locator?
     
@@ -87,14 +87,18 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
             updateScaleFactors()
         }
     }
+    
+    fileprivate let editingActions: EditingActionsController
 
-    public init(publication: Publication, initialPosition: Locator? = nil) {
+    public init(publication: Publication, license: DRMLicense?, initialPosition: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
         self.publication = publication
         self.initialPosition = initialPosition
+        self.editingActions = EditingActionsController(actions: editingActions, license: license)
         
         super.init(nibName: nil, bundle: nil)
         
         automaticallyAdjustsScrollViewInsets = false
+        self.editingActions.delegate = self
     }
     
     public required init?(coder aDecoder: NSCoder) {
@@ -112,7 +116,7 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
         
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTap)))
         
-        pdfView = PDFView(frame: view.bounds)
+        pdfView = PDFDocumentView(frame: view.bounds, editingActions: editingActions)
         pdfView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(pdfView)
         
@@ -146,7 +150,7 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
         })
     }
 
-    /// Override to customize the PDFView.
+    /// Override to customize the PDFDocumentView.
     open func setupPDFView() {
         pdfView.displaysAsBook = true
     }
@@ -232,4 +236,14 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
         return go(to: link, pageNumber: pageNumber)
     }
 
+}
+
+
+@available(iOS 11.0, *)
+extension PDFNavigatorViewController: EditingActionsControllerDelegate {
+    
+    func editingActionsDidPreventCopy(_ editingActions: EditingActionsController) {
+        delegate?.navigator(self, presentError: .copyForbidden)
+    }
+    
 }
