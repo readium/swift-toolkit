@@ -21,12 +21,15 @@ final class NetworkService: Loggable {
         case put = "PUT"
     }
 
-    func fetch(_ url: URL, method: Method = .get) -> Deferred<(status: Int, data: Data)> {
+    func fetch(_ url: URL, method: Method = .get, timeout: TimeInterval? = nil) -> Deferred<(status: Int, data: Data)> {
         return Deferred { success, failure in
             self.log(.info, "\(method.rawValue) \(url)")
     
             var request = URLRequest(url: url)
             request.httpMethod = method.rawValue
+            if let timeout = timeout {
+                request.timeoutInterval = timeout
+            }
     
             URLSession.shared.dataTask(with: request) { (data, response, error) in
                 guard let status = (response as? HTTPURLResponse)?.statusCode,
