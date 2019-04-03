@@ -20,8 +20,14 @@ public protocol Navigator {
     var publication: Publication { get }
     
     /// Current position in the publication.
-    var currentLocator: Locator? { get }
+    var currentPosition: Locator? { get }
     
+    /// Locators to each synthetic page.
+    /// Can be used to implement features such as:
+    ///  - displaying the current page and the total number of pages
+    ///  - jumping to a given page number
+    var positionList: [Locator] { get }
+
     /// Moves to the position in the publication correponding to the given `Locator`.
     /// - Parameter completion: Called when the transition is completed.
     /// - Returns: Whether the navigator is able to move to the locator. The completion block will be called even if false was returned.

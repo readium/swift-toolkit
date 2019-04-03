@@ -47,7 +47,7 @@ public extension PDFNavigatorDelegate {
 
 /// A view controller used to render a PDF `Publication`.
 @available(iOS 11.0, *)
-open class PDFNavigatorViewController: UIViewController, Loggable {
+open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
     
     enum Error: Swift.Error {
         case openPDFFailed
@@ -55,14 +55,42 @@ open class PDFNavigatorViewController: UIViewController, Loggable {
     
     public let publication: Publication
     public weak var delegate: PDFNavigatorDelegate?
-    
     public private(set) var pdfView: PDFView!
-    private let startLocator: Locator?
+    
+    private let initialPosition: Locator?
+    
+    /// Reading order link of the current resource.
     private var currentLink: Link?
+    
+    /// Currently rendered PDF document.
+    private var document: PDFDocument? {
+        didSet {
+            // FIXME: take into account multiple PDF in a LCPDF publication
+            if let pageCount = document?.pageCount, let href = currentLink?.href {
+                positionList = (1...pageCount).map {
+                    Locator(
+                        href: href,
+                        type: "application/pdf",
+                        // FIXME: title by finding the containing TOC item
+                        title: nil,
+                        locations: Locations(
+                            fragment: "page=\($0)",
+                            position: $0
+                        )
+                    )
+                }
+            } else {
+                positionList = []
+            }
+            
+            pdfView.document = document
+            updateScaleFactors()
+        }
+    }
 
-    public init(publication: Publication, startLocator: Locator? = nil) {
+    public init(publication: Publication, initialPosition: Locator? = nil) {
         self.publication = publication
-        self.startLocator = startLocator
+        self.initialPosition = initialPosition
         
         super.init(nibName: nil, bundle: nil)
         
@@ -77,7 +105,7 @@ open class PDFNavigatorViewController: UIViewController, Loggable {
         NotificationCenter.default.removeObserver(self)
     }
 
-    override open func viewDidLoad() {
+    open override func viewDidLoad() {
         super.viewDidLoad()
         
         view.backgroundColor = .black
@@ -92,16 +120,35 @@ open class PDFNavigatorViewController: UIViewController, Loggable {
 
         NotificationCenter.default.addObserver(self, selector: #selector(pageDidChange), name: Notification.Name.PDFViewPageChanged, object: pdfView)
         
-        let locator = startLocator ?? Locator(href: publication.readingOrder[0].href, type: "application/pdf")
+        let locator = initialPosition ?? Locator(href: publication.readingOrder[0].href, type: "application/pdf")
         go(to: locator)
     }
     
+    open override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // Hack to layout properly the first page when opening the PDF in landscape.
+        if let page = pdfView.currentPage {
+            pdfView.go(to: page.bounds(for: pdfView.displayBox), on: page)
+        }
+    }
+    
+    open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        
+        // Makes sure that the PDF is always properly scaled down when rotating the screen, if the user didn't zoom in.
+        let isAtMinScaleFactor = (pdfView.scaleFactor == pdfView.minScaleFactor)
+        coordinator.animate(alongsideTransition: { _ in
+            self.updateScaleFactors()
+            if isAtMinScaleFactor {
+                self.pdfView.scaleFactor = self.pdfView.minScaleFactor
+            }
+        })
+    }
+
     /// Override to customize the PDFView.
     open func setupPDFView() {
         pdfView.displaysAsBook = true
-        pdfView.autoScales = true
-        pdfView.maxScaleFactor = 4.0
-        pdfView.minScaleFactor = pdfView.scaleFactorForSizeToFit
     }
     
     @objc private func didTap() {
@@ -109,7 +156,7 @@ open class PDFNavigatorViewController: UIViewController, Loggable {
     }
     
     @objc private func pageDidChange() {
-        guard let locator = currentLocator else {
+        guard let locator = currentPosition else {
             return
         }
         delegate?.navigator(self, didGoTo: locator)
@@ -125,7 +172,7 @@ open class PDFNavigatorViewController: UIViewController, Loggable {
             }
     
             currentLink = link
-            pdfView.document = document
+            self.document = document
         }
         
         guard let document = pdfView.document else {
@@ -141,30 +188,26 @@ open class PDFNavigatorViewController: UIViewController, Loggable {
         return true
     }
     
-}
+    private func updateScaleFactors() {
+        pdfView.minScaleFactor = pdfView.scaleFactorForSizeToFit
+        pdfView.maxScaleFactor = 4.0
+    }
 
-@available(iOS 11.0, *)
-extension PDFNavigatorViewController: Navigator {
     
-    public var currentLocator: Locator? {
+    // MARK: - Navigator
+
+    public var currentPosition: Locator? {
         // FIXME: take into account multiple PDF in a LCPDF publication
-        guard let link = currentLink,
-            let pageNumber = pdfView.currentPage?.pageRef?.pageNumber else
-        {
+        guard !positionList.isEmpty,
+            let pageNumber = pdfView.currentPage?.pageRef?.pageNumber,
+            1...positionList.count ~= pageNumber else {
             return nil
         }
-        
-        return Locator(
-            href: link.href,
-            type: "application/pdf",
-            title: link.title,
-            locations: Locations(
-                fragment: "page=\(pageNumber)",
-                position: pageNumber
-            )
-        )
+        return positionList[pageNumber - 1]
     }
     
+    public private(set) var positionList: [Locator] = []
+
     public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
         guard let link = publication.readingOrder.first(withHref: locator.href) else {
             return false
