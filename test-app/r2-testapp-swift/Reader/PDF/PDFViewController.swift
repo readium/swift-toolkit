@@ -22,7 +22,7 @@ final class PDFViewController: ReaderViewController {
     let navigator: PDFNavigatorViewController
     
     override init(publication: Publication, drm: DRM?) {
-        let startLocator: Locator? = {
+        let initialLocation: Locator? = {
             guard let publicationID = publication.metadata.identifier,
                 let locatorJSON = UserDefaults.standard.string(forKey: "\(publicationID)-locator") else {
                 return nil
@@ -30,7 +30,7 @@ final class PDFViewController: ReaderViewController {
             return (try? Locator(jsonString: locatorJSON)) as? Locator
         }()
     
-        navigator = PDFNavigatorViewController(publication: publication, startLocator: startLocator)
+        navigator = PDFNavigatorViewController(publication: publication, license: drm?.license, initialLocation: initialLocation)
         
         super.init(publication: publication, drm: drm)
         
@@ -49,7 +49,7 @@ final class PDFViewController: ReaderViewController {
     
     override var currentBookmark: Bookmark? {
         guard let publicationID = publication.metadata.identifier,
-            let locator = navigator.currentLocator else
+            let locator = navigator.currentLocation else
         {
             return nil
         }
