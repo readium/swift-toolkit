@@ -57,7 +57,7 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
     public weak var delegate: PDFNavigatorDelegate?
     public private(set) var pdfView: PDFDocumentView!
     
-    private let initialPosition: Locator?
+    private let initialLocation: Locator?
     
     /// Reading order link of the current resource.
     private var currentLink: Link?
@@ -90,9 +90,9 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
     
     fileprivate let editingActions: EditingActionsController
 
-    public init(publication: Publication, license: DRMLicense?, initialPosition: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
+    public init(publication: Publication, license: DRMLicense?, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
         self.publication = publication
-        self.initialPosition = initialPosition
+        self.initialLocation = initialLocation
         self.editingActions = EditingActionsController(actions: editingActions, license: license)
         
         super.init(nibName: nil, bundle: nil)
@@ -124,7 +124,7 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
 
         NotificationCenter.default.addObserver(self, selector: #selector(pageDidChange), name: Notification.Name.PDFViewPageChanged, object: pdfView)
         
-        let locator = initialPosition ?? Locator(href: publication.readingOrder[0].href, type: "application/pdf")
+        let locator = initialLocation ?? Locator(href: publication.readingOrder[0].href, type: "application/pdf")
         go(to: locator)
     }
     
@@ -160,7 +160,7 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
     }
     
     @objc private func pageDidChange() {
-        guard let locator = currentPosition else {
+        guard let locator = currentLocation else {
             return
         }
         delegate?.navigator(self, didGoTo: locator)
@@ -200,7 +200,7 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
     
     // MARK: - Navigator
 
-    public var currentPosition: Locator? {
+    public var currentLocation: Locator? {
         // FIXME: take into account multiple PDF in a LCPDF publication
         guard !positionList.isEmpty,
             let pageNumber = pdfView.currentPage?.pageRef?.pageNumber,

@@ -20,7 +20,7 @@ public protocol Navigator {
     var publication: Publication { get }
     
     /// Current position in the publication.
-    var currentPosition: Locator? { get }
+    var currentLocation: Locator? { get }
     
     /// Locators to each synthetic page.
     /// Can be used to implement features such as:
