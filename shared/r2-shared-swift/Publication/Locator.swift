@@ -13,8 +13,8 @@
 import Foundation
 
 /// https://github.com/readium/architecture/tree/master/locators
-public class Locator: JSONEquatable, CustomStringConvertible, Loggable {
-    
+public struct Locator: Equatable, CustomStringConvertible, Loggable {
+
     /// The URI of the resource that the Locator Object points to.
     public var href: String  // URI
     
@@ -60,7 +60,7 @@ public class Locator: JSONEquatable, CustomStringConvertible, Loggable {
         }
     }
     
-    public convenience init?(jsonString: String) throws {
+    public init?(jsonString: String) throws {
         let json: Any
         do {
             json = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
@@ -112,9 +112,9 @@ public struct LocatorText: Equatable, Loggable {
         self.highlight = json["highlight"] as? String
     }
     
-    public init(fromString: String) {
+    public init(jsonString: String) {
         do {
-            let json = try JSONSerialization.jsonObject(with: fromString.data(using: .utf8)!)
+            let json = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
             try self.init(json: json)
         } catch {
             self.init()
@@ -130,11 +130,21 @@ public struct LocatorText: Equatable, Loggable {
         ])
     }
     
-    public func toString() -> String? {
+    public var jsonString: String? {
         guard let json = self.json else {
             return nil
         }
         return serializeJSONString(json)
+    }
+    
+    @available(*, deprecated, renamed: "init(jsonString:)")
+    public init(fromString: String) {
+        self.init(jsonString: fromString)
+    }
+    
+    @available(*, deprecated, renamed: "jsonString")
+    public func toString() -> String? {
+        return jsonString
     }
     
 }
@@ -162,10 +172,10 @@ public struct Locations: Equatable, Loggable {
         self.progression = json["progression"] as? Double
         self.position = json["position"] as? Int
     }
-    
-    public init(fromString: String) {
+
+    public init(jsonString: String) {
         do {
-            let json = try JSONSerialization.jsonObject(with: fromString.data(using: .utf8)!)
+            let json = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
             try self.init(json: json)
         } catch {
             self.init()
@@ -181,47 +191,64 @@ public struct Locations: Equatable, Loggable {
         ])
     }
     
-    public func toString() -> String? {
+    public var jsonString: String? {
         guard let json = self.json else {
             return nil
         }
         return serializeJSONString(json)
     }
     
+    @available(*, deprecated, renamed: "init(jsonString:)")
+    public init(fromString: String) {
+        self.init(jsonString: fromString)
+    }
+    
+    @available(*, deprecated, renamed: "jsonString")
+    public func toString() -> String? {
+        return jsonString
+    }
+    
 }
 
-public class Bookmark: Locator {
-    public var bookID: Int
+
+@available(*, deprecated, message: "Use your own Bookmark model in your app, this one is not used by Readium 2 anymore")
+public class Bookmark {
+    public var id: Int64?
+    public var bookID: Int = 0
     public var publicationID: String
     public var resourceIndex: Int
-    public var resourceHref: String
-    public var resourceType: String
-    public var resourceTitle: String
-    public var location: Locations
-    public var locatorText: LocatorText
-    public var id: Int64?
-    public var creationDate: Date;
+    public var locator: Locator
+    public var creationDate: Date
     
-    public init( bookID: Int,
-                 publicationID: String,
-                 resourceIndex: Int,
-                 resourceHref: String,
-                 resourceType: String,
-                 resourceTitle: String,
-                 location: Locations,
-                 locatorText: LocatorText,
-                 creationDate: Date = Date(),
-                 id: Int64? = nil) {
-        self.bookID = bookID
+    public init(id: Int64? = nil, publicationID: String, resourceIndex: Int, locator: Locator, creationDate: Date = Date()) {
+        self.id = id
         self.publicationID = publicationID
         self.resourceIndex = resourceIndex
-        self.resourceHref = resourceHref
-        self.resourceType = resourceType
-        self.resourceTitle = resourceTitle
-        self.location = location
-        self.locatorText = locatorText
-        self.id = id
+        self.locator = locator
         self.creationDate = creationDate
-        super.init(href: resourceHref, type: resourceType, title: resourceTitle, locations: location, text: locatorText)
     }
+    
+    public convenience init(bookID: Int, publicationID: String, resourceIndex: Int, resourceHref: String, resourceType: String, resourceTitle: String, location: Locations, locatorText: LocatorText, creationDate: Date = Date(), id: Int64? = nil) {
+        self.init(
+            id: id,
+            publicationID: publicationID,
+            resourceIndex: resourceIndex,
+            locator: Locator(
+                href: resourceHref,
+                type: resourceType,
+                title: resourceTitle,
+                locations: location,
+                text: locatorText
+            ),
+            creationDate: creationDate
+        )
+    }
+
+    public var resourceHref: String { return locator.href }
+    public var resourceType: String { return locator.type }
+    public var resourceTitle: String { return locator.title ?? "" }
+    public var location: Locations { return locator.locations ?? Locations() }
+    public var locations: Locations? { return locator.locations }
+    public var locatorText: LocatorText { return locator.text ?? LocatorText() }
+    
 }

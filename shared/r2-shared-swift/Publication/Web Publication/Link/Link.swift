@@ -162,5 +162,9 @@ extension Array where Element == Link {
         }
         return nil
     }
+    
+    public func firstIndex(withHref href: String) -> Int? {
+        return firstIndex { $0.href == href }
+    }
 
 }
