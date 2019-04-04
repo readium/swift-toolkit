@@ -114,45 +114,55 @@ open class EPUBNavigatorViewController: UIViewController {
         triptychView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         view.addSubview(triptychView)
     }
-    public var currentPosition:Bookmark {
-        get {
-            var hrefToTitle: [String: String] = {
-                let linkList = self.getTableOfContents()
-                return fulfill(linkList: linkList)
-            } ()
-            
-            func fulfill(linkList: [Link]) -> [String: String] {
-                var result = [String: String]()
-                
-                for link in linkList {
-                    if let title = link.title {
-                        result[link.href] = title
-                    }
-                    let subResult = fulfill(linkList: link.children)
-                    result.merge(subResult) { (current, another) -> String in
-                        return current
-                    }
-                }
-                return result
-            }
-            
-            let progression = triptychView.getCurrentDocumentProgression()
-            let index = triptychView.getCurrentDocumentIndex()
-            let readingOrder = self.getReadingOrder()[index]
-            let resourceTitle: String = hrefToTitle[readingOrder.href] ?? "Unknown"
 
-            return Bookmark(
-                bookID: 0,
-                publicationID: publication.metadata.identifier!,
-                resourceIndex: index,
-                resourceHref: readingOrder.href,
-                resourceType: readingOrder.type ?? "",
-                resourceTitle: resourceTitle,
-                location: Locations(progression: progression ?? 0),
-                locatorText: LocatorText()
-            )
+    public var currentLocation: Locator? {
+        var hrefToTitle: [String: String] = {
+            let linkList = self.getTableOfContents()
+            return fulfill(linkList: linkList)
+        } ()
+
+        func fulfill(linkList: [Link]) -> [String: String] {
+            var result = [String: String]()
+
+            for link in linkList {
+                if let title = link.title {
+                    result[link.href] = title
+                }
+                let subResult = fulfill(linkList: link.children)
+                result.merge(subResult) { (current, another) -> String in
+                    return current
+                }
+            }
+            return result
         }
 
+        let progression = triptychView.getCurrentDocumentProgression()
+        let index = triptychView.getCurrentDocumentIndex()
+        let readingOrder = self.getReadingOrder()[index]
+        let resourceTitle: String = hrefToTitle[readingOrder.href] ?? "Unknown"
+        
+        return Locator(
+            href: readingOrder.href,
+            type: readingOrder.type ?? "text/html",
+            title: resourceTitle,
+            locations: Locations(
+                progression: progression ?? 0
+            )
+        )
+    }
+    
+    @available(*, deprecated, message: "Bookmark model is deprecated, use your own model and `currentLocation`")
+    public var currentPosition: Bookmark? {
+        guard let publicationID = publication.metadata.identifier,
+            let locator = currentLocation else
+        {
+            return nil
+        }
+        return Bookmark(
+            publicationID: publicationID,
+            resourceIndex: triptychView.getCurrentDocumentIndex(),
+            locator: locator
+        )
     }
 
     open override func viewWillDisappear(_ animated: Bool) {
