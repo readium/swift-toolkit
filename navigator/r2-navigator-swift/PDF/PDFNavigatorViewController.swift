@@ -169,7 +169,7 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
     }
     
     @objc private func pageDidChange() {
-        guard let locator = currentLocation else {
+        guard let locator = currentPosition else {
             return
         }
         delegate?.navigator(self, didGoTo: locator)
@@ -231,10 +231,8 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
         return nil
     }
     
-    
-    // MARK: - Navigator
-
-    public var currentLocation: Locator? {
+    /// Returns the position locator of the current page.
+    private var currentPosition: Locator? {
         guard let currentResourceIndex = self.currentResourceIndex,
             let pageNumber = pdfView.currentPage?.pageRef?.pageNumber else
         {
@@ -244,7 +242,23 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
         guard 1...positionList.count ~= pageNumber else {
             return nil
         }
+        
         return positionList[pageNumber - 1]
+    }
+    
+    
+    // MARK: - Navigator
+
+    public var currentLocation: Locator? {
+        guard var locator = currentPosition else {
+            return nil
+        }
+
+        /// Adds some context for bookmarking
+        if let page = pdfView.currentPage {
+            locator.text = LocatorText(highlight: String(page.string?.prefix(280) ?? ""))
+        }
+        return locator
     }
 
     public let positionList: [Locator]
