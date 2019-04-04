@@ -61,11 +61,22 @@ class CBZViewController: ReaderViewController {
             return nil
         }
         
-        let resourceTitle = publication.readingOrder[resourceIndex].title ?? "Unknow"
+        let resourceTitle = publication.readingOrder[resourceIndex].title
         let resourceHref = publication.readingOrder[resourceIndex].href
         let resourceType = publication.readingOrder[resourceIndex].type ?? ""
         
-        return Bookmark(bookID: 0, publicationID: publicationID, resourceIndex: resourceIndex, resourceHref:resourceHref, resourceType: resourceType, resourceTitle: resourceTitle, location: Locations(progression:progression), locatorText: LocatorText())
+        return Bookmark(
+            publicationID: publicationID,
+            resourceIndex: resourceIndex,
+            locator: Locator(
+                href: resourceHref,
+                type: resourceType,
+                title: resourceTitle,
+                locations: Locations(
+                    progression: progression
+                )
+            )
+        )
     }
     
     override func goTo(item: String) {

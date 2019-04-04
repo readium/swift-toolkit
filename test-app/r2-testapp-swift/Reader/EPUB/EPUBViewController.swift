@@ -152,7 +152,13 @@ class EPUBViewController: ReaderViewController {
     }
     
     override var currentBookmark: Bookmark? {
-        return navigator.currentPosition
+        guard let publicationID = publication.metadata.identifier,
+            let locator = navigator.currentLocation,
+            let resourceIndex = publication.readingOrder.firstIndex(withHref: locator.href) else
+        {
+            return nil
+        }
+        return Bookmark(publicationID: publicationID, resourceIndex: resourceIndex, locator: locator)
     }
     
     override func goTo(item: String) {
@@ -160,7 +166,7 @@ class EPUBViewController: ReaderViewController {
     }
     
     override func goTo(bookmark: Bookmark) {
-        navigator.displayReadingOrderItem(at: bookmark.resourceIndex, progression: bookmark.locations?.progression ?? 0)
+        navigator.displayReadingOrderItem(at: bookmark.resourceIndex, progression: bookmark.locator.locations?.progression ?? 0)
     }
 
     @objc func presentUserSettings() {

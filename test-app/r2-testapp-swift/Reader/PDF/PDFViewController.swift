@@ -49,20 +49,16 @@ final class PDFViewController: ReaderViewController {
     
     override var currentBookmark: Bookmark? {
         guard let publicationID = publication.metadata.identifier,
-            let locator = navigator.currentLocation else
+            let locator = navigator.currentLocation,
+            let resourceIndex = publication.readingOrder.firstIndex(withHref: locator.href) else
         {
             return nil
         }
-        
+
         return Bookmark(
-            bookID: 0,
             publicationID: publicationID,
-            resourceIndex: 0,
-            resourceHref: locator.href,
-            resourceType: locator.type,
-            resourceTitle: locator.title ?? "",
-            location: locator.locations ?? Locations(),
-            locatorText: locator.text ?? LocatorText()
+            resourceIndex: resourceIndex,
+            locator: locator
         )
     }
     
@@ -82,7 +78,7 @@ final class PDFViewController: ReaderViewController {
     }
     
     override func goTo(bookmark: Bookmark) {
-        navigator.go(to: bookmark)
+        navigator.go(to: bookmark.locator)
     }
     
 }

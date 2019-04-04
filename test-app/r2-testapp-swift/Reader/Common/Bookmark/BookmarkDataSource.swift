@@ -32,10 +32,10 @@ class BookmarkDataSource: Loggable {
         if let list = try? BookmarkDatabase.shared.bookmarks.bookmarkList(for: self.publicationID) {
             self.bookmarks = list ?? [Bookmark]()
             self.bookmarks.sort { (b1, b2) -> Bool in
-                if b1.resourceIndex == b2.resourceIndex {
-                    if let position1 = b1.locations?.position, let position2 = b2.locations?.position {
+                if b1.resourceIndex == b2.resourceIndex, let locations1 = b1.locator.locations, let locations2 = b2.locator.locations {
+                    if let position1 = locations1.position, let position2 = locations2.position {
                         return position1 < position2
-                    } else if let progression1 = b1.locations?.progression, let progression2 = b2.locations?.progression {
+                    } else if let progression1 = locations1.progression, let progression2 = locations2.progression {
                         return progression1 < progression2
                     }
                 }
