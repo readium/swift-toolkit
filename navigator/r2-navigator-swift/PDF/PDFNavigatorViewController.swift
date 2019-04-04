@@ -56,38 +56,15 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
     public let publication: Publication
     public weak var delegate: PDFNavigatorDelegate?
     public private(set) var pdfView: PDFDocumentView!
-    
+
     private let initialLocation: Locator?
     
-    /// Reading order link of the current resource.
-    private var currentLink: Link?
+    /// Reading order index of the current resource.
+    private var currentResourceIndex: Int?
     
-    /// Currently rendered PDF document.
-    private var document: PDFDocument? {
-        didSet {
-            // FIXME: take into account multiple PDF in a LCPDF publication
-            if let pageCount = document?.pageCount, let href = currentLink?.href {
-                positionList = (1...pageCount).map {
-                    Locator(
-                        href: href,
-                        type: "application/pdf",
-                        // FIXME: title by finding the containing TOC item
-                        title: nil,
-                        locations: Locations(
-                            fragment: "page=\($0)",
-                            position: $0
-                        )
-                    )
-                }
-            } else {
-                positionList = []
-            }
-            
-            pdfView.document = document
-            updateScaleFactors()
-        }
-    }
-    
+    /// Positions list indexed by reading order.
+    private let positionListByResourceIndex: [[Locator]]
+
     fileprivate let editingActions: EditingActionsController
 
     public init(publication: Publication, license: DRMLicense?, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
@@ -95,6 +72,37 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
         self.initialLocation = initialLocation
         self.editingActions = EditingActionsController(actions: editingActions, license: license)
         
+        // FIXME: This should be cached, to avoid opening all the documents of the readingOrder
+        positionListByResourceIndex = {
+            var lastPositionOfPreviousResource = 0
+            return publication.readingOrder.map { link in
+                guard let url = publication.url(to: link),
+                    let document = PDFDocument(url: url) else
+                {
+                    PDFNavigatorViewController.log(.warning, "Can't open PDF document at \(link)")
+                    return []
+                }
+                
+                let pageCount = max(document.pageCount, 1)  // safe-guard to avoid dividing by 0
+                let positionList = (1...pageCount).map { pageNumber in
+                    Locator(
+                        href: link.href,
+                        type: link.type ?? "application/pdf",
+                        // FIXME: title by finding the containing TOC item
+                        title: nil,
+                        locations: Locations(
+                            fragment: "page=\(pageNumber)",
+                            progression: Double(pageNumber) / Double(pageCount),
+                            position: lastPositionOfPreviousResource + pageNumber
+                        )
+                    )
+                }
+                lastPositionOfPreviousResource += pageCount
+                return positionList
+            }
+        }()
+        positionList = positionListByResourceIndex.flatMap { $0 }
+
         super.init(nibName: nil, bundle: nil)
         
         automaticallyAdjustsScrollViewInsets = false
@@ -124,8 +132,9 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
 
         NotificationCenter.default.addObserver(self, selector: #selector(pageDidChange), name: Notification.Name.PDFViewPageChanged, object: pdfView)
         
-        let locator = initialLocation ?? Locator(href: publication.readingOrder[0].href, type: "application/pdf")
-        go(to: locator)
+        if let locator = initialLocation ?? positionList.first {
+            go(to: locator)
+        }
     }
     
     open override func viewWillAppear(_ animated: Bool) {
@@ -166,8 +175,12 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
         delegate?.navigator(self, didGoTo: locator)
     }
 
-    func go(to link: Link, pageNumber: Int? = nil) -> Bool {
-        if currentLink != link {
+    private func go(to link: Link, pageNumber: Int? = nil) -> Bool {
+        guard let index = publication.readingOrder.firstIndex(of: link) else {
+            return false
+        }
+        
+        if currentResourceIndex != index {
             guard let url = publication.url(to: link),
                 let document = PDFDocument(url: url) else
             {
@@ -175,8 +188,9 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
                 return false
             }
     
-            currentLink = link
-            self.document = document
+            currentResourceIndex = index
+            pdfView.document = document
+            updateScaleFactors()
         }
         
         guard let document = pdfView.document else {
@@ -196,44 +210,54 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
         pdfView.minScaleFactor = pdfView.scaleFactorForSizeToFit
         pdfView.maxScaleFactor = 4.0
     }
-
+    
+    private func pageNumber(for locator: Locator, at resourceIndex: Int) -> Int? {
+        if let fragment = locator.locations?.fragment {
+            // https://tools.ietf.org/rfc/rfc3778
+            let optionalPageParam = fragment
+                .components(separatedBy: CharacterSet(charactersIn: "&#"))
+                .map { $0.components(separatedBy: "=") }
+                .first { $0.first == "page" && $0.count == 2 }
+            if let pageParam = optionalPageParam, let pageNumber = Int(pageParam[1]) {
+                return pageNumber
+            }
+        }
+        
+        if let position = locator.locations?.position,
+            let firstPosition = positionListByResourceIndex[resourceIndex].first?.locations?.position {
+            return position - firstPosition + 1
+        }
+        
+        return nil
+    }
+    
     
     // MARK: - Navigator
 
     public var currentLocation: Locator? {
-        // FIXME: take into account multiple PDF in a LCPDF publication
-        guard !positionList.isEmpty,
-            let pageNumber = pdfView.currentPage?.pageRef?.pageNumber,
-            1...positionList.count ~= pageNumber else {
+        guard let currentResourceIndex = self.currentResourceIndex,
+            let pageNumber = pdfView.currentPage?.pageRef?.pageNumber else
+        {
+            return nil
+        }
+        let positionList = positionListByResourceIndex[currentResourceIndex]
+        guard 1...positionList.count ~= pageNumber else {
             return nil
         }
         return positionList[pageNumber - 1]
     }
-    
-    public private(set) var positionList: [Locator] = []
+
+    public let positionList: [Locator]
 
     public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
-        guard let link = publication.readingOrder.first(withHref: locator.href) else {
+        guard let index = publication.readingOrder.firstIndex(withHref: locator.href) else {
             return false
         }
-        
-        let pageNumber: Int? = {
-            if let fragment = locator.locations?.fragment {
-                // https://tools.ietf.org/rfc/rfc3778
-                let optionalPageParam = fragment
-                    .components(separatedBy: CharacterSet(charactersIn: "&#"))
-                    .map { $0.components(separatedBy: "=") }
-                    .first { $0.first == "page" && $0.count == 2 }
-                if let pageParam = optionalPageParam, let pageNumber = Int(pageParam[1]) {
-                    return pageNumber
-                }
-            }
-            
-            // FIXME: take into account multiple PDF in a LCPDF publication
-            return locator.locations?.position
-        }()
-        
-        return go(to: link, pageNumber: pageNumber)
+
+        return go(
+            to: publication.readingOrder[index],
+            pageNumber: pageNumber(for: locator, at: index)
+        )
     }
 
 }
