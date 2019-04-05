@@ -88,8 +88,19 @@ final class PDFViewController: ReaderViewController {
 @available(iOS 11.0, *)
 extension PDFViewController: PDFNavigatorDelegate {
     
-    func navigatorDidTap(_ navigator: Navigator) {
-        toggleNavigationBar()
+    func navigator(_ navigator: Navigator, didTapAt point: CGPoint, in view: UIView) {
+        // Skips to previous/next pages if the tap is on the content edges.
+        let thresholdRange = 0...(0.2 * view.bounds.width)
+        var moved = false
+        if thresholdRange ~= point.x {
+            moved = navigator.goBackward(animated: true)
+        } else if thresholdRange ~= (view.bounds.maxX - point.x) {
+            moved = navigator.goForward(animated: true)
+        }
+        
+        if !moved {
+            toggleNavigationBar()
+        }
     }
     
     func navigator(_ navigator: Navigator, didGoTo locator: Locator) {
