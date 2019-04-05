@@ -18,7 +18,7 @@ import R2Shared
 public protocol PDFNavigatorDelegate: AnyObject {
     
     /// Called when the user tapped the publication, and it didn't trigger any internal action.
-    func navigatorDidTap(_ navigator: Navigator)
+    func navigator(_ navigator: Navigator, didTapAt point: CGPoint, in view: UIView)
     
     /// Called when the current position in the publication changed. You should save the locator here to restore the last read page.
     func navigator(_ navigator: Navigator, didGoTo locator: Locator)
@@ -38,7 +38,7 @@ public extension PDFNavigatorDelegate {
         UIApplication.shared.openURL(url)
     }
     
-    func navigatorDidTap(_ navigator: Navigator) {
+    func navigator(_ navigator: Navigator, didTapAt point: CGPoint, in view: UIView) {
         // Optional
     }
     
@@ -122,7 +122,7 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
         
         view.backgroundColor = .black
         
-        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTap)))
+        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTap(gesture:))))
         
         pdfView = PDFDocumentView(frame: view.bounds, editingActions: editingActions)
         pdfView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -164,8 +164,9 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
         pdfView.displaysAsBook = true
     }
     
-    @objc private func didTap() {
-        delegate?.navigatorDidTap(self)
+    @objc private func didTap(gesture: UITapGestureRecognizer) {
+        let point = gesture.location(in: view)
+        delegate?.navigator(self, didTapAt: point, in: view)
     }
     
     @objc private func pageDidChange() {
@@ -175,7 +176,7 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
         delegate?.navigator(self, didGoTo: locator)
     }
 
-    private func go(to link: Link, pageNumber: Int? = nil) -> Bool {
+    private func go(to link: Link, pageNumber: Int? = nil, completion: @escaping () -> Void) -> Bool {
         guard let index = publication.readingOrder.firstIndex(of: link) else {
             return false
         }
@@ -203,6 +204,7 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
             }
             pdfView.go(to: page)
         }
+        DispatchQueue.main.async(execute: completion)
         return true
     }
     
@@ -245,7 +247,7 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
         
         return positionList[pageNumber - 1]
     }
-    
+
     
     // MARK: - Navigator
 
@@ -270,8 +272,41 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
 
         return go(
             to: publication.readingOrder[index],
-            pageNumber: pageNumber(for: locator, at: index)
+            pageNumber: pageNumber(for: locator, at: index),
+            completion: completion
         )
+    }
+    
+    public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
+        if pdfView.canGoToNextPage() {
+            pdfView.goToNextPage(nil)
+            DispatchQueue.main.async(execute: completion)
+            return true
+        }
+        
+        let nextIndex = (currentResourceIndex ?? -1) + 1
+        guard positionListByResourceIndex.indices.contains(nextIndex),
+            let nextPosition = positionListByResourceIndex[nextIndex].first else
+        {
+            return false
+        }
+        return go(to: nextPosition, animated: animated, completion: completion)
+    }
+    
+    public func goBackward(animated: Bool, completion: @escaping () -> Void) -> Bool {
+        if pdfView.canGoToPreviousPage() {
+            pdfView.goToPreviousPage(nil)
+            DispatchQueue.main.async(execute: completion)
+            return true
+        }
+        
+        let previousIndex = (currentResourceIndex ?? 0) - 1
+        guard positionListByResourceIndex.indices.contains(previousIndex),
+            let previousPosition = positionListByResourceIndex[previousIndex].last else
+        {
+            return false
+        }
+        return go(to: previousPosition, animated: animated, completion: completion)
     }
 
 }

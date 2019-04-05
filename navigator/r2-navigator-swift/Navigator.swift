@@ -30,9 +30,21 @@ public protocol Navigator {
 
     /// Moves to the position in the publication correponding to the given `Locator`.
     /// - Parameter completion: Called when the transition is completed.
-    /// - Returns: Whether the navigator is able to move to the locator. The completion block will be called even if false was returned.
+    /// - Returns: Whether the navigator is able to move to the locator. The completion block is only called if true was returned.
     @discardableResult
     func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool
+    
+    /// Moves to the next content portion (eg. page) in the reading progression direction.
+    /// - Parameter completion: Called when the transition is completed.
+    /// - Returns: Whether the navigator is able to move to the next content portion. The completion block is only called if true was returned.
+    @discardableResult
+    func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool
+    
+    /// Moves to the previous content portion (eg. page) in the reading progression direction.
+    /// - Parameter completion: Called when the transition is completed.
+    /// - Returns: Whether the navigator is able to move to the previous content portion. The completion block is only called if true was returned.
+    @discardableResult
+    func goBackward(animated: Bool, completion: @escaping () -> Void) -> Bool
     
 }
 
@@ -41,6 +53,16 @@ public extension Navigator {
     @discardableResult
     func go(to locator: Locator, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
         return go(to: locator, animated: animated, completion: completion)
+    }
+    
+    @discardableResult
+    func goForward(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
+        return goForward(animated: animated, completion: completion)
+    }
+    
+    @discardableResult
+    func goBackward(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
+        return goBackward(animated: animated, completion: completion)
     }
     
 }
