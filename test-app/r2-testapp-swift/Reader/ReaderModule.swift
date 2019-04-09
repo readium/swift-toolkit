@@ -111,8 +111,8 @@ extension ReaderModule: ReaderFormatModuleDelegate {
         viewController.navigationController?.pushViewController(drmViewController, animated: true)
     }
     
-    func presentOutline(_ links: [Link], format: Publication.Format, delegate: OutlineTableViewControllerDelegate?, from viewController: UIViewController) {
-        let outlineTableVC: OutlineTableViewController = factory.make(tableOfContents: links, format: format)
+    func presentOutline(_ publication: Publication, format: Publication.Format, delegate: OutlineTableViewControllerDelegate?, from viewController: UIViewController) {
+        let outlineTableVC: OutlineTableViewController = factory.make(publication: publication, format: format)
         outlineTableVC.delegate = delegate
         viewController.present(UINavigationController(rootViewController: outlineTableVC), animated: true)
     }

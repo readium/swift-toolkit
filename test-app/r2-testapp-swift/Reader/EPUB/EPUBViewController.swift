@@ -193,7 +193,7 @@ extension EPUBViewController {
             userSettingsTVC.dismiss(animated: true, completion: nil)
         }
         
-        moduleDelegate?.presentOutline(navigator.getTableOfContents(), format: .epub, delegate: self, from: self)
+        moduleDelegate?.presentOutline(navigator.publication, format: .epub, delegate: self, from: self)
     }
     
     @objc func presentDrmManagement() {
