@@ -246,7 +246,7 @@ extension EPUBNavigatorViewController {
     }
 }
 
-extension EPUBNavigatorViewController: ViewDelegate {
+extension EPUBNavigatorViewController: WebViewDelegate {
     
     func willAnimatePageChange() {
         triptychView.isUserInteractionEnabled = false
@@ -265,8 +265,8 @@ extension EPUBNavigatorViewController: ViewDelegate {
         delegate?.didNavigateViaInternalLinkTap(to: index)
     }
     
-    func documentPageDidChanged(webview: WebView, currentPage: Int, totalPage: Int) {
-        if triptychView.currentView == webview {
+    func documentPageDidChange(webView: WebView, currentPage: Int, totalPage: Int) {
+        if triptychView.currentView == webView {
             delegate?.didChangedPaginatedDocumentPage(currentPage: currentPage, documentTotalPage: totalPage)
         }
     }
@@ -337,13 +337,19 @@ private final class Delegatee: NSObject {
 
 extension Delegatee: TriptychViewDelegate {
 
-    public func triptychView(_ view: TriptychView, viewForIndex index: Int,
-                             location: BinaryLocation) -> UIView {
-        
-        let webView = WebView(frame: view.bounds, initialLocation: location, pageTransition: parent.pageTransition, disableDragAndDrop: parent.disableDragAndDrop, editingActions: parent.editingActions)
-        webView.readingProgression = view.readingProgression
-      
+    public func triptychView(_ view: TriptychView, viewForIndex index: Int, location: BinaryLocation) -> UIView {
         let link = parent.publication.readingOrder[index]
+        // Check if link is FXL.
+        let hasFixedLayout = (parent.publication.metadata.rendition?.layout == .fixed && link.properties.layout == nil) || link.properties.layout == .fixed
+        
+        let webViewType = hasFixedLayout ? FixedWebView.self : ReflowableWebView.self
+        let webView = webViewType.init(
+            initialLocation: location,
+            readingProgression: view.readingProgression,
+            pageTransition: parent.pageTransition,
+            disableDragAndDrop: parent.disableDragAndDrop,
+            editingActions: parent.editingActions
+        )
 
         if let url = parent.publication.url(to: link) {
             let urlRequest = URLRequest(url: url)
@@ -356,15 +362,6 @@ extension Delegatee: TriptychViewDelegate {
             if parent.initialProgression != nil {
                 webView.progression = parent.initialProgression
                 parent.initialProgression = nil
-            }
-            // Check if link is FXL.
-            if (parent.publication.metadata.rendition?.layout == .fixed
-                && link.properties.layout == nil)
-                || link.properties.layout == .fixed {
-                webView.scrollView.isPagingEnabled = false
-                webView.scrollView.minimumZoomScale = 1
-                webView.scrollView.maximumZoomScale = 5
-                webView.presentingFixedLayoutContent = true
             }
         }
         return webView
