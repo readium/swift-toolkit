@@ -13,6 +13,7 @@
 import Foundation
 import R2Shared
 import R2Streamer
+import Kingfisher
 
 
 struct Location {
@@ -23,7 +24,7 @@ struct Location {
 
 protocol LibraryServiceDelegate: AnyObject {
     
-    func reloadLibrary(with downloadTask: URLSessionDownloadTask?)
+    func reloadLibrary(with downloadTask: URLSessionDownloadTask?, canceled:Bool)
     
 }
 
@@ -61,6 +62,20 @@ final class LibraryService {
         lightParseSamplePublications()
       }
     }
+  
+    func present(_ alert: UIAlertController) {
+      guard let rootViewController = UIApplication.shared.delegate?.window??.rootViewController else {
+        return
+      }
+      if let _  = rootViewController.presentedViewController {
+        rootViewController.dismiss(animated: true) {
+          rootViewController.present(alert, animated: true)
+        }
+      } else {
+        rootViewController.present(alert, animated: true)
+      }
+    }
+  
     func showInfoAlert(title: String, message: String) {
         let alert = UIAlertController(title: "", message: "", preferredStyle: .alert)
         let dismissButton = UIAlertAction(title: "OK", style: .cancel)
@@ -86,9 +101,7 @@ final class LibraryService {
         
         let repository = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         var url = repository.appendingPathComponent(sourceUrl.lastPathComponent)
-        if FileManager().fileExists(atPath: url.path) {
             url = repository.appendingPathComponent("\(UUID().uuidString).\(url.pathExtension)")
-        }
         
         /// Move Publication to documents.
         do {
@@ -104,17 +117,62 @@ final class LibraryService {
         @discardableResult
         func addPublication(url: URL, downloadTask: URLSessionDownloadTask?) -> Bool {
             /// Add the publication to the publication server.
-            let location = Location(absolutePath: url.path,
-                                    relativePath: url.lastPathComponent,
-                                    format: Publication.Format(file: url))
-            guard lightParsePublication(at: location) else {
+            let location = Location(
+                absolutePath: url.path,
+                relativePath: url.lastPathComponent,
+                format: Publication.Format(file: url)
+            )
+            guard let (publication, container) = lightParsePublication(for: location.absolutePath, isAbsolute: true) else {
                 showInfoAlert(title: "Error", message: "The publication isn't valid.")
                 try? FileManager.default.removeItem(at: url)
                 return false
             }
-            
-            delegate?.reloadLibrary(with: downloadTask)
-            return true
+          
+            var image:Data?
+            if let cover = publication.coverLink{
+              image = try? container.data(relativePath: cover.href)
+            }
+
+            let book = Book(fileName: location.relativePath,
+                          title: publication.metadata.title,
+                          author: publication.metadata.authors
+                            .map { $0.name }
+                            .joined(separator: ", "),
+                          identifier: publication.metadata.identifier!,
+                          cover: image)
+            if (try! BooksDatabase.shared.books.insert(book: book)) != nil {
+              delegate?.reloadLibrary(with: downloadTask, canceled: false)
+              return true
+
+            } else {
+              
+              let duplicatePublicationAlert = UIAlertController(title: "The publication already exists",
+                                                             message: "Would you like to add it anyways?",
+                                                             preferredStyle: UIAlertController.Style.alert)
+              let addAction = UIAlertAction(title: "Add", style: .default, handler: { alert in
+                
+                if (try! BooksDatabase.shared.books.insert(book: book, allowDuplicate: true)) != nil {
+                  self.delegate?.reloadLibrary(with: downloadTask, canceled: false)
+                  return
+                }
+                else {
+                  try? FileManager.default.removeItem(at: url)
+                  self.delegate?.reloadLibrary(with: downloadTask, canceled: true)
+                  return
+                }
+                
+              })
+              let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: { alert in
+                try? FileManager.default.removeItem(at: url)
+                self.delegate?.reloadLibrary(with: downloadTask, canceled: true)
+                return
+              })
+              
+              duplicatePublicationAlert.addAction(addAction)
+              duplicatePublicationAlert.addAction(cancelAction)
+              present(duplicatePublicationAlert)
+              return true
+          }
         }
         
         if let drmService = drmLibraryServices.first(where: { $0.canFulfill(url) }) {
@@ -146,7 +204,7 @@ final class LibraryService {
                     break
                 }
             }
-            return true
+            return false
             
         } else {
             return addPublication(url: url, downloadTask: downloadTask)
@@ -161,8 +219,9 @@ final class LibraryService {
     ///   - id: <#id description#>
     ///   - completion: <#completion description#>
     /// - Throws: <#throws value description#>
-    func loadDRM(for publication: Publication, completion: @escaping (CancellableResult<DRM?>) -> Void) {
-        guard let id = publication.metadata.identifier, let (container, parsingCallback) = items[id] else {
+    func loadDRM(for fileName: String, completion: @escaping (CancellableResult<DRM?>) -> Void) {
+      
+        guard let (container, parsingCallback) = items[fileName] else {
             completion(.success(nil))
             return
         }
@@ -208,71 +267,86 @@ final class LibraryService {
         
         // Load the publications.
         for location in locations {
-            if !lightParsePublication(at: location) {
+            guard let (publication, container) = lightParsePublication(for: location.absolutePath, isAbsolute: true) else {
                 print("Error loading publication \(location.relativePath).")
+              continue
             }
-        }
-    }
-    
-    /// Load publication at `location` on the server.
-    ///
-    internal func lightParsePublication(at location: Location) -> Bool {
-        let parsers: [Publication.Format: PublicationParser.Type] = [
-            .cbz: CbzParser.self,
-            .epub: EpubParser.self,
-            .pdf: PDFParser.self
-        ]
-        
-        guard let parser = parsers[location.format] else {
-            return false
-        }
+          
+          var image:Data?
+          if let cover = publication.coverLink{
+            image = try? container.data(relativePath: cover.href)
+          }
 
-        do {
-            let (pubBox, parsingCallback) = try parser.parse(fileAtPath: location.absolutePath)
-            let (publication, container) = pubBox
-            guard let id = publication.metadata.identifier else {
-                return false
-            }
-            items[id] = (container, parsingCallback)
-            /// Add the publication to the server.
-            try publicationServer.add(publication, with: container)
-            
-        } catch {
-            print("Error parsing publication at path '\(location.relativePath)': \(error)")
-            return false
-        }
-        
-        return true
+          let book = Book(fileName: location.relativePath,
+                          title: publication.metadata.title,
+                          author: publication.metadata.authors
+                            .map { $0.name }
+                            .joined(separator: ", "),
+                          identifier: publication.metadata.identifier!,
+                          cover: image)
+           _ = try! BooksDatabase.shared.books.insert(book: book)
+      }
     }
-    
-    /// Get the locations out of the application Documents directory.
-    ///
-    /// - Returns: The Locations array.
-    fileprivate func locationsFromDocumentsDirectory() -> [Location] {
-        let fileManager = FileManager.default
-        // Document Directory always exists (hence try!).
-        let documentsUrl = try! fileManager.url(for: .documentDirectory,
-                                                in: .userDomainMask,
-                                                appropriateFor: nil,
-                                                create: true)
-        
-        var files: [String]
-        
-        // Get the array of files from the documents/inbox folder.
-        do {
-            files = try fileManager.contentsOfDirectory(atPath: documentsUrl.path)
+  
+    internal func serve(publication: Publication, with container:Container, for path: String) {
+      publicationServer.remove(at: path)
+      do {
+          try publicationServer.add(publication, with: container, at: path)
         } catch {
-            print("Error while reading content of directory.")
-            return []
+          print("error on adding \(error)")
+      }
+    }
+  
+    internal func lightParsePublication(for path: String, book:Book? = nil, isAbsolute: Bool = false ) -> PubBox? {
+      let parsers: [Publication.Format: PublicationParser.Type] = [
+        .cbz: CbzParser.self,
+        .epub: EpubParser.self,
+        .pdf: PDFParser.self
+      ]
+      
+      var url:URL
+      if !isAbsolute {
+        var locationPath:String?
+        let documents = try! FileManager.default.url(for: .documentDirectory,
+                                                     in: .userDomainMask,
+                                                     appropriateFor: nil,
+                                                     create: true)
+        
+        if (FileManager.default.fileExists(atPath: documents.appendingPathComponent(path).path)) {
+          locationPath = documents.appendingPathComponent(path).path
+        } else {
+          if let absolutePath = Bundle.main.path(forResource: path, ofType: nil) {
+            if (FileManager.default.fileExists(atPath: absolutePath)) {
+              locationPath = absolutePath
+            }
+          }
         }
-        /// Find the types associated to the files, or unknown.
-        let locations = files.map({ fileName -> Location in
-            let fileUrl = documentsUrl.appendingPathComponent(fileName)
-            let format = Publication.Format(file: fileUrl)
-            
-            return Location(absolutePath: fileUrl.path, relativePath: fileName, format: format)
-        })
-        return locations
+        guard let absolutePath = locationPath else {
+          return nil
+        }
+        url = URL.init(fileURLWithPath: absolutePath)
+        
+      } else {
+        url = URL.init(fileURLWithPath: path)
+      }
+      
+      let location = Location(absolutePath: url.path,
+                          relativePath: url.lastPathComponent,
+                          format: Publication.Format(file: url))
+     
+      guard let parser = parsers[location.format] else {
+          return nil
+      }
+
+      do {
+        let (pubBox, parsingCallback) = try parser.parse(fileAtPath: location.absolutePath)
+        let (_, container) = pubBox
+        items[url.lastPathComponent] = (container, parsingCallback)
+        return pubBox
+      } catch {
+        print("Error parsing publication at path '\(location.relativePath)': \(error)")
+        return nil
+      }
     }
     
     /// Get the locations out of the application Documents/inbox directory.
@@ -294,41 +368,35 @@ final class LibraryService {
         }
 
         /// Find the types associated to the files, or unknown.
-        let locations = sampleUrls.map({ url -> Location in
-            let format = Publication.Format(file: url)
-            
-            return Location(absolutePath: url.path, relativePath: "sample", format: format)
-        })
-        return locations
+        return sampleUrls.map { url in
+            return Location(
+                absolutePath: url.path,
+                relativePath: url.lastPathComponent,
+                format: Publication.Format(file: url)
+            )
+        }
     }
     
-    func remove(_ publication: Publication) {
-        // Find associated container.
-        guard let pubBox = publicationServer.pubBoxes.values.first(where: {
-            $0.publication.metadata.identifier == publication.metadata.identifier
-        }) else {
-            return
-        }
-        // Remove publication from Documents/Inbox folder.
-        let path = pubBox.associatedContainer.rootFile.rootPath
-        
-        if let url = URL(string: path) {
-            let filename = url.lastPathComponent
-            removeFromDocumentsDirectory(fileName: filename)
-        }
+    func remove(_ book: Book) {
+        // Remove item from Database.
+        _ = try! BooksDatabase.shared.books.delete(book)
+
+        // Remove file from documents directory
+        removeFromDocumentsDirectory(fileName: book.fileName)
+      
         // Remove publication from publicationServer.
-        publicationServer.remove(publication)
+        publicationServer.remove(at: book.fileName)
     }
     
     fileprivate func removeFromDocumentsDirectory(fileName: String) {
         let fileManager = FileManager.default
         // Document Directory always exists (hence `try!`).
-        let inboxDirUrl = try! fileManager.url(for: .documentDirectory,
-                                               in: .userDomainMask,
-                                               appropriateFor: nil,
-                                               create: true)
+        let documents = try! fileManager.url(for: .documentDirectory,
+                                             in: .userDomainMask,
+                                             appropriateFor: nil,
+                                             create: true)
         // Assemble destination path.
-        let absoluteUrl = inboxDirUrl.appendingPathComponent(fileName)
+        let absoluteUrl = documents.appendingPathComponent(fileName)
         // Check that file don't exist.
         guard !fileManager.fileExists(atPath: absoluteUrl.path) else {
             do {
