@@ -20,7 +20,7 @@
 		F3E7D3E21F4D84A000DF166D /* EPUBNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3E11F4D84A000DF166D /* EPUBNavigatorViewController.swift */; };
 		F3E7D3E41F4D84DC00DF166D /* TriptychView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3E31F4D84DC00DF166D /* TriptychView.swift */; };
 		F3E7D3E61F4D84EF00DF166D /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3E51F4D84EF00DF166D /* WebView.swift */; };
-		F3E7D42E1F4EE0FE00DF166D /* CbzNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D42D1F4EE0FE00DF166D /* CbzNavigatorViewController.swift */; };
+		F3E7D42E1F4EE0FE00DF166D /* CBZNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D42D1F4EE0FE00DF166D /* CBZNavigatorViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,7 +41,7 @@
 		F3E7D3E11F4D84A000DF166D /* EPUBNavigatorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPUBNavigatorViewController.swift; sourceTree = "<group>"; };
 		F3E7D3E31F4D84DC00DF166D /* TriptychView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TriptychView.swift; sourceTree = "<group>"; };
 		F3E7D3E51F4D84EF00DF166D /* WebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
-		F3E7D42D1F4EE0FE00DF166D /* CbzNavigatorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CbzNavigatorViewController.swift; sourceTree = "<group>"; };
+		F3E7D42D1F4EE0FE00DF166D /* CBZNavigatorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CBZNavigatorViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */

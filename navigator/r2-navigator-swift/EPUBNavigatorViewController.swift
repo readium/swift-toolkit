@@ -57,6 +57,8 @@ public extension EPUBNavigatorDelegate {
 }
 
 
+public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
+
 open class EPUBNavigatorViewController: UIViewController {
     private let delegatee: Delegatee!
     fileprivate let triptychView: TriptychView
@@ -71,16 +73,23 @@ open class EPUBNavigatorViewController: UIViewController {
     public let editingActions: [EditingAction]
     public let disableDragAndDrop: Bool
 
+    /// Content insets used to add some vertical margins around reflowable EPUB publications. The insets can be configured for each size class to allow smaller margins on compact screens.
+    public let contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]
+
     /// - Parameters:
     ///   - publication: The publication.
     ///   - initialIndex: Inital index of -1 will open the publication's at the end.
-    public init(for publication: Publication, license: DRMLicense? = nil, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = []) {
+    public init(for publication: Publication, license: DRMLicense? = nil, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = [], contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]? = nil) {
         self.publication = publication
         self.license = license
         self.initialProgression = initialProgression
         self.pageTransition = pageTransition
         self.disableDragAndDrop = disableDragAndDrop
         self.editingActions = editingActions
+        self.contentInset = contentInset ?? [
+            .compact: (top: 20, bottom: 20),
+            .regular: (top: 44, bottom: 44)
+        ]
 
         userSettings = UserSettings()
         publication.userProperties.properties = userSettings.userProperties.properties
@@ -348,7 +357,8 @@ extension Delegatee: TriptychViewDelegate {
             readingProgression: view.readingProgression,
             pageTransition: parent.pageTransition,
             disableDragAndDrop: parent.disableDragAndDrop,
-            editingActions: parent.editingActions
+            editingActions: parent.editingActions,
+            contentInset: parent.contentInset
         )
 
         if let url = parent.publication.url(to: link) {

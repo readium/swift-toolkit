@@ -41,6 +41,7 @@ class WebView: UIView, Loggable {
 
     var pageTransition: PageTransition
     var editingActions: [EditingAction]
+    let contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]
     
     weak var activityIndicatorView: UIActivityIndicatorView?
 
@@ -131,12 +132,13 @@ class WebView: UIView, Loggable {
     
     private var shouldNotifyCopySelection = false
 
-    required init(initialLocation: BinaryLocation, readingProgression: ReadingProgression, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = []) {
+    required init(initialLocation: BinaryLocation, readingProgression: ReadingProgression, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = [], contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
         self.initialLocation = initialLocation
         self.readingProgression = readingProgression
         self.pageTransition = pageTransition
         self.editingActions = editingActions
         self.webView = WKWebView(frame: .zero, configuration: .init())
+        self.contentInset = contentInset
       
         super.init(frame: .zero)
         
@@ -441,7 +443,7 @@ extension WebView: UIScrollViewDelegate {
     func scrollViewDidZoom(_ scrollView: UIScrollView) {
         // Do not remove: overriden in subclasses
     }
-    
+
 }
 
 extension WebView: WKUIDelegate {
