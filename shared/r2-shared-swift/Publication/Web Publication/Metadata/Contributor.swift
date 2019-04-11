@@ -56,7 +56,7 @@ public struct Contributor: Equatable {
             
         } else if let json = json as? [String: Any] {
             guard let name = try LocalizedString(json: json["name"]) else {
-                throw JSONParsingError.contributor
+                throw JSONError.parsing(Contributor.self)
             }
             self.localizedName = name
             self.identifier = json["identifier"] as? String
@@ -66,7 +66,7 @@ public struct Contributor: Equatable {
             self.links = [Link](json: json["links"], normalizeHref: normalizeHref)
 
         } else {
-            throw JSONParsingError.contributor
+            throw JSONError.parsing(Contributor.self)
         }
     }
     

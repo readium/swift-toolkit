@@ -81,7 +81,7 @@ public class Link: JSONEquatable {
         guard let json = json as? [String: Any],
             let href = json["href"] as? String else
         {
-            throw JSONParsingError.link
+            throw JSONError.parsing(Link.self)
         }
         self.href = normalizeHref(href)
         self.type = json["type"] as? String
@@ -132,16 +132,39 @@ extension Array where Element == Link {
         return map { $0.json }
     }
     
-    public func first(withRel rel: String) -> Link? {
-        return first { $0.rels.contains(rel) }
+    public func first(withRel rel: String, recursively: Bool = false) -> Link? {
+        return first(recursively: recursively) { $0.rels.contains(rel) }
     }
     
-    public func first(withHref href: String) -> Link? {
-        return first { $0.href == href }
+    public func first(withHref href: String, recursively: Bool = false) -> Link? {
+        return first(recursively: recursively) { $0.href == href }
     }
     
-    public func first<T: Equatable>(withProperty otherProperty: String, matching: T) -> Link? {
-        return first { ($0.properties.otherProperties[otherProperty] as? T) == matching }
+    public func first<T: Equatable>(withProperty otherProperty: String, matching: T, recursively: Bool = false) -> Link? {
+        return first(recursively: recursively) { ($0.properties.otherProperties[otherProperty] as? T) == matching }
+    }
+    
+    /// Finds the first link matching the given predicate.
+    ///
+    /// - Parameter recursively: Finds links recursively through `children`.
+    public func first(recursively: Bool, where predicate: (Link) -> Bool) -> Link? {
+        if !recursively {
+            return first(where: predicate)
+        }
+        
+        for link in self {
+            if predicate(link) {
+                return link
+            }
+            if let childLink = link.children.first(recursively: true, where: predicate) {
+                return childLink
+            }
+        }
+        return nil
+    }
+    
+    public func firstIndex(withHref href: String) -> Int? {
+        return firstIndex { $0.href == href }
     }
 
 }

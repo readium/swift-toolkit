@@ -34,7 +34,7 @@ public struct OPDSPrice: Equatable {
             let currency = json["currency"] as? String,
             let value = parsePositiveDouble(json["value"]) else
         {
-            throw JSONParsingError.opdsPrice
+            throw JSONError.parsing(OPDSPrice.self)
         }
         
         self.currency = currency

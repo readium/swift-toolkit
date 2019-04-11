@@ -41,7 +41,7 @@ public class WebPublication: JSONEquatable {
     /// https://readium.org/webpub-manifest/schema/publication.schema.json
     public init(json: Any, normalizeHref: (String) -> String = { $0 }) throws {
         guard var json = JSONDictionary(json) else {
-            throw JSONParsingError.publication
+            throw JSONError.parsing(WebPublication.self)
         }
         
         self.context = parseArray(json.pop("@context"), allowingSingle: true)
@@ -73,19 +73,7 @@ public class WebPublication: JSONEquatable {
     
     /// Returns the Manifest's data JSON representation.
     public var manifest: Data? {
-        var options: JSONSerialization.WritingOptions = []
-        if #available(iOS 11.0, *) {
-            options.insert(.sortedKeys)
-        }
-        guard let data = try? JSONSerialization.data(withJSONObject: json, options: options),
-            var string = String(data: data, encoding: .utf8) else
-        {
-            return nil
-        }
-        
-        // Unescapes slashes
-        string = string.replacingOccurrences(of: "\\/", with: "/")
-        return string.data(using: .utf8)
+        return serializeJSONData(json)
     }
     
     

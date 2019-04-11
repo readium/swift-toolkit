@@ -81,7 +81,7 @@ public struct EPUBRendition: Equatable {
             return nil
         }
         guard let json = json as? [String: Any] else {
-            throw JSONParsingError.rendition
+            throw JSONError.parsing(EPUBRendition.self)
         }
         
         self.layout = parseRaw(json["layout"])

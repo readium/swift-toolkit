@@ -107,7 +107,7 @@ public struct Metadata: Equatable, Loggable {
         guard var json = JSONDictionary(json),
             let title = try LocalizedString(json: json.pop("title")) else
         {
-            throw JSONParsingError.metadata
+            throw JSONError.parsing(Metadata.self)
         }
         
         self.identifier = json.pop("identifier") as? String
