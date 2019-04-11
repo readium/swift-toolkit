@@ -46,11 +46,21 @@ final class LibraryService {
         drmLibraryServices.append(LCPLibraryService())
         #endif
 
+        preloadSamples()
+
+    }
+  
+    func preloadSamples() {
+      let version = 1
+      let VERSION_KEY = "LIBRARY_VERSION"
+      let oldversion = UserDefaults.standard.integer(forKey: VERSION_KEY)
+      if oldversion < version {
+        UserDefaults.standard.set(version, forKey: VERSION_KEY)
+        clearDocumentsDir()
         // Parse publications (just the OPF and Encryption for now)
         lightParseSamplePublications()
-        lightParsePublications()
+      }
     }
-
     func showInfoAlert(title: String, message: String) {
         let alert = UIAlertController(title: "", message: "", preferredStyle: .alert)
         let dismissButton = UIAlertAction(title: "OK", style: .cancel)
@@ -188,18 +198,6 @@ final class LibraryService {
                 }
             default:
                 completion(result)
-            }
-        }
-    }
-    
-    fileprivate func lightParsePublications() {
-        // Parse publication from documents folder.
-        let locations = locationsFromDocumentsDirectory()
-        
-        // Load the publications.
-        for location in locations {
-            if !lightParsePublication(at: location) {
-                print("Error loading publication \(location.relativePath).")
             }
         }
     }
@@ -342,4 +340,16 @@ final class LibraryService {
         }
     }
 
+    func clearDocumentsDir() {
+      let fileManager = FileManager.default
+      let documents = try! fileManager.url(for: .documentDirectory,
+                                           in: .userDomainMask,
+                                           appropriateFor: nil,
+                                           create: true)
+      guard let filePaths = try? fileManager.contentsOfDirectory(at: documents, includingPropertiesForKeys: nil, options: []) else { return }
+      for filePath in filePaths {
+        try? fileManager.removeItem(at: filePath)
+      }
+    }
+  
 }
