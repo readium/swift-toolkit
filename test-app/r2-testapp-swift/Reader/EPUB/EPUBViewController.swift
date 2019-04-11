@@ -104,7 +104,7 @@ class EPUBViewController: ReaderViewController {
         userSettingNavigationController.modalPresentationStyle = .popover
         userSettingNavigationController.usdelegate = self
         
-        fixedTopBar.setLabel(title: navigator.publication.metadata.title)
+        fixedTopBar.setLabel(title: "")
         fixedBottomBar.setLabel(title: "")
         
         var barButtons = [UIBarButtonItem]()
