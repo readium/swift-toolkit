@@ -60,8 +60,9 @@ class BookmarkDataSource: Loggable {
             if let bookmarkID = try BookmarkDatabase.shared.bookmarks.insert(newBookmark: bookmark) {
                 bookmark.id = bookmarkID
                 self.reloadBookmarks()
+              return true
             }
-            return true
+          return false
         } catch {
             log(.error, error)
             return false
