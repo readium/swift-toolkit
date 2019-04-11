@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 51;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -122,6 +122,14 @@
 		0352073C222D68EA0000F0A4 /* MBProgressHUD.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0352073B222D68EA0000F0A4 /* MBProgressHUD.framework */; };
 		0352073E222D69330000F0A4 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0352073D222D69330000F0A4 /* SQLite.framework */; };
 		0380490B21166627009F48BD /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0380490A21166627009F48BD /* Toast.swift */; };
+		03AE308F2259F3E400AA4C7C /* BooksDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */; };
+		03AE30962259F4D400AA4C7C /* BooksDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */; };
+		03AE30972259F4D400AA4C7C /* BooksDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */; };
+		03AE30982259F4D400AA4C7C /* BooksDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */; };
+		03AE309F2259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE309E2259F59C00AA4C7C /* Connection+UserVersion.swift */; };
+		03AE30A02259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE309E2259F59C00AA4C7C /* Connection+UserVersion.swift */; };
+		03AE30A12259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE309E2259F59C00AA4C7C /* Connection+UserVersion.swift */; };
+		03AE30A22259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE309E2259F59C00AA4C7C /* Connection+UserVersion.swift */; };
 		03BB67AC223874EE009A03C5 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192F222D936100646F1F /* AEXML.framework */; };
 		03BB67AD223874EE009A03C5 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192E222D936100646F1F /* CryptoSwift.framework */; };
 		03BB67AE223874EE009A03C5 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061933222D936100646F1F /* Fuzi.framework */; };
@@ -426,6 +434,8 @@
 		0352073B222D68EA0000F0A4 /* MBProgressHUD.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MBProgressHUD.framework; path = Carthage/Build/iOS/MBProgressHUD.framework; sourceTree = "<group>"; };
 		0352073D222D69330000F0A4 /* SQLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SQLite.framework; path = Carthage/Build/iOS/SQLite.framework; sourceTree = "<group>"; };
 		0380490A21166627009F48BD /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
+		03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BooksDatabase.swift; sourceTree = "<group>"; };
+		03AE309E2259F59C00AA4C7C /* Connection+UserVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Connection+UserVersion.swift"; sourceTree = "<group>"; };
 		03BB67B5223874FA009A03C5 /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03BB67B8223874FA009A03C5 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03BB67BB223875CC009A03C5 /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
@@ -602,6 +612,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		03AE30952259F4CA00AA4C7C /* DB */ = {
+			isa = PBXGroup;
+			children = (
+				03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */,
+			);
+			path = DB;
+			sourceTree = "<group>";
+		};
 		571585F32109E903008B34AD /* Bookmark */ = {
 			isa = PBXGroup;
 			children = (
@@ -722,6 +740,7 @@
 		CA415F20221D7559003A0F7F /* Library */ = {
 			isa = PBXGroup;
 			children = (
+				03AE30952259F4CA00AA4C7C /* DB */,
 				CA29B713222000810037534C /* LibraryModule.swift */,
 				CA29B6F4221FF43E0037534C /* LibraryFactory.swift */,
 				CA29B6EF221FF2610037534C /* Library.storyboard */,
@@ -761,6 +780,7 @@
 			children = (
 				CA415F23221D7599003A0F7F /* Toolkit */,
 				CA29B70E221FFE240037534C /* Error.swift */,
+				03AE309E2259F59C00AA4C7C /* Connection+UserVersion.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -1183,6 +1203,7 @@
 				CA29B715222000810037534C /* LibraryModule.swift in Sources */,
 				0350FCF1211CD2CB006994C2 /* OPDSPlaceholderView.swift in Sources */,
 				0350FCF2211CD2CB006994C2 /* OPDSNavigationTableViewCell.swift in Sources */,
+				03AE30A02259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */,
 				CA9A40DC221C06A300531EA1 /* DRMViewModel.swift in Sources */,
 				0350FCF3211CD2CB006994C2 /* AppDelegate.swift in Sources */,
 				CA0B3AC8222EE726006D9363 /* PDFModule.swift in Sources */,
@@ -1205,6 +1226,7 @@
 				0350FCFB211CD2CB006994C2 /* OutlineTableViewController.swift in Sources */,
 				0350FCFC211CD2CB006994C2 /* OPDSPublicationTableViewCell.swift in Sources */,
 				CA29B6F6221FF43E0037534C /* LibraryFactory.swift in Sources */,
+				03AE30982259F4D400AA4C7C /* BooksDatabase.swift in Sources */,
 				CA29B706221FF8F30037534C /* OPDSFactory.swift in Sources */,
 				0350FCFD211CD2CB006994C2 /* PublicationCollectionViewCell.swift in Sources */,
 				0350FCFE211CD2CB006994C2 /* BookmarkDatabase.swift in Sources */,
@@ -1242,6 +1264,7 @@
 				CA29B716222000810037534C /* LibraryModule.swift in Sources */,
 				0350FD45211CD625006994C2 /* OPDSPlaceholderView.swift in Sources */,
 				0350FD46211CD625006994C2 /* OPDSNavigationTableViewCell.swift in Sources */,
+				03AE30A12259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */,
 				CA9A40DE221C06A500531EA1 /* DRMViewModel.swift in Sources */,
 				0350FD47211CD625006994C2 /* AppDelegate.swift in Sources */,
 				CA0B3AC9222EE726006D9363 /* PDFModule.swift in Sources */,
@@ -1264,6 +1287,7 @@
 				0350FD4F211CD625006994C2 /* OutlineTableViewController.swift in Sources */,
 				0350FD50211CD625006994C2 /* OPDSPublicationTableViewCell.swift in Sources */,
 				CA29B6F7221FF43E0037534C /* LibraryFactory.swift in Sources */,
+				03AE30962259F4D400AA4C7C /* BooksDatabase.swift in Sources */,
 				CA29B707221FF8F30037534C /* OPDSFactory.swift in Sources */,
 				0350FD51211CD625006994C2 /* PublicationCollectionViewCell.swift in Sources */,
 				0350FD52211CD625006994C2 /* BookmarkDatabase.swift in Sources */,
@@ -1301,6 +1325,7 @@
 				CA29B717222000810037534C /* LibraryModule.swift in Sources */,
 				CA822C7F221C5737005800D1 /* OPDSPlaceholderView.swift in Sources */,
 				CA822C80221C5737005800D1 /* OPDSNavigationTableViewCell.swift in Sources */,
+				03AE30A22259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */,
 				CA822C81221C5737005800D1 /* DRMViewModel.swift in Sources */,
 				CA822C82221C5737005800D1 /* AppDelegate.swift in Sources */,
 				CA0B3ACA222EE726006D9363 /* PDFModule.swift in Sources */,
@@ -1323,6 +1348,7 @@
 				CA822C8E221C5737005800D1 /* OutlineTableViewController.swift in Sources */,
 				CA822C8F221C5737005800D1 /* OPDSPublicationTableViewCell.swift in Sources */,
 				CA29B6F8221FF43E0037534C /* LibraryFactory.swift in Sources */,
+				03AE30972259F4D400AA4C7C /* BooksDatabase.swift in Sources */,
 				CA29B708221FF8F30037534C /* OPDSFactory.swift in Sources */,
 				CA822C90221C5737005800D1 /* PublicationCollectionViewCell.swift in Sources */,
 				CA822C91221C5737005800D1 /* BookmarkDatabase.swift in Sources */,
@@ -1360,6 +1386,7 @@
 				CA29B714222000810037534C /* LibraryModule.swift in Sources */,
 				AED681F220A32EBA0090DBCD /* OPDSPlaceholderView.swift in Sources */,
 				AE48F322208DE1E4000B7B44 /* OPDSNavigationTableViewCell.swift in Sources */,
+				03AE309F2259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */,
 				F3E7D43C1F4EF6D400DF166D /* AppDelegate.swift in Sources */,
 				113B12D220800FD60074A5A2 /* OPDSCatalogSelectorViewController.swift in Sources */,
 				CA0B3AC7222EE726006D9363 /* PDFModule.swift in Sources */,
@@ -1390,6 +1417,7 @@
 				571585F02109E8F9008B34AD /* BookmarkCell.swift in Sources */,
 				CA29B70F221FFE240037534C /* Error.swift in Sources */,
 				AE37DE432093291600079AA2 /* AboutTableViewController.swift in Sources */,
+				03AE308F2259F3E400AA4C7C /* BooksDatabase.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
