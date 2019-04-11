@@ -8,8 +8,8 @@ github "edrlab/ZIPFoundation" "master"
 github "onevcat/Kingfisher" == 4.6.4
 github "jdg/MBProgressHUD" ~> 1.1.0
 github "stephencelis/SQLite.swift" == 0.11.5
-github "tadija/AEXML" == 4.3.3
+github "tadija/AEXML" == 4.4.0
 github "swisspol/GCDWebServer" == 3.5.2
-github "krzyzanowskim/CryptoSwift" == 0.14.0
+github "krzyzanowskim/CryptoSwift" == 1.0.0
 github "cezheng/Fuzi" == 2.1.0
 github "dexman/Minizip"
