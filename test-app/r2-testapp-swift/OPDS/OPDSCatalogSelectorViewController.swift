@@ -28,14 +28,9 @@ class OPDSCatalogSelectorViewController: UITableViewController {
     var mustEditAtIndexPath: IndexPath?
 
     override func viewDidLoad() {
-        catalogData = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
-        if catalogData == nil {
-            catalogData = [
-              ["title": "R2 Test Catalog", "url": "https://d2g.dita.digital/opds/collections/10040"]
-            ]
-            UserDefaults.standard.set(catalogData, forKey: userDefaultsID)
-        }
-        
+      
+        preloadTestFeeds()
+      
         self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
 
         self.tableView.frame = UIScreen.main.bounds
@@ -51,7 +46,25 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         navigationController?.navigationBar.barTintColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
         navigationController?.view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
     }
-    
+  
+    func preloadTestFeeds() {
+      let version = 1
+      let VERSION_KEY = "OPDS_CATALOG_VERSION"
+      let R2TestCatalog = ["title": "R2 Test Catalog", "url": "https://d2g.dita.digital/opds/collections/10040"]
+      let OTCatalog = ["title": "Open Textbooks", "url": "http://open.minitex.org/"]
+
+      catalogData = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
+      let oldversion = UserDefaults.standard.integer(forKey: VERSION_KEY)
+      if (catalogData == nil || oldversion < version) {
+        UserDefaults.standard.set(version, forKey: VERSION_KEY)
+        catalogData = [
+          R2TestCatalog, OTCatalog
+        ]
+        UserDefaults.standard.set(catalogData, forKey: userDefaultsID)
+      }
+      
+    }
+  
     override func viewDidAppear(_ animated: Bool) {
         if let index = mustEditAtIndexPath?.row {
             showEditPopup(feedIndex: index)
