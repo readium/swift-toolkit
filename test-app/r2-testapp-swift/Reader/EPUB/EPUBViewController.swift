@@ -135,6 +135,16 @@ class EPUBViewController: ReaderViewController {
         }
     }
     
+    override func presentOutline() {
+      willPresentViewController()
+      super.presentOutline()
+    }
+  
+    override func bookmarkCurrentPosition() {
+      willPresentViewController()
+      super.bookmarkCurrentPosition()
+    }
+  
     override func makeNavigationBarButtons() -> [UIBarButtonItem] {
         var buttons = super.makeNavigationBarButtons()
 
