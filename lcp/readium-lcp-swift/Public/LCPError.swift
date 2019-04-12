@@ -107,7 +107,7 @@ extension StatusError: LocalizedError {
             if start > Date() {
                 return "This license starts on \(dateFormatter.string(from: start))."
             } else {
-                return "This license expired on \(dateFormatter.string(from: end)).\nIf your provider allows it, you may be able to renew it."
+                return "This license expired on \(dateFormatter.string(from: end))."
             }
 
         case .revoked(let date, let devicesCount):
