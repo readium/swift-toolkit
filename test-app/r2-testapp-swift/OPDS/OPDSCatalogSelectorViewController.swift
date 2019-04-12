@@ -50,15 +50,15 @@ class OPDSCatalogSelectorViewController: UITableViewController {
     func preloadTestFeeds() {
       let version = 1
       let VERSION_KEY = "OPDS_CATALOG_VERSION"
-      let R2TestCatalog = ["title": "R2 Test Catalog", "url": "https://d2g.dita.digital/opds/collections/10040"]
-      let OTCatalog = ["title": "Open Textbooks", "url": "http://open.minitex.org/"]
+      let R2TestCatalog = ["title": "R2 Reader Test Catalog", "url": "https://d2g.dita.digital/opds/collections/10040"]
+      let OPDS2Catalog = ["title": "OPDS 2.0 Test Catalog", "url": "https://test.opds.io/2.0/home.json"]
 
       catalogData = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
       let oldversion = UserDefaults.standard.integer(forKey: VERSION_KEY)
       if (catalogData == nil || oldversion < version) {
         UserDefaults.standard.set(version, forKey: VERSION_KEY)
         catalogData = [
-          R2TestCatalog, OTCatalog
+          R2TestCatalog, OPDS2Catalog
         ]
         UserDefaults.standard.set(catalogData, forKey: userDefaultsID)
       }
