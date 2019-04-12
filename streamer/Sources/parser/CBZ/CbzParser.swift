@@ -80,7 +80,7 @@ public class CbzParser: PublicationParser {
         let publication = Publication(
             format: .cbz,
             metadata: Metadata(
-                identifier: path,
+                identifier: URL(fileURLWithPath: path).lastPathComponent,
                 title: URL(fileURLWithPath: path)
                     .lastPathComponent
                     .replacingOccurrences(of: "_", with: " ")
