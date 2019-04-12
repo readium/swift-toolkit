@@ -56,6 +56,9 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
     public let publication: Publication
     public weak var delegate: PDFNavigatorDelegate?
     public private(set) var pdfView: PDFDocumentView!
+    
+    /// Whether the pages is always scaled to fit the screen, unless the user zoomed in.
+    public var scalesDocumentToFit = true
 
     private let initialLocation: Locator?
     
@@ -140,28 +143,34 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
     open override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        // Hack to layout properly the first page when opening the PDF in landscape.
-        if let page = pdfView.currentPage {
-            pdfView.go(to: page.bounds(for: pdfView.displayBox), on: page)
+        // Hack to layout properly the first page when opening the PDF.
+        if scalesDocumentToFit {
+            pdfView.scaleFactor = pdfView.minScaleFactor
+            if let page = pdfView.currentPage {
+                pdfView.go(to: page.bounds(for: pdfView.displayBox), on: page)
+            }
         }
     }
-    
+
     open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         
-        // Makes sure that the PDF is always properly scaled down when rotating the screen, if the user didn't zoom in.
-        let isAtMinScaleFactor = (pdfView.scaleFactor == pdfView.minScaleFactor)
-        coordinator.animate(alongsideTransition: { _ in
-            self.updateScaleFactors()
-            if isAtMinScaleFactor {
-                self.pdfView.scaleFactor = self.pdfView.minScaleFactor
-            }
-        })
+        if scalesDocumentToFit {
+            // Makes sure that the PDF is always properly scaled down when rotating the screen, if the user didn't zoom in.
+            let isAtMinScaleFactor = (pdfView.scaleFactor == pdfView.minScaleFactor)
+            coordinator.animate(alongsideTransition: { _ in
+                self.updateScaleFactors()
+                if isAtMinScaleFactor {
+                    self.pdfView.scaleFactor = self.pdfView.minScaleFactor
+                }
+            })
+        }
     }
 
     /// Override to customize the PDFDocumentView.
     open func setupPDFView() {
         pdfView.displaysAsBook = true
+        pdfView.autoScales = !scalesDocumentToFit
     }
     
     @objc private func didTap(gesture: UITapGestureRecognizer) {
@@ -209,6 +218,9 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
     }
     
     private func updateScaleFactors() {
+        guard scalesDocumentToFit else {
+            return
+        }
         pdfView.minScaleFactor = pdfView.scaleFactorForSizeToFit
         pdfView.maxScaleFactor = 4.0
     }
