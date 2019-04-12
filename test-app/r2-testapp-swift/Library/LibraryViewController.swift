@@ -24,7 +24,7 @@ protocol LibraryViewControllerFactory {
     func make() -> LibraryViewController
 }
 
-class LibraryViewController: UIViewController {
+class LibraryViewController: UIViewController, Loggable {
     
     typealias Factory = DetailsTableViewControllerFactory
 
@@ -179,15 +179,12 @@ extension LibraryViewController {
 extension LibraryViewController: UIDocumentPickerDelegate {
     
     @objc func presentDoccumentPicker() {
-        
-        // FIXME: Extract UTIs from Info.plist
-        let listOfUTI = [String("org.idpf.epub-container"),
-                         String("cx.c3.cbz-archive"),
-                         String("org.readium.lcpl"),
-                         String("org.readium.lcpdf"),
-                         String(kUTTypeText)]
-        
-        let documentPicker = UIDocumentPickerViewController(documentTypes: listOfUTI, in: .import)
+        // Extracts supported UTIs from Info.plist
+        var utis = (Bundle.main.object(forInfoDictionaryKey: "CFBundleDocumentTypes") as? [[String: Any]] ?? [])
+            .flatMap { $0["LSItemContentTypes"] as? [String] ?? [] }
+        utis.append(String(kUTTypeText))
+
+        let documentPicker = UIDocumentPickerViewController(documentTypes: utis, in: .import)
         documentPicker.delegate = self
         self.present(documentPicker, animated: true, completion: nil)
     }
