@@ -10,6 +10,7 @@
 //  LICENSE file present in the project repository where this source code is maintained.
 //
 
+import CoreServices
 import Foundation
 import R2Streamer
 
@@ -26,35 +27,38 @@ enum PublicationType: String {
     
     init(mimetype: String?) {
         switch mimetype {
-        case EpubConstant.mimetype:
-            self = .epub
-        case EpubConstant.mimetypeOEBPS:
+        case EpubConstant.mimetype, EpubConstant.mimetypeOEBPS:
             self = .epub
         case CbzConstant.mimetype:
             self = .cbz
-        case PDFConstant.mimetype:
+        case PDFConstant.pdfMimetype, PDFConstant.lcpdfMimetype:
             self = .pdf
         default:
             self = .unknown
         }
     }
     
-    /// Find the type (epub/cbz for now) of the publication at url.
-    ///
-    /// - Parameter url: The location of the publication file.
-    /// - Returns: The type associated to this publication.
-    static func getForPublication(at url: URL) -> PublicationType {
-        let fileName = url.lastPathComponent
-        let fileType = fileName.contains(".") ? fileName.components(separatedBy: ".").last : ""
-        var publicationType = PublicationType.unknown
-        
-        // If directory.
-        if fileType!.isEmpty {
-            let mimetypePath = url.appendingPathComponent("mimetype").path
-            publicationType = PublicationType(mimetype: try? String(contentsOfFile: mimetypePath, encoding: String.Encoding.utf8))
-        } else /* Determine type with file extension */ {
-            publicationType = PublicationType(rawValue: fileType!) ?? PublicationType.unknown
+    /// Finds the type of the publication at url.
+    init(url: URL) {
+        var isDirectory: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) else {
+            self = .unknown
+            return
         }
-        return publicationType
+        
+        var mimetype: String?
+        if isDirectory.boolValue {
+            mimetype = try? String(contentsOf: url.appendingPathComponent("mimetype"), encoding: String.Encoding.utf8)
+        } else if let extUTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, url.pathExtension as CFString, nil)?.takeUnretainedValue() {
+            mimetype = UTTypeCopyPreferredTagWithClass(extUTI, kUTTagClassMIMEType)?.takeRetainedValue() as String?
+        }
+        
+        guard let unwrappedMimetype = mimetype else {
+            self = .unknown
+            return
+        }
+        
+        self.init(mimetype: unwrappedMimetype)
     }
+    
 }

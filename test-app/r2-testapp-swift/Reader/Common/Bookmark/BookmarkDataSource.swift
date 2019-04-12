@@ -13,7 +13,7 @@
 import Foundation
 import R2Shared
 
-class BookmarkDataSource {
+class BookmarkDataSource: Loggable {
     
     let publicationID :String?
     private(set) var bookmarks = [Bookmark]()
@@ -32,8 +32,12 @@ class BookmarkDataSource {
         if let list = try? BookmarkDatabase.shared.bookmarks.bookmarkList(for: self.publicationID) {
             self.bookmarks = list ?? [Bookmark]()
             self.bookmarks.sort { (b1, b2) -> Bool in
-                if b1.resourceIndex == b2.resourceIndex {
-                    return b1.locations!.progression! < b2.locations!.progression!
+                if b1.resourceIndex == b2.resourceIndex, let locations1 = b1.locator.locations, let locations2 = b2.locator.locations {
+                    if let position1 = locations1.position, let position2 = locations2.position {
+                        return position1 < position2
+                    } else if let progression1 = locations1.progression, let progression2 = locations2.progression {
+                        return progression1 < progression2
+                    }
                 }
                 return b1.resourceIndex < b2.resourceIndex
             }
@@ -52,16 +56,19 @@ class BookmarkDataSource {
     }
     
     func addBookmark(bookmark: Bookmark) -> Bool {
-        if let addedBookmarkID = try? BookmarkDatabase.shared.bookmarks.insert(newBookmark: bookmark) {
-          if let bookmarkID = addedBookmarkID {
-            bookmark.id = bookmarkID
-            self.reloadBookmarks()
-            return true
-          }
+        do {
+            if let bookmarkID = try BookmarkDatabase.shared.bookmarks.insert(newBookmark: bookmark) {
+                bookmark.id = bookmarkID
+                self.reloadBookmarks()
+              return true
+            }
+          return false
+        } catch {
+            log(.error, error)
+            return false
         }
-        return false
     }
-    
+
     func removeBookmark(index: Int) -> Bool {
         if index < 0 || index >= bookmarks.count {
             return false

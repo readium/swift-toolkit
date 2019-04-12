@@ -17,9 +17,7 @@ import R2Streamer
 
 
 class CBZViewController: ReaderViewController {
-    
-    weak var moduleDelegate: ReaderFormatModuleDelegate?
-    
+
     let navigator: CBZNavigatorViewController
 
     public init(publication: Publication) {
@@ -49,47 +47,43 @@ class CBZViewController: ReaderViewController {
         swipeRight.direction = UISwipeGestureRecognizer.Direction.right
         view.addGestureRecognizer(swipeRight)
         view.addGestureRecognizer(swipeLeft)
-        // tocItemView button.
-        let tocButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self, action: #selector(presentTocTVC))
+    }
+    
+    override var outline: [Link] {
+        return publication.readingOrder
+    }
+
+    override var currentBookmark: Bookmark? {
+        let resourceIndex = navigator.pageNumber
+        let progression = 0.0
         
-        let bookmarkButton = UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(addBookmarkForCurrentPosition))
-        /// Add tocViewController button to navBar.
-        navigationItem.setRightBarButtonItems([tocButton, bookmarkButton], animated: true)
+        guard let publicationID = publication.metadata.identifier else {
+            return nil
+        }
+        
+        let resourceTitle = publication.readingOrder[resourceIndex].title
+        let resourceHref = publication.readingOrder[resourceIndex].href
+        let resourceType = publication.readingOrder[resourceIndex].type ?? ""
+        
+        return Bookmark(
+            publicationID: publicationID,
+            resourceIndex: resourceIndex,
+            locator: Locator(
+                href: resourceHref,
+                type: resourceType,
+                title: resourceTitle,
+                locations: Locations(
+                    progression: progression
+                )
+            )
+        )
     }
-
-    @objc func addBookmarkForCurrentPosition() {
-      let resourceIndex = navigator.pageNumber
-      let progression = 0.0
     
-      guard let publicationID = publication.metadata.identifier else {return}
-
-      let resourceTitle = publication.readingOrder[resourceIndex].title ?? "Unknow"
-      let resourceHref = publication.readingOrder[resourceIndex].href
-      let resourceType = publication.readingOrder[resourceIndex].type ?? ""
-
-      let bookmark = Bookmark(bookID: 0, publicationID: publicationID, resourceIndex: resourceIndex, resourceHref:resourceHref, resourceType: resourceType, resourceTitle: resourceTitle, location: Locations(progression:progression), locatorText: LocatorText())
-      
-      if (bookmarksDataSource?.addBookmark(bookmark: bookmark) ?? false) {
-        toast(self.view, "Bookmark Added", 1)
-      } else {
-        toast(self.view, "Could not add Bookmark", 2)
-      }
-    }
-}
-
-extension CBZViewController {
-    @objc func presentTocTVC() {
-        moduleDelegate?.presentOutline(publication, format: .cbz, delegate: self, from: self)
-    }
-}
-
-extension CBZViewController: OutlineTableViewControllerDelegate {
-    
-    func outline(_ outlineTableViewController: OutlineTableViewController, didSelectItem item: String) {
+    override func goTo(item: String) {
         navigator.load(at: Int(item)!)
     }
     
-    func outline(_ outlineTableViewController: OutlineTableViewController, didSelectBookmark bookmark: Bookmark) {
+    override func goTo(bookmark: Bookmark) {
         navigator.load(at: bookmark.resourceIndex)
     }
     

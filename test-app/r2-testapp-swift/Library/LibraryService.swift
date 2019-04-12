@@ -94,9 +94,11 @@ final class LibraryService {
         @discardableResult
         func addPublication(url: URL, downloadTask: URLSessionDownloadTask?) -> Bool {
             /// Add the publication to the publication server.
-            let location = Location(absolutePath: url.path,
-                                    relativePath: url.lastPathComponent,
-                                    format: Publication.Format(file: url))
+            let location = Location(
+                absolutePath: url.path,
+                relativePath: url.lastPathComponent,
+                format: Publication.Format(file: url)
+            )
             guard lightParsePublication(at: location) else {
                 showInfoAlert(title: "Error", message: "The publication isn't valid.")
                 try? FileManager.default.removeItem(at: url)
@@ -268,13 +270,14 @@ final class LibraryService {
             return []
         }
         /// Find the types associated to the files, or unknown.
-        let locations = files.map({ fileName -> Location in
-            let fileUrl = documentsUrl.appendingPathComponent(fileName)
-            let format = Publication.Format(file: fileUrl)
-            
-            return Location(absolutePath: fileUrl.path, relativePath: fileName, format: format)
-        })
-        return locations
+        return files.map { filename in
+            let fileURL = documentsUrl.appendingPathComponent(filename)
+            return Location(
+                absolutePath: fileURL.path,
+                relativePath: filename,
+                format: Publication.Format(file: fileURL)
+            )
+        }
     }
     
     /// Get the locations out of the application Documents/inbox directory.
@@ -296,12 +299,13 @@ final class LibraryService {
         }
 
         /// Find the types associated to the files, or unknown.
-        let locations = sampleUrls.map({ url -> Location in
-            let format = Publication.Format(file: url)
-            
-            return Location(absolutePath: url.path, relativePath: "sample", format: format)
-        })
-        return locations
+        return sampleUrls.map { url in
+            return Location(
+                absolutePath: url.path,
+                relativePath: "sample",
+                format: Publication.Format(file: url)
+            )
+        }
     }
     
     func remove(_ publication: Publication) {

@@ -332,6 +332,10 @@
 		CA9A40DA221C069D00531EA1 /* LCPViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */; };
 		CA9A40DC221C06A300531EA1 /* DRMViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */; };
 		CA9A40DE221C06A500531EA1 /* DRMViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */; };
+		CACE84FD225640A500E19E8B /* Bookmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE84FC225640A500E19E8B /* Bookmark.swift */; };
+		CACE84FE225640A500E19E8B /* Bookmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE84FC225640A500E19E8B /* Bookmark.swift */; };
+		CACE84FF225640A500E19E8B /* Bookmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE84FC225640A500E19E8B /* Bookmark.swift */; };
+		CACE8500225640A500E19E8B /* Bookmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE84FC225640A500E19E8B /* Bookmark.swift */; };
 		F30AEE7A1FC312EA0073C9FD /* DetailsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */; };
 		F3120DE71FACB08E009ACFAD /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
 		F3120DE81FACB090009ACFAD /* 2.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F11F7D467C00BDEAF4 /* 2.epub */; };
@@ -483,6 +487,7 @@
 		CA822CBE221C5737005800D1 /* r2-testapp-swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DRMViewModel.swift; sourceTree = "<group>"; };
 		CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPViewModel.swift; sourceTree = "<group>"; };
+		CACE84FC225640A500E19E8B /* Bookmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bookmark.swift; sourceTree = "<group>"; };
 		F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsTableViewController.swift; sourceTree = "<group>"; };
 		F32980EE1F7D467B00BDEAF4 /* 1.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 1.epub; sourceTree = "<group>"; };
 		F32980EF1F7D467B00BDEAF4 /* 5.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 5.epub; sourceTree = "<group>"; };
@@ -608,6 +613,7 @@
 				571585EE2109E8F8008B34AD /* BookmarkDatabase.swift */,
 				571585EF2109E8F8008B34AD /* BookmarkDataSource.swift */,
 				571585ED2109E8F8008B34AD /* BookmarkCell.swift */,
+				CACE84FC225640A500E19E8B /* Bookmark.swift */,
 			);
 			path = Bookmark;
 			sourceTree = "<group>";
@@ -1182,6 +1188,7 @@
 				CA415F29221D7753003A0F7F /* LibraryService.swift in Sources */,
 				CA29B715222000810037534C /* LibraryModule.swift in Sources */,
 				0350FCF1211CD2CB006994C2 /* OPDSPlaceholderView.swift in Sources */,
+				CACE84FE225640A500E19E8B /* Bookmark.swift in Sources */,
 				0350FCF2211CD2CB006994C2 /* OPDSNavigationTableViewCell.swift in Sources */,
 				CA9A40DC221C06A300531EA1 /* DRMViewModel.swift in Sources */,
 				0350FCF3211CD2CB006994C2 /* AppDelegate.swift in Sources */,
@@ -1241,6 +1248,7 @@
 				CA415F2A221D7753003A0F7F /* LibraryService.swift in Sources */,
 				CA29B716222000810037534C /* LibraryModule.swift in Sources */,
 				0350FD45211CD625006994C2 /* OPDSPlaceholderView.swift in Sources */,
+				CACE84FF225640A500E19E8B /* Bookmark.swift in Sources */,
 				0350FD46211CD625006994C2 /* OPDSNavigationTableViewCell.swift in Sources */,
 				CA9A40DE221C06A500531EA1 /* DRMViewModel.swift in Sources */,
 				0350FD47211CD625006994C2 /* AppDelegate.swift in Sources */,
@@ -1300,6 +1308,7 @@
 				CA415F2B221D7753003A0F7F /* LibraryService.swift in Sources */,
 				CA29B717222000810037534C /* LibraryModule.swift in Sources */,
 				CA822C7F221C5737005800D1 /* OPDSPlaceholderView.swift in Sources */,
+				CACE8500225640A500E19E8B /* Bookmark.swift in Sources */,
 				CA822C80221C5737005800D1 /* OPDSNavigationTableViewCell.swift in Sources */,
 				CA822C81221C5737005800D1 /* DRMViewModel.swift in Sources */,
 				CA822C82221C5737005800D1 /* AppDelegate.swift in Sources */,
@@ -1359,6 +1368,7 @@
 				CA415F28221D7753003A0F7F /* LibraryService.swift in Sources */,
 				CA29B714222000810037534C /* LibraryModule.swift in Sources */,
 				AED681F220A32EBA0090DBCD /* OPDSPlaceholderView.swift in Sources */,
+				CACE84FD225640A500E19E8B /* Bookmark.swift in Sources */,
 				AE48F322208DE1E4000B7B44 /* OPDSNavigationTableViewCell.swift in Sources */,
 				F3E7D43C1F4EF6D400DF166D /* AppDelegate.swift in Sources */,
 				113B12D220800FD60074A5A2 /* OPDSCatalogSelectorViewController.swift in Sources */,
