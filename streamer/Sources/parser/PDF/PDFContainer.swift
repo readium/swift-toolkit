@@ -25,4 +25,18 @@ final class PDFFileContainer: FileContainer, PDFContainer {
     
     var context: Any?
     
+    init?(path: String) {
+        super.init(path: path, mimetype: PDFConstant.pdfMimetype)
+    }
+    
+}
+
+
+final class LCPDFContainer: ArchiveContainer, PDFContainer {
+    
+    var context: Any?
+    
+    init?(path: String) {
+        super.init(path: path, mimetype: PDFConstant.lcpdfMimetype)
+    }
 }
