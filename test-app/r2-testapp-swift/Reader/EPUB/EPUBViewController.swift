@@ -119,14 +119,14 @@ class EPUBViewController: ReaderViewController {
                                                  action: #selector(presentUserSettings))
         barButtons.append(userSettingsButton)
         
+        barButtons.append(self.bookmarkButton)
+
         if drm != nil {
             let drmManagementButton = UIBarButtonItem(image: #imageLiteral(resourceName: "drm"), style: .plain, target: self,
                                                       action: #selector(presentDrmManagement))
             barButtons.append(drmManagementButton)
         }
-        
-        barButtons.append(self.bookmarkButton)
-        
+      
         popoverUserconfigurationAnchor = userSettingsButton
         /// Add tocItemViewController button to navBar.
         navigationItem.setRightBarButtonItems(barButtons,
