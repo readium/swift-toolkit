@@ -87,13 +87,7 @@ class BooksTable {
 
   init(_ connection: Connection) {
     
-    if connection.userVersion == 0 {
-      // handle first migration
-      connection.userVersion = 1
-      // upgrade database columns
-      // drop table and recreate, this will delete all prior books
-      _ = try? connection.run(books.drop())
-    }
+    connection.userVersion = 0
     _ = try? connection.run(books.create(temporary: false, ifNotExists: true) { t in
       t.column(ID, primaryKey: PrimaryKey.autoincrement)
       t.column(IDENTIFIER)
