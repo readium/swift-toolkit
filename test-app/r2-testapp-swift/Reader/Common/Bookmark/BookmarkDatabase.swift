@@ -83,7 +83,7 @@ class BookmarksTable {
     func insert(newBookmark: Bookmark) throws -> Int64? {
         let db = BookmarkDatabase.shared.connection
         
-        let bookmark = tableName.filter(self.publicationID == newBookmark.publicationID && self.resourceHref == newBookmark.resourceHref && self.resourceIndex == newBookmark.resourceIndex && self.locations == newBookmark.locations!.toString()!)
+        let bookmark = tableName.filter(self.publicationID == newBookmark.publicationID && self.resourceHref == newBookmark.locator.href && self.resourceIndex == newBookmark.resourceIndex && self.locations == (newBookmark.locator.locations?.jsonString ?? ""))
         
         // Check if empty.
         guard try db.scalar(bookmark.count) == 0 else {
@@ -93,12 +93,12 @@ class BookmarksTable {
         let insertQuery = tableName.insert(
             creationDate <- newBookmark.creationDate,
             publicationID <- newBookmark.publicationID,
-            resourceHref <- newBookmark.resourceHref,
+            resourceHref <- newBookmark.locator.href,
             resourceIndex <- newBookmark.resourceIndex,
-            resourceType <- newBookmark.resourceType,
-            locations <- newBookmark.locations!.toString()!,
-            locatorText <- newBookmark.locatorText.toString()!,
-            resourceTitle <- newBookmark.resourceTitle
+            resourceType <- newBookmark.locator.type,
+            locations <- newBookmark.locator.locations?.jsonString ?? "",
+            locatorText <- newBookmark.locator.text?.jsonString ?? "",
+            resourceTitle <- newBookmark.locator.title ?? ""
         )
         
        return try db.run(insertQuery)
@@ -141,21 +141,20 @@ class BookmarksTable {
             return try db.prepare(self.tableName)
         } ()
         
-        let bookmarkList = resultList.map { (bookmarkRow) -> Bookmark in
-            let _bookmarkID = bookmarkRow[self.bookmarkID]
-            let _creationDate = bookmarkRow[self.creationDate]
-            let _publicationID = bookmarkRow[self.publicationID]
-            let _resourceHref = bookmarkRow[self.resourceHref]
-            let _resourceIndex = bookmarkRow[self.resourceIndex]
-            let _locations = bookmarkRow[self.locations]
-            let _locatorText = bookmarkRow[self.locatorText]
-            let _resourceTitle = bookmarkRow[self.resourceTitle]
-            let _resourceType = bookmarkRow[self.resourceType]
-
-            let bookmark = Bookmark(bookID: 0, publicationID: _publicationID, resourceIndex: _resourceIndex, resourceHref: _resourceHref, resourceType: _resourceType, resourceTitle: _resourceTitle, location: Locations(fromString: _locations), locatorText: LocatorText(fromString: _locatorText), creationDate: _creationDate, id: _bookmarkID)
-            return bookmark
+        return resultList.map { row in
+            Bookmark(
+                id: row[self.bookmarkID],
+                publicationID: row[self.publicationID],
+                resourceIndex: row[self.resourceIndex],
+                locator: Locator(
+                    href: row[self.resourceHref],
+                    type: row[self.resourceType],
+                    title: row[self.resourceTitle],
+                    locations: Locations(jsonString: row[self.locations]),
+                    text: LocatorText(jsonString: row[self.locatorText])
+                ),
+                creationDate: row[self.creationDate]
+            )
         }
-        
-        return bookmarkList
     }
 }

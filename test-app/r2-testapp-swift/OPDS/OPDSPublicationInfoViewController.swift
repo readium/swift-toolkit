@@ -144,7 +144,7 @@ class OPDSPublicationInfoViewController : UIViewController {
         if let links = publication?.links {
             for link in links {
                 let href = link.href
-                if href.contains(".epub") || href.contains(".lcpl") {
+                if href.hasSuffix(".epub") || href.hasSuffix(".lcpl") || href.hasSuffix(".lcpdf") {
                     url = URL(string: href)
                     break
                 }
