@@ -24,8 +24,8 @@ public struct Rights {
     /// Implementor-specific rights extensions. Each extension is identified by an URI.
     public let extensions: [String: Any]
 
-    init(json: [String: Any]) throws {
-        var json = json
+    init(json: [String: Any]?) throws {
+        var json = json ?? [:]
         self.print = json.removeValue(forKey: "print") as? Int
         self.copy = json.removeValue(forKey: "copy") as? Int
         self.start = (json.removeValue(forKey: "start") as? String)?.dateFromISO8601

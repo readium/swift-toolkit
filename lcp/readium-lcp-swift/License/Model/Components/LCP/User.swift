@@ -23,13 +23,13 @@ public struct User {
     /// A list of which user object values are encrypted in this License Document.
     public let encrypted: [String]
 
-    init(json: [String : Any]) throws {
-        var json = json
-        self.id = json.removeValue(forKey: "id") as? String
-        self.email = json.removeValue(forKey: "email") as? String
-        self.name = json.removeValue(forKey: "name") as? String
-        self.encrypted = (json.removeValue(forKey: "encrypted") as? [String]) ?? []
-        self.extensions = json
+    init(json: [String : Any]?) throws {
+        var json = json ?? [:]
+        id = json.removeValue(forKey: "id") as? String
+        email = json.removeValue(forKey: "email") as? String
+        name = json.removeValue(forKey: "name") as? String
+        encrypted = (json.removeValue(forKey: "encrypted") as? [String]) ?? []
+        extensions = json
     }
     
 }

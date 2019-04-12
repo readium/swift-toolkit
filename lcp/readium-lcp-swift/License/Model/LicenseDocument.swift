@@ -13,6 +13,7 @@ import Foundation
 import R2Shared
 
 /// Document that contains references to the various keys, links to related external resources, rights and restrictions that are applied to the Protected Publication, and user information.
+/// https://github.com/readium/lcp-specs/blob/master/schema/license.schema.json
 public struct LicenseDocument {
 
     // The possible rel of Links.
@@ -65,8 +66,6 @@ public struct LicenseDocument {
             let issued = (json["issued"] as? String)?.dateFromISO8601,
             let encryption = json["encryption"] as? [String: Any],
             let links = json["links"] as? [[String : Any]],
-            let user = json["user"] as? [String: Any],
-            let rights = json["rights"] as? [String: Any],
             let signature = json["signature"] as? [String: Any] else
         {
             throw ParsingError.licenseDocument
@@ -78,8 +77,8 @@ public struct LicenseDocument {
         self.updated = (json["updated"] as? String)?.dateFromISO8601 ?? issued
         self.encryption = try Encryption(json: encryption)
         self.links = try Links(json: links)
-        self.user = try User(json: user)
-        self.rights = try Rights(json: rights)
+        self.user = try User(json: json["user"] as? [String: Any])
+        self.rights = try Rights(json: json["rights"] as? [String: Any])
         self.signature = try Signature(json: signature)
         self.json = jsonString
         self.data = data
