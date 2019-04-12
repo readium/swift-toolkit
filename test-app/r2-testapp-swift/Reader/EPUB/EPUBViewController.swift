@@ -127,24 +127,7 @@ class EPUBViewController: ReaderViewController {
         fixedTopBar.setNeedsUpdateConstraints()
         fixedBottomBar.setNeedsUpdateConstraints()
     }
-    
-    override func willPresentViewController() {
-        // Dismiss userSettings if opened.
-        if let userSettingsTVC = userSettingNavigationController.userSettingsTableViewController {
-            userSettingsTVC.dismiss(animated: true, completion: nil)
-        }
-    }
-    
-    override func presentOutline() {
-      willPresentViewController()
-      super.presentOutline()
-    }
-  
-    override func bookmarkCurrentPosition() {
-      willPresentViewController()
-      super.bookmarkCurrentPosition()
-    }
-  
+
     override func makeNavigationBarButtons() -> [UIBarButtonItem] {
         var buttons = super.makeNavigationBarButtons()
 
@@ -184,17 +167,19 @@ class EPUBViewController: ReaderViewController {
         
         popoverPresentationController.delegate = self
         popoverPresentationController.barButtonItem = popoverUserconfigurationAnchor
-        
+
         userSettingNavigationController.publication = self.navigator.publication
-        present(userSettingNavigationController, animated: true, completion: nil)
+        present(userSettingNavigationController, animated: true) {
+            // Makes sure that the popover is dismissed also when tapping on one of the other UIBarButtonItems.
+            // ie. http://karmeye.com/2014/11/20/ios8-popovers-and-passthroughviews/
+            popoverPresentationController.passthroughViews = nil
+        }
     }
     
     @objc func presentDrmManagement() {
         guard let drm = drm else {
             return
         }
-        
-        willPresentViewController()
         moduleDelegate?.presentDRM(drm, from: self)
     }
     

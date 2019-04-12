@@ -86,12 +86,7 @@ class ReaderViewController: UIViewController, Loggable {
     override var prefersStatusBarHidden: Bool {
         return navigationController?.isNavigationBarHidden ?? true
     }
-    
-    /// Called when the reader view controller will present any view controller. You can override this function to update the UX accordingly.
-    func willPresentViewController() {
-        // Default does nothing.
-    }
-    
+
     
     // MARK: - Locations
     /// FIXME: This should be implemented in a shared Navigator interface, using Locators.
