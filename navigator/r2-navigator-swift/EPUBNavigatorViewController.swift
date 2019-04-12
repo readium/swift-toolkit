@@ -15,12 +15,6 @@ import WebKit
 import SafariServices
 
 
-public enum NavigatorError: Error {
-    /// The user tried to copy the text selection but the DRM License doesn't allow it.
-    case copyForbidden
-}
-
-
 public protocol EPUBNavigatorDelegate: class {
     func middleTapHandler()
     func willExitPublication(documentIndex: Int, progression: Double?)
@@ -68,19 +62,20 @@ open class EPUBNavigatorViewController: UIViewController {
     public weak var delegate: EPUBNavigatorDelegate?
 
     public let pageTransition: PageTransition
-    public let editingActions: [EditingAction]
     public let disableDragAndDrop: Bool
+    
+    fileprivate let editingActions: EditingActionsController
 
     /// - Parameters:
     ///   - publication: The publication.
     ///   - initialIndex: Inital index of -1 will open the publication's at the end.
-    public init(for publication: Publication, license: DRMLicense? = nil, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = []) {
+    public init(for publication: Publication, license: DRMLicense? = nil, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = EditingAction.defaultActions) {
         self.publication = publication
         self.license = license
         self.initialProgression = initialProgression
         self.pageTransition = pageTransition
         self.disableDragAndDrop = disableDragAndDrop
-        self.editingActions = editingActions
+        self.editingActions = EditingActionsController(actions: editingActions, license: license)
 
         userSettings = UserSettings()
         publication.userProperties.properties = userSettings.userProperties.properties
@@ -101,6 +96,7 @@ open class EPUBNavigatorViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
         
         automaticallyAdjustsScrollViewInsets = false
+        self.editingActions.delegate = self
     }
 
     @available(*, unavailable)
@@ -118,45 +114,55 @@ open class EPUBNavigatorViewController: UIViewController {
         triptychView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         view.addSubview(triptychView)
     }
-    public var currentPosition:Bookmark {
-        get {
-            var hrefToTitle: [String: String] = {
-                let linkList = self.getTableOfContents()
-                return fulfill(linkList: linkList)
-            } ()
-            
-            func fulfill(linkList: [Link]) -> [String: String] {
-                var result = [String: String]()
-                
-                for link in linkList {
-                    if let title = link.title {
-                        result[link.href] = title
-                    }
-                    let subResult = fulfill(linkList: link.children)
-                    result.merge(subResult) { (current, another) -> String in
-                        return current
-                    }
-                }
-                return result
-            }
-            
-            let progression = triptychView.getCurrentDocumentProgression()
-            let index = triptychView.getCurrentDocumentIndex()
-            let readingOrder = self.getReadingOrder()[index]
-            let resourceTitle: String = hrefToTitle[readingOrder.href] ?? "Unknown"
 
-            return Bookmark(
-                bookID: 0,
-                publicationID: publication.metadata.identifier!,
-                resourceIndex: index,
-                resourceHref: readingOrder.href,
-                resourceType: readingOrder.type ?? "",
-                resourceTitle: resourceTitle,
-                location: Locations(progression: progression ?? 0),
-                locatorText: LocatorText()
-            )
+    public var currentLocation: Locator? {
+        var hrefToTitle: [String: String] = {
+            let linkList = self.getTableOfContents()
+            return fulfill(linkList: linkList)
+        } ()
+
+        func fulfill(linkList: [Link]) -> [String: String] {
+            var result = [String: String]()
+
+            for link in linkList {
+                if let title = link.title {
+                    result[link.href] = title
+                }
+                let subResult = fulfill(linkList: link.children)
+                result.merge(subResult) { (current, another) -> String in
+                    return current
+                }
+            }
+            return result
         }
 
+        let progression = triptychView.getCurrentDocumentProgression()
+        let index = triptychView.getCurrentDocumentIndex()
+        let readingOrder = self.getReadingOrder()[index]
+        let resourceTitle: String = hrefToTitle[readingOrder.href] ?? "Unknown"
+        
+        return Locator(
+            href: readingOrder.href,
+            type: readingOrder.type ?? "text/html",
+            title: resourceTitle,
+            locations: Locations(
+                progression: progression ?? 0
+            )
+        )
+    }
+    
+    @available(*, deprecated, message: "Bookmark model is deprecated, use your own model and `currentLocation`")
+    public var currentPosition: Bookmark? {
+        guard let publicationID = publication.metadata.identifier,
+            let locator = currentLocation else
+        {
+            return nil
+        }
+        return Bookmark(
+            publicationID: publicationID,
+            resourceIndex: triptychView.getCurrentDocumentIndex(),
+            locator: locator
+        )
     }
 
     open override func viewWillDisappear(_ animated: Bool) {
@@ -297,36 +303,15 @@ extension EPUBNavigatorViewController: ViewDelegate {
     internal func handleCenterTap() {
         delegate?.middleTapHandler()
     }
-    
-    func requestCopySelection() -> Bool {
-        let allowed = license?.canCopy ?? true
-        if !allowed {
-            delegate?.presentError(.copyForbidden)
-        }
-        return allowed
-    }
-    
-    func didCopySelection() {
-        let pasteboard = UIPasteboard.general
-        
-        guard let license = license else {
-            return
-        }
-        guard license.canCopy else {
-            pasteboard.items = []
-            return
-        }
-        guard let text = pasteboard.string else {
-            return
-        }
-        
-        let authorizedText = license.copy(text)
-        if authorizedText != text {
-            // We overwrite the pasteboard only if the authorized text is different to avoid erasing formatting
-            pasteboard.string = authorizedText
-        }
-    }
 
+}
+
+extension EPUBNavigatorViewController: EditingActionsControllerDelegate {
+    
+    func editingActionsDidPreventCopy(_ editingActions: EditingActionsController) {
+        delegate?.presentError(.copyForbidden)
+    }
+    
 }
 
 /// Used to hide conformance to package-private delegate protocols.
