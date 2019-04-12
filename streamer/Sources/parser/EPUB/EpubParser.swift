@@ -175,10 +175,6 @@ final public class EpubParser: PublicationParser {
         if ((try? container.data(relativePath: EpubConstant.lcplFilePath)) != nil) {
             return DRM(brand: .lcp)
         }
-        /// ADOBE.
-        // TODO
-        /// SONY.
-        // TODO
         return nil
     }
 
