@@ -299,3 +299,9 @@ internal class ContentFiltersCbz: ContentFilters {
     required init() {
     }
 }
+
+/// Content filter specialization for PDF.
+internal class ContentFiltersPDF: ContentFilters {
+    required init() {
+    }
+}
