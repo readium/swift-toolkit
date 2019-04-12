@@ -298,7 +298,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
       
         guard let (publication, container) = self.library.lightParsePublication(for: book.fileName, book:book) else {return}
       
-        self.library.serve(publication: publication, with: container, for: book.fileName)
+        self.library.publish(publication: publication, with: container, for: book.fileName)
       
         libraryDelegate.libraryDidSelectPublication(book.fileName, publication) {
             self.loadingIndicator.removeFromSuperview()

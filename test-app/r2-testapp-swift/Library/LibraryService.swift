@@ -288,8 +288,8 @@ final class LibraryService {
       }
     }
   
-    internal func serve(publication: Publication, with container:Container, for path: String) {
-      publicationServer.remove(at: path)
+    internal func publish(publication: Publication, with container:Container, for path: String) {
+      publicationServer.removeAll()
       do {
           try publicationServer.add(publication, with: container, at: path)
         } catch {
