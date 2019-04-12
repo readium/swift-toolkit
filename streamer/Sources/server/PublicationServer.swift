@@ -313,4 +313,15 @@ public class PublicationServer {
         pubBoxes[endpoint] = nil
         log(.info, "Publication at \(endpoint) has been successfully removed.")
     }
+  
+    /// Remove all publication from the server.
+    public func removeAll() {
+      for pubBox in pubBoxes {
+        if let index = pubBoxes.index(forKey: pubBox.key)
+        {
+          pubBoxes.remove(at: index)
+          log(.info, "Publication at \(pubBox.key) has been successfully removed.")
+        }
+      }
+    }
 }
