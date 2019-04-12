@@ -111,7 +111,7 @@ class ReaderViewController: UIViewController, Loggable {
     // MARK: - Table of Contents
 
     @objc func presentOutline() {
-        moduleDelegate?.presentOutline(publication, format: publication.format, delegate: self, from: self)
+        moduleDelegate?.presentOutline(of: publication, delegate: self, from: self)
     }
     
     
