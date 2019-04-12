@@ -126,8 +126,11 @@ final public class EpubParser: PublicationParser {
     static internal func parseEncryption(from container: Container, to publication: inout Publication, _ drm: DRM?) {
         //if publication.metadata.title ==
         // Check if there is an encryption file.
+        var options = AEXMLOptions()
+        // Deactivates namespaces so that we don't have to look for both enc:EncryptedData, and EncryptedData, for example.
+        options.parserSettings.shouldProcessNamespaces = true
         guard let documentData = try? container.data(relativePath: EpubConstant.encryptionDotXmlPath),
-            let document = try? AEXMLDocument.init(xml: documentData) else {
+            let document = try? AEXMLDocument(xml: documentData, options: options) else {
                 // To encryption document.
                 return
         }
