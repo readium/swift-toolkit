@@ -125,7 +125,7 @@ final class OutlineTableViewController: UITableViewController {
                     if let position = bookmark.locator.locations?.position {
                         return String(format: "page \(position)")
                     } else if let progression = bookmark.locator.locations?.progression {
-                        return String(format: "\(progression)%.f%% through the chapter", progression * 100)
+                        return String(format: "%.2f%% through the chapter", progression * 100)
                     } else {
                         return nil
                     }
