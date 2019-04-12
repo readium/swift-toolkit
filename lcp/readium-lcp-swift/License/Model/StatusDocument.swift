@@ -12,6 +12,7 @@
 import Foundation
 
 /// Document that contains information about the history of a License Document, along with its current status and available interactions.
+/// https://github.com/readium/lcp-specs/blob/master/schema/status.schema.json
 public struct StatusDocument {
 
     public enum Status: String {
@@ -82,7 +83,7 @@ public struct StatusDocument {
         }
 
         if let events = json["events"] as? [[String: Any]] {
-            self.events = try events.map(Event.init)
+            self.events = events.compactMap(Event.init)
         } else {
             self.events = []
         }

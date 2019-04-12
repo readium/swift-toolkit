@@ -22,7 +22,7 @@ public struct Event {
         // Signals a successful return event.
         case `return`
         // Signals a revocation event.
-        case revoke
+        case revoked
         // Signals a cancellation event.
         case cancel
     }
@@ -37,15 +37,14 @@ public struct Event {
     /// Time and date when the event occurred.
     public let date: Date  // Named timestamp in spec.
 
-    init(json: [String: Any]) throws {
+    init?(json: [String: Any]) {
         guard let type = json["type"] as? String,
             let name = json["name"] as? String,
             let id = json["id"] as? String,
             let date = (json["timestamp"] as? String)?.dateFromISO8601 else
         {
-            throw ParsingError.event
+            return nil
         }
-        
         self.type = type
         self.name = name
         self.id = id

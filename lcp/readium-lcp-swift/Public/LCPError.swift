@@ -172,7 +172,6 @@ public enum ParsingError: Error {
     case link
     case encryption
     case signature
-    case event
     case url(rel: String)
 }
 
@@ -192,8 +191,6 @@ extension ParsingError: LocalizedError {
             return "Invalid Encryption."
         case .signature:
             return "Invalid License Document Signature."
-        case .event:
-            return "Invalid Event."
         case .url(let rel):
             return "Invalid URL for link with rel \(rel)."
         }
