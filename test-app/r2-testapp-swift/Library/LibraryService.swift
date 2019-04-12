@@ -18,7 +18,7 @@ import Kingfisher
 
 struct Location {
     let absolutePath: String
-    let relativePath: String
+    let fileName: String
     let format: Publication.Format
 }
 
@@ -119,7 +119,7 @@ final class LibraryService {
             /// Add the publication to the publication server.
             let location = Location(
                 absolutePath: url.path,
-                relativePath: url.lastPathComponent,
+                fileName: url.lastPathComponent,
                 format: Publication.Format(file: url)
             )
             guard let (publication, container) = lightParsePublication(for: location.absolutePath, isAbsolute: true) else {
@@ -133,7 +133,7 @@ final class LibraryService {
               image = try? container.data(relativePath: cover.href)
             }
 
-            let book = Book(fileName: location.relativePath,
+            let book = Book(fileName: location.fileName,
                           title: publication.metadata.title,
                           author: publication.metadata.authors
                             .map { $0.name }
@@ -268,7 +268,7 @@ final class LibraryService {
         // Load the publications.
         for location in locations {
             guard let (publication, container) = lightParsePublication(for: location.absolutePath, isAbsolute: true) else {
-                print("Error loading publication \(location.relativePath).")
+                print("Error loading publication \(location.fileName).")
               continue
             }
           
@@ -277,7 +277,7 @@ final class LibraryService {
             image = try? container.data(relativePath: cover.href)
           }
 
-          let book = Book(fileName: location.relativePath,
+          let book = Book(fileName: location.fileName,
                           title: publication.metadata.title,
                           author: publication.metadata.authors
                             .map { $0.name }
@@ -331,7 +331,7 @@ final class LibraryService {
       }
       
       let location = Location(absolutePath: url.path,
-                          relativePath: url.lastPathComponent,
+                          fileName: url.lastPathComponent,
                           format: Publication.Format(file: url))
      
       guard let parser = parsers[location.format] else {
@@ -344,7 +344,7 @@ final class LibraryService {
         items[url.lastPathComponent] = (container, parsingCallback)
         return pubBox
       } catch {
-        print("Error parsing publication at path '\(location.relativePath)': \(error)")
+        print("Error parsing publication at path '\(location.fileName)': \(error)")
         return nil
       }
     }
@@ -371,7 +371,7 @@ final class LibraryService {
         return sampleUrls.map { url in
             return Location(
                 absolutePath: url.path,
-                relativePath: url.lastPathComponent,
+                fileName: url.lastPathComponent,
                 format: Publication.Format(file: url)
             )
         }
