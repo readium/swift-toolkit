@@ -90,7 +90,7 @@ class EPUBViewController: ReaderViewController {
         userSettingNavigationController.usdelegate = self
         userSettingNavigationController.userSettingsTableViewController.publication = navigator.publication
         
-        fixedTopBar.setLabel(title: navigator.publication.metadata.title)
+        fixedTopBar.setLabel(title: "")
         fixedBottomBar.setLabel(title: "")
         
 
@@ -131,16 +131,16 @@ class EPUBViewController: ReaderViewController {
     override func makeNavigationBarButtons() -> [UIBarButtonItem] {
         var buttons = super.makeNavigationBarButtons()
 
-        if drm != nil {
-            let drmManagementButton = UIBarButtonItem(image: #imageLiteral(resourceName: "drm"), style: .plain, target: self, action: #selector(presentDrmManagement))
-            buttons.insert(drmManagementButton, at: 1)
-        }
-        
         // User configuration button
         let userSettingsButton = UIBarButtonItem(image: #imageLiteral(resourceName: "settingsIcon"), style: .plain, target: self, action: #selector(presentUserSettings))
         buttons.insert(userSettingsButton, at: 1)
         popoverUserconfigurationAnchor = userSettingsButton
-        
+    
+        if drm != nil {
+          let drmManagementButton = UIBarButtonItem(image: #imageLiteral(resourceName: "drm"), style: .plain, target: self, action: #selector(presentDrmManagement))
+          buttons.insert(drmManagementButton, at: buttons.count-1)
+        }
+
         return buttons
     }
     

@@ -40,8 +40,7 @@ class ReaderViewController: UIViewController, Loggable {
         super.viewDidLoad()
         
         view.backgroundColor = .white
-        navigationController?.setNavigationBarHidden(true, animated: false)
-        
+      
         navigationItem.rightBarButtonItems = makeNavigationBarButtons()
     }
     

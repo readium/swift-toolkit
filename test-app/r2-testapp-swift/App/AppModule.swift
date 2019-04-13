@@ -70,8 +70,8 @@ extension AppModule: ModuleDelegate {
 
 extension AppModule: LibraryModuleDelegate {
     
-    func libraryDidSelectPublication(_ publication: Publication, completion: @escaping () -> Void) {
-        reader.presentPublication(publication: publication, in: library.rootViewController, completion: completion)
+    func libraryDidSelectPublication(_ fileName: String, _ publication: Publication, completion: @escaping () -> Void) {
+        reader.presentPublication(fileName: fileName, publication:publication, in: library.rootViewController, completion: completion)
     }
 
 }
@@ -79,8 +79,8 @@ extension AppModule: LibraryModuleDelegate {
 
 extension AppModule: ReaderModuleDelegate {
     
-    func readerLoadDRM(for publication: Publication, completion: @escaping (CancellableResult<DRM?>) -> Void) {
-        library.loadDRM(for: publication, completion: completion)
+    func readerLoadDRM(for fileName: String, completion: @escaping (CancellableResult<DRM?>) -> Void) {
+        library.loadDRM(for: fileName, completion: completion)
     }
     
 }
