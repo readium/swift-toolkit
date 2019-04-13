@@ -7,12 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		03BF0132221DAFDA0051050B /* EditingAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03BF0131221DAFDA0051050B /* EditingAction.swift */; };
 		03C3CC68222DBD8600A01731 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03C3CC67222DBD8600A01731 /* R2Shared.framework */; };
 		1D3A2F56218C85A100108B31 /* PageTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3A2F55218C85A100108B31 /* PageTransition.swift */; };
 		CA0B3AC3222EE555006D9363 /* PDFNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */; };
 		CACE851F225CDE3400E19E8B /* FixedWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE851E225CDE3300E19E8B /* FixedWebView.swift */; };
 		CACE8521225CDFB000E19E8B /* ReflowableWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE8520225CDFB000E19E8B /* ReflowableWebView.swift */; };
+		CAB9086B22492D4C00711C3F /* Navigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB9086A22492D4C00711C3F /* Navigator.swift */; };
+		CACE84F82254BE5F00E19E8B /* PDFDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE84F72254BE5F00E19E8B /* PDFDocumentView.swift */; };
+		CACE84FB2254BFEE00E19E8B /* EditingAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE84FA2254BFEE00E19E8B /* EditingAction.swift */; };
 		F341C2711F506ED5005E6758 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F341C2701F506ED5005E6758 /* UserSettings.swift */; };
 		F3E7D3D41F4D83B000DF166D /* r2-navigator-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F3E7D3DE1F4D845B00DF166D /* BinaryLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3DD1F4D845B00DF166D /* BinaryLocation.swift */; };
@@ -24,12 +26,14 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		03BF0131221DAFDA0051050B /* EditingAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditingAction.swift; sourceTree = "<group>"; };
 		03C3CC67222DBD8600A01731 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1D3A2F55218C85A100108B31 /* PageTransition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageTransition.swift; sourceTree = "<group>"; };
 		CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFNavigatorViewController.swift; sourceTree = "<group>"; };
 		CACE851E225CDE3300E19E8B /* FixedWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixedWebView.swift; sourceTree = "<group>"; };
 		CACE8520225CDFB000E19E8B /* ReflowableWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReflowableWebView.swift; sourceTree = "<group>"; };
+		CAB9086A22492D4C00711C3F /* Navigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Navigator.swift; sourceTree = "<group>"; };
+		CACE84F72254BE5F00E19E8B /* PDFDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDocumentView.swift; sourceTree = "<group>"; };
+		CACE84FA2254BFEE00E19E8B /* EditingAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditingAction.swift; sourceTree = "<group>"; };
 		F341C2701F506ED5005E6758 /* UserSettings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
 		F3E7D3C31F4D83B000DF166D /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "r2-navigator-swift.h"; sourceTree = "<group>"; };
@@ -60,6 +64,7 @@
 			isa = PBXGroup;
 			children = (
 				CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */,
+				CACE84F72254BE5F00E19E8B /* PDFDocumentView.swift */,
 			);
 			path = PDF;
 			sourceTree = "<group>";
@@ -87,6 +92,8 @@
 			children = (
 				F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */,
 				F3E7D3C71F4D83B000DF166D /* Info.plist */,
+				CAB9086A22492D4C00711C3F /* Navigator.swift */,
+				CACE84FA2254BFEE00E19E8B /* EditingAction.swift */,
 				CA0B3AC1222EE530006D9363 /* PDF */,
 				F3E7D42C1F4EE0DB00DF166D /* CBZ */,
 				F3E7D42B1F4EE0D200DF166D /* EPUB */,
@@ -123,7 +130,6 @@
 				F3E7D3DF1F4D847E00DF166D /* Disjunction.swift */,
 				F341C2701F506ED5005E6758 /* UserSettings.swift */,
 				1D3A2F55218C85A100108B31 /* PageTransition.swift */,
-				03BF0131221DAFDA0051050B /* EditingAction.swift */,
 			);
 			name = EPUB;
 			sourceTree = "<group>";
@@ -218,14 +224,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				F3E7D3E21F4D84A000DF166D /* EPUBNavigatorViewController.swift in Sources */,
-				03BF0132221DAFDA0051050B /* EditingAction.swift in Sources */,
+				CAB9086B22492D4C00711C3F /* Navigator.swift in Sources */,
 				CA0B3AC3222EE555006D9363 /* PDFNavigatorViewController.swift in Sources */,
 				F3E7D3E61F4D84EF00DF166D /* WebView.swift in Sources */,
 				F3E7D42E1F4EE0FE00DF166D /* CBZNavigatorViewController.swift in Sources */,
 				F3E7D3E01F4D847E00DF166D /* Disjunction.swift in Sources */,
+				CACE84FB2254BFEE00E19E8B /* EditingAction.swift in Sources */,
 				F341C2711F506ED5005E6758 /* UserSettings.swift in Sources */,
 				CACE851F225CDE3400E19E8B /* FixedWebView.swift in Sources */,
 				F3E7D3DE1F4D845B00DF166D /* BinaryLocation.swift in Sources */,
+				CACE84F82254BE5F00E19E8B /* PDFDocumentView.swift in Sources */,
 				F3E7D3E41F4D84DC00DF166D /* TriptychView.swift in Sources */,
 				CACE8521225CDFB000E19E8B /* ReflowableWebView.swift in Sources */,
 				1D3A2F56218C85A100108B31 /* PageTransition.swift in Sources */,
