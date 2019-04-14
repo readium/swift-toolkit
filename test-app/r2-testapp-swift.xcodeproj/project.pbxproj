@@ -33,7 +33,6 @@
 		032F7E3621167E9B009E5C24 /* PublicationCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 032F7E3221167E9A009E5C24 /* PublicationCollectionViewCell.xib */; };
 		032F7E3721167E9B009E5C24 /* PublicationMenuViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 032F7E3321167E9A009E5C24 /* PublicationMenuViewController.xib */; };
 		0350FCE5211CD2CB006994C2 /* AssociatedColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */; };
-		0350FCE6211CD2CB006994C2 /* BarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4831F4F044100DF166D /* BarView.swift */; };
 		0350FCE7211CD2CB006994C2 /* OPDSPublicationInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */; };
 		0350FCE8211CD2CB006994C2 /* CBZViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D47F1F4F03F500DF166D /* CBZViewController.swift */; };
 		0350FCE9211CD2CB006994C2 /* OPDSGroupCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */; };
@@ -76,7 +75,6 @@
 		0350FD22211CD2CB006994C2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4421F4EF6D400DF166D /* Assets.xcassets */; };
 		0350FD23211CD2CB006994C2 /* UserSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F36D24DD1F580B8800A00BF1 /* UserSettings.storyboard */; };
 		0350FD39211CD625006994C2 /* AssociatedColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */; };
-		0350FD3A211CD625006994C2 /* BarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4831F4F044100DF166D /* BarView.swift */; };
 		0350FD3B211CD625006994C2 /* OPDSPublicationInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */; };
 		0350FD3C211CD625006994C2 /* CBZViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D47F1F4F03F500DF166D /* CBZViewController.swift */; };
 		0350FD3D211CD625006994C2 /* OPDSGroupCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */; };
@@ -122,6 +120,14 @@
 		0352073C222D68EA0000F0A4 /* MBProgressHUD.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0352073B222D68EA0000F0A4 /* MBProgressHUD.framework */; };
 		0352073E222D69330000F0A4 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0352073D222D69330000F0A4 /* SQLite.framework */; };
 		0380490B21166627009F48BD /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0380490A21166627009F48BD /* Toast.swift */; };
+		03AE308F2259F3E400AA4C7C /* BooksDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */; };
+		03AE30962259F4D400AA4C7C /* BooksDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */; };
+		03AE30972259F4D400AA4C7C /* BooksDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */; };
+		03AE30982259F4D400AA4C7C /* BooksDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */; };
+		03AE309F2259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE309E2259F59C00AA4C7C /* Connection+UserVersion.swift */; };
+		03AE30A02259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE309E2259F59C00AA4C7C /* Connection+UserVersion.swift */; };
+		03AE30A12259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE309E2259F59C00AA4C7C /* Connection+UserVersion.swift */; };
+		03AE30A22259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE309E2259F59C00AA4C7C /* Connection+UserVersion.swift */; };
 		03BB67AC223874EE009A03C5 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192F222D936100646F1F /* AEXML.framework */; };
 		03BB67AD223874EE009A03C5 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192E222D936100646F1F /* CryptoSwift.framework */; };
 		03BB67AE223874EE009A03C5 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061933222D936100646F1F /* Fuzi.framework */; };
@@ -278,7 +284,6 @@
 		CA7F5A512204AF5C00B88141 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A4F2204AF2900B88141 /* Result.swift */; };
 		CA7F5A522204AF5D00B88141 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A4F2204AF2900B88141 /* Result.swift */; };
 		CA822C73221C5737005800D1 /* AssociatedColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */; };
-		CA822C74221C5737005800D1 /* BarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4831F4F044100DF166D /* BarView.swift */; };
 		CA822C75221C5737005800D1 /* OPDSPublicationInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */; };
 		CA822C76221C5737005800D1 /* CBZViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D47F1F4F03F500DF166D /* CBZViewController.swift */; };
 		CA822C77221C5737005800D1 /* OPDSGroupCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */; };
@@ -332,6 +337,10 @@
 		CA9A40DA221C069D00531EA1 /* LCPViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */; };
 		CA9A40DC221C06A300531EA1 /* DRMViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */; };
 		CA9A40DE221C06A500531EA1 /* DRMViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */; };
+		CACE84FD225640A500E19E8B /* Bookmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE84FC225640A500E19E8B /* Bookmark.swift */; };
+		CACE84FE225640A500E19E8B /* Bookmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE84FC225640A500E19E8B /* Bookmark.swift */; };
+		CACE84FF225640A500E19E8B /* Bookmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE84FC225640A500E19E8B /* Bookmark.swift */; };
+		CACE8500225640A500E19E8B /* Bookmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE84FC225640A500E19E8B /* Bookmark.swift */; };
 		F30AEE7A1FC312EA0073C9FD /* DetailsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */; };
 		F3120DE71FACB08E009ACFAD /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
 		F3120DE81FACB090009ACFAD /* 2.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F11F7D467C00BDEAF4 /* 2.epub */; };
@@ -352,7 +361,6 @@
 		F3E7D47C1F4F03B800DF166D /* UIImageExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D47B1F4F03B800DF166D /* UIImageExtension.swift */; };
 		F3E7D4801F4F03F500DF166D /* CBZViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D47F1F4F03F500DF166D /* CBZViewController.swift */; };
 		F3E7D4821F4F042600DF166D /* EPUBViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4811F4F042600DF166D /* EPUBViewController.swift */; };
-		F3E7D4861F4F044100DF166D /* BarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4831F4F044100DF166D /* BarView.swift */; };
 		F3E7D4871F4F044100DF166D /* OutlineTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4841F4F044100DF166D /* OutlineTableViewController.swift */; };
 		F3E7D4881F4F044100DF166D /* UserSettingsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4851F4F044100DF166D /* UserSettingsTableViewController.swift */; };
 /* End PBXBuildFile section */
@@ -426,6 +434,8 @@
 		0352073B222D68EA0000F0A4 /* MBProgressHUD.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MBProgressHUD.framework; path = Carthage/Build/iOS/MBProgressHUD.framework; sourceTree = "<group>"; };
 		0352073D222D69330000F0A4 /* SQLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SQLite.framework; path = Carthage/Build/iOS/SQLite.framework; sourceTree = "<group>"; };
 		0380490A21166627009F48BD /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
+		03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BooksDatabase.swift; sourceTree = "<group>"; };
+		03AE309E2259F59C00AA4C7C /* Connection+UserVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Connection+UserVersion.swift"; sourceTree = "<group>"; };
 		03BB67B5223874FA009A03C5 /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03BB67B8223874FA009A03C5 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03BB67BB223875CC009A03C5 /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
@@ -483,6 +493,7 @@
 		CA822CBE221C5737005800D1 /* r2-testapp-swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DRMViewModel.swift; sourceTree = "<group>"; };
 		CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPViewModel.swift; sourceTree = "<group>"; };
+		CACE84FC225640A500E19E8B /* Bookmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bookmark.swift; sourceTree = "<group>"; };
 		F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsTableViewController.swift; sourceTree = "<group>"; };
 		F32980EE1F7D467B00BDEAF4 /* 1.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 1.epub; sourceTree = "<group>"; };
 		F32980EF1F7D467B00BDEAF4 /* 5.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 5.epub; sourceTree = "<group>"; };
@@ -509,7 +520,6 @@
 		F3E7D47B1F4F03B800DF166D /* UIImageExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIImageExtension.swift; sourceTree = "<group>"; };
 		F3E7D47F1F4F03F500DF166D /* CBZViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CBZViewController.swift; sourceTree = "<group>"; };
 		F3E7D4811F4F042600DF166D /* EPUBViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPUBViewController.swift; sourceTree = "<group>"; };
-		F3E7D4831F4F044100DF166D /* BarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BarView.swift; sourceTree = "<group>"; };
 		F3E7D4841F4F044100DF166D /* OutlineTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OutlineTableViewController.swift; sourceTree = "<group>"; };
 		F3E7D4851F4F044100DF166D /* UserSettingsTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserSettingsTableViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -602,12 +612,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		03AE30952259F4CA00AA4C7C /* DB */ = {
+			isa = PBXGroup;
+			children = (
+				03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */,
+			);
+			path = DB;
+			sourceTree = "<group>";
+		};
 		571585F32109E903008B34AD /* Bookmark */ = {
 			isa = PBXGroup;
 			children = (
 				571585EE2109E8F8008B34AD /* BookmarkDatabase.swift */,
 				571585EF2109E8F8008B34AD /* BookmarkDataSource.swift */,
 				571585ED2109E8F8008B34AD /* BookmarkCell.swift */,
+				CACE84FC225640A500E19E8B /* Bookmark.swift */,
 			);
 			path = Bookmark;
 			sourceTree = "<group>";
@@ -650,7 +669,6 @@
 			children = (
 				CA29B74E22204F320037534C /* EPUBModule.swift */,
 				F3E7D4811F4F042600DF166D /* EPUBViewController.swift */,
-				F3E7D4831F4F044100DF166D /* BarView.swift */,
 				AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */,
 				CA29B71B2220011F0037534C /* User Settings */,
 			);
@@ -722,6 +740,7 @@
 		CA415F20221D7559003A0F7F /* Library */ = {
 			isa = PBXGroup;
 			children = (
+				03AE30952259F4CA00AA4C7C /* DB */,
 				CA29B713222000810037534C /* LibraryModule.swift */,
 				CA29B6F4221FF43E0037534C /* LibraryFactory.swift */,
 				CA29B6EF221FF2610037534C /* Library.storyboard */,
@@ -761,6 +780,7 @@
 			children = (
 				CA415F23221D7599003A0F7F /* Toolkit */,
 				CA29B70E221FFE240037534C /* Error.swift */,
+				03AE309E2259F59C00AA4C7C /* Connection+UserVersion.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -1164,7 +1184,6 @@
 				0350FCE5211CD2CB006994C2 /* AssociatedColors.swift in Sources */,
 				CA29B720222001620037534C /* ReaderModule.swift in Sources */,
 				CA415F13221D6CE6003A0F7F /* AppModule.swift in Sources */,
-				0350FCE6211CD2CB006994C2 /* BarView.swift in Sources */,
 				0350FCE7211CD2CB006994C2 /* OPDSPublicationInfoViewController.swift in Sources */,
 				0350FCE8211CD2CB006994C2 /* CBZViewController.swift in Sources */,
 				CA29B73422200EAA0037534C /* UIViewController.swift in Sources */,
@@ -1182,7 +1201,9 @@
 				CA415F29221D7753003A0F7F /* LibraryService.swift in Sources */,
 				CA29B715222000810037534C /* LibraryModule.swift in Sources */,
 				0350FCF1211CD2CB006994C2 /* OPDSPlaceholderView.swift in Sources */,
+				CACE84FE225640A500E19E8B /* Bookmark.swift in Sources */,
 				0350FCF2211CD2CB006994C2 /* OPDSNavigationTableViewCell.swift in Sources */,
+				03AE30A02259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */,
 				CA9A40DC221C06A300531EA1 /* DRMViewModel.swift in Sources */,
 				0350FCF3211CD2CB006994C2 /* AppDelegate.swift in Sources */,
 				CA0B3AC8222EE726006D9363 /* PDFModule.swift in Sources */,
@@ -1205,6 +1226,7 @@
 				0350FCFB211CD2CB006994C2 /* OutlineTableViewController.swift in Sources */,
 				0350FCFC211CD2CB006994C2 /* OPDSPublicationTableViewCell.swift in Sources */,
 				CA29B6F6221FF43E0037534C /* LibraryFactory.swift in Sources */,
+				03AE30982259F4D400AA4C7C /* BooksDatabase.swift in Sources */,
 				CA29B706221FF8F30037534C /* OPDSFactory.swift in Sources */,
 				0350FCFD211CD2CB006994C2 /* PublicationCollectionViewCell.swift in Sources */,
 				0350FCFE211CD2CB006994C2 /* BookmarkDatabase.swift in Sources */,
@@ -1223,7 +1245,6 @@
 				0350FD39211CD625006994C2 /* AssociatedColors.swift in Sources */,
 				CA29B721222001620037534C /* ReaderModule.swift in Sources */,
 				CA415F14221D6CE6003A0F7F /* AppModule.swift in Sources */,
-				0350FD3A211CD625006994C2 /* BarView.swift in Sources */,
 				0350FD3B211CD625006994C2 /* OPDSPublicationInfoViewController.swift in Sources */,
 				0350FD3C211CD625006994C2 /* CBZViewController.swift in Sources */,
 				CA29B73522200EAA0037534C /* UIViewController.swift in Sources */,
@@ -1241,7 +1262,9 @@
 				CA415F2A221D7753003A0F7F /* LibraryService.swift in Sources */,
 				CA29B716222000810037534C /* LibraryModule.swift in Sources */,
 				0350FD45211CD625006994C2 /* OPDSPlaceholderView.swift in Sources */,
+				CACE84FF225640A500E19E8B /* Bookmark.swift in Sources */,
 				0350FD46211CD625006994C2 /* OPDSNavigationTableViewCell.swift in Sources */,
+				03AE30A12259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */,
 				CA9A40DE221C06A500531EA1 /* DRMViewModel.swift in Sources */,
 				0350FD47211CD625006994C2 /* AppDelegate.swift in Sources */,
 				CA0B3AC9222EE726006D9363 /* PDFModule.swift in Sources */,
@@ -1264,6 +1287,7 @@
 				0350FD4F211CD625006994C2 /* OutlineTableViewController.swift in Sources */,
 				0350FD50211CD625006994C2 /* OPDSPublicationTableViewCell.swift in Sources */,
 				CA29B6F7221FF43E0037534C /* LibraryFactory.swift in Sources */,
+				03AE30962259F4D400AA4C7C /* BooksDatabase.swift in Sources */,
 				CA29B707221FF8F30037534C /* OPDSFactory.swift in Sources */,
 				0350FD51211CD625006994C2 /* PublicationCollectionViewCell.swift in Sources */,
 				0350FD52211CD625006994C2 /* BookmarkDatabase.swift in Sources */,
@@ -1282,7 +1306,6 @@
 				CA822C73221C5737005800D1 /* AssociatedColors.swift in Sources */,
 				CA29B722222001620037534C /* ReaderModule.swift in Sources */,
 				CA415F15221D6CE6003A0F7F /* AppModule.swift in Sources */,
-				CA822C74221C5737005800D1 /* BarView.swift in Sources */,
 				CA822C75221C5737005800D1 /* OPDSPublicationInfoViewController.swift in Sources */,
 				CA822C76221C5737005800D1 /* CBZViewController.swift in Sources */,
 				CA29B73622200EAA0037534C /* UIViewController.swift in Sources */,
@@ -1300,7 +1323,9 @@
 				CA415F2B221D7753003A0F7F /* LibraryService.swift in Sources */,
 				CA29B717222000810037534C /* LibraryModule.swift in Sources */,
 				CA822C7F221C5737005800D1 /* OPDSPlaceholderView.swift in Sources */,
+				CACE8500225640A500E19E8B /* Bookmark.swift in Sources */,
 				CA822C80221C5737005800D1 /* OPDSNavigationTableViewCell.swift in Sources */,
+				03AE30A22259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */,
 				CA822C81221C5737005800D1 /* DRMViewModel.swift in Sources */,
 				CA822C82221C5737005800D1 /* AppDelegate.swift in Sources */,
 				CA0B3ACA222EE726006D9363 /* PDFModule.swift in Sources */,
@@ -1323,6 +1348,7 @@
 				CA822C8E221C5737005800D1 /* OutlineTableViewController.swift in Sources */,
 				CA822C8F221C5737005800D1 /* OPDSPublicationTableViewCell.swift in Sources */,
 				CA29B6F8221FF43E0037534C /* LibraryFactory.swift in Sources */,
+				03AE30972259F4D400AA4C7C /* BooksDatabase.swift in Sources */,
 				CA29B708221FF8F30037534C /* OPDSFactory.swift in Sources */,
 				CA822C90221C5737005800D1 /* PublicationCollectionViewCell.swift in Sources */,
 				CA822C91221C5737005800D1 /* BookmarkDatabase.swift in Sources */,
@@ -1341,7 +1367,6 @@
 				AE955A2120EBA74B00A0D8D8 /* AssociatedColors.swift in Sources */,
 				CA29B71F222001620037534C /* ReaderModule.swift in Sources */,
 				CA415F12221D6CE6003A0F7F /* AppModule.swift in Sources */,
-				F3E7D4861F4F044100DF166D /* BarView.swift in Sources */,
 				113B12DD20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift in Sources */,
 				F3E7D4801F4F03F500DF166D /* CBZViewController.swift in Sources */,
 				CA29B73322200EAA0037534C /* UIViewController.swift in Sources */,
@@ -1359,7 +1384,9 @@
 				CA415F28221D7753003A0F7F /* LibraryService.swift in Sources */,
 				CA29B714222000810037534C /* LibraryModule.swift in Sources */,
 				AED681F220A32EBA0090DBCD /* OPDSPlaceholderView.swift in Sources */,
+				CACE84FD225640A500E19E8B /* Bookmark.swift in Sources */,
 				AE48F322208DE1E4000B7B44 /* OPDSNavigationTableViewCell.swift in Sources */,
+				03AE309F2259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */,
 				F3E7D43C1F4EF6D400DF166D /* AppDelegate.swift in Sources */,
 				113B12D220800FD60074A5A2 /* OPDSCatalogSelectorViewController.swift in Sources */,
 				CA0B3AC7222EE726006D9363 /* PDFModule.swift in Sources */,
@@ -1390,6 +1417,7 @@
 				571585F02109E8F9008B34AD /* BookmarkCell.swift in Sources */,
 				CA29B70F221FFE240037534C /* Error.swift in Sources */,
 				AE37DE432093291600079AA2 /* AboutTableViewController.swift in Sources */,
+				03AE308F2259F3E400AA4C7C /* BooksDatabase.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -23,14 +23,14 @@ protocol ReaderModuleAPI {
     
     /// Presents the given publication to the user, inside the given navigation controller.
     /// - Parameter completion: Called once the publication is presented, or if an error occured.
-    func presentPublication(publication: Publication, in navigationController: UINavigationController, completion: @escaping () -> Void)
+    func presentPublication(fileName: String, publication: Publication, in navigationController: UINavigationController, completion: @escaping () -> Void)
     
 }
 
 protocol ReaderModuleDelegate: ModuleDelegate {
     
     /// Called when the reader needs to load the R2 DRM object for the given publication.
-    func readerLoadDRM(for publication: Publication, completion: @escaping (CancellableResult<DRM?>) -> Void)
+    func readerLoadDRM(for fileName: String, completion: @escaping (CancellableResult<DRM?>) -> Void)
     
 }
 
@@ -57,7 +57,7 @@ final class ReaderModule: ReaderModuleAPI {
         }
     }
     
-    func presentPublication(publication: Publication, in navigationController: UINavigationController, completion: @escaping () -> Void) {
+    func presentPublication(fileName: String, publication: Publication, in navigationController: UINavigationController, completion: @escaping () -> Void) {
         guard let delegate = delegate else {
             fatalError("Reader delegate not set")
         }
@@ -70,7 +70,7 @@ final class ReaderModule: ReaderModuleAPI {
             navigationController.pushViewController(viewController, animated: true)
         }
         
-        delegate.readerLoadDRM(for: publication) { result in
+        delegate.readerLoadDRM(for: fileName) { result in
             switch result {
             case .failure(let error):
                 delegate.presentError(error, from: navigationController)
@@ -111,8 +111,8 @@ extension ReaderModule: ReaderFormatModuleDelegate {
         viewController.navigationController?.pushViewController(drmViewController, animated: true)
     }
     
-    func presentOutline(_ publication: Publication, format: Publication.Format, delegate: OutlineTableViewControllerDelegate?, from viewController: UIViewController) {
-        let outlineTableVC: OutlineTableViewController = factory.make(publication: publication, format: format)
+    func presentOutline(of publication: Publication, delegate: OutlineTableViewControllerDelegate?, from viewController: UIViewController) {
+        let outlineTableVC: OutlineTableViewController = factory.make(publication: publication)
         outlineTableVC.delegate = delegate
         viewController.present(UINavigationController(rootViewController: outlineTableVC), animated: true)
     }

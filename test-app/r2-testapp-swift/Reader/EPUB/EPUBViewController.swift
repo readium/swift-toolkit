@@ -15,9 +15,7 @@ import R2Shared
 import R2Navigator
 
 class EPUBViewController: ReaderViewController {
-    
-    weak var moduleDelegate: ReaderFormatModuleDelegate?
-    
+  
     let navigator: EPUBNavigatorViewController!
     var popoverUserconfigurationAnchor: UIBarButtonItem?
     var userSettingNavigationController: UserSettingsNavigationController
@@ -51,22 +49,9 @@ class EPUBViewController: ReaderViewController {
         self.init(publication: publication, atIndex: index, progression: progression, drm: drm)
     }
 
-    lazy var bookmarkButton: UIBarButtonItem = {
-        let button = UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(addBookmarkForCurrentPosition))
-        return button
-    } ()
-  
-    @objc func addBookmarkForCurrentPosition() {
-      if (bookmarksDataSource?.addBookmark(bookmark: navigator.currentPosition) ?? false) {
-        toast(self.view, "Bookmark Added", 1)
-      } else {
-        toast(self.view, "Could not add Bookmark", 2)
-      }
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+  
         addChild(navigator)
         navigator.view.frame = view.bounds
         navigator.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -82,37 +67,10 @@ class EPUBViewController: ReaderViewController {
         userSettingNavigationController.userSettings = userSettings
         userSettingNavigationController.modalPresentationStyle = .popover
         userSettingNavigationController.usdelegate = self
+        userSettingNavigationController.userSettingsTableViewController.publication = navigator.publication
         
-        var barButtons = [UIBarButtonItem]()
-        
-        // TocItemView button.
-        let tocItemButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self,
-                                              action: #selector(presentTableOfContents))
-        barButtons.append(tocItemButton)
-      
-        // User configuration button
-        let userSettingsButton = UIBarButtonItem(image: #imageLiteral(resourceName: "settingsIcon"), style: .plain, target: self,
-                                                 action: #selector(presentUserSettings))
-        barButtons.append(userSettingsButton)
-        
-        if drm != nil {
-            let drmManagementButton = UIBarButtonItem(image: #imageLiteral(resourceName: "drm"), style: .plain, target: self,
-                                                      action: #selector(presentDrmManagement))
-            barButtons.append(drmManagementButton)
-        }
-        
-        barButtons.append(self.bookmarkButton)
-        
-        popoverUserconfigurationAnchor = userSettingsButton
-        /// Add tocItemViewController button to navBar.
-        navigationItem.setRightBarButtonItems(barButtons,
-                                              animated: true)
-        
-        
-       
-        self.userSettingNavigationController.userSettingsTableViewController.publication = navigator.publication
-        
-        self.navigator.publication.userSettingsUIPresetUpdated = { [weak self] preset in
+
+        navigator.publication.userSettingsUIPresetUpdated = { [weak self] preset in
             guard let `self` = self, let presetScrollValue:Bool = preset?[.scroll] else {
                 return
             }
@@ -134,64 +92,70 @@ class EPUBViewController: ReaderViewController {
         
         navigator.userSettings.save()
     }
-}
 
-extension EPUBViewController {
+    override func makeNavigationBarButtons() -> [UIBarButtonItem] {
+        var buttons = super.makeNavigationBarButtons()
+
+        // User configuration button
+        let userSettingsButton = UIBarButtonItem(image: #imageLiteral(resourceName: "settingsIcon"), style: .plain, target: self, action: #selector(presentUserSettings))
+        buttons.insert(userSettingsButton, at: 1)
+        popoverUserconfigurationAnchor = userSettingsButton
     
+        if drm != nil {
+          let drmManagementButton = UIBarButtonItem(image: #imageLiteral(resourceName: "drm"), style: .plain, target: self, action: #selector(presentDrmManagement))
+          buttons.insert(drmManagementButton, at: buttons.count-1)
+        }
+
+        return buttons
+    }
+    
+    override var currentBookmark: Bookmark? {
+        guard let publicationID = publication.metadata.identifier,
+            let locator = navigator.currentLocation,
+            let resourceIndex = publication.readingOrder.firstIndex(withHref: locator.href) else
+        {
+            return nil
+        }
+        return Bookmark(publicationID: publicationID, resourceIndex: resourceIndex, locator: locator)
+    }
+    
+    override func goTo(item: String) {
+        _ = navigator.displayReadingOrderItem(with: item)
+    }
+    
+    override func goTo(bookmark: Bookmark) {
+        navigator.displayReadingOrderItem(at: bookmark.resourceIndex, progression: bookmark.locator.locations?.progression ?? 0)
+    }
+
     @objc func presentUserSettings() {
         let popoverPresentationController = userSettingNavigationController.popoverPresentationController!
         
         popoverPresentationController.delegate = self
         popoverPresentationController.barButtonItem = popoverUserconfigurationAnchor
-        
+
         userSettingNavigationController.publication = self.navigator.publication
-        present(userSettingNavigationController, animated: true, completion: nil)
-    }
-    
-    @objc func presentTableOfContents() {
-        let backItem = UIBarButtonItem()
-        
-        backItem.title = ""
-        navigationItem.backBarButtonItem = backItem
-        // Dismiss userSettings if opened.
-        if let userSettingsTVC = userSettingNavigationController.userSettingsTableViewController {
-            userSettingsTVC.dismiss(animated: true, completion: nil)
+        present(userSettingNavigationController, animated: true) {
+            // Makes sure that the popover is dismissed also when tapping on one of the other UIBarButtonItems.
+            // ie. http://karmeye.com/2014/11/20/ios8-popovers-and-passthroughviews/
+            popoverPresentationController.passthroughViews = nil
         }
-        
-        moduleDelegate?.presentOutline(navigator.publication, format: .epub, delegate: self, from: self)
     }
     
     @objc func presentDrmManagement() {
         guard let drm = drm else {
             return
         }
-        
-        // Dismiss userSettings if opened.
-        if let userSettingsTVC = userSettingNavigationController.userSettingsTableViewController {
-            userSettingsTVC.dismiss(animated: true, completion: nil)
-        }
-        
         moduleDelegate?.presentDRM(drm, from: self)
-    }
-}
-
-extension EPUBViewController: OutlineTableViewControllerDelegate {
-    
-    func outline(_ outlineTableViewController: OutlineTableViewController, didSelectItem item: String) {
-        _ = navigator.displayReadingOrderItem(with: item)
-    }
-    
-    func outline(_ outlineTableViewController: OutlineTableViewController, didSelectBookmark bookmark: Bookmark) {
-        navigator.displayReadingOrderItem(at: bookmark.resourceIndex, progression: bookmark.locations!.progression!)
     }
     
 }
 
 extension EPUBViewController: UIGestureRecognizerDelegate {
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
-                           shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
     }
+    
 }
 
 // MARK: - Delegate of the NavigatorViewController (R2Navigator).
@@ -216,14 +180,9 @@ extension EPUBViewController: EPUBNavigatorDelegate {
     }
     
     func presentError(_ error: NavigatorError) {
-        let message: String = {
-            switch error {
-            case .copyForbidden:
-                return "You are not allowed to copy the contents of this publication."
-            }
-        }()
-        moduleDelegate?.presentAlert("Error", message: message, from: self)
+        moduleDelegate?.presentError(error, from: self)
     }
+    
 }
 
 extension EPUBViewController: UserSettingsNavigationControllerDelegate {

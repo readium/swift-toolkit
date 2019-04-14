@@ -68,6 +68,23 @@
 			</array>
 		</dict>
 		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>lcpdf</string>
+				<string>LCPDF</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>LCP for PDF Package</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>org.readium.lcpdf</string>
+			</array>
+		</dict>
+		<dict>
 			<key>CFBundleTypeName</key>
 			<string>directory</string>
 			<key>CFBundleTypeOSTypes</key>
@@ -128,7 +145,7 @@
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>com.readium.lcpl</string>
+				<string>org.readium.lcpl</string>
 			</array>
 		</dict>
 	</array>
@@ -201,6 +218,8 @@
 					<string>cbz</string>
 					<string>CBZ</string>
 				</array>
+				<key>public.mime-type</key>
+				<string>application/x-cbr</string>
 			</dict>
 		</dict>
 		<dict>
@@ -214,7 +233,7 @@
 			<key>UTTypeIconFiles</key>
 			<array/>
 			<key>UTTypeIdentifier</key>
-			<string>com.readium.lcpl</string>
+			<string>org.readium.lcpl</string>
 			<key>UTTypeReferenceURL</key>
 			<string>https://readium.github.io/readium-lcp-specification/</string>
 			<key>UTTypeTagSpecification</key>
@@ -226,6 +245,32 @@
 				</array>
 				<key>public.mime-type</key>
 				<string>application/vnd.readium.lcp.license.v1.0</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+				<string>public.archive</string>
+				<string>public.zip-archive</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>LCP for PDF Package</string>
+			<key>UTTypeIconFiles</key>
+			<array/>
+			<key>UTTypeIdentifier</key>
+			<string>org.readium.lcpdf</string>
+			<key>UTTypeReferenceURL</key>
+			<string>https://readium.org/lcp-specs/drafts/lcpdf</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>lcpdf</string>
+					<string>LCPDF</string>
+				</array>
+				<key>public.mime-type</key>
+				<string>application/pdf+lcp</string>
 			</dict>
 		</dict>
 	</array>
