@@ -27,7 +27,7 @@ final class FixedWebView: WebView {
         events["pageSize"] = pageSizeDidChange
         return events
     }
-    
+
     override func setupWebView() {
         super.setupWebView()
         
@@ -87,7 +87,7 @@ final class FixedWebView: WebView {
     }
     
     /// Layouts the document to fit its content in the bounds.
-    func layoutPage() {
+    private func layoutPage() {
         guard let pageSize = pageSize else {
             return
         }
@@ -135,7 +135,7 @@ final class FixedWebView: WebView {
             zoomOut()
         }
     }
-    
+
     override func scrollViewDidZoom(_ scrollView: UIScrollView) {
         super.scrollViewDidZoom(scrollView)
         
@@ -147,6 +147,44 @@ final class FixedWebView: WebView {
             frame.origin.x = max(0, (frame.width - pageSize.width * scale) / 2)
             frame.origin.y = max(0, (frame.height - pageSize.height * scale) / 2)
             webView.frame = frame
+        }
+    }
+    
+    override func applyUserSettingsStyle() {
+        super.applyUserSettingsStyle()
+
+        // Scheduled to make sure that the superview's background-color is also updated.
+        DispatchQueue.main.async(execute: updateBackgroundColor)
+    }
+    
+    
+    /// The body's background-color leaks out of the body's bounds if no background-color (or a transparent one) is set on the <html> tag. This is part of the HTML specification. To fix this, we have to set the <html> background to the background of the reader. For that, we iterate the superview until we find a background-color to use.
+    private func updateBackgroundColor() {
+        guard let superview = superview else {
+            return
+        }
+
+        func findBackgroundColor(of view: UIView) -> UIColor {
+            if let color = view.backgroundColor, color != .clear {
+                return color
+            } else if let superview = view.superview {
+                return findBackgroundColor(of: superview)
+            } else {
+                return .white
+            }
+        }
+        
+        let color = findBackgroundColor(of: superview)
+        if let colorHex = color.hexString(includingAlpha: false) {
+            backgroundColor = color
+            
+            // The body's background color is also set in case it is transparent, otherwise it would take the color of the superview.
+            webView.evaluateJavaScript("""
+                document.documentElement.style.setProperty("background-color", "#\(colorHex)", "important")
+                if (window.getComputedStyle(document.body).getPropertyValue("background-color") == "rgba(0, 0, 0, 0)") {
+                  document.body.style.setProperty("background-color", "white");
+                }
+            """)
         }
     }
 
