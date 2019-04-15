@@ -125,8 +125,6 @@ class WebView: UIView, Loggable {
     }
     
     var sizeObservation: NSKeyValueObservation?
-    
-    private var shouldNotifyCopySelection = false
 
     required init(initialLocation: BinaryLocation, readingProgression: ReadingProgression, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
 

@@ -77,15 +77,10 @@ final class ReflowableWebView: WebView {
             ?? contentInset[.unspecified]
             ?? (top: 0, bottom: 0)
         
-        // Takes into account the safe area to avoid overlapping the content with the top edge on the iPhone X.
-        // However, we don't want to have the content shifted everytime the UINavigationBar is toggled, so we can't use directly the safeAreaLayoutGuide. Instead, we use the window's safeAreaInsets.
-        if #available(iOS 11.0, *) {
-            // We take the smallest value between the view's safeAreaInsets and the window's safeAreaInsets to avoid shifting the insets if the web view doesn't fill the screen. In which case, its safeAreaInsets will be empty.
-            let windowSafeAreaInsets = window?.safeAreaInsets ?? safeAreaInsets
-            insets.top += min(windowSafeAreaInsets.top, safeAreaInsets.top)
-            insets.bottom += min(windowSafeAreaInsets.bottom, safeAreaInsets.bottom)
-        }
-        
+        // Increases the insets by the notch area (eg. iPhone X) to make sure that the content is not overlapped by the screen notch.
+        insets.top += notchAreaInsets.top
+        insets.bottom += notchAreaInsets.bottom
+
         if (isScrollEnabled) {
             topConstraint.constant = 0
             bottomConstraint.constant = 0

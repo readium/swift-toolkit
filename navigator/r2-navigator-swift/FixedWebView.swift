@@ -92,17 +92,9 @@ final class FixedWebView: WebView {
             return
         }
         
-        var maxSize = self.bounds.size
-        
-        // Takes into account the safe area to avoid overlapping the content with the top edge on the iPhone X.
-        // However, we don't want to have the content shifted everytime the UINavigationBar is toggled, so we can't use directly the safeAreaLayoutGuide. Instead, we use the window's safeAreaInsets.
-        if #available(iOS 11.0, *) {
-            // We take the smallest value between the view's safeAreaInsets and the window's safeAreaInsets to avoid shifting the content if the web view doesn't fill the screen. In which case, its safeAreaInsets will be empty.
-            let windowSafeAreaInsets = window?.safeAreaInsets ?? safeAreaInsets
-            maxSize.height -= min(windowSafeAreaInsets.top, safeAreaInsets.top) + min(windowSafeAreaInsets.bottom, safeAreaInsets.bottom)
-            maxSize.width -= min(windowSafeAreaInsets.left, safeAreaInsets.left) + min(windowSafeAreaInsets.right, safeAreaInsets.right)
-        }
-        
+        // Insets the bounds by the notch area (eg. iPhone X) to make sure that the content is not overlapped by the screen notch.
+        let maxSize = bounds.inset(by: notchAreaInsets).size
+
         // Calculates the zoom scale required to fit the content to the bounds.
         let widthRatio = maxSize.width / pageSize.width
         let heightRatio = maxSize.height / pageSize.height
