@@ -29,6 +29,8 @@ class ReaderViewController: UIViewController, Loggable {
         self.drm = drm
         
         super.init(nibName: nil, bundle: nil)
+        
+        automaticallyAdjustsScrollViewInsets = false
     }
 
     @available(*, unavailable)
