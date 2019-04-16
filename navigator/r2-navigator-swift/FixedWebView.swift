@@ -44,12 +44,12 @@ final class FixedWebView: WebView {
             (function() {
               const viewport = document.querySelector('meta[name=viewport]');
               if (viewport) {
-                var properties = {}
-                for (let property of viewport.content.split(/, */g)) {
-                  keyValue = property.split('=');
-                  properties[keyValue[0]] = keyValue[1];
+                const regex = /(\\w+) *= *([^\\s,]+)/g
+                var properties = {};
+                var match;
+                while (match = regex.exec(viewport.content)) {
+                  properties[match[1]] = match[2];
                 }
-
                 const width = Number.parseFloat(properties.width);
                 const height = Number.parseFloat(properties.height);
                 if (width && height) {
