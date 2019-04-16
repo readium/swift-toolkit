@@ -61,6 +61,9 @@ open class CBZNavigatorViewController: UIViewController {
         scrollView.minimumZoomScale = 1.0
         scrollView.maximumZoomScale = 2.0
         scrollView.zoomScale = 1.0
+        if #available(iOS 11.0, *) {
+            scrollView.contentInsetAdjustmentBehavior = .never
+        }
         // Imageview.
         imageView = UIImageView(frame: self.scrollView.bounds)
         imageView.backgroundColor = UIColor.black
