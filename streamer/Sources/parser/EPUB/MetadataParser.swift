@@ -74,6 +74,8 @@ final public class MetadataParser {
                             return .landscape
                         case "portrait-only":
                             return .portrait
+                        default:
+                            return .auto
                         }
                     }
                     return .auto
