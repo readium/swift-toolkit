@@ -1,3 +1,8 @@
+
+
+// WARNING: iOS 9 requires ES5
+
+
 // Notify native code that the page has loaded.
 window.addEventListener("load", function(){ // on page load
                         // Notify native code that the page is loaded.
@@ -9,7 +14,7 @@ var ticking = false;
 
 // Position in range [0 - 1].
 var update = function(position) {
-    let positionString = position.toString()
+    var positionString = position.toString()
     webkit.messageHandlers.updateProgression.postMessage(positionString);
 };
 
@@ -109,7 +114,7 @@ var scrollRight = function(dir) {
 
 // Snap the offset to the screen width (page width).
 var snapOffset = function(offset) {
-    let value = offset + 1;
+    var value = offset + 1;
 
     return value - (value % maxScreenX);
 };
