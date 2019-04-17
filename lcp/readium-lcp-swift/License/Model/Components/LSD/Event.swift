@@ -22,7 +22,7 @@ public struct Event {
         // Signals a successful return event.
         case `return`
         // Signals a revocation event.
-        case revoked
+        case revoke
         // Signals a cancellation event.
         case cancel
     }
