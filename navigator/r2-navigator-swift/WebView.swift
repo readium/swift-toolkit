@@ -332,12 +332,7 @@ class WebView: UIView, Loggable {
 
     /// Update webview style to userSettings.
     func applyUserSettingsStyle() {
-        guard let userSettings = userSettings else {
-            return
-        }
-        for cssProperty in userSettings.userProperties.properties {
-            webView.evaluateJavaScript("setProperty(\"\(cssProperty.name)\", \"\(cssProperty.toString())\");", completionHandler: nil)
-        }
+        // To override in subclasses.
     }
 
 }

@@ -65,6 +65,12 @@ final class ReflowableWebView: WebView {
     override func applyUserSettingsStyle() {
         super.applyUserSettingsStyle()
         
+        if let userSettings = userSettings {
+            for cssProperty in userSettings.userProperties.properties {
+                webView.evaluateJavaScript("setProperty(\"\(cssProperty.name)\", \"\(cssProperty.toString())\");")
+            }
+        }
+
         // Disables paginated mode if scroll is on.
         scrollView.isPagingEnabled = !isScrollEnabled
         

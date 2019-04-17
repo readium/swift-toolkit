@@ -42,16 +42,16 @@ final class FixedWebView: WebView {
         // Script that will report the page size declared in the `viewport` meta tag, once the document is loaded.
         let pageSizeScript = WKUserScript(source: """
             (function() {
-              const viewport = document.querySelector('meta[name=viewport]');
+              var viewport = document.querySelector('meta[name=viewport]');
               if (viewport) {
-                const regex = /(\\w+) *= *([^\\s,]+)/g
+                var regex = /(\\w+) *= *([^\\s,]+)/g
                 var properties = {};
                 var match;
                 while (match = regex.exec(viewport.content)) {
                   properties[match[1]] = match[2];
                 }
-                const width = Number.parseFloat(properties.width);
-                const height = Number.parseFloat(properties.height);
+                var width = Number.parseFloat(properties.width);
+                var height = Number.parseFloat(properties.height);
                 if (width && height) {
                   webkit.messageHandlers.pageSize.postMessage({width, height});
                 }
@@ -107,13 +107,13 @@ final class FixedWebView: WebView {
         // Updates the minimum zoom scale in the `viewport` meta tag.
         webView.evaluateJavaScript("""
             (function() {
-                const viewport = document.querySelector('meta[name=viewport]');
-                if (!viewport) {
-                    viewport = document.createElement('meta');
-                    viewport.setAttribute('name', 'viewport');
-                    document.head.appendChild(viewport);
-                }
-                viewport.content = 'width=\(pageSize.width), height=\(pageSize.height), initial-scale=\(scale), minimum-scale=\(scale)';
+              var viewport = document.querySelector('meta[name=viewport]');
+              if (!viewport) {
+                viewport = document.createElement('meta');
+                viewport.setAttribute('name', 'viewport');
+                document.head.appendChild(viewport);
+              }
+              viewport.content = 'width=\(pageSize.width), height=\(pageSize.height), initial-scale=\(scale), minimum-scale=\(scale)';
             })();
         """) { _, _ in
             // Setting `initial-scale` in the meta tag should be enough to automatically zoom out the content, but sometimes it doesn't work. This hack will attempt to zoom out the content as soon as the minimumZoomScale reaches the scale calculated earlier.
