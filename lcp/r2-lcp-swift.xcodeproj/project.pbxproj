@@ -19,6 +19,7 @@
 		CAB1320B220D9B200097DFB5 /* LCPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB1320A220D9B200097DFB5 /* LCPService.swift */; };
 		CAB13211220DB2B10097DFB5 /* LCPAuthenticating.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */; };
 		CAB1321F220DBA470097DFB5 /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB1321E220DBA470097DFB5 /* NetworkService.swift */; };
+		CAB214E12269C241007E989D /* prod-license.lcpl in Resources */ = {isa = PBXBuildFile; fileRef = CAB214E02269C241007E989D /* prod-license.lcpl */; };
 		CAB57BC12204811100E4CB12 /* LicensesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB57BC02204811100E4CB12 /* LicensesService.swift */; };
 		CABEB3E32215756D00090B6C /* Links.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABEB3E22215756D00090B6C /* Links.swift */; };
 		CABEB3F62215C86C00090B6C /* LCPError+wrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABEB3F52215C86C00090B6C /* LCPError+wrap.swift */; };
@@ -58,6 +59,7 @@
 		CAB1320A220D9B200097DFB5 /* LCPService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPService.swift; sourceTree = "<group>"; };
 		CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPAuthenticating.swift; sourceTree = "<group>"; };
 		CAB1321E220DBA470097DFB5 /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
+		CAB214E02269C241007E989D /* prod-license.lcpl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "prod-license.lcpl"; sourceTree = "<group>"; };
 		CAB57BC02204811100E4CB12 /* LicensesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensesService.swift; sourceTree = "<group>"; };
 		CABEB3E22215756D00090B6C /* Links.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Links.swift; sourceTree = "<group>"; };
 		CABEB3F52215C86C00090B6C /* LCPError+wrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LCPError+wrap.swift"; sourceTree = "<group>"; };
@@ -228,6 +230,7 @@
 				CAB1321B220DB6430097DFB5 /* Services */,
 				CAB1321C220DB6570097DFB5 /* Persistence */,
 				F3B2C88B1F667223007601E4 /* Info.plist */,
+				CAB214E02269C241007E989D /* prod-license.lcpl */,
 				F3B2C88A1F667223007601E4 /* readium-lcp-swift.h */,
 			);
 			path = "readium-lcp-swift";
@@ -321,6 +324,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CAB214E12269C241007E989D /* prod-license.lcpl in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

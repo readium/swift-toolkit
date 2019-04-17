@@ -103,6 +103,17 @@ final class LicenseValidation: Loggable {
         return observe(raising: event)
     }
     
+    /// Returns whether the embedded liblcp.a is in production mode, by attempting to open a production license.
+    static let isProduction: Bool = {
+        guard let prodLicenseURL = Bundle(for: LicenseValidation.self).url(forResource: "prod-license", withExtension: "lcpl"),
+            let prodLicense = try? String(contentsOf: prodLicenseURL, encoding: .utf8) else
+        {
+            return false
+        }
+        let passphrase = "7B7602FEF5DEDA10F768818FFACBC60B173DB223B7E66D8B2221EBE2C635EFAD"  // "One passphrase"
+        return findOneValidPassphrase(jsonLicense: prodLicense, hashedPassphrases: [passphrase]) == passphrase
+    }()
+    
 }
 
 
@@ -271,6 +282,13 @@ extension LicenseValidation {
 
     private func validateLicense(data: Data) throws {
         let license = try LicenseDocument(data: data)
+        
+        // In test mode, only the basic profile is authorized.
+        // This is done here instead of during the integrity check because the passphrase can't be validated.
+        guard LicenseValidation.isProduction || license.encryption.profile == "http://readium.org/lcp/basic-profile" else {
+            throw LCPError.licenseProfileNotSupported
+        }
+        
         try onLicenseValidated(license)
         try raise(.validatedLicense(license))
     }
