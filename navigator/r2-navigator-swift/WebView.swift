@@ -96,13 +96,16 @@ class WebView: UIView, Loggable {
         
         setupWebView()
 
-        sizeObservation = scrollView.observe(\.contentSize, options: .new) { (thisScrollView, thisValue) in
+        sizeObservation = scrollView.observe(\.contentSize, options: .new) { [weak self] scrollView, value in
+            guard let self = self else {
+                return
+            }
             // update total pages
             guard self.documentLoaded else { return }
-            guard let newWidth = thisValue.newValue?.width else {return}
-            let pageWidth = self.scrollView.frame.size.width
+            guard let newWidth = value.newValue?.width else {return}
+            let pageWidth = scrollView.frame.size.width
             if pageWidth == 0.0 {return} // Possible zero value
-            let pageCount = Int(newWidth / self.scrollView.frame.size.width);
+            let pageCount = Int(newWidth / scrollView.frame.size.width);
             if self.totalPages != pageCount {
                 self.totalPages = pageCount
                 self.viewDelegate?.documentPageDidChange(webView: self, currentPage: self.currentPage(), totalPage: pageCount)
