@@ -28,7 +28,7 @@ protocol WebViewDelegate: class {
 
 class WebView: UIView, Loggable {
     
-    public weak var viewDelegate: WebViewDelegate?
+    weak var viewDelegate: WebViewDelegate?
     fileprivate let initialLocation: BinaryLocation
     
     let webView: WKWebView
@@ -41,25 +41,25 @@ class WebView: UIView, Loggable {
   
     weak var activityIndicatorView: UIActivityIndicatorView?
 
-    public var initialId: String?
+    var initialId: String?
     // progression and totalPages only work on 'readium-scroll-off' mode
-    public var progression: Double?
-    public var totalPages: Int?
-    public func currentPage() -> Int {
+    var progression: Double?
+    var totalPages: Int?
+    func currentPage() -> Int {
         guard progression != nil && totalPages != nil else {
             return 1
         }
         return Int(progression! * Double(totalPages!)) + 1
     }
     
-    internal var userSettings: UserSettings? {
+    var userSettings: UserSettings? {
         didSet {
             guard let userSettings = userSettings else { return }
             updateActivityIndicator(for: userSettings)
         }
     }
 
-    public var documentLoaded = false
+    var documentLoaded = false
 
     var hasLoadedJsEvents = false
     
@@ -71,57 +71,6 @@ class WebView: UIView, Loggable {
             "didLoad": documentDidLoad,
             "updateProgression": progressionDidChange
         ]
-    }
-
-    internal enum Scroll {
-        case left
-        case right
-        
-        func proceed(on target: WebView) {
-            switch target.pageTransition {
-            case .none:
-                evaluateJavascriptForScroll(on: target)
-            case .animated:
-                performSwipeTransition(on: target)
-            }
-        }
-        
-        private func evaluateJavascriptForScroll(on target: WebView) {
-            let dir = target.readingProgression.rawValue
-            switch self {
-            case .left:
-                target.webView.evaluateJavaScript("scrollLeft(\"\(dir)\");", completionHandler: { result, error in
-                    if error == nil, let result = result as? String, result == "edge" {
-                        target.viewDelegate?.displayLeftDocument()
-                    }
-                })
-            case .right:
-                target.webView.evaluateJavaScript("scrollRight(\"\(dir)\");", completionHandler: { result, error in
-                    if error == nil, let result = result as? String, result == "edge" {
-                        target.viewDelegate?.displayRightDocument()
-                    }
-                })
-            }
-        }
-        
-        private func performSwipeTransition(on target: WebView) {
-            let scrollView = target.scrollView
-            switch self {
-            case .left:
-                let isAtFirstPageInDocument = scrollView.contentOffset.x == 0
-                if !isAtFirstPageInDocument {
-                    target.viewDelegate?.willAnimatePageChange()
-                    return scrollView.scrollToPreviousPage()
-                }
-            case .right:
-                let isAtLastPageInDocument = scrollView.contentOffset.x == scrollView.contentSize.width - scrollView.frame.size.width
-                if !isAtLastPageInDocument {
-                    target.viewDelegate?.willAnimatePageChange()
-                    return scrollView.scrollToNextPage()
-                }
-            }
-            evaluateJavascriptForScroll(on: target)
-        }
     }
     
     var sizeObservation: NSKeyValueObservation?
@@ -203,7 +152,7 @@ class WebView: UIView, Loggable {
         webView.load(request)
     }
   
-    public override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+    override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
         return super.canPerformAction(action, withSender: sender) && editingActions.canPerformAction(action)
     }
 
@@ -214,35 +163,28 @@ class WebView: UIView, Loggable {
         super.copy(sender)
     }
 
-    internal func dismissIfNeeded() {
+    private func dismissIfNeeded() {
         self.isUserInteractionEnabled = false
         self.isUserInteractionEnabled = true
     }
 
-    /// Called from the JS code when a tap is detected in the 2/10 left
-    /// part of the screen.
-    ///
-    /// - Parameter body: Unused.
-    internal func leftTapped(body: Any) {
-        // Verify that the document is properly loaded.
-        guard documentLoaded else {
+    /// Called from the JS code when a tap is detected in the 2/10 left part of the screen.
+    private func leftTapped(body: Any) {
+        // Disables left/right taps when the document is zoomed in.
+        guard documentLoaded, scrollView.zoomScale == scrollView.minimumZoomScale else {
             return
         }
-        
-        Scroll.left.proceed(on: self)
+        scrollTo(.left)
         dismissIfNeeded()
     }
 
-    /// Called from the JS code when a tap is detected in the 2/10 right
-    /// part of the screen.
-    ///
-    /// - Parameter body: Unused.
-    internal func rightTapped(body: Any) {
-        // Verify that the document is properly loaded.
-        guard documentLoaded else {
+    /// Called from the JS code when a tap is detected in the 2/10 right part of the screen.
+    private func rightTapped(body: Any) {
+        // Disables left/right taps when the document is zoomed in.
+        guard documentLoaded, scrollView.zoomScale == scrollView.minimumZoomScale else {
             return
         }
-        Scroll.right.proceed(on: self)
+        scrollTo(.right)
         dismissIfNeeded()
     }
 
@@ -250,7 +192,7 @@ class WebView: UIView, Loggable {
     /// part of the screen.
     ///
     /// - Parameter body: Unused.
-    internal func centerTapped(body: Any) {
+    private func centerTapped(body: Any) {
         viewDelegate?.handleCenterTap()
         dismissIfNeeded()
     }
@@ -258,7 +200,7 @@ class WebView: UIView, Loggable {
     /// Called by the javascript code to notify on DocumentReady.
     ///
     /// - Parameter body: Unused.
-    internal func documentDidLoad(body: Any) {
+    private func documentDidLoad(body: Any) {
         documentLoaded = true
         
         switch pageTransition {
@@ -274,7 +216,7 @@ class WebView: UIView, Loggable {
     }
     
     // Scroll at position 0-1 (0%-100%)
-    internal func scrollAt(position: Double) {
+    func scrollAt(position: Double) {
         guard position >= 0 && position <= 1 else { return }
         
         let dir = readingProgression.rawValue
@@ -283,13 +225,13 @@ class WebView: UIView, Loggable {
     }
 
     // Scroll at the tag with id `tagId`.
-    internal func scrollAt(tagId: String) {
+    func scrollAt(tagId: String) {
         webView.evaluateJavaScript("scrollToId(\'\(tagId)\');",
             completionHandler: nil)
     }
 
     // Scroll to .beggining or .end.
-    internal func scrollAt(location: BinaryLocation) {
+    func scrollAt(location: BinaryLocation) {
         switch location {
         case .left:
             scrollAt(position: 0)
@@ -299,8 +241,7 @@ class WebView: UIView, Loggable {
     }
 
     /// Moves the webView to the initial location.
-    fileprivate func scrollToInitialPosition() {
-
+    func scrollToInitialPosition() {
         /// If the savedProgression property has been set by the navigator.
         if let initialPosition = progression, initialPosition > 0.0 {
             scrollAt(position: initialPosition)
@@ -311,8 +252,49 @@ class WebView: UIView, Loggable {
         }
     }
 
+    enum ScrollDirection {
+        case left
+        case right
+    }
+    
+    func scrollTo(_ direction: ScrollDirection) {
+        let viewDelegate = self.viewDelegate
+        if case .animated = pageTransition {
+            switch direction {
+            case .left:
+                let isAtFirstPageInDocument = scrollView.contentOffset.x == 0
+                if !isAtFirstPageInDocument {
+                    viewDelegate?.willAnimatePageChange()
+                    return scrollView.scrollToPreviousPage()
+                }
+            case .right:
+                let isAtLastPageInDocument = scrollView.contentOffset.x == scrollView.contentSize.width - scrollView.frame.size.width
+                if !isAtLastPageInDocument {
+                    viewDelegate?.willAnimatePageChange()
+                    return scrollView.scrollToNextPage()
+                }
+            }
+        }
+        
+        let dir = readingProgression.rawValue
+        switch direction {
+        case .left:
+            webView.evaluateJavaScript("scrollLeft(\"\(dir)\");") { result, error in
+                if error == nil, let result = result as? String, result == "edge" {
+                    viewDelegate?.displayLeftDocument()
+                }
+            }
+        case .right:
+            webView.evaluateJavaScript("scrollRight(\"\(dir)\");") { result, error in
+                if error == nil, let result = result as? String, result == "edge" {
+                    viewDelegate?.displayRightDocument()
+                }
+            }
+        }
+    }
+
     // Called by the javascript code to notify that scrolling ended.
-    internal func progressionDidChange(body: Any) {
+    private func progressionDidChange(body: Any) {
         guard documentLoaded, let bodyString = body as? String, let newProgression = Double(bodyString) else {
             return
         }
@@ -350,7 +332,7 @@ extension WebView: WKScriptMessageHandler {
     }
 
     /// Add a message handler for incoming javascript events.
-    internal func addMessageHandlers() {
+    func addMessageHandlers() {
         if hasLoadedJsEvents { return }
         // Add the message handlers.
         for eventName in jsEvents.keys {
@@ -360,7 +342,7 @@ extension WebView: WKScriptMessageHandler {
     }
 
     // Deinit message handlers (preventing strong reference cycle).
-    internal func removeMessageHandlers() {
+    func removeMessageHandlers() {
         for eventName in jsEvents.keys {
             webView.configuration.userContentController.removeScriptMessageHandler(forName: eventName)
         }

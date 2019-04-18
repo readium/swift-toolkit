@@ -103,7 +103,7 @@ final class FixedWebView: WebView {
             return
         }
         pageScale = scale
-        
+
         // Updates the minimum zoom scale in the `viewport` meta tag.
         webView.evaluateJavaScript("""
             (function() {
@@ -138,7 +138,7 @@ final class FixedWebView: WebView {
 
     override func scrollViewDidZoom(_ scrollView: UIScrollView) {
         super.scrollViewDidZoom(scrollView)
-        
+
         // Moves the web view to center its content when the zoom scale changes.
         // We don't use contentInset to center the content because it introduces a few scrolling bugs.
         if let pageSize = pageSize {
