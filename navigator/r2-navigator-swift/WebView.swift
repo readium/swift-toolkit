@@ -114,6 +114,10 @@ class WebView: UIView, Loggable {
         scrollView.alpha = 0
     }
     
+    deinit {
+        sizeObservation = nil  // needs to be deallocated before the scrollView
+    }
+    
     func setupWebView() {
         webView.backgroundColor = UIColor.clear
         scrollView.backgroundColor = UIColor.clear
@@ -122,6 +126,7 @@ class WebView: UIView, Loggable {
 
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.showsVerticalScrollIndicator = false
+        
         if #available(iOS 11.0, *) {
             // Prevents the pages from jumping down when the status bar is toggled
             scrollView.contentInsetAdjustmentBehavior = .never

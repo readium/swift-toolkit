@@ -105,7 +105,6 @@ open class EPUBNavigatorViewController: UIViewController {
         
         super.init(nibName: nil, bundle: nil)
         
-        automaticallyAdjustsScrollViewInsets = false
         self.editingActions.delegate = self
     }
 
