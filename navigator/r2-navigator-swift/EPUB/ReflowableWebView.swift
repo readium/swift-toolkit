@@ -67,7 +67,7 @@ final class ReflowableWebView: WebView {
         
         if let userSettings = userSettings {
             for cssProperty in userSettings.userProperties.properties {
-                webView.evaluateJavaScript("setProperty(\"\(cssProperty.name)\", \"\(cssProperty.toString())\");")
+                evaluateScriptInResource("setProperty(\"\(cssProperty.name)\", \"\(cssProperty.toString())\");")
             }
         }
 

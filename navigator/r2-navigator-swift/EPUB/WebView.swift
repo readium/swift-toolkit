@@ -31,6 +31,7 @@ class WebView: UIView, Loggable {
     weak var viewDelegate: WebViewDelegate?
     fileprivate let initialLocation: BinaryLocation
     
+    let baseURL: URL
     let webView: WKWebView
 
     let readingProgression: ReadingProgression
@@ -75,8 +76,8 @@ class WebView: UIView, Loggable {
     
     var sizeObservation: NSKeyValueObservation?
 
-    required init(initialLocation: BinaryLocation, readingProgression: ReadingProgression, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
-
+    required init(baseURL: URL, initialLocation: BinaryLocation, readingProgression: ReadingProgression, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+        self.baseURL = baseURL
         self.initialLocation = initialLocation
         self.readingProgression = readingProgression
         self.pageTransition = pageTransition
@@ -156,8 +157,14 @@ class WebView: UIView, Loggable {
         }
     }
 
-    func load(_ request: URLRequest) {
-        webView.load(request)
+    func load(_ url: URL) {
+        webView.load(URLRequest(url: url))
+    }
+    
+    /// Evaluates the given JavaScript into the resource's HTML page.
+    /// Don't use directly webView.evaluateJavaScript as the resource might be displayed into an iframe in a wrapper HTML page.
+    func evaluateScriptInResource(_ script: String, completion: ((Any?, Error?) -> Void)? = nil) {
+        webView.evaluateJavaScript(script, completionHandler: completion)
     }
   
     override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
@@ -228,14 +235,12 @@ class WebView: UIView, Loggable {
         guard position >= 0 && position <= 1 else { return }
         
         let dir = readingProgression.rawValue
-        webView.evaluateJavaScript("scrollToPosition(\'\(position)\', \'\(dir)\')",
-            completionHandler: nil)
+        evaluateScriptInResource("scrollToPosition(\'\(position)\', \'\(dir)\')")
     }
 
     // Scroll at the tag with id `tagId`.
     func scrollAt(tagId: String) {
-        webView.evaluateJavaScript("scrollToId(\'\(tagId)\');",
-            completionHandler: nil)
+        evaluateScriptInResource("scrollToId(\'\(tagId)\');")
     }
 
     // Scroll to .beggining or .end.
@@ -287,13 +292,13 @@ class WebView: UIView, Loggable {
         let dir = readingProgression.rawValue
         switch direction {
         case .left:
-            webView.evaluateJavaScript("scrollLeft(\"\(dir)\");") { result, error in
+            evaluateScriptInResource("scrollLeft(\"\(dir)\");") { result, error in
                 if error == nil, let result = result as? String, result == "edge" {
                     viewDelegate?.displayLeftDocument()
                 }
             }
         case .right:
-            webView.evaluateJavaScript("scrollRight(\"\(dir)\");") { result, error in
+            evaluateScriptInResource("scrollRight(\"\(dir)\");") { result, error in
                 if error == nil, let result = result as? String, result == "edge" {
                     viewDelegate?.displayRightDocument()
                 }
@@ -359,6 +364,10 @@ extension WebView: WKScriptMessageHandler {
 }
 
 extension WebView: WKNavigationDelegate {
+    
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        // Do not remove: overriden in subclasses.
+    }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction,
                  decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
@@ -400,10 +409,6 @@ extension WebView: UIScrollViewDelegate {
         viewDelegate?.didEndPageAnimation()
     }
     
-    func scrollViewDidZoom(_ scrollView: UIScrollView) {
-        // Do not remove: overriden in subclasses
-    }
-
 }
 
 extension WebView: WKUIDelegate {

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+  body, html {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    background: transparent;
+  }
+
+  #page {
+    /* Centers the iframe. */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    width: 0px;
+    height: 0px;
+    border: none;
+    background: white;
+  }
+  </style>
+
+  <meta name="viewport" content="">
+</head>
+
+<body>
+  <iframe id="page"></iframe>
+  <script type="text/javascript">
+    var page = (function() {
+
+      // Fixed dimensions for the resource extracted from the viewport meta tag.
+      var _pageSize = null;
+      // Available viewport size to fill with the resource.
+      var _viewportSize = null;
+      // Margins that should not overlap the content.
+      var _safeAreaInsets = null;
+
+      var _frame = document.getElementById('page');
+      _frame.addEventListener('load', loadPageSize);
+
+      // Parses the page size from the viewport meta tag of the loaded resource.
+      function loadPageSize() {
+        var viewport = _frame.contentWindow.document.querySelector('meta[name=viewport]');
+        if (viewport) {
+          var regex = /(\w+) *= *([^\s,]+)/g
+          var properties = {};
+          var match;
+          while (match = regex.exec(viewport.content)) {
+            properties[match[1]] = match[2];
+          }
+          var width = Number.parseFloat(properties.width);
+          var height = Number.parseFloat(properties.height);
+          if (width && height) {
+            _pageSize = { 'width': width, 'height': height };
+            layoutPage();
+          }
+        }
+      }
+
+      // Layouts the resource iframe to center its content and scale it to fill the available viewport.
+      function layoutPage() {
+        if (!_pageSize || !_viewportSize || !_safeAreaInsets) {
+          return;
+        }
+
+        _frame.style.width = _pageSize.width + 'px';
+        _frame.style.height = _pageSize.height + 'px';
+        _frame.style.marginTop = (_safeAreaInsets.top - _safeAreaInsets.bottom) + 'px';
+        _frame.style.marginLeft = (_safeAreaInsets.left - _safeAreaInsets.right) + 'px';
+
+        // Calculates the zoom scale required to fit the content to the viewport.
+        var widthRatio = _viewportSize.width / _pageSize.width;
+        var heightRatio = _viewportSize.height / _pageSize.height;
+        var scale = Math.min(widthRatio, heightRatio);
+
+        // Sets the viewport of the wrapper page (this page) to scale the iframe.
+        var viewport = document.querySelector('meta[name=viewport]');
+        viewport.content = 'initial-scale=' + scale + ', minimum-scale=' + scale;
+      }
+
+      // Public API called from Swift.
+      return {
+        // Loads a resource in the iframe.
+        'load': function(url) {
+          _frame.src = url;
+        },
+
+        // Evaluates a JavaScript in the context of the resource.
+        'eval': function(script) {
+          return _frame.contentWindow.eval(script);
+        },
+
+        // Updates the available viewport to display the resource.
+        'setViewport': function(viewportSize, safeAreaInsets) {
+          _viewportSize = viewportSize;
+          _safeAreaInsets = safeAreaInsets;
+          layoutPage();
+        }
+      }
+    })();
+  </script>
+</body>
+</html>

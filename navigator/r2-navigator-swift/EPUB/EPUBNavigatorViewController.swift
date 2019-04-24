@@ -123,7 +123,7 @@ open class EPUBNavigatorViewController: UIViewController {
         triptychView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         view.addSubview(triptychView)
     }
-
+    
     public var currentLocation: Locator? {
         var hrefToTitle: [String: String] = {
             let linkList = self.getTableOfContents()
@@ -332,12 +332,17 @@ private final class Delegatee: NSObject {
 extension Delegatee: TriptychViewDelegate {
 
     public func triptychView(_ view: TriptychView, viewForIndex index: Int, location: BinaryLocation) -> UIView {
+        guard let baseURL = parent.publication.baseURL else {
+            return UIView()
+        }
+        
         let link = parent.publication.readingOrder[index]
         // Check if link is FXL.
         let hasFixedLayout = (parent.publication.metadata.rendition?.layout == .fixed && link.properties.layout == nil) || link.properties.layout == .fixed
-        
+
         let webViewType = hasFixedLayout ? FixedWebView.self : ReflowableWebView.self
         let webView = webViewType.init(
+            baseURL: baseURL,
             initialLocation: location,
             readingProgression: view.readingProgression,
             pageTransition: parent.pageTransition,
@@ -347,10 +352,8 @@ extension Delegatee: TriptychViewDelegate {
         )
 
         if let url = parent.publication.url(to: link) {
-            let urlRequest = URLRequest(url: url)
-
             webView.viewDelegate = parent
-            webView.load(urlRequest)
+            webView.load(url)
             webView.userSettings = parent.userSettings
 
             // Load last saved regionIndex for the first view.
