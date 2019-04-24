@@ -81,6 +81,51 @@
         viewport.content = 'initial-scale=' + scale + ', minimum-scale=' + scale;
       }
 
+
+      // Events listeners for the touches.
+      var _singleTouchGesture = true;
+      var _touchStartTime = null;
+      var _startX = 0;
+      var _startY = 0;
+      document.addEventListener('touchstart', handleTouchStart, false);
+      document.addEventListener('touchend', handleTouchEnd, false);
+
+      function handleTouchStart(event) {
+        _singleTouchGesture = (event.touches.length == 1);
+        var touch = event.changedTouches[0];
+        _startX = touch.screenX % maxScreenX;
+        _startY = touch.screenY % maxScreenY;
+        _touchStartTime = Date.now();
+      }
+
+      function handleTouchEnd(event) {
+        if (!_singleTouchGesture) {
+          return;
+        }
+
+        if (_touchStartTime != null && Date.now() - _touchStartTime > 500) {
+          return;
+        }
+
+        var touch = event.changedTouches[0];
+
+        var portrait = (window.orientation === 0 || window.orientation == 180);
+        var maxScreenX = portrait ? screen.width : screen.height;
+        var maxScreenY = portrait ? screen.height : screen.width;
+        var relativeDistanceX = Math.abs(((touch.screenX % maxScreenX) - _startX) / maxScreenX);
+        var relativeDistanceY = Math.abs(((touch.screenY % maxScreenY) - _startY) / maxScreenY);
+        var touchDistance = Math.max(relativeDistanceX, relativeDistanceY);
+        if (touchDistance < 0.01) {
+          var position = touch.clientX / window.innerWidth;
+          if (position <= 0.5) {
+              webkit.messageHandlers.leftTap.postMessage("");
+          } else {
+              webkit.messageHandlers.rightTap.postMessage("");
+          }
+        }
+      }
+
+
       // Public API called from Swift.
       return {
         // Loads a resource in the iframe.
