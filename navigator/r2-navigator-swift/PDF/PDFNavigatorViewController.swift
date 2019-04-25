@@ -26,26 +26,22 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
         case openPDFFailed
     }
     
-    public let publication: Publication
-    public weak var delegate: PDFNavigatorDelegate?
-    public private(set) var pdfView: PDFDocumentView!
-    
     /// Whether the pages is always scaled to fit the screen, unless the user zoomed in.
     public var scalesDocumentToFit = true
-
-    private let initialLocation: Locator?
     
+    public weak var delegate: PDFNavigatorDelegate?
+    public private(set) var pdfView: PDFDocumentView!
+
+    private let publication: Publication
+    private let initialLocation: Locator?
+    private let editingActions: EditingActionsController
     /// Reading order index of the current resource.
     private var currentResourceIndex: Int?
-    
     private let positionList: [Locator]
-    
     /// Positions list indexed by reading order.
     private let positionListByResourceIndex: [[Locator]]
 
-    fileprivate let editingActions: EditingActionsController
-
-    public init(publication: Publication, license: DRMLicense?, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
+    public init(publication: Publication, license: DRMLicense? = nil, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
         self.publication = publication
         self.initialLocation = initialLocation
         self.editingActions = EditingActionsController(actions: editingActions, license: license)
@@ -100,7 +96,7 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
         
         view.backgroundColor = .black
         
-        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTap(gesture:))))
+        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTap)))
         
         pdfView = PDFDocumentView(frame: view.bounds, editingActions: editingActions)
         pdfView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -148,7 +144,7 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
         pdfView.autoScales = !scalesDocumentToFit
     }
     
-    @objc private func didTap(gesture: UITapGestureRecognizer) {
+    @objc private func didTap(_ gesture: UITapGestureRecognizer) {
         let point = gesture.location(in: view)
         delegate?.navigator(self, didTapAt: point)
     }
@@ -263,21 +259,7 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
     }
     
     public func go(to link: Link, animated: Bool, completion: @escaping () -> Void) -> Bool {
-        let components = link.href.split(separator: "#", maxSplits: 1)
-        guard let href = components.first else {
-            return false
-        }
-        var fragment: String? = nil
-        if components.count > 1 {
-            fragment = String(components[1])
-        }
-        
-        let locator = Locator(
-            href: String(href),
-            type: link.type ?? "application/pdf",
-            locations: Locations(fragment: fragment)
-        )
-        return go(to: locator, animated: animated, completion: completion)
+        return go(to: link.locator, animated: animated, completion: completion)
     }
     
     public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
