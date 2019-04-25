@@ -88,13 +88,14 @@ final class PDFViewController: ReaderViewController {
 @available(iOS 11.0, *)
 extension PDFViewController: PDFNavigatorDelegate {
     
-    func navigator(_ navigator: Navigator, didTapAt point: CGPoint, in view: UIView) {
+    func navigator(_ navigator: Navigator, didTapAt point: CGPoint) {
+        let viewport = navigator.view.bounds
         // Skips to previous/next pages if the tap is on the content edges.
-        let thresholdRange = 0...(0.2 * view.bounds.width)
+        let thresholdRange = 0...(0.2 * viewport.width)
         var moved = false
         if thresholdRange ~= point.x {
             moved = navigator.goBackward(animated: true)
-        } else if thresholdRange ~= (view.bounds.maxX - point.x) {
+        } else if thresholdRange ~= (viewport.maxX - point.x) {
             moved = navigator.goForward(animated: true)
         }
         
@@ -103,8 +104,8 @@ extension PDFViewController: PDFNavigatorDelegate {
         }
     }
     
-    func navigator(_ navigator: Navigator, didGoTo locator: Locator) {
-        guard let publicationID = navigator.publication.metadata.identifier else {
+    func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
+        guard let publicationID = publication.metadata.identifier else {
             return
         }
         UserDefaults.standard.set(locator.jsonString, forKey: "\(publicationID)-locator")
