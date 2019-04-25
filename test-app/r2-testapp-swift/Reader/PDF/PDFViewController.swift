@@ -10,7 +10,6 @@
 //
 
 import Foundation
-import SafariServices
 import UIKit
 import R2Navigator
 import R2Shared
@@ -21,18 +20,10 @@ final class PDFViewController: ReaderViewController {
     
     let navigator: PDFNavigatorViewController
     
-    override init(publication: Publication, drm: DRM?) {
-        let initialLocation: Locator? = {
-            guard let publicationID = publication.metadata.identifier,
-                let locatorJSON = UserDefaults.standard.string(forKey: "\(publicationID)-locator") else {
-                return nil
-            }
-            return (try? Locator(jsonString: locatorJSON)) as? Locator
-        }()
-    
+    override init(publication: Publication, drm: DRM?, initialLocation: Locator?) {
         navigator = PDFNavigatorViewController(publication: publication, license: drm?.license, initialLocation: initialLocation)
         
-        super.init(publication: publication, drm: drm)
+        super.init(publication: publication, drm: drm, initialLocation: initialLocation)
         
         navigator.delegate = self
     }
@@ -83,40 +74,6 @@ final class PDFViewController: ReaderViewController {
     
 }
 
-
-/// FIXME: This should be moved into ReaderViewController once the Navigator interface is generalized for all formats
 @available(iOS 11.0, *)
 extension PDFViewController: PDFNavigatorDelegate {
-    
-    func navigator(_ navigator: Navigator, didTapAt point: CGPoint) {
-        let viewport = navigator.view.bounds
-        // Skips to previous/next pages if the tap is on the content edges.
-        let thresholdRange = 0...(0.2 * viewport.width)
-        var moved = false
-        if thresholdRange ~= point.x {
-            moved = navigator.goBackward(animated: true)
-        } else if thresholdRange ~= (viewport.maxX - point.x) {
-            moved = navigator.goForward(animated: true)
-        }
-        
-        if !moved {
-            toggleNavigationBar()
-        }
-    }
-    
-    func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
-        guard let publicationID = publication.metadata.identifier else {
-            return
-        }
-        UserDefaults.standard.set(locator.jsonString, forKey: "\(publicationID)-locator")
-    }
-    
-    func navigator(_ navigator: Navigator, presentExternalURL url: URL) {
-        present(SFSafariViewController(url: url), animated: true)
-    }
-    
-    func navigator(_ navigator: Navigator, presentError error: NavigatorError) {
-        moduleDelegate?.presentError(error, from: self)
-    }
-    
 }

@@ -10,7 +10,9 @@
 //  LICENSE file present in the project repository where this source code is maintained.
 //
 
+import SafariServices
 import UIKit
+import R2Navigator
 import R2Shared
 
 
@@ -24,7 +26,20 @@ class ReaderViewController: UIViewController, Loggable {
     
     lazy var bookmarksDataSource: BookmarkDataSource? = BookmarkDataSource(publicationID: publication.metadata.identifier ?? "")
     
-    init(publication: Publication, drm: DRM?) {
+    convenience init(publication: Publication, drm: DRM?) {
+        // FIXME: Should be moved into Book.progression.
+        let initialLocation: Locator? = {
+            guard let publicationID = publication.metadata.identifier,
+                let locatorJSON = UserDefaults.standard.string(forKey: "\(publicationID)-locator") else {
+                    return nil
+            }
+            return (try? Locator(jsonString: locatorJSON)) as? Locator
+        }()
+        
+        self.init(publication: publication, drm: drm, initialLocation: initialLocation)
+    }
+    
+    init(publication: Publication, drm: DRM?, initialLocation: Locator?) {
         self.publication = publication
         self.drm = drm
         
@@ -129,6 +144,40 @@ class ReaderViewController: UIViewController, Loggable {
 
 }
 
+extension ReaderViewController: NavigatorDelegate {
+    
+    func navigator(_ navigator: Navigator, didTapAt point: CGPoint) {
+        let viewport = navigator.view.bounds
+        // Skips to previous/next pages if the tap is on the content edges.
+        let thresholdRange = 0...(0.2 * viewport.width)
+        var moved = false
+        if thresholdRange ~= point.x {
+            moved = navigator.goBackward(animated: false)
+        } else if thresholdRange ~= (viewport.maxX - point.x) {
+            moved = navigator.goForward(animated: false)
+        }
+        
+        if !moved {
+            toggleNavigationBar()
+        }
+    }
+    
+    func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
+        guard let publicationID = publication.metadata.identifier else {
+            return
+        }
+        UserDefaults.standard.set(locator.jsonString, forKey: "\(publicationID)-locator")
+    }
+    
+    func navigator(_ navigator: Navigator, presentExternalURL url: URL) {
+        present(SFSafariViewController(url: url), animated: true)
+    }
+    
+    func navigator(_ navigator: Navigator, presentError error: NavigatorError) {
+        moduleDelegate?.presentError(error, from: self)
+    }
+    
+}
 
 extension ReaderViewController: OutlineTableViewControllerDelegate {
     

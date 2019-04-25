@@ -23,7 +23,18 @@ class EPUBViewController: ReaderViewController {
     var popoverUserconfigurationAnchor: UIBarButtonItem?
     var userSettingNavigationController: UserSettingsNavigationController
 
-    init(publication: Publication, atIndex index: Int, progression: Double?, drm: DRM?) {
+    override init(publication: Publication, drm: DRM?, initialLocation: Locator?) {
+        var index: Int = 0
+        var progression: Double? = nil
+        
+        // FIXME: use initialLocation with the new Navigator API
+        if let identifier = publication.metadata.identifier {
+            // Retrieve last read document/progression in that document.
+            let userDefaults = UserDefaults.standard
+            index = userDefaults.integer(forKey: "\(identifier)-document")
+            progression = userDefaults.double(forKey: "\(identifier)-documentProgression")
+        }
+        
         stackView = UIStackView(frame: UIScreen.main.bounds)
         navigator = EPUBNavigatorViewController(for: publication, license: drm?.license, initialIndex: index, initialProgression: progression)
         
@@ -37,21 +48,7 @@ class EPUBViewController: ReaderViewController {
         userSettingNavigationController.advancedSettingsViewController =
             (settingsStoryboard.instantiateViewController(withIdentifier: "AdvancedSettingsViewController") as! AdvancedSettingsViewController)
         
-        super.init(publication: publication, drm: drm)
-    }
-
-    convenience override init(publication: Publication, drm: DRM?) {
-        var index: Int = 0
-        var progression: Double? = nil
-        
-        if let identifier = publication.metadata.identifier {
-            // Retrieve last read document/progression in that document.
-            let userDefaults = UserDefaults.standard
-            index = userDefaults.integer(forKey: "\(identifier)-document")
-            progression = userDefaults.double(forKey: "\(identifier)-documentProgression")
-        }
-        
-        self.init(publication: publication, atIndex: index, progression: progression, drm: drm)
+        super.init(publication: publication, drm: drm, initialLocation: initialLocation)
     }
 
     override func loadView() {
