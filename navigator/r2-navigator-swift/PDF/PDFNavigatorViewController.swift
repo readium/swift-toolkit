@@ -15,34 +15,7 @@ import UIKit
 import R2Shared
 
 
-public protocol PDFNavigatorDelegate: AnyObject {
-    
-    /// Called when the user tapped the publication, and it didn't trigger any internal action.
-    func navigator(_ navigator: Navigator, didTapAt point: CGPoint, in view: UIView)
-    
-    /// Called when the current position in the publication changed. You should save the locator here to restore the last read page.
-    func navigator(_ navigator: Navigator, didGoTo locator: Locator)
-    
-    /// Called when an error must be reported to the user.
-    func navigator(_ navigator: Navigator, presentError error: NavigatorError)
-    
-    /// Called when the user tapped an external URL. The default implementation opens the URL with the default browser.
-    func navigator(_ navigator: Navigator, presentExternalURL url: URL)
-    
-}
-
-
-public extension PDFNavigatorDelegate {
-    
-    func navigator(_ navigator: Navigator, presentExternalURL url: URL) {
-        UIApplication.shared.openURL(url)
-    }
-    
-    func navigator(_ navigator: Navigator, didTapAt point: CGPoint, in view: UIView) {
-        // Optional
-    }
-    
-}
+public protocol PDFNavigatorDelegate: NavigatorDelegate { }
 
 
 /// A view controller used to render a PDF `Publication`.
@@ -64,6 +37,8 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
     
     /// Reading order index of the current resource.
     private var currentResourceIndex: Int?
+    
+    private let positionList: [Locator]
     
     /// Positions list indexed by reading order.
     private let positionListByResourceIndex: [[Locator]]
@@ -175,14 +150,14 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
     
     @objc private func didTap(gesture: UITapGestureRecognizer) {
         let point = gesture.location(in: view)
-        delegate?.navigator(self, didTapAt: point, in: view)
+        delegate?.navigator(self, didTapAt: point)
     }
     
     @objc private func pageDidChange() {
         guard let locator = currentPosition else {
             return
         }
-        delegate?.navigator(self, didGoTo: locator)
+        delegate?.navigator(self, locationDidChange: locator)
     }
 
     private func go(to link: Link, pageNumber: Int? = nil, completion: @escaping () -> Void) -> Bool {
@@ -275,8 +250,6 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
         return locator
     }
 
-    public let positionList: [Locator]
-
     public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
         guard let index = publication.readingOrder.firstIndex(withHref: locator.href) else {
             return false
@@ -287,6 +260,24 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
             pageNumber: pageNumber(for: locator, at: index),
             completion: completion
         )
+    }
+    
+    public func go(to link: Link, animated: Bool, completion: @escaping () -> Void) -> Bool {
+        let components = link.href.split(separator: "#", maxSplits: 1)
+        guard let href = components.first else {
+            return false
+        }
+        var fragment: String? = nil
+        if components.count > 1 {
+            fragment = String(components[1])
+        }
+        
+        let locator = Locator(
+            href: String(href),
+            type: link.type ?? "application/pdf",
+            locations: Locations(fragment: fragment)
+        )
+        return go(to: locator, animated: animated, completion: completion)
     }
     
     public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {

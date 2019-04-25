@@ -416,5 +416,3 @@ extension EPUBNavigatorViewController {
 
 @available(*, deprecated, renamed: "EPUBNavigatorViewController")
 public typealias NavigatorViewController = EPUBNavigatorViewController
-@available(*, deprecated, renamed: "EPUBNavigatorDelegate")
-public typealias NavigatorDelegate = EPUBNavigatorDelegate
