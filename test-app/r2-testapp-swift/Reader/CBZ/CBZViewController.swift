@@ -31,6 +31,8 @@ class CBZViewController: ReaderViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        view.backgroundColor = .black
+        
         addChild(navigator)
         navigator.view.frame = view.bounds
         navigator.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]

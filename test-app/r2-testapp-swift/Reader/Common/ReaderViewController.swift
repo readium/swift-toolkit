@@ -152,9 +152,9 @@ extension ReaderViewController: NavigatorDelegate {
         let thresholdRange = 0...(0.2 * viewport.width)
         var moved = false
         if thresholdRange ~= point.x {
-            moved = navigator.goBackward(animated: false)
+            moved = navigator.goLeft(animated: false)
         } else if thresholdRange ~= (viewport.maxX - point.x) {
-            moved = navigator.goForward(animated: false)
+            moved = navigator.goRight(animated: false)
         }
         
         if !moved {
