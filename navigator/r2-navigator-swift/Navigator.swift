@@ -19,6 +19,9 @@ public protocol Navigator {
     
     /// Viewport view.
     var view: UIView! { get }
+    
+    /// Current reading progression.
+    var readingProgression: ReadingProgression { get }
 
     /// Current position in the publication.
     /// Can be used to save a bookmark to the current position.
@@ -48,6 +51,18 @@ public protocol Navigator {
     @discardableResult
     func goBackward(animated: Bool, completion: @escaping () -> Void) -> Bool
     
+    /// Moves to the left content portion (eg. page) relative to the reading progression direction.
+    /// - Parameter completion: Called when the transition is completed.
+    /// - Returns: Whether the navigator is able to move to the previous content portion. The completion block is only called if true was returned.
+    @discardableResult
+    func goLeft(animated: Bool, completion: @escaping () -> Void) -> Bool
+    
+    /// Moves to the right content portion (eg. page) relative to the reading progression direction.
+    /// - Parameter completion: Called when the transition is completed.
+    /// - Returns: Whether the navigator is able to move to the previous content portion. The completion block is only called if true was returned.
+    @discardableResult
+    func goRight(animated: Bool, completion: @escaping () -> Void) -> Bool
+    
 }
 
 /// Adds default values for the methods' parameters.
@@ -71,6 +86,26 @@ public extension Navigator {
     @discardableResult
     func goBackward(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
         return goBackward(animated: animated, completion: completion)
+    }
+    
+    @discardableResult
+    func goLeft(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
+        switch readingProgression {
+        case .ltr, .auto:
+            return goBackward(animated: animated, completion: completion)
+        case .rtl:
+            return goForward(animated: animated, completion: completion)
+        }
+    }
+    
+    @discardableResult
+    func goRight(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
+        switch readingProgression {
+        case .ltr, .auto:
+            return goForward(animated: animated, completion: completion)
+        case .rtl:
+            return goBackward(animated: animated, completion: completion)
+        }
     }
     
 }

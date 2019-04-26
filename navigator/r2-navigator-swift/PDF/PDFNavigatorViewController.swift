@@ -234,6 +234,10 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
     
     // MARK: - Navigator
 
+    public var readingProgression: ReadingProgression {
+        return publication.contentLayout.readingProgression
+    }
+    
     public var currentLocation: Locator? {
         guard var locator = currentPosition else {
             return nil

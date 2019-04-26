@@ -94,8 +94,18 @@ open class CBZNavigatorViewController: UIViewController, Navigator, Loggable {
         guard let imageViewController = imageViewController(at: index) else {
             return false
         }
-        // FIXME: direction
-        pageViewController.setViewControllers([imageViewController], direction: .forward, animated: animated) { [weak self] _ in
+        let direction: UIPageViewController.NavigationDirection = {
+            let forward: Bool = {
+                switch readingProgression {
+                case .ltr, .auto:
+                    return (currentResourceIndex < index)
+                case .rtl:
+                    return (currentResourceIndex >= index)
+                }
+            }()
+            return forward ? .forward : .reverse
+        }()
+        pageViewController.setViewControllers([imageViewController], direction: direction, animated: animated) { [weak self] _ in
             guard let `self` = self else {
                 return
             }
@@ -122,6 +132,10 @@ open class CBZNavigatorViewController: UIViewController, Navigator, Loggable {
 
 
     // MARK: - Navigator
+    
+    public var readingProgression: ReadingProgression {
+        return publication.contentLayout.readingProgression
+    }
     
     public var currentLocation: Locator? {
         return positionList[currentResourceIndex]
@@ -157,14 +171,28 @@ extension CBZNavigatorViewController: UIPageViewControllerDataSource {
         guard let imageVC = viewController as? ImageViewController else {
             return nil
         }
-        return imageViewController(at: imageVC.index - 1)
+        var index = imageVC.index
+        switch readingProgression {
+        case .ltr, .auto:
+            index -= 1
+        case .rtl:
+            index += 1
+        }
+        return imageViewController(at: index)
     }
     
     public func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
         guard let imageVC = viewController as? ImageViewController else {
             return nil
         }
-        return imageViewController(at: imageVC.index + 1)
+        var index = imageVC.index
+        switch readingProgression {
+        case .ltr, .auto:
+            index += 1
+        case .rtl:
+            index -= 1
+        }
+        return imageViewController(at: index)
     }
 
 }
