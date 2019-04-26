@@ -20,21 +20,26 @@ public protocol CBZNavigatorDelegate: NavigatorDelegate { }
 open class CBZNavigatorViewController: UIViewController, Navigator, Loggable {
     
     public weak var delegate: CBZNavigatorDelegate?
-    public private(set) var scrollView: UIScrollView!
 
     private let publication: Publication
-    /// Reading order index of the current resource.
-    private var currentResourceIndex: Int = 0
+    private let initialIndex: Int
     private let positionList: [Locator]
     
-    private var imageView: UIImageView!
-    private var isMoving: Bool = false
-    
+    private let pageViewController: UIPageViewController
+
     public init(publication: Publication, initialLocation: Locator? = nil) {
         self.publication = publication
-        if let initialLocation = initialLocation, let initialIndex = publication.readingOrder.firstIndex(withHref: initialLocation.href) {
-            self.currentResourceIndex = initialIndex
-        }
+        self.initialIndex = {
+            guard let initialLocation = initialLocation, let initialIndex = publication.readingOrder.firstIndex(withHref: initialLocation.href) else {
+                return 0
+            }
+            return initialIndex
+        }()
+        
+        self.pageViewController = UIPageViewController(
+            transitionStyle: .scroll,
+            navigationOrientation: .horizontal
+        )
         
         let pageCount = publication.readingOrder.count
         self.positionList = publication.readingOrder.enumerated().map { index, link in
@@ -58,112 +63,67 @@ open class CBZNavigatorViewController: UIViewController, Navigator, Loggable {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override open func loadView() {
-        scrollView = UIScrollView()
-        scrollView.backgroundColor = UIColor.clear
-        view = scrollView
-    }
-
     override open func viewDidLoad() {
         super.viewDidLoad()
         
-        scrollView.delegate = self
-        scrollView.minimumZoomScale = 1.0
-        scrollView.maximumZoomScale = 4.0
-
-        imageView = UIImageView(frame: self.scrollView.bounds)
-        imageView.backgroundColor = UIColor.black
-        imageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        imageView.contentMode = .scaleAspectFit
-        scrollView.addSubview(self.imageView)
+        pageViewController.dataSource = self
+        pageViewController.delegate = self
         
-        // Gestures
-        for direction in [
-            UISwipeGestureRecognizer.Direction.left,
-            UISwipeGestureRecognizer.Direction.right
-        ] {
-            let gesture = UISwipeGestureRecognizer(target: self, action: #selector(didSwipe))
-            gesture.direction = direction
-            view.addGestureRecognizer(gesture)
-        }
-        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTap)))
+        addChild(pageViewController)
+        pageViewController.view.frame = view.bounds
+        pageViewController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(pageViewController.view)
+        pageViewController.didMove(toParent: self)
 
-        go(to: publication.readingOrder[currentResourceIndex], animated: false)
+        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTap)))
+        
+        goToResourceAtIndex(initialIndex)
+    }
+    
+    private var currentResourceIndex: Int {
+        guard let imageViewController = pageViewController.viewControllers?.first as? ImageViewController,
+            positionList.indices.contains(imageViewController.index) else
+        {
+            return initialIndex
+        }
+        return imageViewController.index
     }
     
     @discardableResult
     private func goToResourceAtIndex(_ index: Int, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        guard !isMoving,
-            publication.readingOrder.indices.contains(index),
-            let url = publication.url(to: publication.readingOrder[index]) else
-        {
+        guard let imageViewController = imageViewController(at: index) else {
             return false
         }
-        
-        isMoving = true
-        
-        URLSession.shared.dataTask(with: url) { data, _, error in
-            guard let data = data, let image = UIImage(data: data) else {
-                if let error = error {
-                    self.log(.error, error)
-                } else {
-                    self.log(.error, "Can't load resource at index \(index)")
-                }
-                self.isMoving = false
-                completion()
+        // FIXME: direction
+        pageViewController.setViewControllers([imageViewController], direction: .forward, animated: animated) { [weak self] _ in
+            guard let `self` = self else {
                 return
             }
-            
-            DispatchQueue.main.async {
-                UIView.transition(
-                    with: self.imageView,
-                    duration: (animated ? 0.1618 : 0),
-                    options: .transitionCrossDissolve,
-                    animations: {
-                        self.imageView.image = image
-                    },
-                    completion: { _ in
-                        self.currentResourceIndex = index
-                        self.isMoving = false
-                        self.delegate?.navigator(self, locationDidChange: self.positionList[index])
-                        completion()
-                    }
-                )
-            }
-        }.resume()
-        
+            self.delegate?.navigator(self, locationDidChange: self.positionList[self.currentResourceIndex])
+            completion()
+        }
         return true
     }
-    
+
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
         let point = gesture.location(in: view)
         delegate?.navigator(self, didTapAt: point)
     }
     
-    @objc func didSwipe(_ gesture: UISwipeGestureRecognizer) {
-        let forward: Bool = {
-            switch publication.contentLayout.readingProgression {
-            case .ltr, .auto:
-                return (.left ~= gesture.direction)
-            case .rtl:
-                return (.right ~= gesture.direction)
-            }
-        }()
-        
-        if forward {
-            goForward(animated: true)
-        } else {
-            goBackward(animated: true)
+    private func imageViewController(at index: Int) -> ImageViewController? {
+        guard publication.readingOrder.indices.contains(index),
+            let url = publication.url(to: publication.readingOrder[index]) else
+        {
+            return nil
         }
+        
+        return ImageViewController(index: index, url: url)
     }
 
-    
+
     // MARK: - Navigator
     
     public var currentLocation: Locator? {
-        guard positionList.indices.contains(currentResourceIndex) else {
-            return nil
-        }
         return positionList[currentResourceIndex]
     }
     
@@ -191,12 +151,32 @@ open class CBZNavigatorViewController: UIViewController, Navigator, Loggable {
 
 }
 
-extension CBZNavigatorViewController: UIScrollViewDelegate {
+extension CBZNavigatorViewController: UIPageViewControllerDataSource {
     
-    public func viewForZooming(in scrollView: UIScrollView) -> UIView? {
-        return imageView
+    public func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
+        guard let imageVC = viewController as? ImageViewController else {
+            return nil
+        }
+        return imageViewController(at: imageVC.index - 1)
     }
     
+    public func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
+        guard let imageVC = viewController as? ImageViewController else {
+            return nil
+        }
+        return imageViewController(at: imageVC.index + 1)
+    }
+
+}
+
+extension CBZNavigatorViewController: UIPageViewControllerDelegate {
+    
+    public func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
+        if completed {
+            delegate?.navigator(self, locationDidChange: positionList[currentResourceIndex])
+        }
+    }
+
 }
 
 

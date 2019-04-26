@@ -14,6 +14,7 @@
 		CAB9086B22492D4C00711C3F /* Navigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB9086A22492D4C00711C3F /* Navigator.swift */; };
 		CACE84F82254BE5F00E19E8B /* PDFDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE84F72254BE5F00E19E8B /* PDFDocumentView.swift */; };
 		CACE84FB2254BFEE00E19E8B /* EditingAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE84FA2254BFEE00E19E8B /* EditingAction.swift */; };
+		CAEACA222272EFBD00476340 /* ImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAEACA212272EFBD00476340 /* ImageViewController.swift */; };
 		F341C2711F506ED5005E6758 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F341C2701F506ED5005E6758 /* UserSettings.swift */; };
 		F3E7D3D41F4D83B000DF166D /* r2-navigator-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F3E7D3DE1F4D845B00DF166D /* BinaryLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3DD1F4D845B00DF166D /* BinaryLocation.swift */; };
@@ -32,6 +33,7 @@
 		CAB9086A22492D4C00711C3F /* Navigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Navigator.swift; sourceTree = "<group>"; };
 		CACE84F72254BE5F00E19E8B /* PDFDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDocumentView.swift; sourceTree = "<group>"; };
 		CACE84FA2254BFEE00E19E8B /* EditingAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditingAction.swift; sourceTree = "<group>"; };
+		CAEACA212272EFBD00476340 /* ImageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewController.swift; sourceTree = "<group>"; };
 		F341C2701F506ED5005E6758 /* UserSettings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
 		F3E7D3C31F4D83B000DF166D /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "r2-navigator-swift.h"; sourceTree = "<group>"; };
@@ -143,6 +145,7 @@
 			isa = PBXGroup;
 			children = (
 				F3E7D42D1F4EE0FE00DF166D /* CBZNavigatorViewController.swift */,
+				CAEACA212272EFBD00476340 /* ImageViewController.swift */,
 			);
 			name = CBZ;
 			sourceTree = "<group>";
@@ -235,6 +238,7 @@
 				F3E7D42E1F4EE0FE00DF166D /* CBZNavigatorViewController.swift in Sources */,
 				CAA7734E2271BC75006B33FE /* Link.swift in Sources */,
 				F3E7D3E01F4D847E00DF166D /* Disjunction.swift in Sources */,
+				CAEACA222272EFBD00476340 /* ImageViewController.swift in Sources */,
 				CACE84FB2254BFEE00E19E8B /* EditingAction.swift in Sources */,
 				F341C2711F506ED5005E6758 /* UserSettings.swift in Sources */,
 				F3E7D3DE1F4D845B00DF166D /* BinaryLocation.swift in Sources */,

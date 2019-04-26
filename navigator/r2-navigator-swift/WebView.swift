@@ -135,8 +135,8 @@ final class WebView: WKWebView {
         super.init(frame: frame, configuration: .init())
         if disableDragAndDrop { disableDragAndDropInteraction() }
         isOpaque = false
-        backgroundColor = UIColor.clear
-        scrollView.backgroundColor = UIColor.clear
+        backgroundColor = .clear
+        scrollView.backgroundColor = .clear
         scrollView.delegate = self
         scrollView.bounces = false
         scrollView.isPagingEnabled = true
