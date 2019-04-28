@@ -81,21 +81,14 @@ final public class EpubParser: PublicationParser {
         // Generate the `Container` for `fileAtPath`
         var container = try generateContainerFrom(fileAtPath: path)
 
-        // Get the package.opf XML document from the container.
-        let documentData = try container.data(relativePath: container.rootFile.rootFilePath)
-        let document = try AEXMLDocument(xml: documentData)
-        let epubVersion = getEpubVersion(from: document)
-        
         // Parse OPF file (Metadata, ReadingOrder, Resource) and return the Publication.
-        var publication = try OPFParser.parseOPF(from: document,
-                                                 with: container.rootFile.rootFilePath,
-                                                 and: epubVersion)
+        var publication = try OPFParser.parseOPF(from: container)
         
         // Check if the publication is DRM protected.
         let drm = scanForDRM(in: container)
         // Parse the META-INF/Encryption.xml.
         parseEncryption(from: container, to: &publication, drm)
-
+        
         func parseRemainingResource(protectedBy drm: DRM?) throws {
             /// The folowing resources could be encrypted, hence we use the fetcher.
             let fetcher = try Fetcher(publication: publication, container: container)
@@ -328,24 +321,6 @@ final public class EpubParser: PublicationParser {
             return nil
         }
         return fullPath
-    }
-
-    /// Retrieve the EPUB version from the package.opf XML document else set it 
-    /// to the default value `EpubConstant.defaultEpubVersion`.
-    ///
-    /// - Parameter containerXml: The XML container instance.
-    /// - Returns: The OPF file path.
-    static fileprivate func getEpubVersion(from document: AEXMLDocument) -> Double {
-        let version: Double
-
-        if let versionAttribute = document["package"].attributes["version"],
-            let versionNumber = Double(versionAttribute)
-        {
-            version = versionNumber
-        } else {
-            version = EpubConstant.defaultEpubVersion
-        }
-        return version
     }
 
     /// Generate a Container instance for the file at `fileAtPath`. It handles

@@ -21,12 +21,23 @@ final public class MetadataParser {
     ///
     /// - Parameters:
     ///   - metadata: The XML element containing the metadatas.
-    static internal func parseRenditionProperties(from metadata: AEXMLElement) -> EPUBRendition {
-        // Gets the string value for the <meta property="...">
+    ///   - displayOptions: Parsed iBooks or Kobo display options document. Used as a fallback.
+    static internal func parseRenditionProperties(from metadata: AEXMLElement, displayOptions: AEXMLDocument?) -> EPUBRendition {
+
         func meta(_ property: String) -> String {
             return metadata["meta"].all?
                 .first { $0.attributes["property"] == property }?
                 .string ?? ""
+        }
+
+        func displayOption(_ name: String, platform: String? = nil) -> String? {
+            var element = displayOptions?.root
+            if let platform = platform {
+                element = element?.firstDescendant(where: { $0.name == "platform" && $0.attributes["name"] == platform })
+            }
+            return element?
+                .firstDescendant(where: { $0.name == "option" && $0.attributes["name"] == name })?
+                .string
         }
 
         return EPUBRendition(
@@ -37,6 +48,9 @@ final public class MetadataParser {
                 case "pre-paginated":
                     return .fixed
                 default:
+                    if displayOption("fixed-layout") == "true" {
+                        return .fixed
+                    }
                     return .reflowable
                 }
             }(),
@@ -50,6 +64,20 @@ final public class MetadataParser {
                 case "auto":
                     return .auto
                 default:
+                    if let orientationLock = displayOption("orientation-lock", platform: "*")
+                        ?? displayOption("orientation-lock", platform: "ipad")
+                        ?? displayOption("orientation-lock", platform: "iphone") {
+                        switch orientationLock {
+                        case "none":
+                            return .auto
+                        case "landscape-only":
+                            return .landscape
+                        case "portrait-only":
+                            return .portrait
+                        default:
+                            return .auto
+                        }
+                    }
                     return .auto
                 }
             }(),

@@ -49,10 +49,15 @@ final public class OPFParser {
     /// - Parameter container: The EPUB container whom OPF file will be parsed.
     /// - Returns: The `Publication` object resulting from the parsing.
     /// - Throws: `EpubParserError.xmlParse`.
-    static internal func parseOPF(from document: AEXMLDocument,
-                                  with rootFilePath: String,
-                                  and epubVersion: Double) throws -> Publication
-    {
+    static internal func parseOPF(from container: Container) throws -> Publication {
+        let rootFilePath = container.rootFile.rootFilePath
+        
+        // Get the package.opf XML document from the container.
+        let documentData = try container.data(relativePath: rootFilePath)
+        let document = try AEXMLDocument(xml: documentData)
+        let displayOptions = parseDisplayOptionsDocument(from: container)
+
+        let epubVersion = parseEpubVersion(from: document)
         let manifestLinks = parseManifestLinks(from: document, rootFilePath)
         let readingOrder = parseReadingOrder(from: document, manifestLinks: manifestLinks)
         // The resources should only contain the links that are not already in the readingOrder
@@ -61,16 +66,29 @@ final public class OPFParser {
         return Publication(
             format: .epub,
             formatVersion: String(epubVersion),
-            metadata: try parseMetadata(from: document, epubVersion: epubVersion),
+            metadata: try parseMetadata(from: document, displayOptions: displayOptions, epubVersion: epubVersion),
             readingOrder: readingOrder,
             resources: resources
         )
+    }
+    
+    /// Parses iBooks Display Options XML file to use as a fallback.
+    /// See https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#epub-2x-9
+    static func parseDisplayOptionsDocument(from container: Container) -> AEXMLDocument? {
+        let iBooksPath = "META-INF/com.apple.ibooks.display-options.xml"
+        let koboPath = "META-INF/com.kobobooks.display-options.xml"
+        guard let documentData = (try? container.data(relativePath: iBooksPath)) ?? (try? container.data(relativePath: koboPath)) else {
+            return nil
+        }
+        var options = AEXMLOptions()
+        options.parserSettings.shouldProcessNamespaces = true
+        return try? AEXMLDocument(xml: documentData, options: options)
     }
 
     /// Parse the Metadata in the XML <metadata> element.
     ///
     /// - Parameter document: Parse the Metadata in the XML <metadata> element.
-    static internal func parseMetadata(from document: AEXMLDocument, epubVersion: Double) throws -> Metadata {
+    static internal func parseMetadata(from document: AEXMLDocument, displayOptions: AEXMLDocument?, epubVersion: Double) throws -> Metadata {
         let metadataElement = document["package"]["metadata"]
         guard let title = MetadataParser.mainTitle(from: metadataElement) else {
             throw OPFParserError.missingPublicationTitle
@@ -94,7 +112,7 @@ final public class OPFParser {
         )
 
         MetadataParser.parseContributors(from: metadataElement, to: &metadata, epubVersion)
-        metadata.rendition = MetadataParser.parseRenditionProperties(from: metadataElement)
+        metadata.rendition = MetadataParser.parseRenditionProperties(from: metadataElement, displayOptions: displayOptions)
         
         return metadata
     }
@@ -296,5 +314,24 @@ final public class OPFParser {
             }
         }
     }
+
+    /// Retrieve the EPUB version from the package.opf XML document else set it
+    /// to the default value `EpubConstant.defaultEpubVersion`.
+    ///
+    /// - Parameter containerXml: The XML container instance.
+    /// - Returns: The OPF file path.
+    static fileprivate func parseEpubVersion(from document: AEXMLDocument) -> Double {
+        let version: Double
+        
+        if let versionAttribute = document["package"].attributes["version"],
+            let versionNumber = Double(versionAttribute)
+        {
+            version = versionNumber
+        } else {
+            version = EpubConstant.defaultEpubVersion
+        }
+        return version
+    }
+    
 }
 
