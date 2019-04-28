@@ -18,7 +18,6 @@ protocol UserSettingsNavigationControllerDelegate: class {
     func getUserSettings() -> UserSettings
     func updateUserSettingsStyle()
     func setUIColor(for appearance: UserProperty)
-    func toggleFixedBars()
 }
 
 internal class UserSettingsNavigationController: UINavigationController {
@@ -91,7 +90,6 @@ extension UserSettingsNavigationController: UserSettingsDelegate {
         if let scroll = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable {
             scroll.switchValue()
             usdelegate?.updateUserSettingsStyle()
-            usdelegate?.toggleFixedBars()
         }
     }
 
