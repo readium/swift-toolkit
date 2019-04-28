@@ -51,6 +51,8 @@ public extension EPUBNavigatorDelegate {
 }
 
 
+public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
+
 open class EPUBNavigatorViewController: UIViewController {
     private let delegatee: Delegatee!
     fileprivate let triptychView: TriptychView
@@ -66,15 +68,23 @@ open class EPUBNavigatorViewController: UIViewController {
     
     fileprivate let editingActions: EditingActionsController
 
+    /// Content insets used to add some vertical margins around reflowable EPUB publications. The insets can be configured for each size class to allow smaller margins on compact screens.
+    public let contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]
+
     /// - Parameters:
     ///   - publication: The publication.
     ///   - initialIndex: Inital index of -1 will open the publication's at the end.
-    public init(for publication: Publication, license: DRMLicense? = nil, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = EditingAction.defaultActions) {
+    public init(for publication: Publication, license: DRMLicense? = nil, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = EditingAction.defaultActions, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]? = nil) {
         self.publication = publication
         self.license = license
         self.initialProgression = initialProgression
         self.pageTransition = pageTransition
         self.disableDragAndDrop = disableDragAndDrop
+        self.contentInset = contentInset ?? [
+            .compact: (top: 20, bottom: 20),
+            .regular: (top: 44, bottom: 44)
+        ]
+      
         self.editingActions = EditingActionsController(actions: editingActions, license: license)
 
         userSettings = UserSettings()
@@ -95,7 +105,6 @@ open class EPUBNavigatorViewController: UIViewController {
         
         super.init(nibName: nil, bundle: nil)
         
-        automaticallyAdjustsScrollViewInsets = false
         self.editingActions.delegate = self
     }
 
@@ -114,7 +123,7 @@ open class EPUBNavigatorViewController: UIViewController {
         triptychView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         view.addSubview(triptychView)
     }
-
+    
     public var currentLocation: Locator? {
         var hrefToTitle: [String: String] = {
             let linkList = self.getTableOfContents()
@@ -252,7 +261,7 @@ extension EPUBNavigatorViewController {
     }
 }
 
-extension EPUBNavigatorViewController: ViewDelegate {
+extension EPUBNavigatorViewController: WebViewDelegate {
     
     func willAnimatePageChange() {
         triptychView.isUserInteractionEnabled = false
@@ -271,8 +280,8 @@ extension EPUBNavigatorViewController: ViewDelegate {
         delegate?.didNavigateViaInternalLinkTap(to: index)
     }
     
-    func documentPageDidChanged(webview: WebView, currentPage: Int, totalPage: Int) {
-        if triptychView.currentView == webview {
+    func documentPageDidChange(webView: WebView, currentPage: Int, totalPage: Int) {
+        if triptychView.currentView == webView {
             delegate?.didChangedPaginatedDocumentPage(currentPage: currentPage, documentTotalPage: totalPage)
         }
     }
@@ -322,34 +331,35 @@ private final class Delegatee: NSObject {
 
 extension Delegatee: TriptychViewDelegate {
 
-    public func triptychView(_ view: TriptychView, viewForIndex index: Int,
-                             location: BinaryLocation) -> UIView {
+    public func triptychView(_ view: TriptychView, viewForIndex index: Int, location: BinaryLocation) -> UIView {
+        guard let baseURL = parent.publication.baseURL else {
+            return UIView()
+        }
         
-        let webView = WebView(frame: view.bounds, initialLocation: location, pageTransition: parent.pageTransition, disableDragAndDrop: parent.disableDragAndDrop, editingActions: parent.editingActions)
-        webView.readingProgression = view.readingProgression
-      
         let link = parent.publication.readingOrder[index]
+        // Check if link is FXL.
+        let hasFixedLayout = (parent.publication.metadata.rendition?.layout == .fixed && link.properties.layout == nil) || link.properties.layout == .fixed
+
+        let webViewType = hasFixedLayout ? FixedWebView.self : ReflowableWebView.self
+        let webView = webViewType.init(
+            baseURL: baseURL,
+            initialLocation: location,
+            readingProgression: view.readingProgression,
+            pageTransition: parent.pageTransition,
+            disableDragAndDrop: parent.disableDragAndDrop,
+            editingActions: parent.editingActions,
+            contentInset: parent.contentInset
+        )
 
         if let url = parent.publication.url(to: link) {
-            let urlRequest = URLRequest(url: url)
-
             webView.viewDelegate = parent
-            webView.load(urlRequest)
+            webView.load(url)
             webView.userSettings = parent.userSettings
 
             // Load last saved regionIndex for the first view.
             if parent.initialProgression != nil {
                 webView.progression = parent.initialProgression
                 parent.initialProgression = nil
-            }
-            // Check if link is FXL.
-            if (parent.publication.metadata.rendition?.layout == .fixed
-                && link.properties.layout == nil)
-                || link.properties.layout == .fixed {
-                webView.scrollView.isPagingEnabled = false
-                webView.scrollView.minimumZoomScale = 1
-                webView.scrollView.maximumZoomScale = 5
-                webView.presentingFixedLayoutContent = true
             }
         }
         return webView

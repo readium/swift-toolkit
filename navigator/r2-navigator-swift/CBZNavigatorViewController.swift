@@ -48,19 +48,20 @@ open class CBZNavigatorViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override open func loadView() {
-        scrollView = UIScrollView()
-        scrollView.backgroundColor = UIColor.black
-        scrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view = scrollView
-    }
-
     override open func viewDidLoad() {
         super.viewDidLoad()
+        
+        scrollView = UIScrollView()
+        scrollView.backgroundColor = UIColor.black
+        scrollView.frame = view.bounds
+        scrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(scrollView)
+
         scrollView.delegate = self
         scrollView.minimumZoomScale = 1.0
         scrollView.maximumZoomScale = 2.0
         scrollView.zoomScale = 1.0
+        
         // Imageview.
         imageView = UIImageView(frame: self.scrollView.bounds)
         imageView.backgroundColor = UIColor.black
@@ -69,6 +70,13 @@ open class CBZNavigatorViewController: UIViewController {
         scrollView.addSubview(self.imageView)
         // Load content.
         load(self.currentReadingOrderItem())
+        
+        // Adds an empty view before the scroll view to have a consistent behavior on all iOS versions, regarding to the content inset adjustements. Even if automaticallyAdjustsScrollViewInsets is not set to false on the navigator's parent view controller, the scroll view insets won't be adjusted if the scroll view is not the first child in the subviews hierarchy.
+        view.insertSubview(UIView(frame: .zero), at: 0)
+        if #available(iOS 11.0, *) {
+            // Prevents the pages from jumping down when the status bar is toggled
+            scrollView.contentInsetAdjustmentBehavior = .never
+        }
     }
 }
 
