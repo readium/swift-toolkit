@@ -408,21 +408,27 @@ extension LibraryViewController: DownloadDisplayDelegate {
     }
     
     func didFailWithError(task:URLSessionDownloadTask, error: Error?) {
+        func presentError(description: String = "") {
+            libraryDelegate?.presentAlert("Download failed", message: description, from: self)
+        }
         
         let offset = downloadSet.index(of: task)
+        guard offset != NSNotFound else {
+            presentError()
+            return
+        }
+        
         downloadSet.remove(task)
         downloadTaskToRatio.removeValue(forKey: task)
         let description = downloadTaskDescription[task] ?? ""
         downloadTaskDescription.removeValue(forKey: task)
         
-        let theIndexPath = IndexPath(item: offset, section: 0)
-        
+        let indexPath = IndexPath(item: offset, section: 0)
         self.collectionView.performBatchUpdates({
-            collectionView.deleteItems(at: [theIndexPath])
-        }, completion: { [weak self] _ in
-            guard let `self` = self else { return }
-            self.libraryDelegate?.presentAlert("Download failed", message: description, from: self)
-        })
+            collectionView.deleteItems(at: [indexPath])
+        }) { _ in
+            presentError(description: description)
+        }
     }
     
     func didUpdateDownloadPercentage(task:URLSessionDownloadTask, percentage: Float) {
