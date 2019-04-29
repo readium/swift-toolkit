@@ -51,15 +51,7 @@ internal extension ContentFilters {
 ///     - Font deobfuscation using the Decoder object.
 ///     - HTML injections (scripts css/js).
 final internal class ContentFiltersEpub: ContentFilters {
-    // File name for untils.js, using ES5 code for any version older than iOS 10.
-    internal let utilsJS:String = {
-        if #available(iOS 10, *) {
-            return "utils.js"
-        } else {
-            return "utils-old.js"
-        }
-    } ()
-    
+
     /// Apply the Epub content filters on the content of the `input` stream para-
     /// meter.
     ///
@@ -184,7 +176,7 @@ final internal class ContentFiltersEpub: ContentFilters {
         let cssAfter = getHtmlLink(forResource: "\(baseUrl)styles/\(styleSubFolder)/ReadiumCSS-after.css")
         let scriptTouchHandling = getHtmlScript(forResource: "\(baseUrl)scripts/touchHandling.js")
         
-        let scriptUtils = getHtmlScript(forResource: "\(baseUrl)scripts/\(utilsJS)")
+        let scriptUtils = getHtmlScript(forResource: "\(baseUrl)scripts/utils.js")
         
         let fontStyle = getHtmlFontStyle(forResource: "\(baseUrl)fonts/OpenDyslexic-Regular.otf", fontFamily: "OpenDyslexic")
 
@@ -221,7 +213,7 @@ final internal class ContentFiltersEpub: ContentFilters {
         // Touch event bubbling.
         includes.append(getHtmlScript(forResource: "\(baseUrl)scripts/touchHandling.js"))
         // Misc JS utils.
-        includes.append(getHtmlScript(forResource: "\(baseUrl)scripts/\(utilsJS)"))
+        includes.append(getHtmlScript(forResource: "\(baseUrl)scripts/utils.js"))
 
         for element in includes {
             resourceHtml = resourceHtml.insert(string: element, at: endHeadIndex)
