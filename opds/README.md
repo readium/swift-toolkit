@@ -64,7 +64,7 @@ ReadiumOPDS with CocoaPods:
     use_frameworks!
 
     target 'YourAppTargetName' do
-        pod 'ReadiumOPDS', :git => 'https://github.com/readium/r2-opds-swift.git', '~> 1.0.4'
+        pod 'ReadiumOPDS', :git => 'https://github.com/readium/r2-opds-swift.git'
     end
     ```
 
