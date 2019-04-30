@@ -1,15 +1,29 @@
+
+# r2-testapp-swift dependencies
+github "onevcat/Kingfisher" == 4.10.1
+github "jdg/MBProgressHUD" ~> 1.1.0
+github "stephencelis/SQLite.swift" == 0.12
 github "readium/r2-shared-swift" "develop"
 github "readium/r2-streamer-swift" "develop"
 github "readium/r2-navigator-swift" "develop"
 github "readium/readium-opds-swift" "develop"
 #github "readium/r2-lcp-swift" == 1.0.0
 #github "readium/r2-lcp-wrapper-swift" == 1.0.0
-github "edrlab/ZIPFoundation" "master"
-github "onevcat/Kingfisher" == 4.6.4
-github "jdg/MBProgressHUD" ~> 1.1.0
-github "stephencelis/SQLite.swift" == 0.11.5
-github "tadija/AEXML" == 4.3.3
-github "swisspol/GCDWebServer" == 3.5.2
-github "krzyzanowskim/CryptoSwift" == 0.14.0
-github "cezheng/Fuzi" == 2.1.0
+
+
+# The following sub-dependencies are required only if the Readium 2 dependencies are integrated using submodules, instead of Carthage.
+
+# r2-streamer-swift dependencies
+github "cezheng/Fuzi" == 2.2.1
 github "dexman/Minizip"
+github "krzyzanowskim/CryptoSwift" == 0.14.0
+github "swisspol/GCDWebServer" == 3.5.2
+github "tadija/AEXML" == 4.3.3
+
+# r2-opds-swift dependencies
+#github "cezheng/Fuzi" == 2.2.1
+
+# r2-lcp-swift dependencies
+#github "krzyzanowskim/CryptoSwift" == 0.14.0
+#github "stephencelis/SQLite.swift" == 0.12
+github "weichsel/ZIPFoundation" == 0.9.9
