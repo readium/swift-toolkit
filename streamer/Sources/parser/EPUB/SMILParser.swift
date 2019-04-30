@@ -197,7 +197,7 @@ internal extension SmilTimeFormat {
     ///
     /// - Parameter time: The `smilTime` `String`.
     /// - Returns: The converted value in seconds.
-    internal func convertToseconds(smilTime time: String) -> String {
+    func convertToseconds(smilTime time: String) -> String {
         var seconds = 0.0
         
         switch self {

@@ -35,7 +35,7 @@ public extension Data
     /// Compresses the data.
     /// - parameter withAlgorithm: Compression algorithm to use. See the `CompressionAlgorithm` type
     /// - returns: compressed data
-    public func compress(withAlgorithm algo: CompressionAlgorithm) -> Data?
+    func compress(withAlgorithm algo: CompressionAlgorithm) -> Data?
     {
         return self.withUnsafeBytes { (sourcePtr: UnsafePointer<UInt8>) -> Data? in
             let config = (operation: COMPRESSION_STREAM_ENCODE, algorithm: algo.lowLevelType)
@@ -46,7 +46,7 @@ public extension Data
     /// Decompresses the data.
     /// - parameter withAlgorithm: Compression algorithm to use. See the `CompressionAlgorithm` type
     /// - returns: decompressed data
-    public func decompress(withAlgorithm algo: CompressionAlgorithm) -> Data?
+    func decompress(withAlgorithm algo: CompressionAlgorithm) -> Data?
     {
         return self.withUnsafeBytes { (sourcePtr: UnsafePointer<UInt8>) -> Data? in
             let config = (operation: COMPRESSION_STREAM_DECODE, algorithm: algo.lowLevelType)
@@ -60,7 +60,7 @@ public extension Data
     /// LZFSE : Apples proprietary compression algorithm. Claims to compress as good as ZLIB but 2 to 3 times faster.
     /// LZMA  : Horribly slow. Compression as well as decompression. Normally you will regret choosing LZMA.
     /// LZ4   : Fast, but depending on the data the compression rate can be really bad. Which is often the case.
-    public enum CompressionAlgorithm
+    enum CompressionAlgorithm
     {
         case ZLIB
         case LZFSE
@@ -71,7 +71,7 @@ public extension Data
     /// Compresses the data using the zlib deflate algorithm.
     /// - returns: raw deflated data according to [RFC-1951](https://tools.ietf.org/html/rfc1951).
     /// - note: Fixed at compression level 5 (best trade off between speed and time)
-    public func deflate() -> Data?
+    func deflate() -> Data?
     {
         return self.withUnsafeBytes { (sourcePtr: UnsafePointer<UInt8>) -> Data? in
             let config = (operation: COMPRESSION_STREAM_ENCODE, algorithm: COMPRESSION_ZLIB)
@@ -82,7 +82,7 @@ public extension Data
     /// Deompresses the data using the zlib deflate algorithm. Self is expected to be a raw deflate
     /// stream according to [RFC-1951](https://tools.ietf.org/html/rfc1951).
     /// - returns: uncompressed data
-    public func inflate() -> Data?
+    func inflate() -> Data?
     {
         return self.withUnsafeBytes { (sourcePtr: UnsafePointer<UInt8>) -> Data? in
             let config = (operation: COMPRESSION_STREAM_DECODE, algorithm: COMPRESSION_ZLIB)
@@ -93,7 +93,7 @@ public extension Data
     /// Compresses the data using the zlib deflate algorithm.
     /// - returns: zlib deflated data according to [RFC-1950](https://tools.ietf.org/html/rfc1950)
     /// - note: Fixed at compression level 5 (best trade off between speed and time)
-    public func zip() -> Data?
+    func zip() -> Data?
     {
         var res = Data(bytes: [0x78, 0x5e])
 
@@ -109,7 +109,7 @@ public extension Data
     /// Deompresses the data using the zlib deflate algorithm. Self is expected to be a zlib deflate
     /// stream according to [RFC-1950](https://tools.ietf.org/html/rfc1950).
     /// - returns: uncompressed data
-    public func unzip(skipCheckSumValidation: Bool = true) -> Data?
+    func unzip(skipCheckSumValidation: Bool = true) -> Data?
     {
         // 2 byte header + 4 byte adler32 checksum
         let overhead = 6
@@ -146,7 +146,7 @@ public extension Data
 
     /// Rudimentary implementation of the adler32 checksum.
     /// - returns: adler32 checksum (4 byte)
-    public func adler32() -> UInt32
+    func adler32() -> UInt32
     {
         var s1: UInt32 = 1
         var s2: UInt32 = 0

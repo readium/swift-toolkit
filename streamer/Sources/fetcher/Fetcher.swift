@@ -20,7 +20,7 @@ public enum FetcherError: Error {
     /// An Container error occurred, **underlyingError** thrown.
     case container(underlyingError: Error)
     /// The mimetype of the container is empty.
-    case missingContainerMimetype()
+    case missingContainerMimetype
     /// The link href couldn't be found in the container.
     case linkNotFound
 }
@@ -140,7 +140,7 @@ internal class Fetcher {
     ///           `FetcherError.missingContainerMimetype`
     static func getContentFilters(forMimeType mimeType: String?) throws -> ContentFilters {
         guard let mimeType = mimeType else {
-            throw FetcherError.missingContainerMimetype()
+            throw FetcherError.missingContainerMimetype
         }
         switch mimeType {
         case EpubConstant.mimetype, EpubConstant.mimetypeOEBPS:
@@ -150,7 +150,7 @@ internal class Fetcher {
         case PDFConstant.pdfMimetype, PDFConstant.lcpdfMimetype:
             return ContentFiltersPDF()
         default:
-            throw FetcherError.missingContainerMimetype()
+            throw FetcherError.missingContainerMimetype
         }
     }
 }
