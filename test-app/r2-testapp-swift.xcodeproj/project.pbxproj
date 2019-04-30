@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 51;
+	objectVersion = 46;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -33,7 +33,6 @@
 		032F7E3621167E9B009E5C24 /* PublicationCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 032F7E3221167E9A009E5C24 /* PublicationCollectionViewCell.xib */; };
 		032F7E3721167E9B009E5C24 /* PublicationMenuViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 032F7E3321167E9A009E5C24 /* PublicationMenuViewController.xib */; };
 		0350FCE5211CD2CB006994C2 /* AssociatedColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */; };
-		0350FCE6211CD2CB006994C2 /* BarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4831F4F044100DF166D /* BarView.swift */; };
 		0350FCE7211CD2CB006994C2 /* OPDSPublicationInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */; };
 		0350FCE8211CD2CB006994C2 /* CBZViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D47F1F4F03F500DF166D /* CBZViewController.swift */; };
 		0350FCE9211CD2CB006994C2 /* OPDSGroupCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */; };
@@ -76,7 +75,6 @@
 		0350FD22211CD2CB006994C2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4421F4EF6D400DF166D /* Assets.xcassets */; };
 		0350FD23211CD2CB006994C2 /* UserSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F36D24DD1F580B8800A00BF1 /* UserSettings.storyboard */; };
 		0350FD39211CD625006994C2 /* AssociatedColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */; };
-		0350FD3A211CD625006994C2 /* BarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4831F4F044100DF166D /* BarView.swift */; };
 		0350FD3B211CD625006994C2 /* OPDSPublicationInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */; };
 		0350FD3C211CD625006994C2 /* CBZViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D47F1F4F03F500DF166D /* CBZViewController.swift */; };
 		0350FD3D211CD625006994C2 /* OPDSGroupCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */; };
@@ -286,7 +284,6 @@
 		CA7F5A512204AF5C00B88141 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A4F2204AF2900B88141 /* Result.swift */; };
 		CA7F5A522204AF5D00B88141 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A4F2204AF2900B88141 /* Result.swift */; };
 		CA822C73221C5737005800D1 /* AssociatedColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */; };
-		CA822C74221C5737005800D1 /* BarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4831F4F044100DF166D /* BarView.swift */; };
 		CA822C75221C5737005800D1 /* OPDSPublicationInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12CC20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift */; };
 		CA822C76221C5737005800D1 /* CBZViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D47F1F4F03F500DF166D /* CBZViewController.swift */; };
 		CA822C77221C5737005800D1 /* OPDSGroupCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53A075208F62D200737838 /* OPDSGroupCollectionViewCell.swift */; };
@@ -364,7 +361,6 @@
 		F3E7D47C1F4F03B800DF166D /* UIImageExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D47B1F4F03B800DF166D /* UIImageExtension.swift */; };
 		F3E7D4801F4F03F500DF166D /* CBZViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D47F1F4F03F500DF166D /* CBZViewController.swift */; };
 		F3E7D4821F4F042600DF166D /* EPUBViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4811F4F042600DF166D /* EPUBViewController.swift */; };
-		F3E7D4861F4F044100DF166D /* BarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4831F4F044100DF166D /* BarView.swift */; };
 		F3E7D4871F4F044100DF166D /* OutlineTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4841F4F044100DF166D /* OutlineTableViewController.swift */; };
 		F3E7D4881F4F044100DF166D /* UserSettingsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4851F4F044100DF166D /* UserSettingsTableViewController.swift */; };
 /* End PBXBuildFile section */
@@ -524,7 +520,6 @@
 		F3E7D47B1F4F03B800DF166D /* UIImageExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIImageExtension.swift; sourceTree = "<group>"; };
 		F3E7D47F1F4F03F500DF166D /* CBZViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CBZViewController.swift; sourceTree = "<group>"; };
 		F3E7D4811F4F042600DF166D /* EPUBViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPUBViewController.swift; sourceTree = "<group>"; };
-		F3E7D4831F4F044100DF166D /* BarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BarView.swift; sourceTree = "<group>"; };
 		F3E7D4841F4F044100DF166D /* OutlineTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OutlineTableViewController.swift; sourceTree = "<group>"; };
 		F3E7D4851F4F044100DF166D /* UserSettingsTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserSettingsTableViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -674,7 +669,6 @@
 			children = (
 				CA29B74E22204F320037534C /* EPUBModule.swift */,
 				F3E7D4811F4F042600DF166D /* EPUBViewController.swift */,
-				F3E7D4831F4F044100DF166D /* BarView.swift */,
 				AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */,
 				CA29B71B2220011F0037534C /* User Settings */,
 			);
@@ -1190,7 +1184,6 @@
 				0350FCE5211CD2CB006994C2 /* AssociatedColors.swift in Sources */,
 				CA29B720222001620037534C /* ReaderModule.swift in Sources */,
 				CA415F13221D6CE6003A0F7F /* AppModule.swift in Sources */,
-				0350FCE6211CD2CB006994C2 /* BarView.swift in Sources */,
 				0350FCE7211CD2CB006994C2 /* OPDSPublicationInfoViewController.swift in Sources */,
 				0350FCE8211CD2CB006994C2 /* CBZViewController.swift in Sources */,
 				CA29B73422200EAA0037534C /* UIViewController.swift in Sources */,
@@ -1252,7 +1245,6 @@
 				0350FD39211CD625006994C2 /* AssociatedColors.swift in Sources */,
 				CA29B721222001620037534C /* ReaderModule.swift in Sources */,
 				CA415F14221D6CE6003A0F7F /* AppModule.swift in Sources */,
-				0350FD3A211CD625006994C2 /* BarView.swift in Sources */,
 				0350FD3B211CD625006994C2 /* OPDSPublicationInfoViewController.swift in Sources */,
 				0350FD3C211CD625006994C2 /* CBZViewController.swift in Sources */,
 				CA29B73522200EAA0037534C /* UIViewController.swift in Sources */,
@@ -1314,7 +1306,6 @@
 				CA822C73221C5737005800D1 /* AssociatedColors.swift in Sources */,
 				CA29B722222001620037534C /* ReaderModule.swift in Sources */,
 				CA415F15221D6CE6003A0F7F /* AppModule.swift in Sources */,
-				CA822C74221C5737005800D1 /* BarView.swift in Sources */,
 				CA822C75221C5737005800D1 /* OPDSPublicationInfoViewController.swift in Sources */,
 				CA822C76221C5737005800D1 /* CBZViewController.swift in Sources */,
 				CA29B73622200EAA0037534C /* UIViewController.swift in Sources */,
@@ -1376,7 +1367,6 @@
 				AE955A2120EBA74B00A0D8D8 /* AssociatedColors.swift in Sources */,
 				CA29B71F222001620037534C /* ReaderModule.swift in Sources */,
 				CA415F12221D6CE6003A0F7F /* AppModule.swift in Sources */,
-				F3E7D4861F4F044100DF166D /* BarView.swift in Sources */,
 				113B12DD20800FD60074A5A2 /* OPDSPublicationInfoViewController.swift in Sources */,
 				F3E7D4801F4F03F500DF166D /* CBZViewController.swift in Sources */,
 				CA29B73322200EAA0037534C /* UIViewController.swift in Sources */,

@@ -15,11 +15,8 @@ import R2Shared
 import R2Navigator
 
 class EPUBViewController: ReaderViewController {
-    
-    let stackView: UIStackView!
+  
     let navigator: EPUBNavigatorViewController!
-    let fixedTopBar: BarView!
-    let fixedBottomBar: BarView!
     var popoverUserconfigurationAnchor: UIBarButtonItem?
     var userSettingNavigationController: UserSettingsNavigationController
 
@@ -34,13 +31,9 @@ class EPUBViewController: ReaderViewController {
             index = userDefaults.integer(forKey: "\(identifier)-document")
             progression = userDefaults.double(forKey: "\(identifier)-documentProgression")
         }
-        
-        stackView = UIStackView(frame: UIScreen.main.bounds)
-        navigator = EPUBNavigatorViewController(for: publication, license: drm?.license, initialIndex: index, initialProgression: progression)
-        
-        fixedTopBar = BarView()
-        fixedBottomBar = BarView()
-        
+
+        navigator = EPUBNavigatorViewController(for: publication, license: drm?.license, initialIndex: index, initialProgression: progression, editingActions: [.lookup, .copy])
+
         let settingsStoryboard = UIStoryboard(name: "UserSettings", bundle: nil)
         userSettingNavigationController = settingsStoryboard.instantiateViewController(withIdentifier: "UserSettingsNavigationController") as! UserSettingsNavigationController
         userSettingNavigationController.fontSelectionViewController =
@@ -49,46 +42,29 @@ class EPUBViewController: ReaderViewController {
             (settingsStoryboard.instantiateViewController(withIdentifier: "AdvancedSettingsViewController") as! AdvancedSettingsViewController)
         
         super.init(publication: publication, drm: drm, initialLocation: initialLocation)
-    }
-
-    override func loadView() {
-        super.loadView()
-        stackView.axis = .vertical
-        stackView.distribution = .fill
-        stackView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         
-        stackView.addArrangedSubview(fixedTopBar)
-        
-        addChild(navigator)
-        stackView.addArrangedSubview(navigator.view)
-        navigator.didMove(toParent: self)
-
-        stackView.addArrangedSubview(fixedBottomBar)
-
-        view.addSubview(stackView)
-
-        fixedTopBar.delegate = self
-        fixedBottomBar.delegate = self
         navigator.delegate = self
-        
-        let userSettings = navigator.userSettings
-        userSettingNavigationController.userSettings = userSettings
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
+  
+        addChild(navigator)
+        navigator.view.frame = view.bounds
+        navigator.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(navigator.view)
+        navigator.didMove(toParent: self)
 
         /// Set initial UI appearance.
         if let appearance = navigator.publication.userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) {
             setUIColor(for: appearance)
         }
         
+        let userSettings = navigator.userSettings
+        userSettingNavigationController.userSettings = userSettings
         userSettingNavigationController.modalPresentationStyle = .popover
         userSettingNavigationController.usdelegate = self
         userSettingNavigationController.userSettingsTableViewController.publication = navigator.publication
-        
-        fixedTopBar.setLabel(title: "")
-        fixedBottomBar.setLabel(title: "")
         
 
         navigator.publication.userSettingsUIPresetUpdated = { [weak self] preset in
@@ -107,22 +83,11 @@ class EPUBViewController: ReaderViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
     }
-    
-    override open func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        toggleFixedBars()
-    }
-    
+
     override open func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
         navigator.userSettings.save()
-    }
-    
-    override func willRotate(to toInterfaceOrientation: UIInterfaceOrientation, duration: TimeInterval) {
-        fixedTopBar.setNeedsUpdateConstraints()
-        fixedBottomBar.setNeedsUpdateConstraints()
     }
 
     override func makeNavigationBarButtons() -> [UIBarButtonItem] {
@@ -218,7 +183,7 @@ extension EPUBViewController: EPUBNavigatorDelegate {
 }
 
 extension EPUBViewController: UserSettingsNavigationControllerDelegate {
-    
+
     internal func getUserSettings() -> UserSettings {
         return navigator.userSettings
     }
@@ -245,21 +210,6 @@ extension EPUBViewController: UserSettingsNavigationControllerDelegate {
 //        drmManagementTVC?.appearance = appearance
     }
     
-    // Toggle hide/show fixed bot and top bars.
-    internal func toggleFixedBars() {
-        guard let scroll = navigator.userSettings.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable else {
-            return
-        }
-        
-        let currentValue = scroll.on
-        
-        UIView.transition(with: fixedTopBar, duration: 0.318, options: .curveEaseOut, animations: {() -> Void in
-            self.fixedTopBar.isHidden = currentValue
-        }, completion: nil)
-        UIView.transition(with: fixedBottomBar, duration: 0.318, options: .curveEaseOut, animations: {() -> Void in
-            self.fixedBottomBar.isHidden = currentValue
-        }, completion: nil)
-    }
 }
 
 extension EPUBViewController: UIPopoverPresentationControllerDelegate {
