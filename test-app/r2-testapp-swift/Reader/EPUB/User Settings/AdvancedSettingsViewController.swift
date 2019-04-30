@@ -217,7 +217,7 @@ class AdvancedSettingsViewController: UIViewController {
 }
 
 public extension UIView {
-    public func pin(to view: UIView) {
+    func pin(to view: UIView) {
         NSLayoutConstraint.activate([
             leadingAnchor.constraint(equalTo: view.leadingAnchor),
             trailingAnchor.constraint(equalTo: view.trailingAnchor),
