@@ -73,7 +73,7 @@ final class ImageViewController: UIViewController, Loggable {
             DispatchQueue.main.async {
                 UIView.transition(
                     with: self.imageView,
-                    duration: 0.1618,
+                    duration: 0.1,
                     options: .transitionCrossDissolve,
                     animations: {
                         self.imageView.image = image
