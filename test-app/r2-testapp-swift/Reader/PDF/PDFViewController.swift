@@ -18,24 +18,17 @@ import R2Shared
 @available(iOS 11.0, *)
 final class PDFViewController: ReaderViewController {
     
-    let navigator: PDFNavigatorViewController
-    
-    override init(publication: Publication, drm: DRM?, initialLocation: Locator?) {
-        navigator = PDFNavigatorViewController(publication: publication, license: drm?.license, initialLocation: initialLocation)
+    init(publication: Publication, drm: DRM?) {
+        let initialLocation = PDFViewController.initialLocation(for: publication)
+        let navigator = PDFNavigatorViewController(publication: publication, license: drm?.license, initialLocation: initialLocation)
         
-        super.init(publication: publication, drm: drm, initialLocation: initialLocation)
+        super.init(navigator: navigator, publication: publication, drm: drm)
         
         navigator.delegate = self
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        addChild(navigator)
-        navigator.view.frame = view.bounds
-        navigator.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.addSubview(navigator.view)
-        navigator.didMove(toParent: self)
     }
     
     override var currentBookmark: Bookmark? {
@@ -52,26 +45,7 @@ final class PDFViewController: ReaderViewController {
             locator: locator
         )
     }
-    
-    override func goTo(item: String) {
-        // Extracts fragment, eg. /file.pdf#page=10
-        let components = item
-            .split(separator: "#", maxSplits: 1)
-            .map { String($0) }
-        let href = components.first ?? item
-        let fragment = components.count > 1 ? components[1] : nil
-        let locator = Locator(
-            href: href,
-            type: "application/pdf",
-            locations: Locations(fragment: fragment)
-        )
-        navigator.go(to: locator)
-    }
-    
-    override func goTo(bookmark: Bookmark) {
-        navigator.go(to: bookmark.locator)
-    }
-    
+
 }
 
 @available(iOS 11.0, *)

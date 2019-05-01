@@ -21,25 +21,23 @@ class ReaderViewController: UIViewController, Loggable {
     
     weak var moduleDelegate: ReaderFormatModuleDelegate?
     
+    let navigator: UIViewController & Navigator
     let publication: Publication
     let drm: DRM?
-    
+
     lazy var bookmarksDataSource: BookmarkDataSource? = BookmarkDataSource(publicationID: publication.metadata.identifier ?? "")
     
-    convenience init(publication: Publication, drm: DRM?) {
-        // FIXME: Should be moved into Book.progression.
-        let initialLocation: Locator? = {
-            guard let publicationID = publication.metadata.identifier,
-                let locatorJSON = UserDefaults.standard.string(forKey: "\(publicationID)-locator") else {
-                    return nil
-            }
-            return (try? Locator(jsonString: locatorJSON)) as? Locator
-        }()
-        
-        self.init(publication: publication, drm: drm, initialLocation: initialLocation)
+    // FIXME: Should be moved into Book.progression.
+    static func initialLocation(for publication: Publication) -> Locator? {
+        guard let publicationID = publication.metadata.identifier,
+            let locatorJSON = UserDefaults.standard.string(forKey: "\(publicationID)-locator") else {
+                return nil
+        }
+        return (try? Locator(jsonString: locatorJSON)) as? Locator
     }
     
-    init(publication: Publication, drm: DRM?, initialLocation: Locator?) {
+    init(navigator: UIViewController & Navigator, publication: Publication, drm: DRM?) {
+        self.navigator = navigator
         self.publication = publication
         self.drm = drm
         
@@ -57,6 +55,12 @@ class ReaderViewController: UIViewController, Loggable {
         view.backgroundColor = .white
       
         navigationItem.rightBarButtonItems = makeNavigationBarButtons()
+        
+        addChild(navigator)
+        navigator.view.frame = view.bounds
+        navigator.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(navigator.view)
+        navigator.didMove(toParent: self)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -112,13 +116,13 @@ class ReaderViewController: UIViewController, Loggable {
     var outline: [Link] {
         return publication.tableOfContents
     }
-    
+
     func goTo(item: String) {
-        fatalError("Not implemented")
+        navigator.go(to: Link(href: item))
     }
     
     func goTo(bookmark: Bookmark) {
-        fatalError("Not implemented")
+        navigator.go(to: bookmark.locator)
     }
     
     

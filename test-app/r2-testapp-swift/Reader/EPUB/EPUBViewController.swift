@@ -16,23 +16,12 @@ import R2Navigator
 
 class EPUBViewController: ReaderViewController {
   
-    let navigator: EPUBNavigatorViewController!
     var popoverUserconfigurationAnchor: UIBarButtonItem?
     var userSettingNavigationController: UserSettingsNavigationController
 
-    override init(publication: Publication, drm: DRM?, initialLocation: Locator?) {
-        var index: Int = 0
-        var progression: Double? = nil
-        
-        // FIXME: use initialLocation with the new Navigator API
-        if let identifier = publication.metadata.identifier {
-            // Retrieve last read document/progression in that document.
-            let userDefaults = UserDefaults.standard
-            index = userDefaults.integer(forKey: "\(identifier)-document")
-            progression = userDefaults.double(forKey: "\(identifier)-documentProgression")
-        }
-
-        navigator = EPUBNavigatorViewController(for: publication, license: drm?.license, initialIndex: index, initialProgression: progression, editingActions: [.lookup, .copy])
+    init(publication: Publication, drm: DRM?) {
+        let initialLocation = EPUBViewController.initialLocation(for: publication)
+        let navigator = EPUBNavigatorViewController(publication: publication, license: drm?.license, initialLocation: initialLocation)
 
         let settingsStoryboard = UIStoryboard(name: "UserSettings", bundle: nil)
         userSettingNavigationController = settingsStoryboard.instantiateViewController(withIdentifier: "UserSettingsNavigationController") as! UserSettingsNavigationController
@@ -41,33 +30,31 @@ class EPUBViewController: ReaderViewController {
         userSettingNavigationController.advancedSettingsViewController =
             (settingsStoryboard.instantiateViewController(withIdentifier: "AdvancedSettingsViewController") as! AdvancedSettingsViewController)
         
-        super.init(publication: publication, drm: drm, initialLocation: initialLocation)
+        super.init(navigator: navigator, publication: publication, drm: drm)
         
         navigator.delegate = self
+    }
+    
+    var epubNavigator: EPUBNavigatorViewController {
+        return navigator as! EPUBNavigatorViewController
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
   
-        addChild(navigator)
-        navigator.view.frame = view.bounds
-        navigator.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.addSubview(navigator.view)
-        navigator.didMove(toParent: self)
-
         /// Set initial UI appearance.
-        if let appearance = navigator.publication.userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) {
+        if let appearance = publication.userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) {
             setUIColor(for: appearance)
         }
         
-        let userSettings = navigator.userSettings
+        let userSettings = epubNavigator.userSettings
         userSettingNavigationController.userSettings = userSettings
         userSettingNavigationController.modalPresentationStyle = .popover
         userSettingNavigationController.usdelegate = self
-        userSettingNavigationController.userSettingsTableViewController.publication = navigator.publication
+        userSettingNavigationController.userSettingsTableViewController.publication = publication
         
 
-        navigator.publication.userSettingsUIPresetUpdated = { [weak self] preset in
+        publication.userSettingsUIPresetUpdated = { [weak self] preset in
             guard let `self` = self, let presetScrollValue:Bool = preset?[.scroll] else {
                 return
             }
@@ -87,7 +74,7 @@ class EPUBViewController: ReaderViewController {
     override open func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
-        navigator.userSettings.save()
+        epubNavigator.userSettings.save()
     }
 
     override func makeNavigationBarButtons() -> [UIBarButtonItem] {
@@ -116,21 +103,13 @@ class EPUBViewController: ReaderViewController {
         return Bookmark(publicationID: publicationID, resourceIndex: resourceIndex, locator: locator)
     }
     
-    override func goTo(item: String) {
-        _ = navigator.displayReadingOrderItem(with: item)
-    }
-    
-    override func goTo(bookmark: Bookmark) {
-        navigator.displayReadingOrderItem(at: bookmark.resourceIndex, progression: bookmark.locator.locations?.progression ?? 0)
-    }
-
     @objc func presentUserSettings() {
         let popoverPresentationController = userSettingNavigationController.popoverPresentationController!
         
         popoverPresentationController.delegate = self
         popoverPresentationController.barButtonItem = popoverUserconfigurationAnchor
 
-        userSettingNavigationController.publication = self.navigator.publication
+        userSettingNavigationController.publication = publication
         present(userSettingNavigationController, animated: true) {
             // Makes sure that the popover is dismissed also when tapping on one of the other UIBarButtonItems.
             // ie. http://karmeye.com/2014/11/20/ios8-popovers-and-passthroughviews/
@@ -147,6 +126,10 @@ class EPUBViewController: ReaderViewController {
     
 }
 
+extension EPUBViewController: EPUBNavigatorDelegate {
+    
+}
+
 extension EPUBViewController: UIGestureRecognizerDelegate {
     
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
@@ -155,41 +138,14 @@ extension EPUBViewController: UIGestureRecognizerDelegate {
     
 }
 
-// MARK: - Delegate of the NavigatorViewController (R2Navigator).
-extension EPUBViewController: EPUBNavigatorDelegate {
-    
-    func middleTapHandler() {
-        toggleNavigationBar()
-    }
-    
-    // The publication is being closed, provide info for saving progress.
-    func willExitPublication(documentIndex: Int, progression: Double?) {
-        guard let publicationIdentifier = navigator.publication.metadata.identifier else {
-            return
-        }
-        let userDefaults = UserDefaults.standard
-        // Save current publication's document's. 
-        // (<=> the readingOrder item)
-        userDefaults.set(documentIndex, forKey: "\(publicationIdentifier)-document")
-        // Save current publication's document's progression. 
-        // (<=> the position in the readingOrder item)
-        userDefaults.set(progression, forKey: "\(publicationIdentifier)-documentProgression")
-    }
-    
-    func presentError(_ error: NavigatorError) {
-        moduleDelegate?.presentError(error, from: self)
-    }
-    
-}
-
 extension EPUBViewController: UserSettingsNavigationControllerDelegate {
 
     internal func getUserSettings() -> UserSettings {
-        return navigator.userSettings
+        return epubNavigator.userSettings
     }
     
     internal func updateUserSettingsStyle() {
-        navigator.updateUserSettingStyle()
+        epubNavigator.updateUserSettingStyle()
     }
     
     /// Synchronyze the UI appearance to the UserSettings.Appearance.
