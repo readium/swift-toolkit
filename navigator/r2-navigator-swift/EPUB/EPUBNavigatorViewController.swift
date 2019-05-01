@@ -120,7 +120,7 @@ open class EPUBNavigatorViewController: UIViewController, Navigator {
     }
     
     /// Mapping between reading order hrefs and the table of contents title.
-    lazy var tableOfContentsTitleByHref: [String: String] = {
+    private lazy var tableOfContentsTitleByHref: [String: String] = {
         func fulfill(linkList: [Link]) -> [String: String] {
             var result = [String: String]()
             
@@ -138,6 +138,61 @@ open class EPUBNavigatorViewController: UIViewController, Navigator {
         
         return fulfill(linkList: publication.tableOfContents)
     }()
+    
+    private enum ResourceLocation {
+        // Scroll progression
+        case progression(Double)
+        // HTML ID in the content
+        case id(String)
+    }
+    
+    /// Goes to the reading order resource at given `index`, and given content location.
+    @discardableResult
+    private func goToIndex(_ index: Int, location: ResourceLocation? = nil, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
+        guard publication.readingOrder.indices.contains(index) else {
+            return false
+        }
+
+        // The rendering is sometimes very slow in this case so we have a generous delay before we show the view again, when we don't show the first page of the resource.
+        let delayed = (location != nil)
+        
+        triptychView.performTransition(animated: animated, delayed: delayed, completion: completion) { triptych in
+            var id: String? = nil
+            var progression: Double? = nil
+            if let location = location {
+                switch location {
+                case .progression(let p):
+                    progression = p
+                case .id(let i):
+                    id = i
+                }
+            }
+            
+            // This is so the webview will move to it's correct progression if it's not loaded into the triptych view
+            // FIXME: This `initialProgression` bit should be handled by the TriptychView
+            self.initialProgression = progression
+
+            triptych.moveTo(index: index, id: id)
+            
+            if let progression = progression, let webView = triptych.currentView as? WebView {
+                // This is needed for when the webView is loaded into the triptychView
+                webView.scrollAt(position: progression)
+            }
+        }
+        
+        return true
+    }
+
+    public func updateUserSettingStyle() {
+        guard let views = triptychView.views?.array else {
+            return
+        }
+        for view in views {
+            let webview = view as? WebView
+            
+            webview?.applyUserSettingsStyle()
+        }
+    }
 
     
     // MARK: - Navigator
@@ -174,11 +229,25 @@ open class EPUBNavigatorViewController: UIViewController, Navigator {
     }
     
     public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
-        return false
+        guard let index = publication.readingOrder.firstIndex(withHref: locator.href) else {
+            return false
+        }
+        
+        let location: ResourceLocation? = {
+            if let id = locator.locations?.fragment {
+                return .id(id)
+            } else if let progression = locator.locations?.progression, progression > 0 {
+                return .progression(progression)
+            } else {
+                return nil
+            }
+        }()
+        
+        return goToIndex(index, location: location, animated: animated, completion: completion)
     }
     
     public func go(to link: Link, animated: Bool, completion: @escaping () -> Void) -> Bool {
-        return false
+        return go(to: link.locator, animated: animated, completion: completion)
     }
     
     public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
@@ -189,75 +258,6 @@ open class EPUBNavigatorViewController: UIViewController, Navigator {
         return false
     }
     
-}
-
-extension EPUBNavigatorViewController {
-
-    /// Display the readingOrder item at `index`.
-    ///
-    /// - Parameter index: The index of the readingOrder item to display.
-    public func displayReadingOrderItem(at index: Int) {
-        guard publication.readingOrder.indices.contains(index) else {
-            return
-        }
-        triptychView.performTransition { triptych in
-            triptych.moveTo(index: index)
-        }
-    }
-    
-    /// Display the readingOrder item at `index` with scroll `progression`
-    ///
-    /// - Parameter index: The index of the readingOrder item to display.
-    public func displayReadingOrderItem(at index: Int, progression: Double) {
-        guard publication.readingOrder.indices.contains(index) else {
-            return
-        }
-        
-        triptychView.performTransition(animated: true, delayedFadeIn: true) { triptych in
-            // This is so the webview will move to it's correct progression if it's not loaded into the triptych view
-            self.initialProgression = progression
-            triptych.moveTo(index: index)
-            if let webView = triptych.currentView as? WebView {
-                // This is needed for when the webView is loaded into the triptychView
-                webView.scrollAt(position: progression)
-            }
-        }
-    }
-    
-    /// Load resource with the corresponding href.
-    ///
-    /// - Parameter href: The href of the resource to load. Can contain a tag id.
-    /// - Returns: The readingOrder index for the link
-    public func displayReadingOrderItem(with href: String) -> Int? {
-        // remove id if any
-        let components = href.components(separatedBy: "#")
-        guard let href = components.first else {
-            return nil
-        }
-        guard let index = publication.readingOrder.index(where: { $0.href.contains(href) }) else {
-            return nil
-        }
-        // If any id found, set the scroll position to it, else to the
-        // beggining of the document.
-        let id = (components.count > 1 ? components.last : "")
-
-        // Jumping set to true to avoid clamping.
-        triptychView.performTransition { triptych in
-            triptych.moveTo(index: index, id: id)
-        }
-        return index
-    }
-
-    public func updateUserSettingStyle() {
-        guard let views = triptychView.views?.array else {
-            return
-        }
-        for view in views {
-            let webview = view as? WebView
-
-            webview?.applyUserSettingsStyle()
-        }
-    }
 }
 
 extension EPUBNavigatorViewController: WebViewDelegate {
@@ -277,10 +277,15 @@ extension EPUBNavigatorViewController: WebViewDelegate {
     }
     
     func handleTapOnInternalLink(with href: String) {
-        guard let index = displayReadingOrderItem(with: href) else { return }
+        guard let index = publication.readingOrder.firstIndex(withHref: href) else {
+            return
+        }
         
-        // FIXME: Deprecated, to be removed at some point.
-        delegate?.didNavigateViaInternalLinkTap(to: index)
+        let moved = go(to: Link(href: href))
+        if moved {
+            // FIXME: Deprecated, to be removed at some point.
+            delegate?.didNavigateViaInternalLinkTap(to: index)
+        }
     }
     
     func documentPageDidChange(webView: WebView, currentPage: Int, totalPage: Int) {
@@ -294,14 +299,16 @@ extension EPUBNavigatorViewController: WebViewDelegate {
     
     /// Display next document (readingOrder item).
     func displayRightDocument() {
-        let delta = triptychView.readingProgression == .rtl ? -1:1
-        self.displayReadingOrderItem(at: self.triptychView.index + delta)
+        let delta = triptychView.readingProgression == .rtl ? -1 : 1
+        // FIXME: animated
+        goToIndex(triptychView.index + delta)
     }
 
     /// Display previous document (readingOrder item).
     func displayLeftDocument() {
-        let delta = triptychView.readingProgression == .rtl ? -1:1
-        self.displayReadingOrderItem(at: self.triptychView.index - delta)
+        let delta = triptychView.readingProgression == .rtl ? -1 : 1
+        // FIXME: animated
+        goToIndex(triptychView.index - delta)
     }
 
     func publicationBaseUrl() -> URL? {
@@ -438,4 +445,21 @@ extension EPUBNavigatorViewController {
     @available(*, deprecated, message: "Use `publication.tableOfContents` instead")
     public func getTableOfContents() -> [Link] { return publication.tableOfContents }
 
+    @available(*, deprecated, renamed: "go(to:)")
+    public func displayReadingOrderItem(at index: Int) {
+        goToIndex(index)
+    }
+    
+    @available(*, deprecated, renamed: "go(to:)")
+    public func displayReadingOrderItem(at index: Int, progression: Double) {
+        goToIndex(index, location: .progression(progression))
+    }
+    
+    @available(*, deprecated, renamed: "go(to:)")
+    public func displayReadingOrderItem(with href: String) -> Int? {
+        let index = publication.readingOrder.firstIndex(withHref: href)
+        let moved = go(to: Link(href: href))
+        return moved ? index : nil
+    }
+    
 }
