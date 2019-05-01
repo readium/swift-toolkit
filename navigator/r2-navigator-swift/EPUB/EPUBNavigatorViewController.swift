@@ -55,50 +55,40 @@ public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
 
 open class EPUBNavigatorViewController: UIViewController, Navigator {
     
-    fileprivate let triptychView: TriptychView
-    public var userSettings: UserSettings
-    fileprivate var initialProgression: Double?
-    //
-    public let publication: Publication
-    public let license: DRMLicense?
     public weak var delegate: EPUBNavigatorDelegate?
-
-    public let pageTransition: PageTransition
-    public let disableDragAndDrop: Bool
-
-    fileprivate let editingActions: EditingActionsController
-
+    public var userSettings: UserSettings
+    
+    private let publication: Publication
+    private let license: DRMLicense?
+    private let editingActions: EditingActionsController
     /// Content insets used to add some vertical margins around reflowable EPUB publications. The insets can be configured for each size class to allow smaller margins on compact screens.
-    public let contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]
+    private let contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]
+    
+    private let triptychView: TriptychView
+    private var initialProgression: Double?
 
-    /// - Parameters:
-    ///   - publication: The publication.
-    ///   - initialIndex: Inital index of -1 will open the publication's at the end.
-    public init(for publication: Publication, license: DRMLicense? = nil, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = EditingAction.defaultActions, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]? = nil) {
+    public init(publication: Publication, license: DRMLicense? = nil, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]? = nil) {
         self.publication = publication
         self.license = license
-        self.initialProgression = initialProgression
-        self.pageTransition = pageTransition
-        self.disableDragAndDrop = disableDragAndDrop
+        self.editingActions = EditingActionsController(actions: editingActions, license: license)
         self.contentInset = contentInset ?? [
             .compact: (top: 20, bottom: 20),
             .regular: (top: 44, bottom: 44)
         ]
-      
-        self.editingActions = EditingActionsController(actions: editingActions, license: license)
 
         userSettings = UserSettings()
         publication.userProperties.properties = userSettings.userProperties.properties
-        var index = initialIndex
 
-        if initialIndex == -1 {
-            index = publication.readingOrder.count
+        var initialIndex: Int = 0
+        if let initialLocation = initialLocation, let foundIndex = publication.readingOrder.firstIndex(withHref: initialLocation.href) {
+            initialIndex = foundIndex
+            initialProgression = initialLocation.locations?.progression
         }
         
         triptychView = TriptychView(
             frame: CGRect.zero,
             viewCount: publication.readingOrder.count,
-            initialIndex: index,
+            initialIndex: initialIndex,
             readingProgression: publication.contentLayout.readingProgression
         )
         
@@ -183,6 +173,22 @@ open class EPUBNavigatorViewController: UIViewController, Navigator {
         delegate.navigator(self, locationDidChange: location)
     }
     
+    public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
+        return false
+    }
+    
+    public func go(to link: Link, animated: Bool, completion: @escaping () -> Void) -> Bool {
+        return false
+    }
+    
+    public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
+        return false
+    }
+    
+    public func goBackward(animated: Bool, completion: @escaping () -> Void) -> Bool {
+        return false
+    }
+    
 }
 
 extension EPUBNavigatorViewController {
@@ -194,8 +200,8 @@ extension EPUBNavigatorViewController {
         guard publication.readingOrder.indices.contains(index) else {
             return
         }
-        performTriptychViewTransition {
-            self.triptychView.moveTo(index: index)
+        triptychView.performTransition { triptych in
+            triptych.moveTo(index: index)
         }
     }
     
@@ -207,11 +213,11 @@ extension EPUBNavigatorViewController {
             return
         }
         
-        performTriptychViewTransitionDelayed {
+        triptychView.performTransition(animated: true, delayedFadeIn: true) { triptych in
             // This is so the webview will move to it's correct progression if it's not loaded into the triptych view
             self.initialProgression = progression
-            self.triptychView.moveTo(index: index)
-            if let webView = self.triptychView.currentView as? WebView {
+            triptych.moveTo(index: index)
+            if let webView = triptych.currentView as? WebView {
                 // This is needed for when the webView is loaded into the triptychView
                 webView.scrollAt(position: progression)
             }
@@ -236,8 +242,8 @@ extension EPUBNavigatorViewController {
         let id = (components.count > 1 ? components.last : "")
 
         // Jumping set to true to avoid clamping.
-        performTriptychViewTransition {
-            self.triptychView.moveTo(index: index, id: id)
+        triptychView.performTransition { triptych in
+            triptych.moveTo(index: index, id: id)
         }
         return index
     }
@@ -338,8 +344,7 @@ extension EPUBNavigatorViewController: TriptychViewDelegate {
             baseURL: baseURL,
             initialLocation: location,
             readingProgression: view.readingProgression,
-            pageTransition: pageTransition,
-            disableDragAndDrop: disableDragAndDrop,
+            animatedLoad: false,  // FIXME: custom animated
             editingActions: editingActions,
             contentInset: contentInset
         )
@@ -376,55 +381,42 @@ extension EPUBNavigatorViewController: TriptychViewDelegate {
 }
 
 
-extension EPUBNavigatorViewController {
-    
-    public var contentView: UIView {
-        return triptychView
-    }
-    
-    func performTriptychViewTransition(commitTransition: @escaping () -> ()) {
-        switch pageTransition {
-        case .none:
-            commitTransition()
-        case .animated:
-            fadeTriptychView(alpha: 0) {
-                commitTransition()
-                self.fadeTriptychView(alpha: 1, completion: { })
-            }
-        }
-    }
-    
-    /// This is used when we want to jump to a document with proression. The rendering is sometimes very slow in this case so we have a generous delay before we show the view again.
-    func performTriptychViewTransitionDelayed(commitTransition: @escaping () -> ()) {
-        switch pageTransition {
-        case .none:
-            commitTransition()
-        case .animated:
-            fadeTriptychView(alpha: 0) {
-                commitTransition()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
-                    self.fadeTriptychView(alpha: 1, completion: { })
-                })
-            }
-        }
-    }
-    
-    private func fadeTriptychView(alpha: CGFloat, completion: @escaping () -> ()) {
-        UIView.animate(withDuration: 0.15, animations: {
-            self.triptychView.alpha = alpha
-        }) { _ in
-            completion()
-        }
-    }
-}
-
-
 // MARK: - Deprecated
 
 @available(*, deprecated, renamed: "EPUBNavigatorViewController")
 public typealias NavigatorViewController = EPUBNavigatorViewController
 
+@available(*, deprecated, message: "Use the `animated` parameter of `goTo` functions instead")
+public enum PageTransition {
+    case none
+    case animated
+}
+
 extension EPUBNavigatorViewController {
+    
+    /// This initializer is deprecated.
+    /// Replace `pageTransition` by the `animated` property of the `goTo` functions.
+    /// Replace `disableDragAndDrop` by `EditingAction.copy`, since drag and drop is equivalent to copy.
+    /// Replace `initialIndex` and `initialProgression` by `initialLocation`.
+    @available(*, deprecated, renamed: "init(publication:license:initialLocation:editingActions:contentInset:)")
+    public convenience init(for publication: Publication, license: DRMLicense? = nil, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = EditingAction.defaultActions, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]? = nil) {
+        var initialIndex = initialIndex
+        if initialIndex == -1 {
+            initialIndex = publication.readingOrder.count
+        }
+        if !publication.readingOrder.indices.contains(initialIndex) {
+            initialIndex = 0
+        }
+        let initialLocation = publication.readingOrder[initialIndex].locator
+        
+        self.init(publication: publication, license: license, initialLocation: initialLocation, editingActions: editingActions, contentInset: contentInset)
+    }
+    
+    @available(*, deprecated, message: "Use the `animated` parameter of `goTo` functions instead")
+    public var pageTransition: PageTransition {
+        get { return .none }
+        set {}
+    }
     
     @available(*, deprecated, message: "Bookmark model is deprecated, use your own model and `currentLocation`")
     public var currentPosition: Bookmark? {
@@ -439,7 +431,7 @@ extension EPUBNavigatorViewController {
             locator: locator
         )
     }
-    
+
     @available(*, deprecated, message: "Use `publication.readingOrder` instead")
     public func getReadingOrder() -> [Link] { return publication.readingOrder }
     

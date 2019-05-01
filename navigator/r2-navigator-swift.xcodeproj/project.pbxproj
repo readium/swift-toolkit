@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		03C3CC68222DBD8600A01731 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03C3CC67222DBD8600A01731 /* R2Shared.framework */; };
-		1D3A2F56218C85A100108B31 /* PageTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3A2F55218C85A100108B31 /* PageTransition.swift */; };
 		CA0B3AC3222EE555006D9363 /* PDFNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */; };
 		CA479DC3226493570053445E /* UIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA479DC2226493570053445E /* UIView.swift */; };
 		CA479DC52264AEA20053445E /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA479DC42264AEA20053445E /* UIColor.swift */; };
@@ -32,7 +31,6 @@
 
 /* Begin PBXFileReference section */
 		03C3CC67222DBD8600A01731 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		1D3A2F55218C85A100108B31 /* PageTransition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageTransition.swift; sourceTree = "<group>"; };
 		CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFNavigatorViewController.swift; sourceTree = "<group>"; };
 		CA479DC2226493570053445E /* UIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIView.swift; sourceTree = "<group>"; };
 		CA479DC42264AEA20053445E /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColor.swift; sourceTree = "<group>"; };
@@ -100,7 +98,6 @@
 				F3E7D3DD1F4D845B00DF166D /* BinaryLocation.swift */,
 				F3E7D3DF1F4D847E00DF166D /* Disjunction.swift */,
 				F341C2701F506ED5005E6758 /* UserSettings.swift */,
-				1D3A2F55218C85A100108B31 /* PageTransition.swift */,
 				CAA9A38B226F407B00BE1D6A /* Resources */,
 			);
 			path = EPUB;
@@ -273,7 +270,6 @@
 				CACE84F82254BE5F00E19E8B /* PDFDocumentView.swift in Sources */,
 				F3E7D3E41F4D84DC00DF166D /* TriptychView.swift in Sources */,
 				CACE8521225CDFB000E19E8B /* ReflowableWebView.swift in Sources */,
-				1D3A2F56218C85A100108B31 /* PageTransition.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

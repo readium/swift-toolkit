@@ -308,6 +308,29 @@ final class TriptychView: UIView {
 }
 
 extension TriptychView {
+
+    /// Wraps a `move` triptych block to animate or not the change.
+    /// - Parameter delayedFadeIn: This is used when we want to jump to a document with proression. The rendering is sometimes very slow in this case so we have a generous delay before we show the view again.
+    func performTransition(animated: Bool = false, delayedFadeIn: Bool = false, _ transition: @escaping (TriptychView) -> ()) {
+        guard animated else {
+            transition(self)
+            return
+        }
+        
+        func fade(to alpha: CGFloat, completion: @escaping () -> () = {}) {
+            UIView.animate(withDuration: 0.15, animations: {
+                self.alpha = alpha
+            }) { _ in completion() }
+        }
+        
+        fade(to: 0) {
+            transition(self)
+            DispatchQueue.main.asyncAfter(deadline: .now() + (delayedFadeIn ? 0.5 : 0)) {
+                fade(to: 1)
+            }
+        }
+    }
+    
     /// Move to the given index
     ///
     /// - Parameters:

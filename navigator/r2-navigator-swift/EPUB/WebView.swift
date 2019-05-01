@@ -35,7 +35,9 @@ class WebView: UIView, Loggable {
 
     let readingProgression: ReadingProgression
 
-    var pageTransition: PageTransition
+    /// If YES, the content will be fade in once loaded.
+    let animatedLoad: Bool
+    
     let contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]
     var editingActions: EditingActionsController
   
@@ -75,11 +77,11 @@ class WebView: UIView, Loggable {
     
     var sizeObservation: NSKeyValueObservation?
 
-    required init(baseURL: URL, initialLocation: BinaryLocation, readingProgression: ReadingProgression, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+    required init(baseURL: URL, initialLocation: BinaryLocation, readingProgression: ReadingProgression, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
         self.baseURL = baseURL
         self.initialLocation = initialLocation
         self.readingProgression = readingProgression
-        self.pageTransition = pageTransition
+        self.animatedLoad = animatedLoad
         self.editingActions = editingActions
         self.webView = WKWebView(frame: .zero, configuration: .init())
         self.contentInset = contentInset
@@ -90,7 +92,6 @@ class WebView: UIView, Loggable {
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         addSubview(webView)
 
-        if disableDragAndDrop { disableDragAndDropInteraction() }
         isOpaque = false
         backgroundColor = .clear
         
@@ -188,7 +189,7 @@ class WebView: UIView, Loggable {
         guard documentLoaded, scrollView.zoomScale == scrollView.minimumZoomScale else {
             return
         }
-        scrollTo(.left)
+        scrollTo(.left, animated: false)
         dismissIfNeeded()
     }
 
@@ -198,7 +199,7 @@ class WebView: UIView, Loggable {
         guard documentLoaded, scrollView.zoomScale == scrollView.minimumZoomScale else {
             return
         }
-        scrollTo(.right)
+        scrollTo(.right, animated: false)
         dismissIfNeeded()
     }
 
@@ -217,16 +218,17 @@ class WebView: UIView, Loggable {
     private func documentDidLoad(body: Any) {
         documentLoaded = true
         
-        switch pageTransition {
-        case .none:
-            scrollView.alpha = 1
-            activityIndicatorView?.stopAnimating()
-        case .animated:
-            fadeInWithDelay()
+        // FIXME: We need to give the CSS and webview time to layout correctly. 0.2 seconds seems like a good value for it to work on an iPhone 5s. Look into solving this better
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.activityIndicatorView?.stopAnimating()
+            UIView.animate(withDuration: self.animatedLoad ? 0.3 : 0, animations: {
+                self.scrollView.alpha = 1
+            })
         }
-        
+
         applyUserSettingsStyle()
         scrollToInitialPosition()
+        setupDragAndDrop()
     }
     
     // Scroll at position 0-1 (0%-100%)
@@ -269,9 +271,9 @@ class WebView: UIView, Loggable {
         case right
     }
     
-    func scrollTo(_ direction: ScrollDirection) {
+    func scrollTo(_ direction: ScrollDirection, animated: Bool) {
         let viewDelegate = self.viewDelegate
-        if case .animated = pageTransition {
+        if animated {
             switch direction {
             case .left:
                 let isAtFirstPageInDocument = scrollView.contentOffset.x == 0
@@ -462,17 +464,7 @@ private extension UIScrollView {
 }
 
 private extension WebView {
-    
-    func fadeInWithDelay() {
-        //TODO: We need to give the CSS and webview time to layout correctly. 0.2 seconds seems like a good value for it to work on an iPhone 5s. Look into solving this better
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            self.activityIndicatorView?.stopAnimating()
-            UIView.animate(withDuration: 0.3, animations: {
-                self.scrollView.alpha = 1
-            })
-        }
-    }
-    
+
     func updateActivityIndicator(for userSettings: UserSettings) {
         guard let appearance = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) as? Enumerable else { return }
         guard appearance.values.count > appearance.index else { return }
@@ -486,11 +478,14 @@ private extension WebView {
     }
     
     func createActivityIndicator(style: UIActivityIndicatorView.Style) {
-        if pageTransition == .none { return }
-        if documentLoaded { return }
-      if activityIndicatorView?.style == style { return }
+        guard documentLoaded,
+            activityIndicatorView?.style == style else
+        {
+            return
+        }
+        
         activityIndicatorView?.removeFromSuperview()
-      let view = UIActivityIndicatorView(style: style)
+        let view = UIActivityIndicatorView(style: style)
         view.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(view)
         view.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
@@ -499,12 +494,17 @@ private extension WebView {
         activityIndicatorView = view
     }
     
-    func disableDragAndDropInteraction() {
-        if #available(iOS 11.0, *) {
-            guard let webScrollView = subviews.compactMap( { $0 as? UIScrollView }).first,
+    func setupDragAndDrop() {
+        if !editingActions.canCopy {
+            guard #available(iOS 11.0, *),
+                let webScrollView = subviews.compactMap( { $0 as? UIScrollView }).first,
                 let contentView = webScrollView.subviews.first(where: { $0.interactions.count > 1 }),
-                let dragInteraction = contentView.interactions.compactMap({ $0 as? UIDragInteraction }).first else { return }
+                let dragInteraction = contentView.interactions.compactMap({ $0 as? UIDragInteraction }).first else
+            {
+                return
+            }
             contentView.removeInteraction(dragInteraction)
         }
     }
+    
 }
