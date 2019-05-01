@@ -32,7 +32,9 @@ final class ReflowableWebView: WebView {
         
         webView.translatesAutoresizingMaskIntoConstraints = false
         topConstraint = webView.topAnchor.constraint(equalTo: topAnchor)
+        topConstraint.priority = .defaultHigh
         bottomConstraint = webView.bottomAnchor.constraint(equalTo: bottomAnchor)
+        bottomConstraint.priority = .defaultHigh
         NSLayoutConstraint.activate([
             topConstraint, bottomConstraint,
             webView.leadingAnchor.constraint(equalTo: leadingAnchor),

@@ -19,7 +19,6 @@ protocol WebViewDelegate: class {
     func displayRightDocument()
     func displayLeftDocument()
     func handleCenterTap()
-    func publicationIdentifier() -> String?
     func publicationBaseUrl() -> URL?
     func handleTapOnLink(with url: URL)
     func handleTapOnInternalLink(with href: String)
@@ -306,28 +305,36 @@ class WebView: UIView, Loggable {
         }
     }
 
+    /// Update webview style to userSettings.
+    func applyUserSettingsStyle() {
+        // To override in subclasses.
+    }
+    
+    
+    // MARK: - Progression change
+    
+    private var progressionOriginPage: Int?
+
     // Called by the javascript code to notify that scrolling ended.
     private func progressionDidChange(body: Any) {
         guard documentLoaded, let bodyString = body as? String, let newProgression = Double(bodyString) else {
             return
         }
         
-        let originPage = self.currentPage()
-
-        progression = newProgression
-        
-        let currentPage = self.currentPage()
-        
-        if originPage != currentPage {
-            if let pages = totalPages {
-                viewDelegate?.documentPageDidChange(webView: self, currentPage: currentPage, totalPage: pages)
-            }
+        if progressionOriginPage == nil {
+            progressionOriginPage = currentPage()
         }
+        
+        progression = newProgression
     }
-
-    /// Update webview style to userSettings.
-    func applyUserSettingsStyle() {
-        // To override in subclasses.
+    
+    @objc private func notifyDocumentPageChange() {
+        let page = currentPage()
+        guard progressionOriginPage != page, let pages = totalPages else {
+            return
+        }
+        progressionOriginPage = nil
+        viewDelegate?.documentPageDidChange(webView: self, currentPage: page, totalPage: pages)
     }
 
 }
@@ -407,6 +414,13 @@ extension WebView: UIScrollViewDelegate {
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         viewDelegate?.didEndPageAnimation()
+    }
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        // Makes sure we always receive the "ending scroll" event.
+        // ie. https://stackoverflow.com/a/1857162/1474476
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(notifyDocumentPageChange), object: nil)
+        perform(#selector(notifyDocumentPageChange), with: nil, afterDelay: 0.3)
     }
     
 }

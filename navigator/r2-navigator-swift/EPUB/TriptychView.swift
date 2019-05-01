@@ -96,6 +96,7 @@ final class TriptychView: UIView {
         }
     }
 
+    /// Index of the document currently being displayed.
     fileprivate(set) var index: Int
 
     fileprivate let scrollView: UIScrollView
@@ -367,13 +368,8 @@ extension TriptychView {
         }
     }
 
-    /// Return the index of the document currently being displayed.
-    public func getCurrentDocumentIndex() -> Int {
-        return index
-    }
-
     /// Returns the progression in the document currently being displayed.
-    public func getCurrentDocumentProgression() -> Double? {
+    var currentDocumentProgression: Double? {
         guard currentView != nil else {
             return nil
         }

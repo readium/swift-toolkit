@@ -15,45 +15,46 @@ import WebKit
 import SafariServices
 
 
-public protocol EPUBNavigatorDelegate: class {
+public protocol EPUBNavigatorDelegate: NavigatorDelegate {
+    
+    // MARK: - Deprecated
+    
+    // Implement `NavigatorDelegate.navigator(didTapAt:)` instead.
     func middleTapHandler()
+
+    // Implement `NavigatorDelegate.navigator(locationDidChange:)` instead, to save the last read location.
     func willExitPublication(documentIndex: Int, progression: Double?)
-    /// invoked when publication's content change to another page of 'document', slide to next chapter for example
-    /// It changes when html file resource changed
     func didChangedDocumentPage(currentDocumentIndex: Int)
     func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int)
     func didNavigateViaInternalLinkTap(to documentIndex: Int)
+
+    /// Implement `NavigatorDelegate.navigator(presentError:)` instead.
+    func presentError(_ error: NavigatorError)
+    
+    // Implement `NavigatorDelegate.navigator(presentExternalURL:)` instead.
     func didTapExternalUrl(_ : URL)
 
-    /// Displays an error message to the user.
-    func presentError(_ error: NavigatorError)
 }
 
 public extension EPUBNavigatorDelegate {
-    func didChangedDocumentPage(currentDocumentIndex: Int) {
-        // optional
-    }
     
-    func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int) {
-        // optional
-    }
-    
-    func didNavigateViaInternalLinkTap(to documentIndex: Int) {
-        // optional
-    }
-    
+    func middleTapHandler() {}
+    func willExitPublication(documentIndex: Int, progression: Double?) {}
+    func didChangedDocumentPage(currentDocumentIndex: Int) {}
+    func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int) {}
+    func didNavigateViaInternalLinkTap(to documentIndex: Int) {}
+    func presentError(_ error: NavigatorError) {}
     func didTapExternalUrl(_ url: URL) {
-        // optional
-        // TODO following lines have been moved from the original implementation and might need to be revisited at some point
-        let view = SFSafariViewController(url: url)
-        UIApplication.shared.keyWindow?.rootViewController?.present(view, animated: true, completion: nil)
+        UIApplication.shared.openURL(url)
     }
+
 }
 
 
 public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
 
-open class EPUBNavigatorViewController: UIViewController {
+open class EPUBNavigatorViewController: UIViewController, Navigator {
+    
     private let delegatee: Delegatee!
     fileprivate let triptychView: TriptychView
     public var userSettings: UserSettings
@@ -65,7 +66,7 @@ open class EPUBNavigatorViewController: UIViewController {
 
     public let pageTransition: PageTransition
     public let disableDragAndDrop: Bool
-    
+
     fileprivate let editingActions: EditingActionsController
 
     /// Content insets used to add some vertical margins around reflowable EPUB publications. The insets can be configured for each size class to allow smaller margins on compact screens.
@@ -123,16 +124,19 @@ open class EPUBNavigatorViewController: UIViewController {
         triptychView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         view.addSubview(triptychView)
     }
-    
-    public var currentLocation: Locator? {
-        var hrefToTitle: [String: String] = {
-            let linkList = self.getTableOfContents()
-            return fulfill(linkList: linkList)
-        } ()
 
+    open override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        // FIXME: Deprecated, to be removed at some point.
+        delegate?.willExitPublication(documentIndex: triptychView.index, progression: triptychView.currentDocumentProgression)
+    }
+    
+    /// Mapping between reading order hrefs and the table of contents title.
+    lazy var tableOfContentsTitleByHref: [String: String] = {
         func fulfill(linkList: [Link]) -> [String: String] {
             var result = [String: String]()
-
+            
             for link in linkList {
                 if let title = link.title {
                     result[link.href] = title
@@ -144,44 +148,44 @@ open class EPUBNavigatorViewController: UIViewController {
             }
             return result
         }
-
-        let progression = triptychView.getCurrentDocumentProgression()
-        let index = triptychView.getCurrentDocumentIndex()
-        let readingOrder = self.getReadingOrder()[index]
-        let resourceTitle: String = hrefToTitle[readingOrder.href] ?? "Unknown"
         
+        return fulfill(linkList: publication.tableOfContents)
+    }()
+
+    
+    // MARK: - Navigator
+    
+    public var readingProgression: ReadingProgression {
+        return publication.contentLayout.readingProgression
+    }
+    
+    public var currentLocation: Locator? {
+        let resource = publication.readingOrder[triptychView.index]
         return Locator(
-            href: readingOrder.href,
-            type: readingOrder.type ?? "text/html",
-            title: resourceTitle,
+            href: resource.href,
+            type: resource.type ?? "text/html",
+            title: tableOfContentsTitleByHref[resource.href],
             locations: Locations(
-                progression: progression ?? 0
+                progression: triptychView.currentDocumentProgression ?? 0
             )
         )
     }
-    
-    @available(*, deprecated, message: "Bookmark model is deprecated, use your own model and `currentLocation`")
-    public var currentPosition: Bookmark? {
-        guard let publicationID = publication.metadata.identifier,
-            let locator = currentLocation else
-        {
-            return nil
-        }
-        return Bookmark(
-            publicationID: publicationID,
-            resourceIndex: triptychView.getCurrentDocumentIndex(),
-            locator: locator
-        )
-    }
 
-    open override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        
-        // Save the currently opened document index and progression.
-        let progression = triptychView.getCurrentDocumentProgression()
-        let index = triptychView.getCurrentDocumentIndex()
-        delegate?.willExitPublication(documentIndex: index, progression: progression)
+    /// Last current location notified to the delegate.
+    /// Used to avoid sending twice the same location.
+    private var notifiedCurrentLocation: Locator?
+    
+    fileprivate func notifyCurrentLocation() {
+        guard let delegate = delegate,
+            let location = currentLocation,
+            location != notifiedCurrentLocation else
+        {
+            return
+        }
+        notifiedCurrentLocation = location
+        delegate.navigator(self, locationDidChange: location)
     }
+    
 }
 
 extension EPUBNavigatorViewController {
@@ -241,14 +245,6 @@ extension EPUBNavigatorViewController {
         return index
     }
 
-    public func getReadingOrder() -> [Link] {
-        return publication.readingOrder
-    }
-
-    public func getTableOfContents() -> [Link] {
-        return publication.tableOfContents
-    }
-
     public func updateUserSettingStyle() {
         guard let views = triptychView.views?.array else {
             return
@@ -272,44 +268,48 @@ extension EPUBNavigatorViewController: WebViewDelegate {
     }
     
     func handleTapOnLink(with url: URL) {
+        delegate?.navigator(self, presentExternalURL: url)
+        // FIXME: Deprecated, to be removed at some point.
         delegate?.didTapExternalUrl(url)
     }
     
     func handleTapOnInternalLink(with href: String) {
         guard let index = displayReadingOrderItem(with: href) else { return }
+        
+        // FIXME: Deprecated, to be removed at some point.
         delegate?.didNavigateViaInternalLinkTap(to: index)
     }
     
     func documentPageDidChange(webView: WebView, currentPage: Int, totalPage: Int) {
         if triptychView.currentView == webView {
+            notifyCurrentLocation()
+
+            // FIXME: Deprecated, to be removed at some point.
             delegate?.didChangedPaginatedDocumentPage(currentPage: currentPage, documentTotalPage: totalPage)
         }
     }
     
     /// Display next document (readingOrder item).
-    public func displayRightDocument() {
+    func displayRightDocument() {
         let delta = triptychView.readingProgression == .rtl ? -1:1
         self.displayReadingOrderItem(at: self.triptychView.index + delta)
     }
 
     /// Display previous document (readingOrder item).
-    public func displayLeftDocument() {
+    func displayLeftDocument() {
         let delta = triptychView.readingProgression == .rtl ? -1:1
         self.displayReadingOrderItem(at: self.triptychView.index - delta)
     }
 
-    /// Returns the currently presented Publication's identifier.
-    ///
-    /// - Returns: The publication identifier.
-    public func publicationIdentifier() -> String? {
-        return publication.metadata.identifier
-    }
-
-    public func publicationBaseUrl() -> URL? {
+    func publicationBaseUrl() -> URL? {
         return publication.baseURL
     }
 
     internal func handleCenterTap() {
+        // FIXME: Real point
+        delegate?.navigator(self, didTapAt: view.center)
+        
+        // FIXME: Deprecated, to be removed at some point.
         delegate?.middleTapHandler()
     }
 
@@ -318,6 +318,8 @@ extension EPUBNavigatorViewController: WebViewDelegate {
 extension EPUBNavigatorViewController: EditingActionsControllerDelegate {
     
     func editingActionsDidPreventCopy(_ editingActions: EditingActionsController) {
+        delegate?.navigator(self, presentError: .copyForbidden)
+        // FIXME: Deprecated, to be removed at some point.
         delegate?.presentError(.copyForbidden)
     }
     
@@ -368,6 +370,9 @@ extension Delegatee: TriptychViewDelegate {
     func viewsDidUpdate(documentIndex: Int) {
         // notice that you should set the delegate before you load views
         // otherwise, when open the publication, you may miss the first invocation
+        parent.notifyCurrentLocation()
+
+        // FIXME: Deprecated, to be removed at some point.
         parent.delegate?.didChangedDocumentPage(currentDocumentIndex: documentIndex)
         if let currentView = parent.triptychView.currentView {
             let cw = currentView as! WebView
@@ -424,5 +429,31 @@ extension EPUBNavigatorViewController {
 }
 
 
+// MARK: - Deprecated
+
 @available(*, deprecated, renamed: "EPUBNavigatorViewController")
 public typealias NavigatorViewController = EPUBNavigatorViewController
+
+extension EPUBNavigatorViewController {
+    
+    @available(*, deprecated, message: "Bookmark model is deprecated, use your own model and `currentLocation`")
+    public var currentPosition: Bookmark? {
+        guard let publicationID = publication.metadata.identifier,
+            let locator = currentLocation else
+        {
+            return nil
+        }
+        return Bookmark(
+            publicationID: publicationID,
+            resourceIndex: triptychView.index,
+            locator: locator
+        )
+    }
+    
+    @available(*, deprecated, message: "Use `publication.readingOrder` instead")
+    public func getReadingOrder() -> [Link] { return publication.readingOrder }
+    
+    @available(*, deprecated, message: "Use `publication.tableOfContents` instead")
+    public func getTableOfContents() -> [Link] { return publication.tableOfContents }
+
+}
