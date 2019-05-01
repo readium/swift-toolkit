@@ -55,7 +55,6 @@ public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
 
 open class EPUBNavigatorViewController: UIViewController, Navigator {
     
-    private let delegatee: Delegatee!
     fileprivate let triptychView: TriptychView
     public var userSettings: UserSettings
     fileprivate var initialProgression: Double?
@@ -90,7 +89,6 @@ open class EPUBNavigatorViewController: UIViewController, Navigator {
 
         userSettings = UserSettings()
         publication.userProperties.properties = userSettings.userProperties.properties
-        delegatee = Delegatee()
         var index = initialIndex
 
         if initialIndex == -1 {
@@ -116,10 +114,9 @@ open class EPUBNavigatorViewController: UIViewController, Navigator {
 
     open override func viewDidLoad() {
         super.viewDidLoad()
-        delegatee.parent = self
         view.backgroundColor = .clear
         triptychView.backgroundColor = .clear
-        triptychView.delegate = delegatee
+        triptychView.delegate = self
         triptychView.frame = view.bounds
         triptychView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         view.addSubview(triptychView)
@@ -325,43 +322,37 @@ extension EPUBNavigatorViewController: EditingActionsControllerDelegate {
     
 }
 
-/// Used to hide conformance to package-private delegate protocols.
-private final class Delegatee: NSObject {
-    weak var parent: EPUBNavigatorViewController!
-    fileprivate var firstView = true
-}
+extension EPUBNavigatorViewController: TriptychViewDelegate {
 
-extension Delegatee: TriptychViewDelegate {
-
-    public func triptychView(_ view: TriptychView, viewForIndex index: Int, location: BinaryLocation) -> UIView {
-        guard let baseURL = parent.publication.baseURL else {
+    func triptychView(_ view: TriptychView, viewForIndex index: Int, location: BinaryLocation) -> UIView {
+        guard let baseURL = publication.baseURL else {
             return UIView()
         }
         
-        let link = parent.publication.readingOrder[index]
+        let link = publication.readingOrder[index]
         // Check if link is FXL.
-        let hasFixedLayout = (parent.publication.metadata.rendition?.layout == .fixed && link.properties.layout == nil) || link.properties.layout == .fixed
+        let hasFixedLayout = (publication.metadata.rendition?.layout == .fixed && link.properties.layout == nil) || link.properties.layout == .fixed
 
         let webViewType = hasFixedLayout ? FixedWebView.self : ReflowableWebView.self
         let webView = webViewType.init(
             baseURL: baseURL,
             initialLocation: location,
             readingProgression: view.readingProgression,
-            pageTransition: parent.pageTransition,
-            disableDragAndDrop: parent.disableDragAndDrop,
-            editingActions: parent.editingActions,
-            contentInset: parent.contentInset
+            pageTransition: pageTransition,
+            disableDragAndDrop: disableDragAndDrop,
+            editingActions: editingActions,
+            contentInset: contentInset
         )
 
-        if let url = parent.publication.url(to: link) {
-            webView.viewDelegate = parent
+        if let url = publication.url(to: link) {
+            webView.viewDelegate = self
             webView.load(url)
-            webView.userSettings = parent.userSettings
+            webView.userSettings = userSettings
 
             // Load last saved regionIndex for the first view.
-            if parent.initialProgression != nil {
-                webView.progression = parent.initialProgression
-                parent.initialProgression = nil
+            if initialProgression != nil {
+                webView.progression = initialProgression
+                initialProgression = nil
             }
         }
         return webView
@@ -370,17 +361,18 @@ extension Delegatee: TriptychViewDelegate {
     func viewsDidUpdate(documentIndex: Int) {
         // notice that you should set the delegate before you load views
         // otherwise, when open the publication, you may miss the first invocation
-        parent.notifyCurrentLocation()
+        notifyCurrentLocation()
 
         // FIXME: Deprecated, to be removed at some point.
-        parent.delegate?.didChangedDocumentPage(currentDocumentIndex: documentIndex)
-        if let currentView = parent.triptychView.currentView {
+        delegate?.didChangedDocumentPage(currentDocumentIndex: documentIndex)
+        if let currentView = triptychView.currentView {
             let cw = currentView as! WebView
             if let pages = cw.totalPages {
-                parent.delegate?.didChangedPaginatedDocumentPage(currentPage: cw.currentPage(), documentTotalPage: pages)
+                delegate?.didChangedPaginatedDocumentPage(currentPage: cw.currentPage(), documentTotalPage: pages)
             }
         }
     }
+    
 }
 
 
@@ -402,9 +394,7 @@ extension EPUBNavigatorViewController {
         }
     }
     
-    /*
-     This is used when we want to jump to a document with proression. The rendering is sometimes very slow in this case so we have a generous delay before we show the view again.
-     */
+    /// This is used when we want to jump to a document with proression. The rendering is sometimes very slow in this case so we have a generous delay before we show the view again.
     func performTriptychViewTransitionDelayed(commitTransition: @escaping () -> ()) {
         switch pageTransition {
         case .none:
