@@ -5,9 +5,10 @@
 
 // Notify native code that the page has loaded.
 window.addEventListener("load", function(){ // on page load
-                        // Notify native code that the page is loaded.
-                        webkit.messageHandlers.didLoad.postMessage("");
-                        }, false);
+    // Notify native code that the page is loaded.
+    webkit.messageHandlers.didLoad.postMessage("");
+    window.addEventListener("orientationchange", snapCurrentPosition);
+}, false);
 
 var last_known_scroll_position = 0;
 var ticking = false;
@@ -117,6 +118,13 @@ var snapOffset = function(offset) {
     var value = offset + 1;
 
     return value - (value % maxScreenX);
+};
+
+var snapCurrentPosition = function() {
+    var currentOffset = window.scrollX;
+    var currentOffsetSnapped = snapOffset(currentOffset + 1);
+    
+    document.body.scrollLeft = currentOffsetSnapped;
 };
 
 /// User Settings.
