@@ -16,9 +16,9 @@ import R2Shared
 protocol WebViewDelegate: class {
     func willAnimatePageChange()
     func didEndPageAnimation()
-    func displayRightDocument()
-    func displayLeftDocument()
-    func handleCenterTap()
+    func displayRightDocument(animated: Bool, completion: @escaping () -> Void)
+    func displayLeftDocument(animated: Bool, completion: @escaping () -> Void)
+    func webView(_ webView: WebView, didTapAt point: CGPoint)
     func publicationBaseUrl() -> URL?
     func handleTapOnLink(with url: URL)
     func handleTapOnInternalLink(with href: String)
@@ -67,15 +67,20 @@ class WebView: UIView, Loggable {
     
     var jsEvents: [String: (Any) -> Void] {
         return [
-            "leftTap": leftTapped,
-            "centerTap": centerTapped,
-            "rightTap": rightTapped,
+            "tap": didTap,
             "didLoad": documentDidLoad,
             "updateProgression": progressionDidChange
         ]
     }
     
     var sizeObservation: NSKeyValueObservation?
+    
+    private static var gesturesScript: String? = {
+        guard let url = Bundle(for: WebView.self).url(forResource: "gestures", withExtension: "js") else {
+            return nil
+        }
+        return try? String(contentsOf: url)
+    }();
 
     required init(baseURL: URL, initialLocation: BinaryLocation, readingProgression: ReadingProgression, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
         self.baseURL = baseURL
@@ -113,6 +118,14 @@ class WebView: UIView, Loggable {
             }
         }
         scrollView.alpha = 0
+        
+        addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapBackground)))
+        
+        if let gesturesScript = WebView.gesturesScript {
+            webView.configuration.userContentController.addUserScript(
+                WKUserScript(source: gesturesScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
+            )
+        }
     }
     
     deinit {
@@ -183,33 +196,28 @@ class WebView: UIView, Loggable {
         self.isUserInteractionEnabled = true
     }
 
-    /// Called from the JS code when a tap is detected in the 2/10 left part of the screen.
-    private func leftTapped(body: Any) {
-        // Disables left/right taps when the document is zoomed in.
-        guard documentLoaded, scrollView.zoomScale == scrollView.minimumZoomScale else {
+    /// Called from the JS code when a tap is detected.
+    private func didTap(body: Any) {
+        guard let body = body as? [String: Any],
+            let x = body["x"] as? Int,
+            let y = body["y"] as? Int else
+        {
             return
         }
-        scrollTo(.left, animated: false)
+
+        let point = CGPoint(
+            x: CGFloat(x) * scrollView.zoomScale - scrollView.contentOffset.x + webView.frame.minX,
+            y: CGFloat(y) * scrollView.zoomScale - scrollView.contentOffset.y + webView.frame.minY
+        )
+        viewDelegate?.webView(self, didTapAt: point)
+
         dismissIfNeeded()
     }
-
-    /// Called from the JS code when a tap is detected in the 2/10 right part of the screen.
-    private func rightTapped(body: Any) {
-        // Disables left/right taps when the document is zoomed in.
-        guard documentLoaded, scrollView.zoomScale == scrollView.minimumZoomScale else {
-            return
-        }
-        scrollTo(.right, animated: false)
-        dismissIfNeeded()
-    }
-
-    /// Called from the JS code when a tap is detected in the 6/10 center
-    /// part of the screen.
-    ///
-    /// - Parameter body: Unused.
-    private func centerTapped(body: Any) {
-        viewDelegate?.handleCenterTap()
-        dismissIfNeeded()
+    
+    /// Called by the UITapGestureRecognizer as a fallback tap when tapping around the webview.
+    @objc private func didTapBackground(_ gesture: UITapGestureRecognizer) {
+        let point = gesture.location(in: self)
+        viewDelegate?.webView(self, didTapAt: point)
     }
 
     /// Called by the javascript code to notify on DocumentReady.
@@ -271,7 +279,7 @@ class WebView: UIView, Loggable {
         case right
     }
     
-    func scrollTo(_ direction: ScrollDirection, animated: Bool) {
+    func scrollTo(_ direction: ScrollDirection, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
         let viewDelegate = self.viewDelegate
         if animated {
             switch direction {
@@ -279,13 +287,15 @@ class WebView: UIView, Loggable {
                 let isAtFirstPageInDocument = scrollView.contentOffset.x == 0
                 if !isAtFirstPageInDocument {
                     viewDelegate?.willAnimatePageChange()
-                    return scrollView.scrollToPreviousPage()
+                    scrollView.scrollToPreviousPage(animated: animated, completion: completion)
+                    return true
                 }
             case .right:
                 let isAtLastPageInDocument = scrollView.contentOffset.x == scrollView.contentSize.width - scrollView.frame.size.width
                 if !isAtLastPageInDocument {
                     viewDelegate?.willAnimatePageChange()
-                    return scrollView.scrollToNextPage()
+                    scrollView.scrollToNextPage(animated: animated, completion: completion)
+                    return true
                 }
             }
         }
@@ -295,16 +305,21 @@ class WebView: UIView, Loggable {
         case .left:
             evaluateScriptInResource("scrollLeft(\"\(dir)\");") { result, error in
                 if error == nil, let result = result as? String, result == "edge" {
-                    viewDelegate?.displayLeftDocument()
+                    viewDelegate?.displayLeftDocument(animated: animated, completion: completion)
+                } else {
+                    completion()
                 }
             }
         case .right:
             evaluateScriptInResource("scrollRight(\"\(dir)\");") { result, error in
                 if error == nil, let result = result as? String, result == "edge" {
-                    viewDelegate?.displayRightDocument()
+                    viewDelegate?.displayRightDocument(animated: animated, completion: completion)
+                } else {
+                    completion()
                 }
             }
         }
+        return true
     }
 
     /// Update webview style to userSettings.
@@ -424,7 +439,7 @@ extension WebView: UIScrollViewDelegate {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(notifyDocumentPageChange), object: nil)
         perform(#selector(notifyDocumentPageChange), with: nil, afterDelay: 0.3)
     }
-    
+
 }
 
 extension WebView: WKUIDelegate {
@@ -443,15 +458,15 @@ extension WebView: WKUIDelegate {
 
 private extension UIScrollView {
     
-    func scrollToNextPage() {
-        moveHorizontalContent(with: bounds.size.width)
+    func scrollToNextPage(animated: Bool, completion: () -> Void) {
+        moveHorizontalContent(with: bounds.size.width, animated: animated, completion: completion)
     }
     
-    func scrollToPreviousPage() {
-        moveHorizontalContent(with: -bounds.size.width)
+    func scrollToPreviousPage(animated: Bool, completion: () -> Void) {
+        moveHorizontalContent(with: -bounds.size.width, animated: animated, completion: completion)
     }
     
-    private func moveHorizontalContent(with offsetX: CGFloat) {
+    private func moveHorizontalContent(with offsetX: CGFloat, animated: Bool, completion: () -> Void) {
         isUserInteractionEnabled = false
         
         var newOffset = contentOffset
@@ -459,7 +474,9 @@ private extension UIScrollView {
         let rounded = round(newOffset.x / offsetX) * offsetX
         newOffset.x = rounded
         let area = CGRect.init(origin: newOffset, size: bounds.size)
-        scrollRectToVisible(area, animated: true)
+        scrollRectToVisible(area, animated: animated)
+        // FIXME: completion needs to be implemented using scroll view delegate
+        completion()
     }
 }
 

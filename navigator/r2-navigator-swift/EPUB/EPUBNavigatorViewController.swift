@@ -182,7 +182,15 @@ open class EPUBNavigatorViewController: UIViewController, Navigator {
         
         return true
     }
-
+    
+    /// Goes to the next or previous page in the given scroll direction.
+    private func go(to direction: WebView.ScrollDirection, animated: Bool, completion: @escaping () -> Void) -> Bool {
+        guard let webView = triptychView.currentView as? WebView else {
+            return false
+        }
+        return webView.scrollTo(direction, animated: animated, completion: completion)
+    }
+    
     public func updateUserSettingStyle() {
         guard let views = triptychView.views?.array else {
             return
@@ -251,11 +259,27 @@ open class EPUBNavigatorViewController: UIViewController, Navigator {
     }
     
     public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
-        return false
+        let direction: WebView.ScrollDirection = {
+            switch readingProgression {
+            case .ltr, .auto:
+                return .right
+            case .rtl:
+                return .left
+            }
+        }()
+        return go(to: direction, animated: animated, completion: completion)
     }
     
     public func goBackward(animated: Bool, completion: @escaping () -> Void) -> Bool {
-        return false
+        let direction: WebView.ScrollDirection = {
+            switch readingProgression {
+            case .ltr, .auto:
+                return .left
+            case .rtl:
+                return .right
+            }
+        }()
+        return go(to: direction, animated: animated, completion: completion)
     }
     
 }
@@ -268,6 +292,13 @@ extension EPUBNavigatorViewController: WebViewDelegate {
     
     func didEndPageAnimation() {
         triptychView.isUserInteractionEnabled = true
+    }
+    
+    func webView(_ webView: WebView, didTapAt point: CGPoint) {
+        let point = view.convert(point, from: webView)
+        delegate?.navigator(self, didTapAt: point)
+        // FIXME: Deprecated, to be removed at some point.
+        delegate?.middleTapHandler()
     }
     
     func handleTapOnLink(with url: URL) {
@@ -298,29 +329,19 @@ extension EPUBNavigatorViewController: WebViewDelegate {
     }
     
     /// Display next document (readingOrder item).
-    func displayRightDocument() {
+    func displayRightDocument(animated: Bool, completion: @escaping () -> Void) {
         let delta = triptychView.readingProgression == .rtl ? -1 : 1
-        // FIXME: animated
-        goToIndex(triptychView.index + delta)
+        goToIndex(triptychView.index + delta, animated: animated, completion: completion)
     }
 
     /// Display previous document (readingOrder item).
-    func displayLeftDocument() {
+    func displayLeftDocument(animated: Bool, completion: @escaping () -> Void) {
         let delta = triptychView.readingProgression == .rtl ? -1 : 1
-        // FIXME: animated
-        goToIndex(triptychView.index - delta)
+        goToIndex(triptychView.index - delta, animated: animated, completion: completion)
     }
 
     func publicationBaseUrl() -> URL? {
         return publication.baseURL
-    }
-
-    internal func handleCenterTap() {
-        // FIXME: Real point
-        delegate?.navigator(self, didTapAt: view.center)
-        
-        // FIXME: Deprecated, to be removed at some point.
-        delegate?.middleTapHandler()
     }
 
 }
