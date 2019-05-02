@@ -25,7 +25,7 @@ class AboutTableViewController: UITableViewController {
             versionNumberCell.textLabel?.text = "App Version:"
             buildNumberCell.textLabel?.text = "GitHub Tag:"
             versionNumberCell.detailTextLabel?.text = "\(version)"
-            buildNumberCell.detailTextLabel?.text = "V2.0.0-beta.1"
+            buildNumberCell.detailTextLabel?.text = "V2.0.0-beta.3"
         } else {
             versionNumberCell.textLabel?.text = "App Version:"
             buildNumberCell.textLabel?.text = "GitHub Tag:"
