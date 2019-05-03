@@ -105,7 +105,7 @@ final class TriptychView: UIView {
     internal var views: Views?
     
     let leading, trailing: BinaryLocation
-    let direction: PageProgressionDirection
+    let readingProgression: ReadingProgression
 
     fileprivate var clamping: Clamping = .none
 
@@ -113,17 +113,17 @@ final class TriptychView: UIView {
         return index == 0 || index == viewCount - 1
     }
     
-    public init(frame: CGRect, viewCount: Int, initialIndex: Int, pageDirection: PageProgressionDirection) {
+    public init(frame: CGRect, viewCount: Int, initialIndex: Int, readingProgression: ReadingProgression) {
 
         precondition(viewCount >= 1)
         precondition(initialIndex >= 0 && initialIndex < viewCount)
 
         index = initialIndex
         self.viewCount = viewCount
-        self.direction = pageDirection
+        self.readingProgression = readingProgression
         self.scrollView = UIScrollView()
-        
-        if self.direction == .rtl {
+
+        if self.readingProgression == .rtl {
             leading = .right; trailing = .left
         } else {
             leading = .left; trailing = .right
@@ -138,6 +138,13 @@ final class TriptychView: UIView {
         scrollView.bounces = false
         scrollView.showsHorizontalScrollIndicator = false
         addSubview(scrollView)
+        
+        // Adds an empty view before the scroll view to have a consistent behavior on all iOS versions, regarding to the content inset adjustements. Even if automaticallyAdjustsScrollViewInsets is not set to false on the navigator's parent view controller, the scroll view insets won't be adjusted if the scroll view is not the first child in the subviews hierarchy.
+        insertSubview(UIView(frame: .zero), at: 0)
+        if #available(iOS 11.0, *) {
+            // Prevents the pages from jumping down when the status bar is toggled
+            scrollView.contentInsetAdjustmentBehavior = .never
+        }
     }
 
     deinit {
@@ -171,7 +178,7 @@ final class TriptychView: UIView {
         scrollView.contentSize = CGSize(width: size.width * CGFloat(views.count), height: size.height)
         
         let viewList:[UIView] = {
-            if self.direction == .rtl {
+            if self.readingProgression == .rtl {
                 return views.array.reversed()
             }
             return views.array
@@ -184,7 +191,7 @@ final class TriptychView: UIView {
         let pageOffset = min(1, index)
         
         let offset:CGFloat = {
-            if self.direction == .rtl {
+            if self.readingProgression == .rtl {
                 return scrollView.contentSize.width - CGFloat(pageOffset+1)*scrollView.frame.width
             }
             return size.width * CGFloat(pageOffset)
@@ -321,7 +328,7 @@ extension TriptychView {
         var currentRect = scrollView.contentOffset
         let currentFrameSize = scrollView.frame.size
         
-        let coefficient = CGFloat(direction == .rtl ? -1:1)
+        let coefficient = CGFloat(readingProgression == .rtl ? -1:1)
 
         if index < nextIndex {
             currentRect.x += coefficient*currentFrameSize.width
@@ -422,7 +429,7 @@ extension TriptychView: UIScrollViewDelegate {
         let previousIndex = index
         
         let offset:CGFloat = {
-            if self.direction == .rtl {
+            if self.readingProgression == .rtl {
                 return scrollView.contentSize.width - (scrollView.contentOffset.x + scrollView.frame.width)
             }
             return scrollView.contentOffset.x
@@ -459,7 +466,7 @@ extension TriptychView: UIScrollViewDelegate {
         if(fmod(scrollView.contentOffset.x, scrollView.frame.width) != 0.0) {
             
             let adjustedOffset:CGFloat = {
-                if self.direction == .rtl {
+                if self.readingProgression == .rtl {
                     return scrollView.contentSize.width - CGFloat(pageOffset + 1) * scrollView.frame.width
                 } else {
                     return CGFloat(pageOffset) * scrollView.frame.width

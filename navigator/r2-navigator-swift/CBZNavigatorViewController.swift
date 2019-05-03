@@ -1,5 +1,5 @@
 //
-//  CbzNavigatorViewController.swift
+//  CBZNavigatorViewController.swift
 //  r2-navigator-swift
 //
 //  Created by Alexandre Camilleri on 8/24/17.
@@ -12,6 +12,7 @@
 import UIKit
 import R2Shared
 
+
 /// A ViewController with hooks in order to render a CBZ `Publication`.
 /// Provides the following hooks:
 /// - Properties
@@ -19,11 +20,11 @@ import R2Shared
 ///     - pageNumber - The number of the page currently rendered.
 ///     - totalPageNumber - The number of pages in the publication.
 /// - Methods
-///     - loadNext() - render the next spine item, if any.
-///     - loadPrevious() - render the previous spine item, if any.
-///     - load(at index: Int) - render the spine item at index, if any.
+///     - loadNext() - render the next resource item, if any.
+///     - loadPrevious() - render the previous resource item, if any.
+///     - load(at index: Int) - render the resource item at index, if any.
 ///
-open class CbzNavigatorViewController: UIViewController {
+open class CBZNavigatorViewController: UIViewController {
     public var publication: Publication
     public var pageNumber: Int
     public var totalPageNumber: Int
@@ -38,7 +39,7 @@ open class CbzNavigatorViewController: UIViewController {
     public init(for publication: Publication, initialIndex: Int = 0) {
         self.publication = publication
         pageNumber = initialIndex
-        totalPageNumber = publication.spine.count
+        totalPageNumber = publication.readingOrder.count
         super.init(nibName: nil, bundle: nil)
         automaticallyAdjustsScrollViewInsets = false
     }
@@ -47,19 +48,20 @@ open class CbzNavigatorViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override open func loadView() {
-        scrollView = UIScrollView()
-        scrollView.backgroundColor = UIColor.black
-        scrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view = scrollView
-    }
-
     override open func viewDidLoad() {
         super.viewDidLoad()
+        
+        scrollView = UIScrollView()
+        scrollView.backgroundColor = UIColor.black
+        scrollView.frame = view.bounds
+        scrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(scrollView)
+
         scrollView.delegate = self
         scrollView.minimumZoomScale = 1.0
         scrollView.maximumZoomScale = 2.0
         scrollView.zoomScale = 1.0
+        
         // Imageview.
         imageView = UIImageView(frame: self.scrollView.bounds)
         imageView.backgroundColor = UIColor.black
@@ -67,25 +69,32 @@ open class CbzNavigatorViewController: UIViewController {
         imageView.contentMode = .scaleAspectFit
         scrollView.addSubview(self.imageView)
         // Load content.
-        load(self.currentSpineItem())
+        load(self.currentReadingOrderItem())
+        
+        // Adds an empty view before the scroll view to have a consistent behavior on all iOS versions, regarding to the content inset adjustements. Even if automaticallyAdjustsScrollViewInsets is not set to false on the navigator's parent view controller, the scroll view insets won't be adjusted if the scroll view is not the first child in the subviews hierarchy.
+        view.insertSubview(UIView(frame: .zero), at: 0)
+        if #available(iOS 11.0, *) {
+            // Prevents the pages from jumping down when the status bar is toggled
+            scrollView.contentInsetAdjustmentBehavior = .never
+        }
     }
 }
 
-extension CbzNavigatorViewController {
+extension CBZNavigatorViewController {
 
     @objc public func loadNext() {
-        load(nextSpineItem())
+        load(nextReadingOrderItem())
     }
 
     @objc public func loadPrevious() {
-        load(previousSpineItem())
+        load(previousReadingOrderItem())
     }
 
     /// Load resource at given index.
     ///
     /// - Parameter index: The index of the resource to load.
     public func load(at index: Int) {
-        load(spineItem(at: index))
+        load(readingOrderItem(at: index))
     }
 
     /// Load `link` resource into the ImageView.
@@ -93,7 +102,7 @@ extension CbzNavigatorViewController {
     ///
     /// - Parameter link: The resource to render.
     func load(_ link: Link?) {
-        guard let link = link, let url = publication.uriTo(link: link) else {
+        guard let link = link, let url = publication.url(to: link) else {
             return
         }
         getDataFromUrl(url: url) { (data, response, error)  in
@@ -120,62 +129,64 @@ extension CbzNavigatorViewController {
             }.resume()
     }
 
-    /// Return the current spine item.
+    /// Return the current readingOrder item.
     ///
-    /// - Returns: The current spine item.
-    fileprivate func currentSpineItem() -> Link? {
-        return publication.spine[pageNumber]
+    /// - Returns: The current readingOrder item.
+    fileprivate func currentReadingOrderItem() -> Link? {
+        return publication.readingOrder[pageNumber]
     }
 
-    /// Return the next spine ite, if any, and move the index.
+    /// Return the next readingOrder item, if any, and move the index.
     ///
-    /// - Returns: The next spine item regarding current index.
-    fileprivate func nextSpineItem(updateIndex: Bool = true) -> Link? {
+    /// - Returns: The next readingOrder item regarding current index.
+    fileprivate func nextReadingOrderItem(updateIndex: Bool = true) -> Link? {
         let newIndex = pageNumber.advanced(by: 1)
 
-        guard publication.spine.indices.contains(newIndex) else {
+        guard publication.readingOrder.indices.contains(newIndex) else {
             return nil
         }
         if updateIndex {
             pageNumber = newIndex
         }
-        return publication.spine[newIndex]
+        return publication.readingOrder[newIndex]
     }
 
-    /// Return the previous spine item, if any, and move the index.
+    /// Return the previous readingOrder item, if any, and move the index.
     ///
-    /// - Returns: The previous spine item regarding current index.
-    fileprivate func previousSpineItem(updateIndex: Bool = true) -> Link? {
+    /// - Returns: The previous readingOrder item regarding current index.
+    fileprivate func previousReadingOrderItem(updateIndex: Bool = true) -> Link? {
         let newIndex = pageNumber.advanced(by: -1)
 
-        guard publication.spine.indices.contains(newIndex) else {
+        guard publication.readingOrder.indices.contains(newIndex) else {
             return nil
         }
         if updateIndex {
             pageNumber = newIndex
         }
-        return publication.spine[newIndex]
+        return publication.readingOrder[newIndex]
     }
 
-    /// Safely return the spine at index if any.
+    /// Safely return the readingOrder at index if any.
     ///
-    /// - Parameter index: The index of the desired spine item.
-    /// - Returns: The spine item if any.
-    fileprivate func spineItem(at index: Int, updateIndex: Bool = true) -> Link? {
-        guard publication.spine.indices.contains(index) else {
+    /// - Parameter index: The index of the desired readingOrder item.
+    /// - Returns: The readingOrder item if any.
+    fileprivate func readingOrderItem(at index: Int, updateIndex: Bool = true) -> Link? {
+        guard publication.readingOrder.indices.contains(index) else {
             return nil
         }
         if updateIndex {
             pageNumber = index
         }
-        return publication.spine[index]
+        return publication.readingOrder[index]
     }
 }
 
-extension CbzNavigatorViewController: UIScrollViewDelegate {
+extension CBZNavigatorViewController: UIScrollViewDelegate {
     public func viewForZooming(in scrollView: UIScrollView) -> UIView? {
         return imageView
     }
 }
 
 
+@available(*, deprecated, renamed: "CBZNavigatorViewController")
+public typealias CbzNavigatorViewController = CBZNavigatorViewController
