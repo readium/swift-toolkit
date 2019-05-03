@@ -1,4 +1,4 @@
-github "krzyzanowskim/CryptoSwift" "0.14.0"
 github "readium/r2-shared-swift" "678dbfede1e24ea5b924955176a331206b1a4450"
-github "stephencelis/SQLite.swift" "0.12.0"
-github "weichsel/ZIPFoundation" "0.9.9"
+github "krzyzanowskim/CryptoSwift" "0.15.0"
+github "stephencelis/SQLite.swift" "0.11.6"
+github "weichsel/ZIPFoundation" "0.9.8"
