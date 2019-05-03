@@ -18,15 +18,61 @@ and [Readium Web Publication Manifest](https://github.com/readium/webpub-manifes
 
 ## Getting started
 
-### Adding the library to your iOS project
+## Adding the library to your iOS project
 
-#### Carthage
+> _Note:_ requires Swift 4.2 (and Xcode 10.1).
 
-Add the following line to your Cartfile
+### Carthage
 
-`github "readium/readium-opds-swift"`
+[Carthage][] is a simple, decentralized dependency manager for Cocoa. To
+install ReadiumOPDS with Carthage:
 
-Then run `carthage update --platform ios` to fetch and build the dependencies.
+ 1. Make sure Carthage is [installed][Carthage Installation].
+
+ 2. Update your Cartfile to include the following:
+
+    ```ruby
+    github "readium/r2-opds-swift" ~> 1.0.4
+    ```
+
+ 3. Run `carthage update` and
+    [add the appropriate framework][Carthage Usage].
+
+
+[Carthage]: https://github.com/Carthage/Carthage
+[Carthage Installation]: https://github.com/Carthage/Carthage#installing-carthage
+[Carthage Usage]: https://github.com/Carthage/Carthage#adding-frameworks-to-an-application
+
+
+### CocoaPods
+
+[CocoaPods][] is a dependency manager for Cocoa projects. To install
+ReadiumOPDS with CocoaPods:
+
+ 1. Make sure CocoaPods is [installed][CocoaPods Installation]. (ReadiumOPDS
+    requires version 1.0.0 or greater.)
+
+    ```sh
+    # Using the default Ruby install will require you to use sudo when
+    # installing and updating gems.
+    [sudo] gem install cocoapods
+    ```
+
+ 2. Update your Podfile to include the following:
+
+    ```ruby
+    use_frameworks!
+
+    target 'YourAppTargetName' do
+        pod 'ReadiumOPDS', :git => 'https://github.com/readium/r2-opds-swift.git', '~> 1.0.4'
+    end
+    ```
+
+ 3. Run `pod install --repo-update`.
+
+[CocoaPods]: https://cocoapods.org
+[CocoaPods Installation]: https://guides.cocoapods.org/using/getting-started.html#getting-started
+
 
 #### Import
 
@@ -38,17 +84,12 @@ In your Swift files:
 import ReadiumOPDS
 ```
 
-#### Installing dependencies (for developers)
+#### Dependencies in this module
 
-The project dependencies are managed with [Carthage](https://github.com/Carthage/Carthage). 
-
-Run `carthage update --platform ios` to fetch and build the dependencies:
-
-  - [r2-shared-swift](https://github.com/readium/r2-shared-swift) : Custom types shared by several readium-2 Swift modules.
-  - [PromiseKit](https://github.com/mxcl/PromiseKit) : Promises for Swift & ObjC.
+  - [R2Shared](https://github.com/readium/r2-shared-swift) : Custom types shared by several readium-2 Swift modules.
   - [Fuzi](https://github.com/cezheng/Fuzi) : A fast & lightweight XML & HTML parser in Swift with XPath & CSS support.
 
-Then, in Xcode:
+Modifications needed in Xcode:
 
 In `Build Settings`, find `Search Paths`, add `$(SDKROOT)/usr/include/libxml2` to `Header Search Paths`.
 
@@ -58,7 +99,6 @@ Parsing an OPDS feed (v1.x or 2.x):
 
 ```Swift
 import ReadiumOPDS
-import PromiseKit
 
 let myURL = URL(string: "https://your/custom/url")
 var parseData: ParseData?
@@ -66,15 +106,12 @@ var parseData: ParseData?
 override func viewDidLoad() {
     super.viewDidLoad()
     
-    firstly {
-      // Fetch and parse data from the specified URL
-      OPDSParser.parseURL(url: myURL)
-    }.then { newParseData -> Void in
-      // parseData property holds the OPDS related data
-      self.parseData = newParseData
-    }.always {
-      // Here, you can perform some checks on your own and refresh your UI
-      self.refreshUI()
+    // Fetch and parse data from the specified URL
+    OPDSParser.parseURL(url: myURL) { data, error in
+        if let data = data {
+            // parseData property holds the OPDS related data
+            self.parseData = data
+        }
     }
 }
 
@@ -101,7 +138,7 @@ public enum Version {
 
 ```Swift
 /// An intermediate structure return when the generic helper method public static
-/// func parseURL(url: URL) -> Promise<ParseData> from OPDSParser class is called.
+/// func parseURL(url: URL, completion: (ParseData?, Error?) -> Void) from OPDSParser class is called.
 public struct ParseData {
     /// The ressource URL
     public var url: URL
@@ -126,6 +163,5 @@ public struct ParseData {
 /// Parse an OPDS feed or publication.
 /// Feed can be v1 (XML) or v2 (JSON).
 /// - parameter url: The feed URL
-/// - Returns: A promise with the intermediate structure of type ParseData
-public static func parseURL(url: URL) -> Promise<ParseData>
+public static func parseURL(url: URL, completion: (ParseData?, Error?) -> Void)
 ```
