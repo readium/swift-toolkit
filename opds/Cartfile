@@ -1,2 +1,2 @@
-github "readium/r2-shared-swift" "develop"
+github "readium/r2-shared-swift" "master"
 github "cezheng/Fuzi" == 2.2.1
