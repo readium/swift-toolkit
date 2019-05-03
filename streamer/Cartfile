@@ -1,6 +1,6 @@
 github "readium/r2-shared-swift" "develop"
 github "cezheng/Fuzi" == 2.2.1
 github "dexman/Minizip"
-github "krzyzanowskim/CryptoSwift" == 0.14.0
+github "krzyzanowskim/CryptoSwift" == 0.15.0
 github "swisspol/GCDWebServer" == 3.5.2
 github "tadija/AEXML" == 4.3.3
