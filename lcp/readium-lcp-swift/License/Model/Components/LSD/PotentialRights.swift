@@ -10,17 +10,14 @@
 //
 
 import Foundation
-import SwiftyJSON
 
 public struct PotentialRights {
+    
     /// Time and Date when the license ends.
-    var end: Date?
+    public let end: Date?
 
-    init(with json: JSON) {
-        if let endString = json["end"].string,
-            let endDate = endString.dateFromISO8601
-        {
-            end = endDate
-        }
+    init(json: [String: Any]) throws {
+        self.end = (json["end"] as? String)?.dateFromISO8601
     }
+    
 }
