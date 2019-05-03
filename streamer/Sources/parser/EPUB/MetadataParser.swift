@@ -20,45 +20,100 @@ final public class MetadataParser {
     /// then into the Metadata object instance.
     ///
     /// - Parameters:
-    ///   - metadataElement: The XML element containing the metadatas.
-    ///   - metadata: The `Metadata` object.
-    static internal func parseRenditionProperties(from metadataElement: AEXMLElement,
-                                           to metadata: inout Metadata) {
-        guard let metas = metadataElement["meta"].all else {
-            metadata.rendition.layout = RenditionLayout.reflowable
-            return
-        }
-        // TODO: factorize
-        // Layout
-        if let renditionLayout = metas.first(where: { $0.attributes["property"] == "rendition:layout" }) {
-            let layout = renditionLayout.string
+    ///   - metadata: The XML element containing the metadatas.
+    ///   - displayOptions: Parsed iBooks or Kobo display options document. Used as a fallback.
+    static internal func parseRenditionProperties(from metadata: AEXMLElement, displayOptions: AEXMLDocument?) -> EPUBRendition {
 
-            metadata.rendition.layout = RenditionLayout(rawValue: layout)
-        } else {
-            metadata.rendition.layout = RenditionLayout.reflowable
+        func meta(_ property: String) -> String {
+            return metadata["meta"].all?
+                .first { $0.attributes["property"] == property }?
+                .string ?? ""
         }
-        // Flow
-        if let renditionFlow = metas.first(where: { $0.attributes["property"] == "rendition:flow" }) {
-            let flow = renditionFlow.string
 
-            metadata.rendition.flow = RenditionFlow(rawValue: flow)
+        func displayOption(_ name: String, platform: String? = nil) -> String? {
+            var element = displayOptions?.root
+            if let platform = platform {
+                element = element?.firstDescendant(where: { $0.name == "platform" && $0.attributes["name"] == platform })
+            }
+            return element?
+                .firstDescendant(where: { $0.name == "option" && $0.attributes["name"] == name })?
+                .string
         }
-        // Orientation
-        if let renditionOrientation = metas.first(where: { $0.attributes["property"] == "rendition:orientation" }) {
-            let orientation = renditionOrientation.string
 
-            metadata.rendition.orientation = RenditionOrientation(rawValue: orientation)
-        }
-        // Spread
-        if let renditionSpread = metas.first(where: { $0.attributes["property"] == "rendition:spread" }) {
-            let spread = renditionSpread.string
-
-            metadata.rendition.spread = RenditionSpread(rawValue: spread)
-        }
-        // Viewport
-        if let renditionViewport = metas.first(where: { $0.attributes["property"] == "rendition:viewport" }) {
-            metadata.rendition.viewport = renditionViewport.string
-        }
+        return EPUBRendition(
+            layout: {
+                switch meta("rendition:layout") {
+                case "reflowable":
+                    return .reflowable
+                case "pre-paginated":
+                    return .fixed
+                default:
+                    if displayOption("fixed-layout") == "true" {
+                        return .fixed
+                    }
+                    return .reflowable
+                }
+            }(),
+            
+            orientation: {
+                switch meta("rendition:orientation") {
+                case "landscape":
+                    return .landscape
+                case "portrait":
+                    return .portrait
+                case "auto":
+                    return .auto
+                default:
+                    if let orientationLock = displayOption("orientation-lock", platform: "*")
+                        ?? displayOption("orientation-lock", platform: "ipad")
+                        ?? displayOption("orientation-lock", platform: "iphone") {
+                        switch orientationLock {
+                        case "none":
+                            return .auto
+                        case "landscape-only":
+                            return .landscape
+                        case "portrait-only":
+                            return .portrait
+                        default:
+                            return .auto
+                        }
+                    }
+                    return .auto
+                }
+            }(),
+            
+            overflow: {
+                switch meta("rendition:flow") {
+                case "auto":
+                    return .auto
+                case "paginated":
+                    return .paginated
+                case "scrolled-doc":
+                    return .scrolled
+                case "scrolled-continous":
+                    return .scrolledContinuous
+                default:
+                    return .auto
+                }
+            }(),
+            
+            spread: {
+                switch meta("rendition:spread") {
+                case "none":
+                    return .none
+                case "auto":
+                    return .auto
+                case "landscape":
+                    return .landscape
+                // `portrait` is deprecated and should fallback to `both`.
+                // See. https://readium.org/architecture/streamer/parser/metadata#epub-3x-11
+                case "both", "portrait":
+                    return .both
+                default:
+                    return .auto
+                }
+            }()
+        )
     }
 
     /// Parse and return the title informations for different title types
@@ -71,40 +126,34 @@ final public class MetadataParser {
     /// - Parameter metadata: The `<metadata>` element.
     /// - Returns: The content of the `<dc:title>` element, `nil` if the element
     ///            wasn't found.
-    
-    static internal func titleFor(titleType: EPUBTitleType, from metadata: AEXMLElement) -> MultilangString? {
+    static internal func titleFor(titleType: EPUBTitleType, from metadata: AEXMLElement) -> LocalizedString? {
         // Return if there isn't any `<dc:title>` element
-        guard let titles = metadata["dc:title"].all else {
-            log(level: .error, "Error: Publication have no title")
+        guard let titles = metadata["dc:title"].all,
+            let titleElement = getTitleElement(titleType: titleType, from: titles, metadata) else
+        {
+            log(.error, "Error: Publication have no title")
             return nil
         }
         
-        let multilangTitle = MultilangString()
-        
-        guard let titleElement = getTitleElement(titleType: titleType, from: titles, metadata) else {
-            return multilangTitle
+        if let localizedTitle = multiString(forElement: titleElement, metadata) {
+            return localizedTitle.localizedString
+        } else if !titleElement.string.isEmpty {
+            return titleElement.string.localizedString
+        } else {
+            return nil
         }
-        /// Get single title from filtered xml element
-        multilangTitle.singleString = titleElement.string
-        /// Now trying to see if multiString title (multi lang).
-        multilangTitle.multiString = multiString(forElement: titleElement, metadata)
-        return multilangTitle
     }
     
-    static internal func mainTitle(from metadata: AEXMLElement) -> MultilangString? {
-        
-        guard let mainTitle = titleFor(titleType: .main, from: metadata) else {return nil}
-        
-        /// The default title to be returned, the first one, singleString.
-        /// Special treatment for main title when there is no title marked as main title.
-        if mainTitle.singleString == nil {
-            mainTitle.singleString = metadata["dc:title"].string
+    static internal func mainTitle(from metadata: AEXMLElement) -> LocalizedString? {
+        guard let mainTitle = titleFor(titleType: .main, from: metadata) else {
+            /// Recovers using any other title, when there is no title marked as main title.
+            let title = metadata["dc:title"].string
+            return title.isEmpty ? nil : title.localizedString
         }
         return mainTitle
     }
     
-    static internal func subTitle(from metadata: AEXMLElement) -> MultilangString? {
-        
+    static internal func subTitle(from metadata: AEXMLElement) -> LocalizedString? {
         return titleFor(titleType: .subtitle, from: metadata)
     }
 
@@ -115,15 +164,17 @@ final public class MetadataParser {
     ///   - Attributes: The XML document attributes.
     /// - Returns: The content of the `<dc:identifier>` element, `nil` if the
     ///            element wasn't found.
-    static internal func uniqueIdentifier(from metadata: AEXMLElement,
-                                   with documentattributes: [String : String]) -> String?
+    static internal func uniqueIdentifier(from document: AEXMLElement) -> String?
     {
+        let metadata = document["package"]["metadata"]
+        let attributes = document["package"].attributes
+        
         // Look for `<dc:identifier>` elements.
         guard let identifiers = metadata["dc:identifier"].all else {
             return nil
         }
         // Get the one defined as unique by the `<package>` attribute `unique-identifier`.
-        if identifiers.count > 1, let uniqueId = documentattributes["unique-identifier"] {
+        if identifiers.count > 1, let uniqueId = attributes["unique-identifier"] {
             let uniqueIdentifiers = identifiers.filter { $0.attributes["id"] == uniqueId }
             if !uniqueIdentifiers.isEmpty, let uid = uniqueIdentifiers.first {
                 return uid.string
@@ -153,7 +204,7 @@ final public class MetadataParser {
         // Convert the XML element ISO8601DateString into a Date.
         // See Formatter/Date/String extensions for details.
         guard let dateFromString = iso8601DateString.dateFromISO8601 else {
-            log(level: .warning, "Error converting the modifiedDate to a Date object")
+            log(.warning, "Error converting the modifiedDate to a Date object")
             return nil
         }
         return dateFromString
@@ -163,24 +214,20 @@ final public class MetadataParser {
     ///
     /// - Parameters:
     ///   - metadataElement: The XML element representing the metadata.
-    ///   - metadata: The Metadata object to fill (inout).
-    static internal func subject(from metadataElement: AEXMLElement) -> Subject?
+    static internal func subjects(from metadataElement: AEXMLElement) -> [Subject]
     {
-        /// Find the first <dc:subject> (Epub 3.1)
-        guard let subjectElement = metadataElement["dc:subject"].first else {
-            return nil
-        }
-        /// Check if there is a value, mandatory field.
-        guard let name = subjectElement.value else {
-            log(level: .warning, "Invalid Epub, no value for <dc:subject>")
-            return nil
-        }
-        let subject = Subject()
-
-        subject.name = name
-        subject.scheme = subjectElement.attributes["opf:authority"]
-        subject.code = subjectElement.attributes["opf:term"]
-        return subject
+        return (metadataElement["dc:subject"].all ?? [])
+            .compactMap { element in
+                guard let name = element.value else {
+                    log(.warning, "Invalid Epub, no value for <dc:subject>")
+                    return nil
+                }
+                return Subject(
+                    name: name,
+                    scheme: element.attributes["opf:authority"],
+                    code: element.attributes["opf:term"]
+                )
+            }
     }
 
     /// Parse all the Contributors objects of the model (`creator`, `contributor`,
@@ -220,7 +267,9 @@ final public class MetadataParser {
     static internal func parseContributor(from element: AEXMLElement, in metadataElement: AEXMLElement,
                                    to metadata: inout Metadata)
     {
-        let contributor = createContributor(from: element, metadataElement)
+        guard var contributor = createContributor(from: element, metadataElement) else {
+            return
+        }
 
         // Look up for possible meta refines for contributor's role.
         if let eid = element.attributes["id"] {
@@ -277,23 +326,17 @@ final public class MetadataParser {
     /// - Parameters:
     ///   - element: The XML element reprensenting the contributor.
     /// - Returns: The newly created Contributor instance.
-    static internal func createContributor(from element: AEXMLElement, _ metadata: AEXMLElement) -> Contributor
+    static internal func createContributor(from element: AEXMLElement, _ metadata: AEXMLElement) -> Contributor?
     {
-        // The 'to be returned' Contributor object.
-        let contributor = Contributor()
-
-        /// The default title to be returned, the first one, singleString.
-        contributor.multilangName.singleString = element.value
-        contributor.multilangName.multiString = multiString(forElement: element, metadata)
-        // Get role from role attribute
-        if let role = element.attributes["opf:role"] {
-            contributor.roles.append(role)
+        guard let name: LocalizedStringConvertible = multiString(forElement: element, metadata) ?? element.value else {
+            return nil
         }
-        // Get sort name from file-as attribute
-        if let sortAs = element.attributes["opf:file-as"] {
-            contributor.sortAs = sortAs
-        }
-        return contributor
+        
+        return Contributor(
+            name: name,
+            sortAs: element.attributes["opf:file-as"],
+            role: element.attributes["opf:role"]
+        )
     }
 
     /// Parse the metadata>meta>property=media:duration elements from the
@@ -301,26 +344,53 @@ final public class MetadataParser {
     /// smil file audio playback time.
     /// Metadata -> e.g. : ["#smil-1": "00:01:24.687"]
     ///
-    /// - Parameters:
-    ///   - metadataElement: The Metadata XML element.
-    ///   - otherMetadata: The publication's `otherMetadata` property.
-    static internal func parseMediaDurations(from metadataElement: AEXMLElement,
-                                      to otherMetadata: inout [MetadataItem])
+    /// - Parameter document: The OPF XML element.
+    /// - Returns: Mapping between the SMIL ID and its duration.
+    static internal func parseMediaDurations(from document: AEXMLElement) -> [String: Double]
     {
-        guard let metas = metadataElement["meta"].all else {
-            return
+        guard let metas = document["package"]["metadata"]["meta"].all else {
+            return [:]
         }
-        let mediaDurationItems = metas.filter({ $0.attributes["property"] == "media:duration" })
-        guard !mediaDurationItems.isEmpty else {
-            return
-        }
-        for mediaDurationItem in mediaDurationItems {
-            let item = MetadataItem()
+        
+        return metas
+            .filter { $0.attributes["property"] == "media:duration" }
+            .reduce([:]) { durations, item in
+                var durations = durations
+                if let property = item.attributes["refines"],
+                    let value = item.value,
+                    let duration = Double(SMILParser.smilTimeToSeconds(value))
+                {
+                    durations[property] = duration
+                }
 
-            item.property = mediaDurationItem.attributes["refines"]
-            item.value = mediaDurationItem.value
-            otherMetadata.append(item)
+                return durations
+            }
+    }
+    
+    static internal func parseReadingProgression(from document: AEXMLElement) -> ReadingProgression {
+        let direction = document["package"]["readingOrder"].attributes["page-progression-direction"]
+            ?? document["package"]["spine"].attributes["page-progression-direction"]
+            ?? "default"
+
+        switch direction {
+        case "ltr":
+            return .ltr
+        case "rtl":
+            return .rtl
+        case "default":
+            return .auto
+        default:
+            return .auto
         }
+    }
+    
+    static internal func publishedDate(from metadata: AEXMLElement) -> Date? {
+        // From the EPUB 2 and EPUB 3 specifications, only the `dc:date` element without any attribtes will be considered for the `published` property.
+        // And only the string with full date will be considered as valid date string. The string format validation happens in the `setter` of `published`.
+        return (metadata["dc:date"].all ?? [])
+            .first { $0.attributes.count == 0 }?
+            .value?
+            .dateFromISO8601
     }
 
     // Mark: - Private Methods.
@@ -408,20 +478,19 @@ final public class MetadataParser {
     /// - Parameters:
     ///   - element: The element to parse (can be a title or a contributor).
     ///   - metadata: The metadata XML element.
-    static private func multiString(forElement element: AEXMLElement,
-                             _ metadata: AEXMLElement) -> [String: String]
+    static private func multiString(forElement element: AEXMLElement, _ metadata: AEXMLElement) -> [String: String]?
     {
-        var multiString = [String:String]()
-
         guard let elementId = element.attributes["id"] else {
-            return multiString
+            return nil
         }
         // Find the <meta refines="elementId" property="alternate-script">
         // in order to find the alternative strings, if any.
         let attr = ["refines": "#\(elementId)", "property": "alternate-script"]
         guard let altScriptMetas = metadata["meta"].all(withAttributes: attr) else {
-            return multiString
+            return nil
         }
+        
+        var multiString = [String:String]()
         // For each alt meta element.
         for altScriptMeta in altScriptMetas {
             // If it have a value then add it to the multiString dictionnary.
@@ -440,6 +509,6 @@ final public class MetadataParser {
             // Add the main element to the dictionnary.
             multiString[lang] = value
         }
-        return multiString
+        return multiString.isEmpty ? nil : multiString
     }
 }

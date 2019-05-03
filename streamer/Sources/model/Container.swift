@@ -18,8 +18,7 @@ import AEXML
 /// - fileNotFound: The file could not be found.
 /// - fileError: An error occured while accessing the file attributes.
 /// - missingFile: The file at the given path couldn't not be found.
-/// - xmlParse: An error occured while parsing XML (See underlyingError for more
-///             infos).
+/// - xmlParse: An error occured while parsing XML (See underlyingError for more infos).
 /// - missingLink: The given `Link` ressource couldn't be found in the container.
 public enum ContainerError: Error {
     case streamInitFailed
@@ -48,16 +47,16 @@ public enum ContainerError: Error {
 }
 
 /// Provide methods for accessing raw data from container's files.
-public protocol Container {
-    
-    /// A dictionary object that describes the attributes (file, directory, symlink, and so on) of the file specified by the path of this Container. The keys in the dictionary are described in File Attribute Keys.
-    var attribute: [FileAttributeKey : Any]? {get set}
+public protocol Container: AnyObject {
 
     /// See `RootFile`.
     var rootFile: RootFile { get set }
+    
+    /// Last modification date of the container.
+    var modificationDate: Date { get }
 
     /// The DRM protecting resources (some) in the container.
-    var drm: Drm? { get set }
+    var drm: DRM? { get set }
 
     /// Get the raw (possibly encrypted) data of an asset in the container
     ///
@@ -84,116 +83,16 @@ public protocol Container {
     func dataInputStream(relativePath: String) throws -> SeekableInputStream
 }
 
-/// Specializing the container for Directories publication.
-protocol DirectoryContainer: Container {}
-/// Default implementation.
-extension DirectoryContainer {
-
-    // Override default imp. from Container protocol.
-    public func data(relativePath: String) throws -> Data {
-        let fullPath = generateFullPath(with: relativePath)
-
-        return try Data(contentsOf: URL(fileURLWithPath: fullPath), options: [.mappedIfSafe])
+public extension Container {
+    
+    /// The default implementation reads the modification date from the root file.
+    /// FIXME: This is needed because the PublicationServer is returning the Publications sorted by date, so that the most recent are visible at the top in the library. But this is UX behavior and should be refactored in the test app's LibraryViewController, instead of exposing it here.
+    var modificationDate: Date {
+        let url = NSURL(fileURLWithPath: rootFile.rootPath)
+        var modificationDate : AnyObject?
+        try? url.getResourceValue(&modificationDate, forKey: .contentModificationDateKey)
+        print("\(rootFile.rootPath) - \(modificationDate as! Date)")
+        return (modificationDate as? Date) ?? Date()
     }
-
-    // Override default imp. from Container protocol.
-    public func dataLength(relativePath: String) throws -> UInt64 {
-        let fullPath = generateFullPath(with: relativePath)
-
-        guard let attributes = try? FileManager.default.attributesOfItem(atPath: fullPath) else {
-            throw ContainerError.fileError
-        }
-        guard let fileSize = attributes[FileAttributeKey.size] as? UInt64 else {
-            throw ContainerError.fileError
-        }
-        return fileSize
-    }
-
-    // Override default imp. from Container protocol.
-    public func dataInputStream(relativePath: String) throws -> SeekableInputStream {
-        let fullPath = generateFullPath(with: relativePath)
-
-        guard let inputStream = FileInputStream(fileAtPath: fullPath) else {
-            throw ContainerError.streamInitFailed
-        }
-        return inputStream
-    }
-
-    // MARK: - Internal methods
-
-    /// Generate an absolute path to a ressource from a given relative path.
-    ///
-    /// - Parameter relativePath: The 'directory-relative' path to the ressource.
-    /// - Returns: The absolute path to the ressource
-    internal func generateFullPath(with relativePath: String) -> String {
-        let fullPath = rootFile.rootPath.appending(pathComponent: relativePath)
-        
-        return fullPath
-    }
-}
-
-/// Specializing the Container for Archived files.
-protocol ZipArchiveContainer: Container {
-    /// The zip archive object containing the Epub.
-    var zipArchive: ZipArchive { get set }
-}
-/// Default implementation.
-extension ZipArchiveContainer {
-
-    // Override default imp. from Container protocol.
-    public func data(relativePath: String) throws -> Data {
-        var path = relativePath
-        
-        if path.first == "/" {
-            path = String(path.dropFirst())
-        }
-        return try zipArchive.readData(path: path)
-    }
-
-    // Override default imp. from Container protocol.
-    public func dataLength(relativePath: String) throws -> UInt64 {
-        return try zipArchive.sizeOfCurrentFile()
-    }
-
-    // Override default imp. from Container protocol.
-    public func dataInputStream(relativePath: String) throws -> SeekableInputStream {
-        // One zipArchive instance per inputstream... for multithreading.
-        var path = relativePath
-
-        if path.first == "/" {
-            path = String(path.dropFirst())
-        }
-        guard let inputStream = ZipInputStream(zipFilePath: rootFile.rootPath, path: path) else {
-            throw ContainerError.streamInitFailed
-        }
-        return inputStream
-    }
-}
-
-/// ----------------------------------------------------------------------------
-
-/// Specializing the Container for Epubs.
-protocol EpubContainer: Container {
-    /// Return a XML document representing the file at path.
-    ///
-    /// - Parameter path: The 'container relative' path to the ressource.
-    /// - Returns: The generated document.
-    /// - Throws: `ContainerError.missingFile`,
-    ///           `ContainerError.xmlParse`.
-    func xmlDocument(forFileAtRelativePath path: String) throws -> AEXMLDocument
-
-    /// Return a XML Document representing the file referenced by `link`.
-    ///
-    /// - Parameters:
-    ///   - link: The `Link` to the ressource from the manifest.
-    /// - Returns: The XML Document.
-    /// - Throws: `ContainerError.missingFile`,
-    ///           `ContainerError.xmlParse`.
-    func xmlDocument(forResourceReferencedByLink link: Link?) throws -> AEXMLDocument
-}
-
-/// Specializing the `Container` for CBZ publications.
-protocol CbzContainer: Container {
-    /// Return the array of the filenames contained inside of the CBZ container.
-    func getFilesList() -> [String] 
+    
 }

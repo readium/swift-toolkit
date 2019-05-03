@@ -15,13 +15,10 @@ import R2Shared
 ///
 /// - missingFile: The file is missing from the container.
 /// - container: An Container error occurred.
-/// - missingRootFile: The rootFile is missing from internalData
 public enum FetcherError: Error {
     case missingFile(path: String)
     /// An Container error occurred, **underlyingError** thrown.
     case container(underlyingError: Error)
-    /// No rootFile in internalData, unable to get path to publication
-    case missingRootFile()
     /// The mimetype of the container is empty.
     case missingContainerMimetype()
     /// The link href couldn't be found in the container.
@@ -76,12 +73,8 @@ internal class Fetcher {
     }
 
     internal func data(forLink link: Link) throws -> Data? {
-        // Get link.href
-        guard let path = link.href else {
-            throw FetcherError.linkNotFound
-        }
+        let path = link.href
         var data = try container.data(relativePath: path)
-
         data = try contentFilters.apply(to: data, of: publication, with: container, at: path)
         return data
     }
@@ -109,16 +102,11 @@ internal class Fetcher {
 
     internal func dataStream(forLink link: Link) throws -> SeekableInputStream? {
         var inputStream: SeekableInputStream
-
-        // Get link.href
-        guard let path = link.href else {
-            throw FetcherError.linkNotFound
-        }
+        let path = link.href
         // Get an input stream from the container
         inputStream = try container.dataInputStream(relativePath: path)
         // Apply content filters to inputStream data.
-        inputStream = try contentFilters.apply(to: inputStream, of: publication,
-                                               with: container, at: path)
+        inputStream = try contentFilters.apply(to: inputStream, of: publication, with: container, at: path)
 
         return inputStream
     }
@@ -155,12 +143,12 @@ internal class Fetcher {
             throw FetcherError.missingContainerMimetype()
         }
         switch mimeType {
-        case EpubConstant.mimetype :
+        case EpubConstant.mimetype, EpubConstant.mimetypeOEBPS:
             return ContentFiltersEpub()
-        case EpubConstant.mimetypeOEBPS :
-            return ContentFiltersEpub()
-        case CbzConstant.mimetype :
+        case CbzConstant.mimetype:
             return ContentFiltersCbz()
+        case PDFConstant.pdfMimetype, PDFConstant.lcpdfMimetype:
+            return ContentFiltersPDF()
         default:
             throw FetcherError.missingContainerMimetype()
         }

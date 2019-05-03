@@ -51,15 +51,14 @@ internal class FontDecoder {
         // If the publicationIdentifier is not accessible, no deobfuscation is
         // possible.
         guard let publicationIdentifier = publicationIdentifier else {
-            log(level: .error, "Couldn't get the publication identifier.")
+            log(.error, "Couldn't get the publication identifier.")
             return input
         }
         // Check if the resource is encrypted.
-        guard let encryption = resourceLink.properties.encryption,
-            let algorithm = encryption.algorithm else
-        {
+        guard let encryption = resourceLink.properties.encryption else {
             return input
         }
+        let algorithm = encryption.algorithm
         // Check if the decoder can handle the encryption.
         guard decodableAlgorithms.values.contains(algorithm),
             let type = decoders[algorithm] else

@@ -9,6 +9,22 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
+import R2Shared
+
+
+/// `Publication` and the associated `Container`.
+public typealias PubBox = (publication: Publication, associatedContainer: Container)
+/// A callback taking care of the
+public typealias PubParsingCallback = (DRM?) throws -> Void
+
+
+public protocol PublicationParser {
+    
+    static func parse(fileAtPath path: String) throws -> (PubBox, PubParsingCallback)
+    
+}
+
+
 /// Normalize a path relative path given the base path.
 internal func normalize(base: String, href: String?) -> String {
     guard let href = href, !href.isEmpty else {

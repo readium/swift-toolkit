@@ -10,7 +10,11 @@
 //
 
 import R2Shared
+#if COCOAPODS
+import GCDWebServer
+#else
 import GCDWebServers
+#endif
 
 extension PublicationServer: Loggable {}
 
@@ -46,18 +50,17 @@ public class PublicationServer {
         get { return webServer.serverURL }
     }
 
-    /// Return all the `Publications` sorted by title asc.
+    /// Returns all the `Publications`, sorted by the container's last modification date.
+    /// FIXME: the sorting should be done on the test app's side, to present the library according to the user's criteria.
     public var publications: [Publication] {
-        get {
-            let publications = pubBoxes.values.compactMap({ $0.publication })
-
-            return publications.sorted(by: {$0.updatedDate > $1.updatedDate})
-        }
+        return pubBoxes.values
+            .sorted { $0.associatedContainer.modificationDate > $1.associatedContainer.modificationDate }
+            .map { $0.publication }
     }
 
-    /// Return all the `Container` as an array.
+    /// Returns all the `Containers` as an array.
     public var containers: [Container] {
-        get { return  pubBoxes.values.compactMap({ $0.associatedContainer }) }
+        return pubBoxes.values.map { $0.associatedContainer }
     }
 
     // MARK: - Public methods
@@ -76,19 +79,15 @@ public class PublicationServer {
     }
 
     internal func startWebServer() -> Bool {
-        #if DEBUG
-            let port = 8080
-        #else
-            let port = 1337
-        #endif
+        // with port 0, a random port is used each time.
+        let port = 0
         do {
             // TODO: Check if we can use unix socket instead of tcp.
             //       Check if it's supported by WKWebView first.
             try webServer.start(options: [GCDWebServerOption_Port: port,
                                           GCDWebServerOption_BindToLocalhost: true])
         } catch {
-            log(level: .error, "Failed to start the HTTP server.")
-            logValue(level: .error, error)
+            log(.error, "Failed to start the HTTP server: \(error)")
             return false
         }
         return true
@@ -97,11 +96,11 @@ public class PublicationServer {
     // Add handlers for the css/js/font resources.
     public func addSpecialResourcesHandlers() {
         func styleResourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
-            guard let request = request, let filename = request.path else {
+            guard let request = request else {
                 return GCDWebServerResponse(statusCode: 404)
             }
             let relativePath = request.path.deletingLastPathComponent
-            let resourceName = (filename as NSString).deletingPathExtension.lastPathComponent
+            let resourceName = (request.path as NSString).deletingPathExtension.lastPathComponent
 
             if let styleUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "css", subdirectory: relativePath),
                 let data = try? Data.init(contentsOf: styleUrl)
@@ -120,11 +119,11 @@ public class PublicationServer {
                              processBlock: styleResourcesHandler)
 
         func scriptResourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
-            guard let request = request, let filename = request.path else {
+            guard let request = request else {
                 return GCDWebServerResponse(statusCode: 404)
             }
             let relativePath = request.path.deletingLastPathComponent
-            let resourceName = (filename as NSString).deletingPathExtension.lastPathComponent
+            let resourceName = (request.path as NSString).deletingPathExtension.lastPathComponent
 
             if let scriptUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "js", subdirectory: relativePath),
                 let data = try? Data.init(contentsOf: scriptUrl)
@@ -143,11 +142,11 @@ public class PublicationServer {
                              processBlock: scriptResourcesHandler)
         
         func fontResourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
-            guard let request = request, let filename = request.path else {
+            guard let request = request else {
                 return GCDWebServerResponse(statusCode: 404)
             }
             let relativePath = request.path.deletingLastPathComponent
-            let resourceName = (filename as NSString).deletingPathExtension.lastPathComponent
+            let resourceName = (request.path as NSString).deletingPathExtension.lastPathComponent
             
             if let fontUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "otf", subdirectory: relativePath),
                 let data = try? Data.init(contentsOf: fontUrl)
@@ -182,11 +181,11 @@ public class PublicationServer {
                     at endpoint: String = UUID().uuidString) throws {
         // TODO: verif that endpoint is a simple string and not a path.
         guard pubBoxes[endpoint] == nil else {
-            log(level: .error, "\(endpoint) is already in use.")
+            log(.error, "\(endpoint) is already in use.")
             throw PublicationServerError.usedEndpoint
         }
         guard let baseUrl = baseUrl else {
-            log(level: .error, "Base URL is nil.")
+            log(.error, "Base URL is nil.")
             throw PublicationServerError.nilBaseUrl
         }
 
@@ -207,7 +206,7 @@ public class PublicationServer {
         /// Add manifest handler.
         addManifestHandler(for: pubBox, at: endpoint)
 
-        log(level: .info, "Publication at \(endpoint) has been successfully added.")
+        log(.info, "Publication at \(endpoint) has been successfully added.")
     }
 
     fileprivate func addResourcesHandler(for pubBox: PubBox, at endpoint: String) throws {
@@ -219,7 +218,7 @@ public class PublicationServer {
         do {
             fetcher = try Fetcher(publication: publication, container: container)
         } catch {
-            log(level: .error, "Fetcher initialisation failed.")
+            log(.error, "Fetcher initialisation failed.")
             throw PublicationServerError.fetcher(underlyingError: error)
         }
 
@@ -228,7 +227,7 @@ public class PublicationServer {
             let response: GCDWebServerResponse
 
             guard let request = request else {
-                log(level: .error, "The request received is nil.")
+                log(.error, "The request received is nil.")
                 return GCDWebServerErrorResponse(statusCode: 500)
             }
 
@@ -236,7 +235,7 @@ public class PublicationServer {
             let relativePath = String(request.path[request.path.index(endpoint.endIndex, offsetBy: 1)...])
             //
             let resource = publication.resource(withRelativePath: relativePath)
-            let contentType = resource?.typeLink ?? "application/octet-stream"
+            let contentType = resource?.type ?? "application/octet-stream"
             // Get a data input stream from the fetcher.
             do {
                 let dataStream = try fetcher.dataStream(forRelativePath: relativePath)
@@ -246,13 +245,13 @@ public class PublicationServer {
                                                      range: range,
                                                      contentType: contentType)
             } catch FetcherError.missingFile {
-                log(level: .error, "File not found, couldn't create stream.")
+                log(.error, "File not found, couldn't create stream.")
                 response = GCDWebServerErrorResponse(statusCode: 404)
             } catch FetcherError.container {
-                log(level: .error, "Error while getting data stream from container.")
+                log(.error, "Error while getting data stream from container.")
                 response = GCDWebServerErrorResponse(statusCode: 500)
             } catch {
-                logValue(level: .error, error)
+                log(.error, error)
                 response = GCDWebServerErrorResponse(statusCode: 500)
             }
             return response
@@ -270,12 +269,10 @@ public class PublicationServer {
 
         /// The webserver handler to process the HTTP GET
         func manifestHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
-            let manifestJSON = publication.toJSONString()
-            let type = "application/webpub+json; charset=utf-8"
-
-            guard let manifestData = manifestJSON?.data(using: .utf8) else {
+            guard let manifestData = publication.manifest else {
                 return GCDWebServerResponse(statusCode: 404)
             }
+            let type = "application/webpub+json; charset=utf-8"
             return GCDWebServerDataResponse(data: manifestData, contentType: type)
         }
         webServer.addHandler(
@@ -293,7 +290,7 @@ public class PublicationServer {
             {
                 pubBoxes.remove(at: index)
                 // Remove selfLinks from publication.
-                publication.links = publication.links.filter { !$0.rel.contains("self") }
+                publication.links = publication.links.filter { !$0.rels.contains("self") }
                 break
             }
         }
@@ -304,13 +301,24 @@ public class PublicationServer {
     /// - Parameter endpoint: The URI postfix of the ressource.
     public func remove(at endpoint: String) {
         guard let pubBox = pubBoxes[endpoint] else {
-            log(level: .warning, "Nothing at endpoint \(endpoint).")
+            log(.warning, "Nothing at endpoint \(endpoint).")
             return
         }
         // Remove self link from publication.
-        pubBox.publication.links = pubBox.publication.links.filter { !$0.rel.contains("self") }
+        pubBox.publication.links = pubBox.publication.links.filter { !$0.rels.contains("self") }
         // Remove the pubBox from the array.
         pubBoxes[endpoint] = nil
-        log(level: .info, "Publication at \(endpoint) has been successfully removed.")
+        log(.info, "Publication at \(endpoint) has been successfully removed.")
+    }
+  
+    /// Remove all publication from the server.
+    public func removeAll() {
+      for pubBox in pubBoxes {
+        if let index = pubBoxes.index(forKey: pubBox.key)
+        {
+          pubBoxes.remove(at: index)
+          log(.info, "Publication at \(pubBox.key) has been successfully removed.")
+        }
+      }
     }
 }
