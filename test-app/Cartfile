@@ -1,18 +1,13 @@
-github "readium/r2-shared-swift" "master"
-github "readium/r2-streamer-swift" "master"
-github "readium/r2-navigator-swift" "master"
-github "readium/readium-opds-swift" "master"
-#github "readium/r2-lcp-swift" == 1.0.0
-#github "readium/r2-lcp-wrapper-swift" == 1.0.0
-github "tadija/AEXML" == 4.2.2
-github "mxcl/PromiseKit" == 4.5.2
-github "swisspol/GCDWebServer" == 3.3.3
-github "krzyzanowskim/CryptoSwift" == 0.7.0
-github "Hearst-DD/ObjectMapper" == 2.2
-github "SwiftyJSON/SwiftyJSON" == 3.1.4
-github "onevcat/Kingfisher" == 4.6.4
-github "stephencelis/SQLite.swift" == 0.11.4
-github "edrlab/ZIPFoundation" "master"
-github "cezheng/Fuzi" == 2.0.2
+github "readium/r2-shared-swift" "develop"
+github "readium/r2-streamer-swift" "develop"
+github "readium/r2-navigator-swift" "develop"
+github "readium/readium-opds-swift" "develop"
+github "weichsel/ZIPFoundation" == 0.9.8
+github "onevcat/Kingfisher" == 4.10.1
+github "jdg/MBProgressHUD"
+github "stephencelis/SQLite.swift" == 0.11.5
+github "tadija/AEXML" == 4.3.3
+github "swisspol/GCDWebServer" == 3.5.2
+github "krzyzanowskim/CryptoSwift" == 0.15.0
+github "cezheng/Fuzi" == 2.2.1
 github "dexman/Minizip"
-github "jdg/MBProgressHUD" ~> 1.1.0

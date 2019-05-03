@@ -39,11 +39,17 @@ Follow the project on [ZenHub](https://app.zenhub.com/workspace/o/readium/r2-tes
 
 `$> carthage update --platform ios`
 
+2) Generate Carthage input/output filelist using [Carting](https://github.com/artemnovichkov/Carting)
+
+`$> carting update` 
+
 2) Open the xCode project :
 
 `$> open r2-testapp-swift.xcodeproj`
 
-3) Build the project target named `r2-testapp-swift`.
+3) Build the project target named `r2-testapp-swift (carthage)`.
+
+**More build and dependency information can be found in [r2-workspace-swift](https://github.com/readium/r2-workspace-swift)**
 
 ## [@Contributors] Efficient workflow for testing changes on Readium-2
 
