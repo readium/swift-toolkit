@@ -1,19 +1,13 @@
 language: swift
-osx_image: xcode9.3
+osx_image: xcode10.1
 
 branches:
   only:
     - master
     - develop
 
-cache:
-  directories:
-    - Carthage
-
 before_install:
   - brew update
-  - brew outdated carthage || brew upgrade carthage
-  - carthage update --verbose --no-use-binaries --platform iOS --cache-builds
 
 script:
   - xcodebuild clean build -project r2-shared-swift.xcodeproj -scheme r2-shared-swift -destination "platform=iOS Simulator,name=iPhone 8,OS=11.3" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ONLY_ACTIVE_ARCH=NO -quiet
