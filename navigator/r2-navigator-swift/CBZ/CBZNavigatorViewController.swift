@@ -13,11 +13,11 @@ import UIKit
 import R2Shared
 
 
-public protocol CBZNavigatorDelegate: NavigatorDelegate { }
+public protocol CBZNavigatorDelegate: VisualNavigatorDelegate { }
 
 
 /// A view controller used to render a CBZ `Publication`.
-open class CBZNavigatorViewController: UIViewController, Navigator, Loggable {
+open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggable {
     
     public weak var delegate: CBZNavigatorDelegate?
 

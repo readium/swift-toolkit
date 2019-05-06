@@ -15,7 +15,7 @@ import WebKit
 import SafariServices
 
 
-public protocol EPUBNavigatorDelegate: NavigatorDelegate {
+public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate {
     
     // MARK: - Deprecated
     
@@ -53,7 +53,7 @@ public extension EPUBNavigatorDelegate {
 
 public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
 
-open class EPUBNavigatorViewController: UIViewController, Navigator {
+open class EPUBNavigatorViewController: UIViewController, VisualNavigator {
     
     public weak var delegate: EPUBNavigatorDelegate?
     public var userSettings: UserSettings

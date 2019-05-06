@@ -15,12 +15,12 @@ import UIKit
 import R2Shared
 
 
-public protocol PDFNavigatorDelegate: NavigatorDelegate { }
+public protocol PDFNavigatorDelegate: VisualNavigatorDelegate { }
 
 
 /// A view controller used to render a PDF `Publication`.
 @available(iOS 11.0, *)
-open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
+open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggable {
     
     enum Error: Swift.Error {
         case openPDFFailed
