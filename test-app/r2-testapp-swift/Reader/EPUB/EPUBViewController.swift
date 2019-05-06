@@ -145,7 +145,9 @@ extension EPUBViewController: UserSettingsNavigationControllerDelegate {
     }
     
     internal func updateUserSettingsStyle() {
-        epubNavigator.updateUserSettingStyle()
+        DispatchQueue.main.async {
+            self.epubNavigator.updateUserSettingStyle()
+        }
     }
     
     /// Synchronyze the UI appearance to the UserSettings.Appearance.
