@@ -2,7 +2,7 @@
 # r2-testapp-swift dependencies
 github "onevcat/Kingfisher" == 4.10.1
 github "jdg/MBProgressHUD" ~> 1.1.0
-github "stephencelis/SQLite.swift" == 0.11.6
+github "stephencelis/SQLite.swift" == 0.11.5
 github "readium/r2-shared-swift" "develop"
 github "readium/r2-streamer-swift" "develop"
 github "readium/r2-navigator-swift" "develop"
@@ -25,5 +25,5 @@ github "tadija/AEXML" == 4.3.3
 
 # r2-lcp-swift dependencies
 #github "krzyzanowskim/CryptoSwift" == 0.15.0
-#github "stephencelis/SQLite.swift" == 0.11.6
+#github "stephencelis/SQLite.swift" == 0.11.5
 github "weichsel/ZIPFoundation" == 0.9.8
