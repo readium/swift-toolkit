@@ -124,10 +124,6 @@
 		03AE30962259F4D400AA4C7C /* BooksDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */; };
 		03AE30972259F4D400AA4C7C /* BooksDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */; };
 		03AE30982259F4D400AA4C7C /* BooksDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */; };
-		03AE309F2259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE309E2259F59C00AA4C7C /* Connection+UserVersion.swift */; };
-		03AE30A02259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE309E2259F59C00AA4C7C /* Connection+UserVersion.swift */; };
-		03AE30A12259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE309E2259F59C00AA4C7C /* Connection+UserVersion.swift */; };
-		03AE30A22259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE309E2259F59C00AA4C7C /* Connection+UserVersion.swift */; };
 		03BB67AC223874EE009A03C5 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192F222D936100646F1F /* AEXML.framework */; };
 		03BB67AD223874EE009A03C5 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192E222D936100646F1F /* CryptoSwift.framework */; };
 		03BB67AE223874EE009A03C5 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061933222D936100646F1F /* Fuzi.framework */; };
@@ -206,6 +202,10 @@
 		CA200645222059F400E6B3BD /* ReaderFormatModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA200643222059F200E6B3BD /* ReaderFormatModule.swift */; };
 		CA200646222059F500E6B3BD /* ReaderFormatModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA200643222059F200E6B3BD /* ReaderFormatModule.swift */; };
 		CA200647222059F500E6B3BD /* ReaderFormatModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA200643222059F200E6B3BD /* ReaderFormatModule.swift */; };
+		CA26EF802280689B0011653E /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA26EF7F2280689B0011653E /* Connection.swift */; };
+		CA26EF812280689B0011653E /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA26EF7F2280689B0011653E /* Connection.swift */; };
+		CA26EF822280689B0011653E /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA26EF7F2280689B0011653E /* Connection.swift */; };
+		CA26EF832280689B0011653E /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA26EF7F2280689B0011653E /* Connection.swift */; };
 		CA29B6F0221FF2620037534C /* Library.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CA29B6EF221FF2610037534C /* Library.storyboard */; };
 		CA29B6F1221FF2620037534C /* Library.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CA29B6EF221FF2610037534C /* Library.storyboard */; };
 		CA29B6F2221FF2620037534C /* Library.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CA29B6EF221FF2610037534C /* Library.storyboard */; };
@@ -435,7 +435,6 @@
 		0352073D222D69330000F0A4 /* SQLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SQLite.framework; path = Carthage/Build/iOS/SQLite.framework; sourceTree = "<group>"; };
 		0380490A21166627009F48BD /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BooksDatabase.swift; sourceTree = "<group>"; };
-		03AE309E2259F59C00AA4C7C /* Connection+UserVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Connection+UserVersion.swift"; sourceTree = "<group>"; };
 		03BB67B5223874FA009A03C5 /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03BB67B8223874FA009A03C5 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03BB67BB223875CC009A03C5 /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
@@ -470,6 +469,7 @@
 		CA16A84022311F7E00E66255 /* PDFViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFViewController.swift; sourceTree = "<group>"; };
 		CA16A8452231224200E66255 /* ReaderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderViewController.swift; sourceTree = "<group>"; };
 		CA200643222059F200E6B3BD /* ReaderFormatModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderFormatModule.swift; sourceTree = "<group>"; };
+		CA26EF7F2280689B0011653E /* Connection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		CA29B6EF221FF2610037534C /* Library.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Library.storyboard; sourceTree = "<group>"; };
 		CA29B6F4221FF43E0037534C /* LibraryFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryFactory.swift; sourceTree = "<group>"; };
 		CA29B6FA221FF5BC0037534C /* App.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = App.storyboard; path = "r2-testapp-swift/App/App.storyboard"; sourceTree = SOURCE_ROOT; };
@@ -780,7 +780,7 @@
 			children = (
 				CA415F23221D7599003A0F7F /* Toolkit */,
 				CA29B70E221FFE240037534C /* Error.swift */,
-				03AE309E2259F59C00AA4C7C /* Connection+UserVersion.swift */,
+				CA26EF7F2280689B0011653E /* Connection.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -1194,6 +1194,7 @@
 				CA16A84222311F7E00E66255 /* PDFViewController.swift in Sources */,
 				0350FCEB211CD2CB006994C2 /* EPUBViewController.swift in Sources */,
 				0350FCEC211CD2CB006994C2 /* LibraryViewController.swift in Sources */,
+				CA26EF812280689B0011653E /* Connection.swift in Sources */,
 				0350FCED211CD2CB006994C2 /* AdvancedSettingsViewController.swift in Sources */,
 				0350FCEE211CD2CB006994C2 /* DrmManagementTableViewController.swift in Sources */,
 				0350FCEF211CD2CB006994C2 /* OPDSGroupTableViewCell.swift in Sources */,
@@ -1204,7 +1205,6 @@
 				0350FCF1211CD2CB006994C2 /* OPDSPlaceholderView.swift in Sources */,
 				CACE84FE225640A500E19E8B /* Bookmark.swift in Sources */,
 				0350FCF2211CD2CB006994C2 /* OPDSNavigationTableViewCell.swift in Sources */,
-				03AE30A02259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */,
 				CA9A40DC221C06A300531EA1 /* DRMViewModel.swift in Sources */,
 				0350FCF3211CD2CB006994C2 /* AppDelegate.swift in Sources */,
 				CA0B3AC8222EE726006D9363 /* PDFModule.swift in Sources */,
@@ -1255,6 +1255,7 @@
 				CA16A84322311F7E00E66255 /* PDFViewController.swift in Sources */,
 				0350FD3F211CD625006994C2 /* EPUBViewController.swift in Sources */,
 				0350FD40211CD625006994C2 /* LibraryViewController.swift in Sources */,
+				CA26EF822280689B0011653E /* Connection.swift in Sources */,
 				0350FD41211CD625006994C2 /* AdvancedSettingsViewController.swift in Sources */,
 				0350FD42211CD625006994C2 /* DrmManagementTableViewController.swift in Sources */,
 				0350FD43211CD625006994C2 /* OPDSGroupTableViewCell.swift in Sources */,
@@ -1265,7 +1266,6 @@
 				0350FD45211CD625006994C2 /* OPDSPlaceholderView.swift in Sources */,
 				CACE84FF225640A500E19E8B /* Bookmark.swift in Sources */,
 				0350FD46211CD625006994C2 /* OPDSNavigationTableViewCell.swift in Sources */,
-				03AE30A12259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */,
 				CA9A40DE221C06A500531EA1 /* DRMViewModel.swift in Sources */,
 				0350FD47211CD625006994C2 /* AppDelegate.swift in Sources */,
 				CA0B3AC9222EE726006D9363 /* PDFModule.swift in Sources */,
@@ -1316,6 +1316,7 @@
 				CA16A84422311F7E00E66255 /* PDFViewController.swift in Sources */,
 				CA822C79221C5737005800D1 /* EPUBViewController.swift in Sources */,
 				CA822C7A221C5737005800D1 /* LibraryViewController.swift in Sources */,
+				CA26EF832280689B0011653E /* Connection.swift in Sources */,
 				CA822C7B221C5737005800D1 /* AdvancedSettingsViewController.swift in Sources */,
 				CA822C7C221C5737005800D1 /* DrmManagementTableViewController.swift in Sources */,
 				CA822C7D221C5737005800D1 /* OPDSGroupTableViewCell.swift in Sources */,
@@ -1326,7 +1327,6 @@
 				CA822C7F221C5737005800D1 /* OPDSPlaceholderView.swift in Sources */,
 				CACE8500225640A500E19E8B /* Bookmark.swift in Sources */,
 				CA822C80221C5737005800D1 /* OPDSNavigationTableViewCell.swift in Sources */,
-				03AE30A22259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */,
 				CA822C81221C5737005800D1 /* DRMViewModel.swift in Sources */,
 				CA822C82221C5737005800D1 /* AppDelegate.swift in Sources */,
 				CA0B3ACA222EE726006D9363 /* PDFModule.swift in Sources */,
@@ -1377,6 +1377,7 @@
 				CA16A84122311F7E00E66255 /* PDFViewController.swift in Sources */,
 				F3E7D4821F4F042600DF166D /* EPUBViewController.swift in Sources */,
 				F3E7D4711F4EFEC200DF166D /* LibraryViewController.swift in Sources */,
+				CA26EF802280689B0011653E /* Connection.swift in Sources */,
 				F3BD533B1F72B27400E46FFC /* AdvancedSettingsViewController.swift in Sources */,
 				F34CB28C1FCC20D4005E3A37 /* DrmManagementTableViewController.swift in Sources */,
 				AE53A074208F623E00737838 /* OPDSGroupTableViewCell.swift in Sources */,
@@ -1387,7 +1388,6 @@
 				AED681F220A32EBA0090DBCD /* OPDSPlaceholderView.swift in Sources */,
 				CACE84FD225640A500E19E8B /* Bookmark.swift in Sources */,
 				AE48F322208DE1E4000B7B44 /* OPDSNavigationTableViewCell.swift in Sources */,
-				03AE309F2259F59C00AA4C7C /* Connection+UserVersion.swift in Sources */,
 				F3E7D43C1F4EF6D400DF166D /* AppDelegate.swift in Sources */,
 				113B12D220800FD60074A5A2 /* OPDSCatalogSelectorViewController.swift in Sources */,
 				CA0B3AC7222EE726006D9363 /* PDFModule.swift in Sources */,
