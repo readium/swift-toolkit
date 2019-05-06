@@ -192,6 +192,8 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator {
     }
     
     public func updateUserSettingStyle() {
+        assert(Thread.isMainThread, "User settings must be updated from the main thread")
+        
         guard let views = triptychView.views?.array else {
             return
         }

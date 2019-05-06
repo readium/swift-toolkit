@@ -323,8 +323,9 @@ class WebView: UIView, Loggable {
     }
 
     /// Update webview style to userSettings.
+    /// To override in subclasses.
     func applyUserSettingsStyle() {
-        // To override in subclasses.
+        assert(Thread.isMainThread, "User settings must be updated from the main thread")
     }
     
     

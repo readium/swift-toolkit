@@ -41,7 +41,7 @@ final class ImageViewController: UIViewController, Loggable {
         super.viewDidLoad()
         
         view.backgroundColor = .clear
-        
+
         scrollView = UIScrollView(frame: view.bounds)
         scrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         scrollView.backgroundColor = .clear
@@ -55,6 +55,13 @@ final class ImageViewController: UIViewController, Loggable {
         imageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         imageView.contentMode = .scaleAspectFit
         scrollView.addSubview(imageView)
+        
+        // Adds an empty view before the scroll view to have a consistent behavior on all iOS versions, regarding to the content inset adjustements. Even if automaticallyAdjustsScrollViewInsets is not set to false on the navigator's parent view controller, the scroll view insets won't be adjusted if the scroll view is not the first child in the subviews hierarchy.
+        view.insertSubview(UIView(frame: .zero), at: 0)
+        if #available(iOS 11.0, *) {
+            // Prevents the pages from jumping down when the status bar is toggled
+            scrollView.contentInsetAdjustmentBehavior = .never
+        }
         
         loadURL()
     }
