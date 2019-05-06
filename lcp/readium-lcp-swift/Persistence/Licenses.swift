@@ -44,7 +44,7 @@ class Licenses {
     private func exists(_ license: LicenseDocument) -> Bool {
         let db = Database.shared.connection
         let filterLicense = licenses.filter(id == license.id)
-        return ((try? db.scalar(filterLicense.count)) ?? 0) != 0
+        return ((try? db.count(filterLicense)) ?? 0) != 0
     }
     
     private func get(_ column: Expression<Int?>, for licenseId: String) throws -> Int? {
@@ -107,7 +107,7 @@ extension Licenses: DeviceRepository {
         
         let db = Database.shared.connection
         let query = licenses.filter(id == license.id && registered == true)
-        let count = try db.scalar(query.count)
+        let count = try db.count(query)
         return count != 0
     }
     
