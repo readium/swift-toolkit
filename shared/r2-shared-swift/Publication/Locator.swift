@@ -72,6 +72,21 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
         try self.init(json: json)
     }
     
+    public init(link: Link) {
+        let components = link.href.split(separator: "#", maxSplits: 1).map(String.init)
+        var locations: Locations?
+        if components.count > 1 {
+            locations = Locations(fragment: String(components[1]))
+        }
+        
+        self.init(
+            href: components.first ?? link.href,
+            type: link.type ?? "",
+            title: link.title,
+            locations: locations
+        )
+    }
+    
     public var json: [String: Any] {
         return makeJSON([
             "href": href,
