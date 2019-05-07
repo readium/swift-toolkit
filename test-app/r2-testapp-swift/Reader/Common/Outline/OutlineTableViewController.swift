@@ -21,9 +21,8 @@ protocol OutlineTableViewControllerFactory {
 protocol OutlineTableViewControllerDelegate: AnyObject {
     
     var bookmarksDataSource: BookmarkDataSource? { get }
-    func outline(_ outlineTableViewController: OutlineTableViewController, didSelectItem item: String)
-    func outline(_ outlineTableViewController: OutlineTableViewController, didSelectBookmark bookmark: Bookmark)
-    
+    func outline(_ outlineTableViewController: OutlineTableViewController, goTo location: Locator)
+
 }
 
 final class OutlineTableViewController: UITableViewController {
@@ -89,22 +88,17 @@ final class OutlineTableViewController: UITableViewController {
             let bookmarks = bookmarksDataSource?.bookmarks ?? []
             if selectedIndex < 0 || selectedIndex >= bookmarks.count {return}
             if let bookmark = bookmarksDataSource?.bookmarks[selectedIndex] {
-                delegate?.outline(self, didSelectBookmark: bookmark)
+                delegate?.outline(self, goTo: bookmark.locator)
             }
-            dismiss(animated: true, completion: nil)
-            
+
         default:
-            guard let outline = outlines[section] else {
-                break
+            if let outline = outlines[section] {
+                let link = outline[indexPath.row]
+                delegate?.outline(self, goTo: Locator(link: link))
             }
-            if (publication.format != .cbz) {
-                let resourcePath = outline[indexPath.row].href
-                delegate?.outline(self, didSelectItem: resourcePath)
-            } else {
-                delegate?.outline(self, didSelectItem: String(indexPath.row))
-            }
-            dismiss(animated: true, completion:nil)
         }
+        
+        dismiss(animated: true, completion: nil)
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {

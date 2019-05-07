@@ -39,10 +39,6 @@ class CBZViewController: ReaderViewController {
         navigator.didMove(toParent: self)
     }
     
-    override var outline: [Link] {
-        return publication.readingOrder
-    }
-
     override var currentBookmark: Bookmark? {
         guard let publicationID = publication.metadata.identifier,
             let locator = navigator.currentLocation,
@@ -57,17 +53,7 @@ class CBZViewController: ReaderViewController {
             locator: locator
         )
     }
-    
-    override func goTo(item: String) {
-        guard let index = Int(item),
-            publication.readingOrder.indices.contains(index) else
-        {
-            return
-        }
-        
-        navigator.go(to: publication.readingOrder[index])
-    }
-    
+
 }
 
 extension CBZViewController: CBZNavigatorDelegate {

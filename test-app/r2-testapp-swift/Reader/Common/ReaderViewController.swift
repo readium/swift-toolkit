@@ -113,20 +113,8 @@ class ReaderViewController: UIViewController, Loggable {
         fatalError("Not implemented")
     }
     
-    var outline: [Link] {
-        return publication.tableOfContents
-    }
 
-    func goTo(item: String) {
-        navigator.go(to: Link(href: item))
-    }
-    
-    func goTo(bookmark: Bookmark) {
-        navigator.go(to: bookmark.locator)
-    }
-    
-    
-    // MARK: - Table of Contents
+    // MARK: - Outlines
 
     @objc func presentOutline() {
         moduleDelegate?.presentOutline(of: publication, delegate: self, from: self)
@@ -158,6 +146,10 @@ extension ReaderViewController: NavigatorDelegate {
     }
     
     func navigator(_ navigator: Navigator, presentExternalURL url: URL) {
+        // SFSafariViewController crashes when given an URL without an HTTP scheme.
+        guard ["http", "https"].contains(url.scheme?.lowercased() ?? "") else {
+            return
+        }
         present(SFSafariViewController(url: url), animated: true)
     }
     
@@ -189,12 +181,8 @@ extension ReaderViewController: VisualNavigatorDelegate {
 
 extension ReaderViewController: OutlineTableViewControllerDelegate {
     
-    func outline(_ outlineTableViewController: OutlineTableViewController, didSelectItem item: String) {
-        goTo(item: item)
+    func outline(_ outlineTableViewController: OutlineTableViewController, goTo location: Locator) {
+        navigator.go(to: location)
     }
-    
-    func outline(_ outlineTableViewController: OutlineTableViewController, didSelectBookmark bookmark: Bookmark) {
-        goTo(bookmark: bookmark)
-    }
-    
+
 }
