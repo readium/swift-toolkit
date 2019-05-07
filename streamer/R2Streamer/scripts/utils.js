@@ -7,11 +7,12 @@
 window.addEventListener("load", function(){ // on page load
     // Notify native code that the page is loaded.
     webkit.messageHandlers.didLoad.postMessage("");
-    window.addEventListener("orientationchange", snapCurrentPosition);
+    window.addEventListener("orientationchange", orientationChanged);
 }, false);
 
 var last_known_scroll_position = 0;
 var ticking = false;
+var maxScreenX = 0;
 
 // Position in range [0 - 1].
 var update = function(position) {
@@ -20,15 +21,20 @@ var update = function(position) {
 };
 
 window.addEventListener('scroll', function(e) {
-                       last_known_scroll_position = window.scrollX / document.getElementsByTagName("body")[0].scrollWidth;
-                       if (!ticking) {
-                       window.requestAnimationFrame(function() {
-                                                    update(last_known_scroll_position);
-                                                    ticking = false;
-                                                    });
-                       }
-                       ticking = true;
-                       });
+    last_known_scroll_position = window.scrollX / document.getElementsByTagName("body")[0].scrollWidth;
+    if (!ticking) {
+        window.requestAnimationFrame(function() {
+            update(last_known_scroll_position);
+            ticking = false;
+        });
+    }
+    ticking = true;
+});
+
+function orientationChanged() {
+    maxScreenX = (window.orientation === 0 || window.orientation == 180) ? screen.width : screen.height;
+    snapCurrentPosition();
+}
 
 // Scroll to the given TagId in document and snap.
 var scrollToId = function(id) {
