@@ -257,7 +257,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator {
     }
     
     public func go(to link: Link, animated: Bool, completion: @escaping () -> Void) -> Bool {
-        return go(to: link.locator, animated: animated, completion: completion)
+        return go(to: Locator(link: link), animated: animated, completion: completion)
     }
     
     public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
@@ -437,7 +437,7 @@ extension EPUBNavigatorViewController {
         if !publication.readingOrder.indices.contains(initialIndex) {
             initialIndex = 0
         }
-        let initialLocation = publication.readingOrder[initialIndex].locator
+        let initialLocation = Locator(link: publication.readingOrder[initialIndex])
         
         self.init(publication: publication, license: license, initialLocation: initialLocation, editingActions: editingActions, contentInset: contentInset)
     }

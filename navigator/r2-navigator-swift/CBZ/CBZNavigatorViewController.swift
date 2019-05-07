@@ -241,7 +241,7 @@ extension CBZNavigatorViewController {
     public convenience init(for publication: Publication, initialIndex: Int = 0) {
         var location: Locator? = nil
         if publication.readingOrder.indices.contains(initialIndex) {
-            location = publication.readingOrder[initialIndex].locator
+            location = Locator(link: publication.readingOrder[initialIndex])
         }
         self.init(publication: publication, initialLocation: location)
     }

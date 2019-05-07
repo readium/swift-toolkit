@@ -13,7 +13,6 @@
 		CA479DC3226493570053445E /* UIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA479DC2226493570053445E /* UIView.swift */; };
 		CA479DC52264AEA20053445E /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA479DC42264AEA20053445E /* UIColor.swift */; };
 		CA7B4B4E227B253200393E3E /* gestures.js in Resources */ = {isa = PBXBuildFile; fileRef = CA7B4B4D227B253200393E3E /* gestures.js */; };
-		CAA7734E2271BC75006B33FE /* Link.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA7734D2271BC75006B33FE /* Link.swift */; };
 		CAA9A38D226F409C00BE1D6A /* fxl-wrapper.html in Resources */ = {isa = PBXBuildFile; fileRef = CAA9A38C226F409C00BE1D6A /* fxl-wrapper.html */; };
 		CAB9086B22492D4C00711C3F /* Navigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB9086A22492D4C00711C3F /* Navigator.swift */; };
 		CACE84F82254BE5F00E19E8B /* PDFDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE84F72254BE5F00E19E8B /* PDFDocumentView.swift */; };
@@ -38,7 +37,6 @@
 		CA479DC2226493570053445E /* UIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIView.swift; sourceTree = "<group>"; };
 		CA479DC42264AEA20053445E /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColor.swift; sourceTree = "<group>"; };
 		CA7B4B4D227B253200393E3E /* gestures.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = gestures.js; sourceTree = "<group>"; };
-		CAA7734D2271BC75006B33FE /* Link.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Link.swift; sourceTree = "<group>"; };
 		CAA9A38C226F409C00BE1D6A /* fxl-wrapper.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "fxl-wrapper.html"; sourceTree = "<group>"; };
 		CAB9086A22492D4C00711C3F /* Navigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Navigator.swift; sourceTree = "<group>"; };
 		CACE84F72254BE5F00E19E8B /* PDFDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDocumentView.swift; sourceTree = "<group>"; };
@@ -84,7 +82,6 @@
 		CA479DC1226493390053445E /* Toolkit */ = {
 			isa = PBXGroup;
 			children = (
-				CAA7734D2271BC75006B33FE /* Link.swift */,
 				CA479DC2226493570053445E /* UIView.swift */,
 				CA479DC42264AEA20053445E /* UIColor.swift */,
 			);
@@ -266,7 +263,6 @@
 				CA0B3AC3222EE555006D9363 /* PDFNavigatorViewController.swift in Sources */,
 				F3E7D3E61F4D84EF00DF166D /* WebView.swift in Sources */,
 				F3E7D42E1F4EE0FE00DF166D /* CBZNavigatorViewController.swift in Sources */,
-				CAA7734E2271BC75006B33FE /* Link.swift in Sources */,
 				CA479DC52264AEA20053445E /* UIColor.swift in Sources */,
 				F3E7D3E01F4D847E00DF166D /* Disjunction.swift in Sources */,
 				CAEACA222272EFBD00476340 /* ImageViewController.swift in Sources */,
