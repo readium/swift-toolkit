@@ -30,9 +30,6 @@ public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate {
 
     /// Implement `NavigatorDelegate.navigator(presentError:)` instead.
     func presentError(_ error: NavigatorError)
-    
-    // Implement `NavigatorDelegate.navigator(presentExternalURL:)` instead.
-    func didTapExternalUrl(_ : URL)
 
 }
 
@@ -44,9 +41,6 @@ public extension EPUBNavigatorDelegate {
     func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int) {}
     func didNavigateViaInternalLinkTap(to documentIndex: Int) {}
     func presentError(_ error: NavigatorError) {}
-    func didTapExternalUrl(_ url: URL) {
-        UIApplication.shared.openURL(url)
-    }
 
 }
 
@@ -305,8 +299,6 @@ extension EPUBNavigatorViewController: WebViewDelegate {
     
     func handleTapOnLink(with url: URL) {
         delegate?.navigator(self, presentExternalURL: url)
-        // FIXME: Deprecated, to be removed at some point.
-        delegate?.didTapExternalUrl(url)
     }
     
     func handleTapOnInternalLink(with href: String) {
@@ -340,10 +332,6 @@ extension EPUBNavigatorViewController: WebViewDelegate {
     func displayLeftDocument(animated: Bool, completion: @escaping () -> Void) {
         let delta = triptychView.readingProgression == .rtl ? -1 : 1
         goToIndex(triptychView.index - delta, animated: animated, completion: completion)
-    }
-
-    func publicationBaseUrl() -> URL? {
-        return publication.baseURL
     }
 
 }

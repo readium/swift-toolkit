@@ -99,6 +99,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTap)))
         
         pdfView = PDFDocumentView(frame: view.bounds, editingActions: editingActions)
+        pdfView.delegate = self
         pdfView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(pdfView)
         
@@ -300,6 +301,15 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
 }
 
+@available(iOS 11.0, *)
+extension PDFNavigatorViewController: PDFViewDelegate {
+    
+    public func pdfViewWillClick(onLink sender: PDFView, with url: URL) {
+        print(url)
+        delegate?.navigator(self, presentExternalURL: url)
+    }
+    
+}
 
 @available(iOS 11.0, *)
 extension PDFNavigatorViewController: EditingActionsControllerDelegate {

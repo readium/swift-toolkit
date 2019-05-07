@@ -19,7 +19,6 @@ protocol WebViewDelegate: class {
     func displayRightDocument(animated: Bool, completion: @escaping () -> Void)
     func displayLeftDocument(animated: Bool, completion: @escaping () -> Void)
     func webView(_ webView: WebView, didTapAt point: CGPoint)
-    func publicationBaseUrl() -> URL?
     func handleTapOnLink(with url: URL)
     func handleTapOnInternalLink(with href: String)
     func documentPageDidChange(webView: WebView, currentPage: Int ,totalPage: Int)
@@ -396,26 +395,23 @@ extension WebView: WKNavigationDelegate {
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction,
                  decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        let navigationType = navigationAction.navigationType
+        var policy: WKNavigationActionPolicy = .allow
 
-        if navigationType == .linkActivated {
+        if navigationAction.navigationType == .linkActivated {
             if let url = navigationAction.request.url {
-                // TO/DO add URL normalisation.
-                //check url if internal or external
-                let publicationBaseUrl = viewDelegate?.publicationBaseUrl()
-
-                if url.host == publicationBaseUrl?.host,
-                    let baseUrlString = publicationBaseUrl?.absoluteString {
-                    // Internal link.
-                    let href = url.absoluteString.replacingOccurrences(of: baseUrlString, with: "")
+                // Check if url is internal or external
+                if url.host == baseURL.host {
+                    let href = url.absoluteString.replacingOccurrences(of: baseURL.absoluteString, with: "")
                     viewDelegate?.handleTapOnInternalLink(with: href)
                 } else {
                     viewDelegate?.handleTapOnLink(with: url)
                 }
+                
+                policy = .cancel
             }
         }
 
-        decisionHandler(navigationType == .other ? .allow : .cancel)
+        decisionHandler(policy)
     }
 }
 
@@ -448,12 +444,8 @@ extension WebView: WKUIDelegate {
     // The property allowsLinkPreview is default false in iOS9, so it should be safe to use @available(iOS 10.0, *)
     @available(iOS 10.0, *)
     func webView(_ webView: WKWebView, shouldPreviewElement elementInfo: WKPreviewElementInfo) -> Bool {
-        let publicationBaseUrl = viewDelegate?.publicationBaseUrl()
-        let url = elementInfo.linkURL
-        if url?.host == publicationBaseUrl?.host {
-            return false
-        }
-        return true
+        // Preview allowed only if the link is not internal
+        return (elementInfo.linkURL?.host != baseURL.host)
     }
 }
 

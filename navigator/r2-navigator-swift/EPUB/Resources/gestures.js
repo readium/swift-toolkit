@@ -8,16 +8,8 @@
   document.addEventListener('touchend', touchend, false);
 
   function touchstart(event) {
-    // https://stackoverflow.com/questions/4878484/difference-between-tagname-and-nodename
-    var nodeName = event.target.nodeName.toLowerCase();
-    // Ignores taps on interactive HTML elements.
-    // FIXME: there are more cases to handle, it needs to be researched
-    if (nodeName == 'a' || nodeName == 'input') {
-        return;
-    }
-
     isTapping = (event.touches.length == 1);
-    if (!isTapping) {
+    if (isInteractiveElement(event.target) || !isTapping) {
       return;
     }
 
@@ -51,4 +43,29 @@
     event.stopPropagation();
     event.preventDefault();
   }
+
+  function isInteractiveElement(element) {
+    var interactiveTags = [
+      'a',
+      'input',
+      'option',
+      'select',
+      'submit',
+      'textarea',
+      'video',
+    ]
+
+    // https://stackoverflow.com/questions/4878484/difference-between-tagname-and-nodename
+    if (interactiveTags.indexOf(element.nodeName.toLowerCase()) != -1) {
+        return true;
+    }
+
+    // Checks parents recursively because the touch might be for example on an <em> inside a <a>.
+    if (element.parentElement) {
+      return isInteractiveElement(element.parentElement);
+    }
+    
+    return false;
+  }
+
 })();

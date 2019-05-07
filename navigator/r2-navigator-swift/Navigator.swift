@@ -92,7 +92,9 @@ public protocol NavigatorDelegate: AnyObject {
 public extension NavigatorDelegate {
     
     func navigator(_ navigator: Navigator, presentExternalURL url: URL) {
-        UIApplication.shared.openURL(url)
+        if UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.openURL(url)
+        }
     }
 
 }
