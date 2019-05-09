@@ -8,6 +8,7 @@ window.addEventListener("load", function(){ // on page load
     // Notify native code that the page is loaded.
     webkit.messageHandlers.didLoad.postMessage("");
     window.addEventListener("orientationchange", orientationChanged);
+    orientationChanged();
 }, false);
 
 var last_known_scrollX_position = 0;
@@ -58,14 +59,20 @@ var scrollToPosition = function(position, dir) {
         console.log("InvalidPosition");
         return;
     }
-    var offset = 0.0;
-    if (dir == 'rtl') {
-        offset = (-document.body.scrollWidth + maxScreenX) * (1.0-position);
+
+    if (isScrollModeEnabled()) {
+        var offset = document.body.scrollHeight * position;
+        document.body.scrollTop = offset;
+        // window.scrollTo(0, offset);
     } else {
-        offset = document.body.scrollWidth * position;
+        var offset = 0.0;
+        if (dir == 'rtl') {
+            offset = (-document.body.scrollWidth + maxScreenX) * (1.0-position);
+        } else {
+            offset = document.body.scrollWidth * position;
+        }
+        document.body.scrollLeft = snapOffset(offset);
     }
-    console.log(offset);
-    document.body.scrollLeft = snapOffset(offset);
 };
 
 var scrollLeft = function(dir) {
