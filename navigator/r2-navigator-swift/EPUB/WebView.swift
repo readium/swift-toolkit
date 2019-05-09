@@ -43,7 +43,6 @@ class WebView: UIView, Loggable {
     weak var activityIndicatorView: UIActivityIndicatorView?
 
     var initialId: String?
-    // progression and totalPages only work on 'readium-scroll-off' mode
     var progression: Double?
     var totalPages: Int?
     func currentPage() -> Int {
@@ -58,6 +57,11 @@ class WebView: UIView, Loggable {
             guard let userSettings = userSettings else { return }
             updateActivityIndicator(for: userSettings)
         }
+    }
+    
+    /// Whether the continuous scrolling mode is enabled.
+    var isScrollEnabled: Bool {
+        return (userSettings?.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable)?.on ?? false
     }
 
     var documentLoaded = false
@@ -102,15 +106,19 @@ class WebView: UIView, Loggable {
         setupWebView()
 
         sizeObservation = scrollView.observe(\.contentSize, options: .new) { [weak self] scrollView, value in
-            guard let self = self else {
+            guard let self = self, self.documentLoaded else {
                 return
             }
-            // update total pages
-            guard self.documentLoaded else { return }
-            guard let newWidth = value.newValue?.width else {return}
-            let pageWidth = scrollView.frame.size.width
-            if pageWidth == 0.0 {return} // Possible zero value
-            let pageCount = Int(newWidth / scrollView.frame.size.width);
+            
+            let scrollMode = self.isScrollEnabled
+            let contentSize = value.newValue ?? .zero
+            let pageSize = scrollView.frame.size
+            let documentLength = scrollMode ? contentSize.height : contentSize.width
+            let pageLength = scrollMode ? pageSize.height : pageSize.width
+            guard documentLength > 0, pageLength > 0 else {
+                return
+            }
+            let pageCount = Int(documentLength / pageLength)
             if self.totalPages != pageCount {
                 self.totalPages = pageCount
                 self.viewDelegate?.documentPageDidChange(webView: self, currentPage: self.currentPage(), totalPage: pageCount)
@@ -330,7 +338,8 @@ class WebView: UIView, Loggable {
     
     // MARK: - Progression change
     
-    private var progressionOriginPage: Int?
+    // To check if a progression change was cancelled or not.
+    private var previousProgression: Double?
 
     // Called by the javascript code to notify that scrolling ended.
     private func progressionDidChange(body: Any) {
@@ -338,20 +347,19 @@ class WebView: UIView, Loggable {
             return
         }
         
-        if progressionOriginPage == nil {
-            progressionOriginPage = currentPage()
+        if previousProgression == nil {
+            previousProgression = progression
         }
         
         progression = newProgression
     }
     
     @objc private func notifyDocumentPageChange() {
-        let page = currentPage()
-        guard progressionOriginPage != page, let pages = totalPages else {
+        guard previousProgression != progression, let pages = totalPages else {
             return
         }
-        progressionOriginPage = nil
-        viewDelegate?.documentPageDidChange(webView: self, currentPage: page, totalPage: pages)
+        previousProgression = nil
+        viewDelegate?.documentPageDidChange(webView: self, currentPage: currentPage(), totalPage: pages)
     }
 
 }

@@ -20,11 +20,7 @@ final class ReflowableWebView: WebView {
 
     private var topConstraint: NSLayoutConstraint!
     private var bottomConstraint: NSLayoutConstraint!
-    
-    private var isScrollEnabled: Bool {
-        return (userSettings?.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable)?.on ?? false
-    }
-    
+
     override func setupWebView() {
         super.setupWebView()
         scrollView.bounces = false

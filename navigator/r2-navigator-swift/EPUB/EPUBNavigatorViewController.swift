@@ -112,7 +112,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator {
         // FIXME: Deprecated, to be removed at some point.
         delegate?.willExitPublication(documentIndex: triptychView.index, progression: triptychView.currentDocumentProgression)
     }
-    
+
     /// Mapping between reading order hrefs and the table of contents title.
     private lazy var tableOfContentsTitleByHref: [String: String] = {
         func fulfill(linkList: [Link]) -> [String: String] {
@@ -191,10 +191,16 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator {
         guard let views = triptychView.views?.array else {
             return
         }
+        
+        let location = currentLocation
         for view in views {
             let webview = view as? WebView
-            
             webview?.applyUserSettingsStyle()
+        }
+        
+        // Re-positions the navigator to the location before applying the settings
+        if let location = location {
+            go(to: location)
         }
     }
 
