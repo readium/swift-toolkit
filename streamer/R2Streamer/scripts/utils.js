@@ -10,7 +10,8 @@ window.addEventListener("load", function(){ // on page load
     window.addEventListener("orientationchange", orientationChanged);
 }, false);
 
-var last_known_scroll_position = 0;
+var last_known_scrollX_position = 0;
+var last_known_scrollY_position = 0;
 var ticking = false;
 var maxScreenX = 0;
 
@@ -21,10 +22,11 @@ var update = function(position) {
 };
 
 window.addEventListener('scroll', function(e) {
-    last_known_scroll_position = window.scrollX / document.getElementsByTagName("body")[0].scrollWidth;
+    last_known_scrollY_position = window.scrollY / document.body.scrollHeight;
+    last_known_scrollX_position = window.scrollX / document.body.scrollWidth;
     if (!ticking) {
         window.requestAnimationFrame(function() {
-            update(last_known_scroll_position);
+            update(isScrollModeEnabled() ? last_known_scrollY_position : last_known_scrollX_position);
             ticking = false;
         });
     }
@@ -34,6 +36,10 @@ window.addEventListener('scroll', function(e) {
 function orientationChanged() {
     maxScreenX = (window.orientation === 0 || window.orientation == 180) ? screen.width : screen.height;
     snapCurrentPosition();
+}
+
+function isScrollModeEnabled() {
+    return document.documentElement.style.getPropertyValue("--USER__scroll").toString().trim() == 'readium-scroll-on';
 }
 
 // Scroll to the given TagId in document and snap.
