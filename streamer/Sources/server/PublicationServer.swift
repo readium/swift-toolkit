@@ -79,11 +79,8 @@ public class PublicationServer {
     }
 
     internal func startWebServer() -> Bool {
-        #if DEBUG
-            let port = 8080
-        #else
-            let port = 1337
-        #endif
+        // with port 0, a random port is used each time.
+        let port = 0
         do {
             // TODO: Check if we can use unix socket instead of tcp.
             //       Check if it's supported by WKWebView first.
