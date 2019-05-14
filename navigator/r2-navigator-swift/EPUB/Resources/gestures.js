@@ -36,8 +36,10 @@
     }
 
     webkit.messageHandlers.tap.postMessage({
-      "x": touch.screenX,
-      "y": touch.screenY,
+      "screenX": touch.screenX,
+      "screenY": touch.screenY,
+      "clientX": touch.clientX,
+      "clientY": touch.clientY,
     });
 
     event.stopPropagation();

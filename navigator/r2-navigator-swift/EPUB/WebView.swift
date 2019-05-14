@@ -206,19 +206,19 @@ class WebView: UIView, Loggable {
     /// Called from the JS code when a tap is detected.
     private func didTap(body: Any) {
         guard let body = body as? [String: Any],
-            let x = body["x"] as? Int,
-            let y = body["y"] as? Int else
+            let point = pointFromTap(body) else
         {
             return
         }
-
-        let point = CGPoint(
-            x: CGFloat(x) * scrollView.zoomScale - scrollView.contentOffset.x + webView.frame.minX,
-            y: CGFloat(y) * scrollView.zoomScale - scrollView.contentOffset.y + webView.frame.minY
-        )
+        
         viewDelegate?.webView(self, didTapAt: point)
-
         dismissIfNeeded()
+    }
+    
+    /// Converts the touch data returned by the JavaScript `tap` event into a point in the webview's coordinate space.
+    func pointFromTap(_ data: [String: Any]) -> CGPoint? {
+        // To override in subclasses.
+        return nil
     }
     
     /// Called by the UITapGestureRecognizer as a fallback tap when tapping around the webview.
