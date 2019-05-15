@@ -69,7 +69,8 @@ final class FixedWebView: WebView {
             completion?(nil, nil)
             return
         }
-        webView.evaluateJavaScript("page.eval(\"\(script.replacingOccurrences(of: "\"", with: "\\\""))\");", completionHandler: completion)
+        let script = "page.eval(\"\(script.replacingOccurrences(of: "\"", with: "\\\""))\");"
+        super.evaluateScriptInResource(script, completion: completion)
     }
     
     /// Layouts the resource to fit its content in the bounds.

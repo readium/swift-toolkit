@@ -65,7 +65,7 @@ final class ReflowableWebView: WebView {
         
         if let userSettings = userSettings {
             for cssProperty in userSettings.userProperties.properties {
-                evaluateScriptInResource("setProperty(\"\(cssProperty.name)\", \"\(cssProperty.toString())\");")
+                evaluateScriptInResource("readium.setProperty(\"\(cssProperty.name)\", \"\(cssProperty.toString())\");")
             }
         }
 

@@ -251,12 +251,12 @@ class WebView: UIView, Loggable {
         guard position >= 0 && position <= 1 else { return }
         
         let dir = readingProgression.rawValue
-        evaluateScriptInResource("scrollToPosition(\'\(position)\', \'\(dir)\')")
+        evaluateScriptInResource("readium.scrollToPosition(\'\(position)\', \'\(dir)\')")
     }
 
     // Scroll at the tag with id `tagId`.
     func scrollAt(tagId: String) {
-        evaluateScriptInResource("scrollToId(\'\(tagId)\');")
+        evaluateScriptInResource("readium.scrollToId(\'\(tagId)\');")
     }
 
     // Scroll to .beggining or .end.
@@ -310,7 +310,7 @@ class WebView: UIView, Loggable {
         let dir = readingProgression.rawValue
         switch direction {
         case .left:
-            evaluateScriptInResource("scrollLeft(\"\(dir)\");") { result, error in
+            evaluateScriptInResource("readium.scrollLeft(\"\(dir)\");") { result, error in
                 if error == nil, let success = result as? Bool, !success {
                     viewDelegate?.displayLeftDocument(animated: animated, completion: completion)
                 } else {
@@ -318,7 +318,7 @@ class WebView: UIView, Loggable {
                 }
             }
         case .right:
-            evaluateScriptInResource("scrollRight(\"\(dir)\");") { result, error in
+            evaluateScriptInResource("readium.scrollRight(\"\(dir)\");") { result, error in
                 if error == nil, let success = result as? Bool, !success {
                     viewDelegate?.displayRightDocument(animated: animated, completion: completion)
                 } else {
