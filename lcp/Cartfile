@@ -1,5 +1,4 @@
 github "readium/r2-shared-swift" "develop"
-#github "readium/r2-lcp-wrapper-swift" "develop"
 github "krzyzanowskim/CryptoSwift" == 0.15.0
 github "stephencelis/SQLite.swift" == 0.11.5
 github "weichsel/ZIPFoundation" == 0.9.8
