@@ -67,7 +67,7 @@ var scrollToPosition = function(position, dir) {
     } else {
         var offset = 0.0;
         if (dir == 'rtl') {
-            offset = (-document.body.scrollWidth + maxScreenX) * (1.0-position);
+            offset = -document.body.scrollWidth * (1.0-position);
         } else {
             offset = document.body.scrollWidth * position;
         }
@@ -75,62 +75,36 @@ var scrollToPosition = function(position, dir) {
     }
 };
 
-var scrollLeft = function(dir) {
-    var scrollWidth = document.body.scrollWidth;
-    var newOffset = window.scrollX - window.innerWidth;
-    var edge = -scrollWidth + window.innerWidth;
-    var newEdge = (dir == "rtl")? edge:0;
-    
-    if (window.innerWidth == scrollWidth) {
-        // No scroll and default zoom
-        return "edge";
-    } else {
-        // Scrolled and zoomed
-        if (newOffset > newEdge) {
-            document.body.scrollLeft = newOffset
-            return 0;
-        } else {
-            var oldOffset = window.scrollX;
-            document.body.scrollLeft = newEdge;
-            var diff = Math.abs(newEdge-oldOffset)/window.innerWidth;
-            // In some case the scrollX cannot reach the position respecting to innerWidth
-            if (diff > 0.01) {
-                return 0;
-            } else {
-                return "edge";
-            }
-        }
-    }
-};
+// Returns false if the page is already at the left-most scroll offset.
+function scrollLeft(dir) {
+    var isRTL = (dir == "rtl");
+    var documentWidth = document.body.scrollWidth;
+    var pageWidth = window.innerWidth;
+    var offset = window.scrollX - pageWidth;
+    var minOffset = isRTL ? -(documentWidth - pageWidth) : 0;
+    return scrollToOffset(Math.max(offset, minOffset));
+}
 
-var scrollRight = function(dir) {
-    
-    var scrollWidth = document.body.scrollWidth;
-    var newOffset = window.scrollX + window.innerWidth;
-    var edge = scrollWidth - window.innerWidth;
-    var newEdge = (dir == "rtl")? 0:edge
-    
-    if (window.innerWidth == scrollWidth) {
-        // No scroll and default zoom
-        return "edge";
-    } else {
-        // Scrolled and zoomed
-        if (newOffset < newEdge) {
-            document.body.scrollLeft = newOffset
-            return 0;
-        } else {
-            var oldOffset = window.scrollX;
-            document.body.scrollLeft = newEdge;
-            var diff = Math.abs(newEdge-oldOffset)/window.innerWidth;
-            // In some case the scrollX cannot reach the position respecting to innerWidth
-            if (diff > 0.01) {
-                return 0;
-            } else {
-                return "edge";
-            }
-        }
-    }
-};
+// Returns false if the page is already at the right-most scroll offset.
+function scrollRight(dir) {
+    var isRTL = (dir == "rtl");
+    var documentWidth = document.body.scrollWidth;
+    var pageWidth = window.innerWidth;
+    var offset = window.scrollX + pageWidth;
+    var maxOffset = isRTL ? 0 : (documentWidth - pageWidth);
+    return scrollToOffset(Math.min(offset, maxOffset));
+}
+
+// Scrolls to the given left offset.
+// Returns false if the page scroll position is already close enough to the given offset.
+function scrollToOffset(offset) {
+    var currentOffset = window.scrollX;
+    var pageWidth = window.innerWidth;
+    document.body.scrollLeft = offset;
+    // In some case the scrollX cannot reach the position respecting to innerWidth
+    var diff = Math.abs(currentOffset - offset) / pageWidth;
+    return (diff > 0.01);
+}
 
 // Snap the offset to the screen width (page width).
 var snapOffset = function(offset) {
