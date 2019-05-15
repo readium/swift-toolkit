@@ -311,7 +311,7 @@ class WebView: UIView, Loggable {
         switch direction {
         case .left:
             evaluateScriptInResource("scrollLeft(\"\(dir)\");") { result, error in
-                if error == nil, let result = result as? String, result == "edge" {
+                if error == nil, let success = result as? Bool, !success {
                     viewDelegate?.displayLeftDocument(animated: animated, completion: completion)
                 } else {
                     completion()
@@ -319,7 +319,7 @@ class WebView: UIView, Loggable {
             }
         case .right:
             evaluateScriptInResource("scrollRight(\"\(dir)\");") { result, error in
-                if error == nil, let result = result as? String, result == "edge" {
+                if error == nil, let success = result as? Bool, !success {
                     viewDelegate?.displayRightDocument(animated: animated, completion: completion)
                 } else {
                     completion()
