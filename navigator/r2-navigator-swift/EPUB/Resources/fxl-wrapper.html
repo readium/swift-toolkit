@@ -93,6 +93,9 @@
       function handleTouchStart(event) {
         _singleTouchGesture = (event.touches.length == 1);
         var touch = event.changedTouches[0];
+        var portrait = (window.orientation === 0 || window.orientation == 180);
+        var maxScreenX = portrait ? screen.width : screen.height;
+        var maxScreenY = portrait ? screen.height : screen.width;
         _startX = touch.screenX % maxScreenX;
         _startY = touch.screenY % maxScreenY;
         _touchStartTime = Date.now();
