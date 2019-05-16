@@ -31,6 +31,7 @@
 		CA0F9A4F228D76890022AA81 /* Samples in Resources */ = {isa = PBXBuildFile; fileRef = F3DE1EC91E69801D00D05F74 /* Samples */; };
 		CA0F9A51228D76B70022AA81 /* PublicationParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3DE1D891E69757100D05F74 /* PublicationParsingTests.swift */; };
 		CA0F9A54228D76E20022AA81 /* FontDecoderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3292B031EA5F452004848DE /* FontDecoderTests.swift */; };
+		CA0F9A58228D79370022AA81 /* NavigationDocumentParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0F9A57228D79370022AA81 /* NavigationDocumentParserTests.swift */; };
 		CA16A83D223112BB00E66255 /* PDFFileCGParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A83C223112BB00E66255 /* PDFFileCGParser.swift */; };
 		CA16A83F2231193E00E66255 /* PDFContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A83E2231193E00E66255 /* PDFContainer.swift */; };
 		CA2AE324221C1F5E008BD18F /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE323221C1F5E008BD18F /* Logger.swift */; };
@@ -89,6 +90,7 @@
 		59501E1F1E2FB2AD00D1B4BF /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		AEBE1F3C20EF903700418960 /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = fonts; sourceTree = "<group>"; };
 		CA0F9A3A228D6F060022AA81 /* R2StreamerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = R2StreamerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA0F9A57228D79370022AA81 /* NavigationDocumentParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationDocumentParserTests.swift; sourceTree = "<group>"; };
 		CA16A83C223112BB00E66255 /* PDFFileCGParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PDFFileCGParser.swift; path = Sources/parser/PDF/PDFFileCGParser.swift; sourceTree = SOURCE_ROOT; };
 		CA16A83E2231193E00E66255 /* PDFContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFContainer.swift; sourceTree = "<group>"; };
 		CA2AE323221C1F5E008BD18F /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
@@ -269,6 +271,7 @@
 			isa = PBXGroup;
 			children = (
 				F3DE1D891E69757100D05F74 /* PublicationParsingTests.swift */,
+				CA0F9A56228D79200022AA81 /* EPUB */,
 			);
 			path = Parser;
 			sourceTree = "<group>";
@@ -279,6 +282,14 @@
 				F3292B031EA5F452004848DE /* FontDecoderTests.swift */,
 			);
 			path = Fetcher;
+			sourceTree = "<group>";
+		};
+		CA0F9A56228D79200022AA81 /* EPUB */ = {
+			isa = PBXGroup;
+			children = (
+				CA0F9A57228D79370022AA81 /* NavigationDocumentParserTests.swift */,
+			);
+			path = EPUB;
 			sourceTree = "<group>";
 		};
 		CAF8F03C222EBD13009B47D8 /* CBZ */ = {
@@ -506,6 +517,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA0F9A4D228D753C0022AA81 /* SampleGenerator.swift in Sources */,
+				CA0F9A58228D79370022AA81 /* NavigationDocumentParserTests.swift in Sources */,
 				CA0F9A4E228D75F60022AA81 /* PublicationServerTests.swift in Sources */,
 				CA0F9A51228D76B70022AA81 /* PublicationParsingTests.swift in Sources */,
 				CA0F9A54228D76E20022AA81 /* FontDecoderTests.swift in Sources */,

@@ -15,6 +15,7 @@ import Fuzi
 
 /// The navigation document if documented here at Navigation
 /// https://idpf.github.io/a11y-guidelines/
+/// http://www.idpf.org/epub/301/spec/epub-contentdocs.html#sec-xhtml-nav-def
 final public class NavigationDocumentParser {
     
     enum NavType: String {
@@ -47,18 +48,10 @@ final public class NavigationDocumentParser {
     /// Returns the [Link] representation of the navigation list of given type (eg. pageList).
     /// - Parameter type: epub:type of the <nav> element to parse.
     func links(for type: NavType) -> [Link] {
-        if case .tableOfContents = type {
-            guard let documentFuzi = documentFuzi else {
-                return []
-            }
-            return tableOfContent(fromNavigationDocument: documentFuzi, locatedAt: path)
-            
-        } else {
-            guard let document = document else {
-                return []
-            }
-            return nodeArray(forNavigationDocument: document, locatedAt: path, havingNavType: type.rawValue)
+        guard let document = document else {
+            return []
         }
+        return nodeArray(forNavigationDocument: document, locatedAt: path, havingNavType: type.rawValue)
     }
     
 
@@ -134,8 +127,8 @@ final public class NavigationDocumentParser {
         // Retrieve the children <li> elements of the <ol>.
         return (element["li"].all ?? [])
             .map { li in
-                // FIXME: href is required for Link, but sometimes nested <ol> don't have any href. We need a proper Navigation tree structure instead of relying on `Link`.
-                let link = Link(href: "#")
+                // FIXME: `Link` requires a `href`, but a Navigation Document allows "unlinked" element for structure. So we use an empty href in this case.
+                let link = Link(href: "")
                 
                 let a = li["a"]
                 if let href = a.attributes["href"] {

@@ -122,4 +122,10 @@ internal class SampleGenerator: XCTest {
         }
         return URL(string: path)
     }
+    
+    internal func getSamplesFileURL(named: String, ofType: String?) -> URL? {
+        let bundle = Bundle(for: type(of: self))
+        return bundle.url(forResource: "Samples/\(named)", withExtension: ofType)
+    }
+    
 }
