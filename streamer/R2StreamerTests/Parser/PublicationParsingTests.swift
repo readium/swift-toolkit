@@ -1,5 +1,5 @@
 //
-//  GeneratePublicationsTest.swift
+//  PublicationParsingTests.swift
 //  R2Streamer
 //
 //  Created by Alexandre Camilleri on 3/3/17.
@@ -7,15 +7,14 @@
 //
 
 import XCTest
+import R2Shared
 @testable import R2Streamer
 
-extension PublicationParsingTest: Loggable {}
-
-class PublicationParsingTest: XCTestCase {
+class PublicationParsingTests: XCTestCase, Loggable {
     let sg = SampleGenerator()
 
     override func setUp() {
-        R2StreamerEnableLog(withMinimumSeverityLevel: .debug)
+        R2EnableLog(withMinimumSeverityLevel: .debug)
         // Retrieve the samples URLs.
         sg.getSampleEpubUrl()
     }

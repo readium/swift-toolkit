@@ -25,6 +25,12 @@
 		59501E151E2FB16600D1B4BF /* ZipArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59501E011E2FB16600D1B4BF /* ZipArchive.swift */; };
 		59501E201E2FB2AD00D1B4BF /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E1F1E2FB2AD00D1B4BF /* libz.tbd */; };
 		AEBE1F3D20EF903700418960 /* fonts in Resources */ = {isa = PBXBuildFile; fileRef = AEBE1F3C20EF903700418960 /* fonts */; };
+		CA0F9A3F228D6F060022AA81 /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501DCD1E2FB0D700D1B4BF /* R2Streamer.framework */; };
+		CA0F9A4D228D753C0022AA81 /* SampleGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F37B63541E6DC44300C6A3AC /* SampleGenerator.swift */; };
+		CA0F9A4E228D75F60022AA81 /* PublicationServerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F309BBDC1E696F660002F800 /* PublicationServerTests.swift */; };
+		CA0F9A4F228D76890022AA81 /* Samples in Resources */ = {isa = PBXBuildFile; fileRef = F3DE1EC91E69801D00D05F74 /* Samples */; };
+		CA0F9A51228D76B70022AA81 /* PublicationParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3DE1D891E69757100D05F74 /* PublicationParsingTests.swift */; };
+		CA0F9A54228D76E20022AA81 /* FontDecoderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3292B031EA5F452004848DE /* FontDecoderTests.swift */; };
 		CA16A83D223112BB00E66255 /* PDFFileCGParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A83C223112BB00E66255 /* PDFFileCGParser.swift */; };
 		CA16A83F2231193E00E66255 /* PDFContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A83E2231193E00E66255 /* PDFContainer.swift */; };
 		CA2AE324221C1F5E008BD18F /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE323221C1F5E008BD18F /* Logger.swift */; };
@@ -50,6 +56,16 @@
 		F3F41E151FA0EBDE00F97737 /* DataCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F41E141FA0EBDE00F97737 /* DataCompression.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		CA0F9A40228D6F060022AA81 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 59501DC41E2FB0D700D1B4BF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 59501DCC1E2FB0D700D1B4BF;
+			remoteInfo = "r2-streamer-swift";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		03BB67F02238852D009A03C5 /* OPFParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = OPFParser.swift; path = Sources/parser/EPUB/OPFParser.swift; sourceTree = SOURCE_ROOT; };
 		03C3CC69222DBD9E00A01731 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -72,6 +88,7 @@
 		59501E011E2FB16600D1B4BF /* ZipArchive.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZipArchive.swift; sourceTree = "<group>"; };
 		59501E1F1E2FB2AD00D1B4BF /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		AEBE1F3C20EF903700418960 /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = fonts; sourceTree = "<group>"; };
+		CA0F9A3A228D6F060022AA81 /* R2StreamerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = R2StreamerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA16A83C223112BB00E66255 /* PDFFileCGParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PDFFileCGParser.swift; path = Sources/parser/PDF/PDFFileCGParser.swift; sourceTree = SOURCE_ROOT; };
 		CA16A83E2231193E00E66255 /* PDFContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFContainer.swift; sourceTree = "<group>"; };
 		CA2AE323221C1F5E008BD18F /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
@@ -86,9 +103,8 @@
 		F3098E701E7BFF87002358A1 /* NCXParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = NCXParser.swift; path = Sources/Parser/EPUB/NCXParser.swift; sourceTree = SOURCE_ROOT; };
 		F3098E721E7BFF9B002358A1 /* NavigationDocumentParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavigationDocumentParser.swift; sourceTree = "<group>"; };
 		F3098E741E7C02AD002358A1 /* MetadataParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MetadataParser.swift; sourceTree = "<group>"; };
-		F309BBDC1E696F660002F800 /* PublicationServerTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationServerTest.swift; sourceTree = "<group>"; };
-		F31D64D31E811EF5007BEA81 /* SmokeTestReferenceManifest.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = SmokeTestReferenceManifest.json; sourceTree = "<group>"; };
-		F3292B031EA5F452004848DE /* FontDeobfuscationTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FontDeobfuscationTest.swift; sourceTree = "<group>"; };
+		F309BBDC1E696F660002F800 /* PublicationServerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationServerTests.swift; sourceTree = "<group>"; };
+		F3292B031EA5F452004848DE /* FontDecoderTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FontDecoderTests.swift; sourceTree = "<group>"; };
 		F34510C11E938CAE0071C12C /* PublicationParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = PublicationParser.swift; path = Sources/parser/PublicationParser.swift; sourceTree = SOURCE_ROOT; };
 		F36B18F31E64638E005E22B4 /* StringExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		F37B63541E6DC44300C6A3AC /* SampleGenerator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SampleGenerator.swift; sourceTree = "<group>"; };
@@ -96,7 +112,7 @@
 		F3B8F0211E9E244B0052D64B /* EncryptionParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; name = EncryptionParser.swift; path = Sources/Parser/EPUB/EncryptionParser.swift; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		F3B8F0231E9E62A50052D64B /* ContentFilter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContentFilter.swift; path = Sources/fetcher/ContentFilter.swift; sourceTree = SOURCE_ROOT; };
 		F3D434231E8E9DA5008C379E /* CbzParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CbzParser.swift; path = Sources/Parser/CBZ/CbzParser.swift; sourceTree = SOURCE_ROOT; };
-		F3DE1D891E69757100D05F74 /* PublicationParsingTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationParsingTest.swift; sourceTree = "<group>"; };
+		F3DE1D891E69757100D05F74 /* PublicationParsingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationParsingTests.swift; sourceTree = "<group>"; };
 		F3DE1EC91E69801D00D05F74 /* Samples */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Samples; sourceTree = "<group>"; };
 		F3ED92D51E9F702E00E15C8F /* FontDecoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = FontDecoder.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		F3ED92D91EA0AF0000E15C8F /* DataInputStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataInputStream.swift; sourceTree = "<group>"; };
@@ -110,6 +126,14 @@
 			files = (
 				03C3CC6A222DBD9E00A01731 /* R2Shared.framework in Frameworks */,
 				59501E201E2FB2AD00D1B4BF /* libz.tbd in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA0F9A37228D6F060022AA81 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA0F9A3F228D6F060022AA81 /* R2Streamer.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -130,6 +154,7 @@
 			isa = PBXGroup;
 			children = (
 				59501DCD1E2FB0D700D1B4BF /* R2Streamer.framework */,
+				CA0F9A3A228D6F060022AA81 /* R2StreamerTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -155,12 +180,11 @@
 		59501DDA1E2FB0D700D1B4BF /* R2StreamerTests */ = {
 			isa = PBXGroup;
 			children = (
-				F3DE1EC91E69801D00D05F74 /* Samples */,
-				F31D64D31E811EF5007BEA81 /* SmokeTestReferenceManifest.json */,
-				F309BBDC1E696F660002F800 /* PublicationServerTest.swift */,
-				F3DE1D891E69757100D05F74 /* PublicationParsingTest.swift */,
-				F3292B031EA5F452004848DE /* FontDeobfuscationTest.swift */,
 				F37B63541E6DC44300C6A3AC /* SampleGenerator.swift */,
+				CA0F9A55228D775E0022AA81 /* Fetcher */,
+				CA0F9A53228D76DA0022AA81 /* Parser */,
+				CA0F9A50228D76B00022AA81 /* Server */,
+				F3DE1EC91E69801D00D05F74 /* Samples */,
 				59501DDD1E2FB0D700D1B4BF /* Info.plist */,
 			);
 			path = R2StreamerTests;
@@ -231,6 +255,30 @@
 				59501E1F1E2FB2AD00D1B4BF /* libz.tbd */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		CA0F9A50228D76B00022AA81 /* Server */ = {
+			isa = PBXGroup;
+			children = (
+				F309BBDC1E696F660002F800 /* PublicationServerTests.swift */,
+			);
+			path = Server;
+			sourceTree = "<group>";
+		};
+		CA0F9A53228D76DA0022AA81 /* Parser */ = {
+			isa = PBXGroup;
+			children = (
+				F3DE1D891E69757100D05F74 /* PublicationParsingTests.swift */,
+			);
+			path = Parser;
+			sourceTree = "<group>";
+		};
+		CA0F9A55228D775E0022AA81 /* Fetcher */ = {
+			isa = PBXGroup;
+			children = (
+				F3292B031EA5F452004848DE /* FontDecoderTests.swift */,
+			);
+			path = Fetcher;
 			sourceTree = "<group>";
 		};
 		CAF8F03C222EBD13009B47D8 /* CBZ */ = {
@@ -332,13 +380,31 @@
 			productReference = 59501DCD1E2FB0D700D1B4BF /* R2Streamer.framework */;
 			productType = "com.apple.product-type.framework";
 		};
+		CA0F9A39228D6F060022AA81 /* R2StreamerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA0F9A44228D6F060022AA81 /* Build configuration list for PBXNativeTarget "R2StreamerTests" */;
+			buildPhases = (
+				CA0F9A36228D6F060022AA81 /* Sources */,
+				CA0F9A37228D6F060022AA81 /* Frameworks */,
+				CA0F9A38228D6F060022AA81 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA0F9A41228D6F060022AA81 /* PBXTargetDependency */,
+			);
+			name = R2StreamerTests;
+			productName = R2StreamerTests;
+			productReference = CA0F9A3A228D6F060022AA81 /* R2StreamerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		59501DC41E2FB0D700D1B4BF /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 0820;
+				LastSwiftUpdateCheck = 1020;
 				LastUpgradeCheck = 1020;
 				ORGANIZATIONNAME = Readium;
 				TargetAttributes = {
@@ -346,6 +412,11 @@
 						CreatedOnToolsVersion = 8.2;
 						LastSwiftMigration = 1010;
 						ProvisioningStyle = Manual;
+					};
+					CA0F9A39228D6F060022AA81 = {
+						CreatedOnToolsVersion = 10.2.1;
+						DevelopmentTeam = 327YA3JNGT;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -363,6 +434,7 @@
 			projectRoot = "";
 			targets = (
 				59501DCC1E2FB0D700D1B4BF /* r2-streamer-swift */,
+				CA0F9A39228D6F060022AA81 /* R2StreamerTests */,
 			);
 		};
 /* End PBXProject section */
@@ -375,6 +447,14 @@
 				AEBE1F3D20EF903700418960 /* fonts in Resources */,
 				57BFC4A8209C8EDC0018EC21 /* styles in Resources */,
 				57BFC4A7209C8EDC0018EC21 /* scripts in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA0F9A38228D6F060022AA81 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA0F9A4F228D76890022AA81 /* Samples in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -421,7 +501,26 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CA0F9A36228D6F060022AA81 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA0F9A4D228D753C0022AA81 /* SampleGenerator.swift in Sources */,
+				CA0F9A4E228D75F60022AA81 /* PublicationServerTests.swift in Sources */,
+				CA0F9A51228D76B70022AA81 /* PublicationParsingTests.swift in Sources */,
+				CA0F9A54228D76E20022AA81 /* FontDecoderTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		CA0F9A41228D6F060022AA81 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 59501DCC1E2FB0D700D1B4BF /* r2-streamer-swift */;
+			targetProxy = CA0F9A40228D6F060022AA81 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		59501DDF1E2FB0D700D1B4BF /* Debug */ = {
@@ -602,6 +701,63 @@
 			};
 			name = Release;
 		};
+		CA0F9A42228D6F060022AA81 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 327YA3JNGT;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				HEADER_SEARCH_PATHS = $SDKROOT/usr/include/libxml2;
+				INFOPLIST_FILE = R2StreamerTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.2;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks $(PROJECT_DIR)/Carthage/Build/iOS";
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2StreamerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CA0F9A43228D6F060022AA81 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 327YA3JNGT;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				HEADER_SEARCH_PATHS = $SDKROOT/usr/include/libxml2;
+				INFOPLIST_FILE = R2StreamerTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.2;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks $(PROJECT_DIR)/Carthage/Build/iOS";
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2StreamerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -619,6 +775,15 @@
 			buildConfigurations = (
 				59501DE21E2FB0D700D1B4BF /* Debug */,
 				59501DE31E2FB0D700D1B4BF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA0F9A44228D6F060022AA81 /* Build configuration list for PBXNativeTarget "R2StreamerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA0F9A42228D6F060022AA81 /* Debug */,
+				CA0F9A43228D6F060022AA81 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

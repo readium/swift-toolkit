@@ -1,5 +1,5 @@
 //
-//  DecoderTest.swift
+//  FontDecoderTest.swift
 //  R2Streamer
 //
 //  Created by Alexandre Camilleri on 4/18/17.
@@ -7,9 +7,10 @@
 //
 
 import XCTest
+import R2Shared
 @testable import R2Streamer
 
-class FontDeobfuscationTest: XCTestCase {
+class FontDecoderTests: XCTestCase {
     var testPublication: Publication!
     var testFontBytes: [UInt8]!
     var obfuscatedFontStreamIdpf: SeekableInputStream!
@@ -20,8 +21,12 @@ class FontDeobfuscationTest: XCTestCase {
         let sg = SampleGenerator()
 
         // Setup test publication.
-        testPublication = Publication()
-        testPublication.metadata.identifier = "urn:uuid:36d5078e-ff7d-468e-a5f3-f47c14b91f2f"
+        testPublication = Publication(
+            metadata: Metadata(
+                identifier: "urn:uuid:36d5078e-ff7d-468e-a5f3-f47c14b91f2f",
+                title: "Title"
+            )
+        )
         // Setup the testFontBytes.
         guard var testFontUrl = sg.getSamplesUrl(named: "SmokeTestFXL/fonts/cut-cut", ofType: ".woff") else {
             XCTFail("Couldn't generate the test font URL.")
@@ -51,11 +56,10 @@ class FontDeobfuscationTest: XCTestCase {
     }
 
     func testIdpfFontDeobfuscation() {
-        let decoder = Decoder()
-
-        obfuscatedFontStreamIdpf = decoder.decodingFont(obfuscatedFontStreamIdpf,
+        obfuscatedFontStreamIdpf =
+            FontDecoder.decodingFont(obfuscatedFontStreamIdpf,
                                                       testPublication.metadata.identifier!,
-                                                      Decoder.ObfuscationLength.idpf)
+                                                      FontDecoder.ObfuscationLength.idpf)
         let obfuscatedFontBytes = toData(inputStream: obfuscatedFontStreamIdpf).bytes
 
         XCTAssertTrue(containSameElements(testFontBytes, obfuscatedFontBytes))
@@ -63,21 +67,17 @@ class FontDeobfuscationTest: XCTestCase {
 
     /// Test deobfuscation time.
     func testIdpfFontDeobfuscationDuration() {
-        let decoder = Decoder()
-
         self.measure {
-            let _ = decoder.decodingFont(self.obfuscatedFontStreamIdpf,
+            let _ = FontDecoder.decodingFont(self.obfuscatedFontStreamIdpf,
                                self.testPublication.metadata.identifier!,
-                               Decoder.ObfuscationLength.idpf)
+                               FontDecoder.ObfuscationLength.idpf)
         }
     }
 
     func testAdobeFontDeobfuscation() {
-        let decoder = Decoder()
-
-        obfuscatedFontStreamAdobe = decoder.decodingFont(obfuscatedFontStreamAdobe,
+        obfuscatedFontStreamAdobe = FontDecoder.decodingFont(obfuscatedFontStreamAdobe,
                                                   testPublication.metadata.identifier!,
-                                                  Decoder.ObfuscationLength.adobe)
+                                                  FontDecoder.ObfuscationLength.adobe)
         let obfuscatedFontBytes = toData(inputStream: obfuscatedFontStreamAdobe).bytes
 
         XCTAssertTrue(containSameElements(testFontBytes, obfuscatedFontBytes))
@@ -85,12 +85,10 @@ class FontDeobfuscationTest: XCTestCase {
 
     /// Test deobfuscation time.
     func testAdobeFontDeobfuscationDuration() {
-        let decoder = Decoder()
-
         self.measure {
-            let _ = decoder.decodingFont(self.obfuscatedFontStreamAdobe,
+            let _ = FontDecoder.decodingFont(self.obfuscatedFontStreamAdobe,
                                self.testPublication.metadata.identifier!,
-                               Decoder.ObfuscationLength.adobe)
+                               FontDecoder.ObfuscationLength.adobe)
         }
     }
 
@@ -126,7 +124,7 @@ class FontDeobfuscationTest: XCTestCase {
             let read = input.read(buffer, maxLength: bufferSize)
             data.append(buffer, count: read)
         }
-        buffer.deallocate(capacity: bufferSize)
+        buffer.deallocate()
         return data
     }
 }
