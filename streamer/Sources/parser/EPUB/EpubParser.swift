@@ -181,36 +181,22 @@ final public class EpubParser: PublicationParser {
     static internal func parseNavigationDocument(from fetcher: Fetcher, to publication: inout Publication) {
         // Get the link in the readingOrder pointing to the Navigation Document.
         guard let navLink = publication.link(withRel: "contents"),
-            let navDocumentData = try? fetcher.data(forLink: navLink),
-            navDocumentData != nil,
-            let navDocument = try? AEXMLDocument.init(xml: navDocumentData!),
-            let navDocumentFuzi = try? XMLDocument.init(data: navDocumentData!) else
+            let navDocumentDataOptional = try? fetcher.data(forLink: navLink),
+            let navDocumentData = navDocumentDataOptional else
         {
             return
         }
-        // Get the location of the navigation document in order to normalize href pathes.
-        let navigationDocumentPath = navLink.href
         
-        publication.tableOfContents = NavigationDocumentParser
-            .tableOfContent(fromNavigationDocument: navDocumentFuzi, locatedAt: navigationDocumentPath)
-        
-        publication.pageList = NavigationDocumentParser
-            .pageList(fromNavigationDocument: navDocument, locatedAt: navigationDocumentPath)
-        
-        publication.landmarks = NavigationDocumentParser
-            .landmarks(fromNavigationDocument: navDocument, locatedAt: navigationDocumentPath)
-        
-        publication.listOfAudioFiles = NavigationDocumentParser
-            .listOfAudiofiles(fromNavigationDocument: navDocument, locatedAt: navigationDocumentPath)
-        
-        publication.listOfIllustrations = NavigationDocumentParser
-            .listOfIllustrations(fromNavigationDocument: navDocument, locatedAt: navigationDocumentPath)
-        
-        publication.listOfTables = NavigationDocumentParser
-            .listOfTables(fromNavigationDocument: navDocument, locatedAt: navigationDocumentPath)
-        
-        publication.listOfVideos = NavigationDocumentParser
-            .listOfVideos(fromNavigationDocument: navDocument, locatedAt: navigationDocumentPath)
+        // Get the location of the navigation document in order to normalize href paths.
+        let navigationDocument = NavigationDocumentParser(data: navDocumentData, at: navLink.href)
+
+        publication.tableOfContents = navigationDocument.links(for: .tableOfContents)
+        publication.pageList = navigationDocument.links(for: .pageList)
+        publication.landmarks = navigationDocument.links(for: .landmarks)
+        publication.listOfAudioFiles = navigationDocument.links(for: .listOfAudiofiles)
+        publication.listOfIllustrations = navigationDocument.links(for: .listOfIllustrations)
+        publication.listOfTables = navigationDocument.links(for: .listOfTables)
+        publication.listOfVideos = navigationDocument.links(for: .listOfVideos)
     }
 
     /// Attempt to fill `Publication.tableOfContent`/`.pageList` using the NCX
