@@ -124,20 +124,40 @@ final internal class ContentFiltersEpub: ContentFilters {
         let numberOfBytesRead = (stream as InputStream).read(&buffer, maxLength: bufferSize)
         let data = Data(bytes: buffer, count: numberOfBytesRead)
 
-        guard var resourceHtml = String.init(data: data, encoding: String.Encoding.utf8) else {
+        guard var resourceHtml = String.init(data: data, encoding: String.Encoding.utf8),
+            let document = try? XMLDocument(string: resourceHtml) else
+        {
             return stream
         }
         
-        // Inserting in <HTML>
-        guard let htmlContentStart = resourceHtml.endIndex(of: "<html") else {
-            print("Invalid resource")
-            abort()
-        }
+        let language = publication.metadata.languages.first ?? document.root?.attr("lang")
+        let contentLayout = publication.contentLayout(forLanguage: language)
+        let styleSubFolder = contentLayout.rawValue
         
         // User properties injection
-        let style = " style=\" " + buildUserPropertiesString(publication: publication) + "\""
+        if let htmlContentStart = resourceHtml.endIndex(of: "<html") {
+            let style = " style=\" " + buildUserPropertiesString(publication: publication) + "\""
+            resourceHtml = resourceHtml.insert(string: style, at: htmlContentStart)
+        }
         
-        resourceHtml = resourceHtml.insert(string: style, at: htmlContentStart)
+        // RTL dir attributes injection
+        if case .rtl = contentLayout.readingProgression {
+            // We need to add the dir="rtl" attribute on <html> and <body> if not already present.
+            // https://readium.org/readium-css/docs/CSS03-injection_and_pagination.html#right-to-left-progression
+            func addRTLDir(to tagName: String, in html: String) -> String {
+                guard let tagRange = html.range(of: "<\(tagName).*>", options: [.regularExpression, .caseInsensitive]),
+                    // Checks if the dir= attribute already exists, in which case we don't add it again otherwise the WebView reports an error.
+                    String(html[tagRange]).range(of: "dir=", options: [.regularExpression, .caseInsensitive]) == nil,
+                    let tagStart = html.endIndex(of: "<\(tagName)") else
+                {
+                    return html
+                }
+                return html.insert(string: " dir=\"rtl\"", at: tagStart)
+            }
+            
+            resourceHtml = addRTLDir(to: "html", in: resourceHtml)
+            resourceHtml = addRTLDir(to: "body", in: resourceHtml)
+        }
         
         // Inserting at the start of <HEAD>.
         guard let headStart = resourceHtml.endIndex(of: "<head>") else {
@@ -150,13 +170,7 @@ final internal class ContentFiltersEpub: ContentFilters {
             abort()
         }
         
-        //publication.metadata.primaryContentLayout
-        guard let document = try? XMLDocument(string: resourceHtml) else {return stream}
-        
-        let language = document.root?.attr("lang")
-        let contentLayout = publication.contentLayout(forLanguage: language)
-        let styleSubFolder = contentLayout.rawValue
-        
+
         let primaryContentLayout = publication.contentLayout
         if let preset = userSettingsUIPreset[primaryContentLayout] {
             publication.userSettingsUIPreset = preset
