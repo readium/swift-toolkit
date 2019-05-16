@@ -24,7 +24,7 @@ class NavigationDocumentParserTests: XCTestCase {
         XCTAssertEqual(sut, [
             Link(href: "/base/ch1.xhtml", title: "Chapter 1"),
             Link(href: "/base/ch2.xhtml", title: "Chapter 2"),
-            Link(href: "", title: "Unlinked section with nested HTML elements", children: [
+            Link(href: "#", title: "Unlinked section with nested HTML elements", children: [
                 Link(href: "/base/ssec1.xhtml", title: "Linked sub-section", children: [
                     Link(href: "/base/ssec1.xhtml#p1", title: "Paragraph"),
                 ])
@@ -78,13 +78,6 @@ class NavigationDocumentParserTests: XCTestCase {
         let url = SampleGenerator().getSamplesFileURL(named: "Navigation Documents/\(name)", ofType: type)!
         let data = try! Data(contentsOf: url)
         return NavigationDocumentParser(data: data, at: "/base/nav.xhtml")
-    }
-    
-    func jsonString(_ json: Any) -> String? {
-        guard let data = try? JSONSerialization.data(withJSONObject: json, options: .sortedKeys) else {
-            return nil
-        }
-        return String(data: data, encoding: .utf8)
     }
     
 }

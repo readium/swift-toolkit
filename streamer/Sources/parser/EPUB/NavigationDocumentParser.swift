@@ -98,8 +98,7 @@ final class NavigationDocumentParser {
             return nil
         }
         
-        // FIXME: `Link` requires a `href`, but a Navigation Document allows "unlinked" element for structure. So we use an empty href in this case.
-        return Link(href: href ?? "", title: title, children: children)
+        return Link(href: href ?? "#", title: title, children: children)
     }
 
 }
