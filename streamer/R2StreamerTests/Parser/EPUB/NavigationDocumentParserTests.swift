@@ -44,6 +44,13 @@ class NavigationDocumentParserTests: XCTestCase {
         ])
     }
     
+    func testParseNotFound() {
+        let document = parseNavDocument("nav")
+        let sut = document.links(for: .listOfVideos)
+        
+        XCTAssertEqual(sut, [])
+    }
+    
     func testParseTOCWithSection() {
         let document = parseNavDocument("nav-section")
         let sut = document.links(for: .tableOfContents)
@@ -59,7 +66,7 @@ class NavigationDocumentParserTests: XCTestCase {
         let sut = document.links(for: .landmarks)
         
         XCTAssertEqual(sut, [
-            Link(href: "/base/nav.xhtml/#toc", title: "Table of Contents"),
+            Link(href: "/base/nav.xhtml#toc", title: "Table of Contents"),
             Link(href: "/base/ch1.xhtml", title: "Begin Reading"),
         ])
     }
