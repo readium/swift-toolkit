@@ -23,15 +23,20 @@ class AboutTableViewController: UITableViewController {
 
         if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
             versionNumberCell.textLabel?.text = "App Version:"
-            buildNumberCell.textLabel?.text = "GitHub Tag:"
             versionNumberCell.detailTextLabel?.text = "\(version)"
-            buildNumberCell.detailTextLabel?.text = "V2.0.0-beta.3"
         } else {
             versionNumberCell.textLabel?.text = "App Version:"
-            buildNumberCell.textLabel?.text = "GitHub Tag:"
             versionNumberCell.detailTextLabel?.text = "unknown"
-            buildNumberCell.detailTextLabel?.text = "unknown"
         }
+      
+        if let version = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
+          buildNumberCell.textLabel?.text = "Build Version:"
+          buildNumberCell.detailTextLabel?.text = "\(version)"
+        } else {
+          buildNumberCell.textLabel?.text = "Build Version:"
+          buildNumberCell.detailTextLabel?.text = "unknown"
+        }
+      
     }
 
     // MARK: - Table view data source
