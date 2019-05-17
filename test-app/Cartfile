@@ -1,7 +1,7 @@
-github "readium/r2-shared-swift" "develop"
-github "readium/r2-streamer-swift" "develop"
-github "readium/r2-navigator-swift" "develop"
-github "readium/readium-opds-swift" "develop"
+github "readium/r2-shared-swift" == 1.2.8
+github "readium/r2-streamer-swift" == 1.0.8
+github "readium/r2-navigator-swift" == 1.0.7
+github "readium/readium-opds-swift" == 1.0.5
 github "weichsel/ZIPFoundation" == 0.9.8
 github "onevcat/Kingfisher" == 4.10.1
 github "jdg/MBProgressHUD"
