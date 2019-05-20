@@ -35,7 +35,7 @@ final class OutlineTableViewController: UITableViewController {
     var publication: Publication!
   
     // Outlines (list of links) to display for each section.
-    private var outlines: [Section: [Link]] = [:]
+    private var outlines: [Section: [(level: Int, link: Link)]] = [:]
 
     var bookmarksDataSource: BookmarkDataSource? {
         return delegate?.bookmarksDataSource
@@ -66,8 +66,8 @@ final class OutlineTableViewController: UITableViewController {
         tableView.dataSource = self
         tableView.tintColor = UIColor.black
 
-        func flatten(_ links: [Link]) -> [Link] {
-            return links.flatMap { [$0] + flatten($0.children) }
+        func flatten(_ links: [Link], level: Int = 0) -> [(level: Int, link: Link)] {
+            return links.flatMap { [(level, $0)] + flatten($0.children, level: level + 1) }
         }
         
         outlines = [
@@ -91,7 +91,7 @@ final class OutlineTableViewController: UITableViewController {
             {
                 return nil
             }
-            return Locator(link: outline[indexPath.row])
+            return Locator(link: outline[indexPath.row].link)
         }
     }
     
@@ -147,8 +147,8 @@ final class OutlineTableViewController: UITableViewController {
             }
             
             let cell = UITableViewCell(style: .default, reuseIdentifier: kContentCell)
-            let link = outline[indexPath.row]
-            cell.textLabel?.text = link.title ?? link.href
+            let item = outline[indexPath.row]
+            cell.textLabel?.text = String(repeating: "  ", count: item.level) + (item.link.title ?? item.link.href)
             return cell
         }
     }
