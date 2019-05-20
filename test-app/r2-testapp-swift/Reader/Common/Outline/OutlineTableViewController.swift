@@ -57,6 +57,7 @@ final class OutlineTableViewController: UITableViewController {
     @IBAction func dismissController(_ sender: Any) {
         dismiss(animated: true, completion: nil)
     }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -76,28 +77,41 @@ final class OutlineTableViewController: UITableViewController {
         ]
     }
     
+    func locator(at indexPath: IndexPath) -> Locator? {
+        switch section {
+        case .bookmarks:
+            guard let bookmark = bookmarksDataSource?.bookmark(at: indexPath.row) else {
+                return nil
+            }
+            return bookmark.locator
+
+        default:
+            guard let outline = outlines[section],
+                outline.indices.contains(indexPath.row) else
+            {
+                return nil
+            }
+            return Locator(link: outline[indexPath.row])
+        }
+    }
+    
+    override func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
+        // If the locator's href is #, then the item is not a link.
+        guard let locator = locator(at: indexPath), locator.href != "#" else {
+            return nil
+        }
+        return indexPath
+    }
+
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         defer {
             tableView.deselectRow(at: indexPath, animated: true)
         }
         
-        switch section {
-            
-        case .bookmarks:
-            let selectedIndex = indexPath.item
-            let bookmarks = bookmarksDataSource?.bookmarks ?? []
-            if selectedIndex < 0 || selectedIndex >= bookmarks.count {return}
-            if let bookmark = bookmarksDataSource?.bookmarks[selectedIndex] {
-                delegate?.outline(self, goTo: bookmark.locator)
-            }
-
-        default:
-            if let outline = outlines[section] {
-                let link = outline[indexPath.row]
-                delegate?.outline(self, goTo: Locator(link: link))
-            }
+        if let locator = locator(at: indexPath) {
+            delegate?.outline(self, goTo: locator)
         }
-        
+
         dismiss(animated: true, completion: nil)
     }
     
