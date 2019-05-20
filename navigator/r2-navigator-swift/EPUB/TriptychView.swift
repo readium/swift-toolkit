@@ -153,7 +153,7 @@ final class TriptychView: UIView {
             return
         }
         for view in views.array {
-            if let webview = (view as? WebView) {
+            if let webview = (view as? DocumentWebView) {
                 webview.removeMessageHandlers()
             }
         }
@@ -287,14 +287,14 @@ final class TriptychView: UIView {
     }
 
     private func syncSubviews() {
-        let webViewsBefore = scrollView.subviews.compactMap { $0 as? WebView }
+        let webViewsBefore = scrollView.subviews.compactMap { $0 as? DocumentWebView }
         scrollView.subviews.forEach({
             $0.removeFromSuperview()
         })
 
         if let viewArray = views?.array {
             viewArray.forEach({
-                if let webview = ($0 as? WebView) {
+                if let webview = ($0 as? DocumentWebView) {
                     webview.addMessageHandlers()
                 }
                 self.scrollView.addSubview($0)
@@ -336,7 +336,7 @@ extension TriptychView {
     /// - Parameters:
     ///   - nextIndex: The index to move to.
     internal func moveTo(index nextIndex: Int, id: String? = nil) {
-        var cw = currentView as! WebView
+        var cw = currentView as! DocumentWebView
 
         guard index != nextIndex else {
             if let id = id {
@@ -371,7 +371,7 @@ extension TriptychView {
         updateViews(previousIndex: previousIndex)
 
         // get the new current view after change.
-        cw = currentView as! WebView
+        cw = currentView as! DocumentWebView
         if let id = id {
             if id == "" {
                 if abs(previousIndex - nextIndex) == 1 {
@@ -396,7 +396,7 @@ extension TriptychView {
         guard currentView != nil else {
             return nil
         }
-        return (currentView as! WebView).progression
+        return (currentView as! DocumentWebView).progression
     }
 }
 

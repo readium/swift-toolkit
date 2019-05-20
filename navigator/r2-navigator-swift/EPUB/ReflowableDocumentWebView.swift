@@ -16,7 +16,7 @@ import R2Shared
 
 
 /// A WebView subclass to handle documents with a reflowable layout.
-final class ReflowableWebView: WebView {
+final class ReflowableDocumentWebView: DocumentWebView {
 
     private var topConstraint: NSLayoutConstraint!
     private var bottomConstraint: NSLayoutConstraint!
