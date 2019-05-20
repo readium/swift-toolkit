@@ -81,8 +81,9 @@ final public class EpubParser: PublicationParser {
         // Generate the `Container` for `fileAtPath`
         var container = try generateContainerFrom(fileAtPath: path)
 
-        // Parse OPF file (Metadata, ReadingOrder, Resource) and return the Publication.
+        // Parse OPF file (Metadata, ReadingOrder, Resource).
         var publication = try OPFParser.parseOPF(from: container)
+        parseNavigationDocument(from: container, to: &publication)
         
         // Check if the publication is DRM protected.
         let drm = scanForDRM(in: container)
@@ -97,8 +98,7 @@ final public class EpubParser: PublicationParser {
 
             fillEncryptionProfile(forLinksIn: publication, using: drm)
             try parseMediaOverlay(from: fetcher, to: &publication)
-            parseNavigationDocument(from: fetcher, to: &publication)
-            
+
             if publication.tableOfContents.isEmpty || publication.pageList.isEmpty {
                 parseNcxDocument(from: fetcher, to: &publication)
             }
@@ -178,11 +178,10 @@ final public class EpubParser: PublicationParser {
     /// - Parameters:
     ///   - container: The Epub container.
     ///   - publication: The Epub publication.
-    static internal func parseNavigationDocument(from fetcher: Fetcher, to publication: inout Publication) {
+    static internal func parseNavigationDocument(from container: Container, to publication: inout Publication) {
         // Get the link in the readingOrder pointing to the Navigation Document.
         guard let navLink = publication.link(withRel: "contents"),
-            let navDocumentDataOptional = try? fetcher.data(forLink: navLink),
-            let navDocumentData = navDocumentDataOptional else
+            let navDocumentData = try? container.data(relativePath: navLink.href) else
         {
             return
         }
