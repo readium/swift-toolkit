@@ -34,6 +34,11 @@
     if (!approximatelyEqual(startX, touch.pageX) || !approximatelyEqual(startY, touch.pageY)) {
       return;
     }
+ 
+    if (!window.getSelection().isCollapsed) {
+      // There's an on-going selection, the tap will dismiss it so we don't forward it.
+      return;
+    }
 
     webkit.messageHandlers.tap.postMessage({
       "x": touch.screenX,

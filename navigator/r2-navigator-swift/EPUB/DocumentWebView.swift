@@ -185,11 +185,6 @@ class DocumentWebView: UIView, Loggable {
         webView.evaluateJavaScript(script, completionHandler: completion)
     }
   
-    private func dismissIfNeeded() {
-        self.isUserInteractionEnabled = false
-        self.isUserInteractionEnabled = true
-    }
-
     /// Called from the JS code when a tap is detected.
     private func didTap(body: Any) {
         guard let body = body as? [String: Any],
@@ -204,8 +199,6 @@ class DocumentWebView: UIView, Loggable {
             y: CGFloat(y) * scrollView.zoomScale - scrollView.contentOffset.y + webView.frame.minY
         )
         viewDelegate?.webView(self, didTapAt: point)
-
-        dismissIfNeeded()
     }
     
     /// Called by the UITapGestureRecognizer as a fallback tap when tapping around the webview.
@@ -414,6 +407,10 @@ extension DocumentWebView: UIScrollViewDelegate {
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         scrollView.isUserInteractionEnabled = true
         viewDelegate?.didEndPageAnimation()
+    }
+    
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        webView.dismissUserSelection()
     }
     
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
