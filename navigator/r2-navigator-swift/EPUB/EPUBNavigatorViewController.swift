@@ -308,15 +308,7 @@ extension EPUBNavigatorViewController: DocumentWebViewDelegate {
     }
     
     func handleTapOnInternalLink(with href: String) {
-        guard let index = publication.readingOrder.firstIndex(withHref: href) else {
-            return
-        }
-        
-        let moved = go(to: Link(href: href))
-        if moved {
-            // FIXME: Deprecated, to be removed at some point.
-            delegate?.didNavigateViaInternalLinkTap(to: index)
-        }
+        go(to: Link(href: href))
     }
     
     func documentPageDidChange(webView: DocumentWebView, currentPage: Int, totalPage: Int) {

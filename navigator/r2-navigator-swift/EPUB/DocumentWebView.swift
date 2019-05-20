@@ -388,7 +388,7 @@ extension DocumentWebView: WKNavigationDelegate {
             if let url = navigationAction.request.url {
                 // Check if url is internal or external
                 if url.host == baseURL.host {
-                    let href = url.absoluteString.replacingOccurrences(of: baseURL.absoluteString, with: "")
+                    let href = url.absoluteString.replacingOccurrences(of: baseURL.absoluteString, with: "/")
                     viewDelegate?.handleTapOnInternalLink(with: href)
                 } else {
                     viewDelegate?.handleTapOnLink(with: url)
