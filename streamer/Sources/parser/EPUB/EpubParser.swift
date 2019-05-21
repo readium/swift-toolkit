@@ -83,7 +83,12 @@ final public class EpubParser: PublicationParser {
 
         // Parse OPF file (Metadata, ReadingOrder, Resource).
         var publication = try OPFParser.parseOPF(from: container)
+        
+        // Parse navigation tables.
         parseNavigationDocument(from: container, to: &publication)
+        if publication.tableOfContents.isEmpty || publication.pageList.isEmpty {
+            parseNCXDocument(from: container, to: &publication)
+        }
         
         // Check if the publication is DRM protected.
         let drm = scanForDRM(in: container)
@@ -98,10 +103,6 @@ final public class EpubParser: PublicationParser {
 
             fillEncryptionProfile(forLinksIn: publication, using: drm)
             try parseMediaOverlay(from: fetcher, to: &publication)
-
-            if publication.tableOfContents.isEmpty || publication.pageList.isEmpty {
-                parseNcxDocument(from: fetcher, to: &publication)
-            }
         }
         container.drm = drm
         return ((publication, container), parseRemainingResource)
@@ -171,9 +172,7 @@ final public class EpubParser: PublicationParser {
         return nil
     }
 
-    /// Attempt to fill `Publication.tableOfContent`/`.landmarks`/`.pageList`/
-    ///                              `.listOfIllustration`/`.listOftables`
-    /// using the navigation document.
+    /// Attempt to fill the `Publication`'s `tableOfContent`, `landmarks`, `pageList` and `listOfX` links collections using the navigation document.
     ///
     /// - Parameters:
     ///   - container: The Epub container.
@@ -205,23 +204,21 @@ final public class EpubParser: PublicationParser {
     /// - Parameters:
     ///   - container: The Epub container.
     ///   - publication: The Epub publication.
-    static internal func parseNcxDocument(from fetcher: Fetcher, to publication: inout Publication) {
+    static internal func parseNCXDocument(from container: Container, to publication: inout Publication) {
         // Get the link in the readingOrder pointing to the NCX document.
         guard let ncxLink = publication.resources.first(where: { $0.type == "application/x-dtbncx+xml" }),
-            let ncxDocumentData = try? fetcher.data(forLink: ncxLink),
-            ncxDocumentData != nil,
-            let ncxDocument = try? AEXMLDocument.init(xml: ncxDocumentData!) else {
-                return
+            let ncxDocumentData = try? container.data(relativePath: ncxLink.href) else
+        {
+            return
         }
-        // Get the location of the NCX document in order to normalize href pathes.
-        let ncxDocumentPath = ncxLink.href
+        
+        let ncx = NCXParser(data: ncxDocumentData, at: ncxLink.href)
+        
         if publication.tableOfContents.isEmpty {
-            let newTableOfContentItems = NCXParser.tableOfContents(fromNcxDocument: ncxDocument, locatedAt: ncxDocumentPath)
-            publication.tableOfContents.append(contentsOf: newTableOfContentItems)
+            publication.tableOfContents = ncx.tableOfContents
         }
         if publication.pageList.isEmpty {
-            let newPageListItems = NCXParser.pageList(fromNcxDocument: ncxDocument, locatedAt: ncxDocumentPath)
-            publication.pageList.append(contentsOf: newPageListItems)
+            publication.pageList = ncx.pageList
         }
     }
 

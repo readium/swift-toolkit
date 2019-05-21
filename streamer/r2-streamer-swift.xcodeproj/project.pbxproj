@@ -36,6 +36,7 @@
 		CA16A83F2231193E00E66255 /* PDFContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A83E2231193E00E66255 /* PDFContainer.swift */; };
 		CA2AE324221C1F5E008BD18F /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE323221C1F5E008BD18F /* Logger.swift */; };
 		CA8A0B77223018650047B490 /* PDFFileParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8A0B76223018650047B490 /* PDFFileParser.swift */; };
+		CAB59C162294016300803EB2 /* NCXParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB59C152294016300803EB2 /* NCXParserTests.swift */; };
 		CAF8F035222EB570009B47D8 /* DirectoryContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF8F034222EB570009B47D8 /* DirectoryContainer.swift */; };
 		CAF8F037222EB58C009B47D8 /* ArchiveContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF8F036222EB58C009B47D8 /* ArchiveContainer.swift */; };
 		CAF8F03B222EB8F5009B47D8 /* CBZContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF8F03A222EB8F5009B47D8 /* CBZContainer.swift */; };
@@ -95,6 +96,7 @@
 		CA16A83E2231193E00E66255 /* PDFContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFContainer.swift; sourceTree = "<group>"; };
 		CA2AE323221C1F5E008BD18F /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		CA8A0B76223018650047B490 /* PDFFileParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PDFFileParser.swift; path = Sources/parser/PDF/PDFFileParser.swift; sourceTree = SOURCE_ROOT; };
+		CAB59C152294016300803EB2 /* NCXParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCXParserTests.swift; sourceTree = "<group>"; };
 		CAF8F030222EA8F9009B47D8 /* PDFParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PDFParser.swift; path = Sources/Parser/PDF/PDFParser.swift; sourceTree = SOURCE_ROOT; };
 		CAF8F034222EB570009B47D8 /* DirectoryContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryContainer.swift; sourceTree = "<group>"; };
 		CAF8F036222EB58C009B47D8 /* ArchiveContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveContainer.swift; sourceTree = "<group>"; };
@@ -288,6 +290,7 @@
 			isa = PBXGroup;
 			children = (
 				CA0F9A57228D79370022AA81 /* NavigationDocumentParserTests.swift */,
+				CAB59C152294016300803EB2 /* NCXParserTests.swift */,
 			);
 			path = EPUB;
 			sourceTree = "<group>";
@@ -520,6 +523,7 @@
 				CA0F9A58228D79370022AA81 /* NavigationDocumentParserTests.swift in Sources */,
 				CA0F9A4E228D75F60022AA81 /* PublicationServerTests.swift in Sources */,
 				CA0F9A51228D76B70022AA81 /* PublicationParsingTests.swift in Sources */,
+				CAB59C162294016300803EB2 /* NCXParserTests.swift in Sources */,
 				CA0F9A54228D76E20022AA81 /* FontDecoderTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

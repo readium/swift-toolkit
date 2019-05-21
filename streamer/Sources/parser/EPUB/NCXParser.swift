@@ -18,34 +18,51 @@ import AEXML
 /// use the new navigation document format.
 /// You can ignore the NCX file if your book won't render properly as EPUB 2 
 /// content, or if you aren't targeting cross-compatibility."
-final public class NCXParser {
-    /// Return the data representation of the table of contents (toc)
-    /// informations contained in the NCX Document.
-    ///
-    /// - Parameter document: The NCX Document.
-    /// - Returns: The data representation of the table of contents (toc).
-    static internal func tableOfContents(fromNcxDocument document: AEXMLDocument,
-                                  locatedAt path: String) -> [Link]
-    {
+final class NCXParser {
+    
+    enum NavType: String {
+        case tableOfContents = "navMap"
+        case pageList = "pageList"
+    }
+    
+    private let data: Data
+    private let path: String
+    
+    /// Builds the NCX parser from the NCX data and its path. The path is used to normalize the links' hrefs.
+    init(data: Data, at path: String) {
+        self.data = data
+        self.path = path
+    }
+    
+    private lazy var document: AEXMLDocument? = {
+        return try? AEXMLDocument(xml: data)
+    }()
+    
+//    private lazy var document: XMLDocument? = {
+//        // Warning: Somehow if we use HTMLDocument instead of XMLDocument, then the `epub` prefix doesn't work.
+//        let document = try? XMLDocument(data: data)
+//        document?.definePrefix("html", defaultNamespace: "http://www.w3.org/1999/xhtml")
+//        document?.definePrefix("epub", defaultNamespace: "http://www.idpf.org/2007/ops")
+//        return document
+//    }()
+    
+    /// Returns the data representation of the table of contents (toc) informations contained in the NCX Document.
+    var tableOfContents: [Link] {
+        guard let document = document else {
+            return []
+        }
         let navMapElement = document["ncx"]["navMap"]
-        let tableOfContentsNodes = nodeArray(forNcxElement: navMapElement,
-                                             ofType: "navPoint", path)
-
+        let tableOfContentsNodes = nodeArray(forNcxElement: navMapElement, ofType: "navPoint")
         return tableOfContentsNodes
     }
 
-    /// Return the data representation of the pageList informations contained in
-    /// the NCX Document.
-    ///
-    /// - Parameter document: The NCX Document.
-    /// - Returns: The data representation of the pageList.
-    static internal func pageList(fromNcxDocument document: AEXMLDocument,
-                           locatedAt path: String) -> [Link]
-    {
+    /// Returns the data representation of the pageList informations contained in the NCX Document.
+    var pageList: [Link] {
+        guard let document = document else {
+            return []
+        }
         let pageListElement = document["ncx"]["pageList"]
-        let pageListNodes = nodeArray(forNcxElement: pageListElement,
-                                      ofType: "pageTarget", path)
-
+        let pageListNodes = nodeArray(forNcxElement: pageListElement, ofType: "pageTarget")
         return pageListNodes
     }
 
@@ -62,10 +79,10 @@ final public class NCXParser {
     ///           'pageTarget' for 'pageList'.
     /// - Returns: The Object representation of the data contained in the given
     ///            NCX XML element.
-    static fileprivate func nodeArray(forNcxElement element: AEXMLElement, ofType type: String, _ ncxDocumentPath: String) -> [Link]
+    private func nodeArray(forNcxElement element: AEXMLElement, ofType type: String) -> [Link]
     {
         return (element[type].all ?? [])
-            .compactMap { node(using: $0, ofType: type, ncxDocumentPath) }
+            .compactMap { node(using: $0, ofType: type) }
     }
 
     /// [RECURSIVE]
@@ -74,15 +91,15 @@ final public class NCXParser {
     ///
     /// - Parameter element: The <navPoint> from the NCX Document.
     /// - Returns: The generated node(`Link`).
-    static fileprivate func node(using element: AEXMLElement, ofType type: String, _ ncxDocumentPath: String) -> Link? {
+    private func node(using element: AEXMLElement, ofType type: String) -> Link? {
         guard let href = element["content"].attributes["src"] else {
             return nil
         }
 
         return Link(
-            href: normalize(base: ncxDocumentPath, href: href),
+            href: normalize(base: path, href: href),
             title: element["navLabel"]["text"].value,
-            children: nodeArray(forNcxElement: element, ofType: type, ncxDocumentPath)
+            children: nodeArray(forNcxElement: element, ofType: type)
         )
     }
 }
