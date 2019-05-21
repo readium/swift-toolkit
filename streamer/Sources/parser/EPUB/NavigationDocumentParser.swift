@@ -61,31 +61,39 @@ final class NavigationDocumentParser {
         return element.xpath("html:ol[1]/html:li")
             .compactMap { self.link(for: $0) }
     }
-    
+
     /// Parses a <li> element as a `Link`.
     private func link(for li: XMLElement) -> Link? {
         guard let label = li.firstChild(xpath: "html:a|html:span") else {
             return nil
         }
         
+        return NavigationDocumentParser.makeLink(
+            title: label.stringValue,
+            href: label.attr("href"),
+            children: links(in: li),
+            basePath: path
+        )
+    }
+    
+    /// Creates a new navigation `Link` object from a label, href and children, after validating the data.
+    static func makeLink(title: String?, href: String?, children: [Link], basePath: String) -> Link? {
         // Cleans up title label.
         // http://www.idpf.org/epub/301/spec/epub-contentdocs.html#confreq-nav-a-cnt
-        let title = label.stringValue
+        let title = (title ?? "")
             .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
         
         let href: String? = {
-            guard let href = label.attr("href") else {
+            guard let href = href else {
                 return nil
             }
             if href.hasPrefix("#") { // fragment inside the Navigation Document itself
-                return path + href
+                return basePath + href
             } else {
-                return normalize(base: path, href: href)
+                return normalize(base: basePath, href: href)
             }
         }()
-        
-        let children = links(in: li)
         
         guard
             // A zero-length text label must be ignored

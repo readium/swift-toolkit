@@ -9,7 +9,6 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
-import AEXML
 import XCTest
 import R2Shared
 @testable import R2Streamer
@@ -19,7 +18,7 @@ class NCXParserTests: XCTestCase {
     
     func testParseTOC() {
         let document = parseNCX("nav")
-        let sut = document.tableOfContents
+        let sut = document.links(for: .tableOfContents)
         
         XCTAssertEqual(sut, [
             Link(href: "/base/ch1.xhtml", title: "Chapter 1"),
@@ -36,7 +35,7 @@ class NCXParserTests: XCTestCase {
     
     func testParsePageList() {
         let document = parseNCX("nav")
-        let sut = document.pageList
+        let sut = document.links(for: .pageList)
         
         XCTAssertEqual(sut, [
             Link(href: "/base/ch1.xhtml#page1", title: "1"),
@@ -44,12 +43,12 @@ class NCXParserTests: XCTestCase {
         ])
     }
     
-//    func testParseNotFound() {
-//        let document = parseNCX("nav")
-//        let sut = document.links(for: .listOfVideos)
-//
-//        XCTAssertEqual(sut, [])
-//    }
+    func testParseNotFound() {
+        let document = parseNCX("nav-empty")
+        let sut = document.links(for: .tableOfContents)
+
+        XCTAssertEqual(sut, [])
+    }
 
     
     // MARK: - Toolkit

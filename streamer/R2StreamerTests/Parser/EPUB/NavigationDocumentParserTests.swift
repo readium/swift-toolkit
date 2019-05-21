@@ -9,7 +9,6 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
-import AEXML
 import XCTest
 import R2Shared
 @testable import R2Streamer

@@ -10,7 +10,7 @@
 //
 
 import R2Shared
-import AEXML
+import Fuzi
 
 /// From IDPF a11y-guidelines content/nav/toc.html :
 /// "The NCX file is allowed for forwards compatibility purposes only. An EPUB 2
@@ -34,72 +34,45 @@ final class NCXParser {
         self.path = path
     }
     
-    private lazy var document: AEXMLDocument? = {
-        return try? AEXMLDocument(xml: data)
+    private lazy var document: XMLDocument? = {
+        let document = try? XMLDocument(data: data)
+        document?.definePrefix("ncx", defaultNamespace: "http://www.daisy.org/z3986/2005/ncx/")
+        return document
     }()
-    
-//    private lazy var document: XMLDocument? = {
-//        // Warning: Somehow if we use HTMLDocument instead of XMLDocument, then the `epub` prefix doesn't work.
-//        let document = try? XMLDocument(data: data)
-//        document?.definePrefix("html", defaultNamespace: "http://www.w3.org/1999/xhtml")
-//        document?.definePrefix("epub", defaultNamespace: "http://www.idpf.org/2007/ops")
-//        return document
-//    }()
-    
-    /// Returns the data representation of the table of contents (toc) informations contained in the NCX Document.
-    var tableOfContents: [Link] {
-        guard let document = document else {
+
+    /// Returns the [Link] representation of the navigation list of given type (eg. pageList).
+    func links(for type: NavType) -> [Link] {
+        let nodeTagName: String = {
+            if case .pageList = type {
+                return "pageTarget"
+            } else {
+                return "navPoint"
+            }
+        }()
+        
+        guard let document = document,
+            let nav = document.firstChild(xpath: "/ncx:ncx/ncx:\(type.rawValue)") else
+        {
             return []
         }
-        let navMapElement = document["ncx"]["navMap"]
-        let tableOfContentsNodes = nodeArray(forNcxElement: navMapElement, ofType: "navPoint")
-        return tableOfContentsNodes
+        
+        return links(in: nav, nodeTagName: nodeTagName)
     }
-
-    /// Returns the data representation of the pageList informations contained in the NCX Document.
-    var pageList: [Link] {
-        guard let document = document else {
-            return []
-        }
-        let pageListElement = document["ncx"]["pageList"]
-        let pageListNodes = nodeArray(forNcxElement: pageListElement, ofType: "pageTarget")
-        return pageListNodes
+    
+    /// Parses recursively a list of nodes as a list of `Link`.
+    private func links(in element: XMLElement, nodeTagName: String) -> [Link] {
+        return element.xpath("ncx:\(nodeTagName)")
+            .compactMap { self.link(for: $0, nodeTagName: nodeTagName) }
     }
-
-    // TODO: Navlist parsing (all the remaining elements, landmarks etc).
-
-    // MARK: Fileprivate Methods.
-
-    /// Generate an array of Link elements representing the XML structure of the
-    /// given NCX element. Each of them possibly having children.
-    ///
-    /// - Parameters:
-    ///   - ncxElement: The NCX XML element Object.
-    ///   - type: The sub elements names (e.g. 'navPoint' for 'navMap',
-    ///           'pageTarget' for 'pageList'.
-    /// - Returns: The Object representation of the data contained in the given
-    ///            NCX XML element.
-    private func nodeArray(forNcxElement element: AEXMLElement, ofType type: String) -> [Link]
-    {
-        return (element[type].all ?? [])
-            .compactMap { node(using: $0, ofType: type) }
-    }
-
-    /// [RECURSIVE]
-    /// Create a node(`Link`) from a <navPoint> element.
-    /// If there is a nested element, recursively handle it.
-    ///
-    /// - Parameter element: The <navPoint> from the NCX Document.
-    /// - Returns: The generated node(`Link`).
-    private func node(using element: AEXMLElement, ofType type: String) -> Link? {
-        guard let href = element["content"].attributes["src"] else {
-            return nil
-        }
-
-        return Link(
-            href: normalize(base: path, href: href),
-            title: element["navLabel"]["text"].value,
-            children: nodeArray(forNcxElement: element, ofType: type)
+    
+    /// Parses a node element as a `Link`.
+    private func link(for element: XMLElement, nodeTagName: String) -> Link? {
+        return NavigationDocumentParser.makeLink(
+            title: element.firstChild(xpath: "ncx:navLabel/ncx:text")?.stringValue,
+            href: element.firstChild(xpath: "ncx:content")?.attr("src"),
+            children: links(in: element, nodeTagName: nodeTagName),
+            basePath: path
         )
     }
+
 }

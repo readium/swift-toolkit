@@ -215,10 +215,10 @@ final public class EpubParser: PublicationParser {
         let ncx = NCXParser(data: ncxDocumentData, at: ncxLink.href)
         
         if publication.tableOfContents.isEmpty {
-            publication.tableOfContents = ncx.tableOfContents
+            publication.tableOfContents = ncx.links(for: .tableOfContents)
         }
         if publication.pageList.isEmpty {
-            publication.pageList = ncx.pageList
+            publication.pageList = ncx.links(for: .pageList)
         }
     }
 
