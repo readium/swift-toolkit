@@ -111,49 +111,20 @@ final public class EpubParser: PublicationParser {
     // MARK: - Internal Methods.
 
     /// Parse the Encryption.xml EPUB file. It contains the informationg about
-    /// encrypted resources and how to decrypt them
-    ///
-    /// - Parameters:
-    ///   - container: The EPUB Container.
-    ///   - publication: The Publication.
-    /// - Throws: 
+    /// encrypted resources and how to decrypt them.
     static internal func parseEncryption(from container: Container, to publication: inout Publication, _ drm: DRM?) {
-        //if publication.metadata.title ==
-        // Check if there is an encryption file.
-        var options = AEXMLOptions()
-        // Deactivates namespaces so that we don't have to look for both enc:EncryptedData, and EncryptedData, for example.
-        options.parserSettings.shouldProcessNamespaces = true
-        guard let documentData = try? container.data(relativePath: EpubConstant.encryptionDotXmlPath),
-            let document = try? AEXMLDocument(xml: documentData, options: options) else {
-                // To encryption document.
-                return
-        }
-        // Are any files encrypted.
-        guard let encryptedDataElements = document["encryption"]["EncryptedData"].all else {
-            log(.info, "No <EncryptedData> elements")
+        guard let data = try? container.data(relativePath: EpubConstant.encryptionDotXmlPath) else {
             return
         }
+        
+        let parser = EncryptionParser(data: data, drm: drm)
 
-        // Loop through <EncryptedData> elements..
-        for encryptedDataElement in encryptedDataElements {
-            guard let algorithm = encryptedDataElement["EncryptionMethod"].attributes["Algorithm"] else {
+        // Adds the encryption information to the `Link` with matching `href`.
+        for (href, encryption) in parser.encryptions {
+            guard let link = publication.link(withHref: href) else {
                 continue
             }
-            
-            var encryption = EPUBEncryption(algorithm: algorithm)
-            
-            // LCP. Tag LCP protected resources.
-            let keyInfoUri = encryptedDataElement["KeyInfo"]["RetrievalMethod"].attributes["URI"]
-            if keyInfoUri == "license.lcpl#/encryption/content_key",
-                drm?.brand == DRM.Brand.lcp
-            {
-                encryption.scheme = drm?.scheme.rawValue
-            }
-            // LCP END.
-
-            EncryptionParser.parseEncryptionProperties(from: encryptedDataElement, to: &encryption)
-            EncryptionParser.add(encryption: encryption, toLinkInPublication: &publication,
-                     encryptedDataElement)
+            link.properties.encryption = encryption
         }
     }
 
