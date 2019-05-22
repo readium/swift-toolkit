@@ -10,12 +10,10 @@
 //
 
 import R2Shared
-import AEXML
-
-extension EncryptionParser: Loggable {}
+import Fuzi
 
 /// A parser module which provide methods to parse encrypted XML elements.
-final public class EncryptionParser {
+final class EncryptionParser: Loggable {
     
     private let data: Data
     private let drm: DRM?
@@ -24,94 +22,69 @@ final public class EncryptionParser {
         self.data = data
         self.drm = drm
     }
-    
-    private lazy var document: AEXMLDocument? = {
-        var options = AEXMLOptions()
-        // Deactivates namespaces so that we don't have to look for both enc:EncryptedData, and EncryptedData, for example.
-        options.parserSettings.shouldProcessNamespaces = true
-        return try? AEXMLDocument(xml: data, options: options)
-    }()
 
-//    private lazy var document: XMLDocument? = {
-//        let document = try? XMLDocument(data: data)
-////        document?.definePrefix("html", defaultNamespace: "http://www.w3.org/1999/xhtml")
-//        return document
-//    }()
+    private lazy var document: XMLDocument? = {
+        let document = try? XMLDocument(data: data)
+        document?.definePrefix("enc", forNamespace: "http://www.w3.org/2001/04/xmlenc#")
+        document?.definePrefix("ds", forNamespace: "http://www.w3.org/2000/09/xmldsig#")
+        document?.definePrefix("comp", forNamespace: "http://www.idpf.org/2016/encryption#compression")
+        return document
+    }()
     
     /// Parse the Encryption.xml EPUB file. It contains the informationg about encrypted resources and how to decrypt them.
     ///
     /// - Returns: A map between the resource `href` and the matching `EPUBEncryption`.
     lazy var encryptions: [String: EPUBEncryption] = {
-        guard let document = document,
-            let encryptedDataElements = document["encryption"]["EncryptedData"].all else
-        {
+        guard let document = document else {
             return [:]
         }
-        
+
         var encryptions: [String: EPUBEncryption] = [:]
         
         // Loop through <EncryptedData> elements..
-        for encryptedDataElement in encryptedDataElements {
-            guard let algorithm = encryptedDataElement["EncryptionMethod"].attributes["Algorithm"],
-                var resourceURI = encryptedDataElement["CipherData"]["CipherReference"].attributes["URI"] else
+        for encryptedDataElement in document.xpath("./enc:EncryptedData") {
+            guard let algorithm = encryptedDataElement.firstChild(xpath: "enc:EncryptionMethod")?.attr("Algorithm"),
+                var resourceURI = encryptedDataElement.firstChild(xpath:"enc:CipherData/enc:CipherReference")?.attr("URI") else
             {
                 continue
             }
             resourceURI = normalize(base: "/", href: resourceURI)
-            
+
             var encryption = EPUBEncryption(algorithm: algorithm)
-            
+
             // LCP. Tag LCP protected resources.
-            let keyInfoUri = encryptedDataElement["KeyInfo"]["RetrievalMethod"].attributes["URI"]
-            if keyInfoUri == "license.lcpl#/encryption/content_key",
+            let keyInfoURI = encryptedDataElement.firstChild(xpath: "ds:KeyInfo/ds:RetrievalMethod")?.attr("URI")
+            if keyInfoURI == "license.lcpl#/encryption/content_key",
                 drm?.brand == DRM.Brand.lcp
             {
                 encryption.scheme = drm?.scheme.rawValue
             }
             // LCP END.
-            
-            parseEncryptionProperties(from: encryptedDataElement, to: &encryption)
+
+            for encryptionProperty in encryptedDataElement.xpath("enc:EncryptionProperties/enc:EncryptionProperty") {
+                parseCompressionElement(from: encryptionProperty, to: &encryption)
+            }
             encryptions[resourceURI] = encryption
         }
         
         return encryptions
     }()
-    
-    /// Parse the <EncryptionProperties> containing <EncryptionProperty> child
-    /// elements in order to fill the `EPUBEncryption`.
-    ///
-    /// - Parameters:
-    ///   - encryptedDataElement: The <EncryptedData> parent element.
-    ///   - encryption: The `EPUBEncryption` structure to fill.
-    private func parseEncryptionProperties(from encryptedDataElement: AEXMLElement, to encryption: inout EPUBEncryption) {
-        guard let encryptionProperties = encryptedDataElement["EncryptionProperties"]["EncryptionProperty"].all else {
-            return
-        }
-        //
-        for encryptionProperty in encryptionProperties {
-            parseCompressionElement(from: encryptionProperty, to: &encryption)
-        }
-    }
 
     /// Parse the <Compression> element.
     ///
     /// - Parameters:
-    ///   - encryptionProperty: The EncryptionProperty element, parent of
-    ///                         <Compression>.
+    ///   - encryptionProperty: The EncryptionProperty element, parent of <Compression>.
     ///   - encryption: The EPUBEncryption structure to fill.
-    private func parseCompressionElement(from encryptionProperty: AEXMLElement, to encryption: inout EPUBEncryption) {
+    private func parseCompressionElement(from encryptionProperty: XMLElement, to encryption: inout EPUBEncryption) {
         // Check that we have a compression element, with originalLength, not empty.
-        guard let compressionElement = encryptionProperty["Compression"].first,
-            let originalLength = compressionElement.attributes["OriginalLength"],
-            !originalLength.isEmpty else
+        guard let compressionElement = encryptionProperty.firstChild(xpath:"comp:Compression"),
+            let method = compressionElement.attr("Method"),
+            let originalLength = compressionElement.attr("OriginalLength") else
         {
             return
         }
         encryption.originalLength = Int(originalLength)
-        // Find the method attribute.
-        guard let method = compressionElement.attributes["Method"] else {
-            return
-        }
         encryption.compression = (method == "8" ? "deflate" : "none")
     }
+    
 }

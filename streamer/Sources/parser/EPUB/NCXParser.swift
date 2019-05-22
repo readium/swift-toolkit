@@ -36,7 +36,7 @@ final class NCXParser {
     
     private lazy var document: XMLDocument? = {
         let document = try? XMLDocument(data: data)
-        document?.definePrefix("ncx", defaultNamespace: "http://www.daisy.org/z3986/2005/ncx/")
+        document?.definePrefix("ncx", forNamespace: "http://www.daisy.org/z3986/2005/ncx/")
         return document
     }()
 

@@ -39,8 +39,8 @@ final class NavigationDocumentParser {
     private lazy var document: XMLDocument? = {
         // Warning: Somehow if we use HTMLDocument instead of XMLDocument, then the `epub` prefix doesn't work.
         let document = try? XMLDocument(data: data)
-        document?.definePrefix("html", defaultNamespace: "http://www.w3.org/1999/xhtml")
-        document?.definePrefix("epub", defaultNamespace: "http://www.idpf.org/2007/ops")
+        document?.definePrefix("html", forNamespace: "http://www.w3.org/1999/xhtml")
+        document?.definePrefix("epub", forNamespace: "http://www.idpf.org/2007/ops")
         return document
     }()
 

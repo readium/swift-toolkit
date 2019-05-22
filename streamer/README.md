@@ -177,7 +177,7 @@ Supported formats:
 - [GCDWebServer](https://github.com/swisspol/GCDWebServer) A modern and lightweight GCD based HTTP 1.1 server designed to be embedded in OS X & iOS apps.
 - [AEXML](https://github.com/tadija/AEXML) Simple and lightweight XML parser written in Swift.
 - [CryptoSwift](https://github.com/krzyzanowskim/CryptoSwift) Crypto related functions and helpers for Swift implemented in Swift.
-- [Fuzi](https://github.com/cezheng/Fuzi) A fast & lightweight XML & HTML parser in Swift with XPath & CSS support
+- [Fuzi](https://github.com/edrlab/Fuzi) A fast & lightweight XML & HTML parser in Swift with XPath & CSS support
 - [Minizip](https://github.com/dexman/Minizip) Minizip framework wrapper for iOS, OSX, tvOS, and watchOS.
 
 
