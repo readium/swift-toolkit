@@ -1,5 +1,5 @@
-github "cezheng/Fuzi" "2.2.1"
 github "dexman/Minizip" "1.4.0"
+github "edrlab/Fuzi" "2.2.2"
 github "jdg/MBProgressHUD" "1.1.0"
 github "krzyzanowskim/CryptoSwift" "0.15.0"
 github "onevcat/Kingfisher" "4.10.1"

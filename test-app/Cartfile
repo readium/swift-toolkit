@@ -12,14 +12,14 @@ github "readium/readium-opds-swift" "develop"
 # The following sub-dependencies are required only if the Readium 2 dependencies are integrated using submodules, instead of Carthage.
 
 # r2-streamer-swift dependencies
-github "cezheng/Fuzi" == 2.2.1
+github "edrlab/Fuzi" == 2.2.2
 github "dexman/Minizip"
 github "krzyzanowskim/CryptoSwift" == 0.15.0
 github "swisspol/GCDWebServer" == 3.5.2
 github "tadija/AEXML" == 4.3.3
 
 # r2-opds-swift dependencies
-#github "cezheng/Fuzi" == 2.2.1
+#github "edrlab/Fuzi" == 2.2.2
 
 # r2-lcp-swift dependencies
 #github "krzyzanowskim/CryptoSwift" == 0.15.0
