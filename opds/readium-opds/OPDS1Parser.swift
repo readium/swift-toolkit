@@ -106,9 +106,9 @@ public class OPDS1Parser: Loggable {
     /// - parameter document: The XMLDocument data
     /// - Returns: The resulting Feed
     public static func parse(document: XMLDocument) throws -> Feed {
-        document.definePrefix("thr", defaultNamespace: "http://purl.org/syndication/thread/1.0")
-        document.definePrefix("dcterms", defaultNamespace: "http://purl.org/dc/terms/")
-        document.definePrefix("opds", defaultNamespace: "http://opds-spec.org/2010/catalog")
+        document.definePrefix("thr", forNamespace: "http://purl.org/syndication/thread/1.0")
+        document.definePrefix("dcterms", forNamespace: "http://purl.org/dc/terms/")
+        document.definePrefix("opds", forNamespace: "http://opds-spec.org/2010/catalog")
         
         guard let root = document.root else {
             throw OPDS1ParserError.rootNotFound
