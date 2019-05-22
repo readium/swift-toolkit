@@ -210,17 +210,21 @@ final public class EpubParser: PublicationParser {
         for mediaOverlayLink in mediaOverlays {
             let node = MediaOverlayNode()
             
-            guard let smilData = try? fetcher.data(forLink: mediaOverlayLink),
-                smilData != nil,
-                let smilXml = try? AEXMLDocument(xml: smilData!) else
+            guard let smilDataOptional = try? fetcher.data(forLink: mediaOverlayLink),
+                let smilData = smilDataOptional,
+                let smilXml = try? XMLDocument(data: smilData) else
             {
                 throw OPFParserError.invalidSmilResource
             }
 
-            let body = smilXml["smil"]["body"]
+            smilXml.definePrefix("smil", forNamespace: "http://www.w3.org/ns/SMIL")
+            smilXml.definePrefix("epub", forNamespace: "http://www.idpf.org/2007/ops")
+            guard let body = smilXml.firstChild(xpath: "./smil:body") else {
+                continue
+            }
 
             node.role.append("section")
-            if let textRef = body.attributes["epub:textref"] { // Prevent the crash on the japanese book
+            if let textRef = body.attr("textref") { // Prevent the crash on the japanese book
                 node.text = normalize(base: mediaOverlayLink.href, href: textRef)
             }
             // get body parameters <par>a
