@@ -86,7 +86,7 @@ class BookmarksTable {
         let bookmark = tableName.filter(self.publicationID == newBookmark.publicationID && self.resourceHref == newBookmark.locator.href && self.resourceIndex == newBookmark.resourceIndex && self.locations == (newBookmark.locator.locations?.jsonString ?? ""))
         
         // Check if empty.
-        guard try db.scalar(bookmark.count) == 0 else {
+        guard try db.count(bookmark) == 0 else {
             return nil
         }
         
@@ -113,7 +113,7 @@ class BookmarksTable {
         let bookmark = tableName.filter(self.bookmarkID == bookmarkID)
         
         // Check if empty.
-        guard try db.scalar(bookmark.count) > 0 else {
+        guard try db.count(bookmark) > 0 else {
             return false
         }
         
@@ -125,7 +125,7 @@ class BookmarksTable {
         
         let db = BookmarkDatabase.shared.connection
         // Check if empty.
-        guard try db.scalar(tableName.count) > 0 else {
+        guard try db.count(tableName) > 0 else {
             return nil
         }
         

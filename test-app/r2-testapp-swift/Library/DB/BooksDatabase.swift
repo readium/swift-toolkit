@@ -13,6 +13,7 @@
 import Foundation
 import SQLite
 
+
 final class BooksDatabase {
   // Shared instance.
   public static let shared = BooksDatabase()
@@ -125,7 +126,7 @@ class BooksTable {
   private func exists(_ book: Book) -> Bool {
     let db = BooksDatabase.shared.connection
     let filter = books.filter(self.IDENTIFIER == book.identifier)
-    return ((try? db.scalar(filter.count)) ?? 0) != 0
+    return ((try? db.count(filter)) ?? 0) != 0
   }
   
   func delete(_ book: Book) throws -> Bool {
@@ -137,7 +138,7 @@ class BooksTable {
     let book = books.filter(self.ID == ID)
     
     // Check if empty.
-    guard try db.scalar(book.count) > 0 else {
+    guard try db.count(book) > 0 else {
       return false
     }
     
@@ -149,7 +150,7 @@ class BooksTable {
     
     let db = BooksDatabase.shared.connection
     // Check if empty.
-    guard try db.scalar(books.count) > 0 else {
+    guard try db.count(books) > 0 else {
       return []
     }
     
