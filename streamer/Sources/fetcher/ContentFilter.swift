@@ -31,14 +31,14 @@ internal protocol ContentFilters {
 // Default implementation. Do nothing.
 internal extension ContentFilters {
 
-    internal func apply(to input: SeekableInputStream,
+    func apply(to input: SeekableInputStream,
                         of publication: Publication,
                         with container: Container, at path: String) throws -> SeekableInputStream {
         // Do nothing.
         return input
     }
 
-    internal func apply(to input: Data,
+    func apply(to input: Data,
                         of publication: Publication,
                         with container: Container, at path: String) throws -> Data {
         // Do nothing.
