@@ -174,14 +174,10 @@ final internal class ContentFiltersEpub: ContentFilters {
             abort()
         }
         let cssAfter = getHtmlLink(forResource: "\(baseUrl)styles/\(styleSubFolder)/ReadiumCSS-after.css")
-        let scriptTouchHandling = getHtmlScript(forResource: "\(baseUrl)scripts/touchHandling.js")
-        
         let scriptUtils = getHtmlScript(forResource: "\(baseUrl)scripts/utils.js")
-        
         let fontStyle = getHtmlFontStyle(forResource: "\(baseUrl)fonts/OpenDyslexic-Regular.otf", fontFamily: "OpenDyslexic")
 
         resourceHtml = resourceHtml.insert(string: cssAfter, at: headEnd)
-        resourceHtml = resourceHtml.insert(string: scriptTouchHandling, at: headEnd)
         resourceHtml = resourceHtml.insert(string: scriptUtils, at: headEnd)
         resourceHtml = resourceHtml.insert(string: fontStyle, at: headEnd)
 
@@ -210,8 +206,6 @@ final internal class ContentFiltersEpub: ContentFilters {
 
         var includes = [String]()
 
-        // Touch event bubbling.
-        includes.append(getHtmlScript(forResource: "\(baseUrl)scripts/touchHandling.js"))
         // Misc JS utils.
         includes.append(getHtmlScript(forResource: "\(baseUrl)scripts/utils.js"))
 
