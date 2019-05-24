@@ -15,91 +15,74 @@ import WebKit
 import SafariServices
 
 
-public protocol EPUBNavigatorDelegate: class {
+public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate {
+    
+    // MARK: - Deprecated
+    
+    // Implement `NavigatorDelegate.navigator(didTapAt:)` instead.
     func middleTapHandler()
+
+    // Implement `NavigatorDelegate.navigator(locationDidChange:)` instead, to save the last read location.
     func willExitPublication(documentIndex: Int, progression: Double?)
-    /// invoked when publication's content change to another page of 'document', slide to next chapter for example
-    /// It changes when html file resource changed
     func didChangedDocumentPage(currentDocumentIndex: Int)
     func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int)
     func didNavigateViaInternalLinkTap(to documentIndex: Int)
-    func didTapExternalUrl(_ : URL)
 
-    /// Displays an error message to the user.
+    /// Implement `NavigatorDelegate.navigator(presentError:)` instead.
     func presentError(_ error: NavigatorError)
+
 }
 
 public extension EPUBNavigatorDelegate {
-    func didChangedDocumentPage(currentDocumentIndex: Int) {
-        // optional
-    }
     
-    func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int) {
-        // optional
-    }
-    
-    func didNavigateViaInternalLinkTap(to documentIndex: Int) {
-        // optional
-    }
-    
-    func didTapExternalUrl(_ url: URL) {
-        // optional
-        // TODO following lines have been moved from the original implementation and might need to be revisited at some point
-        let view = SFSafariViewController(url: url)
-        UIApplication.shared.keyWindow?.rootViewController?.present(view, animated: true, completion: nil)
-    }
+    func middleTapHandler() {}
+    func willExitPublication(documentIndex: Int, progression: Double?) {}
+    func didChangedDocumentPage(currentDocumentIndex: Int) {}
+    func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int) {}
+    func didNavigateViaInternalLinkTap(to documentIndex: Int) {}
+    func presentError(_ error: NavigatorError) {}
+
 }
 
 
 public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
 
-open class EPUBNavigatorViewController: UIViewController {
-    private let delegatee: Delegatee!
-    fileprivate let triptychView: TriptychView
-    public var userSettings: UserSettings
-    fileprivate var initialProgression: Double?
-    //
-    public let publication: Publication
-    public let license: DRMLicense?
-    public weak var delegate: EPUBNavigatorDelegate?
-
-    public let pageTransition: PageTransition
-    public let disableDragAndDrop: Bool
+open class EPUBNavigatorViewController: UIViewController, VisualNavigator {
     
-    fileprivate let editingActions: EditingActionsController
-
+    public weak var delegate: EPUBNavigatorDelegate?
+    public var userSettings: UserSettings
+    
+    private let publication: Publication
+    private let license: DRMLicense?
+    private let editingActions: EditingActionsController
     /// Content insets used to add some vertical margins around reflowable EPUB publications. The insets can be configured for each size class to allow smaller margins on compact screens.
-    public let contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]
+    private let contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]
+    
+    private let triptychView: TriptychView
+    private var initialProgression: Double?
 
-    /// - Parameters:
-    ///   - publication: The publication.
-    ///   - initialIndex: Inital index of -1 will open the publication's at the end.
-    public init(for publication: Publication, license: DRMLicense? = nil, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = EditingAction.defaultActions, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]? = nil) {
+    public init(publication: Publication, license: DRMLicense? = nil, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]? = nil) {
         self.publication = publication
         self.license = license
-        self.initialProgression = initialProgression
-        self.pageTransition = pageTransition
-        self.disableDragAndDrop = disableDragAndDrop
+        self.editingActions = EditingActionsController(actions: editingActions, license: license)
         self.contentInset = contentInset ?? [
             .compact: (top: 20, bottom: 20),
             .regular: (top: 44, bottom: 44)
         ]
-      
-        self.editingActions = EditingActionsController(actions: editingActions, license: license)
 
         userSettings = UserSettings()
         publication.userProperties.properties = userSettings.userProperties.properties
-        delegatee = Delegatee()
-        var index = initialIndex
 
-        if initialIndex == -1 {
-            index = publication.readingOrder.count
+        var initialIndex: Int = 0
+        if let initialLocation = initialLocation, let foundIndex = publication.readingOrder.firstIndex(withHref: initialLocation.href) {
+            initialIndex = foundIndex
+            initialProgression = initialLocation.locations?.progression
         }
         
         triptychView = TriptychView(
             frame: CGRect.zero,
             viewCount: publication.readingOrder.count,
-            initialIndex: index,
+            initialIndex: initialIndex,
             readingProgression: publication.contentLayout.readingProgression
         )
         
@@ -115,24 +98,26 @@ open class EPUBNavigatorViewController: UIViewController {
 
     open override func viewDidLoad() {
         super.viewDidLoad()
-        delegatee.parent = self
         view.backgroundColor = .clear
         triptychView.backgroundColor = .clear
-        triptychView.delegate = delegatee
+        triptychView.delegate = self
         triptychView.frame = view.bounds
         triptychView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         view.addSubview(triptychView)
     }
-    
-    public var currentLocation: Locator? {
-        var hrefToTitle: [String: String] = {
-            let linkList = self.getTableOfContents()
-            return fulfill(linkList: linkList)
-        } ()
 
+    open override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        // FIXME: Deprecated, to be removed at some point.
+        delegate?.willExitPublication(documentIndex: triptychView.index, progression: triptychView.currentDocumentProgression)
+    }
+
+    /// Mapping between reading order hrefs and the table of contents title.
+    private lazy var tableOfContentsTitleByHref: [String: String] = {
         func fulfill(linkList: [Link]) -> [String: String] {
             var result = [String: String]()
-
+            
             for link in linkList {
                 if let title = link.title {
                     result[link.href] = title
@@ -144,20 +129,309 @@ open class EPUBNavigatorViewController: UIViewController {
             }
             return result
         }
-
-        let progression = triptychView.getCurrentDocumentProgression()
-        let index = triptychView.getCurrentDocumentIndex()
-        let readingOrder = self.getReadingOrder()[index]
-        let resourceTitle: String = hrefToTitle[readingOrder.href] ?? "Unknown"
         
+        return fulfill(linkList: publication.tableOfContents)
+    }()
+    
+    private enum ResourceLocation {
+        // Scroll progression
+        case progression(Double)
+        // HTML ID in the content
+        case id(String)
+    }
+    
+    /// Goes to the reading order resource at given `index`, and given content location.
+    @discardableResult
+    private func goToIndex(_ index: Int, location: ResourceLocation? = nil, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
+        guard publication.readingOrder.indices.contains(index) else {
+            return false
+        }
+
+        // The rendering is sometimes very slow in this case so we have a generous delay before we show the view again, when we don't show the first page of the resource.
+        let delayed = (location != nil)
+        
+        triptychView.performTransition(animated: animated, delayed: delayed, completion: completion) { triptych in
+            var id: String? = nil
+            var progression: Double? = nil
+            if let location = location {
+                switch location {
+                case .progression(let p):
+                    progression = p
+                case .id(let i):
+                    id = i
+                }
+            }
+            
+            // This is so the webview will move to it's correct progression if it's not loaded into the triptych view
+            // FIXME: This `initialProgression` bit should be handled by the TriptychView
+            self.initialProgression = progression
+
+            triptych.moveTo(index: index, id: id)
+            
+            if let progression = progression, let webView = triptych.currentView as? DocumentWebView {
+                // This is needed for when the webView is loaded into the triptychView
+                webView.scrollAt(position: progression)
+            }
+        }
+        
+        return true
+    }
+    
+    /// Goes to the next or previous page in the given scroll direction.
+    private func go(to direction: DocumentWebView.ScrollDirection, animated: Bool, completion: @escaping () -> Void) -> Bool {
+        guard let webView = triptychView.currentView as? DocumentWebView else {
+            return false
+        }
+        return webView.scrollTo(direction, animated: animated, completion: completion)
+    }
+    
+    public func updateUserSettingStyle() {
+        assert(Thread.isMainThread, "User settings must be updated from the main thread")
+        
+        guard let views = triptychView.views?.array else {
+            return
+        }
+        
+        let location = currentLocation
+        for view in views {
+            let webview = view as? DocumentWebView
+            webview?.applyUserSettingsStyle()
+        }
+        
+        // Re-positions the navigator to the location before applying the settings
+        if let location = location {
+            go(to: location)
+        }
+    }
+
+    
+    // MARK: - Navigator
+    
+    public var readingProgression: ReadingProgression {
+        return publication.contentLayout.readingProgression
+    }
+    
+    public var currentLocation: Locator? {
+        let resource = publication.readingOrder[triptychView.index]
         return Locator(
-            href: readingOrder.href,
-            type: readingOrder.type ?? "text/html",
-            title: resourceTitle,
+            href: resource.href,
+            type: resource.type ?? "text/html",
+            title: tableOfContentsTitleByHref[resource.href],
             locations: Locations(
-                progression: progression ?? 0
+                progression: triptychView.currentDocumentProgression ?? 0
             )
         )
+    }
+
+    /// Last current location notified to the delegate.
+    /// Used to avoid sending twice the same location.
+    private var notifiedCurrentLocation: Locator?
+    
+    fileprivate func notifyCurrentLocation() {
+        guard let delegate = delegate,
+            let location = currentLocation,
+            location != notifiedCurrentLocation else
+        {
+            return
+        }
+        notifiedCurrentLocation = location
+        delegate.navigator(self, locationDidChange: location)
+    }
+    
+    public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
+        guard let index = publication.readingOrder.firstIndex(withHref: locator.href) else {
+            return false
+        }
+        
+        let location: ResourceLocation? = {
+            if let id = locator.locations?.fragment {
+                return .id(id)
+            } else if let progression = locator.locations?.progression, progression > 0 {
+                return .progression(progression)
+            } else {
+                return nil
+            }
+        }()
+        
+        return goToIndex(index, location: location, animated: animated, completion: completion)
+    }
+    
+    public func go(to link: Link, animated: Bool, completion: @escaping () -> Void) -> Bool {
+        return go(to: Locator(link: link), animated: animated, completion: completion)
+    }
+    
+    public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
+        let direction: DocumentWebView.ScrollDirection = {
+            switch readingProgression {
+            case .ltr, .auto:
+                return .right
+            case .rtl:
+                return .left
+            }
+        }()
+        return go(to: direction, animated: animated, completion: completion)
+    }
+    
+    public func goBackward(animated: Bool, completion: @escaping () -> Void) -> Bool {
+        let direction: DocumentWebView.ScrollDirection = {
+            switch readingProgression {
+            case .ltr, .auto:
+                return .left
+            case .rtl:
+                return .right
+            }
+        }()
+        return go(to: direction, animated: animated, completion: completion)
+    }
+    
+}
+
+extension EPUBNavigatorViewController: DocumentWebViewDelegate {
+    
+    func willAnimatePageChange() {
+        triptychView.isUserInteractionEnabled = false
+    }
+    
+    func didEndPageAnimation() {
+        triptychView.isUserInteractionEnabled = true
+    }
+    
+    func webView(_ webView: DocumentWebView, didTapAt point: CGPoint) {
+        let point = view.convert(point, from: webView)
+        delegate?.navigator(self, didTapAt: point)
+        // FIXME: Deprecated, to be removed at some point.
+        delegate?.middleTapHandler()
+    }
+    
+    func handleTapOnLink(with url: URL) {
+        delegate?.navigator(self, presentExternalURL: url)
+    }
+    
+    func handleTapOnInternalLink(with href: String) {
+        go(to: Link(href: href))
+    }
+    
+    func documentPageDidChange(webView: DocumentWebView, currentPage: Int, totalPage: Int) {
+        if triptychView.currentView == webView {
+            notifyCurrentLocation()
+
+            // FIXME: Deprecated, to be removed at some point.
+            delegate?.didChangedPaginatedDocumentPage(currentPage: currentPage, documentTotalPage: totalPage)
+        }
+    }
+    
+    /// Display next document (readingOrder item).
+    func displayRightDocument(animated: Bool, completion: @escaping () -> Void) {
+        let delta = triptychView.readingProgression == .rtl ? -1 : 1
+        goToIndex(triptychView.index + delta, animated: animated, completion: completion)
+    }
+
+    /// Display previous document (readingOrder item).
+    func displayLeftDocument(animated: Bool, completion: @escaping () -> Void) {
+        let delta = triptychView.readingProgression == .rtl ? -1 : 1
+        goToIndex(triptychView.index - delta, animated: animated, completion: completion)
+    }
+
+}
+
+extension EPUBNavigatorViewController: EditingActionsControllerDelegate {
+    
+    func editingActionsDidPreventCopy(_ editingActions: EditingActionsController) {
+        delegate?.navigator(self, presentError: .copyForbidden)
+        // FIXME: Deprecated, to be removed at some point.
+        delegate?.presentError(.copyForbidden)
+    }
+    
+}
+
+extension EPUBNavigatorViewController: TriptychViewDelegate {
+
+    func triptychView(_ view: TriptychView, viewForIndex index: Int, location: BinaryLocation) -> UIView {
+        guard let baseURL = publication.baseURL else {
+            return UIView()
+        }
+        
+        let link = publication.readingOrder[index]
+        // Check if link is FXL.
+        let hasFixedLayout = (publication.metadata.rendition?.layout == .fixed && link.properties.layout == nil) || link.properties.layout == .fixed
+
+        let webViewType = hasFixedLayout ? FixedDocumentWebView.self : ReflowableDocumentWebView.self
+        let webView = webViewType.init(
+            baseURL: baseURL,
+            initialLocation: location,
+            readingProgression: view.readingProgression,
+            animatedLoad: false,  // FIXME: custom animated
+            editingActions: editingActions,
+            contentInset: contentInset
+        )
+
+        if let url = publication.url(to: link) {
+            webView.viewDelegate = self
+            webView.load(url)
+            webView.userSettings = userSettings
+
+            // Load last saved regionIndex for the first view.
+            if initialProgression != nil {
+                webView.progression = initialProgression
+                initialProgression = nil
+            }
+        }
+        return webView
+    }
+    
+    func viewsDidUpdate(documentIndex: Int) {
+        // notice that you should set the delegate before you load views
+        // otherwise, when open the publication, you may miss the first invocation
+        notifyCurrentLocation()
+
+        // FIXME: Deprecated, to be removed at some point.
+        delegate?.didChangedDocumentPage(currentDocumentIndex: documentIndex)
+        if let currentView = triptychView.currentView {
+            let cw = currentView as! DocumentWebView
+            if let pages = cw.totalPages {
+                delegate?.didChangedPaginatedDocumentPage(currentPage: cw.currentPage(), documentTotalPage: pages)
+            }
+        }
+    }
+    
+}
+
+
+// MARK: - Deprecated
+
+@available(*, deprecated, renamed: "EPUBNavigatorViewController")
+public typealias NavigatorViewController = EPUBNavigatorViewController
+
+@available(*, deprecated, message: "Use the `animated` parameter of `goTo` functions instead")
+public enum PageTransition {
+    case none
+    case animated
+}
+
+extension EPUBNavigatorViewController {
+    
+    /// This initializer is deprecated.
+    /// Replace `pageTransition` by the `animated` property of the `goTo` functions.
+    /// Replace `disableDragAndDrop` by `EditingAction.copy`, since drag and drop is equivalent to copy.
+    /// Replace `initialIndex` and `initialProgression` by `initialLocation`.
+    @available(*, deprecated, renamed: "init(publication:license:initialLocation:editingActions:contentInset:)")
+    public convenience init(for publication: Publication, license: DRMLicense? = nil, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = EditingAction.defaultActions, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]? = nil) {
+        var initialIndex = initialIndex
+        if initialIndex == -1 {
+            initialIndex = publication.readingOrder.count
+        }
+        if !publication.readingOrder.indices.contains(initialIndex) {
+            initialIndex = 0
+        }
+        let initialLocation = Locator(link: publication.readingOrder[initialIndex])
+        
+        self.init(publication: publication, license: license, initialLocation: initialLocation, editingActions: editingActions, contentInset: contentInset)
+    }
+    
+    @available(*, deprecated, message: "Use the `animated` parameter of `goTo` functions instead")
+    public var pageTransition: PageTransition {
+        get { return .none }
+        set {}
     }
     
     @available(*, deprecated, message: "Bookmark model is deprecated, use your own model and `currentLocation`")
@@ -169,262 +443,32 @@ open class EPUBNavigatorViewController: UIViewController {
         }
         return Bookmark(
             publicationID: publicationID,
-            resourceIndex: triptychView.getCurrentDocumentIndex(),
+            resourceIndex: triptychView.index,
             locator: locator
         )
     }
 
-    open override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        
-        // Save the currently opened document index and progression.
-        let progression = triptychView.getCurrentDocumentProgression()
-        let index = triptychView.getCurrentDocumentIndex()
-        delegate?.willExitPublication(documentIndex: index, progression: progression)
-    }
-}
+    @available(*, deprecated, message: "Use `publication.readingOrder` instead")
+    public func getReadingOrder() -> [Link] { return publication.readingOrder }
+    
+    @available(*, deprecated, message: "Use `publication.tableOfContents` instead")
+    public func getTableOfContents() -> [Link] { return publication.tableOfContents }
 
-extension EPUBNavigatorViewController {
-
-    /// Display the readingOrder item at `index`.
-    ///
-    /// - Parameter index: The index of the readingOrder item to display.
+    @available(*, deprecated, renamed: "go(to:)")
     public func displayReadingOrderItem(at index: Int) {
-        guard publication.readingOrder.indices.contains(index) else {
-            return
-        }
-        performTriptychViewTransition {
-            self.triptychView.moveTo(index: index)
-        }
+        goToIndex(index)
     }
     
-    /// Display the readingOrder item at `index` with scroll `progression`
-    ///
-    /// - Parameter index: The index of the readingOrder item to display.
+    @available(*, deprecated, renamed: "go(to:)")
     public func displayReadingOrderItem(at index: Int, progression: Double) {
-        guard publication.readingOrder.indices.contains(index) else {
-            return
-        }
-        
-        performTriptychViewTransitionDelayed {
-            // This is so the webview will move to it's correct progression if it's not loaded into the triptych view
-            self.initialProgression = progression
-            self.triptychView.moveTo(index: index)
-            if let webView = self.triptychView.currentView as? WebView {
-                // This is needed for when the webView is loaded into the triptychView
-                webView.scrollAt(position: progression)
-            }
-        }
+        goToIndex(index, location: .progression(progression))
     }
     
-    /// Load resource with the corresponding href.
-    ///
-    /// - Parameter href: The href of the resource to load. Can contain a tag id.
-    /// - Returns: The readingOrder index for the link
+    @available(*, deprecated, renamed: "go(to:)")
     public func displayReadingOrderItem(with href: String) -> Int? {
-        // remove id if any
-        let components = href.components(separatedBy: "#")
-        guard let href = components.first else {
-            return nil
-        }
-        guard let index = publication.readingOrder.index(where: { $0.href.contains(href) }) else {
-            return nil
-        }
-        // If any id found, set the scroll position to it, else to the
-        // beggining of the document.
-        let id = (components.count > 1 ? components.last : "")
-
-        // Jumping set to true to avoid clamping.
-        performTriptychViewTransition {
-            self.triptychView.moveTo(index: index, id: id)
-        }
-        return index
-    }
-
-    public func getReadingOrder() -> [Link] {
-        return publication.readingOrder
-    }
-
-    public func getTableOfContents() -> [Link] {
-        return publication.tableOfContents
-    }
-
-    public func updateUserSettingStyle() {
-        guard let views = triptychView.views?.array else {
-            return
-        }
-        for view in views {
-            let webview = view as? WebView
-
-            webview?.applyUserSettingsStyle()
-        }
-    }
-}
-
-extension EPUBNavigatorViewController: WebViewDelegate {
-    
-    func willAnimatePageChange() {
-        triptychView.isUserInteractionEnabled = false
-    }
-    
-    func didEndPageAnimation() {
-        triptychView.isUserInteractionEnabled = true
-    }
-    
-    func handleTapOnLink(with url: URL) {
-        delegate?.didTapExternalUrl(url)
-    }
-    
-    func handleTapOnInternalLink(with href: String) {
-        guard let index = displayReadingOrderItem(with: href) else { return }
-        delegate?.didNavigateViaInternalLinkTap(to: index)
-    }
-    
-    func documentPageDidChange(webView: WebView, currentPage: Int, totalPage: Int) {
-        if triptychView.currentView == webView {
-            delegate?.didChangedPaginatedDocumentPage(currentPage: currentPage, documentTotalPage: totalPage)
-        }
-    }
-    
-    /// Display next document (readingOrder item).
-    public func displayRightDocument() {
-        let delta = triptychView.readingProgression == .rtl ? -1:1
-        self.displayReadingOrderItem(at: self.triptychView.index + delta)
-    }
-
-    /// Display previous document (readingOrder item).
-    public func displayLeftDocument() {
-        let delta = triptychView.readingProgression == .rtl ? -1:1
-        self.displayReadingOrderItem(at: self.triptychView.index - delta)
-    }
-
-    /// Returns the currently presented Publication's identifier.
-    ///
-    /// - Returns: The publication identifier.
-    public func publicationIdentifier() -> String? {
-        return publication.metadata.identifier
-    }
-
-    public func publicationBaseUrl() -> URL? {
-        return publication.baseURL
-    }
-
-    internal func handleCenterTap() {
-        delegate?.middleTapHandler()
-    }
-
-}
-
-extension EPUBNavigatorViewController: EditingActionsControllerDelegate {
-    
-    func editingActionsDidPreventCopy(_ editingActions: EditingActionsController) {
-        delegate?.presentError(.copyForbidden)
+        let index = publication.readingOrder.firstIndex(withHref: href)
+        let moved = go(to: Link(href: href))
+        return moved ? index : nil
     }
     
 }
-
-/// Used to hide conformance to package-private delegate protocols.
-private final class Delegatee: NSObject {
-    weak var parent: EPUBNavigatorViewController!
-    fileprivate var firstView = true
-}
-
-extension Delegatee: TriptychViewDelegate {
-
-    public func triptychView(_ view: TriptychView, viewForIndex index: Int, location: BinaryLocation) -> UIView {
-        guard let baseURL = parent.publication.baseURL else {
-            return UIView()
-        }
-        
-        let link = parent.publication.readingOrder[index]
-        // Check if link is FXL.
-        let hasFixedLayout = (parent.publication.metadata.rendition?.layout == .fixed && link.properties.layout == nil) || link.properties.layout == .fixed
-
-        let webViewType = hasFixedLayout ? FixedWebView.self : ReflowableWebView.self
-        let webView = webViewType.init(
-            baseURL: baseURL,
-            initialLocation: location,
-            readingProgression: view.readingProgression,
-            pageTransition: parent.pageTransition,
-            disableDragAndDrop: parent.disableDragAndDrop,
-            editingActions: parent.editingActions,
-            contentInset: parent.contentInset
-        )
-
-        if let url = parent.publication.url(to: link) {
-            webView.viewDelegate = parent
-            webView.load(url)
-            webView.userSettings = parent.userSettings
-
-            // Load last saved regionIndex for the first view.
-            if parent.initialProgression != nil {
-                webView.progression = parent.initialProgression
-                parent.initialProgression = nil
-            }
-        }
-        return webView
-    }
-    
-    func viewsDidUpdate(documentIndex: Int) {
-        // notice that you should set the delegate before you load views
-        // otherwise, when open the publication, you may miss the first invocation
-        parent.delegate?.didChangedDocumentPage(currentDocumentIndex: documentIndex)
-        if let currentView = parent.triptychView.currentView {
-            let cw = currentView as! WebView
-            if let pages = cw.totalPages {
-                parent.delegate?.didChangedPaginatedDocumentPage(currentPage: cw.currentPage(), documentTotalPage: pages)
-            }
-        }
-    }
-}
-
-
-extension EPUBNavigatorViewController {
-    
-    public var contentView: UIView {
-        return triptychView
-    }
-    
-    func performTriptychViewTransition(commitTransition: @escaping () -> ()) {
-        switch pageTransition {
-        case .none:
-            commitTransition()
-        case .animated:
-            fadeTriptychView(alpha: 0) {
-                commitTransition()
-                self.fadeTriptychView(alpha: 1, completion: { })
-            }
-        }
-    }
-    
-    /*
-     This is used when we want to jump to a document with proression. The rendering is sometimes very slow in this case so we have a generous delay before we show the view again.
-     */
-    func performTriptychViewTransitionDelayed(commitTransition: @escaping () -> ()) {
-        switch pageTransition {
-        case .none:
-            commitTransition()
-        case .animated:
-            fadeTriptychView(alpha: 0) {
-                commitTransition()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
-                    self.fadeTriptychView(alpha: 1, completion: { })
-                })
-            }
-        }
-    }
-    
-    private func fadeTriptychView(alpha: CGFloat, completion: @escaping () -> ()) {
-        UIView.animate(withDuration: 0.15, animations: {
-            self.triptychView.alpha = alpha
-        }) { _ in
-            completion()
-        }
-    }
-}
-
-
-@available(*, deprecated, renamed: "EPUBNavigatorViewController")
-public typealias NavigatorViewController = EPUBNavigatorViewController
-@available(*, deprecated, renamed: "EPUBNavigatorDelegate")
-public typealias NavigatorDelegate = EPUBNavigatorDelegate

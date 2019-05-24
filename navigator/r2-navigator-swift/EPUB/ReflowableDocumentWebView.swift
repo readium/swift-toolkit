@@ -16,15 +16,11 @@ import R2Shared
 
 
 /// A WebView subclass to handle documents with a reflowable layout.
-final class ReflowableWebView: WebView {
+final class ReflowableDocumentWebView: DocumentWebView {
 
     private var topConstraint: NSLayoutConstraint!
     private var bottomConstraint: NSLayoutConstraint!
-    
-    private var isScrollEnabled: Bool {
-        return (userSettings?.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable)?.on ?? false
-    }
-    
+
     override func setupWebView() {
         super.setupWebView()
         scrollView.bounces = false
@@ -32,7 +28,9 @@ final class ReflowableWebView: WebView {
         
         webView.translatesAutoresizingMaskIntoConstraints = false
         topConstraint = webView.topAnchor.constraint(equalTo: topAnchor)
+        topConstraint.priority = .defaultHigh
         bottomConstraint = webView.bottomAnchor.constraint(equalTo: bottomAnchor)
+        bottomConstraint.priority = .defaultHigh
         NSLayoutConstraint.activate([
             topConstraint, bottomConstraint,
             webView.leadingAnchor.constraint(equalTo: leadingAnchor),

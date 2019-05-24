@@ -64,9 +64,14 @@ final class EditingActionsController {
     
     // MARK: - Copy
     
+    /// Returns whether the copy interaction is at all allowed. It doesn't guarantee that the next copy action will be valid, if the license cancels it.
+    var canCopy: Bool {
+        return actions.contains(.copy) && (license?.canCopy ?? true)
+    }
+    
     /// Called when the user attempt to copy the selection. If true is returned, then you may allow the copy.
     func requestCopy() -> Bool {
-        guard license?.canCopy ?? true else {
+        guard canCopy else {
             delegate?.editingActionsDidPreventCopy(self)
             return false
         }

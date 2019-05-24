@@ -15,62 +15,33 @@ import UIKit
 import R2Shared
 
 
-public protocol PDFNavigatorDelegate: AnyObject {
-    
-    /// Called when the user tapped the publication, and it didn't trigger any internal action.
-    func navigator(_ navigator: Navigator, didTapAt point: CGPoint, in view: UIView)
-    
-    /// Called when the current position in the publication changed. You should save the locator here to restore the last read page.
-    func navigator(_ navigator: Navigator, didGoTo locator: Locator)
-    
-    /// Called when an error must be reported to the user.
-    func navigator(_ navigator: Navigator, presentError error: NavigatorError)
-    
-    /// Called when the user tapped an external URL. The default implementation opens the URL with the default browser.
-    func navigator(_ navigator: Navigator, presentExternalURL url: URL)
-    
-}
-
-
-public extension PDFNavigatorDelegate {
-    
-    func navigator(_ navigator: Navigator, presentExternalURL url: URL) {
-        UIApplication.shared.openURL(url)
-    }
-    
-    func navigator(_ navigator: Navigator, didTapAt point: CGPoint, in view: UIView) {
-        // Optional
-    }
-    
-}
+public protocol PDFNavigatorDelegate: VisualNavigatorDelegate { }
 
 
 /// A view controller used to render a PDF `Publication`.
 @available(iOS 11.0, *)
-open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
+open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggable {
     
     enum Error: Swift.Error {
         case openPDFFailed
     }
     
-    public let publication: Publication
-    public weak var delegate: PDFNavigatorDelegate?
-    public private(set) var pdfView: PDFDocumentView!
-    
     /// Whether the pages is always scaled to fit the screen, unless the user zoomed in.
     public var scalesDocumentToFit = true
-
-    private let initialLocation: Locator?
     
+    public weak var delegate: PDFNavigatorDelegate?
+    public private(set) var pdfView: PDFDocumentView!
+
+    private let publication: Publication
+    private let initialLocation: Locator?
+    private let editingActions: EditingActionsController
     /// Reading order index of the current resource.
     private var currentResourceIndex: Int?
-    
+    private let positionList: [Locator]
     /// Positions list indexed by reading order.
     private let positionListByResourceIndex: [[Locator]]
 
-    fileprivate let editingActions: EditingActionsController
-
-    public init(publication: Publication, license: DRMLicense?, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
+    public init(publication: Publication, license: DRMLicense? = nil, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
         self.publication = publication
         self.initialLocation = initialLocation
         self.editingActions = EditingActionsController(actions: editingActions, license: license)
@@ -125,9 +96,10 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
         
         view.backgroundColor = .black
         
-        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTap(gesture:))))
+        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTap)))
         
         pdfView = PDFDocumentView(frame: view.bounds, editingActions: editingActions)
+        pdfView.delegate = self
         pdfView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(pdfView)
         
@@ -173,16 +145,16 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
         pdfView.autoScales = !scalesDocumentToFit
     }
     
-    @objc private func didTap(gesture: UITapGestureRecognizer) {
+    @objc private func didTap(_ gesture: UITapGestureRecognizer) {
         let point = gesture.location(in: view)
-        delegate?.navigator(self, didTapAt: point, in: view)
+        delegate?.navigator(self, didTapAt: point)
     }
     
     @objc private func pageDidChange() {
         guard let locator = currentPosition else {
             return
         }
-        delegate?.navigator(self, didGoTo: locator)
+        delegate?.navigator(self, locationDidChange: locator)
     }
 
     private func go(to link: Link, pageNumber: Int? = nil, completion: @escaping () -> Void) -> Bool {
@@ -263,6 +235,10 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
     
     // MARK: - Navigator
 
+    public var readingProgression: ReadingProgression {
+        return publication.contentLayout.readingProgression
+    }
+    
     public var currentLocation: Locator? {
         guard var locator = currentPosition else {
             return nil
@@ -275,8 +251,6 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
         return locator
     }
 
-    public let positionList: [Locator]
-
     public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
         guard let index = publication.readingOrder.firstIndex(withHref: locator.href) else {
             return false
@@ -287,6 +261,10 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
             pageNumber: pageNumber(for: locator, at: index),
             completion: completion
         )
+    }
+    
+    public func go(to link: Link, animated: Bool, completion: @escaping () -> Void) -> Bool {
+        return go(to: Locator(link: link), animated: animated, completion: completion)
     }
     
     public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
@@ -323,6 +301,15 @@ open class PDFNavigatorViewController: UIViewController, Navigator, Loggable {
 
 }
 
+@available(iOS 11.0, *)
+extension PDFNavigatorViewController: PDFViewDelegate {
+    
+    public func pdfViewWillClick(onLink sender: PDFView, with url: URL) {
+        print(url)
+        delegate?.navigator(self, presentExternalURL: url)
+    }
+    
+}
 
 @available(iOS 11.0, *)
 extension PDFNavigatorViewController: EditingActionsControllerDelegate {
