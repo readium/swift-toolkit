@@ -60,7 +60,9 @@ class DocumentWebView: UIView, Loggable {
     
     /// Whether the continuous scrolling mode is enabled.
     var isScrollEnabled: Bool {
-        return (userSettings?.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable)?.on ?? false
+        let userEnabled = (userSettings?.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable)?.on ?? false
+        // Force-enables scroll when VoiceOver is running.
+        return userEnabled || UIAccessibility.isVoiceOverRunning
     }
 
     var documentLoaded = false
@@ -131,10 +133,13 @@ class DocumentWebView: UIView, Loggable {
                 WKUserScript(source: gesturesScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
             )
         }
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: Notification.Name(UIAccessibilityVoiceOverStatusChanged), object: nil)
     }
     
     deinit {
         sizeObservation = nil  // needs to be deallocated before the scrollView
+        NotificationCenter.default.removeObserver(self)
     }
     
     func setupWebView() {
@@ -339,6 +344,21 @@ class DocumentWebView: UIView, Loggable {
         }
         previousProgression = nil
         viewDelegate?.documentPageDidChange(webView: self, currentPage: currentPage(), totalPage: pages)
+    }
+    
+    
+    // MARK: - Accessibility
+    
+    private var isVoiceOverRunning = UIAccessibility.isVoiceOverRunning
+    
+    @objc private func voiceOverStatusDidChange() {
+        // Avoids excessive settings refresh when the status didn't change.
+        guard isVoiceOverRunning != UIAccessibility.isVoiceOverRunning else {
+            return
+        }
+        isVoiceOverRunning = UIAccessibility.isVoiceOverRunning
+        // Scroll mode will be activated if VoiceOver is on
+        applyUserSettingsStyle()
     }
 
 }
