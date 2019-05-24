@@ -21,9 +21,8 @@ protocol OutlineTableViewControllerFactory {
 protocol OutlineTableViewControllerDelegate: AnyObject {
     
     var bookmarksDataSource: BookmarkDataSource? { get }
-    func outline(_ outlineTableViewController: OutlineTableViewController, didSelectItem item: String)
-    func outline(_ outlineTableViewController: OutlineTableViewController, didSelectBookmark bookmark: Bookmark)
-    
+    func outline(_ outlineTableViewController: OutlineTableViewController, goTo location: Locator)
+
 }
 
 final class OutlineTableViewController: UITableViewController {
@@ -36,7 +35,7 @@ final class OutlineTableViewController: UITableViewController {
     var publication: Publication!
   
     // Outlines (list of links) to display for each section.
-    private var outlines: [Section: [Link]] = [:]
+    private var outlines: [Section: [(level: Int, link: Link)]] = [:]
 
     var bookmarksDataSource: BookmarkDataSource? {
         return delegate?.bookmarksDataSource
@@ -58,6 +57,7 @@ final class OutlineTableViewController: UITableViewController {
     @IBAction func dismissController(_ sender: Any) {
         dismiss(animated: true, completion: nil)
     }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -66,8 +66,8 @@ final class OutlineTableViewController: UITableViewController {
         tableView.dataSource = self
         tableView.tintColor = UIColor.black
 
-        func flatten(_ links: [Link]) -> [Link] {
-            return links.flatMap { [$0] + flatten($0.children) }
+        func flatten(_ links: [Link], level: Int = 0) -> [(level: Int, link: Link)] {
+            return links.flatMap { [(level, $0)] + flatten($0.children, level: level + 1) }
         }
         
         outlines = [
@@ -77,34 +77,42 @@ final class OutlineTableViewController: UITableViewController {
         ]
     }
     
+    func locator(at indexPath: IndexPath) -> Locator? {
+        switch section {
+        case .bookmarks:
+            guard let bookmark = bookmarksDataSource?.bookmark(at: indexPath.row) else {
+                return nil
+            }
+            return bookmark.locator
+
+        default:
+            guard let outline = outlines[section],
+                outline.indices.contains(indexPath.row) else
+            {
+                return nil
+            }
+            return Locator(link: outline[indexPath.row].link)
+        }
+    }
+    
+    override func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
+        // If the locator's href is #, then the item is not a link.
+        guard let locator = locator(at: indexPath), locator.href != "#" else {
+            return nil
+        }
+        return indexPath
+    }
+
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         defer {
             tableView.deselectRow(at: indexPath, animated: true)
         }
         
-        switch section {
-            
-        case .bookmarks:
-            let selectedIndex = indexPath.item
-            let bookmarks = bookmarksDataSource?.bookmarks ?? []
-            if selectedIndex < 0 || selectedIndex >= bookmarks.count {return}
-            if let bookmark = bookmarksDataSource?.bookmarks[selectedIndex] {
-                delegate?.outline(self, didSelectBookmark: bookmark)
-            }
-            dismiss(animated: true, completion: nil)
-            
-        default:
-            guard let outline = outlines[section] else {
-                break
-            }
-            if (publication.format != .cbz) {
-                let resourcePath = outline[indexPath.row].href
-                delegate?.outline(self, didSelectItem: resourcePath)
-            } else {
-                delegate?.outline(self, didSelectItem: String(indexPath.row))
-            }
-            dismiss(animated: true, completion:nil)
+        if let locator = locator(at: indexPath) {
+            delegate?.outline(self, goTo: locator)
         }
+
+        dismiss(animated: true, completion: nil)
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -139,8 +147,8 @@ final class OutlineTableViewController: UITableViewController {
             }
             
             let cell = UITableViewCell(style: .default, reuseIdentifier: kContentCell)
-            let link = outline[indexPath.row]
-            cell.textLabel?.text = link.title ?? link.href
+            let item = outline[indexPath.row]
+            cell.textLabel?.text = String(repeating: "  ", count: item.level) + (item.link.title ?? item.link.href)
             return cell
         }
     }
