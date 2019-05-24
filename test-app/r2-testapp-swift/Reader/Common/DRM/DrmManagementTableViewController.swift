@@ -58,11 +58,7 @@ class DrmManagementTableViewController: UITableViewController {
         navigationController?.navigationBar.tintColor = colors.textColor
         navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: colors.textColor]
     }
-    
-    open override var prefersStatusBarHidden: Bool {
-        return true
-    }
-    
+      
     @IBAction func renewTapped() {
         let alert = UIAlertController(title: "Renew License",
                                       message: "The provider will receive you query and process it.",
