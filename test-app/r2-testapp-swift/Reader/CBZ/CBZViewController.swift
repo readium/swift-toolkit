@@ -31,12 +31,6 @@ class CBZViewController: ReaderViewController {
         super.viewDidLoad()
         
         view.backgroundColor = .black
-        
-        addChild(navigator)
-        navigator.view.frame = view.bounds
-        navigator.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.addSubview(navigator.view)
-        navigator.didMove(toParent: self)
     }
     
     override var currentBookmark: Bookmark? {

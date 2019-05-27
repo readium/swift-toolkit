@@ -27,6 +27,8 @@ class ReaderViewController: UIViewController, Loggable {
 
     lazy var bookmarksDataSource: BookmarkDataSource? = BookmarkDataSource(publicationID: publication.metadata.identifier ?? "")
     
+    private(set) var stackView: UIStackView!
+    
     // FIXME: Should be moved into Book.progression.
     static func initialLocation(for publication: Publication) -> Locator? {
         guard let publicationID = publication.metadata.identifier,
@@ -42,11 +44,17 @@ class ReaderViewController: UIViewController, Loggable {
         self.drm = drm
         
         super.init(nibName: nil, bundle: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: Notification.Name(UIAccessibilityVoiceOverStatusChanged), object: nil)
     }
 
     @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 
     override func viewDidLoad() {
@@ -55,24 +63,28 @@ class ReaderViewController: UIViewController, Loggable {
         view.backgroundColor = .white
       
         navigationItem.rightBarButtonItems = makeNavigationBarButtons()
+        updateNavigationBar(animated: false)
         
+        stackView = UIStackView(frame: view.bounds)
+        stackView.distribution = .fill
+        stackView.axis = .vertical
+        view.addSubview(stackView)
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        let topConstraint = stackView.topAnchor.constraint(equalTo: view.topAnchor)
+        // `accessibilityTopMargin` takes precedence when VoiceOver is enabled.
+        topConstraint.priority = .defaultHigh
+        NSLayoutConstraint.activate([
+            topConstraint,
+            stackView.rightAnchor.constraint(equalTo: view.rightAnchor),
+            stackView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            stackView.leftAnchor.constraint(equalTo: view.leftAnchor)
+        ])
+
         addChild(navigator)
-        navigator.view.frame = view.bounds
-        navigator.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.addSubview(navigator.view)
+        stackView.addArrangedSubview(navigator.view)
         navigator.didMove(toParent: self)
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
         
-        navigationController?.hidesBarsOnTap = true
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        
-        navigationController?.hidesBarsOnTap = false
+        stackView.addArrangedSubview(accessibilityToolbar)
     }
     
     override func willMove(toParent parent: UIViewController?) {
@@ -84,6 +96,12 @@ class ReaderViewController: UIViewController, Loggable {
     
     // MARK: - Navigation bar
     
+    private var navigationBarHidden: Bool = true {
+        didSet {
+            updateNavigationBar()
+        }
+    }
+    
     func makeNavigationBarButtons() -> [UIBarButtonItem] {
         let tocButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self, action: #selector(presentOutline))
         let bookmarkButton = UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(bookmarkCurrentPosition))
@@ -91,10 +109,13 @@ class ReaderViewController: UIViewController, Loggable {
     }
     
     func toggleNavigationBar() {
-        guard let state = navigationController?.isNavigationBarHidden else {
-            return
-        }
-        navigationController?.setNavigationBarHidden(!state, animated: true)
+        navigationBarHidden = !navigationBarHidden
+    }
+    
+    func updateNavigationBar(animated: Bool = true) {
+        let hidden = navigationBarHidden && !UIAccessibility.isVoiceOverRunning
+        navigationController?.setNavigationBarHidden(hidden, animated: animated)
+        setNeedsStatusBarAppearanceUpdate()
     }
     
     override var preferredStatusBarUpdateAnimation: UIStatusBarAnimation {
@@ -102,7 +123,7 @@ class ReaderViewController: UIViewController, Loggable {
     }
     
     override var prefersStatusBarHidden: Bool {
-        return navigationController?.isNavigationBarHidden ?? true
+        return navigationBarHidden && !UIAccessibility.isVoiceOverRunning
     }
 
     
@@ -134,6 +155,62 @@ class ReaderViewController: UIViewController, Loggable {
         toast(self.view, "Bookmark Added", 1)
     }
 
+    
+    // MARK: - Accessibility
+    
+    /// Constraint used to shift the content under the navigation bar, since it is always visible when VoiceOver is running.
+    private lazy var accessibilityTopMargin: NSLayoutConstraint = {
+        let topAnchor: NSLayoutYAxisAnchor = {
+            if #available(iOS 11.0, *) {
+                return self.view.safeAreaLayoutGuide.topAnchor
+            } else {
+                return self.topLayoutGuide.bottomAnchor
+            }
+        }()
+        return self.stackView.topAnchor.constraint(equalTo: topAnchor)
+    }()
+    
+    private lazy var accessibilityToolbar: UIToolbar = {
+        func makeItem(_ item: UIBarButtonItem.SystemItem, label: String? = nil, action: Selector? = nil) -> UIBarButtonItem {
+            let button = UIBarButtonItem(barButtonSystemItem: item, target: (action != nil) ? self : nil, action: action)
+            button.accessibilityLabel = label
+            return button
+        }
+        
+        let toolbar = UIToolbar(frame: .zero)
+        toolbar.items = [
+            makeItem(.flexibleSpace),
+            makeItem(.rewind, label: "Previous", action: #selector(goBackward)),
+            makeItem(.flexibleSpace),
+            makeItem(.fastForward, label: "Next", action: #selector(goForward)),
+            makeItem(.flexibleSpace),
+        ]
+        toolbar.isHidden = !UIAccessibility.isVoiceOverRunning
+        return toolbar
+    }()
+    
+    private var isVoiceOverRunning = UIAccessibility.isVoiceOverRunning
+    
+    @objc private func voiceOverStatusDidChange() {
+        let isRunning = UIAccessibility.isVoiceOverRunning
+        // Avoids excessive settings refresh when the status didn't change.
+        guard isVoiceOverRunning != isRunning else {
+            return
+        }
+        isVoiceOverRunning = isRunning
+        accessibilityTopMargin.isActive = isRunning
+        accessibilityToolbar.isHidden = !isRunning
+        updateNavigationBar()
+    }
+    
+    @objc private func goBackward() {
+        navigator.goBackward()
+    }
+    
+    @objc private func goForward() {
+        navigator.goForward()
+    }
+    
 }
 
 extension ReaderViewController: NavigatorDelegate {
