@@ -15,7 +15,7 @@ import WebKit
 
 
 /// A WebView subclass to handle documents with a fixed layout.
-final class FixedWebView: WebView {
+final class FixedDocumentWebView: DocumentWebView {
     
     /// Whether the host wrapper page is loaded or not. The wrapper page contains the iframe that will display the resource.
     private var isWrapperPageLoaded = false

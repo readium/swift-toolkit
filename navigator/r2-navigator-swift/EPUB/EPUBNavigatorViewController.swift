@@ -168,7 +168,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator {
 
             triptych.moveTo(index: index, id: id)
             
-            if let progression = progression, let webView = triptych.currentView as? WebView {
+            if let progression = progression, let webView = triptych.currentView as? DocumentWebView {
                 // This is needed for when the webView is loaded into the triptychView
                 webView.scrollAt(position: progression)
             }
@@ -178,8 +178,8 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator {
     }
     
     /// Goes to the next or previous page in the given scroll direction.
-    private func go(to direction: WebView.ScrollDirection, animated: Bool, completion: @escaping () -> Void) -> Bool {
-        guard let webView = triptychView.currentView as? WebView else {
+    private func go(to direction: DocumentWebView.ScrollDirection, animated: Bool, completion: @escaping () -> Void) -> Bool {
+        guard let webView = triptychView.currentView as? DocumentWebView else {
             return false
         }
         return webView.scrollTo(direction, animated: animated, completion: completion)
@@ -194,7 +194,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator {
         
         let location = currentLocation
         for view in views {
-            let webview = view as? WebView
+            let webview = view as? DocumentWebView
             webview?.applyUserSettingsStyle()
         }
         
@@ -261,7 +261,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator {
     }
     
     public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
-        let direction: WebView.ScrollDirection = {
+        let direction: DocumentWebView.ScrollDirection = {
             switch readingProgression {
             case .ltr, .auto:
                 return .right
@@ -273,7 +273,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator {
     }
     
     public func goBackward(animated: Bool, completion: @escaping () -> Void) -> Bool {
-        let direction: WebView.ScrollDirection = {
+        let direction: DocumentWebView.ScrollDirection = {
             switch readingProgression {
             case .ltr, .auto:
                 return .left
@@ -286,7 +286,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator {
     
 }
 
-extension EPUBNavigatorViewController: WebViewDelegate {
+extension EPUBNavigatorViewController: DocumentWebViewDelegate {
     
     func willAnimatePageChange() {
         triptychView.isUserInteractionEnabled = false
@@ -296,24 +296,24 @@ extension EPUBNavigatorViewController: WebViewDelegate {
         triptychView.isUserInteractionEnabled = true
     }
     
-    func webView(_ webView: WebView, didTapAt point: CGPoint) {
+    func webView(_ webView: DocumentWebView, didTapAt point: CGPoint) {
         let point = view.convert(point, from: webView)
         delegate?.navigator(self, didTapAt: point)
         // FIXME: Deprecated, to be removed at some point.
         delegate?.middleTapHandler()
         
         // Uncomment to debug the coordinates of the tap point.
-//        let tapView = UIView(frame: .init(x: 0, y: 0, width: 50, height: 50))
-//        view.addSubview(tapView)
-//        tapView.backgroundColor = .red
-//        tapView.center = point
-//        tapView.layer.cornerRadius = 25
-//        tapView.layer.masksToBounds = true
-//        UIView.animate(withDuration: 0.8, animations: {
-//            tapView.alpha = 0
-//        }) { _ in
-//            tapView.removeFromSuperview()
-//        }
+        let tapView = UIView(frame: .init(x: 0, y: 0, width: 50, height: 50))
+        view.addSubview(tapView)
+        tapView.backgroundColor = .red
+        tapView.center = point
+        tapView.layer.cornerRadius = 25
+        tapView.layer.masksToBounds = true
+        UIView.animate(withDuration: 0.8, animations: {
+            tapView.alpha = 0
+        }) { _ in
+            tapView.removeFromSuperview()
+        }
     }
     
     func handleTapOnLink(with url: URL) {
@@ -321,18 +321,10 @@ extension EPUBNavigatorViewController: WebViewDelegate {
     }
     
     func handleTapOnInternalLink(with href: String) {
-        guard let index = publication.readingOrder.firstIndex(withHref: href) else {
-            return
-        }
-        
-        let moved = go(to: Link(href: href))
-        if moved {
-            // FIXME: Deprecated, to be removed at some point.
-            delegate?.didNavigateViaInternalLinkTap(to: index)
-        }
+        go(to: Link(href: href))
     }
     
-    func documentPageDidChange(webView: WebView, currentPage: Int, totalPage: Int) {
+    func documentPageDidChange(webView: DocumentWebView, currentPage: Int, totalPage: Int) {
         if triptychView.currentView == webView {
             notifyCurrentLocation()
 
@@ -376,7 +368,7 @@ extension EPUBNavigatorViewController: TriptychViewDelegate {
         // Check if link is FXL.
         let hasFixedLayout = (publication.metadata.rendition?.layout == .fixed && link.properties.layout == nil) || link.properties.layout == .fixed
 
-        let webViewType = hasFixedLayout ? FixedWebView.self : ReflowableWebView.self
+        let webViewType = hasFixedLayout ? FixedDocumentWebView.self : ReflowableDocumentWebView.self
         let webView = webViewType.init(
             baseURL: baseURL,
             initialLocation: location,
@@ -408,7 +400,7 @@ extension EPUBNavigatorViewController: TriptychViewDelegate {
         // FIXME: Deprecated, to be removed at some point.
         delegate?.didChangedDocumentPage(currentDocumentIndex: documentIndex)
         if let currentView = triptychView.currentView {
-            let cw = currentView as! WebView
+            let cw = currentView as! DocumentWebView
             if let pages = cw.totalPages {
                 delegate?.didChangedPaginatedDocumentPage(currentPage: cw.currentPage(), documentTotalPage: pages)
             }
