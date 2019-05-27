@@ -47,14 +47,17 @@
       "clientY": touch.clientY,
     });
 
-    event.stopPropagation();
-    event.preventDefault();
+    // We don't want to disable the default WebView behavior as it breaks some features without bringing any value.
+//    event.stopPropagation();
+//    event.preventDefault();
   }
 
   function isInteractiveElement(element) {
     var interactiveTags = [
       'a',
+      'button',
       'input',
+      'label',
       'option',
       'select',
       'submit',
