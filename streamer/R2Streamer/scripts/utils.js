@@ -5,12 +5,16 @@
 
 // Notify native code that the page has loaded.
 window.addEventListener("load", function(){ // on page load
-                        // Notify native code that the page is loaded.
-                        webkit.messageHandlers.didLoad.postMessage("");
-                        }, false);
+    // Notify native code that the page is loaded.
+    webkit.messageHandlers.didLoad.postMessage("");
+    window.addEventListener("orientationchange", orientationChanged);
+    orientationChanged();
+}, false);
 
-var last_known_scroll_position = 0;
+var last_known_scrollX_position = 0;
+var last_known_scrollY_position = 0;
 var ticking = false;
+var maxScreenX = 0;
 
 // Position in range [0 - 1].
 var update = function(position) {
@@ -19,15 +23,25 @@ var update = function(position) {
 };
 
 window.addEventListener('scroll', function(e) {
-                       last_known_scroll_position = window.scrollX / document.getElementsByTagName("body")[0].scrollWidth;
-                       if (!ticking) {
-                       window.requestAnimationFrame(function() {
-                                                    update(last_known_scroll_position);
-                                                    ticking = false;
-                                                    });
-                       }
-                       ticking = true;
-                       });
+    last_known_scrollY_position = window.scrollY / document.body.scrollHeight;
+    last_known_scrollX_position = window.scrollX / document.body.scrollWidth;
+    if (!ticking) {
+        window.requestAnimationFrame(function() {
+            update(isScrollModeEnabled() ? last_known_scrollY_position : last_known_scrollX_position);
+            ticking = false;
+        });
+    }
+    ticking = true;
+});
+
+function orientationChanged() {
+    maxScreenX = (window.orientation === 0 || window.orientation == 180) ? screen.width : screen.height;
+    snapCurrentPosition();
+}
+
+function isScrollModeEnabled() {
+    return document.documentElement.style.getPropertyValue("--USER__scroll").toString().trim() == 'readium-scroll-on';
+}
 
 // Scroll to the given TagId in document and snap.
 var scrollToId = function(id) {
@@ -45,14 +59,20 @@ var scrollToPosition = function(position, dir) {
         console.log("InvalidPosition");
         return;
     }
-    var offset = 0.0;
-    if (dir == 'rtl') {
-        offset = (-document.body.scrollWidth + maxScreenX) * (1.0-position);
+
+    if (isScrollModeEnabled()) {
+        var offset = document.body.scrollHeight * position;
+        document.body.scrollTop = offset;
+        // window.scrollTo(0, offset);
     } else {
-        offset = document.body.scrollWidth * position;
+        var offset = 0.0;
+        if (dir == 'rtl') {
+            offset = (-document.body.scrollWidth + maxScreenX) * (1.0-position);
+        } else {
+            offset = document.body.scrollWidth * position;
+        }
+        document.body.scrollLeft = snapOffset(offset);
     }
-    console.log(offset);
-    document.body.scrollLeft = snapOffset(offset);
 };
 
 var scrollLeft = function(dir) {
@@ -117,6 +137,13 @@ var snapOffset = function(offset) {
     var value = offset + 1;
 
     return value - (value % maxScreenX);
+};
+
+var snapCurrentPosition = function() {
+    var currentOffset = window.scrollX;
+    var currentOffsetSnapped = snapOffset(currentOffset + 1);
+    
+    document.body.scrollLeft = currentOffsetSnapped;
 };
 
 /// User Settings.
