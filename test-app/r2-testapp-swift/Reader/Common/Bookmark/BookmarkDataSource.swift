@@ -49,7 +49,7 @@ class BookmarkDataSource: Loggable {
     }
     
     func bookmark(at index: Int) -> Bookmark? {
-        if index < 0 || index >= bookmarks.count {
+        guard bookmarks.indices.contains(index) else {
             return nil
         }
         return bookmarks[index]

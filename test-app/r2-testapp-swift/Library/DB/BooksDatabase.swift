@@ -13,7 +13,6 @@
 import Foundation
 import SQLite
 
-
 final class BooksDatabase {
   // Shared instance.
   public static let shared = BooksDatabase()
