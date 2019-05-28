@@ -301,6 +301,19 @@ extension EPUBNavigatorViewController: DocumentWebViewDelegate {
         delegate?.navigator(self, didTapAt: point)
         // FIXME: Deprecated, to be removed at some point.
         delegate?.middleTapHandler()
+        
+        // Uncomment to debug the coordinates of the tap point.
+//        let tapView = UIView(frame: .init(x: 0, y: 0, width: 50, height: 50))
+//        view.addSubview(tapView)
+//        tapView.backgroundColor = .red
+//        tapView.center = point
+//        tapView.layer.cornerRadius = 25
+//        tapView.layer.masksToBounds = true
+//        UIView.animate(withDuration: 0.8, animations: {
+//            tapView.alpha = 0
+//        }) { _ in
+//            tapView.removeFromSuperview()
+//        }
     }
     
     func handleTapOnLink(with url: URL) {

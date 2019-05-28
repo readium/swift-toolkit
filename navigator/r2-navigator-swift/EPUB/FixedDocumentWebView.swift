@@ -69,7 +69,8 @@ final class FixedDocumentWebView: DocumentWebView {
             completion?(nil, nil)
             return
         }
-        webView.evaluateJavaScript("page.eval(\"\(script.replacingOccurrences(of: "\"", with: "\\\""))\");", completionHandler: completion)
+        let script = "page.eval(\"\(script.replacingOccurrences(of: "\"", with: "\\\""))\");"
+        super.evaluateScriptInResource(script, completion: completion)
     }
     
     /// Layouts the resource to fit its content in the bounds.
@@ -87,6 +88,17 @@ final class FixedDocumentWebView: DocumentWebView {
               {'top': \(Int(insets.top)), 'left': \(Int(insets.left)), 'bottom': \(Int(insets.bottom)), 'right': \(Int(insets.right))}
             );
         """)
+    }
+    
+    override func pointFromTap(_ data: [String : Any]) -> CGPoint? {
+        guard let x = data["screenX"] as? Int, let y = data["screenY"] as? Int else {
+            return nil
+        }
+
+        return CGPoint(
+            x: CGFloat(x) * scrollView.zoomScale - scrollView.contentOffset.x + webView.frame.minX,
+            y: CGFloat(y) * scrollView.zoomScale - scrollView.contentOffset.y + webView.frame.minY
+        )
     }
     
     override func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
