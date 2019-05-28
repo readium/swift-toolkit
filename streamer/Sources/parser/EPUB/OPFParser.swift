@@ -59,10 +59,8 @@ final public class OPFParser {
 
         let epubVersion = parseEpubVersion(from: document)
         let manifestLinks = parseManifestLinks(from: document, rootFilePath)
-        let readingOrder = parseReadingOrder(from: document, manifestLinks: manifestLinks)
-        // The resources should only contain the links that are not already in the readingOrder
-        let resources = manifestLinks.filter { !readingOrder.contains($0) }
-        
+        let (resources, readingOrder) = parseResourcesAndReadingOrder(from: document, manifestLinks: manifestLinks)
+
         return Publication(
             format: .epub,
             formatVersion: String(epubVersion),
@@ -166,25 +164,27 @@ final public class OPFParser {
     /// They are only composed of an `idref` referencing one of the previously
     /// parsed resource (XML: idref -> id).
     ///
-    /// - Parameters:
-    ///   - readingOrder: The ReadingOrder XML element.
-    ///   - manifestLinks: The `Link` parsed in the manifest items.
-    /// - Returns: The `Link` in the reading order, taken from the `manifestLinks`.
-    static internal func parseReadingOrder(from document: AEXMLElement, manifestLinks: [Link]) -> [Link] {
+    /// - Parameter manifestLinks: The `Link` parsed in the manifest items.
+    /// - Returns: The `Link` in `resources` and in `readingOrder`, taken from the `manifestLinks`.
+    static internal func parseResourcesAndReadingOrder(from document: AEXMLElement, manifestLinks: [Link]) -> (resources: [Link], readingOrder: [Link]) {
+        var resources = manifestLinks
+        var readingOrder: [Link] = []
+        
         // Get the readingOrder children items.
         let readingOrderItems = document["package"]["readingOrder"]["itemref"].all
             ?? document["package"]["spine"]["itemref"].all
             ?? []
         
-        return readingOrderItems.compactMap { item in
-            // Find the `Link` `idref` is referencing to from the `manifestLinks`.
+        for item in readingOrderItems {
+            // Find the `Link` that `idref` is referencing to from the `manifestLinks`.
             guard let idref = item.attributes["idref"],
-                let link = manifestLinks.first(withProperty: "id", matching: idref) else
+                let index = resources.firstIndex(withProperty: "id", matching: idref) else
             {
-                return nil
+                continue
             }
             
             // Parse the additional link properties.
+            let link = resources[index]
             if let propertyAttribute = item.attributes["properties"] {
                 let properties = propertyAttribute.components(separatedBy: CharacterSet.whitespaces)
                 parseProperties(&link.properties, from: properties)
@@ -193,11 +193,15 @@ final public class OPFParser {
             // Retrieve `idref`, referencing a resource id.
             // Only linear items are added to the readingOrder.
             guard isLinear(item.attributes["linear"]) else {
-                return nil
+                continue
             }
             
-            return link
+            readingOrder.append(link)
+            // The resources should only contain the links that are not already in the readingOrder
+            resources.remove(at: index)
         }
+        
+        return (resources, readingOrder)
     }
 
     /// Determine if the xml attribute correspond to the linear one.
