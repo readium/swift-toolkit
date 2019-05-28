@@ -2,162 +2,151 @@
 
 // WARNING: iOS 9 requires ES5
 
+var readium = (function() {
+    
+    // Notify native code that the page has loaded.
+    window.addEventListener("load", function(){ // on page load
+        // Notify native code that the page is loaded.
+        webkit.messageHandlers.didLoad.postMessage("");
+        window.addEventListener("orientationchange", orientationChanged);
+        orientationChanged();
+    }, false);
 
-// Notify native code that the page has loaded.
-window.addEventListener("load", function(){ // on page load
-    // Notify native code that the page is loaded.
-    webkit.messageHandlers.didLoad.postMessage("");
-    window.addEventListener("orientationchange", orientationChanged);
-    orientationChanged();
-}, false);
+    var last_known_scrollX_position = 0;
+    var last_known_scrollY_position = 0;
+    var ticking = false;
+    var maxScreenX = 0;
 
-var last_known_scrollX_position = 0;
-var last_known_scrollY_position = 0;
-var ticking = false;
-var maxScreenX = 0;
-
-// Position in range [0 - 1].
-var update = function(position) {
-    var positionString = position.toString()
-    webkit.messageHandlers.updateProgression.postMessage(positionString);
-};
-
-window.addEventListener('scroll', function(e) {
-    last_known_scrollY_position = window.scrollY / document.body.scrollHeight;
-    last_known_scrollX_position = window.scrollX / document.body.scrollWidth;
-    if (!ticking) {
-        window.requestAnimationFrame(function() {
-            update(isScrollModeEnabled() ? last_known_scrollY_position : last_known_scrollX_position);
-            ticking = false;
-        });
-    }
-    ticking = true;
-});
-
-function orientationChanged() {
-    maxScreenX = (window.orientation === 0 || window.orientation == 180) ? screen.width : screen.height;
-    snapCurrentPosition();
-}
-
-function isScrollModeEnabled() {
-    return document.documentElement.style.getPropertyValue("--USER__scroll").toString().trim() == 'readium-scroll-on';
-}
-
-// Scroll to the given TagId in document and snap.
-var scrollToId = function(id) {
-    var element = document.getElementById(id);
-    var elementOffset = element.scrollLeft // element.getBoundingClientRect().left works for Gutenbergs books
-    var offset = window.scrollX + elementOffset;
-
-    document.body.scrollLeft = snapOffset(offset);
-};
-
-// Position must be in the range [0 - 1], 0-100%.
-var scrollToPosition = function(position, dir) {
-    console.log("ScrollToPosition");
-    if ((position < 0) || (position > 1)) {
-        console.log("InvalidPosition");
-        return;
+    // Position in range [0 - 1].
+    function update(position) {
+        var positionString = position.toString()
+        webkit.messageHandlers.updateProgression.postMessage(positionString);
     }
 
-    if (isScrollModeEnabled()) {
-        var offset = document.body.scrollHeight * position;
-        document.body.scrollTop = offset;
-        // window.scrollTo(0, offset);
-    } else {
-        var offset = 0.0;
-        if (dir == 'rtl') {
-            offset = (-document.body.scrollWidth + maxScreenX) * (1.0-position);
-        } else {
-            offset = document.body.scrollWidth * position;
+    window.addEventListener('scroll', function(e) {
+        last_known_scrollY_position = window.scrollY / document.body.scrollHeight;
+        last_known_scrollX_position = window.scrollX / document.body.scrollWidth;
+        if (!ticking) {
+            window.requestAnimationFrame(function() {
+                update(isScrollModeEnabled() ? last_known_scrollY_position : last_known_scrollX_position);
+                ticking = false;
+            });
         }
+        ticking = true;
+    });
+
+    function orientationChanged() {
+        maxScreenX = (window.orientation === 0 || window.orientation == 180) ? screen.width : screen.height;
+        snapCurrentPosition();
+    }
+
+    function isScrollModeEnabled() {
+        return document.documentElement.style.getPropertyValue("--USER__scroll").toString().trim() == 'readium-scroll-on';
+    }
+
+    // Scroll to the given TagId in document and snap.
+    function scrollToId(id) {
+        var element = document.getElementById(id);
+        var elementOffset = element.scrollLeft // element.getBoundingClientRect().left works for Gutenbergs books
+        var offset = window.scrollX + elementOffset;
+
         document.body.scrollLeft = snapOffset(offset);
     }
-};
 
-var scrollLeft = function(dir) {
-    var scrollWidth = document.body.scrollWidth;
-    var newOffset = window.scrollX - window.innerWidth;
-    var edge = -scrollWidth + window.innerWidth;
-    var newEdge = (dir == "rtl")? edge:0;
-    
-    if (window.innerWidth == scrollWidth) {
-        // No scroll and default zoom
-        return "edge";
-    } else {
-        // Scrolled and zoomed
-        if (newOffset > newEdge) {
-            document.body.scrollLeft = newOffset
-            return 0;
+    // Position must be in the range [0 - 1], 0-100%.
+    function scrollToPosition(position, dir) {
+        console.log("ScrollToPosition");
+        if ((position < 0) || (position > 1)) {
+            console.log("InvalidPosition");
+            return;
+        }
+
+        if (isScrollModeEnabled()) {
+            var offset = document.body.scrollHeight * position;
+            document.body.scrollTop = offset;
+            // window.scrollTo(0, offset);
         } else {
-            var oldOffset = window.scrollX;
-            document.body.scrollLeft = newEdge;
-            var diff = Math.abs(newEdge-oldOffset)/window.innerWidth;
-            // In some case the scrollX cannot reach the position respecting to innerWidth
-            if (diff > 0.01) {
-                return 0;
+            var offset = 0.0;
+            if (dir == 'rtl') {
+                offset = -document.body.scrollWidth * (1.0-position);
             } else {
-                return "edge";
+                offset = document.body.scrollWidth * position;
             }
+            document.body.scrollLeft = snapOffset(offset);
         }
     }
-};
 
-var scrollRight = function(dir) {
-    
-    var scrollWidth = document.body.scrollWidth;
-    var newOffset = window.scrollX + window.innerWidth;
-    var edge = scrollWidth - window.innerWidth;
-    var newEdge = (dir == "rtl")? 0:edge
-    
-    if (window.innerWidth == scrollWidth) {
-        // No scroll and default zoom
-        return "edge";
-    } else {
-        // Scrolled and zoomed
-        if (newOffset < newEdge) {
-            document.body.scrollLeft = newOffset
-            return 0;
-        } else {
-            var oldOffset = window.scrollX;
-            document.body.scrollLeft = newEdge;
-            var diff = Math.abs(newEdge-oldOffset)/window.innerWidth;
-            // In some case the scrollX cannot reach the position respecting to innerWidth
-            if (diff > 0.01) {
-                return 0;
-            } else {
-                return "edge";
-            }
-        }
+    // Returns false if the page is already at the left-most scroll offset.
+    function scrollLeft(dir) {
+        var isRTL = (dir == "rtl");
+        var documentWidth = document.body.scrollWidth;
+        var pageWidth = window.innerWidth;
+        var offset = window.scrollX - pageWidth;
+        var minOffset = isRTL ? -(documentWidth - pageWidth) : 0;
+        return scrollToOffset(Math.max(offset, minOffset));
     }
-};
 
-// Snap the offset to the screen width (page width).
-var snapOffset = function(offset) {
-    var value = offset + 1;
+    // Returns false if the page is already at the right-most scroll offset.
+    function scrollRight(dir) {
+        var isRTL = (dir == "rtl");
+        var documentWidth = document.body.scrollWidth;
+        var pageWidth = window.innerWidth;
+        var offset = window.scrollX + pageWidth;
+        var maxOffset = isRTL ? 0 : (documentWidth - pageWidth);
+        return scrollToOffset(Math.min(offset, maxOffset));
+    }
 
-    return value - (value % maxScreenX);
-};
+    // Scrolls to the given left offset.
+    // Returns false if the page scroll position is already close enough to the given offset.
+    function scrollToOffset(offset) {
+        var currentOffset = window.scrollX;
+        var pageWidth = window.innerWidth;
+        document.body.scrollLeft = offset;
+        // In some case the scrollX cannot reach the position respecting to innerWidth
+        var diff = Math.abs(currentOffset - offset) / pageWidth;
+        return (diff > 0.01);
+    }
 
-var snapCurrentPosition = function() {
-    var currentOffset = window.scrollX;
-    var currentOffsetSnapped = snapOffset(currentOffset + 1);
-    
-    document.body.scrollLeft = currentOffsetSnapped;
-};
+    // Snap the offset to the screen width (page width).
+    function snapOffset(offset) {
+        var value = offset + 1;
 
-/// User Settings.
+        return value - (value % maxScreenX);
+    }
 
-// For setting user setting.
-var setProperty = function(key, value) {
-    var root = document.documentElement;
+    function snapCurrentPosition() {
+        var currentOffset = window.scrollX;
+        var currentOffsetSnapped = snapOffset(currentOffset + 1);
+        
+        document.body.scrollLeft = currentOffsetSnapped;
+    }
 
-    root.style.setProperty(key, value);
-};
+    /// User Settings.
 
-// For removing user setting.
-var removeProperty = function(key) {
-    var root = document.documentElement;
+    // For setting user setting.
+    function setProperty(key, value) {
+        var root = document.documentElement;
 
-    root.style.removeProperty(key);
-};
+        root.style.setProperty(key, value);
+    }
+
+    // For removing user setting.
+    function removeProperty(key) {
+        var root = document.documentElement;
+
+        root.style.removeProperty(key);
+    }
+
+
+    // Public API used by the navigator.
+
+    return {
+        'scrollToId': scrollToId,
+        'scrollToPosition': scrollToPosition,
+        'scrollLeft': scrollLeft,
+        'scrollRight': scrollRight,
+        'setProperty': setProperty,
+        'removeProperty': removeProperty
+    };
+
+})();
