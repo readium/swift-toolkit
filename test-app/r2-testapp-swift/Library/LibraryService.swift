@@ -103,9 +103,15 @@ final class LibraryService {
         var url = repository.appendingPathComponent(sourceUrl.lastPathComponent)
             url = repository.appendingPathComponent("\(UUID().uuidString).\(url.pathExtension)")
         
-        /// Move Publication to documents.
+        /// Copy the Publication to documents.
         do {
-            try FileManager.default.moveItem(at: sourceUrl, to: url)
+            // Necessary to read URL exported from the Files app, for example.
+            _ = sourceUrl.startAccessingSecurityScopedResource()
+            defer {
+                sourceUrl.stopAccessingSecurityScopedResource()
+            }
+            
+            try FileManager.default.copyItem(at: sourceUrl, to: url)
             let dateAttribute = [FileAttributeKey.modificationDate: Date()]
             try FileManager.default.setAttributes(dateAttribute, ofItemAtPath: url.path)
             
