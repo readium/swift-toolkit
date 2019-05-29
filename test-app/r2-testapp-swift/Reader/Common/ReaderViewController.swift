@@ -10,7 +10,9 @@
 //  LICENSE file present in the project repository where this source code is maintained.
 //
 
+import SafariServices
 import UIKit
+import R2Navigator
 import R2Shared
 
 
@@ -19,12 +21,23 @@ class ReaderViewController: UIViewController, Loggable {
     
     weak var moduleDelegate: ReaderFormatModuleDelegate?
     
+    let navigator: UIViewController & Navigator
     let publication: Publication
     let drm: DRM?
-    
+
     lazy var bookmarksDataSource: BookmarkDataSource? = BookmarkDataSource(publicationID: publication.metadata.identifier ?? "")
     
-    init(publication: Publication, drm: DRM?) {
+    // FIXME: Should be moved into Book.progression.
+    static func initialLocation(for publication: Publication) -> Locator? {
+        guard let publicationID = publication.metadata.identifier,
+            let locatorJSON = UserDefaults.standard.string(forKey: "\(publicationID)-locator") else {
+                return nil
+        }
+        return (try? Locator(jsonString: locatorJSON)) as? Locator
+    }
+    
+    init(navigator: UIViewController & Navigator, publication: Publication, drm: DRM?) {
+        self.navigator = navigator
         self.publication = publication
         self.drm = drm
         
@@ -42,6 +55,12 @@ class ReaderViewController: UIViewController, Loggable {
         view.backgroundColor = .white
       
         navigationItem.rightBarButtonItems = makeNavigationBarButtons()
+        
+        addChild(navigator)
+        navigator.view.frame = view.bounds
+        navigator.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(navigator.view)
+        navigator.didMove(toParent: self)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -94,20 +113,8 @@ class ReaderViewController: UIViewController, Loggable {
         fatalError("Not implemented")
     }
     
-    var outline: [Link] {
-        return publication.tableOfContents
-    }
-    
-    func goTo(item: String) {
-        fatalError("Not implemented")
-    }
-    
-    func goTo(bookmark: Bookmark) {
-        fatalError("Not implemented")
-    }
-    
-    
-    // MARK: - Table of Contents
+
+    // MARK: - Outlines
 
     @objc func presentOutline() {
         moduleDelegate?.presentOutline(of: publication, delegate: self, from: self)
@@ -129,15 +136,53 @@ class ReaderViewController: UIViewController, Loggable {
 
 }
 
+extension ReaderViewController: NavigatorDelegate {
+
+    func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
+        guard let publicationID = publication.metadata.identifier else {
+            return
+        }
+        UserDefaults.standard.set(locator.jsonString, forKey: "\(publicationID)-locator")
+    }
+    
+    func navigator(_ navigator: Navigator, presentExternalURL url: URL) {
+        // SFSafariViewController crashes when given an URL without an HTTP scheme.
+        guard ["http", "https"].contains(url.scheme?.lowercased() ?? "") else {
+            return
+        }
+        present(SFSafariViewController(url: url), animated: true)
+    }
+    
+    func navigator(_ navigator: Navigator, presentError error: NavigatorError) {
+        moduleDelegate?.presentError(error, from: self)
+    }
+    
+}
+
+extension ReaderViewController: VisualNavigatorDelegate {
+    
+    func navigator(_ navigator: VisualNavigator, didTapAt point: CGPoint) {
+        let viewport = navigator.view.bounds
+        // Skips to previous/next pages if the tap is on the content edges.
+        let thresholdRange = 0...(0.2 * viewport.width)
+        var moved = false
+        if thresholdRange ~= point.x {
+            moved = navigator.goLeft(animated: false)
+        } else if thresholdRange ~= (viewport.maxX - point.x) {
+            moved = navigator.goRight(animated: false)
+        }
+        
+        if !moved {
+            toggleNavigationBar()
+        }
+    }
+    
+}
 
 extension ReaderViewController: OutlineTableViewControllerDelegate {
     
-    func outline(_ outlineTableViewController: OutlineTableViewController, didSelectItem item: String) {
-        goTo(item: item)
+    func outline(_ outlineTableViewController: OutlineTableViewController, goTo location: Locator) {
+        navigator.go(to: location)
     }
-    
-    func outline(_ outlineTableViewController: OutlineTableViewController, didSelectBookmark bookmark: Bookmark) {
-        goTo(bookmark: bookmark)
-    }
-    
+
 }

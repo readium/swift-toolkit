@@ -41,6 +41,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             aboutViewController
         ]
         tabBarController.tabBar.tintColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
+        tabBarController.tabBar.isTranslucent = false
 
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = tabBarController
