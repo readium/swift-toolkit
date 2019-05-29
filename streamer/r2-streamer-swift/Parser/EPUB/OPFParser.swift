@@ -58,13 +58,14 @@ final public class OPFParser {
         let displayOptions = parseDisplayOptionsDocument(from: container)
 
         let epubVersion = parseEpubVersion(from: document)
-        let manifestLinks = parseManifestLinks(from: document, rootFilePath)
+        let manifestLinks = parseManifestLinks(from: document, at: rootFilePath)
         let (resources, readingOrder) = parseResourcesAndReadingOrder(from: document, manifestLinks: manifestLinks)
+        let metadata = EPUBMetadataParser(document: document, displayOptions: displayOptions, epubVersion: epubVersion)
 
         return Publication(
             format: .epub,
             formatVersion: String(epubVersion),
-            metadata: try parseMetadata(from: document, displayOptions: displayOptions, epubVersion: epubVersion),
+            metadata: try metadata.parse(),
             readingOrder: readingOrder,
             resources: resources
         )
@@ -83,46 +84,14 @@ final public class OPFParser {
         return try? AEXMLDocument(xml: documentData, options: options)
     }
 
-    /// Parse the Metadata in the XML <metadata> element.
-    ///
-    /// - Parameter document: Parse the Metadata in the XML <metadata> element.
-    static internal func parseMetadata(from document: AEXMLDocument, displayOptions: AEXMLDocument?, epubVersion: Double) throws -> Metadata {
-        let metadataElement = document["package"]["metadata"]
-        guard let title = MetadataParser.mainTitle(from: metadataElement) else {
-            throw OPFParserError.missingPublicationTitle
-        }
-
-        var metadata = Metadata(
-            identifier: MetadataParser.uniqueIdentifier(from: document),
-            title: title,
-            subtitle: MetadataParser.subTitle(from: metadataElement),
-            modified: MetadataParser.modifiedDate(from: metadataElement),
-            published: MetadataParser.publishedDate(from: metadataElement),
-            languages: metadataElement["dc:language"].all?.map { $0.string } ?? [],
-            subjects: MetadataParser.subjects(from: metadataElement),
-            readingProgression: MetadataParser.parseReadingProgression(from: document),
-            description: metadataElement["dc:description"].value,
-            otherMetadata: [
-                "source": metadataElement["dc:source"].value ?? "",
-                "rights": metadataElement["dc:rights"].all?
-                    .map { $0.string }.joined(separator: " ") ?? ""
-            ]
-        )
-
-        MetadataParser.parseContributors(from: metadataElement, to: &metadata, epubVersion)
-        metadata.rendition = MetadataParser.parseRenditionProperties(from: metadataElement, displayOptions: displayOptions)
-        
-        return metadata
-    }
-
     /// Parses XML elements of the <Manifest> in the package.opf file as a list of `Link`.
     ///
     /// - Parameters:
     ///   - manifest: The Manifest XML element.
     ///   - metadata: The metadata XML element.
     ///   - coverId: The coverId to identify the cover ressource and tag it.
-    static internal func parseManifestLinks(from document: AEXMLElement, _ rootFilePath: String) -> [Link] {
-        let durations = MetadataParser.parseMediaDurations(from: document)
+    static internal func parseManifestLinks(from document: AEXMLElement, at rootFilePath: String) -> [Link] {
+        let durations = parseMediaDurations(from: document)
 
         // Read meta to see if any Link is referenced as the Cover.
         let coverId: String? = document["package"]["metadata"]["meta"]
@@ -158,6 +127,34 @@ final public class OPFParser {
     
                 return link
             }
+    }
+
+    /// Parse the metadata>meta>property=media:duration elements from the
+    /// metadata. These meta are related to the Media Overlays, they give the
+    /// smil file audio playback time.
+    /// Metadata -> e.g. : ["#smil-1": "00:01:24.687"]
+    ///
+    /// - Parameter document: The OPF XML element.
+    /// - Returns: Mapping between the SMIL ID and its duration.
+    static internal func parseMediaDurations(from document: AEXMLElement) -> [String: Double]
+    {
+        guard let metas = document["package"]["metadata"]["meta"].all else {
+            return [:]
+        }
+        
+        return metas
+            .filter { $0.attributes["property"] == "media:duration" }
+            .reduce([:]) { durations, item in
+                var durations = durations
+                if let property = item.attributes["refines"],
+                    let value = item.value,
+                    let duration = Double(SMILParser.smilTimeToSeconds(value))
+                {
+                    durations[property] = duration
+                }
+                
+                return durations
+        }
     }
 
     /// Parse XML elements of the <ReadingOrder> in the package.opf file.

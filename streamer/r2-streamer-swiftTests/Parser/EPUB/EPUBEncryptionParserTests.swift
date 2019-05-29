@@ -1,5 +1,5 @@
 //
-//  EncryptionParserTests.swift
+//  EPUBEncryptionParserTests.swift
 //  R2StreamerTests
 //
 //  Created by Mickaël Menu on 21.05.19.
@@ -14,7 +14,7 @@ import R2Shared
 @testable import R2Streamer
 
 
-class EncryptionParserTests: XCTestCase {
+class EPUBEncryptionParserTests: XCTestCase {
     
     func testParseLCPEncryption() {
         let parser = parseEncryption("encryption-lcp", drm: DRM(brand: .lcp))
@@ -85,10 +85,10 @@ class EncryptionParserTests: XCTestCase {
 
     // MARK: - Toolkit
     
-    func parseEncryption(_ name: String, drm: DRM? = nil) -> EncryptionParser {
+    func parseEncryption(_ name: String, drm: DRM? = nil) -> EPUBEncryptionParser {
         let url = SampleGenerator().getSamplesFileURL(named: "Encryption/\(name)", ofType: "xml")!
         let data = try! Data(contentsOf: url)
-        return EncryptionParser(data: data, drm: drm)
+        return EPUBEncryptionParser(data: data, drm: drm)
     }
     
 }

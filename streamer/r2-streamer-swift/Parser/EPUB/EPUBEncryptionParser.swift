@@ -1,8 +1,8 @@
 //
-//  EncryptionParser.swift
+//  EPUBEncryptionParser.swift
 //  r2-streamer-swift
 //
-//  Created by Alexandre Camilleri on 4/12/17.
+//  Created by Alexandre Camilleri, Mickaël Menu on 4/12/17.
 //
 //  Copyright 2018 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by a BSD-style license which is detailed
@@ -13,7 +13,7 @@ import R2Shared
 import Fuzi
 
 /// A parser module which provide methods to parse encrypted XML elements.
-final class EncryptionParser: Loggable {
+final class EPUBEncryptionParser: Loggable {
     
     private let data: Data
     private let drm: DRM?

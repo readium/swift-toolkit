@@ -1,8 +1,8 @@
 //
-//  MetadataParser.swift
+//  EPUBMetadataParser.swift
 //  r2-streamer-swift
 //
-//  Created by Alexandre Camilleri on 3/17/17.
+//  Created by Alexandre Camilleri, Mickaël Menu on 3/17/17.
 //
 //  Copyright 2018 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by a BSD-style license which is detailed
@@ -12,20 +12,56 @@
 import R2Shared
 import AEXML
 
-extension MetadataParser: Loggable {}
 
-final public class MetadataParser {
+final class EPUBMetadataParser: Loggable {
+    
+    private let document: AEXMLDocument
+    private let displayOptions: AEXMLDocument?
+    private let epubVersion: Double
+    
+    init(document: AEXMLDocument, displayOptions: AEXMLDocument?, epubVersion: Double) {
+        self.document = document
+        self.displayOptions = displayOptions
+        self.epubVersion = epubVersion
+    }
+    
+    private lazy var metadataElement: AEXMLElement = {
+        return document["package"]["metadata"]
+    }()
+    
+    /// Parses the Metadata in the XML <metadata> element.
+    func parse() throws -> Metadata {
+        guard let title = mainTitle else {
+            throw OPFParserError.missingPublicationTitle
+        }
+        
+        var metadata = Metadata(
+            identifier: uniqueIdentifier,
+            title: title,
+            subtitle: subtitle,
+            modified: modifiedDate,
+            published: publishedDate,
+            languages: metadataElement["dc:language"].all?.map { $0.string } ?? [],
+            subjects: subjects,
+            readingProgression: readingProgression,
+            description: metadataElement["dc:description"].value,
+            otherMetadata: [
+                "source": metadataElement["dc:source"].value ?? "",
+                "rights": metadataElement["dc:rights"].all?
+                    .map { $0.string }.joined(separator: " ") ?? ""
+            ]
+        )
+        parseContributors(to: &metadata)
+        metadata.rendition = rendition
+
+        return metadata
+    }
 
     /// Extracts the Rendition properties from the XML element metadata and fill
     /// then into the Metadata object instance.
-    ///
-    /// - Parameters:
-    ///   - metadata: The XML element containing the metadatas.
-    ///   - displayOptions: Parsed iBooks or Kobo display options document. Used as a fallback.
-    static internal func parseRenditionProperties(from metadata: AEXMLElement, displayOptions: AEXMLDocument?) -> EPUBRendition {
-
+    private var rendition: EPUBRendition {
         func meta(_ property: String) -> String {
-            return metadata["meta"].all?
+            return metadataElement["meta"].all?
                 .first { $0.attributes["property"] == property }?
                 .string ?? ""
         }
@@ -123,19 +159,18 @@ final public class MetadataParser {
     /// languages).
     /// See `MultilangString` for complementary informations.
     ///
-    /// - Parameter metadata: The `<metadata>` element.
     /// - Returns: The content of the `<dc:title>` element, `nil` if the element
     ///            wasn't found.
-    static internal func titleFor(titleType: EPUBTitleType, from metadata: AEXMLElement) -> LocalizedString? {
+    private func title(for titleType: EPUBTitleType) -> LocalizedString? {
         // Return if there isn't any `<dc:title>` element
-        guard let titles = metadata["dc:title"].all,
-            let titleElement = getTitleElement(titleType: titleType, from: titles, metadata) else
+        guard let titles = metadataElement["dc:title"].all,
+            let titleElement = titleElement(for: titleType, from: titles) else
         {
             log(.error, "Error: Publication have no title")
             return nil
         }
         
-        if let localizedTitle = multiString(forElement: titleElement, metadata) {
+        if let localizedTitle = multiString(for: titleElement) {
             return localizedTitle.localizedString
         } else if !titleElement.string.isEmpty {
             return titleElement.string.localizedString
@@ -143,34 +178,47 @@ final public class MetadataParser {
             return nil
         }
     }
+
+    /// Return the XML element corresponding to the specific title type
+    /// `<meta refines="#.." property="title-type" id="title-type">titleType</meta>`
+    ///
+    /// - Parameters:
+    ///   - titleType: the Type of title, see TitleType for more information.
+    ///   - titles: The titles XML elements array.
+    /// - Returns: The main title XML element.
+    private func titleElement(for titleType: EPUBTitleType, from titles: [AEXMLElement]) -> AEXMLElement? {
+        return titles.first(where: {
+            guard let eid = $0.attributes["id"] else {
+                return false
+            }
+            let attributes = ["refines": "#\(eid)", "property": "title-type"]
+            let metas = metadataElement["meta"].all(withAttributes: attributes)
+            // For example, titleType.rawValue is "main"
+            return metas?.contains(where: { $0.string == titleType.rawValue }) ?? false
+        })
+    }
     
-    static internal func mainTitle(from metadata: AEXMLElement) -> LocalizedString? {
-        guard let mainTitle = titleFor(titleType: .main, from: metadata) else {
+    private var mainTitle: LocalizedString? {
+        guard let mainTitle = title(for: .main) else {
             /// Recovers using any other title, when there is no title marked as main title.
-            let title = metadata["dc:title"].string
+            let title = metadataElement["dc:title"].string
             return title.isEmpty ? nil : title.localizedString
         }
         return mainTitle
     }
     
-    static internal func subTitle(from metadata: AEXMLElement) -> LocalizedString? {
-        return titleFor(titleType: .subtitle, from: metadata)
+    private var subtitle: LocalizedString? {
+        return title(for: .subtitle)
     }
 
     /// Parse and return the Epub unique identifier.
     ///
-    /// - Parameters:
-    ///   - metadata: The metadata XML element.
-    ///   - Attributes: The XML document attributes.
-    /// - Returns: The content of the `<dc:identifier>` element, `nil` if the
-    ///            element wasn't found.
-    static internal func uniqueIdentifier(from document: AEXMLElement) -> String?
-    {
-        let metadata = document["package"]["metadata"]
+    /// - Returns: The content of the `<dc:identifier>` element, `nil` if the element wasn't found.
+    private var uniqueIdentifier: String? {
         let attributes = document["package"].attributes
         
         // Look for `<dc:identifier>` elements.
-        guard let identifiers = metadata["dc:identifier"].all else {
+        guard let identifiers = metadataElement["dc:identifier"].all else {
             return nil
         }
         // Get the one defined as unique by the `<package>` attribute `unique-identifier`.
@@ -186,11 +234,9 @@ final public class MetadataParser {
 
     /// Parse the modifiedDate (date of last modification of the EPUB).
     ///
-    /// - Parameters:
-    ///   - metadataElement: The XML element representing the Publication Metadata.
     /// - Returns: The date generated from the <dcterms:modified> meta element,
     ///            or nil if not found.
-    static internal func modifiedDate(from metadataElement: AEXMLElement) -> Date? {
+    private var modifiedDate: Date? {
         let modifiedAttribute = ["property" : "dcterms:modified"]
 
         // Search if the XML element is present, else return.
@@ -211,11 +257,7 @@ final public class MetadataParser {
     }
 
     /// Parse the <dc:subject> XML element from the metadata
-    ///
-    /// - Parameters:
-    ///   - metadataElement: The XML element representing the metadata.
-    static internal func subjects(from metadataElement: AEXMLElement) -> [Subject]
-    {
+    private var subjects: [Subject] {
         return (metadataElement["dc:subject"].all ?? [])
             .compactMap { element in
                 guard let name = element.value else {
@@ -234,25 +276,72 @@ final public class MetadataParser {
     /// `publisher`) and add them to the metadata.
     ///
     /// - Parameters:
-    ///   - metadataElement: The XML element representing the metadata.
     ///   - metadata: The Metadata object to fill (inout).
-    ///   - epubVersion: The version of the epub document being parsed.
-    static internal func parseContributors(from metadataElement: AEXMLElement,
-                                    to metadata: inout Metadata,
-                                    _ epubVersion: Double?)
-    {
+    private func parseContributors(to metadata: inout Metadata) {
         var allContributors = [AEXMLElement]()
 
-
-        allContributors.append(contentsOf: findContributorsXmlElements(in: metadataElement))
+        allContributors.append(contentsOf: findContributorElements())
         // <meta> DCTERMS parsing if epubVersion == 3.0.
         if epubVersion == 3.0 {
-            allContributors.append(contentsOf: findContributorsMetaXmlElements(in: metadataElement))
+            allContributors.append(contentsOf: findContributorMetaElements())
         }
         // Parse XML elements and fill the metadata object.
         for contributor in allContributors {
-            parseContributor(from: contributor, in: metadataElement, to: &metadata)
+            parseContributor(from: contributor, to: &metadata)
         }
+    }
+
+    /// [EPUB 2.0 & 3.1+]
+    /// Return the XML elements about the contributors.
+    /// E.g.: `<dc:publisher "property"=".." >value<\>`.
+    ///
+    /// - Parameter metadata: The XML metadata element.
+    /// - Returns: The array of XML element representing the contributors.
+    private func findContributorElements() -> [AEXMLElement] {
+        var allContributors = [AEXMLElement]()
+        
+        // Get the Publishers XML elements.
+        if let publishers = metadataElement["dc:publisher"].all {
+            allContributors.append(contentsOf: publishers)
+        }
+        // Get the Creators XML elements.
+        if let creators = metadataElement["dc:creator"].all {
+            allContributors.append(contentsOf: creators)
+        }
+        // Get the Contributors XML elements.
+        if let contributors = metadataElement["dc:contributor"].all {
+            allContributors.append(contentsOf: contributors)
+        }
+        return allContributors
+    }
+
+    /// [EPUB 3.0]
+    /// Return the XML elements about the contributors.
+    /// E.g.: `<meta "property"="dcterms:publisher/creator/contributor"`.
+    ///
+    /// - Returns: The array of XML element representing the <meta> contributors.
+    private func findContributorMetaElements() -> [AEXMLElement] {
+        var allContributors = [AEXMLElement]()
+        
+        // Get the Publishers XML elements.
+        let publisherAttributes = ["property": "dcterms:publisher"]
+        if let publishersFromMeta = metadataElement["meta"].all(withAttributes: publisherAttributes),
+            !publishersFromMeta.isEmpty {
+            allContributors.append(contentsOf: publishersFromMeta)
+        }
+        // Get the Creators XML elements.
+        let creatorAttributes = ["property": "dcterms:creator"]
+        if let creatorsFromMeta = metadataElement["meta"].all(withAttributes: creatorAttributes),
+            !creatorsFromMeta.isEmpty {
+            allContributors.append(contentsOf: creatorsFromMeta)
+        }
+        // Get the Contributors XML elements.
+        let contributorAttributes = ["property": "dcterms:contributor"]
+        if let contributorsFromMeta = metadataElement["meta"].all(withAttributes: contributorAttributes),
+            !contributorsFromMeta.isEmpty {
+            allContributors.append(contentsOf: contributorsFromMeta)
+        }
+        return allContributors
     }
 
     /// Parse a `creator`, `contributor`, `publisher` element from the OPF XML
@@ -261,13 +350,9 @@ final public class MetadataParser {
     ///
     /// - Parameters:
     ///   - element: The XML element to parse.
-    ///   - metadataElement: The XML element containing the metadata informations.
     ///   - metadata: The Metadata object.
-    ///   - epubVersion: The version of the epub being parsed.
-    static internal func parseContributor(from element: AEXMLElement, in metadataElement: AEXMLElement,
-                                   to metadata: inout Metadata)
-    {
-        guard var contributor = createContributor(from: element, metadataElement) else {
+    private func parseContributor(from element: AEXMLElement, to metadata: inout Metadata) {
+        guard var contributor = createContributor(from: element) else {
             return
         }
 
@@ -326,9 +411,8 @@ final public class MetadataParser {
     /// - Parameters:
     ///   - element: The XML element reprensenting the contributor.
     /// - Returns: The newly created Contributor instance.
-    static internal func createContributor(from element: AEXMLElement, _ metadata: AEXMLElement) -> Contributor?
-    {
-        guard let name: LocalizedStringConvertible = multiString(forElement: element, metadata) ?? element.value else {
+    private func createContributor(from element: AEXMLElement) -> Contributor? {
+        guard let name: LocalizedStringConvertible = multiString(for: element) ?? element.value else {
             return nil
         }
         
@@ -339,35 +423,7 @@ final public class MetadataParser {
         )
     }
 
-    /// Parse the metadata>meta>property=media:duration elements from the
-    /// metadata. These meta are related to the Media Overlays, they give the
-    /// smil file audio playback time.
-    /// Metadata -> e.g. : ["#smil-1": "00:01:24.687"]
-    ///
-    /// - Parameter document: The OPF XML element.
-    /// - Returns: Mapping between the SMIL ID and its duration.
-    static internal func parseMediaDurations(from document: AEXMLElement) -> [String: Double]
-    {
-        guard let metas = document["package"]["metadata"]["meta"].all else {
-            return [:]
-        }
-        
-        return metas
-            .filter { $0.attributes["property"] == "media:duration" }
-            .reduce([:]) { durations, item in
-                var durations = durations
-                if let property = item.attributes["refines"],
-                    let value = item.value,
-                    let duration = Double(SMILParser.smilTimeToSeconds(value))
-                {
-                    durations[property] = duration
-                }
-
-                return durations
-            }
-    }
-    
-    static internal func parseReadingProgression(from document: AEXMLElement) -> ReadingProgression {
+    private var readingProgression: ReadingProgression {
         let direction = document["package"]["readingOrder"].attributes["page-progression-direction"]
             ?? document["package"]["spine"].attributes["page-progression-direction"]
             ?? "default"
@@ -384,92 +440,13 @@ final public class MetadataParser {
         }
     }
     
-    static internal func publishedDate(from metadata: AEXMLElement) -> Date? {
+    private var publishedDate: Date? {
         // From the EPUB 2 and EPUB 3 specifications, only the `dc:date` element without any attribtes will be considered for the `published` property.
         // And only the string with full date will be considered as valid date string. The string format validation happens in the `setter` of `published`.
-        return (metadata["dc:date"].all ?? [])
+        return (metadataElement["dc:date"].all ?? [])
             .first { $0.attributes.count == 0 }?
             .value?
             .dateFromISO8601
-    }
-
-    // Mark: - Private Methods.
-    
-    /// Return the XML element corresponding to the specific title type
-    /// `<meta refines="#.." property="title-type" id="title-type">titleType</meta>`
-    ///
-    /// - Parameters:
-    ///   - titleType: the Type of title, see TitleType for more information.
-    ///   - titles: The titles XML elements array.
-    ///   - metadata: The Publication Metadata XML object.
-    /// - Returns: The main title XML element.
-    
-    static private func getTitleElement(titleType:EPUBTitleType, from titles: [AEXMLElement],
-                                        _ metadata: AEXMLElement) -> AEXMLElement?
-    {
-        return titles.first(where: {
-            guard let eid = $0.attributes["id"] else {
-                return false
-            }
-            let attributes = ["refines": "#\(eid)", "property": "title-type"]
-            let metas = metadata["meta"].all(withAttributes: attributes)
-            // For example, titleType.rawValue is "main"
-            return metas?.contains(where: { $0.string == titleType.rawValue }) ?? false
-        })
-    }
-    
-    /// [EPUB 2.0 & 3.1+]
-    /// Return the XML elements about the contributors.
-    /// E.g.: `<dc:publisher "property"=".." >value<\>`.
-    ///
-    /// - Parameter metadata: The XML metadata element.
-    /// - Returns: The array of XML element representing the contributors.
-    static private func findContributorsXmlElements(in metadata: AEXMLElement) -> [AEXMLElement] {
-        var allContributors = [AEXMLElement]()
-
-        // Get the Publishers XML elements.
-        if let publishers = metadata["dc:publisher"].all {
-            allContributors.append(contentsOf: publishers)
-        }
-        // Get the Creators XML elements.
-        if let creators = metadata["dc:creator"].all {
-            allContributors.append(contentsOf: creators)
-        }
-        // Get the Contributors XML elements.
-        if let contributors = metadata["dc:contributor"].all {
-            allContributors.append(contentsOf: contributors)
-        }
-        return allContributors
-    }
-
-    /// [EPUB 3.0]
-    /// Return the XML elements about the contributors.
-    /// E.g.: `<meta "property"="dcterms:publisher/creator/contributor"`.
-    ///
-    /// - Parameter metadata: The metadata XML element.
-    /// - Returns: The array of XML element representing the <meta> contributors.
-    static private func findContributorsMetaXmlElements(in metadata: AEXMLElement) -> [AEXMLElement] {
-        var allContributors = [AEXMLElement]()
-
-        // Get the Publishers XML elements.
-        let publisherAttributes = ["property": "dcterms:publisher"]
-        if let publishersFromMeta = metadata["meta"].all(withAttributes: publisherAttributes),
-            !publishersFromMeta.isEmpty {
-            allContributors.append(contentsOf: publishersFromMeta)
-        }
-        // Get the Creators XML elements.
-        let creatorAttributes = ["property": "dcterms:creator"]
-        if let creatorsFromMeta = metadata["meta"].all(withAttributes: creatorAttributes),
-            !creatorsFromMeta.isEmpty {
-            allContributors.append(contentsOf: creatorsFromMeta)
-        }
-        // Get the Contributors XML elements.
-        let contributorAttributes = ["property": "dcterms:contributor"]
-        if let contributorsFromMeta = metadata["meta"].all(withAttributes: contributorAttributes),
-            !contributorsFromMeta.isEmpty {
-            allContributors.append(contentsOf: contributorsFromMeta)
-        }
-        return allContributors
     }
 
     /// Return an array of lang:string, defining the multiple representations of
@@ -477,16 +454,14 @@ final public class MetadataParser {
     ///
     /// - Parameters:
     ///   - element: The element to parse (can be a title or a contributor).
-    ///   - metadata: The metadata XML element.
-    static private func multiString(forElement element: AEXMLElement, _ metadata: AEXMLElement) -> [String: String]?
-    {
+    private func multiString(for element: AEXMLElement) -> [String: String]? {
         guard let elementId = element.attributes["id"] else {
             return nil
         }
         // Find the <meta refines="elementId" property="alternate-script">
         // in order to find the alternative strings, if any.
         let attr = ["refines": "#\(elementId)", "property": "alternate-script"]
-        guard let altScriptMetas = metadata["meta"].all(withAttributes: attr) else {
+        guard let altScriptMetas = metadataElement["meta"].all(withAttributes: attr) else {
             return nil
         }
         
@@ -502,7 +477,7 @@ final public class MetadataParser {
         }
         // If we have 'alternates'...
         if !multiString.isEmpty {
-            let publicationDefaultLanguage = metadata["dc:language"].value ?? ""
+            let publicationDefaultLanguage = metadataElement["dc:language"].value ?? ""
             let lang = element.attributes["xml:lang"] ?? publicationDefaultLanguage
             let value = element.value
 

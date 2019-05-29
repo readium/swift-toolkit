@@ -117,7 +117,7 @@ final public class EpubParser: PublicationParser {
             return
         }
         
-        let parser = EncryptionParser(data: data, drm: drm)
+        let parser = EPUBEncryptionParser(data: data, drm: drm)
 
         // Adds the encryption information to the `Link` with matching `href`.
         for (href, encryption) in parser.encryptions {
