@@ -60,7 +60,7 @@ final public class OPFParser {
         let epubVersion = parseEpubVersion(from: document)
         let manifestLinks = parseManifestLinks(from: document, at: rootFilePath)
         let (resources, readingOrder) = parseResourcesAndReadingOrder(from: document, manifestLinks: manifestLinks)
-        let metadata = EPUBMetadataParser(document: document, displayOptions: displayOptions, epubVersion: epubVersion)
+        let metadata = EPUBMetadataParser(document: document, displayOptions: displayOptions)
 
         return Publication(
             format: .epub,

@@ -17,12 +17,10 @@ final class EPUBMetadataParser: Loggable {
     
     private let document: AEXMLDocument
     private let displayOptions: AEXMLDocument?
-    private let epubVersion: Double
-    
-    init(document: AEXMLDocument, displayOptions: AEXMLDocument?, epubVersion: Double) {
+
+    init(document: AEXMLDocument, displayOptions: AEXMLDocument?) {
         self.document = document
         self.displayOptions = displayOptions
-        self.epubVersion = epubVersion
     }
     
     private lazy var metadataElement: AEXMLElement = {
@@ -35,6 +33,14 @@ final class EPUBMetadataParser: Loggable {
             throw OPFParserError.missingPublicationTitle
         }
         
+        var otherMetadata: [String: Any] = [:]
+        if let source = parseMetadata(named: "dc:source") {
+            otherMetadata["source"] = source
+        }
+        if let rights = parseMetadata(named: "dc:rights") {
+            otherMetadata["rights"] = rights
+        }
+        
         var metadata = Metadata(
             identifier: uniqueIdentifier,
             title: title,
@@ -45,16 +51,22 @@ final class EPUBMetadataParser: Loggable {
             subjects: subjects,
             readingProgression: readingProgression,
             description: metadataElement["dc:description"].value,
-            otherMetadata: [
-                "source": metadataElement["dc:source"].value ?? "",
-                "rights": metadataElement["dc:rights"].all?
-                    .map { $0.string }.joined(separator: " ") ?? ""
-            ]
+            otherMetadata: otherMetadata
         )
         parseContributors(to: &metadata)
         metadata.rendition = rendition
 
         return metadata
+    }
+    
+    /// Parses a metadata element as JSON.
+    func parseMetadata(named name: String) -> Any? {
+        guard let values = metadataElement[name].all?
+            .map({ $0.string.trimmingCharacters(in: .whitespacesAndNewlines) }) else
+        {
+            return nil
+        }
+        return values.count > 1 ? values : values.first
     }
 
     /// Extracts the Rendition properties from the XML element metadata and fill
@@ -77,78 +89,31 @@ final class EPUBMetadataParser: Loggable {
         }
 
         return EPUBRendition(
-            layout: {
-                switch meta("rendition:layout") {
-                case "reflowable":
-                    return .reflowable
-                case "pre-paginated":
-                    return .fixed
-                default:
-                    if displayOption("fixed-layout") == "true" {
-                        return .fixed
-                    }
-                    return .reflowable
-                }
-            }(),
-            
-            orientation: {
-                switch meta("rendition:orientation") {
-                case "landscape":
-                    return .landscape
-                case "portrait":
-                    return .portrait
-                case "auto":
-                    return .auto
-                default:
-                    if let orientationLock = displayOption("orientation-lock", platform: "*")
+            layout: .init(
+                epub: meta("rendition:layout"),
+                fallback: (displayOption("fixed-layout") == "true") ? .fixed : nil
+            ),
+            orientation: .init(
+                epub: meta("rendition:orientation"),
+                fallback: {
+                    let orientationLock = displayOption("orientation-lock", platform: "*")
                         ?? displayOption("orientation-lock", platform: "ipad")
-                        ?? displayOption("orientation-lock", platform: "iphone") {
-                        switch orientationLock {
-                        case "none":
-                            return .auto
-                        case "landscape-only":
-                            return .landscape
-                        case "portrait-only":
-                            return .portrait
-                        default:
-                            return .auto
-                        }
+                        ?? displayOption("orientation-lock", platform: "iphone")
+                        ?? ""
+                    switch orientationLock {
+                    case "none":
+                        return .auto
+                    case "landscape-only":
+                        return .landscape
+                    case "portrait-only":
+                        return .portrait
+                    default:
+                        return nil
                     }
-                    return .auto
-                }
-            }(),
-            
-            overflow: {
-                switch meta("rendition:flow") {
-                case "auto":
-                    return .auto
-                case "paginated":
-                    return .paginated
-                case "scrolled-doc":
-                    return .scrolled
-                case "scrolled-continous":
-                    return .scrolledContinuous
-                default:
-                    return .auto
-                }
-            }(),
-            
-            spread: {
-                switch meta("rendition:spread") {
-                case "none":
-                    return .none
-                case "auto":
-                    return .auto
-                case "landscape":
-                    return .landscape
-                // `portrait` is deprecated and should fallback to `both`.
-                // See. https://readium.org/architecture/streamer/parser/metadata#epub-3x-11
-                case "both", "portrait":
-                    return .both
-                default:
-                    return .auto
-                }
-            }()
+                }()
+            ),
+            overflow: .init(epub: meta("rendition:flow")),
+            spread: .init(epub: meta("rendition:spread"))
         )
     }
 
@@ -166,17 +131,10 @@ final class EPUBMetadataParser: Loggable {
         guard let titles = metadataElement["dc:title"].all,
             let titleElement = titleElement(for: titleType, from: titles) else
         {
-            log(.error, "Error: Publication have no title")
             return nil
         }
         
-        if let localizedTitle = multiString(for: titleElement) {
-            return localizedTitle.localizedString
-        } else if !titleElement.string.isEmpty {
-            return titleElement.string.localizedString
-        } else {
-            return nil
-        }
+        return localizedString(for: titleElement)
     }
 
     /// Return the XML element corresponding to the specific title type
@@ -199,12 +157,9 @@ final class EPUBMetadataParser: Loggable {
     }
     
     private var mainTitle: LocalizedString? {
-        guard let mainTitle = title(for: .main) else {
+        return title(for: .main)
             /// Recovers using any other title, when there is no title marked as main title.
-            let title = metadataElement["dc:title"].string
-            return title.isEmpty ? nil : title.localizedString
-        }
-        return mainTitle
+            ?? localizedString(for: metadataElement["dc:title"])
     }
     
     private var subtitle: LocalizedString? {
@@ -280,11 +235,9 @@ final class EPUBMetadataParser: Loggable {
     private func parseContributors(to metadata: inout Metadata) {
         var allContributors = [AEXMLElement]()
 
+        allContributors.append(contentsOf: findContributorMetaElements())
         allContributors.append(contentsOf: findContributorElements())
-        // <meta> DCTERMS parsing if epubVersion == 3.0.
-        if epubVersion == 3.0 {
-            allContributors.append(contentsOf: findContributorMetaElements())
-        }
+        
         // Parse XML elements and fill the metadata object.
         for contributor in allContributors {
             parseContributor(from: contributor, to: &metadata)
@@ -300,14 +253,15 @@ final class EPUBMetadataParser: Loggable {
     private func findContributorElements() -> [AEXMLElement] {
         var allContributors = [AEXMLElement]()
         
-        // Get the Publishers XML elements.
-        if let publishers = metadataElement["dc:publisher"].all {
-            allContributors.append(contentsOf: publishers)
-        }
         // Get the Creators XML elements.
         if let creators = metadataElement["dc:creator"].all {
             allContributors.append(contentsOf: creators)
         }
+        // Get the Publishers XML elements.
+        if let publishers = metadataElement["dc:publisher"].all {
+            allContributors.append(contentsOf: publishers)
+        }
+        
         // Get the Contributors XML elements.
         if let contributors = metadataElement["dc:contributor"].all {
             allContributors.append(contentsOf: contributors)
@@ -317,23 +271,23 @@ final class EPUBMetadataParser: Loggable {
 
     /// [EPUB 3.0]
     /// Return the XML elements about the contributors.
-    /// E.g.: `<meta "property"="dcterms:publisher/creator/contributor"`.
+    /// E.g.: `<meta property="dcterms:publisher/creator/contributor"`.
     ///
     /// - Returns: The array of XML element representing the <meta> contributors.
     private func findContributorMetaElements() -> [AEXMLElement] {
         var allContributors = [AEXMLElement]()
         
-        // Get the Publishers XML elements.
-        let publisherAttributes = ["property": "dcterms:publisher"]
-        if let publishersFromMeta = metadataElement["meta"].all(withAttributes: publisherAttributes),
-            !publishersFromMeta.isEmpty {
-            allContributors.append(contentsOf: publishersFromMeta)
-        }
         // Get the Creators XML elements.
         let creatorAttributes = ["property": "dcterms:creator"]
         if let creatorsFromMeta = metadataElement["meta"].all(withAttributes: creatorAttributes),
             !creatorsFromMeta.isEmpty {
             allContributors.append(contentsOf: creatorsFromMeta)
+        }
+        // Get the Publishers XML elements.
+        let publisherAttributes = ["property": "dcterms:publisher"]
+        if let publishersFromMeta = metadataElement["meta"].all(withAttributes: publisherAttributes),
+            !publishersFromMeta.isEmpty {
+            allContributors.append(contentsOf: publishersFromMeta)
         }
         // Get the Contributors XML elements.
         let contributorAttributes = ["property": "dcterms:contributor"]
@@ -367,7 +321,7 @@ final class EPUBMetadataParser: Loggable {
                 }
             }
         }
-        // Add the contributor to the proper property according to the its `roles`
+        // Add the contributor to the proper property according to its `roles`
         if !contributor.roles.isEmpty {
             for role in contributor.roles {
                 switch role {
@@ -394,7 +348,7 @@ final class EPUBMetadataParser: Loggable {
         } else {
             // No role, so do the branching using the element.name.
             // The remaining ones go to to the contributors.
-            if element.name == "dc:creator" || element.attributes["property"] == "dcterms:contributor" {
+            if element.name == "dc:creator" || element.attributes["property"] == "dcterms:creator" {
                 metadata.authors.append(contributor)
             } else if element.name == "dc:publisher" || element.attributes["property"] == "dcterms:publisher" {
                 metadata.publishers.append(contributor)
@@ -412,7 +366,7 @@ final class EPUBMetadataParser: Loggable {
     ///   - element: The XML element reprensenting the contributor.
     /// - Returns: The newly created Contributor instance.
     private func createContributor(from element: AEXMLElement) -> Contributor? {
-        guard let name: LocalizedStringConvertible = multiString(for: element) ?? element.value else {
+        guard let name = localizedString(for: element) else {
             return nil
         }
         
@@ -449,41 +403,51 @@ final class EPUBMetadataParser: Loggable {
             .dateFromISO8601
     }
 
-    /// Return an array of lang:string, defining the multiple representations of
-    /// a string in different languages.
+    /// Return a localized string, defining the multiple representations of a string in different languages.
     ///
     /// - Parameters:
     ///   - element: The element to parse (can be a title or a contributor).
-    private func multiString(for element: AEXMLElement) -> [String: String]? {
-        guard let elementId = element.attributes["id"] else {
-            return nil
-        }
-        // Find the <meta refines="elementId" property="alternate-script">
-        // in order to find the alternative strings, if any.
-        let attr = ["refines": "#\(elementId)", "property": "alternate-script"]
-        guard let altScriptMetas = metadataElement["meta"].all(withAttributes: attr) else {
+    private func localizedString(for element: AEXMLElement?) -> LocalizedString? {
+        guard let element = element else {
             return nil
         }
         
-        var multiString = [String:String]()
-        // For each alt meta element.
-        for altScriptMeta in altScriptMetas {
-            // If it have a value then add it to the multiString dictionnary.
-            guard let title = altScriptMeta.value,
-                let lang = altScriptMeta.attributes["xml:lang"] else {
-                    continue
-            }
-            multiString[lang] = title
-        }
-        // If we have 'alternates'...
-        if !multiString.isEmpty {
+        var strings: [String: String] = [:]
+        
+        // Default string
+        if let value = element.value?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty {
             let publicationDefaultLanguage = metadataElement["dc:language"].value ?? ""
             let lang = element.attributes["xml:lang"] ?? publicationDefaultLanguage
-            let value = element.value
-
-            // Add the main element to the dictionnary.
-            multiString[lang] = value
+            strings[lang] = value
         }
-        return multiString.isEmpty ? nil : multiString
+
+        // Finds translations
+        if let elementId = element.attributes["id"] {
+            // Find the <meta refines="elementId" property="alternate-script">
+            // in order to find the alternative strings, if any.
+            let attr = ["refines": "#\(elementId)", "property": "alternate-script"]
+            guard let altScriptMetas = metadataElement["meta"].all(withAttributes: attr) else {
+                return nil
+            }
+    
+            // For each alt meta element.
+            for altScriptMeta in altScriptMetas {
+                // If it have a value then add it to the translations dictionnary.
+                guard let value = altScriptMeta.value?.trimmingCharacters(in: .whitespacesAndNewlines),
+                    !value.isEmpty,
+                    let lang = altScriptMeta.attributes["xml:lang"] else
+                {
+                    continue
+                }
+                strings[lang] = value
+            }
+        }
+        
+        if strings.count > 1 {
+            return strings.localizedString
+        } else {
+            return strings.first?.value.localizedString
+        }
     }
+    
 }
