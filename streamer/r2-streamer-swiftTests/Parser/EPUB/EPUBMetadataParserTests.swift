@@ -9,8 +9,8 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
-import AEXML
 import XCTest
+import Fuzi
 import R2Shared
 @testable import R2Streamer
 
@@ -202,8 +202,8 @@ class EPUBMetadataParserTests: XCTestCase {
     // MARK: - Toolkit
     
     func parseMetadata(_ name: String, displayOptions: String? = nil) throws -> Metadata {
-        func document(named name: String, type: String) throws -> AEXMLDocument {
-            return try AEXMLDocument(xml: try Data(
+        func document(named name: String, type: String) throws -> XMLDocument {
+            return try XMLDocument(data: try Data(
                 contentsOf: SampleGenerator().getSamplesFileURL(named: "OPF/\(name)", ofType: type)!
             ))
         }

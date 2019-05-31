@@ -11,6 +11,7 @@
 
 import R2Shared
 import AEXML
+import Fuzi
 
 // http://www.idpf.org/epub/30/spec/epub30-publications.html#elemdef-opf-dctitle
 // the six basic values of the "title-type" property specified by EPUB 3:
@@ -60,7 +61,7 @@ final public class OPFParser {
         let epubVersion = parseEpubVersion(from: document)
         let manifestLinks = parseManifestLinks(from: document, at: rootFilePath)
         let (resources, readingOrder) = parseResourcesAndReadingOrder(from: document, manifestLinks: manifestLinks)
-        let metadata = EPUBMetadataParser(document: document, displayOptions: displayOptions)
+        let metadata = EPUBMetadataParser(document: try XMLDocument(data: documentData), displayOptions: displayOptions)
 
         return Publication(
             format: .epub,
@@ -73,15 +74,13 @@ final public class OPFParser {
     
     /// Parses iBooks Display Options XML file to use as a fallback.
     /// See https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#epub-2x-9
-    static func parseDisplayOptionsDocument(from container: Container) -> AEXMLDocument? {
+    static func parseDisplayOptionsDocument(from container: Container) -> XMLDocument? {
         let iBooksPath = "META-INF/com.apple.ibooks.display-options.xml"
         let koboPath = "META-INF/com.kobobooks.display-options.xml"
         guard let documentData = (try? container.data(relativePath: iBooksPath)) ?? (try? container.data(relativePath: koboPath)) else {
             return nil
         }
-        var options = AEXMLOptions()
-        options.parserSettings.shouldProcessNamespaces = true
-        return try? AEXMLDocument(xml: documentData, options: options)
+        return try? XMLDocument(data: documentData)
     }
 
     /// Parses XML elements of the <Manifest> in the package.opf file as a list of `Link`.
