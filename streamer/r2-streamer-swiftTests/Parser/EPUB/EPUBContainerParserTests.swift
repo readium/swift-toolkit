@@ -20,7 +20,7 @@ class EPUBContainerParserTests: XCTestCase {
     func testParseRootFilePath() throws {
         let url = SampleGenerator().getSamplesFileURL(named: "Container/container", ofType: "xml")!
         let data = try Data(contentsOf: url)
-        let parser = EPUBContainerParser(data: data)
+        let parser = try EPUBContainerParser(data: data)
         
         XCTAssertEqual(try parser.parseRootFilePath(), "EPUB/content.opf")
     }

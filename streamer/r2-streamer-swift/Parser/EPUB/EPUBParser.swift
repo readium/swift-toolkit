@@ -77,7 +77,7 @@ final public class EpubParser: PublicationParser {
         var container = try generateContainerFrom(fileAtPath: path)
 
         // Parse OPF file (Metadata, ReadingOrder, Resource).
-        var publication = try OPFParser.parseOPF(from: container)
+        var publication = try OPFParser(container: container).parsePublication()
         
         // Parse navigation tables.
         parseNavigationDocument(from: container, to: &publication)

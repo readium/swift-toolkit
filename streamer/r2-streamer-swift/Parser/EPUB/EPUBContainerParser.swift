@@ -17,37 +17,30 @@ import R2Shared
 /// A parser for the META-INF/container.xml file.
 final class EPUBContainerParser: Loggable {
     
-    private let data: Data
+    private let document: XMLDocument
 
-    init(data: Data) {
-        self.data = data
+    init(data: Data) throws {
+        self.document = try XMLDocument(data: data)
+        self.document.definePrefix("cn", forNamespace: "urn:oasis:names:tc:opendocument:xmlns:container")
     }
     
     convenience init(container: Container) throws {
         let path = "META-INF/container.xml"
         do {
             let data = try container.data(relativePath: path)
-            self.init(data: data)
+            try self.init(data: data)
         } catch {
             throw EpubParserError.missingFile(path: path)
         }
     }
     
-    private lazy var document: XMLDocument? = {
-        let document = try? XMLDocument(data: data)
-        document?.definePrefix("cn", forNamespace: "urn:oasis:names:tc:opendocument:xmlns:container")
-        return document
-    }()
-    
     /// Parses the container.xml file and retrieves the relative path to the OPF file (rootFilePath) (the default one for now, not handling multiple renditions).
     func parseRootFilePath() throws -> String {
         // Get the path of the OPF file, relative to the metadata.rootPath.
-        guard let document = document,
-            let opfFilePath = document.firstChild(xpath: "/cn:container/cn:rootfiles/cn:rootfile")?.attr("full-path") else
-        {
+        guard let path = document.firstChild(xpath: "/cn:container/cn:rootfiles/cn:rootfile")?.attr("full-path") else {
             throw EpubParserError.missingElement(message: "Missing rootfile in `container.xml`.")
         }
-        return opfFilePath
+        return path
     }
     
 }
