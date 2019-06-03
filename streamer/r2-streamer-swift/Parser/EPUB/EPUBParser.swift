@@ -1,5 +1,5 @@
 //
-//  RDEpubParser.swift
+//  EPUBParser.swift
 //  r2-streamer-swift
 //
 //  Created by Olivier Körner on 08/12/2016.
@@ -10,7 +10,6 @@
 //
 
 import R2Shared
-import AEXML
 import Fuzi
 
 /// Epub related constants.
@@ -18,10 +17,6 @@ public struct EpubConstant {
     /// Default EPUB Version value, used when no version hes been specified.
     /// (see OPF_2.0.1_draft 1.3.2).
     public static let defaultEpubVersion = 1.2
-    /// Path of the EPUB's container.xml file.
-    public static let containerDotXmlPath = "META-INF/container.xml"
-    /// Path of the EPUB's ecryption file.
-    public static let encryptionDotXmlPath = "META-INF/encryption.xml"
     /// Lcpl file path.
     public static let lcplFilePath = "META-INF/license.lcpl"
     /// Epub mime-type.
@@ -113,14 +108,12 @@ final public class EpubParser: PublicationParser {
     /// Parse the Encryption.xml EPUB file. It contains the informationg about
     /// encrypted resources and how to decrypt them.
     static internal func parseEncryption(from container: Container, to publication: inout Publication, _ drm: DRM?) {
-        guard let data = try? container.data(relativePath: EpubConstant.encryptionDotXmlPath) else {
+        guard let parser = try? EPUBEncryptionParser(container: container, drm: drm) else {
             return
         }
-        
-        let parser = EPUBEncryptionParser(data: data, drm: drm)
 
         // Adds the encryption information to the `Link` with matching `href`.
-        for (href, encryption) in parser.encryptions {
+        for (href, encryption) in parser.parseEncryptions() {
             guard let link = publication.link(withHref: href) else {
                 continue
             }
@@ -242,44 +235,6 @@ final public class EpubParser: PublicationParser {
         }
     }
 
-    // MARK: - Fileprivate Methods.
-
-    /// Parses the container.xml file and retrieve the relative path to the opf
-    /// file(rootFilePath) (the default one for now, not handling multiple
-    /// renditions).
-    ///
-    /// - Parameter data: The containerDotXml `Data` representation.
-    /// - Throws: `EpubParserError.xmlParse`,
-    ///           `EpubParserError.missingElement`.
-    static fileprivate func getRootFilePath(from data: Data) throws -> String {
-        let containerDotXml: AEXMLDocument
-
-        do {
-            containerDotXml = try AEXMLDocument(xml: data)
-        } catch {
-            throw EpubParserError.xmlParse(underlyingError: error)
-        }
-
-        let rootFileElement = containerDotXml["container"]["rootfiles"]["rootfile"]
-        // Get the path of the OPF file, relative to the metadata.rootPath.
-        guard let opfFilePath = getRelativePathToOPF(from: rootFileElement) else {
-            throw EpubParserError.missingElement(message: "Missing rootfile in `container.xml`.")
-        }
-        return opfFilePath
-    }
-
-    /// Retrieves the OPF file path from the fisrt <rootfile> element.
-    ///
-    /// - Parameter containerXml: The XML container instance.
-    /// - Returns: The OPF file path.
-    /// - Throws: `EpubParserError.missingElement`.
-    static fileprivate func getRelativePathToOPF(from rootFileElement: AEXMLElement) -> String? {
-        guard let fullPath = rootFileElement.attributes["full-path"] else {
-            return nil
-        }
-        return fullPath
-    }
-
     /// Generate a Container instance for the file at `fileAtPath`. It handles
     /// 2 cases, epub files and unwrapped epub directories.
     ///
@@ -292,24 +247,19 @@ final public class EpubParser: PublicationParser {
             throw EpubParserError.missingFile(path: path)
         }
         
-        var container: Container?
-        if isDirectory.boolValue {
-            container = DirectoryContainer(directory: path, mimetype: EpubConstant.mimetype)
-        } else {
-            container = ArchiveContainer(path: path, mimetype: EpubConstant.mimetype)
-        }
-        
-        guard let containerUnwrapped = container else {
+        guard let container: Container = {
+            if isDirectory.boolValue {
+                return DirectoryContainer(directory: path, mimetype: EpubConstant.mimetype)
+            } else {
+                return ArchiveContainer(path: path, mimetype: EpubConstant.mimetype)
+            }
+        }() else {
             throw EpubParserError.missingFile(path: path)
         }
         
-        // Retrieve container.xml data from the Container
-        guard let data = try? containerUnwrapped.data(relativePath: EpubConstant.containerDotXmlPath) else {
-            throw EpubParserError.missingFile(path: EpubConstant.containerDotXmlPath)
-        }
-        containerUnwrapped.rootFile.rootFilePath = try getRootFilePath(from: data)
-        
-        return containerUnwrapped
+        container.rootFile.rootFilePath = try EPUBContainerParser(container: container).parseRootFilePath()
+
+        return container
     }
 
     /// Called in the callback when the DRM has been informed of the encryption

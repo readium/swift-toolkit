@@ -17,8 +17,7 @@ import R2Shared
 class EPUBEncryptionParserTests: XCTestCase {
     
     func testParseLCPEncryption() {
-        let parser = parseEncryption("encryption-lcp", drm: DRM(brand: .lcp))
-        let sut = parser.encryptions
+        let sut = parseEncryptions("encryption-lcp", drm: DRM(brand: .lcp))
 
         XCTAssertEqual(sut, [
             "/chapter01.xhtml": EPUBEncryption(
@@ -39,8 +38,7 @@ class EPUBEncryptionParserTests: XCTestCase {
     }
     
     func testParseEncryptionWithNamespaces() {
-        let parser = parseEncryption("encryption-lcp-namespaces", drm: DRM(brand: .lcp))
-        let sut = parser.encryptions
+        let sut = parseEncryptions("encryption-lcp-namespaces", drm: DRM(brand: .lcp))
 
         XCTAssertEqual(sut, [
             "/chapter01.xhtml": EPUBEncryption(
@@ -61,9 +59,8 @@ class EPUBEncryptionParserTests: XCTestCase {
     }
     
     func testParseEncryptionForUnknownDRM() {
-        let parser = parseEncryption("encryption-unknown-drm")
-        let sut = parser.encryptions
-        
+        let sut = parseEncryptions("encryption-unknown-drm")
+
         XCTAssertEqual(sut, [
             "/html/chapter.html": EPUBEncryption(
                 algorithm: "http://www.w3.org/2001/04/xmlenc#kw-aes128",
@@ -85,10 +82,10 @@ class EPUBEncryptionParserTests: XCTestCase {
 
     // MARK: - Toolkit
     
-    func parseEncryption(_ name: String, drm: DRM? = nil) -> EPUBEncryptionParser {
+    func parseEncryptions(_ name: String, drm: DRM? = nil) -> [String: EPUBEncryption] {
         let url = SampleGenerator().getSamplesFileURL(named: "Encryption/\(name)", ofType: "xml")!
         let data = try! Data(contentsOf: url)
-        return EPUBEncryptionParser(data: data, drm: drm)
+        return EPUBEncryptionParser(data: data, drm: drm).parseEncryptions()
     }
     
 }

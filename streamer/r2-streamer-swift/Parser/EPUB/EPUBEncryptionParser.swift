@@ -9,18 +9,30 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
-import R2Shared
+import Foundation
 import Fuzi
+import R2Shared
+
 
 /// A parser module which provide methods to parse encrypted XML elements.
 final class EPUBEncryptionParser: Loggable {
     
     private let data: Data
     private let drm: DRM?
-    
+
     init(data: Data, drm: DRM?) {
         self.data = data
         self.drm = drm
+    }
+    
+    convenience init(container: Container, drm: DRM?) throws {
+        let path = "META-INF/encryption.xml"
+        do {
+            let data = try container.data(relativePath: path)
+            self.init(data: data, drm: drm)
+        } catch {
+            throw EpubParserError.missingFile(path: path)
+        }
     }
 
     private lazy var document: XMLDocument? = {
@@ -34,7 +46,7 @@ final class EPUBEncryptionParser: Loggable {
     /// Parse the Encryption.xml EPUB file. It contains the informationg about encrypted resources and how to decrypt them.
     ///
     /// - Returns: A map between the resource `href` and the matching `EPUBEncryption`.
-    lazy var encryptions: [String: EPUBEncryption] = {
+    func parseEncryptions() -> [String: EPUBEncryption] {
         guard let document = document else {
             return [:]
         }
@@ -68,7 +80,7 @@ final class EPUBEncryptionParser: Loggable {
         }
         
         return encryptions
-    }()
+    }
 
     /// Parse the <Compression> element.
     ///
