@@ -9,7 +9,6 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
-import AEXML
 import Fuzi
 import R2Shared
 
@@ -48,17 +47,16 @@ final class OPFParser: Loggable {
     let basePath: String
     
     /// DOM representation of the OPF file.
-    let document: AEXMLDocument
-    let documentFuzi: XMLDocument
-    
+    let document: XMLDocument
+
     /// iBooks Display Options XML file to use as a fallback for metadata.
     /// See https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#epub-2x-9
     let displayOptions: XMLDocument?
     
     init(basePath: String, data: Data, displayOptionsData: Data? = nil) throws {
         self.basePath = basePath
-        self.document = try AEXMLDocument(xml: data)
-        self.documentFuzi = try XMLDocument(data: data)
+        self.document = try XMLDocument(data: data)
+        self.document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
         self.displayOptions = (displayOptionsData.map { try? XMLDocument(data: $0) }) ?? nil
     }
     
@@ -82,7 +80,7 @@ final class OPFParser: Loggable {
     func parsePublication() throws -> Publication {
         let manifestLinks = parseManifestLinks()
         let (resources, readingOrder) = parseResourcesAndReadingOrderLinks(manifestLinks)
-        let metadata = EPUBMetadataParser(document: documentFuzi, displayOptions: displayOptions)
+        let metadata = EPUBMetadataParser(document: document, displayOptions: displayOptions)
 
         return Publication(
             format: .epub,
@@ -97,7 +95,7 @@ final class OPFParser: Loggable {
     private func parseEPUBVersion() -> String {
         // Default EPUB Version value, used when no version hes been specified (see OPF_2.0.1_draft 1.3.2).
         let defaultVersion = "1.2"
-        return document["package"].attributes["version"] ?? defaultVersion
+        return document.firstChild(xpath: "/opf:package")?.attr("version") ?? defaultVersion
     }
     
     /// Parses XML elements of the <Manifest> in the package.opf file as a list of `Link`.
@@ -105,19 +103,14 @@ final class OPFParser: Loggable {
         let durations = parseMediaDurations()
 
         // Read meta to see if any Link is referenced as the Cover.
-        let coverId: String? = document["package"]["metadata"]["meta"]
-            .all(withAttributes: ["name" : "cover"])?
-            .first?.attributes["content"]
+        let coverId = document.firstChild(xpath: "/opf:package/opf:metadata/opf:meta[@name='cover']")?.attr("content")
 
         // Get the manifest children items
-        guard let manifestItems = document["package"]["manifest"]["item"].all else {
-            log(.warning, "Manifest have no children elements.")
-            return []
-        }
+        let manifestItems = document.xpath("/opf:package/opf:manifest/opf:item")
         
         return manifestItems.compactMap { item in
                 // Must have an ID.
-                guard let id = item.attributes["id"] else {
+                guard let id = item.attr("id") else {
                     log(.warning, "Manifest item MUST have an id, item ignored.")
                     return nil
                 }
@@ -148,17 +141,11 @@ final class OPFParser: Loggable {
     /// - Parameter document: The OPF XML element.
     /// - Returns: Mapping between the SMIL ID and its duration.
     private func parseMediaDurations() -> [String: Double] {
-        guard let metas = document["package"]["metadata"]["meta"].all else {
-            return [:]
-        }
-        
-        return metas
-            .filter { $0.attributes["property"] == "media:duration" }
+        return document.xpath("/opf:package/opf:metadata/opf:meta[@property='media:duration']")
             .reduce([:]) { durations, item in
                 var durations = durations
-                if let property = item.attributes["refines"],
-                    let value = item.value,
-                    let duration = Double(SMILParser.smilTimeToSeconds(value))
+                if let property = item.attr("refines"),
+                    let duration = Double(SMILParser.smilTimeToSeconds(item.stringValue))
                 {
                     durations[property] = duration
                 }
@@ -177,13 +164,10 @@ final class OPFParser: Loggable {
         var readingOrder: [Link] = []
         
         // Get the readingOrder children items.
-        let readingOrderItems = document["package"]["readingOrder"]["itemref"].all
-            ?? document["package"]["spine"]["itemref"].all
-            ?? []
-        
+        let readingOrderItems = document.xpath("/opf:package/opf:readingOrder/opf:itemref|/opf:package/opf:spine/opf:itemref")
         for item in readingOrderItems {
             // Find the `Link` that `idref` is referencing to from the `manifestLinks`.
-            guard let idref = item.attributes["idref"],
+            guard let idref = item.attr("idref"),
                 let index = resources.firstIndex(withProperty: "id", matching: idref) else
             {
                 continue
@@ -191,14 +175,14 @@ final class OPFParser: Loggable {
             
             // Parse the additional link properties.
             let link = resources[index]
-            if let propertyAttribute = item.attributes["properties"] {
+            if let propertyAttribute = item.attr("properties") {
                 let properties = propertyAttribute.components(separatedBy: CharacterSet.whitespaces)
                 parseProperties(&link.properties, from: properties)
             }
             
             // Retrieve `idref`, referencing a resource id.
             // Only linear items are added to the readingOrder.
-            guard isLinear(item.attributes["linear"]) else {
+            guard isLinear(item.attr("linear")) else {
                 continue
             }
             
@@ -223,12 +207,12 @@ final class OPFParser: Loggable {
     ///
     /// - Parameter item: The XML element, or manifest XML item.
     /// - Returns: The `Link` representing the manifest XML item.
-    private func makeLink(from manifestItem: AEXMLElement) -> Link? {
-        guard let href = manifestItem.attributes["href"] else {
+    private func makeLink(from manifestItem: XMLElement) -> Link? {
+        guard let href = manifestItem.attr("href") else {
             return nil
         }
         
-        let propertiesArray = manifestItem.attributes["properties"]?.components(separatedBy: .whitespaces) ?? []
+        let propertiesArray = manifestItem.attr("properties")?.components(separatedBy: .whitespaces) ?? []
 
         var rels: [String] = []
         if propertiesArray.contains("nav") {
@@ -241,13 +225,13 @@ final class OPFParser: Loggable {
         var properties = Properties()
         parseProperties(&properties, from: propertiesArray)
         
-        if let id = manifestItem.attributes["id"] {
+        if let id = manifestItem.attr("id") {
             properties.otherProperties["id"] = id
         }
 
         return Link(
             href: normalize(base: basePath, href: href),
-            type: manifestItem.attributes["media-type"],
+            type: manifestItem.attr("media-type"),
             rels: rels,
             properties: properties
         )
