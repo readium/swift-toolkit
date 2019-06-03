@@ -6,7 +6,6 @@ github "weichsel/ZIPFoundation" == 0.9.8
 github "onevcat/Kingfisher" == 4.10.1
 github "jdg/MBProgressHUD"
 github "stephencelis/SQLite.swift" == 0.11.5
-github "tadija/AEXML" == 4.3.3
 github "swisspol/GCDWebServer" == 3.5.2
 github "krzyzanowskim/CryptoSwift" == 0.15.0
 github "edrlab/Fuzi" == 2.2.2
