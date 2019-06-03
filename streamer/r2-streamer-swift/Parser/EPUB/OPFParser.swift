@@ -86,7 +86,7 @@ final class OPFParser: Loggable {
 
         return Publication(
             format: .epub,
-            formatVersion: String(parseEPUBVersion()),
+            formatVersion: parseEPUBVersion(),
             metadata: try metadata.parse(),
             readingOrder: readingOrder,
             resources: resources
@@ -94,16 +94,10 @@ final class OPFParser: Loggable {
     }
 
     /// Retrieves the EPUB version from the package.opf XML document.
-    private func parseEPUBVersion() -> Double {
-        let version: Double
-        if let versionAttribute = document["package"].attributes["version"],
-            let versionNumber = Double(versionAttribute)
-        {
-            version = versionNumber
-        } else {
-            version = EpubConstant.defaultEpubVersion
-        }
-        return version
+    private func parseEPUBVersion() -> String {
+        // Default EPUB Version value, used when no version hes been specified (see OPF_2.0.1_draft 1.3.2).
+        let defaultVersion = "1.2"
+        return document["package"].attributes["version"] ?? defaultVersion
     }
     
     /// Parses XML elements of the <Manifest> in the package.opf file as a list of `Link`.
@@ -285,13 +279,12 @@ final class OPFParser: Loggable {
                 properties.page = .left
             case "page-spread-right":
                 properties.page = .right
-            case "page-spread-center":
+            case "page-spread-center", "rendition:page-spread-center":
                 properties.page = .center
             /// Spread
-            case "rendition:spread-none":
-                properties.spread = .none
-            case "rendition:spread-auto":
-                properties.spread = .none
+            case "rendition:spread-none", "rendition:spread-auto":
+                // If we don't qualify `.none` here it sets it to `nil`.
+                properties.spread = EPUBRendition.Spread.none
             case "rendition:spread-landscape":
                 properties.spread = .landscape
             case "rendition:spread-portrait":

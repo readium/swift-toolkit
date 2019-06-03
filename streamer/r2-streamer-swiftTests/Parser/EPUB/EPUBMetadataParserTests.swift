@@ -51,7 +51,7 @@ class EPUBMetadataParserTests: XCTestCase {
     }
     
     func testParseMinimalMetadata() throws {
-        let sut = try parseMetadata("minimal-metadata")
+        let sut = try parseMetadata("minimal")
         
         XCTAssertEqual(sut, Metadata(
             title: "Alice's Adventures in Wonderland",
@@ -189,7 +189,7 @@ class EPUBMetadataParserTests: XCTestCase {
     }
     
     func testParseRenditionFallbackWithDisplayOptions() throws {
-        let sut = try parseMetadata("minimal-metadata", displayOptions: "displayOptions")
+        let sut = try parseMetadata("minimal", displayOptions: "displayOptions")
         XCTAssertEqual(sut.otherMetadata["rendition"] as? [String: String], [
             "spread": "auto",
             "overflow": "auto",

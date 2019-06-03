@@ -14,9 +14,6 @@ import Fuzi
 
 /// Epub related constants.
 public struct EpubConstant {
-    /// Default EPUB Version value, used when no version hes been specified.
-    /// (see OPF_2.0.1_draft 1.3.2).
-    public static let defaultEpubVersion = 1.2
     /// Lcpl file path.
     public static let lcplFilePath = "META-INF/license.lcpl"
     /// Epub mime-type.
