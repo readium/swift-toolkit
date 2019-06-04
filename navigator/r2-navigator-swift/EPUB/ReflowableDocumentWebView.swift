@@ -65,7 +65,16 @@ final class ReflowableDocumentWebView: DocumentWebView {
         
         if let userSettings = userSettings {
             for cssProperty in userSettings.userProperties.properties {
-                evaluateScriptInResource("readium.setProperty(\"\(cssProperty.name)\", \"\(cssProperty.toString())\");")
+                let value: String = {
+                    // Scroll mode depends both on the user settings, and on the fact that VoiceOver is activated or not, so we need to generate the value dynamically.
+                    // FIXME: This would be handled in a better way by decoupling the user settings from the actual ReadiumCSS properties sent to the WebView, which should be private details of the EPUBNavigator implementation and not shared with the host app.
+                    if let switchable = cssProperty as? Switchable, cssProperty.name == ReadiumCSSName.scroll.rawValue {
+                        return switchable.values[isScrollEnabled]!
+                    } else {
+                        return cssProperty.toString()
+                    }
+                }()
+                evaluateScriptInResource("readium.setProperty(\"\(cssProperty.name)\", \"\(value)\");")
             }
         }
 
