@@ -186,6 +186,7 @@ class ReaderViewController: UIViewController, Loggable {
             makeItem(.flexibleSpace),
         ]
         toolbar.isHidden = !UIAccessibility.isVoiceOverRunning
+        toolbar.tintColor = UIColor.black
         return toolbar
     }()
     
