@@ -38,8 +38,11 @@ class EPUBMetadataParserTests: XCTestCase {
             belongsToCollections: [],  // FIXME: should this be parsed?
             belongsToSeries: [],  // FIXME: should this be parsed?
             otherMetadata: [
-                "source": ["Feedbooks", "Web"],
-                "rights": "Public Domain",
+                "http://www.idpf.org/epub/vocab/package/a11y/#certifiedBy": "EDRLab",
+                "http://purl.org/dc/elements/1.1/source": ["Feedbooks", "Web", "Internet"],
+                "http://purl.org/dc/elements/1.1/rights": "Public Domain",
+                "http://idpf.org/epub/vocab/package/#type": "article",
+                "http://my.url/#customProperty": "Custom property",
                 "rendition": [
                     "spread": "both",
                     "overflow": "scrolled",
@@ -202,14 +205,16 @@ class EPUBMetadataParserTests: XCTestCase {
     // MARK: - Toolkit
     
     func parseMetadata(_ name: String, displayOptions: String? = nil) throws -> Metadata {
-        func document(named name: String, type: String) throws -> XMLDocument {
+        func parseDocument(named name: String, type: String) throws -> XMLDocument {
             return try XMLDocument(data: try Data(
                 contentsOf: SampleGenerator().getSamplesFileURL(named: "OPF/\(name)", ofType: type)!
             ))
         }
+        let document = try parseDocument(named: name, type: "opf")
         return try EPUBMetadataParser(
-            document: try document(named: name, type: "opf"),
-            displayOptions: try displayOptions.map { try document(named: $0, type: "xml") }
+            document: document,
+            displayOptions: try displayOptions.map { try parseDocument(named: $0, type: "xml") },
+            metas: OPFMetaList(document: document)
         ).parse()
     }
     

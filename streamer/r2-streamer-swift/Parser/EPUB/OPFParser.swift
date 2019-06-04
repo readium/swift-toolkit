@@ -44,20 +44,24 @@ public enum OPFParserError: Error {
 final class OPFParser: Loggable {
     
     /// Relative path to the OPF in the EPUB container
-    let basePath: String
+    private let basePath: String
     
     /// DOM representation of the OPF file.
-    let document: XMLDocument
+    private let document: XMLDocument
 
     /// iBooks Display Options XML file to use as a fallback for metadata.
     /// See https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#epub-2x-9
-    let displayOptions: XMLDocument?
+    private let displayOptions: XMLDocument?
     
+    /// List of metadata declared in the package.
+    private let metas: OPFMetaList
+
     init(basePath: String, data: Data, displayOptionsData: Data? = nil) throws {
         self.basePath = basePath
         self.document = try XMLDocument(data: data)
         self.document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
         self.displayOptions = (displayOptionsData.map { try? XMLDocument(data: $0) }) ?? nil
+        self.metas = OPFMetaList(document: self.document)
     }
     
     convenience init(container: Container) throws {
@@ -80,7 +84,7 @@ final class OPFParser: Loggable {
     func parsePublication() throws -> Publication {
         let manifestLinks = parseManifestLinks()
         let (resources, readingOrder) = parseResourcesAndReadingOrderLinks(manifestLinks)
-        let metadata = EPUBMetadataParser(document: document, displayOptions: displayOptions)
+        let metadata = EPUBMetadataParser(document: document, displayOptions: displayOptions, metas: metas)
 
         return Publication(
             format: .epub,
@@ -100,10 +104,8 @@ final class OPFParser: Loggable {
     
     /// Parses XML elements of the <Manifest> in the package.opf file as a list of `Link`.
     private func parseManifestLinks() -> [Link] {
-        let durations = parseMediaDurations()
-
         // Read meta to see if any Link is referenced as the Cover.
-        let coverId = document.firstChild(xpath: "/opf:package/opf:metadata/opf:meta[@name='cover']")?.attr("content")
+        let coverId = metas["cover"].first?.content
 
         // Get the manifest children items
         let manifestItems = document.xpath("/opf:package/opf:manifest/opf:item")
@@ -120,7 +122,9 @@ final class OPFParser: Loggable {
                 }
     
                 // If the link reference a Smil resource, retrieve and fill its duration.
-                if link.type == "application/smil+xml", let duration = durations["#\(id)"] {
+                if link.type == "application/smil+xml",
+                    let durationMeta = metas["duration", in: .media, refining: id].first,
+                    let duration = Double(SMILParser.smilTimeToSeconds(durationMeta.content)) {
                     link.duration = duration
                 }
     
@@ -131,27 +135,6 @@ final class OPFParser: Loggable {
     
                 return link
             }
-    }
-
-    /// Parse the metadata>meta>property=media:duration elements from the
-    /// metadata. These meta are related to the Media Overlays, they give the
-    /// smil file audio playback time.
-    /// Metadata -> e.g. : ["#smil-1": "00:01:24.687"]
-    ///
-    /// - Parameter document: The OPF XML element.
-    /// - Returns: Mapping between the SMIL ID and its duration.
-    private func parseMediaDurations() -> [String: Double] {
-        return document.xpath("/opf:package/opf:metadata/opf:meta[@property='media:duration']")
-            .reduce([:]) { durations, item in
-                var durations = durations
-                if let property = item.attr("refines"),
-                    let duration = Double(SMILParser.smilTimeToSeconds(item.stringValue))
-                {
-                    durations[property] = duration
-                }
-                
-                return durations
-        }
     }
 
     /// Parses XML elements of the <ReadingOrder> in the package.opf file.
