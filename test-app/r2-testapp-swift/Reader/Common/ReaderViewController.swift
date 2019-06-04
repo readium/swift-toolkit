@@ -180,9 +180,9 @@ class ReaderViewController: UIViewController, Loggable {
         let toolbar = UIToolbar(frame: .zero)
         toolbar.items = [
             makeItem(.flexibleSpace),
-            makeItem(.rewind, label: "Previous", action: #selector(goBackward)),
+            makeItem(.rewind, label: "Previous Chapter", action: #selector(goBackward)),
             makeItem(.flexibleSpace),
-            makeItem(.fastForward, label: "Next", action: #selector(goForward)),
+            makeItem(.fastForward, label: "Next Chapter", action: #selector(goForward)),
             makeItem(.flexibleSpace),
         ]
         toolbar.isHidden = !UIAccessibility.isVoiceOverRunning
