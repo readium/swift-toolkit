@@ -122,6 +122,18 @@ class EPUBMetadataParserTests: XCTestCase {
         XCTAssertEqual(sut.identifier, "urn:uuid:2")
     }
     
+    func testParseDateEPUB3() throws {
+        let sut = try parseMetadata("dates-epub3")
+        XCTAssertEqual(sut.published, "1865-07-04".dateFromISO8601)
+        XCTAssertEqual(sut.modified, "2012-04-02T12:47:00Z".dateFromISO8601)
+    }
+    
+    func testParseDateEPUB2() throws {
+        let sut = try parseMetadata("dates-epub2")
+        XCTAssertEqual(sut.published, "1865-07-04".dateFromISO8601)
+        XCTAssertEqual(sut.modified, "2012-04-02T12:47:00Z".dateFromISO8601)
+    }
+    
     func testParseContributors() throws {
         let sut = try parseMetadata("contributors")
         

@@ -183,29 +183,29 @@ final class EPUBMetadataParser: Loggable {
     }()
 
     /// Parse and return the Epub unique identifier.
-    ///
-    /// - Returns: The content of the `<dc:identifier>` element, `nil` if the element wasn't found.
-    private lazy var uniqueIdentifier: String? = {
-        // Look for `<dc:identifier>` elements.
-        guard let identifiers = metadataElement?.xpath("dc:identifier") else {
-            return nil
-        }
-        
-        // Gets the one defined as unique by the `<package>` attribute `unique-identifier` or fallback on the first one found.
-        let uniqueIdentifierID = document.firstChild(xpath: "/opf:package")?.attr("unique-identifier") ?? ""
-        let identifier = identifiers.first { $0.attr("id") == uniqueIdentifierID }
-            ?? identifiers.first
-        return identifier?.stringValue
-    }()
+    /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#identifier
+    private lazy var uniqueIdentifier: String? = metadataElement?
+        .firstChild(xpath:"dc:identifier[@id=/opf:package/@unique-identifier]")?
+        .stringValue
+
+    /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#publication-date
+    private lazy var publishedDate = metadataElement?
+        .firstChild(xpath: "dc:date[not(@opf:event) or @opf:event='publication']")?
+        .stringValue.dateFromISO8601
 
     /// Parse the modifiedDate (date of last modification of the EPUB).
-    ///
-    /// - Returns: The date generated from the <dcterms:modified> meta element,
-    ///            or nil if not found.
+    /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#modification-date
     private lazy var modifiedDate: Date? = {
-        return metas["modified", in: .dcterms]
-            .compactMap { $0.content.dateFromISO8601 }
-            .last
+        let epub3Date = {
+            self.metas["modified", in: .dcterms]
+                .compactMap { $0.content.dateFromISO8601 }
+                .first
+        }
+        let epub2Date = {
+            self.metadataElement?.firstChild(xpath: "dc:date[@opf:event='modification']")?
+                .stringValue.dateFromISO8601
+        }
+        return epub3Date() ?? epub2Date()
     }()
 
     /// Parse the <dc:subject> XML element from the metadata
@@ -350,15 +350,6 @@ final class EPUBMetadataParser: Loggable {
         default:
             return .auto
         }
-    }()
-    
-    private lazy var publishedDate: Date? = {
-        // From the EPUB 2 and EPUB 3 specifications, only the `dc:date` element without any attribtes will be considered for the `published` property.
-        // And only the string with full date will be considered as valid date string. The string format validation happens in the `setter` of `published`.
-        return metadataElement?.xpath("dc:date")
-            .first { $0.attributes.isEmpty }?
-            .stringValue
-            .dateFromISO8601
     }()
 
     /// Return a localized string, defining the multiple representations of a string in different languages.
