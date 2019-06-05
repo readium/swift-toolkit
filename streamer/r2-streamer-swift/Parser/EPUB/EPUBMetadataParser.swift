@@ -13,6 +13,7 @@ import R2Shared
 import Fuzi
 
 
+/// Reference: https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md
 final class EPUBMetadataParser: Loggable {
     
     private let document: XMLDocument
@@ -33,7 +34,7 @@ final class EPUBMetadataParser: Loggable {
     private lazy var metadataElement: XMLElement? = {
         return document.firstChild(xpath: "/opf:package/opf:metadata")
     }()
-    
+
     /// Parses the Metadata in the XML <metadata> element.
     func parse() throws -> Metadata {
         guard let title = mainTitle else {
@@ -47,6 +48,7 @@ final class EPUBMetadataParser: Loggable {
             modified: modifiedDate,
             published: publishedDate,
             languages: languages,
+            sortAs: sortAs,
             subjects: subjects,
             readingProgression: readingProgression,
             description: description,
@@ -58,19 +60,40 @@ final class EPUBMetadataParser: Loggable {
         return metadata
     }
     
-    /// Parses a metadata element as JSON.
-
-    private var languages: [String] {
+    private lazy var languages: [String] = {
         return metadataElement?.xpath("dc:language").map { $0.stringValue } ?? []
+    }()
+    
+    private lazy var packageLanguage: String? = {
+        return document.firstChild(xpath: "/opf:package")?.attr("lang")
+    }()
+
+    /// Determines the BCP-47 language tag for the given element, using:
+    ///   1. its xml:lang attribute
+    ///   2. the package's xml:lang attribute
+    ///   3. the primary language for the publication
+    private func language(for element: XMLElement) -> String? {
+        return element.attr("lang") ?? packageLanguage ?? languages.first
     }
     
-    private var description: String? {
+    /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#title
+    private lazy var sortAs: String? = {
+        // EPUB 3
+        if let id = mainTitleElement?.attr("id"), let sortAsElement = metas["file-as", refining: id].first {
+            return sortAsElement.content
+        // EPUB 2
+        } else {
+            return metas["title_sort", in: .calibre].first?.content
+        }
+    }()
+    
+    private lazy var description: String? = {
         return metadataElement?.xpath("dc:description").first?.stringValue
-    }
+    }()
     
     /// Extracts the Rendition properties from the XML element metadata and fill
     /// then into the Metadata object instance.
-    private var rendition: EPUBRendition {
+    private lazy var rendition: EPUBRendition = {
         func renditionMetadata(_ property: String) -> String {
             return metas[property, in: .rendition].last?.content ?? ""
         }
@@ -111,59 +134,58 @@ final class EPUBMetadataParser: Loggable {
             overflow: .init(epub: renditionMetadata("flow")),
             spread: .init(epub: renditionMetadata("spread"))
         )
-    }
+    }()
 
-    /// Parse and return the title informations for different title types
-    /// of the publication the from the OPF XML document `<metadata>` element.
-    /// In the simplest cases it just return the value of the <dc:title> XML 
-    /// element, but sometimes there are alternative titles (titles in other
-    /// languages).
-    /// See `MultilangString` for complementary informations.
-    ///
-    /// - Returns: The content of the `<dc:title>` element, `nil` if the element
-    ///            wasn't found.
-    private func title(for titleType: EPUBTitleType) -> LocalizedString? {
-        // Return if there isn't any `<dc:title>` element
-        guard let titles = metadataElement?.xpath("dc:title"),
-            let titleElement = titleElement(for: titleType, from: titles) else
-        {
-            return nil
-        }
-        
-        return localizedString(for: titleElement)
-    }
-
-    /// Return the XML element corresponding to the specific title type
-    /// `<meta refines="#.." property="title-type" id="title-type">titleType</meta>`
-    ///
-    /// - Parameters:
-    ///   - titleType: the Type of title, see TitleType for more information.
-    ///   - titles: The titles XML elements array.
-    /// - Returns: The main title XML element.
-    private func titleElement(for titleType: EPUBTitleType, from titles: NodeSet) -> XMLElement? {
-        return titles.first {
-            guard let eid = $0.attr("id") else {
-                return false
+    /// Finds all the `<dc:title> element matching the given `title-type`.
+    /// The elements are then sorted by the `display-seq` refines, when available.
+    private func titleElements(ofType titleType: EPUBTitleType) -> [XMLElement] {
+        // Finds the XML element corresponding to the specific title type
+        // `<meta refines="#.." property="title-type" id="title-type">titleType</meta>`
+        return metas["title-type"]
+            .compactMap { meta in
+                guard meta.content == titleType.rawValue, let id = meta.refines else {
+                    return nil
+                }
+                return metadataElement?.firstChild(xpath: "dc:title[@id='\(id)']")
             }
-            // For example, titleType.rawValue is "main"
-            return metas["title-type", refining: eid].last?.content == titleType.rawValue
-        }
+            // Sort using `display-seq` refines
+            .sorted { title1, title2 in
+                let order1 = title1.attr("id").flatMap { displaySeqs[$0] } ?? ""
+                let order2 = title2.attr("id").flatMap { displaySeqs[$0] } ?? ""
+                return order1 < order2
+            }
     }
     
-    private var mainTitle: LocalizedString? {
-        return title(for: .main)
-            /// Recovers using any other title, when there is no title marked as main title.
-            ?? localizedString(for: metadataElement?.firstChild(xpath: "dc:title"))
-    }
+    /// Maps between an element ID and its `display-seq` refine, if there's any.
+    /// eg. <meta refines="#creator01" property="display-seq">1</meta>
+    private lazy var displaySeqs: [String: String] = {
+        return metas["display-seq"]
+            .reduce([:]) { displaySeqs, meta in
+                var displaySeqs = displaySeqs
+                if let id = meta.refines {
+                    displaySeqs[id] = meta.content
+                }
+                return displaySeqs
+            }
+    }()
     
-    private var subtitle: LocalizedString? {
-        return title(for: .subtitle)
-    }
+    private lazy var mainTitleElement: XMLElement? = {
+        return titleElements(ofType: .main).first
+            ?? metadataElement?.firstChild(xpath: "dc:title")
+    }()
+
+    private lazy var mainTitle: LocalizedString? = {
+        return localizedString(for: mainTitleElement)
+    }()
+    
+    private lazy var subtitle: LocalizedString? = {
+        return localizedString(for: titleElements(ofType: .subtitle).first)
+    }()
 
     /// Parse and return the Epub unique identifier.
     ///
     /// - Returns: The content of the `<dc:identifier>` element, `nil` if the element wasn't found.
-    private var uniqueIdentifier: String? {
+    private lazy var uniqueIdentifier: String? = {
         // Look for `<dc:identifier>` elements.
         guard let identifiers = metadataElement?.xpath("dc:identifier") else {
             return nil
@@ -174,20 +196,20 @@ final class EPUBMetadataParser: Loggable {
         let identifier = identifiers.first { $0.attr("id") == uniqueIdentifierID }
             ?? identifiers.first
         return identifier?.stringValue
-    }
+    }()
 
     /// Parse the modifiedDate (date of last modification of the EPUB).
     ///
     /// - Returns: The date generated from the <dcterms:modified> meta element,
     ///            or nil if not found.
-    private var modifiedDate: Date? {
+    private lazy var modifiedDate: Date? = {
         return metas["modified", in: .dcterms]
             .compactMap { $0.content.dateFromISO8601 }
             .last
-    }
+    }()
 
     /// Parse the <dc:subject> XML element from the metadata
-    private var subjects: [Subject] {
+    private lazy var subjects: [Subject] = {
         guard let metadataElement = metadataElement else {
             return []
         }
@@ -204,7 +226,7 @@ final class EPUBMetadataParser: Loggable {
                     code: element.attr("term")
                 )
             }
-    }
+    }()
 
     /// Parse all the Contributors objects of the model (`creator`, `contributor`,
     /// `publisher`) and add them to the metadata.
@@ -316,7 +338,7 @@ final class EPUBMetadataParser: Loggable {
         )
     }
 
-    private var readingProgression: ReadingProgression {
+    private lazy var readingProgression: ReadingProgression = {
         let direction = document.firstChild(xpath: "/opf:package/opf:readingOrder|/opf:package/opf:spine")?.attr("page-progression-direction") ?? "default"
         switch direction {
         case "ltr":
@@ -328,35 +350,34 @@ final class EPUBMetadataParser: Loggable {
         default:
             return .auto
         }
-    }
+    }()
     
-    private var publishedDate: Date? {
+    private lazy var publishedDate: Date? = {
         // From the EPUB 2 and EPUB 3 specifications, only the `dc:date` element without any attribtes will be considered for the `published` property.
         // And only the string with full date will be considered as valid date string. The string format validation happens in the `setter` of `published`.
         return metadataElement?.xpath("dc:date")
             .first { $0.attributes.isEmpty }?
             .stringValue
             .dateFromISO8601
-    }
+    }()
 
     /// Return a localized string, defining the multiple representations of a string in different languages.
     ///
     /// - Parameters:
     ///   - element: The element to parse (can be a title or a contributor).
     private func localizedString(for element: XMLElement?) -> LocalizedString? {
-        guard let metadataElement = metadataElement, let element = element else {
+        guard let element = element else {
             return nil
         }
         
         var strings: [String: String] = [:]
         
         // Default string
-        let value = element.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !value.isEmpty {
-            let publicationDefaultLanguage = metadataElement.firstChild(xpath: "dc:language")?.stringValue ?? ""
-            let lang = element.attr("lang") ?? publicationDefaultLanguage
-            strings[lang] = value
+        let defaultString = element.stringValue
+        guard let defaultLanguage =  language(for: element) else {
+            return defaultString.localizedString
         }
+        strings[defaultLanguage] = defaultString
 
         // Finds translations
         if let elementID = element.attr("id") {

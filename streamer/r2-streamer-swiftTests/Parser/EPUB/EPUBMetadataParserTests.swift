@@ -86,12 +86,12 @@ class EPUBMetadataParserTests: XCTestCase {
     }
     
     func testParseMainTitle() throws {
-        let sut = try parseMetadata("main-title")
+        let sut = try parseMetadata("title-main")
         XCTAssertEqual(sut.title, "Main title takes precedence")
     }
     
     func testParseLocalizedTitles() throws {
-        let sut = try parseMetadata("localized-titles")
+        let sut = try parseMetadata("title-localized")
         XCTAssertEqual(sut.localizedTitle, try LocalizedString(json: [
             "en": "Alice's Adventures in Wonderland",
             "fr": "Les Aventures d'Alice au pays des merveilles"
@@ -100,6 +100,21 @@ class EPUBMetadataParserTests: XCTestCase {
             "en-GB": "Alice returns to the magical world from her childhood adventure",
             "fr": "Alice retourne dans le monde magique de ses aventures d'enfance."
         ]))
+    }
+    
+    func testParseMultipleSubtitles() throws {
+        let sut = try parseMetadata("title-multiple-subtitles")
+        XCTAssertEqual(sut.subtitle, "Subtitle 2")
+    }
+    
+    func testParseSortAsEPUB3() throws {
+        let sut = try parseMetadata("sortAs-epub3")
+        XCTAssertEqual(sut.sortAs, "Aventures")
+    }
+    
+    func testParseSortAsEPUB2() throws {
+        let sut = try parseMetadata("sortAs-epub2")
+        XCTAssertEqual(sut.sortAs, "Aventures")
     }
     
     func testParseUniqueIdentifier() throws {

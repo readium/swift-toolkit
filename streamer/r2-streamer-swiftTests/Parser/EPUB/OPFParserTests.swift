@@ -40,12 +40,12 @@ class OPFParserTests: XCTestCase {
     }
     
     func testParseEPUB2Version() throws {
-        let sut = try parsePublication("version-2")
+        let sut = try parsePublication("version-epub2")
         XCTAssertEqual(sut.formatVersion, "2.0.1")
     }
     
     func testParseEPUB3Version() throws {
-        let sut = try parsePublication("version-3")
+        let sut = try parsePublication("version-epub3")
         XCTAssertEqual(sut.formatVersion, "3.0")
     }
     

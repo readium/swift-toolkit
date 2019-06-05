@@ -17,12 +17,13 @@ import R2Shared
 /// Package vocabularies used for `property`, `properties`, `scheme` and `rel`.
 /// http://www.idpf.org/epub/301/spec/epub-publications.html#sec-metadata-assoc
 enum OPFVocabulary: String {
+    // Fallback prefixes for metadata's properties and links' rels.
     case defaultMetadata, defaultLinkRel
-    // Reserved prefixes (https://idpf.github.io/epub-prefixes/packages/)
+    // Reserved prefixes (https://idpf.github.io/epub-prefixes/packages/).
     case a11y, dcterms, epubsc, marc, media, onix, rendition, schema, xsd
-    // `dc` is not specified in the reserved prefixes but somehow it seems to be used
-    case dc
-    
+    // Additional prefixes used in the streamer.
+    case dc, calibre
+
     var uri: String {
         switch self {
         case .defaultMetadata:
@@ -49,6 +50,9 @@ enum OPFVocabulary: String {
             return "http://www.w3.org/2001/XMLSchema#"
         case .dc:
             return "http://purl.org/dc/elements/1.1/"
+        case .calibre:
+            // https://github.com/kovidgoyal/calibre/blob/3f903cbdd165e0d1c5c25eecb6eef2a998342230/src/calibre/ebooks/metadata/opf3.py#L170
+            return "https://calibre-ebook.com"
         }
     }
     
@@ -128,7 +132,9 @@ struct OPFMetaList {
                 // EPUB 3
                 if let property = meta.attr("property") {
                     let (property, vocabularyURI) = OPFVocabulary.parse(property: property, prefixes: prefixes)
-                    return OPFMeta(property: property, vocabularyURI: vocabularyURI, content: meta.stringValue, id: meta.attr("id"), refines: meta.attr("refines"), element: meta)
+                    var refinedID = meta.attr("refines")
+                    refinedID?.removeFirst()  // Get rid of the # before the ID.
+                    return OPFMeta(property: property, vocabularyURI: vocabularyURI, content: meta.stringValue, id: meta.attr("id"), refines: refinedID, element: meta)
                 // EPUB 2
                 } else if let property = meta.attr("name") {
                     let (property, vocabularyURI) = OPFVocabulary.parse(property: property, prefixes: prefixes)
@@ -152,7 +158,7 @@ struct OPFMetaList {
     }
     
     subscript(_ property: String, in vocabulary: OPFVocabulary, refining id: String) -> [OPFMeta] {
-        return metas.filter { $0.property == property && $0.vocabularyURI == vocabulary.uri && $0.refines == "#\(id)" }
+        return metas.filter { $0.property == property && $0.vocabularyURI == vocabulary.uri && $0.refines == id }
     }
     
     /// Returns the JSON representation of the unknown metadata (for RWPM's `Metadata.otherMetadata`)
