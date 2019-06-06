@@ -8,7 +8,6 @@
 
 import XCTest
 
-import AEXML
 import R2Shared
 
 @testable import ReadiumOPDS
