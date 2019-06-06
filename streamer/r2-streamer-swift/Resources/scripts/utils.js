@@ -24,8 +24,8 @@ var readium = (function() {
     }
 
     window.addEventListener('scroll', function(e) {
-        last_known_scrollY_position = window.scrollY / document.body.scrollHeight;
-        last_known_scrollX_position = window.scrollX / document.body.scrollWidth;
+        last_known_scrollY_position = window.scrollY / document.scrollingElement.scrollHeight;
+        last_known_scrollX_position = window.scrollX / document.scrollingElement.scrollWidth;
         if (!ticking) {
             window.requestAnimationFrame(function() {
                 update(isScrollModeEnabled() ? last_known_scrollY_position : last_known_scrollX_position);
@@ -47,10 +47,17 @@ var readium = (function() {
     // Scroll to the given TagId in document and snap.
     function scrollToId(id) {
         var element = document.getElementById(id);
-        var elementOffset = element.scrollLeft // element.getBoundingClientRect().left works for Gutenbergs books
-        var offset = window.scrollX + elementOffset;
-
-        document.body.scrollLeft = snapOffset(offset);
+        if (!element) {
+            return;
+        }
+        element.scrollIntoView();
+        
+        if (!isScrollModeEnabled()) {
+            var currentOffset = window.scrollX;
+            var pageWidth = window.innerWidth;
+            // Adds half a page to make sure we don't snap to the previous page.
+            document.scrollingElement.scrollLeft = snapOffset(currentOffset + (pageWidth / 2));
+        }
     }
 
     // Position must be in the range [0 - 1], 0-100%.
@@ -62,24 +69,24 @@ var readium = (function() {
         }
 
         if (isScrollModeEnabled()) {
-            var offset = document.body.scrollHeight * position;
-            document.body.scrollTop = offset;
+            var offset = document.scrollingElement.scrollHeight * position;
+            document.scrollingElement.scrollTop = offset;
             // window.scrollTo(0, offset);
         } else {
             var offset = 0.0;
             if (dir == 'rtl') {
-                offset = -document.body.scrollWidth * (1.0-position);
+                offset = -document.scrollingElement.scrollWidth * (1.0-position);
             } else {
-                offset = document.body.scrollWidth * position;
+                offset = document.scrollingElement.scrollWidth * position;
             }
-            document.body.scrollLeft = snapOffset(offset);
+            document.scrollingElement.scrollLeft = snapOffset(offset);
         }
     }
 
     // Returns false if the page is already at the left-most scroll offset.
     function scrollLeft(dir) {
         var isRTL = (dir == "rtl");
-        var documentWidth = document.body.scrollWidth;
+        var documentWidth = document.scrollingElement.scrollWidth;
         var pageWidth = window.innerWidth;
         var offset = window.scrollX - pageWidth;
         var minOffset = isRTL ? -(documentWidth - pageWidth) : 0;
@@ -89,7 +96,7 @@ var readium = (function() {
     // Returns false if the page is already at the right-most scroll offset.
     function scrollRight(dir) {
         var isRTL = (dir == "rtl");
-        var documentWidth = document.body.scrollWidth;
+        var documentWidth = document.scrollingElement.scrollWidth;
         var pageWidth = window.innerWidth;
         var offset = window.scrollX + pageWidth;
         var maxOffset = isRTL ? 0 : (documentWidth - pageWidth);
@@ -101,7 +108,7 @@ var readium = (function() {
     function scrollToOffset(offset) {
         var currentOffset = window.scrollX;
         var pageWidth = window.innerWidth;
-        document.body.scrollLeft = offset;
+        document.scrollingElement.scrollLeft = offset;
         // In some case the scrollX cannot reach the position respecting to innerWidth
         var diff = Math.abs(currentOffset - offset) / pageWidth;
         return (diff > 0.01);
@@ -118,7 +125,7 @@ var readium = (function() {
         var currentOffset = window.scrollX;
         var currentOffsetSnapped = snapOffset(currentOffset + 1);
         
-        document.body.scrollLeft = currentOffsetSnapped;
+        document.scrollingElement.scrollLeft = currentOffsetSnapped;
     }
 
     /// User Settings.
