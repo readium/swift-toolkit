@@ -21,6 +21,18 @@ public struct EPUBRendition: Equatable {
         case fixed
         // Apply dynamic pagination when rendering.
         case reflowable
+        
+        /// Creates from an EPUB rendition:layout property.
+        public init(epub: String, fallback: Layout? = nil) {
+            switch epub {
+            case "reflowable":
+                self = .reflowable
+            case "pre-paginated":
+                self = .fixed
+            default:
+                self = fallback ?? .reflowable
+            }
+        }
     }
     
     /// Suggested orientation for the device when displaying the linked resource.
@@ -31,6 +43,20 @@ public struct EPUBRendition: Equatable {
         case landscape
         // Specifies that the given spine item is to be rendered in portrait orientation.
         case portrait
+        
+        /// Creates from an EPUB rendition:orientation property.
+        public init(epub: String, fallback: Orientation? = nil) {
+            switch epub {
+            case "landscape":
+                self = .landscape
+            case "portrait":
+                self = .portrait
+            case "auto":
+                self = .auto
+            default:
+                self = fallback ?? .auto
+            }
+        }
     }
     
     /// Suggested method for handling overflow while displaying the linked resource.
@@ -43,6 +69,22 @@ public struct EPUBRendition: Equatable {
         case scrolled
         // Indicates the Author preference is to provide a scrolled view for overflow content, and that consecutive spine items with this property are to be rendered as a continuous scroll.
         case scrolledContinuous = "scrolled-continuous"
+        
+        /// Creates from an EPUB rendition:flow property.
+        public init(epub: String, fallback: Overflow? = nil) {
+            switch epub {
+            case "auto":
+                self = .auto
+            case "paginated":
+                self = .paginated
+            case "scrolled-doc":
+                self = .scrolled
+            case "scrolled-continuous":
+                self = .scrolledContinuous
+            default:
+                self = fallback ?? .auto
+            }
+        }
     }
     
     /// Indicates the condition to be met for the linked resource to be rendered within a synthetic spread.
@@ -55,6 +97,24 @@ public struct EPUBRendition: Equatable {
         case none
         // Specifies the Reading System should render a synthetic spread for the readingOrder item only when in landscape orientation.
         case landscape
+        
+        /// Creates from an EPUB rendition:spread property.
+        public init(epub: String, fallback: Spread? = nil) {
+            switch epub {
+            case "none":
+                self = .none
+            case "auto":
+                self = .auto
+            case "landscape":
+                self = .landscape
+            // `portrait` is deprecated and should fallback to `both`.
+            // See. https://readium.org/architecture/streamer/parser/metadata#epub-3x-11
+            case "both", "portrait":
+                self = .both
+            default:
+                self = fallback ?? .auto
+            }
+        }
     }
     
     /// Hints how the layout of the resource should be presented.
