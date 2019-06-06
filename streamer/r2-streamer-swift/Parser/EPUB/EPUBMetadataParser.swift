@@ -52,6 +52,9 @@ final class EPUBMetadataParser: Loggable {
             subjects: subjects,
             readingProgression: readingProgression,
             description: description,
+            numberOfPages: numberOfPages,
+            belongsToCollections: belongsToCollections,
+            belongsToSeries: belongsToSeries,
             otherMetadata: metas.otherMetadata
         )
         parseContributors(to: &metadata)
@@ -87,9 +90,11 @@ final class EPUBMetadataParser: Loggable {
         }
     }()
     
-    private lazy var description: String? = {
-        return metadataElement?.xpath("dc:description").first?.stringValue
-    }()
+    private lazy var description: String? = metadataElement?.xpath("dc:description")
+        .first?.stringValue
+
+    private lazy var numberOfPages: Int? = metas["numberOfPages", in: .schema]
+        .first.flatMap { Int($0.content) }
     
     /// Extracts the Rendition properties from the XML element metadata and fill
     /// then into the Metadata object instance.
@@ -208,24 +213,43 @@ final class EPUBMetadataParser: Loggable {
         return epub3Date() ?? epub2Date()
     }()
 
-    /// Parse the <dc:subject> XML element from the metadata
+    /// Parses the <dc:subject> XML element from the metadata
+    /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#subjects
     private lazy var subjects: [Subject] = {
         guard let metadataElement = metadataElement else {
             return []
         }
-        return metadataElement.xpath("dc:subject")
-            .compactMap { element in
-                let name = element.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !name.isEmpty else {
-                    log(.warning, "Invalid Epub, no value for <dc:subject>")
-                    return nil
+        
+        let elements = metadataElement.xpath("dc:subject")
+        if elements.count == 1 {
+            let element = elements[0]
+            let names = element.stringValue.components(separatedBy: CharacterSet(charactersIn: ",;"))
+            if names.count > 1 {
+                // No translations if the subjects are a list separated by , or ;
+                return names.compactMap {
+                    let name = $0.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !name.isEmpty else {
+                        return nil
+                    }
+                    return Subject(
+                        name: name,
+                        scheme: element.attr("authority"),
+                        code: element.attr("term")
+                    )
                 }
-                return Subject(
-                    name: name,
-                    scheme: element.attr("authority"),
-                    code: element.attr("term")
-                )
             }
+        }
+            
+        return elements.compactMap {
+            guard let name = localizedString(for: $0) else {
+                return nil
+            }
+            return Subject(
+                name: name,
+                scheme: $0.attr("authority"),
+                code: $0.attr("term")
+            )
+        }
     }()
 
     /// Parse all the Contributors objects of the model (`creator`, `contributor`,
@@ -345,12 +369,62 @@ final class EPUBMetadataParser: Loggable {
             return .ltr
         case "rtl":
             return .rtl
-        case "default":
-            return .auto
         default:
             return .auto
         }
     }()
+    
+    /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#collections-and-series
+    private lazy var belongsToCollections: [Metadata.Collection] = {
+        return metas["belongs-to-collection"]
+            // `collection-type` should not be "series"
+            .filter { meta in
+                if let id = meta.id {
+                    return metas["collection-type", refining: id].first?.content != "series"
+                }
+                return true
+            }
+            .compactMap(collection(from:))
+    }()
+
+    /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#collections-and-series
+    private lazy var belongsToSeries: [Metadata.Collection] = {
+        let epub3Series = metas["belongs-to-collection"]
+            // `collection-type` should be "series"
+            .filter { meta in
+                guard let id = meta.id else {
+                    return false
+                }
+                return metas["collection-type", refining: id].first?.content == "series"
+            }
+            .compactMap(collection(from:))
+        
+        let epub2Position = metas["series_index", in: .calibre].first
+            .flatMap { Double($0.content) }
+        let epub2Series = metas["series", in: .calibre]
+            .map { meta in
+                Metadata.Collection(
+                    name: meta.content,
+                    position: epub2Position
+                )
+            }
+
+        return epub3Series + epub2Series
+    }()
+    
+    private func collection(from meta: OPFMeta) -> Metadata.Collection? {
+        guard let name = localizedString(for: meta.element) else {
+            return nil
+        }
+        return Metadata.Collection(
+            name: name,
+            identifier: meta.id.flatMap { metas["identifier", in: .dcterms, refining: $0].first?.content },
+            sortAs: meta.id.flatMap { metas["file-as", refining: $0].first?.content },
+            position: meta.id
+                .flatMap { metas["group-position", refining: $0].first?.content }
+                .flatMap { Double($0) }
+        )
+    }
 
     /// Return a localized string, defining the multiple representations of a string in different languages.
     ///
@@ -364,8 +438,8 @@ final class EPUBMetadataParser: Loggable {
         var strings: [String: String] = [:]
         
         // Default string
-        let defaultString = element.stringValue
-        guard let defaultLanguage =  language(for: element) else {
+        let defaultString = element.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let defaultLanguage = language(for: element) else {
             return defaultString.localizedString
         }
         strings[defaultLanguage] = defaultString

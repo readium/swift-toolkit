@@ -134,11 +134,19 @@ struct OPFMetaList {
                     let (property, vocabularyURI) = OPFVocabulary.parse(property: property, prefixes: prefixes)
                     var refinedID = meta.attr("refines")
                     refinedID?.removeFirst()  // Get rid of the # before the ID.
-                    return OPFMeta(property: property, vocabularyURI: vocabularyURI, content: meta.stringValue, id: meta.attr("id"), refines: refinedID, element: meta)
+                    return OPFMeta(
+                        property: property, vocabularyURI: vocabularyURI,
+                        content: meta.stringValue.trimmingCharacters(in: .whitespacesAndNewlines),
+                        id: meta.attr("id"), refines: refinedID, element: meta
+                    )
                 // EPUB 2
                 } else if let property = meta.attr("name") {
                     let (property, vocabularyURI) = OPFVocabulary.parse(property: property, prefixes: prefixes)
-                    return OPFMeta(property: property, vocabularyURI: vocabularyURI, content: meta.attr("content") ?? "", id: nil, refines: nil, element: meta)
+                    return OPFMeta(
+                        property: property, vocabularyURI: vocabularyURI,
+                        content: meta.attr("content")?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+                        id: nil, refines: nil, element: meta
+                    )
                 } else {
                     return nil
                 }
@@ -202,7 +210,8 @@ struct OPFMetaList {
         .dc: ["contributor", "creator", "publisher"],
         .dcterms: ["contributor", "creator", "modified", "publisher"],
         .media: ["duration"],
-        .rendition: ["flow", "layout", "orientation", "spread"]
+        .rendition: ["flow", "layout", "orientation", "spread"],
+        .schema: ["numberOfPages"]
     ]
 
 }

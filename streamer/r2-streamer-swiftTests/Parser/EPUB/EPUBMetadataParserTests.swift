@@ -35,8 +35,7 @@ class EPUBMetadataParserTests: XCTestCase {
             publishers: [Contributor(name: "D. Appleton and Co")],
             readingProgression: .rtl,
             description: "The book description.",
-            belongsToCollections: [],  // FIXME: should this be parsed?
-            belongsToSeries: [],  // FIXME: should this be parsed?
+            numberOfPages: 42,
             otherMetadata: [
                 "http://www.idpf.org/epub/vocab/package/a11y/#certifiedBy": "EDRLab",
                 "http://purl.org/dc/elements/1.1/source": ["Feedbooks", "Web", "Internet"],
@@ -186,6 +185,56 @@ class EPUBMetadataParserTests: XCTestCase {
                 ]
             ]
         ))
+    }
+    
+    func testParseSingleSubjects() throws {
+        let sut = try parseMetadata("subjects-single")
+        XCTAssertEqual(sut.subjects, [
+            Subject(name: "apple", scheme: "thema", code: "DCA"),
+            Subject(name: "banana", scheme: "thema", code: "DCA"),
+            Subject(name: "pear", scheme: "thema", code: "DCA")
+        ])
+    }
+    
+    func testParseMultipleSubjects() throws {
+        let sut = try parseMetadata("subjects-multiple")
+        XCTAssertEqual(sut.subjects, [
+            Subject(name: "fiction"),
+            Subject(name: "apple; banana,  pear", scheme: "thema", code: "DCA")
+        ])
+    }
+    
+    func testParseLocalizedSubjects() throws {
+        let sut = try parseMetadata("subjects-localized")
+        XCTAssertEqual(sut.subjects, [
+            Subject(name: LocalizedString.localized([
+                "en": "fantasy",
+                "fr": "fantastique"
+            ]))
+        ])
+    }
+    
+    func testParseCollectionsEPUB2() throws {
+        let sut = try parseMetadata("collections-epub2")
+        XCTAssertEqual(sut.belongsToSeries, [
+            Metadata.Collection(name: "Classic Anthology", position: 1.5)
+        ])
+        XCTAssertEqual(sut.belongsToCollections, [])
+    }
+    
+    func testParseCollectionsEPUB3() throws {
+        let sut = try parseMetadata("collections-epub3")
+        XCTAssertEqual(sut.belongsToSeries, [
+            Metadata.Collection(name: LocalizedString.localized([
+                "en": "Series A",
+                "fr": "Série A"
+            ]), position: 2),
+            Metadata.Collection(name: "Series B")
+        ])
+        XCTAssertEqual(sut.belongsToCollections, [
+            Metadata.Collection(name: "Collection A", identifier: "col-a", sortAs: "ColA", position: 1.5),
+            Metadata.Collection(name: "Collection B")
+        ])
     }
     
     func testParseReadingProgressionFromSpine() throws {
