@@ -127,28 +127,47 @@ struct OPFMetaList {
         self.document = document
         let prefixes = OPFVocabulary.prefixes(in: document)
         document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
-        self.metas = document.xpath("/opf:package/opf:metadata/opf:meta")
+        document.definePrefix("dc", forNamespace: "http://purl.org/dc/elements/1.1/")
+        
+        // Parses `<meta>` and `<dc:x>` tags in order of appearance.
+        self.metas = document.xpath("/opf:package/opf:metadata/opf:meta|/opf:package/opf:metadata/dc:*")
             .compactMap { meta in
-                // EPUB 3
-                if let property = meta.attr("property") {
-                    let (property, vocabularyURI) = OPFVocabulary.parse(property: property, prefixes: prefixes)
-                    var refinedID = meta.attr("refines")
-                    refinedID?.removeFirst()  // Get rid of the # before the ID.
-                    return OPFMeta(
-                        property: property, vocabularyURI: vocabularyURI,
-                        content: meta.stringValue.trimmingCharacters(in: .whitespacesAndNewlines),
-                        id: meta.attr("id"), refines: refinedID, element: meta
-                    )
-                // EPUB 2
-                } else if let property = meta.attr("name") {
-                    let (property, vocabularyURI) = OPFVocabulary.parse(property: property, prefixes: prefixes)
-                    return OPFMeta(
-                        property: property, vocabularyURI: vocabularyURI,
-                        content: meta.attr("content")?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
-                        id: nil, refines: nil, element: meta
-                    )
+                if meta.tag == "meta" {
+                    // EPUB 3
+                    if let property = meta.attr("property") {
+                        let (property, vocabularyURI) = OPFVocabulary.parse(property: property, prefixes: prefixes)
+                        var refinedID = meta.attr("refines")
+                        refinedID?.removeFirst()  // Get rid of the # before the ID.
+                        return OPFMeta(
+                            property: property, vocabularyURI: vocabularyURI,
+                            content: meta.stringValue.trimmingCharacters(in: .whitespacesAndNewlines),
+                            id: meta.attr("id"), refines: refinedID, element: meta
+                        )
+                    // EPUB 2
+                    } else if let property = meta.attr("name") {
+                        let (property, vocabularyURI) = OPFVocabulary.parse(property: property, prefixes: prefixes)
+                        return OPFMeta(
+                            property: property, vocabularyURI: vocabularyURI,
+                            content: meta.attr("content")?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+                            id: nil, refines: nil, element: meta
+                        )
+                    } else {
+                        return nil
+                    }
+                    
+                // <dc:x>
                 } else {
-                    return nil
+                    guard let property = meta.tag else {
+                        return nil
+                    }
+                    return OPFMeta(
+                        property: property,
+                        vocabularyURI: OPFVocabulary.dc.uri,
+                        content: meta.stringValue.trimmingCharacters(in: .whitespacesAndNewlines),
+                        id: meta.attr("id"),
+                        refines: nil,
+                        element: meta
+                    )
                 }
             }
     }
@@ -172,13 +191,6 @@ struct OPFMetaList {
     /// Returns the JSON representation of the unknown metadata (for RWPM's `Metadata.otherMetadata`)
     var otherMetadata: [String: Any] {
         var metadata: [String: NSMutableOrderedSet] = [:]
-        
-        // FIXME: is there a better way to handle <dc:*> tags?
-        if let metadataElement = document.firstChild(xpath: "/opf:package/opf:metadata") {
-            document.definePrefix("dc", forNamespace: "http://purl.org/dc/elements/1.1/")
-            metadata[OPFVocabulary.dc.uri + "source"] = NSMutableOrderedSet(array: metadataElement.xpath("dc:source").map { $0.stringValue })
-            metadata[OPFVocabulary.dc.uri + "rights"] = NSMutableOrderedSet(array: metadataElement.xpath("dc:rights").map { $0.stringValue })
-        }
         
         for meta in metas {
             let isRWPMProperty = (rwpmProperties.first(where: { $0.key.uri == meta.vocabularyURI })?.value.contains(meta.property) ?? false)
@@ -212,7 +224,7 @@ struct OPFMetaList {
     // List of properties that should not be added to `otherMetadata` because they are already consumed by the RWPM model.
     private let rwpmProperties: [OPFVocabulary: [String]] = [
         .defaultMetadata: ["cover"],
-        .dc: ["contributor", "creator", "publisher"],
+        .dc: ["contributor", "creator", "date", "description", "identifier", "language", "publisher", "subject", "title"],
         .dcterms: ["contributor", "creator", "modified", "publisher"],
         .media: ["duration"],
         .rendition: ["flow", "layout", "orientation", "spread"],

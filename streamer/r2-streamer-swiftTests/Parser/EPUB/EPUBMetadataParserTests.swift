@@ -42,6 +42,7 @@ class EPUBMetadataParserTests: XCTestCase {
                 "http://purl.org/dc/elements/1.1/rights": "Public Domain",
                 "http://idpf.org/epub/vocab/package/#type": "article",
                 "http://my.url/#customProperty": "Custom property",
+                "http://purl.org/dc/elements/1.1/format": "application/epub+zip",
                 "rendition": [
                     "spread": "both",
                     "overflow": "scrolled",
@@ -144,11 +145,11 @@ class EPUBMetadataParserTests: XCTestCase {
                 Contributor(name: "Author C", roles: ["aut"]),
                 Contributor(name: "Cameleon A", roles: ["aut", "pbl"]),
                 Contributor(name: "Author 1"),
+                Contributor(name: "Author 4"),
+                Contributor(name: "Author 5"),
                 Contributor(name: "Author 2", roles: ["aut"]),
                 Contributor(name: "Author 3", roles: ["aut"]),
                 Contributor(name: "Cameleon 1", roles: ["aut", "pbl"]),
-                Contributor(name: "Author 4"),
-                Contributor(name: "Author 5")
             ],
             translators: [Contributor(name: "Translator", roles: ["trl"])],
             editors: [Contributor(name: "Editor", roles: ["edt"])],

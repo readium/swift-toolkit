@@ -63,13 +63,9 @@ final class EPUBMetadataParser: Loggable {
         return metadata
     }
     
-    private lazy var languages: [String] = {
-        return metadataElement?.xpath("dc:language").map { $0.stringValue } ?? []
-    }()
-    
-    private lazy var packageLanguage: String? = {
-        return document.firstChild(xpath: "/opf:package")?.attr("lang")
-    }()
+    private lazy var languages: [String] = metas["language", in: .dc].map { $0.content }
+
+    private lazy var packageLanguage: String? = document.firstChild(xpath: "/opf:package")?.attr("lang")
 
     /// Determines the BCP-47 language tag for the given element, using:
     ///   1. its xml:lang attribute
@@ -90,8 +86,8 @@ final class EPUBMetadataParser: Loggable {
         }
     }()
     
-    private lazy var description: String? = metadataElement?.xpath("dc:description")
-        .first?.stringValue
+    private lazy var description: String? = metas["description", in: .dc]
+        .first?.content
 
     private lazy var numberOfPages: Int? = metas["numberOfPages", in: .schema]
         .first.flatMap { Int($0.content) }
@@ -151,7 +147,7 @@ final class EPUBMetadataParser: Loggable {
                 guard meta.content == titleType.rawValue, let id = meta.refines else {
                     return nil
                 }
-                return metadataElement?.firstChild(xpath: "dc:title[@id='\(id)']")
+                return metas["title", in: .dc].first { $0.id == id }?.element
             }
             // Sort using `display-seq` refines
             .sorted { title1, title2 in
@@ -174,18 +170,12 @@ final class EPUBMetadataParser: Loggable {
             }
     }()
     
-    private lazy var mainTitleElement: XMLElement? = {
-        return titleElements(ofType: .main).first
-            ?? metadataElement?.firstChild(xpath: "dc:title")
-    }()
-
-    private lazy var mainTitle: LocalizedString? = {
-        return localizedString(for: mainTitleElement)
-    }()
+    private lazy var mainTitleElement: XMLElement? = titleElements(ofType: .main).first
+        ?? metas["title", in: .dc].first?.element
     
-    private lazy var subtitle: LocalizedString? = {
-        return localizedString(for: titleElements(ofType: .subtitle).first)
-    }()
+    private lazy var mainTitle: LocalizedString? = localizedString(for: mainTitleElement)
+
+    private lazy var subtitle: LocalizedString? = localizedString(for: titleElements(ofType: .subtitle).first)
 
     /// Parse and return the Epub unique identifier.
     /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#identifier
@@ -220,10 +210,10 @@ final class EPUBMetadataParser: Loggable {
             return []
         }
         
-        let elements = metadataElement.xpath("dc:subject")
-        if elements.count == 1 {
-            let element = elements[0]
-            let names = element.stringValue.components(separatedBy: CharacterSet(charactersIn: ",;"))
+        let subjects = metas["subject", in: .dc]
+        if subjects.count == 1 {
+            let subject = subjects[0]
+            let names = subject.content.components(separatedBy: CharacterSet(charactersIn: ",;"))
             if names.count > 1 {
                 // No translations if the subjects are a list separated by , or ;
                 return names.compactMap {
@@ -233,21 +223,21 @@ final class EPUBMetadataParser: Loggable {
                     }
                     return Subject(
                         name: name,
-                        scheme: element.attr("authority"),
-                        code: element.attr("term")
+                        scheme: subject.element.attr("authority"),
+                        code: subject.element.attr("term")
                     )
                 }
             }
         }
             
-        return elements.compactMap {
-            guard let name = localizedString(for: $0) else {
+        return subjects.compactMap {
+            guard let name = localizedString(for: $0.element) else {
                 return nil
             }
             return Subject(
                 name: name,
-                scheme: $0.attr("authority"),
-                code: $0.attr("term")
+                scheme: $0.element.attr("authority"),
+                code: $0.element.attr("term")
             )
         }
     }()
@@ -272,7 +262,10 @@ final class EPUBMetadataParser: Loggable {
     /// - Parameter metadata: The XML metadata element.
     /// - Returns: The array of XML element representing the contributors.
     private func findContributorElements() -> [XMLElement] {
-        return metadataElement?.xpath("dc:creator|dc:publisher|dc:contributor").map { $0 } ?? []
+        let contributors = metas["creator", in: .dc]
+            + metas["publisher", in: .dc]
+            + metas["contributor", in: .dc]
+        return contributors.map { $0.element }
     }
 
     /// [EPUB 3.0]
