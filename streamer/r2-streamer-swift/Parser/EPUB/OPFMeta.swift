@@ -192,16 +192,21 @@ struct OPFMetaList {
             metadata[key] = values
         }
         
-        return metadata.compactMapValues { values in
-            switch values.count {
-            case 0:
-                return nil
-            case 1:
-                return values[0]
-            default:
-                return values.array
+        // FIXME: Use compactMapValues when we move to Swift 5, instead of the NSNull trick
+        return metadata
+            .mapValues { values in
+                switch values.count {
+                case 0:
+                    return NSNull()
+                case 1:
+                    return values[0]
+                default:
+                    return values.array
+                }
             }
-        }
+            .filter { key, value in
+                !(value is NSNull)
+            }
     }
     
     // List of properties that should not be added to `otherMetadata` because they are already consumed by the RWPM model.
