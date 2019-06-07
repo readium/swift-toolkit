@@ -38,10 +38,21 @@ class EPUBMetadataParserTests: XCTestCase {
             numberOfPages: 42,
             otherMetadata: [
                 "http://www.idpf.org/epub/vocab/package/a11y/#certifiedBy": "EDRLab",
-                "http://purl.org/dc/elements/1.1/source": ["Feedbooks", "Web", "Internet"],
+                "http://purl.org/dc/elements/1.1/source": [
+                    "Feedbooks",
+                    [
+                        "@value": "Web",
+                        "http://my.url/#scheme": "http"
+                    ],
+                    "Internet"
+                ],
                 "http://purl.org/dc/elements/1.1/rights": "Public Domain",
                 "http://idpf.org/epub/vocab/package/#type": "article",
-                "http://my.url/#customProperty": "Custom property",
+                "http://my.url/#customProperty": [
+                    "@value": "Custom property",
+                    "http://my.url/#refine1": "Refine 1",
+                    "http://my.url/#refine2": "Refine 2",
+                ],
                 "http://purl.org/dc/elements/1.1/format": "application/epub+zip",
                 "rendition": [
                     "spread": "both",

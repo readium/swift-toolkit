@@ -175,7 +175,7 @@ struct OPFMetaList {
     subscript(_ property: String) -> [OPFMeta] {
         return self[property, in: .defaultMetadata]
     }
-    
+
     subscript(_ property: String, refining id: String) -> [OPFMeta] {
         return self[property, in: .defaultMetadata, refining: id]
     }
@@ -191,16 +191,14 @@ struct OPFMetaList {
     /// Returns the JSON representation of the unknown metadata (for RWPM's `Metadata.otherMetadata`)
     var otherMetadata: [String: Any] {
         var metadata: [String: NSMutableOrderedSet] = [:]
-        
+
         for meta in metas {
-            let isRWPMProperty = (rwpmProperties.first(where: { $0.key.uri == meta.vocabularyURI })?.value.contains(meta.property) ?? false)
-            // FIXME: what to do with refines?
-            guard meta.refines == nil, !isRWPMProperty else {
+            guard meta.refines == nil, !isRWPMProperty(meta) else {
                 continue
             }
             let key = meta.vocabularyURI + meta.property
             let values = metadata[key] ?? NSMutableOrderedSet()
-            values.add(meta.content)
+            values.add(value(for: meta))
             metadata[key] = values
         }
         
@@ -221,6 +219,25 @@ struct OPFMetaList {
             }
     }
     
+    /// Returns the meta's content as value, or a special JSON object is the meta is refined, eg.:
+    /// {
+    ///   "@value": "Main value",
+    ///   "http://my.url/#customPropertyUsedInRefine": "Refine value"
+    /// }
+    private func value(for meta: OPFMeta) -> Any {
+        if let id = meta.id {
+            let refines = metas.filter { $0.refines == id }
+            if !refines.isEmpty {
+                var value: [String: Any] = ["@value": meta.content]
+                for refine in refines {
+                    value[refine.vocabularyURI + refine.property] = refine.content
+                }
+                return value
+            }
+        }
+        return meta.content
+    }
+    
     // List of properties that should not be added to `otherMetadata` because they are already consumed by the RWPM model.
     private let rwpmProperties: [OPFVocabulary: [String]] = [
         .defaultMetadata: ["cover"],
@@ -230,5 +247,12 @@ struct OPFMetaList {
         .rendition: ["flow", "layout", "orientation", "spread"],
         .schema: ["numberOfPages"]
     ]
+    
+    
+    /// Returns whether the given meta is a known RWPM property, and should therefore be ignored in `otherMetadata`.
+    private func isRWPMProperty(_ meta: OPFMeta) -> Bool {
+        let vocabularyProperties = (rwpmProperties.first { $0.key.uri == meta.vocabularyURI })?.value ?? []
+        return vocabularyProperties.contains(meta.property)
+    }
 
 }
