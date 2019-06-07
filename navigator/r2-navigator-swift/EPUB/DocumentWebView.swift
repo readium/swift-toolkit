@@ -500,9 +500,7 @@ private extension DocumentWebView {
     }
     
     func createActivityIndicator(style: UIActivityIndicatorView.Style) {
-        guard documentLoaded,
-            activityIndicatorView?.style == style else
-        {
+        guard activityIndicatorView?.style != style else {
             return
         }
         
