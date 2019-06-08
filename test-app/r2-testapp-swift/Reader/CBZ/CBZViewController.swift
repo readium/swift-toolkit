@@ -18,73 +18,37 @@ import R2Streamer
 
 class CBZViewController: ReaderViewController {
 
-    let navigator: CBZNavigatorViewController
-
-    public init(publication: Publication) {
-        navigator = CBZNavigatorViewController(for: publication, initialIndex: 0)
+    init(publication: Publication, drm: DRM?) {
+        let initialLocation = CBZViewController.initialLocation(for: publication)
+        let navigator = CBZNavigatorViewController(publication: publication, initialLocation: initialLocation)
         
-        super.init(publication: publication, drm: nil)
+        super.init(navigator: navigator, publication: publication, drm: nil)
+        
+        navigator.delegate = self
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        addChild(navigator)
-        navigator.view.frame = view.bounds
-        navigator.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.addSubview(navigator.view)
-        navigator.didMove(toParent: self)
-    }
-
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        
-        /// Gesture recognisers.
-        let swipeLeft = UISwipeGestureRecognizer(target: navigator, action: #selector(CBZNavigatorViewController.loadNext))
-        let swipeRight = UISwipeGestureRecognizer(target: navigator, action: #selector(CBZNavigatorViewController.loadPrevious))
-
-        swipeLeft.direction = UISwipeGestureRecognizer.Direction.left
-        swipeRight.direction = UISwipeGestureRecognizer.Direction.right
-        view.addGestureRecognizer(swipeRight)
-        view.addGestureRecognizer(swipeLeft)
+        view.backgroundColor = .black
     }
     
-    override var outline: [Link] {
-        return publication.readingOrder
-    }
-
     override var currentBookmark: Bookmark? {
-        let resourceIndex = navigator.pageNumber
-        let progression = 0.0
-        
-        guard let publicationID = publication.metadata.identifier else {
+        guard let publicationID = publication.metadata.identifier,
+            let locator = navigator.currentLocation,
+            let resourceIndex = publication.readingOrder.firstIndex(withHref: locator.href) else
+        {
             return nil
         }
-        
-        let resourceTitle = publication.readingOrder[resourceIndex].title
-        let resourceHref = publication.readingOrder[resourceIndex].href
-        let resourceType = publication.readingOrder[resourceIndex].type ?? ""
         
         return Bookmark(
             publicationID: publicationID,
             resourceIndex: resourceIndex,
-            locator: Locator(
-                href: resourceHref,
-                type: resourceType,
-                title: resourceTitle,
-                locations: Locations(
-                    progression: progression
-                )
-            )
+            locator: locator
         )
     }
-    
-    override func goTo(item: String) {
-        navigator.load(at: Int(item)!)
-    }
-    
-    override func goTo(bookmark: Bookmark) {
-        navigator.load(at: bookmark.resourceIndex)
-    }
-    
+
+}
+
+extension CBZViewController: CBZNavigatorDelegate {
 }
