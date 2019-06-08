@@ -2,189 +2,111 @@
 //  NavigationDocumentParser.swift
 //  r2-streamer-swift
 //
-//  Created by Alexandre Camilleri on 3/17/17.
+//  Created by Mickaël Menu on 16.05.19.
 //
-//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Copyright 2019 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by a BSD-style license which is detailed
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import R2Shared
-import AEXML
 import Fuzi
 
 /// The navigation document if documented here at Navigation
 /// https://idpf.github.io/a11y-guidelines/
-final public class NavigationDocumentParser {
-
-    /// Return the data representation of the table of contents informations
-    /// contained in the Navigation Document (toc).
-    ///
-    /// - Parameter document: The Navigation Document.
-    /// - Returns: The data representation of the table of contents (toc).
-    static internal func tableOfContent(fromNavigationDocument document: XMLDocument,
-                                        locatedAt path: String) -> [Link] {
-        var newTableOfContents = [Link]()
-        
-        document.definePrefix("html", defaultNamespace: "http://www.w3.org/1999/xhtml")
-        
-        let xpath = "/html:html/html:body/html:nav[@epub:type='toc']//html:a|"
-            + "/html:html/html:body/html:nav[@epub:type='toc']//html:span"
-        
-        let elements = document.xpath(xpath)
-        
-        for element in elements {
-            guard let href = element.attr("href") else {
-                continue
-            }
-            newTableOfContents.append(Link(
-                href: normalize(base: path, href: href),
-                title: element.stringValue
-            ))
-        }
-        
-        return newTableOfContents
+/// http://www.idpf.org/epub/301/spec/epub-contentdocs.html#sec-xhtml-nav-def
+final class NavigationDocumentParser {
+    
+    enum NavType: String {
+        case tableOfContents = "toc"
+        case pageList = "page-list"
+        case landmarks = "landmarks"
+        case listOfIllustrations = "loi"
+        case listOfTables = "lot"
+        case listOfAudiofiles = "loa"
+        case listOfVideos = "lov"
+    }
+    
+    private let data: Data
+    private let path: String
+    
+    /// Builds the navigation document parser from Navigation Document data and its path. The path is used to normalize the links' hrefs.
+    init(data: Data, at path: String) {
+        self.data = data
+        self.path = path
     }
 
-    /// Return the data representation of the page-list informations
-    /// contained in the Navigation Document.
-    ///
-    /// - Parameter document: The Navigation Document.
-    /// - Returns: The data representation of the landmarks.
-    static internal func pageList(fromNavigationDocument document: AEXMLDocument,
-                                  locatedAt path: String) -> [Link] {
-        let newPageList = nodeArray(forNavigationDocument: document,
-                                    locatedAt: path, havingNavType: "page-list")
+    private lazy var document: XMLDocument? = {
+        // Warning: Somehow if we use HTMLDocument instead of XMLDocument, then the `epub` prefix doesn't work.
+        let document = try? XMLDocument(data: data)
+        document?.definePrefix("html", forNamespace: "http://www.w3.org/1999/xhtml")
+        document?.definePrefix("epub", forNamespace: "http://www.idpf.org/2007/ops")
+        return document
+    }()
 
-        return newPageList
-    }
-
-    /// Return the data representation of the landmarks informations
-    /// contained in the Navigation Document.
-    ///
-    /// - Parameter document: The Navigation Document.
-    /// - Returns: The data representation of the landmarks.
-    static internal func landmarks(fromNavigationDocument document: AEXMLDocument,
-                                   locatedAt path: String) -> [Link] {
-        let newLandmarks = nodeArray(forNavigationDocument: document,
-                                     locatedAt: path, havingNavType: "landmarks")
-
-        return newLandmarks
-    }
-
-    /// Return the data representation of the list of illustrations informations
-    /// contained in the Navigation Document (loi).
-    ///
-    /// - Parameter document: The Navigation Document.
-    /// - Returns: The data representation of the list of illustrations (loi).
-    static internal func listOfIllustrations(fromNavigationDocument document: AEXMLDocument,
-                                             locatedAt path: String) -> [Link] {
-        let newListOfIllustrations = nodeArray(forNavigationDocument: document,
-                                               locatedAt: path, havingNavType: "loi")
-
-        return newListOfIllustrations
-    }
-
-    /// Return the data representation of the list of tables informations
-    /// contained in the Navigation Document (lot).
-    ///
-    /// - Parameter document: The Navigation Document.
-    /// - Returns: The data representation of the list of illustrations (lot).
-    static internal func listOfTables(fromNavigationDocument document: AEXMLDocument,
-                                      locatedAt path: String) -> [Link] {
-        let newListOfTables = nodeArray(forNavigationDocument: document,
-                                        locatedAt: path, havingNavType: "lot")
-
-        return newListOfTables
-    }
-
-    /// Return the data representation of the list of tables informations
-    /// contained in the Navigation Document (lot).
-    ///
-    /// - Parameter document: The Navigation Document.
-    /// - Returns: The data representation of the list of illustrations (lot).
-    static internal func listOfAudiofiles(fromNavigationDocument document: AEXMLDocument,
-                                          locatedAt path: String) -> [Link] {
-        let newListOfAudiofiles = nodeArray(forNavigationDocument: document,
-                                            locatedAt: path, havingNavType: "loa")
-
-        return newListOfAudiofiles
-    }
-
-    /// Return the data representation of the list of tables informations
-    /// contained in the Navigation Document (lot).
-    ///
-    /// - Parameter document: The Navigation Document.
-    /// - Returns: The data representation of the list of illustrations (lot).
-    static internal func listOfVideos(fromNavigationDocument document: AEXMLDocument,
-                                      locatedAt path: String) -> [Link] {
-        let newListOfVideos = nodeArray(forNavigationDocument: document,
-                                        locatedAt: path, havingNavType: "lov")
-
-        return newListOfVideos
-    }
-
-    // MARK: Fileprivate Methods.
-
-    /// Generate an array of Link elements representing the XML structure of the
-    /// navigation document. Each of them possibly having children.
-    ///
-    /// - Parameters:
-    ///   - navigationDocument: The navigation document XML Object.
-    ///   - navType: The navType of the items to fetch.
-    ///              (eg "toc" for epub:type="toc").
-    /// - Returns: The Object representation of the data contained in the
-    ///            `navigationDocument` for the element of epub:type==`navType`.
-    static fileprivate func nodeArray(forNavigationDocument document: AEXMLDocument,
-                                      locatedAt path: String,
-                                      havingNavType navType: String) -> [Link]
-    {
-        var body = document["nav"]["body"]["section"]
-        if body.error == AEXMLError.elementNotFound {
-            body = document["nav"]["body"]
-        }
-        // Retrieve the <nav> elements from the document with "epub:type"
-        // property being equal to `navType`.
-        // Then generate the nodeTree array from the <ol> nested in the <nav>,
-        // if any.
-        guard let navPoint = body["nav"].all?.first(where: { $0.attributes["epub:type"] == navType }),
-            let olElement = navPoint["ol"].first else
+    /// Returns the [Link] representation of the navigation list of given type (eg. pageList).
+    /// - Parameter type: epub:type of the <nav> element to parse.
+    func links(for type: NavType) -> [Link] {
+        guard let document = document,
+            let nav = document.firstChild(xpath: "//html:nav[@epub:type='\(type.rawValue)']") else
         {
             return []
         }
-        // Convert the XML element to a `Link` object. Recursive.
-        return nodeArray(usingNavigationDocumentOl: olElement, path)
+
+        return links(in: nav)
+    }
+    
+    /// Parses recursively an <ol> as a list of `Link`.
+    private func links(in element: XMLElement) -> [Link] {
+        return element.xpath("html:ol[1]/html:li")
+            .compactMap { self.link(for: $0) }
     }
 
-    /// [RECURSIVE]
-    /// Create a nodes list (`[Link]`) from a <ol> element, filling the nodes'
-    /// children with nested <li> elements if any.
-    /// If there are nested <ol> elements, recursively handle them.
-    ///
-    /// - Parameter element: The <ol> from the Navigation Document.
-    /// - Returns: The generated nodes list.
-    static fileprivate func nodeArray(usingNavigationDocumentOl element: AEXMLElement, _ navigationDocumentPath: String) -> [Link] {
-        // Retrieve the children <li> elements of the <ol>.
-        return (element["li"].all ?? [])
-            .map { li in
-                // FIXME: href is required for Link, but sometimes nested <ol> don't have any href. We need a proper Navigation tree structure instead of relying on `Link`.
-                let link = Link(href: "#")
-                
-                let a = li["a"]
-                if let href = a.attributes["href"] {
-                    link.href = normalize(base: navigationDocumentPath, href: href)
-                    link.title = a["span"].value ?? a.value
-                } else {
-                    link.title = li["span"].value
-                }
-                
-                // If the <li> contains a nested <ol>, then we need to build the links recursively
-                if let childOl = li["ol"].first {
-                    link.children = nodeArray(usingNavigationDocumentOl: childOl, navigationDocumentPath)
-                }
-                
-                return link
+    /// Parses a <li> element as a `Link`.
+    private func link(for li: XMLElement) -> Link? {
+        guard let label = li.firstChild(xpath: "html:a|html:span") else {
+            return nil
+        }
+        
+        return NavigationDocumentParser.makeLink(
+            title: label.stringValue,
+            href: label.attr("href"),
+            children: links(in: li),
+            basePath: path
+        )
+    }
+    
+    /// Creates a new navigation `Link` object from a label, href and children, after validating the data.
+    static func makeLink(title: String?, href: String?, children: [Link], basePath: String) -> Link? {
+        // Cleans up title label.
+        // http://www.idpf.org/epub/301/spec/epub-contentdocs.html#confreq-nav-a-cnt
+        let title = (title ?? "")
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        let href: String? = {
+            guard let href = href else {
+                return nil
             }
+            if href.hasPrefix("#") { // fragment inside the Navigation Document itself
+                return basePath + href
+            } else {
+                return normalize(base: basePath, href: href)
+            }
+        }()
+        
+        guard
+            // A zero-length text label must be ignored
+            // http://www.idpf.org/epub/301/spec/epub-contentdocs.html#confreq-nav-a-cnt
+            !title.isEmpty,
+            // An unlinked item (`span`) without children must be ignored
+            // http://www.idpf.org/epub/301/spec/epub-contentdocs.html#confreq-nav-a-nest
+            href != nil || !children.isEmpty else
+        {
+            return nil
+        }
+        
+        return Link(href: href ?? "#", title: title, children: children)
     }
 
 }

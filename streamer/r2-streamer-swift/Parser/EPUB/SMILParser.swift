@@ -10,10 +10,10 @@
 //
 
 import R2Shared
-import AEXML
+import Fuzi
 
 /// The object containing the methods used to parse SMIL files.
-final internal class SMILParser {
+final class SMILParser {
     
     /// [RECURSIVE]
     /// Parse the <seq> elements at the current XML level. It will recursively
@@ -24,23 +24,16 @@ final internal class SMILParser {
     ///   - parent: The parent MediaOverlayNode of the "to be creatred" nodes.
     ///   - readingOrder:
     ///   - base: The base location of the file for path normalization.
-    static internal func parseSequences(in element: AEXMLElement,
-                                        withParent parent: MediaOverlayNode,
-                                        publicationReadingOrder readingOrder: inout [Link],
-                                        base: String)
-    {
-        guard let sequenceElements = element["seq"].all,
-            !sequenceElements.isEmpty else
-        {
-            return
-        }
-        // TODO: 2 lines differ from the version used in the parseMediaOverlay
-        //       for loop. Refactor?
-        for sequence in sequenceElements {
-            let newNode = MediaOverlayNode()
+    static internal func parseSequences(in element: XMLElement, withParent parent: MediaOverlayNode, publicationReadingOrder readingOrder: inout [Link], base: String) {
+        // TODO: 2 lines differ from the version used in the parseMediaOverlay for loop. Refactor?
+        for sequence in element.xpath("smil:seq") {
+            guard let href = sequence.attr("textref") else {
+                continue
+            }
             
+            let newNode = MediaOverlayNode()
             newNode.role.append("section")
-            newNode.text = normalize(base: base, href: sequence.attributes["epub:textref"]!)
+            newNode.text = normalize(base: base, href: href)
             
             parseParameters(in: sequence, withParent: newNode, base: base)
             parseSequences(in: sequence, withParent: newNode, publicationReadingOrder: &readingOrder, base: base)
@@ -66,28 +59,17 @@ final internal class SMILParser {
     /// - Parameters:
     ///   - element: The XML element which should contain <par>.
     ///   - parent: The parent MediaOverlayNode of the "to be creatred" nodes.
-    static internal func parseParameters(in element: AEXMLElement,
-                                         withParent parent: MediaOverlayNode,
-                                         base: String)
-    {
-        guard let parameterElements = element["par"].all,
-            !parameterElements.isEmpty else
-        {
-            return
-        }
-        
+    static internal func parseParameters(in element: XMLElement, withParent parent: MediaOverlayNode, base: String) {
         // For each <par> in the current scope.
-        for parameterElement in parameterElements {
-            
-            guard let audioElement = parameterElement["audio"].first else {
-                continue // no audio
+        for parameterElement in element.xpath("smil:par") {
+            guard let href = parameterElement.firstChild(xpath: "smil:text")?.attr("src"),
+                let audioElement = parameterElement.firstChild(xpath: "smil:audio"),
+                let audioClip = parse(base: base, audioElement: audioElement) else
+            {
+                continue
             }
-            guard let audioClip = parse(base: base, audioElement: audioElement) else {
-                continue // invalid audio element
-            }
             
-            let nodeText = normalize(base: base, href: parameterElement["text"].attributes["src"]!)
-            
+            let nodeText = normalize(base: base, href: href)
             let newNode = MediaOverlayNode(nodeText, clip: audioClip)
             parent.children.append(newNode)
         }
@@ -121,14 +103,14 @@ final internal class SMILParser {
     ///
     /// - Parameter audioElement: The audio XML element.
     /// - Returns: The formated string representing the data.
-    static fileprivate func parse(base: String, audioElement: AEXMLElement) -> Clip? {
-        guard let audioSrc = audioElement.attributes["src"] else {
+    static fileprivate func parse(base: String, audioElement: XMLElement) -> Clip? {
+        guard let audioSrc = audioElement.attr("src") else {
             return nil
         }
         
         //SML3.0/1.0: clipBegin/clip-begin and clipEnd/clip-end
-        let clipBegin = audioElement.attributes["clipBegin"] ?? "0.0"
-        let clipEnd = audioElement.attributes["clipEnd"] ?? "-1.0"
+        let clipBegin = audioElement.attr("clipBegin") ?? "0.0"
+        let clipEnd = audioElement.attr("clipEnd") ?? "-1.0"
         
         let parsedBegin = SMILParser.smilTimeToSeconds(clipBegin)
         let parsedEnd = SMILParser.smilTimeToSeconds(clipEnd)

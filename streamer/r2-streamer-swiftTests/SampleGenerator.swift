@@ -8,6 +8,7 @@
 
 import Foundation
 import XCTest
+import R2Shared
 import R2Streamer
 
 /// Testing constants
@@ -53,11 +54,9 @@ internal class SampleGenerator: XCTest {
     /// - Parameter url: The URL of the Epub to parse.
     /// - Returns: The resulting (publication, container) tuple (PubBox).
     internal func parseEpub(at url: URL) -> PubBox? {
-        let parser = EpubParser()
         let pubBox: PubBox
-
         do {
-            pubBox = try parser.parse(fileAtPath: url.path)
+            pubBox = try EpubParser.parse(fileAtPath: url.path).0
         } catch {
             XCTFail("An exception occured while parsing publication at \(url.path)")
             log(.error, error)
@@ -74,11 +73,9 @@ internal class SampleGenerator: XCTest {
     /// - Parameter url: The url of the CBZ to parse.
     /// - Returns: The resultint (publication, container) tuple (PubBox)
     internal func parseCbz(at url: URL) -> PubBox? {
-        let parser = CbzParser()
         let pubBox: PubBox
-
         do {
-            pubBox = try parser.parse(fileAtPath: url.path)
+            pubBox = try CbzParser.parse(fileAtPath: url.path).0
         } catch {
             XCTFail("An exception occured while parsing publication at \(url.path)")
             log(.error, error)
@@ -120,9 +117,15 @@ internal class SampleGenerator: XCTest {
         let bundle = Bundle(for: type(of: self))
 
         guard let path = bundle.path(forResource: "Samples/\(named)", ofType: ofType) else {
-            XCTFail("Couldn't fine resource name \(named) in Samples/")
+            XCTFail("Couldn't find resource name \(named) in Samples/")
             return nil
         }
         return URL(string: path)
     }
+    
+    internal func getSamplesFileURL(named: String, ofType: String?) -> URL? {
+        let bundle = Bundle(for: type(of: self))
+        return bundle.url(forResource: "Samples/\(named)", withExtension: ofType)
+    }
+    
 }

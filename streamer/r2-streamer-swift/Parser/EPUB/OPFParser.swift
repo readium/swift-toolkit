@@ -9,8 +9,9 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
+import Fuzi
 import R2Shared
-import AEXML
+
 
 // http://www.idpf.org/epub/30/spec/epub30-publications.html#elemdef-opf-dctitle
 // the six basic values of the "title-type" property specified by EPUB 3:
@@ -22,8 +23,6 @@ public enum EPUBTitleType: String {
     case edition
     case extended
 }
-
-extension OPFParser: Loggable {}
 
 public enum OPFParserError: Error {
     /// The Epub have no title. Title is mandatory.
@@ -42,112 +41,90 @@ public enum OPFParserError: Error {
 
 /// EpubParser support class, able to parse the OPF package document.
 /// OPF: Open Packaging Format.
-final public class OPFParser {
-    /// Parse the OPF file of the Epub container and return a `Publication`.
-    /// It also complete the informations stored in the container.
-    ///
-    /// - Parameter container: The EPUB container whom OPF file will be parsed.
-    /// - Returns: The `Publication` object resulting from the parsing.
-    /// - Throws: `EpubParserError.xmlParse`.
-    static internal func parseOPF(from container: Container) throws -> Publication {
-        let rootFilePath = container.rootFile.rootFilePath
-        
-        // Get the package.opf XML document from the container.
-        let documentData = try container.data(relativePath: rootFilePath)
-        let document = try AEXMLDocument(xml: documentData)
-        let displayOptions = parseDisplayOptionsDocument(from: container)
+final class OPFParser: Loggable {
+    
+    /// Relative path to the OPF in the EPUB container
+    private let basePath: String
+    
+    /// DOM representation of the OPF file.
+    private let document: XMLDocument
 
-        let epubVersion = parseEpubVersion(from: document)
-        let manifestLinks = parseManifestLinks(from: document, rootFilePath)
-        let (resources, readingOrder) = parseResourcesAndReadingOrder(from: document, manifestLinks: manifestLinks)
+    /// iBooks Display Options XML file to use as a fallback for metadata.
+    /// See https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#epub-2x-9
+    private let displayOptions: XMLDocument?
+    
+    /// List of metadata declared in the package.
+    private let metas: OPFMetaList
+
+    init(basePath: String, data: Data, displayOptionsData: Data? = nil) throws {
+        self.basePath = basePath
+        self.document = try XMLDocument(data: data)
+        self.document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
+        self.displayOptions = (displayOptionsData.map { try? XMLDocument(data: $0) }) ?? nil
+        self.metas = OPFMetaList(document: self.document)
+    }
+    
+    convenience init(container: Container) throws {
+        let opfPath = container.rootFile.rootFilePath
+        try self.init(
+            basePath: opfPath,
+            data: try container.data(relativePath: opfPath),
+            displayOptionsData: {
+                let iBooksPath = "META-INF/com.apple.ibooks.display-options.xml"
+                let koboPath = "META-INF/com.kobobooks.display-options.xml"
+                return (try? container.data(relativePath: iBooksPath))
+                    ?? (try? container.data(relativePath: koboPath))
+                    ?? nil
+            }()
+        )
+    }
+    
+    /// Parse the OPF file of the EPUB container and return a `Publication`.
+    /// It also complete the informations stored in the container.
+    func parsePublication() throws -> Publication {
+        let manifestLinks = parseManifestLinks()
+        let (resources, readingOrder) = parseResourcesAndReadingOrderLinks(manifestLinks)
+        let metadata = EPUBMetadataParser(document: document, displayOptions: displayOptions, metas: metas)
 
         return Publication(
             format: .epub,
-            formatVersion: String(epubVersion),
-            metadata: try parseMetadata(from: document, displayOptions: displayOptions, epubVersion: epubVersion),
+            formatVersion: parseEPUBVersion(),
+            metadata: try metadata.parse(),
             readingOrder: readingOrder,
             resources: resources
         )
     }
+
+    /// Retrieves the EPUB version from the package.opf XML document.
+    private func parseEPUBVersion() -> String {
+        // Default EPUB Version value, used when no version hes been specified (see OPF_2.0.1_draft 1.3.2).
+        let defaultVersion = "1.2"
+        return document.firstChild(xpath: "/opf:package")?.attr("version") ?? defaultVersion
+    }
     
-    /// Parses iBooks Display Options XML file to use as a fallback.
-    /// See https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#epub-2x-9
-    static func parseDisplayOptionsDocument(from container: Container) -> AEXMLDocument? {
-        let iBooksPath = "META-INF/com.apple.ibooks.display-options.xml"
-        let koboPath = "META-INF/com.kobobooks.display-options.xml"
-        guard let documentData = (try? container.data(relativePath: iBooksPath)) ?? (try? container.data(relativePath: koboPath)) else {
-            return nil
-        }
-        var options = AEXMLOptions()
-        options.parserSettings.shouldProcessNamespaces = true
-        return try? AEXMLDocument(xml: documentData, options: options)
-    }
-
-    /// Parse the Metadata in the XML <metadata> element.
-    ///
-    /// - Parameter document: Parse the Metadata in the XML <metadata> element.
-    static internal func parseMetadata(from document: AEXMLDocument, displayOptions: AEXMLDocument?, epubVersion: Double) throws -> Metadata {
-        let metadataElement = document["package"]["metadata"]
-        guard let title = MetadataParser.mainTitle(from: metadataElement) else {
-            throw OPFParserError.missingPublicationTitle
-        }
-
-        var metadata = Metadata(
-            identifier: MetadataParser.uniqueIdentifier(from: document),
-            title: title,
-            subtitle: MetadataParser.subTitle(from: metadataElement),
-            modified: MetadataParser.modifiedDate(from: metadataElement),
-            published: MetadataParser.publishedDate(from: metadataElement),
-            languages: metadataElement["dc:language"].all?.map { $0.string } ?? [],
-            subjects: MetadataParser.subjects(from: metadataElement),
-            readingProgression: MetadataParser.parseReadingProgression(from: document),
-            description: metadataElement["dc:description"].value,
-            otherMetadata: [
-                "source": metadataElement["dc:source"].value ?? "",
-                "rights": metadataElement["dc:rights"].all?
-                    .map { $0.string }.joined(separator: " ") ?? ""
-            ]
-        )
-
-        MetadataParser.parseContributors(from: metadataElement, to: &metadata, epubVersion)
-        metadata.rendition = MetadataParser.parseRenditionProperties(from: metadataElement, displayOptions: displayOptions)
-        
-        return metadata
-    }
-
     /// Parses XML elements of the <Manifest> in the package.opf file as a list of `Link`.
-    ///
-    /// - Parameters:
-    ///   - manifest: The Manifest XML element.
-    ///   - metadata: The metadata XML element.
-    ///   - coverId: The coverId to identify the cover ressource and tag it.
-    static internal func parseManifestLinks(from document: AEXMLElement, _ rootFilePath: String) -> [Link] {
-        let durations = MetadataParser.parseMediaDurations(from: document)
-
+    private func parseManifestLinks() -> [Link] {
         // Read meta to see if any Link is referenced as the Cover.
-        let coverId: String? = document["package"]["metadata"]["meta"]
-            .all(withAttributes: ["name" : "cover"])?
-            .first?.attributes["content"]
+        let coverId = metas["cover"].first?.content
 
         // Get the manifest children items
-        guard let manifestItems = document["package"]["manifest"]["item"].all else {
-            log(.warning, "Manifest have no children elements.")
-            return []
-        }
+        let manifestItems = document.xpath("/opf:package/opf:manifest/opf:item")
         
         return manifestItems.compactMap { item in
                 // Must have an ID.
-                guard let id = item.attributes["id"] else {
+                guard let id = item.attr("id") else {
                     log(.warning, "Manifest item MUST have an id, item ignored.")
                     return nil
                 }
-                guard let link = linkFromManifest(item, rootFilePath) else {
+                guard let link = makeLink(from: item) else {
                     log(.warning, "Can't parse link with ID \(id)")
                     return nil
                 }
     
                 // If the link reference a Smil resource, retrieve and fill its duration.
-                if link.type == "application/smil+xml", let duration = durations["#\(id)"] {
+                if link.type == "application/smil+xml",
+                    let durationMeta = metas["duration", in: .media, refining: id].first,
+                    let duration = Double(SMILParser.smilTimeToSeconds(durationMeta.content)) {
                     link.duration = duration
                 }
     
@@ -160,24 +137,20 @@ final public class OPFParser {
             }
     }
 
-    /// Parse XML elements of the <ReadingOrder> in the package.opf file.
-    /// They are only composed of an `idref` referencing one of the previously
-    /// parsed resource (XML: idref -> id).
+    /// Parses XML elements of the <ReadingOrder> in the package.opf file.
+    /// They are only composed of an `idref` referencing one of the previously parsed resource (XML: idref -> id).
     ///
     /// - Parameter manifestLinks: The `Link` parsed in the manifest items.
     /// - Returns: The `Link` in `resources` and in `readingOrder`, taken from the `manifestLinks`.
-    static internal func parseResourcesAndReadingOrder(from document: AEXMLElement, manifestLinks: [Link]) -> (resources: [Link], readingOrder: [Link]) {
+    private func parseResourcesAndReadingOrderLinks(_ manifestLinks: [Link]) -> (resources: [Link], readingOrder: [Link]) {
         var resources = manifestLinks
         var readingOrder: [Link] = []
         
         // Get the readingOrder children items.
-        let readingOrderItems = document["package"]["readingOrder"]["itemref"].all
-            ?? document["package"]["spine"]["itemref"].all
-            ?? []
-        
+        let readingOrderItems = document.xpath("/opf:package/opf:readingOrder/opf:itemref|/opf:package/opf:spine/opf:itemref")
         for item in readingOrderItems {
             // Find the `Link` that `idref` is referencing to from the `manifestLinks`.
-            guard let idref = item.attributes["idref"],
+            guard let idref = item.attr("idref"),
                 let index = resources.firstIndex(withProperty: "id", matching: idref) else
             {
                 continue
@@ -185,14 +158,14 @@ final public class OPFParser {
             
             // Parse the additional link properties.
             let link = resources[index]
-            if let propertyAttribute = item.attributes["properties"] {
+            if let propertyAttribute = item.attr("properties") {
                 let properties = propertyAttribute.components(separatedBy: CharacterSet.whitespaces)
                 parseProperties(&link.properties, from: properties)
             }
             
             // Retrieve `idref`, referencing a resource id.
             // Only linear items are added to the readingOrder.
-            guard isLinear(item.attributes["linear"]) else {
+            guard isLinear(item.attr("linear")) else {
                 continue
             }
             
@@ -204,29 +177,25 @@ final public class OPFParser {
         return (resources, readingOrder)
     }
 
-    /// Determine if the xml attribute correspond to the linear one.
-    ///
+    /// Returns whether the XML attribute correspond to the linear one.
     /// - Parameter linear: The linear attribute value, if any.
-    /// - Returns: True if it's linear, false if not.
-    static fileprivate func isLinear(_ linear: String?) -> Bool {
+    private func isLinear(_ linear: String?) -> Bool {
         if linear != nil, linear?.lowercased() == "no" {
             return false
         }
         return true
     }
 
-    // MARK: - Fileprivate Methods.
-
     /// Generate a `Link` form the given manifest's XML element.
     ///
     /// - Parameter item: The XML element, or manifest XML item.
     /// - Returns: The `Link` representing the manifest XML item.
-    static fileprivate func linkFromManifest(_ item: AEXMLElement, _ rootFilePath: String) -> Link? {
-        guard let href = item.attributes["href"] else {
+    private func makeLink(from manifestItem: XMLElement) -> Link? {
+        guard let href = manifestItem.attr("href") else {
             return nil
         }
         
-        let propertiesArray = item.attributes["properties"]?.components(separatedBy: .whitespaces) ?? []
+        let propertiesArray = manifestItem.attr("properties")?.components(separatedBy: .whitespaces) ?? []
 
         var rels: [String] = []
         if propertiesArray.contains("nav") {
@@ -239,13 +208,13 @@ final public class OPFParser {
         var properties = Properties()
         parseProperties(&properties, from: propertiesArray)
         
-        if let id = item.attributes["id"] {
+        if let id = manifestItem.attr("id") {
             properties.otherProperties["id"] = id
         }
 
         return Link(
-            href: normalize(base: rootFilePath, href: href),
-            type: item.attributes["media-type"],
+            href: normalize(base: basePath, href: href),
+            type: manifestItem.attr("media-type"),
             rels: rels,
             properties: properties
         )
@@ -255,7 +224,7 @@ final public class OPFParser {
     ///
     /// - Parameter propertiesArray: The array of properties strings.
     /// - Returns: The Properties instance created from the strings array info.
-    static fileprivate func parseProperties(_ properties: inout Properties, from propertiesArray: [String]) {
+    private func parseProperties(_ properties: inout Properties, from propertiesArray: [String]) {
         // Look if item have any properties.
         for property in propertiesArray {
             switch property {
@@ -277,13 +246,12 @@ final public class OPFParser {
                 properties.page = .left
             case "page-spread-right":
                 properties.page = .right
-            case "page-spread-center":
+            case "page-spread-center", "rendition:page-spread-center":
                 properties.page = .center
             /// Spread
-            case "rendition:spread-none":
-                properties.spread = .none
-            case "rendition:spread-auto":
-                properties.spread = .none
+            case "rendition:spread-none", "rendition:spread-auto":
+                // If we don't qualify `.none` here it sets it to `nil`.
+                properties.spread = EPUBRendition.Spread.none
             case "rendition:spread-landscape":
                 properties.spread = .landscape
             case "rendition:spread-portrait":
@@ -319,23 +287,5 @@ final public class OPFParser {
         }
     }
 
-    /// Retrieve the EPUB version from the package.opf XML document else set it
-    /// to the default value `EpubConstant.defaultEpubVersion`.
-    ///
-    /// - Parameter containerXml: The XML container instance.
-    /// - Returns: The OPF file path.
-    static fileprivate func parseEpubVersion(from document: AEXMLDocument) -> Double {
-        let version: Double
-        
-        if let versionAttribute = document["package"].attributes["version"],
-            let versionNumber = Double(versionAttribute)
-        {
-            version = versionNumber
-        } else {
-            version = EpubConstant.defaultEpubVersion
-        }
-        return version
-    }
-    
 }
 

@@ -1,5 +1,5 @@
 //
-//  PublicationServerTest.swift
+//  PublicationServerTests.swift
 //  R2Streamer
 //
 //  Created by Alexandre Camilleri on 3/3/17.
@@ -8,17 +8,16 @@
 
 import XCTest
 import Foundation
+import R2Shared
 @testable import R2Streamer
 
-extension PublicationServerTest: Loggable {}
-
-class PublicationServerTest: XCTestCase {
+class PublicationServerTests: XCTestCase, Loggable {
     let sg = SampleGenerator()
     var publicationServer: PublicationServer? = nil
     var resources = [String: PubBox]()
 
     override func setUp() {
-        R2StreamerEnableLog(withMinimumSeverityLevel: .verbose)
+        R2EnableLog(withMinimumSeverityLevel: .info)
         publicationServer = PublicationServer()
         guard publicationServer != nil else {
             log(.error, "Error instanciating the publicationServer")
