@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		03C3CC66222DBD5B00A01731 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03C3CC65222DBD5B00A01731 /* R2LCPClient.framework */; };
+		CA26EF7C2280331E0011653E /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA26EF7B2280331E0011653E /* Connection.swift */; };
 		CA2AE328221C3CFB008BD18F /* Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE327221C3CFB008BD18F /* Deprecated.swift */; };
 		CA4A38742208647400599297 /* PassphrasesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A38732208647400599297 /* PassphrasesRepository.swift */; };
 		CA4A388722086F7500599297 /* PassphrasesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388622086F7500599297 /* PassphrasesService.swift */; };
@@ -48,6 +49,7 @@
 
 /* Begin PBXFileReference section */
 		03C3CC65222DBD5B00A01731 /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA26EF7B2280331E0011653E /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		CA2AE327221C3CFB008BD18F /* Deprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deprecated.swift; sourceTree = "<group>"; };
 		CA4A38732208647400599297 /* PassphrasesRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassphrasesRepository.swift; sourceTree = "<group>"; };
 		CA4A388622086F7500599297 /* PassphrasesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassphrasesService.swift; sourceTree = "<group>"; };
@@ -200,6 +202,7 @@
 				F331FBF71F8228F8007F16DF /* Database.swift */,
 				F36F9E251F826C17001D0DB4 /* Licenses.swift */,
 				F36F9E271F8270FC001D0DB4 /* Transactions.swift */,
+				CA26EF7B2280331E0011653E /* Connection.swift */,
 			);
 			path = Persistence;
 			sourceTree = "<group>";
@@ -292,7 +295,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0830;
-				LastUpgradeCheck = 0930;
+				LastUpgradeCheck = 1020;
 				ORGANIZATIONNAME = Readium;
 				TargetAttributes = {
 					F3B2C8861F667222007601E4 = {
@@ -304,10 +307,11 @@
 			};
 			buildConfigurationList = F3B2C8811F667222007601E4 /* Build configuration list for PBXProject "r2-lcp-swift" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
 			mainGroup = F3B2C87D1F667222007601E4;
 			productRefGroup = F3B2C8881F667222007601E4 /* Products */;
@@ -362,6 +366,7 @@
 				F38FB0421F66847E00F9D602 /* Signature.swift in Sources */,
 				CABEB3E32215756D00090B6C /* Links.swift in Sources */,
 				F3B2C8A71F66727C007601E4 /* LicenseDocument.swift in Sources */,
+				CA26EF7C2280331E0011653E /* Connection.swift in Sources */,
 				CAE7FB7E220C4C5C00D03587 /* DeviceRepository.swift in Sources */,
 				F38FB03A1F6683D800F9D602 /* Encryption.swift in Sources */,
 				F3B2C8AC1F66727C007601E4 /* Link.swift in Sources */,
@@ -379,6 +384,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
@@ -441,6 +447,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
