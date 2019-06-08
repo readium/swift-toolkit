@@ -60,7 +60,7 @@ public protocol DRMLicense {
 
 public extension DRMLicense {
     
-    public var encryptionProfile: String? { return nil }
+    var encryptionProfile: String? { return nil }
 
     var canCopy: Bool { return true }
     

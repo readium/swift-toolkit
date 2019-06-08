@@ -14,7 +14,7 @@ import Foundation
 
 public extension Date {
     
-    public var iso8601: String {
+    var iso8601: String {
         return DateFormatter.iso8601.string(from: self)
     }
     
@@ -22,7 +22,7 @@ public extension Date {
 
 public extension DateFormatter {
     
-    public static let iso8601: DateFormatter = {
+    static let iso8601: DateFormatter = {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .iso8601)
         formatter.locale = Locale(identifier: "en_US_POSIX")
@@ -31,7 +31,7 @@ public extension DateFormatter {
         return formatter
     }()
     
-    public static func iso8601Formatter(for string: String) -> DateFormatter {
+    static func iso8601Formatter(for string: String) -> DateFormatter {
         // On iOS 10 and later, this API should be treated withFullTime or withTimeZone for different cases.
         // Otherwise it will accept bad format, for exmaple 2018-04-24XXXXXXXXX
         // Because it will only test the part you asssigned, date, time, timezone.
@@ -65,7 +65,7 @@ public extension DateFormatter {
 
 public extension String {
     
-    public var dateFromISO8601: Date? {
+    var dateFromISO8601: Date? {
         // Removing .SSSS precision if found.
         var string = self
         let regexp = "[.][0-9]+"

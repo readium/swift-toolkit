@@ -114,6 +114,7 @@ public class Link: JSONEquatable {
 
 }
 
+
 extension Array where Element == Link {
     
     /// Parses multiple JSON links into an array of Link.
@@ -148,23 +149,35 @@ extension Array where Element == Link {
     ///
     /// - Parameter recursively: Finds links recursively through `children`.
     public func first(recursively: Bool, where predicate: (Link) -> Bool) -> Link? {
+        return firstIndex(recursively: recursively, where: predicate)
+            .map { self[$0] }
+    }
+
+    public func firstIndex(withHref href: String, recursively: Bool = false) -> Int? {
+        return firstIndex(recursively: recursively) { $0.href == href }
+    }
+    
+    public func firstIndex<T: Equatable>(withProperty otherProperty: String, matching: T, recursively: Bool = false) -> Int? {
+        return firstIndex(recursively: recursively) { ($0.properties.otherProperties[otherProperty] as? T) == matching }
+    }
+    
+    /// Finds the index of the first link matching the given predicate.
+    ///
+    /// - Parameter recursively: Finds links recursively through `children`.
+    public func firstIndex(recursively: Bool, where predicate: (Link) -> Bool) -> Int? {
         if !recursively {
-            return first(where: predicate)
+            return firstIndex(where: predicate)
         }
         
-        for link in self {
+        for (index, link) in enumerated() {
             if predicate(link) {
-                return link
+                return index
             }
-            if let childLink = link.children.first(recursively: true, where: predicate) {
-                return childLink
+            if let childIndex = link.children.firstIndex(recursively: true, where: predicate) {
+                return childIndex
             }
         }
         return nil
-    }
-    
-    public func firstIndex(withHref href: String) -> Int? {
-        return firstIndex { $0.href == href }
     }
 
 }
