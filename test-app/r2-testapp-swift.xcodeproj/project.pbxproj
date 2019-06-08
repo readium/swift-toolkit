@@ -20,7 +20,6 @@
 		03061922222D72AB00646F1F /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061921222D72AB00646F1F /* R2Streamer.framework */; };
 		03061923222D72AB00646F1F /* R2Streamer.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03061921222D72AB00646F1F /* R2Streamer.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		03061934222D936100646F1F /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192E222D936100646F1F /* CryptoSwift.framework */; };
-		03061935222D936100646F1F /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192F222D936100646F1F /* AEXML.framework */; };
 		03061936222D936100646F1F /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061930222D936100646F1F /* GCDWebServers.framework */; };
 		03061937222D936100646F1F /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061931222D936100646F1F /* Minizip.framework */; };
 		03061938222D936100646F1F /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061932222D936100646F1F /* ZIPFoundation.framework */; };
@@ -124,7 +123,6 @@
 		03AE30962259F4D400AA4C7C /* BooksDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */; };
 		03AE30972259F4D400AA4C7C /* BooksDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */; };
 		03AE30982259F4D400AA4C7C /* BooksDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */; };
-		03BB67AC223874EE009A03C5 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192F222D936100646F1F /* AEXML.framework */; };
 		03BB67AD223874EE009A03C5 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192E222D936100646F1F /* CryptoSwift.framework */; };
 		03BB67AE223874EE009A03C5 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061933222D936100646F1F /* Fuzi.framework */; };
 		03BB67AF223874EE009A03C5 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061930222D936100646F1F /* GCDWebServers.framework */; };
@@ -149,7 +147,6 @@
 		03BB67D52238765C009A03C5 /* R2Streamer.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67D32238765C009A03C5 /* R2Streamer.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		03BB67D822387668009A03C5 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67D722387668009A03C5 /* R2Shared.framework */; };
 		03BB67D922387668009A03C5 /* R2Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67D722387668009A03C5 /* R2Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		03BB67DA2238769D009A03C5 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192F222D936100646F1F /* AEXML.framework */; };
 		03BB67DB2238769D009A03C5 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192E222D936100646F1F /* CryptoSwift.framework */; };
 		03BB67DC2238769D009A03C5 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061933222D936100646F1F /* Fuzi.framework */; };
 		03BB67DD2238769D009A03C5 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061930222D936100646F1F /* GCDWebServers.framework */; };
@@ -162,7 +159,6 @@
 		03BB67E42238769D009A03C5 /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67C122387612009A03C5 /* ReadiumOPDS.framework */; };
 		03BB67E52238769D009A03C5 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0352073D222D69330000F0A4 /* SQLite.framework */; };
 		03BB67E62238769D009A03C5 /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061932222D936100646F1F /* ZIPFoundation.framework */; };
-		03BB67E7223876D1009A03C5 /* AEXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192F222D936100646F1F /* AEXML.framework */; };
 		03BB67E8223876D1009A03C5 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192E222D936100646F1F /* CryptoSwift.framework */; };
 		03BB67E9223876D1009A03C5 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061933222D936100646F1F /* Fuzi.framework */; };
 		03BB67EA223876D1009A03C5 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061930222D936100646F1F /* GCDWebServers.framework */; };
@@ -418,7 +414,6 @@
 		0306191E222D72AB00646F1F /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03061921222D72AB00646F1F /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0306192E222D936100646F1F /* CryptoSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoSwift.framework; path = Carthage/Build/iOS/CryptoSwift.framework; sourceTree = "<group>"; };
-		0306192F222D936100646F1F /* AEXML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AEXML.framework; path = Carthage/Build/iOS/AEXML.framework; sourceTree = "<group>"; };
 		03061930222D936100646F1F /* GCDWebServers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDWebServers.framework; path = Carthage/Build/iOS/GCDWebServers.framework; sourceTree = "<group>"; };
 		03061931222D936100646F1F /* Minizip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Minizip.framework; path = Carthage/Build/iOS/Minizip.framework; sourceTree = "<group>"; };
 		03061932222D936100646F1F /* ZIPFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ZIPFoundation.framework; path = Carthage/Build/iOS/ZIPFoundation.framework; sourceTree = "<group>"; };
@@ -529,7 +524,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				03BB67E7223876D1009A03C5 /* AEXML.framework in Frameworks */,
 				03BB67E8223876D1009A03C5 /* CryptoSwift.framework in Frameworks */,
 				03BB67E9223876D1009A03C5 /* Fuzi.framework in Frameworks */,
 				03BB67EA223876D1009A03C5 /* GCDWebServers.framework in Frameworks */,
@@ -553,7 +547,6 @@
 				03BB67BE223875CC009A03C5 /* R2Shared.framework in Frameworks */,
 				03BB67BF223875CC009A03C5 /* R2Navigator.framework in Frameworks */,
 				03BB67C0223875CC009A03C5 /* R2Streamer.framework in Frameworks */,
-				03BB67AC223874EE009A03C5 /* AEXML.framework in Frameworks */,
 				03BB67AD223874EE009A03C5 /* CryptoSwift.framework in Frameworks */,
 				03BB67AE223874EE009A03C5 /* Fuzi.framework in Frameworks */,
 				03BB67AF223874EE009A03C5 /* GCDWebServers.framework in Frameworks */,
@@ -572,7 +565,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				03061934222D936100646F1F /* CryptoSwift.framework in Frameworks */,
-				03061935222D936100646F1F /* AEXML.framework in Frameworks */,
 				03061936222D936100646F1F /* GCDWebServers.framework in Frameworks */,
 				03061937222D936100646F1F /* Minizip.framework in Frameworks */,
 				03061938222D936100646F1F /* ZIPFoundation.framework in Frameworks */,
@@ -593,7 +585,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				03BB67DA2238769D009A03C5 /* AEXML.framework in Frameworks */,
 				03BB67DB2238769D009A03C5 /* CryptoSwift.framework in Frameworks */,
 				03BB67DC2238769D009A03C5 /* Fuzi.framework in Frameworks */,
 				03BB67DD2238769D009A03C5 /* GCDWebServers.framework in Frameworks */,
@@ -908,7 +899,6 @@
 				03BB67BC223875CC009A03C5 /* R2Navigator.framework */,
 				03BB67BB223875CC009A03C5 /* R2Shared.framework */,
 				03BB67BD223875CC009A03C5 /* R2Streamer.framework */,
-				0306192F222D936100646F1F /* AEXML.framework */,
 				0306192E222D936100646F1F /* CryptoSwift.framework */,
 				03061933222D936100646F1F /* Fuzi.framework */,
 				03061930222D936100646F1F /* GCDWebServers.framework */,
