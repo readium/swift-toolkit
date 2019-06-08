@@ -18,7 +18,6 @@ Pod::Spec.new do |s|
   s.libraries =  'z'
 
   s.dependency 'R2Shared'
-  s.dependency 'AEXML'
   s.dependency 'Fuzi'
   s.dependency 'CryptoSwift'
   s.dependency 'GCDWebServer'
