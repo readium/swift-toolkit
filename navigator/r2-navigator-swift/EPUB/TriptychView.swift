@@ -96,6 +96,7 @@ final class TriptychView: UIView {
         }
     }
 
+    /// Index of the document currently being displayed.
     fileprivate(set) var index: Int
 
     fileprivate let scrollView: UIScrollView
@@ -152,7 +153,7 @@ final class TriptychView: UIView {
             return
         }
         for view in views.array {
-            if let webview = (view as? WebView) {
+            if let webview = (view as? DocumentWebView) {
                 webview.removeMessageHandlers()
             }
         }
@@ -286,14 +287,14 @@ final class TriptychView: UIView {
     }
 
     private func syncSubviews() {
-        let webViewsBefore = scrollView.subviews.compactMap { $0 as? WebView }
+        let webViewsBefore = scrollView.subviews.compactMap { $0 as? DocumentWebView }
         scrollView.subviews.forEach({
             $0.removeFromSuperview()
         })
 
         if let viewArray = views?.array {
             viewArray.forEach({
-                if let webview = ($0 as? WebView) {
+                if let webview = ($0 as? DocumentWebView) {
                     webview.addMessageHandlers()
                 }
                 self.scrollView.addSubview($0)
@@ -307,12 +308,35 @@ final class TriptychView: UIView {
 }
 
 extension TriptychView {
+
+    /// Wraps a `move` triptych block to animate or not the change.
+    /// - Parameter delayedFadeIn: This is used when we want to jump to a specific location in the resource. The rendering is sometimes very slow in this case so we have a generous delay before we show the view again.
+    func performTransition(animated: Bool = false, delayed: Bool = false, completion: @escaping () -> (), _ transition: @escaping (TriptychView) -> ()) {
+        func fade(to alpha: CGFloat, completion: @escaping () -> ()) {
+            if animated {
+                UIView.animate(withDuration: 0.15, animations: {
+                    self.alpha = alpha
+                }) { _ in completion() }
+            } else {
+                self.alpha = alpha
+                completion()
+            }
+        }
+        
+        fade(to: 0) {
+            transition(self)
+            DispatchQueue.main.asyncAfter(deadline: .now() + (delayed ? 0.5 : 0)) {
+                fade(to: 1, completion: completion)
+            }
+        }
+    }
+    
     /// Move to the given index
     ///
     /// - Parameters:
     ///   - nextIndex: The index to move to.
     internal func moveTo(index nextIndex: Int, id: String? = nil) {
-        var cw = currentView as! WebView
+        var cw = currentView as! DocumentWebView
 
         guard index != nextIndex else {
             if let id = id {
@@ -347,7 +371,7 @@ extension TriptychView {
         updateViews(previousIndex: previousIndex)
 
         // get the new current view after change.
-        cw = currentView as! WebView
+        cw = currentView as! DocumentWebView
         if let id = id {
             if id == "" {
                 if abs(previousIndex - nextIndex) == 1 {
@@ -367,17 +391,12 @@ extension TriptychView {
         }
     }
 
-    /// Return the index of the document currently being displayed.
-    public func getCurrentDocumentIndex() -> Int {
-        return index
-    }
-
     /// Returns the progression in the document currently being displayed.
-    public func getCurrentDocumentProgression() -> Double? {
+    var currentDocumentProgression: Double? {
         guard currentView != nil else {
             return nil
         }
-        return (currentView as! WebView).progression
+        return (currentView as! DocumentWebView).progression
     }
 }
 

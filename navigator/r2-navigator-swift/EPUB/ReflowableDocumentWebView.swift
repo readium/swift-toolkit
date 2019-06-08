@@ -16,15 +16,11 @@ import R2Shared
 
 
 /// A WebView subclass to handle documents with a reflowable layout.
-final class ReflowableWebView: WebView {
+final class ReflowableDocumentWebView: DocumentWebView {
 
     private var topConstraint: NSLayoutConstraint!
     private var bottomConstraint: NSLayoutConstraint!
-    
-    private var isScrollEnabled: Bool {
-        return (userSettings?.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable)?.on ?? false
-    }
-    
+
     override func setupWebView() {
         super.setupWebView()
         scrollView.bounces = false
@@ -32,7 +28,9 @@ final class ReflowableWebView: WebView {
         
         webView.translatesAutoresizingMaskIntoConstraints = false
         topConstraint = webView.topAnchor.constraint(equalTo: topAnchor)
+        topConstraint.priority = .defaultHigh
         bottomConstraint = webView.bottomAnchor.constraint(equalTo: bottomAnchor)
+        bottomConstraint.priority = .defaultHigh
         NSLayoutConstraint.activate([
             topConstraint, bottomConstraint,
             webView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -67,7 +65,16 @@ final class ReflowableWebView: WebView {
         
         if let userSettings = userSettings {
             for cssProperty in userSettings.userProperties.properties {
-                evaluateScriptInResource("setProperty(\"\(cssProperty.name)\", \"\(cssProperty.toString())\");")
+                let value: String = {
+                    // Scroll mode depends both on the user settings, and on the fact that VoiceOver is activated or not, so we need to generate the value dynamically.
+                    // FIXME: This would be handled in a better way by decoupling the user settings from the actual ReadiumCSS properties sent to the WebView, which should be private details of the EPUBNavigator implementation and not shared with the host app.
+                    if let switchable = cssProperty as? Switchable, cssProperty.name == ReadiumCSSName.scroll.rawValue {
+                        return switchable.values[isScrollEnabled]!
+                    } else {
+                        return cssProperty.toString()
+                    }
+                }()
+                evaluateScriptInResource("readium.setProperty(\"\(cssProperty.name)\", \"\(value)\");")
             }
         }
 
@@ -96,6 +103,31 @@ final class ReflowableWebView: WebView {
             bottomConstraint.constant = -insets.bottom
             scrollView.contentInset = .zero
         }
+    }
+    
+    override func pointFromTap(_ data: [String : Any]) -> CGPoint? {
+        guard let x = data["clientX"] as? Int, let y = data["clientY"] as? Int else {
+            return nil
+        }
+        
+        var point = CGPoint(x: x, y: y)
+        if isScrollEnabled {
+            // Starting from iOS 12, the contentInset are not taken into account in the JS touch event.
+            if #available(iOS 12.0, *) {
+                if scrollView.contentOffset.x < 0 {
+                    point.x += abs(scrollView.contentOffset.x)
+                }
+                if scrollView.contentOffset.y < 0 {
+                    point.y += abs(scrollView.contentOffset.y)
+                }
+            } else {
+                point.x += scrollView.contentInset.left
+                point.y += scrollView.contentInset.top
+            }
+        }
+        point.x += webView.frame.minX
+        point.y += webView.frame.minY
+        return point
     }
 
 }
