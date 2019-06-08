@@ -64,7 +64,7 @@ ReadiumOPDS with CocoaPods:
     use_frameworks!
 
     target 'YourAppTargetName' do
-        pod 'ReadiumOPDS', :git => 'https://github.com/readium/r2-opds-swift.git', '~> 1.0.4'
+        pod 'ReadiumOPDS', :git => 'https://github.com/readium/r2-opds-swift.git'
     end
     ```
 
@@ -87,7 +87,7 @@ import ReadiumOPDS
 #### Dependencies in this module
 
   - [R2Shared](https://github.com/readium/r2-shared-swift) : Custom types shared by several readium-2 Swift modules.
-  - [Fuzi](https://github.com/cezheng/Fuzi) : A fast & lightweight XML & HTML parser in Swift with XPath & CSS support.
+  - [Fuzi](https://github.com/edrlab/Fuzi) : A fast & lightweight XML & HTML parser in Swift with XPath & CSS support.
 
 Modifications needed in Xcode:
 
