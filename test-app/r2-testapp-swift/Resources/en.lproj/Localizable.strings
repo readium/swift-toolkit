@@ -1,0 +1,90 @@
+/* 
+  Localizable.strings
+  r2-testapp-swift
+
+  Created by Mickaël Menu on 12.06.19.
+ 
+  Copyright 2018 European Digital Reading Lab. All rights reserved.
+  Licensed to the Readium Foundation under one or more contributor license agreements.
+  Use of this source code is governed by a BSD-style license which is detailed in the
+  LICENSE file present in the project repository where this source code is maintained.
+*/
+
+
+/* MARK: App */
+
+/* Library tab title */
+"bookshelf_tab" = "Bookshelf";
+"catalogs_tab" = "OPDS Feeds";
+"about_tab" = "About";
+
+/* Alerts */
+"ok_button" = "OK";
+"cancel_button" = "Cancel";
+"add_button" = "Add";
+"remove_button" = "Remove";
+"error_title" = "Error";
+
+/* Caption for the app version in About screen */
+"app_version_caption" = "App Version:";
+/* Caption for the build version in About screen */
+"build_version_caption" = "Build Version:";
+
+
+/* MARK: Library */
+
+/* Hint message when the library is empty */
+"library_empty_message" = "📖 Open EPUB/CBZ file to import";
+
+/* Alert when a publication is successfully imported */
+"library_import_success_title" = "Success";
+"library_import_success_message" = "Publication added to library";
+
+/* Alert when a publication is successfully downloaded */
+"library_download_success_title" = "Success";
+"library_download_success_message" = "[%@] added to library.";
+
+/* Import confirmation alert when the publication already exists in the library */
+"library_duplicate_alert_title" = "The publication already exists";
+"library_duplicate_alert_message" = "Would you like to add it anyways?";
+
+/* Remove confirmation alert when the user deletes a publication */
+"library_delete_alert_title" = "Are you sure?"
+"library_delete_alert_message" = "This will remove the Publication from your library."
+
+/* Error message used when the publication server can't be started */
+"library_error_cantStartPublicationServer" = "Can't start the publication server";
+/* Error message used when trying to import a publication that is not valid */
+"library_error_publicationIsNotValid" = "The publication isn't valid";
+/* Error message used when a low-level error occured while importing a publication */
+"library_error_importFailed" = "Error while importing this publication: %@";
+/* Error message when the download of a publication failed */
+"library_error_downloadFailed" = "Download failed: %@";
+/* Error message used when trying to import a book protected with an unsupported DRM */
+"library_error_drmNotSupported" = "%@ DRM not supported";
+
+/* Accessibility label for the library collection view */
+"library_a11n_label" = "Library";
+
+/* Accessibility hint for the publication collection cell */
+"library_publication_a11n_hint" = "Hold to access options."
+
+
+/* MARK: Reader */
+
+
+/* MARK: LCP */
+
+/* Prompt messages when asking for the passphrase */
+"lcp_prompt_message1" = "This publication is protected by Readium LCP."
+"lcp_prompt_message2" = "In order to open it, we need to know the passphrase required by:\n\n%@\n\nTo help you remember it, the following hint is available:"
+/* Reason to ask for the passphrase when it was not found */
+"lcp_passphraseNotFound_message" = "Passphrase Required"
+/* Reason to ask for the passphrase when the one entered was incorrect */
+"lcp_invalidPassphrase_message" = "Incorrect Passphrase"
+
+/* Button to contact the support when entering the passphrase */
+"lcp_support_button" = "Support"
+"lcp_support_website" = "Website"
+"lcp_support_phone" = "Phone"
+"lcp_support_mail" = "Mail"

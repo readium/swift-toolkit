@@ -21,22 +21,11 @@ class AboutTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
-            versionNumberCell.textLabel?.text = "App Version:"
-            versionNumberCell.detailTextLabel?.text = "\(version)"
-        } else {
-            versionNumberCell.textLabel?.text = "App Version:"
-            versionNumberCell.detailTextLabel?.text = "unknown"
-        }
-      
-        if let version = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
-          buildNumberCell.textLabel?.text = "Build Version:"
-          buildNumberCell.detailTextLabel?.text = "\(version)"
-        } else {
-          buildNumberCell.textLabel?.text = "Build Version:"
-          buildNumberCell.detailTextLabel?.text = "unknown"
-        }
-      
+        versionNumberCell.textLabel?.text = NSLocalizedString("app_version_caption", comment: "Caption for the app version in About screen")
+        versionNumberCell.detailTextLabel?.text = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+
+        buildNumberCell.textLabel?.text = NSLocalizedString("build_version_caption", comment: "Caption for the build version in About screen")
+        buildNumberCell.detailTextLabel?.text = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
     }
 
     // MARK: - Table view data source

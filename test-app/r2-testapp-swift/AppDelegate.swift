@@ -22,17 +22,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         app = try! AppModule()
         
+        func makeItem(title: String, image: String) -> UITabBarItem {
+            return UITabBarItem(
+                title: NSLocalizedString(title, comment: "Library tab title"),
+                image: UIImage(named: image),
+                tag: 0
+            )
+        }
+        
         // Library
         let libraryViewController = app.library.rootViewController
-        libraryViewController.tabBarItem = UITabBarItem(title: "Bookshelf", image: UIImage(named: "bookshelf"), tag: 0)
+        libraryViewController.tabBarItem = makeItem(title: "bookshelf_tab", image: "bookshelf")
         
         // OPDS Feeds
         let opdsViewController = app.opds.rootViewController
-        opdsViewController.tabBarItem = UITabBarItem(title: "OPDS Feeds", image: UIImage(named: "catalogs"), tag: 0)
+        opdsViewController.tabBarItem = makeItem(title: "catalogs_tab", image: "catalogs")
         
         // About
         let aboutViewController = app.aboutViewController
-        aboutViewController.tabBarItem = UITabBarItem(title: "About", image: UIImage(named: "about"), tag: 0)
+        aboutViewController.tabBarItem = makeItem(title: "about_tab", image: "about")
         
         let tabBarController = UITabBarController()
         tabBarController.viewControllers = [
