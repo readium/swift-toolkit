@@ -16,8 +16,10 @@ import R2Shared
 protocol DocumentWebViewDelegate: class {
     func willAnimatePageChange()
     func didEndPageAnimation()
-    func displayRightDocument(animated: Bool, completion: @escaping () -> Void)
-    func displayLeftDocument(animated: Bool, completion: @escaping () -> Void)
+    @discardableResult
+    func displayRightDocument(animated: Bool, completion: @escaping () -> Void) -> Bool
+    @discardableResult
+    func displayLeftDocument(animated: Bool, completion: @escaping () -> Void) -> Bool
     func webView(_ webView: DocumentWebView, didTapAt point: CGPoint)
     func handleTapOnLink(with url: URL)
     func handleTapOnInternalLink(with href: String)
@@ -218,51 +220,66 @@ class DocumentWebView: UIView, Loggable {
     /// - Parameter body: Unused.
     private func documentDidLoad(body: Any) {
         documentLoaded = true
-        
-        // FIXME: We need to give the CSS and webview time to layout correctly. 0.2 seconds seems like a good value for it to work on an iPhone 5s. Look into solving this better
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            self.activityIndicatorView?.stopAnimating()
-            UIView.animate(withDuration: self.animatedLoad ? 0.3 : 0, animations: {
-                self.scrollView.alpha = 1
-            })
-        }
 
         applyUserSettingsStyle()
-        scrollToInitialPosition()
+
+        // FIXME: We need to give the CSS and webview time to layout correctly. 0.2 seconds seems like a good value for it to work on an iPhone 5s. Look into solving this better
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.scrollToInitialPosition {
+                self.activityIndicatorView?.stopAnimating()
+                UIView.animate(withDuration: self.animatedLoad ? 0.3 : 0, animations: {
+                    self.scrollView.alpha = 1
+                })
+            }
+        }
     }
-    
+
     // Scroll at position 0-1 (0%-100%)
-    func scrollAt(position: Double) {
-        guard position >= 0 && position <= 1 else { return }
-        
-        let dir = readingProgression.rawValue
-        evaluateScriptInResource("readium.scrollToPosition(\'\(position)\', \'\(dir)\')")
+    func scrollAt(position: Double, completion: @escaping () -> Void = {}) {
+        guard position >= 0 && position <= 1 else {
+            log(.warning, "Scrolling to invalid position \(position)")
+            completion()
+            return
+        }
+
+        // Note: The JS layer does not take into account the scroll view's content inset. So it can't be used to reliably scroll to the top or the bottom of the page in scroll mode.
+        if isScrollEnabled && [0, 1].contains(position) {
+            var contentOffset = scrollView.contentOffset
+            contentOffset.y = (position == 0)
+                ? -scrollView.contentInset.top
+                : (scrollView.contentSize.height - scrollView.bounds.height + scrollView.contentInset.bottom)
+            scrollView.contentOffset = contentOffset
+            completion()
+        } else {
+            let dir = readingProgression.rawValue
+            evaluateScriptInResource("readium.scrollToPosition(\'\(position)\', \'\(dir)\')") { _, _ in completion () }
+        }
     }
 
     // Scroll at the tag with id `tagId`.
-    func scrollAt(tagId: String) {
-        evaluateScriptInResource("readium.scrollToId(\'\(tagId)\');")
+    func scrollAt(tagId: String, completion: @escaping () -> Void = {}) {
+        evaluateScriptInResource("readium.scrollToId(\'\(tagId)\');") { _, _ in completion() }
     }
 
     // Scroll to .beggining or .end.
-    func scrollAt(location: BinaryLocation) {
+    func scrollAt(location: BinaryLocation, completion: @escaping () -> Void = {}) {
         switch location {
         case .left:
-            scrollAt(position: 0)
+            scrollAt(position: 0, completion: completion)
         case .right:
-            scrollAt(position: 1)
+            scrollAt(position: 1, completion: completion)
         }
     }
 
     /// Moves the webView to the initial location.
-    func scrollToInitialPosition() {
+    func scrollToInitialPosition(completion: @escaping () -> Void = {}) {
         /// If the savedProgression property has been set by the navigator.
         if let initialPosition = progression, initialPosition > 0.0 {
-            scrollAt(position: initialPosition)
+            scrollAt(position: initialPosition, completion: completion)
         } else if let initialId = initialId {
-            scrollAt(tagId: initialId)
+            scrollAt(tagId: initialId, completion: completion)
         } else {
-            scrollAt(location: initialLocation)
+            scrollAt(location: initialLocation, completion: completion)
         }
     }
 
@@ -272,6 +289,18 @@ class DocumentWebView: UIView, Loggable {
     }
     
     func scrollTo(_ direction: ScrollDirection, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
+        if isScrollEnabled {
+            guard let viewDelegate = viewDelegate else {
+                return false
+            }
+            switch direction {
+            case .left:
+                return viewDelegate.displayLeftDocument(animated: animated, completion: completion)
+            case .right:
+                return viewDelegate.displayRightDocument(animated: animated, completion: completion)
+            }
+        }
+        
         let viewDelegate = self.viewDelegate
         if animated {
             switch direction {
