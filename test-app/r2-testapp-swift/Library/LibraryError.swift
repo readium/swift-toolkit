@@ -13,7 +13,7 @@
 import Foundation
 import R2Shared
 
-enum LibraryError: Error {
+enum LibraryError: LocalizedError {
     
     case cantStartPublicationServer
     case publicationIsNotValid
@@ -21,7 +21,7 @@ enum LibraryError: Error {
     case importFailed(Error)
     case downloadFailed(String)
 
-    var localizedDescription: String {
+    var errorDescription: String? {
         switch self {
         case .cantStartPublicationServer:
             return NSLocalizedString("library_error_cantStartPublicationServer", comment: "Error message used when the publication server can't be started")

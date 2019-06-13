@@ -10,8 +10,9 @@ import UIKit
 import MBProgressHUD
 
 func toast(_ view:UIView, _ text:String, _ duration:TimeInterval) {
-  let hud = MBProgressHUD.showAdded(to: view, animated: true)
-  hud.mode = .text;
-  hud.label.text = text
-  hud.hide(animated: true, afterDelay: duration)
+    let hud = MBProgressHUD.showAdded(to: view, animated: true)
+    hud.mode = .text;
+    hud.label.text = text
+    hud.hide(animated: true, afterDelay: duration)
 }
+

@@ -18,7 +18,7 @@ protocol OPDSPublicationInfoViewControllerFactory {
     func make(publication: Publication) -> OPDSPublicationInfoViewController
 }
 
-class OPDSPublicationInfoViewController : UIViewController {
+class OPDSPublicationInfoViewController: UIViewController, Loggable {
 
     weak var moduleDelegate: OPDSModuleDelegate?
     
@@ -120,14 +120,14 @@ class OPDSPublicationInfoViewController : UIViewController {
                     do {
                         try FileManager.default.moveItem(at: localURL, to: fixedURL)
                     } catch {
-                        print("\(error)")
+                        self.log(.warning, error)
                     }
                     
                     return delegate.opdsDidDownloadPublication(at: fixedURL, from: downloadTask)
 
                 } else {
                     // Download failed
-                    print("Error while downloading a publication.")
+                    self.log(.warning, "Error while downloading a publication.")
                 }
                 
                 return false

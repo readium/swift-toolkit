@@ -16,13 +16,10 @@ import UIKit
 class BookmarkCell: UITableViewCell {
 
     lazy var dateFormatter: DateFormatter = {
-
         let formatter = DateFormatter()
-        formatter.dateFormat = "M/dd/yy, HH:mm"
-        formatter.locale = Locale(identifier:"en") //.current
-
+        formatter.dateStyle = .full
         return formatter
-    } ()
+    }()
 
     lazy var timeLabel: UILabel = {
         let label = UILabel()

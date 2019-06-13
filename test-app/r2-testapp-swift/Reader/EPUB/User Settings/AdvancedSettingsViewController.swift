@@ -79,7 +79,12 @@ class AdvancedSettingsViewController: UIViewController {
     private func pinForeground(_ view: UIView, to stackView: UIStackView) {
         view.translatesAutoresizingMaskIntoConstraints = false
         stackView.addSubview(view)
-        view.pin(to: stackView)
+        NSLayoutConstraint.activate([
+            view.leadingAnchor.constraint(equalTo: stackView.leadingAnchor),
+            view.trailingAnchor.constraint(equalTo: stackView.trailingAnchor),
+            view.topAnchor.constraint(equalTo: stackView.topAnchor),
+            view.bottomAnchor.constraint(equalTo: stackView.bottomAnchor)
+        ])
     }
     
     override func viewDidLoad() {
@@ -213,16 +218,5 @@ class AdvancedSettingsViewController: UIViewController {
     @IBAction func columnCountValueChanged(_ sender: UISegmentedControl) {
         delegate?.columnCountDidChange(to: sender.selectedSegmentIndex)
         switchOffPublisherSettingsIfNeeded()
-    }
-}
-
-public extension UIView {
-    func pin(to view: UIView) {
-        NSLayoutConstraint.activate([
-            leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            topAnchor.constraint(equalTo: view.topAnchor),
-            bottomAnchor.constraint(equalTo: view.bottomAnchor)
-            ])
     }
 }

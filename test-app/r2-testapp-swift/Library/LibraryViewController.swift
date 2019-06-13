@@ -396,7 +396,7 @@ extension LibraryViewController: DownloadDisplayDelegate {
         let newIndexPath = IndexPath(item: downloadSet.count, section: 0)
         
         libraryDelegate?.presentAlert(
-            NSLocalizedString("library_download_success_title", comment: "Title of the alert when a publication is successfully downloaded"),
+            NSLocalizedString("success_title", comment: "Title of the alert when a publication is successfully downloaded"),
             message: String(format: NSLocalizedString("library_download_success_message", comment: "Message of the alert when a publication is successfully downloaded"), description),
             from: self
         )
@@ -462,7 +462,7 @@ extension LibraryViewController: DownloadDisplayDelegate {
         }, completion: { [weak self] _ in
             guard let `self` = self else { return }
             self.libraryDelegate?.presentAlert(
-                NSLocalizedString("library_import_success_title", comment: "Title of the alert when a publication is successfully imported"),
+                NSLocalizedString("success_title", comment: "Title of the alert when a publication is successfully imported"),
                 message: NSLocalizedString("library_import_success_message", comment: "Title of the alert when a publication is successfully imported"),
                 from: self
             )
@@ -473,7 +473,6 @@ extension LibraryViewController: DownloadDisplayDelegate {
         let offset = downloadSet.index(of: task)
         downloadSet.remove(task)
         downloadTaskToRatio.removeValue(forKey: task)
-        let description = downloadTaskDescription[task] ?? ""
         downloadTaskDescription.removeValue(forKey: task)
         
         let theIndexPath = IndexPath(item: offset, section: 0)

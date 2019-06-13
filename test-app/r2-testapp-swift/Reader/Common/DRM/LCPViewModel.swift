@@ -58,14 +58,14 @@ final class LCPViewModel: DRMViewModel {
         guard let quantity = lcpLicense?.charactersToCopyLeft else {
             return super.copiesLeft
         }
-        return "\(quantity) characters"
+        return String(format: NSLocalizedString("lcp_characters_label", comment: "Quantity of characters left to be copied"), quantity)
     }
     
     override var printsLeft: String {
         guard let quantity = lcpLicense?.pagesToPrintLeft else {
             return super.printsLeft
         }
-        return "\(quantity) pages"
+        return String(format: NSLocalizedString("lcp_pages_label", comment: "Quantity of pages left to be printed"), quantity)
     }
     
     override var canRenewLoan: Bool {
