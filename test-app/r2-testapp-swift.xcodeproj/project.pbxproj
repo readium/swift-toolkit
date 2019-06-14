@@ -197,10 +197,6 @@
 		CA29B706221FF8F30037534C /* OPDSFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA29B704221FF8F30037534C /* OPDSFactory.swift */; };
 		CA29B707221FF8F30037534C /* OPDSFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA29B704221FF8F30037534C /* OPDSFactory.swift */; };
 		CA29B708221FF8F30037534C /* OPDSFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA29B704221FF8F30037534C /* OPDSFactory.swift */; };
-		CA29B70F221FFE240037534C /* Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA29B70E221FFE240037534C /* Error.swift */; };
-		CA29B710221FFE240037534C /* Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA29B70E221FFE240037534C /* Error.swift */; };
-		CA29B711221FFE240037534C /* Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA29B70E221FFE240037534C /* Error.swift */; };
-		CA29B712221FFE240037534C /* Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA29B70E221FFE240037534C /* Error.swift */; };
 		CA29B714222000810037534C /* LibraryModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA29B713222000810037534C /* LibraryModule.swift */; };
 		CA29B715222000810037534C /* LibraryModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA29B713222000810037534C /* LibraryModule.swift */; };
 		CA29B716222000810037534C /* LibraryModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA29B713222000810037534C /* LibraryModule.swift */; };
@@ -476,7 +472,6 @@
 		CA26EF7F2280689B0011653E /* Connection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		CA29B6F4221FF43E0037534C /* LibraryFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryFactory.swift; sourceTree = "<group>"; };
 		CA29B704221FF8F30037534C /* OPDSFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSFactory.swift; sourceTree = "<group>"; };
-		CA29B70E221FFE240037534C /* Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Error.swift; sourceTree = "<group>"; };
 		CA29B713222000810037534C /* LibraryModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryModule.swift; sourceTree = "<group>"; };
 		CA29B71E222001620037534C /* ReaderModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderModule.swift; sourceTree = "<group>"; };
 		CA29B723222001740037534C /* ReaderFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderFactory.swift; sourceTree = "<group>"; };
@@ -787,7 +782,6 @@
 			isa = PBXGroup;
 			children = (
 				CA415F23221D7599003A0F7F /* Toolkit */,
-				CA29B70E221FFE240037534C /* Error.swift */,
 				CA26EF7F2280689B0011653E /* Connection.swift */,
 			);
 			path = Common;
@@ -1247,7 +1241,6 @@
 				0350FD00211CD2CB006994C2 /* DetailsTableViewController.swift in Sources */,
 				CA6BA3C122B1106E00A59462 /* LibraryError.swift in Sources */,
 				0350FD01211CD2CB006994C2 /* BookmarkCell.swift in Sources */,
-				CA29B710221FFE240037534C /* Error.swift in Sources */,
 				0350FD02211CD2CB006994C2 /* AboutTableViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1310,7 +1303,6 @@
 				0350FD54211CD625006994C2 /* DetailsTableViewController.swift in Sources */,
 				CA6BA3C222B1106E00A59462 /* LibraryError.swift in Sources */,
 				0350FD55211CD625006994C2 /* BookmarkCell.swift in Sources */,
-				CA29B711221FFE240037534C /* Error.swift in Sources */,
 				0350FD56211CD625006994C2 /* AboutTableViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1373,7 +1365,6 @@
 				CA822C93221C5737005800D1 /* DetailsTableViewController.swift in Sources */,
 				CA6BA3C322B1106E00A59462 /* LibraryError.swift in Sources */,
 				CA822C94221C5737005800D1 /* BookmarkCell.swift in Sources */,
-				CA29B712221FFE240037534C /* Error.swift in Sources */,
 				CA822C95221C5737005800D1 /* AboutTableViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1435,7 +1426,6 @@
 				F30AEE7A1FC312EA0073C9FD /* DetailsTableViewController.swift in Sources */,
 				571585F02109E8F9008B34AD /* BookmarkCell.swift in Sources */,
 				CA6BA3C022B1106E00A59462 /* LibraryError.swift in Sources */,
-				CA29B70F221FFE240037534C /* Error.swift in Sources */,
 				AE37DE432093291600079AA2 /* AboutTableViewController.swift in Sources */,
 				03AE308F2259F3E400AA4C7C /* BooksDatabase.swift in Sources */,
 			);
