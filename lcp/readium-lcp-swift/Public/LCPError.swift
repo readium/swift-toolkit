@@ -12,7 +12,7 @@
 import Foundation
 import R2LCPClient
 
-public enum LCPError: Error {
+public enum LCPError: LocalizedError {
     // The operation can't be done right now because another License operation is running.
     case licenseIsBusy
     // An error occured while checking the integrity of the License, it can't be retrieved.
@@ -42,10 +42,6 @@ public enum LCPError: Error {
     // An unknown low-level error was reported.
     case unknown(Error?)
 
-}
-
-extension LCPError: LocalizedError {
-    
     public var errorDescription: String? {
         switch self {
         case .licenseIsBusy:
@@ -90,8 +86,8 @@ extension LCPError: LocalizedError {
             return error.localizedDescription
         case .licenseReturn(let error):
             return error.localizedDescription
-        case .parsing(let error):
-            return error.localizedDescription
+        case .parsing(_):
+            return R2LCPLocalizedString("LCPError.parsing")
         case .network(let error):
             return error?.localizedDescription ?? R2LCPLocalizedString("LCPError.network")
         case .runtime(let error):
@@ -105,17 +101,14 @@ extension LCPError: LocalizedError {
 
 
 /// Errors while checking the status of the License, using the Status Document.
-public enum StatusError: Error {
+public enum StatusError: LocalizedError {
     // For the case (revoked, returned, cancelled, expired), app should notify the user and stop there. The message to the user must be clear about the status of the license: don't display "expired" if the status is "revoked". The date and time corresponding to the new status should be displayed (e.g. "The license expired on 01 January 2018").
     case cancelled(Date)
     case returned(Date)
     case expired(start: Date, end: Date)
     // If the license has been revoked, the user message should display the number of devices which registered to the server. This count can be calculated from the number of "register" events in the status document. If no event is logged in the status document, no such message should appear (certainly not "The license was registered by 0 devices").
     case revoked(Date, devicesCount: Int)
-}
 
-extension StatusError: LocalizedError {
-    
     public var errorDescription: String? {
         let dateFormatter = DateFormatter()
         dateFormatter.dateStyle = .medium
@@ -190,34 +183,18 @@ public enum ReturnError: LocalizedError {
 
 /// Errors while parsing the License or Status JSON Documents.
 public enum ParsingError: Error {
+    // The JSON is malformed and can't be parsed.
     case malformedJSON
+    // The JSON is not representing a valid License Document.
     case licenseDocument
+    // The JSON is not representing a valid Status Document.
     case statusDocument
+    // Invalid Link.
     case link
+    // Invalid Encryption.
     case encryption
+    // Invalid License Document Signature.
     case signature
+    // Invalid URL for link with rel %@.
     case url(rel: String)
-}
-
-extension ParsingError: LocalizedError {
-    
-    public var errorDescription: String? {
-        switch self {
-        case .malformedJSON:
-            return R2LCPLocalizedString("ParsingError.malformedJSON")
-        case .licenseDocument:
-            return R2LCPLocalizedString("ParsingError.licenseDocument")
-        case .statusDocument:
-            return R2LCPLocalizedString("ParsingError.statusDocument")
-        case .link:
-            return R2LCPLocalizedString("ParsingError.link")
-        case .encryption:
-            return R2LCPLocalizedString("ParsingError.encryption")
-        case .signature:
-            return R2LCPLocalizedString("ParsingError.signature")
-        case .url(let rel):
-            return R2LCPLocalizedString("ParsingError.url", rel)
-        }
-    }
-    
 }
