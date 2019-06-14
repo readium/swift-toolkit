@@ -13,19 +13,8 @@ import Foundation
 import R2Shared
 
 public enum OPDSParserError: Error {
-    
     case documentNotFound
     case documentNotValid
-    
-    var localizedDescription: String {
-        switch self {
-        case .documentNotFound:
-            return "Document is not found"
-        case .documentNotValid:
-            return "Document is not valid"
-        }
-    }
-    
 }
 
 public class OPDSParser {
