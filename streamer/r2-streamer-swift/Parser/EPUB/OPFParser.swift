@@ -24,19 +24,11 @@ public enum EPUBTitleType: String {
     case extended
 }
 
-public enum OPFParserError: LocalizedError {
+public enum OPFParserError: Error {
     /// The Epub have no title. Title is mandatory.
     case missingPublicationTitle
+    /// Smile resource couldn't be parsed.
     case invalidSmilResource
-    
-    public var errorDescription: String? {
-        switch self {
-        case .missingPublicationTitle:
-            return R2StreamerLocalizedString("OPFParserError.missingPublicationTitle")
-        case .invalidSmilResource:
-            return R2StreamerLocalizedString("OPFParserError.invalidSmilResource")
-        }
-    }
 }
 
 /// EpubParser support class, able to parse the OPF package document.

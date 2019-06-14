@@ -15,15 +15,8 @@ import R2Shared
 /// Errors related to the CBZ publications.
 ///
 /// - missingFile: The file at 'path' is missing from the container.
-public enum CBZParserError: LocalizedError {
+public enum CBZParserError: Error {
     case missingFile(path: String)
-    
-    public var errorDescription: String? {
-        switch self {
-        case .missingFile(let path):
-            return R2StreamerLocalizedString("CBZParserError.missingFile", path)
-        }
-    }
 }
 
 @available(*, deprecated, renamed: "CBZParserError")

@@ -20,34 +20,19 @@ import R2Shared
 /// - missingFile: The file at the given path couldn't not be found.
 /// - xmlParse: An error occured while parsing XML (See underlyingError for more infos).
 /// - missingLink: The given `Link` ressource couldn't be found in the container.
-public enum ContainerError: LocalizedError {
+public enum ContainerError: Error {
+    // Stream initialization failed.
     case streamInitFailed
+    // The file couldn't be found.
     case fileNotFound
+    // An error occured while accessing the file attributes.
     case fileError
+    // The file is missing from the publication.
     case missingFile(path: String)
+    // Error while parsing XML
     case xmlParse(underlyingError: Error)
+    // The link with given title couldn't be found in the container
     case missingLink(title: String?)
-
-    public var errorDescription: String? {
-        switch self {
-        case .streamInitFailed:
-            return R2StreamerLocalizedString("ContainerError.streamInitFailed")
-        case .fileNotFound:
-            return R2StreamerLocalizedString("ContainerError.fileNotFound")
-        case .fileError:
-            return R2StreamerLocalizedString("ContainerError.fileError")
-        case .missingFile(let path):
-            return R2StreamerLocalizedString("ContainerError.missingFile", path)
-        case .xmlParse(let underlyingError):
-            return R2StreamerLocalizedString("ContainerError.xmlParse", underlyingError.localizedDescription)
-        case .missingLink(let title):
-            if let title = title {
-                return R2StreamerLocalizedString("ContainerError.missingLink.title", title)
-            } else {
-                return R2StreamerLocalizedString("ContainerError.missingLink")
-            }
-        }
-    }
 }
 
 /// Provide methods for accessing raw data from container's files.

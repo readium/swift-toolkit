@@ -31,7 +31,7 @@ public struct PDFConstant {
 
 
 /// Errors thrown during the parsing of the PDF.
-public enum PDFParserError: LocalizedError {
+public enum PDFParserError: Error {
     // The file at 'path' is missing from the container.
     case missingFile(path: String)
     // Failed to open the PDF
@@ -40,20 +40,6 @@ public enum PDFParserError: LocalizedError {
     case fileEncryptedWithPassword
     // The LCP for PDF Package is malformed.
     case invalidLCPDF
-    
-    public var errorDescription: String? {
-        switch self {
-        case .missingFile(let path):
-            return R2StreamerLocalizedString("PDFParserError.missingFile", path)
-        case .openFailed:
-            return R2StreamerLocalizedString("PDFParserError.openFailed")
-        case .fileEncryptedWithPassword:
-            return R2StreamerLocalizedString("PDFParserError.fileEncryptedWithPassword")
-        case .invalidLCPDF:
-            return R2StreamerLocalizedString("PDFParserError.invalidLCPDF")
-        }
-    }
-    
 }
 
 

@@ -57,12 +57,10 @@
 		CA130F1D229E7CC1000A627C /* NavigationDocumentParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130DB6229E7CBE000A627C /* NavigationDocumentParserTests.swift */; };
 		CA130F1E229E7CC1000A627C /* SampleGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130DB7229E7CBE000A627C /* SampleGenerator.swift */; };
 		CA131064229E7CD0000A627C /* Samples in Resources */ = {isa = PBXBuildFile; fileRef = CA131063229E7CD0000A627C /* Samples */; };
-		CA50B87D22B2A6AB003AFF24 /* R2StreamerLocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50B87C22B2A6AB003AFF24 /* R2StreamerLocalizedString.swift */; };
 		CA6F97CE22A50F39007D2049 /* EPUBContainerParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97CD22A50F39007D2049 /* EPUBContainerParser.swift */; };
 		CA6F97D222A5161A007D2049 /* EPUBContainerParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97D122A5161A007D2049 /* EPUBContainerParserTests.swift */; };
 		CA6F97D422A52810007D2049 /* OPFParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97D322A52810007D2049 /* OPFParserTests.swift */; };
 		CA6F97DA22A6A0B7007D2049 /* OPFMeta.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97D922A6A0B6007D2049 /* OPFMeta.swift */; };
-		CAD178B222B3AB1B004E6812 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CAD178B422B3AB1B004E6812 /* Localizable.strings */; };
 		CAF58199229EC8B3009A04E8 /* EPUBMetadataParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF58198229EC8B3009A04E8 /* EPUBMetadataParserTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -130,12 +128,10 @@
 		CA130DB7229E7CBE000A627C /* SampleGenerator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SampleGenerator.swift; sourceTree = "<group>"; };
 		CA130F17229E7CC0000A627C /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CA131063229E7CD0000A627C /* Samples */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Samples; sourceTree = "<group>"; };
-		CA50B87C22B2A6AB003AFF24 /* R2StreamerLocalizedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2StreamerLocalizedString.swift; sourceTree = "<group>"; };
 		CA6F97CD22A50F39007D2049 /* EPUBContainerParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBContainerParser.swift; sourceTree = "<group>"; };
 		CA6F97D122A5161A007D2049 /* EPUBContainerParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBContainerParserTests.swift; sourceTree = "<group>"; };
 		CA6F97D322A52810007D2049 /* OPFParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPFParserTests.swift; sourceTree = "<group>"; };
 		CA6F97D922A6A0B6007D2049 /* OPFMeta.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPFMeta.swift; sourceTree = "<group>"; };
-		CAD178B322B3AB1B004E6812 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		CAF58198229EC8B3009A04E8 /* EPUBMetadataParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBMetadataParserTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -218,7 +214,6 @@
 		CA130D04229D4245000A627C /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				CAD178B422B3AB1B004E6812 /* Localizable.strings */,
 				CA130D77229D42E2000A627C /* fonts */,
 				CA130D79229D42E2000A627C /* scripts */,
 				CA130D78229D42E2000A627C /* styles */,
@@ -322,7 +317,6 @@
 				CA130D40229D4245000A627C /* Logger.swift */,
 				CA130D41229D4245000A627C /* DataExtension.swift */,
 				CA130D42229D4245000A627C /* StringExtension.swift */,
-				CA50B87C22B2A6AB003AFF24 /* R2StreamerLocalizedString.swift */,
 			);
 			path = Toolkit;
 			sourceTree = "<group>";
@@ -477,7 +471,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA130D7C229D42E2000A627C /* scripts in Resources */,
-				CAD178B222B3AB1B004E6812 /* Localizable.strings in Resources */,
 				CA130D7B229D42E2000A627C /* styles in Resources */,
 				CA130D7A229D42E2000A627C /* fonts in Resources */,
 			);
@@ -503,7 +496,6 @@
 				CA130D71229D4245000A627C /* ArchiveContainer.swift in Sources */,
 				CA130D66229D4245000A627C /* EPUBParser.swift in Sources */,
 				CA130D47229D4245000A627C /* ZIPInputStream.swift in Sources */,
-				CA50B87D22B2A6AB003AFF24 /* R2StreamerLocalizedString.swift in Sources */,
 				CA130D73229D4245000A627C /* Logger.swift in Sources */,
 				CA130D6B229D4245000A627C /* EPUBEncryptionParser.swift in Sources */,
 				CA130D64229D4245000A627C /* PDFFileParser.swift in Sources */,
@@ -563,17 +555,6 @@
 			targetProxy = CA130DA5229E7C83000A627C /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
-
-/* Begin PBXVariantGroup section */
-		CAD178B422B3AB1B004E6812 /* Localizable.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				CAD178B322B3AB1B004E6812 /* en */,
-			);
-			name = Localizable.strings;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		59501DDF1E2FB0D700D1B4BF /* Debug */ = {

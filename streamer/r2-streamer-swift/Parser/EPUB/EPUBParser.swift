@@ -31,24 +31,13 @@ struct EPUBConstant {
 /// - missingFile: A file is missing from the container at `path`.
 /// - xmlParse: An XML parsing error occurred.
 /// - missingElement: An XML element is missing.
-public enum EPUBParserError: LocalizedError {
+public enum EPUBParserError: Error {
+    /// The mimetype of the EPUB is not valid.
     case wrongMimeType
     case missingFile(path: String)
     case xmlParse(underlyingError: Error)
+    /// Missing rootfile in `container.xml`.
     case missingRootfile
-
-    public var errorDescription: String? {
-        switch self {
-        case .wrongMimeType:
-            return R2StreamerLocalizedString("EPUBParserError.wrongMimeType")
-        case .missingFile(let path):
-            return R2StreamerLocalizedString("EPUBParserError.missingFile", path)
-        case .xmlParse(let underlyingError):
-            return R2StreamerLocalizedString("EPUBParserError.xmlParse", underlyingError.localizedDescription)
-        case .missingRootfile:
-            return R2StreamerLocalizedString("EPUBParserError.missingRootfile")
-        }
-    }
 }
 
 @available(*, deprecated, renamed: "EPUBParserError")
