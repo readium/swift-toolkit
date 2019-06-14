@@ -6,13 +6,16 @@ var readium = (function() {
     
     // Notify native code that the page has loaded.
     window.addEventListener("load", function(){ // on page load
-        // Notify native code that the page is loaded.
-        webkit.messageHandlers.didLoad.postMessage("");
         window.addEventListener("orientationchange", function() {
             orientationChanged();
             snapCurrentPosition();
         });
         orientationChanged();
+
+        // Notify native code that the page is loaded after the page is rendered.
+        window.requestAnimationFrame(function() {
+            webkit.messageHandlers.didLoad.postMessage("");
+        });
     }, false);
 
     var last_known_scrollX_position = 0;
