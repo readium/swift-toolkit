@@ -16,6 +16,8 @@
 		CA4A388E220988C800599297 /* LCPLLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388D220988C800599297 /* LCPLLicenseContainer.swift */; };
 		CA4A389022098A9400599297 /* ZIPLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388F22098A9400599297 /* ZIPLicenseContainer.swift */; };
 		CA4A3892220994E300599297 /* EPUBLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A3891220994E300599297 /* EPUBLicenseContainer.swift */; };
+		CA50B88022B2A777003AFF24 /* R2LCPLocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50B87F22B2A777003AFF24 /* R2LCPLocalizedString.swift */; };
+		CA50B88422B2A822003AFF24 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CA50B88622B2A822003AFF24 /* Localizable.strings */; };
 		CAB131F6220D81E60097DFB5 /* LicensesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB131F5220D81E60097DFB5 /* LicensesRepository.swift */; };
 		CAB1320B220D9B200097DFB5 /* LCPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB1320A220D9B200097DFB5 /* LCPService.swift */; };
 		CAB13211220DB2B10097DFB5 /* LCPAuthenticating.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */; };
@@ -57,6 +59,8 @@
 		CA4A388D220988C800599297 /* LCPLLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPLLicenseContainer.swift; sourceTree = "<group>"; };
 		CA4A388F22098A9400599297 /* ZIPLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZIPLicenseContainer.swift; sourceTree = "<group>"; };
 		CA4A3891220994E300599297 /* EPUBLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBLicenseContainer.swift; sourceTree = "<group>"; };
+		CA50B87F22B2A777003AFF24 /* R2LCPLocalizedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2LCPLocalizedString.swift; sourceTree = "<group>"; };
+		CA50B88522B2A822003AFF24 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		CAB131F5220D81E60097DFB5 /* LicensesRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensesRepository.swift; sourceTree = "<group>"; };
 		CAB1320A220D9B200097DFB5 /* LCPService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPService.swift; sourceTree = "<group>"; };
 		CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPAuthenticating.swift; sourceTree = "<group>"; };
@@ -104,6 +108,23 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		CA50B87E22B2A768003AFF24 /* Toolkit */ = {
+			isa = PBXGroup;
+			children = (
+				CA50B87F22B2A777003AFF24 /* R2LCPLocalizedString.swift */,
+			);
+			path = Toolkit;
+			sourceTree = "<group>";
+		};
+		CA50B88122B2A7F2003AFF24 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				CAB214E02269C241007E989D /* prod-license.lcpl */,
+				CA50B88622B2A822003AFF24 /* Localizable.strings */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		CAB13212220DB55C0097DFB5 /* Public */ = {
 			isa = PBXGroup;
 			children = (
@@ -232,8 +253,9 @@
 				CAB13214220DB5930097DFB5 /* License */,
 				CAB1321B220DB6430097DFB5 /* Services */,
 				CAB1321C220DB6570097DFB5 /* Persistence */,
+				CA50B87E22B2A768003AFF24 /* Toolkit */,
+				CA50B88122B2A7F2003AFF24 /* Resources */,
 				F3B2C88B1F667223007601E4 /* Info.plist */,
-				CAB214E02269C241007E989D /* prod-license.lcpl */,
 				F3B2C88A1F667223007601E4 /* readium-lcp-swift.h */,
 			);
 			path = "readium-lcp-swift";
@@ -329,6 +351,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CAB214E12269C241007E989D /* prod-license.lcpl in Resources */,
+				CA50B88422B2A822003AFF24 /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -361,6 +384,7 @@
 				F38FB0381F66839600F9D602 /* Rights.swift in Sources */,
 				F36F9E281F8270FC001D0DB4 /* Transactions.swift in Sources */,
 				F3B2C8A81F66727C007601E4 /* StatusDocument.swift in Sources */,
+				CA50B88022B2A777003AFF24 /* R2LCPLocalizedString.swift in Sources */,
 				CA2AE328221C3CFB008BD18F /* Deprecated.swift in Sources */,
 				F38FB0361F66837800F9D602 /* User.swift in Sources */,
 				F38FB0421F66847E00F9D602 /* Signature.swift in Sources */,
@@ -378,6 +402,17 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		CA50B88622B2A822003AFF24 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CA50B88522B2A822003AFF24 /* en */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		F3B2C8991F667223007601E4 /* Debug */ = {

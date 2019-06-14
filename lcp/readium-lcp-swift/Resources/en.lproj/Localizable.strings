@@ -1,0 +1,44 @@
+/* 
+  Localizable.strings
+  r2-lcp-swift
+
+  Created by Mickaël Menu on 13.06.19.
+ 
+  Copyright 2019 Readium Foundation. All rights reserved.
+  Use of this source code is governed by a BSD-style license which is detailed
+  in the LICENSE file present in the project repository where this source code is maintained.
+*/
+
+/* LCPError: General error messages */
+"R2LCPClient.LCPError.licenseIsBusy" = "Can't perform this operation at the moment.";
+"R2LCPClient.LCPError.licenseContainer" = "Can't access the License Document.";
+"R2LCPClient.LCPError.licenseInteractionNotAvailable" = "This interaction is not available.";
+"R2LCPClient.LCPError.licenseProfileNotSupported" = "This License has a profile identifier that this app cannot handle, the publication cannot be processed.";
+"R2LCPClient.LCPError.crlFetching" = "Can't retrieve the Certificate Revocation List.";
+"R2LCPClient.LCPError.network" = "Network error.";
+
+/* StatusError: Errors while checking the status of the License, using the Status Document. */
+"R2LCPClient.StatusError.cancelled" = "You have cancelled this license on %@.";
+"R2LCPClient.StatusError.returned" = "This license has been returned on %@.";
+"R2LCPClient.StatusError.expired.start" = "This license starts on %@.";
+"R2LCPClient.StatusError.expired.end" = "This license expired on %@.";
+"R2LCPClient.StatusError.revoked" = "This license has been revoked by its provider on %1$@.\nThe license was registered by %1$d device(s)";
+
+/* RenewError: Errors while renewing a loan. */
+"R2LCPClient.RenewError.renewFailed" = "Your publication could not be renewed properly.";
+"R2LCPClient.RenewError.invalidRenewalPeriod" = "Incorrect renewal period, your publication could not be renewed.";
+"R2LCPClient.RenewError.unexpectedServerError" = "An unexpected error has occurred on the server.";
+
+/* ReturnError: Errors while returning a loan. */
+"R2LCPClient.ReturnError.returnFailed" = "Your publication could not be returned properly.";
+"R2LCPClient.ReturnError.alreadyReturnedOrExpired" = "Your publication has already been returned before or is expired.";
+"R2LCPClient.ReturnError.unexpectedServerError" = "An unexpected error has occurred on the server.";
+
+/* ParsingError: Errors while parsing the License or Status JSON Documents. */
+"R2LCPClient.ParsingError.malformedJSON" = "The JSON is malformed and can't be parsed.";
+"R2LCPClient.ParsingError.licenseDocument" = "The JSON is not representing a valid License Document.";
+"R2LCPClient.ParsingError.statusDocument" = "The JSON is not representing a valid Status Document.";
+"R2LCPClient.ParsingError.link" = "Invalid Link.";
+"R2LCPClient.ParsingError.encryption" = "Invalid Encryption.";
+"R2LCPClient.ParsingError.signature" = "Invalid License Document Signature.";
+"R2LCPClient.ParsingError.url" = "Invalid URL for link with rel %@.";

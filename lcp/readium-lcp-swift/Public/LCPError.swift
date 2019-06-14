@@ -48,19 +48,19 @@ extension LCPError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .licenseIsBusy:
-            return "Can't perform this operation at the moment."
+            return R2LCPLocalizedString("LCPError.licenseIsBusy")
         case .licenseIntegrity(let error):
             return error.localizedDescription
         case .licenseStatus(let error):
             return error.localizedDescription
         case .licenseContainer:
-            return "Can't access the License Document."
+            return R2LCPLocalizedString("LCPError.licenseContainer")
         case .licenseInteractionNotAvailable:
-            return "This interaction is not available."
+            return R2LCPLocalizedString("LCPError.licenseInteractionNotAvailable")
         case .licenseProfileNotSupported:
-            return "This License has a profile identifier that this app cannot handle, the publication cannot be processed."
+            return R2LCPLocalizedString("LCPError.licenseProfileNotSupported")
         case .crlFetching:
-            return "Can't retrieve the Certificate Revocation List."
+            return R2LCPLocalizedString("LCPError.crlFetching")
         case .licenseRenew(let error):
             return error.localizedDescription
         case .licenseReturn(let error):
@@ -68,7 +68,7 @@ extension LCPError: LocalizedError {
         case .parsing(let error):
             return error.localizedDescription
         case .network(let error):
-            return error?.localizedDescription ?? "Network error."
+            return error?.localizedDescription ?? R2LCPLocalizedString("LCPError.network")
         case .runtime(let error):
             return error
         case .unknown(let error):
@@ -93,25 +93,24 @@ extension StatusError: LocalizedError {
     
     public var errorDescription: String? {
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "MMMM dd, yyyy HH:mm"
-        dateFormatter.locale = Locale(identifier:"en")
-        
+        dateFormatter.dateStyle = .medium
+
         switch self {
         case .cancelled(let date):
-            return "You have cancelled this license on \(dateFormatter.string(from: date))."
+            return R2LCPLocalizedString("StatusError.cancelled", dateFormatter.string(from: date))
             
         case .returned(let date):
-            return "This license has been returned on \(dateFormatter.string(from: date))."
+            return R2LCPLocalizedString("StatusError.returned", dateFormatter.string(from: date))
             
         case .expired(start: let start, end: let end):
             if start > Date() {
-                return "This license starts on \(dateFormatter.string(from: start))."
+                return R2LCPLocalizedString("StatusError.expired.start", dateFormatter.string(from: start))
             } else {
-                return "This license expired on \(dateFormatter.string(from: end))."
+                return R2LCPLocalizedString("StatusError.expired.end", dateFormatter.string(from: end))
             }
 
         case .revoked(let date, let devicesCount):
-            return "This license has been revoked by its provider on \(dateFormatter.string(from: date)).\nThe license was registered by \(devicesCount) device\(devicesCount > 1 ? "s" : "")."
+            return R2LCPLocalizedString("StatusError.revoked", dateFormatter.string(from: date), devicesCount)
         }
     }
     
@@ -130,11 +129,11 @@ public enum RenewError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .renewFailed:
-            return "Your publication could not be renewed properly."
+            return R2LCPLocalizedString("RenewError.renewFailed")
         case .invalidRenewalPeriod(maxRenewDate: _):
-            return "Incorrect renewal period, your publication could not be renewed."
+            return R2LCPLocalizedString("RenewError.invalidRenewalPeriod")
         case .unexpectedServerError:
-            return "An unexpected error has occurred on the server."
+            return R2LCPLocalizedString("RenewError.unexpectedServerError")
         }
     }
     
@@ -153,11 +152,11 @@ public enum ReturnError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .returnFailed:
-            return "Your publication could not be returned properly."
+            return R2LCPLocalizedString("ReturnError.returnFailed")
         case .alreadyReturnedOrExpired:
-            return "Your publication has already been returned before or is expired."
+            return R2LCPLocalizedString("ReturnError.alreadyReturnedOrExpired")
         case .unexpectedServerError:
-            return "An unexpected error has occurred on the server."
+            return R2LCPLocalizedString("ReturnError.unexpectedServerError")
         }
     }
     
@@ -180,19 +179,19 @@ extension ParsingError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .malformedJSON:
-            return "The JSON is malformed and can't be parsed."
+            return R2LCPLocalizedString("ParsingError.malformedJSON")
         case .licenseDocument:
-            return "The JSON is not representing a valid License Document."
+            return R2LCPLocalizedString("ParsingError.licenseDocument")
         case .statusDocument:
-            return "The JSON is not representing a valid Status Document."
+            return R2LCPLocalizedString("ParsingError.statusDocument")
         case .link:
-            return "Invalid Link."
+            return R2LCPLocalizedString("ParsingError.link")
         case .encryption:
-            return "Invalid Encryption."
+            return R2LCPLocalizedString("ParsingError.encryption")
         case .signature:
-            return "Invalid License Document Signature."
+            return R2LCPLocalizedString("ParsingError.signature")
         case .url(let rel):
-            return "Invalid URL for link with rel \(rel)."
+            return R2LCPLocalizedString("ParsingError.url", rel)
         }
     }
     
