@@ -10,12 +10,13 @@
 //
 
 import Foundation
+import R2LCPClient
 
 public enum LCPError: Error {
     // The operation can't be done right now because another License operation is running.
     case licenseIsBusy
     // An error occured while checking the integrity of the License, it can't be retrieved.
-    case licenseIntegrity(Error)
+    case licenseIntegrity(LCPClientError)
     // The status of the License is not valid, it can't be used to decrypt the publication.
     case licenseStatus(StatusError)
     // Can't read or write the License Document from its container.
@@ -50,7 +51,31 @@ extension LCPError: LocalizedError {
         case .licenseIsBusy:
             return R2LCPLocalizedString("LCPError.licenseIsBusy")
         case .licenseIntegrity(let error):
-            return error.localizedDescription
+            let description: String = {
+                switch error {
+                case .licenseOutOfDate:
+                    return R2LCPLocalizedString("LCPClientError.licenseOutOfDate")
+                case .certificateRevoked:
+                    return R2LCPLocalizedString("LCPClientError.certificateRevoked")
+                case .certificateSignatureInvalid:
+                    return R2LCPLocalizedString("LCPClientError.certificateSignatureInvalid")
+                case .licenseSignatureDateInvalid:
+                    return R2LCPLocalizedString("LCPClientError.licenseSignatureDateInvalid")
+                case .licenseSignatureInvalid:
+                    return R2LCPLocalizedString("LCPClientError.licenseSignatureInvalid")
+                case .contextInvalid:
+                    return R2LCPLocalizedString("LCPClientError.contextInvalid")
+                case .contentKeyDecryptError:
+                    return R2LCPLocalizedString("LCPClientError.contentKeyDecryptError")
+                case .userKeyCheckInvalid:
+                    return R2LCPLocalizedString("LCPClientError.userKeyCheckInvalid")
+                case .contentDecryptError:
+                    return R2LCPLocalizedString("LCPClientError.contentDecryptError")
+                case .unknown:
+                    return R2LCPLocalizedString("LCPClientError.unknown")
+                }
+            }()
+            return R2LCPLocalizedString("LCPError.licenseIntegrity", description)
         case .licenseStatus(let error):
             return error.localizedDescription
         case .licenseContainer:
