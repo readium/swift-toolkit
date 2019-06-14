@@ -25,3 +25,7 @@ public func R2LocalizedString(_ key: String, in bundleID: String, _ values: [CVa
 public func R2LocalizedString(_ key: String, in bundleID: String, _ values: CVarArg...) -> String {
     return R2LocalizedString(key, in: bundleID, values)
 }
+
+func R2SharedLocalizedString(_ key: String, _ values: CVarArg...) -> String {
+    return R2LocalizedString("R2Shared.\(key)", in: "org.readium.r2-shared-swift", values)
+}

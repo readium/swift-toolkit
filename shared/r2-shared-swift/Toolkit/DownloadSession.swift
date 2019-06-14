@@ -40,7 +40,7 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
         var errorDescription: String? {
             switch self {
             case .notFound:
-                return "Request failed: not found"
+                return R2SharedLocalizedString("DownloadSession.RequestError.notFound")
             }
         }
     }
