@@ -20,7 +20,7 @@ import R2Shared
 /// - missingFile: The file at the given path couldn't not be found.
 /// - xmlParse: An error occured while parsing XML (See underlyingError for more infos).
 /// - missingLink: The given `Link` ressource couldn't be found in the container.
-public enum ContainerError: Error {
+public enum ContainerError: LocalizedError {
     case streamInitFailed
     case fileNotFound
     case fileError
@@ -28,20 +28,24 @@ public enum ContainerError: Error {
     case xmlParse(underlyingError: Error)
     case missingLink(title: String?)
 
-    public var localizedDescription: String {
+    public var errorDescription: String? {
         switch self {
         case .streamInitFailed:
-            return "Stream initialization failed."
+            return R2StreamerLocalizedString("ContainerError.streamInitFailed")
         case .fileNotFound:
-            return "The file couldn't be found."
+            return R2StreamerLocalizedString("ContainerError.fileNotFound")
         case .fileError:
-            return "An error occured while accessing the file attributes."
+            return R2StreamerLocalizedString("ContainerError.fileError")
         case .missingFile(let path):
-            return "The file at \(path) is missing from the archive."
+            return R2StreamerLocalizedString("ContainerError.missingFile", path)
         case .xmlParse(let underlyingError):
-            return "Error while parsing XML: \(underlyingError.localizedDescription)"
+            return R2StreamerLocalizedString("ContainerError.xmlParse", underlyingError.localizedDescription)
         case .missingLink(let title):
-            return "The link, titled \(title ?? "missing"), couldn't be found in the container."
+            if let title = title {
+                return R2StreamerLocalizedString("ContainerError.missingLink.title", title)
+            } else {
+                return R2StreamerLocalizedString("ContainerError.missingLink")
+            }
         }
     }
 }
@@ -91,7 +95,6 @@ public extension Container {
         let url = NSURL(fileURLWithPath: rootFile.rootPath)
         var modificationDate : AnyObject?
         try? url.getResourceValue(&modificationDate, forKey: .contentModificationDateKey)
-        print("\(rootFile.rootPath) - \(modificationDate as! Date)")
         return (modificationDate as? Date) ?? Date()
     }
     

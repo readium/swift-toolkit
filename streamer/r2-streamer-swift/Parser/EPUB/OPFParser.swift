@@ -24,17 +24,17 @@ public enum EPUBTitleType: String {
     case extended
 }
 
-public enum OPFParserError: Error {
+public enum OPFParserError: LocalizedError {
     /// The Epub have no title. Title is mandatory.
     case missingPublicationTitle
     case invalidSmilResource
     
-    var localizedDescription: String {
+    public var errorDescription: String? {
         switch self {
         case .missingPublicationTitle:
-            return "The publication is missing a title."
+            return R2StreamerLocalizedString("OPFParserError.missingPublicationTitle")
         case .invalidSmilResource:
-            return "Smile resource couldn't beparsed."
+            return R2StreamerLocalizedString("OPFParserError.invalidSmilResource")
         }
     }
 }

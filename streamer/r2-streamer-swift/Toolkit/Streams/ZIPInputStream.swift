@@ -89,7 +89,7 @@ internal class ZipInputStream: SeekableInputStream {
             try zipArchive.openCurrentFile()
             _streamStatus = .open
         } catch {
-            print("ERROR: could not ZipArchive.openCurrentFile()")
+            log(.error, "Could not ZipArchive.openCurrentFile()")
             _streamStatus = .error
             _streamError = error
         }

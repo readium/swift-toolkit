@@ -30,7 +30,7 @@ final class EPUBContainerParser: Loggable {
             let data = try container.data(relativePath: path)
             try self.init(data: data)
         } catch {
-            throw EpubParserError.missingFile(path: path)
+            throw EPUBParserError.missingFile(path: path)
         }
     }
     
@@ -38,7 +38,7 @@ final class EPUBContainerParser: Loggable {
     func parseRootFilePath() throws -> String {
         // Get the path of the OPF file, relative to the metadata.rootPath.
         guard let path = document.firstChild(xpath: "/cn:container/cn:rootfiles/cn:rootfile")?.attr("full-path") else {
-            throw EpubParserError.missingElement(message: "Missing rootfile in `container.xml`.")
+            throw EPUBParserError.missingRootfile
         }
         return path
     }

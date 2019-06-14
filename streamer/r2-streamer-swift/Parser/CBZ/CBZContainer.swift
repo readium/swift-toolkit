@@ -24,7 +24,7 @@ protocol CBZContainer: Container {
 final class CBZArchiveContainer: ArchiveContainer, CBZContainer {
     
     init?(path: String) {
-        super.init(path: path, mimetype: CbzConstant.mimetype)
+        super.init(path: path, mimetype: CBZConstant.mimetype)
         
         do {
             try archive.buildFilesList()
@@ -48,7 +48,7 @@ final class CBZArchiveContainer: ArchiveContainer, CBZContainer {
 final class CBZDirectoryContainer: DirectoryContainer, CBZContainer {
     
     init?(directory: String) {
-        super.init(directory: directory, mimetype: CbzConstant.mimetype)
+        super.init(directory: directory, mimetype: CBZConstant.mimetype)
     }
     
     var files: [String] {

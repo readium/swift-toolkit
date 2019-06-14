@@ -44,13 +44,13 @@ public enum PDFParserError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .missingFile(let path):
-            return "The file '\(path)' is missing."
+            return R2StreamerLocalizedString("PDFParserError.missingFile", path)
         case .openFailed:
-            return "Can't open the PDF file."
+            return R2StreamerLocalizedString("PDFParserError.openFailed")
         case .fileEncryptedWithPassword:
-            return "The PDF is encrypted with a password."
+            return R2StreamerLocalizedString("PDFParserError.fileEncryptedWithPassword")
         case .invalidLCPDF:
-            return "The LCP for PDF package is not valid."
+            return R2StreamerLocalizedString("PDFParserError.invalidLCPDF")
         }
     }
     
