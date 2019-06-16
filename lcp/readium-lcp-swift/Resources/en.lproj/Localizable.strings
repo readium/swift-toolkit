@@ -1,0 +1,49 @@
+/* 
+  Localizable.strings
+  r2-lcp-swift
+
+  Created by Mickaël Menu on 13.06.19.
+ 
+  Copyright 2019 Readium Foundation. All rights reserved.
+  Use of this source code is governed by a BSD-style license which is detailed
+  in the LICENSE file present in the project repository where this source code is maintained.
+*/
+
+/* LCPError: General error messages */
+"ReadiumLCP.LCPError.licenseIsBusy" = "Can't perform this operation at the moment.";
+"ReadiumLCP.LCPError.licenseIntegrity" = "License integrity: %@";
+"ReadiumLCP.LCPError.licenseContainer" = "Can't access the License Document.";
+"ReadiumLCP.LCPError.licenseInteractionNotAvailable" = "This interaction is not available.";
+"ReadiumLCP.LCPError.licenseProfileNotSupported" = "This License has a profile identifier that this app cannot handle, the publication cannot be processed.";
+"ReadiumLCP.LCPError.crlFetching" = "Can't retrieve the Certificate Revocation List.";
+"ReadiumLCP.LCPError.parsing" = "Failed to parse the License Document.";
+"ReadiumLCP.LCPError.network" = "Network error.";
+
+/* LCPClientError: Errors while checking the integrity of the License */
+"ReadiumLCP.LCPClientError.licenseOutOfDate" = "License is out of date (check start and end date).";
+"ReadiumLCP.LCPClientError.certificateRevoked" = "Certificate has been revoked in the CRL.";
+"ReadiumLCP.LCPClientError.certificateSignatureInvalid" = "Certificate has not been signed by CA.";
+"ReadiumLCP.LCPClientError.licenseSignatureDateInvalid" =  "License has been issued by an expired certificate.";
+"ReadiumLCP.LCPClientError.licenseSignatureInvalid" = "License signature does not match.";
+"ReadiumLCP.LCPClientError.contextInvalid" = "The DRM context is invalid.";
+"ReadiumLCP.LCPClientError.contentKeyDecryptError" = "Unable to decrypt encrypted content key from user key.";
+"ReadiumLCP.LCPClientError.userKeyCheckInvalid" = "User key check invalid.";
+"ReadiumLCP.LCPClientError.contentDecryptError" = "Unable to decrypt encrypted content from content key.";
+"ReadiumLCP.LCPClientError.unknown" = "Unknown error.";
+
+/* StatusError: Errors while checking the status of the License, using the Status Document. */
+"ReadiumLCP.StatusError.cancelled" = "You have cancelled this license on %@.";
+"ReadiumLCP.StatusError.returned" = "This license has been returned on %@.";
+"ReadiumLCP.StatusError.expired.start" = "This license starts on %@.";
+"ReadiumLCP.StatusError.expired.end" = "This license expired on %@.";
+"ReadiumLCP.StatusError.revoked" = "This license has been revoked by its provider on %1$@.\nThe license was registered by %1$d device(s)";
+
+/* RenewError: Errors while renewing a loan. */
+"ReadiumLCP.RenewError.renewFailed" = "Your publication could not be renewed properly.";
+"ReadiumLCP.RenewError.invalidRenewalPeriod" = "Incorrect renewal period, your publication could not be renewed.";
+"ReadiumLCP.RenewError.unexpectedServerError" = "An unexpected error has occurred on the server.";
+
+/* ReturnError: Errors while returning a loan. */
+"ReadiumLCP.ReturnError.returnFailed" = "Your publication could not be returned properly.";
+"ReadiumLCP.ReturnError.alreadyReturnedOrExpired" = "Your publication has already been returned before or is expired.";
+"ReadiumLCP.ReturnError.unexpectedServerError" = "An unexpected error has occurred on the server.";
