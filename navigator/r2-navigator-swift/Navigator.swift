@@ -107,7 +107,7 @@ public enum NavigatorError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .copyForbidden:
-            return "You exceeded the amount of characters allowed to be copied."
+            return R2NavigatorLocalizedString("NavigatorError.copyForbidden")
         }
     }
 }

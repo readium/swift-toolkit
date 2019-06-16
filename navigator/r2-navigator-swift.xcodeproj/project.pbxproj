@@ -20,6 +20,8 @@
 		CACE84FB2254BFEE00E19E8B /* EditingAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE84FA2254BFEE00E19E8B /* EditingAction.swift */; };
 		CACE851F225CDE3400E19E8B /* FixedDocumentWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE851E225CDE3300E19E8B /* FixedDocumentWebView.swift */; };
 		CACE8521225CDFB000E19E8B /* ReflowableDocumentWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE8520225CDFB000E19E8B /* ReflowableDocumentWebView.swift */; };
+		CAD178B622B3B553004E6812 /* R2NavigatorLocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD178B522B3B553004E6812 /* R2NavigatorLocalizedString.swift */; };
+		CAD178BA22B3B5B6004E6812 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CAD178BC22B3B5B6004E6812 /* Localizable.strings */; };
 		CAEACA222272EFBD00476340 /* ImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAEACA212272EFBD00476340 /* ImageViewController.swift */; };
 		F341C2711F506ED5005E6758 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F341C2701F506ED5005E6758 /* UserSettings.swift */; };
 		F3E7D3D41F4D83B000DF166D /* r2-navigator-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -45,6 +47,8 @@
 		CACE84FA2254BFEE00E19E8B /* EditingAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditingAction.swift; sourceTree = "<group>"; };
 		CACE851E225CDE3300E19E8B /* FixedDocumentWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixedDocumentWebView.swift; sourceTree = "<group>"; };
 		CACE8520225CDFB000E19E8B /* ReflowableDocumentWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReflowableDocumentWebView.swift; sourceTree = "<group>"; };
+		CAD178B522B3B553004E6812 /* R2NavigatorLocalizedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2NavigatorLocalizedString.swift; sourceTree = "<group>"; };
+		CAD178BB22B3B5B6004E6812 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		CAEACA212272EFBD00476340 /* ImageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewController.swift; sourceTree = "<group>"; };
 		F341C2701F506ED5005E6758 /* UserSettings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
 		F3E7D3C31F4D83B000DF166D /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -86,6 +90,7 @@
 			children = (
 				CA479DC2226493570053445E /* UIView.swift */,
 				CA479DC42264AEA20053445E /* UIColor.swift */,
+				CAD178B522B3B553004E6812 /* R2NavigatorLocalizedString.swift */,
 			);
 			path = Toolkit;
 			sourceTree = "<group>";
@@ -112,6 +117,14 @@
 			children = (
 				CAA9A38C226F409C00BE1D6A /* fxl-wrapper.html */,
 				CA7B4B4D227B253200393E3E /* gestures.js */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		CAD178B722B3B580004E6812 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				CAD178BC22B3B5B6004E6812 /* Localizable.strings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -151,10 +164,11 @@
 				CAB9086A22492D4C00711C3F /* Navigator.swift */,
 				CA26EF7D22803FE90011653E /* VisualNavigator.swift */,
 				CACE84FA2254BFEE00E19E8B /* EditingAction.swift */,
-				CA479DC1226493390053445E /* Toolkit */,
 				CAFC2F672278957A007DBB02 /* CBZ */,
 				CAA9A38A226F406300BE1D6A /* EPUB */,
 				CA0B3AC1222EE530006D9363 /* PDF */,
+				CA479DC1226493390053445E /* Toolkit */,
+				CAD178B722B3B580004E6812 /* Resources */,
 			);
 			path = "r2-navigator-swift";
 			sourceTree = "<group>";
@@ -227,10 +241,9 @@
 			};
 			buildConfigurationList = F3E7D3BD1F4D83B000DF166D /* Build configuration list for PBXProject "r2-navigator-swift" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				English,
 				en,
 			);
 			mainGroup = F3E7D3B91F4D83B000DF166D;
@@ -249,6 +262,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA7B4B4E227B253200393E3E /* gestures.js in Resources */,
+				CAD178BA22B3B5B6004E6812 /* Localizable.strings in Resources */,
 				CAA9A38D226F409C00BE1D6A /* fxl-wrapper.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -267,6 +281,7 @@
 				F3E7D3E61F4D84EF00DF166D /* DocumentWebView.swift in Sources */,
 				F3E7D42E1F4EE0FE00DF166D /* CBZNavigatorViewController.swift in Sources */,
 				CA479DC52264AEA20053445E /* UIColor.swift in Sources */,
+				CAD178B622B3B553004E6812 /* R2NavigatorLocalizedString.swift in Sources */,
 				F3E7D3E01F4D847E00DF166D /* Disjunction.swift in Sources */,
 				CAEACA222272EFBD00476340 /* ImageViewController.swift in Sources */,
 				CACE84FB2254BFEE00E19E8B /* EditingAction.swift in Sources */,
@@ -282,6 +297,17 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		CAD178BC22B3B5B6004E6812 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CAD178BB22B3B5B6004E6812 /* en */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		F3E7D3D51F4D83B000DF166D /* Debug */ = {
