@@ -40,6 +40,8 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         tableView.sizeToFit()
 
         addFeedButton = UIBarButtonItem(title: NSLocalizedString("add_button", comment: "Add an OPDS feed button"), style: UIBarButtonItem.Style.plain, target: self, action: #selector(OPDSCatalogSelectorViewController.showAddFeedPopup))
+        addFeedButton?.accessibilityLabel = NSLocalizedString("opds_add_button_a11y_label", comment: "Add an OPDS feed button")
+      
         navigationItem.rightBarButtonItem = addFeedButton
         
         navigationController?.navigationBar.tintColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)

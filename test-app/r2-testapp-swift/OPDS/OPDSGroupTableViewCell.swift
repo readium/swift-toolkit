@@ -91,7 +91,10 @@ extension OPDSGroupTableViewCell: UICollectionViewDataSource {
             
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "publicationCollectionViewCell",
                                                           for: indexPath) as! PublicationCollectionViewCell
-            
+          
+            cell.isAccessibilityElement = true
+            cell.accessibilityHint = NSLocalizedString("opds_show_detail_view_a11y_hint", comment: "Accessibility hint for OPDS publication cell")
+ 
             if let publication = group?.publications[indexPath.row] {
                 
                 cell.accessibilityLabel = publication.metadata.title

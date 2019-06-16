@@ -76,7 +76,7 @@ class LibraryViewController: UIViewController, Loggable {
         recognizer.minimumPressDuration = 0.5
         recognizer.delaysTouchesBegan = true
         collectionView.addGestureRecognizer(recognizer)
-        collectionView.accessibilityLabel = NSLocalizedString("library_a11n_label", comment: "Accessibility label for the library collection view")
+        collectionView.accessibilityLabel = NSLocalizedString("library_a11y_label", comment: "Accessibility label for the library collection view")
         
         DownloadSession.shared.displayDelegate = self
         
@@ -228,6 +228,9 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
         cell.coverImageView.image = nil
         cell.progress = 0
         
+        cell.isAccessibilityElement = true
+        cell.accessibilityHint = NSLocalizedString("library_publication_a11y_hint", comment: "Accessibility hint for the publication collection cell")
+
         if indexPath.item < downloadSet.count {
             guard let task = downloadSet.object(at: indexPath.item) as? URLSessionDownloadTask else {return cell}
             if let ratio = downloadTaskToRatio[task] {

@@ -59,6 +59,12 @@ class UserSettingsTableViewController: UITableViewController {
         }
         
         checkScrollMode()
+      
+      appearanceSegmentedControl.subviews[0].accessibilityLabel = NSLocalizedString("user_settings_appearance_default_a11y_label", comment: "Accessibility label for user settings appearance default")
+      appearanceSegmentedControl.subviews[1].accessibilityLabel = NSLocalizedString("user_settings_appearance_sepia_a11y_label", comment: "Accessibility label for user settings appearance sepia")
+      appearanceSegmentedControl.subviews[2].accessibilityLabel = NSLocalizedString("user_settings_appearance_night_a11y_label", comment: "Accessibility label for user settings appearance night")
+
+
     }
     
     func checkScrollMode() {

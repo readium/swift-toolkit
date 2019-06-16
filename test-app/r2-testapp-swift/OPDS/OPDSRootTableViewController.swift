@@ -566,8 +566,11 @@ class OPDSRootTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
         
         let header = view as! UITableViewHeaderFooterView
+        header.isAccessibilityElement = false
+
         header.textLabel?.font = UIFont.boldSystemFont(ofSize: 13)
-        
+        header.textLabel?.accessibilityHint = NSLocalizedString("opds_feed_header_hint", comment: "Accessibility hint feed section header")
+      
         var offset: Int
         
         if browsingState != .MixedGroup {
@@ -601,6 +604,9 @@ class OPDSRootTableViewController: UITableViewController {
                     moreButton.offset = offset
                     moreButton.addTarget(self, action: #selector(moreAction), for: .touchUpInside)
                     
+                    moreButton.isAccessibilityElement = true
+                    moreButton.accessibilityLabel = NSLocalizedString("opds_more_button_a11y_label", comment: "Button to expand a feed gallery")
+
                     view.addSubview(moreButton)
                     
                     moreButton.translatesAutoresizingMaskIntoConstraints = false
