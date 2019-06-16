@@ -50,7 +50,7 @@ final class SMILParser {
                 continue
             }
             link.mediaOverlays.append(newNode)
-            link.properties.mediaOverlay = EpubConstant.mediaOverlayURL + link.href
+            link.properties.mediaOverlay = EPUBConstant.mediaOverlayURL + link.href
         }
     }
     

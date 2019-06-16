@@ -13,7 +13,7 @@ import Foundation
 import R2Shared
 
 /// Decrypt DRM encrypted content.
-class DrmDecoder {
+class DrmDecoder: Loggable {
 
     /// Decode the given stream using DRM. If it fails, just return the
     /// stream unchanged.
@@ -47,7 +47,7 @@ class DrmDecoder {
             
             data = data.subdata(in: Range.init(uncheckedBounds: (0, data.count - padding)))
             guard let inflatedBuffer = data.inflate() else {
-                print("Inflate error")
+                log(.error, "Inflate error")
                 return input
             }
             data = inflatedBuffer

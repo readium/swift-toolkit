@@ -1,5 +1,5 @@
 //
-//  CbzParser.swift
+//  CBZParser.swift
 //  r2-streamer-swift
 //
 //  Created by Alexandre Camilleri on 3/31/17.
@@ -15,19 +15,15 @@ import R2Shared
 /// Errors related to the CBZ publications.
 ///
 /// - missingFile: The file at 'path' is missing from the container.
-public enum CbzParserError: LocalizedError {
+public enum CBZParserError: Error {
     case missingFile(path: String)
-    
-    public var errorDescription: String? {
-        switch self {
-        case .missingFile(let path):
-            return "The file '\(path)' is missing."
-        }
-    }
 }
 
+@available(*, deprecated, renamed: "CBZParserError")
+public typealias CbzParserError = CBZParserError
+
 /// CBZ related constants.
-public struct CbzConstant {
+struct CBZConstant {
     public static let mimetype = "application/x-cbr"
 }
 
@@ -65,7 +61,7 @@ public class CbzParser: PublicationParser {
     ///
     /// - Parameter path: The path of the file to parse.
     /// - Returns: The resulting `PubBox` object.
-    /// - Throws: Throws `CbzParserError.missingFile`.
+    /// - Throws: Throws `CBZParserError.missingFile`.
     public static func parse(fileAtPath path: String) throws -> (PubBox, PubParsingCallback) {
         let container = try generateContainerFrom(fileAtPath: path)
         let publication = parsePublication(in: container, at: path)
@@ -109,13 +105,13 @@ public class CbzParser: PublicationParser {
     ///
     /// - Parameter path: The absolute path of the file.
     /// - Returns: The generated Container.
-    /// - Throws: `EpubParserError.missingFile`.
+    /// - Throws: `CBZParserError.missingFile`.
     private static func generateContainerFrom(fileAtPath path: String) throws -> CBZContainer {
         var container: CBZContainer?
         var isDirectory: ObjCBool = false
 
         guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) else {
-            throw CbzParserError.missingFile(path: path)
+            throw CBZParserError.missingFile(path: path)
         }
         if isDirectory.boolValue {
             container = CBZDirectoryContainer(directory: path)
@@ -124,7 +120,7 @@ public class CbzParser: PublicationParser {
         }
         
         guard let containerUnwrapped = container else {
-            throw CbzParserError.missingFile(path: path)
+            throw CBZParserError.missingFile(path: path)
         }
         return containerUnwrapped
     }

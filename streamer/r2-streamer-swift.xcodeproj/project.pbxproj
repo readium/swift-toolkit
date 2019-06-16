@@ -245,10 +245,10 @@
 		CA130D25229D4245000A627C /* Parser */ = {
 			isa = PBXGroup;
 			children = (
-				CA130D26229D4245000A627C /* CBZ */,
-				CA130D29229D4245000A627C /* PDF */,
 				CA130D2E229D4245000A627C /* PublicationParser.swift */,
+				CA130D26229D4245000A627C /* CBZ */,
 				CA130D2F229D4245000A627C /* EPUB */,
+				CA130D29229D4245000A627C /* PDF */,
 			);
 			path = Parser;
 			sourceTree = "<group>";
