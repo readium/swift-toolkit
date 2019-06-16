@@ -72,11 +72,11 @@ class DRMViewModel: NSObject {
     }
     
     var copiesLeft: String {
-        return "unlimited"
+        return NSLocalizedString("reader_drm_unlimited_label", comment: "Unlimited quantity for a given DRM consumable right")
     }
     
     var printsLeft: String {
-        return "unlimited"
+        return NSLocalizedString("reader_drm_unlimited_label", comment: "Unlimited quantity for a given DRM consumable right")
     }
     
     var canRenewLoan: Bool {

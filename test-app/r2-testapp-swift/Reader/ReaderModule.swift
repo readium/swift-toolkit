@@ -78,7 +78,7 @@ final class ReaderModule: ReaderModuleAPI {
                 
             case .success(let drm):
                 guard let module = self.formatModules.first(where:{ $0.publicationFormats.contains(publication.format) }) else {
-                    delegate.presentError(AppError.message("Unsupported format"), from: navigationController)
+                    delegate.presentError(ReaderError.formatNotSupported, from: navigationController)
                     completion()
                     return
                 }
@@ -104,7 +104,7 @@ final class ReaderModule: ReaderModuleAPI {
 extension ReaderModule: ReaderFormatModuleDelegate {
 
     func presentDRM(_ drm: DRM, from viewController: UIViewController) {
-        let drmViewController: DrmManagementTableViewController = factory.make(drm: drm)
+        let drmViewController: DRMManagementTableViewController = factory.make(drm: drm, delegate: delegate)
         let backItem = UIBarButtonItem()
         backItem.title = ""
         drmViewController.navigationItem.backBarButtonItem = backItem

@@ -73,7 +73,7 @@ class PublicationCollectionViewCell: UICollectionViewCell {
         contentView.addSubview(publicationMenuViewController.view)
         
         isAccessibilityElement = true
-        accessibilityHint = "Hold to access options."
+        accessibilityHint = NSLocalizedString("library_publication_a11n_hint", comment: "Accessibility hint for the publication collection cell")
         
     }
     

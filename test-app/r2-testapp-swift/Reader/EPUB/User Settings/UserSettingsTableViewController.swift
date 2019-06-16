@@ -120,7 +120,6 @@ class UserSettingsTableViewController: UITableViewController {
             return
         }
         let backItem = UIBarButtonItem()
-
         backItem.title = ""
         navigationItem.backBarButtonItem = backItem
         navigationController?.pushViewController(fsvc, animated: true)
@@ -131,7 +130,6 @@ class UserSettingsTableViewController: UITableViewController {
             return
         }
         let backItem = UIBarButtonItem()
-
         backItem.title = ""
         navigationItem.backBarButtonItem = backItem
         navigationController?.pushViewController(asvc, animated: true)

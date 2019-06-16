@@ -149,10 +149,10 @@ class ReaderViewController: UIViewController, Loggable {
             let bookmark = currentBookmark,
             dataSource.addBookmark(bookmark: bookmark) else
         {
-            toast(self.view, "Could not add Bookmark", 2)
+            toast(self.view, NSLocalizedString("reader_bookmark_failure_message", comment: "Error message when adding a new bookmark failed"), 2)
             return
         }
-        toast(self.view, "Bookmark Added", 1)
+        toast(self.view, NSLocalizedString("reader_bookmark_success_message", comment: "Success message when adding a bookmark"), 1)
     }
 
     
@@ -180,9 +180,9 @@ class ReaderViewController: UIViewController, Loggable {
         let toolbar = UIToolbar(frame: .zero)
         toolbar.items = [
             makeItem(.flexibleSpace),
-            makeItem(.rewind, label: "Previous Chapter", action: #selector(goBackward)),
+            makeItem(.rewind, label: NSLocalizedString("reader_backward_a11n_label", comment: "Accessibility label to go backward in the publication"), action: #selector(goBackward)),
             makeItem(.flexibleSpace),
-            makeItem(.fastForward, label: "Next Chapter", action: #selector(goForward)),
+            makeItem(.fastForward, label: NSLocalizedString("reader_forward_a11n_label", comment: "Accessibility label to go forward in the publication"), action: #selector(goForward)),
             makeItem(.flexibleSpace),
         ]
         toolbar.isHidden = !UIAccessibility.isVoiceOverRunning

@@ -26,15 +26,16 @@ struct Location {
 protocol LibraryServiceDelegate: AnyObject {
     
     func reloadLibrary(with downloadTask: URLSessionDownloadTask?, canceled:Bool)
+    func libraryService(_ libraryService: LibraryService, presentError error: Error)
     
 }
 
-final class LibraryService {
+final class LibraryService: Loggable {
     
     weak var delegate: LibraryServiceDelegate?
     
     let publicationServer: PublicationServer
-
+    
     /// Publications waiting to be added to the PublicationServer (first opening).
     /// publication identifier : data
     var items = [String: (Container, PubParsingCallback)]()
@@ -47,44 +48,24 @@ final class LibraryService {
         #if LCP
         drmLibraryServices.append(LCPLibraryService())
         #endif
-
+        
         preloadSamples()
-
+        
     }
-  
+    
     func preloadSamples() {
-      let version = 1
-      let VERSION_KEY = "LIBRARY_VERSION"
-      let oldversion = UserDefaults.standard.integer(forKey: VERSION_KEY)
-      if oldversion < version {
-        UserDefaults.standard.set(version, forKey: VERSION_KEY)
-        clearDocumentsDir()
-        // Parse publications (just the OPF and Encryption for now)
-        lightParseSamplePublications()
-      }
-    }
-  
-    func present(_ alert: UIAlertController) {
-      guard let rootViewController = UIApplication.shared.delegate?.window??.rootViewController else {
-        return
-      }
-      if let _  = rootViewController.presentedViewController {
-        rootViewController.dismiss(animated: true) {
-          rootViewController.present(alert, animated: true)
+        let version = 1
+        let VERSION_KEY = "LIBRARY_VERSION"
+        let oldversion = UserDefaults.standard.integer(forKey: VERSION_KEY)
+        if oldversion < version {
+            UserDefaults.standard.set(version, forKey: VERSION_KEY)
+            clearDocumentsDir()
+            // Parse publications (just the OPF and Encryption for now)
+            lightParseSamplePublications()
         }
-      } else {
-        rootViewController.present(alert, animated: true)
-      }
     }
-  
-    func showInfoAlert(title: String, message: String) {
-        let alert = UIAlertController(title: "", message: "", preferredStyle: .alert)
-        let dismissButton = UIAlertAction(title: "OK", style: .cancel)
-        
-        alert.addAction(dismissButton)
-        alert.title = title
-        alert.message = message
-        
+    
+    func present(_ alert: UIAlertController) {
         guard let rootViewController = UIApplication.shared.delegate?.window??.rootViewController else {
             return
         }
@@ -96,13 +77,13 @@ final class LibraryService {
             rootViewController.present(alert, animated: true)
         }
     }
-
+    
     @discardableResult
     internal func addPublicationToLibrary(url sourceUrl: URL, from downloadTask: URLSessionDownloadTask?) -> Bool {
         
         let repository = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         var url = repository.appendingPathComponent(sourceUrl.lastPathComponent)
-            url = repository.appendingPathComponent("\(UUID().uuidString).\(url.pathExtension)")
+        url = repository.appendingPathComponent("\(UUID().uuidString).\(url.pathExtension)")
         
         /// Copy the Publication to documents.
         do {
@@ -117,7 +98,7 @@ final class LibraryService {
             try FileManager.default.setAttributes(dateAttribute, ofItemAtPath: url.path)
             
         } catch {
-            showInfoAlert(title: "Error", message: "Failed importing this publication \(error)")
+            delegate?.libraryService(self, presentError: LibraryError.importFailed(error))
             return false
         }
         
@@ -130,60 +111,64 @@ final class LibraryService {
                 format: Publication.Format(file: url)
             )
             guard let (publication, container) = lightParsePublication(for: location.absolutePath, isAbsolute: true) else {
-                showInfoAlert(title: "Error", message: "The publication isn't valid.")
+                delegate?.libraryService(self, presentError: LibraryError.publicationIsNotValid)
                 try? FileManager.default.removeItem(at: url)
                 return false
             }
-          
+            
             var image:Data?
             if let cover = publication.coverLink{
-              image = try? container.data(relativePath: cover.href)
+                image = try? container.data(relativePath: cover.href)
             }
-
+            
             let book = Book(fileName: location.fileName,
-                          title: publication.metadata.title,
-                          author: publication.metadata.authors
-                            .map { $0.name }
-                            .joined(separator: ", "),
-                          identifier: publication.metadata.identifier!,
-                          cover: image)
+                            title: publication.metadata.title,
+                            author: publication.metadata.authors
+                                .map { $0.name }
+                                .joined(separator: ", "),
+                            identifier: publication.metadata.identifier!,
+                            cover: image)
             if (try! BooksDatabase.shared.books.insert(book: book)) != nil {
-              delegate?.reloadLibrary(with: downloadTask, canceled: false)
-              return true
-
+                delegate?.reloadLibrary(with: downloadTask, canceled: false)
+                return true
+                
             } else {
-              
-              let duplicatePublicationAlert = UIAlertController(title: "The publication already exists",
-                                                             message: "Would you like to add it anyways?",
-                                                             preferredStyle: UIAlertController.Style.alert)
-              let addAction = UIAlertAction(title: "Add", style: .default, handler: { alert in
                 
-                if (try! BooksDatabase.shared.books.insert(book: book, allowDuplicate: true)) != nil {
-                  self.delegate?.reloadLibrary(with: downloadTask, canceled: false)
-                  return
-                }
-                else {
-                  try? FileManager.default.removeItem(at: url)
-                  self.delegate?.reloadLibrary(with: downloadTask, canceled: true)
-                  return
-                }
+                let duplicatePublicationAlert = UIAlertController(
+                    title: NSLocalizedString("library_duplicate_alert_title", comment: "Title of the import confirmation alert when the publication already exists in the library"),
+                    message: NSLocalizedString("library_duplicate_alert_message", comment: "Message of the import confirmation alert when the publication already exists in the library"),
+                    preferredStyle: UIAlertController.Style.alert
+                )
+                let addAction = UIAlertAction(title: NSLocalizedString("add_button", comment: "Confirmation button to import a duplicated publication"), style: .default, handler: { alert in
+                    if (try! BooksDatabase.shared.books.insert(book: book, allowDuplicate: true)) != nil {
+                        self.delegate?.reloadLibrary(with: downloadTask, canceled: false)
+                        return
+                    }
+                    else {
+                        try? FileManager.default.removeItem(at: url)
+                        self.delegate?.reloadLibrary(with: downloadTask, canceled: true)
+                        return
+                    }
+                    
+                })
+                let cancelAction = UIAlertAction(title: NSLocalizedString("cancel_button", comment: "Cancel the confirmation alert"), style: .cancel, handler: { alert in
+                    try? FileManager.default.removeItem(at: url)
+                    self.delegate?.reloadLibrary(with: downloadTask, canceled: true)
+                    return
+                })
                 
-              })
-              let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: { alert in
-                try? FileManager.default.removeItem(at: url)
-                self.delegate?.reloadLibrary(with: downloadTask, canceled: true)
-                return
-              })
-              
-              duplicatePublicationAlert.addAction(addAction)
-              duplicatePublicationAlert.addAction(cancelAction)
-              present(duplicatePublicationAlert)
-              return true
-          }
+                duplicatePublicationAlert.addAction(addAction)
+                duplicatePublicationAlert.addAction(cancelAction)
+                present(duplicatePublicationAlert)
+                return true
+            }
         }
         
         if let drmService = drmLibraryServices.first(where: { $0.canFulfill(url) }) {
-            drmService.fulfill(url) { result in
+            drmService.fulfill(url) { [weak self] result in
+                guard let self = self else {
+                    return
+                }
                 let fileManager = FileManager.default
                 try? fileManager.removeItem(at: url)
                 
@@ -199,14 +184,14 @@ final class LibraryService {
                             destinationFile = repository.appendingPathComponent("\(UUID().uuidString).\(destinationFile.pathExtension)")
                         }
                         try fileManager.moveItem(at: publication.localURL, to: destinationFile)
-    
+                        
                         addPublication(url: destinationFile, downloadTask: publication.downloadTask)
                     } catch {
-                        self.showInfoAlert(title: "Error", message: error.localizedDescription)
+                        self.delegate?.libraryService(self, presentError: error)
                     }
                     
                 case .failure(let error):
-                    self.showInfoAlert(title: "Error", message: error.localizedDescription)
+                    self.delegate?.libraryService(self, presentError: error)
                 case .cancelled:
                     break
                 }
@@ -217,7 +202,7 @@ final class LibraryService {
             return addPublication(url: url, downloadTask: downloadTask)
         }
     }
-
+    
     /// Complementary parsing of the publication.
     /// Will parse Nav/ncx + mo (files that are possibly encrypted)
     /// using the DRM object of the publication.container.
@@ -227,7 +212,7 @@ final class LibraryService {
     ///   - completion: <#completion description#>
     /// - Throws: <#throws value description#>
     func loadDRM(for fileName: String, completion: @escaping (CancellableResult<DRM?>) -> Void) {
-      
+        
         guard let (container, parsingCallback) = items[fileName] else {
             completion(.success(nil))
             return
@@ -245,11 +230,11 @@ final class LibraryService {
         }
         
         guard let drmService = drmLibraryServices.first(where: { $0.brand == drm.brand }),
-            let url = URL(string: container.rootFile.rootPath)
-            else {
-                self.showInfoAlert(title: "Error", message: "DRM not supported \(drm.brand)")
-                completion(.success(nil))
-                return
+            let url = URL(string: container.rootFile.rootPath) else
+        {
+            delegate?.libraryService(self, presentError: LibraryError.drmNotSupported(drm.brand))
+            completion(.success(nil))
+            return
         }
         
         drmService.loadPublication(at: url, drm: drm) { result in
@@ -275,85 +260,85 @@ final class LibraryService {
         // Load the publications.
         for location in locations {
             guard let (publication, container) = lightParsePublication(for: location.absolutePath, isAbsolute: true) else {
-                print("Error loading publication \(location.fileName).")
-              continue
+                log(.error, "Error loading publication \(location.fileName).")
+                continue
             }
-          
-          var image:Data?
-          if let cover = publication.coverLink{
-            image = try? container.data(relativePath: cover.href)
-          }
-
-          let book = Book(fileName: location.fileName,
-                          title: publication.metadata.title,
-                          author: publication.metadata.authors
-                            .map { $0.name }
-                            .joined(separator: ", "),
-                          identifier: publication.metadata.identifier!,
-                          cover: image)
-           _ = try! BooksDatabase.shared.books.insert(book: book)
-      }
+            
+            var image:Data?
+            if let cover = publication.coverLink{
+                image = try? container.data(relativePath: cover.href)
+            }
+            
+            let book = Book(fileName: location.fileName,
+                            title: publication.metadata.title,
+                            author: publication.metadata.authors
+                                .map { $0.name }
+                                .joined(separator: ", "),
+                            identifier: publication.metadata.identifier!,
+                            cover: image)
+            _ = try! BooksDatabase.shared.books.insert(book: book)
+        }
     }
-  
+    
     internal func publish(publication: Publication, with container:Container, for path: String) {
-      publicationServer.removeAll()
-      do {
-          try publicationServer.add(publication, with: container, at: path)
+        publicationServer.removeAll()
+        do {
+            try publicationServer.add(publication, with: container, at: path)
         } catch {
-          print("error on adding \(error)")
-      }
+            log(.error, error)
+        }
     }
-  
+    
     internal func lightParsePublication(for path: String, book:Book? = nil, isAbsolute: Bool = false ) -> PubBox? {
-      let parsers: [Publication.Format: PublicationParser.Type] = [
-        .cbz: CbzParser.self,
-        .epub: EpubParser.self,
-        .pdf: PDFParser.self
-      ]
-      
-      var url:URL
-      if !isAbsolute {
-        var locationPath:String?
-        let documents = try! FileManager.default.url(for: .documentDirectory,
-                                                     in: .userDomainMask,
-                                                     appropriateFor: nil,
-                                                     create: true)
+        let parsers: [Publication.Format: PublicationParser.Type] = [
+            .cbz: CbzParser.self,
+            .epub: EpubParser.self,
+            .pdf: PDFParser.self
+        ]
         
-        if (FileManager.default.fileExists(atPath: documents.appendingPathComponent(path).path)) {
-          locationPath = documents.appendingPathComponent(path).path
-        } else {
-          if let absolutePath = Bundle.main.path(forResource: path, ofType: nil) {
-            if (FileManager.default.fileExists(atPath: absolutePath)) {
-              locationPath = absolutePath
+        var url:URL
+        if !isAbsolute {
+            var locationPath:String?
+            let documents = try! FileManager.default.url(for: .documentDirectory,
+                                                         in: .userDomainMask,
+                                                         appropriateFor: nil,
+                                                         create: true)
+            
+            if (FileManager.default.fileExists(atPath: documents.appendingPathComponent(path).path)) {
+                locationPath = documents.appendingPathComponent(path).path
+            } else {
+                if let absolutePath = Bundle.main.path(forResource: path, ofType: nil) {
+                    if (FileManager.default.fileExists(atPath: absolutePath)) {
+                        locationPath = absolutePath
+                    }
+                }
             }
-          }
+            guard let absolutePath = locationPath else {
+                return nil
+            }
+            url = URL.init(fileURLWithPath: absolutePath)
+            
+        } else {
+            url = URL.init(fileURLWithPath: path)
         }
-        guard let absolutePath = locationPath else {
-          return nil
-        }
-        url = URL.init(fileURLWithPath: absolutePath)
         
-      } else {
-        url = URL.init(fileURLWithPath: path)
-      }
-      
-      let location = Location(absolutePath: url.path,
-                          fileName: url.lastPathComponent,
-                          format: Publication.Format(file: url))
-     
-      guard let parser = parsers[location.format] else {
-          return nil
-      }
-
-      do {
-        let (pubBox, parsingCallback) = try parser.parse(fileAtPath: location.absolutePath)
-        let (_, container) = pubBox
-        items[url.lastPathComponent] = (container, parsingCallback)
-        return pubBox
-      } catch {
-        print("Error parsing publication at path '\(location.fileName)': \(error)")
-        return nil
-      }
+        let location = Location(absolutePath: url.path,
+                                fileName: url.lastPathComponent,
+                                format: Publication.Format(file: url))
+        
+        guard let parser = parsers[location.format] else {
+            return nil
+        }
+        
+        do {
+            let (pubBox, parsingCallback) = try parser.parse(fileAtPath: location.absolutePath)
+            let (_, container) = pubBox
+            items[url.lastPathComponent] = (container, parsingCallback)
+            return pubBox
+        } catch {
+            log(.error, "Error parsing publication at path '\(location.fileName)': \(error.localizedDescription)")
+            return nil
+        }
     }
     
     /// Get the locations out of the application Documents/inbox directory.
@@ -367,13 +352,12 @@ final class LibraryService {
             for sample in samples {
                 if let path = Bundle.main.path(forResource: sample, ofType: ext) {
                     let url = URL.init(fileURLWithPath: path)
-    
+                    
                     sampleUrls.append(url)
-                    print(url.absoluteString)
                 }
             }
         }
-
+        
         /// Find the types associated to the files, or unknown.
         return sampleUrls.map { url in
             return Location(
@@ -387,10 +371,10 @@ final class LibraryService {
     func remove(_ book: Book) {
         // Remove item from Database.
         _ = try! BooksDatabase.shared.books.delete(book)
-
+        
         // Remove file from documents directory
         removeFromDocumentsDirectory(fileName: book.fileName)
-      
+        
         // Remove publication from publicationServer.
         publicationServer.remove(at: book.fileName)
     }
@@ -409,22 +393,23 @@ final class LibraryService {
             do {
                 try fileManager.removeItem(at: absoluteUrl)
             } catch {
-                print("Error while deleting file in Documents.")
+                log(.error, "Error while deleting file in Documents.")
             }
             return
         }
     }
-
+    
     func clearDocumentsDir() {
-      let fileManager = FileManager.default
-      let documents = try! fileManager.url(for: .documentDirectory,
-                                           in: .userDomainMask,
-                                           appropriateFor: nil,
-                                           create: true)
-      guard let filePaths = try? fileManager.contentsOfDirectory(at: documents, includingPropertiesForKeys: nil, options: []) else { return }
-      for filePath in filePaths {
-        try? fileManager.removeItem(at: filePath)
-      }
+        let fileManager = FileManager.default
+        let documents = try! fileManager.url(for: .documentDirectory,
+                                             in: .userDomainMask,
+                                             appropriateFor: nil,
+                                             create: true)
+        guard let filePaths = try? fileManager.contentsOfDirectory(at: documents, includingPropertiesForKeys: nil, options: []) else { return }
+        for filePath in filePaths {
+            try? fileManager.removeItem(at: filePath)
+        }
     }
-  
+    
 }
+

@@ -62,14 +62,9 @@ extension FontSelectionViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "fontTableViewCell")!
         
-        var fontName: String
-        if let fontFamily = userSettings?.userProperties.getProperty(reference: ReadiumCSSReference.fontFamily.rawValue) as? Enumerable {
-            fontName = fontFamily.values[indexPath.row]
-        } else {
-            fontName = "Error"
-        }
-        
-        cell.textLabel?.text = fontName
+        let fontFamily = userSettings?.userProperties.getProperty(reference: ReadiumCSSReference.fontFamily.rawValue) as? Enumerable
+        cell.textLabel?.text = fontFamily?.values[indexPath.row]
+
         return cell
     }
 }

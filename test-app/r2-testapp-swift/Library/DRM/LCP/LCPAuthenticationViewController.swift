@@ -29,6 +29,7 @@ class LCPAuthenticationViewController: UIViewController {
     
     @IBOutlet weak var scrollView: UIScrollView!
     @IBOutlet weak var hintLabel: UILabel!
+    @IBOutlet weak var promptLabel: UILabel!
     @IBOutlet weak var messageLabel: UILabel!
     @IBOutlet weak var passphraseField: UITextField!
     @IBOutlet weak var supportButton: UIButton!
@@ -76,9 +77,9 @@ class LCPAuthenticationViewController: UIViewController {
 
         switch reason {
         case .passphraseNotFound:
-            label.text = "Passphrase Required"
+            label.text = NSLocalizedString("lcp_passphraseNotFound_message", comment: "Reason to ask for the passphrase when it was not found ")
         case .invalidPassphrase:
-            label.text = "Incorrect Passphrase"
+            label.text = NSLocalizedString("lcp_invalidPassphrase_message", comment: "Reason to ask for the passphrase when the one entered was incorrect")
             passphraseField.layer.borderWidth = 1
             passphraseField.layer.borderColor = UIColor.red.cgColor
         }
@@ -87,7 +88,8 @@ class LCPAuthenticationViewController: UIViewController {
         let leftItem = UIBarButtonItem(customView: label)
         self.navigationItem.leftBarButtonItem = leftItem
 
-        messageLabel.text = "In order to open it, we need to know the passphrase required by:\n\n\(provider)\n\nTo help you remember it, the following hint is available:"
+        promptLabel.text = NSLocalizedString("lcp_prompt_message1", comment: "Prompt message when asking for the passphrase")
+        messageLabel.text = String(format: NSLocalizedString("lcp_prompt_message2", comment: "More instructions about the passphrase"), provider)
         hintLabel.text = license.hint
       
         let cancelItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.cancel, target: self, action: #selector(LCPAuthenticationViewController.cancel(_:)));
@@ -133,16 +135,16 @@ class LCPAuthenticationViewController: UIViewController {
                 if let scheme = url.scheme {
                     switch scheme {
                     case "http", "https":
-                        return "Website"
+                        return NSLocalizedString("lcp_support_website", comment: "Contact the support through a website")
                     case "tel":
-                        return "Phone"
+                        return NSLocalizedString("lcp_support_phone", comment: "Contact the support by phone")
                     case "mailto":
-                        return "Mail"
+                        return NSLocalizedString("lcp_support_mail", comment: "Contact the support by mail")
                     default:
                         break
                     }
                 }
-                return "Support"
+                return NSLocalizedString("lcp_support_button", comment: "Button to contact the support when entering the passphrase")
             }()
             
             let action = UIAlertAction(title: title, style: .default) { _ in
@@ -150,7 +152,7 @@ class LCPAuthenticationViewController: UIViewController {
             }
             alert.addAction(action)
         }
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: NSLocalizedString("cancel_button", comment: "Cancel opening the LCP protected publication"), style: .cancel))
 
         if let popover = alert.popoverPresentationController, let sender = sender as? UIView {
             popover.sourceView = sender

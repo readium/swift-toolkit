@@ -55,14 +55,18 @@ extension AppModule: ModuleDelegate {
 
     func presentAlert(_ title: String, message: String, from viewController: UIViewController) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        let dismissButton = UIAlertAction(title: "OK", style: .cancel)
+        let dismissButton = UIAlertAction(title: NSLocalizedString("ok_button", comment: "Alert button"), style: .cancel)
         alert.addAction(dismissButton)
         viewController.present(alert, animated: true)
     }
     
     func presentError(_ error: Error?, from viewController: UIViewController) {
         guard let error = error else { return }
-        presentAlert("Error", message: error.localizedDescription, from: viewController)
+        presentAlert(
+            NSLocalizedString("error_title", comment: "Alert title for errors"),
+            message: error.localizedDescription,
+            from: viewController
+        )
     }
 
 }
