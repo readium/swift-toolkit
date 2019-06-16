@@ -39,6 +39,7 @@
 		CA2AE321221C1DCB008BD18F /* LoggerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31E221C1DCB008BD18F /* LoggerStub.swift */; };
 		CA2AE322221C1DCB008BD18F /* Loggable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31F221C1DCB008BD18F /* Loggable.swift */; };
 		CA40C07A21FF25F80069A50E /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA40C07921FF25F80069A50E /* JSON.swift */; };
+		CA50B86E22B2A1CF003AFF24 /* R2LocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50B86D22B2A1CF003AFF24 /* R2LocalizedString.swift */; };
 		CA9A40D1221B0AA200531EA1 /* Either.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D0221B0AA200531EA1 /* Either.swift */; };
 		CA9E6BA12239823300ECF6E4 /* WP+Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9E6BA02239823300ECF6E4 /* WP+Deprecated.swift */; };
 		CA9E6BA4223A657900ECF6E4 /* JSONEquatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9E6BA3223A657900ECF6E4 /* JSONEquatable.swift */; };
@@ -65,6 +66,7 @@
 		CACD75E42236A0F0004F20CA /* SubjectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACD75E32236A0F0004F20CA /* SubjectTests.swift */; };
 		CACD75F32236B0A5004F20CA /* PublicationCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACD75F22236B0A5004F20CA /* PublicationCollection.swift */; };
 		CACD75F52236B2AF004F20CA /* PublicationCollectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACD75F42236B2AF004F20CA /* PublicationCollectionTests.swift */; };
+		CAD178AD22B3A75C004E6812 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CAD178AF22B3A75C004E6812 /* Localizable.strings */; };
 		CAF4EAE42237ABC700A17DA1 /* MediaOverlayNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4041F4EC69100DF166D /* MediaOverlayNode.swift */; };
 		CAF4EAE52237ABC700A17DA1 /* MediaOverlays.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4051F4EC69100DF166D /* MediaOverlays.swift */; };
 		CAF4EAE72237AD6000A17DA1 /* UserProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF39DF220E3895200A560F3 /* UserProperties.swift */; };
@@ -129,6 +131,7 @@
 		CA2AE31E221C1DCB008BD18F /* LoggerStub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoggerStub.swift; sourceTree = "<group>"; };
 		CA2AE31F221C1DCB008BD18F /* Loggable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Loggable.swift; sourceTree = "<group>"; };
 		CA40C07921FF25F80069A50E /* JSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSON.swift; sourceTree = "<group>"; };
+		CA50B86D22B2A1CF003AFF24 /* R2LocalizedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2LocalizedString.swift; sourceTree = "<group>"; };
 		CA6161EA21FB257700D2CFE3 /* r2-shared-swiftTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "r2-shared-swiftTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA6161EE21FB257700D2CFE3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CA9A40D0221B0AA200531EA1 /* Either.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Either.swift; sourceTree = "<group>"; };
@@ -154,6 +157,7 @@
 		CACD75E32236A0F0004F20CA /* SubjectTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectTests.swift; sourceTree = "<group>"; };
 		CACD75F22236B0A5004F20CA /* PublicationCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationCollection.swift; sourceTree = "<group>"; };
 		CACD75F42236B2AF004F20CA /* PublicationCollectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationCollectionTests.swift; sourceTree = "<group>"; };
+		CAD178AE22B3A75C004E6812 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		F3B1879F1FA33D4D00BB46BF /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
 		F3B187A11FA33DFA00BB46BF /* Facet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Facet.swift; sourceTree = "<group>"; };
 		F3B187A31FA33E1D00BB46BF /* OpdsMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpdsMetadata.swift; sourceTree = "<group>"; };
@@ -195,6 +199,7 @@
 				CA9A40D0221B0AA200531EA1 /* Either.swift */,
 				57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */,
 				CA9E6BA3223A657900ECF6E4 /* JSONEquatable.swift */,
+				CA50B86D22B2A1CF003AFF24 /* R2LocalizedString.swift */,
 			);
 			path = Toolkit;
 			sourceTree = "<group>";
@@ -285,6 +290,14 @@
 				CA2AE31F221C1DCB008BD18F /* Loggable.swift */,
 			);
 			path = Logger;
+			sourceTree = "<group>";
+		};
+		CA50B88922B3A6FE003AFF24 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				CAD178AF22B3A75C004E6812 /* Localizable.strings */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		CA6161EB21FB257700D2CFE3 /* r2-shared-swiftTests */ = {
@@ -432,6 +445,7 @@
 				CA2AE31C221C1DCB008BD18F /* Logger */,
 				57470F7F20ED0D25000CDCA3 /* Toolkit */,
 				F3B1879E1FA33D3700BB46BF /* OPDS */,
+				CA50B88922B3A6FE003AFF24 /* Resources */,
 			);
 			path = "r2-shared-swift";
 			sourceTree = "<group>";
@@ -549,6 +563,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CAD178AD22B3A75C004E6812 /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -614,6 +629,7 @@
 				CA176392223AAC1A00959FEB /* UserSettings.swift in Sources */,
 				CACD75F32236B0A5004F20CA /* PublicationCollection.swift in Sources */,
 				CACD75DE22365780004F20CA /* WebPublication.swift in Sources */,
+				CA50B86E22B2A1CF003AFF24 /* R2LocalizedString.swift in Sources */,
 				CAF4EAE42237ABC700A17DA1 /* MediaOverlayNode.swift in Sources */,
 				CAC34F0C221C61BD002C452E /* DRM+Deprecated.swift in Sources */,
 				CA16A8642232DA2000E66255 /* Locator.swift in Sources */,
@@ -640,6 +656,17 @@
 			targetProxy = CA6161F021FB257700D2CFE3 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		CAD178AF22B3A75C004E6812 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CAD178AE22B3A75C004E6812 /* en */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		CA6161F221FB257700D2CFE3 /* Debug */ = {

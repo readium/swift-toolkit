@@ -18,7 +18,7 @@ enum JSONError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .parsing(let type):
-            return "Failed to parse \(type) JSON"
+            return R2SharedLocalizedString("JSONError.parsing", "\(type)")
         }
     }
     
