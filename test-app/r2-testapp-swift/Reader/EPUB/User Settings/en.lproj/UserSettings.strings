@@ -2,14 +2,14 @@
 /* Class = "UILabel"; text = "Page Margins"; ObjectID = "05J-dh-XXO"; */
 "05J-dh-XXO.text" = "Page Margins";
 
-/* Class = "UIButton"; accessibilityLabel = "user_settings_page_margin_increase_a11y_label"; ObjectID = "2Pi-2L-tEv"; */
-"2Pi-2L-tEv.accessibilityLabel" = "user_settings_page_margin_increase_a11y_label";
+/* Class = "UIButton"; accessibilityLabel = "Increase Page Margins"; ObjectID = "2Pi-2L-tEv"; */
+"2Pi-2L-tEv.accessibilityLabel" = "Increase Page Margins";
 
-/* Class = "UIButton"; accessibilityLabel = "user_settings_word_spacing_decrease_a11y_label"; ObjectID = "4C4-XJ-WHZ"; */
-"4C4-XJ-WHZ.accessibilityLabel" = "user_settings_word_spacing_decrease_a11y_label";
+/* Class = "UIButton"; accessibilityLabel = "Decrease Word Spacing"; ObjectID = "4C4-XJ-WHZ"; */
+"4C4-XJ-WHZ.accessibilityLabel" = "Decrease Word Spacing";
 
-/* Class = "UIButton"; accessibilityLabel = "user_settings_letter_spacing_increase_a11y_label"; ObjectID = "6Kd-tC-BhP"; */
-"6Kd-tC-BhP.accessibilityLabel" = "user_settings_letter_spacing_increase_a11y_label";
+/* Class = "UIButton"; accessibilityLabel = "Increase Letter Spacing"; ObjectID = "6Kd-tC-BhP"; */
+"6Kd-tC-BhP.accessibilityLabel" = "Increase Letter Spacing";
 
 /* Class = "UIViewController"; title = "Advanced settings"; ObjectID = "77D-Mk-Z01"; */
 "77D-Mk-Z01.title" = "Advanced settings";
@@ -20,11 +20,11 @@
 /* Class = "UILabel"; text = "fname"; ObjectID = "8XZ-xf-2Ua"; */
 "8XZ-xf-2Ua.text" = "fname";
 
-/* Class = "UISlider"; accessibilityLabel = "user_settings_brightness_a11y_label"; ObjectID = "98A-jm-Ha8"; */
-"98A-jm-Ha8.accessibilityLabel" = "user_settings_brightness_a11y_label";
+/* Class = "UISlider"; accessibilityLabel = "Brightness"; ObjectID = "98A-jm-Ha8"; */
+"98A-jm-Ha8.accessibilityLabel" = "Brightness";
 
-/* Class = "UIButton"; accessibilityLabel = "user_settings_page_margin_decrease_a11y_label"; ObjectID = "Bsg-3a-693"; */
-"Bsg-3a-693.accessibilityLabel" = "user_settings_page_margin_decrease_a11y_label";
+/* Class = "UIButton"; accessibilityLabel = "Decrease Page Margins"; ObjectID = "Bsg-3a-693"; */
+"Bsg-3a-693.accessibilityLabel" = "Decrease Page Margins";
 
 /* Class = "UISegmentedControl"; El2-dy-YXY.segmentTitles[0] = "auto"; ObjectID = "El2-dy-YXY"; */
 "El2-dy-YXY.segmentTitles[0]" = "auto";
@@ -56,14 +56,14 @@
 /* Class = "UIViewController"; title = "Font selection"; ObjectID = "UDV-9G-lDt"; */
 "UDV-9G-lDt.title" = "Font selection";
 
-/* Class = "UIButton"; accessibilityLabel = "user_settings_letter_spacing_decrease_a11y_label"; ObjectID = "V5p-j8-qFi"; */
-"V5p-j8-qFi.accessibilityLabel" = "user_settings_letter_spacing_decrease_a11y_label";
+/* Class = "UIButton"; accessibilityLabel = "Decrease Letter Spacing"; ObjectID = "V5p-j8-qFi"; */
+"V5p-j8-qFi.accessibilityLabel" = "Decrease Letter Spacing";
 
 /* Class = "UILabel"; text = "Columns"; ObjectID = "Zyr-jk-03f"; */
 "Zyr-jk-03f.text" = "Columns";
 
-/* Class = "UISwitch"; accessibilityLabel = "user_settings_advanced_default_a11y_label"; ObjectID = "a7V-SY-NbP"; */
-"a7V-SY-NbP.accessibilityLabel" = "user_settings_advanced_default_a11y_label";
+/* Class = "UISwitch"; accessibilityLabel = "Publisher's defaults"; ObjectID = "a7V-SY-NbP"; */
+"a7V-SY-NbP.accessibilityLabel" = "Publisher's defaults";
 
 /* Class = "UILabel"; text = "Line Height"; ObjectID = "bdf-ya-NK8"; */
 "bdf-ya-NK8.text" = "Line Height";
@@ -71,8 +71,8 @@
 /* Class = "UILabel"; text = "Advanced settings"; ObjectID = "cet-ah-qtg"; */
 "cet-ah-qtg.text" = "Advanced settings";
 
-/* Class = "UIButton"; accessibilityLabel = "user_settings_font_increase_a11y_label"; ObjectID = "g9Q-YR-gsD"; */
-"g9Q-YR-gsD.accessibilityLabel" = "user_settings_font_increase_a11y_label";
+/* Class = "UIButton"; accessibilityLabel = "Font Increase"; ObjectID = "g9Q-YR-gsD"; */
+"g9Q-YR-gsD.accessibilityLabel" = "Font Increase";
 
 /* Class = "UIButton"; normalTitle = "A"; ObjectID = "g9Q-YR-gsD"; */
 "g9Q-YR-gsD.normalTitle" = "A";
@@ -83,8 +83,8 @@
 /* Class = "UILabel"; text = "Publisher's defaults"; ObjectID = "gBh-xX-VRL"; */
 "gBh-xX-VRL.text" = "Publisher's defaults";
 
-/* Class = "UISwitch"; accessibilityLabel = "user_settings_scroll_mode_a11y_label"; ObjectID = "kDI-GV-cGx"; */
-"kDI-GV-cGx.accessibilityLabel" = "user_settings_scroll_mode_a11y_label";
+/* Class = "UISwitch"; accessibilityLabel = "Scroll mode"; ObjectID = "kDI-GV-cGx"; */
+"kDI-GV-cGx.accessibilityLabel" = "Scroll mode";
 
 /* Class = "UILabel"; text = "-"; ObjectID = "n8X-0W-lHD"; */
 "n8X-0W-lHD.text" = "-";
@@ -104,20 +104,20 @@
 /* Class = "UILabel"; text = "Letter Spacing"; ObjectID = "rgR-fx-ups"; */
 "rgR-fx-ups.text" = "Letter Spacing";
 
-/* Class = "UIButton"; accessibilityLabel = "user_settings_line_height_decrease_a11y_label"; ObjectID = "vPS-fv-5nP"; */
-"vPS-fv-5nP.accessibilityLabel" = "user_settings_line_height_decrease_a11y_label";
+/* Class = "UIButton"; accessibilityLabel = "Decrease Line Height"; ObjectID = "vPS-fv-5nP"; */
+"vPS-fv-5nP.accessibilityLabel" = "Decrease Line Height";
 
 /* Class = "UILabel"; text = "Scroll mode"; ObjectID = "vim-oD-Nr3"; */
 "vim-oD-Nr3.text" = "Scroll mode";
 
-/* Class = "UIButton"; accessibilityLabel = "user_settings_word_spacing_increase_a11y_label"; ObjectID = "xPG-Eb-jSz"; */
-"xPG-Eb-jSz.accessibilityLabel" = "user_settings_word_spacing_increase_a11y_label";
+/* Class = "UIButton"; accessibilityLabel = "Increase Word Spacing"; ObjectID = "xPG-Eb-jSz"; */
+"xPG-Eb-jSz.accessibilityLabel" = "Increase Word Spacing";
 
-/* Class = "UIButton"; accessibilityLabel = "user_settings_font_decrease_a11y_label"; ObjectID = "ycF-0D-Zfs"; */
-"ycF-0D-Zfs.accessibilityLabel" = "user_settings_font_decrease_a11y_label";
+/* Class = "UIButton"; accessibilityLabel = "Font Decrease"; ObjectID = "ycF-0D-Zfs"; */
+"ycF-0D-Zfs.accessibilityLabel" = "Font Decrease";
 
 /* Class = "UIButton"; normalTitle = "A"; ObjectID = "ycF-0D-Zfs"; */
 "ycF-0D-Zfs.normalTitle" = "A";
 
-/* Class = "UIButton"; accessibilityLabel = "user_settings_line_height_increase_a11y_label"; ObjectID = "zc8-4S-b2w"; */
-"zc8-4S-b2w.accessibilityLabel" = "user_settings_line_height_increase_a11y_label";
+/* Class = "UIButton"; accessibilityLabel = "Increase Line Height"; ObjectID = "zc8-4S-b2w"; */
+"zc8-4S-b2w.accessibilityLabel" = "Increase Line Height";

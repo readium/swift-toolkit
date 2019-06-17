@@ -175,19 +175,3 @@
 "user_settings_column_auto_a11y_label" = "Column auto";
 "user_settings_column_1_a11y_label" = "Column 1";
 "user_settings_column_2_a11y_label" = "Column 2";
-
-"user_settings_brightness_a11y_label" = "Brightness";
-"user_settings_font_increase_a11y_label" = "Font Increase";
-"user_settings_font_decrease_a11y_label" = "Font Decrease";
-"user_settings_scroll_mode_a11y_label" = "Scroll mode";
-
-"user_settings_advanced_default_a11y_label" = "Publisher's defaults";
-"user_settings_page_margin_decrease_a11y_label" = "Decrease Page Margins";
-"user_settings_page_margin_increase_a11y_label" = "Increase Page Margins";
-"user_settings_line_height_decrease_a11y_label" = "Decrease Line Height";
-"user_settings_line_height_increase_a11y_label" = "Increase Line Height";
-"user_settings_word_spacing_decrease_a11y_label" = "Decrease Word Spacing";
-"user_settings_word_spacing_increase_a11y_label" = "Increase Word Spacing";
-"user_settings_letter_spacing_decrease_a11y_label" = "Decrease Letter Spacing";
-"user_settings_letter_spacing_increase_a11y_label" = "Increase Letter Spacing";
-

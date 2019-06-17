@@ -32,7 +32,7 @@
                                                 <slider opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.1679999977350235" minValue="0.0" maxValue="1" minimumValueImage="lowerBrightness" maximumValueImage="higherBrightness" translatesAutoresizingMaskIntoConstraints="NO" id="98A-jm-Ha8">
                                                     <rect key="frame" x="5" y="-5" width="239" height="56"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
-                                                    <accessibility key="accessibilityConfiguration" label="user_settings_brightness_a11y_label"/>
+                                                    <accessibility key="accessibilityConfiguration" label="Brightness"/>
                                                     <connections>
                                                         <action selector="brightnessDidChange" destination="Aip-CA-mbT" eventType="valueChanged" id="DHh-vw-Qtq"/>
                                                     </connections>
@@ -65,7 +65,7 @@
                                                     <rect key="frame" x="124" y="0.0" width="126" height="45"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                    <accessibility key="accessibilityConfiguration" label="user_settings_font_increase_a11y_label"/>
+                                                    <accessibility key="accessibilityConfiguration" label="Font Increase"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="32"/>
                                                     <state key="normal" title="A">
                                                         <color key="titleColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -95,7 +95,7 @@
                                                     <rect key="frame" x="0.0" y="0.0" width="126" height="46"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxX="YES" heightSizable="YES"/>
                                                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                    <accessibility key="accessibilityConfiguration" label="user_settings_font_decrease_a11y_label"/>
+                                                    <accessibility key="accessibilityConfiguration" label="Font Decrease"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="18"/>
                                                     <state key="normal" title="A">
                                                         <color key="titleColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -243,7 +243,7 @@
                                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="kDI-GV-cGx">
                                                     <rect key="frame" x="185" y="5" width="49" height="31"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
-                                                    <accessibility key="accessibilityConfiguration" label="user_settings_scroll_mode_a11y_label"/>
+                                                    <accessibility key="accessibilityConfiguration" label="Scroll mode"/>
                                                     <connections>
                                                         <action selector="scrollModeSwitched" destination="Aip-CA-mbT" eventType="valueChanged" id="1ol-DQ-nlM"/>
                                                     </connections>
@@ -386,7 +386,7 @@
                                             </label>
                                             <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="a7V-SY-NbP">
                                                 <rect key="frame" x="171" y="0.0" width="51" height="31"/>
-                                                <accessibility key="accessibilityConfiguration" label="user_settings_advanced_default_a11y_label"/>
+                                                <accessibility key="accessibilityConfiguration" label="Publisher's defaults"/>
                                                 <connections>
                                                     <action selector="defaultSwitched" destination="Aip-CA-mbT" eventType="valueChanged" id="1sH-qL-seG"/>
                                                     <action selector="defaultSwitched" destination="77D-Mk-Z01" eventType="valueChanged" id="F1N-L7-lS2"/>
@@ -447,7 +447,7 @@
                                                 <subviews>
                                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Bsg-3a-693">
                                                         <rect key="frame" x="0.0" y="0.0" width="50" height="22"/>
-                                                        <accessibility key="accessibilityConfiguration" label="user_settings_page_margin_decrease_a11y_label"/>
+                                                        <accessibility key="accessibilityConfiguration" label="Decrease Page Margins"/>
                                                         <constraints>
                                                             <constraint firstAttribute="width" constant="50" id="lcc-p8-PC2"/>
                                                         </constraints>
@@ -471,7 +471,7 @@
                                                     </label>
                                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2Pi-2L-tEv">
                                                         <rect key="frame" x="170" y="0.0" width="50" height="22"/>
-                                                        <accessibility key="accessibilityConfiguration" label="user_settings_page_margin_increase_a11y_label"/>
+                                                        <accessibility key="accessibilityConfiguration" label="Increase Page Margins"/>
                                                         <constraints>
                                                             <constraint firstAttribute="width" constant="50" id="cD2-Rc-UGH"/>
                                                         </constraints>
@@ -505,7 +505,7 @@
                                                 <subviews>
                                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="vPS-fv-5nP">
                                                         <rect key="frame" x="0.0" y="0.0" width="50" height="22"/>
-                                                        <accessibility key="accessibilityConfiguration" label="user_settings_line_height_decrease_a11y_label"/>
+                                                        <accessibility key="accessibilityConfiguration" label="Decrease Line Height"/>
                                                         <constraints>
                                                             <constraint firstAttribute="width" constant="50" id="ZYB-Zv-3vj"/>
                                                         </constraints>
@@ -529,7 +529,7 @@
                                                     </label>
                                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="zc8-4S-b2w">
                                                         <rect key="frame" x="170" y="0.0" width="50" height="22"/>
-                                                        <accessibility key="accessibilityConfiguration" label="user_settings_line_height_increase_a11y_label"/>
+                                                        <accessibility key="accessibilityConfiguration" label="Increase Line Height"/>
                                                         <constraints>
                                                             <constraint firstAttribute="width" constant="50" id="82s-Ie-vPs"/>
                                                         </constraints>
@@ -563,7 +563,7 @@
                                                 <subviews>
                                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="4C4-XJ-WHZ">
                                                         <rect key="frame" x="0.0" y="0.0" width="50" height="22"/>
-                                                        <accessibility key="accessibilityConfiguration" label="user_settings_word_spacing_decrease_a11y_label"/>
+                                                        <accessibility key="accessibilityConfiguration" label="Decrease Word Spacing"/>
                                                         <constraints>
                                                             <constraint firstAttribute="width" constant="50" id="eHT-Bd-Ht8"/>
                                                         </constraints>
@@ -587,7 +587,7 @@
                                                     </label>
                                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xPG-Eb-jSz">
                                                         <rect key="frame" x="170" y="0.0" width="50" height="22"/>
-                                                        <accessibility key="accessibilityConfiguration" label="user_settings_word_spacing_increase_a11y_label"/>
+                                                        <accessibility key="accessibilityConfiguration" label="Increase Word Spacing"/>
                                                         <constraints>
                                                             <constraint firstAttribute="width" constant="50" id="L0g-XG-QQd"/>
                                                         </constraints>
@@ -621,7 +621,7 @@
                                                 <subviews>
                                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="V5p-j8-qFi">
                                                         <rect key="frame" x="0.0" y="0.0" width="50" height="22"/>
-                                                        <accessibility key="accessibilityConfiguration" label="user_settings_letter_spacing_decrease_a11y_label"/>
+                                                        <accessibility key="accessibilityConfiguration" label="Decrease Letter Spacing"/>
                                                         <constraints>
                                                             <constraint firstAttribute="width" constant="50" id="kK7-Xr-PFm"/>
                                                         </constraints>
@@ -645,7 +645,7 @@
                                                     </label>
                                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="6Kd-tC-BhP">
                                                         <rect key="frame" x="170" y="0.0" width="50" height="22"/>
-                                                        <accessibility key="accessibilityConfiguration" label="user_settings_letter_spacing_increase_a11y_label"/>
+                                                        <accessibility key="accessibilityConfiguration" label="Increase Letter Spacing"/>
                                                         <constraints>
                                                             <constraint firstAttribute="width" constant="50" id="iPJ-hB-8Lj"/>
                                                         </constraints>
