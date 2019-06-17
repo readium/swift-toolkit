@@ -1,4 +1,4 @@
-github "readium/r2-shared-swift" == 1.2.11
+github "readium/r2-shared-swift" == 1.2.12
 github "dexman/Minizip"
 github "edrlab/Fuzi" == 2.2.2
 github "krzyzanowskim/CryptoSwift" == 0.15.0

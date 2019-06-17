@@ -8,6 +8,7 @@
 
 import Foundation
 import Minizip
+import R2Shared
 
 public struct ZipFileInfo {
     let path: String
@@ -35,7 +36,7 @@ internal enum ZipArchiveError: Error {
 }
 
 /// Wrapper around Minizip C lib. (Minizip uses Zlib)
-internal class ZipArchive {
+internal class ZipArchive: Loggable {
     /// The minizip memory representation of the Archive.
     internal var unzFile: unzFile
     /// The informations about the Archive.
@@ -148,7 +149,7 @@ internal class ZipArchive {
 
         let bytesRead = unzReadCurrentFile(unzFile, buffer, UInt32(maxLength))
         if bytesRead < 0 {
-            print("ERROR READ NOTHING")
+            log(.error, "Nothing to read")
         }
 //        if bytesRead >= 0 {
 //            currentFileOffset += UInt64(bytesRead)

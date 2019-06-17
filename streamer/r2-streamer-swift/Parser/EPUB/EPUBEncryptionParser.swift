@@ -31,7 +31,7 @@ final class EPUBEncryptionParser: Loggable {
             let data = try container.data(relativePath: path)
             self.init(data: data, drm: drm)
         } catch {
-            throw EpubParserError.missingFile(path: path)
+            throw EPUBParserError.missingFile(path: path)
         }
     }
 
