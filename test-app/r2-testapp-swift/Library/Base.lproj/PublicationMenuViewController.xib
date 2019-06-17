@@ -25,7 +25,7 @@
                     <subviews>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="gmr-BT-CvG">
                             <rect key="frame" x="0.0" y="0.0" width="375" height="215.5"/>
-                            <accessibility key="accessibilityConfiguration" label="library_publication_information_a11y_label"/>
+                            <accessibility key="accessibilityConfiguration" label="Publication Information"/>
                             <state key="normal" title="Infos">
                                 <color key="titleColor" red="0.25882352939999997" green="0.27450980390000002" blue="0.29803921570000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </state>
@@ -35,7 +35,7 @@
                         </button>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="XNx-HX-fJ0">
                             <rect key="frame" x="0.0" y="215.5" width="375" height="216"/>
-                            <accessibility key="accessibilityConfiguration" label="library_publication_delete_a11y_label"/>
+                            <accessibility key="accessibilityConfiguration" label="Delete Publication"/>
                             <state key="normal" title="Remove">
                                 <color key="titleColor" red="0.68627450980000004" green="0.21176470589999999" blue="0.1333333333" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </state>

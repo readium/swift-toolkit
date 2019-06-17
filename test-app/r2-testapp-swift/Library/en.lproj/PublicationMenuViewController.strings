@@ -1,12 +1,12 @@
 
-/* Class = "UIButton"; accessibilityLabel = "library_publication_delete_a11y_label"; ObjectID = "XNx-HX-fJ0"; */
-"XNx-HX-fJ0.accessibilityLabel" = "library_publication_delete_a11y_label";
+/* Class = "UIButton"; accessibilityLabel = "Delete Publication"; ObjectID = "XNx-HX-fJ0"; */
+"XNx-HX-fJ0.accessibilityLabel" = "Delete Publication";
 
 /* Class = "UIButton"; normalTitle = "Remove"; ObjectID = "XNx-HX-fJ0"; */
 "XNx-HX-fJ0.normalTitle" = "Remove";
 
-/* Class = "UIButton"; accessibilityLabel = "library_publication_information_a11y_label"; ObjectID = "gmr-BT-CvG"; */
-"gmr-BT-CvG.accessibilityLabel" = "library_publication_information_a11y_label";
+/* Class = "UIButton"; accessibilityLabel = "Publication Information"; ObjectID = "gmr-BT-CvG"; */
+"gmr-BT-CvG.accessibilityLabel" = "Publication Information";
 
 /* Class = "UIButton"; normalTitle = "Infos"; ObjectID = "gmr-BT-CvG"; */
 "gmr-BT-CvG.normalTitle" = "Infos";
