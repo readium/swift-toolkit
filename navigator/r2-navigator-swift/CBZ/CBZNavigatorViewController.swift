@@ -23,8 +23,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
     private let publication: Publication
     private let initialIndex: Int
-    private let positionList: [Locator]
-    
+
     private let pageViewController: UIPageViewController
 
     public init(publication: Publication, initialLocation: Locator? = nil) {
@@ -41,19 +40,6 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
             navigationOrientation: .horizontal
         )
         
-        let pageCount = publication.readingOrder.count
-        self.positionList = publication.readingOrder.enumerated().map { index, link in
-            Locator(
-                href: link.href,
-                type: link.type ?? "",
-                title: link.title,
-                locations: Locations(
-                    progression: Double(index) / Double(pageCount),
-                    position: index + 1
-                )
-            )
-        }
-
         super.init(nibName: nil, bundle: nil)
         
         automaticallyAdjustsScrollViewInsets = false
@@ -82,11 +68,18 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     
     private var currentResourceIndex: Int {
         guard let imageViewController = pageViewController.viewControllers?.first as? ImageViewController,
-            positionList.indices.contains(imageViewController.index) else
+            publication.positionList.indices.contains(imageViewController.index) else
         {
             return initialIndex
         }
         return imageViewController.index
+    }
+    
+    public var currentPosition: Locator? {
+        guard publication.positionList.indices.contains(currentResourceIndex) else {
+            return nil
+        }
+        return publication.positionList[currentResourceIndex]
     }
     
     @discardableResult
@@ -106,10 +99,10 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
             return forward ? .forward : .reverse
         }()
         pageViewController.setViewControllers([imageViewController], direction: direction, animated: animated) { [weak self] _ in
-            guard let `self` = self else {
+            guard let self = self, let position = self.currentPosition else {
                 return
             }
-            self.delegate?.navigator(self, locationDidChange: self.positionList[self.currentResourceIndex])
+            self.delegate?.navigator(self, locationDidChange: position)
             completion()
         }
         return true
@@ -136,9 +129,9 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     public var readingProgression: ReadingProgression {
         return publication.contentLayout.readingProgression
     }
-    
+
     public var currentLocation: Locator? {
-        return positionList[currentResourceIndex]
+        return currentPosition
     }
     
     public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
@@ -200,8 +193,8 @@ extension CBZNavigatorViewController: UIPageViewControllerDataSource {
 extension CBZNavigatorViewController: UIPageViewControllerDelegate {
     
     public func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
-        if completed {
-            delegate?.navigator(self, locationDidChange: positionList[currentResourceIndex])
+        if completed, let position = currentPosition {
+            delegate?.navigator(self, locationDidChange: position)
         }
     }
 
