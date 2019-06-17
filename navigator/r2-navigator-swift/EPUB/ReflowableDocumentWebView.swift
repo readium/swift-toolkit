@@ -24,7 +24,7 @@ final class ReflowableDocumentWebView: DocumentWebView {
     override func setupWebView() {
         super.setupWebView()
         scrollView.bounces = false
-        scrollView.isPagingEnabled = true
+        scrollView.isPagingEnabled = !isScrollEnabled
         
         webView.translatesAutoresizingMaskIntoConstraints = false
         topConstraint = webView.topAnchor.constraint(equalTo: topAnchor)

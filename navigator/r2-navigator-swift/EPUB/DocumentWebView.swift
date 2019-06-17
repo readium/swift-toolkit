@@ -301,7 +301,6 @@ class DocumentWebView: UIView, Loggable {
             }
         }
         
-        let viewDelegate = self.viewDelegate
         if animated {
             switch direction {
             case .left:
@@ -324,17 +323,17 @@ class DocumentWebView: UIView, Loggable {
         let dir = readingProgression.rawValue
         switch direction {
         case .left:
-            evaluateScriptInResource("readium.scrollLeft(\"\(dir)\");") { result, error in
+            evaluateScriptInResource("readium.scrollLeft(\"\(dir)\");") { [weak self] result, error in
                 if error == nil, let success = result as? Bool, !success {
-                    viewDelegate?.displayLeftDocument(animated: animated, completion: completion)
+                    self?.viewDelegate?.displayLeftDocument(animated: animated, completion: completion)
                 } else {
                     completion()
                 }
             }
         case .right:
-            evaluateScriptInResource("readium.scrollRight(\"\(dir)\");") { result, error in
+            evaluateScriptInResource("readium.scrollRight(\"\(dir)\");") { [weak self] result, error in
                 if error == nil, let success = result as? Bool, !success {
-                    viewDelegate?.displayRightDocument(animated: animated, completion: completion)
+                    self?.viewDelegate?.displayRightDocument(animated: animated, completion: completion)
                 } else {
                     completion()
                 }
