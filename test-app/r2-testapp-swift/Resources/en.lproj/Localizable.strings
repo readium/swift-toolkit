@@ -67,10 +67,10 @@
 "library_error_drmNotSupported" = "%@ DRM not supported";
 
 /* Accessibility label for the library collection view */
-"library_a11n_label" = "Library";
+"library_a11y_label" = "Library";
 
 /* Accessibility hint for the publication collection cell */
-"library_publication_a11n_hint" = "Hold to access options.";
+"library_publication_a11y_hint" = "Hold to access options.";
 
 
 /* MARK: Reader */
@@ -86,9 +86,9 @@
 "reader_error_epubNotValid" = "Invalid EPUB file";
 
 /* Accessibility label to go backward in the publication */
-"reader_backward_a11n_label" = "Previous";
+"reader_backward_a11y_label" = "Previous Chapter";
 /* Accessibility label to go forward in the publication */
-"reader_forward_a11n_label" = "Next";
+"reader_forward_a11y_label" = "Next Chapter";
 
 /* Outline bookmark label when the position is available */
 "reader_outline_position_label" = "position %d";
@@ -141,6 +141,7 @@
 "opds_edit_button" = "Edit catalog";
 /* Button to expand a feed gallery */
 "opds_more_button" = "more >";
+"opds_more_button_a11y_label" = "expand feed";
 /* Title of the section displaying the feeds */
 "opds_browse_title" = "Browse";
 /* Title of the add feed alert */
@@ -153,3 +154,21 @@
 "opds_feed_url_caption" = "Feed URL";
 /* Error message when the feed couldn't be loaded */
 "opds_failure_message" = "Something went wrong.";
+/* Add OPDS Feed button label */
+"opds_add_button_a11y_label" = "Add OPDS Feed";
+"opds_show_detail_view_a11y_hint" = "tap to view details";
+"opds_feed_header_a11y_hint" = "Feed Group Header";
+
+
+/* MARK: User Settings */
+
+"user_settings_appearance_default_a11y_label" = "Appearance default";
+"user_settings_appearance_sepia_a11y_label" = "Appearance sepia";
+"user_settings_appearance_night_a11y_label" = "Appearance night";
+
+"user_settings_alignment_justify_a11y_label" = "Alignment justify";
+"user_settings_alignment_left_a11y_label" = "Alignment left";
+
+"user_settings_column_auto_a11y_label" = "Column auto";
+"user_settings_column_1_a11y_label" = "Column 1";
+"user_settings_column_2_a11y_label" = "Column 2";

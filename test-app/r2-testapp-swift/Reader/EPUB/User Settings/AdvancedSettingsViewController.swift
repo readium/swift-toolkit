@@ -119,6 +119,14 @@ class AdvancedSettingsViewController: UIViewController {
                 }
             }
         })
+      
+      alignSegment.subviews[0].accessibilityLabel = NSLocalizedString("user_settings_alignment_justify_a11y_label", comment: "Accessibility label for user settings aligment justify")
+      alignSegment.subviews[1].accessibilityLabel = NSLocalizedString("user_settings_alignment_left_a11y_label", comment: "Accessibility label for user settings aligment left")
+
+      columnsSegment.subviews[0].accessibilityLabel = NSLocalizedString("user_settings_column_auto_a11y_label", comment: "Accessibility label for user settings columns auto")
+      columnsSegment.subviews[1].accessibilityLabel = NSLocalizedString("user_settings_column_1_a11y_label", comment: "Accessibility label for user settings columns 1")
+      columnsSegment.subviews[2].accessibilityLabel = NSLocalizedString("user_settings_column_2_a11y_label", comment: "Accessibility label for user settings columns 2")
+
     }
     
     /// Publisher's default

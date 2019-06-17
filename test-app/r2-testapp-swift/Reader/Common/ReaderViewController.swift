@@ -180,9 +180,9 @@ class ReaderViewController: UIViewController, Loggable {
         let toolbar = UIToolbar(frame: .zero)
         toolbar.items = [
             makeItem(.flexibleSpace),
-            makeItem(.rewind, label: NSLocalizedString("reader_backward_a11n_label", comment: "Accessibility label to go backward in the publication"), action: #selector(goBackward)),
+            makeItem(.rewind, label: NSLocalizedString("reader_backward_a11y_label", comment: "Accessibility label to go backward in the publication"), action: #selector(goBackward)),
             makeItem(.flexibleSpace),
-            makeItem(.fastForward, label: NSLocalizedString("reader_forward_a11n_label", comment: "Accessibility label to go forward in the publication"), action: #selector(goForward)),
+            makeItem(.fastForward, label: NSLocalizedString("reader_forward_a11y_label", comment: "Accessibility label to go forward in the publication"), action: #selector(goForward)),
             makeItem(.flexibleSpace),
         ]
         toolbar.isHidden = !UIAccessibility.isVoiceOverRunning
