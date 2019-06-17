@@ -1,0 +1,15 @@
+
+/* Class = "UIButton"; accessibilityLabel = "library_publication_delete_a11y_label"; ObjectID = "XNx-HX-fJ0"; */
+"XNx-HX-fJ0.accessibilityLabel" = "library_publication_delete_a11y_label";
+
+/* Class = "UIButton"; normalTitle = "Remove"; ObjectID = "XNx-HX-fJ0"; */
+"XNx-HX-fJ0.normalTitle" = "Remove";
+
+/* Class = "UIButton"; accessibilityLabel = "library_publication_information_a11y_label"; ObjectID = "gmr-BT-CvG"; */
+"gmr-BT-CvG.accessibilityLabel" = "library_publication_information_a11y_label";
+
+/* Class = "UIButton"; normalTitle = "Infos"; ObjectID = "gmr-BT-CvG"; */
+"gmr-BT-CvG.normalTitle" = "Infos";
+
+/* Class = "UIButton"; normalTitle = "Cancel"; ObjectID = "kn0-yM-9Ms"; */
+"kn0-yM-9Ms.normalTitle" = "Cancel";

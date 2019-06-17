@@ -72,6 +72,9 @@
 /* Accessibility hint for the publication collection cell */
 "library_publication_a11y_hint" = "Hold to access options.";
 
+"library_publication_information_a11y_label" = "Publication Information";
+"library_publication_delete_a11y_label" = "Delete Publication";
+
 
 /* MARK: Reader */
 
