@@ -569,7 +569,7 @@ class OPDSRootTableViewController: UITableViewController {
         header.isAccessibilityElement = false
 
         header.textLabel?.font = UIFont.boldSystemFont(ofSize: 13)
-        header.textLabel?.accessibilityHint = NSLocalizedString("opds_feed_header_hint", comment: "Accessibility hint feed section header")
+        header.textLabel?.accessibilityHint = NSLocalizedString("opds_feed_header_a11y_hint", comment: "Accessibility hint feed section header")
       
         var offset: Int
         
