@@ -76,6 +76,7 @@ public class CbzParser: PublicationParser {
     private static func parsePublication(in container: CBZContainer, at path: String) -> Publication {
         let publication = Publication(
             format: .cbz,
+            positionListFactory: makePositionList(of:),
             metadata: Metadata(
                 identifier: URL(fileURLWithPath: path).lastPathComponent,
                 title: URL(fileURLWithPath: path)
@@ -123,6 +124,21 @@ public class CbzParser: PublicationParser {
             throw CBZParserError.missingFile(path: path)
         }
         return containerUnwrapped
+    }
+    
+    private static func makePositionList(of publication: Publication) -> [Locator] {
+        let pageCount = publication.readingOrder.count
+        return publication.readingOrder.enumerated().map { index, link in
+            Locator(
+                href: link.href,
+                type: link.type ?? "",
+                title: link.title,
+                locations: Locations(
+                    progression: Double(index) / Double(pageCount),
+                    position: index + 1
+                )
+            )
+        }
     }
 
 }

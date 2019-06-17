@@ -70,6 +70,13 @@ final class PDFFileCGParser: PDFFileParser, Loggable {
         }
         return UIImage(cgImage: cgImage)
     }
+    
+    func parseNumberOfPages() throws -> Int {
+        guard let document = self.document else {
+            throw PDFParserError.openFailed
+        }
+        return document.numberOfPages
+    }
 
     func parseMetadata() throws -> PDFFileMetadata {
         guard let document = self.document else {
