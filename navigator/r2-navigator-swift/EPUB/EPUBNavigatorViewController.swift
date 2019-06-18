@@ -204,6 +204,21 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator {
         }
     }
 
+    /// Returns the position locator of the current page.
+    /// Note: Right now using an underscore because it conflicts with another deprecated property `currentPosition`.
+    private var currentPosition_: Locator? {
+        let index = triptychView.index
+        guard publication.readingOrder.indices.contains(index),
+            let positionList = publication.positionListByResource[publication.readingOrder[index].href],
+            positionList.count > 0 else
+        {
+            return nil
+        }
+        
+        let progression = triptychView.currentDocumentProgression ?? 0
+        let positionIndex = Int(progression * Double(positionList.count - 1))
+        return positionList[positionIndex]
+    }
     
     // MARK: - Navigator
     
@@ -212,15 +227,14 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator {
     }
     
     public var currentLocation: Locator? {
-        let resource = publication.readingOrder[triptychView.index]
-        return Locator(
-            href: resource.href,
-            type: resource.type ?? "text/html",
-            title: tableOfContentsTitleByHref[resource.href],
-            locations: Locations(
-                progression: triptychView.currentDocumentProgression ?? 0
-            )
-        )
+        guard var locator = currentPosition_ else {
+            return nil
+        }
+        locator.title = tableOfContentsTitleByHref[locator.href]
+        if let progression = triptychView.currentDocumentProgression {
+            locator.locations?.progression = progression
+        }
+        return locator
     }
 
     /// Last current location notified to the delegate.
@@ -366,7 +380,7 @@ extension EPUBNavigatorViewController: TriptychViewDelegate {
         
         let link = publication.readingOrder[index]
         // Check if link is FXL.
-        let hasFixedLayout = (publication.metadata.rendition?.layout == .fixed && link.properties.layout == nil) || link.properties.layout == .fixed
+        let hasFixedLayout = publication.metadata.rendition.layout(of: link) == .fixed
 
         let webViewType = hasFixedLayout ? FixedDocumentWebView.self : ReflowableDocumentWebView.self
         let webView = webViewType.init(
