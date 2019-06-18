@@ -94,7 +94,7 @@ class LocatorTests: XCTestCase {
             Locator(
                 href: "http://locator",
                 type: "",
-                locations: Locations(fragment: "page=42")
+                locations: Locations(fragments: ["page=42"])
             )
         )
     }
@@ -154,14 +154,27 @@ class LocationTests: XCTestCase {
     func testParseFullJSON() {
         XCTAssertEqual(
             try? Locations(json: [
-                "fragment": "frag34",
+                "fragments": ["p=4", "frag34"],
                 "progression": 0.74,
+                "totalProgression": 25.32,
                 "position": 42
             ]),
             Locations(
-                fragment: "frag34",
+                fragments: ["p=4", "frag34"],
                 progression: 0.74,
+                totalProgression: 25.32,
                 position: 42
+            )
+        )
+    }
+    
+    func testParseSingleFragment() {
+        XCTAssertEqual(
+            try? Locations(json: [
+                "fragment": "frag34",
+            ]),
+            Locations(
+                fragments: ["frag34"]
             )
         )
     }
@@ -191,13 +204,15 @@ class LocationTests: XCTestCase {
     func testGetFullJSON() {
         AssertJSONEqual(
             Locations(
-                fragment: "frag34",
+                fragments: ["p=4", "frag34"],
                 progression: 0.74,
+                totalProgression: 25.32,
                 position: 42
             ).json as Any,
             [
-                "fragment": "frag34",
+                "fragments": ["p=4", "frag34"],
                 "progression": 0.74,
+                "totalProgression": 25.32,
                 "position": 42
             ]
         )

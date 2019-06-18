@@ -76,7 +76,7 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
         let components = link.href.split(separator: "#", maxSplits: 1).map(String.init)
         var locations: Locations?
         if components.count > 1 {
-            locations = Locations(fragment: String(components[1]))
+            locations = Locations(fragments: [String(components[1])])
         }
         
         self.init(
@@ -167,15 +167,18 @@ public struct LocatorText: Equatable, Loggable {
 /// Location : Class that contain the different variables needed to localize a particular position
 public struct Locations: Equatable, Loggable {
     /// Contains one or more fragment in the resource referenced by the Locator Object.
-    public var fragment: String?      // 1 = fragment identifier (toc, page lists, landmarks)
+    public var fragments: [String]
     /// Progression in the resource expressed as a percentage.
-    public var progression: Double?    // 2 = bookmarks
+    public var progression: Double?
+    /// Progression in the publication expressed as a percentage.
+    public var totalProgression: Double?
     /// An index in the publication.
-    public var position: Int?      // 3 = goto page
+    public var position: Int?
     
-    public init(fragment: String? = nil, progression: Double? = nil, position: Int? = nil) {
-        self.fragment = fragment
+    public init(fragments: [String] = [], progression: Double? = nil, totalProgression: Double? = nil, position: Int? = nil) {
+        self.fragments = fragments
         self.progression = progression
+        self.totalProgression = totalProgression
         self.position = position
     }
     
@@ -183,8 +186,13 @@ public struct Locations: Equatable, Loggable {
         guard let json = json as? [String: Any] else {
             throw JSONError.parsing(Locations.self)
         }
-        self.fragment = json["fragment"] as? String
+        var fragments = (json["fragments"] as? [String]) ?? []
+        if let fragment = json["fragment"] as? String {
+            fragments.append(fragment)
+        }
+        self.fragments = fragments
         self.progression = json["progression"] as? Double
+        self.totalProgression = json["totalProgression"] as? Double
         self.position = json["position"] as? Int
     }
 
@@ -200,8 +208,9 @@ public struct Locations: Equatable, Loggable {
     
     public var json: [String: Any]? {
         return makeJSON([
-            "fragment": encodeIfNotNil(fragment),
+            "fragments": encodeIfNotEmpty(fragments),
             "progression": encodeIfNotNil(progression),
+            "totalProgression": encodeIfNotNil(totalProgression),
             "position": encodeIfNotNil(position)
         ])
     }
@@ -223,6 +232,11 @@ public struct Locations: Equatable, Loggable {
         return jsonString
     }
     
+    @available(*, deprecated, message: "Use `fragments.first` instead")
+    public var fragment: String? {
+        return fragments.first
+    }
+
 }
 
 
