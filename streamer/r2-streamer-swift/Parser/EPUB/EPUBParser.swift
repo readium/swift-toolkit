@@ -67,6 +67,7 @@ final public class EpubParser: PublicationParser {
 
         // Parse OPF file (Metadata, ReadingOrder, Resource).
         var publication = try OPFParser(container: container).parsePublication()
+        publication.positionListFactory = makePositionListFactory(container: container)
         
         // Parse navigation tables.
         parseNavigationDocument(from: container, to: &publication)
@@ -96,7 +97,7 @@ final public class EpubParser: PublicationParser {
 
     /// Parse the Encryption.xml EPUB file. It contains the informationg about
     /// encrypted resources and how to decrypt them.
-    static internal func parseEncryption(from container: Container, to publication: inout Publication, _ drm: DRM?) {
+    private static func parseEncryption(from container: Container, to publication: inout Publication, _ drm: DRM?) {
         guard let parser = try? EPUBEncryptionParser(container: container, drm: drm) else {
             return
         }
@@ -116,7 +117,7 @@ final public class EpubParser: PublicationParser {
     ///
     /// - Parameter in: The Publication's Container.
     /// - Returns: The DRM if any found.
-    static internal func scanForDRM(in container: Container) -> DRM? {
+    private static func scanForDRM(in container: Container) -> DRM? {
         /// LCP.
         // Check if a LCP license file is present in the container.
         if ((try? container.data(relativePath: EPUBConstant.lcplFilePath)) != nil) {
@@ -130,7 +131,7 @@ final public class EpubParser: PublicationParser {
     /// - Parameters:
     ///   - container: The Epub container.
     ///   - publication: The Epub publication.
-    static internal func parseNavigationDocument(from container: Container, to publication: inout Publication) {
+    private static func parseNavigationDocument(from container: Container, to publication: inout Publication) {
         // Get the link in the readingOrder pointing to the Navigation Document.
         guard let navLink = publication.link(withRel: "contents"),
             let navDocumentData = try? container.data(relativePath: navLink.href) else
@@ -157,7 +158,7 @@ final public class EpubParser: PublicationParser {
     /// - Parameters:
     ///   - container: The Epub container.
     ///   - publication: The Epub publication.
-    static internal func parseNCXDocument(from container: Container, to publication: inout Publication) {
+    private static func parseNCXDocument(from container: Container, to publication: inout Publication) {
         // Get the link in the readingOrder pointing to the NCX document.
         guard let ncxLink = publication.resources.first(where: { $0.type == "application/x-dtbncx+xml" }),
             let ncxDocumentData = try? container.data(relativePath: ncxLink.href) else
@@ -182,7 +183,7 @@ final public class EpubParser: PublicationParser {
     /// - Parameters:
     ///   - container: The Epub Container.
     ///   - publication: The Publication object representing the Epub data.
-    static internal func parseMediaOverlay(from fetcher: Fetcher, to publication: inout Publication) throws {
+    private static func parseMediaOverlay(from fetcher: Fetcher, to publication: inout Publication) throws {
         let mediaOverlays = publication.resources.filter({ $0.type ==  "application/smil+xml"})
 
         guard !mediaOverlays.isEmpty else {
@@ -230,7 +231,7 @@ final public class EpubParser: PublicationParser {
     /// - Parameter path: The absolute path of the file.
     /// - Returns: The generated Container.
     /// - Throws: `EPUBParserError.missingFile`.
-    static fileprivate func generateContainerFrom(fileAtPath path: String) throws -> Container {
+    private static func generateContainerFrom(fileAtPath path: String) throws -> Container {
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) else {
             throw EPUBParserError.missingFile(path: path)
@@ -257,9 +258,7 @@ final public class EpubParser: PublicationParser {
     /// - Parameters:
     ///   - publication: The Publication.
     ///   - drm: The `DRM` object.
-    static fileprivate func fillEncryptionProfile(forLinksIn publication: Publication,
-                                                  using drm: DRM?)
-    {
+    private static func fillEncryptionProfile(forLinksIn publication: Publication, using drm: DRM?) {
         guard let drm = drm else {
             return
         }
@@ -274,4 +273,58 @@ final public class EpubParser: PublicationParser {
             }
         }
     }
+    
+    /// Factory to create an EPUB's positionList.
+    private static func makePositionListFactory(container: Container) -> (Publication) -> [Locator] {
+        return { publication in
+            var lastPositionOfPreviousResource = 0
+            return publication.readingOrder.flatMap { link -> [Locator] in
+                let (lastPosition, positionList): (Int, [Locator]) = {
+                    if publication.metadata.rendition.layout(of: link) == .fixed {
+                        return makeFixedPositionList(of: link, from: lastPositionOfPreviousResource)
+                    } else {
+                        return makeReflowablePositionList(of: link, in: container, from: lastPositionOfPreviousResource)
+                    }
+                }()
+                lastPositionOfPreviousResource = lastPosition
+                return positionList
+            }
+        }
+    }
+    
+    private static func makeFixedPositionList(of link: Link, from startPosition: Int) -> (Int, [Locator]) {
+        let position = startPosition + 1
+        let positionList = [Locator(
+            href: link.href,
+            type: link.type ?? "text/html",
+            locations: Locations(
+                progression: 0,
+                position: position
+            )
+        )]
+        return (position, positionList)
+    }
+    
+    private static func makeReflowablePositionList(of link: Link, in container: Container, from startPosition: Int) -> (Int, [Locator]) {
+        // If the resource is encrypted, we use the originalLength declared in encryption.xml instead of the ZIP entry length
+        let length = link.properties.encryption?.originalLength
+            ?? Int((try? container.dataLength(relativePath: link.href)) ?? 0)
+        
+        // Arbitrary byte length of a single page in a resource.
+        let pageLength = 3500
+        let pageCount = max(1, Int(ceil((Double(length) / Double(pageLength)))))
+        
+        let positionList = (1...pageCount).map { position in
+            Locator(
+                href: link.href,
+                type: link.type ?? "text/html",
+                locations: Locations(
+                    progression: Double(position - 1) / Double(pageCount),
+                    position: startPosition + position
+                )
+            )
+        }
+        return (startPosition + pageCount, positionList)
+    }
+    
 }

@@ -197,16 +197,14 @@ public final class PDFParser: PublicationParser, Loggable {
     private static func makePositionList(of link: Link, pageCount: Int, startPosition: Int = 0) -> [Locator] {
         assert(pageCount > 0, "Invalid PDF page count")
         
-        return (1...pageCount).map { pageNumber in
+        return (1...pageCount).map { position in
             Locator(
                 href: link.href,
                 type: link.type ?? "application/pdf",
-                // FIXME: title by finding the containing TOC item
-                title: nil,
                 locations: Locations(
-                    fragment: "page=\(pageNumber)",
-                    progression: Double(pageNumber) / Double(pageCount),
-                    position: startPosition + pageNumber
+                    fragment: "page=\(position)",
+                    progression: Double(position - 1) / Double(pageCount),
+                    position: startPosition + position
                 )
             )
         }
