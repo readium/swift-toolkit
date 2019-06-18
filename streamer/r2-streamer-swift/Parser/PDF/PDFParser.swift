@@ -167,7 +167,7 @@ public final class PDFParser: PublicationParser, Loggable {
         return { publication -> [Locator] in
             // In case it's a single PDF and the numberOfPages was already parsed from the metadata.
             if publication.readingOrder.count == 1, let pageCount = publication.metadata.numberOfPages, pageCount > 0 {
-                return makePositionList(of: publication.readingOrder[0], pageCount: pageCount)
+                return makePositionList(of: publication.readingOrder[0], pageCount: pageCount, totalPageCount: pageCount)
             }
             
             // The resources could be encrypted, so we use the fetcher to go through the content filters.
@@ -175,35 +175,47 @@ public final class PDFParser: PublicationParser, Loggable {
                 return []
             }
 
-            var lastPositionOfPreviousResource = 0
-            return publication.readingOrder.flatMap { link -> [Locator] in
+            // Calculates the page count of each resource from the reading order.
+            let resources = publication.readingOrder.map { link -> (Int, Link) in
                 guard let optionalData = try? fetcher.data(forLink: link),
                     let data = optionalData,
                     let parser = try? parserType.init(stream: DataInputStream(data: data)),
-                    let pageCount = try? parser.parseNumberOfPages(),
-                    pageCount > 0 else
+                    let pageCount = try? parser.parseNumberOfPages() else
                 {
                     log(.warning, "Can't get the number of pages from PDF document at \(link)")
+                    return (0, link)
+                }
+                return (pageCount, link)
+            }
+
+            let totalPageCount = resources.reduce(0) { count, current in count + current.0 }
+            
+            var lastPositionOfPreviousResource = 0
+            return resources.flatMap { pageCount, link -> [Locator] in
+                guard pageCount > 0 else {
                     return []
                 }
-
-                let positionList = makePositionList(of: link, pageCount: pageCount, startPosition: lastPositionOfPreviousResource)
+                let positionList = makePositionList(of: link, pageCount: pageCount, totalPageCount: totalPageCount, startPosition: lastPositionOfPreviousResource)
                 lastPositionOfPreviousResource += pageCount
                 return positionList
             }
         }
     }
     
-    private static func makePositionList(of link: Link, pageCount: Int, startPosition: Int = 0) -> [Locator] {
+    private static func makePositionList(of link: Link, pageCount: Int, totalPageCount: Int, startPosition: Int = 0) -> [Locator] {
         assert(pageCount > 0, "Invalid PDF page count")
+        assert(totalPageCount > 0, "Invalid PDF total page count")
         
         return (1...pageCount).map { position in
-            Locator(
+            let progression = Double(position - 1) / Double(pageCount)
+            let totalProgression = Double(startPosition + position - 1) / Double(totalPageCount)
+            return Locator(
                 href: link.href,
                 type: link.type ?? "application/pdf",
                 locations: Locations(
-                    fragment: "page=\(position)",
-                    progression: Double(position - 1) / Double(pageCount),
+                    fragments: ["page=\(position)"],
+                    progression: progression,
+                    totalProgression: totalProgression,
                     position: startPosition + position
                 )
             )

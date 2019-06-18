@@ -278,7 +278,7 @@ final public class EpubParser: PublicationParser {
     private static func makePositionListFactory(container: Container) -> (Publication) -> [Locator] {
         return { publication in
             var lastPositionOfPreviousResource = 0
-            return publication.readingOrder.flatMap { link -> [Locator] in
+            var positionList = publication.readingOrder.flatMap { link -> [Locator] in
                 let (lastPosition, positionList): (Int, [Locator]) = {
                     if publication.metadata.rendition.layout(of: link) == .fixed {
                         return makeFixedPositionList(of: link, from: lastPositionOfPreviousResource)
@@ -289,6 +289,20 @@ final public class EpubParser: PublicationParser {
                 lastPositionOfPreviousResource = lastPosition
                 return positionList
             }
+            
+            // Calculates totalProgression
+            let totalPageCount = positionList.count
+            if totalPageCount > 0 {
+                positionList = positionList.map { locator in
+                    var locator = locator
+                    if let position = locator.locations?.position {
+                        locator.locations?.totalProgression = Double(position - 1) / Double(totalPageCount)
+                    }
+                    return locator
+                }
+            }
+            
+            return positionList
         }
     }
     

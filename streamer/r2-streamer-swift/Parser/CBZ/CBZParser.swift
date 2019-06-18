@@ -134,7 +134,7 @@ public class CbzParser: PublicationParser {
                 type: link.type ?? "",
                 title: link.title,
                 locations: Locations(
-                    progression: Double(index) / Double(pageCount),
+                    totalProgression: Double(index) / Double(pageCount),
                     position: index + 1
                 )
             )
