@@ -28,6 +28,7 @@ class ReaderViewController: UIViewController, Loggable {
     lazy var bookmarksDataSource: BookmarkDataSource? = BookmarkDataSource(publicationID: publication.metadata.identifier ?? "")
     
     private(set) var stackView: UIStackView!
+    private lazy var positionLabel = UILabel()
     
     // FIXME: Should be moved into Book.progression.
     static func initialLocation(for publication: Publication) -> Locator? {
@@ -85,6 +86,15 @@ class ReaderViewController: UIViewController, Loggable {
         navigator.didMove(toParent: self)
         
         stackView.addArrangedSubview(accessibilityToolbar)
+        
+        positionLabel.translatesAutoresizingMaskIntoConstraints = false
+        positionLabel.font = .systemFont(ofSize: 12)
+        positionLabel.textColor = .darkGray
+        view.addSubview(positionLabel)
+        NSLayoutConstraint.activate([
+            positionLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            positionLabel.bottomAnchor.constraint(equalTo: navigator.view.bottomAnchor, constant: -20)
+        ])
     }
     
     override func willMove(toParent parent: UIViewController?) {
@@ -221,6 +231,16 @@ extension ReaderViewController: NavigatorDelegate {
             return
         }
         UserDefaults.standard.set(locator.jsonString, forKey: "\(publicationID)-locator")
+        
+        positionLabel.text = {
+            if let position = locator.locations?.position {
+                return "\(position) / \(publication.positionList.count)"
+            } else if let progression = locator.locations?.totalProgression {
+                return "\(progression)%"
+            } else {
+                return nil
+            }
+        }()
     }
     
     func navigator(_ navigator: Navigator, presentExternalURL url: URL) {
