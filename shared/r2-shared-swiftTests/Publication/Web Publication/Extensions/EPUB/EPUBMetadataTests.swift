@@ -21,7 +21,7 @@ class EPUBMetadataTests: XCTestCase {
     }
     
     func testNoRendition() {
-        XCTAssertNil(sut.rendition)
+        XCTAssertEqual(sut.rendition, EPUBRendition())
     }
     
     func testRendition() {
