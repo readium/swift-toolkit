@@ -94,9 +94,13 @@ extension LicensesService: LCPService {
     }
     
     func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, completion: @escaping (LCPLicense?, LCPError?) -> Void) {
-        let container = EPUBLicenseContainer(epub: publication)
-        retrieveLicense(from: container, authentication: authentication)
-            .resolve(LCPError.wrap(completion))
+        do {
+            let container = try makeLicenseContainer(for: publication)
+            retrieveLicense(from: container, authentication: authentication)
+                .resolve(LCPError.wrap(completion))
+        } catch {
+            completion(nil, LCPError.wrap(error))
+        }
     }
     
 }

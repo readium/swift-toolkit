@@ -254,7 +254,7 @@ extension License {
                 
                 do {
                     // Saves the License Document into the downloaded publication
-                    let container = EPUBLicenseContainer(epub: downloadedFile)
+                    let container = try makeLicenseContainer(for: downloadedFile, mimetype: task?.response?.mimeType)
                     try container.write(license)
                     completion((downloadedFile, task), nil)
                     
