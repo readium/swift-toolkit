@@ -43,11 +43,6 @@ protocol LibraryModuleDelegate: ModuleDelegate {
 }
 
 
-enum LibraryError: Error {
-    case cantStartPublicationServer
-}
-
-
 final class LibraryModule: LibraryModuleAPI {
     
     weak var delegate: LibraryModuleDelegate?

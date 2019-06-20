@@ -1,5 +1,5 @@
 //
-//  DrmManagementTableViewController.swift
+//  DRMManagementTableViewController.swift
 //  r2-testapp-swift
 //
 //  Created by Alexandre Camilleri on 11/27/17.
@@ -14,11 +14,11 @@ import UIKit
 import R2Shared
 import R2Navigator
 
-protocol DrmManagementTableViewControllerFactory {
-    func make(drm: DRM) -> DrmManagementTableViewController
+protocol DRMManagementTableViewControllerFactory {
+    func make(drm: DRM, delegate: ReaderModuleDelegate?) -> DRMManagementTableViewController
 }
 
-class DrmManagementTableViewController: UITableViewController {
+class DRMManagementTableViewController: UITableViewController {
     @IBOutlet weak var stateLabel: UILabel!
     @IBOutlet weak var typeLabel: UILabel!
     @IBOutlet weak var providerLabel: UILabel!
@@ -36,8 +36,10 @@ class DrmManagementTableViewController: UITableViewController {
     public var viewModel: DRMViewModel!
     public var appearance: UserProperty?
     
+    weak var moduleDelegate: ReaderModuleDelegate?
+    
     override func viewWillAppear(_ animated: Bool) {
-        title = "DRM Management"
+        title = NSLocalizedString("reader_drm_management_title", comment: "Title of the DRM management view")
         reload()
         self.navigationController?.navigationBar.barTintColor = UIColor.white
         self.navigationController?.navigationBar.tintColor = UIColor.black
@@ -60,20 +62,26 @@ class DrmManagementTableViewController: UITableViewController {
     }
       
     @IBAction func renewTapped() {
-        let alert = UIAlertController(title: "Renew License",
-                                      message: "The provider will receive you query and process it.",
-                                      preferredStyle: .alert)
-        let confirmButton = UIAlertAction(title: "Confirm", style: .default, handler: { (_) in
+        let alert = UIAlertController(
+            title: NSLocalizedString("reader_drm_renew_title", comment: "Title of the renew confirmation alert"),
+            message: NSLocalizedString("reader_drm_renew_message", comment: "Message of the renew confirmation alert"),
+            preferredStyle: .alert
+        )
+        let confirmButton = UIAlertAction(title: NSLocalizedString("confirm_button", comment: "Confirmation button to renew a publication"), style: .default, handler: { (_) in
             self.viewModel.renewLoan { error in
                 if let error = error {
-                    self.infoAlert(title: "Error", message: error.localizedDescription)
+                    self.moduleDelegate?.presentError(error, from: self)
                 } else {
                     self.reload()
-                    self.infoAlert(title: "Succes", message: "Publication renewed successfully.")
+                    self.moduleDelegate?.presentAlert(
+                        NSLocalizedString("success_title", comment: "Title for the success message after renewing a publication"),
+                        message: NSLocalizedString("reader_drm_renew_success_message", comment: "Success message after renewing a publication"),
+                        from: self
+                    )
                 }
             }
         })
-        let dismissButton = UIAlertAction(title: "Cancel", style: .cancel)
+        let dismissButton = UIAlertAction(title: NSLocalizedString("cancel_button", comment: "Cancel renewing the publication"), style: .cancel)
         
         alert.addAction(dismissButton)
         alert.addAction(confirmButton)
@@ -82,20 +90,26 @@ class DrmManagementTableViewController: UITableViewController {
     }
     
     @IBAction func returnTapped() {
-        let alert = UIAlertController(title: "Return License",
-                                      message: "Returning the loan will prevent you from accessing the publication.",
-                                      preferredStyle: .alert)
-        let confirmButton = UIAlertAction(title: "Confirm", style: .destructive, handler: { (_) in
+        let alert = UIAlertController(
+            title: NSLocalizedString("reader_drm_return_title", comment: "Title of the return confirmation alert"),
+            message: NSLocalizedString("reader_drm_return_message", comment: "Message of the return confirmation alert"),
+            preferredStyle: .alert
+        )
+        let confirmButton = UIAlertAction(title: NSLocalizedString("confirm_button", comment: "Confirmation button to return a publication"), style: .destructive, handler: { (_) in
             self.viewModel.returnPublication() { error in
                 if let error = error {
-                    self.infoAlert(title: "Error", message: error.localizedDescription)
+                    self.moduleDelegate?.presentError(error, from: self)
                 } else {
                     self.navigationController?.popToRootViewController(animated: true)
-                    self.infoAlert(title: "Succes", message: "Publication returned successfully.")
+                    self.moduleDelegate?.presentAlert(
+                        NSLocalizedString("success_title", comment: "Title for the success message after returning a publication"),
+                        message: NSLocalizedString("reader_drm_return_success_message", comment: "Success message after returning a publication"),
+                        from: self
+                    )
                 }
             }
         })
-        let dismissButton = UIAlertAction(title: "Cancel", style: .cancel)
+        let dismissButton = UIAlertAction(title: NSLocalizedString("cancel_button", comment: "Cancel returning the publication"), style: .cancel)
         
         alert.addAction(dismissButton)
         alert.addAction(confirmButton)
@@ -117,14 +131,5 @@ class DrmManagementTableViewController: UITableViewController {
         renewButton.isEnabled = viewModel.canRenewLoan
         returnButton.isEnabled = viewModel.canReturnPublication
     }
-    
-    internal func infoAlert(title: String, message: String) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        let dismissButton = UIAlertAction(title: "Ok", style: .cancel)
-        
-        alert.addAction(dismissButton)
-        // Present alert.
-        present(alert, animated: true)
-    }
-    
+
 }

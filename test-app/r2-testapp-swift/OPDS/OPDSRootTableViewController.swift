@@ -96,10 +96,12 @@ class OPDSRootTableViewController: UITableViewController {
             self.nextPageURL = self.findNextPageURL(feed: feed)
             
             if feed.facets.count > 0 {
-                let filterButton = UIBarButtonItem(title: "Filter",
-                                                   style: UIBarButtonItem.Style.plain,
-                                                   target: self,
-                                                   action: #selector(OPDSRootTableViewController.filterMenuClicked))
+                let filterButton = UIBarButtonItem(
+                    title: NSLocalizedString("filter_button", comment: "Filter the OPDS feed"),
+                    style: UIBarButtonItem.Style.plain,
+                    target: self,
+                    action: #selector(OPDSRootTableViewController.filterMenuClicked)
+                )
                 navigationItem.rightBarButtonItem = filterButton
             }
             
@@ -132,11 +134,11 @@ class OPDSRootTableViewController: UITableViewController {
             let messageLabel = UILabel(frame: frame)
             messageLabel.textColor = UIColor.darkGray
             messageLabel.textAlignment = .center
-            messageLabel.text = "Something went wrong."
+            messageLabel.text = NSLocalizedString("opds_failure_message", comment: "Error message when the feed couldn't be loaded")
             
             let editButton = UIButton(type: .system)
             editButton.frame = frame
-            editButton.setTitle("Edit catalog", for: .normal)
+            editButton.setTitle(NSLocalizedString("opds_edit_button", comment: "Button to edit the OPDS catalog"), for: .normal)
             editButton.addTarget(self, action:#selector(self.editButtonClicked), for: .touchUpInside)
             editButton.isHidden = originalFeedIndexPath == nil ? true : false
             
@@ -411,7 +413,7 @@ class OPDSRootTableViewController: UITableViewController {
         case .MixedNavigationGroup:
             // Nav
             if section == 0 {
-                title = "Browse"
+                title = NSLocalizedString("opds_browse_title", comment: "Title of the section displaying the feeds")
             }
             // Groups
             if section >= 1 && section <= feed!.groups.count {
@@ -420,7 +422,7 @@ class OPDSRootTableViewController: UITableViewController {
             
         case .MixedNavigationGroupPublication:
             if section == 0 {
-                title = "Browse"
+                title = NSLocalizedString("opds_browse_title", comment: "Title of the section displaying the feeds")
             }
             if section >= 1 && section <= feed!.groups.count {
                 title = feed!.groups[section-1].metadata.title
@@ -564,8 +566,11 @@ class OPDSRootTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
         
         let header = view as! UITableViewHeaderFooterView
+        header.isAccessibilityElement = false
+
         header.textLabel?.font = UIFont.boldSystemFont(ofSize: 13)
-        
+        header.textLabel?.accessibilityHint = NSLocalizedString("opds_feed_header_a11y_hint", comment: "Accessibility hint feed section header")
+      
         var offset: Int
         
         if browsingState != .MixedGroup {
@@ -592,13 +597,16 @@ class OPDSRootTableViewController: UITableViewController {
                     let moreButton = OPDSMoreButton(type: .system)
                     moreButton.frame = CGRect(x: header.frame.width - buttonWidth, y: 0, width: buttonWidth, height: header.frame.height)
                     
-                    moreButton.setTitle("more >", for: .normal)
+                    moreButton.setTitle(NSLocalizedString("opds_more_button", comment: "Button to expand a feed gallery"), for: .normal)
                     moreButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 11)
                     moreButton.setTitleColor(UIColor.darkGray, for: .normal)
                     
                     moreButton.offset = offset
                     moreButton.addTarget(self, action: #selector(moreAction), for: .touchUpInside)
                     
+                    moreButton.isAccessibilityElement = true
+                    moreButton.accessibilityLabel = NSLocalizedString("opds_more_button_a11y_label", comment: "Button to expand a feed gallery")
+
                     view.addSubview(moreButton)
                     
                     moreButton.translatesAutoresizingMaskIntoConstraints = false

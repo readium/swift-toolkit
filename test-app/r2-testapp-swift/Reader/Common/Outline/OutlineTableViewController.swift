@@ -131,9 +131,9 @@ final class OutlineTableViewController: UITableViewController {
                 cell.formattedDate = bookmark.creationDate
                 cell.detailTextLabel?.text = {
                     if let position = bookmark.locator.locations?.position {
-                        return String(format: "page \(position)")
+                        return String(format: NSLocalizedString("reader_outline_position_label", comment: "Outline bookmark label when the position is available"), position)
                     } else if let progression = bookmark.locator.locations?.progression {
-                        return String(format: "%.2f%% through the chapter", progression * 100)
+                        return String(format: NSLocalizedString("reader_outline_progression_label", comment: "Outline bookmark label when the progression is available"), progression * 100)
                     } else {
                         return nil
                     }

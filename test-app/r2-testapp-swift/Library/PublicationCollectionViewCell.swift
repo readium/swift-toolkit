@@ -72,9 +72,6 @@ class PublicationCollectionViewCell: UICollectionViewCell {
         publicationMenuViewController.view.isHidden = !isMenuDisplayed
         contentView.addSubview(publicationMenuViewController.view)
         
-        isAccessibilityElement = true
-        accessibilityHint = "Hold to access options."
-        
     }
     
     override func layoutSubviews() {
@@ -94,7 +91,9 @@ extension PublicationCollectionViewCell {
         if isMenuDisplayed {
             transitionOptions = UIView.AnimationOptions.transitionFlipFromLeft
             delegate?.lastFlippedCell = nil
+            self.isAccessibilityElement = true
         } else {
+            self.isAccessibilityElement = false
             transitionOptions = UIView.AnimationOptions.transitionFlipFromRight
             if delegate?.lastFlippedCell != self {
                 delegate?.cellFlipped(self)

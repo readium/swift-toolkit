@@ -79,7 +79,12 @@ class AdvancedSettingsViewController: UIViewController {
     private func pinForeground(_ view: UIView, to stackView: UIStackView) {
         view.translatesAutoresizingMaskIntoConstraints = false
         stackView.addSubview(view)
-        view.pin(to: stackView)
+        NSLayoutConstraint.activate([
+            view.leadingAnchor.constraint(equalTo: stackView.leadingAnchor),
+            view.trailingAnchor.constraint(equalTo: stackView.trailingAnchor),
+            view.topAnchor.constraint(equalTo: stackView.topAnchor),
+            view.bottomAnchor.constraint(equalTo: stackView.bottomAnchor)
+        ])
     }
     
     override func viewDidLoad() {
@@ -114,6 +119,14 @@ class AdvancedSettingsViewController: UIViewController {
                 }
             }
         })
+      
+      alignSegment.subviews[0].accessibilityLabel = NSLocalizedString("user_settings_alignment_justify_a11y_label", comment: "Accessibility label for user settings aligment justify")
+      alignSegment.subviews[1].accessibilityLabel = NSLocalizedString("user_settings_alignment_left_a11y_label", comment: "Accessibility label for user settings aligment left")
+
+      columnsSegment.subviews[0].accessibilityLabel = NSLocalizedString("user_settings_column_auto_a11y_label", comment: "Accessibility label for user settings columns auto")
+      columnsSegment.subviews[1].accessibilityLabel = NSLocalizedString("user_settings_column_1_a11y_label", comment: "Accessibility label for user settings columns 1")
+      columnsSegment.subviews[2].accessibilityLabel = NSLocalizedString("user_settings_column_2_a11y_label", comment: "Accessibility label for user settings columns 2")
+
     }
     
     /// Publisher's default
@@ -213,16 +226,5 @@ class AdvancedSettingsViewController: UIViewController {
     @IBAction func columnCountValueChanged(_ sender: UISegmentedControl) {
         delegate?.columnCountDidChange(to: sender.selectedSegmentIndex)
         switchOffPublisherSettingsIfNeeded()
-    }
-}
-
-public extension UIView {
-    func pin(to view: UIView) {
-        NSLayoutConstraint.activate([
-            leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            topAnchor.constraint(equalTo: view.topAnchor),
-            bottomAnchor.constraint(equalTo: view.bottomAnchor)
-            ])
     }
 }

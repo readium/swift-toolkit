@@ -39,7 +39,9 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         tableView.cellLayoutMarginsFollowReadableWidth = false
         tableView.sizeToFit()
 
-        addFeedButton = UIBarButtonItem(title: "Add", style: UIBarButtonItem.Style.plain, target: self, action: #selector(OPDSCatalogSelectorViewController.showAddFeedPopup))
+        addFeedButton = UIBarButtonItem(title: NSLocalizedString("add_button", comment: "Add an OPDS feed button"), style: UIBarButtonItem.Style.plain, target: self, action: #selector(OPDSCatalogSelectorViewController.showAddFeedPopup))
+        addFeedButton?.accessibilityLabel = NSLocalizedString("opds_add_button_a11y_label", comment: "Add an OPDS feed button")
+      
         navigationItem.rightBarButtonItem = addFeedButton
         
         navigationController?.navigationBar.tintColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
@@ -48,17 +50,19 @@ class OPDSCatalogSelectorViewController: UITableViewController {
     }
   
     func preloadTestFeeds() {
-      let version = 1
+      let version = 2
       let VERSION_KEY = "OPDS_CATALOG_VERSION"
       let R2TestCatalog = ["title": "R2 Reader Test Catalog", "url": "https://d2g.dita.digital/opds/collections/10040"]
       let OPDS2Catalog = ["title": "OPDS 2.0 Test Catalog", "url": "https://test.opds.io/2.0/home.json"]
+      let OTBCatalog = ["title": "Open Textbooks Catalog", "url": "http://open.minitex.org/textbooks"]
+      let SEBCatalog = ["title": "Standard eBooks Catalog", "url": "https://standardebooks.org/opds/all"]
 
       catalogData = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
       let oldversion = UserDefaults.standard.integer(forKey: VERSION_KEY)
       if (catalogData == nil || oldversion < version) {
         UserDefaults.standard.set(version, forKey: VERSION_KEY)
         catalogData = [
-          R2TestCatalog, OPDS2Catalog
+          R2TestCatalog, OPDS2Catalog, OTBCatalog, SEBCatalog
         ]
         UserDefaults.standard.set(catalogData, forKey: userDefaultsID)
       }
@@ -104,13 +108,13 @@ class OPDSCatalogSelectorViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
 
         // action one
-        let editAction = UITableViewRowAction(style: .default, title: "Edit", handler: { (action, indexPath) in
+        let editAction = UITableViewRowAction(style: .default, title: NSLocalizedString("edit_button", comment: "Edit a OPDS feed button"), handler: { (action, indexPath) in
             self.showEditPopup(feedIndex: indexPath.row)
         })
         editAction.backgroundColor = UIColor.gray
 
         // action two
-        let deleteAction = UITableViewRowAction(style: .default, title: "Delete", handler: { (action, indexPath) in
+        let deleteAction = UITableViewRowAction(style: .default, title: NSLocalizedString("remove_button", comment: "Remove an OPDS feed button"), handler: { (action, indexPath) in
             self.catalogData?.remove(at: indexPath.row)
             UserDefaults.standard.set(self.catalogData, forKey: self.userDefaultsID)
             self.tableView.reloadData()
@@ -125,13 +129,16 @@ class OPDSCatalogSelectorViewController: UITableViewController {
     }
 
     func showEditPopup(feedIndex: Int?, retry: Bool = false) {
-        let alertController = UIAlertController(title: "Enter feed title and URL",
-                                                message: retry ? "Feed is not valid, please try again." : "",
-                                                preferredStyle: .alert)
-        let confirmAction = UIAlertAction(title: "OK", style: .default) { (_) in
-            let title = alertController.textFields?[0].text
-            let urlString = alertController.textFields?[1].text
-            if let url = URL(string: urlString!) {
+        let alertController = UIAlertController(
+            title: NSLocalizedString("opds_add_title", comment: "Title of the add feed alert"),
+            message: retry ? NSLocalizedString("opds_add_failure_message", comment: "Message when adding an invalid OPDS feed") : nil,
+            preferredStyle: .alert
+        )
+        let confirmAction = UIAlertAction(title: NSLocalizedString("ok_button", comment: "Confirm addition of OPDS feed button"), style: .default) { (_) in
+            if let title = alertController.textFields?[0].text,
+                let urlString = alertController.textFields?[1].text,
+                let url = URL(string: urlString)
+            {
                 OPDSParser.parseURL(url: url) { _, error in
                     DispatchQueue.main.async {
                         guard error == nil  else {
@@ -140,10 +147,10 @@ class OPDSCatalogSelectorViewController: UITableViewController {
                         }
 
                         if feedIndex == nil {
-                            self.catalogData?.append(["title": title!, "url": urlString!])
+                            self.catalogData?.append(["title": title, "url": urlString])
                         }
                         else {
-                            self.catalogData?[feedIndex!] = ["title": title!, "url": urlString!]
+                            self.catalogData?[feedIndex!] = ["title": title, "url": urlString]
                         }
                         UserDefaults.standard.set(self.catalogData, forKey: self.userDefaultsID)
                         self.tableView.reloadData()
@@ -153,15 +160,15 @@ class OPDSCatalogSelectorViewController: UITableViewController {
                 self.showEditPopup(feedIndex: feedIndex, retry: true)
             }
         }
-        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { (_) in }
+        let cancelAction = UIAlertAction(title: NSLocalizedString("cancel_button", comment: "Button to cancel addition of the OPDS feed"), style: .cancel) { (_) in }
         alertController.addTextField {(textField) in
-            textField.placeholder = "Feed Title"
+            textField.placeholder = NSLocalizedString("opds_feed_title_caption", comment: "Label for the OPDS feed title field")
             if feedIndex != nil {
                 textField.text = self.catalogData![feedIndex!]["title"]
             }
         }
         alertController.addTextField {(textField) in
-            textField.placeholder = "Feed URL"
+            textField.placeholder = NSLocalizedString("opds_feed_url_caption", comment: "Label for the OPDS feed URL field")
             if feedIndex != nil {
                 textField.text = self.catalogData![feedIndex!]["url"]
             }
