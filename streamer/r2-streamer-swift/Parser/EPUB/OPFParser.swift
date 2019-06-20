@@ -27,16 +27,8 @@ public enum EPUBTitleType: String {
 public enum OPFParserError: Error {
     /// The Epub have no title. Title is mandatory.
     case missingPublicationTitle
+    /// Smile resource couldn't be parsed.
     case invalidSmilResource
-    
-    var localizedDescription: String {
-        switch self {
-        case .missingPublicationTitle:
-            return "The publication is missing a title."
-        case .invalidSmilResource:
-            return "Smile resource couldn't beparsed."
-        }
-    }
 }
 
 /// EpubParser support class, able to parse the OPF package document.

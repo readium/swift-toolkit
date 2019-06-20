@@ -57,7 +57,7 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
         self.inputStream = inputStream
         // If range is non nil - means it's not the first part (?)
         if let range = range {
-            print("Request range  at \(range.location) remaining: \(range.length).")
+            WebServerResourceResponse.log(.debug, "Request range at \(range.location) remaining: \(range.length).")
             /// Return a range of what to read next (nothing, next part, whole data).
             func getNextRange(after range: NSRange,
                               forStreamOfLength streamLength: UInt64) -> Range<UInt64> {

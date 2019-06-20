@@ -13,7 +13,7 @@ import R2Shared
 import Fuzi
 
 /// Epub related constants.
-public struct EpubConstant {
+struct EPUBConstant {
     /// Lcpl file path.
     public static let lcplFilePath = "META-INF/license.lcpl"
     /// Epub mime-type.
@@ -31,25 +31,17 @@ public struct EpubConstant {
 /// - missingFile: A file is missing from the container at `path`.
 /// - xmlParse: An XML parsing error occurred.
 /// - missingElement: An XML element is missing.
-public enum EpubParserError: LocalizedError {
+public enum EPUBParserError: Error {
+    /// The mimetype of the EPUB is not valid.
     case wrongMimeType
     case missingFile(path: String)
     case xmlParse(underlyingError: Error)
-    case missingElement(message: String)
-
-    public var errorDescription: String? {
-        switch self {
-        case .wrongMimeType:
-            return "The mimetype of the Epub is not valid."
-        case .missingFile(let path):
-            return "The file '\(path)' is missing."
-        case .xmlParse(let underlyingError):
-            return "Error while parsing XML (\(underlyingError))."
-        case .missingElement(let message):
-            return "Missing element: \(message)."
-        }
-    }
+    /// Missing rootfile in `container.xml`.
+    case missingRootfile
 }
+
+@available(*, deprecated, renamed: "EPUBParserError")
+public typealias EpubParserError = EPUBParserError
 
 extension EpubParser: Loggable {}
 
@@ -66,9 +58,9 @@ final public class EpubParser: PublicationParser {
     ///            The point is to get DRM informations in the DRM object, and
     ///            inform the decypher() function in  the DRM object to allow
     ///            the fetcher to decypher encrypted resources.
-    /// - Throws: `EpubParserError.wrongMimeType`,
-    ///           `EpubParserError.xmlParse`,
-    ///           `EpubParserError.missingFile`
+    /// - Throws: `EPUBParserError.wrongMimeType`,
+    ///           `EPUBParserError.xmlParse`,
+    ///           `EPUBParserError.missingFile`
     static public func parse(fileAtPath path: String) throws -> (PubBox, PubParsingCallback) {
         // Generate the `Container` for `fileAtPath`
         var container = try generateContainerFrom(fileAtPath: path)
@@ -127,7 +119,7 @@ final public class EpubParser: PublicationParser {
     static internal func scanForDRM(in container: Container) -> DRM? {
         /// LCP.
         // Check if a LCP license file is present in the container.
-        if ((try? container.data(relativePath: EpubConstant.lcplFilePath)) != nil) {
+        if ((try? container.data(relativePath: EPUBConstant.lcplFilePath)) != nil) {
             return DRM(brand: .lcp)
         }
         return nil
@@ -228,7 +220,7 @@ final public class EpubParser: PublicationParser {
                 continue
             }
             link.mediaOverlays.append(node)
-            link.properties.mediaOverlay = EpubConstant.mediaOverlayURL + link.href
+            link.properties.mediaOverlay = EPUBConstant.mediaOverlayURL + link.href
         }
     }
 
@@ -237,21 +229,21 @@ final public class EpubParser: PublicationParser {
     ///
     /// - Parameter path: The absolute path of the file.
     /// - Returns: The generated Container.
-    /// - Throws: `EpubParserError.missingFile`.
+    /// - Throws: `EPUBParserError.missingFile`.
     static fileprivate func generateContainerFrom(fileAtPath path: String) throws -> Container {
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) else {
-            throw EpubParserError.missingFile(path: path)
+            throw EPUBParserError.missingFile(path: path)
         }
         
         guard let container: Container = {
             if isDirectory.boolValue {
-                return DirectoryContainer(directory: path, mimetype: EpubConstant.mimetype)
+                return DirectoryContainer(directory: path, mimetype: EPUBConstant.mimetype)
             } else {
-                return ArchiveContainer(path: path, mimetype: EpubConstant.mimetype)
+                return ArchiveContainer(path: path, mimetype: EPUBConstant.mimetype)
             }
         }() else {
-            throw EpubParserError.missingFile(path: path)
+            throw EPUBParserError.missingFile(path: path)
         }
         
         container.rootFile.rootFilePath = try EPUBContainerParser(container: container).parseRootFilePath()

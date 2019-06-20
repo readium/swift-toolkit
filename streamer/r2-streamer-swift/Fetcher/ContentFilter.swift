@@ -15,7 +15,7 @@ import Fuzi
 /// Protocol defining the content filters. They are implemented below and used
 /// in the fetcher. They come in different flavors depending of the container
 /// data mimetype.
-internal protocol ContentFilters {
+internal protocol ContentFilters: Loggable {
     init()
 
     func apply(to input: SeekableInputStream,
@@ -161,12 +161,12 @@ final internal class ContentFiltersEpub: ContentFilters {
         
         // Inserting at the start of <HEAD>.
         guard let headStart = resourceHtml.endIndex(of: "<head>") else {
-            print("Invalid resource")
+            log(.error, "Invalid resource")
             abort()
         }
         
         guard let baseUrl = publication.baseURL?.deletingLastPathComponent() else {
-            print("Invalid host")
+            log(.error, "Invalid host")
             abort()
         }
         
@@ -184,7 +184,7 @@ final internal class ContentFiltersEpub: ContentFilters {
 
         // Inserting at the end of <HEAD>.
         guard let headEnd = resourceHtml.startIndex(of: "</head>") else {
-            print("Invalid resource")
+            log(.error, "Invalid resource")
             abort()
         }
         let cssAfter = getHtmlLink(forResource: "\(baseUrl)styles/\(styleSubFolder)/ReadiumCSS-after.css")
@@ -214,7 +214,7 @@ final internal class ContentFiltersEpub: ContentFilters {
             return stream
         }
         guard let endHeadIndex = resourceHtml.startIndex(of: "</head>") else {
-            print("Invalid resource")
+            log(.error, "Invalid resource")
             abort()
         }
 
