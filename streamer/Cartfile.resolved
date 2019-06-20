@@ -1,5 +1,5 @@
 github "dexman/Minizip" "1.4.0"
 github "edrlab/Fuzi" "2.2.2"
 github "krzyzanowskim/CryptoSwift" "0.15.0"
-github "readium/r2-shared-swift" "1.2.12"
+github "readium/r2-shared-swift" "1.2.13"
 github "swisspol/GCDWebServer" "3.5.2"
