@@ -334,15 +334,17 @@ extension EPUBNavigatorViewController: DocumentWebViewDelegate {
     }
     
     /// Display next document (readingOrder item).
-    func displayRightDocument(animated: Bool, completion: @escaping () -> Void) {
+    @discardableResult
+    func displayRightDocument(animated: Bool, completion: @escaping () -> Void) -> Bool {
         let delta = triptychView.readingProgression == .rtl ? -1 : 1
-        goToIndex(triptychView.index + delta, animated: animated, completion: completion)
+        return goToIndex(triptychView.index + delta, animated: animated, completion: completion)
     }
 
     /// Display previous document (readingOrder item).
-    func displayLeftDocument(animated: Bool, completion: @escaping () -> Void) {
+    @discardableResult
+    func displayLeftDocument(animated: Bool, completion: @escaping () -> Void) -> Bool {
         let delta = triptychView.readingProgression == .rtl ? -1 : 1
-        goToIndex(triptychView.index - delta, animated: animated, completion: completion)
+        return goToIndex(triptychView.index - delta, animated: animated, completion: completion)
     }
 
 }

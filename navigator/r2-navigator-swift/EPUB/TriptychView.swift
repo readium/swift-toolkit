@@ -97,7 +97,14 @@ final class TriptychView: UIView {
     }
 
     /// Index of the document currently being displayed.
-    fileprivate(set) var index: Int
+    fileprivate(set) var index: Int {
+        willSet {
+            guard let cw = currentView as? DocumentWebView else {
+                return
+            }
+            cw.scrollAt(location: (index < newValue) ? trailing : leading)
+        }
+    }
 
     fileprivate let scrollView: UIScrollView
 
@@ -357,11 +364,9 @@ extension TriptychView {
         if index < nextIndex {
             currentRect.x += coefficient*currentFrameSize.width
             scrollView.scrollRectToVisible(CGRect(origin: currentRect, size: currentFrameSize), animated: false)
-            cw.scrollAt(location: trailing)
         } else {
             currentRect.x -= coefficient*currentFrameSize.width
             scrollView.scrollRectToVisible(CGRect(origin: currentRect, size: currentFrameSize), animated: false)
-            cw.scrollAt(location: leading)
         }
 
         let previousIndex = index

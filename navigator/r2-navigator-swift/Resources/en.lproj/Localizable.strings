@@ -1,0 +1,12 @@
+/* 
+  Localizable.strings
+  r2-navigator-swift
+
+  Created by Mickaël Menu on 14.06.19.
+
+  Copyright 2019 Readium Foundation. All rights reserved.
+  Use of this source code is governed by a BSD-style license which is detailed
+  in the LICENSE file present in the project repository where this source code is maintained.
+*/
+
+"R2Navigator.NavigatorError.copyForbidden" = "You exceeded the amount of characters allowed to be copied.";

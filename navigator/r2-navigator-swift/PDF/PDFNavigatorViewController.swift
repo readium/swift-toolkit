@@ -305,7 +305,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
 extension PDFNavigatorViewController: PDFViewDelegate {
     
     public func pdfViewWillClick(onLink sender: PDFView, with url: URL) {
-        print(url)
+        log(.debug, "Click URL: \(url)")
         delegate?.navigator(self, presentExternalURL: url)
     }
     
