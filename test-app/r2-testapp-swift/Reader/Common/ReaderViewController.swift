@@ -23,24 +23,17 @@ class ReaderViewController: UIViewController, Loggable {
     
     let navigator: UIViewController & Navigator
     let publication: Publication
+    let book: Book
     let drm: DRM?
 
     lazy var bookmarksDataSource: BookmarkDataSource? = BookmarkDataSource(publicationID: publication.metadata.identifier ?? "")
     
     private(set) var stackView: UIStackView!
     
-    // FIXME: Should be moved into Book.progression.
-    static func initialLocation(for publication: Publication) -> Locator? {
-        guard let publicationID = publication.metadata.identifier,
-            let locatorJSON = UserDefaults.standard.string(forKey: "\(publicationID)-locator") else {
-                return nil
-        }
-        return (try? Locator(jsonString: locatorJSON)) as? Locator
-    }
-    
-    init(navigator: UIViewController & Navigator, publication: Publication, drm: DRM?) {
+    init(navigator: UIViewController & Navigator, publication: Publication, book: Book, drm: DRM?) {
         self.navigator = navigator
         self.publication = publication
+        self.book = book
         self.drm = drm
         
         super.init(nibName: nil, bundle: nil)
@@ -217,10 +210,11 @@ class ReaderViewController: UIViewController, Loggable {
 extension ReaderViewController: NavigatorDelegate {
 
     func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
-        guard let publicationID = publication.metadata.identifier else {
-            return
+        do {
+            try BooksDatabase.shared.books.saveProgression(locator, of: book)
+        } catch {
+            log(.error, error)
         }
-        UserDefaults.standard.set(locator.jsonString, forKey: "\(publicationID)-locator")
     }
     
     func navigator(_ navigator: Navigator, presentExternalURL url: URL) {
