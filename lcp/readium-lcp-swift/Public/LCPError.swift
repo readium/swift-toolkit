@@ -10,12 +10,13 @@
 //
 
 import Foundation
+import R2LCPClient
 
-public enum LCPError: Error {
+public enum LCPError: LocalizedError {
     // The operation can't be done right now because another License operation is running.
     case licenseIsBusy
     // An error occured while checking the integrity of the License, it can't be retrieved.
-    case licenseIntegrity(Error)
+    case licenseIntegrity(LCPClientError)
     // The status of the License is not valid, it can't be used to decrypt the publication.
     case licenseStatus(StatusError)
     // Can't read or write the License Document from its container.
@@ -41,34 +42,54 @@ public enum LCPError: Error {
     // An unknown low-level error was reported.
     case unknown(Error?)
 
-}
-
-extension LCPError: LocalizedError {
-    
     public var errorDescription: String? {
         switch self {
         case .licenseIsBusy:
-            return "Can't perform this operation at the moment."
+            return R2LCPLocalizedString("LCPError.licenseIsBusy")
         case .licenseIntegrity(let error):
-            return error.localizedDescription
+            let description: String = {
+                switch error {
+                case .licenseOutOfDate:
+                    return R2LCPLocalizedString("LCPClientError.licenseOutOfDate")
+                case .certificateRevoked:
+                    return R2LCPLocalizedString("LCPClientError.certificateRevoked")
+                case .certificateSignatureInvalid:
+                    return R2LCPLocalizedString("LCPClientError.certificateSignatureInvalid")
+                case .licenseSignatureDateInvalid:
+                    return R2LCPLocalizedString("LCPClientError.licenseSignatureDateInvalid")
+                case .licenseSignatureInvalid:
+                    return R2LCPLocalizedString("LCPClientError.licenseSignatureInvalid")
+                case .contextInvalid:
+                    return R2LCPLocalizedString("LCPClientError.contextInvalid")
+                case .contentKeyDecryptError:
+                    return R2LCPLocalizedString("LCPClientError.contentKeyDecryptError")
+                case .userKeyCheckInvalid:
+                    return R2LCPLocalizedString("LCPClientError.userKeyCheckInvalid")
+                case .contentDecryptError:
+                    return R2LCPLocalizedString("LCPClientError.contentDecryptError")
+                case .unknown:
+                    return R2LCPLocalizedString("LCPClientError.unknown")
+                }
+            }()
+            return R2LCPLocalizedString("LCPError.licenseIntegrity", description)
         case .licenseStatus(let error):
             return error.localizedDescription
         case .licenseContainer:
-            return "Can't access the License Document."
+            return R2LCPLocalizedString("LCPError.licenseContainer")
         case .licenseInteractionNotAvailable:
-            return "This interaction is not available."
+            return R2LCPLocalizedString("LCPError.licenseInteractionNotAvailable")
         case .licenseProfileNotSupported:
-            return "This License has a profile identifier that this app cannot handle, the publication cannot be processed."
+            return R2LCPLocalizedString("LCPError.licenseProfileNotSupported")
         case .crlFetching:
-            return "Can't retrieve the Certificate Revocation List."
+            return R2LCPLocalizedString("LCPError.crlFetching")
         case .licenseRenew(let error):
             return error.localizedDescription
         case .licenseReturn(let error):
             return error.localizedDescription
-        case .parsing(let error):
-            return error.localizedDescription
+        case .parsing(_):
+            return R2LCPLocalizedString("LCPError.parsing")
         case .network(let error):
-            return error?.localizedDescription ?? "Network error."
+            return error?.localizedDescription ?? R2LCPLocalizedString("LCPError.network")
         case .runtime(let error):
             return error
         case .unknown(let error):
@@ -80,38 +101,34 @@ extension LCPError: LocalizedError {
 
 
 /// Errors while checking the status of the License, using the Status Document.
-public enum StatusError: Error {
+public enum StatusError: LocalizedError {
     // For the case (revoked, returned, cancelled, expired), app should notify the user and stop there. The message to the user must be clear about the status of the license: don't display "expired" if the status is "revoked". The date and time corresponding to the new status should be displayed (e.g. "The license expired on 01 January 2018").
     case cancelled(Date)
     case returned(Date)
     case expired(start: Date, end: Date)
     // If the license has been revoked, the user message should display the number of devices which registered to the server. This count can be calculated from the number of "register" events in the status document. If no event is logged in the status document, no such message should appear (certainly not "The license was registered by 0 devices").
     case revoked(Date, devicesCount: Int)
-}
 
-extension StatusError: LocalizedError {
-    
     public var errorDescription: String? {
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "MMMM dd, yyyy HH:mm"
-        dateFormatter.locale = Locale(identifier:"en")
-        
+        dateFormatter.dateStyle = .medium
+
         switch self {
         case .cancelled(let date):
-            return "You have cancelled this license on \(dateFormatter.string(from: date))."
+            return R2LCPLocalizedString("StatusError.cancelled", dateFormatter.string(from: date))
             
         case .returned(let date):
-            return "This license has been returned on \(dateFormatter.string(from: date))."
+            return R2LCPLocalizedString("StatusError.returned", dateFormatter.string(from: date))
             
         case .expired(start: let start, end: let end):
             if start > Date() {
-                return "This license starts on \(dateFormatter.string(from: start))."
+                return R2LCPLocalizedString("StatusError.expired.start", dateFormatter.string(from: start))
             } else {
-                return "This license expired on \(dateFormatter.string(from: end))."
+                return R2LCPLocalizedString("StatusError.expired.end", dateFormatter.string(from: end))
             }
 
         case .revoked(let date, let devicesCount):
-            return "This license has been revoked by its provider on \(dateFormatter.string(from: date)).\nThe license was registered by \(devicesCount) device\(devicesCount > 1 ? "s" : "")."
+            return R2LCPLocalizedString("StatusError.revoked", dateFormatter.string(from: date), devicesCount)
         }
     }
     
@@ -130,11 +147,11 @@ public enum RenewError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .renewFailed:
-            return "Your publication could not be renewed properly."
+            return R2LCPLocalizedString("RenewError.renewFailed")
         case .invalidRenewalPeriod(maxRenewDate: _):
-            return "Incorrect renewal period, your publication could not be renewed."
+            return R2LCPLocalizedString("RenewError.invalidRenewalPeriod")
         case .unexpectedServerError:
-            return "An unexpected error has occurred on the server."
+            return R2LCPLocalizedString("RenewError.unexpectedServerError")
         }
     }
     
@@ -153,11 +170,11 @@ public enum ReturnError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .returnFailed:
-            return "Your publication could not be returned properly."
+            return R2LCPLocalizedString("ReturnError.returnFailed")
         case .alreadyReturnedOrExpired:
-            return "Your publication has already been returned before or is expired."
+            return R2LCPLocalizedString("ReturnError.alreadyReturnedOrExpired")
         case .unexpectedServerError:
-            return "An unexpected error has occurred on the server."
+            return R2LCPLocalizedString("ReturnError.unexpectedServerError")
         }
     }
     
@@ -166,34 +183,18 @@ public enum ReturnError: LocalizedError {
 
 /// Errors while parsing the License or Status JSON Documents.
 public enum ParsingError: Error {
+    // The JSON is malformed and can't be parsed.
     case malformedJSON
+    // The JSON is not representing a valid License Document.
     case licenseDocument
+    // The JSON is not representing a valid Status Document.
     case statusDocument
+    // Invalid Link.
     case link
+    // Invalid Encryption.
     case encryption
+    // Invalid License Document Signature.
     case signature
+    // Invalid URL for link with rel %@.
     case url(rel: String)
-}
-
-extension ParsingError: LocalizedError {
-    
-    public var errorDescription: String? {
-        switch self {
-        case .malformedJSON:
-            return "The JSON is malformed and can't be parsed."
-        case .licenseDocument:
-            return "The JSON is not representing a valid License Document."
-        case .statusDocument:
-            return "The JSON is not representing a valid Status Document."
-        case .link:
-            return "Invalid Link."
-        case .encryption:
-            return "Invalid Encryption."
-        case .signature:
-            return "Invalid License Document Signature."
-        case .url(let rel):
-            return "Invalid URL for link with rel \(rel)."
-        }
-    }
-    
 }
