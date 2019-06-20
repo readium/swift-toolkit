@@ -22,27 +22,6 @@ public enum OPDS2ParserError: Error {
     case invalidGroup
     case invalidPublication
     case invalidNavigation
-
-    var localizedDescription: String {
-        switch self {
-        case .invalidJSON:
-            return "OPDS 2 manifest is not valid JSON"
-        case .metadataNotFound:
-            return "Metadata not found"
-        case .missingTitle:
-            return "Missing title"
-        case .invalidLink:
-            return "Invalid link"
-        case .invalidFacet:
-            return "Invalid facet"
-        case .invalidGroup:
-            return "Invalid group"
-        case .invalidPublication:
-            return "Invalid publication"
-        case .invalidNavigation:
-            return "Invalid navigation"
-        }
-    }
 }
 
 public class OPDS2Parser: Loggable {

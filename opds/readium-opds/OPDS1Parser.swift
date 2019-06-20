@@ -13,31 +13,17 @@ import Fuzi
 import R2Shared
 
 public enum OPDS1ParserError: Error {
+    // The title is missing from the feed.
     case missingTitle
+    // Root is not found
     case rootNotFound
-    
-    var localizedDescription: String {
-        switch self {
-        case .missingTitle:
-            return "The title is missing from the feed."
-        case .rootNotFound:
-            return "Root is not found"
-        }
-    }
 }
 
 public enum OPDSParserOpenSearchHelperError: Error {
+    // Search link not found in feed
     case searchLinkNotFound
+    // OpenSearch document is invalid
     case searchDocumentIsInvalid
-
-    var localizedDescription: String {
-        switch self {
-        case .searchLinkNotFound:
-            return "Search link not found in feed"
-        case .searchDocumentIsInvalid:
-            return "OpenSearch document is invalid"
-        }
-    }
 }
 
 struct MimeTypeParameters {
