@@ -15,7 +15,6 @@ import R2Shared
 
 enum LibraryError: LocalizedError {
     
-    case cantStartPublicationServer
     case publicationIsNotValid
     case drmNotSupported(DRM.Brand)
     case importFailed(Error)
@@ -23,8 +22,6 @@ enum LibraryError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .cantStartPublicationServer:
-            return NSLocalizedString("library_error_cantStartPublicationServer", comment: "Error message used when the publication server can't be started")
         case .publicationIsNotValid:
             return NSLocalizedString("library_error_publicationIsNotValid", comment: "Error message used when trying to import a publication that is not valid")
         case .importFailed(let error):

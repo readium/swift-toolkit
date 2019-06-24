@@ -50,11 +50,7 @@ final class LibraryModule: LibraryModuleAPI {
     private let library: LibraryService
     private let factory: LibraryFactory
 
-    init(delegate: LibraryModuleDelegate?) throws {
-        /// FIXME: we should recover properly if the publication server can't started, maybe this should only forbid opening a publication?
-        guard let server = PublicationServer() else {
-            throw LibraryError.cantStartPublicationServer
-        }
+    init(delegate: LibraryModuleDelegate?, server: PublicationServer) {
         self.library = LibraryService(publicationServer: server)
         self.factory = LibraryFactory(libraryService: library)
         self.delegate = delegate

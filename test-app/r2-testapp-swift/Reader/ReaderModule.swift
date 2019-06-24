@@ -38,14 +38,16 @@ protocol ReaderModuleDelegate: ModuleDelegate {
 final class ReaderModule: ReaderModuleAPI {
     
     weak var delegate: ReaderModuleDelegate?
+    private let resourcesServer: ResourcesServer
     
     /// Sub-modules to handle different publication formats (eg. EPUB, CBZ)
     var formatModules: [ReaderFormatModule] = []
     
     private let factory = ReaderFactory()
     
-    init(delegate: ReaderModuleDelegate?) {
+    init(delegate: ReaderModuleDelegate?, resourcesServer: ResourcesServer) {
         self.delegate = delegate
+        self.resourcesServer = resourcesServer
         
         formatModules = [
             CBZModule(delegate: self),
@@ -70,7 +72,7 @@ final class ReaderModule: ReaderModuleAPI {
             navigationController.pushViewController(viewController, animated: true)
         }
         
-        delegate.readerLoadDRM(for: book.fileName) { result in
+        delegate.readerLoadDRM(for: book.fileName) { [resourcesServer] result in
             switch result {
             case .failure(let error):
                 delegate.presentError(error, from: navigationController)
@@ -84,7 +86,7 @@ final class ReaderModule: ReaderModuleAPI {
                 }
                 
                 do {
-                    let readerViewController = try module.makeReaderViewController(for: publication, book: book, drm: drm)
+                    let readerViewController = try module.makeReaderViewController(for: publication, book: book, drm: drm, resourcesServer: resourcesServer)
                     present(readerViewController)
                 } catch {
                     delegate.presentError(error, from: navigationController)

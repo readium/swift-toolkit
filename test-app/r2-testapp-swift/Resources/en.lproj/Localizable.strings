@@ -55,8 +55,6 @@
 "library_delete_alert_title" = "Are you sure?";
 "library_delete_alert_message" = "This will remove the Publication from your library.";
 
-/* Error message used when the publication server can't be started */
-"library_error_cantStartPublicationServer" = "Can't start the publication server";
 /* Error message used when trying to import a publication that is not valid */
 "library_error_publicationIsNotValid" = "The publication isn't valid";
 /* Error message used when a low-level error occured while importing a publication */
