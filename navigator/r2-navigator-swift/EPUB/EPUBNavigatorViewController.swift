@@ -47,7 +47,7 @@ public extension EPUBNavigatorDelegate {
 
 public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
 
-open class EPUBNavigatorViewController: UIViewController, VisualNavigator {
+open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Loggable {
     
     public weak var delegate: EPUBNavigatorDelegate?
     public var userSettings: UserSettings
@@ -60,8 +60,12 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator {
     
     private let triptychView: TriptychView
     private var initialProgression: Double?
+    
+    /// Base URL on the resources server to the files in Static/
+    /// Used to serve the ReadiumCSS files.
+    private let resourcesURL: URL?
 
-    public init(publication: Publication, license: DRMLicense? = nil, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]? = nil) {
+    public init(publication: Publication, license: DRMLicense? = nil, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]? = nil, resourcesServer: ResourcesServer) {
         self.publication = publication
         self.license = license
         self.editingActions = EditingActionsController(actions: editingActions, license: license)
@@ -85,6 +89,21 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator {
             initialIndex: initialIndex,
             readingProgression: publication.contentLayout.readingProgression
         )
+        
+        resourcesURL = {
+            do {
+                guard let baseURL = Bundle(for: EPUBNavigatorViewController.self).resourceURL else {
+                    return nil
+                }
+                return try resourcesServer.serve(
+                   baseURL.appendingPathComponent("Static"),
+                    at: "/r2-navigator/epub"
+                )
+            } catch {
+                EPUBNavigatorViewController.log(.error, error)
+                return nil
+            }
+        }()
         
         super.init(nibName: nil, bundle: nil)
         
@@ -373,7 +392,9 @@ extension EPUBNavigatorViewController: TriptychViewDelegate {
         let webViewType = hasFixedLayout ? FixedDocumentWebView.self : ReflowableDocumentWebView.self
         let webView = webViewType.init(
             baseURL: baseURL,
+            resourcesURL: resourcesURL,
             initialLocation: location,
+            contentLayout: publication.contentLayout,
             readingProgression: view.readingProgression,
             animatedLoad: false,  // FIXME: custom animated
             editingActions: editingActions,
@@ -431,18 +452,9 @@ extension EPUBNavigatorViewController {
     /// Replace `initialIndex` and `initialProgression` by `initialLocation`.
     @available(*, deprecated, renamed: "init(publication:license:initialLocation:editingActions:contentInset:)")
     public convenience init(for publication: Publication, license: DRMLicense? = nil, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = EditingAction.defaultActions, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]? = nil) {
-        var initialIndex = initialIndex
-        if initialIndex == -1 {
-            initialIndex = publication.readingOrder.count
-        }
-        if !publication.readingOrder.indices.contains(initialIndex) {
-            initialIndex = 0
-        }
-        let initialLocation = Locator(link: publication.readingOrder[initialIndex])
-        
-        self.init(publication: publication, license: license, initialLocation: initialLocation, editingActions: editingActions, contentInset: contentInset)
+        fatalError("This initializer is not available anymore.")
     }
-    
+
     @available(*, deprecated, message: "Use the `animated` parameter of `goTo` functions instead")
     public var pageTransition: PageTransition {
         get { return .none }
