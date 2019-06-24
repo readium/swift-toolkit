@@ -46,8 +46,6 @@
 		CA130D74229D4245000A627C /* DataExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D41229D4245000A627C /* DataExtension.swift */; };
 		CA130D75229D4245000A627C /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D42229D4245000A627C /* StringExtension.swift */; };
 		CA130D7A229D42E2000A627C /* fonts in Resources */ = {isa = PBXBuildFile; fileRef = CA130D77229D42E2000A627C /* fonts */; };
-		CA130D7B229D42E2000A627C /* styles in Resources */ = {isa = PBXBuildFile; fileRef = CA130D78229D42E2000A627C /* styles */; };
-		CA130D7C229D42E2000A627C /* scripts in Resources */ = {isa = PBXBuildFile; fileRef = CA130D79229D42E2000A627C /* scripts */; };
 		CA130DA4229E7C83000A627C /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501DCD1E2FB0D700D1B4BF /* R2Streamer.framework */; };
 		CA130F18229E7CC1000A627C /* FontDecoderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130DAE229E7CBE000A627C /* FontDecoderTests.swift */; };
 		CA130F19229E7CC1000A627C /* PublicationServerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130DB0229E7CBE000A627C /* PublicationServerTests.swift */; };
@@ -61,6 +59,7 @@
 		CA6F97D222A5161A007D2049 /* EPUBContainerParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97D122A5161A007D2049 /* EPUBContainerParserTests.swift */; };
 		CA6F97D422A52810007D2049 /* OPFParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97D322A52810007D2049 /* OPFParserTests.swift */; };
 		CA6F97DA22A6A0B7007D2049 /* OPFMeta.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97D922A6A0B6007D2049 /* OPFMeta.swift */; };
+		CA94291822BCE42500305CDB /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA94291722BCE42500305CDB /* CoreServices.framework */; };
 		CAF58199229EC8B3009A04E8 /* EPUBMetadataParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF58198229EC8B3009A04E8 /* EPUBMetadataParserTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -116,8 +115,6 @@
 		CA130D42229D4245000A627C /* StringExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		CA130D43229D4245000A627C /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CA130D77229D42E2000A627C /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = fonts; sourceTree = "<group>"; };
-		CA130D78229D42E2000A627C /* styles */ = {isa = PBXFileReference; lastKnownFileType = folder; path = styles; sourceTree = "<group>"; };
-		CA130D79229D42E2000A627C /* scripts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = scripts; sourceTree = "<group>"; };
 		CA130D9F229E7C83000A627C /* r2-streamer-swiftTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "r2-streamer-swiftTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA130DAE229E7CBE000A627C /* FontDecoderTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FontDecoderTests.swift; sourceTree = "<group>"; };
 		CA130DB0229E7CBE000A627C /* PublicationServerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationServerTests.swift; sourceTree = "<group>"; };
@@ -132,6 +129,7 @@
 		CA6F97D122A5161A007D2049 /* EPUBContainerParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBContainerParserTests.swift; sourceTree = "<group>"; };
 		CA6F97D322A52810007D2049 /* OPFParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPFParserTests.swift; sourceTree = "<group>"; };
 		CA6F97D922A6A0B6007D2049 /* OPFMeta.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPFMeta.swift; sourceTree = "<group>"; };
+		CA94291722BCE42500305CDB /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		CAF58198229EC8B3009A04E8 /* EPUBMetadataParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBMetadataParserTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -140,6 +138,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA94291822BCE42500305CDB /* CoreServices.framework in Frameworks */,
 				03C3CC6A222DBD9E00A01731 /* R2Shared.framework in Frameworks */,
 				59501E201E2FB2AD00D1B4BF /* libz.tbd in Frameworks */,
 			);
@@ -178,6 +177,7 @@
 		59501E171E2FB1F500D1B4BF /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CA94291722BCE42500305CDB /* CoreServices.framework */,
 				03C3CC69222DBD9E00A01731 /* R2Shared.framework */,
 				59501E1F1E2FB2AD00D1B4BF /* libz.tbd */,
 			);
@@ -215,8 +215,6 @@
 			isa = PBXGroup;
 			children = (
 				CA130D77229D42E2000A627C /* fonts */,
-				CA130D79229D42E2000A627C /* scripts */,
-				CA130D78229D42E2000A627C /* styles */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -470,8 +468,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA130D7C229D42E2000A627C /* scripts in Resources */,
-				CA130D7B229D42E2000A627C /* styles in Resources */,
 				CA130D7A229D42E2000A627C /* fonts in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

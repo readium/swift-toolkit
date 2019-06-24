@@ -9,6 +9,7 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
+import CoreServices
 import Foundation
 import R2Shared
 #if COCOAPODS
@@ -28,29 +29,29 @@ extension PublicationServer: Loggable {}
 public enum PublicationServerError: Error{
     case parser(underlyingError: Error)
     case fetcher(underlyingError: Error)
-    case nilBaseUrl
+    case nilBaseURL
     case usedEndpoint
 }
 
 /// The HTTP server for the publication's manifests and assets. Serves Epubs.
-public class PublicationServer {
+public class PublicationServer: ResourcesServer {
     /// The HTTP server.
     var webServer: GCDWebServer
     // Dictionnary of the (container, publication) tuples keyed by endpoints.
     public var pubBoxes = [String: PubBox]()
-
+    
     // Computed properties.
-
+    
     /// The running HTTP server listening port.
     public var port: UInt? {
         get { return webServer.port }
     }
-
+    
     /// The base URL of the server
-    public var baseUrl: URL? {
+    public var baseURL: URL? {
         get { return webServer.serverURL }
     }
-
+    
     /// Returns all the `Publications`, sorted by the container's last modification date.
     /// FIXME: the sorting should be done on the test app's side, to present the library according to the user's criteria.
     public var publications: [Publication] {
@@ -58,19 +59,19 @@ public class PublicationServer {
             .sorted { $0.associatedContainer.modificationDate > $1.associatedContainer.modificationDate }
             .map { $0.publication }
     }
-
+    
     /// Returns all the `Containers` as an array.
     public var containers: [Container] {
         return pubBoxes.values.map { $0.associatedContainer }
     }
-
+    
     // MARK: - Public methods
-
+    
     public init?() {
         #if DEBUG
-            GCDWebServer.setLogLevel(2)
+        GCDWebServer.setLogLevel(2)
         #else
-            GCDWebServer.setLogLevel(3)
+        GCDWebServer.setLogLevel(3)
         #endif
         webServer = GCDWebServer()
         if startWebServer() == false {
@@ -78,7 +79,7 @@ public class PublicationServer {
         }
         addSpecialResourcesHandlers()
     }
-
+    
     internal func startWebServer() -> Bool {
         // with port 0, a random port is used each time.
         let port = 0
@@ -93,80 +94,22 @@ public class PublicationServer {
         }
         return true
     }
-
+    
     // Add handlers for the css/js/font resources.
     public func addSpecialResourcesHandlers() {
-        func styleResourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
-            guard let request = request else {
-                return GCDWebServerResponse(statusCode: 404)
-            }
-            let relativePath = request.path.deletingLastPathComponent
-            let resourceName = (request.path as NSString).deletingPathExtension.lastPathComponent
-
-            if let styleUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "css", subdirectory: relativePath),
-                let data = try? Data.init(contentsOf: styleUrl)
-            {
-                let response = GCDWebServerDataResponse(data: data, contentType: "text/css")
-
-                return response
-            } else {
-                return GCDWebServerResponse(statusCode: 404)
-            }
+        guard let resourceURL = Bundle(for: PublicationServer.self).resourceURL else {
+            return
         }
-        /// Handler for Style resources.
-        webServer.addHandler(forMethod: "GET",
-                             pathRegex: "/styles/*",
-                             request: GCDWebServerRequest.self,
-                             processBlock: styleResourcesHandler)
-
-        func scriptResourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
-            guard let request = request else {
-                return GCDWebServerResponse(statusCode: 404)
-            }
-            let relativePath = request.path.deletingLastPathComponent
-            let resourceName = (request.path as NSString).deletingPathExtension.lastPathComponent
-
-            if let scriptUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "js", subdirectory: relativePath),
-                let data = try? Data.init(contentsOf: scriptUrl)
-            {
-                let response = GCDWebServerDataResponse(data: data, contentType: "text/javascript")
-
-                return response
-            } else {
-                return GCDWebServerResponse(statusCode: 404)
-            }
-        }
-        /// Handler for JS resources.
-        webServer.addHandler(forMethod: "GET",
-                             pathRegex: "/scripts/*",
-                             request: GCDWebServerRequest.self,
-                             processBlock: scriptResourcesHandler)
         
-        func fontResourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
-            guard let request = request else {
-                return GCDWebServerResponse(statusCode: 404)
-            }
-            let relativePath = request.path.deletingLastPathComponent
-            let resourceName = (request.path as NSString).deletingPathExtension.lastPathComponent
-            
-            if let fontUrl = Bundle(for: ContentFiltersEpub.self).url(forResource: resourceName, withExtension: "otf", subdirectory: relativePath),
-                let data = try? Data.init(contentsOf: fontUrl)
-            {
-                let response = GCDWebServerDataResponse(data: data, contentType: "font/opentype")
-                
-                return response
-            } else {
-                return GCDWebServerResponse(statusCode: 404)
-            }
+        do {
+            try serve(resourceURL.appendingPathComponent("styles"), at: "/styles")
+            try serve(resourceURL.appendingPathComponent("scripts"), at: "/scripts")
+            try serve(resourceURL.appendingPathComponent("fonts"), at: "/fonts")
+        } catch {
+            log(.error, error)
         }
-        /// Handler for Font resources.
-        webServer.addHandler(forMethod: "GET",
-                             pathRegex: "/fonts/*",
-                             request: GCDWebServerRequest.self,
-                             processBlock: fontResourcesHandler)
-        
     }
-
+    
     /// Add a publication to the server. Also add it to the `pubBoxes`
     ///
     /// - Parameters:
@@ -185,19 +128,19 @@ public class PublicationServer {
             log(.error, "\(endpoint) is already in use.")
             throw PublicationServerError.usedEndpoint
         }
-        guard let baseUrl = baseUrl else {
+        guard let baseURL = baseURL else {
             log(.error, "Base URL is nil.")
-            throw PublicationServerError.nilBaseUrl
+            throw PublicationServerError.nilBaseURL
         }
-
+        
         // Add the self link to the publication.
-        publication.addSelfLink(endpoint: endpoint, for: baseUrl)
+        publication.addSelfLink(endpoint: endpoint, for: baseURL)
         // Add the Publication to the publication boxes dictionnary.
         let pubBox = PubBox(publication: publication,
-                      associatedContainer: container)
-
+                            associatedContainer: container)
+        
         pubBoxes[endpoint] = pubBox
-
+        
         /// Add resources handler.
         do {
             try addResourcesHandler(for: pubBox, at: endpoint)
@@ -206,15 +149,15 @@ public class PublicationServer {
         }
         /// Add manifest handler.
         addManifestHandler(for: pubBox, at: endpoint)
-
+        
         log(.info, "Publication at \(endpoint) has been successfully added.")
     }
-
+    
     fileprivate func addResourcesHandler(for pubBox: PubBox, at endpoint: String) throws {
         let publication = pubBox.publication
         let container = pubBox.associatedContainer
         let fetcher: Fetcher
-
+        
         // Initialize the Fetcher.
         do {
             fetcher = try Fetcher(publication: publication, container: container)
@@ -222,16 +165,16 @@ public class PublicationServer {
             log(.error, "Fetcher initialisation failed.")
             throw PublicationServerError.fetcher(underlyingError: error)
         }
-
+        
         /// Webserver HTTP GET ressources request handler.
         func resourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
             let response: GCDWebServerResponse
-
+            
             guard let request = request else {
                 log(.error, "The request received is nil.")
                 return GCDWebServerErrorResponse(statusCode: 500)
             }
-
+            
             // Remove the prefix from the URI.
             let relativePath = String(request.path[request.path.index(endpoint.endIndex, offsetBy: 1)...])
             //
@@ -241,7 +184,7 @@ public class PublicationServer {
             do {
                 let dataStream = try fetcher.dataStream(forRelativePath: relativePath)
                 let range = request.hasByteRange() ? request.byteRange : nil
-
+                
                 response = WebServerResourceResponse(inputStream: dataStream,
                                                      range: range,
                                                      contentType: contentType)
@@ -263,11 +206,11 @@ public class PublicationServer {
             request: GCDWebServerRequest.self,
             processBlock: resourcesHandler)
     }
-
+    
     fileprivate func addManifestHandler(for pubBox: PubBox, at endpoint: String) {
         let publication = pubBox.publication
         let container = pubBox.associatedContainer
-
+        
         /// The webserver handler to process the HTTP GET
         func manifestHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
             guard let manifestData = publication.manifest else {
@@ -281,9 +224,9 @@ public class PublicationServer {
             pathRegex: "/\(endpoint)/manifest.json",
             request: GCDWebServerRequest.self,
             processBlock: manifestHandler)
-
+        
     }
-
+    
     public func remove(_ publication: Publication) {
         for pubBox in pubBoxes {
             if pubBox.value.publication.metadata.identifier == publication.metadata.identifier,
@@ -296,7 +239,7 @@ public class PublicationServer {
             }
         }
     }
-
+    
     /// Remove a publication from the server.
     ///
     /// - Parameter endpoint: The URI postfix of the ressource.
@@ -311,15 +254,86 @@ public class PublicationServer {
         pubBoxes[endpoint] = nil
         log(.info, "Publication at \(endpoint) has been successfully removed.")
     }
-  
+    
     /// Remove all publication from the server.
     public func removeAll() {
-      for pubBox in pubBoxes {
-        if let index = pubBoxes.index(forKey: pubBox.key)
-        {
-          pubBoxes.remove(at: index)
-          log(.info, "Publication at \(pubBox.key) has been successfully removed.")
+        for pubBox in pubBoxes {
+            if let index = pubBoxes.index(forKey: pubBox.key)
+            {
+                pubBoxes.remove(at: index)
+                log(.info, "Publication at \(pubBox.key) has been successfully removed.")
+            }
         }
-      }
     }
+    
+    
+    /// MARK: ResourcesServer
+    
+    /// Mapping between the served path and the local file URL of resources.
+    private var resources: [String: URL] = [:]
+    
+    @discardableResult
+    public func serve(_ url: URL, at path: String) throws -> URL {
+        guard let baseURL = baseURL else {
+            throw ResourcesServerError.serverFailure
+        }
+        var path = path
+        if !path.hasPrefix("/") {
+            path = "/\(path)"
+        }
+        guard !path.isEmpty else {
+            throw ResourcesServerError.invalidPath
+        }
+        guard url.isFileURL,
+            FileManager.default.fileExists(atPath: url.path) else
+        {
+            throw ResourcesServerError.fileNotFound
+        }
+        
+        if resources[path] == nil {
+            webServer.addHandler(
+                forMethod: "GET",
+                pathRegex: "\(path)(/.*)?",
+                request: GCDWebServerRequest.self,
+                processBlock: resourceHandler
+            )
+        }
+        
+        resources[path] = url
+        
+        return baseURL.appendingPathComponent(String(path.dropFirst()))
+    }
+    
+    private func resourceHandler(_ request: GCDWebServerRequest?) -> GCDWebServerResponse? {
+        guard let request = request else {
+            return nil
+        }
+        var path = request.path
+        let paths = resources.keys.sorted().reversed()
+        guard let basePath = paths.first(where: { path.hasPrefix($0) }),
+            var file = resources[basePath] else
+        {
+            return GCDWebServerResponse(statusCode: 404)
+        }
+        path = String(path.dropFirst(basePath.count + 1))
+        file.appendPathComponent(path)
+        
+        guard let data = try? Data(contentsOf: file) else {
+            return GCDWebServerResponse(statusCode: 404)
+        }
+        
+        let contentType: String = {
+            guard let extUTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, file.pathExtension as CFString, nil)?.takeUnretainedValue(),
+                let mimetype = UTTypeCopyPreferredTagWithClass(extUTI, kUTTagClassMIMEType)?.takeRetainedValue() as String? else
+            {
+                return "application/octet-stream"
+            }
+            return mimetype
+        }()
+        
+//        log(.debug, "Serve resource `\(path)` (\(contentType))")
+        return GCDWebServerDataResponse(data: data, contentType: contentType)
+    }
+    
 }
+
