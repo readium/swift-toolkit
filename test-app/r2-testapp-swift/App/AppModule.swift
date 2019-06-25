@@ -89,8 +89,8 @@ extension AppModule: LibraryModuleDelegate {
 
 extension AppModule: ReaderModuleDelegate {
     
-    func readerLoadDRM(for fileName: String, completion: @escaping (CancellableResult<DRM?>) -> Void) {
-        library.loadDRM(for: fileName, completion: completion)
+    func readerLoadDRM(for book: Book, completion: @escaping (CancellableResult<DRM?>) -> Void) {
+        library.loadDRM(for: book, completion: completion)
     }
     
 }

@@ -30,7 +30,7 @@ protocol ReaderModuleAPI {
 protocol ReaderModuleDelegate: ModuleDelegate {
     
     /// Called when the reader needs to load the R2 DRM object for the given publication.
-    func readerLoadDRM(for fileName: String, completion: @escaping (CancellableResult<DRM?>) -> Void)
+    func readerLoadDRM(for book: Book, completion: @escaping (CancellableResult<DRM?>) -> Void)
     
 }
 
@@ -72,7 +72,7 @@ final class ReaderModule: ReaderModuleAPI {
             navigationController.pushViewController(viewController, animated: true)
         }
         
-        delegate.readerLoadDRM(for: book.fileName) { [resourcesServer] result in
+        delegate.readerLoadDRM(for: book) { [resourcesServer] result in
             switch result {
             case .failure(let error):
                 delegate.presentError(error, from: navigationController)

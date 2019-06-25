@@ -44,26 +44,43 @@ final class BooksDatabase {
 class Book: Loggable {
     let id: Int64
     let creation:Date
-    let fileName: String
+    let href: String
     let title: String
     let author: String?
     let identifier: String
     let cover: Data?
     var progression: String?
     
+    var fileName: String? {
+        let url = URL(string: href)
+        guard url?.scheme == nil || (url?.isFileURL ?? false) else {
+            return nil
+        }
+        return href
+    }
+    
+    var url: URL? {
+        guard let url = URL(string: href),
+            url.scheme != nil else
+        {
+            return nil
+        }
+        return url
+    }
+    
     init(
         id: Int64 = 0,
         creation:Date = Date(),
-        fileName:String,
-        title:String,
-        author:String?,
+        href: String,
+        title: String,
+        author: String?,
         identifier: String,
         cover: Data?,
         progression: String? = nil
     ) {
         self.id = id
         self.creation = creation
-        self.fileName = fileName
+        self.href = href
         self.title = title
         self.author = author
         self.identifier = identifier
@@ -89,7 +106,7 @@ class BooksTable {
     
     let ID = Expression<Int64>("id")
     let IDENTIFIER = Expression<String>("identifier")
-    let FILENAME = Expression<String>("href")
+    let HREF = Expression<String>("href")
     let TITLE = Expression<String>("title")
     let AUTHOR = Expression<String?>("author")
     let COVER = Expression<Data?>("cover")
@@ -102,7 +119,7 @@ class BooksTable {
         _ = try? connection.run(books.create(temporary: false, ifNotExists: true) { t in
             t.column(ID, primaryKey: PrimaryKey.autoincrement)
             t.column(IDENTIFIER)
-            t.column(FILENAME)
+            t.column(HREF)
             t.column(TITLE)
             t.column(AUTHOR)
             t.column(COVER)
@@ -122,7 +139,7 @@ class BooksTable {
         
         let query = books.insert(
             IDENTIFIER <- book.identifier,
-            FILENAME <- book.fileName,
+            HREF <- book.href,
             TITLE <- book.title,
             AUTHOR <- book.author,
             COVER <- book.cover,
@@ -187,14 +204,14 @@ class BooksTable {
             
             let _ID = bookRow[self.ID]
             let _identifier = bookRow[self.IDENTIFIER]
-            let _fileName = bookRow[self.FILENAME]
+            let _href = bookRow[self.HREF]
             let _title = bookRow[self.TITLE]
             let _author = bookRow[self.AUTHOR]
             let _cover = bookRow[self.COVER]
             let _creation = bookRow[self.CREATION]
             let _progression = bookRow[self.PROGRESSION]
             
-            let book = Book(id: _ID, creation: _creation, fileName: _fileName, title: _title, author: _author, identifier: _identifier, cover: _cover, progression: _progression)
+            let book = Book(id: _ID, creation: _creation, href: _href, title: _title, author: _author, identifier: _identifier, cover: _cover, progression: _progression)
             return book
         }
         

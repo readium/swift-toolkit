@@ -24,7 +24,7 @@ final class EPUBModule: ReaderFormatModule {
     }
 
     var publicationFormats: [Publication.Format] {
-        return [.epub]
+        return [.epub, .webpub]
     }
     
     func makeReaderViewController(for publication: Publication, book: Book, drm: DRM?, resourcesServer: ResourcesServer) throws -> UIViewController {

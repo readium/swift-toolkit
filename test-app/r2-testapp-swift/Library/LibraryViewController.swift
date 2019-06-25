@@ -47,6 +47,7 @@ class LibraryViewController: UIViewController, Loggable {
     private var downloadSet =  NSMutableOrderedSet()
     private var downloadTaskToRatio = [URLSessionDownloadTask:Float]()
     private var downloadTaskDescription = [URLSessionDownloadTask:String]()
+    private lazy var addBookButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addBook))
     
     @IBOutlet weak var collectionView: UICollectionView! {
         didSet {
@@ -80,7 +81,7 @@ class LibraryViewController: UIViewController, Loggable {
         
         DownloadSession.shared.displayDelegate = self
         
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(presentDoccumentPicker))
+        self.navigationItem.rightBarButtonItem = addBookButton
         
         navigationController?.navigationBar.tintColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
         navigationController?.navigationBar.barTintColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
@@ -158,6 +159,54 @@ class LibraryViewController: UIViewController, Loggable {
         flowLayout.minimumInteritemSpacing = minimumSpacing
         flowLayout.itemSize = CGSize(width: width, height: height)
     }
+    
+    @objc func addBook() {
+        let alert = UIAlertController(title: NSLocalizedString("library_add_book_title", comment: "Title for the Add book alert"), message: nil, preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: NSLocalizedString("library_add_book_from_device_button", comment: "`Add a book from your device` button"), style: .default, handler: { _ in self.addBookFromDevice() }))
+        alert.addAction(UIAlertAction(title: NSLocalizedString("library_add_book_from_url_button", comment: "`Add a book from a URL` button"), style: .default, handler: { _ in self.addBookFromURL() }))
+        alert.addAction(UIAlertAction(title: NSLocalizedString("cancel_button", comment: "Cancel adding a book from a URL"), style: .cancel))
+        alert.popoverPresentationController?.barButtonItem = addBookButton
+        present(alert, animated: true)
+    }
+    
+    private func addBookFromDevice() {
+        // Extracts supported UTIs from Info.plist
+        var utis = (Bundle.main.object(forInfoDictionaryKey: "CFBundleDocumentTypes") as? [[String: Any]] ?? [])
+            .flatMap { $0["LSItemContentTypes"] as? [String] ?? [] }
+        utis.append(String(kUTTypeText))
+        
+        let documentPicker = UIDocumentPickerViewController(documentTypes: utis, in: .import)
+        documentPicker.delegate = self
+        present(documentPicker, animated: true, completion: nil)
+    }
+    
+    private func addBookFromURL(url: String? = nil, message: String? = nil) {
+        let alert = UIAlertController(
+            title: NSLocalizedString("library_add_book_from_url_title", comment: "Title for the `Add book from URL` alert"),
+            message: message,
+            preferredStyle: .alert
+        )
+        
+        func add(_ action: UIAlertAction) {
+            let optionalURLString = alert.textFields?[0].text
+            guard let urlString = optionalURLString,
+                let url = URL(string: urlString),
+                library.addPublication(at: url) else
+            {
+                addBookFromURL(url: optionalURLString, message: NSLocalizedString("library_add_book_from_url_failure_message", comment: "Error message when trying to add a book from a URL"))
+                return
+            }
+        }
+        
+        alert.addTextField { textField in
+            textField.placeholder = NSLocalizedString("library_add_book_from_url_placeholder", comment: "Placeholder for the URL field in the `Add book from URL` alert")
+            textField.text = url
+        }
+        alert.addAction(UIAlertAction(title: NSLocalizedString("add_button", comment: "Add a book from a URL button"), style: .default, handler: add))
+        alert.addAction(UIAlertAction(title: NSLocalizedString("cancel_button", comment: "Cancel adding a boom from a URL button"), style: .cancel))
+        present(alert, animated: true, completion: nil)
+    }
+    
 }
 
 extension LibraryViewController {
@@ -175,31 +224,21 @@ extension LibraryViewController {
     }
 }
 
-// MARK: - Misc.
+// MARK: - UIDocumentPickerDelegate.
 extension LibraryViewController: UIDocumentPickerDelegate {
-    
-    @objc func presentDoccumentPicker() {
-        // Extracts supported UTIs from Info.plist
-        var utis = (Bundle.main.object(forInfoDictionaryKey: "CFBundleDocumentTypes") as? [[String: Any]] ?? [])
-            .flatMap { $0["LSItemContentTypes"] as? [String] ?? [] }
-        utis.append(String(kUTTypeText))
-        
-        let documentPicker = UIDocumentPickerViewController(documentTypes: utis, in: .import)
-        documentPicker.delegate = self
-        self.present(documentPicker, animated: true, completion: nil)
-    }
-    
+
     public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-        
-        if controller.documentPickerMode != UIDocumentPickerMode.import {return}
+        guard controller.documentPickerMode == .import else {
+            return
+        }
         
         for url in urls {
-            library.addPublicationToLibrary(url: url, from: nil)
+            library.movePublicationToLibrary(from: url)
         }
     }
     
     public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
-        library.addPublicationToLibrary(url: url, from: nil)
+        library.movePublicationToLibrary(from: url)
     }
 }
 
@@ -299,10 +338,12 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
         cell.contentView.addSubview(self.loadingIndicator)
         collectionView.isUserInteractionEnabled = false
         
-        guard let (publication, container) = self.library.lightParsePublication(for: book.fileName, book:book) else {return}
+        guard let (publication, container) = library.parsePublication(for: book) else {
+            return
+        }
         
-        self.library.publish(publication: publication, with: container, for: book.fileName)
-        
+        library.preparePresentation(of: publication, book: book, with: container)
+
         libraryDelegate.libraryDidSelectPublication(publication, book: book) {
             self.loadingIndicator.removeFromSuperview()
             collectionView.isUserInteractionEnabled = true
@@ -353,7 +394,9 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
     
     func displayInformation(forCellAt indexPath: IndexPath) {
         let book = books[indexPath.row]
-        guard let (publication, _) = self.library.lightParsePublication(for: book.fileName, book: book) else {return}
+        guard let (publication, _) = library.parsePublication(for: book) else {
+            return
+        }
         let detailsViewController = factory.make(publication: publication)
         detailsViewController.modalPresentationStyle = .popover
         navigationController?.pushViewController(detailsViewController, animated: true)
