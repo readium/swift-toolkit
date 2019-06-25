@@ -80,8 +80,7 @@ final internal class ContentFiltersEpub: ContentFilters {
         //     || resource is 'reflow'
         //       - inject pagination
         if let link = publication.link(withHref: path),
-            ["application/xhtml+xml", "text/html"].contains(link.type),
-            let baseUrl = publication.baseURL?.deletingLastPathComponent()
+            ["application/xhtml+xml", "text/html"].contains(link.type)
         {
             if publication.metadata.rendition?.layout == .reflowable
                 && link.properties.layout == nil

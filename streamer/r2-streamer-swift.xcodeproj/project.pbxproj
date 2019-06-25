@@ -60,6 +60,8 @@
 		CA6F97D422A52810007D2049 /* OPFParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97D322A52810007D2049 /* OPFParserTests.swift */; };
 		CA6F97DA22A6A0B7007D2049 /* OPFMeta.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97D922A6A0B6007D2049 /* OPFMeta.swift */; };
 		CA94291822BCE42500305CDB /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA94291722BCE42500305CDB /* CoreServices.framework */; };
+		CAC5AEDA22C22A6F007DB8A8 /* HTTPContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC5AED922C22A6F007DB8A8 /* HTTPContainer.swift */; };
+		CAC5AEE122C236FB007DB8A8 /* WEBPUBParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC5AEE022C236FB007DB8A8 /* WEBPUBParser.swift */; };
 		CAF58199229EC8B3009A04E8 /* EPUBMetadataParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF58198229EC8B3009A04E8 /* EPUBMetadataParserTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -130,6 +132,8 @@
 		CA6F97D322A52810007D2049 /* OPFParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPFParserTests.swift; sourceTree = "<group>"; };
 		CA6F97D922A6A0B6007D2049 /* OPFMeta.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPFMeta.swift; sourceTree = "<group>"; };
 		CA94291722BCE42500305CDB /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		CAC5AED922C22A6F007DB8A8 /* HTTPContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPContainer.swift; sourceTree = "<group>"; };
+		CAC5AEE022C236FB007DB8A8 /* WEBPUBParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WEBPUBParser.swift; sourceTree = "<group>"; };
 		CAF58198229EC8B3009A04E8 /* EPUBMetadataParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBMetadataParserTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -247,6 +251,7 @@
 				CA130D26229D4245000A627C /* CBZ */,
 				CA130D2F229D4245000A627C /* EPUB */,
 				CA130D29229D4245000A627C /* PDF */,
+				CAC5AEDF22C236FB007DB8A8 /* WEBPUB */,
 			);
 			path = Parser;
 			sourceTree = "<group>";
@@ -303,6 +308,7 @@
 				CA130D3C229D4245000A627C /* Container.swift */,
 				CA130D3D229D4245000A627C /* ArchiveContainer.swift */,
 				CA130D3E229D4245000A627C /* DirectoryContainer.swift */,
+				CAC5AED922C22A6F007DB8A8 /* HTTPContainer.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -368,6 +374,14 @@
 				CA6F97D122A5161A007D2049 /* EPUBContainerParserTests.swift */,
 			);
 			path = EPUB;
+			sourceTree = "<group>";
+		};
+		CAC5AEDF22C236FB007DB8A8 /* WEBPUB */ = {
+			isa = PBXGroup;
+			children = (
+				CAC5AEE022C236FB007DB8A8 /* WEBPUBParser.swift */,
+			);
+			path = WEBPUB;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -512,9 +526,11 @@
 				CA130D6C229D4245000A627C /* EPUBMetadataParser.swift in Sources */,
 				CA6F97CE22A50F39007D2049 /* EPUBContainerParser.swift in Sources */,
 				CA130D62229D4245000A627C /* PDFContainer.swift in Sources */,
+				CAC5AEDA22C22A6F007DB8A8 /* HTTPContainer.swift in Sources */,
 				CA130D63229D4245000A627C /* PDFFileCGParser.swift in Sources */,
 				CA130D61229D4245000A627C /* PDFParser.swift in Sources */,
 				CA130D65229D4245000A627C /* PublicationParser.swift in Sources */,
+				CAC5AEE122C236FB007DB8A8 /* WEBPUBParser.swift in Sources */,
 				CA130D5F229D4245000A627C /* CBZContainer.swift in Sources */,
 				CA130D59229D4245000A627C /* ContentFilter.swift in Sources */,
 				CA130D6D229D4245000A627C /* ZIPArchive.swift in Sources */,

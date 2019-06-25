@@ -37,11 +37,13 @@ public enum PublicationServerError: Error{
 public class PublicationServer: ResourcesServer {
     /// The HTTP server.
     var webServer: GCDWebServer
-    // Dictionnary of the (container, publication) tuples keyed by endpoints.
-    public var pubBoxes = [String: PubBox]()
     
-    // Computed properties.
+    // Mapping between endpoint and the matching publication.
+    public private(set) var publications: [String: Publication] = [:]
     
+    // Mapping between endpoint and the matching container.
+    public private(set) var containers: [String: Container] = [:]
+
     /// The running HTTP server listening port.
     public var port: UInt? {
         get { return webServer.port }
@@ -52,19 +54,7 @@ public class PublicationServer: ResourcesServer {
         get { return webServer.serverURL }
     }
     
-    /// Returns all the `Publications`, sorted by the container's last modification date.
-    /// FIXME: the sorting should be done on the test app's side, to present the library according to the user's criteria.
-    public var publications: [Publication] {
-        return pubBoxes.values
-            .sorted { $0.associatedContainer.modificationDate > $1.associatedContainer.modificationDate }
-            .map { $0.publication }
-    }
-    
-    /// Returns all the `Containers` as an array.
-    public var containers: [Container] {
-        return pubBoxes.values.map { $0.associatedContainer }
-    }
-    
+
     // MARK: - Public methods
     
     public init?() {
@@ -110,7 +100,7 @@ public class PublicationServer: ResourcesServer {
         }
     }
     
-    /// Add a publication to the server. Also add it to the `pubBoxes`
+    /// Add a publication to the server.
     ///
     /// - Parameters:
     ///   - publication: The `Publication` object containing the publication data.
@@ -124,7 +114,7 @@ public class PublicationServer: ResourcesServer {
                     with container: Container,
                     at endpoint: String = UUID().uuidString) throws {
         // TODO: verif that endpoint is a simple string and not a path.
-        guard pubBoxes[endpoint] == nil else {
+        guard publications[endpoint] == nil else {
             log(.error, "\(endpoint) is already in use.")
             throw PublicationServerError.usedEndpoint
         }
@@ -135,27 +125,23 @@ public class PublicationServer: ResourcesServer {
         
         // Add the self link to the publication.
         publication.addSelfLink(endpoint: endpoint, for: baseURL)
-        // Add the Publication to the publication boxes dictionnary.
-        let pubBox = PubBox(publication: publication,
-                            associatedContainer: container)
         
-        pubBoxes[endpoint] = pubBox
+        publications[endpoint] = publication
+        containers[endpoint] = container
         
         /// Add resources handler.
         do {
-            try addResourcesHandler(for: pubBox, at: endpoint)
+            try addResourcesHandler(for: publication, container: container, at: endpoint)
         } catch {
             throw PublicationServerError.fetcher(underlyingError: error)
         }
         /// Add manifest handler.
-        addManifestHandler(for: pubBox, at: endpoint)
+        addManifestHandler(for: publication, at: endpoint)
         
         log(.info, "Publication at \(endpoint) has been successfully added.")
     }
     
-    fileprivate func addResourcesHandler(for pubBox: PubBox, at endpoint: String) throws {
-        let publication = pubBox.publication
-        let container = pubBox.associatedContainer
+    fileprivate func addResourcesHandler(for publication: Publication, container: Container, at endpoint: String) throws {
         let fetcher: Fetcher
         
         // Initialize the Fetcher.
@@ -207,10 +193,7 @@ public class PublicationServer: ResourcesServer {
             processBlock: resourcesHandler)
     }
     
-    fileprivate func addManifestHandler(for pubBox: PubBox, at endpoint: String) {
-        let publication = pubBox.publication
-        let container = pubBox.associatedContainer
-        
+    fileprivate func addManifestHandler(for publication: Publication, at endpoint: String) {
         /// The webserver handler to process the HTTP GET
         func manifestHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
             guard let manifestData = publication.manifest else {
@@ -223,47 +206,43 @@ public class PublicationServer: ResourcesServer {
             forMethod: "GET",
             pathRegex: "/\(endpoint)/manifest.json",
             request: GCDWebServerRequest.self,
-            processBlock: manifestHandler)
-        
+            processBlock: manifestHandler
+        )
     }
     
     public func remove(_ publication: Publication) {
-        for pubBox in pubBoxes {
-            if pubBox.value.publication.metadata.identifier == publication.metadata.identifier,
-                let index = pubBoxes.index(forKey: pubBox.key)
-            {
-                pubBoxes.remove(at: index)
-                // Remove selfLinks from publication.
-                publication.links = publication.links.filter { !$0.rels.contains("self") }
-                break
-            }
+        guard let endpoint = publications.first(where: { $0.value.metadata.identifier == publication.metadata.identifier })?.key else {
+            return
         }
+        remove(at: endpoint)
     }
     
     /// Remove a publication from the server.
     ///
     /// - Parameter endpoint: The URI postfix of the ressource.
     public func remove(at endpoint: String) {
-        guard let pubBox = pubBoxes[endpoint] else {
+        guard let publication = publications[endpoint] else {
             log(.warning, "Nothing at endpoint \(endpoint).")
             return
         }
-        // Remove self link from publication.
-        pubBox.publication.links = pubBox.publication.links.filter { !$0.rels.contains("self") }
-        // Remove the pubBox from the array.
-        pubBoxes[endpoint] = nil
+        publications.removeValue(forKey: endpoint)
+        containers.removeValue(forKey: endpoint)
+        // Remove selfLinks from publication.
+        publication.links.removeAll(where: { $0.rels.contains("self") })
         log(.info, "Publication at \(endpoint) has been successfully removed.")
     }
     
     /// Remove all publication from the server.
     public func removeAll() {
-        for pubBox in pubBoxes {
-            if let index = pubBoxes.index(forKey: pubBox.key)
-            {
-                pubBoxes.remove(at: index)
-                log(.info, "Publication at \(pubBox.key) has been successfully removed.")
-            }
+        for (endpoint, publication) in publications {
+            // Remove selfLinks from publication.
+            publication.links.removeAll(where: { $0.rels.contains("self") })
+            
+            log(.info, "Publication at \(endpoint) has been successfully removed.")
         }
+        
+        publications.removeAll()
+        containers.removeAll()
     }
     
     

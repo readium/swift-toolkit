@@ -9,18 +9,51 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
+import Foundation
 import R2Shared
 
 
 /// `Publication` and the associated `Container`.
 public typealias PubBox = (publication: Publication, associatedContainer: Container)
-/// A callback taking care of the
+/// A callback called when the publication license is loaded in the given DRM object.
 public typealias PubParsingCallback = (DRM?) throws -> Void
 
 
 public protocol PublicationParser {
     
+    static func parse(at url: URL) throws -> (PubBox, PubParsingCallback)
+    
+    // Deprecated: use `parse(url:)` instead
     static func parse(fileAtPath path: String) throws -> (PubBox, PubParsingCallback)
+
+}
+
+extension PublicationParser {
+    
+    public static func parse(fileAtPath path: String) throws -> (PubBox, PubParsingCallback) {
+        return try parse(at: URL(fileURLWithPath: path))
+    }
+    
+}
+
+
+public extension Publication {
+    
+    static func parse(at url: URL) throws -> (PubBox, PubParsingCallback)? {
+        let parsers: [Format: PublicationParser.Type] = [
+            .cbz: CbzParser.self,
+            .epub: EpubParser.self,
+            .pdf: PDFParser.self,
+            .webpub: WEBPUBParser.self
+        ]
+
+        let format = Format(url: url)
+        guard let parser = parsers[format] else {
+            return nil
+        }
+        
+        return try parser.parse(at: url)
+    }
     
 }
 
