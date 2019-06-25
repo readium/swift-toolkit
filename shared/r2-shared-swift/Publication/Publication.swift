@@ -123,21 +123,25 @@ public class Publication: WebPublication, Loggable {
     
     /// Generates an URL to a publication's `Link`.
     public func url(to link: Link?) -> URL? {
-        guard let link = link, let baseURL = self.baseURL else {
+        guard let link = link else {
             return nil
         }
         
-        // Remove trailing "/" before appending the href (href are absolute, hence starting with a "/", but relative to the publication).
-        let trimmedBaseURLString = baseURL.absoluteString.trimmingCharacters(in: ["/"])
-        
-        return URL(string: trimmedBaseURLString)?
-            .appendingPathComponent(link.href)
+        if let url = URL(string: link.href), url.scheme != nil {
+            return url
+        } else {
+            var href = link.href
+            if href.hasPrefix("/") {
+                href = String(href.dropFirst())
+            }
+            return baseURL.map { $0.appendingPathComponent(href) }
+        }
     }
     
     
     public enum Format: Equatable, Hashable {
         /// Formats natively supported by Readium.
-        case cbz, epub, pdf
+        case cbz, epub, pdf, webpub
         /// Custom format extension (MIME type)
         case other(String)
         /// Default value when the format is not specified.
@@ -157,24 +161,31 @@ public class Publication: WebPublication, Loggable {
                 self = .cbz
             case "application/pdf", "application/pdf+lcp":
                 self = .pdf
+            case "application/webpub+json", "application/audiobook+json":
+                self = .webpub
             default:
                 self = .other(mimetype)
             }
         }
-        
+
         /// Finds the format of the publication at the given url.
         /// Uses the format declared as exported UTIs in the app's Info.plist, or fallbacks on the file extension.
-        public init(file: URL) {
+        public init(url: URL) {
+            if url.scheme != nil && !url.isFileURL {
+                self = .webpub
+                return
+            }
+            
             var isDirectory: ObjCBool = false
-            guard FileManager.default.fileExists(atPath: file.path, isDirectory: &isDirectory) else {
+            guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) else {
                 self = .unknown
                 return
             }
             
             var mimetype: String?
             if isDirectory.boolValue {
-                mimetype = try? String(contentsOf: file.appendingPathComponent("mimetype"), encoding: String.Encoding.utf8)
-            } else if let extUTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, file.pathExtension as CFString, nil)?.takeUnretainedValue() {
+                mimetype = try? String(contentsOf: url.appendingPathComponent("mimetype"), encoding: String.Encoding.utf8)
+            } else if let extUTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, url.pathExtension as CFString, nil)?.takeUnretainedValue() {
                 mimetype = UTTypeCopyPreferredTagWithClass(extUTI, kUTTagClassMIMEType)?.takeRetainedValue() as String?
             }
             
@@ -183,7 +194,7 @@ public class Publication: WebPublication, Loggable {
                 return
             }
             
-            switch file.pathExtension.lowercased() {
+            switch url.pathExtension.lowercased() {
             case "epub":
                 self = .epub
             case "cbz":
@@ -195,6 +206,10 @@ public class Publication: WebPublication, Loggable {
             }
         }
         
+        @available(*, deprecated, renamed: "init(url:)")
+        public init(file: URL) {
+            self.init(url: file)
+        }
         
     }
     
