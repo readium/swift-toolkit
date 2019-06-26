@@ -142,10 +142,10 @@ class ReaderViewController: UIViewController, Loggable {
             let bookmark = currentBookmark,
             dataSource.addBookmark(bookmark: bookmark) else
         {
-            toast(self.view, NSLocalizedString("reader_bookmark_failure_message", comment: "Error message when adding a new bookmark failed"), 2)
+            toast(NSLocalizedString("reader_bookmark_failure_message", comment: "Error message when adding a new bookmark failed"), on: view, duration: 2)
             return
         }
-        toast(self.view, NSLocalizedString("reader_bookmark_success_message", comment: "Success message when adding a bookmark"), 1)
+        toast(NSLocalizedString("reader_bookmark_success_message", comment: "Success message when adding a bookmark"), on: view, duration: 1)
     }
 
     

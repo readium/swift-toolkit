@@ -98,8 +98,8 @@ extension AppModule: ReaderModuleDelegate {
 
 extension AppModule: OPDSModuleDelegate {
     
-    func opdsDidDownloadPublication(at url: URL, from downloadTask: URLSessionDownloadTask) -> Bool {
-        return library.addPublication(at: url, from: downloadTask)
+    func opdsDownloadPublication(_ publication: Publication?, at link: Link, completion: @escaping (Bool) -> Void) {
+        library.downloadPublication(publication, at: link, completion: completion)
     }
-    
+
 }

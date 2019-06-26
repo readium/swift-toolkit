@@ -326,6 +326,45 @@ final class LibraryService: Loggable {
         }
     }
     
+    func downloadPublication(_ publication: Publication? = nil, at link: Link, completion: @escaping (Bool) -> Void = { _ in }) {
+        guard let url = publication?.url(to: link) else {
+            completion(false)
+            return
+        }
+        
+        UIApplication.shared.isNetworkActivityIndicatorVisible = true
+        
+        DownloadSession.shared.launch(
+            request: URLRequest(url: url),
+            description: publication?.metadata.title
+        ) { localURL, response, error, downloadTask in
+            var success = false
+            if let localURL = localURL, error == nil {
+                // Download succeeded. DownloadTask renames the file download, thus to be parsed correctly according to the filetype, we have to fix the extension.
+                let ext = DocumentTypes.extension(forContentType: link.type) ?? url.pathExtension
+                let fixedURL = localURL.deletingLastPathComponent()
+                    .appendingPathComponent("\(url.deletingPathExtension().lastPathComponent).\(ext)")
+                do {
+                    try? FileManager.default.removeItem(at: fixedURL)
+                    try FileManager.default.moveItem(at: localURL, to: fixedURL)
+                } catch {
+                    self.log(.warning, error)
+                }
+                success = self.movePublicationToLibrary(from: fixedURL, downloadTask: downloadTask)
+            } else {
+                // Download failed
+                self.log(.warning, "Error while downloading a publication.")
+            }
+            
+            DispatchQueue.main.async {
+                UIApplication.shared.isNetworkActivityIndicatorVisible = false
+                completion(success)
+            }
+            
+            return success
+        }
+    }
+    
     /// Get the paths out of the application Documents/inbox directory.
     fileprivate func urlsFromSamples() -> [URL] {
         return ["epub", "cbz", "pdf"].flatMap { ext in

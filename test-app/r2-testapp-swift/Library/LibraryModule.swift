@@ -30,6 +30,9 @@ protocol LibraryModuleAPI {
     /// - Returns: Whether the URL was handled.
     func addPublication(at url: URL, from downloadTask: URLSessionDownloadTask?) -> Bool
     
+    /// Downloads a remote publication (eg. OPDS entry) to the library.
+    func downloadPublication(_ publication: Publication?, at link: Link, completion: @escaping (Bool) -> Void)
+    
     /// Loads the R2 DRM object for the given publication.
     func loadDRM(for book: Book, completion: @escaping (CancellableResult<DRM?>) -> Void)
 
@@ -72,6 +75,10 @@ final class LibraryModule: LibraryModuleAPI {
         } else {
             return library.addPublication(at: url, downloadTask: downloadTask)
         }
+    }
+    
+    func downloadPublication(_ publication: Publication?, at link: Link, completion: @escaping (Bool) -> Void) {
+        library.downloadPublication(publication, at: link, completion: completion)
     }
     
     func loadDRM(for book: Book, completion: @escaping (CancellableResult<DRM?>) -> Void) {

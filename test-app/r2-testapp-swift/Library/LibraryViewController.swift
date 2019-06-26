@@ -170,11 +170,8 @@ class LibraryViewController: UIViewController, Loggable {
     }
     
     private func addBookFromDevice() {
-        // Extracts supported UTIs from Info.plist
-        var utis = (Bundle.main.object(forInfoDictionaryKey: "CFBundleDocumentTypes") as? [[String: Any]] ?? [])
-            .flatMap { $0["LSItemContentTypes"] as? [String] ?? [] }
+        var utis = DocumentTypes.utis
         utis.append(String(kUTTypeText))
-        
         let documentPicker = UIDocumentPickerViewController(documentTypes: utis, in: .import)
         documentPicker.delegate = self
         present(documentPicker, animated: true, completion: nil)
@@ -187,15 +184,47 @@ class LibraryViewController: UIViewController, Loggable {
             preferredStyle: .alert
         )
         
+        func retry() {
+            addBookFromURL(url: alert.textFields?[0].text, message: NSLocalizedString("library_add_book_from_url_failure_message", comment: "Error message when trying to add a book from a URL"))
+        }
+        
         func add(_ action: UIAlertAction) {
             let optionalURLString = alert.textFields?[0].text
             guard let urlString = optionalURLString,
-                let url = URL(string: urlString),
-                library.addPublication(at: url) else
+                let url = URL(string: urlString) else
             {
-                addBookFromURL(url: optionalURLString, message: NSLocalizedString("library_add_book_from_url_failure_message", comment: "Error message when trying to add a book from a URL"))
+                retry()
                 return
             }
+            
+            func addWEBPUB() {
+                if !library.addPublication(at: url) {
+                    retry()
+                }
+            }
+            
+            func addOPDSEntry() {
+                let hideActivity = toastActivity(on: view)
+                OPDSParser.parseURL(url: url) { data, _ in
+                    DispatchQueue.main.async {
+                        hideActivity()
+                        let publication = data?.publication
+                        
+                        if let selfLink = publication?.link(withRel: "self"), selfLink.type == "application/webpub+json" {
+                            addWEBPUB()
+                            return
+                        }
+                        guard let downloadLink = publication?.downloadLinks.first else {
+                            retry()
+                            return
+                        }
+
+                        self.library.downloadPublication(publication, at: downloadLink)
+                    }
+                }
+            }
+            
+            addOPDSEntry()
         }
         
         alert.addTextField { textField in
