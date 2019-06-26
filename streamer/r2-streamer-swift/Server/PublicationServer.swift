@@ -9,7 +9,6 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
-import CoreServices
 import Foundation
 import R2Shared
 #if COCOAPODS
@@ -301,15 +300,8 @@ public class PublicationServer: ResourcesServer {
             return GCDWebServerResponse(statusCode: 404)
         }
         
-        let contentType: String = {
-            guard let extUTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, file.pathExtension as CFString, nil)?.takeUnretainedValue(),
-                let mimetype = UTTypeCopyPreferredTagWithClass(extUTI, kUTTagClassMIMEType)?.takeRetainedValue() as String? else
-            {
-                return "application/octet-stream"
-            }
-            return mimetype
-        }()
-        
+        let contentType = DocumentTypes.contentType(for: file) ?? "application/octet-stream"
+
 //        log(.debug, "Serve resource `\(path)` (\(contentType))")
         return GCDWebServerDataResponse(data: data, contentType: contentType)
     }
