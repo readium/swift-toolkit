@@ -9,7 +9,6 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
-import CoreServices
 import Foundation
 
 
@@ -182,15 +181,16 @@ public class Publication: WebPublication, Loggable {
                 return
             }
             
-            var mimetype: String?
-            if isDirectory.boolValue {
-                mimetype = try? String(contentsOf: url.appendingPathComponent("mimetype"), encoding: String.Encoding.utf8)
-            } else if let extUTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, url.pathExtension as CFString, nil)?.takeUnretainedValue() {
-                mimetype = UTTypeCopyPreferredTagWithClass(extUTI, kUTTagClassMIMEType)?.takeRetainedValue() as String?
-            }
+            let optionalMimetype: String? = {
+                if isDirectory.boolValue {
+                    return try? String(contentsOf: url.appendingPathComponent("mimetype"), encoding: String.Encoding.utf8)
+                } else {
+                    return DocumentTypes.contentType(for: url)
+                }
+            }()
             
-            if let unwrappedMimetype = mimetype {
-                self.init(mimetype: unwrappedMimetype)
+            if let mimetype = optionalMimetype {
+                self.init(mimetype: mimetype)
                 return
             }
             
