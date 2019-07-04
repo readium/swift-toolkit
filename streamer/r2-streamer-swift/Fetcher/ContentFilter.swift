@@ -69,7 +69,7 @@ final internal class ContentFiltersEpub: ContentFilters {
         guard let resourceLink = publication.link(withHref: path) else {
             return input
         }
-        var decodedInputStream = DrmDecoder.decoding(input, of: resourceLink, with: container.drm)
+        var decodedInputStream = DRMDecoder.decoding(input, of: resourceLink, with: container.drm)
         decodedInputStream = FontDecoder.decoding(decodedInputStream,
                                                   of: resourceLink,
                                                   publication.metadata.identifier)
