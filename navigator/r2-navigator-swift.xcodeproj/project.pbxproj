@@ -26,8 +26,6 @@
 		CAEACA222272EFBD00476340 /* ImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAEACA212272EFBD00476340 /* ImageViewController.swift */; };
 		F341C2711F506ED5005E6758 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F341C2701F506ED5005E6758 /* UserSettings.swift */; };
 		F3E7D3D41F4D83B000DF166D /* r2-navigator-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		F3E7D3DE1F4D845B00DF166D /* BinaryLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3DD1F4D845B00DF166D /* BinaryLocation.swift */; };
-		F3E7D3E01F4D847E00DF166D /* Disjunction.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3DF1F4D847E00DF166D /* Disjunction.swift */; };
 		F3E7D3E21F4D84A000DF166D /* EPUBNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3E11F4D84A000DF166D /* EPUBNavigatorViewController.swift */; };
 		F3E7D3E41F4D84DC00DF166D /* TriptychView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3E31F4D84DC00DF166D /* TriptychView.swift */; };
 		F3E7D3E61F4D84EF00DF166D /* DocumentWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3E51F4D84EF00DF166D /* DocumentWebView.swift */; };
@@ -58,8 +56,6 @@
 		F3E7D3C71F4D83B000DF166D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F3E7D3D11F4D83B000DF166D /* r2_navigator_swiftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = r2_navigator_swiftTests.swift; sourceTree = "<group>"; };
 		F3E7D3D31F4D83B000DF166D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		F3E7D3DD1F4D845B00DF166D /* BinaryLocation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BinaryLocation.swift; sourceTree = "<group>"; };
-		F3E7D3DF1F4D847E00DF166D /* Disjunction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Disjunction.swift; sourceTree = "<group>"; };
 		F3E7D3E11F4D84A000DF166D /* EPUBNavigatorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPUBNavigatorViewController.swift; sourceTree = "<group>"; };
 		F3E7D3E31F4D84DC00DF166D /* TriptychView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TriptychView.swift; sourceTree = "<group>"; };
 		F3E7D3E51F4D84EF00DF166D /* DocumentWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DocumentWebView.swift; sourceTree = "<group>"; };
@@ -106,8 +102,6 @@
 				F3E7D3E51F4D84EF00DF166D /* DocumentWebView.swift */,
 				CACE851E225CDE3300E19E8B /* FixedDocumentWebView.swift */,
 				CACE8520225CDFB000E19E8B /* ReflowableDocumentWebView.swift */,
-				F3E7D3DD1F4D845B00DF166D /* BinaryLocation.swift */,
-				F3E7D3DF1F4D847E00DF166D /* Disjunction.swift */,
 				F341C2701F506ED5005E6758 /* UserSettings.swift */,
 				CAA9A38B226F407B00BE1D6A /* Resources */,
 			);
@@ -286,12 +280,10 @@
 				F3E7D42E1F4EE0FE00DF166D /* CBZNavigatorViewController.swift in Sources */,
 				CA479DC52264AEA20053445E /* UIColor.swift in Sources */,
 				CAD178B622B3B553004E6812 /* R2NavigatorLocalizedString.swift in Sources */,
-				F3E7D3E01F4D847E00DF166D /* Disjunction.swift in Sources */,
 				CAEACA222272EFBD00476340 /* ImageViewController.swift in Sources */,
 				CACE84FB2254BFEE00E19E8B /* EditingAction.swift in Sources */,
 				F341C2711F506ED5005E6758 /* UserSettings.swift in Sources */,
 				CACE851F225CDE3400E19E8B /* FixedDocumentWebView.swift in Sources */,
-				F3E7D3DE1F4D845B00DF166D /* BinaryLocation.swift in Sources */,
 				CA479DC3226493570053445E /* UIView.swift in Sources */,
 				CACE84F82254BE5F00E19E8B /* PDFDocumentView.swift in Sources */,
 				CAC2A6D72292E4BA000AA2A7 /* WebView.swift in Sources */,

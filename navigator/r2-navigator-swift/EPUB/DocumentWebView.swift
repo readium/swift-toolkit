@@ -29,7 +29,8 @@ protocol DocumentWebViewDelegate: class {
 class DocumentWebView: UIView, Loggable {
     
     weak var viewDelegate: DocumentWebViewDelegate?
-    fileprivate let initialLocation: BinaryLocation
+    // Location to scroll to in the document once the page is loaded.
+    var initialLocation: Locations
     
     let baseURL: URL
     let resourcesURL: URL?
@@ -45,9 +46,9 @@ class DocumentWebView: UIView, Loggable {
 
     weak var activityIndicatorView: UIActivityIndicatorView?
 
-    var initialId: String?
-    var progression: Double?
-    var totalPages: Int?
+    private(set) var progression: Double?
+    private(set) var totalPages: Int?
+    
     func currentPage() -> Int {
         guard progression != nil && totalPages != nil else {
             return 1
@@ -83,7 +84,7 @@ class DocumentWebView: UIView, Loggable {
     
     var sizeObservation: NSKeyValueObservation?
 
-    required init(baseURL: URL, resourcesURL: URL?, initialLocation: BinaryLocation, contentLayout: ContentLayoutStyle, readingProgression: ReadingProgression, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+    required init(baseURL: URL, resourcesURL: URL?, initialLocation: Locations, contentLayout: ContentLayoutStyle, readingProgression: ReadingProgression, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
         self.baseURL = baseURL
         self.resourcesURL = resourcesURL
         self.initialLocation = initialLocation
@@ -220,7 +221,7 @@ class DocumentWebView: UIView, Loggable {
 
         // FIXME: We need to give the CSS and webview time to layout correctly. 0.2 seconds seems like a good value for it to work on an iPhone 5s. Look into solving this better
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            self.scrollToInitialPosition {
+            self.scrollAt(location: self.initialLocation) {
                 self.activityIndicatorView?.stopAnimating()
                 UIView.animate(withDuration: self.animatedLoad ? 0.3 : 0, animations: {
                     self.scrollView.alpha = 1
@@ -256,25 +257,20 @@ class DocumentWebView: UIView, Loggable {
         evaluateScriptInResource("readium.scrollToId(\'\(tagId)\');") { _, _ in completion() }
     }
 
-    // Scroll to .beggining or .end.
-    func scrollAt(location: BinaryLocation, completion: @escaping () -> Void = {}) {
-        switch location {
-        case .left:
-            scrollAt(position: 0, completion: completion)
-        case .right:
-            scrollAt(position: 1, completion: completion)
+    func scrollAt(location: Locations, completion: @escaping () -> Void = {}) {
+        guard documentLoaded else {
+            // Delays moving to the location until the document is loaded.
+            initialLocation = location
+            return
         }
-    }
-
-    /// Moves the webView to the initial location.
-    func scrollToInitialPosition(completion: @escaping () -> Void = {}) {
-        /// If the savedProgression property has been set by the navigator.
-        if let initialPosition = progression, initialPosition > 0.0 {
-            scrollAt(position: initialPosition, completion: completion)
-        } else if let initialId = initialId {
-            scrollAt(tagId: initialId, completion: completion)
+        
+        // FIXME: check that the fragment is actually a tag ID
+        if let id = location.fragment, !id.isEmpty {
+            scrollAt(tagId: id, completion: completion)
+        } else if let progression = location.progression {
+            scrollAt(position: progression, completion: completion)
         } else {
-            scrollAt(location: initialLocation, completion: completion)
+            scrollAt(position: 0, completion: completion)
         }
     }
 

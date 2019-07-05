@@ -14,18 +14,14 @@ import R2Shared
 
 protocol TriptychViewDelegate: class {
 
-    func triptychView(
-        _ view: TriptychView,
-        viewForIndex index: Int,
-        location: BinaryLocation)
-        -> UIView
+    func triptychView(_ triptychView: TriptychView, viewForIndex index: Int, location: Locations) -> UIView
     
-    func viewsDidUpdate(documentIndex:Int)
+    func triptychViewDidUpdateViews(_ triptychView: TriptychView)
 }
 
 final class TriptychView: UIView {
 
-    fileprivate enum Clamping {
+    private enum Clamping {
         case none
         case onlyPrevious
         case onlyNext
@@ -33,10 +29,28 @@ final class TriptychView: UIView {
 
     /// The array containing the Views for the current document, and possibly for
     /// the next and previous or other kind of preloading.
-    internal enum Views {
-        case one(view: UIView)
-        case two(firstView: UIView, secondView: UIView)
-        case many(currentView: UIView, otherViews: Disjunction<UIView, UIView>)
+    enum Views {
+        
+        /// Used when there's more than two views in the `TriptychView`.
+        /// Then `Others` contains the views before or after the current one.
+        enum Others {
+            case previous(UIView)
+            case next(UIView)
+            case both(previous: UIView, next: UIView)
+            
+            var count: Int {
+                switch self {
+                case .previous, .next:
+                    return 1
+                case .both(previous: _, next: _):
+                    return 2
+                }
+            }
+        }
+        
+        case one(UIView)
+        case two(first: UIView, second: UIView)
+        case many(current: UIView, others: Others)
 
         var array: [UIView] {
             switch self {
@@ -46,9 +60,9 @@ final class TriptychView: UIView {
                 return [firstView, secondView]
             case .many(let currentView, let otherViews):
                 switch otherViews {
-                case .first(let previousView):
+                case .previous(let previousView):
                     return [previousView, currentView]
-                case .second(let nextView):
+                case .next(let nextView):
                     return [currentView, nextView]
                 case .both(let previousView, let nextView):
                     return [previousView, currentView, nextView]
@@ -79,64 +93,58 @@ final class TriptychView: UIView {
         case let .some(.two(a, b)):
             // [?, ?]
             return index == 0 ? a : b
-        case let .some(.many(a, .first(b))):
+        case let .some(.many(a, .previous(b))):
             // [?, ?, -, ... -, ?, ?]
             return (index == 0 || index == viewCount - 1) ? a : b
         case let .some(.many(a, .both)):
             // [... , -, ?, a, ?, -, ...]
             return a
-        case let .some(.many(a, .second(b))):
+        case let .some(.many(a, .next(b))):
             return index == viewCount - 1 ? b : a
         }
     }
 
-    public weak var delegate: TriptychViewDelegate? {
-        didSet {
-            self.updateViews()
-        }
-    }
+    weak var delegate: TriptychViewDelegate?
 
     /// Index of the document currently being displayed.
-    fileprivate(set) var index: Int {
+    private(set) var index: Int {
         willSet {
             guard let cw = currentView as? DocumentWebView else {
                 return
             }
-            cw.scrollAt(location: (index < newValue) ? trailing : leading)
+            // Automatically scrolls the previous document to the beginning or the end, to make sure that it's properly positioned to the consecutive page when going back to it.
+            cw.scrollAt(position: (index < newValue) ? 1 : 0)
         }
     }
 
-    fileprivate let scrollView: UIScrollView
-
-    public let viewCount: Int
-
-    internal var views: Views?
+    private let scrollView: UIScrollView
     
-    let leading, trailing: BinaryLocation
+    // Location to load in the initial document.
+    let initialLocation: Locations
+
+    let viewCount: Int
+
+    var views: Views?
+    
     let readingProgression: ReadingProgression
 
-    fileprivate var clamping: Clamping = .none
+    private var clamping: Clamping = .none
 
     private var isAtAnEdge: Bool {
         return index == 0 || index == viewCount - 1
     }
     
-    public init(frame: CGRect, viewCount: Int, initialIndex: Int, readingProgression: ReadingProgression) {
+    init(frame: CGRect, viewCount: Int, initialIndex: Int, initialLocation: Locations, readingProgression: ReadingProgression) {
 
         precondition(viewCount >= 1)
         precondition(initialIndex >= 0 && initialIndex < viewCount)
 
         index = initialIndex
+        self.initialLocation = initialLocation
         self.viewCount = viewCount
         self.readingProgression = readingProgression
         self.scrollView = UIScrollView()
 
-        if self.readingProgression == .rtl {
-            leading = .right; trailing = .left
-        } else {
-            leading = .left; trailing = .right
-        }
-        
         super.init(frame: frame)
 
         scrollView.delegate = self
@@ -173,7 +181,7 @@ final class TriptychView: UIView {
 
     public override func layoutSubviews() {
         if views == nil {
-            updateViews()
+            updateViews(to: initialLocation)
         }
 
         guard let views = self.views else {
@@ -185,13 +193,11 @@ final class TriptychView: UIView {
 
         scrollView.contentSize = CGSize(width: size.width * CGFloat(views.count), height: size.height)
         
-        let viewList:[UIView] = {
-            if self.readingProgression == .rtl {
-                return views.array.reversed()
-            }
-            return views.array
-        }()
-        
+        var viewList = views.array
+        if readingProgression == .rtl {
+            viewList.reverse()
+        }
+
         for (index, view) in viewList.enumerated() {
             view.frame = CGRect(origin: CGPoint(x: size.width * CGFloat(index), y: 0), size: size)
         }
@@ -208,8 +214,11 @@ final class TriptychView: UIView {
         scrollView.contentOffset.x = offset
     }
 
-    fileprivate func updateViews(previousIndex: Int? = nil) {
-
+    private func updateViews(previousIndex: Int? = nil, to currentLocation: Locations? = nil) {
+        let beginning = Locations(progression: 0)
+        let end = Locations(progression: 1)
+        let currentLocation = currentLocation ?? beginning
+        
         if previousIndex == index {
             return
         }
@@ -218,7 +227,7 @@ final class TriptychView: UIView {
             return
         }
         
-        func viewForIndex(_ index: Int, location: BinaryLocation) -> UIView {
+        func viewForIndex(_ index: Int, location: Locations) -> UIView {
             guard let views = views, let previousIndex = previousIndex else {
                 return delegate.triptychView(self, viewForIndex: index, location: location)
             }
@@ -229,18 +238,18 @@ final class TriptychView: UIView {
             case .one(let view):
                 indexesToCurrentViews[0] = view
             case .two(let firstView, let secondView):
-                indexesToCurrentViews[0] = firstView // What?
-                indexesToCurrentViews[1] = secondView // What?
+                indexesToCurrentViews[0] = firstView
+                indexesToCurrentViews[1] = secondView
             case .many(let currentView, let otherViews):
                 indexesToCurrentViews[previousIndex] = currentView
                 switch otherViews {
-                case .first(let view):
+                case .previous(let view):
                     indexesToCurrentViews[previousIndex - 1] = view
-                case .second(let view):
+                case .next(let view):
                     indexesToCurrentViews[previousIndex + 1] = view
-                case .both(let firstView, let secondView):
-                    indexesToCurrentViews[previousIndex - 1] = firstView
-                    indexesToCurrentViews[previousIndex + 1] = secondView
+                case .both(let previousView, let nextView):
+                    indexesToCurrentViews[previousIndex - 1] = previousView
+                    indexesToCurrentViews[previousIndex + 1] = nextView
                 }
             }
 
@@ -254,41 +263,43 @@ final class TriptychView: UIView {
         switch viewCount {
         case 1:
             assert(index == 0)
-            let view = viewForIndex(0, location: leading)
-            views = Views.one(view: view)
+            let view = viewForIndex(0, location: currentLocation)
+            views = .one(view)
         case 2:
             assert(index < 2)
             if index == 0 {
-                let firstView = viewForIndex(0, location: leading)
-                let secondView = viewForIndex(1, location: leading)
-                views = Views.two(firstView: firstView, secondView: secondView)
+                let firstView = viewForIndex(0, location: currentLocation)
+                let secondView = viewForIndex(1, location: beginning)
+                views = .two(first: firstView, second: secondView)
             } else {
-                let firstView = viewForIndex(0, location: trailing)
-                let secondView = viewForIndex(1, location: leading)
-                views = Views.two(firstView: firstView, secondView: secondView)
+                let firstView = viewForIndex(0, location: end)
+                let secondView = viewForIndex(1, location: currentLocation)
+                views = .two(first: firstView, second: secondView)
             }
         default:
             if index == 0 {
-                self.views = Views.many(
-                    currentView: viewForIndex(index, location: leading),
-                    otherViews: Disjunction.second(value:
-                        viewForIndex(index + 1, location: trailing)))
+                self.views = .many(
+                    current: viewForIndex(index, location: currentLocation),
+                    others: .next(viewForIndex(index + 1, location: beginning))
+                )
             } else if index == viewCount - 1 {
-                views = Views.many(
-                    currentView: viewForIndex(index, location: trailing),
-                    otherViews: Disjunction.first(value:
-                        viewForIndex(index - 1, location: leading)))
+                views = .many(
+                    current: viewForIndex(index, location: currentLocation),
+                    others: .previous(viewForIndex(index - 1, location: end))
+                )
             } else {
-                views = Views.many(
-                    currentView: viewForIndex(index, location: leading),
-                    otherViews: Disjunction.both(
-                        first: viewForIndex(index - 1, location: trailing),
-                        second: viewForIndex(index + 1, location: leading)))
+                views = .many(
+                    current: viewForIndex(index, location: currentLocation),
+                    others: .both(
+                        previous: viewForIndex(index - 1, location: end),
+                        next: viewForIndex(index + 1, location: beginning)
+                    )
+                )
             }
         }
 
-        delegate.viewsDidUpdate(documentIndex: index)
-    
+        delegate.triptychViewDidUpdateViews(self)
+
         syncSubviews()
         setNeedsLayout()
     }
@@ -342,16 +353,12 @@ extension TriptychView {
     ///
     /// - Parameters:
     ///   - nextIndex: The index to move to.
-    internal func moveTo(index nextIndex: Int, id: String? = nil) {
-        var cw = currentView as! DocumentWebView
-
+    ///   - location: The initial location to move the view to.
+    func moveTo(index nextIndex: Int, location: Locations? = nil) {
+        let cw = currentView as! DocumentWebView
         guard index != nextIndex else {
-            if let id = id {
-                if id == "" {
-                    cw.scrollAt(location: leading)
-                } else {
-                    cw.scrollAt(tagId: id)
-                }
+            if let location = location {
+                cw.scrollAt(location: location)
             }
             return
         }
@@ -370,30 +377,9 @@ extension TriptychView {
         }
 
         let previousIndex = index
-
         index = nextIndex
         clamping = .none
-        updateViews(previousIndex: previousIndex)
-
-        // get the new current view after change.
-        cw = currentView as! DocumentWebView
-        if let id = id {
-            if id == "" {
-                if abs(previousIndex - nextIndex) == 1 {
-                    // if the view was adjacent and already loaded
-                    cw.scrollAt(location: leading)
-                } else {
-                    // In case the view wasn't preloaded
-                    cw.progression = 0.0
-                }
-            } else {
-                if abs(previousIndex - nextIndex) == 1 {
-                    cw.scrollAt(tagId: id)
-                } else {
-                    cw.initialId = id
-                }
-            }
-        }
+        updateViews(previousIndex: previousIndex, to: location)
     }
 
     /// Returns the progression in the document currently being displayed.
