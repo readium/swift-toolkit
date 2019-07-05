@@ -171,7 +171,7 @@ public class Publication: WebPublication, Loggable {
                     return .epub
                 case "cbz":
                     return .cbz
-                case "pdf", "lpdf":
+                case "pdf", "lcpdf":
                     return .pdf
                 default:
                     return .unknown
