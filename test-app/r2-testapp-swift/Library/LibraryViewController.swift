@@ -303,7 +303,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
         
         self.library.publish(publication: publication, with: container, for: book.fileName)
         
-        libraryDelegate.libraryDidSelectPublication(book.fileName, publication) {
+        libraryDelegate.libraryDidSelectPublication(publication, book: book) {
             self.loadingIndicator.removeFromSuperview()
             collectionView.isUserInteractionEnabled = true
         }

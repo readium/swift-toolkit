@@ -38,7 +38,7 @@ protocol LibraryModuleAPI {
 protocol LibraryModuleDelegate: ModuleDelegate {
     
     /// Called when the user tap on a publication in the library.
-    func libraryDidSelectPublication(_ fileName: String, _ publication: Publication, completion: @escaping () -> Void)
+    func libraryDidSelectPublication(_ publication: Publication, book: Book, completion: @escaping () -> Void)
     
 }
 

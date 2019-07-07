@@ -74,8 +74,8 @@ extension AppModule: ModuleDelegate {
 
 extension AppModule: LibraryModuleDelegate {
     
-    func libraryDidSelectPublication(_ fileName: String, _ publication: Publication, completion: @escaping () -> Void) {
-        reader.presentPublication(fileName: fileName, publication:publication, in: library.rootViewController, completion: completion)
+    func libraryDidSelectPublication(_ publication: Publication, book: Book, completion: @escaping () -> Void) {
+        reader.presentPublication(publication: publication, book: book, in: library.rootViewController, completion: completion)
     }
 
 }
