@@ -17,16 +17,12 @@ internal class DataInputStream: SeekableInputStream {
 
     // Mark - `Seekable` overrides.
     override internal var length: UInt64 {
-        get {
-            return UInt64(data.count)
-        }
+        return UInt64(data.count)
     }
 
     private var _offset: UInt64
     override internal var offset: UInt64 {
-        get {
-            return _offset
-        }
+        return _offset
     }
 
     override internal func seek(offset: Int64, whence: SeekWhence) throws {
