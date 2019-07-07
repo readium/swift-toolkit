@@ -96,9 +96,17 @@ class ReaderViewController: UIViewController, Loggable {
     }
     
     func makeNavigationBarButtons() -> [UIBarButtonItem] {
-        let tocButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self, action: #selector(presentOutline))
-        let bookmarkButton = UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(bookmarkCurrentPosition))
-        return [tocButton, bookmarkButton]
+        var buttons: [UIBarButtonItem] = []
+        // Table of Contents
+        buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self, action: #selector(presentOutline)))
+        // DRM management
+        if drm != nil {
+            buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "drm"), style: .plain, target: self, action: #selector(presentDRMManagement)))
+        }
+        // Bookmarks
+        buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(bookmarkCurrentPosition)))
+        
+        return buttons
     }
     
     func toggleNavigationBar() {
@@ -147,8 +155,18 @@ class ReaderViewController: UIViewController, Loggable {
         }
         toast(self.view, NSLocalizedString("reader_bookmark_success_message", comment: "Success message when adding a bookmark"), 1)
     }
-
     
+    
+    // MARK: - DRM
+    
+    @objc func presentDRMManagement() {
+        guard let drm = drm else {
+            return
+        }
+        moduleDelegate?.presentDRM(drm, from: self)
+    }
+    
+
     // MARK: - Accessibility
     
     /// Constraint used to shift the content under the navigation bar, since it is always visible when VoiceOver is running.
