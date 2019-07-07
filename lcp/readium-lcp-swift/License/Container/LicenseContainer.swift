@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import R2Shared
 
 /// Encapsulates the read/write access to the packaged License Document (eg. in an EPUB container, or a standalone LCPL file)
 protocol LicenseContainer {
@@ -17,4 +18,15 @@ protocol LicenseContainer {
     func read() throws -> Data
     func write(_ license: LicenseDocument) throws
 
+}
+
+func makeLicenseContainer(for publication: URL, mimetype: String? = nil) throws -> LicenseContainer {
+    switch Publication.Format(file: publication, mimetype: mimetype) {
+    case .pdf:
+        return LCPDFLicenseContainer(lcpdf: publication)
+    case .epub:
+        return EPUBLicenseContainer(epub: publication)
+    default:
+        throw LCPError.licenseContainer
+    }
 }
