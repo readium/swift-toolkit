@@ -276,7 +276,7 @@ internal class ContentFiltersPDF: ContentFilters {
         guard let resourceLink = publication.link(withHref: path) else {
             return input
         }
-        return DrmDecoder.decoding(input, of: resourceLink, with: container.drm)
+        return DRMDecoder.decoding(input, of: resourceLink, with: container.drm)
     }
     
 }
