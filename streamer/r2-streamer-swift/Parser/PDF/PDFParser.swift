@@ -150,7 +150,18 @@ public final class PDFParser: PublicationParser, Loggable {
             throw PDFParserError.invalidLCPDF
         }
         
+        container.drm = parseLCPDFDRM(in: container)
+        
         return (publication, container)
+    }
+    
+    private static func parseLCPDFDRM(in container: Container) -> DRM? {
+        guard let licenseLength = try? container.dataLength(relativePath: "license.lcpl"),
+            licenseLength > 0 else
+        {
+            return nil
+        }
+        return DRM(brand: .lcp)
     }
 
     private static func titleFromPath(_ path: String) -> String {
