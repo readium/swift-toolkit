@@ -39,7 +39,6 @@ final class EditingActionsController {
     
     private let actions: [EditingAction]
     private let license: DRMLicense?
-    private var needsCopyCheck = false
 
     init(actions: [EditingAction], license: DRMLicense?) {
         self.actions = actions
@@ -63,7 +62,7 @@ final class EditingActionsController {
     
     
     // MARK: - Copy
-    
+
     /// Returns whether the copy interaction is at all allowed. It doesn't guarantee that the next copy action will be valid, if the license cancels it.
     var canCopy: Bool {
         return actions.contains(.copy) && (license?.canCopy ?? true)
@@ -78,17 +77,17 @@ final class EditingActionsController {
         
         // We rely on UIPasteboardChanged to notify the copy to the delegate because UIKit sets the selection in the UIPasteboard asynchronously
         needsCopyCheck = true
+
         return true
     }
     
     @objc private func pasteboardDidChange() {
-        guard needsCopyCheck else {
+        let pasteboard = UIPasteboard.general
+        guard needsCopyCheck, let text = pasteboard.string else {
             return
         }
         needsCopyCheck = false
-        
-        let pasteboard = UIPasteboard.general
-        
+
         guard let license = license else {
             return
         }
@@ -96,15 +95,28 @@ final class EditingActionsController {
             pasteboard.items = []
             return
         }
-        guard let text = pasteboard.string else {
-            return
-        }
-        
+
         let authorizedText = license.copy(text)
         if authorizedText != text {
             // We overwrite the pasteboard only if the authorized text is different to avoid erasing formatting
             pasteboard.string = authorizedText
         }
+    }
+    
+    private var copyTimer: Timer?
+    private var needsCopyCheck = false {
+        didSet {
+            // A timer is used because we are listening to the event until the content is copied.
+            copyTimer?.invalidate()
+            copyTimer = nil
+            if needsCopyCheck {
+                copyTimer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(copyTimerDidFire), userInfo: nil, repeats: false)
+            }
+        }
+    }
+    
+    @objc private func copyTimerDidFire() {
+        needsCopyCheck = false
     }
     
 }
