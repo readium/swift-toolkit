@@ -16,38 +16,34 @@ import R2Shared
 extension ZipInputStream: Loggable {}
 
 /// Create a InputStream related to ONE file in the ZipArchive.
-internal class ZipInputStream: SeekableInputStream {
+class ZipInputStream: SeekableInputStream {
     var zipArchive: ZipArchive
     var fileInZipPath: String
 
     private var _streamError: Error?
-    override internal var streamError: Error? {
+    override var streamError: Error? {
         get {
             return _streamError
         }
     }
 
     private var _streamStatus: Stream.Status = .notOpen
-    override internal var streamStatus: Stream.Status {
+    override var streamStatus: Stream.Status {
         get {
             return _streamStatus
         }
     }
 
     private var _length: UInt64
-    override internal var length: UInt64 {
-        get {
-            return _length
-        }
+    override var length: UInt64 {
+        return _length
     }
 
-    override internal var offset: UInt64 {
-        get {
-            return UInt64(zipArchive.currentFileOffset)
-        }
+    override var offset: UInt64 {
+        return UInt64(zipArchive.currentFileOffset)
     }
 
-    override internal var hasBytesAvailable: Bool {
+    override var hasBytesAvailable: Bool {
         get {
             return offset < _length
         }
@@ -84,7 +80,7 @@ internal class ZipInputStream: SeekableInputStream {
         super.init()
     }
 
-    override internal func open() {
+    override func open() {
         do {
             try zipArchive.openCurrentFile()
             _streamStatus = .open
@@ -95,13 +91,13 @@ internal class ZipInputStream: SeekableInputStream {
         }
     }
 
-    override internal func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>,
+    override func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>,
                                      length len: UnsafeMutablePointer<Int>) -> Bool
     {
         return false
     }
 
-    override internal func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) -> Int {
+    override func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) -> Int {
         let bytesRead = zipArchive.readDataFromCurrentFile(buffer, maxLength: UInt64(maxLength))
         if Int(bytesRead) < maxLength {
             _streamStatus = .atEnd
@@ -109,12 +105,12 @@ internal class ZipInputStream: SeekableInputStream {
         return Int(bytesRead)
     }
 
-    override internal func close() {
+    override func close() {
         zipArchive.closeCurrentFile()
         _streamStatus = .closed
     }
 
-    override internal func seek(offset: Int64, whence: SeekWhence) throws {
+    override func seek(offset: Int64, whence: SeekWhence) throws {
         assert(whence == .startOfFile, "Only seek from start of stream is supported for now.")
         assert(offset >= 0, "Since only seek from start of stream if supported, offset must be >= 0")
         
