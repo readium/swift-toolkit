@@ -49,6 +49,12 @@ public class Link: JSONEquatable {
     /// Length of the linked resource in seconds.
     public var duration: Double?
     
+    /// Expected language of the linked resource.
+    public var languages: [String]  // BCP 47 tag
+    
+    /// Alternate resources for the linked resource.
+    public var alternates: [Link]
+    
     /// Resources that are children of the linked resource, in the context of a given collection role.
     public var children: [Link]
 
@@ -58,7 +64,7 @@ public class Link: JSONEquatable {
     public var mediaOverlays = MediaOverlays()
     
     
-    public init(href: String, type: String? = nil, templated: Bool = false, title: String? = nil, rels: [String] = [], rel: String? = nil, properties: Properties = Properties(), height: Int? = nil, width: Int? = nil, bitrate: Double? = nil, duration: Double? = nil, children: [Link] = []) {
+    public init(href: String, type: String? = nil, templated: Bool = false, title: String? = nil, rels: [String] = [], rel: String? = nil, properties: Properties = Properties(), height: Int? = nil, width: Int? = nil, bitrate: Double? = nil, duration: Double? = nil, languages: [String] = [], alternates: [Link] = [], children: [Link] = []) {
         self.href = href
         self.type = type
         self.templated = templated
@@ -69,6 +75,8 @@ public class Link: JSONEquatable {
         self.width = width
         self.bitrate = bitrate
         self.duration = duration
+        self.languages = languages
+        self.alternates = alternates
         self.children = children
         
         // convenience to set a single rel during construction
@@ -93,6 +101,8 @@ public class Link: JSONEquatable {
         self.width = parsePositive(json["width"])
         self.bitrate = parsePositiveDouble(json["bitrate"])
         self.duration = parsePositiveDouble(json["duration"])
+        self.languages = parseArray(json["language"], allowingSingle: true)
+        self.alternates = [Link](json: json["alternate"], normalizeHref: normalizeHref)
         self.children = [Link](json: json["children"], normalizeHref: normalizeHref)
     }
     
@@ -108,6 +118,8 @@ public class Link: JSONEquatable {
             "width": encodeIfNotNil(width),
             "bitrate": encodeIfNotNil(bitrate),
             "duration": encodeIfNotNil(duration),
+            "language": encodeIfNotEmpty(languages),
+            "alternate": encodeIfNotEmpty(alternates.json),
             "children": encodeIfNotEmpty(children.json)
         ])
     }
