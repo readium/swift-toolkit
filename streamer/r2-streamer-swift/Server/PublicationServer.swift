@@ -43,14 +43,15 @@ public class PublicationServer: ResourcesServer {
     // Mapping between endpoint and the matching container.
     public private(set) var containers: [String: Container] = [:]
 
-    /// The running HTTP server listening port.
-    public var port: UInt? {
-        get { return webServer.port }
+    /// The port is initially set to 0 to choose a random port when first starting the server.
+    /// Only the first time the server is started a random port is chosen, to make sure we keep the same port when coming out of background.
+    public var port: UInt {
+        return webServer.port
     }
     
     /// The base URL of the server
     public var baseURL: URL? {
-        get { return webServer.serverURL }
+        return webServer.serverURL
     }
     
 
@@ -69,19 +70,30 @@ public class PublicationServer: ResourcesServer {
         addSpecialResourcesHandlers()
     }
     
-    internal func startWebServer() -> Bool {
-        // with port 0, a random port is used each time.
-        let port = 0
-        do {
-            // TODO: Check if we can use unix socket instead of tcp.
-            //       Check if it's supported by WKWebView first.
-            try webServer.start(options: [GCDWebServerOption_Port: port,
-                                          GCDWebServerOption_BindToLocalhost: true])
-        } catch {
-            log(.error, "Failed to start the HTTP server: \(error)")
-            return false
+    func startWebServer() -> Bool {
+        func makeRandomPort() -> UInt {
+            // https://en.wikipedia.org/wiki/Ephemeral_port#Range
+            let lowerBound = 49152
+            let upperBound = 65535
+            return UInt(lowerBound + Int(arc4random_uniform(UInt32(upperBound - lowerBound))))
         }
-        return true
+        
+        for _ in 1...10 {
+            do {
+                // TODO: Check if we can use unix socket instead of tcp.
+                //       Check if it's supported by WKWebView first.
+                try webServer.start(options: [
+                    GCDWebServerOption_Port: makeRandomPort(),
+                    GCDWebServerOption_BindToLocalhost: true]
+                )
+                return true
+            } catch {
+                log(.error, error)
+            }
+        }
+        
+        log(.error, "Failed to start the HTTP server")
+        return false
     }
     
     // Add handlers for the css/js/font resources.

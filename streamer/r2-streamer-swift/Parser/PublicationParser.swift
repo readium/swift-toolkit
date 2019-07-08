@@ -47,7 +47,7 @@ public extension Publication {
             .webpub: WEBPUBParser.self
         ]
 
-        let format = Format(url: url)
+        let format = Format(file: url)
         guard let parser = parsers[format] else {
             return nil
         }
