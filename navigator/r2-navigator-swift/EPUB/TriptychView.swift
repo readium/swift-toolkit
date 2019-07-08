@@ -1,10 +1,10 @@
- //
+//
 //  TriptychView.swift
 //  r2-navigator-swift
 //
-//  Created by Winnie Quinn, Alexandre Camilleri on 8/23/17.
+//  Created by Winnie Quinn, Alexandre Camilleri, Mickaël Menu on 8/23/17.
 //
-//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Copyright 2019 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by a BSD-style license which is detailed
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
@@ -12,138 +12,83 @@
 import UIKit
 import R2Shared
 
-protocol TriptychViewDelegate: class {
+protocol TriptychResourceView {
+    func go(to location: Locations)
+}
 
-    func triptychView(_ triptychView: TriptychView, viewForIndex index: Int, location: Locations) -> UIView
-    
+protocol TriptychViewDelegate: class {
+    func triptychView(_ triptychView: TriptychView, viewForIndex index: Int, location: Locations) -> (UIView & TriptychResourceView)?
     func triptychViewDidUpdateViews(_ triptychView: TriptychView)
 }
 
 final class TriptychView: UIView {
 
+    weak var delegate: TriptychViewDelegate? {
+        didSet {
+            setCurrentView(at: currentIndex, location: initialLocation)
+        }
+    }
+
+    /// Location to load in the initial resource view.
+    let initialLocation: Locations
+    
+    /// Direction for the reading progression.
+    let readingProgression: ReadingProgression
+    
+    /// Total number of resource views to be paginated.
+    let viewCount: Int
+
+    /// Pre-loaded resource views, indexed by their position.
+    private(set) var loadedViews: [Int: (UIView & TriptychResourceView)] = [:]
+
+    /// Returns whether the resource views are loaded.
+    var isEmpty: Bool {
+        return loadedViews.isEmpty
+    }
+
+    /// Index of the resource view currently being displayed.
+    private(set) var currentIndex: Int
+
+    /// Return the currently presented view from the Views array.
+    var currentView: (UIView & TriptychResourceView)? {
+        return loadedViews[currentIndex]
+    }
+
+    /// Loaded resource views in reading order.
+    private var orderedViews: [UIView & TriptychResourceView] {
+        var orderedViews = loadedViews
+            .sorted { $0.key < $1.key }
+            .map { $0.value }
+        
+        if readingProgression == .rtl {
+            orderedViews.reverse()
+        }
+        
+        return orderedViews
+    }
+
+    // Number of views to preload before and after the current one.
+    // Note: For now only 1 is supported. If we add support for several, then this class should probably be renamed (triptych = 3).
+    private let preloadPreviousCount = 1
+    private let preloadNextCount = 1
+
+    private let scrollView = UIScrollView()
+
+    private var clamping: Clamping = .none
     private enum Clamping {
         case none
         case onlyPrevious
         case onlyNext
     }
 
-    /// The array containing the Views for the current document, and possibly for
-    /// the next and previous or other kind of preloading.
-    enum Views {
-        
-        /// Used when there's more than two views in the `TriptychView`.
-        /// Then `Others` contains the views before or after the current one.
-        enum Others {
-            case previous(UIView)
-            case next(UIView)
-            case both(previous: UIView, next: UIView)
-            
-            var count: Int {
-                switch self {
-                case .previous, .next:
-                    return 1
-                case .both(previous: _, next: _):
-                    return 2
-                }
-            }
-        }
-        
-        case one(UIView)
-        case two(first: UIView, second: UIView)
-        case many(current: UIView, others: Others)
-
-        var array: [UIView] {
-            switch self {
-            case .one(let view):
-                return [view]
-            case .two(let firstView, let secondView):
-                return [firstView, secondView]
-            case .many(let currentView, let otherViews):
-                switch otherViews {
-                case .previous(let previousView):
-                    return [previousView, currentView]
-                case .next(let nextView):
-                    return [currentView, nextView]
-                case .both(let previousView, let nextView):
-                    return [previousView, currentView, nextView]
-                }
-            }
-        }
-
-        var count: Int {
-            switch self {
-            case .one:
-                return 1
-            case .two:
-                return 2
-            case .many(_, let otherViews):
-                return 1 + otherViews.count
-            }
-        }
-    }
-
-    /// Return the currently presented view from the Views array.
-    var currentView: UIView? {
-        switch views {
-        case nil:
-            return nil
-        case let .some(.one(a)):
-            // [?]
-            return a
-        case let .some(.two(a, b)):
-            // [?, ?]
-            return index == 0 ? a : b
-        case let .some(.many(a, .previous(b))):
-            // [?, ?, -, ... -, ?, ?]
-            return (index == 0 || index == viewCount - 1) ? a : b
-        case let .some(.many(a, .both)):
-            // [... , -, ?, a, ?, -, ...]
-            return a
-        case let .some(.many(a, .next(b))):
-            return index == viewCount - 1 ? b : a
-        }
-    }
-
-    weak var delegate: TriptychViewDelegate?
-
-    /// Index of the document currently being displayed.
-    private(set) var index: Int {
-        willSet {
-            guard let cw = currentView as? DocumentWebView else {
-                return
-            }
-            // Automatically scrolls the previous document to the beginning or the end, to make sure that it's properly positioned to the consecutive page when going back to it.
-            cw.scrollAt(position: (index < newValue) ? 1 : 0)
-        }
-    }
-
-    private let scrollView: UIScrollView
-    
-    // Location to load in the initial document.
-    let initialLocation: Locations
-
-    let viewCount: Int
-
-    var views: Views?
-    
-    let readingProgression: ReadingProgression
-
-    private var clamping: Clamping = .none
-
-    private var isAtAnEdge: Bool {
-        return index == 0 || index == viewCount - 1
-    }
-    
     init(frame: CGRect, viewCount: Int, initialIndex: Int, initialLocation: Locations, readingProgression: ReadingProgression) {
-
         precondition(viewCount >= 1)
-        precondition(initialIndex >= 0 && initialIndex < viewCount)
+        precondition(0..<viewCount ~= initialIndex)
 
-        index = initialIndex
         self.initialLocation = initialLocation
-        self.viewCount = viewCount
         self.readingProgression = readingProgression
-        self.scrollView = UIScrollView()
+        self.viewCount = viewCount
+        self.currentIndex = initialIndex
 
         super.init(frame: frame)
 
@@ -158,19 +103,8 @@ final class TriptychView: UIView {
         // Adds an empty view before the scroll view to have a consistent behavior on all iOS versions, regarding to the content inset adjustements. Even if automaticallyAdjustsScrollViewInsets is not set to false on the navigator's parent view controller, the scroll view insets won't be adjusted if the scroll view is not the first child in the subviews hierarchy.
         insertSubview(UIView(frame: .zero), at: 0)
         if #available(iOS 11.0, *) {
-            // Prevents the pages from jumping down when the status bar is toggled
+            // Prevents the content from jumping down when the status bar is toggled
             scrollView.contentInsetAdjustmentBehavior = .never
-        }
-    }
-
-    deinit {
-        guard let views = views else {
-            return
-        }
-        for view in views.array {
-            if let webview = (view as? DocumentWebView) {
-                webview.removeMessageHandlers()
-            }
         }
     }
 
@@ -180,156 +114,100 @@ final class TriptychView: UIView {
     }
 
     public override func layoutSubviews() {
-        if views == nil {
-            updateViews(to: initialLocation)
-        }
-
-        guard let views = self.views else {
+        guard !loadedViews.isEmpty else {
             scrollView.contentSize = bounds.size
             return
         }
 
-        let size = frame.size
-
-        scrollView.contentSize = CGSize(width: size.width * CGFloat(views.count), height: size.height)
+        let views = orderedViews
         
-        var viewList = views.array
-        if readingProgression == .rtl {
-            viewList.reverse()
-        }
+        let size = frame.size
+        scrollView.contentSize = CGSize(width: size.width * CGFloat(views.count), height: size.height)
 
-        for (index, view) in viewList.enumerated() {
+        for (index, view) in views.enumerated() {
             view.frame = CGRect(origin: CGPoint(x: size.width * CGFloat(index), y: 0), size: size)
         }
 
-        let pageOffset = min(1, index)
+        let pageOffset = min(1, currentIndex)
         
-        let offset:CGFloat = {
-            if self.readingProgression == .rtl {
-                return scrollView.contentSize.width - CGFloat(pageOffset+1)*scrollView.frame.width
-            }
-            return size.width * CGFloat(pageOffset)
-        } ()
-        
-        scrollView.contentOffset.x = offset
+        scrollView.contentOffset.x = (readingProgression == .rtl)
+            ? scrollView.contentSize.width - CGFloat(pageOffset + 1) * scrollView.frame.width
+            : size.width * CGFloat(pageOffset)
     }
 
-    private func updateViews(previousIndex: Int? = nil, to currentLocation: Locations? = nil) {
+    /// Updates the current and pre-loaded views.
+    private func setCurrentView(at index: Int, location: Locations? = nil) {
+        guard isEmpty || index != currentIndex else {
+            return
+        }
+
+        // Locations in a resource view.
         let beginning = Locations(progression: 0)
         let end = Locations(progression: 1)
-        let currentLocation = currentLocation ?? beginning
+        let location = location ?? beginning
         
-        if previousIndex == index {
-            return
-        }
-
-        guard let delegate = delegate else {
-            return
+        // Automatically scrolls the previous document to the beginning or the end, to make sure that it's properly positioned to the consecutive resource when going back to it.
+        currentView?.go(to: (currentIndex < index) ? end : beginning)
+        
+        currentIndex = index
+        
+        // To make sure that the views the most likely to be visible are loaded first, we first load the current one, then the next ones and to finish the previous ones.
+        loadView(at: index, location: location)
+        
+        for i in 1...preloadNextCount {
+            loadView(at: index + i, location: beginning)
         }
         
-        func viewForIndex(_ index: Int, location: Locations) -> UIView {
-            guard let views = views, let previousIndex = previousIndex else {
-                return delegate.triptychView(self, viewForIndex: index, location: location)
-            }
-
-            var indexesToCurrentViews: [Int: UIView] = [:]
-
-            switch views {
-            case .one(let view):
-                indexesToCurrentViews[0] = view
-            case .two(let firstView, let secondView):
-                indexesToCurrentViews[0] = firstView
-                indexesToCurrentViews[1] = secondView
-            case .many(let currentView, let otherViews):
-                indexesToCurrentViews[previousIndex] = currentView
-                switch otherViews {
-                case .previous(let view):
-                    indexesToCurrentViews[previousIndex - 1] = view
-                case .next(let view):
-                    indexesToCurrentViews[previousIndex + 1] = view
-                case .both(let previousView, let nextView):
-                    indexesToCurrentViews[previousIndex - 1] = previousView
-                    indexesToCurrentViews[previousIndex + 1] = nextView
-                }
-            }
-
-            if let view = indexesToCurrentViews[index] {
-                return view
-            }
-
-            return delegate.triptychView(self, viewForIndex: index, location: location)
+        for i in 1...preloadPreviousCount {
+            loadView(at: index - i, location: end)
         }
 
-        switch viewCount {
-        case 1:
-            assert(index == 0)
-            let view = viewForIndex(0, location: currentLocation)
-            views = .one(view)
-        case 2:
-            assert(index < 2)
-            if index == 0 {
-                let firstView = viewForIndex(0, location: currentLocation)
-                let secondView = viewForIndex(1, location: beginning)
-                views = .two(first: firstView, second: secondView)
-            } else {
-                let firstView = viewForIndex(0, location: end)
-                let secondView = viewForIndex(1, location: currentLocation)
-                views = .two(first: firstView, second: secondView)
+        for (i, view) in loadedViews {
+            // Flushes the views that are not needed anymore.
+            guard index-preloadPreviousCount...index+preloadNextCount ~= i else {
+                view.removeFromSuperview()
+                loadedViews.removeValue(forKey: i)
+                continue
             }
-        default:
-            if index == 0 {
-                self.views = .many(
-                    current: viewForIndex(index, location: currentLocation),
-                    others: .next(viewForIndex(index + 1, location: beginning))
-                )
-            } else if index == viewCount - 1 {
-                views = .many(
-                    current: viewForIndex(index, location: currentLocation),
-                    others: .previous(viewForIndex(index - 1, location: end))
-                )
-            } else {
-                views = .many(
-                    current: viewForIndex(index, location: currentLocation),
-                    others: .both(
-                        previous: viewForIndex(index - 1, location: end),
-                        next: viewForIndex(index + 1, location: beginning)
-                    )
-                )
+            
+            // Adds newly loaded views to the scroll view.
+            if view.superview == nil {
+                scrollView.addSubview(view)
             }
         }
 
-        delegate.triptychViewDidUpdateViews(self)
-
-        syncSubviews()
         setNeedsLayout()
+        delegate?.triptychViewDidUpdateViews(self)
     }
 
-    private func syncSubviews() {
-        let webViewsBefore = scrollView.subviews.compactMap { $0 as? DocumentWebView }
-        scrollView.subviews.forEach({
-            $0.removeFromSuperview()
-        })
+    /// Loads the view at given index if it's not already loaded.
+    ///
+    /// - Parameter location: Initial location in the view to be displayed.
+    private func loadView(at index: Int, location: Locations) {
+        guard 0..<viewCount ~= index,
+            loadedViews[index] == nil,
+            let delegate = delegate,
+            let view = delegate.triptychView(self, viewForIndex: index, location: location) else
+        {
+            return
+        }
+        loadedViews[index] = view
+    }
 
-        if let viewArray = views?.array {
-            viewArray.forEach({
-                if let webview = ($0 as? DocumentWebView) {
-                    webview.addMessageHandlers()
-                }
-                self.scrollView.addSubview($0)
-            })
+    
+    // MARK: - Navigation
+    
+    /// Go to the resource view with given index.
+    ///
+    /// - Parameters:
+    ///   - index: The index to move to.
+    ///   - location: The location to move the future current resource view to.
+    /// - Returns: Whether the move is possible.
+    func goToIndex(_ index: Int, location: Locations? = nil, animated: Bool = false, completion: @escaping () -> ()) -> Bool {
+        guard 0..<viewCount ~= index else {
+            return false
         }
         
-        webViewsBefore.forEach {
-            if $0.superview == nil { $0.removeMessageHandlers() }
-        }
-    }
-}
-
-extension TriptychView {
-
-    /// Wraps a `move` triptych block to animate or not the change.
-    /// - Parameter delayedFadeIn: This is used when we want to jump to a specific location in the resource. The rendering is sometimes very slow in this case so we have a generous delay before we show the view again.
-    func performTransition(animated: Bool = false, delayed: Bool = false, completion: @escaping () -> (), _ transition: @escaping (TriptychView) -> ()) {
         func fade(to alpha: CGFloat, completion: @escaping () -> ()) {
             if animated {
                 UIView.animate(withDuration: 0.15, animations: {
@@ -342,23 +220,24 @@ extension TriptychView {
         }
         
         fade(to: 0) {
-            transition(self)
+            self.scrollToView(at: index, location: location)
+            
+            // The rendering is sometimes very slow. So in case we don't show the first page of the resource, we add a generous delay before showing the view again.
+            // FIXME: this should be handled in the TriptychResourceView directly
+            let delayed = (location != nil && location?.progression != 0)
+            
             DispatchQueue.main.asyncAfter(deadline: .now() + (delayed ? 0.5 : 0)) {
                 fade(to: 1, completion: completion)
             }
         }
+        
+        return true
     }
     
-    /// Move to the given index
-    ///
-    /// - Parameters:
-    ///   - nextIndex: The index to move to.
-    ///   - location: The initial location to move the view to.
-    func moveTo(index nextIndex: Int, location: Locations? = nil) {
-        let cw = currentView as! DocumentWebView
-        guard index != nextIndex else {
+    private func scrollToView(at index: Int, location: Locations? = nil) {
+        guard currentIndex != index else {
             if let location = location {
-                cw.scrollAt(location: location)
+                currentView?.go(to: location)
             }
             return
         }
@@ -368,37 +247,24 @@ extension TriptychView {
         
         let coefficient = CGFloat(readingProgression == .rtl ? -1:1)
 
-        if index < nextIndex {
-            currentRect.x += coefficient*currentFrameSize.width
+        if currentIndex < index {
+            currentRect.x += coefficient * currentFrameSize.width
             scrollView.scrollRectToVisible(CGRect(origin: currentRect, size: currentFrameSize), animated: false)
         } else {
-            currentRect.x -= coefficient*currentFrameSize.width
+            currentRect.x -= coefficient * currentFrameSize.width
             scrollView.scrollRectToVisible(CGRect(origin: currentRect, size: currentFrameSize), animated: false)
         }
 
-        let previousIndex = index
-        index = nextIndex
         clamping = .none
-        updateViews(previousIndex: previousIndex, to: location)
+        setCurrentView(at: index, location: location)
     }
 
-    /// Returns the progression in the document currently being displayed.
-    var currentDocumentProgression: Double? {
-        guard currentView != nil else {
-            return nil
-        }
-        return (currentView as! DocumentWebView).progression
-    }
 }
 
 extension TriptychView: UIScrollViewDelegate {
 
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        guard let views = views else {
-            return
-        }
-
-        if views.count == 3 {
+        if loadedViews.count >= 3 {
             let width = frame.size.width
             let xOffset = scrollView.contentOffset.x
 
@@ -417,12 +283,7 @@ extension TriptychView: UIScrollViewDelegate {
         }
     }
     
-    // Set the clamping to .none in scrollViewDidEndScrollingAnimation
-    // and scrollViewDidEndDragging with decelerate == false,
-    // to prevent the bug introduced by the workaround in
-    // scrollViewDidEndDecelerating where the scrollview contentOffset
-    // is animated. When animating the contentOffset, scrollViewDidScroll
-    // is called without calling scrollViewDidEndDecelerating afterwards.
+    // Set the clamping to .none in scrollViewDidEndScrollingAnimation and scrollViewDidEndDragging with decelerate == false, to prevent the bug introduced by the workaround in scrollViewDidEndDecelerating where the scrollview contentOffset is animated. When animating the contentOffset, scrollViewDidScroll is called without calling scrollViewDidEndDecelerating afterwards.
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         clamping = .none
     }
@@ -433,11 +294,8 @@ extension TriptychView: UIScrollViewDelegate {
     }
 
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-
         clamping = .none
 
-        let previousIndex = index
-        
         let offset:CGFloat = {
             if self.readingProgression == .rtl {
                 return scrollView.contentSize.width - (scrollView.contentOffset.x + scrollView.frame.width)
@@ -447,45 +305,30 @@ extension TriptychView: UIScrollViewDelegate {
         
         let pageOffset = Int(round(offset / scrollView.frame.width))
 
+        var newIndex = currentIndex
         if pageOffset == 0 {
-            if index > 0 {
-                index -= 1
+            if newIndex > 0 {
+                newIndex -= 1
             }
         } else if pageOffset == 1 {
-            if index == 0 {
-                index += 1
+            if newIndex == 0 {
+                newIndex += 1
             }
         } else {
             assert(pageOffset == 2)
-            index += 1
+            newIndex += 1
         }
 
-        updateViews(previousIndex: previousIndex)
-        
-        // This works around a very specific case that may be a bug in iOS's scroll
-        // view implementation. If the user is on a view of index >= 1, and if the
-        // user swipes forward slightly and then, with great force, swipes back and
-        // quickly lets go, the scroll view will slam up against the clamped
-        // boundary and "bounce" even if bouncing is disabled. The reason for this
-        // is unclear! In any case, the following code compensates for this by
-        // animating a transition to a content offset on a page boundary if, for any
-        // reason (including the above), the scroll view has come rest on an offset
-        // that is _not_ a page boundary. The conditional guard here prevents
-        // animating if the offset is already correct because otherwise doing so may
-        // result in a visual glitch (also for unknown reasons).
-        if(fmod(scrollView.contentOffset.x, scrollView.frame.width) != 0.0) {
+        setCurrentView(at: newIndex)
+
+        // This works around a very specific case that may be a bug in iOS's scroll view implementation. If the user is on a view of currentIndex >= 1, and if the user swipes forward slightly and then, with great force, swipes back and quickly lets go, the scroll view will slam up against the clamped boundary and "bounce" even if bouncing is disabled. The reason for this is unclear! In any case, the following code compensates for this by animating a transition to a content offset on a page boundary if, for any reason (including the above), the scroll view has come rest on an offset that is _not_ a page boundary. The conditional guard here prevents animating if the offset is already correct because otherwise doing so may result in a visual glitch (also for unknown reasons).
+        if (fmod(scrollView.contentOffset.x, scrollView.frame.width) != 0.0) {
+            let adjustedOffset = (self.readingProgression == .rtl)
+                ? scrollView.contentSize.width - CGFloat(pageOffset + 1) * scrollView.frame.width
+                : CGFloat(pageOffset) * scrollView.frame.width
             
-            let adjustedOffset:CGFloat = {
-                if self.readingProgression == .rtl {
-                    return scrollView.contentSize.width - CGFloat(pageOffset + 1) * scrollView.frame.width
-                } else {
-                    return CGFloat(pageOffset) * scrollView.frame.width
-                }
-            } ()
-            
-            scrollView.setContentOffset(
-                .init(x: adjustedOffset, y: 0),
-                animated: true)
+            scrollView.setContentOffset(CGPoint(x: adjustedOffset, y: 0), animated: true)
         }
     }
+    
 }

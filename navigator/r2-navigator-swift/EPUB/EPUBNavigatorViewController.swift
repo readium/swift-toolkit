@@ -59,6 +59,11 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     private let contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]
     
     private let triptychView: TriptychView
+    
+    /// Index of the currently visible reading order resource.
+    private var currentResourceIndex: Int {
+        return triptychView.currentIndex
+    }
 
     /// Base URL on the resources server to the files in Static/
     /// Used to serve the ReadiumCSS files.
@@ -132,7 +137,8 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         super.viewWillDisappear(animated)
         
         // FIXME: Deprecated, to be removed at some point.
-        delegate?.willExitPublication(documentIndex: triptychView.index, progression: triptychView.currentDocumentProgression)
+        let progression = (triptychView.currentView as? DocumentWebView)?.progression
+        delegate?.willExitPublication(documentIndex: currentResourceIndex, progression: progression)
     }
 
     /// Mapping between reading order hrefs and the table of contents title.
@@ -158,38 +164,27 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     /// Goes to the reading order resource at given `index`, and given content location.
     @discardableResult
     private func goToIndex(_ index: Int, location: Locations? = nil, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        guard publication.readingOrder.indices.contains(index) else {
-            return false
-        }
-
-        // The rendering is sometimes very slow. So in case we don't show the first page of the resource, we add a generous delay before showing the view again.
-        let delayed = (location?.progression != 0)
-        triptychView.performTransition(animated: animated, delayed: delayed, completion: completion) { triptych in
-            triptych.moveTo(index: index, location: location)
-        }
-        
-        return true
+        return triptychView.goToIndex(index, location: location, animated: animated, completion: completion)
     }
     
     /// Goes to the next or previous page in the given scroll direction.
-    private func go(to direction: DocumentWebView.ScrollDirection, animated: Bool, completion: @escaping () -> Void) -> Bool {
+    private func go(to direction: DocumentWebView.Direction, animated: Bool, completion: @escaping () -> Void) -> Bool {
         guard let webView = triptychView.currentView as? DocumentWebView else {
             return false
         }
-        return webView.scrollTo(direction, animated: animated, completion: completion)
+        return webView.go(to: direction, animated: animated, completion: completion)
     }
     
     public func updateUserSettingStyle() {
         assert(Thread.isMainThread, "User settings must be updated from the main thread")
         
-        guard let views = triptychView.views?.array else {
+        guard !triptychView.isEmpty else {
             return
         }
         
         let location = currentLocation
-        for view in views {
-            let webview = view as? DocumentWebView
-            webview?.applyUserSettingsStyle()
+        for (_, view) in triptychView.loadedViews {
+            (view as? DocumentWebView)?.applyUserSettingsStyle()
         }
         
         // Re-positions the navigator to the location before applying the settings
@@ -206,13 +201,13 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     }
     
     public var currentLocation: Locator? {
-        let resource = publication.readingOrder[triptychView.index]
+        let resource = publication.readingOrder[currentResourceIndex]
         return Locator(
             href: resource.href,
             type: resource.type ?? "text/html",
             title: tableOfContentsTitleByHref[resource.href],
             locations: Locations(
-                progression: triptychView.currentDocumentProgression ?? 0
+                progression: (triptychView.currentView as? DocumentWebView)?.progression ?? 0
             )
         )
     }
@@ -245,7 +240,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     }
     
     public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
-        let direction: DocumentWebView.ScrollDirection = {
+        let direction: DocumentWebView.Direction = {
             switch readingProgression {
             case .ltr, .auto:
                 return .right
@@ -257,7 +252,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     }
     
     public func goBackward(animated: Bool, completion: @escaping () -> Void) -> Bool {
-        let direction: DocumentWebView.ScrollDirection = {
+        let direction: DocumentWebView.Direction = {
             switch readingProgression {
             case .ltr, .auto:
                 return .left
@@ -321,14 +316,14 @@ extension EPUBNavigatorViewController: DocumentWebViewDelegate {
     @discardableResult
     func displayRightDocument(animated: Bool, completion: @escaping () -> Void) -> Bool {
         let delta = triptychView.readingProgression == .rtl ? -1 : 1
-        return goToIndex(triptychView.index + delta, animated: animated, completion: completion)
+        return goToIndex(currentResourceIndex + delta, animated: animated, completion: completion)
     }
 
     /// Display previous document (readingOrder item).
     @discardableResult
     func displayLeftDocument(animated: Bool, completion: @escaping () -> Void) -> Bool {
         let delta = triptychView.readingProgression == .rtl ? -1 : 1
-        return goToIndex(triptychView.index - delta, animated: animated, completion: completion)
+        return goToIndex(currentResourceIndex - delta, animated: animated, completion: completion)
     }
 
 }
@@ -345,9 +340,9 @@ extension EPUBNavigatorViewController: EditingActionsControllerDelegate {
 
 extension EPUBNavigatorViewController: TriptychViewDelegate {
 
-    func triptychView(_ view: TriptychView, viewForIndex index: Int, location: Locations) -> UIView {
+    func triptychView(_ triptychView: TriptychView, viewForIndex index: Int, location: Locations) -> (UIView & TriptychResourceView)? {
         guard let baseURL = publication.baseURL else {
-            return UIView()
+            return nil
         }
         
         let link = publication.readingOrder[index]
@@ -360,7 +355,7 @@ extension EPUBNavigatorViewController: TriptychViewDelegate {
             resourcesURL: resourcesURL,
             initialLocation: location,
             contentLayout: publication.contentLayout,
-            readingProgression: view.readingProgression,
+            readingProgression: triptychView.readingProgression,
             animatedLoad: false,  // FIXME: custom animated
             editingActions: editingActions,
             contentInset: contentInset
@@ -380,12 +375,9 @@ extension EPUBNavigatorViewController: TriptychViewDelegate {
         notifyCurrentLocation()
 
         // FIXME: Deprecated, to be removed at some point.
-        delegate?.didChangedDocumentPage(currentDocumentIndex: triptychView.index)
-        if let currentView = triptychView.currentView {
-            let cw = currentView as! DocumentWebView
-            if let pages = cw.totalPages {
-                delegate?.didChangedPaginatedDocumentPage(currentPage: cw.currentPage(), documentTotalPage: pages)
-            }
+        delegate?.didChangedDocumentPage(currentDocumentIndex: currentResourceIndex)
+        if let currentView = triptychView.currentView as? DocumentWebView, let pages = currentView.totalPages {
+            delegate?.didChangedPaginatedDocumentPage(currentPage: currentView.currentPage, documentTotalPage: pages)
         }
     }
     
@@ -429,7 +421,7 @@ extension EPUBNavigatorViewController {
         }
         return Bookmark(
             publicationID: publicationID,
-            resourceIndex: triptychView.index,
+            resourceIndex: currentResourceIndex,
             locator: locator
         )
     }

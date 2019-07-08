@@ -26,8 +26,8 @@ protocol DocumentWebViewDelegate: class {
     func documentPageDidChange(webView: DocumentWebView, currentPage: Int ,totalPage: Int)
 }
 
-class DocumentWebView: UIView, Loggable {
-    
+class DocumentWebView: UIView, TriptychResourceView, Loggable {
+
     weak var viewDelegate: DocumentWebViewDelegate?
     // Location to scroll to in the document once the page is loaded.
     var initialLocation: Locations
@@ -49,7 +49,7 @@ class DocumentWebView: UIView, Loggable {
     private(set) var progression: Double?
     private(set) var totalPages: Int?
     
-    func currentPage() -> Int {
+    var currentPage: Int {
         guard progression != nil && totalPages != nil else {
             return 1
         }
@@ -121,7 +121,7 @@ class DocumentWebView: UIView, Loggable {
             let pageCount = Int(documentLength / pageLength)
             if self.totalPages != pageCount {
                 self.totalPages = pageCount
-                self.viewDelegate?.documentPageDidChange(webView: self, currentPage: self.currentPage(), totalPage: pageCount)
+                self.viewDelegate?.documentPageDidChange(webView: self, currentPage: self.currentPage, totalPage: pageCount)
             }
         }
         scrollView.alpha = 0
@@ -138,8 +138,9 @@ class DocumentWebView: UIView, Loggable {
     deinit {
         sizeObservation = nil  // needs to be deallocated before the scrollView
         NotificationCenter.default.removeObserver(self)
+        removeMessageHandlers()
     }
-    
+
     func setupWebView() {
         webView.backgroundColor = UIColor.clear
         scrollView.backgroundColor = UIColor.clear
@@ -163,17 +164,20 @@ class DocumentWebView: UIView, Loggable {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-  
+
     var scrollView: UIScrollView {
         return webView.scrollView
     }
 
     override func didMoveToSuperview() {
-        // Fixing an iOS 9 bug by explicitly clearing scrollView.delegate before deinitialization
+        super.didMoveToSuperview()
+        
         if superview == nil {
+            removeMessageHandlers()
+            // Fixing an iOS 9 bug by explicitly clearing scrollView.delegate before deinitialization
             scrollView.delegate = nil
-        }
-        else {
+        } else {
+            addMessageHandlers()
             scrollView.delegate = self
         }
     }
@@ -221,7 +225,7 @@ class DocumentWebView: UIView, Loggable {
 
         // FIXME: We need to give the CSS and webview time to layout correctly. 0.2 seconds seems like a good value for it to work on an iPhone 5s. Look into solving this better
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            self.scrollAt(location: self.initialLocation) {
+            self.go(to: self.initialLocation) {
                 self.activityIndicatorView?.stopAnimating()
                 UIView.animate(withDuration: self.animatedLoad ? 0.3 : 0, animations: {
                     self.scrollView.alpha = 1
@@ -231,33 +235,37 @@ class DocumentWebView: UIView, Loggable {
     }
 
     // Scroll at position 0-1 (0%-100%)
-    func scrollAt(position: Double, completion: @escaping () -> Void = {}) {
-        guard position >= 0 && position <= 1 else {
-            log(.warning, "Scrolling to invalid position \(position)")
+    func go(toProgression progression: Double, completion: @escaping () -> Void = {}) {
+        guard progression >= 0 && progression <= 1 else {
+            log(.warning, "Scrolling to invalid progression \(progression)")
             completion()
             return
         }
 
         // Note: The JS layer does not take into account the scroll view's content inset. So it can't be used to reliably scroll to the top or the bottom of the page in scroll mode.
-        if isScrollEnabled && [0, 1].contains(position) {
+        if isScrollEnabled && [0, 1].contains(progression) {
             var contentOffset = scrollView.contentOffset
-            contentOffset.y = (position == 0)
+            contentOffset.y = (progression == 0)
                 ? -scrollView.contentInset.top
                 : (scrollView.contentSize.height - scrollView.bounds.height + scrollView.contentInset.bottom)
             scrollView.contentOffset = contentOffset
             completion()
         } else {
             let dir = readingProgression.rawValue
-            evaluateScriptInResource("readium.scrollToPosition(\'\(position)\', \'\(dir)\')") { _, _ in completion () }
+            evaluateScriptInResource("readium.scrollToPosition(\'\(progression)\', \'\(dir)\')") { _, _ in completion () }
         }
     }
 
     // Scroll at the tag with id `tagId`.
-    func scrollAt(tagId: String, completion: @escaping () -> Void = {}) {
-        evaluateScriptInResource("readium.scrollToId(\'\(tagId)\');") { _, _ in completion() }
+    func go(toTagID id: String, completion: @escaping () -> Void = {}) {
+        evaluateScriptInResource("readium.scrollToId(\'\(id)\');") { _, _ in completion() }
     }
 
-    func scrollAt(location: Locations, completion: @escaping () -> Void = {}) {
+    func go(to location: Locations) {
+        go(to: location, completion: {})
+    }
+    
+    func go(to location: Locations, completion: @escaping () -> Void) {
         guard documentLoaded else {
             // Delays moving to the location until the document is loaded.
             initialLocation = location
@@ -266,20 +274,20 @@ class DocumentWebView: UIView, Loggable {
         
         // FIXME: check that the fragment is actually a tag ID
         if let id = location.fragment, !id.isEmpty {
-            scrollAt(tagId: id, completion: completion)
+            go(toTagID: id, completion: completion)
         } else if let progression = location.progression {
-            scrollAt(position: progression, completion: completion)
+            go(toProgression: progression, completion: completion)
         } else {
-            scrollAt(position: 0, completion: completion)
+            go(toProgression: 0, completion: completion)
         }
     }
 
-    enum ScrollDirection {
+    enum Direction {
         case left
         case right
     }
     
-    func scrollTo(_ direction: ScrollDirection, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
+    func go(to direction: Direction, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
         if isScrollEnabled {
             guard let viewDelegate = viewDelegate else {
                 return false
@@ -363,7 +371,7 @@ class DocumentWebView: UIView, Loggable {
             return
         }
         previousProgression = nil
-        viewDelegate?.documentPageDidChange(webView: self, currentPage: currentPage(), totalPage: pages)
+        viewDelegate?.documentPageDidChange(webView: self, currentPage: currentPage, totalPage: pages)
     }
     
     
@@ -425,7 +433,9 @@ extension DocumentWebView: WKScriptMessageHandler {
 
     /// Add a message handler for incoming javascript events.
     func addMessageHandlers() {
-        if hasLoadedJsEvents { return }
+        guard !hasLoadedJsEvents else {
+            return
+        }
         // Add the message handlers.
         for eventName in jsEvents.keys {
             webView.configuration.userContentController.add(self, name: eventName)
@@ -435,6 +445,9 @@ extension DocumentWebView: WKScriptMessageHandler {
 
     // Deinit message handlers (preventing strong reference cycle).
     func removeMessageHandlers() {
+        guard hasLoadedJsEvents else {
+            return
+        }
         for eventName in jsEvents.keys {
             webView.configuration.userContentController.removeScriptMessageHandler(forName: eventName)
         }
@@ -471,7 +484,7 @@ extension DocumentWebView: WKNavigationDelegate {
 }
 
 extension DocumentWebView: UIScrollViewDelegate {
-
+    
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         scrollView.isUserInteractionEnabled = true
         viewDelegate?.didEndPageAnimation()
