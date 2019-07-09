@@ -76,18 +76,6 @@ final class TriptychView: UIView {
 
     private let scrollView = UIScrollView()
 
-    /// The clamping is used to make sure we can't scroll through more than 1 resource at a time. Otherwise, because the triptych's scroll view would have the focus during the scroll gesture, the scrollable content of the resources would be skipped.
-    /// Note: using this approach might provide a better experience: https://oleb.net/blog/2014/05/scrollviews-inside-scrollviews/
-    private var clamping: Clamping = .none
-    private enum Clamping {
-        // No scroll constraint.
-        case none
-        // Only allows scrolling between the current and the previous resource.
-        case previous
-        // Only allows scrolling between the current and the next resource.
-        case next
-    }
-
     init(frame: CGRect, resourcesCount: Int, initialIndex: Int, initialLocation: Locations, readingProgression: ReadingProgression) {
         precondition(resourcesCount >= 1)
         precondition(0..<resourcesCount ~= initialIndex)
@@ -253,7 +241,7 @@ final class TriptychView: UIView {
             return
         }
         
-        clamping = .none
+        scrollView.isScrollEnabled = true
         setCurrentView(at: index, location: location)
 
         scrollView.scrollRectToVisible(CGRect(
@@ -269,58 +257,34 @@ final class TriptychView: UIView {
 
 
 extension TriptychView: UIScrollViewDelegate {
+    
+    /// We disable the scroll once the user releases the drag to prevent scrolling through more than 1 resource at a time. Otherwise, because the triptych's scroll view would have the focus during the scroll gesture, the scrollable content of the resources would be skipped.
+    /// Note: using this approach might provide a better experience: https://oleb.net/blog/2014/05/scrollviews-inside-scrollviews/
 
-    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let width = scrollView.bounds.width
-        let xOffset = scrollView.contentOffset.x
-        let currentResourceOffset = xOffsetForIndex(currentIndex)
-        
-        switch clamping {
-        case .none:
-            if xOffset < currentResourceOffset {
-                clamping = .previous
-            } else if xOffset > currentResourceOffset {
-                clamping = .next
-            }
-        case .previous:
-            scrollView.contentOffset.x = min(currentResourceOffset, max(xOffset, currentResourceOffset - width))
-        case .next:
-            scrollView.contentOffset.x = max(currentResourceOffset, min(xOffset, currentResourceOffset + width))
-        }
+    func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+        scrollView.isScrollEnabled = false
     }
      
-    // Set the clamping to .none in scrollViewDidEndScrollingAnimation and scrollViewDidEndDragging with decelerate == false, to prevent the bug introduced by the workaround in scrollViewDidEndDecelerating where the scrollview contentOffset is animated. When animating the contentOffset, scrollViewDidScroll is called without calling scrollViewDidEndDecelerating afterwards.
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
-        clamping = .none
+        scrollView.isScrollEnabled = true
     }
     
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        guard !decelerate else {
-            return
+        if !decelerate {
+            scrollView.isScrollEnabled = true
         }
-        clamping = .none
     }
 
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        clamping = .none
-
+        scrollView.isScrollEnabled = true
+        
         let currentOffset = (readingProgression == .rtl)
             ? scrollView.contentSize.width - (scrollView.contentOffset.x + scrollView.frame.width)
             : scrollView.contentOffset.x
-
+        
         let newIndex = Int(round(currentOffset / scrollView.frame.width))
-
+        
         setCurrentView(at: newIndex)
-
-        // This works around a very specific case that may be a bug in iOS's scroll view implementation. If the user is on a view of currentIndex >= 1, and if the user swipes forward slightly and then, with great force, swipes back and quickly lets go, the scroll view will slam up against the clamped boundary and "bounce" even if bouncing is disabled. The reason for this is unclear! In any case, the following code compensates for this by animating a transition to a content offset on a page boundary if, for any reason (including the above), the scroll view has come rest on an offset that is _not_ a page boundary. The conditional guard here prevents animating if the offset is already correct because otherwise doing so may result in a visual glitch (also for unknown reasons).
-        if fmod(scrollView.contentOffset.x, scrollView.frame.width) != 0.0 {
-            scrollView.setContentOffset(
-                CGPoint(
-                    x: xOffsetForIndex(currentIndex),
-                    y: scrollView.contentOffset.y
-                ),
-                animated: false
-            )
-        }
     }
+    
 }
