@@ -92,7 +92,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         
         triptychView = TriptychView(
             frame: CGRect.zero,
-            viewCount: publication.readingOrder.count,
+            resourcesCount: publication.readingOrder.count,
             initialIndex: initialIndex,
             initialLocation: initialLocation,
             readingProgression: publication.contentLayout.readingProgression
