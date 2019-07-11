@@ -26,71 +26,73 @@ class OPDSCatalogSelectorViewController: UITableViewController {
     let userDefaultsID = "opdsCatalogArray"
     var addFeedButton: UIBarButtonItem?
     var mustEditAtIndexPath: IndexPath?
-
+    
     override func viewDidLoad() {
-      
+        
         preloadTestFeeds()
-      
+        
         self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
-
+        
         self.tableView.frame = UIScreen.main.bounds
         tableView.layoutMargins = UIEdgeInsets.zero
         tableView.separatorInset = UIEdgeInsets.zero
         tableView.cellLayoutMarginsFollowReadableWidth = false
         tableView.sizeToFit()
-
+        
         addFeedButton = UIBarButtonItem(title: NSLocalizedString("add_button", comment: "Add an OPDS feed button"), style: UIBarButtonItem.Style.plain, target: self, action: #selector(OPDSCatalogSelectorViewController.showAddFeedPopup))
         addFeedButton?.accessibilityLabel = NSLocalizedString("opds_add_button_a11y_label", comment: "Add an OPDS feed button")
-      
+        
         navigationItem.rightBarButtonItem = addFeedButton
         
         navigationController?.navigationBar.tintColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
         navigationController?.navigationBar.barTintColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
         navigationController?.view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
     }
-  
+    
     func preloadTestFeeds() {
-      let version = 1
-      let VERSION_KEY = "OPDS_CATALOG_VERSION"
-      let R2TestCatalog = ["title": "R2 Reader Test Catalog", "url": "https://d2g.dita.digital/opds/collections/10040"]
-      let OPDS2Catalog = ["title": "OPDS 2.0 Test Catalog", "url": "https://test.opds.io/2.0/home.json"]
-
-      catalogData = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
-      let oldversion = UserDefaults.standard.integer(forKey: VERSION_KEY)
-      if (catalogData == nil || oldversion < version) {
-        UserDefaults.standard.set(version, forKey: VERSION_KEY)
-        catalogData = [
-          R2TestCatalog, OPDS2Catalog
-        ]
-        UserDefaults.standard.set(catalogData, forKey: userDefaultsID)
-      }
-      
+        let version = 2
+        let VERSION_KEY = "OPDS_CATALOG_VERSION"
+        let R2TestCatalog = ["title": "R2 Reader Test Catalog", "url": "https://d2g.dita.digital/opds/collections/10040"]
+        let OPDS2Catalog = ["title": "OPDS 2.0 Test Catalog", "url": "https://test.opds.io/2.0/home.json"]
+        let OTBCatalog = ["title": "Open Textbooks Catalog", "url": "http://open.minitex.org/textbooks"]
+        let SEBCatalog = ["title": "Standard eBooks Catalog", "url": "https://standardebooks.org/opds/all"]
+        
+        catalogData = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
+        let oldversion = UserDefaults.standard.integer(forKey: VERSION_KEY)
+        if (catalogData == nil || oldversion < version) {
+            UserDefaults.standard.set(version, forKey: VERSION_KEY)
+            catalogData = [
+                R2TestCatalog, OPDS2Catalog, OTBCatalog, SEBCatalog
+            ]
+            UserDefaults.standard.set(catalogData, forKey: userDefaultsID)
+        }
+        
     }
-  
+    
     override func viewDidAppear(_ animated: Bool) {
         if let index = mustEditAtIndexPath?.row {
             showEditPopup(feedIndex: index)
         }
         mustEditAtIndexPath = nil
     }
-
+    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return catalogData!.count
     }
-
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath)
         cell.textLabel?.text = catalogData![indexPath.row]["title"]
         return cell
     }
-
+    
     override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         tableView.layoutMargins = UIEdgeInsets.zero
         tableView.separatorInset = UIEdgeInsets.zero
         cell.layoutMargins = UIEdgeInsets.zero
         cell.separatorInset = UIEdgeInsets.zero
     }
-
+    
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         self.tableView.deselectRow(at: indexPath, animated: false)
         guard let urlString = catalogData![indexPath.row]["url"],
@@ -98,19 +100,19 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         {
             return
         }
-      
+        
         let viewController: OPDSRootTableViewController = OPDSFactory.shared.make(feedURL: url, indexPath: indexPath)
         navigationController?.pushViewController(viewController, animated: true)
     }
-
+    
     override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
-
+        
         // action one
         let editAction = UITableViewRowAction(style: .default, title: NSLocalizedString("edit_button", comment: "Edit a OPDS feed button"), handler: { (action, indexPath) in
             self.showEditPopup(feedIndex: indexPath.row)
         })
         editAction.backgroundColor = UIColor.gray
-
+        
         // action two
         let deleteAction = UITableViewRowAction(style: .default, title: NSLocalizedString("remove_button", comment: "Remove an OPDS feed button"), handler: { (action, indexPath) in
             self.catalogData?.remove(at: indexPath.row)
@@ -118,14 +120,14 @@ class OPDSCatalogSelectorViewController: UITableViewController {
             self.tableView.reloadData()
         })
         deleteAction.backgroundColor = UIColor.gray
-
+        
         return [editAction, deleteAction]
     }
-
+    
     @objc func showAddFeedPopup() {
         self.showEditPopup(feedIndex: nil)
     }
-
+    
     func showEditPopup(feedIndex: Int?, retry: Bool = false) {
         let alertController = UIAlertController(
             title: NSLocalizedString("opds_add_title", comment: "Title of the add feed alert"),
@@ -143,7 +145,7 @@ class OPDSCatalogSelectorViewController: UITableViewController {
                             self.showEditPopup(feedIndex: feedIndex, retry: true)
                             return
                         }
-
+                        
                         if feedIndex == nil {
                             self.catalogData?.append(["title": title, "url": urlString])
                         }
@@ -176,3 +178,4 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         self.present(alertController, animated: true, completion: nil)
     }
 }
+

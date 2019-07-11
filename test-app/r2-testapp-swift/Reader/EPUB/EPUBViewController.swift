@@ -19,9 +19,8 @@ class EPUBViewController: ReaderViewController {
     var popoverUserconfigurationAnchor: UIBarButtonItem?
     var userSettingNavigationController: UserSettingsNavigationController
 
-    init(publication: Publication, drm: DRM?) {
-        let initialLocation = EPUBViewController.initialLocation(for: publication)
-        let navigator = EPUBNavigatorViewController(publication: publication, license: drm?.license, initialLocation: initialLocation)
+    init(publication: Publication, book: Book, drm: DRM?, resourcesServer: ResourcesServer) {
+        let navigator = EPUBNavigatorViewController(publication: publication, license: drm?.license, initialLocation: book.progressionLocator, resourcesServer: resourcesServer)
 
         let settingsStoryboard = UIStoryboard(name: "UserSettings", bundle: nil)
         userSettingNavigationController = settingsStoryboard.instantiateViewController(withIdentifier: "UserSettingsNavigationController") as! UserSettingsNavigationController
@@ -30,7 +29,7 @@ class EPUBViewController: ReaderViewController {
         userSettingNavigationController.advancedSettingsViewController =
             (settingsStoryboard.instantiateViewController(withIdentifier: "AdvancedSettingsViewController") as! AdvancedSettingsViewController)
         
-        super.init(navigator: navigator, publication: publication, drm: drm)
+        super.init(navigator: navigator, publication: publication, book: book, drm: drm)
         
         navigator.delegate = self
     }
@@ -84,11 +83,6 @@ class EPUBViewController: ReaderViewController {
         let userSettingsButton = UIBarButtonItem(image: #imageLiteral(resourceName: "settingsIcon"), style: .plain, target: self, action: #selector(presentUserSettings))
         buttons.insert(userSettingsButton, at: 1)
         popoverUserconfigurationAnchor = userSettingsButton
-    
-        if drm != nil {
-          let drmManagementButton = UIBarButtonItem(image: #imageLiteral(resourceName: "drm"), style: .plain, target: self, action: #selector(presentDrmManagement))
-          buttons.insert(drmManagementButton, at: buttons.count-1)
-        }
 
         return buttons
     }
@@ -116,14 +110,7 @@ class EPUBViewController: ReaderViewController {
             popoverPresentationController.passthroughViews = nil
         }
     }
-    
-    @objc func presentDrmManagement() {
-        guard let drm = drm else {
-            return
-        }
-        moduleDelegate?.presentDRM(drm, from: self)
-    }
-    
+
 }
 
 extension EPUBViewController: EPUBNavigatorDelegate {
@@ -163,9 +150,6 @@ extension EPUBViewController: UserSettingsNavigationControllerDelegate {
         navigationController?.navigationBar.tintColor = colors.textColor
         
         navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: colors.textColor]
-        
-        // FIXME:
-//        drmManagementTVC?.appearance = appearance
     }
     
 }

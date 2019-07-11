@@ -42,6 +42,14 @@
 /* Hint message when the library is empty */
 "library_empty_message" = "📖 Open EPUB/CBZ file to import";
 
+/* Add book alert message */
+"library_add_book_title" = "Add a book to your library";
+"library_add_book_from_device_button" = "From your device";
+"library_add_book_from_url_button" = "From a URL";
+"library_add_book_from_url_title" = "Add a book from a URL";
+"library_add_book_from_url_failure_message" = "URL is not valid, please try again";
+"library_add_book_from_url_placeholder" = "URL";
+
 /* Alert when a publication is successfully imported */
 "library_import_success_message" = "Publication added to library";
 /* Alert when a publication is successfully downloaded */
@@ -55,8 +63,6 @@
 "library_delete_alert_title" = "Are you sure?";
 "library_delete_alert_message" = "This will remove the Publication from your library.";
 
-/* Error message used when the publication server can't be started */
-"library_error_cantStartPublicationServer" = "Can't start the publication server";
 /* Error message used when trying to import a publication that is not valid */
 "library_error_publicationIsNotValid" = "The publication isn't valid";
 /* Error message used when a low-level error occured while importing a publication */

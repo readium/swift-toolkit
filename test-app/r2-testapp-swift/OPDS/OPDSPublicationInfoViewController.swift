@@ -23,7 +23,6 @@ class OPDSPublicationInfoViewController: UIViewController, Loggable {
     weak var moduleDelegate: OPDSModuleDelegate?
     
     var publication: Publication?
-    var downloadURL: URL?
 
     @IBOutlet weak var imageView: UIImageView!
     @IBOutlet weak var fxImageView: UIImageView!
@@ -33,6 +32,8 @@ class OPDSPublicationInfoViewController: UIViewController, Loggable {
     @IBOutlet weak var downloadButton: UIButton!
     @IBOutlet weak var downloadActivityIndicator: UIActivityIndicatorView!
     
+    private lazy var downloadLink: Link? = publication?.downloadLinks.first
+
     override func viewDidLoad() {
         fxImageView.clipsToBounds = true
         fxImageView!.contentMode = .scaleAspectFill
@@ -80,78 +81,24 @@ class OPDSPublicationInfoViewController: UIViewController, Loggable {
         
         downloadActivityIndicator.stopAnimating()
         
-        downloadURL = getDownloadURL()
-        
         // If we are not able to get a free link, we hide the download button
         // TODO: handle payment or redirection for others links?
-        if downloadURL == nil {
+        if downloadLink == nil {
             downloadButton.isHidden = true
         }
     }
     
     @IBAction func downloadBook(_ sender: UIButton) {
-        guard let delegate = moduleDelegate else {
+        guard let delegate = moduleDelegate, let downloadLink = downloadLink else {
             return
         }
         
-        if let url = downloadURL {
-            
-            downloadActivityIndicator.startAnimating()
-            UIApplication.shared.isNetworkActivityIndicatorVisible = true
-            downloadButton.isEnabled = false
-            
-            let request = URLRequest(url:url)
-            let description = publication?.metadata.title
-            
-            DownloadSession.shared.launch(request: request, description: description, completionHandler: { (localURL, response, error, downloadTask) -> Bool in
-                
-                DispatchQueue.main.async {
-                    self.downloadActivityIndicator.stopAnimating()
-                    UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                    self.downloadButton.isEnabled = true
-                }
-                
-                if let localURL = localURL, error == nil {
-                    // Download succeed
-                    // downloadTask renames the file download, thus to be parsed correctly according to
-                    // the filetype, we first have to rename the downloaded file to its original filename
-                    var fixedURL = localURL.deletingLastPathComponent()
-                    fixedURL.appendPathComponent(url.lastPathComponent, isDirectory: false)
-                    do {
-                        try FileManager.default.moveItem(at: localURL, to: fixedURL)
-                    } catch {
-                        self.log(.warning, error)
-                    }
-                    
-                    return delegate.opdsDidDownloadPublication(at: fixedURL, from: downloadTask)
+        downloadActivityIndicator.startAnimating()
+        downloadButton.isEnabled = false
+        delegate.opdsDownloadPublication(publication, at: downloadLink) { [weak self] _ in
+            self?.downloadActivityIndicator.stopAnimating()
+            self?.downloadButton.isEnabled = true
+        }
+    }
 
-                } else {
-                    // Download failed
-                    self.log(.warning, "Error while downloading a publication.")
-                }
-                
-                return false
-            })
-        }
-        
-    }
-    
-    // Parse publication selected to retrieve links containing a free href
-    // and pointing to an epub or lcpl file
-    fileprivate func getDownloadURL() -> URL? {
-        var url: URL?
-        
-        if let links = publication?.links {
-            for link in links {
-                let href = link.href
-                if href.hasSuffix(".epub") || href.hasSuffix(".lcpl") || href.hasSuffix(".lcpdf") {
-                    url = URL(string: href)
-                    break
-                }
-            }
-        }
-        
-        return url
-    }
-    
 }
