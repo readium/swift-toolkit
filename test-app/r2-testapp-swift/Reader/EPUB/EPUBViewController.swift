@@ -19,8 +19,8 @@ class EPUBViewController: ReaderViewController {
     var popoverUserconfigurationAnchor: UIBarButtonItem?
     var userSettingNavigationController: UserSettingsNavigationController
 
-    init(publication: Publication, book: Book, drm: DRM?) {
-        let navigator = EPUBNavigatorViewController(publication: publication, license: drm?.license, initialLocation: book.progressionLocator)
+    init(publication: Publication, book: Book, drm: DRM?, resourcesServer: ResourcesServer) {
+        let navigator = EPUBNavigatorViewController(publication: publication, license: drm?.license, initialLocation: book.progressionLocator, resourcesServer: resourcesServer)
 
         let settingsStoryboard = UIStoryboard(name: "UserSettings", bundle: nil)
         userSettingNavigationController = settingsStoryboard.instantiateViewController(withIdentifier: "UserSettingsNavigationController") as! UserSettingsNavigationController

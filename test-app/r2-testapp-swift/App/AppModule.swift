@@ -13,6 +13,7 @@
 import Foundation
 import UIKit
 import R2Shared
+import R2Streamer
 
 
 /// Base module delegate, that sub-modules' delegate can extend.
@@ -34,8 +35,13 @@ final class AppModule {
     var opds: OPDSModuleAPI! = nil
 
     init() throws {
-        library = try LibraryModule(delegate: self)
-        reader = ReaderModule(delegate: self)
+        guard let server = PublicationServer() else {
+            /// FIXME: we should recover properly if the publication server can't start, maybe this should only forbid opening a publication?
+            fatalError("Can't start publication server")
+        }
+        
+        library = LibraryModule(delegate: self, server: server)
+        reader = ReaderModule(delegate: self, resourcesServer: server)
         opds = OPDSModule(delegate: self)
         
         // Set Readium 2's logging minimum level.
@@ -83,8 +89,8 @@ extension AppModule: LibraryModuleDelegate {
 
 extension AppModule: ReaderModuleDelegate {
     
-    func readerLoadDRM(for fileName: String, completion: @escaping (CancellableResult<DRM?>) -> Void) {
-        library.loadDRM(for: fileName, completion: completion)
+    func readerLoadDRM(for book: Book, completion: @escaping (CancellableResult<DRM?>) -> Void) {
+        library.loadDRM(for: book, completion: completion)
     }
     
 }
@@ -92,8 +98,8 @@ extension AppModule: ReaderModuleDelegate {
 
 extension AppModule: OPDSModuleDelegate {
     
-    func opdsDidDownloadPublication(at url: URL, from downloadTask: URLSessionDownloadTask) -> Bool {
-        return library.addPublication(at: url, from: downloadTask)
+    func opdsDownloadPublication(_ publication: Publication?, at link: Link, completion: @escaping (Bool) -> Void) {
+        library.downloadPublication(publication, at: link, completion: completion)
     }
-    
+
 }

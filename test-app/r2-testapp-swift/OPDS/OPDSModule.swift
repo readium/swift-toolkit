@@ -12,6 +12,7 @@
 
 import Foundation
 import UIKit
+import R2Shared
 
 
 /// The OPDS module handles the presentation of OPDS catalogs.
@@ -27,10 +28,9 @@ protocol OPDSModuleAPI {
 
 protocol OPDSModuleDelegate: ModuleDelegate {
     
-    /// Called when an OPDS publication was downloaded to the given URL.
-    /// - Returns: Whether the publication was successfully handled.
-    func opdsDidDownloadPublication(at url: URL, from downloadTask: URLSessionDownloadTask) -> Bool
-    
+    /// Called when an OPDS publication needs to be downloaded.
+    func opdsDownloadPublication(_ publication: Publication?, at link: Link, completion: @escaping (Bool) -> Void)
+
 }
 
 
