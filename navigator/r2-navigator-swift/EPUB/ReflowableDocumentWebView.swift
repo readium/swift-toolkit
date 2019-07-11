@@ -24,7 +24,7 @@ final class ReflowableDocumentWebView: DocumentWebView {
     override func setupWebView() {
         super.setupWebView()
         scrollView.bounces = false
-        scrollView.isPagingEnabled = true
+        scrollView.isPagingEnabled = !isScrollEnabled
         
         webView.translatesAutoresizingMaskIntoConstraints = false
         topConstraint = webView.topAnchor.constraint(equalTo: topAnchor)
@@ -36,19 +36,8 @@ final class ReflowableDocumentWebView: DocumentWebView {
             webView.leadingAnchor.constraint(equalTo: leadingAnchor),
             webView.trailingAnchor.constraint(equalTo: trailingAnchor),
         ])
-        
-        // Setups the `viewport` meta tag to disable zooming.
-        let viewportScript = WKUserScript(source: """
-            (function() {
-              var meta = document.createElement("meta");
-              meta.setAttribute("name", "viewport");
-              meta.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
-              document.head.appendChild(meta);
-            })();
-        """, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
-        webView.configuration.userContentController.addUserScript(viewportScript)
     }
-    
+
     @available(iOS 11.0, *)
     override func safeAreaInsetsDidChange() {
         super.safeAreaInsetsDidChange()
@@ -63,19 +52,20 @@ final class ReflowableDocumentWebView: DocumentWebView {
     override func applyUserSettingsStyle() {
         super.applyUserSettingsStyle()
         
-        if let userSettings = userSettings {
-            for cssProperty in userSettings.userProperties.properties {
+        if let properties = userSettings?.userProperties.properties {
+            let propertiesScript = properties.reduce("") { script, property in
                 let value: String = {
                     // Scroll mode depends both on the user settings, and on the fact that VoiceOver is activated or not, so we need to generate the value dynamically.
                     // FIXME: This would be handled in a better way by decoupling the user settings from the actual ReadiumCSS properties sent to the WebView, which should be private details of the EPUBNavigator implementation and not shared with the host app.
-                    if let switchable = cssProperty as? Switchable, cssProperty.name == ReadiumCSSName.scroll.rawValue {
+                    if let switchable = property as? Switchable, property.name == ReadiumCSSName.scroll.rawValue {
                         return switchable.values[isScrollEnabled]!
                     } else {
-                        return cssProperty.toString()
+                        return property.toString()
                     }
                 }()
-                evaluateScriptInResource("readium.setProperty(\"\(cssProperty.name)\", \"\(value)\");")
+                return script + "readium.setProperty(\"\(property.name)\", \"\(value)\");\n"
             }
+            evaluateScriptInResource(propertiesScript)
         }
 
         // Disables paginated mode if scroll is on.
@@ -85,20 +75,21 @@ final class ReflowableDocumentWebView: DocumentWebView {
     }
 
     private func updateContentInset() {
-        var insets = contentInset[traitCollection.verticalSizeClass]
-            ?? contentInset[.regular]
-            ?? contentInset[.unspecified]
-            ?? (top: 0, bottom: 0)
-        
-        // Increases the insets by the notch area (eg. iPhone X) to make sure that the content is not overlapped by the screen notch.
-        insets.top += notchAreaInsets.top
-        insets.bottom += notchAreaInsets.bottom
-
         if (isScrollEnabled) {
             topConstraint.constant = 0
             bottomConstraint.constant = 0
-            scrollView.contentInset = UIEdgeInsets(top: insets.top, left: 0, bottom: insets.bottom, right: 0)
+            scrollView.contentInset = UIEdgeInsets(top: notchAreaInsets.top, left: 0, bottom: notchAreaInsets.bottom, right: 0)
+            
         } else {
+            var insets = contentInset[traitCollection.verticalSizeClass]
+                ?? contentInset[.regular]
+                ?? contentInset[.unspecified]
+                ?? (top: 0, bottom: 0)
+            
+            // Increases the insets by the notch area (eg. iPhone X) to make sure that the content is not overlapped by the screen notch.
+            insets.top += notchAreaInsets.top
+            insets.bottom += notchAreaInsets.bottom
+            
             topConstraint.constant = insets.top
             bottomConstraint.constant = -insets.bottom
             scrollView.contentInset = .zero
@@ -128,6 +119,63 @@ final class ReflowableDocumentWebView: DocumentWebView {
         point.x += webView.frame.minX
         point.y += webView.frame.minY
         return point
+    }
+    
+    
+    // MARK: Scripts
+    
+    private static let cssScript = loadScript(named: "css")
+    private static let cssInlineScript = loadScript(named: "css-inline")
+    
+    override func makeScripts() -> [WKUserScript] {
+        var scripts = super.makeScripts()
+        
+        // Setups the `viewport` meta tag to disable zooming.
+        scripts.append(WKUserScript(source: """
+            (function() {
+              var meta = document.createElement("meta");
+              meta.setAttribute("name", "viewport");
+              meta.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
+              document.head.appendChild(meta);
+            })();
+        """, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+
+        // Injects ReadiumCSS stylesheets.
+        if let resourcesURL = resourcesURL {
+            // When a publication is served from an HTTPS server, then WKWebView forbids accessing the stylesheets from the local, unsecured GCDWebServer instance. In this case we will inject directly the full content of the CSS in the JavaScript.
+            if baseURL.scheme?.lowercased() == "https" {
+                func loadCSS(_ name: String) -> String? {
+                    return loadResource(at: "styles/\(contentLayout.rawValue)/\(name).css")?
+                        .replacingOccurrences(of: "\\", with: "\\\\")
+                        .replacingOccurrences(of: "`", with: "\\`")
+                }
+                
+                if let cssScript = ReflowableDocumentWebView.cssInlineScript,
+                    let beforeCSS = loadCSS("ReadiumCSS-before"),
+                    let afterCSS = loadCSS("ReadiumCSS-after") {
+                    scripts.append(WKUserScript(
+                        source: cssScript
+                            .replacingOccurrences(of: "${css-before}", with: beforeCSS)
+                            .replacingOccurrences(of: "${css-after}", with: afterCSS),
+                        injectionTime: .atDocumentStart,
+                        forMainFrameOnly: false
+                    ))
+                }
+                
+            } else {
+                if let cssScript = ReflowableDocumentWebView.cssScript {
+                    scripts.append(WKUserScript(
+                        source: cssScript
+                            .replacingOccurrences(of: "${resourcesURL}", with: resourcesURL.absoluteString)
+                            .replacingOccurrences(of: "${contentLayout}", with: contentLayout.rawValue),
+                        injectionTime: .atDocumentStart,
+                        forMainFrameOnly: false
+                    ))
+                }
+            }
+        }
+        
+        return scripts
     }
 
 }

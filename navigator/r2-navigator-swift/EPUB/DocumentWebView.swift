@@ -16,8 +16,10 @@ import R2Shared
 protocol DocumentWebViewDelegate: class {
     func willAnimatePageChange()
     func didEndPageAnimation()
-    func displayRightDocument(animated: Bool, completion: @escaping () -> Void)
-    func displayLeftDocument(animated: Bool, completion: @escaping () -> Void)
+    @discardableResult
+    func displayRightDocument(animated: Bool, completion: @escaping () -> Void) -> Bool
+    @discardableResult
+    func displayLeftDocument(animated: Bool, completion: @escaping () -> Void) -> Bool
     func webView(_ webView: DocumentWebView, didTapAt point: CGPoint)
     func handleTapOnLink(with url: URL)
     func handleTapOnInternalLink(with href: String)
@@ -30,8 +32,10 @@ class DocumentWebView: UIView, Loggable {
     fileprivate let initialLocation: BinaryLocation
     
     let baseURL: URL
+    let resourcesURL: URL?
     let webView: WebView
 
+    let contentLayout: ContentLayoutStyle
     let readingProgression: ReadingProgression
 
     /// If YES, the content will be fade in once loaded.
@@ -78,22 +82,17 @@ class DocumentWebView: UIView, Loggable {
     }
     
     var sizeObservation: NSKeyValueObservation?
-    
-    private static var gesturesScript: String? = {
-        guard let url = Bundle(for: DocumentWebView.self).url(forResource: "gestures", withExtension: "js") else {
-            return nil
-        }
-        return try? String(contentsOf: url)
-    }();
 
-    required init(baseURL: URL, initialLocation: BinaryLocation, readingProgression: ReadingProgression, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+    required init(baseURL: URL, resourcesURL: URL?, initialLocation: BinaryLocation, contentLayout: ContentLayoutStyle, readingProgression: ReadingProgression, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
         self.baseURL = baseURL
+        self.resourcesURL = resourcesURL
         self.initialLocation = initialLocation
+        self.contentLayout = contentLayout
         self.readingProgression = readingProgression
         self.animatedLoad = animatedLoad
         self.webView = WebView(editingActions: editingActions)
         self.contentInset = contentInset
-      
+
         super.init(frame: .zero)
         
         webView.frame = bounds
@@ -128,12 +127,10 @@ class DocumentWebView: UIView, Loggable {
         
         addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapBackground)))
         
-        if let gesturesScript = DocumentWebView.gesturesScript {
-            webView.configuration.userContentController.addUserScript(
-                WKUserScript(source: gesturesScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
-            )
+        for script in makeScripts() {
+            webView.configuration.userContentController.addUserScript(script)
         }
-        
+
         NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: Notification.Name(UIAccessibilityVoiceOverStatusChanged), object: nil)
     }
     
@@ -218,51 +215,66 @@ class DocumentWebView: UIView, Loggable {
     /// - Parameter body: Unused.
     private func documentDidLoad(body: Any) {
         documentLoaded = true
-        
-        // FIXME: We need to give the CSS and webview time to layout correctly. 0.2 seconds seems like a good value for it to work on an iPhone 5s. Look into solving this better
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            self.activityIndicatorView?.stopAnimating()
-            UIView.animate(withDuration: self.animatedLoad ? 0.3 : 0, animations: {
-                self.scrollView.alpha = 1
-            })
-        }
 
         applyUserSettingsStyle()
-        scrollToInitialPosition()
+
+        // FIXME: We need to give the CSS and webview time to layout correctly. 0.2 seconds seems like a good value for it to work on an iPhone 5s. Look into solving this better
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.scrollToInitialPosition {
+                self.activityIndicatorView?.stopAnimating()
+                UIView.animate(withDuration: self.animatedLoad ? 0.3 : 0, animations: {
+                    self.scrollView.alpha = 1
+                })
+            }
+        }
     }
-    
+
     // Scroll at position 0-1 (0%-100%)
-    func scrollAt(position: Double) {
-        guard position >= 0 && position <= 1 else { return }
-        
-        let dir = readingProgression.rawValue
-        evaluateScriptInResource("readium.scrollToPosition(\'\(position)\', \'\(dir)\')")
+    func scrollAt(position: Double, completion: @escaping () -> Void = {}) {
+        guard position >= 0 && position <= 1 else {
+            log(.warning, "Scrolling to invalid position \(position)")
+            completion()
+            return
+        }
+
+        // Note: The JS layer does not take into account the scroll view's content inset. So it can't be used to reliably scroll to the top or the bottom of the page in scroll mode.
+        if isScrollEnabled && [0, 1].contains(position) {
+            var contentOffset = scrollView.contentOffset
+            contentOffset.y = (position == 0)
+                ? -scrollView.contentInset.top
+                : (scrollView.contentSize.height - scrollView.bounds.height + scrollView.contentInset.bottom)
+            scrollView.contentOffset = contentOffset
+            completion()
+        } else {
+            let dir = readingProgression.rawValue
+            evaluateScriptInResource("readium.scrollToPosition(\'\(position)\', \'\(dir)\')") { _, _ in completion () }
+        }
     }
 
     // Scroll at the tag with id `tagId`.
-    func scrollAt(tagId: String) {
-        evaluateScriptInResource("readium.scrollToId(\'\(tagId)\');")
+    func scrollAt(tagId: String, completion: @escaping () -> Void = {}) {
+        evaluateScriptInResource("readium.scrollToId(\'\(tagId)\');") { _, _ in completion() }
     }
 
     // Scroll to .beggining or .end.
-    func scrollAt(location: BinaryLocation) {
+    func scrollAt(location: BinaryLocation, completion: @escaping () -> Void = {}) {
         switch location {
         case .left:
-            scrollAt(position: 0)
+            scrollAt(position: 0, completion: completion)
         case .right:
-            scrollAt(position: 1)
+            scrollAt(position: 1, completion: completion)
         }
     }
 
     /// Moves the webView to the initial location.
-    func scrollToInitialPosition() {
+    func scrollToInitialPosition(completion: @escaping () -> Void = {}) {
         /// If the savedProgression property has been set by the navigator.
         if let initialPosition = progression, initialPosition > 0.0 {
-            scrollAt(position: initialPosition)
+            scrollAt(position: initialPosition, completion: completion)
         } else if let initialId = initialId {
-            scrollAt(tagId: initialId)
+            scrollAt(tagId: initialId, completion: completion)
         } else {
-            scrollAt(location: initialLocation)
+            scrollAt(location: initialLocation, completion: completion)
         }
     }
 
@@ -272,7 +284,18 @@ class DocumentWebView: UIView, Loggable {
     }
     
     func scrollTo(_ direction: ScrollDirection, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        let viewDelegate = self.viewDelegate
+        if isScrollEnabled {
+            guard let viewDelegate = viewDelegate else {
+                return false
+            }
+            switch direction {
+            case .left:
+                return viewDelegate.displayLeftDocument(animated: animated, completion: completion)
+            case .right:
+                return viewDelegate.displayRightDocument(animated: animated, completion: completion)
+            }
+        }
+        
         if animated {
             switch direction {
             case .left:
@@ -295,17 +318,17 @@ class DocumentWebView: UIView, Loggable {
         let dir = readingProgression.rawValue
         switch direction {
         case .left:
-            evaluateScriptInResource("readium.scrollLeft(\"\(dir)\");") { result, error in
+            evaluateScriptInResource("readium.scrollLeft(\"\(dir)\");") { [weak self] result, error in
                 if error == nil, let success = result as? Bool, !success {
-                    viewDelegate?.displayLeftDocument(animated: animated, completion: completion)
+                    self?.viewDelegate?.displayLeftDocument(animated: animated, completion: completion)
                 } else {
                     completion()
                 }
             }
         case .right:
-            evaluateScriptInResource("readium.scrollRight(\"\(dir)\");") { result, error in
+            evaluateScriptInResource("readium.scrollRight(\"\(dir)\");") { [weak self] result, error in
                 if error == nil, let success = result as? Bool, !success {
-                    viewDelegate?.displayRightDocument(animated: animated, completion: completion)
+                    self?.viewDelegate?.displayRightDocument(animated: animated, completion: completion)
                 } else {
                     completion()
                 }
@@ -345,6 +368,34 @@ class DocumentWebView: UIView, Loggable {
         }
         previousProgression = nil
         viewDelegate?.documentPageDidChange(webView: self, currentPage: currentPage(), totalPage: pages)
+    }
+    
+    
+    // MARK: - Scripts
+    
+    private static let gesturesScript = loadScript(named: "gestures")
+    private static let utilsScript = loadScript(named: "utils")
+
+    class func loadScript(named name: String) -> String? {
+        return  Bundle(for: DocumentWebView.self)
+            .url(forResource: "Scripts/\(name)", withExtension: "js")
+            .flatMap { try? String(contentsOf: $0) }
+    }
+    
+    func loadResource(at path: String) -> String? {
+        return (resourcesURL?.appendingPathComponent(path))
+            .flatMap { try? String(contentsOf: $0) }
+    }
+    
+    func makeScripts() -> [WKUserScript] {
+        var scripts: [WKUserScript] = []
+        if let gesturesScript = DocumentWebView.gesturesScript {
+            scripts.append(WKUserScript(source: gesturesScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
+        }
+        if let utilsScript = DocumentWebView.utilsScript {
+            scripts.append(WKUserScript(source: utilsScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
+        }
+        return scripts
     }
     
     
@@ -396,7 +447,7 @@ extension DocumentWebView: WKScriptMessageHandler {
 }
 
 extension DocumentWebView: WKNavigationDelegate {
-    
+
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         // Do not remove: overriden in subclasses.
     }
