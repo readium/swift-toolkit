@@ -71,16 +71,13 @@ final internal class ContentFiltersEpub: ContentFilters {
         //     || resource is 'reflow'
         //       - inject pagination
         if let link = publication.link(withHref: path),
-            ["application/xhtml+xml", "text/html"].contains(link.type),
-            let baseUrl = publication.baseURL?.deletingLastPathComponent()
+            ["application/xhtml+xml", "text/html"].contains(link.type)
         {
             if publication.metadata.rendition?.layout == .reflowable
                 && link.properties.layout == nil
                 || link.properties.layout == .reflowable
             {
                 decodedInputStream = injectReflowableHtml(in: decodedInputStream, for: publication)
-            } else {
-                decodedInputStream = injectFixedLayoutHtml(in: decodedInputStream, for: baseUrl)
             }
         }
         return decodedInputStream
@@ -147,10 +144,7 @@ final internal class ContentFiltersEpub: ContentFilters {
             publication.userSettingsUIPreset = preset
         }
         
-        let cssBefore = getHtmlLink(forResource: "\(baseUrl)styles/\(styleSubFolder)/ReadiumCSS-before.css")
         let viewport = "<meta name=\"viewport\" content=\"width=device-width, height=device-height, initial-scale=1.0;\"/>\n"
-
-        resourceHtml = resourceHtml.insert(string: cssBefore, at: headStart)
         resourceHtml = resourceHtml.insert(string: viewport, at: headStart)
 
         // Inserting at the end of <HEAD>.
@@ -158,12 +152,7 @@ final internal class ContentFiltersEpub: ContentFilters {
             log(.error, "Invalid resource")
             abort()
         }
-        let cssAfter = getHtmlLink(forResource: "\(baseUrl)styles/\(styleSubFolder)/ReadiumCSS-after.css")
-        let scriptUtils = getHtmlScript(forResource: "\(baseUrl)scripts/utils.js")
         let fontStyle = getHtmlFontStyle(forResource: "\(baseUrl)fonts/OpenDyslexic-Regular.otf", fontFamily: "OpenDyslexic")
-
-        resourceHtml = resourceHtml.insert(string: cssAfter, at: headEnd)
-        resourceHtml = resourceHtml.insert(string: scriptUtils, at: headEnd)
         resourceHtml = resourceHtml.insert(string: fontStyle, at: headEnd)
 
         let enhancedData = resourceHtml.data(using: String.Encoding.utf8)
@@ -172,52 +161,6 @@ final internal class ContentFiltersEpub: ContentFilters {
         return enhancedStream
     }
 
-    private func injectFixedLayoutHtml(in stream: SeekableInputStream, for baseUrl: URL) -> SeekableInputStream {
-
-        let bufferSize = Int(stream.length)
-        var buffer = Array<UInt8>(repeating: 0, count: bufferSize)
-
-        stream.open()
-        let numberOfBytesRead = (stream as InputStream).read(&buffer, maxLength: bufferSize)
-        let data = Data(bytes: buffer, count: numberOfBytesRead)
-
-        guard var resourceHtml = String.init(data: data, encoding: String.Encoding.utf8) else {
-            return stream
-        }
-        guard let endHeadIndex = resourceHtml.startIndex(of: "</head>") else {
-            log(.error, "Invalid resource")
-            abort()
-        }
-
-        var includes = [String]()
-
-        // Misc JS utils.
-        includes.append(getHtmlScript(forResource: "\(baseUrl)scripts/utils.js"))
-
-        for element in includes {
-            resourceHtml = resourceHtml.insert(string: element, at: endHeadIndex)
-        }
-
-        let enhancedData = resourceHtml.data(using: String.Encoding.utf8)
-        let enhancedStream = DataInputStream(data: enhancedData!)
-        
-        return enhancedStream
-    }
-
-    private func getHtmlLink(forResource resourceName: String) -> String {
-        let prefix = "<link rel=\"stylesheet\" type=\"text/css\" href=\""
-        let suffix = "\"/>\n"
-
-        return prefix + resourceName + suffix
-    }
-
-    private func getHtmlScript(forResource resourceName: String) -> String {
-        let prefix = "<script type=\"text/javascript\" src=\""
-        let suffix = "\"></script>\n"
-
-        return prefix + resourceName + suffix
-    }
-    
     private func getHtmlFontStyle(forResource resourceName: String, fontFamily: String) -> String {
         return "<style type=\"text/css\">@font-face{font-family: \"\(fontFamily)\"; src:url('\(resourceName)') format('opentype');}</style>\n"
     }
