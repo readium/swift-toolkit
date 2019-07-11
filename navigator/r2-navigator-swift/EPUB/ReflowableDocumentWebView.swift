@@ -36,19 +36,8 @@ final class ReflowableDocumentWebView: DocumentWebView {
             webView.leadingAnchor.constraint(equalTo: leadingAnchor),
             webView.trailingAnchor.constraint(equalTo: trailingAnchor),
         ])
-        
-        // Setups the `viewport` meta tag to disable zooming.
-        let viewportScript = WKUserScript(source: """
-            (function() {
-              var meta = document.createElement("meta");
-              meta.setAttribute("name", "viewport");
-              meta.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
-              document.head.appendChild(meta);
-            })();
-        """, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
-        webView.configuration.userContentController.addUserScript(viewportScript)
     }
-    
+
     @available(iOS 11.0, *)
     override func safeAreaInsetsDidChange() {
         super.safeAreaInsetsDidChange()
@@ -130,6 +119,63 @@ final class ReflowableDocumentWebView: DocumentWebView {
         point.x += webView.frame.minX
         point.y += webView.frame.minY
         return point
+    }
+    
+    
+    // MARK: Scripts
+    
+    private static let cssScript = loadScript(named: "css")
+    private static let cssInlineScript = loadScript(named: "css-inline")
+    
+    override func makeScripts() -> [WKUserScript] {
+        var scripts = super.makeScripts()
+        
+        // Setups the `viewport` meta tag to disable zooming.
+        scripts.append(WKUserScript(source: """
+            (function() {
+              var meta = document.createElement("meta");
+              meta.setAttribute("name", "viewport");
+              meta.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
+              document.head.appendChild(meta);
+            })();
+        """, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+
+        // Injects ReadiumCSS stylesheets.
+        if let resourcesURL = resourcesURL {
+            // When a publication is served from an HTTPS server, then WKWebView forbids accessing the stylesheets from the local, unsecured GCDWebServer instance. In this case we will inject directly the full content of the CSS in the JavaScript.
+            if baseURL.scheme?.lowercased() == "https" {
+                func loadCSS(_ name: String) -> String? {
+                    return loadResource(at: "styles/\(contentLayout.rawValue)/\(name).css")?
+                        .replacingOccurrences(of: "\\", with: "\\\\")
+                        .replacingOccurrences(of: "`", with: "\\`")
+                }
+                
+                if let cssScript = ReflowableDocumentWebView.cssInlineScript,
+                    let beforeCSS = loadCSS("ReadiumCSS-before"),
+                    let afterCSS = loadCSS("ReadiumCSS-after") {
+                    scripts.append(WKUserScript(
+                        source: cssScript
+                            .replacingOccurrences(of: "${css-before}", with: beforeCSS)
+                            .replacingOccurrences(of: "${css-after}", with: afterCSS),
+                        injectionTime: .atDocumentStart,
+                        forMainFrameOnly: false
+                    ))
+                }
+                
+            } else {
+                if let cssScript = ReflowableDocumentWebView.cssScript {
+                    scripts.append(WKUserScript(
+                        source: cssScript
+                            .replacingOccurrences(of: "${resourcesURL}", with: resourcesURL.absoluteString)
+                            .replacingOccurrences(of: "${contentLayout}", with: contentLayout.rawValue),
+                        injectionTime: .atDocumentStart,
+                        forMainFrameOnly: false
+                    ))
+                }
+            }
+        }
+        
+        return scripts
     }
 
 }

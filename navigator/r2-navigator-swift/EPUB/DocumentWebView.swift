@@ -32,8 +32,10 @@ class DocumentWebView: UIView, Loggable {
     fileprivate let initialLocation: BinaryLocation
     
     let baseURL: URL
+    let resourcesURL: URL?
     let webView: WebView
 
+    let contentLayout: ContentLayoutStyle
     let readingProgression: ReadingProgression
 
     /// If YES, the content will be fade in once loaded.
@@ -80,22 +82,17 @@ class DocumentWebView: UIView, Loggable {
     }
     
     var sizeObservation: NSKeyValueObservation?
-    
-    private static var gesturesScript: String? = {
-        guard let url = Bundle(for: DocumentWebView.self).url(forResource: "gestures", withExtension: "js") else {
-            return nil
-        }
-        return try? String(contentsOf: url)
-    }();
 
-    required init(baseURL: URL, initialLocation: BinaryLocation, readingProgression: ReadingProgression, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+    required init(baseURL: URL, resourcesURL: URL?, initialLocation: BinaryLocation, contentLayout: ContentLayoutStyle, readingProgression: ReadingProgression, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
         self.baseURL = baseURL
+        self.resourcesURL = resourcesURL
         self.initialLocation = initialLocation
+        self.contentLayout = contentLayout
         self.readingProgression = readingProgression
         self.animatedLoad = animatedLoad
         self.webView = WebView(editingActions: editingActions)
         self.contentInset = contentInset
-      
+
         super.init(frame: .zero)
         
         webView.frame = bounds
@@ -130,12 +127,10 @@ class DocumentWebView: UIView, Loggable {
         
         addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapBackground)))
         
-        if let gesturesScript = DocumentWebView.gesturesScript {
-            webView.configuration.userContentController.addUserScript(
-                WKUserScript(source: gesturesScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
-            )
+        for script in makeScripts() {
+            webView.configuration.userContentController.addUserScript(script)
         }
-        
+
         NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: Notification.Name(UIAccessibilityVoiceOverStatusChanged), object: nil)
     }
     
@@ -376,6 +371,34 @@ class DocumentWebView: UIView, Loggable {
     }
     
     
+    // MARK: - Scripts
+    
+    private static let gesturesScript = loadScript(named: "gestures")
+    private static let utilsScript = loadScript(named: "utils")
+
+    class func loadScript(named name: String) -> String? {
+        return  Bundle(for: DocumentWebView.self)
+            .url(forResource: "Scripts/\(name)", withExtension: "js")
+            .flatMap { try? String(contentsOf: $0) }
+    }
+    
+    func loadResource(at path: String) -> String? {
+        return (resourcesURL?.appendingPathComponent(path))
+            .flatMap { try? String(contentsOf: $0) }
+    }
+    
+    func makeScripts() -> [WKUserScript] {
+        var scripts: [WKUserScript] = []
+        if let gesturesScript = DocumentWebView.gesturesScript {
+            scripts.append(WKUserScript(source: gesturesScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
+        }
+        if let utilsScript = DocumentWebView.utilsScript {
+            scripts.append(WKUserScript(source: utilsScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
+        }
+        return scripts
+    }
+    
+    
     // MARK: - Accessibility
     
     private var isVoiceOverRunning = UIAccessibility.isVoiceOverRunning
@@ -424,7 +447,7 @@ extension DocumentWebView: WKScriptMessageHandler {
 }
 
 extension DocumentWebView: WKNavigationDelegate {
-    
+
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         // Do not remove: overriden in subclasses.
     }

@@ -12,8 +12,9 @@
 		CA26EF7E22803FE90011653E /* VisualNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA26EF7D22803FE90011653E /* VisualNavigator.swift */; };
 		CA479DC3226493570053445E /* UIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA479DC2226493570053445E /* UIView.swift */; };
 		CA479DC52264AEA20053445E /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA479DC42264AEA20053445E /* UIColor.swift */; };
-		CA7B4B4E227B253200393E3E /* gestures.js in Resources */ = {isa = PBXBuildFile; fileRef = CA7B4B4D227B253200393E3E /* gestures.js */; };
-		CAA9A38D226F409C00BE1D6A /* fxl-wrapper.html in Resources */ = {isa = PBXBuildFile; fileRef = CAA9A38C226F409C00BE1D6A /* fxl-wrapper.html */; };
+		CA94291122BBD3F100305CDB /* fxl-wrapper.html in Resources */ = {isa = PBXBuildFile; fileRef = CA94290E22BBD3F100305CDB /* fxl-wrapper.html */; };
+		CA94292122BCF97700305CDB /* Static in Resources */ = {isa = PBXBuildFile; fileRef = CA94292022BCF97700305CDB /* Static */; };
+		CA94293022BD2D2F00305CDB /* Scripts in Resources */ = {isa = PBXBuildFile; fileRef = CA94292F22BD2D2F00305CDB /* Scripts */; };
 		CAB9086B22492D4C00711C3F /* Navigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB9086A22492D4C00711C3F /* Navigator.swift */; };
 		CAC2A6D72292E4BA000AA2A7 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC2A6D62292E4BA000AA2A7 /* WebView.swift */; };
 		CACE84F82254BE5F00E19E8B /* PDFDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE84F72254BE5F00E19E8B /* PDFDocumentView.swift */; };
@@ -39,8 +40,9 @@
 		CA26EF7D22803FE90011653E /* VisualNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualNavigator.swift; sourceTree = "<group>"; };
 		CA479DC2226493570053445E /* UIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIView.swift; sourceTree = "<group>"; };
 		CA479DC42264AEA20053445E /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColor.swift; sourceTree = "<group>"; };
-		CA7B4B4D227B253200393E3E /* gestures.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = gestures.js; sourceTree = "<group>"; };
-		CAA9A38C226F409C00BE1D6A /* fxl-wrapper.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "fxl-wrapper.html"; sourceTree = "<group>"; };
+		CA94290E22BBD3F100305CDB /* fxl-wrapper.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "fxl-wrapper.html"; sourceTree = "<group>"; };
+		CA94292022BCF97700305CDB /* Static */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Static; sourceTree = "<group>"; };
+		CA94292F22BD2D2F00305CDB /* Scripts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Scripts; sourceTree = "<group>"; };
 		CAB9086A22492D4C00711C3F /* Navigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Navigator.swift; sourceTree = "<group>"; };
 		CAC2A6D62292E4BA000AA2A7 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
 		CACE84F72254BE5F00E19E8B /* PDFDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDocumentView.swift; sourceTree = "<group>"; };
@@ -115,8 +117,9 @@
 		CAA9A38B226F407B00BE1D6A /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				CAA9A38C226F409C00BE1D6A /* fxl-wrapper.html */,
-				CA7B4B4D227B253200393E3E /* gestures.js */,
+				CA94290E22BBD3F100305CDB /* fxl-wrapper.html */,
+				CA94292F22BD2D2F00305CDB /* Scripts */,
+				CA94292022BCF97700305CDB /* Static */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -261,9 +264,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA7B4B4E227B253200393E3E /* gestures.js in Resources */,
+				CA94291122BBD3F100305CDB /* fxl-wrapper.html in Resources */,
+				CA94292122BCF97700305CDB /* Static in Resources */,
 				CAD178BA22B3B5B6004E6812 /* Localizable.strings in Resources */,
-				CAA9A38D226F409C00BE1D6A /* fxl-wrapper.html in Resources */,
+				CA94293022BD2D2F00305CDB /* Scripts in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
