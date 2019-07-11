@@ -142,79 +142,104 @@ public class Publication: WebPublication, Loggable {
     
     /// Generates an URL to a publication's `Link`.
     public func url(to link: Link?) -> URL? {
-        guard let link = link, let baseURL = self.baseURL else {
+        guard let link = link else {
             return nil
         }
         
-        // Remove trailing "/" before appending the href (href are absolute, hence starting with a "/", but relative to the publication).
-        let trimmedBaseURLString = baseURL.absoluteString.trimmingCharacters(in: ["/"])
-        
-        return URL(string: trimmedBaseURLString)?
-            .appendingPathComponent(link.href)
+        if let url = URL(string: link.href), url.scheme != nil {
+            return url
+        } else {
+            var href = link.href
+            if href.hasPrefix("/") {
+                href = String(href.dropFirst())
+            }
+            return baseURL.map { $0.appendingPathComponent(href) }
+        }
     }
     
     
     public enum Format: Equatable, Hashable {
         /// Formats natively supported by Readium.
-        case cbz, epub, pdf
-        /// Custom format extension (MIME type)
-        case other(String)
+        case cbz, epub, pdf, webpub
         /// Default value when the format is not specified.
         case unknown
         
-        /// Finds the format for a given mimetype.
+        /// Finds the format for the given mimetype.
         public init(mimetype: String?) {
             guard let mimetype = mimetype else {
                 self = .unknown
                 return
             }
-            
-            switch mimetype {
-            case "application/epub+zip", "application/oebps-package+xml":
-                self = .epub
-            case "application/x-cbr":
-                self = .cbz
-            case "application/pdf", "application/pdf+lcp":
-                self = .pdf
-            default:
-                self = .other(mimetype)
-            }
+            self.init(mimetypes: [mimetype])
         }
-        
+
+        /// Finds the format from a list of possible mimetypes or fallback on a file extension.
+        public init(mimetypes: [String] = [], fileExtension: String? = nil) {
+            self = {
+                for mimetype in mimetypes {
+                    switch mimetype {
+                    case "application/epub+zip", "application/oebps-package+xml":
+                        return .epub
+                    case "application/x-cbr":
+                        return .cbz
+                    case "application/pdf", "application/pdf+lcp":
+                        return .pdf
+                    case "application/webpub+json", "application/audiobook+json":
+                        return .webpub
+                    default:
+                        break
+                    }
+                }
+                
+                switch fileExtension?.lowercased() {
+                case "epub":
+                    return .epub
+                case "cbz":
+                    return .cbz
+                case "pdf", "lcpdf":
+                    return .pdf
+                case "json":
+                    return .webpub
+                default:
+                    return .unknown
+                }
+            }()
+        }
+
         /// Finds the format of the publication at the given url.
         /// Uses the format declared as exported UTIs in the app's Info.plist, or fallbacks on the file extension.
-        public init(file: URL) {
-            var isDirectory: ObjCBool = false
-            guard FileManager.default.fileExists(atPath: file.path, isDirectory: &isDirectory) else {
-                self = .unknown
-                return
-            }
+        ///
+        /// - Parameter mimetype: Fallback mimetype if the UTI can't be determined.
+        public init(file: URL, mimetype: String? = nil) {
+            var mimetypes: [String?] = []
             
-            var mimetype: String?
-            if isDirectory.boolValue {
-                mimetype = try? String(contentsOf: file.appendingPathComponent("mimetype"), encoding: String.Encoding.utf8)
-            } else if let extUTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, file.pathExtension as CFString, nil)?.takeUnretainedValue() {
-                mimetype = UTTypeCopyPreferredTagWithClass(extUTI, kUTTagClassMIMEType)?.takeRetainedValue() as String?
-            }
-            
-            if let unwrappedMimetype = mimetype {
-                self.init(mimetype: unwrappedMimetype)
-                return
-            }
-            
-            switch file.pathExtension.lowercased() {
-            case "epub":
-                self = .epub
-            case "cbz":
-                self = .cbz
-            case "pdf", "lpdf":
-                self = .pdf
-            default:
-                self = .unknown
-            }
+            mimetypes.append({
+                // `mimetype` file in a directory
+                var isDirectory: ObjCBool = false
+                FileManager.default.fileExists(atPath: file.path, isDirectory: &isDirectory)
+                if isDirectory.boolValue {
+                    return try? String(contentsOf: file.appendingPathComponent("mimetype"), encoding: String.Encoding.utf8)
+                // UTI
+                } else if let extUTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, file.pathExtension as CFString, nil)?.takeUnretainedValue() {
+                    return UTTypeCopyPreferredTagWithClass(extUTI, kUTTagClassMIMEType)?.takeRetainedValue() as String?
+                } else {
+                    return nil
+                }
+            }())
+
+            mimetypes.append(mimetype)
+
+            self.init(
+                mimetypes: mimetypes.compactMap { $0 },
+                fileExtension: file.pathExtension
+            )
         }
         
-        
+        @available(*, deprecated, renamed: "init(file:)")
+        public init(url: URL) {
+            self.init(file: url)
+        }
+
     }
     
 }

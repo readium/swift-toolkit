@@ -36,6 +36,11 @@ class LinkTests: XCTestCase {
                 "width": 768,
                 "bitrate": 74.2,
                 "duration": 45.6,
+                "language": "fr",
+                "alternate": [
+                    ["href": "/alternate1"],
+                    ["href": "/alternate2"]
+                ],
                 "children": [
                     ["href": "http://child1"],
                     ["href": "http://child2"]
@@ -52,6 +57,11 @@ class LinkTests: XCTestCase {
                 width: 768,
                 bitrate: 74.2,
                 duration: 45.6,
+                languages: ["fr"],
+                alternates: [
+                    Link(href: "/alternate1"),
+                    Link(href: "/alternate2")
+                ],
                 children: [
                     Link(href: "http://child1"),
                     Link(href: "http://child2")
@@ -78,6 +88,13 @@ class LinkTests: XCTestCase {
     func testParseJSONTemplatedAsNull() {
         XCTAssertFalse(try Link(json: ["href": "a", "templated": NSNull()]).templated)
         XCTAssertFalse(try Link(json: ["href": "a", "templated": nil]).templated)
+    }
+    
+    func testParseJSONMultipleLanguages() {
+        XCTAssertEqual(
+            try? Link(json: ["href": "a", "language": ["fr", "en"]]),
+            Link(href: "a", languages: ["fr", "en"])
+        )
     }
 
     func testParseJSONRequiresHref() {
@@ -167,6 +184,11 @@ class LinkTests: XCTestCase {
                 width: 768,
                 bitrate: 74.2,
                 duration: 45.6,
+                languages: ["fr"],
+                alternates: [
+                    Link(href: "/alternate1"),
+                    Link(href: "/alternate2")
+                ],
                 children: [
                     Link(href: "http://child1"),
                     Link(href: "http://child2")
@@ -185,6 +207,11 @@ class LinkTests: XCTestCase {
                 "width": 768,
                 "bitrate": 74.2,
                 "duration": 45.6,
+                "language": ["fr"],
+                "alternate": [
+                    ["href": "/alternate1", "templated": false],
+                    ["href": "/alternate2", "templated": false] 
+                ],
                 "children": [
                     ["href": "http://child1", "templated": false],
                     ["href": "http://child2", "templated": false]
