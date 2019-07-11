@@ -123,21 +123,25 @@ public class Publication: WebPublication, Loggable {
     
     /// Generates an URL to a publication's `Link`.
     public func url(to link: Link?) -> URL? {
-        guard let link = link, let baseURL = self.baseURL else {
+        guard let link = link else {
             return nil
         }
         
-        // Remove trailing "/" before appending the href (href are absolute, hence starting with a "/", but relative to the publication).
-        let trimmedBaseURLString = baseURL.absoluteString.trimmingCharacters(in: ["/"])
-        
-        return URL(string: trimmedBaseURLString)?
-            .appendingPathComponent(link.href)
+        if let url = URL(string: link.href), url.scheme != nil {
+            return url
+        } else {
+            var href = link.href
+            if href.hasPrefix("/") {
+                href = String(href.dropFirst())
+            }
+            return baseURL.map { $0.appendingPathComponent(href) }
+        }
     }
     
     
     public enum Format: Equatable, Hashable {
         /// Formats natively supported by Readium.
-        case cbz, epub, pdf
+        case cbz, epub, pdf, webpub
         /// Default value when the format is not specified.
         case unknown
         
@@ -149,7 +153,7 @@ public class Publication: WebPublication, Loggable {
             }
             self.init(mimetypes: [mimetype])
         }
-        
+
         /// Finds the format from a list of possible mimetypes or fallback on a file extension.
         public init(mimetypes: [String] = [], fileExtension: String? = nil) {
             self = {
@@ -161,6 +165,8 @@ public class Publication: WebPublication, Loggable {
                         return .cbz
                     case "application/pdf", "application/pdf+lcp":
                         return .pdf
+                    case "application/webpub+json", "application/audiobook+json":
+                        return .webpub
                     default:
                         break
                     }
@@ -173,12 +179,14 @@ public class Publication: WebPublication, Loggable {
                     return .cbz
                 case "pdf", "lcpdf":
                     return .pdf
+                case "json":
+                    return .webpub
                 default:
                     return .unknown
                 }
             }()
         }
-        
+
         /// Finds the format of the publication at the given url.
         /// Uses the format declared as exported UTIs in the app's Info.plist, or fallbacks on the file extension.
         ///
@@ -206,6 +214,11 @@ public class Publication: WebPublication, Loggable {
                 mimetypes: mimetypes.compactMap { $0 },
                 fileExtension: file.pathExtension
             )
+        }
+        
+        @available(*, deprecated, renamed: "init(file:)")
+        public init(url: URL) {
+            self.init(file: url)
         }
 
     }
