@@ -243,8 +243,7 @@ extension ReaderViewController: NavigatorDelegate {
         } catch {
             log(.error, error)
         }
-        UserDefaults.standard.set(locator.jsonString, forKey: "\(publicationID)-locator")
-        
+
         positionLabel.text = {
             if let position = locator.locations?.position {
                 return "\(position) / \(publication.positionList.count)"
