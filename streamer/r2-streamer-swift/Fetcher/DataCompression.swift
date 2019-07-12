@@ -206,7 +206,9 @@ fileprivate func perform(_ config: Config, source: UnsafePointer<UInt8>, sourceS
     while true {
         switch compression_stream_process(&stream, flags) {
         case COMPRESSION_STATUS_OK:
-            guard stream.dst_size == 0 else { return nil }
+            guard stream.dst_size == 0 else {
+                return nil
+            }
             res.append(buffer, count: stream.dst_ptr - buffer)
             stream.dst_ptr = buffer
             stream.dst_size = bufferSize

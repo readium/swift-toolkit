@@ -51,7 +51,7 @@ final public class EpubParser: PublicationParser {
     /// Parses the EPUB (file/directory) at `fileAtPath` and generate the
     /// corresponding `Publication` and `Container`.
     ///
-    /// - Parameter fileAtPath: The path to the epub file.
+    /// - Parameter url: The path to the epub file.
     /// - Returns: The Resulting publication, and a callback for parsing the
     ///            possibly DRM encrypted in the publication. The callback need
     ///            to be called by sending back the DRM object (or nil).
@@ -61,7 +61,8 @@ final public class EpubParser: PublicationParser {
     /// - Throws: `EPUBParserError.wrongMimeType`,
     ///           `EPUBParserError.xmlParse`,
     ///           `EPUBParserError.missingFile`
-    static public func parse(fileAtPath path: String) throws -> (PubBox, PubParsingCallback) {
+    static public func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
+        let path = url.path
         // Generate the `Container` for `fileAtPath`
         var container = try generateContainerFrom(fileAtPath: path)
 

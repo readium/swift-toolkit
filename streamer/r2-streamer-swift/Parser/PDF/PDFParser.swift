@@ -48,28 +48,28 @@ public final class PDFParser: PublicationParser, Loggable {
     /// PDFParser contains only static methods.
     private init() {}
     
-    public static func parse(fileAtPath path: String) throws -> (PubBox, PubParsingCallback) {
+    public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
         // Having `metadataParser` as an argument with default value doesn't satisfy the `PublicationParser` protocol...
-        return try parse(fileAtPath: path, parserType: PDFFileCGParser.self)
+        return try parse(at: url, parserType: PDFFileCGParser.self)
     }
     
     /// Parses the PDF (file/directory) at `fileAtPath` and generates the corresponding `Publication` and `Container`.
     ///
-    /// - Parameter fileAtPath: The path to the PDF file.
+    /// - Parameter url: The path to the PDF file.
     /// - Parameter metadataParser: File metadata parser, you can provide your own implementation if you want to use a different PDF engine.
     /// - Returns: The Resulting publication, and a callback for parsing the possibly DRM encrypted metadata in the publication, once the DRM object is filled by a DRM module (eg. LCP).
     /// - Throws: `PDFParserError`
-    public static func parse(fileAtPath path: String, parserType: PDFFileParser.Type) throws -> (PubBox, PubParsingCallback) {
-        guard FileManager.default.fileExists(atPath: path) else {
-            throw PDFParserError.missingFile(path: path)
+    public static func parse(at url: URL, parserType: PDFFileParser.Type) throws -> (PubBox, PubParsingCallback) {
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            throw PDFParserError.openFailed
         }
         
         let pubBox: PubBox
-        switch path.pathExtension.lowercased() {
+        switch url.pathExtension.lowercased() {
         case "pdf":
-            pubBox = try parsePDF(at: path, parserType: parserType)
+            pubBox = try parsePDF(at: url, parserType: parserType)
         case "lcpdf":
-            pubBox = try parseLCPDF(at: path, parserType: parserType)
+            pubBox = try parseLCPDF(at: url, parserType: parserType)
         default:
             throw PDFParserError.openFailed
         }
@@ -81,7 +81,8 @@ public final class PDFParser: PublicationParser, Loggable {
         return (pubBox, didLoadDRM)
     }
 
-    private static func parsePDF(at path: String, parserType: PDFFileParser.Type) throws -> PubBox {
+    private static func parsePDF(at url: URL, parserType: PDFFileParser.Type) throws -> PubBox {
+        let path = url.path
         guard let container = PDFFileContainer(path: path),
             let stream = FileInputStream(fileAtPath: path) else
         {
@@ -132,7 +133,8 @@ public final class PDFParser: PublicationParser, Loggable {
         return (publication, container)
     }
 
-    private static func parseLCPDF(at path: String, parserType: PDFFileParser.Type) throws -> PubBox {
+    private static func parseLCPDF(at url: URL, parserType: PDFFileParser.Type) throws -> PubBox {
+        let path = url.path
         guard let container = LCPDFContainer(path: path),
             let manifestData = try? container.data(relativePath: PDFConstant.lcpdfManifestPath),
             let manifestJSON = try? JSONSerialization.jsonObject(with: manifestData) else
@@ -153,7 +155,18 @@ public final class PDFParser: PublicationParser, Loggable {
             throw PDFParserError.invalidLCPDF
         }
         
+        container.drm = parseLCPDFDRM(in: container)
+        
         return (publication, container)
+    }
+    
+    private static func parseLCPDFDRM(in container: Container) -> DRM? {
+        guard let licenseLength = try? container.dataLength(relativePath: "license.lcpl"),
+            licenseLength > 0 else
+        {
+            return nil
+        }
+        return DRM(brand: .lcp)
     }
 
     private static func titleFromPath(_ path: String) -> String {

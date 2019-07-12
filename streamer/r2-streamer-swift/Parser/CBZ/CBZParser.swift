@@ -59,12 +59,12 @@ public class CbzParser: PublicationParser {
     /// Parse the file at `fileAtPath` and return a `PubBox` object containing
     /// the resulting `Publication` and `Container` objects.
     ///
-    /// - Parameter path: The path of the file to parse.
+    /// - Parameter url: The path of the file to parse.
     /// - Returns: The resulting `PubBox` object.
     /// - Throws: Throws `CBZParserError.missingFile`.
-    public static func parse(fileAtPath path: String) throws -> (PubBox, PubParsingCallback) {
-        let container = try generateContainerFrom(fileAtPath: path)
-        let publication = parsePublication(in: container, at: path)
+    public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
+        let container = try generateContainerFrom(fileAtPath: url.path)
+        let publication = parsePublication(in: container, at: url)
 
         func didLoadDRM(drm: DRM?) {
             container.drm = drm
@@ -73,14 +73,13 @@ public class CbzParser: PublicationParser {
         return ((publication, container), didLoadDRM)
     }
     
-    private static func parsePublication(in container: CBZContainer, at path: String) -> Publication {
+    private static func parsePublication(in container: CBZContainer, at url: URL) -> Publication {
         let publication = Publication(
             format: .cbz,
             positionListFactory: makePositionList(of:),
             metadata: Metadata(
-                identifier: URL(fileURLWithPath: path).lastPathComponent,
-                title: URL(fileURLWithPath: path)
-                    .lastPathComponent
+                identifier: url.lastPathComponent,
+                title: url.lastPathComponent
                     .replacingOccurrences(of: "_", with: " ")
             ),
             readingOrder: container.files
