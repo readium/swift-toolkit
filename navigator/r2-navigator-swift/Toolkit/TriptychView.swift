@@ -13,11 +13,11 @@ import UIKit
 import R2Shared
 
 protocol TriptychResourceView {
-    func go(to location: Locations)
+    func go(to locator: Locator)
 }
 
 protocol TriptychViewDelegate: class {
-    func triptychView(_ triptychView: TriptychView, viewForIndex index: Int, location: Locations) -> (UIView & TriptychResourceView)?
+    func triptychView(_ triptychView: TriptychView, viewForIndex index: Int, location: Locator) -> (UIView & TriptychResourceView)?
     func triptychViewDidUpdateViews(_ triptychView: TriptychView)
 }
 
@@ -29,8 +29,8 @@ final class TriptychView: UIView {
         }
     }
 
-    /// Location to load in the initial resource view.
-    let initialLocation: Locations
+    /// Locator to load in the initial resource view.
+    let initialLocation: Locator?
     
     /// Direction for the reading progression.
     let readingProgression: ReadingProgression
@@ -76,7 +76,7 @@ final class TriptychView: UIView {
 
     private let scrollView = UIScrollView()
 
-    init(frame: CGRect, resourcesCount: Int, initialIndex: Int, initialLocation: Locations, readingProgression: ReadingProgression) {
+    init(frame: CGRect, resourcesCount: Int, initialIndex: Int, initialLocation: Locator?, readingProgression: ReadingProgression) {
         precondition(resourcesCount >= 1)
         precondition(0..<resourcesCount ~= initialIndex)
 
@@ -132,14 +132,14 @@ final class TriptychView: UIView {
     }
 
     /// Updates the current and pre-loaded views.
-    private func setCurrentView(at index: Int, location: Locations? = nil) {
+    private func setCurrentView(at index: Int, location: Locator? = nil) {
         guard isEmpty || index != currentIndex else {
             return
         }
 
         // Locations in a resource view.
-        let beginning = Locations(progression: 0)
-        let end = Locations(progression: 1)
+        let beginning = Locator(href: "#", type: "", locations: Locations(progression: 0))
+        let end = Locator(href: "#", type: "", locations: Locations(progression: 1))
         let location = location ?? beginning
         
         // Automatically scrolls the previous document to the beginning or the end, to make sure that it's properly positioned to the consecutive resource when going back to it.
@@ -183,7 +183,7 @@ final class TriptychView: UIView {
     /// Loads the view at given index if it's not already loaded.
     ///
     /// - Parameter location: Initial location in the view to be displayed.
-    private func loadView(at index: Int, location: Locations) {
+    private func loadView(at index: Int, location: Locator) {
         guard 0..<resourcesCount ~= index,
             loadedViews[index] == nil,
             let delegate = delegate,
@@ -203,7 +203,7 @@ final class TriptychView: UIView {
     ///   - index: The index to move to.
     ///   - location: The location to move the future current resource view to.
     /// - Returns: Whether the move is possible.
-    func goToIndex(_ index: Int, location: Locations? = nil, animated: Bool = false, completion: @escaping () -> ()) -> Bool {
+    func goToIndex(_ index: Int, location: Locator? = nil, animated: Bool = false, completion: @escaping () -> ()) -> Bool {
         guard 0..<resourcesCount ~= index else {
             return false
         }
@@ -224,7 +224,7 @@ final class TriptychView: UIView {
             
             // The rendering is sometimes very slow. So in case we don't show the first page of the resource, we add a generous delay before showing the view again.
             // FIXME: this should be handled in the TriptychResourceView directly
-            let delayed = (location != nil && location?.progression != 0)
+            let delayed = (location != nil && location?.locations?.progression != 0)
             DispatchQueue.main.asyncAfter(deadline: .now() + (delayed ? 0.5 : 0)) {
                 fade(to: 1, completion: completion)
             }
@@ -233,7 +233,7 @@ final class TriptychView: UIView {
         return true
     }
     
-    private func scrollToView(at index: Int, location: Locations? = nil) {
+    private func scrollToView(at index: Int, location: Locator? = nil) {
         guard currentIndex != index else {
             if let location = location {
                 currentView?.go(to: location)

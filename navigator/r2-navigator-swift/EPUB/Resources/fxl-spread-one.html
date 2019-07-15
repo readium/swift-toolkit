@@ -28,8 +28,9 @@
 
 <body>
   <iframe id="page"></iframe>
+
   <script type="text/javascript">
-    var page = (function() {
+    var spread = (function() {
 
       // Fixed dimensions for the resource extracted from the viewport meta tag.
       var _pageSize = null;
@@ -84,12 +85,12 @@
       // Public API called from Swift.
       return {
         // Loads a resource in the iframe.
-        'load': function(url) {
+        'load': function(href, url) {
           _frame.src = url;
         },
 
         // Evaluates a JavaScript in the context of the resource.
-        'eval': function(script) {
+        'eval': function(href, script) {
           return _frame.contentWindow.eval(script);
         },
 

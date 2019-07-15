@@ -1,43 +1,75 @@
 //
-//  DocumentWebView.swift
+//  EPUBSpreadView.swift
 //  r2-navigator-swift
 //
-//  Created by Winnie Quinn, Alexandre Camilleri on 8/23/17.
+//  Created by Winnie Quinn, Alexandre Camilleri, Mickaël Menu on 8/23/17.
 //
-//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Copyright 2019 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by a BSD-style license which is detailed
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
 import WebKit
-
 import R2Shared
 
-protocol DocumentWebViewDelegate: class {
+
+enum EPUBSpread {
+    case one(Link)
+    case two(left: Link, right: Link)
+    
+    /// Returns the links in the spread, from left to right.
+    var links: [Link] {
+        switch self {
+        case .one(let link):
+            return [link]
+        case .two(let left, let right):
+            return [left, right]
+        }
+    }
+
+    /// Returns the left-most link in the spread.
+    var left: Link {
+        return links.first!
+    }
+    
+    /// Returns the right-most link in the spread.
+    var right: Link {
+        return links.last!
+    }
+    
+    /// Returns whether the spread contains a resource with the given href.
+    func containsHref(_ href: String) -> Bool {
+        return links.first(withHref: href) != nil
+    }
+}
+
+protocol EPUBSpreadViewDelegate: class {
     func willAnimatePageChange()
     func didEndPageAnimation()
     @discardableResult
     func displayRightDocument(animated: Bool, completion: @escaping () -> Void) -> Bool
     @discardableResult
     func displayLeftDocument(animated: Bool, completion: @escaping () -> Void) -> Bool
-    func webView(_ webView: DocumentWebView, didTapAt point: CGPoint)
+    func webView(_ webView: EPUBSpreadView, didTapAt point: CGPoint)
     func handleTapOnLink(with url: URL)
     func handleTapOnInternalLink(with href: String)
-    func documentPageDidChange(webView: DocumentWebView, currentPage: Int ,totalPage: Int)
+    func documentPageDidChange(webView: EPUBSpreadView, currentPage: Int ,totalPage: Int)
 }
 
-class DocumentWebView: UIView, TriptychResourceView, Loggable {
+class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
 
-    weak var viewDelegate: DocumentWebViewDelegate?
+    weak var delegate: EPUBSpreadViewDelegate?
     // Location to scroll to in the document once the page is loaded.
-    var initialLocation: Locations
+    var initialLocation: Locator
     
-    let baseURL: URL
+    let publication: Publication
+    let spread: EPUBSpread
     let resourcesURL: URL?
     let webView: WebView
 
     let contentLayout: ContentLayoutStyle
     let readingProgression: ReadingProgression
+    let userSettings: UserSettings
 
     /// If YES, the content will be fade in once loaded.
     let animatedLoad: Bool
@@ -45,7 +77,7 @@ class DocumentWebView: UIView, TriptychResourceView, Loggable {
     let contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]
 
     weak var activityIndicatorView: UIActivityIndicatorView?
-
+    
     private(set) var progression: Double?
     private(set) var totalPages: Int?
     
@@ -55,17 +87,10 @@ class DocumentWebView: UIView, TriptychResourceView, Loggable {
         }
         return Int(progression! * Double(totalPages!)) + 1
     }
-    
-    var userSettings: UserSettings? {
-        didSet {
-            guard let userSettings = userSettings else { return }
-            updateActivityIndicator(for: userSettings)
-        }
-    }
-    
+
     /// Whether the continuous scrolling mode is enabled.
     var isScrollEnabled: Bool {
-        let userEnabled = (userSettings?.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable)?.on ?? false
+        let userEnabled = (userSettings.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable)?.on ?? false
         // Force-enables scroll when VoiceOver is running.
         return userEnabled || UIAccessibility.isVoiceOverRunning
     }
@@ -84,12 +109,14 @@ class DocumentWebView: UIView, TriptychResourceView, Loggable {
     
     var sizeObservation: NSKeyValueObservation?
 
-    required init(baseURL: URL, resourcesURL: URL?, initialLocation: Locations, contentLayout: ContentLayoutStyle, readingProgression: ReadingProgression, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
-        self.baseURL = baseURL
+    required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL?, initialLocation: Locator, contentLayout: ContentLayoutStyle, readingProgression: ReadingProgression, userSettings: UserSettings, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+        self.publication = publication
+        self.spread = spread
         self.resourcesURL = resourcesURL
         self.initialLocation = initialLocation
         self.contentLayout = contentLayout
         self.readingProgression = readingProgression
+        self.userSettings = userSettings
         self.animatedLoad = animatedLoad
         self.webView = WebView(editingActions: editingActions)
         self.contentInset = contentInset
@@ -121,7 +148,7 @@ class DocumentWebView: UIView, TriptychResourceView, Loggable {
             let pageCount = Int(documentLength / pageLength)
             if self.totalPages != pageCount {
                 self.totalPages = pageCount
-                self.viewDelegate?.documentPageDidChange(webView: self, currentPage: self.currentPage, totalPage: pageCount)
+                self.delegate?.documentPageDidChange(webView: self, currentPage: self.currentPage, totalPage: pageCount)
             }
         }
         scrollView.alpha = 0
@@ -133,6 +160,9 @@ class DocumentWebView: UIView, TriptychResourceView, Loggable {
         }
 
         NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: Notification.Name(UIAccessibilityVoiceOverStatusChanged), object: nil)
+        
+        updateActivityIndicator()
+        loadSpread()
     }
     
     deinit {
@@ -181,14 +211,23 @@ class DocumentWebView: UIView, TriptychResourceView, Loggable {
             scrollView.delegate = self
         }
     }
-
-    func load(_ url: URL) {
-        webView.load(URLRequest(url: url))
-    }
     
+    func loadSpread() {
+        switch spread {
+        case .one(let link):
+            guard let url = publication.url(to: link) else {
+                log(.error, "Can't get URL for link \(link.href)")
+                return
+            }
+            webView.load(URLRequest(url: url))
+        case .two:
+            log(.error, "Two-page spreads is not supported with \(type(of: self))")
+        }
+    }
+
     /// Evaluates the given JavaScript into the resource's HTML page.
     /// Don't use directly webView.evaluateJavaScript as the resource might be displayed into an iframe in a wrapper HTML page.
-    func evaluateScriptInResource(_ script: String, completion: ((Any?, Error?) -> Void)? = nil) {
+    func evaluateScript(_ script: String, inResource href: String, completion: ((Any?, Error?) -> Void)? = nil) {
         webView.evaluateJavaScript(script, completionHandler: completion)
     }
   
@@ -200,7 +239,7 @@ class DocumentWebView: UIView, TriptychResourceView, Loggable {
             return
         }
 
-        viewDelegate?.webView(self, didTapAt: point)
+        delegate?.webView(self, didTapAt: point)
     }
     
     /// Converts the touch data returned by the JavaScript `tap` event into a point in the webview's coordinate space.
@@ -212,12 +251,10 @@ class DocumentWebView: UIView, TriptychResourceView, Loggable {
     /// Called by the UITapGestureRecognizer as a fallback tap when tapping around the webview.
     @objc private func didTapBackground(_ gesture: UITapGestureRecognizer) {
         let point = gesture.location(in: self)
-        viewDelegate?.webView(self, didTapAt: point)
+        delegate?.webView(self, didTapAt: point)
     }
 
     /// Called by the javascript code to notify on DocumentReady.
-    ///
-    /// - Parameter body: Unused.
     private func documentDidLoad(body: Any) {
         documentLoaded = true
 
@@ -233,15 +270,34 @@ class DocumentWebView: UIView, TriptychResourceView, Loggable {
             }
         }
     }
+    
+    func go(to locator: Locator) {
+        go(to: locator, completion: {})
+    }
+
+    func go(to locator: Locator, completion: @escaping () -> Void) {
+        guard documentLoaded else {
+            // Delays moving to the location until the document is loaded.
+            initialLocation = locator
+            return
+        }
+
+        // FIXME: check that the fragment is actually a tag ID
+        if let id = locator.locations?.fragment, !id.isEmpty {
+            go(toHref: locator.href, tagID: id, completion: completion)
+        } else if let progression = locator.locations?.progression {
+            go(toHref: locator.href, progression: progression, completion: completion)
+        }
+    }
 
     // Scroll at position 0-1 (0%-100%)
-    func go(toProgression progression: Double, completion: @escaping () -> Void = {}) {
+    private func go(toHref href: String, progression: Double, completion: @escaping () -> Void) {
         guard progression >= 0 && progression <= 1 else {
             log(.warning, "Scrolling to invalid progression \(progression)")
             completion()
             return
         }
-
+        
         // Note: The JS layer does not take into account the scroll view's content inset. So it can't be used to reliably scroll to the top or the bottom of the page in scroll mode.
         if isScrollEnabled && [0, 1].contains(progression) {
             var contentOffset = scrollView.contentOffset
@@ -252,34 +308,13 @@ class DocumentWebView: UIView, TriptychResourceView, Loggable {
             completion()
         } else {
             let dir = readingProgression.rawValue
-            evaluateScriptInResource("readium.scrollToPosition(\'\(progression)\', \'\(dir)\')") { _, _ in completion () }
+            evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\')", inResource: href) { _, _ in completion () }
         }
-    }
-
-    // Scroll at the tag with id `tagId`.
-    func go(toTagID id: String, completion: @escaping () -> Void = {}) {
-        evaluateScriptInResource("readium.scrollToId(\'\(id)\');") { _, _ in completion() }
-    }
-
-    func go(to location: Locations) {
-        go(to: location, completion: {})
     }
     
-    func go(to location: Locations, completion: @escaping () -> Void) {
-        guard documentLoaded else {
-            // Delays moving to the location until the document is loaded.
-            initialLocation = location
-            return
-        }
-        
-        // FIXME: check that the fragment is actually a tag ID
-        if let id = location.fragment, !id.isEmpty {
-            go(toTagID: id, completion: completion)
-        } else if let progression = location.progression {
-            go(toProgression: progression, completion: completion)
-        } else {
-            go(toProgression: 0, completion: completion)
-        }
+    // Scroll at the tag with id `tagId`.
+    private func go(toHref href: String, tagID: String, completion: @escaping () -> Void) {
+        evaluateScript("readium.scrollToId(\'\(tagID)\');", inResource: href) { _, _ in completion() }
     }
 
     enum Direction {
@@ -289,14 +324,14 @@ class DocumentWebView: UIView, TriptychResourceView, Loggable {
     
     func go(to direction: Direction, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
         if isScrollEnabled {
-            guard let viewDelegate = viewDelegate else {
+            guard let delegate = delegate else {
                 return false
             }
             switch direction {
             case .left:
-                return viewDelegate.displayLeftDocument(animated: animated, completion: completion)
+                return delegate.displayLeftDocument(animated: animated, completion: completion)
             case .right:
-                return viewDelegate.displayRightDocument(animated: animated, completion: completion)
+                return delegate.displayRightDocument(animated: animated, completion: completion)
             }
         }
         
@@ -305,14 +340,14 @@ class DocumentWebView: UIView, TriptychResourceView, Loggable {
             case .left:
                 let isAtFirstPageInDocument = scrollView.contentOffset.x == 0
                 if !isAtFirstPageInDocument {
-                    viewDelegate?.willAnimatePageChange()
+                    delegate?.willAnimatePageChange()
                     scrollView.scrollToPreviousPage(animated: animated, completion: completion)
                     return true
                 }
             case .right:
                 let isAtLastPageInDocument = scrollView.contentOffset.x == scrollView.contentSize.width - scrollView.frame.size.width
                 if !isAtLastPageInDocument {
-                    viewDelegate?.willAnimatePageChange()
+                    delegate?.willAnimatePageChange()
                     scrollView.scrollToNextPage(animated: animated, completion: completion)
                     return true
                 }
@@ -322,17 +357,17 @@ class DocumentWebView: UIView, TriptychResourceView, Loggable {
         let dir = readingProgression.rawValue
         switch direction {
         case .left:
-            evaluateScriptInResource("readium.scrollLeft(\"\(dir)\");") { [weak self] result, error in
+            evaluateScript("readium.scrollLeft(\"\(dir)\");", inResource: spread.left.href) { [weak self] result, error in
                 if error == nil, let success = result as? Bool, !success {
-                    self?.viewDelegate?.displayLeftDocument(animated: animated, completion: completion)
+                    self?.delegate?.displayLeftDocument(animated: animated, completion: completion)
                 } else {
                     completion()
                 }
             }
         case .right:
-            evaluateScriptInResource("readium.scrollRight(\"\(dir)\");") { [weak self] result, error in
+            evaluateScript("readium.scrollRight(\"\(dir)\");", inResource: spread.right.href) { [weak self] result, error in
                 if error == nil, let success = result as? Bool, !success {
-                    self?.viewDelegate?.displayRightDocument(animated: animated, completion: completion)
+                    self?.delegate?.displayRightDocument(animated: animated, completion: completion)
                 } else {
                     completion()
                 }
@@ -371,7 +406,7 @@ class DocumentWebView: UIView, TriptychResourceView, Loggable {
             return
         }
         previousProgression = nil
-        viewDelegate?.documentPageDidChange(webView: self, currentPage: currentPage, totalPage: pages)
+        delegate?.documentPageDidChange(webView: self, currentPage: currentPage, totalPage: pages)
     }
     
     
@@ -381,7 +416,7 @@ class DocumentWebView: UIView, TriptychResourceView, Loggable {
     private static let utilsScript = loadScript(named: "utils")
 
     class func loadScript(named name: String) -> String? {
-        return  Bundle(for: DocumentWebView.self)
+        return  Bundle(for: EPUBSpreadView.self)
             .url(forResource: "Scripts/\(name)", withExtension: "js")
             .flatMap { try? String(contentsOf: $0) }
     }
@@ -393,10 +428,10 @@ class DocumentWebView: UIView, TriptychResourceView, Loggable {
     
     func makeScripts() -> [WKUserScript] {
         var scripts: [WKUserScript] = []
-        if let gesturesScript = DocumentWebView.gesturesScript {
+        if let gesturesScript = EPUBSpreadView.gesturesScript {
             scripts.append(WKUserScript(source: gesturesScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
         }
-        if let utilsScript = DocumentWebView.utilsScript {
+        if let utilsScript = EPUBSpreadView.utilsScript {
             scripts.append(WKUserScript(source: utilsScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
         }
         return scripts
@@ -421,7 +456,7 @@ class DocumentWebView: UIView, TriptychResourceView, Loggable {
 
 // MARK: - WKScriptMessageHandler for handling incoming message from the Bridge.js
 // javascript code.
-extension DocumentWebView: WKScriptMessageHandler {
+extension EPUBSpreadView: WKScriptMessageHandler {
 
     // Handles incoming calls from JS.
     func userContentController(_ userContentController: WKUserContentController,
@@ -455,7 +490,7 @@ extension DocumentWebView: WKScriptMessageHandler {
     }
 }
 
-extension DocumentWebView: WKNavigationDelegate {
+extension EPUBSpreadView: WKNavigationDelegate {
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         // Do not remove: overriden in subclasses.
@@ -468,11 +503,11 @@ extension DocumentWebView: WKNavigationDelegate {
         if navigationAction.navigationType == .linkActivated {
             if let url = navigationAction.request.url {
                 // Check if url is internal or external
-                if url.host == baseURL.host {
+                if let baseURL = publication.baseURL, url.host == baseURL.host {
                     let href = url.absoluteString.replacingOccurrences(of: baseURL.absoluteString, with: "/")
-                    viewDelegate?.handleTapOnInternalLink(with: href)
+                    delegate?.handleTapOnInternalLink(with: href)
                 } else {
-                    viewDelegate?.handleTapOnLink(with: url)
+                    delegate?.handleTapOnLink(with: url)
                 }
                 
                 policy = .cancel
@@ -483,11 +518,11 @@ extension DocumentWebView: WKNavigationDelegate {
     }
 }
 
-extension DocumentWebView: UIScrollViewDelegate {
+extension EPUBSpreadView: UIScrollViewDelegate {
     
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         scrollView.isUserInteractionEnabled = true
-        viewDelegate?.didEndPageAnimation()
+        delegate?.didEndPageAnimation()
     }
     
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
@@ -495,11 +530,11 @@ extension DocumentWebView: UIScrollViewDelegate {
     }
     
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        viewDelegate?.didEndPageAnimation()
+        delegate?.didEndPageAnimation()
     }
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        viewDelegate?.didEndPageAnimation()
+        delegate?.didEndPageAnimation()
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -511,13 +546,13 @@ extension DocumentWebView: UIScrollViewDelegate {
 
 }
 
-extension DocumentWebView: WKUIDelegate {
+extension EPUBSpreadView: WKUIDelegate {
     
     // The property allowsLinkPreview is default false in iOS9, so it should be safe to use @available(iOS 10.0, *)
     @available(iOS 10.0, *)
     func webView(_ webView: WKWebView, shouldPreviewElement elementInfo: WKPreviewElementInfo) -> Bool {
         // Preview allowed only if the link is not internal
-        return (elementInfo.linkURL?.host != baseURL.host)
+        return (elementInfo.linkURL?.host != publication.baseURL?.host)
     }
 }
 
@@ -545,11 +580,14 @@ private extension UIScrollView {
     }
 }
 
-private extension DocumentWebView {
+private extension EPUBSpreadView {
 
-    func updateActivityIndicator(for userSettings: UserSettings) {
-        guard let appearance = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) as? Enumerable else { return }
-        guard appearance.values.count > appearance.index else { return }
+    func updateActivityIndicator() {
+        guard let appearance = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) as? Enumerable,
+            appearance.values.count > appearance.index else
+        {
+            return
+        }
         let value = appearance.values[appearance.index]
         switch value {
         case "readium-night-on":

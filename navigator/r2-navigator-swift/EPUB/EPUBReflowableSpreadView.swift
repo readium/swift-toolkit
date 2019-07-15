@@ -1,5 +1,5 @@
 //
-//  ReflowableWebView.swift
+//  EPUBReflowableSpreadView.swift
 //  r2-navigator-swift
 //
 //  Created by Mickaël Menu on 09.04.19.
@@ -15,8 +15,8 @@ import WebKit
 import R2Shared
 
 
-/// A WebView subclass to handle documents with a reflowable layout.
-final class ReflowableDocumentWebView: DocumentWebView {
+/// A view rendering a spread of resources with a reflowable layout.
+final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     private var topConstraint: NSLayoutConstraint!
     private var bottomConstraint: NSLayoutConstraint!
@@ -52,20 +52,21 @@ final class ReflowableDocumentWebView: DocumentWebView {
     override func applyUserSettingsStyle() {
         super.applyUserSettingsStyle()
         
-        if let properties = userSettings?.userProperties.properties {
-            let propertiesScript = properties.reduce("") { script, property in
-                let value: String = {
-                    // Scroll mode depends both on the user settings, and on the fact that VoiceOver is activated or not, so we need to generate the value dynamically.
-                    // FIXME: This would be handled in a better way by decoupling the user settings from the actual ReadiumCSS properties sent to the WebView, which should be private details of the EPUBNavigator implementation and not shared with the host app.
-                    if let switchable = property as? Switchable, property.name == ReadiumCSSName.scroll.rawValue {
-                        return switchable.values[isScrollEnabled]!
-                    } else {
-                        return property.toString()
-                    }
-                }()
-                return script + "readium.setProperty(\"\(property.name)\", \"\(value)\");\n"
-            }
-            evaluateScriptInResource(propertiesScript)
+        let properties = userSettings.userProperties.properties
+        let propertiesScript = properties.reduce("") { script, property in
+            let value: String = {
+                // Scroll mode depends both on the user settings, and on the fact that VoiceOver is activated or not, so we need to generate the value dynamically.
+                // FIXME: This would be handled in a better way by decoupling the user settings from the actual ReadiumCSS properties sent to the WebView, which should be private details of the EPUBNavigator implementation and not shared with the host app.
+                if let switchable = property as? Switchable, property.name == ReadiumCSSName.scroll.rawValue {
+                    return switchable.values[isScrollEnabled]!
+                } else {
+                    return property.toString()
+                }
+            }()
+            return script + "readium.setProperty(\"\(property.name)\", \"\(value)\");\n"
+        }
+        for link in spread.links {
+            evaluateScript(propertiesScript, inResource: link.href)
         }
 
         // Disables paginated mode if scroll is on.
@@ -143,14 +144,14 @@ final class ReflowableDocumentWebView: DocumentWebView {
         // Injects ReadiumCSS stylesheets.
         if let resourcesURL = resourcesURL {
             // When a publication is served from an HTTPS server, then WKWebView forbids accessing the stylesheets from the local, unsecured GCDWebServer instance. In this case we will inject directly the full content of the CSS in the JavaScript.
-            if baseURL.scheme?.lowercased() == "https" {
+            if publication.baseURL?.scheme?.lowercased() == "https" {
                 func loadCSS(_ name: String) -> String? {
                     return loadResource(at: "styles/\(contentLayout.rawValue)/\(name).css")?
                         .replacingOccurrences(of: "\\", with: "\\\\")
                         .replacingOccurrences(of: "`", with: "\\`")
                 }
                 
-                if let cssScript = ReflowableDocumentWebView.cssInlineScript,
+                if let cssScript = EPUBReflowableSpreadView.cssInlineScript,
                     let beforeCSS = loadCSS("ReadiumCSS-before"),
                     let afterCSS = loadCSS("ReadiumCSS-after") {
                     scripts.append(WKUserScript(
@@ -163,7 +164,7 @@ final class ReflowableDocumentWebView: DocumentWebView {
                 }
                 
             } else {
-                if let cssScript = ReflowableDocumentWebView.cssScript {
+                if let cssScript = EPUBReflowableSpreadView.cssScript {
                     scripts.append(WKUserScript(
                         source: cssScript
                             .replacingOccurrences(of: "${resourcesURL}", with: resourcesURL.absoluteString)
