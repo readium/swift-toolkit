@@ -7,9 +7,31 @@
     width: 100%;
     margin: 0;
     background: transparent;
+    overflow: hidden;
+  }
+
+  #viewport-left {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 50%;
+  }
+
+  #viewport-right {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 50%;
   }
 
   .page {
+    /* Centers vertically the iframe */
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+
     width: 0px;
     height: 0px;
     border: none;
@@ -17,19 +39,11 @@
   }
 
   #page-left {
-    position: absolute;
-    width: 50%;
-    top: 0;
-    left: 0;
-    bottom: 0;
+    right: 0;
   }
 
   #page-right {
-    position: absolute;
-    width: 50%;
-    top: 0;
-    right: 0;
-    bottom: 0;
+    left: 0;
   }
   </style>
 
@@ -47,16 +61,17 @@
   <script type="text/javascript">
     var spread = (function() {
 
-      function makePage(url) {
+      function Page(iframeId) {
         // Fixed dimensions for the page, extracted from the viewport meta tag.
         var _pageSize = null;
-        // Available viewport size to fill with the page.
+        // Available viewport size to fill with the resource.
         var _viewportSize = null;
+        // Margins that should not overlap the content.
+        var _safeAreaInsets = null;
 
         // iFrame containing the page.
-        var _iframe = document.getElementsByID(pageId);
+        var _iframe = document.getElementById(iframeId);
         _iframe.addEventListener('load', loadPageSize);
-        _iframe.src = url;
 
         // Parses the page size from the viewport meta tag of the loaded resource.
         function loadPageSize() {
@@ -100,14 +115,30 @@
         }
 
         return {
-          'iframe': _iframe,
+          // Loads the given URL in the page.
+          'load': function(url) {
+            _iframe.src = url;
+          },
 
           // Evaluates a script in the context of the page.
           'eval': function(script) {
             return _iframe.contentWindow.eval(script);
           },
+
+          // Updates the available viewport to display the resource.
+          'setViewport': function(viewportSize, safeAreaInsets) {
+            _viewportSize = viewportSize;
+            _safeAreaInsets = safeAreaInsets;
+            layoutPage();
+          }
         };
       }
+
+      var _leftPage = Page('page-left');
+      var _rightPage = Page('page-right');
+
+      // Map between a resource href and the matching page in the spread.
+      var _pages = {};
 
       // Fixed dimensions for the resource extracted from the viewport meta tag.
       var _pageSize = null;
@@ -116,50 +147,53 @@
       // Margins that should not overlap the content.
       var _safeAreaInsets = null;
 
-      var _spread = document.getElementsByID('spread');
-      // Map between a page's href and the page object.
-      var _pages = {};
-
       // Public API called from Swift.
       return {
-        // Loads a resource in the iframe.
+        // Loads resources in the spread.
         'load': function(leftHref, leftURL, rightHref, rightURL) {
-          // Removes current pages
           _pages = {};
-          while (_spread.firstChild) {
-            _spread.removeChild(_spread.firstChild);
-          }
-
-          function addPage(href, url, className) {
-            var page = makePage(url);
-            page.iframe.className = 'page-' + className;
-            _spread.appendChild(page.iframe);
-            _pages[href] = page;
-          }
-
           if (leftHref && leftURL) {
-            addPage(leftHref, leftURL, 'left');
+            _leftPage.load(leftURL);
+            _pages[leftHref] = _leftPage;
           }
-
           if (rightHref && rightURL) {
-            addPage(rightHref, rightURL, 'right');
+            _rightPage.load(rightURL);
+            _pages[rightHref] = _rightPage;
           }
         },
 
-        // Evaluates a JavaScript in the context of a page.
+        // Evaluates a JavaScript in the context of a resource.
         'eval': function(href, script) {
-          var page = _pages[href];
-          if (!page) {
-            return;
+          if (href == '#') {
+            for (currentHref in _pages) {
+              _pages[currentHref].eval(script);
+            }
+          } else {
+            var page = _pages[href];
+            if (!page) {
+              return;
+            }
+            return page.eval(script);
           }
-          return page.eval(script);
         },
 
-        // Updates the available viewport to display the resource.
+        // Updates the available viewport to display the resources.
         'setViewport': function(viewportSize, safeAreaInsets) {
-          _viewportSize = viewportSize;
-          _safeAreaInsets = safeAreaInsets;
-          layoutPage();
+          viewportSize.width /= 2;
+
+          _leftPage.setViewport(viewportSize, {
+            top: safeAreaInsets.top,
+            right: 0,
+            bottom: safeAreaInsets.bottom,
+            left: safeAreaInsets.left
+          });
+
+          _rightPage.setViewport(viewportSize, {
+            top: safeAreaInsets.top,
+            right: safeAreaInsets.right,
+            bottom: safeAreaInsets.bottom,
+            left: 0
+          });
         }
       }
     })();

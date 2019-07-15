@@ -25,7 +25,6 @@ public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate {
     // Implement `NavigatorDelegate.navigator(locationDidChange:)` instead, to save the last read location.
     func willExitPublication(documentIndex: Int, progression: Double?)
     func didChangedDocumentPage(currentDocumentIndex: Int)
-    func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int)
     func didNavigateViaInternalLinkTap(to documentIndex: Int)
 
     /// Implement `NavigatorDelegate.navigator(presentError:)` instead.
@@ -38,7 +37,6 @@ public extension EPUBNavigatorDelegate {
     func middleTapHandler() {}
     func willExitPublication(documentIndex: Int, progression: Double?) {}
     func didChangedDocumentPage(currentDocumentIndex: Int) {}
-    func didChangedPaginatedDocumentPage(currentPage: Int, documentTotalPage: Int) {}
     func didNavigateViaInternalLinkTap(to documentIndex: Int) {}
     func presentError(_ error: NavigatorError) {}
 
@@ -87,13 +85,13 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         userSettings = UserSettings()
         publication.userProperties.properties = userSettings.userProperties.properties
 
+        spreads = [EPUBSpread](publication: publication)
+
         var initialIndex: Int = 0
-        if let locator = locator, let foundIndex = publication.readingOrder.firstIndex(withHref: locator.href) {
+        if let locator = locator, let foundIndex = spreads.firstIndex(withHref: locator.href) {
             initialIndex = foundIndex
         }
 
-        spreads = publication.readingOrder.map { .one($0) }
-        
         triptychView = TriptychView(
             frame: CGRect.zero,
             resourcesCount: spreads.count,
@@ -169,16 +167,29 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     
     /// Goes to the reading order resource at given `index`, and given content location.
     @discardableResult
-    private func goToIndex(_ index: Int, location: Locator? = nil, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        return triptychView.goToIndex(index, location: location, animated: animated, completion: completion)
+    private func goToReadingOrderIndex(_ index: Int, location: Locator? = nil, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
+        let href = publication.readingOrder[index].href
+        guard let spreadIndex = spreads.firstIndex(withHref: href) else {
+            return false
+        }
+        return triptychView.goToIndex(spreadIndex, location: location, animated: animated, completion: completion)
     }
     
     /// Goes to the next or previous page in the given scroll direction.
     private func go(to direction: EPUBSpreadView.Direction, animated: Bool, completion: @escaping () -> Void) -> Bool {
-        guard let webView = triptychView.currentView as? EPUBSpreadView else {
-            return false
+        if let webView = triptychView.currentView as? EPUBSpreadView,
+            webView.go(to: direction, animated: animated, completion: completion)
+        {
+            return true
         }
-        return webView.go(to: direction, animated: animated, completion: completion)
+        
+        let delta = triptychView.readingProgression == .rtl ? -1 : 1
+        switch direction {
+        case .left:
+            return triptychView.goToIndex(currentSpreadIndex - delta, animated: animated, completion: completion)
+        case .right:
+            return triptychView.goToIndex(currentSpreadIndex + delta, animated: animated, completion: completion)
+        }
     }
     
     public func updateUserSettingStyle() {
@@ -237,11 +248,10 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     }
     
     public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
-        guard let index = publication.readingOrder.firstIndex(withHref: locator.href) else {
+        guard let spreadIndex = spreads.firstIndex(withHref: locator.href) else {
             return false
         }
-        
-        return goToIndex(index, location: locator, animated: animated, completion: completion)
+        return triptychView.goToIndex(spreadIndex, location: locator, animated: animated, completion: completion)
     }
     
     public func go(to link: Link, animated: Bool, completion: @escaping () -> Void) -> Bool {
@@ -276,16 +286,16 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
 
 extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     
-    func willAnimatePageChange() {
+    func spreadViewWillAnimate(_ spreadView: EPUBSpreadView) {
         triptychView.isUserInteractionEnabled = false
     }
     
-    func didEndPageAnimation() {
+    func spreadViewDidAnimate(_ spreadView: EPUBSpreadView) {
         triptychView.isUserInteractionEnabled = true
     }
     
-    func webView(_ webView: EPUBSpreadView, didTapAt point: CGPoint) {
-        let point = view.convert(point, from: webView)
+    func spreadView(_ spreadView: EPUBSpreadView, didTapAt point: CGPoint) {
+        let point = view.convert(point, from: spreadView)
         delegate?.navigator(self, didTapAt: point)
         // FIXME: Deprecated, to be removed at some point.
         delegate?.middleTapHandler()
@@ -304,35 +314,18 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
 //        }
     }
     
-    func handleTapOnLink(with url: URL) {
+    func spreadView(_ spreadView: EPUBSpreadView, didTapOnExternalURL url: URL) {
         delegate?.navigator(self, presentExternalURL: url)
     }
     
-    func handleTapOnInternalLink(with href: String) {
+    func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String) {
         go(to: Link(href: href))
     }
     
-    func documentPageDidChange(webView: EPUBSpreadView, currentPage: Int, totalPage: Int) {
-        if triptychView.currentView == webView {
+    func spreadViewPagesDidChange(_ spreadView: EPUBSpreadView) {
+        if triptychView.currentView == spreadView {
             notifyCurrentLocation()
-
-            // FIXME: Deprecated, to be removed at some point.
-            delegate?.didChangedPaginatedDocumentPage(currentPage: currentPage, documentTotalPage: totalPage)
         }
-    }
-    
-    /// Display next document (readingOrder item).
-    @discardableResult
-    func displayRightDocument(animated: Bool, completion: @escaping () -> Void) -> Bool {
-        let delta = triptychView.readingProgression == .rtl ? -1 : 1
-        return goToIndex(currentSpreadIndex + delta, animated: animated, completion: completion)
-    }
-
-    /// Display previous document (readingOrder item).
-    @discardableResult
-    func displayLeftDocument(animated: Bool, completion: @escaping () -> Void) -> Bool {
-        let delta = triptychView.readingProgression == .rtl ? -1 : 1
-        return goToIndex(currentSpreadIndex - delta, animated: animated, completion: completion)
     }
 
 }
@@ -380,9 +373,6 @@ extension EPUBNavigatorViewController: TriptychViewDelegate {
         // FIXME: Deprecated, to be removed at some point.
         if let currentResourceIndex = currentResourceIndex {
             delegate?.didChangedDocumentPage(currentDocumentIndex: currentResourceIndex)
-        }
-        if let currentView = triptychView.currentView as? EPUBSpreadView, let pages = currentView.totalPages {
-            delegate?.didChangedPaginatedDocumentPage(currentPage: currentView.currentPage, documentTotalPage: pages)
         }
     }
     
@@ -440,14 +430,14 @@ extension EPUBNavigatorViewController {
 
     @available(*, deprecated, renamed: "go(to:)")
     public func displayReadingOrderItem(at index: Int) {
-        goToIndex(index)
+        goToReadingOrderIndex(index)
     }
     
     @available(*, deprecated, renamed: "go(to:)")
     public func displayReadingOrderItem(at index: Int, progression: Double) {
         var location = Locator(link: publication.readingOrder[index])
         location.locations = Locations(progression: progression)
-        goToIndex(index, location: location)
+        goToReadingOrderIndex(index, location: location)
     }
     
     @available(*, deprecated, renamed: "go(to:)")

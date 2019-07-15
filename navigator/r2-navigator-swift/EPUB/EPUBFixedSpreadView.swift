@@ -92,7 +92,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
             log(.warning, "Href \(href) not found in spread")
             return
         }
-        let script = "spread.eval(\"\(script.replacingOccurrences(of: "\"", with: "\\\""))\");"
+        let script = "spread.eval('\(href)', \"\(script.replacingOccurrences(of: "\"", with: "\\\""))\");"
         webView.evaluateJavaScript(script, completionHandler: completion)
     }
     

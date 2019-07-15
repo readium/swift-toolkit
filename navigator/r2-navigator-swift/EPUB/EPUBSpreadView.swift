@@ -13,57 +13,35 @@ import WebKit
 import R2Shared
 
 
-enum EPUBSpread {
-    case one(Link)
-    case two(left: Link, right: Link)
-    
-    /// Returns the links in the spread, from left to right.
-    var links: [Link] {
-        switch self {
-        case .one(let link):
-            return [link]
-        case .two(let left, let right):
-            return [left, right]
-        }
-    }
-
-    /// Returns the left-most link in the spread.
-    var left: Link {
-        return links.first!
-    }
-    
-    /// Returns the right-most link in the spread.
-    var right: Link {
-        return links.last!
-    }
-    
-    /// Returns whether the spread contains a resource with the given href.
-    func containsHref(_ href: String) -> Bool {
-        return links.first(withHref: href) != nil
-    }
-}
-
 protocol EPUBSpreadViewDelegate: class {
-    func willAnimatePageChange()
-    func didEndPageAnimation()
-    @discardableResult
-    func displayRightDocument(animated: Bool, completion: @escaping () -> Void) -> Bool
-    @discardableResult
-    func displayLeftDocument(animated: Bool, completion: @escaping () -> Void) -> Bool
-    func webView(_ webView: EPUBSpreadView, didTapAt point: CGPoint)
-    func handleTapOnLink(with url: URL)
-    func handleTapOnInternalLink(with href: String)
-    func documentPageDidChange(webView: EPUBSpreadView, currentPage: Int ,totalPage: Int)
+    
+    /// Called before the spread view animates its content (eg. page change in reflowable).
+    func spreadViewWillAnimate(_ spreadView: EPUBSpreadView)
+    /// Called after the spread view animates its content (eg. page change in reflowable).
+    func spreadViewDidAnimate(_ spreadView: EPUBSpreadView)
+    
+    /// Called when the user tapped on the spread contents.
+    func spreadView(_ spreadView: EPUBSpreadView, didTapAt point: CGPoint)
+    
+    /// Called when the user tapped on an external link.
+    func spreadView(_ spreadView: EPUBSpreadView, didTapOnExternalURL url: URL)
+    
+    /// Called when the user tapped on an internal link.
+    func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String)
+    
+    /// Called when the pages visible in the spread changed.
+    func spreadViewPagesDidChange(_ spreadView: EPUBSpreadView)
+    
 }
 
 class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
 
     weak var delegate: EPUBSpreadViewDelegate?
-    // Location to scroll to in the document once the page is loaded.
+    // Location to scroll to in the spread once the pages are loaded.
     var initialLocation: Locator
-    
     let publication: Publication
     let spread: EPUBSpread
+    
     let resourcesURL: URL?
     let webView: WebView
 
@@ -71,7 +49,7 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
     let readingProgression: ReadingProgression
     let userSettings: UserSettings
 
-    /// If YES, the content will be fade in once loaded.
+    /// If YES, the content will be faded in once loaded.
     let animatedLoad: Bool
     
     let contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]
@@ -79,14 +57,6 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
     weak var activityIndicatorView: UIActivityIndicatorView?
     
     private(set) var progression: Double?
-    private(set) var totalPages: Int?
-    
-    var currentPage: Int {
-        guard progression != nil && totalPages != nil else {
-            return 1
-        }
-        return Int(progression! * Double(totalPages!)) + 1
-    }
 
     /// Whether the continuous scrolling mode is enabled.
     var isScrollEnabled: Bool {
@@ -123,36 +93,21 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
 
         super.init(frame: .zero)
         
-        webView.frame = bounds
-        webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        addSubview(webView)
-
         isOpaque = false
         backgroundColor = .clear
         
+        webView.frame = bounds
+        webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        addSubview(webView)
         setupWebView()
 
         sizeObservation = scrollView.observe(\.contentSize, options: .new) { [weak self] scrollView, value in
-            guard let self = self, self.documentLoaded else {
+            guard let self = self, self.documentLoaded, value.newValue != value.oldValue else {
                 return
             }
-            
-            let scrollMode = self.isScrollEnabled
-            let contentSize = value.newValue ?? .zero
-            let pageSize = scrollView.frame.size
-            let documentLength = scrollMode ? contentSize.height : contentSize.width
-            let pageLength = scrollMode ? pageSize.height : pageSize.width
-            guard documentLength > 0, pageLength > 0 else {
-                return
-            }
-            let pageCount = Int(documentLength / pageLength)
-            if self.totalPages != pageCount {
-                self.totalPages = pageCount
-                self.delegate?.documentPageDidChange(webView: self, currentPage: self.currentPage, totalPage: pageCount)
-            }
+            self.delegate?.spreadViewPagesDidChange(self)
         }
-        scrollView.alpha = 0
-        
+
         addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapBackground)))
         
         for script in makeScripts() {
@@ -172,6 +127,8 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
     }
 
     func setupWebView() {
+        scrollView.alpha = 0
+        
         webView.backgroundColor = UIColor.clear
         scrollView.backgroundColor = UIColor.clear
         
@@ -239,7 +196,7 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
             return
         }
 
-        delegate?.webView(self, didTapAt: point)
+        delegate?.spreadView(self, didTapAt: point)
     }
     
     /// Converts the touch data returned by the JavaScript `tap` event into a point in the webview's coordinate space.
@@ -251,7 +208,7 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
     /// Called by the UITapGestureRecognizer as a fallback tap when tapping around the webview.
     @objc private func didTapBackground(_ gesture: UITapGestureRecognizer) {
         let point = gesture.location(in: self)
-        delegate?.webView(self, didTapAt: point)
+        delegate?.spreadView(self, didTapAt: point)
     }
 
     /// Called by the javascript code to notify on DocumentReady.
@@ -323,57 +280,8 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
     }
     
     func go(to direction: Direction, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        if isScrollEnabled {
-            guard let delegate = delegate else {
-                return false
-            }
-            switch direction {
-            case .left:
-                return delegate.displayLeftDocument(animated: animated, completion: completion)
-            case .right:
-                return delegate.displayRightDocument(animated: animated, completion: completion)
-            }
-        }
-        
-        if animated {
-            switch direction {
-            case .left:
-                let isAtFirstPageInDocument = scrollView.contentOffset.x == 0
-                if !isAtFirstPageInDocument {
-                    delegate?.willAnimatePageChange()
-                    scrollView.scrollToPreviousPage(animated: animated, completion: completion)
-                    return true
-                }
-            case .right:
-                let isAtLastPageInDocument = scrollView.contentOffset.x == scrollView.contentSize.width - scrollView.frame.size.width
-                if !isAtLastPageInDocument {
-                    delegate?.willAnimatePageChange()
-                    scrollView.scrollToNextPage(animated: animated, completion: completion)
-                    return true
-                }
-            }
-        }
-        
-        let dir = readingProgression.rawValue
-        switch direction {
-        case .left:
-            evaluateScript("readium.scrollLeft(\"\(dir)\");", inResource: spread.left.href) { [weak self] result, error in
-                if error == nil, let success = result as? Bool, !success {
-                    self?.delegate?.displayLeftDocument(animated: animated, completion: completion)
-                } else {
-                    completion()
-                }
-            }
-        case .right:
-            evaluateScript("readium.scrollRight(\"\(dir)\");", inResource: spread.right.href) { [weak self] result, error in
-                if error == nil, let success = result as? Bool, !success {
-                    self?.delegate?.displayRightDocument(animated: animated, completion: completion)
-                } else {
-                    completion()
-                }
-            }
-        }
-        return true
+        // The default implementation of a spread view consider that its content is entirely visible on screen.
+        return false
     }
 
     /// Update webview style to userSettings.
@@ -393,20 +301,18 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
         guard documentLoaded, let bodyString = body as? String, let newProgression = Double(bodyString) else {
             return
         }
-        
         if previousProgression == nil {
             previousProgression = progression
         }
-        
         progression = newProgression
     }
     
-    @objc private func notifyDocumentPageChange() {
-        guard previousProgression != progression, let pages = totalPages else {
+    @objc private func notifyPagesDidChange() {
+        guard previousProgression != progression else {
             return
         }
         previousProgression = nil
-        delegate?.documentPageDidChange(webView: self, currentPage: currentPage, totalPage: pages)
+        delegate?.spreadViewPagesDidChange(self)
     }
     
     
@@ -454,19 +360,17 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
 
 }
 
-// MARK: - WKScriptMessageHandler for handling incoming message from the Bridge.js
-// javascript code.
+// MARK: - WKScriptMessageHandler for handling incoming message from the javascript layer.
 extension EPUBSpreadView: WKScriptMessageHandler {
 
-    // Handles incoming calls from JS.
-    func userContentController(_ userContentController: WKUserContentController,
-                               didReceive message: WKScriptMessage) {
+    /// Handles incoming calls from JS.
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         if let handler = jsEvents[message.name] {
             handler(message.body)
         }
     }
 
-    /// Add a message handler for incoming javascript events.
+    /// Add the message handlers for incoming javascript events.
     func addMessageHandlers() {
         guard !hasLoadedJsEvents else {
             return
@@ -478,7 +382,7 @@ extension EPUBSpreadView: WKScriptMessageHandler {
         hasLoadedJsEvents = true
     }
 
-    // Deinit message handlers (preventing strong reference cycle).
+    // Removes message handlers (preventing strong reference cycle).
     func removeMessageHandlers() {
         guard hasLoadedJsEvents else {
             return
@@ -488,6 +392,7 @@ extension EPUBSpreadView: WKScriptMessageHandler {
         }
         hasLoadedJsEvents = false
     }
+    
 }
 
 extension EPUBSpreadView: WKNavigationDelegate {
@@ -496,8 +401,7 @@ extension EPUBSpreadView: WKNavigationDelegate {
         // Do not remove: overriden in subclasses.
     }
 
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction,
-                 decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         var policy: WKNavigationActionPolicy = .allow
 
         if navigationAction.navigationType == .linkActivated {
@@ -505,9 +409,9 @@ extension EPUBSpreadView: WKNavigationDelegate {
                 // Check if url is internal or external
                 if let baseURL = publication.baseURL, url.host == baseURL.host {
                     let href = url.absoluteString.replacingOccurrences(of: baseURL.absoluteString, with: "/")
-                    delegate?.handleTapOnInternalLink(with: href)
+                    delegate?.spreadView(self, didTapOnInternalLink: href)
                 } else {
-                    delegate?.handleTapOnLink(with: url)
+                    delegate?.spreadView(self, didTapOnExternalURL: url)
                 }
                 
                 policy = .cancel
@@ -522,7 +426,7 @@ extension EPUBSpreadView: UIScrollViewDelegate {
     
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         scrollView.isUserInteractionEnabled = true
-        delegate?.didEndPageAnimation()
+        delegate?.spreadViewDidAnimate(self)
     }
     
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
@@ -530,18 +434,18 @@ extension EPUBSpreadView: UIScrollViewDelegate {
     }
     
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        delegate?.didEndPageAnimation()
+        delegate?.spreadViewDidAnimate(self)
     }
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        delegate?.didEndPageAnimation()
+        delegate?.spreadViewDidAnimate(self)
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         // Makes sure we always receive the "ending scroll" event.
         // ie. https://stackoverflow.com/a/1857162/1474476
-        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(notifyDocumentPageChange), object: nil)
-        perform(#selector(notifyDocumentPageChange), with: nil, afterDelay: 0.3)
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(notifyPagesDidChange), object: nil)
+        perform(#selector(notifyPagesDidChange), with: nil, afterDelay: 0.3)
     }
 
 }
@@ -553,30 +457,6 @@ extension EPUBSpreadView: WKUIDelegate {
     func webView(_ webView: WKWebView, shouldPreviewElement elementInfo: WKPreviewElementInfo) -> Bool {
         // Preview allowed only if the link is not internal
         return (elementInfo.linkURL?.host != publication.baseURL?.host)
-    }
-}
-
-private extension UIScrollView {
-    
-    func scrollToNextPage(animated: Bool, completion: () -> Void) {
-        moveHorizontalContent(with: bounds.size.width, animated: animated, completion: completion)
-    }
-    
-    func scrollToPreviousPage(animated: Bool, completion: () -> Void) {
-        moveHorizontalContent(with: -bounds.size.width, animated: animated, completion: completion)
-    }
-    
-    private func moveHorizontalContent(with offsetX: CGFloat, animated: Bool, completion: () -> Void) {
-        isUserInteractionEnabled = false
-        
-        var newOffset = contentOffset
-        newOffset.x += offsetX
-        let rounded = round(newOffset.x / offsetX) * offsetX
-        newOffset.x = rounded
-        let area = CGRect.init(origin: newOffset, size: bounds.size)
-        scrollRectToVisible(area, animated: animated)
-        // FIXME: completion needs to be implemented using scroll view delegate
-        completion()
     }
 }
 
