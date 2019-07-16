@@ -74,10 +74,12 @@ extension Array where Element == EPUBSpread {
     init(publication: Publication, readingProgression: ReadingProgression) {
         self.init()
         
-//        for link in publication.readingOrder {
-//            append(.one(link))
-//        }
-//        return
+        for link in publication.readingOrder {
+            // FIXME: Use `EPUBRendition.layout(of link: Link)` once the positionList PR is merged
+            let layout = link.properties.layout ?? publication.metadata.rendition?.layout ?? .reflowable
+            append(EPUBSpread(pages: [link], readingProgression: readingProgression, layout: layout))
+        }
+        return
         
         let links = publication.readingOrder
         for i in stride(from: 0, to: links.count - 1, by: 2) {

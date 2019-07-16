@@ -122,6 +122,19 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         return point
     }
     
+    
+    /// MARK: - Location
+    
+    /// Locator to the leading page in the spread.
+    override var currentLocation: Locator {
+        let link = spread.leading
+        return Locator(
+            href: link.href,
+            type: link.type ?? "text/html",
+            locations: Locations(progression: progression ?? 0)
+        )
+    }
+    
     override func go(to direction: EPUBSpreadView.Direction, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
         guard !isScrollEnabled else {
             return super.go(to: direction, animated: animated, completion: completion)
@@ -156,8 +169,78 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         return true
     }
     
+    override func goToHref(_ href: String, location: Locations, completion: @escaping () -> Void) {
+        // FIXME: check that the fragment is actually a tag ID
+        if let id = location.fragment, !id.isEmpty {
+            go(toHref: href, tagID: id, completion: completion)
+        } else if let progression = location.progression {
+            go(toHref: href, progression: progression, completion: completion)
+        } else {
+            super.goToHref(href, location: location, completion: completion)
+        }
+    }
+
+    /// Scrolls at given progression (from 0.0 to 1.0)
+    private func go(toHref href: String, progression: Double, completion: @escaping () -> Void) {
+        guard progression >= 0 && progression <= 1 else {
+            log(.warning, "Scrolling to invalid progression \(progression)")
+            completion()
+            return
+        }
+        
+        // Note: The JS layer does not take into account the scroll view's content inset. So it can't be used to reliably scroll to the top or the bottom of the page in scroll mode.
+        if isScrollEnabled && [0, 1].contains(progression) {
+            var contentOffset = scrollView.contentOffset
+            contentOffset.y = (progression == 0)
+                ? -scrollView.contentInset.top
+                : (scrollView.contentSize.height - scrollView.bounds.height + scrollView.contentInset.bottom)
+            scrollView.contentOffset = contentOffset
+            completion()
+        } else {
+            let dir = readingProgression.rawValue
+            evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\')", inResource: href) { _, _ in completion () }
+        }
+    }
     
-    // MARK: Scripts
+    /// Scrolls at the tag with ID `tagID`.
+    private func go(toHref href: String, tagID: String, completion: @escaping () -> Void) {
+        evaluateScript("readium.scrollToId(\'\(tagID)\');", inResource: href) { _, _ in completion() }
+    }
+    
+    
+    // MARK: - Progression
+    
+    // Current progression in the page.
+    private var progression: Double?
+    // To check if a progression change was cancelled or not.
+    private var previousProgression: Double?
+    
+    // Called by the javascript code to notify that scrolling ended.
+    private func progressionDidChange(body: Any) {
+        guard spreadLoaded, let bodyString = body as? String, let newProgression = Double(bodyString) else {
+            return
+        }
+        if previousProgression == nil {
+            previousProgression = progression
+        }
+        progression = newProgression
+    }
+    
+    @objc private func notifyPagesDidChange() {
+        guard previousProgression != progression else {
+            return
+        }
+        previousProgression = nil
+        delegate?.spreadViewPagesDidChange(self)
+    }
+    
+    
+    // MARK: - Scripts
+    
+    override func registerJSMessages() {
+        super.registerJSMessages()
+        registerJSMessage(named: "progressionChanged", handler: progressionDidChange)
+    }
     
     private static let reflowableScript = loadScript(named: "reflowable")
     private static let cssScript = loadScript(named: "css")
@@ -200,6 +283,18 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         }
         
         return scripts
+    }
+    
+    
+    // MARK: - UIScrollViewDelegate
+    
+    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        super.scrollViewDidScroll(scrollView)
+        
+        // Makes sure we always receive the "ending scroll" event.
+        // ie. https://stackoverflow.com/a/1857162/1474476
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(notifyPagesDidChange), object: nil)
+        perform(#selector(notifyPagesDidChange), with: nil, afterDelay: 0.3)
     }
 
 }

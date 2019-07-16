@@ -1,5 +1,6 @@
 
 // Script used for reflowable layouts.
+// WARNING: iOS 9 requires ES5
 (function() {
 
   window.addEventListener("load", function() {

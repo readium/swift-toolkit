@@ -55,8 +55,6 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
     let contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]
 
     weak var activityIndicatorView: UIActivityIndicatorView?
-    
-    private(set) var progression: Double?
 
     /// Whether the continuous scrolling mode is enabled.
     var isScrollEnabled: Bool {
@@ -65,8 +63,7 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
         return userEnabled || UIAccessibility.isVoiceOverRunning
     }
 
-    private var spreadLoaded = false
-    private var sizeObservation: NSKeyValueObservation?
+    private(set) var spreadLoaded = false
 
     required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL?, initialLocation: Locator, contentLayout: ContentLayoutStyle, readingProgression: ReadingProgression, userSettings: UserSettings, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
         self.publication = publication
@@ -90,13 +87,6 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
         addSubview(webView)
         setupWebView()
 
-        sizeObservation = scrollView.observe(\.contentSize, options: .new) { [weak self] scrollView, value in
-            guard let self = self, self.spreadLoaded, value.newValue != value.oldValue else {
-                return
-            }
-            self.delegate?.spreadViewPagesDidChange(self)
-        }
-
         addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapBackground)))
         
         for script in makeScripts() {
@@ -111,7 +101,6 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
     }
     
     deinit {
-        sizeObservation = nil  // needs to be deallocated before the scrollView
         NotificationCenter.default.removeObserver(self)
         disableJSMessages()
     }
@@ -207,17 +196,28 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
         spreadLoaded = true
 
         applyUserSettingsStyle()
+        
+        func showSpread() {
+            activityIndicatorView?.stopAnimating()
+            UIView.animate(withDuration: animatedLoad ? 0.3 : 0, animations: {
+                self.scrollView.alpha = 1
+            })
+        }
 
         // FIXME: We need to give the CSS and webview time to layout correctly. 0.2 seconds seems like a good value for it to work on an iPhone 5s. Look into solving this better
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            self.go(to: self.initialLocation) {
-                self.activityIndicatorView?.stopAnimating()
-                UIView.animate(withDuration: self.animatedLoad ? 0.3 : 0, animations: {
-                    self.scrollView.alpha = 1
-                })
-            }
+            self.go(to: self.initialLocation, completion: showSpread)
         }
     }
+
+    /// Update webview style to userSettings.
+    /// To override in subclasses.
+    func applyUserSettingsStyle() {
+        assert(Thread.isMainThread, "User settings must be updated from the main thread")
+    }
+    
+    
+    /// MARK: - Location
     
     /// Locator to the leading page in the spread.
     var currentLocation: Locator {
@@ -229,50 +229,47 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
         )
     }
     
+    /// Array of completion blocks called when the spread displayed the requested locator.
+    private var goToCompletion: [() -> Void] = []
+    
     func go(to locator: Locator) {
-        go(to: locator, completion: {})
+        go(to: locator, completion: nil)
     }
 
-    func go(to locator: Locator, completion: @escaping () -> Void) {
+    func go(to locator: Locator, completion: (() -> Void)?) {
+        if let completion = completion {
+            goToCompletion.append(completion)
+        }
+        
         guard spreadLoaded else {
             // Delays moving to the location until the document is loaded.
             initialLocation = locator
             return
         }
-
-        // FIXME: check that the fragment is actually a tag ID
-        if let id = locator.locations?.fragment, !id.isEmpty {
-            go(toHref: locator.href, tagID: id, completion: completion)
-        } else if let progression = locator.locations?.progression {
-            go(toHref: locator.href, progression: progression, completion: completion)
-        }
-    }
-
-    // Scroll at position 0-1 (0%-100%)
-    private func go(toHref href: String, progression: Double, completion: @escaping () -> Void) {
-        guard progression >= 0 && progression <= 1 else {
-            log(.warning, "Scrolling to invalid progression \(progression)")
-            completion()
-            return
+        
+        func completed() {
+            for completion in goToCompletion {
+                completion()
+            }
+            goToCompletion.removeAll()
         }
         
-        // Note: The JS layer does not take into account the scroll view's content inset. So it can't be used to reliably scroll to the top or the bottom of the page in scroll mode.
-        if isScrollEnabled && [0, 1].contains(progression) {
-            var contentOffset = scrollView.contentOffset
-            contentOffset.y = (progression == 0)
-                ? -scrollView.contentInset.top
-                : (scrollView.contentSize.height - scrollView.bounds.height + scrollView.contentInset.bottom)
-            scrollView.contentOffset = contentOffset
-            completion()
-        } else {
-            let dir = readingProgression.rawValue
-            evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\')", inResource: href) { _, _ in completion () }
+        guard ["", "#"].contains(locator.href) || spread.contains(href: locator.href) else {
+            log(.warning, "The locator's href is not in the spread")
+            completed()
+            return
         }
+        guard let location = locator.locations else {
+            completed()
+            return
+        }
+
+        goToHref(locator.href, location: location, completion: completed)
     }
     
-    // Scroll at the tag with id `tagId`.
-    private func go(toHref href: String, tagID: String, completion: @escaping () -> Void) {
-        evaluateScript("readium.scrollToId(\'\(tagID)\');", inResource: href) { _, _ in completion() }
+    func goToHref(_ href: String, location: Locations, completion: @escaping () -> Void) {
+        // To be overriden in subclasses if the spread supports different locations (eg. reflowable).
+        completion()
     }
 
     enum Direction {
@@ -285,37 +282,6 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
         return false
     }
 
-    /// Update webview style to userSettings.
-    /// To override in subclasses.
-    func applyUserSettingsStyle() {
-        assert(Thread.isMainThread, "User settings must be updated from the main thread")
-    }
-    
-    
-    // MARK: - Progression change
-    
-    // To check if a progression change was cancelled or not.
-    private var previousProgression: Double?
-
-    // Called by the javascript code to notify that scrolling ended.
-    private func progressionDidChange(body: Any) {
-        guard spreadLoaded, let bodyString = body as? String, let newProgression = Double(bodyString) else {
-            return
-        }
-        if previousProgression == nil {
-            previousProgression = progression
-        }
-        progression = newProgression
-    }
-    
-    @objc private func notifyPagesDidChange() {
-        guard previousProgression != progression else {
-            return
-        }
-        previousProgression = nil
-        delegate?.spreadViewPagesDidChange(self)
-    }
-    
     
     // MARK: - Scripts
     
@@ -363,7 +329,6 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
     func registerJSMessages() {
         registerJSMessage(named: "tap", handler: didTap)
         registerJSMessage(named: "spreadLoaded", handler: spreadDidLoad)
-        registerJSMessage(named: "updateProgression", handler: progressionDidChange)
     }
     
     /// Add the message handlers for incoming javascript events.
@@ -463,12 +428,9 @@ extension EPUBSpreadView: UIScrollViewDelegate {
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         delegate?.spreadViewDidAnimate(self)
     }
-
+    
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        // Makes sure we always receive the "ending scroll" event.
-        // ie. https://stackoverflow.com/a/1857162/1474476
-        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(notifyPagesDidChange), object: nil)
-        perform(#selector(notifyPagesDidChange), with: nil, afterDelay: 0.3)
+        // Do not remove, overriden in subclasses.
     }
 
 }

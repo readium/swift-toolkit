@@ -21,7 +21,7 @@ var readium = (function() {
     // Position in range [0 - 1].
     function update(position) {
         var positionString = position.toString()
-        webkit.messageHandlers.updateProgression.postMessage(positionString);
+        webkit.messageHandlers.progressionChanged.postMessage(positionString);
     }
 
     window.addEventListener('scroll', function(e) {
