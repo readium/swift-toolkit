@@ -39,7 +39,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         scrollView.backgroundColor = UIColor.clear
         
         // Loads the wrapper page into the web view.
-        let spreadFile = "fxl-spread-\((spread.links.count == 1) ? "one" : "two")"
+        let spreadFile = "fxl-spread-\((spread.pages.count == 1) ? "one" : "two")"
         if let wrapperPageURL = Bundle(for: type(of: self)).url(forResource: spreadFile, withExtension: "html"), let wrapperPage = try? String(contentsOf: wrapperPageURL, encoding: .utf8) {
             // The publication's base URL is used to make sure we can access the resource through the iframe with JavaScript.
             webView.loadHTMLString(wrapperPage, baseURL: publication.baseURL)
@@ -61,12 +61,11 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         guard isWrapperLoaded else {
             return
         }
-        guard 1...2 ~= spread.links.count else {
+        guard 1...2 ~= spread.pages.count else {
             log(.error, "Only one and two-page spreads are supported for \(type(of: self))")
             return
         }
-        
-        let params = spread.links
+        let params = spread.pagesLTR
             .reduce([]) { params, link in
                 var params = params
                 guard let url = publication.url(to: link)?.absoluteString else {
@@ -88,7 +87,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
             completion?(nil, nil)
             return
         }
-        guard href == "#" || spread.containsHref(href) else {
+        guard href == "#" || spread.contains(href: href) else {
             log(.warning, "Href \(href) not found in spread")
             return
         }

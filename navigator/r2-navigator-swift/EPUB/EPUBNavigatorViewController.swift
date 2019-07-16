@@ -56,6 +56,8 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     /// Content insets used to add some vertical margins around reflowable EPUB publications. The insets can be configured for each size class to allow smaller margins on compact screens.
     private let contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]
     
+    // FIXME: Add support to change the reading progression
+    public var readingProgression: ReadingProgression
     private var spreads: [EPUBSpread]
     private let triptychView: TriptychView
     
@@ -85,7 +87,8 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         userSettings = UserSettings()
         publication.userProperties.properties = userSettings.userProperties.properties
 
-        spreads = [EPUBSpread](publication: publication)
+        readingProgression = publication.contentLayout.readingProgression
+        spreads = [EPUBSpread](publication: publication, readingProgression: readingProgression)
 
         var initialIndex: Int = 0
         if let locator = locator, let foundIndex = spreads.firstIndex(withHref: locator.href) {
@@ -97,7 +100,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
             resourcesCount: spreads.count,
             initialIndex: initialIndex,
             initialLocation: locator,
-            readingProgression: publication.contentLayout.readingProgression
+            readingProgression: readingProgression
         )
         
         resourcesURL = {
@@ -140,7 +143,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         
         // FIXME: Deprecated, to be removed at some point.
         if let currentResourceIndex = currentResourceIndex {
-            let progression = (triptychView.currentView as? EPUBSpreadView)?.progression
+            let progression = currentLocation?.locations?.progression
             delegate?.willExitPublication(documentIndex: currentResourceIndex, progression: progression)
         }
     }
@@ -183,7 +186,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
             return true
         }
         
-        let delta = triptychView.readingProgression == .rtl ? -1 : 1
+        let delta = readingProgression == .rtl ? -1 : 1
         switch direction {
         case .left:
             return triptychView.goToIndex(currentSpreadIndex - delta, animated: animated, completion: completion)
@@ -213,23 +216,13 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     
     // MARK: - Navigator
     
-    public var readingProgression: ReadingProgression {
-        return publication.contentLayout.readingProgression
-    }
-    
     public var currentLocation: Locator? {
-        guard let currentResourceIndex = currentResourceIndex else {
+        guard let spreadView = triptychView.currentView as? EPUBSpreadView else {
             return nil
         }
-        let resource = publication.readingOrder[currentResourceIndex]
-        return Locator(
-            href: resource.href,
-            type: resource.type ?? "text/html",
-            title: tableOfContentsTitleByHref[resource.href],
-            locations: Locations(
-                progression: (triptychView.currentView as? EPUBSpreadView)?.progression ?? 0
-            )
-        )
+        var location = spreadView.currentLocation
+        location.title = tableOfContentsTitleByHref[location.href]
+        return location
     }
 
     /// Last current location notified to the delegate.
@@ -344,11 +337,7 @@ extension EPUBNavigatorViewController: TriptychViewDelegate {
 
     func triptychView(_ triptychView: TriptychView, viewForIndex index: Int, location: Locator) -> (UIView & TriptychResourceView)? {
         let spread = spreads[index]
-        let link = spread.left  // FIXME
-        // Check if link is FXL.
-        let hasFixedLayout = (publication.metadata.rendition?.layout == .fixed && link.properties.layout == nil) || link.properties.layout == .fixed
-
-        let webViewType = hasFixedLayout ? EPUBFixedSpreadView.self : EPUBReflowableSpreadView.self
+        let webViewType = (spread.layout == .fixed) ? EPUBFixedSpreadView.self : EPUBReflowableSpreadView.self
         let webView = webViewType.init(
             publication: publication,
             spread: spread,

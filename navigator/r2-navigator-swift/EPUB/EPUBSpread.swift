@@ -13,33 +13,57 @@ import Foundation
 import R2Shared
 
 
-enum EPUBSpread {
-    case one(Link)
-    case two(left: Link, right: Link)
+struct EPUBSpread {
     
-    /// Returns the links in the spread, from left to right.
-    var links: [Link] {
-        switch self {
-        case .one(let link):
-            return [link]
-        case .two(let left, let right):
-            return [left, right]
+    /// Pages in the spread, in reading order.
+    let pages: [Link]
+    
+    /// Spread reading progression direction.
+    let readingProgression: ReadingProgression
+    
+    /// Rendition layout of the pages in the spread.
+    let layout: EPUBRendition.Layout
+
+    init(pages: [Link], readingProgression: ReadingProgression, layout: EPUBRendition.Layout) {
+        precondition(!pages.isEmpty, "A spread must have at least one page")
+        self.pages = pages
+        self.readingProgression = readingProgression
+        self.layout = layout
+    }
+    
+    /// Pages in the spread, from left to right.
+    var pagesLTR: [Link] {
+        switch readingProgression {
+        case .rtl:
+            return pages.reversed()
+        case .ltr, .auto:
+            return pages
         }
     }
     
-    /// Returns the left-most link in the spread.
+    /// Returns the left-most page in the spread.
     var left: Link {
-        return links.first!
+        return pagesLTR.first!
     }
     
-    /// Returns the right-most link in the spread.
+    /// Returns the right-most page in the spread.
     var right: Link {
-        return links.last!
+        return pagesLTR.last!
+    }
+    
+    /// Returns the leading page in the reading progression.
+    var leading: Link {
+        return pages.first!
+    }
+    
+    /// Returns the trailing page in the reading progression.
+    var trailing: Link {
+        return pages.last!
     }
     
     /// Returns whether the spread contains a resource with the given href.
-    func containsHref(_ href: String) -> Bool {
-        return links.first(withHref: href) != nil
+    func contains(href: String) -> Bool {
+        return pages.first(withHref: href) != nil
     }
     
 }
@@ -47,7 +71,7 @@ enum EPUBSpread {
 extension Array where Element == EPUBSpread {
     
     /// Builds a list of spreads for the given Publication.
-    init(publication: Publication) {
+    init(publication: Publication, readingProgression: ReadingProgression) {
         self.init()
         
 //        for link in publication.readingOrder {
@@ -57,17 +81,21 @@ extension Array where Element == EPUBSpread {
         
         let links = publication.readingOrder
         for i in stride(from: 0, to: links.count - 1, by: 2) {
+            var pages: [Link] = []
             if links.indices.contains(i+1) {
-                append(.two(left: links[i], right: links[i+1]))
+                pages = [links[i], links[i+1]]
             } else {
-                append(.one(links[i]))
+                pages = [links[i]]
             }
+            // FIXME: Use `EPUBRendition.layout(of link: Link)` once the positionList PR is merged
+            let layout = pages[0].properties.layout ?? publication.metadata.rendition?.layout ?? .reflowable
+            append(EPUBSpread(pages: pages, readingProgression: readingProgression, layout: layout))
         }
     }
     
     func firstIndex(withHref href: String) -> Int? {
         return firstIndex { spread in
-            spread.links.contains { $0.href == href }
+            spread.pages.contains { $0.href == href }
         }
     }
     

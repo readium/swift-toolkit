@@ -160,16 +160,16 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
     }
     
     func loadSpread() {
-        switch spread {
-        case .one(let link):
-            guard let url = publication.url(to: link) else {
-                log(.error, "Can't get URL for link \(link.href)")
-                return
-            }
-            webView.load(URLRequest(url: url))
-        case .two:
-            log(.error, "Two-page spreads is not supported with \(type(of: self))")
+        guard spread.pages.count == 1 else {
+            log(.error, "Only one-page spreads are supported with \(type(of: self))")
+            return
         }
+        let link = spread.leading
+        guard let url = publication.url(to: link) else {
+            log(.error, "Can't get URL for link \(link.href)")
+            return
+        }
+        webView.load(URLRequest(url: url))
     }
 
     /// Evaluates the given JavaScript into the resource's HTML page.
@@ -217,6 +217,16 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
                 })
             }
         }
+    }
+    
+    /// Locator to the leading page in the spread.
+    var currentLocation: Locator {
+        let link = spread.leading
+        return Locator(
+            href: link.href,
+            type: link.type ?? "text/html",
+            locations: Locations(progression: 0)
+        )
     }
     
     func go(to locator: Locator) {
