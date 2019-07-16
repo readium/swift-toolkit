@@ -39,12 +39,12 @@
       // Margins that should not overlap the content.
       var _safeAreaInsets = null;
 
-      var _frame = document.getElementById('page');
-      _frame.addEventListener('load', loadPageSize);
+      var _iframe = document.getElementById('page');
+      _iframe.addEventListener('load', loadPageSize);
 
       // Parses the page size from the viewport meta tag of the loaded resource.
       function loadPageSize() {
-        var viewport = _frame.contentWindow.document.querySelector('meta[name=viewport]');
+        var viewport = _iframe.contentWindow.document.querySelector('meta[name=viewport]');
         if (viewport) {
           var regex = /(\w+) *= *([^\s,]+)/g
           var properties = {};
@@ -67,10 +67,10 @@
           return;
         }
 
-        _frame.style.width = _pageSize.width + 'px';
-        _frame.style.height = _pageSize.height + 'px';
-        _frame.style.marginTop = (_safeAreaInsets.top - _safeAreaInsets.bottom) + 'px';
-        _frame.style.marginLeft = (_safeAreaInsets.left - _safeAreaInsets.right) + 'px';
+        _iframe.style.width = _pageSize.width + 'px';
+        _iframe.style.height = _pageSize.height + 'px';
+        _iframe.style.marginTop = (_safeAreaInsets.top - _safeAreaInsets.bottom) + 'px';
+        _iframe.style.marginLeft = (_safeAreaInsets.left - _safeAreaInsets.right) + 'px';
 
         // Calculates the zoom scale required to fit the content to the viewport.
         var widthRatio = _viewportSize.width / _pageSize.width;
@@ -86,12 +86,21 @@
       return {
         // Loads a resource in the iframe.
         'load': function(href, url) {
-          _frame.src = url;
+          function loaded() {
+            // Notifies native code that the page is loaded after it is rendered.
+            // Waiting for the next animation frame seems to do the trick to make sure the page is fully rendered.
+            _iframe.contentWindow.requestAnimationFrame(function() {
+              webkit.messageHandlers.spreadLoaded.postMessage({});
+            });
+            _iframe.removeEventListener('load', loaded);
+          }
+          _iframe.addEventListener('load', loaded);
+          _iframe.src = url;
         },
 
         // Evaluates a JavaScript in the context of the resource.
         'eval': function(href, script) {
-          return _frame.contentWindow.eval(script);
+          return _iframe.contentWindow.eval(script);
         },
 
         // Updates the available viewport to display the resource.

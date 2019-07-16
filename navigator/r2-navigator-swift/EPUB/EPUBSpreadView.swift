@@ -65,19 +65,8 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
         return userEnabled || UIAccessibility.isVoiceOverRunning
     }
 
-    var documentLoaded = false
-
-    var hasLoadedJsEvents = false
-    
-    var jsEvents: [String: (Any) -> Void] {
-        return [
-            "tap": didTap,
-            "didLoad": documentDidLoad,
-            "updateProgression": progressionDidChange
-        ]
-    }
-    
-    var sizeObservation: NSKeyValueObservation?
+    private var spreadLoaded = false
+    private var sizeObservation: NSKeyValueObservation?
 
     required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL?, initialLocation: Locator, contentLayout: ContentLayoutStyle, readingProgression: ReadingProgression, userSettings: UserSettings, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
         self.publication = publication
@@ -102,7 +91,7 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
         setupWebView()
 
         sizeObservation = scrollView.observe(\.contentSize, options: .new) { [weak self] scrollView, value in
-            guard let self = self, self.documentLoaded, value.newValue != value.oldValue else {
+            guard let self = self, self.spreadLoaded, value.newValue != value.oldValue else {
                 return
             }
             self.delegate?.spreadViewPagesDidChange(self)
@@ -113,6 +102,7 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
         for script in makeScripts() {
             webView.configuration.userContentController.addUserScript(script)
         }
+        registerJSMessages()
 
         NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: Notification.Name(UIAccessibilityVoiceOverStatusChanged), object: nil)
         
@@ -123,7 +113,7 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
     deinit {
         sizeObservation = nil  // needs to be deallocated before the scrollView
         NotificationCenter.default.removeObserver(self)
-        removeMessageHandlers()
+        disableJSMessages()
     }
 
     func setupWebView() {
@@ -160,11 +150,11 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
         super.didMoveToSuperview()
         
         if superview == nil {
-            removeMessageHandlers()
+            disableJSMessages()
             // Fixing an iOS 9 bug by explicitly clearing scrollView.delegate before deinitialization
             scrollView.delegate = nil
         } else {
-            addMessageHandlers()
+            enableJSMessages()
             scrollView.delegate = self
         }
     }
@@ -211,9 +201,10 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
         delegate?.spreadView(self, didTapAt: point)
     }
 
-    /// Called by the javascript code to notify on DocumentReady.
-    private func documentDidLoad(body: Any) {
-        documentLoaded = true
+    /// Called by the javascript code when the spread contents is fully loaded.
+    /// The JS message `spreadLoaded` needs to be emitted by a subclass script, EPUBSpreadView's scripts don't.
+    private func spreadDidLoad(body: Any) {
+        spreadLoaded = true
 
         applyUserSettingsStyle()
 
@@ -233,7 +224,7 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
     }
 
     func go(to locator: Locator, completion: @escaping () -> Void) {
-        guard documentLoaded else {
+        guard spreadLoaded else {
             // Delays moving to the location until the document is loaded.
             initialLocation = locator
             return
@@ -298,7 +289,7 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
 
     // Called by the javascript code to notify that scrolling ended.
     private func progressionDidChange(body: Any) {
-        guard documentLoaded, let bodyString = body as? String, let newProgression = Double(bodyString) else {
+        guard spreadLoaded, let bodyString = body as? String, let newProgression = Double(bodyString) else {
             return
         }
         if previousProgression == nil {
@@ -321,26 +312,70 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
     private static let gesturesScript = loadScript(named: "gestures")
     private static let utilsScript = loadScript(named: "utils")
 
-    class func loadScript(named name: String) -> String? {
-        return  Bundle(for: EPUBSpreadView.self)
+    class func loadScript(named name: String) -> String {
+        return Bundle(for: EPUBSpreadView.self)
             .url(forResource: "Scripts/\(name)", withExtension: "js")
-            .flatMap { try? String(contentsOf: $0) }
+            .flatMap { try? String(contentsOf: $0) }!
     }
     
-    func loadResource(at path: String) -> String? {
+    func loadResource(at path: String) -> String {
         return (resourcesURL?.appendingPathComponent(path))
-            .flatMap { try? String(contentsOf: $0) }
+            .flatMap { try? String(contentsOf: $0) }!
     }
     
     func makeScripts() -> [WKUserScript] {
-        var scripts: [WKUserScript] = []
-        if let gesturesScript = EPUBSpreadView.gesturesScript {
-            scripts.append(WKUserScript(source: gesturesScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
+        return [
+            WKUserScript(source: EPUBSpreadView.gesturesScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
+            WKUserScript(source: EPUBSpreadView.utilsScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
+        ]
+    }
+    
+    
+    // MARK: - JS Messages
+    
+    private var JSMessages: [String: (Any) -> Void] = [:]
+    private var JSMessagesEnabled = false
+
+    /// Register a new JS message handler to be emitted from scripts.
+    func registerJSMessage(named name: String, handler: @escaping (Any) -> Void) {
+        guard JSMessages[name] == nil else {
+            log(.error, "JS message already registered: \(name)")
+            return
         }
-        if let utilsScript = EPUBSpreadView.utilsScript {
-            scripts.append(WKUserScript(source: utilsScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
+        
+        JSMessages[name] = handler
+        if JSMessagesEnabled {
+            webView.configuration.userContentController.add(self, name: name)
         }
-        return scripts
+    }
+    
+    /// To override in subclasses if needed.
+    func registerJSMessages() {
+        registerJSMessage(named: "tap", handler: didTap)
+        registerJSMessage(named: "spreadLoaded", handler: spreadDidLoad)
+        registerJSMessage(named: "updateProgression", handler: progressionDidChange)
+    }
+    
+    /// Add the message handlers for incoming javascript events.
+    private func enableJSMessages() {
+        guard !JSMessagesEnabled else {
+            return
+        }
+        JSMessagesEnabled = true
+        for name in JSMessages.keys {
+            webView.configuration.userContentController.add(self, name: name)
+        }
+    }
+    
+    // Removes message handlers (preventing strong reference cycle).
+    private func disableJSMessages() {
+        guard JSMessagesEnabled else {
+            return
+        }
+        JSMessagesEnabled = false
+        for name in JSMessages.keys {
+            webView.configuration.userContentController.removeScriptMessageHandler(forName: name)
+        }
     }
     
     
@@ -365,34 +400,12 @@ extension EPUBSpreadView: WKScriptMessageHandler {
 
     /// Handles incoming calls from JS.
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        if let handler = jsEvents[message.name] {
-            handler(message.body)
-        }
-    }
-
-    /// Add the message handlers for incoming javascript events.
-    func addMessageHandlers() {
-        guard !hasLoadedJsEvents else {
+        guard let handler = JSMessages[message.name] else {
             return
         }
-        // Add the message handlers.
-        for eventName in jsEvents.keys {
-            webView.configuration.userContentController.add(self, name: eventName)
-        }
-        hasLoadedJsEvents = true
+        handler(message.body)
     }
 
-    // Removes message handlers (preventing strong reference cycle).
-    func removeMessageHandlers() {
-        guard hasLoadedJsEvents else {
-            return
-        }
-        for eventName in jsEvents.keys {
-            webView.configuration.userContentController.removeScriptMessageHandler(forName: eventName)
-        }
-        hasLoadedJsEvents = false
-    }
-    
 }
 
 extension EPUBSpreadView: WKNavigationDelegate {

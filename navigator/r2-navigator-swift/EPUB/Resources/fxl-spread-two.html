@@ -115,8 +115,27 @@
         }
 
         return {
+          // Returns whether the page is currently loading its contents.
+          'isLoading': false,
+
           // Loads the given URL in the page.
-          'load': function(url) {
+          'load': function(url, completion) {
+            var page = this;
+            page.isLoading = true;
+
+            function loaded() {
+              _iframe.removeEventListener('load', loaded);
+              
+              // Waiting for the next animation frame seems to do the trick to make sure the page is fully rendered.
+              _iframe.contentWindow.requestAnimationFrame(function() {
+                page.isLoading = false;
+                if (completion) {
+                  completion();
+                }
+              });
+            }
+
+            _iframe.addEventListener('load', loaded);
             _iframe.src = url;
           },
 
@@ -151,13 +170,20 @@
       return {
         // Loads resources in the spread.
         'load': function(leftHref, leftURL, rightHref, rightURL) {
+          function loaded() {
+            if (_leftPage.isLoading || _rightPage.isLoading) {
+              return;
+            }
+            webkit.messageHandlers.spreadLoaded.postMessage({});
+          }
+
           _pages = {};
           if (leftHref && leftURL) {
-            _leftPage.load(leftURL);
+            _leftPage.load(leftURL, loaded);
             _pages[leftHref] = _leftPage;
           }
           if (rightHref && rightURL) {
-            _rightPage.load(rightURL);
+            _rightPage.load(rightURL, loaded);
             _pages[rightHref] = _rightPage;
           }
         },

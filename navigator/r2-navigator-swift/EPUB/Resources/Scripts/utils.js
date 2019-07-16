@@ -11,11 +11,6 @@ var readium = (function() {
             snapCurrentPosition();
         });
         orientationChanged();
-
-        // Notify native code that the page is loaded after the page is rendered.
-        window.requestAnimationFrame(function() {
-            webkit.messageHandlers.didLoad.postMessage("");
-        });
     }, false);
 
     var last_known_scrollX_position = 0;
