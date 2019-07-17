@@ -1,8 +1,8 @@
 //
-//  TriptychView.swift
+//  PaginationView.swift
 //  r2-navigator-swift
 //
-//  Created by Winnie Quinn, Alexandre Camilleri, Mickaël Menu on 8/23/17.
+//  Created by Mickaël Menu on 17.07.19.
 //
 //  Copyright 2019 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by a BSD-style license which is detailed
@@ -12,50 +12,43 @@
 import UIKit
 import R2Shared
 
-protocol TriptychResourceView {
+protocol PageView {
     func go(to locator: Locator)
 }
 
-protocol TriptychViewDelegate: class {
-    func triptychView(_ triptychView: TriptychView, viewForIndex index: Int, location: Locator) -> (UIView & TriptychResourceView)?
-    func triptychViewDidUpdateViews(_ triptychView: TriptychView)
+protocol PaginationViewDelegate: class {
+    func paginationView(_ paginationView: PaginationView, pageViewAtIndex index: Int, location: Locator) -> (UIView & PageView)?
+    func paginationViewDidUpdateViews(_ paginationView: PaginationView)
 }
 
-final class TriptychView: UIView {
-
-    weak var delegate: TriptychViewDelegate? {
-        didSet {
-            setCurrentView(at: currentIndex, location: initialLocation)
-        }
-    }
-
-    /// Locator to load in the initial resource view.
-    let initialLocation: Locator?
+final class PaginationView: UIView {
     
+    weak var delegate: PaginationViewDelegate?
+
+    /// Total number of page views to be paginated.
+    private(set) var pageCount: Int = 0
+    
+    /// Index of the page currently being displayed.
+    private(set) var currentIndex: Int = 0
+
     /// Direction for the reading progression.
-    let readingProgression: ReadingProgression
+    private(set) var readingProgression: ReadingProgression = .ltr
     
-    /// Total number of resource views to be paginated.
-    let resourcesCount: Int
-
-    /// Pre-loaded resource views, indexed by their position.
-    private(set) var loadedViews: [Int: (UIView & TriptychResourceView)] = [:]
-
-    /// Returns whether the resource views are loaded.
+    /// Pre-loaded page views, indexed by their position.
+    private(set) var loadedViews: [Int: (UIView & PageView)] = [:]
+    
+    /// Returns whether the page views are loaded.
     var isEmpty: Bool {
         return loadedViews.isEmpty
     }
 
-    /// Index of the resource view currently being displayed.
-    private(set) var currentIndex: Int
-
-    /// Return the currently presented view from the Views array.
-    var currentView: (UIView & TriptychResourceView)? {
+    /// Return the currently presented page view from the Views array.
+    var currentView: (UIView & PageView)? {
         return loadedViews[currentIndex]
     }
-
-    /// Loaded resource views in reading order.
-    private var orderedViews: [UIView & TriptychResourceView] {
+    
+    /// Loaded page views in reading order.
+    private var orderedViews: [UIView & PageView] {
         var orderedViews = loadedViews
             .sorted { $0.key < $1.key }
             .map { $0.value }
@@ -66,27 +59,18 @@ final class TriptychView: UIView {
         
         return orderedViews
     }
-
-    /// Number of views to preload before and after the current one.
-    /// Note: This class should probably be renamed since more than 1 is supported (triptych = 3).
-    ///       Instead of a number of resources, we should probably take into account the number of positions (as in `positionList`) in a given resource instead. This way we can handle more finely resources that contain both FXL and reflowable resources, as well as small reflowable resources.
+    
+    /// Number of pages to preload before and after the current one.
+    /// Note: Instead of a number of page, we should probably take into account the number of positions (as in `positionList`) in a given resource instead. This way we can handle more finely resources that contain both FXL and reflowable resources, as well as small reflowable resources.
     ///       ie. https://github.com/readium/r2-testapp-swift/issues/21
     private let preloadPreviousCount = 1
     private let preloadNextCount = 1
-
+    
     private let scrollView = UIScrollView()
-
-    init(frame: CGRect, resourcesCount: Int, initialIndex: Int, initialLocation: Locator?, readingProgression: ReadingProgression) {
-        precondition(resourcesCount >= 1)
-        precondition(0..<resourcesCount ~= initialIndex)
-
-        self.initialLocation = initialLocation
-        self.readingProgression = readingProgression
-        self.resourcesCount = resourcesCount
-        self.currentIndex = initialIndex
-
+    
+    override init(frame: CGRect) {
         super.init(frame: frame)
-
+        
         scrollView.delegate = self
         scrollView.frame = bounds
         scrollView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
@@ -102,29 +86,51 @@ final class TriptychView: UIView {
             scrollView.contentInsetAdjustmentBehavior = .never
         }
     }
-
+    
     @available(*, unavailable)
     public required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
     public override func layoutSubviews() {
         guard !loadedViews.isEmpty else {
             scrollView.contentSize = bounds.size
             return
         }
-
+        
         let size = scrollView.bounds.size
-        scrollView.contentSize = CGSize(width: size.width * CGFloat(resourcesCount), height: size.height)
-
+        scrollView.contentSize = CGSize(width: size.width * CGFloat(pageCount), height: size.height)
+        
         for (index, view) in loadedViews {
             view.frame = CGRect(origin: CGPoint(x: size.width * CGFloat(index), y: 0), size: size)
         }
-
+        
         scrollView.contentOffset.x = xOffsetForIndex(currentIndex)
     }
     
-    /// Returns the x offset to the resource view with given index in the scroll view.
+    /// Reloads the pagination with the given total number of pages and current index.
+    ///
+    /// - Parameters:
+    ///   - index: Index of the page to be displayed after reloading the pagination.
+    ///   - location: Initial location to be displayed in the page.
+    ///   - pageCount: Total number of pages in the pagination view.
+    ///   - readingProgression: Direction of reading progression.
+    func reloadAtIndex(_ index: Int, location: Locator?, pageCount: Int, readingProgression: ReadingProgression) {
+        precondition(pageCount >= 1)
+        precondition(0..<pageCount ~= index)
+        
+        self.pageCount = pageCount
+        self.readingProgression = readingProgression
+        
+        for (_, view) in loadedViews {
+            view.removeFromSuperview()
+        }
+        loadedViews.removeAll()
+        
+        setCurrentIndex(index, location: location)
+    }
+    
+    /// Returns the x offset to the page view with given index in the scroll view.
     private func xOffsetForIndex(_ index: Int) -> CGFloat {
         return (readingProgression == .rtl)
             ? scrollView.contentSize.width - (CGFloat(index + 1) * scrollView.bounds.width)
@@ -132,17 +138,17 @@ final class TriptychView: UIView {
     }
 
     /// Updates the current and pre-loaded views.
-    private func setCurrentView(at index: Int, location: Locator? = nil) {
+    private func setCurrentIndex(_ index: Int, location: Locator? = nil) {
         guard isEmpty || index != currentIndex else {
             return
         }
-
-        // Locations in a resource view.
+        
+        // Locations in a page view.
         let beginning = Locator(href: "#", type: "", locations: Locations(progression: 0))
         let end = Locator(href: "#", type: "", locations: Locations(progression: 1))
         let location = location ?? beginning
         
-        // Automatically scrolls the previous document to the beginning or the end, to make sure that it's properly positioned to the consecutive resource when going back to it.
+        // Automatically scrolls the previous document to the beginning or the end, to make sure that it's properly positioned to the consecutive page when going back to it.
         currentView?.go(to: (currentIndex < index) ? end : beginning)
         
         currentIndex = index
@@ -161,7 +167,7 @@ final class TriptychView: UIView {
                 loadView(at: index - i, location: end)
             }
         }
-
+        
         for (i, view) in loadedViews {
             // Flushes the views that are not needed anymore.
             guard index-preloadPreviousCount...index+preloadNextCount ~= i else {
@@ -175,36 +181,36 @@ final class TriptychView: UIView {
                 scrollView.addSubview(view)
             }
         }
-
+        
         setNeedsLayout()
-        delegate?.triptychViewDidUpdateViews(self)
+        delegate?.paginationViewDidUpdateViews(self)
     }
-
+    
     /// Loads the view at given index if it's not already loaded.
     ///
     /// - Parameter location: Initial location in the view to be displayed.
     private func loadView(at index: Int, location: Locator) {
-        guard 0..<resourcesCount ~= index,
+        guard 0..<pageCount ~= index,
             loadedViews[index] == nil,
             let delegate = delegate,
-            let view = delegate.triptychView(self, viewForIndex: index, location: location) else
+            let view = delegate.paginationView(self, pageViewAtIndex: index, location: location) else
         {
             return
         }
         loadedViews[index] = view
     }
-
+    
     
     // MARK: - Navigation
     
-    /// Go to the resource view with given index.
+    /// Go to the page view with given index.
     ///
     /// - Parameters:
     ///   - index: The index to move to.
-    ///   - location: The location to move the future current resource view to.
+    ///   - location: The location to move the future current page view to.
     /// - Returns: Whether the move is possible.
     func goToIndex(_ index: Int, location: Locator? = nil, animated: Bool = false, completion: @escaping () -> ()) -> Bool {
-        guard 0..<resourcesCount ~= index else {
+        guard 0..<pageCount ~= index else {
             return false
         }
         
@@ -223,7 +229,7 @@ final class TriptychView: UIView {
             self.scrollToView(at: index, location: location)
             
             // The rendering is sometimes very slow. So in case we don't show the first page of the resource, we add a generous delay before showing the view again.
-            // FIXME: this should be handled in the TriptychResourceView directly
+            // FIXME: this should be handled in the PageView directly
             let delayed = (location != nil && location?.locations?.progression != 0)
             DispatchQueue.main.asyncAfter(deadline: .now() + (delayed ? 0.5 : 0)) {
                 fade(to: 1, completion: completion)
@@ -242,7 +248,7 @@ final class TriptychView: UIView {
         }
         
         scrollView.isScrollEnabled = true
-        setCurrentView(at: index, location: location)
+        setCurrentIndex(index, location: location)
 
         scrollView.scrollRectToVisible(CGRect(
             origin: CGPoint(
@@ -252,19 +258,19 @@ final class TriptychView: UIView {
             size: scrollView.frame.size
         ), animated: false)
     }
-
+    
 }
 
 
-extension TriptychView: UIScrollViewDelegate {
+extension PaginationView: UIScrollViewDelegate {
     
-    /// We disable the scroll once the user releases the drag to prevent scrolling through more than 1 resource at a time. Otherwise, because the triptych's scroll view would have the focus during the scroll gesture, the scrollable content of the resources would be skipped.
+    /// We disable the scroll once the user releases the drag to prevent scrolling through more than 1 resource at a time. Otherwise, because the pagination view's scroll view would have the focus during the scroll gesture, the scrollable content of the resources would be skipped.
     /// Note: using this approach might provide a better experience: https://oleb.net/blog/2014/05/scrollviews-inside-scrollviews/
-
+    
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
         scrollView.isScrollEnabled = false
     }
-     
+    
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         scrollView.isScrollEnabled = true
     }
@@ -274,7 +280,7 @@ extension TriptychView: UIScrollViewDelegate {
             scrollView.isScrollEnabled = true
         }
     }
-
+    
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         scrollView.isScrollEnabled = true
         
@@ -284,7 +290,7 @@ extension TriptychView: UIScrollViewDelegate {
         
         let newIndex = Int(round(currentOffset / scrollView.frame.width))
         
-        setCurrentView(at: newIndex)
+        setCurrentIndex(newIndex)
     }
     
 }

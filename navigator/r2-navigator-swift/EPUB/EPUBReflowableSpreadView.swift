@@ -65,7 +65,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             }()
             return script + "readium.setProperty(\"\(property.name)\", \"\(value)\");\n"
         }
-        for link in spread.pages {
+        for link in spread.links {
             evaluateScript(propertiesScript, inResource: link.href)
         }
 

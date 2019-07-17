@@ -34,7 +34,7 @@ protocol EPUBSpreadViewDelegate: class {
     
 }
 
-class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
+class EPUBSpreadView: UIView, PageView, Loggable {
 
     weak var delegate: EPUBSpreadViewDelegate?
     // Location to scroll to in the spread once the pages are loaded.
@@ -149,7 +149,7 @@ class EPUBSpreadView: UIView, TriptychResourceView, Loggable {
     }
     
     func loadSpread() {
-        guard spread.pages.count == 1 else {
+        guard spread.pageCount == .one else {
             log(.error, "Only one-page spreads are supported with \(type(of: self))")
             return
         }

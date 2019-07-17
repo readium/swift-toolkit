@@ -26,10 +26,10 @@
 		CAD178BA22B3B5B6004E6812 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CAD178BC22B3B5B6004E6812 /* Localizable.strings */; };
 		CAEACA222272EFBD00476340 /* ImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAEACA212272EFBD00476340 /* ImageViewController.swift */; };
 		CAF1E3F122DC98C200E807EA /* EPUBSpread.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF1E3F022DC98C200E807EA /* EPUBSpread.swift */; };
+		CAF1E3F522DF23F400E807EA /* PaginationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF1E3F422DF23F400E807EA /* PaginationView.swift */; };
 		F341C2711F506ED5005E6758 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F341C2701F506ED5005E6758 /* UserSettings.swift */; };
 		F3E7D3D41F4D83B000DF166D /* r2-navigator-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F3E7D3E21F4D84A000DF166D /* EPUBNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3E11F4D84A000DF166D /* EPUBNavigatorViewController.swift */; };
-		F3E7D3E41F4D84DC00DF166D /* TriptychView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3E31F4D84DC00DF166D /* TriptychView.swift */; };
 		F3E7D3E61F4D84EF00DF166D /* EPUBSpreadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3E51F4D84EF00DF166D /* EPUBSpreadView.swift */; };
 		F3E7D42E1F4EE0FE00DF166D /* CBZNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D42D1F4EE0FE00DF166D /* CBZNavigatorViewController.swift */; };
 /* End PBXBuildFile section */
@@ -54,6 +54,7 @@
 		CAD178BB22B3B5B6004E6812 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		CAEACA212272EFBD00476340 /* ImageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewController.swift; sourceTree = "<group>"; };
 		CAF1E3F022DC98C200E807EA /* EPUBSpread.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBSpread.swift; sourceTree = "<group>"; };
+		CAF1E3F422DF23F400E807EA /* PaginationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaginationView.swift; sourceTree = "<group>"; };
 		F341C2701F506ED5005E6758 /* UserSettings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
 		F3E7D3C31F4D83B000DF166D /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "r2-navigator-swift.h"; sourceTree = "<group>"; };
@@ -61,7 +62,6 @@
 		F3E7D3D11F4D83B000DF166D /* r2_navigator_swiftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = r2_navigator_swiftTests.swift; sourceTree = "<group>"; };
 		F3E7D3D31F4D83B000DF166D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F3E7D3E11F4D84A000DF166D /* EPUBNavigatorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPUBNavigatorViewController.swift; sourceTree = "<group>"; };
-		F3E7D3E31F4D84DC00DF166D /* TriptychView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TriptychView.swift; sourceTree = "<group>"; };
 		F3E7D3E51F4D84EF00DF166D /* EPUBSpreadView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPUBSpreadView.swift; sourceTree = "<group>"; };
 		F3E7D42D1F4EE0FE00DF166D /* CBZNavigatorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CBZNavigatorViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -92,7 +92,7 @@
 			children = (
 				CA479DC2226493570053445E /* UIView.swift */,
 				CA479DC42264AEA20053445E /* UIColor.swift */,
-				F3E7D3E31F4D84DC00DF166D /* TriptychView.swift */,
+				CAF1E3F422DF23F400E807EA /* PaginationView.swift */,
 				CAC2A6D62292E4BA000AA2A7 /* WebView.swift */,
 				CAD178B522B3B553004E6812 /* R2NavigatorLocalizedString.swift */,
 			);
@@ -281,6 +281,7 @@
 			files = (
 				F3E7D3E21F4D84A000DF166D /* EPUBNavigatorViewController.swift in Sources */,
 				CA26EF7E22803FE90011653E /* VisualNavigator.swift in Sources */,
+				CAF1E3F522DF23F400E807EA /* PaginationView.swift in Sources */,
 				CAF1E3F122DC98C200E807EA /* EPUBSpread.swift in Sources */,
 				CAB9086B22492D4C00711C3F /* Navigator.swift in Sources */,
 				CA0B3AC3222EE555006D9363 /* PDFNavigatorViewController.swift in Sources */,
@@ -295,7 +296,6 @@
 				CA479DC3226493570053445E /* UIView.swift in Sources */,
 				CACE84F82254BE5F00E19E8B /* PDFDocumentView.swift in Sources */,
 				CAC2A6D72292E4BA000AA2A7 /* WebView.swift in Sources */,
-				F3E7D3E41F4D84DC00DF166D /* TriptychView.swift in Sources */,
 				CACE8521225CDFB000E19E8B /* EPUBReflowableSpreadView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
