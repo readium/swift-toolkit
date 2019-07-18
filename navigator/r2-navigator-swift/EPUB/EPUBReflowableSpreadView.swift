@@ -216,7 +216,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     private var previousProgression: Double?
     
     // Called by the javascript code to notify that scrolling ended.
-    private func progressionDidChange(body: Any) {
+    private func progressionDidChange(_ body: Any) {
         guard spreadLoaded, let bodyString = body as? String, let newProgression = Double(bodyString) else {
             return
         }
@@ -239,7 +239,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     
     override func registerJSMessages() {
         super.registerJSMessages()
-        registerJSMessage(named: "progressionChanged", handler: progressionDidChange)
+        registerJSMessage(named: "progressionChanged") { [weak self] in self?.progressionDidChange($0) }
     }
     
     private static let reflowableScript = loadScript(named: "reflowable")

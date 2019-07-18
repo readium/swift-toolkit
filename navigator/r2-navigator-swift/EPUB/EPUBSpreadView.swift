@@ -168,7 +168,7 @@ class EPUBSpreadView: UIView, PageView, Loggable {
     }
   
     /// Called from the JS code when a tap is detected.
-    private func didTap(body: Any) {
+    private func didTap(_ body: Any) {
         guard let body = body as? [String: Any],
             let point = pointFromTap(body) else
         {
@@ -192,7 +192,7 @@ class EPUBSpreadView: UIView, PageView, Loggable {
 
     /// Called by the javascript code when the spread contents is fully loaded.
     /// The JS message `spreadLoaded` needs to be emitted by a subclass script, EPUBSpreadView's scripts don't.
-    private func spreadDidLoad(body: Any) {
+    private func spreadDidLoad(_ body: Any) {
         spreadLoaded = true
 
         applyUserSettingsStyle()
@@ -327,8 +327,8 @@ class EPUBSpreadView: UIView, PageView, Loggable {
     
     /// To override in subclasses if needed.
     func registerJSMessages() {
-        registerJSMessage(named: "tap", handler: didTap)
-        registerJSMessage(named: "spreadLoaded", handler: spreadDidLoad)
+        registerJSMessage(named: "tap") { [weak self] in self?.didTap($0) }
+        registerJSMessage(named: "spreadLoaded") { [weak self] in self?.spreadDidLoad($0) }
     }
     
     /// Add the message handlers for incoming javascript events.
