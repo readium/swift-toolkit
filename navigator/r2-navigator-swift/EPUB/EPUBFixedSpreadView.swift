@@ -41,7 +41,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         // Loads the wrapper page into the web view.
         let spreadFile = "fxl-spread-\(spread.pageCount.rawValue)"
         if let wrapperPageURL = Bundle(for: type(of: self)).url(forResource: spreadFile, withExtension: "html"), let wrapperPage = try? String(contentsOf: wrapperPageURL, encoding: .utf8) {
-            // The publication's base URL is used to make sure we can access the resource through the iframe with JavaScript.
+            // The publication's base URL is used to make sure we can access the resources through the iframe with JavaScript.
             webView.loadHTMLString(wrapperPage, baseURL: publication.baseURL)
         }
     }
@@ -61,36 +61,9 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         guard isWrapperLoaded else {
             return
         }
-        let params = spread.linksLTR
-            .reduce([]) { params, link in
-                var params = params
-                guard let url = publication.url(to: link)?.absoluteString else {
-                    log(.warning, "Can't get URL for link \(link.href)")
-                    return params
-                }
-                params.append(link.href)
-                params.append(url)
-                return params
-            }
-            .map { "'\($0)'" }
-            .joined(separator: ", ")
+        webView.evaluateJavaScript("spread.load(\(spread.jsonString(for: publication)));")
+    }
 
-        webView.evaluateJavaScript("spread.load(\(params));")
-    }
-    
-    override func evaluateScript(_ script: String, inResource href: String, completion: ((Any?, Error?) -> Void)? = nil) {
-        guard isWrapperLoaded else {
-            completion?(nil, nil)
-            return
-        }
-        guard href == "#" || spread.contains(href: href) else {
-            log(.warning, "Href \(href) not found in spread")
-            return
-        }
-        let script = "spread.eval('\(href)', \"\(script.replacingOccurrences(of: "\"", with: "\\\""))\");"
-        webView.evaluateJavaScript(script, completionHandler: completion)
-    }
-    
     /// Layouts the resource to fit its content in the bounds.
     private func layoutSpread() {
         guard isWrapperLoaded else {
@@ -127,6 +100,30 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
             layoutSpread()
             loadSpread()
         }
+    }
+    
+    
+    /// MARK: - Scripts
+    
+    private static let fixedScript = loadScript(named: "fixed")
+    
+    override func makeScripts() -> [WKUserScript] {
+        var scripts = super.makeScripts()
+        scripts.append(WKUserScript(source: EPUBFixedSpreadView.fixedScript, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        return scripts
+    }
+    
+    override func evaluateScript(_ script: String, inResource href: String, completion: ((Any?, Error?) -> Void)? = nil) {
+        guard isWrapperLoaded else {
+            completion?(nil, nil)
+            return
+        }
+        guard href == "#" || spread.contains(href: href) else {
+            log(.warning, "Href \(href) not found in spread")
+            return
+        }
+        let script = "spread.eval('\(href)', \"\(script.replacingOccurrences(of: "\"", with: "\\\""))\");"
+        webView.evaluateJavaScript(script, completionHandler: completion)
     }
 
 }

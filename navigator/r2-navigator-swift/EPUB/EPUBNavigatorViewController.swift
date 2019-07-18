@@ -226,7 +226,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         }
 
         let location = location ?? currentLocation
-        spreads = [EPUBSpread](publication: publication, readingProgression: readingProgression, pageCountPerSpread: pageCountPerSpread)
+        spreads = EPUBSpread.makeSpreads(for: publication, readingProgression: readingProgression, pageCountPerSpread: pageCountPerSpread)
         
         let initialIndex: Int = {
             if let href = location?.href, let foundIndex = spreads.firstIndex(withHref: href) {

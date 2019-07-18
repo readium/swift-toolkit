@@ -13,7 +13,8 @@ import Foundation
 import R2Shared
 
 
-struct EPUBSpread {
+/// A list of EPUB resources to be displayed together on the screen, as one-page or two-pages spread.
+struct EPUBSpread: Loggable {
     
     enum PageCount: String {
         case one, two
@@ -66,16 +67,48 @@ struct EPUBSpread {
     var leading: Link {
         return links.first!
     }
-    
-    /// Returns the trailing resource link in the reading progression.
-    var trailing: Link {
-        return links.last!
-    }
-    
+
     /// Returns whether the spread contains a resource with the given href.
     func contains(href: String) -> Bool {
         return links.first(withHref: href) != nil
     }
+    
+    /// Returns a JSON representation of the links in the spread.
+    /// The JSON is an array of link objects in reading progression order.
+    /// Each link object contains:
+    ///   - href: Href of the linked resource in the Publication
+    ///   - url: Full URL to the resource.
+    ///   - page [left|center|right]: (optional) Page position of the linked resource in the spread.
+    func json(for publication: Publication) -> [[String: String]] {
+        func makeLinkJSON(_ link: Link, page: Properties.Page? = nil) -> [String: String]? {
+            guard let url = publication.url(to: link) else {
+                log(.error, "Can't get URL for link \(link.href)")
+                return nil
+            }
+            let page = page ?? link.properties.page ?? readingProgression.leadingPage
+            return [
+                "href": link.href,
+                "url": url.absoluteString,
+                "page": page.rawValue
+            ]
+        }
+        
+        var json: [[String: String]?] = []
+        
+        if links.count == 1 {
+            json.append(makeLinkJSON(leading))
+        } else {
+            json.append(makeLinkJSON(left, page: .left))
+            json.append(makeLinkJSON(right, page: .right))
+        }
+
+        return json.compactMap { $0 }
+    }
+    
+    func jsonString(for publication: Publication) -> String {
+        return serializeJSONString(json(for: publication)) ?? "[]"
+    }
+
 
     /// Returns the number of pages in a spread for the given parameters.
     ///
@@ -115,9 +148,6 @@ struct EPUBSpread {
         }
     }
     
-}
-
-extension Array where Element == EPUBSpread {
     
     /// Builds a list of spreads for the given Publication.
     ///
@@ -125,61 +155,74 @@ extension Array where Element == EPUBSpread {
     ///   - publication: The Publication to build the spreads for.
     ///   - readingProgression: Reading progression direction used to layout the pages.
     ///   - pageCountPerSpread: Number of pages to display in a given spread (1 or 2).
-    init(publication: Publication, readingProgression: ReadingProgression, pageCountPerSpread: EPUBSpread.PageCount) {
-        self.init()
-        
-        func layoutOf(_ link: Link) -> EPUBRendition.Layout {
-            // FIXME: Use `EPUBRendition.layout(of link: Link)` once the feature/positionList PR is merged
-            return link.properties.layout ?? publication.metadata.rendition?.layout ?? .reflowable
-        }
-
+    static func makeSpreads(for publication: Publication, readingProgression: ReadingProgression, pageCountPerSpread: EPUBSpread.PageCount) -> [EPUBSpread] {
         switch pageCountPerSpread {
         case .one:
-            for link in publication.readingOrder {
-                append(EPUBSpread(pageCount: pageCountPerSpread, links: [link], readingProgression: readingProgression, layout: layoutOf(link)))
-            }
-
+            return makeOnePageSpreads(for: publication, readingProgression: readingProgression)
         case .two:
-            /// Builds two-page spreads from a list of links and a spread accumulator.
-            func makeSpreads(for links: [Link], in spreads: [EPUBSpread] = []) -> [EPUBSpread] {
-                var links = links
-                var spreads = spreads
-                guard !links.isEmpty else {
-                    return spreads
-                }
-                
-                let first = links.removeFirst()
-                let layout = layoutOf(first)
-                // To be a valid 2-pages spread, the pages must have the same rendition layout, and have consecutive position hints (Properties.Page).
-                if let second = links.first, layout == layoutOf(second), areConsecutive(first, second) {
-                    spreads.append(EPUBSpread(pageCount: pageCountPerSpread, links: [first, second], readingProgression: readingProgression, layout: layout))
-                    links.removeFirst()
-                } else {
-                    spreads.append(EPUBSpread(pageCount: pageCountPerSpread, links: [first], readingProgression: readingProgression, layout: layout))
-                }
-                
-                return makeSpreads(for: links, in: spreads)
-            }
-            
-            /// Two resources are consecutive if their position hint (Properties.Page) are paired according to the reading progression.
-            func areConsecutive(_ first: Link, _ second: Link) -> Bool {
-                // Here we use the default publication reading progression instead of the custom one provided, otherwise the page position hints might be wrong, and we could end up with only one-page spreads.
-                switch publication.contentLayout.readingProgression {
-                case .ltr, .auto:
-                    let firstPosition = first.properties.page ?? .left
-                    let secondPosition = second.properties.page ?? .right
-                    return (firstPosition == .left && secondPosition == .right)
-                case .rtl:
-                    let firstPosition = first.properties.page ?? .right
-                    let secondPosition = second.properties.page ?? .left
-                    return (firstPosition == .right && secondPosition == .left)
-                }
-            }
-            
-            append(contentsOf: makeSpreads(for: publication.readingOrder))
+            return makeTwoPagesSpreads(for: publication, readingProgression: readingProgression)
+        }
+    }
+
+    /// Builds a list of one-page spreads for the given Publication.
+    private static func makeOnePageSpreads(for publication: Publication, readingProgression: ReadingProgression) -> [EPUBSpread] {
+        return publication.readingOrder.map {
+            EPUBSpread(pageCount: .one, links: [$0], readingProgression: readingProgression, layout: layoutOf($0, in: publication))
         }
     }
     
+    /// Builds a list of two-page spreads for the given Publication.
+    private static func makeTwoPagesSpreads(for publication: Publication, readingProgression: ReadingProgression) -> [EPUBSpread] {
+        
+        /// Builds two-pages spreads from a list of links and a spread accumulator.
+        func makeSpreads(for links: [Link], in spreads: [EPUBSpread] = []) -> [EPUBSpread] {
+            var links = links
+            var spreads = spreads
+            guard !links.isEmpty else {
+                return spreads
+            }
+            
+            let first = links.removeFirst()
+            let layout = layoutOf(first, in: publication)
+            // To be displayed together, the two pages must have the same rendition layout, and have consecutive position hints (Properties.Page).
+            if let second = links.first, layout == layoutOf(second, in: publication), areConsecutive(first, second) {
+                spreads.append(EPUBSpread(pageCount: .two, links: [first, second], readingProgression: readingProgression, layout: layout))
+                links.removeFirst()  // Removes the consumed "second" page
+            } else {
+                spreads.append(EPUBSpread(pageCount: .two, links: [first], readingProgression: readingProgression, layout: layout))
+            }
+            
+            return makeSpreads(for: links, in: spreads)
+        }
+        
+        /// Two resources are consecutive if their position hint (Properties.Page) are paired according to the reading progression.
+        func areConsecutive(_ first: Link, _ second: Link) -> Bool {
+            // Here we use the default publication reading progression instead of the custom one provided, otherwise the page position hints might be wrong, and we could end up with only one-page spreads.
+            switch publication.contentLayout.readingProgression {
+            case .ltr, .auto:
+                let firstPosition = first.properties.page ?? .left
+                let secondPosition = second.properties.page ?? .right
+                return (firstPosition == .left && secondPosition == .right)
+            case .rtl:
+                let firstPosition = first.properties.page ?? .right
+                let secondPosition = second.properties.page ?? .left
+                return (firstPosition == .right && secondPosition == .left)
+            }
+        }
+        
+        return makeSpreads(for: publication.readingOrder)
+    }
+
+    // FIXME: Use `EPUBRendition.layout(of link: Link)` once the feature/positionList PR is merged
+    private static func layoutOf(_ link: Link, in publication: Publication) -> EPUBRendition.Layout {
+        return link.properties.layout ?? publication.metadata.rendition?.layout ?? .reflowable
+    }
+    
+}
+
+extension Array where Element == EPUBSpread {
+
+    /// Returns the index of the first spread containing a resource with the given `href`.
     func firstIndex(withHref href: String) -> Int? {
         return firstIndex { spread in
             spread.links.contains { $0.href == href }
