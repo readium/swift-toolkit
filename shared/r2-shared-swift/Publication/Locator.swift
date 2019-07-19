@@ -25,12 +25,12 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
     public var title: String?
     
     /// One or more alternative expressions of the location.
-    public var locations: Locations?
+    public var locations: Locations
     
     /// Textual context of the locator.
-    public var text: LocatorText?
+    public var text: LocatorText
     
-    public init(href: String, type: String, title: String? = nil, locations: Locations? = nil, text: LocatorText? = nil) {
+    public init(href: String, type: String, title: String? = nil, locations: Locations = .init(), text: LocatorText = .init()) {
         self.href = href
         self.type = type
         self.title = title
@@ -52,12 +52,8 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
         self.href = href
         self.type = type
         self.title = json["title"] as? String
-        if let locations = json["locations"] {
-            self.locations = try Locations(json: locations)
-        }
-        if let text = json["text"] {
-            self.text = try LocatorText(json: text)
-        }
+        self.locations = try Locations(json: json["locations"])
+        self.text = try LocatorText(json: json["text"])
     }
     
     public init?(jsonString: String) throws {
@@ -74,9 +70,9 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
     
     public init(link: Link) {
         let components = link.href.split(separator: "#", maxSplits: 1).map(String.init)
-        var locations: Locations?
+        var locations = Locations()
         if components.count > 1 {
-            locations = Locations(fragments: [String(components[1])])
+            locations.fragments = [String(components[1])]
         }
         
         self.init(
@@ -92,8 +88,8 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
             "href": href,
             "type": type,
             "title": encodeIfNotNil(title),
-            "locations": encodeIfNotEmpty(locations?.json),
-            "text": encodeIfNotEmpty(text?.json)
+            "locations": encodeIfNotEmpty(locations.json),
+            "text": encodeIfNotEmpty(text.json)
         ])
     }
     
@@ -118,7 +114,10 @@ public struct LocatorText: Equatable, Loggable {
         self.highlight = highlight
     }
     
-    public init(json: Any) throws {
+    public init(json: Any?) throws {
+        if json == nil {
+            return
+        }
         guard let json = json as? [String: Any] else {
             throw JSONError.parsing(LocatorText.self)
         }
@@ -137,7 +136,7 @@ public struct LocatorText: Equatable, Loggable {
         }
     }
 
-    public var json: [String: Any]? {
+    public var json: [String: Any] {
         return makeJSON([
             "after": encodeIfNotNil(after),
             "before": encodeIfNotNil(before),
@@ -146,9 +145,6 @@ public struct LocatorText: Equatable, Loggable {
     }
     
     public var jsonString: String? {
-        guard let json = self.json else {
-            return nil
-        }
         return serializeJSONString(json)
     }
     
@@ -167,7 +163,7 @@ public struct LocatorText: Equatable, Loggable {
 /// Location : Class that contain the different variables needed to localize a particular position
 public struct Locations: Equatable, Loggable {
     /// Contains one or more fragment in the resource referenced by the Locator Object.
-    public var fragments: [String]
+    public var fragments: [String] = []
     /// Progression in the resource expressed as a percentage.
     public var progression: Double?
     /// Progression in the publication expressed as a percentage.
@@ -182,7 +178,10 @@ public struct Locations: Equatable, Loggable {
         self.position = position
     }
     
-    public init(json: Any) throws {
+    public init(json: Any?) throws {
+        if json == nil {
+            return
+        }
         guard let json = json as? [String: Any] else {
             throw JSONError.parsing(Locations.self)
         }
@@ -206,7 +205,11 @@ public struct Locations: Equatable, Loggable {
         }
     }
     
-    public var json: [String: Any]? {
+    public var isEmpty: Bool {
+        return json.isEmpty
+    }
+    
+    public var json: [String: Any] {
         return makeJSON([
             "fragments": encodeIfNotEmpty(fragments),
             "progression": encodeIfNotNil(progression),
@@ -216,9 +219,6 @@ public struct Locations: Equatable, Loggable {
     }
     
     public var jsonString: String? {
-        guard let json = self.json else {
-            return nil
-        }
         return serializeJSONString(json)
     }
     
@@ -276,8 +276,8 @@ public class Bookmark {
     public var resourceHref: String { return locator.href }
     public var resourceType: String { return locator.type }
     public var resourceTitle: String { return locator.title ?? "" }
-    public var location: Locations { return locator.locations ?? Locations() }
+    public var location: Locations { return locator.locations }
     public var locations: Locations? { return locator.locations }
-    public var locatorText: LocatorText { return locator.text ?? LocatorText() }
+    public var locatorText: LocatorText { return locator.text }
     
 }
