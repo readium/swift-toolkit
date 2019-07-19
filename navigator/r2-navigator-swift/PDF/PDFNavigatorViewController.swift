@@ -164,7 +164,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
     }
     
     private func pageNumber(for locator: Locator) -> Int? {
-        if let fragment = locator.locations?.fragment {
+        for fragment in locator.locations.fragments {
             // https://tools.ietf.org/rfc/rfc3778
             let optionalPageParam = fragment
                 .components(separatedBy: CharacterSet(charactersIn: "&#"))
@@ -175,8 +175,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
             }
         }
         
-        if let position = locator.locations?.position,
-            let firstPosition = publication.positionListByResource[locator.href]?.first?.locations?.position {
+        if let position = locator.locations.position,
+            let firstPosition = publication.positionListByResource[locator.href]?.first?.locations.position {
             return position - firstPosition + 1
         }
         

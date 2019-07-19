@@ -11,11 +11,6 @@ var readium = (function() {
             snapCurrentPosition();
         });
         orientationChanged();
-
-        // Notify native code that the page is loaded after the page is rendered.
-        window.requestAnimationFrame(function() {
-            webkit.messageHandlers.didLoad.postMessage("");
-        });
     }, false);
 
     var last_known_scrollX_position = 0;
@@ -26,12 +21,13 @@ var readium = (function() {
     // Position in range [0 - 1].
     function update(position) {
         var positionString = position.toString()
-        webkit.messageHandlers.updateProgression.postMessage(positionString);
+        webkit.messageHandlers.progressionChanged.postMessage(positionString);
     }
 
     window.addEventListener('scroll', function(e) {
         last_known_scrollY_position = window.scrollY / document.scrollingElement.scrollHeight;
-        last_known_scrollX_position = window.scrollX / document.scrollingElement.scrollWidth;
+        // Using Math.abs because for RTL books, the value will be negative.
+        last_known_scrollX_position = Math.abs(window.scrollX / document.scrollingElement.scrollWidth);
         if (!ticking) {
             window.requestAnimationFrame(function() {
                 update(isScrollModeEnabled() ? last_known_scrollY_position : last_known_scrollX_position);
@@ -78,12 +74,9 @@ var readium = (function() {
             document.scrollingElement.scrollTop = offset;
             // window.scrollTo(0, offset);
         } else {
-            var offset = 0.0;
-            if (dir == 'rtl') {
-                offset = -document.scrollingElement.scrollWidth * (1.0-position);
-            } else {
-                offset = document.scrollingElement.scrollWidth * position;
-            }
+            var documentWidth = document.scrollingElement.scrollWidth;
+            var factor = (dir == 'rtl') ? -1 : 1;
+            var offset = documentWidth * position * factor;
             document.scrollingElement.scrollLeft = snapOffset(offset);
         }
     }
