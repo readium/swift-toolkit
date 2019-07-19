@@ -16,6 +16,16 @@ public enum ReadingProgression: String {
     case rtl
     case ltr
     case auto
+    
+    /// Returns the leading Page for the reading progression.
+    public var leadingPage: Properties.Page {
+        switch self {
+        case .ltr, .auto:
+            return .left
+        case .rtl:
+            return .right
+        }
+    }
 }
 
 
