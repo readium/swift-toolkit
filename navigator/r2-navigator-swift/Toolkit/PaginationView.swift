@@ -13,11 +13,18 @@ import UIKit
 import R2Shared
 
 protocol PageView {
+    /// Moves the page to the given internal locator.
     func go(to locator: Locator)
+    
+    /// Return the number of positions (as in `Publication.positionList`) contained in the page.
+    var positionCount: Int { get }
 }
 
 protocol PaginationViewDelegate: class {
+    /// Creates the page view for the page at given index and initial location.
     func paginationView(_ paginationView: PaginationView, pageViewAtIndex index: Int, location: Locator) -> (UIView & PageView)?
+    
+    /// Called when the page views were updated.
     func paginationViewDidUpdateViews(_ paginationView: PaginationView)
 }
 
@@ -36,6 +43,10 @@ final class PaginationView: UIView {
     
     /// Pre-loaded page views, indexed by their position.
     private(set) var loadedViews: [Int: (UIView & PageView)] = [:]
+    
+    /// Number of positions (as in `Publication.positionList`) to preload before and after the current page.
+    private let preloadPreviousPositionCount: Int
+    private let preloadNextPositionCount: Int
     
     /// Returns whether the page views are loaded.
     var isEmpty: Bool {
@@ -59,16 +70,13 @@ final class PaginationView: UIView {
         
         return orderedViews
     }
-    
-    /// Number of pages to preload before and after the current one.
-    /// Note: Instead of a number of page, we should probably take into account the number of positions (as in `positionList`) in a given resource instead. This way we can handle more finely resources that contain both FXL and reflowable resources, as well as small reflowable resources.
-    ///       ie. https://github.com/readium/r2-testapp-swift/issues/21
-    private let preloadPreviousCount = 1
-    private let preloadNextCount = 1
-    
+
     private let scrollView = UIScrollView()
     
-    override init(frame: CGRect) {
+    init(frame: CGRect, preloadPreviousPositionCount: Int, preloadNextPositionCount: Int) {
+        self.preloadPreviousPositionCount = preloadPreviousPositionCount
+        self.preloadNextPositionCount = preloadNextPositionCount
+        
         super.init(frame: frame)
         
         scrollView.delegate = self
@@ -155,22 +163,12 @@ final class PaginationView: UIView {
         
         // To make sure that the views the most likely to be visible are loaded first, we first load the current one, then the next ones and to finish the previous ones.
         loadView(at: index, location: location)
-        
-        if preloadNextCount > 0 {
-            for i in 1...preloadNextCount {
-                loadView(at: index + i, location: beginning)
-            }
-        }
-        
-        if preloadPreviousCount > 0 {
-            for i in 1...preloadPreviousCount {
-                loadView(at: index - i, location: end)
-            }
-        }
-        
+        let lastIndex = loadViews(upToPositionCount: preloadNextPositionCount, from: index, direction: .forward, at: beginning)
+        let firstIndex = loadViews(upToPositionCount: preloadPreviousPositionCount, from: index, direction: .backward, at: end)
+
         for (i, view) in loadedViews {
             // Flushes the views that are not needed anymore.
-            guard index-preloadPreviousCount...index+preloadNextCount ~= i else {
+            guard firstIndex...lastIndex ~= i else {
                 view.removeFromSuperview()
                 loadedViews.removeValue(forKey: i)
                 continue
@@ -181,23 +179,54 @@ final class PaginationView: UIView {
                 scrollView.addSubview(view)
             }
         }
-        
+
         setNeedsLayout()
         delegate?.paginationViewDidUpdateViews(self)
     }
-    
+
     /// Loads the view at given index if it's not already loaded.
     ///
     /// - Parameter location: Initial location in the view to be displayed.
-    private func loadView(at index: Int, location: Locator) {
-        guard 0..<pageCount ~= index,
+    /// - Returns: The loaded page view, if any.
+    @discardableResult
+    private func loadView(at index: Int, location: Locator) -> (UIView & PageView)? {
+        if 0..<pageCount ~= index,
             loadedViews[index] == nil,
             let delegate = delegate,
-            let view = delegate.paginationView(self, pageViewAtIndex: index, location: location) else
+            let view = delegate.paginationView(self, pageViewAtIndex: index, location: location)
         {
-            return
+            loadedViews[index] = view
         }
-        loadedViews[index] = view
+        return loadedViews[index]
+    }
+    
+    /// Loads views until reaching the given number of pre-loaded positions.
+    ///
+    /// - Parameters:
+    ///   - positionCount: Number of positions to pre-load before stopping.
+    ///   - sourceIndex: Starting page index from which to pre-load the views.
+    ///   - direction: The direction in which to load the views from the sourceIndex.
+    ///   - location: Initial location to load in the loaded views.
+    /// - Returns: The last page index loaded after reaching the requested number of positions.
+    private func loadViews(upToPositionCount positionCount: Int, from sourceIndex: Int, direction: PageIndexDirection, at location: Locator) -> Int {
+        let index = sourceIndex + direction.rawValue
+        guard positionCount > 0,
+            let pageView = loadView(at: index, location: location) else
+        {
+            return sourceIndex
+        }
+        
+        return loadViews(
+            upToPositionCount: positionCount - pageView.positionCount,
+            from: index,
+            direction: direction,
+            at: location
+        )
+    }
+    
+    private enum PageIndexDirection: Int {
+        case forward = 1
+        case backward = -1
     }
     
     

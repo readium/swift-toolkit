@@ -47,17 +47,35 @@ public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
 
 open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Loggable {
     
+    public struct Configuration {
+        /// Authorized actions to be displayed in the selection menu.
+        public var editingActions: [EditingAction] = EditingAction.defaultActions
+        
+        /// Content insets used to add some vertical margins around reflowable EPUB publications. The insets can be configured for each size class to allow smaller margins on compact screens.
+        public var contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets] = [
+            .compact: (top: 20, bottom: 20),
+            .regular: (top: 44, bottom: 44)
+        ]
+        
+        /// Number of positions (as in `Publication.positionList`) to preload before the current page.
+        public var preloadPreviousPositionCount = 2
+        
+        /// Number of positions (as in `Publication.positionList`) to preload after the current page.
+        public var preloadNextPositionCount = 6
+        
+        public init() {}
+    }
+    
     public weak var delegate: EPUBNavigatorDelegate? {
         didSet { notifyCurrentLocation() }
     }
     public var userSettings: UserSettings
     
+    private let config: Configuration
     private let publication: Publication
     private let license: DRMLicense?
     private let editingActions: EditingActionsController
-    /// Content insets used to add some vertical margins around reflowable EPUB publications. The insets can be configured for each size class to allow smaller margins on compact screens.
-    private let contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]
-    
+
     public var readingProgression: ReadingProgression {
         didSet { reloadSpreads() }
     }
@@ -66,18 +84,15 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     /// Used to serve the ReadiumCSS files.
     private let resourcesURL: URL?
 
-    public init(publication: Publication, license: DRMLicense? = nil, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]? = nil, resourcesServer: ResourcesServer) {
+    public init(publication: Publication, license: DRMLicense? = nil, initialLocation: Locator? = nil, resourcesServer: ResourcesServer, config: Configuration = .init()) {
         self.publication = publication
         self.license = license
-        self.editingActions = EditingActionsController(actions: editingActions, license: license)
-        self.contentInset = contentInset ?? [
-            .compact: (top: 20, bottom: 20),
-            .regular: (top: 44, bottom: 44)
-        ]
+        self.editingActions = EditingActionsController(actions: config.editingActions, license: license)
         self.userSettings = UserSettings()
         publication.userProperties.properties = self.userSettings.userProperties.properties
         self.readingProgression = publication.contentLayout.readingProgression
-        self.paginationView = PaginationView()
+        self.config = config
+        self.paginationView = PaginationView(frame: .zero, preloadPreviousPositionCount: config.preloadPreviousPositionCount, preloadNextPositionCount: config.preloadNextPositionCount)
 
         self.resourcesURL = {
             do {
@@ -385,7 +400,7 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
             userSettings: userSettings,
             animatedLoad: false,  // FIXME: custom animated
             editingActions: editingActions,
-            contentInset: contentInset
+            contentInset: config.contentInset
         )
         spreadView.delegate = self
         return spreadView
@@ -422,9 +437,21 @@ extension EPUBNavigatorViewController {
     /// Replace `pageTransition` by the `animated` property of the `goTo` functions.
     /// Replace `disableDragAndDrop` by `EditingAction.copy`, since drag and drop is equivalent to copy.
     /// Replace `initialIndex` and `initialProgression` by `initialLocation`.
-    @available(*, deprecated, renamed: "init(publication:license:initialLocation:editingActions:contentInset:)")
+    @available(*, deprecated, renamed: "init(publication:license:initialLocation:resourcesServer:config:)")
     public convenience init(for publication: Publication, license: DRMLicense? = nil, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = EditingAction.defaultActions, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]? = nil) {
         fatalError("This initializer is not available anymore.")
+    }
+    
+    /// This initializer is deprecated.
+    /// Use the new Configuration object.
+    @available(*, deprecated, renamed: "init(publication:license:initialLocation:resourcesServer:config:)")
+    public convenience init(publication: Publication, license: DRMLicense? = nil, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]? = nil, resourcesServer: ResourcesServer) {
+        var config = Configuration()
+        config.editingActions = editingActions
+        if let contentInset = contentInset {
+            config.contentInset = contentInset
+        }
+        self.init(publication: publication, license: license, initialLocation: initialLocation, resourcesServer: resourcesServer, config: config)
     }
 
     @available(*, deprecated, message: "Use the `animated` parameter of `goTo` functions instead")

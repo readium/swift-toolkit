@@ -34,7 +34,7 @@ protocol EPUBSpreadViewDelegate: class {
     
 }
 
-class EPUBSpreadView: UIView, PageView, Loggable {
+class EPUBSpreadView: UIView, Loggable {
 
     weak var delegate: EPUBSpreadViewDelegate?
     // Location to scroll to in the spread once the pages are loaded.
@@ -227,10 +227,6 @@ class EPUBSpreadView: UIView, PageView, Loggable {
     
     /// Array of completion blocks called when the spread displayed the requested locator.
     private var goToCompletion: [() -> Void] = []
-    
-    func go(to locator: Locator) {
-        go(to: locator, completion: nil)
-    }
 
     func go(to locator: Locator, completion: (() -> Void)?) {
         if let completion = completion {
@@ -364,6 +360,21 @@ class EPUBSpreadView: UIView, PageView, Loggable {
         applyUserSettingsStyle()
     }
 
+}
+
+extension EPUBSpreadView: PageView {
+    
+    var positionCount: Int {
+        // Sum of the number of positions in all the resources of the spread.
+        return spread.links
+            .map { publication.positionListByResource[$0.href]?.count ?? 0 }
+            .reduce(0, +)
+    }
+
+    func go(to locator: Locator) {
+        go(to: locator, completion: nil)
+    }
+    
 }
 
 // MARK: - WKScriptMessageHandler for handling incoming message from the javascript layer.
