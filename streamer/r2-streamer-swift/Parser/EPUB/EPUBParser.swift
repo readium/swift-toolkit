@@ -296,8 +296,8 @@ final public class EpubParser: PublicationParser {
             if totalPageCount > 0 {
                 positionList = positionList.map { locator in
                     var locator = locator
-                    if let position = locator.locations?.position {
-                        locator.locations?.totalProgression = Double(position - 1) / Double(totalPageCount)
+                    if let position = locator.locations.position {
+                        locator.locations.totalProgression = Double(position - 1) / Double(totalPageCount)
                     }
                     return locator
                 }
