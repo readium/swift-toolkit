@@ -245,9 +245,9 @@ extension ReaderViewController: NavigatorDelegate {
         }
 
         positionLabel.text = {
-            if let position = locator.locations?.position {
+            if let position = locator.locations.position {
                 return "\(position) / \(publication.positionList.count)"
-            } else if let progression = locator.locations?.totalProgression {
+            } else if let progression = locator.locations.totalProgression {
                 return "\(progression)%"
             } else {
                 return nil

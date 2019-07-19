@@ -83,7 +83,7 @@ class BookmarksTable {
     func insert(newBookmark: Bookmark) throws -> Int64? {
         let db = BookmarkDatabase.shared.connection
         
-        let bookmark = tableName.filter(self.publicationID == newBookmark.publicationID && self.resourceHref == newBookmark.locator.href && self.resourceIndex == newBookmark.resourceIndex && self.locations == (newBookmark.locator.locations?.jsonString ?? ""))
+        let bookmark = tableName.filter(self.publicationID == newBookmark.publicationID && self.resourceHref == newBookmark.locator.href && self.resourceIndex == newBookmark.resourceIndex && self.locations == (newBookmark.locator.locations.jsonString ?? ""))
         
         // Check if empty.
         guard try db.count(bookmark) == 0 else {
@@ -96,8 +96,8 @@ class BookmarksTable {
             resourceHref <- newBookmark.locator.href,
             resourceIndex <- newBookmark.resourceIndex,
             resourceType <- newBookmark.locator.type,
-            locations <- newBookmark.locator.locations?.jsonString ?? "",
-            locatorText <- newBookmark.locator.text?.jsonString ?? "",
+            locations <- newBookmark.locator.locations.jsonString ?? "",
+            locatorText <- newBookmark.locator.text.jsonString ?? "",
             resourceTitle <- newBookmark.locator.title ?? ""
         )
         
