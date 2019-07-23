@@ -27,7 +27,7 @@ final class FullDRMInputStream: DRMInputStream {
     
     private let isDeflated: Bool
     
-    init(stream: SeekableInputStream, link: Link, license: DRMLicense, originalLength: Int, isDeflated: Bool) {
+    init(stream: SeekableInputStream, link: Link, license: DRMLicense, originalLength: Int?, isDeflated: Bool) {
         self.isDeflated = isDeflated
         super.init(stream: stream, link: link, license: license, originalLength: originalLength)
     }
@@ -75,6 +75,11 @@ final class FullDRMInputStream: DRMInputStream {
         
         return data
     }()
+    
+    override var length: UInt64 {
+        // If originalLength is missing, we fallback on the decrypted buffer's length.
+        return UInt64(originalLength ?? data?.count ?? 0)
+    }
     
     override func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
         guard hasBytesAvailable else {

@@ -18,9 +18,9 @@ class DRMInputStream: SeekableInputStream, Loggable {
     let stream: SeekableInputStream
     let link: Link
     let license: DRMLicense
-    let originalLength: Int
+    let originalLength: Int?
 
-    init(stream: SeekableInputStream, link: Link, license: DRMLicense, originalLength: Int) {
+    init(stream: SeekableInputStream, link: Link, license: DRMLicense, originalLength: Int?) {
         self.stream = stream
         self.link = link
         self.license = license
@@ -32,7 +32,7 @@ class DRMInputStream: SeekableInputStream, Loggable {
     // MARK: - Seekable
     
     override var length: UInt64 {
-        return UInt64(originalLength)
+        return UInt64(originalLength ?? 0)
     }
     
     var _offset: UInt64 = 0

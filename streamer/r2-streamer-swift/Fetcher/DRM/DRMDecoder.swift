@@ -29,7 +29,6 @@ class DRMDecoder: Loggable {
         guard let drm = drm,
             let license = drm.license,
             let encryption = resourceLink.properties.encryption,
-            let originalLength = encryption.originalLength,
             let scheme = encryption.scheme,
             // Check that the encryption schemes of ressource and DRM are the same.
             scheme == drm.scheme.rawValue else
@@ -37,6 +36,7 @@ class DRMDecoder: Loggable {
             return input
         }
         
+        let originalLength = encryption.originalLength
         let isDeflated = (encryption.compression == "deflate")
         let isCBC = (encryption.algorithm == "http://www.w3.org/2001/04/xmlenc#aes256-cbc")
         return (isDeflated || !isCBC)
