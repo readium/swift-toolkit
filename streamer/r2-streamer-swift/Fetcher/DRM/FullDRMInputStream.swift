@@ -60,12 +60,12 @@ final class FullDRMInputStream: DRMInputStream {
             return nil
         }
         
+        // Remove padding from data
+        let padding = Int(data[data.count - 1])
+        data = data.subdata(in: Range(uncheckedBounds: (0, data.count - padding)))
+
         // If the ressource was compressed using deflate, inflate it.
         if isDeflated {
-            // Remove padding from data
-            let padding = Int(data[data.count - 1])
-            data = data.subdata(in: Range(uncheckedBounds: (0, data.count - padding)))
-    
             guard let inflatedData = data.inflate() else {
                 fail(with: Error.inflateFailed)
                 return nil
