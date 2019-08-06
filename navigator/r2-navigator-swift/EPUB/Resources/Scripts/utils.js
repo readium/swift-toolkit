@@ -32,6 +32,14 @@ var readium = (function() {
     window.addEventListener('scroll', function(e) {
         last_known_scrollY_position = window.scrollY / document.scrollingElement.scrollHeight;
         last_known_scrollX_position = window.scrollX / document.scrollingElement.scrollWidth;
+       
+        // Window is hidden
+        if(document.scrollingElement.scrollWidth === 0 || document.scrollingElement.scrollHeight === 0){
+          return;
+        }
+                            
+                            
+                            
         if (!ticking) {
             window.requestAnimationFrame(function() {
                 update(isScrollModeEnabled() ? last_known_scrollY_position : last_known_scrollX_position);
