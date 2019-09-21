@@ -73,10 +73,7 @@ final internal class ContentFiltersEpub: ContentFilters {
         if let link = publication.link(withHref: path),
             ["application/xhtml+xml", "text/html"].contains(link.type)
         {
-            if publication.metadata.rendition?.layout == .reflowable
-                && link.properties.layout == nil
-                || link.properties.layout == .reflowable
-            {
+            if publication.metadata.rendition.layout(of: link) == .reflowable {
                 decodedInputStream = injectReflowableHtml(in: decodedInputStream, for: publication)
             }
         }
