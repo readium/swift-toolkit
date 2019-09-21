@@ -37,46 +37,12 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
     private let editingActions: EditingActionsController
     /// Reading order index of the current resource.
     private var currentResourceIndex: Int?
-    private let positionList: [Locator]
-    /// Positions list indexed by reading order.
-    private let positionListByResourceIndex: [[Locator]]
 
     public init(publication: Publication, license: DRMLicense? = nil, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
         self.publication = publication
         self.initialLocation = initialLocation
         self.editingActions = EditingActionsController(actions: editingActions, license: license)
         
-        // FIXME: This should be cached, to avoid opening all the documents of the readingOrder
-        positionListByResourceIndex = {
-            var lastPositionOfPreviousResource = 0
-            return publication.readingOrder.map { link in
-                guard let url = publication.url(to: link),
-                    let document = PDFDocument(url: url) else
-                {
-                    PDFNavigatorViewController.log(.warning, "Can't open PDF document at \(link)")
-                    return []
-                }
-                
-                let pageCount = max(document.pageCount, 1)  // safe-guard to avoid dividing by 0
-                let positionList = (1...pageCount).map { pageNumber in
-                    Locator(
-                        href: link.href,
-                        type: link.type ?? "application/pdf",
-                        // FIXME: title by finding the containing TOC item
-                        title: nil,
-                        locations: Locations(
-                            fragment: "page=\(pageNumber)",
-                            progression: Double(pageNumber) / Double(pageCount),
-                            position: lastPositionOfPreviousResource + pageNumber
-                        )
-                    )
-                }
-                lastPositionOfPreviousResource += pageCount
-                return positionList
-            }
-        }()
-        positionList = positionListByResourceIndex.flatMap { $0 }
-
         super.init(nibName: nil, bundle: nil)
         
         automaticallyAdjustsScrollViewInsets = false
@@ -107,7 +73,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
         NotificationCenter.default.addObserver(self, selector: #selector(pageDidChange), name: Notification.Name.PDFViewPageChanged, object: pdfView)
         
-        if let locator = initialLocation ?? positionList.first {
+        if let locator = initialLocation ?? publication.positionList.first {
             go(to: locator)
         }
     }
@@ -197,8 +163,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         pdfView.maxScaleFactor = 4.0
     }
     
-    private func pageNumber(for locator: Locator, at resourceIndex: Int) -> Int? {
-        if let fragment = locator.locations?.fragment {
+    private func pageNumber(for locator: Locator) -> Int? {
+        for fragment in locator.locations.fragments {
             // https://tools.ietf.org/rfc/rfc3778
             let optionalPageParam = fragment
                 .components(separatedBy: CharacterSet(charactersIn: "&#"))
@@ -209,8 +175,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
             }
         }
         
-        if let position = locator.locations?.position,
-            let firstPosition = positionListByResourceIndex[resourceIndex].first?.locations?.position {
+        if let position = locator.locations.position,
+            let firstPosition = publication.positionListByResource[locator.href]?.first?.locations.position {
             return position - firstPosition + 1
         }
         
@@ -220,12 +186,15 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
     /// Returns the position locator of the current page.
     private var currentPosition: Locator? {
         guard let currentResourceIndex = self.currentResourceIndex,
-            let pageNumber = pdfView.currentPage?.pageRef?.pageNumber else
+            let pageNumber = pdfView.currentPage?.pageRef?.pageNumber,
+            publication.readingOrder.indices.contains(currentResourceIndex) else
         {
             return nil
         }
-        let positionList = positionListByResourceIndex[currentResourceIndex]
-        guard 1...positionList.count ~= pageNumber else {
+        let href = publication.readingOrder[currentResourceIndex].href
+        guard let positionList = publication.positionListByResource[href],
+            1...positionList.count ~= pageNumber else
+        {
             return nil
         }
         
@@ -258,7 +227,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
         return go(
             to: publication.readingOrder[index],
-            pageNumber: pageNumber(for: locator, at: index),
+            pageNumber: pageNumber(for: locator),
             completion: completion
         )
     }
@@ -275,8 +244,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         }
         
         let nextIndex = (currentResourceIndex ?? -1) + 1
-        guard positionListByResourceIndex.indices.contains(nextIndex),
-            let nextPosition = positionListByResourceIndex[nextIndex].first else
+        guard publication.readingOrder.indices.contains(nextIndex),
+            let nextPosition = publication.positionListByResource[publication.readingOrder[nextIndex].href]?.first else
         {
             return false
         }
@@ -291,8 +260,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         }
         
         let previousIndex = (currentResourceIndex ?? 0) - 1
-        guard positionListByResourceIndex.indices.contains(previousIndex),
-            let previousPosition = positionListByResourceIndex[previousIndex].last else
+        guard publication.readingOrder.indices.contains(previousIndex),
+            let previousPosition = publication.positionListByResource[publication.readingOrder[previousIndex].href]?.first else
         {
             return false
         }
