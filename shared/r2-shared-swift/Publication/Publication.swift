@@ -26,7 +26,25 @@ public class Publication: WebPublication, Loggable {
     public var format: Format = .unknown
     /// Version of the publication's format, eg. 3 for EPUB 3
     public var formatVersion: String?
+
+    /// Factory used to build lazily the `positionList`.
+    /// By default, a parser will set this to parse the `positionList` from the publication. But the host app might want to overwrite this with a custom closure to implement for example a cache mechanism.
+    public var positionListFactory: (Publication) -> [Locator] = { _ in [] }
     
+    /// List of all the positions in the publication.
+    public lazy var positionList: [Locator] = positionListFactory(self)
+    
+    /// List of all the positions in each resource, indexed by their `href`.
+    public lazy var positionListByResource: [String: [Locator]] = positionList
+        .reduce([:]) { mapping, position in
+            var mapping = mapping
+            if mapping[position.href] == nil {
+                mapping[position.href] = []
+            }
+            mapping[position.href]?.append(position)
+            return mapping
+        }
+
     public var userProperties = UserProperties()
     
     // The status of User Settings properties (enabled or disabled).
@@ -51,9 +69,10 @@ public class Publication: WebPublication, Loggable {
         )
     }
     
-    public init(format: Format = .unknown, formatVersion: String? = nil, context: [String] = [], metadata: Metadata, links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = [], tableOfContents: [Link] = [], otherCollections: [PublicationCollection] = []) {
+    public init(format: Format = .unknown, formatVersion: String? = nil, positionListFactory: @escaping (Publication) -> [Locator] = { _ in [] }, context: [String] = [], metadata: Metadata, links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = [], tableOfContents: [Link] = [], otherCollections: [PublicationCollection] = []) {
         self.format = format
         self.formatVersion = formatVersion
+        self.positionListFactory = positionListFactory
         super.init(context: context, metadata: metadata, links: links, readingOrder: readingOrder, resources: resources, tableOfContents: tableOfContents, otherCollections: otherCollections)
     }
     

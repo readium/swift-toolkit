@@ -102,7 +102,7 @@ class EPUBRenditionTests: XCTestCase {
     }
     
     func testParseAllowsNil() {
-        XCTAssertNil(try EPUBRendition(json: nil))
+        XCTAssertEqual(try EPUBRendition(json: nil), EPUBRendition())
     }
     
     func testGetMinimalJSON() {

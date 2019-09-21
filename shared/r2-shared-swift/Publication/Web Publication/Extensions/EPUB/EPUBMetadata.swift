@@ -16,7 +16,7 @@ import Foundation
 /// https://readium.org/webpub-manifest/schema/extensions/epub/metadata.schema.json
 protocol EPUBMetadata {
     
-    var rendition: EPUBRendition? { get set }
+    var rendition: EPUBRendition { get set }
     
 }
 
@@ -25,17 +25,18 @@ private let renditionKey = "rendition"
 
 extension Metadata: EPUBMetadata {
     
-    public var rendition: EPUBRendition? {
+    public var rendition: EPUBRendition {
         get {
             do {
                 return try EPUBRendition(json: otherMetadata[renditionKey])
             } catch {
                 log(.warning, error)
-                return nil
+                return EPUBRendition()
             }
         }
         set {
-            if let json = newValue?.json, !json.isEmpty {
+            let json = newValue.json
+            if !json.isEmpty {
                 otherMetadata[renditionKey] = json
             } else {
                 otherMetadata.removeValue(forKey: renditionKey)
