@@ -167,7 +167,7 @@ extension License: LCPLicense {
                 throw LCPError.licenseInteractionNotAvailable
             }
             
-            return Deferred<Void> { success, _ in present(url, success) }
+            return Deferred<Void> { success, _ in present(url, { success(()) }) }
                 .flatMap { _ in
                     // We fetch the Status Document again after the HTML interaction is done, in case it changed the License.
                     self.network.fetch(statusURL)
