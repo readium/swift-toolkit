@@ -195,8 +195,8 @@ final public class EpubParser: PublicationParser {
             let node = MediaOverlayNode()
             
             guard let smilDataOptional = try? fetcher.data(forLink: mediaOverlayLink),
-                let smilData = smilDataOptional,
-                let smilXml = try? XMLDocument(data: smilData) else
+//                let smilData = smilDataOptional,
+                let smilXml = try? XMLDocument(data: smilDataOptional) else
             {
                 throw OPFParserError.invalidSmilResource
             }

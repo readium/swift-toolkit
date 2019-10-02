@@ -191,8 +191,8 @@ public final class PDFParser: PublicationParser, Loggable {
             // Calculates the page count of each resource from the reading order.
             let resources = publication.readingOrder.map { link -> (Int, Link) in
                 guard let optionalData = try? fetcher.data(forLink: link),
-                    let data = optionalData,
-                    let parser = try? parserType.init(stream: DataInputStream(data: data)),
+//                    let data = optionalData,
+                    let parser = try? parserType.init(stream: DataInputStream(data: optionalData)),
                     let pageCount = try? parser.parseNumberOfPages() else
                 {
                     log(.warning, "Can't get the number of pages from PDF document at \(link)")
