@@ -80,15 +80,17 @@ final class LibraryService: Loggable {
         /// Copy the Publication to documents.
         do {
             // Necessary to read URL exported from the Files app, for example.
-            _ = sourceURL.startAccessingSecurityScopedResource()
+            let shouldRelinquishAccess = sourceURL.startAccessingSecurityScopedResource()
             defer {
-                sourceURL.stopAccessingSecurityScopedResource()
+                if shouldRelinquishAccess {
+                    sourceURL.stopAccessingSecurityScopedResource()
+                }
             }
-            
+
             try FileManager.default.copyItem(at: sourceURL, to: url)
             let dateAttribute = [FileAttributeKey.modificationDate: Date()]
             try FileManager.default.setAttributes(dateAttribute, ofItemAtPath: url.path)
-            
+
         } catch {
             delegate?.libraryService(self, presentError: LibraryError.importFailed(error))
             return false
