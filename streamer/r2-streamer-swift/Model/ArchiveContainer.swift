@@ -33,29 +33,34 @@ class ArchiveContainer: Container, Loggable {
     }
     
     func data(relativePath: String) throws -> Data {
-        var path = relativePath
-        
-        if path.first == "/" {
-            path = String(path.dropFirst())
-        }
+        let path = fixPath(relativePath)
         return try archive.readData(path: path)
     }
     
     func dataLength(relativePath: String) throws -> UInt64 {
-        return try archive.sizeOfCurrentFile()
+        let path = fixPath(relativePath)
+        guard archive.locateFile(path: path) else {
+            throw ContainerError.missingFile(path: relativePath)
+        }
+        return try archive.informationsOfCurrentFile().length
     }
     
     func dataInputStream(relativePath: String) throws -> SeekableInputStream {
         // One zipArchive instance per inputstream... for multithreading.
-        var path = relativePath
-        
-        if path.first == "/" {
-            path = String(path.dropFirst())
-        }
+        let path = fixPath(relativePath)
         guard let inputStream = ZipInputStream(zipFilePath: rootFile.rootPath, path: path) else {
             throw ContainerError.streamInitFailed
         }
         return inputStream
+    }
+    
+    /// ZipArchive doesn't expect a / at the beginning of relative paths, but Link's href have them.
+    private func fixPath(_ path: String) -> String {
+        if path.first == "/" {
+            return String(path.dropFirst())
+        } else {
+            return path
+        }
     }
     
 }

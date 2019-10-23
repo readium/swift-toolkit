@@ -20,7 +20,7 @@ public struct PDFFileMetadata {
     // Permanent identifier based on the contents of the file at the time it was originally created.
     let identifier: String?
     
-    // The version of the PDF specification to which the document conforms (for example, 1.4)
+    // The version of the PDF specification to which the document conforms (for example, 1.4).
     let version: String?
 
     
@@ -75,6 +75,9 @@ public protocol PDFFileParser {
     
     /// Renders the PDF's first page.
     func renderCover() throws -> UIImage?
+    
+    /// Parses the number of pages in the PDF.
+    func parseNumberOfPages() throws -> Int
 
     /// Parses the PDF file metadata.
     func parseMetadata() throws -> PDFFileMetadata

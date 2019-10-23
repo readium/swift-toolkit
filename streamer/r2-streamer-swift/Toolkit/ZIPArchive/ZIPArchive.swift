@@ -312,10 +312,4 @@ internal class ZipArchive: Loggable {
         return zipFileInfo
     }
 
-    // TODO: to skim...
-    internal func sizeOfCurrentFile() throws -> UInt64 {
-        let info = try informationsOfCurrentFile()
-
-        return info.length
-    }
 }

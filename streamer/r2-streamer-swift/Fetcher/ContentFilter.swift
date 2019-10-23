@@ -16,34 +16,29 @@ import Fuzi
 /// in the fetcher. They come in different flavors depending of the container
 /// data mimetype.
 internal protocol ContentFilters: Loggable {
-    init()
 
-    func apply(to input: SeekableInputStream,
-               of publication: Publication,
-               with container: Container,
-               at path: String) throws -> SeekableInputStream
+    func apply(to input: SeekableInputStream, of publication: Publication, with container: Container, at path: String) throws -> SeekableInputStream
 
-    func apply(to input: Data,
-               of publication: Publication,
-               with container: Container,
-               at path: String) throws -> Data
+    func apply(to input: Data, of publication: Publication, with container: Container, at path: String) throws -> Data
+    
 }
+
 // Default implementation. Do nothing.
 internal extension ContentFilters {
 
-    func apply(to input: SeekableInputStream,
-                        of publication: Publication,
-                        with container: Container, at path: String) throws -> SeekableInputStream {
-        // Do nothing.
+    func apply(to input: SeekableInputStream, of publication: Publication, with container: Container, at path: String) throws -> SeekableInputStream {
         return input
     }
 
-    func apply(to input: Data,
-                        of publication: Publication,
-                        with container: Container, at path: String) throws -> Data {
-        // Do nothing.
-        return input
+    func apply(to input: Data, of publication: Publication, with container: Container, at path: String) throws -> Data {
+        let inputStream = DataInputStream(data: input)
+        let decodedInputStream = try apply(to: inputStream, of: publication, with: container, at: path)
+        guard let decodedDataStream = decodedInputStream as? DataInputStream else {
+            return Data()
+        }
+        return decodedDataStream.data
     }
+    
 }
 
 /// Content filter specialization for EPUB/OEBPS.
@@ -60,16 +55,12 @@ final internal class ContentFiltersEpub: ContentFilters {
     ///   - publication: The publiaction containing the resource.
     ///   - path: The path of the resource relative to the Publication.
     /// - Returns: The resource after the filters have been applyed.
-    internal func apply(to input: SeekableInputStream,
-                        of publication: Publication,
-                        with container: Container,
-                        at path: String) -> SeekableInputStream
-    {
+    internal func apply(to input: SeekableInputStream, of publication: Publication, with container: Container, at path: String) -> SeekableInputStream {
         /// Get the link for the resource.
         guard let resourceLink = publication.link(withHref: path) else {
             return input
         }
-        var decodedInputStream = DrmDecoder.decoding(input, of: resourceLink, with: container.drm)
+        var decodedInputStream = DRMDecoder.decoding(input, of: resourceLink, with: container.drm)
         decodedInputStream = FontDecoder.decoding(decodedInputStream,
                                                   of: resourceLink,
                                                   publication.metadata.identifier)
@@ -80,42 +71,16 @@ final internal class ContentFiltersEpub: ContentFilters {
         //     || resource is 'reflow'
         //       - inject pagination
         if let link = publication.link(withHref: path),
-            ["application/xhtml+xml", "text/html"].contains(link.type),
-            let baseUrl = publication.baseURL?.deletingLastPathComponent()
+            ["application/xhtml+xml", "text/html"].contains(link.type)
         {
-            if publication.metadata.rendition?.layout == .reflowable
-                && link.properties.layout == nil
-                || link.properties.layout == .reflowable
-            {
+            if publication.metadata.rendition.layout(of: link) == .reflowable {
                 decodedInputStream = injectReflowableHtml(in: decodedInputStream, for: publication)
-            } else {
-                decodedInputStream = injectFixedLayoutHtml(in: decodedInputStream, for: baseUrl)
             }
         }
         return decodedInputStream
     }
 
-    /// Apply the epub content filters on the content of the `input` Data.
-    ///
-    /// - Parameters:
-    ///   - input: The Data containing the data to process.
-    ///   - publication: The publication containing the resource.
-    ///   - path: The path of the resource relative to the Publication.
-    /// - Returns: The resource after the filters have been applyed.
-    internal func apply(to input: Data,
-                        of publication: Publication,
-                        with container: Container,
-                        at path: String)  -> Data
-    {
-        let inputStream = DataInputStream(data: input)
-        let decodedInputStream = apply(to: inputStream, of: publication, with: container, at: path)
-        guard let decodedDataStream = decodedInputStream as? DataInputStream else {
-            return Data()
-        }
-        return decodedDataStream.data
-    }
-
-    fileprivate func injectReflowableHtml(in stream: SeekableInputStream, for publication:Publication) -> SeekableInputStream {
+    private func injectReflowableHtml(in stream: SeekableInputStream, for publication:Publication) -> SeekableInputStream {
 
         let bufferSize = Int(stream.length)
         var buffer = Array<UInt8>(repeating: 0, count: bufferSize)
@@ -176,10 +141,7 @@ final internal class ContentFiltersEpub: ContentFilters {
             publication.userSettingsUIPreset = preset
         }
         
-        let cssBefore = getHtmlLink(forResource: "\(baseUrl)styles/\(styleSubFolder)/ReadiumCSS-before.css")
         let viewport = "<meta name=\"viewport\" content=\"width=device-width, height=device-height, initial-scale=1.0;\"/>\n"
-
-        resourceHtml = resourceHtml.insert(string: cssBefore, at: headStart)
         resourceHtml = resourceHtml.insert(string: viewport, at: headStart)
 
         // Inserting at the end of <HEAD>.
@@ -187,12 +149,7 @@ final internal class ContentFiltersEpub: ContentFilters {
             log(.error, "Invalid resource")
             abort()
         }
-        let cssAfter = getHtmlLink(forResource: "\(baseUrl)styles/\(styleSubFolder)/ReadiumCSS-after.css")
-        let scriptUtils = getHtmlScript(forResource: "\(baseUrl)scripts/utils.js")
         let fontStyle = getHtmlFontStyle(forResource: "\(baseUrl)fonts/OpenDyslexic-Regular.otf", fontFamily: "OpenDyslexic")
-
-        resourceHtml = resourceHtml.insert(string: cssAfter, at: headEnd)
-        resourceHtml = resourceHtml.insert(string: scriptUtils, at: headEnd)
         resourceHtml = resourceHtml.insert(string: fontStyle, at: headEnd)
 
         let enhancedData = resourceHtml.data(using: String.Encoding.utf8)
@@ -201,57 +158,11 @@ final internal class ContentFiltersEpub: ContentFilters {
         return enhancedStream
     }
 
-    fileprivate func injectFixedLayoutHtml(in stream: SeekableInputStream, for baseUrl: URL) -> SeekableInputStream {
-
-        let bufferSize = Int(stream.length)
-        var buffer = Array<UInt8>(repeating: 0, count: bufferSize)
-
-        stream.open()
-        let numberOfBytesRead = (stream as InputStream).read(&buffer, maxLength: bufferSize)
-        let data = Data(bytes: buffer, count: numberOfBytesRead)
-
-        guard var resourceHtml = String.init(data: data, encoding: String.Encoding.utf8) else {
-            return stream
-        }
-        guard let endHeadIndex = resourceHtml.startIndex(of: "</head>") else {
-            log(.error, "Invalid resource")
-            abort()
-        }
-
-        var includes = [String]()
-
-        // Misc JS utils.
-        includes.append(getHtmlScript(forResource: "\(baseUrl)scripts/utils.js"))
-
-        for element in includes {
-            resourceHtml = resourceHtml.insert(string: element, at: endHeadIndex)
-        }
-
-        let enhancedData = resourceHtml.data(using: String.Encoding.utf8)
-        let enhancedStream = DataInputStream(data: enhancedData!)
-        
-        return enhancedStream
-    }
-
-    fileprivate func getHtmlLink(forResource resourceName: String) -> String {
-        let prefix = "<link rel=\"stylesheet\" type=\"text/css\" href=\""
-        let suffix = "\"/>\n"
-
-        return prefix + resourceName + suffix
-    }
-
-    fileprivate func getHtmlScript(forResource resourceName: String) -> String {
-        let prefix = "<script type=\"text/javascript\" src=\""
-        let suffix = "\"></script>\n"
-
-        return prefix + resourceName + suffix
-    }
-    
-    fileprivate func getHtmlFontStyle(forResource resourceName: String, fontFamily: String) -> String {
+    private func getHtmlFontStyle(forResource resourceName: String, fontFamily: String) -> String {
         return "<style type=\"text/css\">@font-face{font-family: \"\(fontFamily)\"; src:url('\(resourceName)') format('opentype');}</style>\n"
     }
     
-    fileprivate func buildUserPropertiesString(publication: Publication) -> String {
+    private func buildUserPropertiesString(publication: Publication) -> String {
         var userPropertiesString = ""
         
         for property in publication.userProperties.properties {
@@ -295,13 +206,17 @@ let userSettingsUIPreset:[ContentLayoutStyle: [ReadiumCSSName: Bool]] = [
         .cjkHorizontal: cjkHorizontalPreset]
 
 /// Content filter specialization for CBZ.
-internal class ContentFiltersCbz: ContentFilters {
-    required init() {
-    }
-}
+internal class ContentFiltersCbz: ContentFilters {}
 
 /// Content filter specialization for PDF.
 internal class ContentFiltersPDF: ContentFilters {
-    required init() {
+
+    func apply(to input: SeekableInputStream, of publication: Publication, with container: Container, at path: String) throws -> SeekableInputStream {
+        /// Get the link for the resource.
+        guard let resourceLink = publication.link(withHref: path) else {
+            return input
+        }
+        return DRMDecoder.decoding(input, of: resourceLink, with: container.drm)
     }
+    
 }

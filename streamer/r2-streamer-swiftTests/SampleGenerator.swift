@@ -56,7 +56,7 @@ internal class SampleGenerator: XCTest {
     internal func parseEpub(at url: URL) -> PubBox? {
         let pubBox: PubBox
         do {
-            pubBox = try EpubParser.parse(fileAtPath: url.path).0
+            pubBox = try EpubParser.parse(at: url).0
         } catch {
             XCTFail("An exception occured while parsing publication at \(url.path)")
             log(.error, error)
@@ -75,7 +75,7 @@ internal class SampleGenerator: XCTest {
     internal func parseCbz(at url: URL) -> PubBox? {
         let pubBox: PubBox
         do {
-            pubBox = try CbzParser.parse(fileAtPath: url.path).0
+            pubBox = try CbzParser.parse(at: url).0
         } catch {
             XCTFail("An exception occured while parsing publication at \(url.path)")
             log(.error, error)

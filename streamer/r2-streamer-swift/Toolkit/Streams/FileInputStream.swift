@@ -25,7 +25,6 @@ public enum FileInputStreamError: Error {
 
 extension FileInputStream: Loggable {}
 
-/// <#Description#>
 internal class FileInputStream: SeekableInputStream {
 
     /// The path to the file opened by the stream
