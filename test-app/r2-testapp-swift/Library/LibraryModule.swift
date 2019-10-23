@@ -30,15 +30,18 @@ protocol LibraryModuleAPI {
     /// - Returns: Whether the URL was handled.
     func addPublication(at url: URL, from downloadTask: URLSessionDownloadTask?) -> Bool
     
+    /// Downloads a remote publication (eg. OPDS entry) to the library.
+    func downloadPublication(_ publication: Publication?, at link: Link, completion: @escaping (Bool) -> Void)
+    
     /// Loads the R2 DRM object for the given publication.
-    func loadDRM(for fileName: String, completion: @escaping (CancellableResult<DRM?>) -> Void)
+    func loadDRM(for book: Book, completion: @escaping (CancellableResult<DRM?>) -> Void)
 
 }
 
 protocol LibraryModuleDelegate: ModuleDelegate {
     
     /// Called when the user tap on a publication in the library.
-    func libraryDidSelectPublication(_ fileName: String, _ publication: Publication, completion: @escaping () -> Void)
+    func libraryDidSelectPublication(_ publication: Publication, book: Book, completion: @escaping () -> Void)
     
 }
 
@@ -50,11 +53,7 @@ final class LibraryModule: LibraryModuleAPI {
     private let library: LibraryService
     private let factory: LibraryFactory
 
-    init(delegate: LibraryModuleDelegate?) throws {
-        /// FIXME: we should recover properly if the publication server can't started, maybe this should only forbid opening a publication?
-        guard let server = PublicationServer() else {
-            throw LibraryError.cantStartPublicationServer
-        }
+    init(delegate: LibraryModuleDelegate?, server: PublicationServer) {
         self.library = LibraryService(publicationServer: server)
         self.factory = LibraryFactory(libraryService: library)
         self.delegate = delegate
@@ -71,14 +70,19 @@ final class LibraryModule: LibraryModuleAPI {
     }()
     
     func addPublication(at url: URL, from downloadTask: URLSessionDownloadTask?) -> Bool {
-        guard url.isFileURL else {
-            return false
+        if url.isFileURL {
+            return library.movePublicationToLibrary(from: url, downloadTask: downloadTask)
+        } else {
+            return library.addPublication(at: url, downloadTask: downloadTask)
         }
-        return library.addPublicationToLibrary(url: url, from: downloadTask)
     }
     
-    func loadDRM(for fileName: String, completion: @escaping (CancellableResult<DRM?>) -> Void) {
-        library.loadDRM(for: fileName, completion: completion)
+    func downloadPublication(_ publication: Publication?, at link: Link, completion: @escaping (Bool) -> Void) {
+        library.downloadPublication(publication, at: link, completion: completion)
+    }
+    
+    func loadDRM(for book: Book, completion: @escaping (CancellableResult<DRM?>) -> Void) {
+        library.loadDRM(for: book, completion: completion)
     }
     
 }

@@ -23,14 +23,14 @@ protocol ReaderModuleAPI {
     
     /// Presents the given publication to the user, inside the given navigation controller.
     /// - Parameter completion: Called once the publication is presented, or if an error occured.
-    func presentPublication(fileName: String, publication: Publication, in navigationController: UINavigationController, completion: @escaping () -> Void)
+    func presentPublication(publication: Publication, book: Book, in navigationController: UINavigationController, completion: @escaping () -> Void)
     
 }
 
 protocol ReaderModuleDelegate: ModuleDelegate {
     
     /// Called when the reader needs to load the R2 DRM object for the given publication.
-    func readerLoadDRM(for fileName: String, completion: @escaping (CancellableResult<DRM?>) -> Void)
+    func readerLoadDRM(for book: Book, completion: @escaping (CancellableResult<DRM?>) -> Void)
     
 }
 
@@ -38,14 +38,16 @@ protocol ReaderModuleDelegate: ModuleDelegate {
 final class ReaderModule: ReaderModuleAPI {
     
     weak var delegate: ReaderModuleDelegate?
+    private let resourcesServer: ResourcesServer
     
     /// Sub-modules to handle different publication formats (eg. EPUB, CBZ)
     var formatModules: [ReaderFormatModule] = []
     
     private let factory = ReaderFactory()
     
-    init(delegate: ReaderModuleDelegate?) {
+    init(delegate: ReaderModuleDelegate?, resourcesServer: ResourcesServer) {
         self.delegate = delegate
+        self.resourcesServer = resourcesServer
         
         formatModules = [
             CBZModule(delegate: self),
@@ -57,7 +59,7 @@ final class ReaderModule: ReaderModuleAPI {
         }
     }
     
-    func presentPublication(fileName: String, publication: Publication, in navigationController: UINavigationController, completion: @escaping () -> Void) {
+    func presentPublication(publication: Publication, book: Book, in navigationController: UINavigationController, completion: @escaping () -> Void) {
         guard let delegate = delegate else {
             fatalError("Reader delegate not set")
         }
@@ -70,7 +72,7 @@ final class ReaderModule: ReaderModuleAPI {
             navigationController.pushViewController(viewController, animated: true)
         }
         
-        delegate.readerLoadDRM(for: fileName) { result in
+        delegate.readerLoadDRM(for: book) { [resourcesServer] result in
             switch result {
             case .failure(let error):
                 delegate.presentError(error, from: navigationController)
@@ -84,7 +86,7 @@ final class ReaderModule: ReaderModuleAPI {
                 }
                 
                 do {
-                    let readerViewController = try module.makeReaderViewController(for: publication, drm: drm)
+                    let readerViewController = try module.makeReaderViewController(for: publication, book: book, drm: drm, resourcesServer: resourcesServer)
                     present(readerViewController)
                 } catch {
                     delegate.presentError(error, from: navigationController)

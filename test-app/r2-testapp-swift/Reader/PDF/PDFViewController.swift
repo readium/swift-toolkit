@@ -18,11 +18,10 @@ import R2Shared
 @available(iOS 11.0, *)
 final class PDFViewController: ReaderViewController {
     
-    init(publication: Publication, drm: DRM?) {
-        let initialLocation = PDFViewController.initialLocation(for: publication)
-        let navigator = PDFNavigatorViewController(publication: publication, license: drm?.license, initialLocation: initialLocation)
+    init(publication: Publication, book: Book, drm: DRM?) {
+        let navigator = PDFNavigatorViewController(publication: publication, license: drm?.license, initialLocation: book.progressionLocator)
         
-        super.init(navigator: navigator, publication: publication, drm: drm)
+        super.init(navigator: navigator, publication: publication, book: book, drm: drm)
         
         navigator.delegate = self
     }

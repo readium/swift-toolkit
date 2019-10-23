@@ -23,24 +23,18 @@ class ReaderViewController: UIViewController, Loggable {
     
     let navigator: UIViewController & Navigator
     let publication: Publication
+    let book: Book
     let drm: DRM?
 
     lazy var bookmarksDataSource: BookmarkDataSource? = BookmarkDataSource(publicationID: publication.metadata.identifier ?? "")
     
     private(set) var stackView: UIStackView!
+    private lazy var positionLabel = UILabel()
     
-    // FIXME: Should be moved into Book.progression.
-    static func initialLocation(for publication: Publication) -> Locator? {
-        guard let publicationID = publication.metadata.identifier,
-            let locatorJSON = UserDefaults.standard.string(forKey: "\(publicationID)-locator") else {
-                return nil
-        }
-        return (try? Locator(jsonString: locatorJSON)) as? Locator
-    }
-    
-    init(navigator: UIViewController & Navigator, publication: Publication, drm: DRM?) {
+    init(navigator: UIViewController & Navigator, publication: Publication, book: Book, drm: DRM?) {
         self.navigator = navigator
         self.publication = publication
+        self.book = book
         self.drm = drm
         
         super.init(nibName: nil, bundle: nil)
@@ -85,6 +79,15 @@ class ReaderViewController: UIViewController, Loggable {
         navigator.didMove(toParent: self)
         
         stackView.addArrangedSubview(accessibilityToolbar)
+        
+        positionLabel.translatesAutoresizingMaskIntoConstraints = false
+        positionLabel.font = .systemFont(ofSize: 12)
+        positionLabel.textColor = .darkGray
+        view.addSubview(positionLabel)
+        NSLayoutConstraint.activate([
+            positionLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            positionLabel.bottomAnchor.constraint(equalTo: navigator.view.bottomAnchor, constant: -20)
+        ])
     }
     
     override func willMove(toParent parent: UIViewController?) {
@@ -103,9 +106,17 @@ class ReaderViewController: UIViewController, Loggable {
     }
     
     func makeNavigationBarButtons() -> [UIBarButtonItem] {
-        let tocButton = UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self, action: #selector(presentOutline))
-        let bookmarkButton = UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(bookmarkCurrentPosition))
-        return [tocButton, bookmarkButton]
+        var buttons: [UIBarButtonItem] = []
+        // Table of Contents
+        buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self, action: #selector(presentOutline)))
+        // DRM management
+        if drm != nil {
+            buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "drm"), style: .plain, target: self, action: #selector(presentDRMManagement)))
+        }
+        // Bookmarks
+        buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(bookmarkCurrentPosition)))
+        
+        return buttons
     }
     
     func toggleNavigationBar() {
@@ -149,13 +160,23 @@ class ReaderViewController: UIViewController, Loggable {
             let bookmark = currentBookmark,
             dataSource.addBookmark(bookmark: bookmark) else
         {
-            toast(self.view, NSLocalizedString("reader_bookmark_failure_message", comment: "Error message when adding a new bookmark failed"), 2)
+            toast(NSLocalizedString("reader_bookmark_failure_message", comment: "Error message when adding a new bookmark failed"), on: view, duration: 2)
             return
         }
-        toast(self.view, NSLocalizedString("reader_bookmark_success_message", comment: "Success message when adding a bookmark"), 1)
+        toast(NSLocalizedString("reader_bookmark_success_message", comment: "Success message when adding a bookmark"), on: view, duration: 1)
     }
-
     
+    
+    // MARK: - DRM
+    
+    @objc func presentDRMManagement() {
+        guard let drm = drm else {
+            return
+        }
+        moduleDelegate?.presentDRM(drm, from: self)
+    }
+    
+
     // MARK: - Accessibility
     
     /// Constraint used to shift the content under the navigation bar, since it is always visible when VoiceOver is running.
@@ -217,10 +238,21 @@ class ReaderViewController: UIViewController, Loggable {
 extension ReaderViewController: NavigatorDelegate {
 
     func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
-        guard let publicationID = publication.metadata.identifier else {
-            return
+        do {
+            try BooksDatabase.shared.books.saveProgression(locator, of: book)
+        } catch {
+            log(.error, error)
         }
-        UserDefaults.standard.set(locator.jsonString, forKey: "\(publicationID)-locator")
+
+        positionLabel.text = {
+            if let position = locator.locations.position {
+                return "\(position) / \(publication.positionList.count)"
+            } else if let progression = locator.locations.totalProgression {
+                return "\(progression)%"
+            } else {
+                return nil
+            }
+        }()
     }
     
     func navigator(_ navigator: Navigator, presentExternalURL url: URL) {
