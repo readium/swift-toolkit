@@ -237,7 +237,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
     }
     
     public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
-        if pdfView.canGoToNextPage() {
+        if pdfView.canGoToNextPage {
             pdfView.goToNextPage(nil)
             DispatchQueue.main.async(execute: completion)
             return true
@@ -253,7 +253,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
     }
     
     public func goBackward(animated: Bool, completion: @escaping () -> Void) -> Bool {
-        if pdfView.canGoToPreviousPage() {
+        if pdfView.canGoToPreviousPage {
             pdfView.goToPreviousPage(nil)
             DispatchQueue.main.async(execute: completion)
             return true
