@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+  body, html {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    background: transparent;
+  }
+
+  #page {
+    /* Centers the iframe. */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    width: 0px;
+    height: 0px;
+    border: none;
+    background: white;
+  }
+  </style>
+
+  <meta name="viewport" content="">
+</head>
+
+<body>
+  <iframe id="page"></iframe>
+
+  <script type="text/javascript">
+    var spread = (function() {
+      var _page = FixedPage('page');
+
+      // Public API called from Swift.
+      return {
+        // Loads resources in the spread.
+        'load': function(links) {
+          if (links.length == 0) {
+            return;
+          }
+          _page.load(links[0], function loaded() {
+            webkit.messageHandlers.spreadLoaded.postMessage({});
+          });
+        },
+
+        // Evaluates a JavaScript in the context of a resource.
+        'eval': function(href, script) {
+          if (href == '#' || href == '' || _page.href == href) {
+            return _page.eval(script);
+          }
+        },
+
+        // Updates the available viewport to display the resources.
+        'setViewport': function(viewportSize, safeAreaInsets) {
+          _page.setViewport(viewportSize, safeAreaInsets);
+        }
+      }
+    })();
+  </script>
+</body>
+</html>
