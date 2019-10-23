@@ -128,7 +128,7 @@ public struct EPUBRendition: Equatable {
     
     /// Indicates the condition to be met for the linked resource to be rendered within a synthetic spread.
     public var spread: Spread?
-    
+
     public init(layout: Layout? = nil, orientation: Orientation? = nil, overflow: Overflow? = nil, spread: Spread? = nil) {
         self.layout = layout
         self.orientation = orientation
@@ -136,9 +136,9 @@ public struct EPUBRendition: Equatable {
         self.spread = spread
     }
     
-    public init?(json: Any?) throws {
-        if json == nil {
-            return nil
+    public init(json: Any?) throws {
+        guard json != nil else {
+            return
         }
         guard let json = json as? [String: Any] else {
             throw JSONError.parsing(EPUBRendition.self)
@@ -159,4 +159,12 @@ public struct EPUBRendition: Equatable {
         ])
     }
     
+    /// Determines the layout of the given resource in this publication.
+    /// Default layout is reflowable.
+    public func layout(of link: Link) -> Layout {
+        return link.properties.layout
+            ?? layout
+            ?? .reflowable
+    }
+
 }

@@ -143,31 +143,6 @@ func parseDate(_ json: Any?) -> Date? {
 }
 
 
-// MARK: - JSON Serialization
-
-func serializeJSONString(_ object: Any) -> String? {
-    var options: JSONSerialization.WritingOptions = []
-    if #available(iOS 11.0, *) {
-        options.insert(.sortedKeys)
-    }
-    guard let data = try? JSONSerialization.data(withJSONObject: object, options: options),
-        let string = String(data: data, encoding: .utf8) else
-    {
-        return nil
-    }
-    
-    // Unescapes slashes
-    return string.replacingOccurrences(of: "\\/", with: "/")
-}
-
-func serializeJSONData(_ object: Any) -> Data? {
-    guard let string = serializeJSONString(object) else {
-        return nil
-    }
-    return string.data(using: .utf8)
-}
-
-
 /// Returns the given JSON object after removing any key with NSNull value.
 /// To be used with `encodeIfX` functions for more compact serialization code.
 func makeJSON(_ object: [String: Any], additional: [String: Any] = [:]) -> [String: Any] {

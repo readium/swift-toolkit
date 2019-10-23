@@ -40,9 +40,10 @@
 		CA2AE322221C1DCB008BD18F /* Loggable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31F221C1DCB008BD18F /* Loggable.swift */; };
 		CA40C07A21FF25F80069A50E /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA40C07921FF25F80069A50E /* JSON.swift */; };
 		CA50B86E22B2A1CF003AFF24 /* R2LocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50B86D22B2A1CF003AFF24 /* R2LocalizedString.swift */; };
+		CA94291622BCD08C00305CDB /* ResourcesServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA94291522BCD08B00305CDB /* ResourcesServer.swift */; };
 		CA9A40D1221B0AA200531EA1 /* Either.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D0221B0AA200531EA1 /* Either.swift */; };
 		CA9E6BA12239823300ECF6E4 /* WP+Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9E6BA02239823300ECF6E4 /* WP+Deprecated.swift */; };
-		CA9E6BA4223A657900ECF6E4 /* JSONEquatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9E6BA3223A657900ECF6E4 /* JSONEquatable.swift */; };
+		CA9E6BA4223A657900ECF6E4 /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9E6BA3223A657900ECF6E4 /* JSON.swift */; };
 		CA9E6BA9223A749900ECF6E4 /* EPUBPublication.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9E6BA8223A749900ECF6E4 /* EPUBPublication.swift */; };
 		CA9E6BAE223A76C600ECF6E4 /* OPDSPublication.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9E6BAD223A76C600ECF6E4 /* OPDSPublication.swift */; };
 		CAB88C90224E510000D36C99 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAB88C8F224E510000D36C99 /* MobileCoreServices.framework */; };
@@ -67,6 +68,7 @@
 		CACD75F32236B0A5004F20CA /* PublicationCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACD75F22236B0A5004F20CA /* PublicationCollection.swift */; };
 		CACD75F52236B2AF004F20CA /* PublicationCollectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACD75F42236B2AF004F20CA /* PublicationCollectionTests.swift */; };
 		CAD178AD22B3A75C004E6812 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CAD178AF22B3A75C004E6812 /* Localizable.strings */; };
+		CADD69E222C3B17500A4CADF /* DocumentTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADD69E122C3B17500A4CADF /* DocumentTypes.swift */; };
 		CAF4EAE42237ABC700A17DA1 /* MediaOverlayNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4041F4EC69100DF166D /* MediaOverlayNode.swift */; };
 		CAF4EAE52237ABC700A17DA1 /* MediaOverlays.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4051F4EC69100DF166D /* MediaOverlays.swift */; };
 		CAF4EAE72237AD6000A17DA1 /* UserProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF39DF220E3895200A560F3 /* UserProperties.swift */; };
@@ -134,9 +136,10 @@
 		CA50B86D22B2A1CF003AFF24 /* R2LocalizedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2LocalizedString.swift; sourceTree = "<group>"; };
 		CA6161EA21FB257700D2CFE3 /* r2-shared-swiftTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "r2-shared-swiftTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA6161EE21FB257700D2CFE3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CA94291522BCD08B00305CDB /* ResourcesServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourcesServer.swift; sourceTree = "<group>"; };
 		CA9A40D0221B0AA200531EA1 /* Either.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Either.swift; sourceTree = "<group>"; };
 		CA9E6BA02239823300ECF6E4 /* WP+Deprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WP+Deprecated.swift"; sourceTree = "<group>"; };
-		CA9E6BA3223A657900ECF6E4 /* JSONEquatable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONEquatable.swift; sourceTree = "<group>"; };
+		CA9E6BA3223A657900ECF6E4 /* JSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSON.swift; sourceTree = "<group>"; };
 		CA9E6BA6223A67D300ECF6E4 /* Publication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Publication.swift; sourceTree = "<group>"; };
 		CA9E6BA8223A749900ECF6E4 /* EPUBPublication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBPublication.swift; sourceTree = "<group>"; };
 		CA9E6BAD223A76C600ECF6E4 /* OPDSPublication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPublication.swift; sourceTree = "<group>"; };
@@ -158,6 +161,7 @@
 		CACD75F22236B0A5004F20CA /* PublicationCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationCollection.swift; sourceTree = "<group>"; };
 		CACD75F42236B2AF004F20CA /* PublicationCollectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationCollectionTests.swift; sourceTree = "<group>"; };
 		CAD178AE22B3A75C004E6812 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		CADD69E122C3B17500A4CADF /* DocumentTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentTypes.swift; sourceTree = "<group>"; };
 		F3B1879F1FA33D4D00BB46BF /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
 		F3B187A11FA33DFA00BB46BF /* Facet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Facet.swift; sourceTree = "<group>"; };
 		F3B187A31FA33E1D00BB46BF /* OpdsMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpdsMetadata.swift; sourceTree = "<group>"; };
@@ -198,8 +202,10 @@
 				CA2006502225A1F300E6B3BD /* Observable.swift */,
 				CA9A40D0221B0AA200531EA1 /* Either.swift */,
 				57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */,
-				CA9E6BA3223A657900ECF6E4 /* JSONEquatable.swift */,
+				CA9E6BA3223A657900ECF6E4 /* JSON.swift */,
 				CA50B86D22B2A1CF003AFF24 /* R2LocalizedString.swift */,
+				CA94291522BCD08B00305CDB /* ResourcesServer.swift */,
+				CADD69E122C3B17500A4CADF /* DocumentTypes.swift */,
 			);
 			path = Toolkit;
 			sourceTree = "<group>";
@@ -611,6 +617,7 @@
 				CABBB2F82237C99E004EB039 /* OPDSAcquisition.swift in Sources */,
 				CAF4EAE72237AD6000A17DA1 /* UserProperties.swift in Sources */,
 				CA176387223A898B00959FEB /* EPUBProperties.swift in Sources */,
+				CA94291622BCD08C00305CDB /* ResourcesServer.swift in Sources */,
 				CA16A8702232F7CD00E66255 /* Link.swift in Sources */,
 				CA176389223A8D0300959FEB /* EPUBMetadata.swift in Sources */,
 				F3E7D4191F4EC69100DF166D /* RootFile.swift in Sources */,
@@ -618,7 +625,7 @@
 				CA9E6BAE223A76C600ECF6E4 /* OPDSPublication.swift in Sources */,
 				CABEB3DC2215698600090B6C /* Deferred.swift in Sources */,
 				CA2006512225A1F300E6B3BD /* Observable.swift in Sources */,
-				CA9E6BA4223A657900ECF6E4 /* JSONEquatable.swift in Sources */,
+				CA9E6BA4223A657900ECF6E4 /* JSON.swift in Sources */,
 				CA2AE321221C1DCB008BD18F /* LoggerStub.swift in Sources */,
 				CA2AE322221C1DCB008BD18F /* Loggable.swift in Sources */,
 				CA9A40D1221B0AA200531EA1 /* Either.swift in Sources */,
@@ -643,6 +650,7 @@
 				CAC34F0A221C61BD002C452E /* DRM.swift in Sources */,
 				CABBB2FC22394450004EB039 /* ContentLayout.swift in Sources */,
 				CABBB2F62237BF61004EB039 /* OPDSPrice.swift in Sources */,
+				CADD69E222C3B17500A4CADF /* DocumentTypes.swift in Sources */,
 				CA16A8762233065F00E66255 /* Publication+JSON.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -770,6 +778,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -824,6 +833,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
