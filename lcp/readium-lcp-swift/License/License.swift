@@ -78,7 +78,7 @@ extension License: LCPLicense {
         return (charactersToCopyLeft ?? 1) > 0
     }
     
-    func copy(_ text: String) -> String? {
+    func copy(_ text: String, consumes: Bool) -> String? {
         guard var charactersLeft = charactersToCopyLeft else {
             return text
         }
@@ -93,11 +93,13 @@ extension License: LCPLicense {
             text = String(text[..<endIndex])
         }
         
-        do {
-            charactersLeft = max(0, charactersLeft - text.count)
-            try licenses.setCopiesLeft(charactersLeft, for: license.id)
-        } catch {
-            log(.error, error)
+        if consumes {
+            do {
+                charactersLeft = max(0, charactersLeft - text.count)
+                try licenses.setCopiesLeft(charactersLeft, for: license.id)
+            } catch {
+                log(.error, error)
+            }
         }
         
         return text
