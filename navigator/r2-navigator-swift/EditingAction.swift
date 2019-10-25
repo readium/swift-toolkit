@@ -115,6 +115,10 @@ final class EditingActionsController {
     
     /// Builds a UIActivityViewController to share the authorized contents of the user selection.
     func makeShareViewController(from contentsView: UIView) -> UIActivityViewController? {
+        guard canCopy else {
+            delegate?.editingActionsDidPreventCopy(self)
+            return nil
+        }
         guard let selection = selectionAuthorizedForCopy else {
             return nil
         }
