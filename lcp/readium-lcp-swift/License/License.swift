@@ -245,18 +245,26 @@ extension License {
     func fetchPublication(completion: @escaping ((URL, URLSessionDownloadTask?)?, Error?) -> Void) -> Observable<DownloadProgress> {
         do {
             let license = self.documents.license
-            let title = license.link(for: .publication)?.title
+            let link = license.link(for: .publication)
             let url = try license.url(for: .publication)
 
-            return self.network.download(url, title: title) { result, error in
+            return self.network.download(url, title: link?.title) { result, error in
                 guard let (downloadedFile, task) = result else {
                     completion(nil, error)
                     return
                 }
                 
                 do {
+                    var mimetypes: [String] = []
+                    if let responseMimetype = task?.response?.mimeType {
+                        mimetypes.append(responseMimetype)
+                    }
+                    if let linkType = link?.type {
+                        mimetypes.append(linkType)
+                    }
+                    
                     // Saves the License Document into the downloaded publication
-                    let container = try makeLicenseContainer(for: downloadedFile, mimetype: task?.response?.mimeType)
+                    let container = try makeLicenseContainer(for: downloadedFile, mimetypes: mimetypes)
                     try container.write(license)
                     completion((downloadedFile, task), nil)
                     
