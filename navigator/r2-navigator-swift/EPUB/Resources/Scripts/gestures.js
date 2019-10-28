@@ -9,7 +9,7 @@
 
   function touchstart(event) {
     isTapping = (event.touches.length == 1);
-    if (isInteractiveElement(event.target) || !isTapping) {
+    if (!isTapping || event.defaultPrevented || isInteractiveElement(event.target)) {
       return;
     }
 
@@ -20,7 +20,7 @@
   }
 
   function touchend(event) {
-    if (!isTapping || touchStartTime == null || Date.now() - touchStartTime > 500) {
+    if (!isTapping || event.defaultPrevented || touchStartTime == null || Date.now() - touchStartTime > 500) {
       return;
     }
     isTapping = false;
@@ -52,10 +52,14 @@
 //    event.preventDefault();
   }
 
+  // See. https://github.com/JayPanoz/architecture/tree/touch-handling/misc/touch-handling
   function isInteractiveElement(element) {
     var interactiveTags = [
       'a',
+      'audio',
       'button',
+      'canvas',
+      'details',
       'input',
       'label',
       'option',
@@ -64,10 +68,13 @@
       'textarea',
       'video',
     ]
-
-    // https://stackoverflow.com/questions/4878484/difference-between-tagname-and-nodename
     if (interactiveTags.indexOf(element.nodeName.toLowerCase()) != -1) {
-        return true;
+      return true;
+    }
+
+    // Checks whether the element is editable by the user.
+    if (element.hasAttribute('contenteditable') && element.getAttribute('contenteditable').toLowerCase() != 'false') {
+      return true;
     }
 
     // Checks parents recursively because the touch might be for example on an <em> inside a <a>.
