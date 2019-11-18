@@ -10,22 +10,24 @@
 //
 
 import Foundation
+import UIKit
 import R2Shared
 
 
 final class NetworkService: Loggable {
-    
+
     enum Method: String {
         case get = "GET"
         case post = "POST"
         case put = "PUT"
     }
-
+    
     func fetch(_ url: URL, method: Method = .get, timeout: TimeInterval? = nil) -> Deferred<(status: Int, data: Data)> {
         return Deferred { success, failure in
             self.log(.info, "\(method.rawValue) \(url)")
     
             var request = URLRequest(url: url)
+            request.setValue(self.userAgent, forHTTPHeaderField: "User-Agent")
             request.httpMethod = method.rawValue
             if let timeout = timeout {
                 request.timeoutInterval = timeout
@@ -58,5 +60,31 @@ final class NetworkService: Loggable {
             return true
         }
     }
+    
+    /// Builds a more meaningful User-Agent for the LCP network requests.
+    /// See. https://github.com/readium/r2-testapp-swift/issues/291
+    private lazy var userAgent: String = {
+        var sysinfo = utsname()
+        uname(&sysinfo)
+
+        let darwinVersion = String(bytes: Data(bytes: &sysinfo.release, count: Int(_SYS_NAMELEN)), encoding: .ascii)?
+            .trimmingCharacters(in: .controlCharacters)
+            ?? "0"
+
+        let deviceName = String(bytes: Data(bytes: &sysinfo.machine, count: Int(_SYS_NAMELEN)), encoding: .ascii)?
+            .trimmingCharacters(in: .controlCharacters)
+            ?? "0"
+
+        let cfNetworkVersion = Bundle(identifier: "com.apple.CFNetwork")?
+            .infoDictionary?["CFBundleShortVersionString"] as? String
+            ?? "0"
+
+        let appInfo = Bundle.main.infoDictionary
+        let appName = appInfo?["CFBundleName"] as? String ?? "Unknown App"
+        let appVersion = appInfo?["CFBundleShortVersionString"] as? String ?? "0"
+        let device = UIDevice.current
+
+        return "\(appName)/\(appVersion) \(deviceName) \(device.systemName)/\(device.systemVersion) CFNetwork/\(cfNetworkVersion) Darwin/\(darwinVersion)"
+    }()
     
 }

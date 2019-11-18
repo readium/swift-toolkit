@@ -20,7 +20,7 @@ public enum LCPError: LocalizedError {
     // The status of the License is not valid, it can't be used to decrypt the publication.
     case licenseStatus(StatusError)
     // Can't read or write the License Document from its container.
-    case licenseContainer
+    case licenseContainer(ContainerError)
     // The interaction is not available with this License.
     case licenseInteractionNotAvailable
     // This License's profile is not supported by liblcp.
@@ -74,7 +74,7 @@ public enum LCPError: LocalizedError {
             return R2LCPLocalizedString("LCPError.licenseIntegrity", description)
         case .licenseStatus(let error):
             return error.localizedDescription
-        case .licenseContainer:
+        case .licenseContainer(_):
             return R2LCPLocalizedString("LCPError.licenseContainer")
         case .licenseInteractionNotAvailable:
             return R2LCPLocalizedString("LCPError.licenseInteractionNotAvailable")
@@ -197,4 +197,17 @@ public enum ParsingError: Error {
     case signature
     // Invalid URL for link with rel %@.
     case url(rel: String)
+}
+
+
+/// Errors while reading or writing a LCP container (LCPL, EPUB, LCPDF, etc.)
+public enum ContainerError: Error {
+    // Can't access the container, it's format is wrong.
+    case openFailed
+    // The file at given relative path is not found in the Container.
+    case fileNotFound(String)
+    // Can't read the file at given relative path in the Container.
+    case readFailed(path: String)
+    // Can't write the file at given relative path in the Container.
+    case writeFailed(path: String)
 }
