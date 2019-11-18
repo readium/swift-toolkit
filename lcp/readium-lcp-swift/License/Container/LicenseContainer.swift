@@ -20,13 +20,12 @@ protocol LicenseContainer {
 
 }
 
-func makeLicenseContainer(for publication: URL, mimetype: String? = nil) throws -> LicenseContainer {
-    switch Publication.Format(file: publication, mimetype: mimetype) {
+func makeLicenseContainer(for publication: URL, mimetypes: [String] = []) throws -> LicenseContainer {
+    switch Publication.Format(file: publication, mimetypes: mimetypes) {
     case .pdf:
         return LCPDFLicenseContainer(lcpdf: publication)
-    case .epub:
-        return EPUBLicenseContainer(epub: publication)
     default:
-        throw LCPError.licenseContainer
+        // If we can't determine the format, we assume that the publication is an EPUB as this is the most common use case.
+        return EPUBLicenseContainer(epub: publication)
     }
 }
