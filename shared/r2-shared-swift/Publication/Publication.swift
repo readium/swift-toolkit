@@ -205,34 +205,40 @@ public class Publication: WebPublication, Loggable {
                 }
             }()
         }
-
+        
         /// Finds the format of the publication at the given url.
         /// Uses the format declared as exported UTIs in the app's Info.plist, or fallbacks on the file extension.
         ///
         /// - Parameter mimetype: Fallback mimetype if the UTI can't be determined.
-        public init(file: URL, mimetype: String? = nil) {
-            var mimetypes: [String?] = []
-            
-            mimetypes.append({
+        public init(file: URL, mimetype: String) {
+            self.init(file: file, mimetypes: [mimetype])
+        }
+
+        /// Finds the format of the publication at the given url.
+        /// Uses the format declared as exported UTIs in the app's Info.plist, or fallbacks on the file extension.
+        ///
+        /// - Parameter mimetypes: Fallback mimetypes if the UTI can't be determined.
+        public init(file: URL, mimetypes: [String] = []) {
+            func mimetype(of url: URL) -> String? {
                 // `mimetype` file in a directory
                 var isDirectory: ObjCBool = false
                 FileManager.default.fileExists(atPath: file.path, isDirectory: &isDirectory)
                 if isDirectory.boolValue {
                     return try? String(contentsOf: file.appendingPathComponent("mimetype"), encoding: String.Encoding.utf8)
-                // UTI
+                    // UTI
                 } else if let extUTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, file.pathExtension as CFString, nil)?.takeUnretainedValue() {
                     return UTTypeCopyPreferredTagWithClass(extUTI, kUTTagClassMIMEType)?.takeRetainedValue() as String?
                 } else {
                     return nil
                 }
-            }())
+            }
+            
+            var mimetypes = mimetypes
+            if let mimetype = mimetype(of: file) {
+                mimetypes.append(mimetype)
+            }
 
-            mimetypes.append(mimetype)
-
-            self.init(
-                mimetypes: mimetypes.compactMap { $0 },
-                fileExtension: file.pathExtension
-            )
+            self.init(mimetypes: mimetypes, fileExtension: file.pathExtension)
         }
         
         @available(*, deprecated, renamed: "init(file:)")
