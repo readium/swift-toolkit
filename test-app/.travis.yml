@@ -1,5 +1,7 @@
 language: swift
 osx_image: xcode11
+os: osx
+xcode_destination: platform=iOS Simulator, OS=12.1, name=iPhone XS
 
 branches:
   only:
@@ -16,4 +18,4 @@ before_install:
   - carthage update --verbose --no-use-binaries --platform iOS --cache-builds 
 
 script:
-  - xcodebuild clean build -project r2-testapp-swift.xcodeproj -scheme 'r2-testapp-swift (carthage)' -quiet > /dev/null
+  - xcodebuild clean build -project r2-testapp-swift.xcodeproj -scheme 'r2-testapp-swift (carthage)' -quiet
