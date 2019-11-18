@@ -178,6 +178,6 @@ extension OPDSAcquisition {
     public var typeAcquisition: String { get { return type } set { type = newValue } }
     
     @available(*, deprecated, renamed: "children")
-    public var child: [OPDSAcquisition] { get { return children } set { children = child } }
+    public var child: [OPDSAcquisition] { get { return children } set { children = newValue } }
     
 }
