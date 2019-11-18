@@ -62,7 +62,10 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         
         view.backgroundColor = .black
         
-        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTap)))
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(didTap))
+        tapGesture.numberOfTapsRequired = 1
+        tapGesture.delegate = self
+        view.addGestureRecognizer(tapGesture)
         
         pdfView = PDFDocumentView(frame: view.bounds, editingActions: editingActions)
         pdfView.delegate = self
@@ -318,6 +321,15 @@ extension PDFNavigatorViewController: EditingActionsControllerDelegate {
     
     func editingActionsDidPreventCopy(_ editingActions: EditingActionsController) {
         delegate?.navigator(self, presentError: .copyForbidden)
+    }
+    
+}
+
+@available(iOS 11.0, *)
+extension PDFNavigatorViewController: UIGestureRecognizerDelegate {
+
+    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
     }
     
 }

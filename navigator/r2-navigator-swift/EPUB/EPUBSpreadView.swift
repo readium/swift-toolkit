@@ -161,16 +161,7 @@ class EPUBSpreadView: UIView, Loggable {
     }
     
     func loadSpread() {
-        guard spread.pageCount == .one else {
-            log(.error, "Only one-page spreads are supported with \(type(of: self))")
-            return
-        }
-        let link = spread.leading
-        guard let url = publication.url(to: link) else {
-            log(.error, "Can't get URL for link \(link.href)")
-            return
-        }
-        webView.load(URLRequest(url: url))
+        fatalError("loadSpread() must be implemented in subclasses")
     }
 
     /// Evaluates the given JavaScript into the resource's HTML page.

@@ -48,6 +48,19 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         super.traitCollectionDidChange(previousTraitCollection)
         updateContentInset()
     }
+    
+    override func loadSpread() {
+        guard spread.links.count == 1 else {
+            log(.error, "Only one document at a time can be displayed in a reflowable spread")
+            return
+        }
+        let link = spread.leading
+        guard let url = publication.url(to: link) else {
+            log(.error, "Can't get URL for link \(link.href)")
+            return
+        }
+        webView.load(URLRequest(url: url))
+    }
 
     override func applyUserSettingsStyle() {
         super.applyUserSettingsStyle()

@@ -189,8 +189,9 @@ struct EPUBSpread: Loggable {
             
             let first = links.removeFirst()
             let layout = publication.metadata.rendition.layout(of: first)
-            // To be displayed together, the two pages must have the same rendition layout, and have consecutive position hints (Properties.Page).
+            // To be displayed together, the two pages must have a fixed layout, and have consecutive position hints (Properties.Page).
             if let second = links.first,
+                layout == .fixed,
                 layout == publication.metadata.rendition.layout(of: second),
                 areConsecutive(first, second)
             {

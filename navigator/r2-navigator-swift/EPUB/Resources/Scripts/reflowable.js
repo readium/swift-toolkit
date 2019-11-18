@@ -14,7 +14,7 @@
     // Setups the `viewport` meta tag to disable zooming.
     var meta = document.createElement("meta");
     meta.setAttribute("name", "viewport");
-    meta.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
+    meta.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no");
     document.head.appendChild(meta);
 
   });
