@@ -13,7 +13,7 @@ cache:
 before_install:
   - brew update
   - brew outdated carthage || brew upgrade carthage
-  - carthage update --verbose --no-use-binaries --platform iOS --cache-builds
+  - carthage update --verbose --no-use-binaries --platform iOS --cache-builds 
 
 script:
-  - xcodebuild clean build -project r2-testapp-swift.xcodeproj -scheme 'r2-testapp-swift (carthage)' -quiet
+  - xcodebuild clean build -project r2-testapp-swift.xcodeproj -scheme 'r2-testapp-swift (carthage)' -quiet > /dev/null
