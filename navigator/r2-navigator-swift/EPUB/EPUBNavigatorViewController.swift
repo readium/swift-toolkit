@@ -372,6 +372,10 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
             notifyCurrentLocation()
         }
     }
+    
+    func spreadView(_ spreadView: EPUBSpreadView, present viewController: UIViewController) {
+        present(viewController, animated: true)
+    }
 
 }
 

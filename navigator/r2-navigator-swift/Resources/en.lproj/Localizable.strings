@@ -10,3 +10,4 @@
 */
 
 "R2Navigator.NavigatorError.copyForbidden" = "You exceeded the amount of characters allowed to be copied.";
+"R2Navigator.EditingAction.share" = "Share…";
