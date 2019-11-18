@@ -13,11 +13,11 @@ import Foundation
 import WebKit
 
 /// A custom web view which:
-///  - Forwards selection actions to an EditingActionsController.
+///  - Forwards copy: menu action to an EditingActionsController.
 final class WebView: WKWebView {
     
     private let editingActions: EditingActionsController
-    
+
     init(editingActions: EditingActionsController) {
         self.editingActions = editingActions
         super.init(frame: .zero, configuration: .init())
@@ -33,18 +33,16 @@ final class WebView: WKWebView {
         isUserInteractionEnabled = false
         isUserInteractionEnabled = true
     }
-    
+
     override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
-        return  super.canPerformAction(action, withSender: sender) && editingActions.canPerformAction(action)
+        return super.canPerformAction(action, withSender: sender)
+            && editingActions.canPerformAction(action)
     }
     
     override func copy(_ sender: Any?) {
-        guard editingActions.requestCopy() else {
-            return
-        }
-        super.copy(sender)
+        editingActions.copy()
     }
-    
+
     override func didMoveToWindow() {
         super.didMoveToWindow()
         setupDragAndDrop()
@@ -64,4 +62,3 @@ final class WebView: WKWebView {
     }
     
 }
-
