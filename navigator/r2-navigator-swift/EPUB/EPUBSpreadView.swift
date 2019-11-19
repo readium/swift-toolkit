@@ -32,6 +32,9 @@ protocol EPUBSpreadViewDelegate: class {
     /// Called when the pages visible in the spread changed.
     func spreadViewPagesDidChange(_ spreadView: EPUBSpreadView)
     
+    /// Called when the spread view needs to present a view controller.
+    func spreadView(_ spreadView: EPUBSpreadView, present viewController: UIViewController)
+    
 }
 
 class EPUBSpreadView: UIView, Loggable {
@@ -48,6 +51,7 @@ class EPUBSpreadView: UIView, Loggable {
     let contentLayout: ContentLayoutStyle
     let readingProgression: ReadingProgression
     let userSettings: UserSettings
+    let editingActions: EditingActionsController
 
     /// If YES, the content will be faded in once loaded.
     let animatedLoad: Bool
@@ -73,6 +77,7 @@ class EPUBSpreadView: UIView, Loggable {
         self.contentLayout = contentLayout
         self.readingProgression = readingProgression
         self.userSettings = userSettings
+        self.editingActions = editingActions
         self.animatedLoad = animatedLoad
         self.webView = WebView(editingActions: editingActions)
         self.contentInset = contentInset
@@ -95,6 +100,13 @@ class EPUBSpreadView: UIView, Loggable {
         registerJSMessages()
 
         NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: Notification.Name(UIAccessibilityVoiceOverStatusChanged), object: nil)
+        
+        UIMenuController.shared.menuItems = [
+            UIMenuItem(
+                title: R2NavigatorLocalizedString("EditingAction.share"),
+                action: #selector(shareSelection)
+            )
+        ]
         
         updateActivityIndicator()
         loadSpread()
@@ -149,16 +161,7 @@ class EPUBSpreadView: UIView, Loggable {
     }
     
     func loadSpread() {
-        guard spread.pageCount == .one else {
-            log(.error, "Only one-page spreads are supported with \(type(of: self))")
-            return
-        }
-        let link = spread.leading
-        guard let url = publication.url(to: link) else {
-            log(.error, "Can't get URL for link \(link.href)")
-            return
-        }
-        webView.load(URLRequest(url: url))
+        fatalError("loadSpread() must be implemented in subclasses")
     }
 
     /// Evaluates the given JavaScript into the resource's HTML page.
@@ -208,6 +211,34 @@ class EPUBSpreadView: UIView, Loggable {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             self.go(to: self.initialLocation, completion: showSpread)
         }
+    }
+
+    /// Called by the JavaScript layer when the user selection changed.
+    private func selectionDidChange(_ body: Any) {
+        guard let selection = body as? [String: Any],
+            let text = selection["text"] as? String,
+            let frame = selection["frame"] as? [String: Any] else
+        {
+            log(.warning, "Invalid body for selectionDidChange: \(body)")
+            return
+        }
+        editingActions.selectionDidChange((
+            text: text,
+            frame: CGRect(
+                x: frame["x"] as? CGFloat ?? 0,
+                y: frame["y"] as? CGFloat ?? 0,
+                width: frame["width"] as? CGFloat ?? 0,
+                height: frame["height"] as? CGFloat ?? 0
+            )
+        ))
+    }
+    
+    /// Called when the user hit the Share item in the selection context menu.
+    @objc func shareSelection(_ sender: Any?) {
+        guard let shareViewController = editingActions.makeShareViewController(from: webView) else {
+            return
+        }
+        delegate?.spreadView(self, present: shareViewController)
     }
 
     /// Update webview style to userSettings.
@@ -321,6 +352,7 @@ class EPUBSpreadView: UIView, Loggable {
     func registerJSMessages() {
         registerJSMessage(named: "tap") { [weak self] in self?.didTap($0) }
         registerJSMessage(named: "spreadLoaded") { [weak self] in self?.spreadDidLoad($0) }
+        registerJSMessage(named: "selectionChanged") { [weak self] in self?.selectionDidChange($0) }
     }
     
     /// Add the message handlers for incoming javascript events.
