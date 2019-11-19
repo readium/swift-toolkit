@@ -32,10 +32,7 @@ public final class PDFDocumentView: PDFView {
     }
 
     public override func copy(_ sender: Any?) {
-        guard editingActions.requestCopy() else {
-            return
-        }
-        super.copy(sender)
+        editingActions.copy()
     }
-    
+
 }

@@ -62,7 +62,10 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         
         view.backgroundColor = .black
         
-        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTap)))
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(didTap))
+        tapGesture.numberOfTapsRequired = 1
+        tapGesture.delegate = self
+        view.addGestureRecognizer(tapGesture)
         
         pdfView = PDFDocumentView(frame: view.bounds, editingActions: editingActions)
         pdfView.delegate = self
@@ -71,7 +74,15 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         
         setupPDFView()
 
-        NotificationCenter.default.addObserver(self, selector: #selector(pageDidChange), name: Notification.Name.PDFViewPageChanged, object: pdfView)
+        NotificationCenter.default.addObserver(self, selector: #selector(pageDidChange), name: .PDFViewPageChanged, object: pdfView)
+        NotificationCenter.default.addObserver(self, selector: #selector(selectionDidChange), name: .PDFViewSelectionChanged, object: pdfView)
+        
+        UIMenuController.shared.menuItems = [
+            UIMenuItem(
+                title: R2NavigatorLocalizedString("EditingAction.share"),
+                action: #selector(shareSelection)
+            )
+        ]
         
         if let locator = initialLocation ?? publication.positionList.first {
             go(to: locator)
@@ -200,7 +211,32 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         
         return positionList[pageNumber - 1]
     }
+    
+    
+    // MARK: - User Selection
 
+    @objc func selectionDidChange(_ note: Notification) {
+        guard let selection = pdfView.currentSelection,
+            let text = selection.string,
+            let page = selection.pages.first else
+        {
+            editingActions.selectionDidChange(nil)
+            return
+        }
+        
+        let frame = pdfView.convert(selection.bounds(for: page), from: page)
+            // Makes it slightly bigger to have more room when displaying a popover.
+            .insetBy(dx: -8, dy: -8)
+        editingActions.selectionDidChange((text: text, frame: frame))
+    }
+
+    @objc private func shareSelection(_ sender: Any?) {
+        guard let shareViewController = editingActions.makeShareViewController(from: pdfView) else {
+            return
+        }
+        present(shareViewController, animated: true)
+    }
+    
     
     // MARK: - Navigator
 
@@ -285,6 +321,15 @@ extension PDFNavigatorViewController: EditingActionsControllerDelegate {
     
     func editingActionsDidPreventCopy(_ editingActions: EditingActionsController) {
         delegate?.navigator(self, presentError: .copyForbidden)
+    }
+    
+}
+
+@available(iOS 11.0, *)
+extension PDFNavigatorViewController: UIGestureRecognizerDelegate {
+
+    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
     }
     
 }
