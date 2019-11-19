@@ -1,5 +1,8 @@
 language: swift
 osx_image: xcode11
+xcode_project: r2-streamer-swift.xcodeproj
+xcode_scheme: r2-streamer-swift
+xcode_destination: platform=iOS Simulator,OS=11.3,name=iPhone X
 
 branches:
   only:
@@ -16,4 +19,4 @@ before_install:
   - carthage update --verbose --no-use-binaries --platform iOS --cache-builds
 
 script:
-  - xcodebuild clean build -project r2-streamer-swift.xcodeproj -scheme r2-streamer-swift -quiet
+  - xcodebuild clean build -quiet
