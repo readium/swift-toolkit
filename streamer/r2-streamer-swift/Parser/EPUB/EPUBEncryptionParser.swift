@@ -56,7 +56,7 @@ final class EPUBEncryptionParser: Loggable {
         // Loop through <EncryptedData> elements..
         for encryptedDataElement in document.xpath("./enc:EncryptedData") {
             guard let algorithm = encryptedDataElement.firstChild(xpath: "enc:EncryptionMethod")?.attr("Algorithm"),
-                var resourceURI = encryptedDataElement.firstChild(xpath:"enc:CipherData/enc:CipherReference")?.attr("URI") else
+                var resourceURI = encryptedDataElement.firstChild(xpath:"enc:CipherData/enc:CipherReference")?.attr("URI")?.removingPercentEncoding else
             {
                 continue
             }

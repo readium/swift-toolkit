@@ -183,7 +183,7 @@ final class OPFParser: Loggable {
     /// - Parameter item: The XML element, or manifest XML item.
     /// - Returns: The `Link` representing the manifest XML item.
     private func makeLink(from manifestItem: XMLElement) -> Link? {
-        guard let href = manifestItem.attr("href") else {
+        guard let href = manifestItem.attr("href")?.removingPercentEncoding else {
             return nil
         }
         
