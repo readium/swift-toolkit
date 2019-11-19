@@ -21,5 +21,5 @@ before_install:
   - carthage bootstrap --verbose --no-use-binaries --platform iOS --cache-builds
 
 script:
-  - xcodebuild clean build -quiet CODE_SIGNING_REQUIRED=NO
+  - xcodebuild clean build CODE_SIGNING_REQUIRED=NO ONLY_ACTIVE_ARCH=NO -quiet
 
