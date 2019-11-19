@@ -1,5 +1,9 @@
 language: swift
 osx_image: xcode11
+xcode_project: readium-opds.xcodeproj
+xcode_scheme: readium-opds
+xcode_destination: platform=iOS Simulator,OS=11.3,name=iPhone X
+xcode_sdk: iphonesimulator13.0
 
 branches:
   only:
@@ -13,7 +17,8 @@ cache:
 before_install:
   - brew update
   - brew outdated carthage || brew upgrade carthage
-  - carthage update --verbose --no-use-binaries --platform iOS --cache-builds
+  - carthage bootstrap --verbose --no-use-binaries --platform iOS --cache-builds
 
 script:
-  - xcodebuild clean build -project readium-opds.xcodeproj -scheme readium-opds -quiet
+  - xcodebuild clean build -quiet
+
