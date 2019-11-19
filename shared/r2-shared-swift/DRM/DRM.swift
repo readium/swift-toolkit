@@ -53,8 +53,9 @@ public protocol DRMLicense {
     
     /// Processes the given text to be copied by the user.
     /// For example, you can save how much characters was copied to limit the overall quantity.
+    /// - Parameter consumes: If true, then the user's copy right is consumed accordingly to the `text` input. Sets to false if you want to peek at the processed text without debiting the rights straight away.
     /// - Returns: The (potentially modified) text to put in the user clipboard, or nil if the user is not allowed to copy it.
-    func copy(_ text: String) -> String?
+    func copy(_ text: String, consumes: Bool) -> String?
     
 }
 
@@ -64,7 +65,7 @@ public extension DRMLicense {
 
     var canCopy: Bool { return true }
     
-    func copy(_ text: String) -> String? {
+    func copy(_ text: String, consumes: Bool) -> String? {
         return canCopy ? text : nil
     }
     
