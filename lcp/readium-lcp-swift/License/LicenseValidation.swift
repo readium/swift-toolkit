@@ -133,7 +133,7 @@ extension LicenseValidation {
         case fetchStatus(LicenseDocument)
         case validateStatus(LicenseDocument, Data)
         case fetchLicense(LicenseDocument, StatusDocument)
-        case checkLicenseStatus(LicenseDocument, StatusDocument?)
+        case checkLicenseStatus(LicenseDocument, StatusDocument?, statusDocumentTakesPrecedence: Bool)
         case requestPassphrase(LicenseDocument, StatusDocument?)
         case validateIntegrity(LicenseDocument, StatusDocument?, passphrase: String)
         case registerDevice(ValidatedDocuments, Link)
@@ -156,7 +156,7 @@ extension LicenseValidation {
             case let (.validateLicense(_, status), .validatedLicense(license)):
                 // Skips the status fetch if we already have one, to avoid any infinite loop
                 if let status = status {
-                    self = .checkLicenseStatus(license, status)
+                    self = .checkLicenseStatus(license, status, statusDocumentTakesPrecedence: false)
                 } else {
                     self = .fetchStatus(license)
                 }
@@ -168,7 +168,7 @@ extension LicenseValidation {
                 self = .validateStatus(license, data)
             case let (.fetchStatus(license), .failed(_)):
                 // We ignore any error while fetching the Status Document, as it is optional
-                self = .checkLicenseStatus(license, nil)
+                self = .checkLicenseStatus(license, nil, statusDocumentTakesPrecedence: false)
 
             // 2.2. Validate the structure of the status document
             case let (.validateStatus(license, _), .validatedStatus(status)):
@@ -176,21 +176,22 @@ extension LicenseValidation {
                 if license.updated < status.licenseUpdated {
                     self = .fetchLicense(license, status)
                 } else {
-                    self = .checkLicenseStatus(license, status)
+                    self = .checkLicenseStatus(license, status, statusDocumentTakesPrecedence: false)
                 }
             case let (.validateStatus(license, _), .failed(_)):
                 // We ignore any error while validating the Status Document, as it is optional
-                self = .checkLicenseStatus(license, nil)
+                self = .checkLicenseStatus(license, nil, statusDocumentTakesPrecedence: false)
 
             // 3. Get an updated license if needed
             case let (.fetchLicense(_, status), .retrievedLicenseData(data)):
                 self = .validateLicense(data, status)
             case let (.fetchLicense(license, status), .failed(_)):
                 // We ignore any error while fetching the updated License Document
-                self = .checkLicenseStatus(license, status)
+                // Note: since we failed to get the updated License, then the Status Document will take precedence over the License when checking the status.
+                self = .checkLicenseStatus(license, status, statusDocumentTakesPrecedence: true)
 
             // 4. Check the dates and license status
-            case let (.checkLicenseStatus(license, status), .checkedLicenseStatus(error)):
+            case let (.checkLicenseStatus(license, status, _), .checkedLicenseStatus(error)):
                 if let error = error {
                     self = .valid(ValidatedDocuments(license, .right(error), status))
                 } else {
@@ -325,14 +326,18 @@ extension LicenseValidation {
             .resolve(raise)
     }
     
-    private func checkLicenseStatus(of license: LicenseDocument, status: StatusDocument?) throws {
+    private func checkLicenseStatus(of license: LicenseDocument, status: StatusDocument?, statusDocumentTakesPrecedence: Bool) throws {
         var error: StatusError? = nil
         
         let now = Date()
         let start = license.rights.start ?? now
         let end = license.rights.end ?? now
-        // We only check the Status Document's status if the License rights are not valid, to get a proper status error message.
-        if start > now || now > end {
+        let isLicenseExpired = (start > now || now > end)
+        
+        let isStatusValid = [.ready, .active].contains(status?.status ?? .ready)
+        
+        // We only check the Status Document's status if the License itself is expired, to get a proper status error message. But in the case where the Status Document takes precedence (eg. after a failed License update), then we also check the status validity.
+        if isLicenseExpired || (statusDocumentTakesPrecedence && !isStatusValid) {
             if let status = status {
                 let date = status.updated
                 switch status.status {
@@ -404,8 +409,8 @@ extension LicenseValidation {
                 try validateStatus(data: data)
             case let .fetchLicense(_, status):
                 try fetchLicense(from: status)
-            case let .checkLicenseStatus(license, status):
-                try checkLicenseStatus(of: license, status: status)
+            case let .checkLicenseStatus(license, status, statusDocumentTakesPrecedence):
+                try checkLicenseStatus(of: license, status: status, statusDocumentTakesPrecedence: statusDocumentTakesPrecedence)
             case let .requestPassphrase(license, _):
                 requestPassphrase(for: license)
             case let .validateIntegrity(license, _, passphrase):

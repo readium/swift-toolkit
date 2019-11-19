@@ -78,7 +78,7 @@ extension License: LCPLicense {
         return (charactersToCopyLeft ?? 1) > 0
     }
     
-    func copy(_ text: String) -> String? {
+    func copy(_ text: String, consumes: Bool) -> String? {
         guard var charactersLeft = charactersToCopyLeft else {
             return text
         }
@@ -93,11 +93,13 @@ extension License: LCPLicense {
             text = String(text[..<endIndex])
         }
         
-        do {
-            charactersLeft = max(0, charactersLeft - text.count)
-            try licenses.setCopiesLeft(charactersLeft, for: license.id)
-        } catch {
-            log(.error, error)
+        if consumes {
+            do {
+                charactersLeft = max(0, charactersLeft - text.count)
+                try licenses.setCopiesLeft(charactersLeft, for: license.id)
+            } catch {
+                log(.error, error)
+            }
         }
         
         return text
@@ -167,7 +169,7 @@ extension License: LCPLicense {
                 throw LCPError.licenseInteractionNotAvailable
             }
             
-            return Deferred<Void> { success, _ in present(url, success) }
+            return Deferred<Void> { success, _ in present(url, { success(()) }) }
                 .flatMap { _ in
                     // We fetch the Status Document again after the HTML interaction is done, in case it changed the License.
                     self.network.fetch(statusURL)
@@ -243,18 +245,26 @@ extension License {
     func fetchPublication(completion: @escaping ((URL, URLSessionDownloadTask?)?, Error?) -> Void) -> Observable<DownloadProgress> {
         do {
             let license = self.documents.license
-            let title = license.link(for: .publication)?.title
+            let link = license.link(for: .publication)
             let url = try license.url(for: .publication)
 
-            return self.network.download(url, title: title) { result, error in
+            return self.network.download(url, title: link?.title) { result, error in
                 guard let (downloadedFile, task) = result else {
                     completion(nil, error)
                     return
                 }
                 
                 do {
+                    var mimetypes: [String] = []
+                    if let responseMimetype = task?.response?.mimeType {
+                        mimetypes.append(responseMimetype)
+                    }
+                    if let linkType = link?.type {
+                        mimetypes.append(linkType)
+                    }
+                    
                     // Saves the License Document into the downloaded publication
-                    let container = try makeLicenseContainer(for: downloadedFile, mimetype: task?.response?.mimeType)
+                    let container = try makeLicenseContainer(for: downloadedFile, mimetypes: mimetypes)
                     try container.write(license)
                     completion((downloadedFile, task), nil)
                     
