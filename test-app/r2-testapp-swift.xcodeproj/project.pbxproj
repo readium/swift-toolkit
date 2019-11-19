@@ -1546,6 +1546,7 @@
 				CODE_SIGN_ENTITLEMENTS = "r2-testapp-swift/r2-testapp-swift.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1563,6 +1564,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
+				MARKETING_VERSION = 2.1.0;
 				OTHER_LDFLAGS = "-lxml2";
 				OTHER_SWIFT_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.r2reader;
@@ -1582,6 +1584,7 @@
 				CODE_SIGN_ENTITLEMENTS = "r2-testapp-swift/r2-testapp-swift.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1599,6 +1602,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
+				MARKETING_VERSION = 2.1.0;
 				OTHER_LDFLAGS = "-lxml2";
 				OTHER_SWIFT_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.r2reader;
@@ -1618,6 +1622,7 @@
 				CODE_SIGN_ENTITLEMENTS = "r2-testapp-swift/r2-testapp-swift.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1635,6 +1640,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
+				MARKETING_VERSION = 2.1.0;
 				OTHER_LDFLAGS = "-lxml2";
 				OTHER_SWIFT_FLAGS = "-DLCP";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.r2reader;
@@ -1654,6 +1660,7 @@
 				CODE_SIGN_ENTITLEMENTS = "r2-testapp-swift/r2-testapp-swift.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1671,6 +1678,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
+				MARKETING_VERSION = 2.1.0;
 				OTHER_LDFLAGS = "-lxml2";
 				OTHER_SWIFT_FLAGS = "-DLCP";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.r2reader;
@@ -1883,6 +1891,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1897,6 +1906,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
+				MARKETING_VERSION = 2.1.0;
 				OTHER_LDFLAGS = "-lxml2";
 				OTHER_SWIFT_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.r2reader;
@@ -1917,6 +1927,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1931,6 +1942,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
+				MARKETING_VERSION = 2.1.0;
 				OTHER_LDFLAGS = "-lxml2";
 				OTHER_SWIFT_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.r2reader;
