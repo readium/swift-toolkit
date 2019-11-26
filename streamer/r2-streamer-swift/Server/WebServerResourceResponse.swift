@@ -9,14 +9,9 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
-#if COCOAPODS
-import GCDWebServer
-#else
-import GCDWebServers
-#endif
-
 import Foundation
 import R2Shared
+import GCDWebServer
 
 extension GCDWebServerResponse: Loggable {}
 
