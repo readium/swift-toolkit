@@ -7,6 +7,6 @@ github "krzyzanowskim/CryptoSwift" == 1.2.0
 github "cezheng/Fuzi" == 3.1.1
 github "dexman/Minizip" == 1.4.0
 github "readium/r2-shared-swift" == 1.4.2
-github "readium/r2-streamer-swift" == 1.2.3
+github "readium/r2-streamer-swift" == 1.2.4
 github "readium/r2-navigator-swift" == 1.2.5
 github "readium/readium-opds-swift" == 1.2.2
