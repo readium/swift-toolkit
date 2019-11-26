@@ -11,11 +11,7 @@
 
 import Foundation
 import R2Shared
-#if COCOAPODS
 import GCDWebServer
-#else
-import GCDWebServers
-#endif
 
 extension PublicationServer: Loggable {}
 
