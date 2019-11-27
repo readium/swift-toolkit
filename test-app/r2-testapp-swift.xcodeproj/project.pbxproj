@@ -20,7 +20,6 @@
 		03061922222D72AB00646F1F /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061921222D72AB00646F1F /* R2Streamer.framework */; };
 		03061923222D72AB00646F1F /* R2Streamer.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03061921222D72AB00646F1F /* R2Streamer.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		03061934222D936100646F1F /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192E222D936100646F1F /* CryptoSwift.framework */; };
-		03061936222D936100646F1F /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061930222D936100646F1F /* GCDWebServers.framework */; };
 		03061937222D936100646F1F /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061931222D936100646F1F /* Minizip.framework */; };
 		03061938222D936100646F1F /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061932222D936100646F1F /* ZIPFoundation.framework */; };
 		03061939222D936100646F1F /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061933222D936100646F1F /* Fuzi.framework */; };
@@ -111,6 +110,7 @@
 		03AE30962259F4D400AA4C7C /* BooksDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */; };
 		03AE30972259F4D400AA4C7C /* BooksDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */; };
 		03AE30982259F4D400AA4C7C /* BooksDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */; };
+		03B94499238D43FF0027986F /* GCDWebServer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03B94498238D43FF0027986F /* GCDWebServer.framework */; };
 		03BB67AD223874EE009A03C5 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192E222D936100646F1F /* CryptoSwift.framework */; };
 		03BB67AE223874EE009A03C5 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061933222D936100646F1F /* Fuzi.framework */; };
 		03BB67AF223874EE009A03C5 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061930222D936100646F1F /* GCDWebServers.framework */; };
@@ -443,6 +443,7 @@
 		0380490A21166627009F48BD /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BooksDatabase.swift; sourceTree = "<group>"; };
 		03BB67B5223874FA009A03C5 /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		03B94498238D43FF0027986F /* GCDWebServer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDWebServer.framework; path = Carthage/Build/iOS/GCDWebServer.framework; sourceTree = "<group>"; };
 		03BB67B8223874FA009A03C5 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03BB67BB223875CC009A03C5 /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
 		03BB67BC223875CC009A03C5 /* R2Navigator.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Navigator.framework; path = Carthage/Build/iOS/R2Navigator.framework; sourceTree = "<group>"; };
@@ -582,12 +583,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				03061934222D936100646F1F /* CryptoSwift.framework in Frameworks */,
-				03061936222D936100646F1F /* GCDWebServers.framework in Frameworks */,
 				03061937222D936100646F1F /* Minizip.framework in Frameworks */,
 				03061938222D936100646F1F /* ZIPFoundation.framework in Frameworks */,
 				03061939222D936100646F1F /* Fuzi.framework in Frameworks */,
 				03061919222D72AB00646F1F /* ReadiumOPDS.framework in Frameworks */,
 				0306191F222D72AB00646F1F /* R2Shared.framework in Frameworks */,
+				03B94499238D43FF0027986F /* GCDWebServer.framework in Frameworks */,
 				0352073E222D69330000F0A4 /* SQLite.framework in Frameworks */,
 				0306191C222D72AB00646F1F /* R2Navigator.framework in Frameworks */,
 				0352073C222D68EA0000F0A4 /* MBProgressHUD.framework in Frameworks */,
@@ -911,6 +912,7 @@
 		F3E7D4691F4EFE8700DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				03B94498238D43FF0027986F /* GCDWebServer.framework */,
 				03BB67C32238763E009A03C5 /* R2Navigator.framework */,
 				03BB67C52238763E009A03C5 /* R2Shared.framework */,
 				03BB67C72238763E009A03C5 /* R2Streamer.framework */,
