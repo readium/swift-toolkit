@@ -270,7 +270,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
 
         // Gets the current locator from the positionList, and fill its missing data.
         let progression = spreadView.progression(in: href)
-        let positionIndex = Int(progression * Double(positionList.count - 1))
+        let positionIndex = Int(ceil(progression * Double(positionList.count - 1)))
         var locator = positionList[positionIndex]
         locator.title = tableOfContentsTitleByHref[href]
         locator.locations.progression = progression
