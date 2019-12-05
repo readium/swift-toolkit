@@ -20,8 +20,6 @@ final class CBCDRMInputStream: DRMInputStream {
     enum Error: Swift.Error {
         case invalidStream
         case emptyDecryptedData
-        case readOutOfRange
-        case readEncryptedOutOfRange
         case readFailed
         case decryptionFailed
     }
@@ -63,17 +61,12 @@ final class CBCDRMInputStream: DRMInputStream {
     }
     
     override func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
-        guard hasBytesAvailable else {
-            return 0
-        }
-        
-        let len = Int64(len)
         let offset = Int64(self.offset)
-        guard offset + len <= length else {
-            fail(with: Error.readOutOfRange)
-            return -1
+        let len = min(Int64(len), Int64(length) - offset)
+        guard hasBytesAvailable, len > 0 else {
+            return 0 // EOF
         }
-        
+
         // Get offset result offset in the block.
         let blockOffset = offset % AESBlockSize
         // For beginning of the cipher text, IV used for XOR.
@@ -101,11 +94,6 @@ final class CBCDRMInputStream: DRMInputStream {
         do {
             let bufferSize = blocksCount * AESBlockSize
             var buffer = Array<UInt8>(repeating: 0, count: Int(bufferSize))
-            guard readPosition + bufferSize <= stream.length else {
-                fail(with: Error.readEncryptedOutOfRange)
-                return -1
-            }
-            
             stream.open()
             try stream.seek(offset: Int64(readPosition), whence: .startOfFile)
             let numberOfBytesRead = stream.read(&buffer, maxLength: Int(bufferSize))
