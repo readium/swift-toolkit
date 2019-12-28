@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		03061913222D72AB00646F1F /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061912222D72AB00646F1F /* R2LCPClient.framework */; };
-		03061914222D72AB00646F1F /* R2LCPClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03061912222D72AB00646F1F /* R2LCPClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		03061916222D72AB00646F1F /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061915222D72AB00646F1F /* ReadiumLCP.framework */; };
 		03061917222D72AB00646F1F /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03061915222D72AB00646F1F /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		03061919222D72AB00646F1F /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061918222D72AB00646F1F /* ReadiumOPDS.framework */; };
@@ -105,7 +103,9 @@
 		0352073A222D68CD0000F0A4 /* Kingfisher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03520739222D68CC0000F0A4 /* Kingfisher.framework */; };
 		0352073C222D68EA0000F0A4 /* MBProgressHUD.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0352073B222D68EA0000F0A4 /* MBProgressHUD.framework */; };
 		0352073E222D69330000F0A4 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0352073D222D69330000F0A4 /* SQLite.framework */; };
+		0377D42D23849BCD0019A0AA /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0377D42C23849BCD0019A0AA /* R2LCPClient.framework */; };
 		0380490B21166627009F48BD /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0380490A21166627009F48BD /* Toast.swift */; };
+		03A5DB9D23B785FC00D5FCBD /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0377D42C23849BCD0019A0AA /* R2LCPClient.framework */; };
 		03AE308F2259F3E400AA4C7C /* BooksDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */; };
 		03AE30962259F4D400AA4C7C /* BooksDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */; };
 		03AE30972259F4D400AA4C7C /* BooksDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */; };
@@ -113,14 +113,12 @@
 		03B94499238D43FF0027986F /* GCDWebServer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03B94498238D43FF0027986F /* GCDWebServer.framework */; };
 		03BB67AD223874EE009A03C5 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192E222D936100646F1F /* CryptoSwift.framework */; };
 		03BB67AE223874EE009A03C5 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061933222D936100646F1F /* Fuzi.framework */; };
-		03BB67AF223874EE009A03C5 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061930222D936100646F1F /* GCDWebServers.framework */; };
+		03BB67AF223874EE009A03C5 /* GCDWebServer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061930222D936100646F1F /* GCDWebServer.framework */; };
 		03BB67B0223874EE009A03C5 /* Kingfisher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03520739222D68CC0000F0A4 /* Kingfisher.framework */; };
 		03BB67B1223874EE009A03C5 /* MBProgressHUD.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0352073B222D68EA0000F0A4 /* MBProgressHUD.framework */; };
 		03BB67B2223874EE009A03C5 /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061931222D936100646F1F /* Minizip.framework */; };
 		03BB67B3223874EE009A03C5 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0352073D222D69330000F0A4 /* SQLite.framework */; };
 		03BB67B4223874EE009A03C5 /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061932222D936100646F1F /* ZIPFoundation.framework */; };
-		03BB67B6223874FA009A03C5 /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67B5223874FA009A03C5 /* R2LCPClient.framework */; };
-		03BB67B7223874FA009A03C5 /* R2LCPClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67B5223874FA009A03C5 /* R2LCPClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		03BB67B9223874FA009A03C5 /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67B8223874FA009A03C5 /* ReadiumLCP.framework */; };
 		03BB67BA223874FA009A03C5 /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67B8223874FA009A03C5 /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		03BB67BE223875CC009A03C5 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67BB223875CC009A03C5 /* R2Shared.framework */; };
@@ -137,7 +135,7 @@
 		03BB67D922387668009A03C5 /* R2Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03BB67D722387668009A03C5 /* R2Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		03BB67DB2238769D009A03C5 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192E222D936100646F1F /* CryptoSwift.framework */; };
 		03BB67DC2238769D009A03C5 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061933222D936100646F1F /* Fuzi.framework */; };
-		03BB67DD2238769D009A03C5 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061930222D936100646F1F /* GCDWebServers.framework */; };
+		03BB67DD2238769D009A03C5 /* GCDWebServer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061930222D936100646F1F /* GCDWebServer.framework */; };
 		03BB67DE2238769D009A03C5 /* Kingfisher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03520739222D68CC0000F0A4 /* Kingfisher.framework */; };
 		03BB67DF2238769D009A03C5 /* MBProgressHUD.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0352073B222D68EA0000F0A4 /* MBProgressHUD.framework */; };
 		03BB67E02238769D009A03C5 /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061931222D936100646F1F /* Minizip.framework */; };
@@ -149,7 +147,7 @@
 		03BB67E62238769D009A03C5 /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061932222D936100646F1F /* ZIPFoundation.framework */; };
 		03BB67E8223876D1009A03C5 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0306192E222D936100646F1F /* CryptoSwift.framework */; };
 		03BB67E9223876D1009A03C5 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061933222D936100646F1F /* Fuzi.framework */; };
-		03BB67EA223876D1009A03C5 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061930222D936100646F1F /* GCDWebServers.framework */; };
+		03BB67EA223876D1009A03C5 /* GCDWebServer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061930222D936100646F1F /* GCDWebServer.framework */; };
 		03BB67EB223876D1009A03C5 /* Kingfisher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03520739222D68CC0000F0A4 /* Kingfisher.framework */; };
 		03BB67EC223876D1009A03C5 /* MBProgressHUD.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0352073B222D68EA0000F0A4 /* MBProgressHUD.framework */; };
 		03BB67ED223876D1009A03C5 /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061931222D936100646F1F /* Minizip.framework */; };
@@ -384,7 +382,6 @@
 				03061920222D72AB00646F1F /* R2Shared.framework in Embed Frameworks */,
 				0306191A222D72AB00646F1F /* ReadiumOPDS.framework in Embed Frameworks */,
 				03061917222D72AB00646F1F /* ReadiumLCP.framework in Embed Frameworks */,
-				03061914222D72AB00646F1F /* R2LCPClient.framework in Embed Frameworks */,
 				03061923222D72AB00646F1F /* R2Streamer.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
@@ -411,7 +408,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				03BB67BA223874FA009A03C5 /* ReadiumLCP.framework in Embed Frameworks */,
-				03BB67B7223874FA009A03C5 /* R2LCPClient.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -419,14 +415,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		03061912222D72AB00646F1F /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03061915222D72AB00646F1F /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03061918222D72AB00646F1F /* ReadiumOPDS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumOPDS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0306191B222D72AB00646F1F /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0306191E222D72AB00646F1F /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03061921222D72AB00646F1F /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0306192E222D936100646F1F /* CryptoSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoSwift.framework; path = Carthage/Build/iOS/CryptoSwift.framework; sourceTree = "<group>"; };
-		03061930222D936100646F1F /* GCDWebServers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDWebServers.framework; path = Carthage/Build/iOS/GCDWebServers.framework; sourceTree = "<group>"; };
+		03061930222D936100646F1F /* GCDWebServer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDWebServer.framework; path = Carthage/Build/iOS/GCDWebServer.framework; sourceTree = "<group>"; };
 		03061931222D936100646F1F /* Minizip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Minizip.framework; path = Carthage/Build/iOS/Minizip.framework; sourceTree = "<group>"; };
 		03061932222D936100646F1F /* ZIPFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ZIPFoundation.framework; path = Carthage/Build/iOS/ZIPFoundation.framework; sourceTree = "<group>"; };
 		03061933222D936100646F1F /* Fuzi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Fuzi.framework; path = Carthage/Build/iOS/Fuzi.framework; sourceTree = "<group>"; };
@@ -440,9 +435,9 @@
 		03520739222D68CC0000F0A4 /* Kingfisher.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Kingfisher.framework; path = Carthage/Build/iOS/Kingfisher.framework; sourceTree = "<group>"; };
 		0352073B222D68EA0000F0A4 /* MBProgressHUD.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MBProgressHUD.framework; path = Carthage/Build/iOS/MBProgressHUD.framework; sourceTree = "<group>"; };
 		0352073D222D69330000F0A4 /* SQLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SQLite.framework; path = Carthage/Build/iOS/SQLite.framework; sourceTree = "<group>"; };
+		0377D42C23849BCD0019A0AA /* R2LCPClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2LCPClient.framework; path = Carthage/Build/iOS/R2LCPClient.framework; sourceTree = "<group>"; };
 		0380490A21166627009F48BD /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BooksDatabase.swift; sourceTree = "<group>"; };
-		03BB67B5223874FA009A03C5 /* R2LCPClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2LCPClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03B94498238D43FF0027986F /* GCDWebServer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDWebServer.framework; path = Carthage/Build/iOS/GCDWebServer.framework; sourceTree = "<group>"; };
 		03BB67B8223874FA009A03C5 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03BB67BB223875CC009A03C5 /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
@@ -544,7 +539,7 @@
 			files = (
 				03BB67E8223876D1009A03C5 /* CryptoSwift.framework in Frameworks */,
 				03BB67E9223876D1009A03C5 /* Fuzi.framework in Frameworks */,
-				03BB67EA223876D1009A03C5 /* GCDWebServers.framework in Frameworks */,
+				03BB67EA223876D1009A03C5 /* GCDWebServer.framework in Frameworks */,
 				03BB67EB223876D1009A03C5 /* Kingfisher.framework in Frameworks */,
 				03BB67EC223876D1009A03C5 /* MBProgressHUD.framework in Frameworks */,
 				03BB67ED223876D1009A03C5 /* Minizip.framework in Frameworks */,
@@ -566,10 +561,10 @@
 				03BB67BF223875CC009A03C5 /* R2Navigator.framework in Frameworks */,
 				03BB67C0223875CC009A03C5 /* R2Streamer.framework in Frameworks */,
 				03BB67AD223874EE009A03C5 /* CryptoSwift.framework in Frameworks */,
+				03A5DB9D23B785FC00D5FCBD /* R2LCPClient.framework in Frameworks */,
 				03BB67AE223874EE009A03C5 /* Fuzi.framework in Frameworks */,
-				03BB67AF223874EE009A03C5 /* GCDWebServers.framework in Frameworks */,
+				03BB67AF223874EE009A03C5 /* GCDWebServer.framework in Frameworks */,
 				03BB67B0223874EE009A03C5 /* Kingfisher.framework in Frameworks */,
-				03BB67B6223874FA009A03C5 /* R2LCPClient.framework in Frameworks */,
 				03BB67B1223874EE009A03C5 /* MBProgressHUD.framework in Frameworks */,
 				03BB67B2223874EE009A03C5 /* Minizip.framework in Frameworks */,
 				03BB67B3223874EE009A03C5 /* SQLite.framework in Frameworks */,
@@ -586,6 +581,7 @@
 				03061937222D936100646F1F /* Minizip.framework in Frameworks */,
 				03061938222D936100646F1F /* ZIPFoundation.framework in Frameworks */,
 				03061939222D936100646F1F /* Fuzi.framework in Frameworks */,
+				0377D42D23849BCD0019A0AA /* R2LCPClient.framework in Frameworks */,
 				03061919222D72AB00646F1F /* ReadiumOPDS.framework in Frameworks */,
 				0306191F222D72AB00646F1F /* R2Shared.framework in Frameworks */,
 				03B94499238D43FF0027986F /* GCDWebServer.framework in Frameworks */,
@@ -593,7 +589,6 @@
 				0306191C222D72AB00646F1F /* R2Navigator.framework in Frameworks */,
 				0352073C222D68EA0000F0A4 /* MBProgressHUD.framework in Frameworks */,
 				0352073A222D68CD0000F0A4 /* Kingfisher.framework in Frameworks */,
-				03061913222D72AB00646F1F /* R2LCPClient.framework in Frameworks */,
 				03061916222D72AB00646F1F /* ReadiumLCP.framework in Frameworks */,
 				03061922222D72AB00646F1F /* R2Streamer.framework in Frameworks */,
 			);
@@ -605,7 +600,7 @@
 			files = (
 				03BB67DB2238769D009A03C5 /* CryptoSwift.framework in Frameworks */,
 				03BB67DC2238769D009A03C5 /* Fuzi.framework in Frameworks */,
-				03BB67DD2238769D009A03C5 /* GCDWebServers.framework in Frameworks */,
+				03BB67DD2238769D009A03C5 /* GCDWebServer.framework in Frameworks */,
 				03BB67DE2238769D009A03C5 /* Kingfisher.framework in Frameworks */,
 				03BB67DF2238769D009A03C5 /* MBProgressHUD.framework in Frameworks */,
 				03BB67E02238769D009A03C5 /* Minizip.framework in Frameworks */,
@@ -849,13 +844,11 @@
 				03BB67CE2238765C009A03C5 /* R2Navigator.framework */,
 				03BB67CB2238765C009A03C5 /* ReadiumOPDS.framework */,
 				03BB67B8223874FA009A03C5 /* ReadiumLCP.framework */,
-				03BB67B5223874FA009A03C5 /* R2LCPClient.framework */,
 				03061921222D72AB00646F1F /* R2Streamer.framework */,
 				0306191E222D72AB00646F1F /* R2Shared.framework */,
 				0306191B222D72AB00646F1F /* R2Navigator.framework */,
 				03061918222D72AB00646F1F /* ReadiumOPDS.framework */,
 				03061915222D72AB00646F1F /* ReadiumLCP.framework */,
-				03061912222D72AB00646F1F /* R2LCPClient.framework */,
 				F3E7D43A1F4EF6D400DF166D /* r2-testapp-swift */,
 				F3E7D44F1F4EF6D400DF166D /* r2-testapp-swiftTests */,
 				F3E7D45A1F4EF6D400DF166D /* r2-testapp-swiftUITests */,
@@ -913,6 +906,7 @@
 			isa = PBXGroup;
 			children = (
 				03B94498238D43FF0027986F /* GCDWebServer.framework */,
+				0377D42C23849BCD0019A0AA /* R2LCPClient.framework */,
 				03BB67C32238763E009A03C5 /* R2Navigator.framework */,
 				03BB67C52238763E009A03C5 /* R2Shared.framework */,
 				03BB67C72238763E009A03C5 /* R2Streamer.framework */,
@@ -923,7 +917,7 @@
 				03BB67BD223875CC009A03C5 /* R2Streamer.framework */,
 				0306192E222D936100646F1F /* CryptoSwift.framework */,
 				03061933222D936100646F1F /* Fuzi.framework */,
-				03061930222D936100646F1F /* GCDWebServers.framework */,
+				03061930222D936100646F1F /* GCDWebServer.framework */,
 				03061931222D936100646F1F /* Minizip.framework */,
 				03061932222D936100646F1F /* ZIPFoundation.framework */,
 				0352073D222D69330000F0A4 /* SQLite.framework */,
@@ -1541,7 +1535,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1580,7 +1574,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1619,7 +1613,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1658,7 +1652,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1696,7 +1690,7 @@
 				CODE_SIGN_ENTITLEMENTS = "r2-testapp-swift/r2-testapp-swift.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1733,7 +1727,7 @@
 				CODE_SIGN_ENTITLEMENTS = "r2-testapp-swift/r2-testapp-swift.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1889,7 +1883,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1925,7 +1919,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",

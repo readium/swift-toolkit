@@ -19,7 +19,7 @@
 			<key>CFBundleTypeName</key>
 			<string>Epub Document</string>
 			<key>CFBundleTypeRole</key>
-			<string>Viewer</string>
+			<string>Editor</string>
 			<key>LSHandlerRank</key>
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
@@ -35,10 +35,12 @@
 			</array>
 			<key>CFBundleTypeIconFile</key>
 			<string>cbz</string>
+			<key>CFBundleTypeIconFiles</key>
+			<array/>
 			<key>CFBundleTypeName</key>
 			<string>Comic Zip</string>
 			<key>CFBundleTypeRole</key>
-			<string>Viewer</string>
+			<string>Editor</string>
 			<key>LSHandlerRank</key>
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
@@ -78,10 +80,12 @@
 				<string>lcpdf</string>
 				<string>LCPDF</string>
 			</array>
+			<key>CFBundleTypeIconFiles</key>
+			<array/>
 			<key>CFBundleTypeName</key>
 			<string>LCP for PDF Package</string>
 			<key>CFBundleTypeRole</key>
-			<string>Viewer</string>
+			<string>Editor</string>
 			<key>LSHandlerRank</key>
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
@@ -90,6 +94,8 @@
 			</array>
 		</dict>
 		<dict>
+			<key>CFBundleTypeIconFiles</key>
+			<array/>
 			<key>CFBundleTypeName</key>
 			<string>directory</string>
 			<key>CFBundleTypeOSTypes</key>
@@ -97,9 +103,9 @@
 				<string>fold</string>
 			</array>
 			<key>CFBundleTypeRole</key>
-			<string>Viewer</string>
+			<string>Editor</string>
 			<key>LSHandlerRank</key>
-			<string>Alternate</string>
+			<string>Owner</string>
 			<key>LSItemContentTypes</key>
 			<array>
 				<string>public.directory</string>
@@ -147,9 +153,9 @@
 			<key>CFBundleTypeName</key>
 			<string>Lightweight Content Protection License</string>
 			<key>CFBundleTypeRole</key>
-			<string>Viewer</string>
+			<string>Editor</string>
 			<key>LSHandlerRank</key>
-			<string>Alternate</string>
+			<string>Owner</string>
 			<key>LSItemContentTypes</key>
 			<array>
 				<string>org.readium.lcpl</string>
@@ -173,7 +179,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
-	<false/>
+	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -184,7 +190,6 @@
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>
-		<string>gamekit</string>
 	</array>
 	<key>UIRequiresFullScreen</key>
 	<true/>
