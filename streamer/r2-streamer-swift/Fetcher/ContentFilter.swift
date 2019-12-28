@@ -33,10 +33,7 @@ internal extension ContentFilters {
     func apply(to input: Data, of publication: Publication, with container: Container, at path: String) throws -> Data {
         let inputStream = DataInputStream(data: input)
         let decodedInputStream = try apply(to: inputStream, of: publication, with: container, at: path)
-        guard let decodedDataStream = decodedInputStream as? DataInputStream else {
-            return Data()
-        }
-        return decodedDataStream.data
+        return try Data.reading(decodedInputStream)
     }
     
 }
@@ -126,7 +123,7 @@ final internal class ContentFiltersEpub: ContentFilters {
         
         // Inserting at the start of <HEAD>.
         guard let headStart = resourceHtml.endIndex(of: "<head>") else {
-            log(.error, "Invalid resource")
+            log(.error, "Invalid HTML resource: missing <head>")
             return stream
         }
         
@@ -146,7 +143,7 @@ final internal class ContentFiltersEpub: ContentFilters {
 
         // Inserting at the end of <HEAD>.
         guard let headEnd = resourceHtml.startIndex(of: "</head>") else {
-            log(.error, "Invalid resource")
+            log(.error, "Invalid HTML resource: missing </head>")
             return stream
         }
         let fontStyle = getHtmlFontStyle(forResource: "\(baseUrl)fonts/OpenDyslexic-Regular.otf", fontFamily: "OpenDyslexic")

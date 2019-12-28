@@ -190,9 +190,10 @@ public final class PDFParser: PublicationParser, Loggable {
 
             // Calculates the page count of each resource from the reading order.
             let resources = publication.readingOrder.map { link -> (Int, Link) in
-                guard let optionalData = try? fetcher.data(forLink: link),
-//                    let data = optionalData,
-                    let parser = try? parserType.init(stream: DataInputStream(data: optionalData)),
+                guard let stream = try? fetcher.dataStream(forLink: link),
+                    // FIXME: We should be able to use the stream directly here instead of reading it fully into a Data object, but somehow it fails with random access in CBCDRMInputStream.
+                    let data = try? Data.reading(stream),
+                    let parser = try? parserType.init(stream: DataInputStream(data: data)),
                     let pageCount = try? parser.parseNumberOfPages() else
                 {
                     log(.warning, "Can't get the number of pages from PDF document at \(link)")
