@@ -325,7 +325,7 @@ final public class EpubParser: PublicationParser {
             ?? Int((try? container.dataLength(relativePath: link.href)) ?? 0)
         
         // Arbitrary byte length of a single page in a resource.
-        let pageLength = 3500
+        let pageLength = 1024
         let pageCount = max(1, Int(ceil((Double(length) / Double(pageLength)))))
         
         let positionList = (1...pageCount).map { position in
