@@ -32,11 +32,11 @@
 "ReadiumLCP.LCPClientError.unknown" = "Unknown error.";
 
 /* StatusError: Errors while checking the status of the License, using the Status Document. */
-"ReadiumLCP.StatusError.cancelled" = "You have cancelled this license on %@.";
+"ReadiumLCP.StatusError.cancelled" = "This license was cancelled on %@.";
 "ReadiumLCP.StatusError.returned" = "This license has been returned on %@.";
 "ReadiumLCP.StatusError.expired.start" = "This license starts on %@.";
 "ReadiumLCP.StatusError.expired.end" = "This license expired on %@.";
-"ReadiumLCP.StatusError.revoked" = "This license has been revoked by its provider on %1$@.\nThe license was registered by %2$d device(s)";
+"ReadiumLCP.StatusError.revoked" = "This license was revoked by its provider on %1$@.\nIt was registered by %2$d device(s)";
 
 /* RenewError: Errors while renewing a loan. */
 "ReadiumLCP.RenewError.renewFailed" = "Your publication could not be renewed properly.";
