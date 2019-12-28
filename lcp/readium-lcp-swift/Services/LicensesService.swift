@@ -79,7 +79,8 @@ extension LicensesService: LCPService {
                 let downloadProgress = license.fetchPublication { result, error in
                     progress.value = .infinite
                     if let result = result {
-                        let publication = LCPImportedPublication(localURL: result.0, downloadTask: result.1, suggestedFilename: "\(license.license.id).epub")
+                        let filename = self.suggestedFilename(for: result.0, license: license)
+                        let publication = LCPImportedPublication(localURL: result.0, downloadTask: result.1, suggestedFilename: filename)
                         completion(publication, nil)
                     } else {
                         completion(nil, error)
@@ -101,6 +102,17 @@ extension LicensesService: LCPService {
         } catch {
             completion(nil, LCPError.wrap(error))
         }
+    }
+    
+    /// Returns the suggested filename to be used when importing a publication.
+    private func suggestedFilename(for file: URL, license: License) -> String {
+        var mimetypes: [String] = []
+        if let mimetype = license.license.link(for: .publication)?.type {
+            mimetypes.append(mimetype)
+        }
+        let format = Publication.Format(file: file, mimetypes: mimetypes)
+        let fileExtension = (format == .pdf) ? "lcpdf" : "epub"
+        return "\(license.license.id).\(fileExtension)"
     }
     
 }
