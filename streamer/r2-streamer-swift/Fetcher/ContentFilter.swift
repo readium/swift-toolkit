@@ -127,12 +127,12 @@ final internal class ContentFiltersEpub: ContentFilters {
         // Inserting at the start of <HEAD>.
         guard let headStart = resourceHtml.endIndex(of: "<head>") else {
             log(.error, "Invalid resource")
-            abort()
+            return stream
         }
         
         guard let baseUrl = publication.baseURL?.deletingLastPathComponent() else {
             log(.error, "Invalid host")
-            abort()
+            return stream
         }
         
 
@@ -147,7 +147,7 @@ final internal class ContentFiltersEpub: ContentFilters {
         // Inserting at the end of <HEAD>.
         guard let headEnd = resourceHtml.startIndex(of: "</head>") else {
             log(.error, "Invalid resource")
-            abort()
+            return stream
         }
         let fontStyle = getHtmlFontStyle(forResource: "\(baseUrl)fonts/OpenDyslexic-Regular.otf", fontFamily: "OpenDyslexic")
         resourceHtml = resourceHtml.insert(string: fontStyle, at: headEnd)
