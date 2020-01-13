@@ -1,12 +1,12 @@
 Pod::Spec.new do |s|
 
   s.name          = "ReadiumLCP"
-  s.version       = "1.2.2"
+  s.version       = "1.2.3"
   s.license       = "BSD 3-Clause License"
   s.summary       = "Readium LCP"
   s.homepage      = "http://readium.github.io"
   s.author        = { "Aferdita Muriqi" => "aferdita.muriqi@gmail.com" }
-  s.source        = { :git => "https://github.com/readium/r2-lcp-swift.git", :tag => "1.2.2" }
+  s.source        = { :git => "https://github.com/readium/r2-lcp-swift.git", :tag => "1.2.3" }
   s.exclude_files = ["**/Info*.plist"]
   s.requires_arc  = true
   s.resources     = ['readium-lcp-swift/Resources/**']
