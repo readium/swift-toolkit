@@ -220,8 +220,8 @@ final class PDFFileCGParser: PDFFileParser, Loggable {
                 }
 
                 let current = stream.offset
-                // SeekWhence.currentPosition is not supported at this time
                 do {
+                    // SeekWhence.currentPosition is not supported at this time
                     try stream.seek(offset: Int64(current) + count, whence: .startOfFile)
                 } catch {
                     PDFParser.log(.error, error)

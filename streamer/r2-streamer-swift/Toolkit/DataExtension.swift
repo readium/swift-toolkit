@@ -12,18 +12,34 @@
 import Foundation
 
 extension Data {
-    init(reading input: InputStream) {
-        self.init()
-        input.open()
+    
+    static func reading(_ stream: InputStream) throws -> Data {
+        if let dataStream = stream as? DataInputStream {
+            return dataStream.data
+        }
+        
+        var data = Data()
+        stream.open()
+        defer {
+            stream.close()
+        }
 
         let bufferSize = 1024
         let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
-        while input.hasBytesAvailable {
-            let read = input.read(buffer, maxLength: bufferSize)
-            self.append(buffer, count: read)
+        defer {
+            buffer.deallocate()
         }
-        buffer.deallocate()
+        while stream.hasBytesAvailable {
+            let read = stream.read(buffer, maxLength: bufferSize)
+            if read < 0 {
+                throw stream.streamError ?? NSError()
+            } else if read == 0 {
+                break // EOF
+            }
+            data.append(buffer, count: read)
+        }
         
-        input.close()
+        return data
     }
+    
 }

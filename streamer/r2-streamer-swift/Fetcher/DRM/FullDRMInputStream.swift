@@ -19,7 +19,6 @@ final class FullDRMInputStream: DRMInputStream {
 
     enum Error: Swift.Error {
         case emptyDecryptedData
-        case readOutOfRange
         case readFailed
         case decryptionFailed
         case inflateFailed
@@ -82,29 +81,24 @@ final class FullDRMInputStream: DRMInputStream {
     }
     
     override func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
-        guard hasBytesAvailable else {
-            return 0
-        }
-        guard offset + UInt64(len) <= length else {
-            fail(with: Error.readOutOfRange)
-            log(.error, "\(link.href): Decryption read out of range")
-            return -1
+        let len = min(len, Int(length - offset))
+        guard hasBytesAvailable, len > 0 else {
+            return 0 // EOF
         }
         guard let data = data else {
             return -1
         }
 
-        let readSize = (len > Int(length - offset) ? Int(length - offset) : len)
         let start = data.index(0, offsetBy: Int(offset))
-        let end = data.index(start, offsetBy: readSize)
+        let end = data.index(start, offsetBy: len)
         let range = Range(uncheckedBounds: (start, end))
         
         data.copyBytes(to: buffer, from: range)
-        _offset += UInt64(readSize)
+        _offset += UInt64(len)
         if _offset >= length {
             _streamStatus = .atEnd
         }
-        return readSize
+        return len
     }
     
 }

@@ -42,15 +42,11 @@ class DRMInputStream: SeekableInputStream, Loggable {
         let length = Int64(self.length)
         switch whence {
         case .startOfFile:
-            assert(0...length ~= offset)
-            _offset = UInt64(offset)
+            _offset = UInt64(min(offset, length))
         case .endOfFile:
-            assert(-length...0 ~= offset)
-            _offset = UInt64(length + offset)
+            _offset = UInt64(min(length + offset, length))
         case .currentPosition:
-            let newOffset = Int64(_offset) + offset
-            assert(0...length ~= newOffset)
-            _offset = UInt64(offset)
+            _offset = min(_offset + UInt64(offset), UInt64(length))
         }
     }
     
