@@ -18,7 +18,8 @@ public protocol LCPAuthenticating: AnyObject {
     ///
     /// - Parameter license: Information to show to the user about the license being opened.
     /// - Parameter reason: Reason why the passphrase is requested. It should be used to prompt the user.
-    /// - Parameter completion: Used to return the retrieved passphrase. If the user cancelled, send nil.
+    /// - Parameter completion: Used to return the retrieved passphrase. If the user cancelled, send nil. The passphrase may
+    ///   be already hashed.
     func requestPassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, completion: @escaping (String?) -> Void)
     
 }
