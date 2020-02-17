@@ -125,17 +125,6 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
-		CAB13212220DB55C0097DFB5 /* Public */ = {
-			isa = PBXGroup;
-			children = (
-				CAB1320A220D9B200097DFB5 /* LCPService.swift */,
-				F3B2C8A51F66727C007601E4 /* LCPError.swift */,
-				CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */,
-				CA2AE327221C3CFB008BD18F /* Deprecated.swift */,
-			);
-			path = Public;
-			sourceTree = "<group>";
-		};
 		CAB13214220DB5930097DFB5 /* License */ = {
 			isa = PBXGroup;
 			children = (
@@ -250,7 +239,10 @@
 		F3B2C8891F667222007601E4 /* readium-lcp-swift */ = {
 			isa = PBXGroup;
 			children = (
-				CAB13212220DB55C0097DFB5 /* Public */,
+				CAB1320A220D9B200097DFB5 /* LCPService.swift */,
+				F3B2C8A51F66727C007601E4 /* LCPError.swift */,
+				CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */,
+				CA2AE327221C3CFB008BD18F /* Deprecated.swift */,
 				CAB13214220DB5930097DFB5 /* License */,
 				CAB1321B220DB6430097DFB5 /* Services */,
 				CAB1321C220DB6570097DFB5 /* Persistence */,
@@ -544,6 +536,7 @@
 				CLANG_ENABLE_CODE_COVERAGE = NO;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Manual;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
