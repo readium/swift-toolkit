@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		03C3CC68222DBD8600A01731 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03C3CC67222DBD8600A01731 /* R2Shared.framework */; };
 		CA0B3AC3222EE555006D9363 /* PDFNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */; };
+		CA1E4F4B240037E6009C4DE3 /* CompletionList.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA1E4F4A240037E6009C4DE3 /* CompletionList.swift */; };
 		CA26EF7E22803FE90011653E /* VisualNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA26EF7D22803FE90011653E /* VisualNavigator.swift */; };
 		CA479DC3226493570053445E /* UIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA479DC2226493570053445E /* UIView.swift */; };
 		CA479DC52264AEA20053445E /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA479DC42264AEA20053445E /* UIColor.swift */; };
@@ -37,6 +38,7 @@
 /* Begin PBXFileReference section */
 		03C3CC67222DBD8600A01731 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFNavigatorViewController.swift; sourceTree = "<group>"; };
+		CA1E4F4A240037E6009C4DE3 /* CompletionList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletionList.swift; sourceTree = "<group>"; };
 		CA26EF7D22803FE90011653E /* VisualNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualNavigator.swift; sourceTree = "<group>"; };
 		CA479DC2226493570053445E /* UIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIView.swift; sourceTree = "<group>"; };
 		CA479DC42264AEA20053445E /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColor.swift; sourceTree = "<group>"; };
@@ -95,6 +97,7 @@
 				CAF1E3F422DF23F400E807EA /* PaginationView.swift */,
 				CAC2A6D62292E4BA000AA2A7 /* WebView.swift */,
 				CAD178B522B3B553004E6812 /* R2NavigatorLocalizedString.swift */,
+				CA1E4F4A240037E6009C4DE3 /* CompletionList.swift */,
 			);
 			path = Toolkit;
 			sourceTree = "<group>";
@@ -296,6 +299,7 @@
 				CA479DC3226493570053445E /* UIView.swift in Sources */,
 				CACE84F82254BE5F00E19E8B /* PDFDocumentView.swift in Sources */,
 				CAC2A6D72292E4BA000AA2A7 /* WebView.swift in Sources */,
+				CA1E4F4B240037E6009C4DE3 /* CompletionList.swift in Sources */,
 				CACE8521225CDFB000E19E8B /* EPUBReflowableSpreadView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

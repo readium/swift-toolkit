@@ -190,34 +190,24 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         }
     }
     
-    /// Completion blocks called when the spread displayed the requested location.
-    private var goToCompletion: [() -> Void] = []
+    private let goToCompletions = CompletionList()
 
     override func go(to location: PageLocation, completion: (() -> Void)?) {
-        if let completion = completion {
-            goToCompletion.append(completion)
-        }
-        
+        let completion = goToCompletions.add(completion)
+
         guard spreadLoaded else {
             // Delays moving to the location until the document is loaded.
             initialLocation = location
             return
         }
-        
-        func completed() {
-            for completion in goToCompletion {
-                completion()
-            }
-            goToCompletion.removeAll()
-        }
-        
+
         switch location {
         case .locator(let locator):
-            go(to: locator, completion: completed)
+            go(to: locator, completion: completion)
         case .start:
-            go(toProgression: 0, completion: completed)
+            go(toProgression: 0, completion: completion)
         case .end:
-            go(toProgression: 1, completion: completed)
+            go(toProgression: 1, completion: completion)
         }
     }
 
