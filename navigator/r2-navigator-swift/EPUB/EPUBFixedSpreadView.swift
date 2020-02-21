@@ -112,18 +112,5 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         scripts.append(WKUserScript(source: EPUBFixedSpreadView.fixedScript, injectionTime: .atDocumentStart, forMainFrameOnly: true))
         return scripts
     }
-    
-    override func evaluateScript(_ script: String, inResource href: String, completion: ((Any?, Error?) -> Void)? = nil) {
-        guard isWrapperLoaded else {
-            completion?(nil, nil)
-            return
-        }
-        guard href == "#" || spread.contains(href: href) else {
-            log(.warning, "Href \(href) not found in spread")
-            return
-        }
-        let script = "spread.eval('\(href)', \"\(script.replacingOccurrences(of: "\"", with: "\\\""))\");"
-        webView.evaluateJavaScript(script, completionHandler: completion)
-    }
 
 }

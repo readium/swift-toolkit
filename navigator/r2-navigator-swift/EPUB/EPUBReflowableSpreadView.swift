@@ -78,9 +78,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             }()
             return script + "readium.setProperty(\"\(property.name)\", \"\(value)\");\n"
         }
-        for link in spread.links {
-            evaluateScript(propertiesScript, inResource: link.href)
-        }
+        evaluateScript(propertiesScript)
 
         // Disables paginated mode if scroll is on.
         scrollView.isPagingEnabled = !isScrollEnabled
@@ -179,19 +177,73 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         return true
     }
     
-    override func goToHref(_ href: String, location: Locations, completion: @escaping () -> Void) {
+    
+    // Location to scroll to in the resource once the page is loaded.
+    private var initialLocation: PageLocation = .start
+    
+    override func spreadDidLoad() {
+        // FIXME: We need to give the CSS and webview time to layout correctly. 0.2 seconds seems like a good value for it to work on an iPhone 5s. Look into solving this better
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.go(to: self.initialLocation) {
+                self.showSpread()
+            }
+        }
+    }
+    
+    /// Completion blocks called when the spread displayed the requested location.
+    private var goToCompletion: [() -> Void] = []
+
+    override func go(to location: PageLocation, completion: (() -> Void)?) {
+        if let completion = completion {
+            goToCompletion.append(completion)
+        }
+        
+        guard spreadLoaded else {
+            // Delays moving to the location until the document is loaded.
+            initialLocation = location
+            return
+        }
+        
+        func completed() {
+            for completion in goToCompletion {
+                completion()
+            }
+            goToCompletion.removeAll()
+        }
+        
+        switch location {
+        case .locator(let locator):
+            go(to: locator, completion: completed)
+        case .start:
+            go(toProgression: 0, completion: completed)
+        case .end:
+            go(toProgression: 1, completion: completed)
+        }
+    }
+
+    private func go(to locator: Locator, completion: @escaping () -> Void) {
+        guard ["", "#"].contains(locator.href) || spread.contains(href: locator.href) else {
+            log(.warning, "The locator's href is not in the spread")
+            completion()
+            return
+        }
+        guard !locator.locations.isEmpty else {
+            completion()
+            return
+        }
+        
         // FIXME: find the first fragment matching a tag ID (need a regex)
-        if let id = location.fragments.first, !id.isEmpty {
-            go(toHref: href, tagID: id, completion: completion)
-        } else if let progression = location.progression {
-            go(toHref: href, progression: progression, completion: completion)
+        if let id = locator.locations.fragments.first, !id.isEmpty {
+            go(toTagID: id, completion: completion)
+        } else if let progression = locator.locations.progression {
+            go(toProgression: progression, completion: completion)
         } else {
-            super.goToHref(href, location: location, completion: completion)
+            completion()
         }
     }
 
     /// Scrolls at given progression (from 0.0 to 1.0)
-    private func go(toHref href: String, progression: Double, completion: @escaping () -> Void) {
+    private func go(toProgression progression: Double, completion: @escaping () -> Void) {
         guard progression >= 0 && progression <= 1 else {
             log(.warning, "Scrolling to invalid progression \(progression)")
             completion()
@@ -208,13 +260,13 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             completion()
         } else {
             let dir = readingProgression.rawValue
-            evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\')", inResource: href) { _, _ in completion () }
+            evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\')") { _, _ in completion () }
         }
     }
     
     /// Scrolls at the tag with ID `tagID`.
-    private func go(toHref href: String, tagID: String, completion: @escaping () -> Void) {
-        evaluateScript("readium.scrollToId(\'\(tagID)\');", inResource: href) { _, _ in completion() }
+    private func go(toTagID tagID: String, completion: @escaping () -> Void) {
+        evaluateScript("readium.scrollToId(\'\(tagID)\');") { _, _ in completion() }
     }
     
     

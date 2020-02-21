@@ -12,17 +12,48 @@
 import UIKit
 import R2Shared
 
+enum PageLocation {
+    case start
+    case end
+    case locator(Locator)
+    
+    init(_ locator: Locator?) {
+        self = locator.map { .locator($0) }
+            ?? .start
+    }
+    
+    var isStart: Bool {
+        switch self {
+        case .start:
+            return true
+        case .locator(let locator) where locator.locations.progression ?? 0 > 0:
+            return true
+        default:
+            return false
+        }
+    }
+    
+}
+
 protocol PageView {
-    /// Moves the page to the given internal locator.
-    func go(to locator: Locator)
+    /// Moves the page to the given internal location.
+    func go(to location: PageLocation, completion: (() -> Void)?)
     
     /// Return the number of positions (as in `Publication.positionList`) contained in the page.
     var positionCount: Int { get }
 }
 
+extension PageView {
+    
+    func go(to location: PageLocation) {
+        go(to: location, completion: nil)
+    }
+    
+}
+
 protocol PaginationViewDelegate: class {
-    /// Creates the page view for the page at given index and initial location.
-    func paginationView(_ paginationView: PaginationView, pageViewAtIndex index: Int, location: Locator) -> (UIView & PageView)?
+    /// Creates the page view for the page at given index.
+    func paginationView(_ paginationView: PaginationView, pageViewAtIndex index: Int) -> (UIView & PageView)?
     
     /// Called when the page views were updated.
     func paginationViewDidUpdateViews(_ paginationView: PaginationView)
@@ -120,10 +151,10 @@ final class PaginationView: UIView {
     ///
     /// - Parameters:
     ///   - index: Index of the page to be displayed after reloading the pagination.
-    ///   - location: Initial location to be displayed in the page.
+    ///   - location: Location to be displayed in the page.
     ///   - pageCount: Total number of pages in the pagination view.
     ///   - readingProgression: Direction of reading progression.
-    func reloadAtIndex(_ index: Int, location: Locator?, pageCount: Int, readingProgression: ReadingProgression) {
+    func reloadAtIndex(_ index: Int, location: PageLocation, pageCount: Int, readingProgression: ReadingProgression) {
         precondition(pageCount >= 1)
         precondition(0..<pageCount ~= index)
         
@@ -146,25 +177,17 @@ final class PaginationView: UIView {
     }
 
     /// Updates the current and pre-loaded views.
-    private func setCurrentIndex(_ index: Int, location: Locator? = nil) {
+    private func setCurrentIndex(_ index: Int, location: PageLocation? = nil) {
         guard isEmpty || index != currentIndex else {
             return
         }
         
-        // Locations in a page view.
-        let beginning = Locator(href: "#", type: "", locations: Locations(progression: 0))
-        let end = Locator(href: "#", type: "", locations: Locations(progression: 1))
-        let location = location ?? beginning
-        
-        // Automatically scrolls the previous document to the beginning or the end, to make sure that it's properly positioned to the consecutive page when going back to it.
-        currentView?.go(to: (currentIndex < index) ? end : beginning)
-        
         currentIndex = index
         
         // To make sure that the views the most likely to be visible are loaded first, we first load the current one, then the next ones and to finish the previous ones.
-        loadView(at: index, location: location)
-        let lastIndex = loadViews(upToPositionCount: preloadNextPositionCount, from: index, direction: .forward, at: beginning)
-        let firstIndex = loadViews(upToPositionCount: preloadPreviousPositionCount, from: index, direction: .backward, at: end)
+        let currentView = loadView(at: index)
+        let lastIndex = loadViews(upToPositionCount: preloadNextPositionCount, from: index, direction: .forward)
+        let firstIndex = loadViews(upToPositionCount: preloadPreviousPositionCount, from: index, direction: .backward)
 
         for (i, view) in loadedViews {
             // Flushes the views that are not needed anymore.
@@ -179,6 +202,10 @@ final class PaginationView: UIView {
                 scrollView.addSubview(view)
             }
         }
+        
+        if let location = location {
+            currentView?.go(to: location)
+        }
 
         setNeedsLayout()
         delegate?.paginationViewDidUpdateViews(self)
@@ -186,14 +213,13 @@ final class PaginationView: UIView {
 
     /// Loads the view at given index if it's not already loaded.
     ///
-    /// - Parameter location: Initial location in the view to be displayed.
     /// - Returns: The loaded page view, if any.
     @discardableResult
-    private func loadView(at index: Int, location: Locator) -> (UIView & PageView)? {
+    private func loadView(at index: Int) -> (UIView & PageView)? {
         if 0..<pageCount ~= index,
             loadedViews[index] == nil,
             let delegate = delegate,
-            let view = delegate.paginationView(self, pageViewAtIndex: index, location: location)
+            let view = delegate.paginationView(self, pageViewAtIndex: index)
         {
             loadedViews[index] = view
         }
@@ -206,12 +232,11 @@ final class PaginationView: UIView {
     ///   - positionCount: Number of positions to pre-load before stopping.
     ///   - sourceIndex: Starting page index from which to pre-load the views.
     ///   - direction: The direction in which to load the views from the sourceIndex.
-    ///   - location: Initial location to load in the loaded views.
     /// - Returns: The last page index loaded after reaching the requested number of positions.
-    private func loadViews(upToPositionCount positionCount: Int, from sourceIndex: Int, direction: PageIndexDirection, at location: Locator) -> Int {
+    private func loadViews(upToPositionCount positionCount: Int, from sourceIndex: Int, direction: PageIndexDirection) -> Int {
         let index = sourceIndex + direction.rawValue
         guard positionCount > 0,
-            let pageView = loadView(at: index, location: location) else
+            let pageView = loadView(at: index) else
         {
             return sourceIndex
         }
@@ -219,8 +244,7 @@ final class PaginationView: UIView {
         return loadViews(
             upToPositionCount: positionCount - pageView.positionCount,
             from: index,
-            direction: direction,
-            at: location
+            direction: direction
         )
     }
     
@@ -238,7 +262,7 @@ final class PaginationView: UIView {
     ///   - index: The index to move to.
     ///   - location: The location to move the future current page view to.
     /// - Returns: Whether the move is possible.
-    func goToIndex(_ index: Int, location: Locator? = nil, animated: Bool = false, completion: @escaping () -> ()) -> Bool {
+    func goToIndex(_ index: Int, location: PageLocation, animated: Bool = false, completion: @escaping () -> ()) -> Bool {
         guard 0..<pageCount ~= index else {
             return false
         }
@@ -259,7 +283,7 @@ final class PaginationView: UIView {
             
             // The rendering is sometimes very slow. So in case we don't show the first page of the resource, we add a generous delay before showing the view again.
             // FIXME: this should be handled in the PageView directly
-            let delayed = (location != nil && location?.locations.progression != 0)
+            let delayed = !location.isStart
             DispatchQueue.main.asyncAfter(deadline: .now() + (delayed ? 0.5 : 0)) {
                 fade(to: 1, completion: completion)
             }
@@ -268,11 +292,9 @@ final class PaginationView: UIView {
         return true
     }
     
-    private func scrollToView(at index: Int, location: Locator? = nil) {
+    private func scrollToView(at index: Int, location: PageLocation) {
         guard currentIndex != index else {
-            if let location = location {
-                currentView?.go(to: location)
-            }
+            currentView?.go(to: location)
             return
         }
         
