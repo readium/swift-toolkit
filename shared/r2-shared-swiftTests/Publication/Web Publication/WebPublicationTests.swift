@@ -106,7 +106,7 @@ class WebPublicationTests: XCTestCase {
     }
     
     func testParseJSONSpineAsReadingOrder() {
-        // `readerOrder` used to be `spine`, so we parse `spine` as a fallback.
+        // `readingOrder` used to be `spine`, so we parse `spine` as a fallback.
         XCTAssertEqual(
             try? WebPublication(json: [
                 "metadata": ["title": "Title"],

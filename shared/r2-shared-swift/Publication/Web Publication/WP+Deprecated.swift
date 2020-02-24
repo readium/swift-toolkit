@@ -181,3 +181,6 @@ extension OPDSAcquisition {
     public var child: [OPDSAcquisition] { get { return children } set { children = newValue } }
     
 }
+
+@available(*, deprecated, renamed: "ContentLayout")
+public typealias ContentLayoutStyle = ContentLayout
