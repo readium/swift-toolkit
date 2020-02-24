@@ -50,7 +50,7 @@ class PropertiesOPDSTests: XCTestCase {
     }
 
     func testNoIndirectAcquisition() {
-        XCTAssertEqual(sut.indirectAcquisition, [])
+        XCTAssertEqual(sut.indirectAcquisitions, [])
     }
     
     func testIndirectAcquisition() {
@@ -58,9 +58,45 @@ class PropertiesOPDSTests: XCTestCase {
             [ "type": "acqtype" ]
         ]
         
-        XCTAssertEqual(sut.indirectAcquisition, [
+        XCTAssertEqual(sut.indirectAcquisitions, [
             OPDSAcquisition(type: "acqtype")
         ])
+    }
+
+    func testNoHolds() {
+        XCTAssertNil(sut.holds)
+    }
+    
+    func testHolds() {
+        sut.otherProperties["holds"] = [
+            "total": 5
+        ]
+        
+        XCTAssertEqual(sut.holds, OPDSHolds(total: 5, position: nil))
+    }
+
+    func testNoCopies() {
+        XCTAssertNil(sut.copies)
+    }
+    
+    func testCopies() {
+        sut.otherProperties["copies"] = [
+            "total": 5
+        ]
+        
+        XCTAssertEqual(sut.copies, OPDSCopies(total: 5, available: nil))
+    }
+
+    func testNoAvailability() {
+        XCTAssertNil(sut.availability)
+    }
+    
+    func testAvailability() {
+        sut.otherProperties["availability"] = [
+            "state": "available"
+        ]
+        
+        XCTAssertEqual(sut.availability, OPDSAvailability(state: .available))
     }
 
 }

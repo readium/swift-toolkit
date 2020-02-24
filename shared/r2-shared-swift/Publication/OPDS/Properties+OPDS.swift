@@ -44,10 +44,42 @@ extension Properties {
         set { setProperty(newValue?.json, forKey: priceKey) }
     }
     
-    /// Indirect acquisition provides a hint for the expected media type that will be acquired after additional steps.
-    public var indirectAcquisition: [OPDSAcquisition] {
+    /// Indirect acquisition provides a hint for the expected media type that will be acquired after
+    /// additional steps.
+    public var indirectAcquisitions: [OPDSAcquisition] {
         get { return [OPDSAcquisition](json: otherProperties[indirectAcquisitionKey]) }
         set { setProperty(newValue.json, forKey: indirectAcquisitionKey) }
+    }
+    
+    /// Library-specific features when a specific book is unavailable but provides a hold list.
+    public var holds: OPDSHolds? {
+        do {
+            return try OPDSHolds(json: otherProperties["holds"])
+        } catch {
+            log(.warning, error)
+            return nil
+        }
+    }
+    
+    /// Library-specific feature that contains information about the copies that a library has
+    /// acquired.
+    public var copies: OPDSCopies? {
+        do {
+            return try OPDSCopies(json: otherProperties["copies"])
+        } catch {
+            log(.warning, error)
+            return nil
+        }
+    }
+    
+    /// Indicated the availability of a given resource.
+    public var availability: OPDSAvailability? {
+        do {
+            return try OPDSAvailability(json: otherProperties["availability"])
+        } catch {
+            log(.warning, error)
+            return nil
+        }
     }
     
 }

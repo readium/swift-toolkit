@@ -176,6 +176,11 @@ extension Properties {
     @available(*, deprecated, renamed: "Presentation.Page")
     public typealias Page = Presentation.Page
     
+    @available(*, deprecated, renamed: "indirectAcquisitions")
+    public var indirectAcquisition: [OPDSAcquisition] {
+        indirectAcquisitions
+    }
+    
 }
 
 
