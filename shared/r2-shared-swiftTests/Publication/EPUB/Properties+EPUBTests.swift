@@ -50,26 +50,6 @@ class PropertiesEPUBTests: XCTestCase {
         XCTAssertEqual(sut.mediaOverlay, "http://uri")
     }
     
-    func testNoOverflow() {
-        XCTAssertNil(sut.overflow)
-    }
-    
-    func testOverflow() {
-        sut.otherProperties["overflow"] = "scrolled-continuous"
-        
-        XCTAssertEqual(sut.overflow, .scrolledContinuous)
-    }
-    
-    func testNoSpread() {
-        XCTAssertNil(sut.spread)
-    }
-    
-    func testSpread() {
-        sut.otherProperties["spread"] = "landscape"
-        
-        XCTAssertEqual(sut.spread, .landscape)
-    }
-    
     func testNoEncryption() {
         XCTAssertNil(sut.encryption)
     }

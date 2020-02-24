@@ -29,8 +29,8 @@ extension Properties {
         set { setProperty(newValue, forKey: containsKey) }
     }
     
-    /// Hints how the layout of the resource should be presented.
-    public var layout: EPUBRendition.Layout? {
+    /// Hint about the nature of the layout for the linked resources.
+    public var layout: EPUBLayout? {
         get { return parseRaw(otherProperties[layoutKey]) }
         set { setProperty(newValue, forKey: layoutKey) }
     }
@@ -45,19 +45,6 @@ extension Properties {
                 otherProperties.removeValue(forKey: mediaOverlayKey)
             }
         }
-    }
-    
-    /// Suggested method for handling overflow while displaying the linked resource.
-    public var overflow: EPUBRendition.Overflow? {
-        get { return parseRaw(otherProperties[overflowKey]) }
-        set { setProperty(newValue, forKey: overflowKey) }
-    }
-    
-    /// Indicates the condition to be met for the linked resource to be rendered within a synthetic
-    /// spread.
-    public var spread: EPUBRendition.Spread? {
-        get { return parseRaw(otherProperties[spreadKey]) }
-        set { setProperty(newValue, forKey: spreadKey) }
     }
     
     /// Indicates that a resource is encrypted/obfuscated and provides relevant information for

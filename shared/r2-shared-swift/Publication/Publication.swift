@@ -56,14 +56,14 @@ public class Publication: WebPublication, Loggable {
     public var userSettingsUIPresetUpdated: (([ReadiumCSSName: Bool]?) -> Void)?
     
     /// Returns the content layout style for the default publication language.
-    public var contentLayout: ContentLayoutStyle {
+    public var contentLayout: ContentLayout {
         return contentLayout(forLanguage: nil)
     }
     
     /// Returns the content layout style for the given language code.
-    public func contentLayout(forLanguage language: String?) -> ContentLayoutStyle {
+    public func contentLayout(forLanguage language: String?) -> ContentLayout {
         let language = (language?.isEmpty ?? true) ? nil : language
-        return ContentLayoutStyle(
+        return ContentLayout(
             language: language ?? metadata.languages.first ?? "",
             readingProgression: metadata.readingProgression
         )

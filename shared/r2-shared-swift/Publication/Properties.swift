@@ -16,22 +16,6 @@ import Foundation
 /// https://readium.org/webpub-manifest/schema/properties.schema.json
 public struct Properties: Equatable, Loggable {
     
-    /// Suggested orientation for the device when displaying the linked resource.
-    public enum Orientation: String {
-        case auto, landscape, portrait
-    }
-    
-    /// Indicates how the linked resource should be displayed in a reading environment that displays synthetic spreads.
-    public enum Page: String {
-        case left, right, center
-    }
-
-    /// Suggested orientation for the device when displaying the linked resource.
-    public var orientation: Orientation?
-
-    /// Indicates how the linked resource should be displayed in a reading environment that displays synthetic spreads.
-    public var page: Page?
-    
     /// Additional properties for extensions.
     public var otherProperties: [String: Any] {
         get { return otherPropertiesJSON.json }
@@ -41,9 +25,7 @@ public struct Properties: Equatable, Loggable {
     private var otherPropertiesJSON: JSONDictionary
 
     
-    public init(orientation: Orientation? = nil, page: Page? = nil, otherProperties: [String: Any] = [:]) {
-        self.orientation = orientation
-        self.page = page
+    public init(_ otherProperties: [String: Any] = [:]) {
         self.otherPropertiesJSON = JSONDictionary(otherProperties) ?? JSONDictionary()
     }
     
@@ -51,20 +33,14 @@ public struct Properties: Equatable, Loggable {
         if json == nil {
             return nil
         }
-        guard var json = JSONDictionary(json) else {
+        guard let json = JSONDictionary(json) else {
             throw JSONError.parsing(Properties.self)
         }
-        
-        self.orientation = parseRaw(json.pop("orientation"))
-        self.page = parseRaw(json.pop("page"))
         self.otherPropertiesJSON = json
     }
     
     public var json: [String: Any] {
-        return makeJSON([
-            "orientation": encodeRawIfNotNil(orientation),
-            "page": encodeRawIfNotNil(page),
-        ], additional: otherProperties)
+        return makeJSON(otherProperties)
     }
 
     /// Syntactic sugar to access the `otherProperties` values by subscripting `Properties` directly.

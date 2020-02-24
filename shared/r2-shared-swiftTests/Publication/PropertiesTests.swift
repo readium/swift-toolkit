@@ -14,18 +14,6 @@ import XCTest
 
 class PropertiesTests: XCTestCase {
     
-    func testParseOrientation() {
-        XCTAssertEqual(Properties.Orientation(rawValue: "auto"), .auto)
-        XCTAssertEqual(Properties.Orientation(rawValue: "landscape"), .landscape)
-        XCTAssertEqual(Properties.Orientation(rawValue: "portrait"), .portrait)
-    }
-    
-    func testParsePage() {
-        XCTAssertEqual(Properties.Page(rawValue: "left"), .left)
-        XCTAssertEqual(Properties.Page(rawValue: "right"), .right)
-        XCTAssertEqual(Properties.Page(rawValue: "center"), .center)
-    }
-    
     func testParseMinimalJSON() {
         XCTAssertEqual(
             try? Properties(json: [:]),
@@ -36,19 +24,13 @@ class PropertiesTests: XCTestCase {
     func testParseFullJSON() {
         XCTAssertEqual(
             try? Properties(json: [
-                "orientation": "auto",
-                "page": "left",
                 "other-property1": "value",
                 "other-property2": [42],
             ]),
-            Properties(
-                orientation: .auto,
-                page: .left,
-                otherProperties: [
-                    "other-property1": "value",
-                    "other-property2": [42]
-                ]
-            )
+            Properties([
+                "other-property1": "value",
+                "other-property2": [42]
+            ])
         )
     }
     
@@ -66,17 +48,11 @@ class PropertiesTests: XCTestCase {
     
     func testGetFullJSON() {
         AssertJSONEqual(
-            Properties(
-                orientation: .landscape,
-                page: .right,
-                otherProperties: [
-                    "other-property1": "value",
-                    "other-property2": [42]
-                ]
-            ).json as Any,
+            Properties([
+                "other-property1": "value",
+                "other-property2": [42]
+            ]).json as Any,
             [
-                "orientation": "landscape",
-                "page": "right",
                 "other-property1": "value",
                 "other-property2": [42]
             ]

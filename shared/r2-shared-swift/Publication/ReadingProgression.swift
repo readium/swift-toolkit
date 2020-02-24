@@ -23,7 +23,7 @@ public enum ReadingProgression: String {
     case auto
     
     /// Returns the leading Page for the reading progression.
-    public var leadingPage: Properties.Page {
+    public var leadingPage: Presentation.Page {
         switch self {
         case .ltr, .ttb, .auto:
             return .left

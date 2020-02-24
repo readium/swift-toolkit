@@ -102,6 +102,9 @@ extension Metadata {
         return try Metadata(json: metadataDict, normalizeHref: { $0 })
     }
     
+    @available(*, deprecated, renamed: "presentation")
+    public var rendition: EPUBRendition { presentation }
+    
 }
 
 
@@ -165,6 +168,17 @@ extension Link {
 }
 
 
+extension Properties {
+
+    @available(*, deprecated, renamed: "Presentation.Orientation")
+    public typealias Orientation = Presentation.Orientation
+    
+    @available(*, deprecated, renamed: "Presentation.Page")
+    public typealias Page = Presentation.Page
+    
+}
+
+
 @available(*, deprecated, renamed: "OPDSPrice")
 public typealias Price = OPDSPrice
 
@@ -184,3 +198,6 @@ extension OPDSAcquisition {
 
 @available(*, deprecated, renamed: "ContentLayout")
 public typealias ContentLayoutStyle = ContentLayout
+
+@available(*, deprecated, renamed: "Presentation")
+public typealias EPUBRendition = Presentation
