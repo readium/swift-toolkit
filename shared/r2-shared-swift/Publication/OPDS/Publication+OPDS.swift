@@ -1,5 +1,5 @@
 //
-//  OPDSPublication.swift
+//  Publication+OPDS.swift
 //  r2-shared-swift
 //
 //  Created by Mickaël Menu on 14.03.19.
@@ -11,15 +11,8 @@
 
 import Foundation
 
-
 /// OPDS Web Publication Extension
-public protocol OPDSPublication {
-    
-    var images: [Link] { get }
-    
-}
-
-extension WebPublication: OPDSPublication {
+extension WebPublication {
     
     public var images: [Link] {
         return otherCollections.first(withRole: "images")?.links ?? []

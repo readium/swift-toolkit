@@ -1,5 +1,5 @@
 //
-//  EPUBPropertiesTests.swift
+//  Properties+EPUBTests.swift
 //  r2-shared-swiftTests
 //
 //  Created by Mickaël Menu on 14.03.19.
@@ -12,7 +12,7 @@
 import XCTest
 @testable import R2Shared
 
-class EPUBPropertiesTests: XCTestCase {
+class PropertiesEPUBTests: XCTestCase {
     
     var sut: Properties!
     

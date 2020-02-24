@@ -1,5 +1,5 @@
 //
-//  OPDSPublicationTests.swift
+//  Publication+OPDSTests.swift
 //  r2-shared-swiftTests
 //
 //  Created by Mickaël Menu on 14.03.19.
@@ -12,7 +12,7 @@
 import XCTest
 @testable import R2Shared
 
-class OPDSPublicationTests: XCTestCase {
+class PublicationOPDSTests: XCTestCase {
     
     var sut: WebPublication!
     

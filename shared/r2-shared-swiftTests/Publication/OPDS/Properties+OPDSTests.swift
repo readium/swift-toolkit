@@ -1,5 +1,5 @@
 //
-//  OPDSPropertiesTests.swift
+//  Properties+OPDSTests.swift
 //  r2-shared-swiftTests
 //
 //  Created by Mickaël Menu on 14.03.19.
@@ -12,7 +12,7 @@
 import XCTest
 @testable import R2Shared
 
-class OPDSPropertiesTests: XCTestCase {
+class PropertiesOPDSTests: XCTestCase {
 
     var sut: Properties!
     

@@ -1,5 +1,5 @@
 //
-//  EPUBMetadata.swift
+//  Metadata+EPUB.swift
 //  r2-shared-swift
 //
 //  Created by Mickaël Menu on 14.03.19.
@@ -11,19 +11,11 @@
 
 import Foundation
 
+private let renditionKey = "rendition"
 
 /// EPUB Metadata Extension
 /// https://readium.org/webpub-manifest/schema/extensions/epub/metadata.schema.json
-protocol EPUBMetadata {
-    
-    var rendition: EPUBRendition { get set }
-    
-}
-
-
-private let renditionKey = "rendition"
-
-extension Metadata: EPUBMetadata {
+extension Metadata {
     
     public var rendition: EPUBRendition {
         get {

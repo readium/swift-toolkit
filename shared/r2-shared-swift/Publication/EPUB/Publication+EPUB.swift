@@ -1,5 +1,5 @@
 //
-//  EPUBPublication.swift
+//  Publication+EPUB.swift
 //  r2-shared-swift
 //
 //  Created by Mickaël Menu on 14.03.19.
@@ -11,25 +11,6 @@
 
 import Foundation
 
-
-/// EPUB Web Publication Extension
-/// https://readium.org/webpub-manifest/schema/extensions/epub/subcollections.schema.json
-public protocol EPUBPublication {
-    
-    /// Provides navigation to positions in the Publication content that correspond to the locations of page boundaries present in a print source being represented by this EPUB Publication.
-    var pageList: [Link] { get set }
-    
-    /// Identifies fundamental structural components of the publication in order to enable Reading Systems to provide the User efficient access to them..
-    var landmarks: [Link] { get set }
-    
-    var listOfAudioFiles: [Link] { get set }
-    var listOfIllustrations: [Link] { get set }
-    var listOfTables: [Link] { get set }
-    var listOfVideos: [Link] { get set }
-
-}
-
-
 private let pageListKey = "page-list"
 private let landmarksKey = "landmarks"
 private let loaKey = "loa"
@@ -37,13 +18,19 @@ private let loiKey = "loi"
 private let lotKey = "lot"
 private let lovKey = "lov"
 
-extension WebPublication: EPUBPublication {
+/// EPUB Web Publication Extension
+/// https://readium.org/webpub-manifest/schema/extensions/epub/subcollections.schema.json
+extension WebPublication {
 
+    /// Provides navigation to positions in the Publication content that correspond to the locations
+    /// of page boundaries present in a print source being represented by this EPUB Publication.
     public var pageList: [Link] {
         get { return otherCollections.first(withRole: pageListKey)?.links ?? [] }
         set { setCollectionLinks(newValue, forRole: pageListKey) }
     }
     
+    /// Identifies fundamental structural components of the publication in order to enable Reading
+    /// Systems to provide the User efficient access to them..
     public var landmarks: [Link] {
         get { return otherCollections.first(withRole: landmarksKey)?.links ?? [] }
         set { setCollectionLinks(newValue, forRole: landmarksKey) }
