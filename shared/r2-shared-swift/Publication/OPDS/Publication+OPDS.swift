@@ -12,7 +12,7 @@
 import Foundation
 
 /// OPDS Web Publication Extension
-extension WebPublication {
+extension Publication {
     
     public var images: [Link] {
         return otherCollections.first(withRole: "images")?.links ?? []

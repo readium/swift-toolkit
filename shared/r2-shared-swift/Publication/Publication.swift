@@ -14,18 +14,23 @@ import Foundation
 
 
 /// Shared model for a Readium Publication.
-///
-/// It extends the Web Publication model, which holds the metadata and resources.
-/// On top of that, the Publication holds:
-///   - the publication state used by the Streamer and Navigator
-///   - shortcuts to various publication resources to be used by the Streamer and Navigator
-///   - additional metadata not part of the RWPM
-public class Publication: WebPublication, Loggable {
+public class Publication: JSONEquatable, Loggable {
 
     /// Format of the publication, if specified.
     public var format: Format = .unknown
     /// Version of the publication's format, eg. 3 for EPUB 3
     public var formatVersion: String?
+    
+    /// Readium Web Publication
+    /// See. https://readium.org/webpub-manifest/
+    
+    public var context: [String]  // @context
+    public var metadata: Metadata
+    public var links: [Link]
+    public var readingOrder: [Link]
+    public var resources: [Link]
+    public var tableOfContents: [Link]
+    public var otherCollections: [PublicationCollection]
 
     /// Factory used to build lazily the `positionList`.
     /// By default, a parser will set this to parse the `positionList` from the publication. But the host app might want to overwrite this with a custom closure to implement for example a cache mechanism.
@@ -72,12 +77,61 @@ public class Publication: WebPublication, Loggable {
     public init(format: Format = .unknown, formatVersion: String? = nil, positionListFactory: @escaping (Publication) -> [Locator] = { _ in [] }, context: [String] = [], metadata: Metadata, links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = [], tableOfContents: [Link] = [], otherCollections: [PublicationCollection] = []) {
         self.format = format
         self.formatVersion = formatVersion
+        self.context = context
+        self.metadata = metadata
+        self.links = links
+        self.readingOrder = readingOrder
+        self.resources = resources
+        self.tableOfContents = tableOfContents
+        self.otherCollections = otherCollections
         self.positionListFactory = positionListFactory
-        super.init(context: context, metadata: metadata, links: links, readingOrder: readingOrder, resources: resources, tableOfContents: tableOfContents, otherCollections: otherCollections)
     }
     
-    public override init(json: Any, normalizeHref: (String) -> String = { $0 }) throws {
-        try super.init(json: json, normalizeHref: normalizeHref)
+    /// Parses a Readium Web Publication Manifest.
+    /// https://readium.org/webpub-manifest/schema/publication.schema.json
+    public init(json: Any, normalizeHref: (String) -> String = { $0 }) throws {
+        guard var json = JSONDictionary(json) else {
+            throw JSONError.parsing(Publication.self)
+        }
+        
+        self.context = parseArray(json.pop("@context"), allowingSingle: true)
+        self.metadata = try Metadata(json: json.pop("metadata"), normalizeHref: normalizeHref)
+        self.links = [Link](json: json.pop("links"), normalizeHref: normalizeHref)
+        // `readingOrder` used to be `spine`, so we parse `spine` as a fallback.
+        self.readingOrder = [Link](json: json.pop("readingOrder") ?? json.pop("spine"), normalizeHref: normalizeHref)
+            .filter { $0.type != nil }
+        self.resources = [Link](json: json.pop("resources"), normalizeHref: normalizeHref)
+            .filter { $0.type != nil }
+        self.tableOfContents = [Link](json: json.pop("toc"), normalizeHref: normalizeHref)
+        
+        // Parses sub-collections from remaining JSON properties.
+        self.otherCollections = [PublicationCollection](json: json.json, normalizeHref: normalizeHref)
+    }
+    
+    public var json: [String: Any] {
+        return makeJSON([
+            "@context": encodeIfNotEmpty(context),
+            "metadata": metadata.json,
+            "links": links.json,
+            "readingOrder": readingOrder.json,
+            "resources": encodeIfNotEmpty(resources.json),
+            "toc": encodeIfNotEmpty(tableOfContents.json),
+        ], additional: otherCollections.json)
+    }
+
+    /// Returns the Manifest's data JSON representation.
+    public var manifest: Data? {
+        return serializeJSONData(json)
+    }
+
+    /// Replaces the links for the first found subcollection with the given role.
+    /// If none is found, creates a new subcollection.
+    func setCollectionLinks(_ links: [Link], forRole role: String) {
+        if let collection = otherCollections.first(withRole: role) {
+            collection.links = links
+        } else {
+            otherCollections.append(PublicationCollection(role: role, links: links))
+        }
     }
 
     /// Sets the URL where this `Publication`'s RWPM manifest is served.

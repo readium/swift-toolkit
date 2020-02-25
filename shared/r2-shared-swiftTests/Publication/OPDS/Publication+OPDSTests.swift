@@ -14,10 +14,10 @@ import XCTest
 
 class PublicationOPDSTests: XCTestCase {
     
-    var sut: WebPublication!
+    var sut: Publication!
     
     override func setUp() {
-        sut = WebPublication(metadata: Metadata(title: ""), links: [], readingOrder: [])
+        sut = Publication(metadata: Metadata(title: ""), links: [], readingOrder: [])
     }
     
     func testNoImages() {

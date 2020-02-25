@@ -20,7 +20,7 @@ private let lovKey = "lov"
 
 /// EPUB Web Publication Extension
 /// https://readium.org/webpub-manifest/schema/extensions/epub/subcollections.schema.json
-extension WebPublication {
+extension Publication {
 
     /// Provides navigation to positions in the Publication content that correspond to the locations
     /// of page boundaries present in a print source being represented by this EPUB Publication.

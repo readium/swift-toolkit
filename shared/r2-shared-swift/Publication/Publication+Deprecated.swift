@@ -11,6 +11,8 @@
 
 import Foundation
 
+@available(*, deprecated, renamed: "Publication")
+public typealias WebPublication = Publication
 
 extension Publication {
     
@@ -32,7 +34,7 @@ extension Publication {
     
 }
 
-extension WebPublication {
+extension Publication {
     
     @available(*, deprecated, renamed: "listOfAudioClips")
     public var listOfAudioFiles: [Link] { listOfAudioClips }

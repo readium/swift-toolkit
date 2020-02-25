@@ -1,5 +1,5 @@
 //
-//  WebPublicationTests.swift
+//  PublicationTests.swift
 //  r2-shared-swiftTests
 //
 //  Created by Mickaël Menu on 11.03.19.
@@ -12,11 +12,11 @@
 import XCTest
 @testable import R2Shared
 
-class WebPublicationTests: XCTestCase {
+class PublicationTests: XCTestCase {
     
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            try? WebPublication(json: [
+            try? Publication(json: [
                 "metadata": ["title": "Title"],
                 "links": [
                     ["href": "/manifest.json", "rel": "self"]
@@ -25,7 +25,7 @@ class WebPublicationTests: XCTestCase {
                     ["href": "/chap1.html", "type": "text/html"]
                 ]
             ]),
-            WebPublication(
+            Publication(
                 metadata: Metadata(title: "Title"),
                 links: [Link(href: "/manifest.json", rels: ["self"])],
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")]
@@ -35,7 +35,7 @@ class WebPublicationTests: XCTestCase {
     
     func testParseFullJSON() {
         XCTAssertEqual(
-            try? WebPublication(json: [
+            try? Publication(json: [
                 "@context": "https://readium.org/webpub-manifest/context.jsonld",
                 "metadata": ["title": "Title"],
                 "links": [
@@ -57,7 +57,7 @@ class WebPublicationTests: XCTestCase {
                     ]
                 ]
             ]),
-            WebPublication(
+            Publication(
                 context: ["https://readium.org/webpub-manifest/context.jsonld"],
                 metadata: Metadata(title: "Title"),
                 links: [Link(href: "/manifest.json", rels: ["self"])],
@@ -71,7 +71,7 @@ class WebPublicationTests: XCTestCase {
     
     func testParseContextAsArray() {
         XCTAssertEqual(
-            try? WebPublication(json: [
+            try? Publication(json: [
                 "@context": ["context1", "context2"],
                 "metadata": ["title": "Title"],
                 "links": [
@@ -81,7 +81,7 @@ class WebPublicationTests: XCTestCase {
                     ["href": "/chap1.html", "type": "text/html"]
                 ]
                 ]),
-            WebPublication(
+            Publication(
                 context: ["context1", "context2"],
                 metadata: Metadata(title: "Title"),
                 links: [Link(href: "/manifest.json", rels: ["self"])],
@@ -91,11 +91,11 @@ class WebPublicationTests: XCTestCase {
     }
     
     func testParseInvalidJSON() {
-        XCTAssertThrowsError(try WebPublication(json: ""))
+        XCTAssertThrowsError(try Publication(json: ""))
     }
     
     func testParseJSONRequiresMetadata() {
-        XCTAssertThrowsError(try WebPublication(json: [
+        XCTAssertThrowsError(try Publication(json: [
             "links": [
                 ["href": "/manifest.json", "rel": "self"]
             ],
@@ -108,7 +108,7 @@ class WebPublicationTests: XCTestCase {
     func testParseJSONSpineAsReadingOrder() {
         // `readingOrder` used to be `spine`, so we parse `spine` as a fallback.
         XCTAssertEqual(
-            try? WebPublication(json: [
+            try? Publication(json: [
                 "metadata": ["title": "Title"],
                 "links": [
                     ["href": "/manifest.json", "rel": "self"]
@@ -117,7 +117,7 @@ class WebPublicationTests: XCTestCase {
                     ["href": "/chap1.html", "type": "text/html"]
                 ]
             ]),
-            WebPublication(
+            Publication(
                 metadata: Metadata(title: "Title"),
                 links: [Link(href: "/manifest.json", rels: ["self"])],
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")]
@@ -127,7 +127,7 @@ class WebPublicationTests: XCTestCase {
                     
     func testParseJSONIgnoresReadingOrderWithoutType() {
         XCTAssertEqual(
-            try WebPublication(json: [
+            try Publication(json: [
                 "metadata": ["title": "Title"],
                 "links": [
                     ["href": "/manifest.json", "rel": "self"]
@@ -137,7 +137,7 @@ class WebPublicationTests: XCTestCase {
                     ["href": "/chap2.html"]
                 ]
             ]),
-            WebPublication(
+            Publication(
                 metadata: Metadata(title: "Title"),
                 links: [
                     Link(href: "/manifest.json", rels: ["self"]),
@@ -149,7 +149,7 @@ class WebPublicationTests: XCTestCase {
     
     func testParseJSONIgnoresRessourcesWithoutType() {
         XCTAssertEqual(
-            try WebPublication(json: [
+            try Publication(json: [
                 "metadata": ["title": "Title"],
                 "links": [
                     ["href": "/manifest.json", "rel": "self"]
@@ -162,7 +162,7 @@ class WebPublicationTests: XCTestCase {
                     ["href": "/withouttype"]
                 ]
             ]),
-            WebPublication(
+            Publication(
                 metadata: Metadata(title: "Title"),
                 links: [
                     Link(href: "/manifest.json", rels: ["self"]),
@@ -175,7 +175,7 @@ class WebPublicationTests: XCTestCase {
     
     func testGetMinimalJSON() {
         AssertJSONEqual(
-            WebPublication(
+            Publication(
                 metadata: Metadata(title: "Title"),
                 links: [Link(href: "/manifest.json", rels: ["self"])],
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")]
@@ -194,7 +194,7 @@ class WebPublicationTests: XCTestCase {
     
     func testGetFullJSON() {
         AssertJSONEqual(
-            WebPublication(
+            Publication(
                 context: ["https://readium.org/webpub-manifest/context.jsonld"],
                 metadata: Metadata(title: "Title"),
                 links: [Link(href: "/manifest.json", rels: ["self"])],
@@ -230,7 +230,7 @@ class WebPublicationTests: XCTestCase {
     
     func testGetFullManifest() {
         XCTAssertEqual(
-            WebPublication(
+            Publication(
                 context: ["https://readium.org/webpub-manifest/context.jsonld"],
                 metadata: Metadata(title: "Title"),
                 links: [Link(href: "/manifest.json", rels: ["self"])],
