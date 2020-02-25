@@ -44,8 +44,8 @@ class LocatorTests: XCTestCase {
                 href: "http://locator",
                 type: "text/html",
                 title: "My Locator",
-                locations: Locations(position: 42),
-                text: LocatorText(highlight: "Excerpt")
+                locations: .init(position: 42),
+                text: .init(highlight: "Excerpt")
             )
         )
     }
@@ -94,7 +94,7 @@ class LocatorTests: XCTestCase {
             Locator(
                 href: "http://locator",
                 type: "",
-                locations: Locations(fragments: ["page=42"])
+                locations: .init(fragments: ["page=42"])
             )
         )
     }
@@ -138,14 +138,14 @@ class LocatorTests: XCTestCase {
 }
 
 
-class LocationTests: XCTestCase {
+class LocatorLocationsTests: XCTestCase {
     
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            try? Locations(json: [
+            try? Locator.Locations(json: [
                 "position": 42
             ]),
-            Locations(
+            Locator.Locations(
                 position: 42
             )
         )
@@ -153,27 +153,29 @@ class LocationTests: XCTestCase {
     
     func testParseFullJSON() {
         XCTAssertEqual(
-            try? Locations(json: [
+            try? Locator.Locations(json: [
                 "fragments": ["p=4", "frag34"],
                 "progression": 0.74,
                 "totalProgression": 25.32,
-                "position": 42
+                "position": 42,
+                "other": "other-location"
             ]),
-            Locations(
+            Locator.Locations(
                 fragments: ["p=4", "frag34"],
                 progression: 0.74,
                 totalProgression: 25.32,
-                position: 42
+                position: 42,
+                otherLocations: ["other": "other-location"]
             )
         )
     }
     
     func testParseSingleFragment() {
         XCTAssertEqual(
-            try? Locations(json: [
+            try? Locator.Locations(json: [
                 "fragment": "frag34",
             ]),
-            Locations(
+            Locator.Locations(
                 fragments: ["frag34"]
             )
         )
@@ -181,18 +183,18 @@ class LocationTests: XCTestCase {
     
     func testParseEmptyJSON() {
         XCTAssertEqual(
-            try Locations(json: [:]),
-            Locations()
+            try Locator.Locations(json: [:]),
+            Locator.Locations()
         )
     }
     
     func testParseInvalidJSON() {
-        XCTAssertThrowsError(try Locations(json: ""))
+        XCTAssertThrowsError(try Locator.Locations(json: ""))
     }
     
     func testGetMinimalJSON() {
         AssertJSONEqual(
-            Locations(
+            Locator.Locations(
                 position: 42
             ).json as Any,
             [
@@ -203,17 +205,19 @@ class LocationTests: XCTestCase {
     
     func testGetFullJSON() {
         AssertJSONEqual(
-            Locations(
+            Locator.Locations(
                 fragments: ["p=4", "frag34"],
                 progression: 0.74,
                 totalProgression: 25.32,
-                position: 42
+                position: 42,
+                otherLocations: ["other": "other-location"]
             ).json as Any,
             [
                 "fragments": ["p=4", "frag34"],
                 "progression": 0.74,
                 "totalProgression": 25.32,
-                "position": 42
+                "position": 42,
+                "other": "other-location"
             ]
         )
     }
@@ -225,10 +229,10 @@ class LocatorTextTests: XCTestCase {
     
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            try? LocatorText(json: [
+            try? Locator.Text(json: [
                 "after": "Text after"
             ]),
-            LocatorText(
+            Locator.Text(
                 after: "Text after"
             )
         )
@@ -236,12 +240,12 @@ class LocatorTextTests: XCTestCase {
     
     func testParseFullJSON() {
         XCTAssertEqual(
-            try? LocatorText(json: [
+            try? Locator.Text(json: [
                 "after": "Text after",
                 "before": "Text before",
                 "highlight": "Highlighted text"
             ]),
-            LocatorText(
+            Locator.Text(
                 after: "Text after",
                 before: "Text before",
                 highlight: "Highlighted text"
@@ -251,18 +255,18 @@ class LocatorTextTests: XCTestCase {
     
     func testParseEmptyJSON() {
         XCTAssertEqual(
-            try LocatorText(json: [:]),
-            LocatorText()
+            try Locator.Text(json: [:]),
+            Locator.Text()
         )
     }
     
     func testParseInvalidJSON() {
-        XCTAssertThrowsError(try LocatorText(json: ""))
+        XCTAssertThrowsError(try Locator.Text(json: ""))
     }
     
     func testGetMinimalJSON() {
         AssertJSONEqual(
-            LocatorText(
+            Locator.Text(
                 after: "Text after"
             ).json as Any,
             [
@@ -273,7 +277,7 @@ class LocatorTextTests: XCTestCase {
     
     func testGetFullJSON() {
         AssertJSONEqual(
-            LocatorText(
+            Locator.Text(
                 after: "Text after",
                 before: "Text before",
                 highlight: "Highlighted text"

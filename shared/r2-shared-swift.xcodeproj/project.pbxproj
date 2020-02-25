@@ -37,6 +37,10 @@
 		CA3386E12404FAD000FDCBBA /* Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3386E02404FACF00FDCBBA /* Encryption.swift */; };
 		CA3386E42404FD0300FDCBBA /* Properties+Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3386E32404FD0300FDCBBA /* Properties+Encryption.swift */; };
 		CA3386E62404FD4600FDCBBA /* Properties+EncryptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3386E52404FD4600FDCBBA /* Properties+EncryptionTests.swift */; };
+		CA3386EA24052D8B00FDCBBA /* DOMRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3386E924052D8B00FDCBBA /* DOMRange.swift */; };
+		CA3386EC24052D9700FDCBBA /* DOMRangeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3386EB24052D9700FDCBBA /* DOMRangeTests.swift */; };
+		CA3386EE24056ADB00FDCBBA /* Locator+HTML.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3386ED24056ADB00FDCBBA /* Locator+HTML.swift */; };
+		CA3386F024056E7A00FDCBBA /* Locator+HTMLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3386EF24056E7A00FDCBBA /* Locator+HTMLTests.swift */; };
 		CA40C07A21FF25F80069A50E /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA40C07921FF25F80069A50E /* JSON.swift */; };
 		CA50B86E22B2A1CF003AFF24 /* R2LocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50B86D22B2A1CF003AFF24 /* R2LocalizedString.swift */; };
 		CA5F8EE92404035D00926120 /* ReadingProgression.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5F8EE82404035C00926120 /* ReadingProgression.swift */; };
@@ -145,6 +149,10 @@
 		CA3386E02404FACF00FDCBBA /* Encryption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Encryption.swift; sourceTree = "<group>"; };
 		CA3386E32404FD0300FDCBBA /* Properties+Encryption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Properties+Encryption.swift"; sourceTree = "<group>"; };
 		CA3386E52404FD4600FDCBBA /* Properties+EncryptionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Properties+EncryptionTests.swift"; sourceTree = "<group>"; };
+		CA3386E924052D8B00FDCBBA /* DOMRange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DOMRange.swift; sourceTree = "<group>"; };
+		CA3386EB24052D9700FDCBBA /* DOMRangeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DOMRangeTests.swift; sourceTree = "<group>"; };
+		CA3386ED24056ADB00FDCBBA /* Locator+HTML.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Locator+HTML.swift"; sourceTree = "<group>"; };
+		CA3386EF24056E7A00FDCBBA /* Locator+HTMLTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Locator+HTMLTests.swift"; sourceTree = "<group>"; };
 		CA40C07921FF25F80069A50E /* JSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSON.swift; sourceTree = "<group>"; };
 		CA50B86D22B2A1CF003AFF24 /* R2LocalizedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2LocalizedString.swift; sourceTree = "<group>"; };
 		CA5F8EE82404035C00926120 /* ReadingProgression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingProgression.swift; sourceTree = "<group>"; };
@@ -241,6 +249,11 @@
 		CA16A8572232C27F00E66255 /* Publication */ = {
 			isa = PBXGroup;
 			children = (
+				CA3386DF2404FABC00FDCBBA /* Encryption */,
+				CA9E6BAB223A766200ECF6E4 /* EPUB */,
+				CA3386E824052D6C00FDCBBA /* HTML */,
+				CA9E6BAC223A76BD00ECF6E4 /* OPDS */,
+				CA5F8EF024040DC700926120 /* Presentation */,
 				CA9E6BA6223A67D300ECF6E4 /* Publication.swift */,
 				CA16A8752233065F00E66255 /* Publication+JSON.swift */,
 				CA9E6BA02239823300ECF6E4 /* Publication+Deprecated.swift */,
@@ -254,10 +267,6 @@
 				CA16A8582232C2A800E66255 /* Contributor.swift */,
 				CACD75E12236A0B6004F20CA /* Subject.swift */,
 				0318F709221DD4CA004E5114 /* Locator.swift */,
-				CA3386DF2404FABC00FDCBBA /* Encryption */,
-				CA5F8EF024040DC700926120 /* Presentation */,
-				CA9E6BAB223A766200ECF6E4 /* EPUB */,
-				CA9E6BAC223A76BD00ECF6E4 /* OPDS */,
 				CA5F8EEE24040B0800926120 /* User Settings */,
 				CA17638E223A99CA00959FEB /* Media Overlays */,
 			);
@@ -295,6 +304,11 @@
 		CA176390223AAAFB00959FEB /* Publication */ = {
 			isa = PBXGroup;
 			children = (
+				CA3386E22404FC2700FDCBBA /* Encryption */,
+				CA17637C223A7BBD00959FEB /* EPUB */,
+				CA3386E724052D4300FDCBBA /* HTML */,
+				CA17637F223A7DA700959FEB /* OPDS */,
+				CA5F8EF52404111900926120 /* Presentation */,
 				CA5F8EEC240404E300926120 /* ContentLayoutTests.swift */,
 				CA5F8EEA240403F900926120 /* ReadingProgressionTests.swift */,
 				CACD75DF223657AD004F20CA /* PublicationTests.swift */,
@@ -306,10 +320,6 @@
 				CA16A8612232D5F200E66255 /* ContributorTests.swift */,
 				CACD75E32236A0F0004F20CA /* SubjectTests.swift */,
 				CAB88C91224E766E00D36C99 /* LocatorTests.swift */,
-				CA5F8EF52404111900926120 /* Presentation */,
-				CA3386E22404FC2700FDCBBA /* Encryption */,
-				CA17637C223A7BBD00959FEB /* EPUB */,
-				CA17637F223A7DA700959FEB /* OPDS */,
 			);
 			path = Publication;
 			sourceTree = "<group>";
@@ -340,6 +350,24 @@
 				CA3386E52404FD4600FDCBBA /* Properties+EncryptionTests.swift */,
 			);
 			path = Encryption;
+			sourceTree = "<group>";
+		};
+		CA3386E724052D4300FDCBBA /* HTML */ = {
+			isa = PBXGroup;
+			children = (
+				CA3386EB24052D9700FDCBBA /* DOMRangeTests.swift */,
+				CA3386EF24056E7A00FDCBBA /* Locator+HTMLTests.swift */,
+			);
+			path = HTML;
+			sourceTree = "<group>";
+		};
+		CA3386E824052D6C00FDCBBA /* HTML */ = {
+			isa = PBXGroup;
+			children = (
+				CA3386E924052D8B00FDCBBA /* DOMRange.swift */,
+				CA3386ED24056ADB00FDCBBA /* Locator+HTML.swift */,
+			);
+			path = HTML;
 			sourceTree = "<group>";
 		};
 		CA50B88922B3A6FE003AFF24 /* Resources */ = {
@@ -623,6 +651,7 @@
 				CA176381223A7DB700959FEB /* Publication+OPDSTests.swift in Sources */,
 				CA16A86E2232F7AC00E66255 /* LinkTests.swift in Sources */,
 				CA5F8F0124041BA700926120 /* Properties+PresentationTests.swift in Sources */,
+				CA3386F024056E7A00FDCBBA /* Locator+HTMLTests.swift in Sources */,
 				CACD75F52236B2AF004F20CA /* PublicationCollectionTests.swift in Sources */,
 				CA5F8EFD24041A2500926120 /* Metadata+PresentationTests.swift in Sources */,
 				CA5F8EF72404112800926120 /* PresentationTests.swift in Sources */,
@@ -634,6 +663,7 @@
 				CA17637E223A7C0300959FEB /* Publication+EPUBTests.swift in Sources */,
 				CABBB2FA2237CA94004EB039 /* OPDSAcquisitionTests.swift in Sources */,
 				CA5F8EED240404E300926120 /* ContentLayoutTests.swift in Sources */,
+				CA3386EC24052D9700FDCBBA /* DOMRangeTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -659,6 +689,7 @@
 				CA16A85B2232C4E600E66255 /* LocalizedString.swift in Sources */,
 				CA9E6BAE223A76C600ECF6E4 /* Publication+OPDS.swift in Sources */,
 				CABEB3DC2215698600090B6C /* Deferred.swift in Sources */,
+				CA3386EA24052D8B00FDCBBA /* DOMRange.swift in Sources */,
 				CA2006512225A1F300E6B3BD /* Observable.swift in Sources */,
 				CA9E6BA4223A657900ECF6E4 /* JSON.swift in Sources */,
 				CA2AE321221C1DCB008BD18F /* LoggerStub.swift in Sources */,
@@ -684,6 +715,7 @@
 				CA16A8822233FE3200E66255 /* Metadata.swift in Sources */,
 				CA3386E12404FAD000FDCBBA /* Encryption.swift in Sources */,
 				CAF4EAE52237ABC700A17DA1 /* MediaOverlays.swift in Sources */,
+				CA3386EE24056ADB00FDCBBA /* Locator+HTML.swift in Sources */,
 				CA16A8592232C2A800E66255 /* Contributor.swift in Sources */,
 				CAC34F0A221C61BD002C452E /* DRM.swift in Sources */,
 				CA5F8F0324041D4B00926120 /* Properties+Presentation.swift in Sources */,

@@ -238,3 +238,9 @@ public typealias EPUBRendition = Presentation
 
 @available(*, deprecated, renamed: "Encryption")
 public typealias EPUBEncryption = Encryption
+
+@available(*, deprecated, renamed: "Locator.Locations")
+public typealias Locations = Locator.Locations
+
+@available(*, deprecated, renamed: "Locator.Text")
+public typealias LocatorText = Locator.Text

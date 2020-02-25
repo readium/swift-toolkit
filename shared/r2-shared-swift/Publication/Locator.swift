@@ -28,9 +28,9 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
     public var locations: Locations
     
     /// Textual context of the locator.
-    public var text: LocatorText
+    public var text: Text
     
-    public init(href: String, type: String, title: String? = nil, locations: Locations = .init(), text: LocatorText = .init()) {
+    public init(href: String, type: String, title: String? = nil, locations: Locations = .init(), text: Text = .init()) {
         self.href = href
         self.type = type
         self.title = title
@@ -53,7 +53,7 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
         self.type = type
         self.title = json["title"] as? String
         self.locations = try Locations(json: json["locations"])
-        self.text = try LocatorText(json: json["text"])
+        self.text = try Text(json: json["text"])
     }
     
     public init?(jsonString: String) throws {
@@ -100,143 +100,161 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
     public var description: String {
         return jsonString ?? "{}"
     }
-    
-}
 
-public struct LocatorText: Equatable, Loggable {
-    public var after: String?
-    public var before: String?
-    public var highlight: String?
-    
-    public init(after: String? = nil, before: String? = nil, highlight: String? = nil) {
-        self.after = after
-        self.before = before
-        self.highlight = highlight
-    }
-    
-    public init(json: Any?) throws {
-        if json == nil {
-            return
-        }
-        guard let json = json as? [String: Any] else {
-            throw JSONError.parsing(LocatorText.self)
-        }
-        self.after = json["after"] as? String
-        self.before = json["before"] as? String
-        self.highlight = json["highlight"] as? String
-    }
-    
-    public init(jsonString: String) {
-        do {
-            let json = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
-            try self.init(json: json)
-        } catch {
-            self.init()
-            log(.error, error)
-        }
-    }
+    /// One or more alternative expressions of the location.
+    /// https://github.com/readium/architecture/tree/master/models/locators#the-location-object
+    public struct Locations: Equatable, Loggable {
+        /// Contains one or more fragment in the resource referenced by the `Locator`.
+        public var fragments: [String] = []
+        /// Progression in the resource expressed as a percentage (between 0 and 1).
+        public var progression: Double?
+        /// Progression in the publication expressed as a percentage (between 0 and 1).
+        public var totalProgression: Double?
+        /// An index in the publication (>= 1).
+        public var position: Int?
 
-    public var json: [String: Any] {
-        return makeJSON([
-            "after": encodeIfNotNil(after),
-            "before": encodeIfNotNil(before),
-            "highlight": encodeIfNotNil(highlight)
-        ])
-    }
-    
-    public var jsonString: String? {
-        return serializeJSONString(json)
-    }
-    
-    @available(*, deprecated, renamed: "init(jsonString:)")
-    public init(fromString: String) {
-        self.init(jsonString: fromString)
-    }
-    
-    @available(*, deprecated, renamed: "jsonString")
-    public func toString() -> String? {
-        return jsonString
-    }
-    
-}
+        /// Additional locations for extensions.
+        public var otherLocations: [String: Any] {
+            get { return otherLocationsJSON.json }
+            set { otherLocationsJSON.json = newValue }
+        }
+        // Trick to keep the struct equatable despite [String: Any]
+        private var otherLocationsJSON = JSONDictionary()
+        
+        public init(fragments: [String] = [], progression: Double? = nil, totalProgression: Double? = nil, position: Int? = nil, otherLocations: [String: Any] = [:]) {
+            self.fragments = fragments
+            self.progression = progression
+            self.totalProgression = totalProgression
+            self.position = position
+            self.otherLocationsJSON = JSONDictionary(otherLocations) ?? JSONDictionary()
+        }
+        
+        public init(json: Any?) throws {
+            if json == nil {
+                return
+            }
+            guard var json = JSONDictionary(json) else {
+                throw JSONError.parsing(Locations.self)
+            }
+            var fragments = (json.pop("fragments") as? [String]) ?? []
+            if let fragment = json.pop("fragment") as? String {
+                fragments.append(fragment)
+            }
+            self.fragments = fragments
+            self.progression = json.pop("progression") as? Double
+            self.totalProgression = json.pop("totalProgression") as? Double
+            self.position = json.pop("position") as? Int
+            self.otherLocationsJSON = json
+        }
+        
+        public init(jsonString: String) {
+            do {
+                let json = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
+                try self.init(json: json)
+            } catch {
+                self.init()
+                log(.error, error)
+            }
+        }
 
-/// Location : Class that contain the different variables needed to localize a particular position
-public struct Locations: Equatable, Loggable {
-    /// Contains one or more fragment in the resource referenced by the Locator Object.
-    public var fragments: [String] = []
-    /// Progression in the resource expressed as a percentage.
-    public var progression: Double?
-    /// Progression in the publication expressed as a percentage.
-    public var totalProgression: Double?
-    /// An index in the publication.
-    public var position: Int?
-    
-    public init(fragments: [String] = [], progression: Double? = nil, totalProgression: Double? = nil, position: Int? = nil) {
-        self.fragments = fragments
-        self.progression = progression
-        self.totalProgression = totalProgression
-        self.position = position
-    }
-    
-    public init(json: Any?) throws {
-        if json == nil {
-            return
+        public var isEmpty: Bool {
+            return json.isEmpty
         }
-        guard let json = json as? [String: Any] else {
-            throw JSONError.parsing(Locations.self)
+        
+        public var json: [String: Any] {
+            return makeJSON([
+                "fragments": encodeIfNotEmpty(fragments),
+                "progression": encodeIfNotNil(progression),
+                "totalProgression": encodeIfNotNil(totalProgression),
+                "position": encodeIfNotNil(position)
+            ], additional: otherLocations)
         }
-        var fragments = (json["fragments"] as? [String]) ?? []
-        if let fragment = json["fragment"] as? String {
-            fragments.append(fragment)
+        
+        public var jsonString: String? {
+            return serializeJSONString(json)
         }
-        self.fragments = fragments
-        self.progression = json["progression"] as? Double
-        self.totalProgression = json["totalProgression"] as? Double
-        self.position = json["position"] as? Int
-    }
 
-    public init(jsonString: String) {
-        do {
-            let json = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
-            try self.init(json: json)
-        } catch {
-            self.init()
-            log(.error, error)
+        /// Syntactic sugar to access the `otherLocations` values by subscripting `Locations` directly.
+        /// locations["cssSelector"] == locations.otherLocations["cssSelector"]
+        public subscript(key: String) -> Any? {
+            get { return otherLocations[key] }
+            set { otherLocations[key] = newValue }
         }
+        
+        @available(*, deprecated, renamed: "init(jsonString:)")
+        public init(fromString: String) {
+            self.init(jsonString: fromString)
+        }
+        
+        @available(*, deprecated, renamed: "jsonString")
+        public func toString() -> String? {
+            return jsonString
+        }
+        
+        @available(*, deprecated, message: "Use `fragments.first` instead")
+        public var fragment: String? {
+            return fragments.first
+        }
+        
     }
     
-    public var isEmpty: Bool {
-        return json.isEmpty
+    public struct Text: Equatable, Loggable {
+        public var after: String?
+        public var before: String?
+        public var highlight: String?
+        
+        public init(after: String? = nil, before: String? = nil, highlight: String? = nil) {
+            self.after = after
+            self.before = before
+            self.highlight = highlight
+        }
+        
+        public init(json: Any?) throws {
+            if json == nil {
+                return
+            }
+            guard let json = json as? [String: Any] else {
+                throw JSONError.parsing(Text.self)
+            }
+            self.after = json["after"] as? String
+            self.before = json["before"] as? String
+            self.highlight = json["highlight"] as? String
+        }
+        
+        public init(jsonString: String) {
+            do {
+                let json = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
+                try self.init(json: json)
+            } catch {
+                self.init()
+                log(.error, error)
+            }
+        }
+        
+        public var json: [String: Any] {
+            return makeJSON([
+                "after": encodeIfNotNil(after),
+                "before": encodeIfNotNil(before),
+                "highlight": encodeIfNotNil(highlight)
+            ])
+        }
+        
+        public var jsonString: String? {
+            return serializeJSONString(json)
+        }
+        
+        @available(*, deprecated, renamed: "init(jsonString:)")
+        public init(fromString: String) {
+            self.init(jsonString: fromString)
+        }
+        
+        @available(*, deprecated, renamed: "jsonString")
+        public func toString() -> String? {
+            return jsonString
+        }
+        
     }
     
-    public var json: [String: Any] {
-        return makeJSON([
-            "fragments": encodeIfNotEmpty(fragments),
-            "progression": encodeIfNotNil(progression),
-            "totalProgression": encodeIfNotNil(totalProgression),
-            "position": encodeIfNotNil(position)
-        ])
-    }
-    
-    public var jsonString: String? {
-        return serializeJSONString(json)
-    }
-    
-    @available(*, deprecated, renamed: "init(jsonString:)")
-    public init(fromString: String) {
-        self.init(jsonString: fromString)
-    }
-    
-    @available(*, deprecated, renamed: "jsonString")
-    public func toString() -> String? {
-        return jsonString
-    }
-    
-    @available(*, deprecated, message: "Use `fragments.first` instead")
-    public var fragment: String? {
-        return fragments.first
-    }
-
 }
 
 
