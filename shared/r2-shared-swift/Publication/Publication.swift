@@ -80,18 +80,11 @@ public class Publication: WebPublication, Loggable {
         try super.init(json: json, normalizeHref: normalizeHref)
     }
 
-    /// Appends the self/manifest link to links.
-    ///
-    /// - Parameters:
-    ///   - endPoint: The URI prefix to use to fetch assets from the publication.
-    ///   - baseUrl: The base URL of the HTTP server.
-    public func addSelfLink(endpoint: String, for baseURL: URL) {
-        // Removes any existing `self` link, just in case.
+    /// Sets the URL where this `Publication`'s RWPM manifest is served.
+    public func setSelfLink(href: String) {
         links.removeAll { $0.rels.contains("self") }
-        
-        let manifestURL = baseURL.appendingPathComponent("\(endpoint)/manifest.json")
         links.append(Link(
-            href: manifestURL.absoluteString,
+            href: href,
             type: "application/webpub+json",
             rel: "self"
         ))
@@ -116,10 +109,10 @@ public class Publication: WebPublication, Loggable {
     
     /// Finds a resource `Link` (asset or readingOrder item) at the given relative path.
     ///
-    /// - Parameter path: The relative path to the resource (href)
-    public func resource(withRelativePath path: String) -> Link? {
-        return readingOrder.first(withHref: path)
-            ?? resources.first(withHref: path)
+    /// - Parameter href: The relative path to the resource
+    public func resource(withHref href: String) -> Link? {
+        return readingOrder.first(withHref: href)
+            ?? resources.first(withHref: href)
     }
     
     /// Finds the first link to the publication's cover.

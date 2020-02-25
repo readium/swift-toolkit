@@ -47,7 +47,6 @@ public class WebPublication: JSONEquatable {
         self.context = parseArray(json.pop("@context"), allowingSingle: true)
         self.metadata = try Metadata(json: json.pop("metadata"), normalizeHref: normalizeHref)
         self.links = [Link](json: json.pop("links"), normalizeHref: normalizeHref)
-            .filter { !$0.rels.isEmpty }
         // `readingOrder` used to be `spine`, so we parse `spine` as a fallback.
         self.readingOrder = [Link](json: json.pop("readingOrder") ?? json.pop("spine"), normalizeHref: normalizeHref)
             .filter { $0.type != nil }

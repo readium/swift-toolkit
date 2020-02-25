@@ -125,30 +125,6 @@ class WebPublicationTests: XCTestCase {
         )
     }
                     
-    func testParseJSONIgnoresLinksWithoutRel() {
-        XCTAssertEqual(
-            try? WebPublication(json: [
-                "metadata": ["title": "Title"],
-                "links": [
-                    ["href": "/manifest.json", "rel": "self"],
-                    ["href": "/withrel", "rel": "withrel"],
-                    ["href": "/withoutrel"]
-                ],
-                "readingOrder": [
-                    ["href": "/chap1.html", "type": "text/html"]
-                ]
-            ]),
-            WebPublication(
-                metadata: Metadata(title: "Title"),
-                links: [
-                    Link(href: "/manifest.json", rels: ["self"]),
-                    Link(href: "/withrel", rels: ["withrel"])
-                ],
-                readingOrder: [Link(href: "/chap1.html", type: "text/html")]
-            )
-        )
-    }
-    
     func testParseJSONIgnoresReadingOrderWithoutType() {
         XCTAssertEqual(
             try WebPublication(json: [

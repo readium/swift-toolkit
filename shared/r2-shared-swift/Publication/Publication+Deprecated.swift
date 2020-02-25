@@ -19,6 +19,17 @@ extension Publication {
         self.init(metadata: Metadata(title: ""))
     }
     
+    @available(*, deprecated, renamed: "init(metadata:)")
+    public func resource(withRelativePath path: String) -> Link? {
+        return resource(withHref: path)
+    }
+    
+    @available(*, deprecated, message: "Use `setSelfLink` instead")
+    public func addSelfLink(endpoint: String, for baseURL: URL) {
+        let manifestURL = baseURL.appendingPathComponent("\(endpoint)/manifest.json")
+        setSelfLink(href: manifestURL.absoluteString)
+    }
+    
 }
 
 extension WebPublication {
