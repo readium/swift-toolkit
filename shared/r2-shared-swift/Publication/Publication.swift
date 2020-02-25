@@ -37,10 +37,10 @@ public class Publication: JSONEquatable, Loggable {
     public var positionListFactory: (Publication) -> [Locator] = { _ in [] }
     
     /// List of all the positions in the publication.
-    public lazy var positionList: [Locator] = positionListFactory(self)
+    public lazy var positions: [Locator] = positionListFactory(self)
     
     /// List of all the positions in each resource, indexed by their `href`.
-    public lazy var positionListByResource: [String: [Locator]] = positionList
+    public lazy var positionsByResource: [String: [Locator]] = positions
         .reduce([:]) { mapping, position in
             var mapping = mapping
             if mapping[position.href] == nil {
@@ -355,5 +355,11 @@ extension Publication {
     public func uriTo(link: Link?) -> URL? {
         return url(to: link)
     }
+    
+    @available(*, deprecated, renamed: "positions")
+    public var positionList: [Locator] { positions }
+    
+    @available(*, deprecated, renamed: "positionsByResource")
+    public var positionListByResource: [String: [Locator]] { positionsByResource }
     
 }

@@ -21,7 +21,7 @@ extension Publication {
         self.init(metadata: Metadata(title: ""))
     }
     
-    @available(*, deprecated, renamed: "init(metadata:)")
+    @available(*, deprecated, renamed: "resource(withHref:)")
     public func resource(withRelativePath path: String) -> Link? {
         return resource(withHref: path)
     }

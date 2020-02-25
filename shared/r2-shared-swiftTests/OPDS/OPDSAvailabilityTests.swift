@@ -75,8 +75,8 @@ class OPDSAvailabilityTests: XCTestCase {
             ).json,
             [
                 "state": "available",
-                "since": "2001-01-01T12:36:27+0000",
-                "until": "2001-02-01T12:36:27+0000"
+                "since": "2001-01-01T12:36:27.000Z",
+                "until": "2001-02-01T12:36:27.000Z"
             ]
         )
     }

@@ -11,7 +11,6 @@
 
 import XCTest
 
-
 func AssertJSONEqual(_ json1: Any, _ json2: Any, file: StaticString = #file, line: UInt = #line) {
     do {
         // Wrap the objects in an array to allow JSON fragments comparisons
