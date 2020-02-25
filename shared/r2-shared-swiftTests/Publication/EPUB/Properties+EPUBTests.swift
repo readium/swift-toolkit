@@ -39,15 +39,5 @@ class PropertiesEPUBTests: XCTestCase {
         
         XCTAssertEqual(sut.layout, .fixed)
     }
-    
-    func testNoMediaOverlay() {
-        XCTAssertNil(sut.mediaOverlay)
-    }
-    
-    func testMediaOverlay() {
-        sut.otherProperties["media-overlay"] = "http://uri"
-        
-        XCTAssertEqual(sut.mediaOverlay, "http://uri")
-    }
 
 }

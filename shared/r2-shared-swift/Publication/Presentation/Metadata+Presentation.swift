@@ -11,15 +11,27 @@
 
 import Foundation
 
+private let presentationKey = "presentation"
+
 /// Presentation extensions for `Metadata`.
 extension Metadata {
     
     public var presentation: Presentation {
-        do {
-            return try Presentation(json: otherMetadata["presentation"])
-        } catch {
-            log(.warning, error)
-            return Presentation()
+        get {
+            do {
+                return try Presentation(json: otherMetadata[presentationKey])
+            } catch {
+                log(.warning, error)
+                return Presentation()
+            }
+        }
+        set {
+            let json = newValue.json
+            if !json.isEmpty {
+                otherMetadata[presentationKey] = json
+            } else {
+                otherMetadata.removeValue(forKey: presentationKey)
+            }
         }
     }
     

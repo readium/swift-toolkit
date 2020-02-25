@@ -58,12 +58,6 @@ public class Link: JSONEquatable {
     /// Resources that are children of the linked resource, in the context of a given collection role.
     public var children: [Link]
 
-    /// WARNING: This feature is in beta and the API is subject to change in the future.
-    /// FIXME: This is used when parsing EPUB's media overlays, but maybe it should be stored somewhere else? For example, as a JSON object in Link.properties.otherProperties, with high-level helpers to get the MediaOverlayNode in the EPUBProperties extension.
-    /// The MediaOverlays associated to the resource of the `Link`.
-    public var mediaOverlays = MediaOverlays()
-    
-    
     public init(href: String, type: String? = nil, templated: Bool = false, title: String? = nil, rels: [String] = [], rel: String? = nil, properties: Properties = Properties(), height: Int? = nil, width: Int? = nil, bitrate: Double? = nil, duration: Double? = nil, languages: [String] = [], alternates: [Link] = [], children: [Link] = []) {
         self.href = href
         self.type = type

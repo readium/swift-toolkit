@@ -27,25 +27,29 @@ extension Properties {
     
     /// Suggested orientation for the device when displaying the linked resource.
     public var orientation: Presentation.Orientation? {
-        parseRaw(otherProperties["orientation"])
+        get { parseRaw(otherProperties["orientation"]) }
+        set { setProperty(newValue, forKey: "orientation") }
     }
     
     /// Indicates if the overflow of linked resources from the `readingOrder` or `resources` should
     /// be handled using dynamic pagination or scrolling.
     public var overflow: Presentation.Overflow? {
-        parseRaw(otherProperties["overflow"])
+        get { parseRaw(otherProperties["overflow"]) }
+        set { setProperty(newValue, forKey: "overflow") }
     }
     
     /// Indicates how the linked resource should be displayed in a reading environment that
     /// displays synthetic spreads.
     public var page: Presentation.Page? {
-        parseRaw(otherProperties["page"])
+        get { parseRaw(otherProperties["page"]) }
+        set { setProperty(newValue, forKey: "page") }
     }
     
     /// Indicates the condition to be met for the linked resource to be rendered within a synthetic
     ///  spread.
     public var spread: Presentation.Spread? {
-        parseRaw(otherProperties["spread"])
+        get { parseRaw(otherProperties["spread"]) }
+        set { setProperty(newValue, forKey: "spread") }
     }
     
 }

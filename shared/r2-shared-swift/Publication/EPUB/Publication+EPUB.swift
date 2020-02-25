@@ -36,7 +36,7 @@ extension WebPublication {
         set { setCollectionLinks(newValue, forRole: landmarksKey) }
     }
     
-    public var listOfAudioFiles: [Link] {
+    public var listOfAudioClips: [Link] {
         get { return otherCollections.first(withRole: loaKey)?.links ?? [] }
         set { setCollectionLinks(newValue, forRole: loaKey) }
     }
@@ -51,7 +51,7 @@ extension WebPublication {
         set { setCollectionLinks(newValue, forRole: lotKey) }
     }
     
-    public var listOfVideos: [Link] {
+    public var listOfVideoClips: [Link] {
         get { return otherCollections.first(withRole: lovKey)?.links ?? [] }
         set { setCollectionLinks(newValue, forRole: lovKey) }
     }

@@ -13,7 +13,6 @@ import Foundation
 
 private let containsKey = "contains"
 private let layoutKey = "layout"
-private let mediaOverlayKey = "media-overlay"
 private let overflowKey = "overflow"
 private let spreadKey = "spread"
 private let encryptedKey = "encrypted"
@@ -33,18 +32,6 @@ extension Properties {
     public var layout: EPUBLayout? {
         get { return parseRaw(otherProperties[layoutKey]) }
         set { setProperty(newValue, forKey: layoutKey) }
-    }
-    
-    /// Location of a media-overlay for the resource referenced in the Link Object.
-    public var mediaOverlay: String? {
-        get { return otherProperties[mediaOverlayKey] as? String }
-        set {
-            if let mediaOverlay = newValue {
-                otherProperties[mediaOverlayKey] = mediaOverlay
-            } else {
-                otherProperties.removeValue(forKey: mediaOverlayKey)
-            }
-        }
     }
 
 }

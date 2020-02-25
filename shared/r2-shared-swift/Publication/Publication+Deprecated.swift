@@ -21,6 +21,16 @@ extension Publication {
     
 }
 
+extension WebPublication {
+    
+    @available(*, deprecated, renamed: "listOfAudioClips")
+    public var listOfAudioFiles: [Link] { listOfAudioClips }
+    
+    @available(*, deprecated, renamed: "listOfVideoClips")
+    public var listOfVideos: [Link] { listOfVideoClips }
+    
+}
+
 @available(*, deprecated, renamed: "LocalizedString")
 public typealias MultilangString = LocalizedString
 
@@ -161,6 +171,9 @@ extension Link {
         return try Link(json: linkDict, normalizeHref: { $0 })
     }
     
+    @available(*, unavailable, message: "The media overlay API was only half implemented and will be refactored later")
+    public var mediaOverlays: MediaOverlays { MediaOverlays() }
+    
 }
 
 extension Properties {
@@ -175,6 +188,16 @@ extension Properties {
     public var indirectAcquisition: [OPDSAcquisition] {
         indirectAcquisitions
     }
+    
+    @available(*, unavailable, message: "The media overlay API was only half implemented and will be refactored later")
+    public var mediaOverlay: String? { nil }
+    
+}
+
+extension Presentation {
+    
+    @available(*, deprecated, renamed: "EPUBLayout")
+    public typealias Layout = EPUBLayout
     
 }
 

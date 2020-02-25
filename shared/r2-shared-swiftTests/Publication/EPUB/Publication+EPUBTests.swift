@@ -50,17 +50,17 @@ class PublicationEPUBTests: XCTestCase {
         )
     }
 
-    func testNoListOfAudioFiles() {
-        XCTAssertEqual(sut.listOfAudioFiles, [])
+    func testNoListOfAudioClips() {
+        XCTAssertEqual(sut.listOfAudioClips, [])
     }
     
-    func testListOfAudioFiles() {
+    func testListOfAudioClips() {
         sut.otherCollections.append(
             PublicationCollection(role: "loa", links: [Link(href: "/audio.mp3")])
         )
         
         XCTAssertEqual(
-            sut.listOfAudioFiles,
+            sut.listOfAudioClips,
             [Link(href: "/audio.mp3")]
         )
     }
@@ -95,17 +95,17 @@ class PublicationEPUBTests: XCTestCase {
         )
     }
 
-    func testNoListOfVideos() {
-        XCTAssertEqual(sut.listOfVideos, [])
+    func testNoListOfVideoClips() {
+        XCTAssertEqual(sut.listOfVideoClips, [])
     }
     
-    func testListOfVideos() {
+    func testListOfVideoClips() {
         sut.otherCollections.append(
             PublicationCollection(role: "lov", links: [Link(href: "/video.mov")])
         )
         
         XCTAssertEqual(
-            sut.listOfVideos,
+            sut.listOfVideoClips,
             [Link(href: "/video.mov")]
         )
     }
