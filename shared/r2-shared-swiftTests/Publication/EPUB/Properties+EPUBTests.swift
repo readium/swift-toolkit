@@ -49,15 +49,5 @@ class PropertiesEPUBTests: XCTestCase {
         
         XCTAssertEqual(sut.mediaOverlay, "http://uri")
     }
-    
-    func testNoEncryption() {
-        XCTAssertNil(sut.encryption)
-    }
-    
-    func testEncryption() {
-        sut.otherProperties["encrypted"] = ["algorithm": "http://algo"]
-        
-        XCTAssertEqual(sut.encryption, EPUBEncryption(algorithm: "http://algo"))
-    }
 
 }

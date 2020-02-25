@@ -55,7 +55,6 @@ extension LocalizedString {
 
 }
 
-
 extension Metadata {
     
     @available(*, deprecated, renamed: "type")
@@ -107,7 +106,6 @@ extension Metadata {
     
 }
 
-
 extension Contributor {
     
     @available(*, deprecated, renamed: "localizedName")
@@ -133,7 +131,6 @@ extension Contributor {
     
 }
 
-
 extension Subject {
     
     @available(*, deprecated, renamed: "init(name:)")
@@ -142,7 +139,6 @@ extension Subject {
     }
     
 }
-
 
 extension Link {
     
@@ -167,7 +163,6 @@ extension Link {
     
 }
 
-
 extension Properties {
 
     @available(*, deprecated, renamed: "Presentation.Orientation")
@@ -183,10 +178,8 @@ extension Properties {
     
 }
 
-
 @available(*, deprecated, renamed: "OPDSPrice")
 public typealias Price = OPDSPrice
-
 
 @available(*, deprecated, renamed: "OPDSAcquisition")
 public typealias IndirectAcquisition = OPDSAcquisition
@@ -206,3 +199,6 @@ public typealias ContentLayoutStyle = ContentLayout
 
 @available(*, deprecated, renamed: "Presentation")
 public typealias EPUBRendition = Presentation
+
+@available(*, deprecated, renamed: "Encryption")
+public typealias EPUBEncryption = Encryption

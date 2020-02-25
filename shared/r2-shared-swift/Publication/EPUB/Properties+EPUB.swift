@@ -46,19 +46,5 @@ extension Properties {
             }
         }
     }
-    
-    /// Indicates that a resource is encrypted/obfuscated and provides relevant information for
-    /// decryption.
-    public var encryption: EPUBEncryption? {
-        get {
-            do {
-                return try EPUBEncryption(json: otherProperties[encryptedKey])
-            } catch {
-                log(.warning, error)
-                return nil
-            }
-        }
-        set { setProperty(newValue?.json, forKey: encryptedKey) }
-    }
 
 }
