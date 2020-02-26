@@ -99,8 +99,6 @@ public class PublicationServer: ResourcesServer {
         }
         
         do {
-            try serve(resourceURL.appendingPathComponent("styles"), at: "/styles")
-            try serve(resourceURL.appendingPathComponent("scripts"), at: "/scripts")
             try serve(resourceURL.appendingPathComponent("fonts"), at: "/fonts")
         } catch {
             log(.error, error)

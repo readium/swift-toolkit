@@ -13,7 +13,7 @@ import Fuzi
 import R2Shared
 
 
-// http://www.idpf.org/epub/30/spec/epub30-publications.html#elemdef-opf-dctitle
+// http://www.idpf.org/epub/30/spec/epub30-publications.html#title-type
 // the six basic values of the "title-type" property specified by EPUB 3:
 public enum EPUBTitleType: String {
     case main
@@ -21,7 +21,7 @@ public enum EPUBTitleType: String {
     case short
     case collection
     case edition
-    case extended
+    case expanded
 }
 
 public enum OPFParserError: Error {
