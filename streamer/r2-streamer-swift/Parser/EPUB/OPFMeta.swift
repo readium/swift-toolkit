@@ -238,7 +238,7 @@ struct OPFMetaList {
         return meta.content
     }
     
-    // List of properties that should not be added to `otherMetadata` because they are already consumed by the RWPM model.
+    /// List of properties that should not be added to `otherMetadata` because they are already consumed by the RWPM model.
     private let rwpmProperties: [OPFVocabulary: [String]] = [
         .defaultMetadata: ["cover"],
         .dc: ["contributor", "creator", "date", "description", "identifier", "language", "publisher", "subject", "title"],
@@ -247,7 +247,6 @@ struct OPFMetaList {
         .rendition: ["flow", "layout", "orientation", "spread"],
         .schema: ["numberOfPages"]
     ]
-    
     
     /// Returns whether the given meta is a known RWPM property, and should therefore be ignored in `otherMetadata`.
     private func isRWPMProperty(_ meta: OPFMeta) -> Bool {

@@ -70,7 +70,7 @@ final internal class ContentFiltersEpub: ContentFilters {
         if let link = publication.link(withHref: path),
             ["application/xhtml+xml", "text/html"].contains(link.type)
         {
-            if publication.metadata.rendition.layout(of: link) == .reflowable {
+            if publication.metadata.presentation.layout(of: link) == .reflowable {
                 decodedInputStream = injectReflowableHtml(in: decodedInputStream, for: publication)
             }
         }
@@ -196,7 +196,7 @@ let cjkVerticalPreset: [ReadiumCSSName: Bool] = [
     .wordSpacing: false,
     .letterSpacing: false]
 
-let userSettingsUIPreset:[ContentLayoutStyle: [ReadiumCSSName: Bool]] = [
+let userSettingsUIPreset:[ContentLayout: [ReadiumCSSName: Bool]] = [
         .ltr: ltrPreset,
         .rtl: rtlPreset,
         .cjkVertical: cjkVerticalPreset,

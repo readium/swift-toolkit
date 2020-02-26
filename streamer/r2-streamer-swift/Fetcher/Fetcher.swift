@@ -64,7 +64,7 @@ internal class Fetcher {
     /// - Throws: `EpubFetcherError.missingFile`.
     internal func data(forRelativePath path: String) throws -> Data? {
         // Get the link information from the publication
-        guard publication.resource(withRelativePath: path) != nil else {
+        guard publication.resource(withHref: path) != nil else {
             throw FetcherError.missingFile(path: path)
         }
         // Get the data from the container
@@ -89,7 +89,7 @@ internal class Fetcher {
         var inputStream: SeekableInputStream
 
         // Get the link information from the publication
-        guard let _ = publication.resource(withRelativePath: path) else {
+        guard let _ = publication.resource(withHref: path) else {
             throw FetcherError.missingFile(path: path)
         }
         // Get an input stream from the container
@@ -122,7 +122,7 @@ internal class Fetcher {
         let relativePath = rootFileDirectory.appending(pathComponent: path)
 
         // Get the link information from the publication
-        guard let _ = publication.resource(withRelativePath: path) else {
+        guard let _ = publication.resource(withHref: path) else {
             throw FetcherError.missingFile(path: path)
         }
         // Get the data length from the container

@@ -25,7 +25,8 @@ class OPFParserTests: XCTestCase {
             metadata: Metadata(
                 title: "Alice's Adventures in Wonderland",
                 otherMetadata: [
-                    "rendition": [
+                    "presentation": [
+                        "continuous": false,
                         "spread": "auto",
                         "overflow": "auto",
                         "orientation": "auto",
@@ -75,14 +76,6 @@ class OPFParserTests: XCTestCase {
         ])
     }
     
-    func testParseLinksFromReadingOrder() throws {
-        let sut = try parsePublication("links-readingOrder", at: "EPUB/content.opf")
-        
-        XCTAssertEqual(sut.readingOrder, [
-            link(id: "titlepage", href: "/EPUB/titlepage.xhtml")
-        ])
-    }
-    
     func testParseLinksFromSpine() throws {
         let sut = try parsePublication("links-spine", at: "EPUB/content.opf")
         
@@ -95,59 +88,51 @@ class OPFParserTests: XCTestCase {
         let sut = try parsePublication("links-properties", at: "EPUB/content.opf")
         
         XCTAssertEqual(sut.readingOrder.count, 8)
-        XCTAssertEqual(sut.readingOrder[0], link(id: "chapter01", href: "/EPUB/chapter01.xhtml", rels: ["contents"], properties: Properties(
-            orientation: .auto,
-            page: .right,
-            otherProperties: [
+        XCTAssertEqual(sut.readingOrder[0], link(id: "chapter01", href: "/EPUB/chapter01.xhtml", rels: ["contents"], properties: Properties([
                 "contains": ["mathml"],
+                "orientation": "auto",
                 "overflow": "auto",
+                "page": "right",
                 "layout": "fixed"
-            ]
-        )))
-        XCTAssertEqual(sut.readingOrder[1], link(id: "chapter02", href: "/EPUB/chapter02.xhtml", properties: Properties(
-                orientation: .landscape,
-                page: .left,
-                otherProperties: [
-                    "contains": ["remote-resources"],
-                    "overflow": "paginated",
-                    "layout": "reflowable"
-                ]
-        )))
-        XCTAssertEqual(sut.readingOrder[2], link(id: "chapter03", href: "/EPUB/chapter03.xhtml", properties: Properties(
-            orientation: .portrait,
-            page: .center,
-            otherProperties: [
+            ])
+        ))
+        XCTAssertEqual(sut.readingOrder[1], link(id: "chapter02", href: "/EPUB/chapter02.xhtml", properties: Properties([
+                "contains": ["remote-resources"],
+                "orientation": "landscape",
+                "overflow": "paginated",
+                "page": "left",
+                "layout": "reflowable"
+            ])
+        ))
+        XCTAssertEqual(sut.readingOrder[2], link(id: "chapter03", href: "/EPUB/chapter03.xhtml", properties: Properties([
                 "contains": ["js", "svg"],
-                "overflow": "scrolled-continuous"
-            ]
-        )))
-        XCTAssertEqual(sut.readingOrder[3], link(id: "chapter04", href: "/EPUB/chapter04.xhtml", properties: Properties(
-            otherProperties: [
+                "orientation": "portrait",
+                "overflow": "scrolled",
+                "page": "center"
+            ])
+        ))
+        XCTAssertEqual(sut.readingOrder[3], link(id: "chapter04", href: "/EPUB/chapter04.xhtml", properties: Properties([
                 "contains": ["onix", "xmp"],
                 "overflow": "scrolled",
                 "spread": "none"
-            ]
-        )))
-        XCTAssertEqual(sut.readingOrder[4], link(id: "chapter05", href: "/EPUB/chapter05.xhtml", properties: Properties(
-            otherProperties: [
+            ])
+        ))
+        XCTAssertEqual(sut.readingOrder[4], link(id: "chapter05", href: "/EPUB/chapter05.xhtml", properties: Properties([
                 "spread": "both"
-            ]
-        )))
-        XCTAssertEqual(sut.readingOrder[5], link(id: "chapter06", href: "/EPUB/chapter06.xhtml", properties: Properties(
-            otherProperties: [
+            ])
+        ))
+        XCTAssertEqual(sut.readingOrder[5], link(id: "chapter06", href: "/EPUB/chapter06.xhtml", properties: Properties([
                 "spread": "landscape"
-            ]
-        )))
-        XCTAssertEqual(sut.readingOrder[6], link(id: "chapter07", href: "/EPUB/chapter07.xhtml", properties: Properties(
-            otherProperties: [
+            ])
+        ))
+        XCTAssertEqual(sut.readingOrder[6], link(id: "chapter07", href: "/EPUB/chapter07.xhtml", properties: Properties([
                 "spread": "none"
-            ]
-        )))
-        XCTAssertEqual(sut.readingOrder[7], link(id: "chapter08", href: "/EPUB/chapter08.xhtml", properties: Properties(
-            otherProperties: [
+            ])
+        ))
+        XCTAssertEqual(sut.readingOrder[7], link(id: "chapter08", href: "/EPUB/chapter08.xhtml", properties: Properties([
                 "spread": "both"
-            ]
-        )))
+            ])
+        ))
     }
     
     func testParseEPUB2Cover() throws {

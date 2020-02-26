@@ -226,7 +226,7 @@ public final class PDFParser: PublicationParser, Loggable {
             return Locator(
                 href: link.href,
                 type: link.type ?? "application/pdf",
-                locations: Locations(
+                locations: .init(
                     fragments: ["page=\(position)"],
                     progression: progression,
                     totalProgression: totalProgression,

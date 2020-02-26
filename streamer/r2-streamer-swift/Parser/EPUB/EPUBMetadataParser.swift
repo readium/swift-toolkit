@@ -58,7 +58,7 @@ final class EPUBMetadataParser: Loggable {
             otherMetadata: metas.otherMetadata
         )
         parseContributors(to: &metadata)
-        metadata.rendition = rendition
+        metadata.presentation = presentation
 
         return metadata
     }
@@ -92,9 +92,9 @@ final class EPUBMetadataParser: Loggable {
     private lazy var numberOfPages: Int? = metas["numberOfPages", in: .schema]
         .first.flatMap { Int($0.content) }
     
-    /// Extracts the Rendition properties from the XML element metadata and fill
-    /// then into the Metadata object instance.
-    private lazy var rendition: EPUBRendition = {
+    /// Extracts the Presentation properties from the XML element metadata and fill
+    /// them into the Metadata object instance.
+    private lazy var presentation: Presentation = {
         func renditionMetadata(_ property: String) -> String {
             return metas[property, in: .rendition].last?.content ?? ""
         }
@@ -111,11 +111,8 @@ final class EPUBMetadataParser: Loggable {
             return platform.firstChild(xpath: "option[@name='\(name)']")?.stringValue
         }
 
-        return EPUBRendition(
-            layout: .init(
-                epub: renditionMetadata("layout"),
-                fallback: (displayOption("fixed-layout") == "true") ? .fixed : nil
-            ),
+        return Presentation(
+            continuous: (renditionMetadata("flow") == "scrolled-continuous"),
             orientation: .init(
                 epub: renditionMetadata("orientation"),
                 fallback: {
@@ -133,7 +130,11 @@ final class EPUBMetadataParser: Loggable {
                 }()
             ),
             overflow: .init(epub: renditionMetadata("flow")),
-            spread: .init(epub: renditionMetadata("spread"))
+            spread: .init(epub: renditionMetadata("spread")),
+            layout: .init(
+                epub: renditionMetadata("layout"),
+                fallback: (displayOption("fixed-layout") == "true") ? .fixed : nil
+            )
         )
     }()
 

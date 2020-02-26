@@ -54,7 +54,8 @@ class EPUBMetadataParserTests: XCTestCase {
                     "http://my.url/#refine2": "Refine 2",
                 ],
                 "http://purl.org/dc/elements/1.1/format": "application/epub+zip",
-                "rendition": [
+                "presentation": [
+                    "continuous": false,
                     "spread": "both",
                     "overflow": "scrolled",
                     "orientation": "landscape",
@@ -70,7 +71,8 @@ class EPUBMetadataParserTests: XCTestCase {
         XCTAssertEqual(sut, Metadata(
             title: "Alice's Adventures in Wonderland",
             otherMetadata: [
-                "rendition": [
+                "presentation": [
+                    "continuous": false,
                     "spread": "auto",
                     "overflow": "auto",
                     "orientation": "auto",
@@ -86,7 +88,8 @@ class EPUBMetadataParserTests: XCTestCase {
         XCTAssertEqual(sut, Metadata(
             title: "Alice's Adventures in Wonderland",
             otherMetadata: [
-                "rendition": [
+                "presentation": [
+                    "continuous": false,
                     "spread": "auto",
                     "overflow": "auto",
                     "orientation": "auto",
@@ -189,7 +192,8 @@ class EPUBMetadataParserTests: XCTestCase {
             ],
             imprints: [],
             otherMetadata: [
-                "rendition": [
+                "presentation": [
+                    "continuous": false,
                     "spread": "auto",
                     "overflow": "auto",
                     "orientation": "auto",
@@ -281,12 +285,16 @@ class EPUBMetadataParserTests: XCTestCase {
     
     func testParseRenditionFallbackWithDisplayOptions() throws {
         let sut = try parseMetadata("minimal", displayOptions: "displayOptions")
-        XCTAssertEqual(sut.otherMetadata["rendition"] as? [String: String], [
-            "spread": "auto",
-            "overflow": "auto",
-            "orientation": "landscape",
-            "layout": "fixed"
-        ])
+        AssertJSONEqual(
+            sut.otherMetadata["presentation"],
+            [
+                "continuous": false,
+                "spread": "auto",
+                "overflow": "auto",
+                "orientation": "landscape",
+                "layout": "fixed"
+            ]
+        )
     }
 
     
