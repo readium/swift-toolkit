@@ -38,7 +38,7 @@ class EPUBMetadataParserTests: XCTestCase {
             numberOfPages: 42,
             otherMetadata: [
                 "http://www.idpf.org/epub/vocab/package/a11y/#certifiedBy": "EDRLab",
-                "http://purl.org/dc/elements/1.1/source": [
+                "http://purl.org/dc/terms/source": [
                     "Feedbooks",
                     [
                         "@value": "Web",
@@ -46,14 +46,14 @@ class EPUBMetadataParserTests: XCTestCase {
                     ],
                     "Internet"
                 ],
-                "http://purl.org/dc/elements/1.1/rights": "Public Domain",
+                "http://purl.org/dc/terms/rights": "Public Domain",
                 "http://idpf.org/epub/vocab/package/#type": "article",
                 "http://my.url/#customProperty": [
                     "@value": "Custom property",
                     "http://my.url/#refine1": "Refine 1",
                     "http://my.url/#refine2": "Refine 2",
                 ],
-                "http://purl.org/dc/elements/1.1/format": "application/epub+zip",
+                "http://purl.org/dc/terms/format": "application/epub+zip",
                 "presentation": [
                     "continuous": false,
                     "spread": "both",
@@ -154,24 +154,24 @@ class EPUBMetadataParserTests: XCTestCase {
         XCTAssertEqual(sut, Metadata(
             title: "Alice's Adventures in Wonderland",
             authors: [
-                Contributor(name: "Author A"),
-                Contributor(name: "Author B", roles: ["aut"]),
-                Contributor(name: "Author C", roles: ["aut"]),
-                Contributor(name: "Cameleon A", roles: ["aut", "pbl"]),
                 Contributor(name: "Author 1"),
                 Contributor(name: "Author 4"),
                 Contributor(name: "Author 5"),
+                Contributor(name: "Author A"),
                 Contributor(name: "Author 2", roles: ["aut"]),
+                Contributor(name: "Author B", roles: ["aut"]),
+                Contributor(name: "Author C", roles: ["aut"]),
                 Contributor(name: "Author 3", roles: ["aut"]),
                 Contributor(name: "Cameleon 1", roles: ["aut", "pbl"]),
+                Contributor(name: "Cameleon A", roles: ["aut", "pbl"])
             ],
             translators: [Contributor(name: "Translator", roles: ["trl"])],
             editors: [Contributor(name: "Editor", roles: ["edt"])],
             artists: [Contributor(name: "Artist", roles: ["art"])],
             illustrators: [
-                Contributor(name: "Illustrator A", sortAs: "sorting", roles: ["ill"]),
                 Contributor(name: "Illustrator 1", roles: ["ill"]),
-                Contributor(name: "Illustrator 2", sortAs: "sorting", roles: ["ill"])
+                Contributor(name: "Illustrator 2", sortAs: "sorting", roles: ["ill"]),
+                Contributor(name: "Illustrator A", sortAs: "sorting", roles: ["ill"])
             ],
             letterers: [],
             pencilers: [],
@@ -179,16 +179,16 @@ class EPUBMetadataParserTests: XCTestCase {
             inkers: [],
             narrators: [Contributor(name: "Narrator", roles: ["nrt"])],
             contributors: [
-                Contributor(name: "Contributor A"),
                 Contributor(name: "Contributor 1"),
-                Contributor(name: "Unknown", roles: ["unknown"])
+                Contributor(name: "Unknown", roles: ["unknown"]),
+                Contributor(name: "Contributor A")
             ],
             publishers: [
-                Contributor(name: "Publisher A"),
-                Contributor(name: "Cameleon A", roles: ["aut", "pbl"]),
                 Contributor(name: "Publisher 1"),
+                Contributor(name: "Publisher A"),
                 Contributor(name: "Publisher 2", roles: ["pbl"]),
-                Contributor(name: "Cameleon 1", roles: ["aut", "pbl"])
+                Contributor(name: "Cameleon 1", roles: ["aut", "pbl"]),
+                Contributor(name: "Cameleon A", roles: ["aut", "pbl"])
             ],
             imprints: [],
             otherMetadata: [
