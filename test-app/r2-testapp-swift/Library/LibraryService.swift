@@ -212,14 +212,13 @@ final class LibraryService: Loggable {
             return
         }
         
-        guard let drmService = drmLibraryServices.first(where: { $0.brand == drm.brand }),
-            let url = URL(string: container.rootFile.rootPath) else
-        {
+        guard let drmService = drmLibraryServices.first(where: { $0.brand == drm.brand })) else {
             delegate?.libraryService(self, presentError: LibraryError.drmNotSupported(drm.brand))
             completion(.success(nil))
             return
         }
         
+        let url = URL(fileURLWithPath: container.rootFile.rootPath)
         drmService.loadPublication(at: url, drm: drm) { result in
             switch result {
             case .success(let drm):
@@ -300,7 +299,7 @@ final class LibraryService: Loggable {
                 if files.fileExists(atPath: documentPath) {
                     return documentPath
                 }
-                if let bundlePath = Bundle.main.path(forResource: path, ofType: nil),
+                if let bundlePath = Bundle.main.path(forResource: "Samples/\(path)", ofType: nil),
                     files.fileExists(atPath: bundlePath)
                 {
                     return bundlePath
@@ -367,14 +366,10 @@ final class LibraryService: Loggable {
         }
     }
     
-    /// Get the paths out of the application Documents/inbox directory.
+    /// Get the paths out of the bundled Samples directory.
     fileprivate func urlsFromSamples() -> [URL] {
-        return ["epub", "cbz", "pdf"].flatMap { ext in
-            ["1", "2", "3", "4", "5", "6"].compactMap { name in
-                Bundle.main.path(forResource: name, ofType: ext)
-                    .map { URL(fileURLWithPath: $0) }
-            }
-        }
+        let samplesPath = Bundle.main.resourceURL!.appendingPathComponent("Samples")
+        return try! FileManager.default.contentsOfDirectory(at: samplesPath, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
     }
     
     func remove(_ book: Book) {
