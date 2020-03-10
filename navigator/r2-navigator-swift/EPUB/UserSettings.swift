@@ -28,13 +28,13 @@ public class UserSettings {
     private var appearance = 0
     private var verticalScroll = false
     
-    private var publisherDefaults = false
+    private var publisherDefaults = true
     private var textAlignment = 0
     private var columnCount = 0
     private var wordSpacing: Float = 0
     private var letterSpacing: Float = 0
     private var pageMargins: Float = 1
-    private var lineHeight: Float = 1
+    private var lineHeight: Float = 1.5
     
     public let userProperties = UserProperties()
     
@@ -47,15 +47,11 @@ public class UserSettings {
         // Font size
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.fontSize) {
             fontSize = userDefaults.float(forKey: ReadiumCSSName.fontSize.rawValue)
-        } else {
-            fontSize = 100
         }
 
         // Font family
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.fontFamily) {
             fontFamily = userDefaults.integer(forKey: ReadiumCSSName.fontFamily.rawValue)
-        } else {
-            fontFamily = 0
         }
         
         // Font override
@@ -63,71 +59,51 @@ public class UserSettings {
             fontOverride = userDefaults.bool(forKey: ReadiumCSSName.fontOverride.rawValue)
         } else if fontFamily != 0 {
             fontOverride = true
-        } else {
-            fontOverride = false
         }
         
         // Appearance
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.appearance) {
             appearance = userDefaults.integer(forKey: ReadiumCSSName.appearance.rawValue)
-        } else {
-            appearance = 0
         }
         
         // Vertical scroll
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.scroll) {
             verticalScroll = userDefaults.bool(forKey: ReadiumCSSName.scroll.rawValue)
-        } else {
-            verticalScroll = false
         }
         
         // Publisher default system
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.publisherDefault) {
             publisherDefaults = userDefaults.bool(forKey: ReadiumCSSName.publisherDefault.rawValue)
-        } else {
-            publisherDefaults = false
         }
         
         // Text alignment
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.textAlignment) {
             textAlignment = userDefaults.integer(forKey: ReadiumCSSName.textAlignment.rawValue)
-        } else {
-            textAlignment = 0
         }
         
         // Column count
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.columnCount) {
             columnCount = userDefaults.integer(forKey: ReadiumCSSName.columnCount.rawValue)
-        } else {
-            columnCount = 0
         }
         
         // Word spacing
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.wordSpacing) {
             wordSpacing = userDefaults.float(forKey: ReadiumCSSName.wordSpacing.rawValue)
-        } else {
-            wordSpacing = 0
         }
         
         // Letter spacing
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.letterSpacing) {
             letterSpacing = userDefaults.float(forKey: ReadiumCSSName.letterSpacing.rawValue)
-        } else {
-            letterSpacing = 0
         }
         
         // Page margins
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.pageMargins) {
             pageMargins = userDefaults.float(forKey: ReadiumCSSName.pageMargins.rawValue)
-        } else {
-            pageMargins = 1
         }
         
         // Line height
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.lineHeight) {
             lineHeight = userDefaults.float(forKey: ReadiumCSSName.lineHeight.rawValue)
-        } else {
-            lineHeight = 1
         }
         
         buildCssProperties()
