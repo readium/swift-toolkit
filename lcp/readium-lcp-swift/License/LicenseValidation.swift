@@ -55,7 +55,7 @@ struct ValidatedDocuments {
 final class LicenseValidation: Loggable {
 
     // Dependencies for the State's handlers
-    fileprivate weak var authentication: LCPAuthenticating?
+    fileprivate let authentication: LCPAuthenticating?
     fileprivate let crl: CRLService
     fileprivate let device: DeviceService
     fileprivate let network: NetworkService

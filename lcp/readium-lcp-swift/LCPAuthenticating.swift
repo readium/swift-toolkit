@@ -11,7 +11,7 @@
 
 import Foundation
 
-public protocol LCPAuthenticating: AnyObject {
+public protocol LCPAuthenticating {
     
     /// Requests a passphrase to decrypt the given license.
     /// The client app can prompt the user to enter the passphrase, or retrieve it by any other means (eg. web service).
