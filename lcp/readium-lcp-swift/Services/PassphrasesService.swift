@@ -51,7 +51,7 @@ final class PassphrasesService {
                 }
     
                 let hashedPassphrase = clearPassphrase.sha256()
-                guard let passphrase = findOneValidPassphrase(jsonLicense: license.json, hashedPassphrases: [hashedPassphrase]) else {
+                guard let passphrase = findOneValidPassphrase(jsonLicense: license.json, hashedPassphrases: [hashedPassphrase, clearPassphrase]) else {
                     // Tries again if the passphrase is invalid, until cancelled
                     return self.authenticate(for: license, reason: .invalidPassphrase, using: authentication)
                 }
