@@ -1,5 +1,5 @@
 //
-//  LCPDFLicenseContainer.swift
+//  ReadiumLicenseContainer.swift
 //  r2-lcp-swift
 //
 //  Created by Mickaël Menu on 18.06.19.
@@ -11,11 +11,11 @@
 
 import Foundation
 
-/// Access a License Document stored in an LCPDF archive.
-final class LCPDFLicenseContainer: ZIPLicenseContainer {
+/// Access a License Document stored in a webpub, audiobook or LCPDF package.
+final class ReadiumLicenseContainer: ZIPLicenseContainer {
     
-    init(lcpdf: URL) {
-        super.init(zip: lcpdf, pathInZIP: "license.lcpl")
+    init(path: URL) {
+        super.init(zip: path, pathInZIP: "license.lcpl")
     }
     
 }

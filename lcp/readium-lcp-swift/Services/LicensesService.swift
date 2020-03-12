@@ -111,7 +111,18 @@ extension LicensesService: LCPService {
             mimetypes.append(mimetype)
         }
         let format = Publication.Format(file: file, mimetypes: mimetypes)
-        let fileExtension = (format == .pdf) ? "lcpdf" : "epub"
+        let fileExtension: String = {
+            switch format {
+            case .audiobook:
+                return "lcpa"
+            case .webpub:
+                return "webpub"
+            case .pdf:
+                return "lcpdf"
+            default:
+                return "epub"
+            }
+        }()
         return "\(license.license.id).\(fileExtension)"
     }
     
