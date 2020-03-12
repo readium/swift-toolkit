@@ -24,7 +24,7 @@ public typealias CbzParserError = CBZParserError
 
 /// CBZ related constants.
 struct CBZConstant {
-    public static let mimetype = "application/x-cbr"
+    public static let mimetype = "application/vnd.comicbook+zip"
 }
 
 public enum MediaType: String {
