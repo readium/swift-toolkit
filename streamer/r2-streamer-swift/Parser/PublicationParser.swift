@@ -44,7 +44,8 @@ public extension Publication {
             .cbz: CbzParser.self,
             .epub: EpubParser.self,
             .pdf: PDFParser.self,
-            .webpub: WEBPUBParser.self
+            .webpub: ReadiumParser.self,
+            .audiobook: ReadiumParser.self
         ]
 
         let format = Format(file: url)
