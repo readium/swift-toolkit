@@ -38,7 +38,7 @@
 			<key>CFBundleTypeIconFiles</key>
 			<array/>
 			<key>CFBundleTypeName</key>
-			<string>Comic Zip</string>
+			<string>Comic ZIP</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>LSHandlerRank</key>
@@ -231,7 +231,7 @@
 					<string>CBZ</string>
 				</array>
 				<key>public.mime-type</key>
-				<string>application/x-cbr</string>
+				<string>application/vnd.comicbook+zip</string>
 			</dict>
 		</dict>
 		<dict>
