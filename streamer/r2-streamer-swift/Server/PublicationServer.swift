@@ -98,12 +98,13 @@ public class PublicationServer: ResourcesServer {
             return
         }
         
-        do {
-            try serve(resourceURL.appendingPathComponent("styles"), at: "/styles")
-            try serve(resourceURL.appendingPathComponent("scripts"), at: "/scripts")
-            try serve(resourceURL.appendingPathComponent("fonts"), at: "/fonts")
-        } catch {
-            log(.error, error)
+        let specialResources = ["scripts", "styles", "fonts"]
+        specialResources.forEach { resource in
+            do {
+                try serve(resourceURL.appendingPathComponent(resource), at: "/\(resource)")
+            } catch {
+                log(.error, error)
+            }
         }
     }
     
