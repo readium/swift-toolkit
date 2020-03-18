@@ -18,6 +18,8 @@ import R2Shared
 final class PassphrasesService {
 
     private let repository: PassphrasesRepository
+    
+    private let sha256Predicate = NSPredicate(format: "SELF MATCHES %@", "^([a-f0-9]{64})$")
 
     init(repository: PassphrasesRepository) {
         self.repository = repository
@@ -51,7 +53,14 @@ final class PassphrasesService {
                 }
     
                 let hashedPassphrase = clearPassphrase.sha256()
-                guard let passphrase = findOneValidPassphrase(jsonLicense: license.json, hashedPassphrases: [hashedPassphrase, clearPassphrase]) else {
+                var passphrases = [hashedPassphrase]
+                // Note: The C++ LCP lib crashes if we provide a passphrase that is not a valid
+                // SHA-256 hash. So we check this beforehand.
+                if self.sha256Predicate.evaluate(with: clearPassphrase) {
+                    passphrases.append(clearPassphrase)
+                }
+                
+                guard let passphrase = findOneValidPassphrase(jsonLicense: license.json, hashedPassphrases: passphrases) else {
                     // Tries again if the passphrase is invalid, until cancelled
                     return self.authenticate(for: license, reason: .invalidPassphrase, using: authentication)
                 }
