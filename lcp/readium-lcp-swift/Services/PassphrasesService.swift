@@ -19,7 +19,7 @@ final class PassphrasesService {
 
     private let repository: PassphrasesRepository
     
-    private let sha256Predicate = NSPredicate(format: "SELF MATCHES %@", "^([a-f0-9]{64})$")
+    private let sha256Predicate = NSPredicate(format: "SELF MATCHES[c] %@", "^([a-f0-9]{64})$")
 
     init(repository: PassphrasesRepository) {
         self.repository = repository
