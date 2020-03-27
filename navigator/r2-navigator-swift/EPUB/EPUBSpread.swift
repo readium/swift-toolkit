@@ -46,10 +46,10 @@ struct EPUBSpread: Loggable {
     /// Links for the resources in the spread, from left to right.
     var linksLTR: [Link] {
         switch readingProgression {
-        case .rtl:
-            return links.reversed()
-        case .ltr, .auto:
+        case .ltr, .ttb, .auto:
             return links
+        case .rtl, .btt:
+            return links.reversed()
         }
     }
     
@@ -214,11 +214,11 @@ struct EPUBSpread: Loggable {
         func areConsecutive(_ first: Link, _ second: Link) -> Bool {
             // Here we use the default publication reading progression instead of the custom one provided, otherwise the page position hints might be wrong, and we could end up with only one-page spreads.
             switch publication.contentLayout.readingProgression {
-            case .ltr, .auto:
+            case .ltr, .ttb, .auto:
                 let firstPosition = first.properties.page ?? .left
                 let secondPosition = second.properties.page ?? .right
                 return (firstPosition == .left && secondPosition == .right)
-            case .rtl:
+            case .rtl, .btt:
                 let firstPosition = first.properties.page ?? .right
                 let secondPosition = second.properties.page ?? .left
                 return (firstPosition == .right && secondPosition == .left)

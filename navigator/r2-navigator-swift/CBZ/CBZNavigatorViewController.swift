@@ -90,9 +90,9 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         let direction: UIPageViewController.NavigationDirection = {
             let forward: Bool = {
                 switch readingProgression {
-                case .ltr, .auto:
+                case .ltr, .ttb, .auto:
                     return (currentResourceIndex < index)
-                case .rtl:
+                case .rtl, .btt:
                     return (currentResourceIndex >= index)
                 }
             }()
@@ -166,9 +166,9 @@ extension CBZNavigatorViewController: UIPageViewControllerDataSource {
         }
         var index = imageVC.index
         switch readingProgression {
-        case .ltr, .auto:
+        case .ltr, .ttb, .auto:
             index -= 1
-        case .rtl:
+        case .rtl, .btt:
             index += 1
         }
         return imageViewController(at: index)
@@ -180,9 +180,9 @@ extension CBZNavigatorViewController: UIPageViewControllerDataSource {
         }
         var index = imageVC.index
         switch readingProgression {
-        case .ltr, .auto:
+        case .ltr, .ttb, .auto:
             index += 1
-        case .rtl:
+        case .rtl, .btt:
             index -= 1
         }
         return imageViewController(at: index)

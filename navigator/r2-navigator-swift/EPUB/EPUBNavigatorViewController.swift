@@ -309,9 +309,9 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
         let direction: EPUBSpreadView.Direction = {
             switch readingProgression {
-            case .ltr, .auto:
+            case .ltr, .ttb, .auto:
                 return .right
-            case .rtl:
+            case .rtl, .btt:
                 return .left
             }
         }()
@@ -321,9 +321,9 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     public func goBackward(animated: Bool, completion: @escaping () -> Void) -> Bool {
         let direction: EPUBSpreadView.Direction = {
             switch readingProgression {
-            case .ltr, .auto:
+            case .ltr, .ttb, .auto:
                 return .left
-            case .rtl:
+            case .rtl, .btt:
                 return .right
             }
         }()
