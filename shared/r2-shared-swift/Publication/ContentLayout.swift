@@ -11,46 +11,23 @@
 
 import Foundation
 
-
-public enum ReadingProgression: String {
-    case rtl
-    case ltr
-    case auto
-    
-    /// Returns the leading Page for the reading progression.
-    public var leadingPage: Properties.Page {
-        switch self {
-        case .ltr, .auto:
-            return .left
-        case .rtl:
-            return .right
-        }
-    }
-}
-
-
-public enum ContentLayoutStyle: String {
+public enum ContentLayout: String {
     case rtl = "rtl"
     case ltr = "ltr"
     case cjkVertical = "cjk-vertical"
     case cjkHorizontal = "cjk-horizontal"
 
-    public init(language: String, readingProgression: ReadingProgression? = nil) {
-        let language: String = {
-            if let code = language.split(separator: "-").first {
-                return String(code)
-            }
-            return language
-        }()
+    public init(language: String, readingProgression: ReadingProgression = .auto) {
+        let language = language.split(separator: "-").first.map(String.init)
+            ?? language
         
         switch language.lowercased() {
         case "ar", "fa", "he":
-            self = .rtl
-        // Any Chinese: zh-*-*
+            self = readingProgression.getContentLayoutOrFallback(fallback: .rtl)
         case "zh", "ja", "ko":
-            self = (readingProgression == .rtl) ? .cjkVertical : .cjkHorizontal
+            self = readingProgression.getContentLayoutOrFallback(fallback: .cjkHorizontal, isCJK: true)
         default:
-            self = (readingProgression == .rtl) ? .rtl : .ltr
+            self = readingProgression.getContentLayoutOrFallback(fallback: .ltr)
         }
     }
     
@@ -63,4 +40,19 @@ public enum ContentLayoutStyle: String {
         }
     }
 
+}
+
+private extension ReadingProgression {
+    
+    func getContentLayoutOrFallback(fallback: ContentLayout, isCJK: Bool = false) -> ContentLayout {
+        switch (self) {
+        case .rtl, .btt:
+            return isCJK ? .cjkVertical : .rtl
+        case .ltr, .ttb:
+            return isCJK ? .cjkHorizontal : .ltr
+        case .auto:
+            return fallback
+        }
+    }
+    
 }
