@@ -21,9 +21,6 @@
 		03061937222D936100646F1F /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061931222D936100646F1F /* Minizip.framework */; };
 		03061938222D936100646F1F /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061932222D936100646F1F /* ZIPFoundation.framework */; };
 		03061939222D936100646F1F /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061933222D936100646F1F /* Fuzi.framework */; };
-		03079E7D211CF865002E9B9B /* 1.cbz in Resources */ = {isa = PBXBuildFile; fileRef = 03079E7C211CF864002E9B9B /* 1.cbz */; };
-		03079E7E211CF8A3002E9B9B /* 1.cbz in Resources */ = {isa = PBXBuildFile; fileRef = 03079E7C211CF864002E9B9B /* 1.cbz */; };
-		03079E7F211CF8A4002E9B9B /* 1.cbz in Resources */ = {isa = PBXBuildFile; fileRef = 03079E7C211CF864002E9B9B /* 1.cbz */; };
 		032F7E3421167E9B009E5C24 /* PublicationMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032F7E3021167E9A009E5C24 /* PublicationMenuViewController.swift */; };
 		032F7E3521167E9B009E5C24 /* PublicationCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032F7E3121167E9A009E5C24 /* PublicationCollectionViewCell.swift */; };
 		0350FCE5211CD2CB006994C2 /* AssociatedColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */; };
@@ -55,12 +52,6 @@
 		0350FD00211CD2CB006994C2 /* DetailsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */; };
 		0350FD01211CD2CB006994C2 /* BookmarkCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571585ED2109E8F8008B34AD /* BookmarkCell.swift */; };
 		0350FD02211CD2CB006994C2 /* AboutTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE37DE422093291600079AA2 /* AboutTableViewController.swift */; };
-		0350FD15211CD2CB006994C2 /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
-		0350FD16211CD2CB006994C2 /* 2.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F11F7D467C00BDEAF4 /* 2.epub */; };
-		0350FD17211CD2CB006994C2 /* 3.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F31F7D467C00BDEAF4 /* 3.epub */; };
-		0350FD18211CD2CB006994C2 /* 4.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F21F7D467C00BDEAF4 /* 4.epub */; };
-		0350FD1B211CD2CB006994C2 /* 5.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EF1F7D467B00BDEAF4 /* 5.epub */; };
-		0350FD1E211CD2CB006994C2 /* 6.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F01F7D467B00BDEAF4 /* 6.epub */; };
 		0350FD21211CD2CB006994C2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */; };
 		0350FD22211CD2CB006994C2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4421F4EF6D400DF166D /* Assets.xcassets */; };
 		0350FD39211CD625006994C2 /* AssociatedColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE955A2020EBA74B00A0D8D8 /* AssociatedColors.swift */; };
@@ -92,12 +83,6 @@
 		0350FD54211CD625006994C2 /* DetailsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */; };
 		0350FD55211CD625006994C2 /* BookmarkCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571585ED2109E8F8008B34AD /* BookmarkCell.swift */; };
 		0350FD56211CD625006994C2 /* AboutTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE37DE422093291600079AA2 /* AboutTableViewController.swift */; };
-		0350FD69211CD625006994C2 /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
-		0350FD6A211CD625006994C2 /* 2.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F11F7D467C00BDEAF4 /* 2.epub */; };
-		0350FD6B211CD625006994C2 /* 3.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F31F7D467C00BDEAF4 /* 3.epub */; };
-		0350FD6C211CD625006994C2 /* 4.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F21F7D467C00BDEAF4 /* 4.epub */; };
-		0350FD6F211CD625006994C2 /* 5.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EF1F7D467B00BDEAF4 /* 5.epub */; };
-		0350FD72211CD625006994C2 /* 6.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F01F7D467B00BDEAF4 /* 6.epub */; };
 		0350FD75211CD625006994C2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */; };
 		0350FD76211CD625006994C2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4421F4EF6D400DF166D /* Assets.xcassets */; };
 		0352073A222D68CD0000F0A4 /* Kingfisher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03520739222D68CC0000F0A4 /* Kingfisher.framework */; };
@@ -179,6 +164,10 @@
 		CA16A8472231224200E66255 /* ReaderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A8452231224200E66255 /* ReaderViewController.swift */; };
 		CA16A8482231224200E66255 /* ReaderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A8452231224200E66255 /* ReaderViewController.swift */; };
 		CA16A8492231224200E66255 /* ReaderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A8452231224200E66255 /* ReaderViewController.swift */; };
+		CA1E4F4624002D5F009C4DE3 /* Samples in Resources */ = {isa = PBXBuildFile; fileRef = CA1E4F4524002D5F009C4DE3 /* Samples */; };
+		CA1E4F4724002D5F009C4DE3 /* Samples in Resources */ = {isa = PBXBuildFile; fileRef = CA1E4F4524002D5F009C4DE3 /* Samples */; };
+		CA1E4F4824002D5F009C4DE3 /* Samples in Resources */ = {isa = PBXBuildFile; fileRef = CA1E4F4524002D5F009C4DE3 /* Samples */; };
+		CA1E4F4924002D5F009C4DE3 /* Samples in Resources */ = {isa = PBXBuildFile; fileRef = CA1E4F4524002D5F009C4DE3 /* Samples */; };
 		CA200644222059F200E6B3BD /* ReaderFormatModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA200643222059F200E6B3BD /* ReaderFormatModule.swift */; };
 		CA200645222059F400E6B3BD /* ReaderFormatModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA200643222059F200E6B3BD /* ReaderFormatModule.swift */; };
 		CA200646222059F500E6B3BD /* ReaderFormatModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA200643222059F200E6B3BD /* ReaderFormatModule.swift */; };
@@ -326,13 +315,6 @@
 		CA822C93221C5737005800D1 /* DetailsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */; };
 		CA822C94221C5737005800D1 /* BookmarkCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571585ED2109E8F8008B34AD /* BookmarkCell.swift */; };
 		CA822C95221C5737005800D1 /* AboutTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE37DE422093291600079AA2 /* AboutTableViewController.swift */; };
-		CA822CA9221C5737005800D1 /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
-		CA822CAA221C5737005800D1 /* 2.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F11F7D467C00BDEAF4 /* 2.epub */; };
-		CA822CAB221C5737005800D1 /* 3.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F31F7D467C00BDEAF4 /* 3.epub */; };
-		CA822CAC221C5737005800D1 /* 1.cbz in Resources */ = {isa = PBXBuildFile; fileRef = 03079E7C211CF864002E9B9B /* 1.cbz */; };
-		CA822CAD221C5737005800D1 /* 4.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F21F7D467C00BDEAF4 /* 4.epub */; };
-		CA822CB0221C5737005800D1 /* 5.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EF1F7D467B00BDEAF4 /* 5.epub */; };
-		CA822CB3221C5737005800D1 /* 6.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F01F7D467B00BDEAF4 /* 6.epub */; };
 		CA822CB6221C5737005800D1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */; };
 		CA822CB7221C5737005800D1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4421F4EF6D400DF166D /* Assets.xcassets */; };
 		CA9A40D3221C054C00531EA1 /* DRMViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */; };
@@ -350,12 +332,6 @@
 		CADD69DF22C3A42600A4CADF /* Publication.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADD69DC22C3A42600A4CADF /* Publication.swift */; };
 		CADD69E022C3A42700A4CADF /* Publication.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADD69DC22C3A42600A4CADF /* Publication.swift */; };
 		F30AEE7A1FC312EA0073C9FD /* DetailsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */; };
-		F3120DE71FACB08E009ACFAD /* 1.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EE1F7D467B00BDEAF4 /* 1.epub */; };
-		F3120DE81FACB090009ACFAD /* 2.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F11F7D467C00BDEAF4 /* 2.epub */; };
-		F3120DE91FACB092009ACFAD /* 3.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F31F7D467C00BDEAF4 /* 3.epub */; };
-		F3120DEA1FACB094009ACFAD /* 4.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F21F7D467C00BDEAF4 /* 4.epub */; };
-		F3120DEB1FACB096009ACFAD /* 5.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980EF1F7D467B00BDEAF4 /* 5.epub */; };
-		F3120DEC1FACB098009ACFAD /* 6.epub in Resources */ = {isa = PBXBuildFile; fileRef = F32980F01F7D467B00BDEAF4 /* 6.epub */; };
 		F34CB28C1FCC20D4005E3A37 /* DRMManagementTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34CB28B1FCC20D4005E3A37 /* DRMManagementTableViewController.swift */; };
 		F3BD53391F72B26700E46FFC /* FontSelectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BD53381F72B26700E46FFC /* FontSelectionViewController.swift */; };
 		F3BD533B1F72B27400E46FFC /* AdvancedSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BD533A1F72B27400E46FFC /* AdvancedSettingsViewController.swift */; };
@@ -425,7 +401,6 @@
 		03061931222D936100646F1F /* Minizip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Minizip.framework; path = Carthage/Build/iOS/Minizip.framework; sourceTree = "<group>"; };
 		03061932222D936100646F1F /* ZIPFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ZIPFoundation.framework; path = Carthage/Build/iOS/ZIPFoundation.framework; sourceTree = "<group>"; };
 		03061933222D936100646F1F /* Fuzi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Fuzi.framework; path = Carthage/Build/iOS/Fuzi.framework; sourceTree = "<group>"; };
-		03079E7C211CF864002E9B9B /* 1.cbz */ = {isa = PBXFileReference; lastKnownFileType = file; path = 1.cbz; sourceTree = "<group>"; };
 		032F32DD22B7F25C00A77627 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/UserSettings.strings; sourceTree = "<group>"; };
 		032F32E122B7F33E00A77627 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/PublicationMenuViewController.strings; sourceTree = "<group>"; };
 		032F7E3021167E9A009E5C24 /* PublicationMenuViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationMenuViewController.swift; sourceTree = "<group>"; };
@@ -470,6 +445,7 @@
 		CA0B3AC6222EE726006D9363 /* PDFModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFModule.swift; sourceTree = "<group>"; };
 		CA16A84022311F7E00E66255 /* PDFViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFViewController.swift; sourceTree = "<group>"; };
 		CA16A8452231224200E66255 /* ReaderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderViewController.swift; sourceTree = "<group>"; };
+		CA1E4F4524002D5F009C4DE3 /* Samples */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Samples; sourceTree = "<group>"; };
 		CA200643222059F200E6B3BD /* ReaderFormatModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderFormatModule.swift; sourceTree = "<group>"; };
 		CA26EF7F2280689B0011653E /* Connection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		CA29B6F4221FF43E0037534C /* LibraryFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryFactory.swift; sourceTree = "<group>"; };
@@ -505,12 +481,6 @@
 		CACE84FC225640A500E19E8B /* Bookmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bookmark.swift; sourceTree = "<group>"; };
 		CADD69DC22C3A42600A4CADF /* Publication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Publication.swift; sourceTree = "<group>"; };
 		F30AEE791FC312EA0073C9FD /* DetailsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsTableViewController.swift; sourceTree = "<group>"; };
-		F32980EE1F7D467B00BDEAF4 /* 1.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 1.epub; sourceTree = "<group>"; };
-		F32980EF1F7D467B00BDEAF4 /* 5.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 5.epub; sourceTree = "<group>"; };
-		F32980F01F7D467B00BDEAF4 /* 6.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 6.epub; sourceTree = "<group>"; };
-		F32980F11F7D467C00BDEAF4 /* 2.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 2.epub; sourceTree = "<group>"; };
-		F32980F21F7D467C00BDEAF4 /* 4.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 4.epub; sourceTree = "<group>"; };
-		F32980F31F7D467C00BDEAF4 /* 3.epub */ = {isa = PBXFileReference; lastKnownFileType = file; path = 3.epub; sourceTree = "<group>"; };
 		F34CB28B1FCC20D4005E3A37 /* DRMManagementTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DRMManagementTableViewController.swift; sourceTree = "<group>"; };
 		F3BD53381F72B26700E46FFC /* FontSelectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FontSelectionViewController.swift; sourceTree = "<group>"; };
 		F3BD533A1F72B27400E46FFC /* AdvancedSettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AdvancedSettingsViewController.swift; sourceTree = "<group>"; };
@@ -807,7 +777,7 @@
 				F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */,
 				CA6BA37322B0F05000A59462 /* Localizable.strings */,
 				F3E7D4421F4EF6D400DF166D /* Assets.xcassets */,
-				F32980ED1F7D464900BDEAF4 /* Samples */,
+				CA1E4F4524002D5F009C4DE3 /* Samples */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -820,20 +790,6 @@
 				CA6BA3AA22B0FF6E00A59462 /* LCPAuthenticationViewController.xib */,
 			);
 			path = LCP;
-			sourceTree = "<group>";
-		};
-		F32980ED1F7D464900BDEAF4 /* Samples */ = {
-			isa = PBXGroup;
-			children = (
-				03079E7C211CF864002E9B9B /* 1.cbz */,
-				F32980EE1F7D467B00BDEAF4 /* 1.epub */,
-				F32980F11F7D467C00BDEAF4 /* 2.epub */,
-				F32980F31F7D467C00BDEAF4 /* 3.epub */,
-				F32980F21F7D467C00BDEAF4 /* 4.epub */,
-				F32980EF1F7D467B00BDEAF4 /* 5.epub */,
-				F32980F01F7D467B00BDEAF4 /* 6.epub */,
-			);
-			path = Samples;
 			sourceTree = "<group>";
 		};
 		F3E7D42F1F4EF6D400DF166D = {
@@ -1054,22 +1010,16 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0350FD15211CD2CB006994C2 /* 1.epub in Resources */,
-				0350FD16211CD2CB006994C2 /* 2.epub in Resources */,
-				0350FD17211CD2CB006994C2 /* 3.epub in Resources */,
-				03079E7E211CF8A3002E9B9B /* 1.cbz in Resources */,
-				0350FD18211CD2CB006994C2 /* 4.epub in Resources */,
 				CA6BA38822B0FF2A00A59462 /* Outline.storyboard in Resources */,
 				CA6BA38222B0FF2500A59462 /* DRM.storyboard in Resources */,
-				0350FD1B211CD2CB006994C2 /* 5.epub in Resources */,
 				CA6BA3A622B0FF6E00A59462 /* LCPAuthenticationViewController.xib in Resources */,
 				CA6BA37C22B0FF1F00A59462 /* Library.storyboard in Resources */,
 				CA6BA39A22B0FF5F00A59462 /* PublicationCollectionViewCell.xib in Resources */,
-				0350FD1E211CD2CB006994C2 /* 6.epub in Resources */,
 				CA6BA3A022B0FF6500A59462 /* PublicationMenuViewController.xib in Resources */,
 				CA6BA39422B0FF4000A59462 /* OPDS.storyboard in Resources */,
 				CA6BA37622B0FF1100A59462 /* App.storyboard in Resources */,
 				0350FD21211CD2CB006994C2 /* LaunchScreen.storyboard in Resources */,
+				CA1E4F4724002D5F009C4DE3 /* Samples in Resources */,
 				CA6BA36F22B0F05000A59462 /* Localizable.strings in Resources */,
 				0350FD22211CD2CB006994C2 /* Assets.xcassets in Resources */,
 				CA6BA38E22B0FF3700A59462 /* UserSettings.storyboard in Resources */,
@@ -1080,22 +1030,16 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0350FD69211CD625006994C2 /* 1.epub in Resources */,
-				0350FD6A211CD625006994C2 /* 2.epub in Resources */,
-				0350FD6B211CD625006994C2 /* 3.epub in Resources */,
-				03079E7F211CF8A4002E9B9B /* 1.cbz in Resources */,
-				0350FD6C211CD625006994C2 /* 4.epub in Resources */,
 				CA6BA38922B0FF2A00A59462 /* Outline.storyboard in Resources */,
 				CA6BA38322B0FF2500A59462 /* DRM.storyboard in Resources */,
-				0350FD6F211CD625006994C2 /* 5.epub in Resources */,
 				CA6BA3A722B0FF6E00A59462 /* LCPAuthenticationViewController.xib in Resources */,
 				CA6BA37D22B0FF1F00A59462 /* Library.storyboard in Resources */,
 				CA6BA39B22B0FF5F00A59462 /* PublicationCollectionViewCell.xib in Resources */,
-				0350FD72211CD625006994C2 /* 6.epub in Resources */,
 				CA6BA3A122B0FF6500A59462 /* PublicationMenuViewController.xib in Resources */,
 				CA6BA39522B0FF4000A59462 /* OPDS.storyboard in Resources */,
 				CA6BA37722B0FF1100A59462 /* App.storyboard in Resources */,
 				0350FD75211CD625006994C2 /* LaunchScreen.storyboard in Resources */,
+				CA1E4F4824002D5F009C4DE3 /* Samples in Resources */,
 				CA6BA37022B0F05000A59462 /* Localizable.strings in Resources */,
 				0350FD76211CD625006994C2 /* Assets.xcassets in Resources */,
 				CA6BA38F22B0FF3700A59462 /* UserSettings.storyboard in Resources */,
@@ -1106,22 +1050,16 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA822CA9221C5737005800D1 /* 1.epub in Resources */,
-				CA822CAA221C5737005800D1 /* 2.epub in Resources */,
-				CA822CAB221C5737005800D1 /* 3.epub in Resources */,
-				CA822CAC221C5737005800D1 /* 1.cbz in Resources */,
-				CA822CAD221C5737005800D1 /* 4.epub in Resources */,
 				CA6BA38A22B0FF2A00A59462 /* Outline.storyboard in Resources */,
 				CA6BA38422B0FF2500A59462 /* DRM.storyboard in Resources */,
-				CA822CB0221C5737005800D1 /* 5.epub in Resources */,
 				CA6BA3A822B0FF6E00A59462 /* LCPAuthenticationViewController.xib in Resources */,
 				CA6BA37E22B0FF1F00A59462 /* Library.storyboard in Resources */,
 				CA6BA39C22B0FF5F00A59462 /* PublicationCollectionViewCell.xib in Resources */,
-				CA822CB3221C5737005800D1 /* 6.epub in Resources */,
 				CA6BA3A222B0FF6500A59462 /* PublicationMenuViewController.xib in Resources */,
 				CA6BA39622B0FF4000A59462 /* OPDS.storyboard in Resources */,
 				CA6BA37822B0FF1100A59462 /* App.storyboard in Resources */,
 				CA822CB6221C5737005800D1 /* LaunchScreen.storyboard in Resources */,
+				CA1E4F4924002D5F009C4DE3 /* Samples in Resources */,
 				CA6BA37122B0F05000A59462 /* Localizable.strings in Resources */,
 				CA822CB7221C5737005800D1 /* Assets.xcassets in Resources */,
 				CA6BA39022B0FF3700A59462 /* UserSettings.storyboard in Resources */,
@@ -1132,22 +1070,16 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F3120DE71FACB08E009ACFAD /* 1.epub in Resources */,
-				F3120DE81FACB090009ACFAD /* 2.epub in Resources */,
-				F3120DE91FACB092009ACFAD /* 3.epub in Resources */,
-				03079E7D211CF865002E9B9B /* 1.cbz in Resources */,
-				F3120DEA1FACB094009ACFAD /* 4.epub in Resources */,
 				CA6BA38722B0FF2A00A59462 /* Outline.storyboard in Resources */,
 				CA6BA38122B0FF2500A59462 /* DRM.storyboard in Resources */,
-				F3120DEB1FACB096009ACFAD /* 5.epub in Resources */,
 				CA6BA3A522B0FF6E00A59462 /* LCPAuthenticationViewController.xib in Resources */,
 				CA6BA37B22B0FF1F00A59462 /* Library.storyboard in Resources */,
 				CA6BA39922B0FF5F00A59462 /* PublicationCollectionViewCell.xib in Resources */,
-				F3120DEC1FACB098009ACFAD /* 6.epub in Resources */,
 				CA6BA39F22B0FF6500A59462 /* PublicationMenuViewController.xib in Resources */,
 				CA6BA39322B0FF4000A59462 /* OPDS.storyboard in Resources */,
 				CA6BA37522B0FF1100A59462 /* App.storyboard in Resources */,
 				F3E7D4461F4EF6D400DF166D /* LaunchScreen.storyboard in Resources */,
+				CA1E4F4624002D5F009C4DE3 /* Samples in Resources */,
 				CA6BA36E22B0F05000A59462 /* Localizable.strings in Resources */,
 				F3E7D4431F4EF6D400DF166D /* Assets.xcassets in Resources */,
 				CA6BA38D22B0FF3700A59462 /* UserSettings.storyboard in Resources */,
