@@ -22,8 +22,8 @@ enum OPFVocabulary: String {
     // Reserved prefixes (https://idpf.github.io/epub-prefixes/packages/).
     case a11y, dcterms, epubsc, marc, media, onix, rendition, schema, xsd
     // Additional prefixes used in the streamer.
-    case dc, calibre
-
+    case calibre
+    
     var uri: String {
         switch self {
         case .defaultMetadata:
@@ -48,15 +48,14 @@ enum OPFVocabulary: String {
             return "http://schema.org/"
         case .xsd:
             return "http://www.w3.org/2001/XMLSchema#"
-        case .dc:
-            return "http://purl.org/dc/elements/1.1/"
         case .calibre:
             // https://github.com/kovidgoyal/calibre/blob/3f903cbdd165e0d1c5c25eecb6eef2a998342230/src/calibre/ebooks/metadata/opf3.py#L170
             return "https://calibre-ebook.com"
         }
     }
     
-    /// Returns the property stripped of its prefix, and the associated vocabulary URI for the given metadata property.
+    /// Returns the property stripped of its prefix, and the associated vocabulary URI for the given
+    /// metadata property.
     ///
     /// - Parameter prefixes: Custom prefixes declared in the package.
     static func parse(property: String, prefixes: [String: String] = [:]) -> (property: String, vocabularyURI: String) {
@@ -73,13 +72,38 @@ enum OPFVocabulary: String {
         let prefix = String(property[prefixRange])
         return (
             property: String(property[propertyRange]),
-            vocabularyURI: prefixes[prefix] ?? (OPFVocabulary(rawValue: prefix) ?? .defaultMetadata).uri
+            vocabularyURI: resolveURI(ofPrefix: prefix, prefixes: prefixes)
         )
+    }
+
+    private static func resolveURI(ofPrefix prefix: String, prefixes: [String: String]) -> String {
+        if let uri = prefixes[prefix] {
+            switch uri {
+                
+            // The dc URI is expanded as dcterms
+            // See https://www.dublincore.org/specifications/dublin-core/dcmi-terms/
+            // > While these distinctions are significant for creators of RDF applications, most
+            // > users can safely treat the fifteen parallel properties as equivalent. The most
+            // > useful properties and classes of DCMI Metadata Terms have now been published as
+            // > ISO 15836-2:2019 [ISO 15836-2:2019]. While the /elements/1.1/ namespace will be
+            // > supported indefinitely, DCMI gently encourages use of the /terms/ namespace.
+            case "http://purl.org/dc/elements/1.1/":
+                return OPFVocabulary.dcterms.uri
+                
+            default:
+                return uri
+            }
+        }
+        
+        let prefix = (prefix == "dc") ? "dcterms" : prefix
+        return (OPFVocabulary(rawValue: prefix) ?? .defaultMetadata).uri
     }
     
     
     /// Parses the custom vocabulary prefixes declared in the given package document.
-    /// "Reserved prefixes should not be overridden in the prefix attribute, but Reading Systems must use such local overrides when encountered." (http://www.idpf.org/epub/301/spec/epub-publications.html#sec-metadata-reserved-vocabs)
+    /// > Reserved prefixes should not be overridden in the prefix attribute, but Reading Systems
+    /// > must use such local overrides when encountered.
+    /// http://www.idpf.org/epub/301/spec/epub-publications.html#sec-metadata-reserved-vocabs
     static func prefixes(in document: XMLDocument) -> [String: String] {
         document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
         guard let prefixAttribute = document.firstChild(xpath: "/opf:package")?.attr("prefix") else {
@@ -162,7 +186,7 @@ struct OPFMetaList {
                     }
                     return OPFMeta(
                         property: property,
-                        vocabularyURI: OPFVocabulary.dc.uri,
+                        vocabularyURI: OPFVocabulary.dcterms.uri,
                         content: meta.stringValue.trimmingCharacters(in: .whitespacesAndNewlines),
                         id: meta.attr("id"),
                         refines: nil,
@@ -188,7 +212,8 @@ struct OPFMetaList {
         return metas.filter { $0.property == property && $0.vocabularyURI == vocabulary.uri && $0.refines == id }
     }
     
-    /// Returns the JSON representation of the unknown metadata (for RWPM's `Metadata.otherMetadata`)
+    /// Returns the JSON representation of the unknown metadata
+    /// (for RWPM's `Metadata.otherMetadata`)
     var otherMetadata: [String: Any] {
         var metadata: [String: NSMutableOrderedSet] = [:]
 
@@ -202,21 +227,16 @@ struct OPFMetaList {
             metadata[key] = values
         }
         
-        // FIXME: Use compactMapValues when we move to Swift 5, instead of the NSNull trick
-        return metadata
-            .mapValues { values in
-                switch values.count {
-                case 0:
-                    return NSNull()
-                case 1:
-                    return values[0]
-                default:
-                    return values.array
-                }
+        return metadata.compactMapValues { values in
+            switch values.count {
+            case 0:
+                return nil
+            case 1:
+                return values[0]
+            default:
+                return values.array
             }
-            .filter { key, value in
-                !(value is NSNull)
-            }
+        }
     }
     
     /// Returns the meta's content as value, or a special JSON object is the meta is refined, eg.:
@@ -238,18 +258,21 @@ struct OPFMetaList {
         return meta.content
     }
     
-    // List of properties that should not be added to `otherMetadata` because they are already consumed by the RWPM model.
+    /// List of properties that should not be added to `otherMetadata` because they are already
+    /// consumed by the RWPM model.
     private let rwpmProperties: [OPFVocabulary: [String]] = [
         .defaultMetadata: ["cover"],
-        .dc: ["contributor", "creator", "date", "description", "identifier", "language", "publisher", "subject", "title"],
-        .dcterms: ["contributor", "creator", "modified", "publisher"],
+        .dcterms: [
+            "contributor", "creator", "date", "description", "identifier", "language", "modified",
+            "publisher", "subject", "title"
+        ],
         .media: ["duration"],
         .rendition: ["flow", "layout", "orientation", "spread"],
         .schema: ["numberOfPages"]
     ]
     
-    
-    /// Returns whether the given meta is a known RWPM property, and should therefore be ignored in `otherMetadata`.
+    /// Returns whether the given meta is a known RWPM property, and should therefore be ignored in
+    /// `otherMetadata`.
     private func isRWPMProperty(_ meta: OPFMeta) -> Bool {
         let vocabularyProperties = (rwpmProperties.first { $0.key.uri == meta.vocabularyURI })?.value ?? []
         return vocabularyProperties.contains(meta.property)

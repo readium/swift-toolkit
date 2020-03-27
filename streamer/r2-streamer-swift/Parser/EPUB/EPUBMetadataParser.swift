@@ -58,12 +58,12 @@ final class EPUBMetadataParser: Loggable {
             otherMetadata: metas.otherMetadata
         )
         parseContributors(to: &metadata)
-        metadata.rendition = rendition
+        metadata.presentation = presentation
 
         return metadata
     }
     
-    private lazy var languages: [String] = metas["language", in: .dc].map { $0.content }
+    private lazy var languages: [String] = metas["language", in: .dcterms].map { $0.content }
 
     private lazy var packageLanguage: String? = document.firstChild(xpath: "/opf:package")?.attr("lang")
 
@@ -86,15 +86,15 @@ final class EPUBMetadataParser: Loggable {
         }
     }()
     
-    private lazy var description: String? = metas["description", in: .dc]
+    private lazy var description: String? = metas["description", in: .dcterms]
         .first?.content
 
     private lazy var numberOfPages: Int? = metas["numberOfPages", in: .schema]
         .first.flatMap { Int($0.content) }
     
-    /// Extracts the Rendition properties from the XML element metadata and fill
-    /// then into the Metadata object instance.
-    private lazy var rendition: EPUBRendition = {
+    /// Extracts the Presentation properties from the XML element metadata and fill
+    /// them into the Metadata object instance.
+    private lazy var presentation: Presentation = {
         func renditionMetadata(_ property: String) -> String {
             return metas[property, in: .rendition].last?.content ?? ""
         }
@@ -111,11 +111,8 @@ final class EPUBMetadataParser: Loggable {
             return platform.firstChild(xpath: "option[@name='\(name)']")?.stringValue
         }
 
-        return EPUBRendition(
-            layout: .init(
-                epub: renditionMetadata("layout"),
-                fallback: (displayOption("fixed-layout") == "true") ? .fixed : nil
-            ),
+        return Presentation(
+            continuous: (renditionMetadata("flow") == "scrolled-continuous"),
             orientation: .init(
                 epub: renditionMetadata("orientation"),
                 fallback: {
@@ -133,7 +130,11 @@ final class EPUBMetadataParser: Loggable {
                 }()
             ),
             overflow: .init(epub: renditionMetadata("flow")),
-            spread: .init(epub: renditionMetadata("spread"))
+            spread: .init(epub: renditionMetadata("spread")),
+            layout: .init(
+                epub: renditionMetadata("layout"),
+                fallback: (displayOption("fixed-layout") == "true") ? .fixed : nil
+            )
         )
     }()
 
@@ -147,7 +148,7 @@ final class EPUBMetadataParser: Loggable {
                 guard meta.content == titleType.rawValue, let id = meta.refines else {
                     return nil
                 }
-                return metas["title", in: .dc].first { $0.id == id }?.element
+                return metas["title", in: .dcterms].first { $0.id == id }?.element
             }
             // Sort using `display-seq` refines
             .sorted { title1, title2 in
@@ -171,7 +172,7 @@ final class EPUBMetadataParser: Loggable {
     }()
     
     private lazy var mainTitleElement: XMLElement? = titleElements(ofType: .main).first
-        ?? metas["title", in: .dc].first?.element
+        ?? metas["title", in: .dcterms].first?.element
     
     private lazy var mainTitle: LocalizedString? = localizedString(for: mainTitleElement)
 
@@ -210,7 +211,7 @@ final class EPUBMetadataParser: Loggable {
             return []
         }
         
-        let subjects = metas["subject", in: .dc]
+        let subjects = metas["subject", in: .dcterms]
         if subjects.count == 1 {
             let subject = subjects[0]
             let names = subject.content.components(separatedBy: CharacterSet(charactersIn: ",;"))
@@ -249,31 +250,18 @@ final class EPUBMetadataParser: Loggable {
     ///   - metadata: The Metadata object to fill (inout).
     private func parseContributors(to metadata: inout Metadata) {
         // Parse XML elements and fill the metadata object.
-        let contributors = findContributorMetaElements() + findContributorElements()
-        for contributor in contributors {
+        for contributor in findContributorElements() {
             parseContributor(from: contributor, to: &metadata)
         }
     }
 
-    /// [EPUB 2.0 & 3.1+]
-    /// Return the XML elements about the contributors.
-    /// E.g.: `<dc:publisher "property"=".." >value<\>`.
+    /// Returns the XML elements about the contributors.
+    /// e.g. `<dc:publisher "property"=".." >value<\>`,
+    /// or `<meta property="dcterms:publisher/creator/contributor"`
     ///
     /// - Parameter metadata: The XML metadata element.
     /// - Returns: The array of XML element representing the contributors.
     private func findContributorElements() -> [XMLElement] {
-        let contributors = metas["creator", in: .dc]
-            + metas["publisher", in: .dc]
-            + metas["contributor", in: .dc]
-        return contributors.map { $0.element }
-    }
-
-    /// [EPUB 3.0]
-    /// Return the XML elements about the contributors.
-    /// E.g.: `<meta property="dcterms:publisher/creator/contributor"`.
-    ///
-    /// - Returns: The array of XML element representing the <meta> contributors.
-    private func findContributorMetaElements() -> [XMLElement] {
         let contributors = metas["creator", in: .dcterms]
             + metas["publisher", in: .dcterms]
             + metas["contributor", in: .dcterms]

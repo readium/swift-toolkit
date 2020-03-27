@@ -46,11 +46,12 @@ final class SMILParser {
                 parent.children.append(newNode)
                 continue
             }
-            guard let link = readingOrder.first(where: { $0.href.contains(baseHref) || baseHref.contains($0.href) }) else {
-                continue
-            }
-            link.mediaOverlays.append(newNode)
-            link.properties.mediaOverlay = EPUBConstant.mediaOverlayURL + link.href
+            // FIXME: For now we don't fill the media-overlays anymore, since it was only half implemented and the API will change
+//            guard let link = readingOrder.first(where: { $0.href.contains(baseHref) || baseHref.contains($0.href) }) else {
+//                continue
+//            }
+//            link.mediaOverlays.append(newNode)
+//            link.properties.mediaOverlay = EPUBConstant.mediaOverlayURL + link.href
         }
     }
     

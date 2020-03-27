@@ -82,13 +82,8 @@ final public class EpubParser: PublicationParser {
         parseEncryption(from: container, to: &publication, drm)
         
         func parseRemainingResource(protectedBy drm: DRM?) throws {
-            /// The folowing resources could be encrypted, hence we use the fetcher.
-            let fetcher = try Fetcher(publication: publication, container: container)
-
             container.drm = drm
-
             fillEncryptionProfile(forLinksIn: publication, using: drm)
-            try parseMediaOverlay(from: fetcher, to: &publication)
         }
         container.drm = drm
         return ((publication, container), parseRemainingResource)
@@ -146,10 +141,10 @@ final public class EpubParser: PublicationParser {
         publication.tableOfContents = navigationDocument.links(for: .tableOfContents)
         publication.pageList = navigationDocument.links(for: .pageList)
         publication.landmarks = navigationDocument.links(for: .landmarks)
-        publication.listOfAudioFiles = navigationDocument.links(for: .listOfAudiofiles)
+        publication.listOfAudioClips = navigationDocument.links(for: .listOfAudiofiles)
         publication.listOfIllustrations = navigationDocument.links(for: .listOfIllustrations)
         publication.listOfTables = navigationDocument.links(for: .listOfTables)
-        publication.listOfVideos = navigationDocument.links(for: .listOfVideos)
+        publication.listOfVideoClips = navigationDocument.links(for: .listOfVideos)
     }
 
     /// Attempt to fill `Publication.tableOfContent`/`.pageList` using the NCX
@@ -215,13 +210,15 @@ final public class EpubParser: PublicationParser {
             SMILParser.parseParameters(in: body, withParent: node, base: href)
             SMILParser.parseSequences(in: body, withParent: node, publicationReadingOrder: &publication.readingOrder, base: href)
             // "/??/xhtml/mo-002.xhtml#mo-1" => "/??/xhtml/mo-002.xhtml"
-            guard let baseHref = node.text?.components(separatedBy: "#")[0],
-                let link = publication.readingOrder.first(where: { baseHref.contains($0.href) }) else
-            {
-                continue
-            }
-            link.mediaOverlays.append(node)
-            link.properties.mediaOverlay = EPUBConstant.mediaOverlayURL + link.href
+            
+            // FIXME: For now we don't fill the media-overlays anymore, since it was only half implemented and the API will change
+//            guard let baseHref = node.text?.components(separatedBy: "#")[0],
+//                let link = publication.readingOrder.first(where: { baseHref.contains($0.href) }) else
+//            {
+//                continue
+//            }
+//            link.mediaOverlays.append(node)
+//            link.properties.mediaOverlay = EPUBConstant.mediaOverlayURL + link.href
         }
     }
 
@@ -280,7 +277,7 @@ final public class EpubParser: PublicationParser {
             var lastPositionOfPreviousResource = 0
             var positionList = publication.readingOrder.flatMap { link -> [Locator] in
                 let (lastPosition, positionList): (Int, [Locator]) = {
-                    if publication.metadata.rendition.layout(of: link) == .fixed {
+                    if publication.metadata.presentation.layout(of: link) == .fixed {
                         return makeFixedPositionList(of: link, from: lastPositionOfPreviousResource)
                     } else {
                         return makeReflowablePositionList(of: link, in: container, from: lastPositionOfPreviousResource)
@@ -308,14 +305,13 @@ final public class EpubParser: PublicationParser {
     
     private static func makeFixedPositionList(of link: Link, from startPosition: Int) -> (Int, [Locator]) {
         let position = startPosition + 1
-        let positionList = [Locator(
-            href: link.href,
-            type: link.type ?? "text/html",
-            locations: Locations(
+        let positionList = [
+            makeLocator(
+                from: link,
                 progression: 0,
                 position: position
             )
-        )]
+        ]
         return (position, positionList)
     }
     
@@ -329,16 +325,25 @@ final public class EpubParser: PublicationParser {
         let pageCount = max(1, Int(ceil((Double(length) / Double(pageLength)))))
         
         let positionList = (1...pageCount).map { position in
-            Locator(
-                href: link.href,
-                type: link.type ?? "text/html",
-                locations: Locations(
-                    progression: Double(position - 1) / Double(pageCount),
-                    position: startPosition + position
-                )
+            makeLocator(
+                from: link,
+                progression: Double(position - 1) / Double(pageCount),
+                position: startPosition + position
             )
         }
         return (startPosition + pageCount, positionList)
+    }
+    
+    private static func makeLocator(from link: Link, progression: Double, position: Int) -> Locator {
+        return Locator(
+            href: link.href,
+            type: link.type ?? "text/html",
+            title: link.title,
+            locations: .init(
+                progression: progression,
+                position: position
+            )
+        )
     }
     
 }

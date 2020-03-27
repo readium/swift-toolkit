@@ -63,7 +63,7 @@ public class PublicationServer: ResourcesServer {
         if startWebServer() == false {
             return nil
         }
-        addSpecialResourcesHandlers()
+        addStaticResourcesHandlers()
     }
     
     func startWebServer() -> Bool {
@@ -92,14 +92,13 @@ public class PublicationServer: ResourcesServer {
         return false
     }
     
-    // Add handlers for the css/js/font resources.
-    public func addSpecialResourcesHandlers() {
+    // Add handlers for the static resources.
+    public func addStaticResourcesHandlers() {
         guard let resourceURL = Bundle(for: PublicationServer.self).resourceURL else {
             return
         }
         
-        let specialResources = ["scripts", "styles", "fonts"]
-        specialResources.forEach { resource in
+        for resource in ["fonts"] {
             do {
                 try serve(resourceURL.appendingPathComponent(resource), at: "/\(resource)")
             } catch {
@@ -132,7 +131,8 @@ public class PublicationServer: ResourcesServer {
         }
         
         // Add the self link to the publication.
-        publication.addSelfLink(endpoint: endpoint, for: baseURL)
+        let manifestURL = baseURL.appendingPathComponent("\(endpoint)/manifest.json")
+        publication.setSelfLink(href: manifestURL.absoluteString)
         
         publications[endpoint] = publication
         containers[endpoint] = container
@@ -170,13 +170,13 @@ public class PublicationServer: ResourcesServer {
             }
             
             // Remove the prefix from the URI.
-            let relativePath = String(request.path[request.path.index(endpoint.endIndex, offsetBy: 1)...])
+            let href = String(request.path[request.path.index(endpoint.endIndex, offsetBy: 1)...])
             //
-            let resource = publication.resource(withRelativePath: relativePath)
+            let resource = publication.resource(withHref: href)
             let contentType = resource?.type ?? "application/octet-stream"
             // Get a data input stream from the fetcher.
             do {
-                let dataStream = try fetcher.dataStream(forRelativePath: relativePath)
+                let dataStream = try fetcher.dataStream(forRelativePath: href)
                 let range = request.hasByteRange() ? request.byteRange : nil
                 
                 response = WebServerResourceResponse(inputStream: dataStream,

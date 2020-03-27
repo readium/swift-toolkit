@@ -45,13 +45,13 @@ final class EPUBEncryptionParser: Loggable {
     
     /// Parse the Encryption.xml EPUB file. It contains the informationg about encrypted resources and how to decrypt them.
     ///
-    /// - Returns: A map between the resource `href` and the matching `EPUBEncryption`.
-    func parseEncryptions() -> [String: EPUBEncryption] {
+    /// - Returns: A map between the resource `href` and the matching `Encryption`.
+    func parseEncryptions() -> [String: Encryption] {
         guard let document = document else {
             return [:]
         }
 
-        var encryptions: [String: EPUBEncryption] = [:]
+        var encryptions: [String: Encryption] = [:]
         
         // Loop through <EncryptedData> elements..
         for encryptedDataElement in document.xpath("./enc:EncryptedData") {
@@ -62,7 +62,7 @@ final class EPUBEncryptionParser: Loggable {
             }
             resourceURI = normalize(base: "/", href: resourceURI)
 
-            var encryption = EPUBEncryption(algorithm: algorithm)
+            var encryption = Encryption(algorithm: algorithm)
 
             // LCP. Tag LCP protected resources.
             let keyInfoURI = encryptedDataElement.firstChild(xpath: "ds:KeyInfo/ds:RetrievalMethod")?.attr("URI")
@@ -86,8 +86,8 @@ final class EPUBEncryptionParser: Loggable {
     ///
     /// - Parameters:
     ///   - encryptionProperty: The EncryptionProperty element, parent of <Compression>.
-    ///   - encryption: The EPUBEncryption structure to fill.
-    private func parseCompressionElement(from encryptionProperty: XMLElement, to encryption: inout EPUBEncryption) {
+    ///   - encryption: The Encryption structure to fill.
+    private func parseCompressionElement(from encryptionProperty: XMLElement, to encryption: inout Encryption) {
         // Check that we have a compression element, with originalLength, not empty.
         guard let compressionElement = encryptionProperty.firstChild(xpath:"comp:Compression"),
             let method = compressionElement.attr("Method"),

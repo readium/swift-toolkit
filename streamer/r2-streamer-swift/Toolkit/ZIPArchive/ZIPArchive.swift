@@ -229,6 +229,7 @@ internal class ZipArchive: Loggable {
         let ioffset = Int(offset)
         var buffer = Array<CUnsignedChar>(repeating: 0, count: bufferLength)
 
+        // FIXME: do that only when the data is compressed?
         // Read the current file to the desired offset
         var offsetBytesRead: Int = 0
         while offsetBytesRead < ioffset {

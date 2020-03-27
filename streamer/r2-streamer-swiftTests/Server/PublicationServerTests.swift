@@ -54,7 +54,7 @@ class PublicationServerTests: XCTestCase, Loggable {
     // MARK: - Fileprivate methods.
 
     fileprivate func verifyManifestJson(atEndpoint endPoint: String) {
-        guard var publicationUrl = publicationServer?.baseUrl else {
+        guard var publicationUrl = publicationServer?.baseURL else {
             XCTFail("PublicationServer baseURL not found")
             return
         }

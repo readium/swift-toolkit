@@ -13,7 +13,7 @@ import Fuzi
 import R2Shared
 
 
-// http://www.idpf.org/epub/30/spec/epub30-publications.html#elemdef-opf-dctitle
+// http://www.idpf.org/epub/30/spec/epub30-publications.html#title-type
 // the six basic values of the "title-type" property specified by EPUB 3:
 public enum EPUBTitleType: String {
     case main
@@ -21,7 +21,7 @@ public enum EPUBTitleType: String {
     case short
     case collection
     case edition
-    case extended
+    case expanded
 }
 
 public enum OPFParserError: Error {
@@ -129,7 +129,7 @@ final class OPFParser: Loggable {
             }
     }
 
-    /// Parses XML elements of the <ReadingOrder> in the package.opf file.
+    /// Parses XML elements of the <spine> in the package.opf file.
     /// They are only composed of an `idref` referencing one of the previously parsed resource (XML: idref -> id).
     ///
     /// - Parameter manifestLinks: The `Link` parsed in the manifest items.
@@ -139,7 +139,7 @@ final class OPFParser: Loggable {
         var readingOrder: [Link] = []
         
         // Get the readingOrder children items.
-        let readingOrderItems = document.xpath("/opf:package/opf:readingOrder/opf:itemref|/opf:package/opf:spine/opf:itemref")
+        let readingOrderItems = document.xpath("/opf:package/opf:spine/opf:itemref")
         for item in readingOrderItems {
             // Find the `Link` that `idref` is referencing to from the `manifestLinks`.
             guard let idref = item.attr("idref"),
@@ -243,7 +243,7 @@ final class OPFParser: Loggable {
             /// Spread
             case "rendition:spread-none", "rendition:spread-auto":
                 // If we don't qualify `.none` here it sets it to `nil`.
-                properties.spread = EPUBRendition.Spread.none
+                properties.spread = Presentation.Spread.none
             case "rendition:spread-landscape":
                 properties.spread = .landscape
             case "rendition:spread-portrait":
@@ -269,9 +269,7 @@ final class OPFParser: Loggable {
                 properties.overflow = .auto
             case "rendition:flow-paginated":
                 properties.overflow = .paginated
-            case "rendition:flow-scrolled-continuous":
-                properties.overflow = .scrolledContinuous
-            case "rendition:flow-scrolled-doc":
+            case "rendition:flow-scrolled-continuous", "rendition:flow-scrolled-doc":
                 properties.overflow = .scrolled
             default:
                 continue

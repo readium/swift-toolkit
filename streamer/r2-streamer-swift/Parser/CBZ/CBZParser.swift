@@ -132,7 +132,7 @@ public class CbzParser: PublicationParser {
                 href: link.href,
                 type: link.type ?? "",
                 title: link.title,
-                locations: Locations(
+                locations: .init(
                     totalProgression: Double(index) / Double(pageCount),
                     position: index + 1
                 )
