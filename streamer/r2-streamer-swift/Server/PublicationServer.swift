@@ -63,7 +63,7 @@ public class PublicationServer: ResourcesServer {
         if startWebServer() == false {
             return nil
         }
-        addSpecialResourcesHandlers()
+        addStaticResourcesHandlers()
     }
     
     func startWebServer() -> Bool {
@@ -92,16 +92,18 @@ public class PublicationServer: ResourcesServer {
         return false
     }
     
-    // Add handlers for the css/js/font resources.
-    public func addSpecialResourcesHandlers() {
+    // Add handlers for the static resources.
+    public func addStaticResourcesHandlers() {
         guard let resourceURL = Bundle(for: PublicationServer.self).resourceURL else {
             return
         }
         
-        do {
-            try serve(resourceURL.appendingPathComponent("fonts"), at: "/fonts")
-        } catch {
-            log(.error, error)
+        for resource in ["fonts"] {
+            do {
+                try serve(resourceURL.appendingPathComponent(resource), at: "/\(resource)")
+            } catch {
+                log(.error, error)
+            }
         }
     }
     
