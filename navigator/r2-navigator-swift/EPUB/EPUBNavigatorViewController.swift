@@ -175,7 +175,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         guard let spreadIndex = spreads.firstIndex(withHref: href) else {
             return false
         }
-        return paginationView.goToIndex(spreadIndex, location: location, animated: animated, completion: completion)
+        return paginationView.goToIndex(spreadIndex, location: PageLocation(location), animated: animated, completion: completion)
     }
     
     /// Goes to the next or previous page in the given scroll direction.
@@ -186,12 +186,15 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
             return true
         }
         
-        let delta = readingProgression == .rtl ? -1 : 1
+        let isRTL = (readingProgression == .rtl)
+        let delta = isRTL ? -1 : 1
         switch direction {
         case .left:
-            return paginationView.goToIndex(currentSpreadIndex - delta, animated: animated, completion: completion)
+            let location: PageLocation = isRTL ? .start : .end
+            return paginationView.goToIndex(currentSpreadIndex - delta, location: location, animated: animated, completion: completion)
         case .right:
-            return paginationView.goToIndex(currentSpreadIndex + delta, animated: animated, completion: completion)
+            let location: PageLocation = isRTL ? .end : .start
+            return paginationView.goToIndex(currentSpreadIndex + delta, location: location, animated: animated, completion: completion)
         }
     }
     
@@ -234,7 +237,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         return publication.readingOrder.firstIndex(withHref: spreads[currentSpreadIndex].left.href)
     }
 
-    private func reloadSpreads(at location: Locator? = nil) {
+    private func reloadSpreads(at locator: Locator? = nil) {
         let isLandscape = (view.bounds.width > view.bounds.height)
         let pageCountPerSpread = EPUBSpread.pageCountPerSpread(for: publication, userSettings: userSettings, isLandscape: isLandscape)
         guard spreads.first?.pageCount != pageCountPerSpread else {
@@ -242,18 +245,18 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
             return
         }
 
-        let location = location ?? currentLocation
+        let locator = locator ?? currentLocation
         spreads = EPUBSpread.makeSpreads(for: publication, readingProgression: readingProgression, pageCountPerSpread: pageCountPerSpread)
         
         let initialIndex: Int = {
-            if let href = location?.href, let foundIndex = spreads.firstIndex(withHref: href) {
+            if let href = locator?.href, let foundIndex = spreads.firstIndex(withHref: href) {
                 return foundIndex
             } else {
                 return 0
             }
         }()
         
-        paginationView.reloadAtIndex(initialIndex, location: location, pageCount: spreads.count, readingProgression: readingProgression)
+        paginationView.reloadAtIndex(initialIndex, location: PageLocation(locator), pageCount: spreads.count, readingProgression: readingProgression)
     }
 
     
@@ -296,7 +299,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         guard let spreadIndex = spreads.firstIndex(withHref: locator.href) else {
             return false
         }
-        return paginationView.goToIndex(spreadIndex, location: locator, animated: animated, completion: completion)
+        return paginationView.goToIndex(spreadIndex, location: .locator(locator), animated: animated, completion: completion)
     }
     
     public func go(to link: Link, animated: Bool, completion: @escaping () -> Void) -> Bool {
@@ -391,14 +394,13 @@ extension EPUBNavigatorViewController: EditingActionsControllerDelegate {
 
 extension EPUBNavigatorViewController: PaginationViewDelegate {
     
-    func paginationView(_ paginationView: PaginationView, pageViewAtIndex index: Int, location: Locator) -> (UIView & PageView)? {
+    func paginationView(_ paginationView: PaginationView, pageViewAtIndex index: Int) -> (UIView & PageView)? {
         let spread = spreads[index]
         let spreadViewType = (spread.layout == .fixed) ? EPUBFixedSpreadView.self : EPUBReflowableSpreadView.self
         let spreadView = spreadViewType.init(
             publication: publication,
             spread: spread,
             resourcesURL: resourcesURL,
-            initialLocation: location,
             contentLayout: publication.contentLayout,
             readingProgression: readingProgression,
             userSettings: userSettings,

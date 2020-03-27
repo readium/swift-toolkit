@@ -40,8 +40,6 @@ protocol EPUBSpreadViewDelegate: class {
 class EPUBSpreadView: UIView, Loggable {
 
     weak var delegate: EPUBSpreadViewDelegate?
-    // Location to scroll to in the spread once the pages are loaded.
-    var initialLocation: Locator
     let publication: Publication
     let spread: EPUBSpread
     
@@ -69,11 +67,10 @@ class EPUBSpreadView: UIView, Loggable {
 
     private(set) var spreadLoaded = false
 
-    required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL?, initialLocation: Locator, contentLayout: ContentLayoutStyle, readingProgression: ReadingProgression, userSettings: UserSettings, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+    required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL?, contentLayout: ContentLayoutStyle, readingProgression: ReadingProgression, userSettings: UserSettings, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
         self.publication = publication
         self.spread = spread
         self.resourcesURL = resourcesURL
-        self.initialLocation = initialLocation
         self.contentLayout = contentLayout
         self.readingProgression = readingProgression
         self.userSettings = userSettings
@@ -165,8 +162,7 @@ class EPUBSpreadView: UIView, Loggable {
     }
 
     /// Evaluates the given JavaScript into the resource's HTML page.
-    /// Don't use directly webView.evaluateJavaScript as the resource might be displayed into an iframe in a wrapper HTML page.
-    func evaluateScript(_ script: String, inResource href: String, completion: ((Any?, Error?) -> Void)? = nil) {
+    func evaluateScript(_ script: String, completion: ((Any?, Error?) -> Void)? = nil) {
         webView.evaluateJavaScript(script, completionHandler: completion)
     }
   
@@ -197,20 +193,20 @@ class EPUBSpreadView: UIView, Loggable {
     /// The JS message `spreadLoaded` needs to be emitted by a subclass script, EPUBSpreadView's scripts don't.
     private func spreadDidLoad(_ body: Any) {
         spreadLoaded = true
-
         applyUserSettingsStyle()
-        
-        func showSpread() {
-            activityIndicatorView?.stopAnimating()
-            UIView.animate(withDuration: animatedLoad ? 0.3 : 0, animations: {
-                self.scrollView.alpha = 1
-            })
-        }
-
-        // FIXME: We need to give the CSS and webview time to layout correctly. 0.2 seconds seems like a good value for it to work on an iPhone 5s. Look into solving this better
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            self.go(to: self.initialLocation, completion: showSpread)
-        }
+        spreadDidLoad()
+    }
+    
+    /// To be overriden to customize the behavior after the spread is loaded.
+    func spreadDidLoad() {
+        showSpread()
+    }
+    
+    func showSpread() {
+        activityIndicatorView?.stopAnimating()
+        UIView.animate(withDuration: animatedLoad ? 0.3 : 0, animations: {
+            self.scrollView.alpha = 1
+        })
     }
 
     /// Called by the JavaScript layer when the user selection changed.
@@ -256,45 +252,12 @@ class EPUBSpreadView: UIView, Loggable {
         return 0
     }
     
-    /// Array of completion blocks called when the spread displayed the requested locator.
-    private var goToCompletion: [() -> Void] = []
-
-    func go(to locator: Locator, completion: (() -> Void)?) {
-        if let completion = completion {
-            goToCompletion.append(completion)
-        }
-        
-        guard spreadLoaded else {
-            // Delays moving to the location until the document is loaded.
-            initialLocation = locator
-            return
-        }
-        
-        func completed() {
-            for completion in goToCompletion {
-                completion()
-            }
-            goToCompletion.removeAll()
-        }
-        
-        guard ["", "#"].contains(locator.href) || spread.contains(href: locator.href) else {
-            log(.warning, "The locator's href is not in the spread")
-            completed()
-            return
-        }
-        guard !locator.locations.isEmpty else {
-            completed()
-            return
-        }
-
-        goToHref(locator.href, location: locator.locations, completion: completed)
+    func go(to location: PageLocation, completion: (() -> Void)?) {
+        // For fixed layout, there's only one page so location is not used. But this is overriden
+        // for reflowable resources.
+        completion?()
     }
     
-    func goToHref(_ href: String, location: Locations, completion: @escaping () -> Void) {
-        // To be overriden in subclasses if the spread supports different locations (eg. reflowable).
-        completion()
-    }
-
     enum Direction {
         case left
         case right
@@ -403,10 +366,6 @@ extension EPUBSpreadView: PageView {
             .reduce(0, +)
     }
 
-    func go(to locator: Locator) {
-        go(to: locator, completion: nil)
-    }
-    
 }
 
 // MARK: - WKScriptMessageHandler for handling incoming message from the javascript layer.
