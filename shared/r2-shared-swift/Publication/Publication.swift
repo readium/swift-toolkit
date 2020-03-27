@@ -227,7 +227,7 @@ public class Publication: JSONEquatable, Loggable {
                     switch mimetype {
                     case "application/epub+zip", "application/oebps-package+xml":
                         return .epub
-                    case "application/x-cbr":
+                    case "application/vnd.comicbook+zip", "application/x-cbr":
                         return .cbz
                     case "application/pdf", "application/pdf+lcp":
                         return .pdf
