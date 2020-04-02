@@ -26,7 +26,7 @@ class PublicationEPUBTests: XCTestCase {
 
     func testPageList() {
         sut.otherCollections.append(
-            PublicationCollection(role: "page-list", links: [Link(href: "/page1.html")])
+            PublicationCollection(role: "pageList", links: [Link(href: "/page1.html")])
         )
         
         XCTAssertEqual(
