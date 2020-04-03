@@ -359,7 +359,7 @@ public class OPDS1Parser: Loggable {
             )
             
             link.properties.price = parsePrice(link: linkElement)
-            link.properties.indirectAcquisition = parseIndirectAcquisition(children: linkElement.children(tag: "indirectAcquisition"))
+            link.properties.indirectAcquisitions = parseIndirectAcquisition(children: linkElement.children(tag: "indirectAcquisition"))
 
             let rels = link.rels
 
