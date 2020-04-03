@@ -212,7 +212,7 @@ final class LibraryService: Loggable {
             return
         }
         
-        guard let drmService = drmLibraryServices.first(where: { $0.brand == drm.brand })) else {
+        guard let drmService = drmLibraryServices.first(where: { $0.brand == drm.brand }) else {
             delegate?.libraryService(self, presentError: LibraryError.drmNotSupported(drm.brand))
             completion(.success(nil))
             return
