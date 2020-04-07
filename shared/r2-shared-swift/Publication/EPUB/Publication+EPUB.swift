@@ -11,7 +11,7 @@
 
 import Foundation
 
-private let pageListKey = "page-list"
+private let pageListKey = "pageList"
 private let landmarksKey = "landmarks"
 private let loaKey = "loa"
 private let loiKey = "loi"
