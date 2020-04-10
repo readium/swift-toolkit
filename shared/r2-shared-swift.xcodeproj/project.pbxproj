@@ -54,6 +54,8 @@
 		CA5F8EFF24041AF200926120 /* Metadata+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5F8EFE24041AF200926120 /* Metadata+Presentation.swift */; };
 		CA5F8F0124041BA700926120 /* Properties+PresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5F8F0024041BA700926120 /* Properties+PresentationTests.swift */; };
 		CA5F8F0324041D4B00926120 /* Properties+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5F8F0224041D4B00926120 /* Properties+Presentation.swift */; };
+		CA68BDC1244042D5009A6BAA /* MediaType.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA68BDC0244042D5009A6BAA /* MediaType.swift */; };
+		CA68BDC3244043C8009A6BAA /* MediaTypeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA68BDC2244043C8009A6BAA /* MediaTypeTests.swift */; };
 		CA6D42672404370C002FBED4 /* OPDSHolds.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D42662404370C002FBED4 /* OPDSHolds.swift */; };
 		CA6D42692404381B002FBED4 /* OPDSHoldsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D42682404381B002FBED4 /* OPDSHoldsTests.swift */; };
 		CA6D426B240439BE002FBED4 /* OPDSCopies.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D426A240439BE002FBED4 /* OPDSCopies.swift */; };
@@ -168,6 +170,8 @@
 		CA5F8F0224041D4B00926120 /* Properties+Presentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Properties+Presentation.swift"; sourceTree = "<group>"; };
 		CA6161EA21FB257700D2CFE3 /* r2-shared-swiftTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "r2-shared-swiftTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA6161EE21FB257700D2CFE3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CA68BDC0244042D5009A6BAA /* MediaType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaType.swift; sourceTree = "<group>"; };
+		CA68BDC2244043C8009A6BAA /* MediaTypeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaTypeTests.swift; sourceTree = "<group>"; };
 		CA6D42662404370C002FBED4 /* OPDSHolds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSHolds.swift; sourceTree = "<group>"; };
 		CA6D42682404381B002FBED4 /* OPDSHoldsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSHoldsTests.swift; sourceTree = "<group>"; };
 		CA6D426A240439BE002FBED4 /* OPDSCopies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSCopies.swift; sourceTree = "<group>"; };
@@ -424,11 +428,28 @@
 			children = (
 				CA40C07921FF25F80069A50E /* JSON.swift */,
 				CA176390223AAAFB00959FEB /* Publication */,
+				CA68BDBF244042BC009A6BAA /* Format */,
 				CA5F8EEF24040C0E00926120 /* OPDS */,
 				CA6161EE21FB257700D2CFE3 /* Info.plist */,
 				CA16A86B2232EF3700E66255 /* Asserts.swift */,
 			);
 			path = "r2-shared-swiftTests";
+			sourceTree = "<group>";
+		};
+		CA68BDBE24404298009A6BAA /* Format */ = {
+			isa = PBXGroup;
+			children = (
+				CA68BDC0244042D5009A6BAA /* MediaType.swift */,
+			);
+			path = Format;
+			sourceTree = "<group>";
+		};
+		CA68BDBF244042BC009A6BAA /* Format */ = {
+			isa = PBXGroup;
+			children = (
+				CA68BDC2244043C8009A6BAA /* MediaTypeTests.swift */,
+			);
+			path = Format;
 			sourceTree = "<group>";
 		};
 		CA9E6BAB223A766200ECF6E4 /* EPUB */ = {
@@ -501,10 +522,11 @@
 				F3E7D3F81F4EBE2100DF166D /* Info.plist */,
 				F3E7D40C1F4EC69100DF166D /* RootFile.swift */,
 				CA16A8572232C27F00E66255 /* Publication */,
+				CA68BDBE24404298009A6BAA /* Format */,
+				F3B1879E1FA33D3700BB46BF /* OPDS */,
 				CAC34F04221C61BD002C452E /* DRM */,
 				CA2AE31C221C1DCB008BD18F /* Logger */,
 				57470F7F20ED0D25000CDCA3 /* Toolkit */,
-				F3B1879E1FA33D3700BB46BF /* OPDS */,
 				CA50B88922B3A6FE003AFF24 /* Resources */,
 			);
 			path = "r2-shared-swift";
@@ -664,6 +686,7 @@
 				CABBB2FA2237CA94004EB039 /* OPDSAcquisitionTests.swift in Sources */,
 				CA5F8EED240404E300926120 /* ContentLayoutTests.swift in Sources */,
 				CA3386EC24052D9700FDCBBA /* DOMRangeTests.swift in Sources */,
+				CA68BDC3244043C8009A6BAA /* MediaTypeTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -689,6 +712,7 @@
 				CA16A85B2232C4E600E66255 /* LocalizedString.swift in Sources */,
 				CA9E6BAE223A76C600ECF6E4 /* Publication+OPDS.swift in Sources */,
 				CABEB3DC2215698600090B6C /* Deferred.swift in Sources */,
+				CA68BDC1244042D5009A6BAA /* MediaType.swift in Sources */,
 				CA3386EA24052D8B00FDCBBA /* DOMRange.swift in Sources */,
 				CA2006512225A1F300E6B3BD /* Observable.swift in Sources */,
 				CA9E6BA4223A657900ECF6E4 /* JSON.swift in Sources */,
