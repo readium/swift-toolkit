@@ -147,6 +147,20 @@ extension Array where Element == Link {
         return first(recursively: recursively) { $0.href == href }
     }
     
+    public func first(withType type: String, recursively: Bool = false) -> Link? {
+        guard let mediaType = MediaType(type) else {
+            return nil
+        }
+        return first(withType: mediaType, recursively: recursively)
+    }
+        
+    public func first(withType type: MediaType, recursively: Bool = false) -> Link? {
+        return first(recursively: recursively) { link in
+            // Checks that the link's type is contained by the given `type`.
+            link.type.map { type.contains($0) } ?? false
+        }
+    }
+    
     public func first<T: Equatable>(withProperty otherProperty: String, matching: T, recursively: Bool = false) -> Link? {
         return first(recursively: recursively) { ($0.properties.otherProperties[otherProperty] as? T) == matching }
     }
@@ -184,6 +198,20 @@ extension Array where Element == Link {
             }
         }
         return nil
+    }
+    
+    public func filter(byType type: String) -> Self {
+        guard let mediaType = MediaType(type) else {
+            return []
+        }
+        return filter(byType: mediaType)
+    }
+    
+    public func filter(byType type: MediaType) -> Self {
+        return filter { link in
+            // Checks that the link's type is contained by the given `type`.
+            link.type.map { type.contains($0) } ?? false
+        }
     }
 
 }

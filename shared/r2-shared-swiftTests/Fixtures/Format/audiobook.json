@@ -1,0 +1,49 @@
+{
+  "@context": "http://readium.org/webpub-manifest/context.jsonld",
+  
+  "metadata": {
+    "@type": "http://schema.org/Audiobook",
+    "identifier": "urn:isbn:9780000000001",
+    "title": "Moby-Dick",
+    "author": "Herman Melville",
+    "narrator": ["Joe Speaker", "Lucy Narrator"],
+    "language": "en",
+    "publisher": "Whale Publishing Ltd.",
+    "published": "2016-02-01",
+    "modified": "2016-02-18T10:32:18Z",
+    "duration": 4320
+  },
+
+  "links": [
+    {"rel": "self", "href": "http://example.org/manifest.audiobook-manifest", "type": "application/audiobook+json"},
+    {"rel": "alternate", "href": "http://example.org/audiobook.m3u", "type": "audio/mpegurl", "bitrate": 64}
+  ],
+
+  "readingOrder": [
+    {
+      "href": "http://example.org/part1.mp3",
+      "type": "audio/mpeg",
+      "bitrate": 128,
+      "duration": 1980,
+      "title": "Part 1"
+    },
+    {
+      "href": "http://example.org/part2.mp3",
+      "type": "audio/mpeg",
+      "bitrate": 128,
+      "duration": 1200,
+      "title": "Part 2"
+    },
+    {
+      "href": "http://example.org/part3.mp3",
+      "type": "audio/mpeg",
+      "bitrate": 128,
+      "duration": 1140,
+      "title": "Part 3"
+    }
+  ],
+  
+  "resources": [
+    {"rel": "cover", "href": "http://example.org/cover.jpeg", "type": "image/jpeg", "height": 300, "width": 300}
+  ]
+}

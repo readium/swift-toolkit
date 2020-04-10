@@ -82,6 +82,11 @@ class MediaTypeTests: XCTestCase {
         )
     }
     
+    func testGetEncoding() {
+        XCTAssertNil(MediaType("text/html")!.encoding)
+        XCTAssertEqual(MediaType("text/html;charset=utf-8")!.encoding, .utf8)
+    }
+    
     func testTypeSubtypeAndParameterNamesAreLowercased() {
         let mediaType = MediaType("APPLICATION/ATOM+XML;PROFILE=OPDS-CATALOG")!
         XCTAssertEqual(mediaType.type, "application")
@@ -187,6 +192,14 @@ class MediaTypeTests: XCTestCase {
         XCTAssertTrue(MediaType("image/tiff")!.isBitmap)
         XCTAssertTrue(MediaType("image/tiff")!.isBitmap)
         XCTAssertTrue(MediaType("image/tiff;charset=utf-8")!.isBitmap)
+    }
+    
+    func testIsRWPM() {
+        XCTAssertFalse(MediaType("text/html")!.isRWPM)
+        XCTAssertTrue(MediaType("application/audiobook+json")!.isRWPM)
+        XCTAssertTrue(MediaType("application/divina+json")!.isRWPM)
+        XCTAssertTrue(MediaType("application/webpub+json")!.isRWPM)
+        XCTAssertTrue(MediaType("application/webpub+json;charset=utf-8")!.isRWPM)
     }
 
 }

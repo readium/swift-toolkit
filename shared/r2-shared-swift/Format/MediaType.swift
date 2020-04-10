@@ -22,26 +22,31 @@ import Foundation
 /// media type, for example `application/atom+xml;profile=opds-catalog` for an OPDS 1 catalog.
 ///
 /// Specification: https://tools.ietf.org/html/rfc6838
-struct MediaType: Equatable {
+public struct MediaType: Equatable, Hashable {
     
     /// The type component, e.g. `application` in `application/epub+zip`.
-    let type: String
+    public let type: String
     
     /// The subtype component, e.g. `epub+zip` in `application/epub+zip`.
-    let subtype: String
+    public let subtype: String
     
     /// The parameters in the media type, such as `charset=utf-8`.
-    let parameters: [String: String]
+    public let parameters: [String: String]
     
     /// The string representation of this media type.
-    var string: String {
+    public var string: String {
         let params = parameters.map { "\($0.key)=\($0.value)" }
             .sorted()
             .joined(separator: ";")
         return "\(type)/\(subtype)\(params.isEmpty ? "" : ";\(params)")"
     }
+    
+    /// Encoding as declared in the `charset` parameter, if there's any.
+    public var encoding: String.Encoding? {
+        parameters["charset"].flatMap { String.Encoding(charset: $0) }
+    }
 
-    init?(_ string: String) {
+    public init?(_ string: String) {
         // Grammar: https://tools.ietf.org/html/rfc2045#section-5.1
         let components = string.split(separator: ";")
             .map { $0.trimmingCharacters(in: .whitespaces) }
@@ -89,8 +94,9 @@ struct MediaType: Equatable {
     /// * Order of parameters is ignored.
     /// * Wildcards are supported, meaning that `image/*` contains `image/png` and `*/*` contains
     ///   everything.
-    func contains(_ other: Self) -> Bool {
-        guard type == "*" || type == other.type,
+    public func contains(_ other: Self?) -> Bool {
+        guard let other = other,
+            type == "*" || type == other.type,
             subtype == "*" || subtype == other.subtype else
         {
             return false
@@ -102,15 +108,15 @@ struct MediaType: Equatable {
     }
     
     /// Returns whether the given `mediaType` is included in this media type.
-    func contains(_ mediaType: String) -> Bool {
-        guard let mediaType = Self(mediaType) else {
+    public func contains(_ other: String?) -> Bool {
+        guard let other = other.map({ Self($0) }) else {
             return false
         }
-        return contains(mediaType)
+        return contains(other)
     }
     
     /// Returns whether this media type is of an OPDS feed.
-    var isOPDS: Bool {
+    public var isOPDS: Bool {
         return MediaType.OPDS1.contains(self)
             || MediaType.OPDS1Entry.contains(self)
             || MediaType.OPDS2.contains(self)
@@ -118,13 +124,13 @@ struct MediaType: Equatable {
     }
     
     /// Returns whether this media type is of an HTML document.
-    var isHTML: Bool {
+    public var isHTML: Bool {
         return MediaType.HTML.contains(self)
             || MediaType.XHTML.contains(self)
     }
     
     /// Returns whether this media type is of a bitmap image, so excluding vectorial formats.
-    var isBitmap: Bool {
+    public var isBitmap: Bool {
         return MediaType.BMP.contains(self)
             || MediaType.GIF.contains(self)
             || MediaType.JPEG.contains(self)
@@ -133,61 +139,80 @@ struct MediaType: Equatable {
             || MediaType.WebP.contains(self)
     }
     
+    /// Returns whether this media type is of a Readium Web Publication Manifest.
+    public var isRWPM: Bool {
+        return MediaType.AudiobookManifest.contains(self)
+            || MediaType.DiViNaManifest.contains(self)
+            || MediaType.WebPubManifest.contains(self)
+    }
+
     
     // MARK: Known Media Types
     
-    static let AAC = MediaType("audio/aac")!
-    static let ACSM = MediaType("application/vnd.adobe.adept+xml")!
-    static let AIFF = MediaType("audio/aiff")!
-    static let Audiobook = MediaType("application/audiobook+zip")!
-    static let AudiobookManifest = MediaType("application/audiobook+json")!
-    static let AVI = MediaType("video/x-msvideo")!
-    static let Binary = MediaType("application/octet-stream")!
-    static let BMP = MediaType("image/bmp")!
-    static let CBZ = MediaType("application/vnd.comicbook+zip")!
-    static let CSS = MediaType("text/css")!
-    static let DiViNa = MediaType("application/divina+zip")!
-    static let DiViNaManifest = MediaType("application/divina+json")!
-    static let EPUB = MediaType("application/epub+zip")!
-    static let GIF = MediaType("image/gif")!
-    static let GZ = MediaType("application/gzip")!
-    static let JavaScript = MediaType("text/javascript")!
-    static let JPEG = MediaType("image/jpeg")!
-    static let HTML = MediaType("text/html")!
-    static let OPDS1 = MediaType("application/atom+xml;profile=opds-catalog")!
-    static let OPDS1Entry = MediaType("application/atom+xml;type=entry;profile=opds-catalog")!
-    static let OPDS2 = MediaType("application/opds+json")!
-    static let OPDS2Publication = MediaType("application/opds-publication+json")!
-    static let JSON = MediaType("application/json")!
-    static let LCPProtectedAudiobook = MediaType("application/audiobook+lcp")!
-    static let LCPProtectedPDF = MediaType("application/pdf+lcp")!
-    static let LCPLicenseDocument = MediaType("application/vnd.readium.lcp.license.v1.0+json")!
-    static let LCPStatusDocument = MediaType("application/vnd.readium.license.status.v1.0+json")!
-    static let LPF = MediaType("application/lpf+zip")!
-    static let MP3 = MediaType("audio/mpeg")!
-    static let MPEG = MediaType("video/mpeg")!
-    static let Ogg = MediaType("audio/ogg")!
-    static let Ogv = MediaType("video/ogg")!
-    static let Opus = MediaType("audio/opus")!
-    static let OTF = MediaType("font/otf")!
-    static let PDF = MediaType("application/pdf")!
-    static let PNG = MediaType("image/png")!
-    static let SVG = MediaType("image/svg+xml")!
-    static let Text = MediaType("text/plain")!
-    static let TIFF = MediaType("image/tiff")!
-    static let TTF = MediaType("font/ttf")!
-    static let W3CWPUBManifest = MediaType("application/x.readium.w3c.wpub+json")!  // non-existent
-    static let WAV = MediaType("audio/wav")!
-    static let WebMAudio = MediaType("audio/webm")!
-    static let WebMVideo = MediaType("video/webm")!
-    static let WebP = MediaType("image/webp")!
-    static let WebPub = MediaType("application/webpub+zip")!
-    static let WebPubManifest = MediaType("application/webpub+json")!
-    static let WOFF = MediaType("font/woff")!
-    static let WOFF2 = MediaType("font/woff2")!
-    static let XHTML = MediaType("application/xhtml+xml")!
-    static let XML = MediaType("application/xml")!
-    static let ZAB = MediaType("application/x.readium.zab+zip")!  // non-existent
-    static let ZIP = MediaType("application/zip")!
+    public static let AAC = MediaType("audio/aac")!
+    public static let ACSM = MediaType("application/vnd.adobe.adept+xml")!
+    public static let AIFF = MediaType("audio/aiff")!
+    public static let Audiobook = MediaType("application/audiobook+zip")!
+    public static let AudiobookManifest = MediaType("application/audiobook+json")!
+    public static let AVI = MediaType("video/x-msvideo")!
+    public static let Binary = MediaType("application/octet-stream")!
+    public static let BMP = MediaType("image/bmp")!
+    public static let CBZ = MediaType("application/vnd.comicbook+zip")!
+    public static let CSS = MediaType("text/css")!
+    public static let DiViNa = MediaType("application/divina+zip")!
+    public static let DiViNaManifest = MediaType("application/divina+json")!
+    public static let EPUB = MediaType("application/epub+zip")!
+    public static let GIF = MediaType("image/gif")!
+    public static let GZ = MediaType("application/gzip")!
+    public static let JavaScript = MediaType("text/javascript")!
+    public static let JPEG = MediaType("image/jpeg")!
+    public static let HTML = MediaType("text/html")!
+    public static let OPDS1 = MediaType("application/atom+xml;profile=opds-catalog")!
+    public static let OPDS1Entry = MediaType("application/atom+xml;type=entry;profile=opds-catalog")!
+    public static let OPDS2 = MediaType("application/opds+json")!
+    public static let OPDS2Publication = MediaType("application/opds-publication+json")!
+    public static let JSON = MediaType("application/json")!
+    public static let LCPProtectedAudiobook = MediaType("application/audiobook+lcp")!
+    public static let LCPProtectedPDF = MediaType("application/pdf+lcp")!
+    public static let LCPLicenseDocument = MediaType("application/vnd.readium.lcp.license.v1.0+json")!
+    public static let LCPStatusDocument = MediaType("application/vnd.readium.license.status.v1.0+json")!
+    public static let LPF = MediaType("application/lpf+zip")!
+    public static let MP3 = MediaType("audio/mpeg")!
+    public static let MPEG = MediaType("video/mpeg")!
+    public static let NCX = MediaType("application/x-dtbncx+xml")!
+    public static let Ogg = MediaType("audio/ogg")!
+    public static let Ogv = MediaType("video/ogg")!
+    public static let Opus = MediaType("audio/opus")!
+    public static let OTF = MediaType("font/otf")!
+    public static let PDF = MediaType("application/pdf")!
+    public static let PNG = MediaType("image/png")!
+    public static let SMIL = MediaType("application/smil+xml")!
+    public static let SVG = MediaType("image/svg+xml")!
+    public static let Text = MediaType("text/plain")!
+    public static let TIFF = MediaType("image/tiff")!
+    public static let TTF = MediaType("font/ttf")!
+    public static let W3CWPUBManifest = MediaType("application/x.readium.w3c.wpub+json")!  // non-existent
+    public static let WAV = MediaType("audio/wav")!
+    public static let WebMAudio = MediaType("audio/webm")!
+    public static let WebMVideo = MediaType("video/webm")!
+    public static let WebP = MediaType("image/webp")!
+    public static let WebPub = MediaType("application/webpub+zip")!
+    public static let WebPubManifest = MediaType("application/webpub+json")!
+    public static let WOFF = MediaType("font/woff")!
+    public static let WOFF2 = MediaType("font/woff2")!
+    public static let XHTML = MediaType("application/xhtml+xml")!
+    public static let XML = MediaType("application/xml")!
+    public static let ZAB = MediaType("application/x.readium.zab+zip")!  // non-existent
+    public static let ZIP = MediaType("application/zip")!
 
+}
+
+
+public extension Link {
+    
+    /// Media type of the linked resource.
+    var mediaType: MediaType? {
+        type.flatMap { MediaType($0) }
+    }
+    
 }
