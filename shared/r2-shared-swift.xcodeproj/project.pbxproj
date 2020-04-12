@@ -96,7 +96,9 @@
 		CACD75F32236B0A5004F20CA /* PublicationCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACD75F22236B0A5004F20CA /* PublicationCollection.swift */; };
 		CACD75F52236B2AF004F20CA /* PublicationCollectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACD75F42236B2AF004F20CA /* PublicationCollectionTests.swift */; };
 		CAD0FEC2244310BB0053C998 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0FEC1244310BB0053C998 /* Array.swift */; };
+		CAD0FECA24431BFE0053C998 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD0FEC3244318A90053C998 /* Fuzi.framework */; };
 		CAD0FED02444B5C30053C998 /* FormatSnifferContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0FECF2444B5C30053C998 /* FormatSnifferContent.swift */; };
+		CAD0FED52444FB2C0053C998 /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD0FED42444FB2C0053C998 /* ZIPFoundation.framework */; };
 		CAD178AD22B3A75C004E6812 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CAD178AF22B3A75C004E6812 /* Localizable.strings */; };
 		CADD69E222C3B17500A4CADF /* DocumentTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADD69E122C3B17500A4CADF /* DocumentTypes.swift */; };
 		CAF4EAE42237ABC700A17DA1 /* MediaOverlayNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4041F4EC69100DF166D /* MediaOverlayNode.swift */; };
@@ -219,7 +221,9 @@
 		CACD75F22236B0A5004F20CA /* PublicationCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationCollection.swift; sourceTree = "<group>"; };
 		CACD75F42236B2AF004F20CA /* PublicationCollectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationCollectionTests.swift; sourceTree = "<group>"; };
 		CAD0FEC1244310BB0053C998 /* Array.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Array.swift; sourceTree = "<group>"; };
+		CAD0FEC3244318A90053C998 /* Fuzi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Fuzi.framework; path = Carthage/Build/iOS/Fuzi.framework; sourceTree = "<group>"; };
 		CAD0FECF2444B5C30053C998 /* FormatSnifferContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatSnifferContent.swift; sourceTree = "<group>"; };
+		CAD0FED42444FB2C0053C998 /* ZIPFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ZIPFoundation.framework; path = Carthage/Build/iOS/ZIPFoundation.framework; sourceTree = "<group>"; };
 		CAD178AE22B3A75C004E6812 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		CADD69E122C3B17500A4CADF /* DocumentTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentTypes.swift; sourceTree = "<group>"; };
 		F3B1879F1FA33D4D00BB46BF /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
@@ -240,6 +244,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CAD0FECA24431BFE0053C998 /* Fuzi.framework in Frameworks */,
+				CAD0FED52444FB2C0053C998 /* ZIPFoundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -573,6 +579,8 @@
 		F3E7D41F1F4ECA9800DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CAD0FED42444FB2C0053C998 /* ZIPFoundation.framework */,
+				CAD0FEC3244318A90053C998 /* Fuzi.framework */,
 				CAB88C8F224E510000D36C99 /* MobileCoreServices.framework */,
 			);
 			name = Frameworks;
@@ -600,6 +608,7 @@
 				CA6161E721FB257700D2CFE3 /* Frameworks */,
 				CA6161E821FB257700D2CFE3 /* Resources */,
 				CA6161FA21FB2B0B00D2CFE3 /* Copy Frameworks */,
+				CAD0FECC24431C160053C998 /* Copy Carthage Frameworks */,
 			);
 			buildRules = (
 			);
@@ -689,6 +698,31 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		CAD0FECC24431C160053C998 /* Copy Carthage Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/Carthage/Build/iOS/Fuzi.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/ZIPFoundation.framework",
+			);
+			name = "Copy Carthage Frameworks";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/Fuzi.framework",
+				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/ZIPFoundation.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/local/bin/carthage copy-frameworks\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		CA6161E621FB257700D2CFE3 /* Sources */ = {
@@ -831,7 +865,10 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
-				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "r2-shared-swiftTests/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
@@ -854,7 +891,10 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
-				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "r2-shared-swiftTests/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
@@ -998,7 +1038,10 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = "r2-shared-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -1027,7 +1070,10 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = "r2-shared-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;

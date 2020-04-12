@@ -10,6 +10,8 @@
 //
 
 import Foundation
+import Fuzi
+import ZIPFoundation
 
 /// A companion type of `Format.Sniffer` holding the type hints (file extensions, media types) and
 /// providing an access to the file content.
@@ -68,7 +70,16 @@ public final class FormatSnifferContext {
     /// Otherwise, fallback on UTF-8.
     public lazy var contentAsString: String? = content?.read()
         .flatMap { String(data: $0, encoding: encoding ?? .utf8) }
-    
+
+    /// Content as an XML document.
+    public lazy var contentAsXML: XMLDocument? = contentAsString
+        .flatMap { try? XMLDocument(string: $0, encoding: encoding ?? .utf8) }
+
+    /// Content as a ZIP archive.
+    /// Warning: ZIP is only supported for a local file, for now.
+    public lazy var contentAsZIP: Archive? = (content as? FormatSnifferFileContent)
+        .flatMap { Archive(url: $0.file, accessMode: .read) }
+
     /// Content parsed from JSON.
     public lazy var contentAsJSON: Any? = contentAsString
         .flatMap { $0.data(using: .utf8) }
@@ -103,6 +114,37 @@ public final class FormatSnifferContext {
         
         let bytesRead = stream.read(buffer, maxLength: length)
         return bytesRead > 0 ? String(cString: buffer) : nil
+    }
+    
+    /// Returns whether a ZIP entry exists in this file.
+    func containsZIPEntry(at path: String) -> Bool {
+        return contentAsZIP?[path] != nil
+    }
+    
+    /// Returns the ZIP entry data at the given `path` in this file.
+    func readZIPEntry(at path: String) -> Data? {
+        guard let entry = contentAsZIP?[path] else {
+            return nil
+        }
+        do {
+            var data = Data()
+            _ = try contentAsZIP?.extract(entry) { chunk in
+                data.append(chunk)
+            }
+            return data
+        } catch {
+            return nil
+        }
+    }
+    
+    /// Returns whether all the ZIP entry paths satisfy the given `predicate`.
+    func zipEntriesAllSatisfy(_ predicate: (URL) -> Bool) -> Bool {
+        guard let zip = contentAsZIP else {
+            return false
+        }
+        return Array(zip)
+            .map { URL(fileURLWithPath: $0.path, isDirectory: $0.type == .directory) }
+            .allSatisfy(predicate)
     }
 
 }

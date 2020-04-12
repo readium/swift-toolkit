@@ -15,4 +15,7 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = "10.0"
   s.frameworks   = 'MobileCoreServices'
   
+  s.dependency 'Fuzi'
+  s.dependency 'Minizip'
+
 end

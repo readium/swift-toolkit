@@ -57,7 +57,7 @@ class FormatSnifferTests: XCTestCase {
     }
     
     func testSniffHeavyAudiobook() {
-//        XCTAssertEqual(Format.of(fixtures.url(for: "audiobook.unknown")), .Audiobook)
+        XCTAssertEqual(Format.of(fixtures.url(for: "audiobook-package.unknown")), .Audiobook)
     }
     
     func testSniffLightAudiobookManifest() {
@@ -83,7 +83,7 @@ class FormatSnifferTests: XCTestCase {
     }
     
     func testSniffHeavyCBZ() {
-//        XCTAssertEqual(Format.of(fixtures.url(for: "cbz.unknown")), .CBZ)
+        XCTAssertEqual(Format.of(fixtures.url(for: "cbz.unknown")), .CBZ)
     }
     
     func testSniffLightDiViNa() {
@@ -92,7 +92,7 @@ class FormatSnifferTests: XCTestCase {
     }
     
     func testSniffHeavyDiViNa() {
-//        XCTAssertEqual(Format.of(fixtures.url(for: "divina.unknown")), .DiViNa)
+        XCTAssertEqual(Format.of(fixtures.url(for: "divina-package.unknown")), .DiViNa)
     }
     
     func testSniffLightDiViNaManifest() {
@@ -109,7 +109,7 @@ class FormatSnifferTests: XCTestCase {
     }
     
     func testSniffHeavyEPUB() {
-//        XCTAssertEqual(Format.of(fixtures.url(for: "epub.unknown")), .EPUB)
+        XCTAssertEqual(Format.of(fixtures.url(for: "epub.unknown")), .EPUB)
     }
     
     func testSniffLightGIF() {
@@ -127,7 +127,8 @@ class FormatSnifferTests: XCTestCase {
     }
     
     func testSniffHeavyHTML() {
-//        XCTAssertEqual(Format.of(fixtures.url(for: "html.unknown")), .HTML)
+        XCTAssertEqual(Format.of(fixtures.url(for: "html.unknown")), .HTML)
+        XCTAssertEqual(Format.of(fixtures.url(for: "xhtml.unknown")), .HTML)
     }
     
     func testSniffLightJPEG() {
@@ -145,7 +146,7 @@ class FormatSnifferTests: XCTestCase {
     }
     
     func testSniffHeavyOPDS1Feed() {
-//        XCTAssertEqual(Format.of(fixtures.url(for: "opds1-feed.unknown")), .OPDS1Feed)
+        XCTAssertEqual(Format.of(fixtures.url(for: "opds1-feed.unknown")), .OPDS1Feed)
     }
     
     func testSniffLightOPDS1Entry() {
@@ -153,7 +154,7 @@ class FormatSnifferTests: XCTestCase {
     }
     
     func testSniffHeavyOPDS1Entry() {
-//        XCTAssertEqual(Format.of(fixtures.url(for: "opds1-entry.unknown")), .OPDS1Entry)
+        XCTAssertEqual(Format.of(fixtures.url(for: "opds1-entry.unknown")), .OPDS1Entry)
     }
     
     func testSniffLightOPDS2Feed() {
@@ -178,7 +179,7 @@ class FormatSnifferTests: XCTestCase {
     }
     
     func testSniffHeavyLCPProtectedAudiobook() {
-//        XCTAssertEqual(Format.of(fixtures.url(for: "lcp-audiobook.unknown")), .LCPProtectedAudiobook)
+        XCTAssertEqual(Format.of(fixtures.url(for: "audiobook-lcp.unknown")), .LCPProtectedAudiobook)
     }
     
     func testSniffLightLCPProtectedPDF() {
@@ -187,7 +188,7 @@ class FormatSnifferTests: XCTestCase {
     }
     
     func testSniffHeavyLCPProtectedPDF() {
-//        XCTAssertEqual(Format.of(fixtures.url(for: "lcp-pdf.unknown")), .LCPProtectedPDF)
+        XCTAssertEqual(Format.of(fixtures.url(for: "pdf-lcp.unknown")), .LCPProtectedPDF)
     }
     
     func testSniffLightLCPLicenseDocument() {
@@ -205,7 +206,8 @@ class FormatSnifferTests: XCTestCase {
     }
     
     func testSniffHeavyLPF() {
-//        XCTAssertEqual(Format.of(fixtures.url(for: "lpf.unknown")), .LPF)
+        XCTAssertEqual(Format.of(fixtures.url(for: "lpf.unknown")), .LPF)
+        XCTAssertEqual(Format.of(fixtures.url(for: "lpf-index-html.unknown")), .LPF)
     }
     
     func testSniffLightPDF() {
@@ -240,7 +242,7 @@ class FormatSnifferTests: XCTestCase {
     }
     
     func testSniffHeavyWebPub() {
-//        XCTAssertEqual(Format.of(fixtures.url(for: "webpub.unknown")), .WebPub)
+        XCTAssertEqual(Format.of(fixtures.url(for: "webpub-package.unknown")), .WebPub)
     }
     
     func testSniffLightWebPubManifest() {
@@ -260,7 +262,7 @@ class FormatSnifferTests: XCTestCase {
     }
     
     func testSniffHeavyZAB() {
-//        XCTAssertEqual(Format.of(fixtures.url(for: "zab.unknown")), .ZAB)
+        XCTAssertEqual(Format.of(fixtures.url(for: "zab.unknown")), .ZAB)
     }
 
 }

@@ -215,4 +215,9 @@ public extension Link {
         type.flatMap { MediaType($0) }
     }
     
+    /// Returns whether this link's media type is contained in the given `mediaType`.
+    func hasMediaType(_ mediaType: MediaType) -> Bool {
+        return mediaType.contains(self.mediaType)
+    }
+    
 }

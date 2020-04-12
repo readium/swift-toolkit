@@ -76,17 +76,18 @@ public extension Format {
     /// The default sniffers provided by Readium 2 to resolve a `Format`.
     ///
     /// You can register additional sniffers globally by modifying this list.
-    /// The sniffers order is crucial, because some formats are subsets of other formats:
+    /// The sniffers order is important, because some formats are subsets of other formats.
     static var sniffers: [Sniffer] = [
-        sniffHTML, sniffOPDS1, sniffOPDS2,
-        sniffLCPLicense, sniffLCPProtectedPublication,
+        sniffHTML, sniffOPDS1, sniffOPDS2, sniffLCPLicense, sniffBitmap,
         sniffWebPub, sniffW3CWPUB, sniffEPUB, sniffLPF, sniffZIP, sniffPDF,
-        sniffBitmap
     ]
 
     /// Sniffs an HTML document.
     private static func sniffHTML(context: FormatSnifferContext) -> Format? {
         if context.hasFileExtension("htm", "html", "xht", "xhtml") || context.hasMediaType("text/html", "application/xhtml+xml") {
+            return .HTML
+        }
+        if context.contentAsXML?.root?.tag?.lowercased() == "html" {
             return .HTML
         }
         return nil
@@ -99,6 +100,14 @@ public extension Format {
         }
         if context.hasMediaType("application/atom+xml;profile=opds-catalog") {
             return .OPDS1Feed
+        }
+        if let xml = context.contentAsXML {
+            xml.definePrefix("atom", forNamespace: "http://www.w3.org/2005/Atom")
+            if xml.firstChild(xpath: "/atom:feed") != nil {
+                return .OPDS1Feed
+            } else if xml.firstChild(xpath: "/atom:entry") != nil {
+                return .OPDS1Entry
+            }
         }
         return nil
     }
@@ -135,18 +144,7 @@ public extension Format {
         return nil
     }
     
-    /// Sniffs an LCP Protected Publication.
-    private static func sniffLCPProtectedPublication(context: FormatSnifferContext) -> Format? {
-        if context.hasFileExtension("lcpa") || context.hasMediaType("application/audiobook+lcp") {
-            return .LCPProtectedAudiobook
-        }
-        if context.hasFileExtension("lcpdf") || context.hasMediaType("application/pdf+lcp") {
-            return .LCPProtectedPDF
-        }
-        return nil
-    }
-    
-    /// Sniffs a Readium Web Publication.
+    /// Sniffs a Readium Web Publication, protected or not by LCP.
     private static func sniffWebPub(context: FormatSnifferContext) -> Format? {
         if context.hasFileExtension("audiobook") || context.hasMediaType("application/audiobook+zip") {
             return .Audiobook
@@ -169,18 +167,45 @@ public extension Format {
             return .WebPubManifest
         }
         
-        if let rwpm = context.contentAsRWPM {
-            if rwpm.metadata.type == "http://schema.org/Audiobook" {
-                return .AudiobookManifest
-            }
-            if rwpm.allReadingOrderIsBitmap {
-                return .DiViNaManifest
-            }
-            if rwpm.link(withRel: "self")?.type == "application/webpub+json" {
-                return .WebPubManifest
-            }
+        if context.hasFileExtension("lcpa") || context.hasMediaType("application/audiobook+lcp") {
+            return .LCPProtectedAudiobook
+        }
+        if context.hasFileExtension("lcpdf") || context.hasMediaType("application/pdf+lcp") {
+            return .LCPProtectedPDF
         }
         
+        /// Reads a RWPM, either from a manifest.json file, or from a manifest.json ZIP entry, if
+        /// the file is a ZIP archive.
+        func readRWPM() -> (isManifest: Bool, Publication)? {
+            if let rwpm = context.contentAsRWPM {
+                return (isManifest: true, rwpm)
+            } else if let manifestData = context.readZIPEntry(at: "manifest.json"),
+                let manifestJSON = try? JSONSerialization.jsonObject(with: manifestData),
+                let rwpm = try? Publication(json: manifestJSON) {
+                return (isManifest: false, rwpm)
+            } else {
+                return nil
+            }
+        }
+
+        if let (isManifest, rwpm) = readRWPM() {
+            let isLCPProtected = context.containsZIPEntry(at: "license.lcpl")
+
+            if rwpm.metadata.type == "http://schema.org/Audiobook" {
+                return isManifest ? .AudiobookManifest :
+                    isLCPProtected ? .LCPProtectedAudiobook : .Audiobook
+            }
+            if rwpm.allReadingOrderIsBitmap {
+                return isManifest ? .DiViNaManifest : .DiViNa
+            }
+            if isLCPProtected, rwpm.allReadingOrder({ $0.hasMediaType(.PDF) }) {
+                return .LCPProtectedPDF
+            }
+            if rwpm.link(withRel: "self")?.type == "application/webpub+json" {
+                return isManifest ? .WebPubManifest : .WebPub
+            }
+        }
+
         return nil
     }
     
@@ -201,6 +226,12 @@ public extension Format {
         if context.hasFileExtension("epub") || context.hasMediaType("application/epub+zip") {
             return .EPUB
         }
+        if let mimetypeData = context.readZIPEntry(at: "mimetype"),
+            let mimetype = String(data: mimetypeData, encoding: .ascii),
+            mimetype == "application/epub+zip"
+        {
+            return .EPUB
+        }
         return nil
     }
     
@@ -212,9 +243,31 @@ public extension Format {
         if context.hasFileExtension("lpf") || context.hasMediaType("application/lpf+zip") {
             return .LPF
         }
+        if context.containsZIPEntry(at: "index.html") {
+            return .LPF
+        }
+        if let data = context.readZIPEntry(at: "publication.json"),
+            let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+            let contexts = json["@context"] as? [Any],
+            contexts.contains(where: {($0 as? String) == "https://www.w3.org/ns/pub-context"})
+        {
+            return .LPF
+        }
         return nil
     }
 
+    /// Authorized extensions for CBZ
+    /// Reference: https://wiki.mobileread.com/wiki/CBR_and_CBZ
+    private static let cbzExtensions = ["acbf", "bmp", "dib", "gif", "jif", "jfi", "jfif", "jpg", "jpeg", "png", "tif", "tiff", "webp", "xml"]
+    
+    /// Authorized extensions for ZAB (Zipped Audio Book)
+    private static let zabExtensions = [
+        // audio
+        "aac", "aiff", "alac", "flac", "m4a", "m4b", "mp3", "ogg", "oga", "mogg", "opus", "wav", "webm",
+        // playlist
+        "asx", "bio", "m3u", "m3u8", "pla", "pls", "smil", "vlc", "wpl", "xspf", "zpl"
+    ]
+    
     /// Sniffs a simple ZIP-based format, like Comic Book Archive or Zipped Audio Book.
     /// Reference: https://wiki.mobileread.com/wiki/CBR_and_CBZ
     private static func sniffZIP(context: FormatSnifferContext) -> Format? {
@@ -224,6 +277,27 @@ public extension Format {
         if context.hasFileExtension("zab") {
             return .ZAB
         }
+        
+        if context.contentAsZIP != nil {
+            func isIgnored(_ url: URL) -> Bool {
+                let filename = url.lastPathComponent
+                return url.hasDirectoryPath || filename.hasPrefix(".") || filename == "Thumbs.db"
+            }
+
+            func zipContainsOnlyExtensions(_ fileExtensions: [String]) -> Bool {
+                return context.zipEntriesAllSatisfy { url in
+                    isIgnored(url) || fileExtensions.contains(url.pathExtension.lowercased())
+                }
+            }
+
+            if zipContainsOnlyExtensions(cbzExtensions) {
+                return .CBZ
+            }
+            if zipContainsOnlyExtensions(zabExtensions) {
+                return .ZAB
+            }
+        }
+        
         return nil
     }
 
