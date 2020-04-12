@@ -195,7 +195,7 @@ extension License: LCPLicense {
                 throw LCPError.licenseInteractionNotAvailable
             }
             
-            if link.type == "text/html" {
+            if link.mediaType?.isHTML == true {
                 return try callHTML(url)
             } else {
                 return callPUT(url)

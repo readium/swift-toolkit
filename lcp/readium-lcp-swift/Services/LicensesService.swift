@@ -20,6 +20,12 @@ final class LicensesService: Loggable {
     private let device: DeviceService
     private let network: NetworkService
     private let passphrases: PassphrasesService
+    
+    // Mapping between an unprotected format to the matching LCP protected format.
+    private let formatsMapping: [Format: Format] = [
+        .Audiobook: .LCPProtectedAudiobook,
+        .PDF: .LCPProtectedPDF
+    ]
 
     init(licenses: LicensesRepository, crl: CRLService, device: DeviceService, network: NetworkService, passphrases: PassphrasesService) {
         self.licenses = licenses
@@ -106,13 +112,17 @@ extension LicensesService: LCPService {
     
     /// Returns the suggested filename to be used when importing a publication.
     private func suggestedFilename(for file: URL, license: License) -> String {
-        var mimetypes: [String] = []
-        if let mimetype = license.license.link(for: .publication)?.type {
-            mimetypes.append(mimetype)
-        }
-        let format = Publication.Format(file: file, mimetypes: mimetypes)
-        let fileExtension = (format == .pdf) ? "lcpdf" : "epub"
+        let fileExtension: String = {
+            let mediaTypes = Array(ofNotNil: license.license.link(for: .publication)?.type)
+            if var format = Format.of(file, mediaTypes: mediaTypes) {
+                format = formatsMapping[format] ?? format
+                return format.fileExtension
+            } else {
+                return file.pathExtension
+            }
+        }()
+        
         return "\(license.license.id).\(fileExtension)"
     }
-    
+
 }
