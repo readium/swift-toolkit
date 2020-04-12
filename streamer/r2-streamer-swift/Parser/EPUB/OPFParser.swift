@@ -114,7 +114,7 @@ final class OPFParser: Loggable {
                 }
     
                 // If the link reference a Smil resource, retrieve and fill its duration.
-                if link.type == "application/smil+xml",
+                if MediaType.SMIL.contains(link.type),
                     let durationMeta = metas["duration", in: .media, refining: id].first,
                     let duration = Double(SMILParser.smilTimeToSeconds(durationMeta.content)) {
                     link.duration = duration

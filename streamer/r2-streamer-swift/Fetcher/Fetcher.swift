@@ -140,15 +140,15 @@ internal class Fetcher {
     /// - Throws: In case the mimetype is nil or invalid, throws a
     ///           `FetcherError.missingContainerMimetype`
     static func getContentFilters(forMimeType mimeType: String?) throws -> ContentFilters {
-        guard let mimeType = mimeType else {
+        guard let mimeType = mimeType, let format = Format.of(mediaTypes: [mimeType]) else {
             throw FetcherError.missingContainerMimetype
         }
-        switch mimeType {
-        case EPUBConstant.mimetype, EPUBConstant.mimetypeOEBPS:
+        switch format {
+        case .EPUB:
             return ContentFiltersEpub()
-        case CBZConstant.mimetype:
+        case .CBZ:
             return ContentFiltersCbz()
-        case PDFConstant.pdfMimetype, PDFConstant.lcpdfMimetype:
+        case .PDF, .LCPProtectedPDF:
             return ContentFiltersPDF()
         default:
             throw FetcherError.missingContainerMimetype

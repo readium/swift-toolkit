@@ -33,7 +33,7 @@ public class WEBPUBParser: PublicationParser {
             
             let container = HTTPContainer(
                 baseURL: url.deletingLastPathComponent(),
-                mimetype: publication.link(withRel: "self")?.type ?? "application/webpub+json"
+                mimetype: publication.link(withRel: "self")?.type ?? MediaType.WebPubManifest.string
             )
             
             func didLoadDRM(drm: DRM?) {

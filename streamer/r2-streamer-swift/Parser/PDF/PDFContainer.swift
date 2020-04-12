@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import R2Shared
 
 
 public protocol PDFContainer: Container {
@@ -26,7 +27,7 @@ final class PDFFileContainer: FileContainer, PDFContainer {
     var context: Any?
     
     init?(path: String) {
-        super.init(path: path, mimetype: PDFConstant.pdfMimetype)
+        super.init(path: path, mimetype: MediaType.PDF.string)
     }
     
 }
@@ -37,6 +38,6 @@ final class LCPDFContainer: ArchiveContainer, PDFContainer {
     var context: Any?
     
     init?(path: String) {
-        super.init(path: path, mimetype: PDFConstant.lcpdfMimetype)
+        super.init(path: path, mimetype: MediaType.LCPProtectedPDF.string)
     }
 }

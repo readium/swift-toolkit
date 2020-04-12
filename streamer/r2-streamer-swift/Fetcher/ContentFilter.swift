@@ -67,9 +67,7 @@ final internal class ContentFiltersEpub: ContentFilters {
         //   if (publication layout is 'reflow' &&  resource is `not specified`)
         //     || resource is 'reflow'
         //       - inject pagination
-        if let link = publication.link(withHref: path),
-            ["application/xhtml+xml", "text/html"].contains(link.type)
-        {
+        if let link = publication.link(withHref: path), link.mediaType?.isHTML == true {
             if publication.metadata.presentation.layout(of: link) == .reflowable {
                 decodedInputStream = injectReflowableHtml(in: decodedInputStream, for: publication)
             }

@@ -13,15 +13,11 @@ import R2Shared
 import Fuzi
 
 /// Epub related constants.
-struct EPUBConstant {
+private struct EPUBConstant {
     /// Lcpl file path.
-    public static let lcplFilePath = "META-INF/license.lcpl"
-    /// Epub mime-type.
-    public static let mimetype = "application/epub+zip"
-    /// http://www.idpf.org/oebps/ (Legacy).
-    public static let mimetypeOEBPS = "application/oebps-package+xml"
+    static let lcplFilePath = "META-INF/license.lcpl"
     /// Media Overlays URL.
-    public static let mediaOverlayURL = "media-overlay?resource="
+    static let mediaOverlayURL = "media-overlay?resource="
 }
 
 /// Errors thrown during the parsing of the EPUB
@@ -156,7 +152,7 @@ final public class EpubParser: PublicationParser {
     ///   - publication: The Epub publication.
     private static func parseNCXDocument(from container: Container, to publication: inout Publication) {
         // Get the link in the readingOrder pointing to the NCX document.
-        guard let ncxLink = publication.resources.first(where: { $0.type == "application/x-dtbncx+xml" }),
+        guard let ncxLink = publication.resources.first(withType: .NCX),
             let ncxDocumentData = try? container.data(relativePath: ncxLink.href) else
         {
             return
@@ -180,7 +176,7 @@ final public class EpubParser: PublicationParser {
     ///   - container: The Epub Container.
     ///   - publication: The Publication object representing the Epub data.
     private static func parseMediaOverlay(from fetcher: Fetcher, to publication: inout Publication) throws {
-        let mediaOverlays = publication.resources.filter({ $0.type ==  "application/smil+xml"})
+        let mediaOverlays = publication.resources.filter(byType: .SMIL)
 
         guard !mediaOverlays.isEmpty else {
             log(.info, "No media-overlays found in the Publication.")
@@ -236,9 +232,9 @@ final public class EpubParser: PublicationParser {
         
         guard let container: Container = {
             if isDirectory.boolValue {
-                return DirectoryContainer(directory: path, mimetype: EPUBConstant.mimetype)
+                return DirectoryContainer(directory: path, mimetype: MediaType.EPUB.string)
             } else {
-                return ArchiveContainer(path: path, mimetype: EPUBConstant.mimetype)
+                return ArchiveContainer(path: path, mimetype: MediaType.EPUB.string)
             }
         }() else {
             throw EPUBParserError.missingFile(path: path)
@@ -337,7 +333,7 @@ final public class EpubParser: PublicationParser {
     private static func makeLocator(from link: Link, progression: Double, position: Int) -> Locator {
         return Locator(
             href: link.href,
-            type: link.type ?? "text/html",
+            type: link.type ?? MediaType.HTML.string,
             title: link.title,
             locations: .init(
                 progression: progression,
