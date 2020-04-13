@@ -13,48 +13,83 @@ import Foundation
 
 /// A companion type of `Format.Sniffer` holding the type hints (file extensions, media types) and
 /// providing an access to the file content.
-public protocol FormatSnifferContext {
+public final class FormatSnifferContext {
+    
+    internal init(content: FormatSnifferContent? = nil, mediaTypes: [String], fileExtensions: [String]) {
+        self.content = content
+        self.mediaTypes = mediaTypes.compactMap { MediaType($0) }
+        self.fileExtensions = fileExtensions.map { $0.lowercased() }
+    }
+    
+    // MARK: Metadata
 
-    /// Content as plain text.
-    ///
-    /// It will extract the charset parameter from the media type hints to figure out an encoding.
-    /// Otherwise, fallback on UTF-8.
-    var contentAsString: String? { get }
+    /// Media type hints.
+    private let mediaTypes: [MediaType]
     
-    /// Content parsed from JSON.
-    var contentAsJSON: Any? { get }
-    
+    /// File extension hints.
+    private let fileExtensions: [String]
+
+    /// Finds the first `Encoding` declared in the media types' `charset` parameter.
+    public lazy var encoding: String.Encoding? =
+        mediaTypes.compactMap { $0.encoding }.first
+
     /// Returns whether this context has any of the given file extensions, ignoring case.
-    func hasFileExtension(_ fileExtensions: String...) -> Bool
+    public func hasFileExtension(_ fileExtensions: String...) -> Bool {
+        for fileExtension in fileExtensions {
+            if self.fileExtensions.contains(fileExtension.lowercased()) {
+                return true
+            }
+        }
+        return false
+    }
     
     /// Returns whether this context has any of the given media type, ignoring case and extra
     /// parameters.
     ///
     /// Implementation note: Use `MediaType` to handle the comparison to avoid edge cases.
-    func hasMediaType(_ mediaTypes: String...) -> Bool
+    public func hasMediaType(_ mediaTypes: String...) -> Bool {
+        let mediaTypes = mediaTypes.compactMap { MediaType($0) }
+        for mediaType in mediaTypes {
+            if self.mediaTypes.contains(where: { mediaType.contains($0) }) {
+                return true
+            }
+        }
+        return false
+    }
+
+    // MARK: Content
+
+    /// Underlying content holder.
+    private let content: FormatSnifferContent?
     
+    /// Content as plain text.
+    ///
+    /// It will extract the charset parameter from the media type hints to figure out an encoding.
+    /// Otherwise, fallback on UTF-8.
+    public lazy var contentAsString: String? = content?.read()
+        .flatMap { String(data: $0, encoding: encoding ?? .utf8) }
+    
+    /// Content parsed from JSON.
+    public lazy var contentAsJSON: Any? = contentAsString
+        .flatMap { $0.data(using: .utf8) }
+        .flatMap { try? JSONSerialization.jsonObject(with: $0) }
+    
+    /// Publication parsed from the content.
+    public lazy var contentAsRWPM: Publication? = contentAsJSON
+        .flatMap { try? Publication(json: $0) }
+
     /// Raw bytes stream of the content.
     ///
     /// A byte stream can be useful when sniffers only need to read a few bytes at the beginning of
     /// the file.
-    func stream() -> InputStream?
-    
-    /// Closes any opened file handles.
-    func close()
-
-}
-
-public extension FormatSnifferContext {
-
-    /// Publication parsed from the content.
-    var contentAsRWPM: Publication? {
-        contentAsJSON.flatMap { try? Publication(json: $0) }
+    public func stream() -> InputStream? {
+        return content?.stream()
     }
-    
+
     /// Reads the file signature, aka magic number, at the beginning of the content, up to `length`
     /// bytes.
     /// i.e. https://en.wikipedia.org/wiki/List_of_file_signatures
-    func readFileSignature(length: Int) -> String? {
+    public func readFileSignature(length: Int) -> String? {
         guard let stream = stream() else {
             return nil
         }
@@ -70,105 +105,4 @@ public extension FormatSnifferContext {
         return bytesRead > 0 ? String(cString: buffer) : nil
     }
 
-}
-
-class FormatBaseSnifferContext: FormatSnifferContext {
-
-    /// Media type hints.
-    let mediaTypes: [MediaType]
-    
-    /// File extension hints.
-    let fileExtensions: [String]
-    
-    init(mediaTypes: [String] = [], fileExtensions: [String] = []) {
-        self.mediaTypes = mediaTypes.compactMap { MediaType($0) }
-        self.fileExtensions = fileExtensions.map { $0.lowercased() }
-    }
-    
-    lazy var contentAsString: String? = readAsString()
-    
-    lazy var contentAsJSON: Any? = contentAsString
-        .flatMap { $0.data(using: .utf8) }
-        .flatMap { try? JSONSerialization.jsonObject(with: $0) }
-    
-    /// Finds the first `Encoding` declared in the media types' `charset` parameter.
-    lazy var encoding: String.Encoding? =
-        mediaTypes.compactMap { $0.encoding }.first
-
-    /// To override in subclasses.
-    func readAsString() -> String? {
-        return nil
-    }
-
-    func hasFileExtension(_ fileExtensions: String...) -> Bool {
-        for fileExtension in fileExtensions {
-            if self.fileExtensions.contains(fileExtension.lowercased()) {
-                return true
-            }
-        }
-        return false
-    }
-    
-    func hasMediaType(_ mediaTypes: String...) -> Bool {
-        let mediaTypes = mediaTypes.compactMap { MediaType($0) }
-        for mediaType in mediaTypes {
-            if self.mediaTypes.contains(where: { mediaType.contains($0) }) {
-                return true
-            }
-        }
-        return false
-    }
-    
-    func stream() -> InputStream? {
-        return nil
-    }
-    
-    func close() {}
-
-}
-
-/// Used to sniff only the media type and file extension hints.
-class FormatMetadataSnifferContext: FormatBaseSnifferContext {}
-
-/// Used to sniff a local file.
-class FormatFileSnifferContext: FormatBaseSnifferContext {
-    
-    let file: URL
-    
-    init(file: URL, mediaTypes: [String], fileExtensions: [String]) {
-        assert(file.isFileURL)
-        self.file = file
-        super.init(mediaTypes: mediaTypes, fileExtensions: [file.pathExtension] + fileExtensions)
-    }
-    
-    override func readAsString() -> String? {
-        return try? String(contentsOf: file, encoding: encoding ?? .utf8)
-    }
-    
-    override func stream() -> InputStream? {
-        return InputStream(url: file)
-    }
-    
-}
-
-/// Used to sniff a bytes array.
-class FormatDataSnifferContext: FormatBaseSnifferContext {
-    
-    lazy var data: Data = getData()
-
-    private let getData: () -> Data
-    
-    init(data: @escaping () -> Data, mediaTypes: [String], fileExtensions: [String]) {
-        self.getData = data
-        super.init(mediaTypes: mediaTypes, fileExtensions: fileExtensions)
-    }
-
-    override func readAsString() -> String? {
-        return String(data: data, encoding: encoding ?? .utf8)
-    }
-    
-    override func stream() -> InputStream? {
-        return InputStream(data: data)
-    }
-    
 }

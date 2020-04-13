@@ -96,6 +96,7 @@
 		CACD75F32236B0A5004F20CA /* PublicationCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACD75F22236B0A5004F20CA /* PublicationCollection.swift */; };
 		CACD75F52236B2AF004F20CA /* PublicationCollectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACD75F42236B2AF004F20CA /* PublicationCollectionTests.swift */; };
 		CAD0FEC2244310BB0053C998 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0FEC1244310BB0053C998 /* Array.swift */; };
+		CAD0FED02444B5C30053C998 /* FormatSnifferContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0FECF2444B5C30053C998 /* FormatSnifferContent.swift */; };
 		CAD178AD22B3A75C004E6812 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CAD178AF22B3A75C004E6812 /* Localizable.strings */; };
 		CADD69E222C3B17500A4CADF /* DocumentTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADD69E122C3B17500A4CADF /* DocumentTypes.swift */; };
 		CAF4EAE42237ABC700A17DA1 /* MediaOverlayNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4041F4EC69100DF166D /* MediaOverlayNode.swift */; };
@@ -218,6 +219,7 @@
 		CACD75F22236B0A5004F20CA /* PublicationCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationCollection.swift; sourceTree = "<group>"; };
 		CACD75F42236B2AF004F20CA /* PublicationCollectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationCollectionTests.swift; sourceTree = "<group>"; };
 		CAD0FEC1244310BB0053C998 /* Array.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Array.swift; sourceTree = "<group>"; };
+		CAD0FECF2444B5C30053C998 /* FormatSnifferContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatSnifferContent.swift; sourceTree = "<group>"; };
 		CAD178AE22B3A75C004E6812 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		CADD69E122C3B17500A4CADF /* DocumentTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentTypes.swift; sourceTree = "<group>"; };
 		F3B1879F1FA33D4D00BB46BF /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
@@ -463,6 +465,7 @@
 				CA68BDC4244064F6009A6BAA /* Format.swift */,
 				CA68BDC824406C10009A6BAA /* FormatSniffer.swift */,
 				CA68BDCA24406C6C009A6BAA /* FormatSnifferContext.swift */,
+				CAD0FECF2444B5C30053C998 /* FormatSnifferContent.swift */,
 				CA68BDC0244042D5009A6BAA /* MediaType.swift */,
 			);
 			path = Format;
@@ -767,6 +770,7 @@
 				CACD75F32236B0A5004F20CA /* PublicationCollection.swift in Sources */,
 				CA50B86E22B2A1CF003AFF24 /* R2LocalizedString.swift in Sources */,
 				CA6D42672404370C002FBED4 /* OPDSHolds.swift in Sources */,
+				CAD0FED02444B5C30053C998 /* FormatSnifferContent.swift in Sources */,
 				CAF4EAE42237ABC700A17DA1 /* MediaOverlayNode.swift in Sources */,
 				CAC34F0C221C61BD002C452E /* DRM+Deprecated.swift in Sources */,
 				CA3386E42404FD0300FDCBBA /* Properties+Encryption.swift in Sources */,

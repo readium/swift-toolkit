@@ -144,9 +144,22 @@ public class Publication: JSONEquatable, Loggable {
         ))
     }
 
-    /// Finds the first `Link` having the given `rel` in the publications's links.
+    /// Finds the first `Link` having the given `rel` in the publication's links.
     public func link(withRel rel: String) -> Link? {
         return link { $0.rels.contains(rel) }
+    }
+
+    /// Finds the first `Link` having the given `rel` matching the given `predicate`, in the
+    /// publications' links.
+    internal func link(withRelMatching predicate: (String) -> Bool) -> Link? {
+        for link in links {
+            for rel in link.rels {
+                if predicate(rel) {
+                    return link
+                }
+            }
+        }
+        return nil
     }
     
     /// Finds the first Link having the given `href` in the publication's links.

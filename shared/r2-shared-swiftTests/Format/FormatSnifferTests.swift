@@ -15,6 +15,33 @@ import XCTest
 class FormatSnifferTests: XCTestCase {
 
     let fixtures = Fixtures(path: "Format")
+    
+    func testSniffIgnoresExtensionCase() {
+        XCTAssertEqual(Format.of(fileExtensions: ["EPUB"]), .EPUB)
+    }
+    
+    func testSniffIgnoresMediaTypeCase() {
+        XCTAssertEqual(Format.of(mediaTypes: ["APPLICATION/EPUB+ZIP"]), .EPUB)
+    }
+    
+    func testSniffIgnoresMediaTypeExtraParameters() {
+        XCTAssertEqual(Format.of(mediaTypes: ["application/epub+zip;param=value"]), .EPUB)
+    }
+    
+    func testSniffFromMetadata() {
+        XCTAssertEqual(Format.of(fileExtensions: ["audiobook"]), .Audiobook)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/audiobook+zip"]), .Audiobook)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/audiobook+zip"], fileExtensions: ["audiobook"]), .Audiobook)
+    }
+    
+    func testSniffFromAFile() {
+        XCTAssertEqual(Format.of(fixtures.url(for: "audiobook.json")), .AudiobookManifest)
+    }
+    
+    func testSniffFromBytes() {
+        let data = try! Data(contentsOf: fixtures.url(for: "audiobook.json"))
+        XCTAssertEqual(Format.of({ data }), .AudiobookManifest)
+    }
 
     func testSniffLightUnknownFormat() {
         XCTAssertNil(Format.of(mediaTypes: ["text/plain"]))
