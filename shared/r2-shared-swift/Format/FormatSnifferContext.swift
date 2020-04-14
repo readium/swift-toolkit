@@ -11,7 +11,6 @@
 
 import Foundation
 import Fuzi
-import ZIPFoundation
 
 /// A companion type of `Format.Sniffer` holding the type hints (file extensions, media types) and
 /// providing an access to the file content.
@@ -77,8 +76,8 @@ public final class FormatSnifferContext {
 
     /// Content as a ZIP archive.
     /// Warning: ZIP is only supported for a local file, for now.
-    public lazy var contentAsZIP: Archive? = (content as? FormatSnifferFileContent)
-        .flatMap { Archive(url: $0.file, accessMode: .read) }
+    public lazy var contentAsZIP: ZIPArchive? = (content as? FormatSnifferFileContent)
+        .flatMap { try? ZFZIPArchive(file: $0.file) }
 
     /// Content parsed from JSON.
     public lazy var contentAsJSON: Any? = contentAsString
@@ -118,33 +117,23 @@ public final class FormatSnifferContext {
     
     /// Returns whether a ZIP entry exists in this file.
     func containsZIPEntry(at path: String) -> Bool {
-        return contentAsZIP?[path] != nil
+        return contentAsZIP?.entry(at: path) != nil
     }
     
     /// Returns the ZIP entry data at the given `path` in this file.
     func readZIPEntry(at path: String) -> Data? {
-        guard let entry = contentAsZIP?[path] else {
+        guard let entry = contentAsZIP?.entry(at: path), !entry.isDirectory else {
             return nil
         }
-        do {
-            var data = Data()
-            _ = try contentAsZIP?.extract(entry) { chunk in
-                data.append(chunk)
-            }
-            return data
-        } catch {
-            return nil
-        }
+        return entry.read()
     }
     
     /// Returns whether all the ZIP entry paths satisfy the given `predicate`.
     func zipEntriesAllSatisfy(_ predicate: (URL) -> Bool) -> Bool {
-        guard let zip = contentAsZIP else {
-            return false
-        }
-        return Array(zip)
-            .map { URL(fileURLWithPath: $0.path, isDirectory: $0.type == .directory) }
+        return contentAsZIP?.paths
+            .map { URL(fileURLWithPath: $0, isDirectory: $0.hasSuffix("/")) }
             .allSatisfy(predicate)
+            ?? false
     }
 
 }
