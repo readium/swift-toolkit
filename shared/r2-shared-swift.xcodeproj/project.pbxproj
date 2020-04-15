@@ -56,6 +56,8 @@
 		CA5F8EFF24041AF200926120 /* Metadata+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5F8EFE24041AF200926120 /* Metadata+Presentation.swift */; };
 		CA5F8F0124041BA700926120 /* Properties+PresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5F8F0024041BA700926120 /* Properties+PresentationTests.swift */; };
 		CA5F8F0324041D4B00926120 /* Properties+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5F8F0224041D4B00926120 /* Properties+Presentation.swift */; };
+		CA60CE202446DE8E00149B22 /* XML.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA60CE1F2446DE8E00149B22 /* XML.swift */; };
+		CA60CE242446E97400149B22 /* Fuzi.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA60CE232446E97400149B22 /* Fuzi.swift */; };
 		CA68BDC1244042D5009A6BAA /* MediaType.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA68BDC0244042D5009A6BAA /* MediaType.swift */; };
 		CA68BDC3244043C8009A6BAA /* MediaTypeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA68BDC2244043C8009A6BAA /* MediaTypeTests.swift */; };
 		CA68BDC5244064F6009A6BAA /* Format.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA68BDC4244064F6009A6BAA /* Format.swift */; };
@@ -184,6 +186,8 @@
 		CA5F8EFE24041AF200926120 /* Metadata+Presentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Metadata+Presentation.swift"; sourceTree = "<group>"; };
 		CA5F8F0024041BA700926120 /* Properties+PresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Properties+PresentationTests.swift"; sourceTree = "<group>"; };
 		CA5F8F0224041D4B00926120 /* Properties+Presentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Properties+Presentation.swift"; sourceTree = "<group>"; };
+		CA60CE1F2446DE8E00149B22 /* XML.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XML.swift; sourceTree = "<group>"; };
+		CA60CE232446E97400149B22 /* Fuzi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fuzi.swift; sourceTree = "<group>"; };
 		CA6161EA21FB257700D2CFE3 /* r2-shared-swiftTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "r2-shared-swiftTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA6161EE21FB257700D2CFE3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CA68BDC0244042D5009A6BAA /* MediaType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaType.swift; sourceTree = "<group>"; };
@@ -268,6 +272,7 @@
 			isa = PBXGroup;
 			children = (
 				CA68BDCC24407745009A6BAA /* Extensions */,
+				CA60CE1E2446DE7500149B22 /* XML */,
 				CAD0FED82444FDB50053C998 /* ZIP */,
 				F3E7D4221F4ECB3D00DF166D /* Date+ISO8601.swift */,
 				CABEB3DB2215698600090B6C /* Deferred.swift */,
@@ -453,6 +458,15 @@
 				CA5F8F0024041BA700926120 /* Properties+PresentationTests.swift */,
 			);
 			path = Presentation;
+			sourceTree = "<group>";
+		};
+		CA60CE1E2446DE7500149B22 /* XML */ = {
+			isa = PBXGroup;
+			children = (
+				CA60CE1F2446DE8E00149B22 /* XML.swift */,
+				CA60CE232446E97400149B22 /* Fuzi.swift */,
+			);
+			path = XML;
 			sourceTree = "<group>";
 		};
 		CA6161EB21FB257700D2CFE3 /* r2-shared-swiftTests */ = {
@@ -787,6 +801,7 @@
 				CA6D426B240439BE002FBED4 /* OPDSCopies.swift in Sources */,
 				CA17638D223A984600959FEB /* Publication.swift in Sources */,
 				F3E7D4231F4ECB3D00DF166D /* Date+ISO8601.swift in Sources */,
+				CA60CE242446E97400149B22 /* Fuzi.swift in Sources */,
 				CA17637A223A7B8900959FEB /* Properties+OPDS.swift in Sources */,
 				CACD75E22236A0B7004F20CA /* Subject.swift in Sources */,
 				CA5F8EF9240413C900926120 /* EPUBLayout.swift in Sources */,
@@ -811,6 +826,7 @@
 				CA2AE321221C1DCB008BD18F /* LoggerStub.swift in Sources */,
 				CA2AE322221C1DCB008BD18F /* Loggable.swift in Sources */,
 				CA9A40D1221B0AA200531EA1 /* Either.swift in Sources */,
+				CA60CE202446DE8E00149B22 /* XML.swift in Sources */,
 				CABBB2E62237ADEB004EB039 /* OpdsMetadata.swift in Sources */,
 				CABBB2E82237ADEB004EB039 /* Group.swift in Sources */,
 				CA16A8722232FBBB00E66255 /* Properties.swift in Sources */,

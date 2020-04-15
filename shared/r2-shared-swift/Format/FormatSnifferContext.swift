@@ -72,7 +72,7 @@ public final class FormatSnifferContext {
 
     /// Content as an XML document.
     public lazy var contentAsXML: XMLDocument? = contentAsString
-        .flatMap { try? XMLDocument(string: $0, encoding: encoding ?? .utf8) }
+        .flatMap { FuziXMLDocument(string: $0) }
 
     /// Content as a ZIP archive.
     /// Warning: ZIP is only supported for a local file, for now.

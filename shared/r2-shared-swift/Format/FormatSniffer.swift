@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import Fuzi
 
 public extension Format {
     
@@ -87,7 +88,7 @@ public extension Format {
         if context.hasFileExtension("htm", "html", "xht", "xhtml") || context.hasMediaType("text/html", "application/xhtml+xml") {
             return .HTML
         }
-        if context.contentAsXML?.root?.tag?.lowercased() == "html" {
+        if context.contentAsXML?.documentElement?.localName.lowercased() == "html" {
             return .HTML
         }
         return nil
@@ -102,10 +103,10 @@ public extension Format {
             return .OPDS1Feed
         }
         if let xml = context.contentAsXML {
-            xml.definePrefix("atom", forNamespace: "http://www.w3.org/2005/Atom")
-            if xml.firstChild(xpath: "/atom:feed") != nil {
+            let namespaces = [(prefix: "atom", uri: "http://www.w3.org/2005/Atom")]
+            if xml.first("/atom:feed", with: namespaces) != nil {
                 return .OPDS1Feed
-            } else if xml.firstChild(xpath: "/atom:entry") != nil {
+            } else if xml.first("/atom:entry", with: namespaces) != nil {
                 return .OPDS1Entry
             }
         }
