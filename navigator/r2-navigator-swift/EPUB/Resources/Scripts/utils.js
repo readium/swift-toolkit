@@ -3,6 +3,14 @@
 // WARNING: iOS 9 requires ES5
 
 var readium = (function() {
+    // Catch JS errors to log them in the app.
+    window.addEventListener("error", function(event) {
+        webkit.messageHandlers.logError.postMessage({
+            "message": event.message,
+            "filename": event.filename,
+            "line": event.lineno
+        });
+    }, false);
     
     // Notify native code that the page has loaded.
     window.addEventListener("load", function(){ // on page load
