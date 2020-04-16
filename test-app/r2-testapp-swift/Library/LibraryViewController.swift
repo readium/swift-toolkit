@@ -188,7 +188,7 @@ class LibraryViewController: UIViewController, Loggable {
                         hideActivity()
                         let publication = data?.publication
                         
-                        if let selfLink = publication?.link(withRel: "self"), selfLink.type == "application/webpub+json" {
+                        if publication?.link(withRel: "self")?.mediaType?.isRWPM == true {
                             addWEBPUB()
                             return
                         }
