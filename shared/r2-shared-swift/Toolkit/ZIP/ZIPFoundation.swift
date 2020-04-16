@@ -12,13 +12,11 @@
 import Foundation
 import ZIPFoundation
 
-final class ZFZIPEntry: ZIPEntry, Loggable {
+final class ZFZIPEntry: ZIPEntry {
     
-    fileprivate let archive: Archive
     fileprivate let entry: Entry
     
-    init(archive: Archive, entry: Entry) {
-        self.archive = archive
+    init(entry: Entry) {
         self.entry = entry
     }
     
@@ -37,20 +35,7 @@ final class ZFZIPEntry: ZIPEntry, Loggable {
     var compressedLength: UInt64 {
         UInt64(entry.compressedSize)
     }
-    
-    func read() -> Data? {
-        do {
-            var data = Data()
-            _ = try archive.extract(entry) { chunk in
-                data.append(chunk)
-            }
-            return data
-        } catch {
-            log(.error, error)
-            return nil
-        }
-    }
-    
+
 }
 
 class ZFZIPArchive: ZIPArchive, Loggable {
@@ -69,13 +54,76 @@ class ZFZIPArchive: ZIPArchive, Loggable {
         self.archive = archive
     }
 
-    lazy var paths: [String] = archive.map { $0.path }
+    lazy var entries: [ZIPEntry] = archive.map(ZFZIPEntry.init)
 
     func entry(at path: String) -> ZIPEntry? {
+        return archive[path].map(ZFZIPEntry.init)
+    }
+    
+    func read(at path: String) -> Data? {
+        objc_sync_enter(archive)
+        defer { objc_sync_exit(archive) }
+        
         guard let entry = archive[path] else {
             return nil
         }
-        return ZFZIPEntry(archive: archive, entry: entry)
+        
+        do {
+            var data = Data()
+            _ = try archive.extract(entry) { chunk in
+                data.append(chunk)
+            }
+            return data
+        } catch {
+            log(.error, error)
+            return nil
+        }
+    }
+    
+    func read(at path: String, range: Range<UInt64>) -> Data? {
+        objc_sync_enter(archive)
+        defer { objc_sync_exit(archive) }
+        
+        guard let entry = archive[path] else {
+            return nil
+        }
+        
+        let rangeLength = range.upperBound - range.lowerBound
+        var data = Data()
+        
+        do {
+            var offset: UInt64 = 0
+            let progress = Progress()
+            
+            _ = try archive.extract(entry, progress: progress) { chunk in
+                let chunkLength = UInt64(chunk.count)
+                defer {
+                    offset += chunkLength
+                    if offset >= range.upperBound {
+                        progress.cancel()
+                    }
+                }
+                
+                guard offset < range.upperBound, offset + chunkLength >= range.lowerBound else {
+                    return
+                }
+                
+                let startingIndex = (range.lowerBound > offset)
+                    ? (range.lowerBound - offset)
+                    : 0
+                data.append(chunk[startingIndex...])
+            }
+        } catch {
+            switch error {
+            case Archive.ArchiveError.cancelledOperation:
+                break
+            default:
+                log(.error, error)
+                return nil
+            }
+        }
+        
+        return data[0..<rangeLength]
     }
 
 }
@@ -86,41 +134,20 @@ final class ZFMutableZIPArchive: ZFZIPArchive, MutableZIPArchive {
         try self.init(file: file, accessMode: .update)
     }
 
-    func removeEntry(at path: String) throws {
-        guard let entry = entry(at: path) as? ZFZIPEntry else {
-            return
-        }
-        do {
-            try archive.remove(entry.entry)
-        } catch {
-            log(.error, error)
-            throw ZIPError.updateFailed
-        }
-    }
-    
-    func addFile(at path: String, data: Data, deflated: Bool) throws {
-        try addEntry(at: path, data: data, deflated: deflated)
-    }
-    
-    func addDirectory(at path: String) throws {
-        try addEntry(at: path, data: nil, deflated: false)
-    }
-    
-    private func addEntry(at path: String, data: Data?, deflated: Bool) throws {
-        // Removes the old entry if it already exists in the archive, otherwise we get duplicated
-        // entries
-        try removeEntry(at: path)
+    func replace(at path: String, with data: Data, deflated: Bool) throws {
+        objc_sync_enter(archive)
+        defer { objc_sync_exit(archive) }
         
         do {
-            if let data = data {
-                try archive.addEntry(with: path, type: .file, uncompressedSize: UInt32(data.count), compressionMethod: deflated ? .deflate : .none, provider: { position, size in
-                    data[position..<size]
-                })
-            } else {
-                try archive.addEntry(with: path, type: .directory, uncompressedSize: 0, provider: { _, _ in
-                    Data()
-                })
+            // Removes the old entry if it already exists in the archive, otherwise we get
+            // duplicated entries
+            if let entry = entry(at: path) as? ZFZIPEntry {
+                try archive.remove(entry.entry)
             }
+            
+            try archive.addEntry(with: path, type: .file, uncompressedSize: UInt32(data.count), compressionMethod: deflated ? .deflate : .none, provider: { position, size in
+                data[position..<size]
+            })
         } catch {
             log(.error, error)
             throw ZIPError.updateFailed

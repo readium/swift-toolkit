@@ -122,16 +122,13 @@ public final class FormatSnifferContext {
     
     /// Returns the ZIP entry data at the given `path` in this file.
     func readZIPEntry(at path: String) -> Data? {
-        guard let entry = contentAsZIP?.entry(at: path), !entry.isDirectory else {
-            return nil
-        }
-        return entry.read()
+        return contentAsZIP?.read(at: path)
     }
     
     /// Returns whether all the ZIP entry paths satisfy the given `predicate`.
     func zipEntriesAllSatisfy(_ predicate: (URL) -> Bool) -> Bool {
-        return contentAsZIP?.paths
-            .map { URL(fileURLWithPath: $0, isDirectory: $0.hasSuffix("/")) }
+        return contentAsZIP?.entries
+            .map { URL(fileURLWithPath: $0.path, isDirectory: $0.isDirectory) }
             .allSatisfy(predicate)
             ?? false
     }
