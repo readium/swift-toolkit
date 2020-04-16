@@ -94,8 +94,7 @@ final internal class ContentFiltersEpub: ContentFilters {
         
         let language = publication.metadata.languages.first ?? document.root?.attr("lang")
         let contentLayout = publication.contentLayout(forLanguage: language)
-        let styleSubFolder = contentLayout.rawValue
-        
+
         // User properties injection
         if let htmlContentStart = resourceHtml.endIndex(of: "<html") {
             let style = " style=\" " + buildUserPropertiesString(publication: publication) + "\""
