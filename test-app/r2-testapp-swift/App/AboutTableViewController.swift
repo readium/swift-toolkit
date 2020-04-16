@@ -50,7 +50,7 @@ class AboutTableViewController: UITableViewController {
         }
         
         if let url = url {
-            UIApplication.shared.openURL(url)
+            UIApplication.shared.open(url)
         }
         
         tableView.deselectRow(at: indexPath, animated: true)

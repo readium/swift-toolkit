@@ -398,7 +398,7 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
         let removeAction = UIAlertAction(title: NSLocalizedString("remove_button", comment: "Button to confirm the deletion of a publication"), style: .destructive, handler: { alert in
             // Remove the publication from publicationServer and Documents folder.
             let newOffset = self.downloadSet.count
-            guard let newIndex = self.books.index(where: { (element) -> Bool in
+            guard let newIndex = self.books.firstIndex(where: { (element) -> Bool in
                 book.id == element.id
             }) else {return}
             let newIndexPath = IndexPath(item: newOffset+newIndex, section: 0)

@@ -52,21 +52,28 @@ class OPDSPublicationInfoViewController: UIViewController, Loggable {
                 let coverURL = URL(string: images[0].href)
                 if (coverURL != nil) {
                     UIApplication.shared.isNetworkActivityIndicatorVisible = true
-                    imageView!.kf.setImage(with: coverURL,
-                                           placeholder: titleTextView,
-                                           options: [.transition(ImageTransition.fade(0.5))],
-                                           progressBlock: nil) { (image, _, _, _) in
-                                            DispatchQueue.main.async {
-                                                UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                                            }
-                                            self.fxImageView?.image = image
-                                            UIView.transition(with: self.fxImageView,
-                                                              duration: 0.3,
-                                                              options: .transitionCrossDissolve,
-                                                              animations: {
-                                                                self.fxImageView?.image = image
-                                                                
-                                            }, completion: nil)
+                    imageView.kf.setImage(
+                        with: coverURL,
+                        placeholder: titleTextView,
+                        options: [.transition(ImageTransition.fade(0.5))],
+                        progressBlock: nil
+                    ) { result in
+                        DispatchQueue.main.async {
+                            UIApplication.shared.isNetworkActivityIndicatorVisible = false
+                        }
+                        switch result {
+                        case .success(let image):
+                            self.fxImageView?.image = image.image
+                            UIView.transition(
+                                with: self.fxImageView,
+                                duration: 0.3,
+                                options: .transitionCrossDissolve,
+                                animations: { self.fxImageView?.image = image.image },
+                                completion: nil
+                            )
+                        case .failure(_):
+                            break
+                        }
                     }
                 }
             }

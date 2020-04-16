@@ -55,7 +55,7 @@ class OPDSPlaceholderListView : OPDSPlaceholderView, Placeholder {
 
 extension OPDSPlaceholderPublicationView {
     
-    public func add(to imageView: ImageView) {
+    public func add(to imageView: KFCrossPlatformImageView) {
         imageView.addSubview(self)
         
         self.translatesAutoresizingMaskIntoConstraints = false

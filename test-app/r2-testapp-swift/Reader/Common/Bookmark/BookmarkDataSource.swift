@@ -30,7 +30,7 @@ class BookmarkDataSource: Loggable {
     
     func reloadBookmarks() {
         if let list = try? BookmarkDatabase.shared.bookmarks.bookmarkList(for: self.publicationID) {
-            self.bookmarks = list ?? [Bookmark]()
+            self.bookmarks = list 
             self.bookmarks.sort { (b1, b2) -> Bool in
                 if b1.resourceIndex == b2.resourceIndex {
                     let locations1 = b1.locator.locations

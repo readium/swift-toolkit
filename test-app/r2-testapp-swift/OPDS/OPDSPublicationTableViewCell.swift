@@ -91,14 +91,15 @@ extension OPDSPublicationTableViewCell: UICollectionViewDataSource {
             
             if let coverURL = coverURL {
                 UIApplication.shared.isNetworkActivityIndicatorVisible = true
-                cell.coverImageView.kf.setImage(with: coverURL,
-                                           placeholder: titleTextView,
-                                           options: [.transition(ImageTransition.fade(0.5))],
-                                           progressBlock: nil) { (_, _, _, _) in
-                                            DispatchQueue.main.async {
-                                                UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                                            }
-                }
+                cell.coverImageView.kf.setImage(
+                    with: coverURL,
+                    placeholder: titleTextView,
+                    options: [.transition(ImageTransition.fade(0.5))],
+                    progressBlock: nil) { _ in
+                        DispatchQueue.main.async {
+                            UIApplication.shared.isNetworkActivityIndicatorVisible = false
+                        }
+                    }
             } else {
                 cell.coverImageView.addSubview(titleTextView)
             }

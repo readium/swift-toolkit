@@ -150,8 +150,8 @@ class BookmarksTable {
                     href: row[self.resourceHref],
                     type: row[self.resourceType],
                     title: row[self.resourceTitle],
-                    locations: Locations(jsonString: row[self.locations]),
-                    text: LocatorText(jsonString: row[self.locatorText])
+                    locations: Locator.Locations(jsonString: row[self.locations]),
+                    text: Locator.Text(jsonString: row[self.locatorText])
                 ),
                 creationDate: row[self.creationDate]
             )
