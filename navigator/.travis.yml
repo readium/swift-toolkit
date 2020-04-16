@@ -1,5 +1,9 @@
 language: swift
-osx_image: xcode10.1
+osx_image: xcode11
+xcode_project: r2-navigator-swift.xcodeproj
+xcode_scheme: r2-navigator-swift
+xcode_destination: platform=iOS Simulator,OS=11.3,name=iPhone X
+xcode_sdk: iphonesimulator13.0
 
 branches:
   only:
@@ -13,7 +17,8 @@ cache:
 before_install:
   - brew update
   - brew outdated carthage || brew upgrade carthage
-  - carthage update --verbose --no-use-binaries --platform iOS --cache-builds
+  - carthage bootstrap --verbose --no-use-binaries --platform iOS --cache-builds
 
 script:
-  - xcodebuild clean build -project r2-navigator-swift.xcodeproj -scheme r2-navigator-swift -destination "platform=iOS Simulator,name=iPhone 8,OS=11.3" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ONLY_ACTIVE_ARCH=NO -quiet
+  - xcodebuild clean build -quiet
+

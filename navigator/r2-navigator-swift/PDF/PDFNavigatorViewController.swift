@@ -37,46 +37,12 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
     private let editingActions: EditingActionsController
     /// Reading order index of the current resource.
     private var currentResourceIndex: Int?
-    private let positionList: [Locator]
-    /// Positions list indexed by reading order.
-    private let positionListByResourceIndex: [[Locator]]
 
     public init(publication: Publication, license: DRMLicense? = nil, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
         self.publication = publication
         self.initialLocation = initialLocation
         self.editingActions = EditingActionsController(actions: editingActions, license: license)
         
-        // FIXME: This should be cached, to avoid opening all the documents of the readingOrder
-        positionListByResourceIndex = {
-            var lastPositionOfPreviousResource = 0
-            return publication.readingOrder.map { link in
-                guard let url = publication.url(to: link),
-                    let document = PDFDocument(url: url) else
-                {
-                    PDFNavigatorViewController.log(.warning, "Can't open PDF document at \(link)")
-                    return []
-                }
-                
-                let pageCount = max(document.pageCount, 1)  // safe-guard to avoid dividing by 0
-                let positionList = (1...pageCount).map { pageNumber in
-                    Locator(
-                        href: link.href,
-                        type: link.type ?? "application/pdf",
-                        // FIXME: title by finding the containing TOC item
-                        title: nil,
-                        locations: Locations(
-                            fragment: "page=\(pageNumber)",
-                            progression: Double(pageNumber) / Double(pageCount),
-                            position: lastPositionOfPreviousResource + pageNumber
-                        )
-                    )
-                }
-                lastPositionOfPreviousResource += pageCount
-                return positionList
-            }
-        }()
-        positionList = positionListByResourceIndex.flatMap { $0 }
-
         super.init(nibName: nil, bundle: nil)
         
         automaticallyAdjustsScrollViewInsets = false
@@ -96,7 +62,10 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         
         view.backgroundColor = .black
         
-        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTap)))
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(didTap))
+        tapGesture.numberOfTapsRequired = 1
+        tapGesture.delegate = self
+        view.addGestureRecognizer(tapGesture)
         
         pdfView = PDFDocumentView(frame: view.bounds, editingActions: editingActions)
         pdfView.delegate = self
@@ -105,9 +74,17 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         
         setupPDFView()
 
-        NotificationCenter.default.addObserver(self, selector: #selector(pageDidChange), name: Notification.Name.PDFViewPageChanged, object: pdfView)
+        NotificationCenter.default.addObserver(self, selector: #selector(pageDidChange), name: .PDFViewPageChanged, object: pdfView)
+        NotificationCenter.default.addObserver(self, selector: #selector(selectionDidChange), name: .PDFViewSelectionChanged, object: pdfView)
         
-        if let locator = initialLocation ?? positionList.first {
+        UIMenuController.shared.menuItems = [
+            UIMenuItem(
+                title: R2NavigatorLocalizedString("EditingAction.share"),
+                action: #selector(shareSelection)
+            )
+        ]
+        
+        if let locator = initialLocation ?? publication.positions.first {
             go(to: locator)
         }
     }
@@ -197,8 +174,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         pdfView.maxScaleFactor = 4.0
     }
     
-    private func pageNumber(for locator: Locator, at resourceIndex: Int) -> Int? {
-        if let fragment = locator.locations?.fragment {
+    private func pageNumber(for locator: Locator) -> Int? {
+        for fragment in locator.locations.fragments {
             // https://tools.ietf.org/rfc/rfc3778
             let optionalPageParam = fragment
                 .components(separatedBy: CharacterSet(charactersIn: "&#"))
@@ -209,8 +186,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
             }
         }
         
-        if let position = locator.locations?.position,
-            let firstPosition = positionListByResourceIndex[resourceIndex].first?.locations?.position {
+        if let position = locator.locations.position,
+            let firstPosition = publication.positionsByResource[locator.href]?.first?.locations.position {
             return position - firstPosition + 1
         }
         
@@ -220,18 +197,46 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
     /// Returns the position locator of the current page.
     private var currentPosition: Locator? {
         guard let currentResourceIndex = self.currentResourceIndex,
-            let pageNumber = pdfView.currentPage?.pageRef?.pageNumber else
+            let pageNumber = pdfView.currentPage?.pageRef?.pageNumber,
+            publication.readingOrder.indices.contains(currentResourceIndex) else
         {
             return nil
         }
-        let positionList = positionListByResourceIndex[currentResourceIndex]
-        guard 1...positionList.count ~= pageNumber else {
+        let href = publication.readingOrder[currentResourceIndex].href
+        guard let positionList = publication.positionsByResource[href],
+            1...positionList.count ~= pageNumber else
+        {
             return nil
         }
         
         return positionList[pageNumber - 1]
     }
+    
+    
+    // MARK: - User Selection
 
+    @objc func selectionDidChange(_ note: Notification) {
+        guard let selection = pdfView.currentSelection,
+            let text = selection.string,
+            let page = selection.pages.first else
+        {
+            editingActions.selectionDidChange(nil)
+            return
+        }
+        
+        let frame = pdfView.convert(selection.bounds(for: page), from: page)
+            // Makes it slightly bigger to have more room when displaying a popover.
+            .insetBy(dx: -8, dy: -8)
+        editingActions.selectionDidChange((text: text, frame: frame))
+    }
+
+    @objc private func shareSelection(_ sender: Any?) {
+        guard let shareViewController = editingActions.makeShareViewController(from: pdfView) else {
+            return
+        }
+        present(shareViewController, animated: true)
+    }
+    
     
     // MARK: - Navigator
 
@@ -246,7 +251,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
         /// Adds some context for bookmarking
         if let page = pdfView.currentPage {
-            locator.text = LocatorText(highlight: String(page.string?.prefix(280) ?? ""))
+            locator.text = Locator.Text(highlight: String(page.string?.prefix(280) ?? ""))
         }
         return locator
     }
@@ -258,7 +263,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
         return go(
             to: publication.readingOrder[index],
-            pageNumber: pageNumber(for: locator, at: index),
+            pageNumber: pageNumber(for: locator),
             completion: completion
         )
     }
@@ -268,15 +273,15 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
     }
     
     public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
-        if pdfView.canGoToNextPage() {
+        if pdfView.canGoToNextPage {
             pdfView.goToNextPage(nil)
             DispatchQueue.main.async(execute: completion)
             return true
         }
         
         let nextIndex = (currentResourceIndex ?? -1) + 1
-        guard positionListByResourceIndex.indices.contains(nextIndex),
-            let nextPosition = positionListByResourceIndex[nextIndex].first else
+        guard publication.readingOrder.indices.contains(nextIndex),
+            let nextPosition = publication.positionsByResource[publication.readingOrder[nextIndex].href]?.first else
         {
             return false
         }
@@ -284,15 +289,15 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
     }
     
     public func goBackward(animated: Bool, completion: @escaping () -> Void) -> Bool {
-        if pdfView.canGoToPreviousPage() {
+        if pdfView.canGoToPreviousPage {
             pdfView.goToPreviousPage(nil)
             DispatchQueue.main.async(execute: completion)
             return true
         }
         
         let previousIndex = (currentResourceIndex ?? 0) - 1
-        guard positionListByResourceIndex.indices.contains(previousIndex),
-            let previousPosition = positionListByResourceIndex[previousIndex].last else
+        guard publication.readingOrder.indices.contains(previousIndex),
+            let previousPosition = publication.positionsByResource[publication.readingOrder[previousIndex].href]?.first else
         {
             return false
         }
@@ -316,6 +321,15 @@ extension PDFNavigatorViewController: EditingActionsControllerDelegate {
     
     func editingActionsDidPreventCopy(_ editingActions: EditingActionsController) {
         delegate?.navigator(self, presentError: .copyForbidden)
+    }
+    
+}
+
+@available(iOS 11.0, *)
+extension PDFNavigatorViewController: UIGestureRecognizerDelegate {
+
+    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
     }
     
 }

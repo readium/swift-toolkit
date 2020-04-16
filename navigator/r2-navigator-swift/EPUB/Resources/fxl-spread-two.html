@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+  body, html {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    background: transparent;
+    overflow: hidden;
+  }
+
+  .viewport {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+  }
+
+  #viewport-left {
+    left: 0;
+  }
+
+  #viewport-right {
+    right: 0;
+  }
+
+  #viewport-center {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .page {
+    /* Centers vertically the iframe */
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: 0px;
+    height: 0px;
+    border: none;
+    background: white;
+  }
+
+  #page-left {
+    right: 0;
+  }
+
+  #page-right {
+    left: 0;
+  }
+
+  #page-center {
+    /* Centers vertically and horizontally the iframe */
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  </style>
+
+  <meta name="viewport" content="">
+</head>
+
+<body>
+  <div id="viewport-left" class="viewport">
+    <iframe id="page-left" class="page"></iframe>
+  </div>
+  <div id="viewport-right" class="viewport">
+    <iframe id="page-right" class="page"></iframe>
+  </div>
+  <div id="viewport-center" class="viewport">
+    <iframe id="page-center" class="page"></iframe>
+  </div>
+
+  <script type="text/javascript">
+    var spread = (function() {
+      var _viewportLeft = document.getElementById('viewport-left');
+      var _viewportRight = document.getElementById('viewport-right');
+      var _viewportCenter = document.getElementById('viewport-center');
+
+      var _pages = {
+        'left': FixedPage('page-left'),
+        'right': FixedPage('page-right'),
+        'center': FixedPage('page-center')
+      };
+
+      function forEachPage(callback) {
+        for (position in _pages) {
+          callback(_pages[position]);
+        }
+      }
+
+      function getPageWithHref(href) {
+        for (position in _pages) {
+          var page = _pages[position];
+          if (page.href == href) {
+            return page;
+          }
+        }
+        return null;
+      }
+
+      // Public API called from Swift.
+      return {
+        // Loads resources in the spread.
+        'load': function(links) {
+          forEachPage(function(page) {
+            page.reset();
+            page.hide();
+          });
+
+          function loaded() {
+            if (_pages.left.isLoading || _pages.right.isLoading || _pages.center.isLoading) {
+              return;
+            }
+            webkit.messageHandlers.spreadLoaded.postMessage({});
+          }
+
+          for (var i in links) {
+            var link = links[i];
+            var page = _pages[link.page];
+            if (page) {
+              page.show();
+              page.load(link, loaded);
+            }
+          }
+        },
+
+        // Evaluates a JavaScript in the context of a resource.
+        // If the href is '#' or empty, then the script is executed on all the pages.
+        'eval': function(href, script) {
+          if (href == '#' || href == '') {
+            forEachPage(function(page) {
+              page.eval(script);
+            });
+          } else {
+            var page = getPageWithHref(href);
+            if (page) {
+              return page.eval(script);
+            }
+          }
+        },
+
+        // Updates the available viewport to display the resources.
+        'setViewport': function(viewportSize, safeAreaInsets) {
+          viewportSize.width /= 2;
+
+          _pages.left.setViewport(viewportSize, {
+            top: safeAreaInsets.top,
+            right: 0,
+            bottom: safeAreaInsets.bottom,
+            left: safeAreaInsets.left
+          });
+
+          _pages.right.setViewport(viewportSize, {
+            top: safeAreaInsets.top,
+            right: safeAreaInsets.right,
+            bottom: safeAreaInsets.bottom,
+            left: 0
+          });
+
+          _pages.center.setViewport(viewportSize, {
+            top: safeAreaInsets.top,
+            right: 0,
+            bottom: safeAreaInsets.bottom,
+            left: 0
+          });
+        }
+      }
+    })();
+  </script>
+</body>
+</html>

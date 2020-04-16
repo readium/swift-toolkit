@@ -3,6 +3,14 @@
 // WARNING: iOS 9 requires ES5
 
 var readium = (function() {
+    // Catch JS errors to log them in the app.
+    window.addEventListener("error", function(event) {
+        webkit.messageHandlers.logError.postMessage({
+            "message": event.message,
+            "filename": event.filename,
+            "line": event.lineno
+        });
+    }, false);
     
     // Notify native code that the page has loaded.
     window.addEventListener("load", function(){ // on page load
@@ -11,11 +19,6 @@ var readium = (function() {
             snapCurrentPosition();
         });
         orientationChanged();
-
-        // Notify native code that the page is loaded after the page is rendered.
-        window.requestAnimationFrame(function() {
-            webkit.messageHandlers.didLoad.postMessage("");
-        });
     }, false);
 
     var last_known_scrollX_position = 0;
@@ -26,19 +29,18 @@ var readium = (function() {
     // Position in range [0 - 1].
     function update(position) {
         var positionString = position.toString()
-        webkit.messageHandlers.updateProgression.postMessage(positionString);
+        webkit.messageHandlers.progressionChanged.postMessage(positionString);
     }
 
     window.addEventListener('scroll', function(e) {
         last_known_scrollY_position = window.scrollY / document.scrollingElement.scrollHeight;
-        last_known_scrollX_position = window.scrollX / document.scrollingElement.scrollWidth;
+        // Using Math.abs because for RTL books, the value will be negative.
+        last_known_scrollX_position = Math.abs(window.scrollX / document.scrollingElement.scrollWidth);
        
         // Window is hidden
-        if(document.scrollingElement.scrollWidth === 0 || document.scrollingElement.scrollHeight === 0){
-          return;
+        if (document.scrollingElement.scrollWidth === 0 || document.scrollingElement.scrollHeight === 0) {
+            return;
         }
-                            
-                            
                             
         if (!ticking) {
             window.requestAnimationFrame(function() {
@@ -48,6 +50,23 @@ var readium = (function() {
         }
         ticking = true;
     });
+
+    document.addEventListener('selectionchange', debounce(50, function() {
+        var info = {}
+        var selection = document.getSelection();
+        if (selection && selection.rangeCount > 0) {
+            var rect = selection.getRangeAt(0).getBoundingClientRect();
+            info['text'] = selection.toString().trim();
+            info['frame'] = {
+                'x': rect.left,
+                'y': rect.top,
+                'width': rect.width,
+                'height': rect.height
+            };
+        }
+
+        webkit.messageHandlers.selectionChanged.postMessage(info);
+    }));
 
     function orientationChanged() {
         maxScreenX = (window.orientation === 0 || window.orientation == 180) ? screen.width : screen.height;
@@ -86,12 +105,9 @@ var readium = (function() {
             document.scrollingElement.scrollTop = offset;
             // window.scrollTo(0, offset);
         } else {
-            var offset = 0.0;
-            if (dir == 'rtl') {
-                offset = -document.scrollingElement.scrollWidth * (1.0-position);
-            } else {
-                offset = document.scrollingElement.scrollWidth * position;
-            }
+            var documentWidth = document.scrollingElement.scrollWidth;
+            var factor = (dir == 'rtl') ? -1 : 1;
+            var offset = documentWidth * position * factor;
             document.scrollingElement.scrollLeft = snapOffset(offset);
         }
     }
@@ -158,6 +174,23 @@ var readium = (function() {
         var root = document.documentElement;
 
         root.style.removeProperty(key);
+    }
+
+
+    /// Toolkit
+
+    function debounce(delay, func) {
+        var timeout;
+        return function() {
+            var self = this;
+            var args = arguments;
+            function callback() {
+                func.apply(self, args);
+                timeout = null;
+            }
+            clearTimeout(timeout);
+            timeout = setTimeout(callback, delay);
+        };
     }
 
 

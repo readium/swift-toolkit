@@ -1,5 +1,5 @@
 //
-//  FixedWebView.swift
+//  EPUBFixedSpreadView.swift
 //  r2-navigator-swift
 //
 //  Created by Mickaël Menu on 09.04.19.
@@ -14,11 +14,11 @@ import UIKit
 import WebKit
 
 
-/// A WebView subclass to handle documents with a fixed layout.
-final class FixedDocumentWebView: DocumentWebView {
+/// A view rendering a spread of resources with a fixed layout.
+final class EPUBFixedSpreadView: EPUBSpreadView {
     
     /// Whether the host wrapper page is loaded or not. The wrapper page contains the iframe that will display the resource.
-    private var isWrapperPageLoaded = false
+    private var isWrapperLoaded = false
     /// URL to load in the iframe once the wrapper page is loaded.
     private var urlToLoad: URL?
     
@@ -39,43 +39,34 @@ final class FixedDocumentWebView: DocumentWebView {
         scrollView.backgroundColor = UIColor.clear
         
         // Loads the wrapper page into the web view.
-        if let wrapperPageURL = Bundle(for: type(of: self)).url(forResource: "fxl-wrapper", withExtension: "html"), let wrapperPage = try? String(contentsOf: wrapperPageURL, encoding: .utf8) {
-            // The publication's base URL is used to make sure we can access the resource through the iframe with JavaScript.
-            webView.loadHTMLString(wrapperPage, baseURL: baseURL)
+        let spreadFile = "fxl-spread-\(spread.pageCount.rawValue)"
+        if let wrapperPageURL = Bundle(for: type(of: self)).url(forResource: spreadFile, withExtension: "html"), let wrapperPage = try? String(contentsOf: wrapperPageURL, encoding: .utf8) {
+            // The publication's base URL is used to make sure we can access the resources through the iframe with JavaScript.
+            webView.loadHTMLString(wrapperPage, baseURL: publication.baseURL)
         }
     }
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        layoutPage()
+        layoutSpread()
     }
     
     @available(iOS 11.0, *)
     override func safeAreaInsetsDidChange() {
         super.safeAreaInsetsDidChange()
-        layoutPage()
+        layoutSpread()
     }
     
-    override func load(_ url: URL) {
-        guard isWrapperPageLoaded else {
-            urlToLoad = url
+    override func loadSpread() {
+        guard isWrapperLoaded else {
             return
         }
-        webView.evaluateJavaScript("page.load('\(url)');")
+        webView.evaluateJavaScript("spread.load(\(spread.jsonString(for: publication)));")
     }
-    
-    override func evaluateScriptInResource(_ script: String, completion: ((Any?, Error?) -> Void)? = nil) {
-        guard isWrapperPageLoaded else {
-            completion?(nil, nil)
-            return
-        }
-        let script = "page.eval(\"\(script.replacingOccurrences(of: "\"", with: "\\\""))\");"
-        super.evaluateScriptInResource(script, completion: completion)
-    }
-    
+
     /// Layouts the resource to fit its content in the bounds.
-    private func layoutPage() {
-        guard isWrapperPageLoaded else {
+    private func layoutSpread() {
+        guard isWrapperLoaded else {
             return
         }
         // Insets the bounds by the notch area (eg. iPhone X) to make sure that the content is not overlapped by the screen notch.
@@ -83,7 +74,7 @@ final class FixedDocumentWebView: DocumentWebView {
         let viewportSize = bounds.inset(by: insets).size
         
         webView.evaluateJavaScript("""
-            page.setViewport(
+            spread.setViewport(
               {'width': \(Int(viewportSize.width)), 'height': \(Int(viewportSize.height))},
               {'top': \(Int(insets.top)), 'left': \(Int(insets.left)), 'bottom': \(Int(insets.bottom)), 'right': \(Int(insets.right))}
             );
@@ -104,14 +95,22 @@ final class FixedDocumentWebView: DocumentWebView {
     override func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         super.webView(webView, didFinish: navigation)
         
-        if !isWrapperPageLoaded {
-            isWrapperPageLoaded = true
-            layoutPage()
-            if let url = urlToLoad {
-                urlToLoad = nil
-                load(url)
-            }
+        if !isWrapperLoaded {
+            isWrapperLoaded = true
+            layoutSpread()
+            loadSpread()
         }
+    }
+    
+    
+    /// MARK: - Scripts
+    
+    private static let fixedScript = loadScript(named: "fixed")
+    
+    override func makeScripts() -> [WKUserScript] {
+        var scripts = super.makeScripts()
+        scripts.append(WKUserScript(source: EPUBFixedSpreadView.fixedScript, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        return scripts
     }
 
 }
