@@ -21,21 +21,14 @@ class OPDSGroupTableViewCell: UITableViewCell {
     weak var collectionView: UICollectionView?
     
     var browsingState: FeedBrowsingState = .None
+
+    static let iPadLayoutNumberPerRow:[ScreenOrientation: Int] = [.portrait: 4, .landscape: 5]
+    static let iPhoneLayoutNumberPerRow:[ScreenOrientation: Int] = [.portrait: 3, .landscape: 4]
     
-    enum GeneralScreenOrientation: String {
-        case landscape
-        case portrait
-    }
-    
-    static let iPadLayoutNumberPerRow:[GeneralScreenOrientation: Int] = [.portrait: 4, .landscape: 5]
-    static let iPhoneLayoutNumberPerRow:[GeneralScreenOrientation: Int] = [.portrait: 3, .landscape: 4]
-    
-    lazy var layoutNumberPerRow:[UIUserInterfaceIdiom:[GeneralScreenOrientation: Int]] = [
+    lazy var layoutNumberPerRow:[UIUserInterfaceIdiom:[ScreenOrientation: Int]] = [
         .pad : OPDSGroupTableViewCell.iPadLayoutNumberPerRow,
         .phone : OPDSGroupTableViewCell.iPhoneLayoutNumberPerRow
     ]
-    
-    fileprivate var previousScreenOrientation: GeneralScreenOrientation?
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -177,24 +170,9 @@ extension OPDSGroupTableViewCell: UICollectionViewDelegateFlowLayout {
                 let tempIdion = UIDevice.current.userInterfaceIdiom
                 return (tempIdion != .pad) ? .phone:.pad // ignnore carplay and others
             } ()
-            
-            let orientation = { () -> GeneralScreenOrientation in
-                let deviceOrientation = UIDevice.current.orientation
-                
-                switch deviceOrientation {
-                case .unknown, .portrait, .portraitUpsideDown:
-                    return GeneralScreenOrientation.portrait
-                case .landscapeLeft, .landscapeRight:
-                    return GeneralScreenOrientation.landscape
-                case .faceUp, .faceDown:
-                    return previousScreenOrientation ?? .portrait
-                }
-            } ()
-            
-            previousScreenOrientation = orientation
-            
+
             guard let deviceLayoutNumberPerRow = layoutNumberPerRow[idiom] else {return CGSize(width: 0, height: 0)}
-            guard let numberPerRow = deviceLayoutNumberPerRow[orientation] else {return CGSize(width: 0, height: 0)}
+            guard let numberPerRow = deviceLayoutNumberPerRow[.current] else {return CGSize(width: 0, height: 0)}
             
             let minimumSpacing: CGFloat = 5.0
             let labelHeight: CGFloat = 50.0

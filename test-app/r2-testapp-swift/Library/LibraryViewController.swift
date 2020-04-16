@@ -101,21 +101,14 @@ class LibraryViewController: UIViewController, Loggable {
         super.viewWillTransition(to: size, with: coordinator)
         collectionView.collectionViewLayout.invalidateLayout()
     }
+
+    static let iPadLayoutNumberPerRow:[ScreenOrientation: Int] = [.portrait: 4, .landscape: 5]
+    static let iPhoneLayoutNumberPerRow:[ScreenOrientation: Int] = [.portrait: 3, .landscape: 4]
     
-    enum GeneralScreenOrientation: String {
-        case landscape
-        case portrait
-    }
-    
-    static let iPadLayoutNumberPerRow:[GeneralScreenOrientation: Int] = [.portrait: 4, .landscape: 5]
-    static let iPhoneLayoutNumberPerRow:[GeneralScreenOrientation: Int] = [.portrait: 3, .landscape: 4]
-    
-    static let layoutNumberPerRow:[UIUserInterfaceIdiom:[GeneralScreenOrientation: Int]] = [
+    static let layoutNumberPerRow:[UIUserInterfaceIdiom:[ScreenOrientation: Int]] = [
         .pad : LibraryViewController.iPadLayoutNumberPerRow,
         .phone : LibraryViewController.iPhoneLayoutNumberPerRow
     ]
-    
-    private var previousScreenOrientation: GeneralScreenOrientation?
     
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
@@ -125,28 +118,13 @@ class LibraryViewController: UIViewController, Loggable {
             return (tempIdion != .pad) ? .phone:.pad // ignnore carplay and others
         } ()
         
-        let orientation = { () -> GeneralScreenOrientation in
-            let deviceOrientation = UIDevice.current.orientation
-            
-            switch deviceOrientation {
-            case .unknown, .portrait, .portraitUpsideDown:
-                return GeneralScreenOrientation.portrait
-            case .landscapeLeft, .landscapeRight:
-                return GeneralScreenOrientation.landscape
-            case .faceUp, .faceDown:
-                return previousScreenOrientation ?? .portrait
-            }
-        } ()
-        
-        var layoutNumberPerRow:[UIUserInterfaceIdiom:[GeneralScreenOrientation: Int]] = [
+        let layoutNumberPerRow:[UIUserInterfaceIdiom:[ScreenOrientation: Int]] = [
             .pad : LibraryViewController.iPadLayoutNumberPerRow,
             .phone : LibraryViewController.iPhoneLayoutNumberPerRow
         ]
-        
-        previousScreenOrientation = orientation
-        
+
         guard let deviceLayoutNumberPerRow = layoutNumberPerRow[idiom] else {return}
-        guard let numberPerRow = deviceLayoutNumberPerRow[orientation] else {return}
+        guard let numberPerRow = deviceLayoutNumberPerRow[.current] else {return}
         
         guard let flowLayout = self.collectionView.collectionViewLayout as? UICollectionViewFlowLayout else {return}
         let contentWith = collectionView.collectionViewLayout.collectionViewContentSize.width

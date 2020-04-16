@@ -46,22 +46,15 @@ class OPDSRootTableViewController: UITableViewController {
     var publication: Publication?
     
     var browsingState: FeedBrowsingState = .None
+
+    static let iPadLayoutHeightForRow:[ScreenOrientation: CGFloat] = [.portrait: 330, .landscape: 340]
+    static let iPhoneLayoutHeightForRow:[ScreenOrientation: CGFloat] = [.portrait: 230, .landscape: 280]
     
-    enum GeneralScreenOrientation: String {
-        case landscape
-        case portrait
-    }
-    
-    static let iPadLayoutHeightForRow:[GeneralScreenOrientation: CGFloat] = [.portrait: 330, .landscape: 340]
-    static let iPhoneLayoutHeightForRow:[GeneralScreenOrientation: CGFloat] = [.portrait: 230, .landscape: 280]
-    
-    lazy var layoutHeightForRow:[UIUserInterfaceIdiom:[GeneralScreenOrientation: CGFloat]] = [
+    lazy var layoutHeightForRow:[UIUserInterfaceIdiom:[ScreenOrientation: CGFloat]] = [
         .pad : OPDSRootTableViewController.iPadLayoutHeightForRow,
         .phone : OPDSRootTableViewController.iPhoneLayoutHeightForRow
     ]
-    
-    fileprivate var previousScreenOrientation: GeneralScreenOrientation?
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationController?.delegate = self
@@ -375,24 +368,9 @@ class OPDSRootTableViewController: UITableViewController {
                 let tempIdion = UIDevice.current.userInterfaceIdiom
                 return (tempIdion != .pad) ? .phone:.pad // ignnore carplay and others
             } ()
-            
-            let orientation = { () -> GeneralScreenOrientation in
-                let deviceOrientation = UIDevice.current.orientation
-                
-                switch deviceOrientation {
-                case .unknown, .portrait, .portraitUpsideDown:
-                    return GeneralScreenOrientation.portrait
-                case .landscapeLeft, .landscapeRight:
-                    return GeneralScreenOrientation.landscape
-                case .faceUp, .faceDown:
-                    return previousScreenOrientation ?? .portrait
-                }
-            } ()
-            
-            previousScreenOrientation = orientation
-            
+
             guard let deviceLayoutHeightForRow = layoutHeightForRow[idiom] else {return 44}
-            guard let heightForRow = deviceLayoutHeightForRow[orientation] else {return 44}
+            guard let heightForRow = deviceLayoutHeightForRow[.current] else {return 44}
             
             return heightForRow
             

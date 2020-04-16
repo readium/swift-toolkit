@@ -317,6 +317,10 @@
 		CA822C95221C5737005800D1 /* AboutTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE37DE422093291600079AA2 /* AboutTableViewController.swift */; };
 		CA822CB6221C5737005800D1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4441F4EF6D400DF166D /* LaunchScreen.storyboard */; };
 		CA822CB7221C5737005800D1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F3E7D4421F4EF6D400DF166D /* Assets.xcassets */; };
+		CA8672AE244864040035FDF4 /* ScreenOrientation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8672AD244864040035FDF4 /* ScreenOrientation.swift */; };
+		CA8672AF244864040035FDF4 /* ScreenOrientation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8672AD244864040035FDF4 /* ScreenOrientation.swift */; };
+		CA8672B0244864040035FDF4 /* ScreenOrientation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8672AD244864040035FDF4 /* ScreenOrientation.swift */; };
+		CA8672B1244864040035FDF4 /* ScreenOrientation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8672AD244864040035FDF4 /* ScreenOrientation.swift */; };
 		CA9A40D3221C054C00531EA1 /* DRMViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */; };
 		CA9A40D8221C069D00531EA1 /* LCPViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */; };
 		CA9A40D9221C069D00531EA1 /* LCPViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */; };
@@ -476,6 +480,7 @@
 		CA7F5A402204A05700B88141 /* DRMLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DRMLibraryService.swift; sourceTree = "<group>"; };
 		CA7F5A4F2204AF2900B88141 /* Result.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		CA822CBE221C5737005800D1 /* r2-testapp-swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA8672AD244864040035FDF4 /* ScreenOrientation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenOrientation.swift; sourceTree = "<group>"; };
 		CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DRMViewModel.swift; sourceTree = "<group>"; };
 		CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPViewModel.swift; sourceTree = "<group>"; };
 		CACE84FC225640A500E19E8B /* Bookmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bookmark.swift; sourceTree = "<group>"; };
@@ -767,6 +772,7 @@
 				CA7F5A4F2204AF2900B88141 /* Result.swift */,
 				CA29B73222200EAA0037534C /* UIViewController.swift */,
 				F3E7D47B1F4F03B800DF166D /* UIImageExtension.swift */,
+				CA8672AD244864040035FDF4 /* ScreenOrientation.swift */,
 			);
 			path = Toolkit;
 			sourceTree = "<group>";
@@ -1165,6 +1171,7 @@
 				0350FCFD211CD2CB006994C2 /* PublicationCollectionViewCell.swift in Sources */,
 				0350FCFE211CD2CB006994C2 /* BookmarkDatabase.swift in Sources */,
 				0350FCFF211CD2CB006994C2 /* UserSettingsNavigationController.swift in Sources */,
+				CA8672AF244864040035FDF4 /* ScreenOrientation.swift in Sources */,
 				0350FD00211CD2CB006994C2 /* DetailsTableViewController.swift in Sources */,
 				CA6BA3C122B1106E00A59462 /* LibraryError.swift in Sources */,
 				0350FD01211CD2CB006994C2 /* BookmarkCell.swift in Sources */,
@@ -1228,6 +1235,7 @@
 				0350FD51211CD625006994C2 /* PublicationCollectionViewCell.swift in Sources */,
 				0350FD52211CD625006994C2 /* BookmarkDatabase.swift in Sources */,
 				0350FD53211CD625006994C2 /* UserSettingsNavigationController.swift in Sources */,
+				CA8672B0244864040035FDF4 /* ScreenOrientation.swift in Sources */,
 				0350FD54211CD625006994C2 /* DetailsTableViewController.swift in Sources */,
 				CA6BA3C222B1106E00A59462 /* LibraryError.swift in Sources */,
 				0350FD55211CD625006994C2 /* BookmarkCell.swift in Sources */,
@@ -1291,6 +1299,7 @@
 				CA822C90221C5737005800D1 /* PublicationCollectionViewCell.swift in Sources */,
 				CA822C91221C5737005800D1 /* BookmarkDatabase.swift in Sources */,
 				CA822C92221C5737005800D1 /* UserSettingsNavigationController.swift in Sources */,
+				CA8672B1244864040035FDF4 /* ScreenOrientation.swift in Sources */,
 				CA822C93221C5737005800D1 /* DetailsTableViewController.swift in Sources */,
 				CA6BA3C322B1106E00A59462 /* LibraryError.swift in Sources */,
 				CA822C94221C5737005800D1 /* BookmarkCell.swift in Sources */,
@@ -1354,6 +1363,7 @@
 				571585F12109E8F9008B34AD /* BookmarkDatabase.swift in Sources */,
 				F3DCFFBE1F7CE0610056BA37 /* UserSettingsNavigationController.swift in Sources */,
 				F30AEE7A1FC312EA0073C9FD /* DetailsTableViewController.swift in Sources */,
+				CA8672AE244864040035FDF4 /* ScreenOrientation.swift in Sources */,
 				571585F02109E8F9008B34AD /* BookmarkCell.swift in Sources */,
 				CA6BA3C022B1106E00A59462 /* LibraryError.swift in Sources */,
 				AE37DE432093291600079AA2 /* AboutTableViewController.swift in Sources */,
