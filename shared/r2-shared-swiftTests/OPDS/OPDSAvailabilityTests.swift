@@ -40,13 +40,13 @@ class OPDSAvailabilityTests: XCTestCase {
         XCTAssertEqual(
             try? OPDSAvailability(json: [
                 "state": "available",
-                "since": "2001-01-01T12:36:27.000Z",
-                "until": "2001-02-01T12:36:27.000Z"
+                "since": "2001-01-01T12:36:27+0000",
+                "until": "2001-02-01T12:36:27+0000"
             ]),
             OPDSAvailability(
                 state: .available,
-                since: "2001-01-01T12:36:27.000Z".dateFromISO8601,
-                until: "2001-02-01T12:36:27.000Z".dateFromISO8601
+                since: "2001-01-01T12:36:27+0000".dateFromISO8601,
+                until: "2001-02-01T12:36:27+0000".dateFromISO8601
             )
         )
     }
@@ -56,7 +56,7 @@ class OPDSAvailabilityTests: XCTestCase {
     }
     
     func testParseRequiresState() {
-        XCTAssertNil(try? OPDSAvailability(json: ["since": "2001-01-01T12:36:27.000Z"]))
+        XCTAssertNil(try? OPDSAvailability(json: ["since": "2001-01-01T12:36:27+0000"]))
     }
     
     func testGetMinimalJSON() {
@@ -70,13 +70,13 @@ class OPDSAvailabilityTests: XCTestCase {
         AssertJSONEqual(
             OPDSAvailability(
                 state: .available,
-                since: "2001-01-01T12:36:27.000Z".dateFromISO8601,
-                until: "2001-02-01T12:36:27.000Z".dateFromISO8601
+                since: "2001-01-01T12:36:27+0000".dateFromISO8601,
+                until: "2001-02-01T12:36:27+0000".dateFromISO8601
             ).json,
             [
                 "state": "available",
-                "since": "2001-01-01T12:36:27.000Z",
-                "until": "2001-02-01T12:36:27.000Z"
+                "since": "2001-01-01T12:36:27+0000",
+                "until": "2001-02-01T12:36:27+0000"
             ]
         )
     }
