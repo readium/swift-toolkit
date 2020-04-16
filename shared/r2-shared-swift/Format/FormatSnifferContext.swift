@@ -10,7 +10,6 @@
 //
 
 import Foundation
-import Fuzi
 
 /// A companion type of `Format.Sniffer` holding the type hints (file extensions, media types) and
 /// providing an access to the file content.
@@ -77,7 +76,7 @@ public final class FormatSnifferContext {
     /// Content as a ZIP archive.
     /// Warning: ZIP is only supported for a local file, for now.
     public lazy var contentAsZIP: ZIPArchive? = (content as? FormatSnifferFileContent)
-        .flatMap { try? ZFZIPArchive(file: $0.file) }
+        .flatMap { try? MinizipArchive(file: $0.file) }
 
     /// Content parsed from JSON.
     public lazy var contentAsJSON: Any? = contentAsString

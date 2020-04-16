@@ -21,21 +21,21 @@ public enum ZIPError: Error {
 }
 
 /// Holds a ZIP entry's metadata.
-public protocol ZIPEntry {
+public struct ZIPEntry: Equatable {
     
     /// Absolute path to the entry in the archive.
-    var path: String { get }
+    let path: String
     
     /// Whether this entry is a directory, instead of a file.
-    var isDirectory: Bool { get }
+    let isDirectory: Bool
     
     /// Uncompressed data length.
     /// Returns 0 if the entry is a directory.
-    var length: UInt64 { get }
+    let length: Int
     
     /// Compressed data length.
     /// Returns 0 if the entry is a directory.
-    var compressedLength: UInt64 { get }
+    let compressedLength: Int
 
 }
 
@@ -58,7 +58,7 @@ public protocol ZIPArchive {
     func read(at path: String) -> Data?
     
     /// Reads a range of the content of this entry, if it's a file.
-    func read(at path: String, range: Range<UInt64>) -> Data?
+    func read(at path: String, range: Range<Int>) -> Data?
 
 }
 

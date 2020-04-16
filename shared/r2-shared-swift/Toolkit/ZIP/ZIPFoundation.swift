@@ -12,33 +12,8 @@
 import Foundation
 import ZIPFoundation
 
-final class ZFZIPEntry: ZIPEntry {
-    
-    fileprivate let entry: Entry
-    
-    init(entry: Entry) {
-        self.entry = entry
-    }
-    
-    var path: String {
-        entry.path
-    }
-    
-    var isDirectory: Bool {
-        entry.type == .directory
-    }
-    
-    var length: UInt64 {
-        UInt64(entry.uncompressedSize)
-    }
-    
-    var compressedLength: UInt64 {
-        UInt64(entry.compressedSize)
-    }
-
-}
-
-class ZFZIPArchive: ZIPArchive, Loggable {
+/// A `ZIPArchive` using the ZIPFoundation library.
+class ZIPFoundationArchive: ZIPArchive, Loggable {
     
     fileprivate let archive: Archive
     
@@ -54,10 +29,10 @@ class ZFZIPArchive: ZIPArchive, Loggable {
         self.archive = archive
     }
 
-    lazy var entries: [ZIPEntry] = archive.map(ZFZIPEntry.init)
+    lazy var entries: [ZIPEntry] = archive.map(ZIPEntry.init)
 
     func entry(at path: String) -> ZIPEntry? {
-        return archive[path].map(ZFZIPEntry.init)
+        return archive[path].map(ZIPEntry.init)
     }
     
     func read(at path: String) -> Data? {
@@ -80,7 +55,7 @@ class ZFZIPArchive: ZIPArchive, Loggable {
         }
     }
     
-    func read(at path: String, range: Range<UInt64>) -> Data? {
+    func read(at path: String, range: Range<Int>) -> Data? {
         objc_sync_enter(archive)
         defer { objc_sync_exit(archive) }
         
@@ -92,11 +67,11 @@ class ZFZIPArchive: ZIPArchive, Loggable {
         var data = Data()
         
         do {
-            var offset: UInt64 = 0
+            var offset: Int = 0
             let progress = Progress()
             
             _ = try archive.extract(entry, progress: progress) { chunk in
-                let chunkLength = UInt64(chunk.count)
+                let chunkLength = chunk.count
                 defer {
                     offset += chunkLength
                     if offset >= range.upperBound {
@@ -128,7 +103,7 @@ class ZFZIPArchive: ZIPArchive, Loggable {
 
 }
 
-final class ZFMutableZIPArchive: ZFZIPArchive, MutableZIPArchive {
+final class MutableZIPFoundationArchive: ZIPFoundationArchive, MutableZIPArchive {
 
     required convenience init(file: URL, password: String?) throws {
         try self.init(file: file, accessMode: .update)
@@ -141,8 +116,8 @@ final class ZFMutableZIPArchive: ZFZIPArchive, MutableZIPArchive {
         do {
             // Removes the old entry if it already exists in the archive, otherwise we get
             // duplicated entries
-            if let entry = entry(at: path) as? ZFZIPEntry {
-                try archive.remove(entry.entry)
+            if let entry = archive[path] {
+                try archive.remove(entry)
             }
             
             try archive.addEntry(with: path, type: .file, uncompressedSize: UInt32(data.count), compressionMethod: deflated ? .deflate : .none, provider: { position, size in
@@ -152,6 +127,19 @@ final class ZFMutableZIPArchive: ZFZIPArchive, MutableZIPArchive {
             log(.error, error)
             throw ZIPError.updateFailed
         }
+    }
+    
+}
+
+fileprivate extension ZIPEntry {
+    
+    init(entry: Entry) {
+        self.init(
+            path: entry.path,
+            isDirectory: entry.type == .directory,
+            length: entry.uncompressedSize,
+            compressedLength: entry.compressedSize
+        )
     }
     
 }
