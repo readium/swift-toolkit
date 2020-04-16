@@ -265,7 +265,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     public var currentLocation: Locator? {
         guard let spreadView = paginationView.currentView as? EPUBSpreadView,
             let href = Optional(spreadView.spread.leading.href),
-            let positionList = publication.positionListByResource[href],
+            let positionList = publication.positionsByResource[href],
             positionList.count > 0 else
         {
             return nil

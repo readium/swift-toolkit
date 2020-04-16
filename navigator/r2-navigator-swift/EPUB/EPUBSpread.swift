@@ -31,9 +31,9 @@ struct EPUBSpread: Loggable {
     let readingProgression: ReadingProgression
     
     /// Rendition layout of the links in the spread.
-    let layout: EPUBRendition.Layout
+    let layout: EPUBLayout
 
-    init(pageCount: PageCount, links: [Link], readingProgression: ReadingProgression, layout: EPUBRendition.Layout) {
+    init(pageCount: PageCount, links: [Link], readingProgression: ReadingProgression, layout: EPUBLayout) {
         precondition(!links.isEmpty, "A spread must have at least one page")
         precondition(pageCount != .one || links.count == 1, "A one-page spread must have only one page")
         precondition(pageCount != .two || 1...2 ~= links.count, "A two-pages spread must have one or two pages max")
@@ -80,7 +80,7 @@ struct EPUBSpread: Loggable {
     ///   - url: Full URL to the resource.
     ///   - page [left|center|right]: (optional) Page position of the linked resource in the spread.
     func json(for publication: Publication) -> [[String: String]] {
-        func makeLinkJSON(_ link: Link, page: Properties.Page? = nil) -> [String: String]? {
+        func makeLinkJSON(_ link: Link, page: Presentation.Page? = nil) -> [String: String]? {
             guard let url = publication.url(to: link) else {
                 log(.error, "Can't get URL for link \(link.href)")
                 return nil
@@ -118,7 +118,7 @@ struct EPUBSpread: Loggable {
     ///   - isLandscape: Whether the navigator viewport is in landscape or portrait.
     static func pageCountPerSpread(for publication: Publication, userSettings: UserSettings, isLandscape: Bool) -> PageCount {
         var setting = spreadSetting(in: userSettings)
-        if setting == .auto, let publicationSetting = publication.metadata.rendition.spread {
+        if setting == .auto, let publicationSetting = publication.metadata.presentation.spread {
             setting = publicationSetting
         }
         
@@ -134,7 +134,7 @@ struct EPUBSpread: Loggable {
     }
     
     /// Returns the EPUBRendition spread setting for the given UserSettings.
-    private static func spreadSetting(in userSettings: UserSettings) -> EPUBRendition.Spread {
+    private static func spreadSetting(in userSettings: UserSettings) -> Presentation.Spread {
         guard let columnCount = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.columnCount.rawValue) as? Enumerable else {
             return .auto
         }
@@ -171,7 +171,7 @@ struct EPUBSpread: Loggable {
                 pageCount: .one,
                 links: [$0],
                 readingProgression: readingProgression,
-                layout: publication.metadata.rendition.layout(of: $0)
+                layout: publication.metadata.presentation.layout(of: $0)
             )
         }
     }
@@ -188,11 +188,11 @@ struct EPUBSpread: Loggable {
             }
             
             let first = links.removeFirst()
-            let layout = publication.metadata.rendition.layout(of: first)
+            let layout = publication.metadata.presentation.layout(of: first)
             // To be displayed together, the two pages must have a fixed layout, and have consecutive position hints (Properties.Page).
             if let second = links.first,
                 layout == .fixed,
-                layout == publication.metadata.rendition.layout(of: second),
+                layout == publication.metadata.presentation.layout(of: second),
                 areConsecutive(first, second)
             {
                 spreads.append(EPUBSpread(

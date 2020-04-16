@@ -84,7 +84,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
             )
         ]
         
-        if let locator = initialLocation ?? publication.positionList.first {
+        if let locator = initialLocation ?? publication.positions.first {
             go(to: locator)
         }
     }
@@ -187,7 +187,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         }
         
         if let position = locator.locations.position,
-            let firstPosition = publication.positionListByResource[locator.href]?.first?.locations.position {
+            let firstPosition = publication.positionsByResource[locator.href]?.first?.locations.position {
             return position - firstPosition + 1
         }
         
@@ -203,7 +203,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
             return nil
         }
         let href = publication.readingOrder[currentResourceIndex].href
-        guard let positionList = publication.positionListByResource[href],
+        guard let positionList = publication.positionsByResource[href],
             1...positionList.count ~= pageNumber else
         {
             return nil
@@ -251,7 +251,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
         /// Adds some context for bookmarking
         if let page = pdfView.currentPage {
-            locator.text = LocatorText(highlight: String(page.string?.prefix(280) ?? ""))
+            locator.text = Locator.Text(highlight: String(page.string?.prefix(280) ?? ""))
         }
         return locator
     }
@@ -281,7 +281,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         
         let nextIndex = (currentResourceIndex ?? -1) + 1
         guard publication.readingOrder.indices.contains(nextIndex),
-            let nextPosition = publication.positionListByResource[publication.readingOrder[nextIndex].href]?.first else
+            let nextPosition = publication.positionsByResource[publication.readingOrder[nextIndex].href]?.first else
         {
             return false
         }
@@ -297,7 +297,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         
         let previousIndex = (currentResourceIndex ?? 0) - 1
         guard publication.readingOrder.indices.contains(previousIndex),
-            let previousPosition = publication.positionListByResource[publication.readingOrder[previousIndex].href]?.first else
+            let previousPosition = publication.positionsByResource[publication.readingOrder[previousIndex].href]?.first else
         {
             return false
         }

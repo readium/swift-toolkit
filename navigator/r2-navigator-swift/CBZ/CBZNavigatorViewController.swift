@@ -68,7 +68,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     
     private var currentResourceIndex: Int {
         guard let imageViewController = pageViewController.viewControllers?.first as? ImageViewController,
-            publication.positionList.indices.contains(imageViewController.index) else
+            publication.positions.indices.contains(imageViewController.index) else
         {
             return initialIndex
         }
@@ -76,10 +76,10 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     }
     
     public var currentPosition: Locator? {
-        guard publication.positionList.indices.contains(currentResourceIndex) else {
+        guard publication.positions.indices.contains(currentResourceIndex) else {
             return nil
         }
-        return publication.positionList[currentResourceIndex]
+        return publication.positions[currentResourceIndex]
     }
     
     @discardableResult

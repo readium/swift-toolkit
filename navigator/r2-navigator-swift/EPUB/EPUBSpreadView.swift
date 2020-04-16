@@ -46,7 +46,7 @@ class EPUBSpreadView: UIView, Loggable {
     let resourcesURL: URL?
     let webView: WebView
 
-    let contentLayout: ContentLayoutStyle
+    let contentLayout: ContentLayout
     let readingProgression: ReadingProgression
     let userSettings: UserSettings
     let editingActions: EditingActionsController
@@ -67,7 +67,7 @@ class EPUBSpreadView: UIView, Loggable {
 
     private(set) var spreadLoaded = false
 
-    required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL?, contentLayout: ContentLayoutStyle, readingProgression: ReadingProgression, userSettings: UserSettings, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+    required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL?, contentLayout: ContentLayout, readingProgression: ReadingProgression, userSettings: UserSettings, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
         self.publication = publication
         self.spread = spread
         self.resourcesURL = resourcesURL
@@ -390,7 +390,7 @@ extension EPUBSpreadView: PageView {
     var positionCount: Int {
         // Sum of the number of positions in all the resources of the spread.
         return spread.links
-            .map { publication.positionListByResource[$0.href]?.count ?? 0 }
+            .map { publication.positionsByResource[$0.href]?.count ?? 0 }
             .reduce(0, +)
     }
 
