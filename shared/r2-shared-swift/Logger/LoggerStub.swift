@@ -18,11 +18,11 @@ public class LoggerStub: LoggerType {
     public init() {}
 
     /// Log `message` with a severity of `level`.
-    public func log(level: SeverityLevel, value: Any?, _ path: String, _ function: String, _ className: String, _ line: Int) {
+    public func log(level: SeverityLevel, value: Any?, file: String, line: Int) {
         guard let value = value else {
             return
         }
-        let fileName =  URL(fileURLWithPath: path).lastPathComponent
+        let fileName =  URL(fileURLWithPath: file).lastPathComponent
         print("\(level.symbol) \(fileName):\(line):\t\(String(describing: value))")
     }
 
