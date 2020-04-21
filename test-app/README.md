@@ -34,10 +34,12 @@ Follow the project on [ZenHub](https://app.zenhub.com/workspace/o/readium/r2-tes
 
 1) If you're building the `develop` branch, change the Cartfile to use `develop` for all Readium-related dependencies :
 
-    github "readium/r2-shared-swift" "develop"
-    github "readium/r2-streamer-swift" "develop"
-    github "readium/r2-navigator-swift" "develop"
-    github "readium/readium-opds-swift" "develop"
+```
+github "readium/r2-shared-swift" "develop"
+github "readium/r2-streamer-swift" "develop"
+github "readium/r2-navigator-swift" "develop"
+github "readium/readium-opds-swift" "develop"
+```
 
 2) Fetch the dependencies using [Carthage](https://github.com/Carthage/Carthage) :
 
