@@ -1,6 +1,3 @@
-
-
-
 # Readium-2 Test App (Swift/iOS) [![Available on the AppStore](https://devimages-cdn.apple.com/app-store/marketing/guidelines/images/badge-download-on-the-app-store.svg)](https://itunes.apple.com/us/app/r2-reader/id1363963230)
 
 A test app for the Swift implementation of Readium-2. Stable builds are [published on the AppStore](https://itunes.apple.com/us/app/r2-reader/id1363963230).
@@ -35,26 +32,34 @@ Follow the project on [ZenHub](https://app.zenhub.com/workspace/o/readium/r2-tes
 
 ## Install and run the testapp
 
-1) Fetch the dependencies using [Carthage](https://github.com/Carthage/Carthage) : 
+1) If you're building the `develop` branch, change the Cartfile to use `develop` for all Readium-related dependencies :
+
+```
+github "readium/r2-shared-swift" "develop"
+github "readium/r2-streamer-swift" "develop"
+github "readium/r2-navigator-swift" "develop"
+github "readium/readium-opds-swift" "develop"
+```
+
+2) Fetch the dependencies using [Carthage](https://github.com/Carthage/Carthage) :
 
 `$> carthage update --platform ios`
 
-2) Generate Carthage input/output filelist using [Carting](https://github.com/artemnovichkov/Carting)
+3) Generate Carthage input/output filelist using [Carting](https://github.com/artemnovichkov/Carting) :
 
-`$> carting update` 
+`$> carting update`
 
-2) Open the xCode project :
+4) Open the Xcode project :
 
 `$> open r2-testapp-swift.xcodeproj`
 
-3) Build the project target named `r2-testapp-swift (carthage)`.
+5) Build the project target named `r2-testapp-swift (carthage)`.
 
 **More build and dependency information can be found in [r2-workspace-swift](https://github.com/readium/r2-workspace-swift)**
 
 ## [@Contributors] Efficient workflow for testing changes on Readium-2
 
-The release target `r2-testapp-swift` uses the libraries and frameworks built by **Carthage**, while the debug `r2-testapp-swift-DEBUG` can be modified to use local version of  **r2-shared-swift**, **r2-streamer-swift** and **r2-navigator-swift** depending of which you want to modify. Doing so will allow you to see the changes directly in the testapp, without the need for a Carthage cycle.
+The release target `r2-testapp-swift` uses the libraries and frameworks built by **Carthage**, while the debug `r2-testapp-swift-DEBUG` can be modified to use local versions of  **r2-shared-swift**, **r2-streamer-swift** and **r2-navigator-swift** depending of which you want to modify. Doing so will allow you to see the changes directly in the testapp, without the need for a Carthage cycle.
 
-If you want to contribute to the development, I recommend creating a Workspace which contain the 4 projects (shared, streamer, navigator and testapp), and to use local Products as dependancies of the others to shorten development time.
+If you want to contribute to the development, I recommend creating a Workspace which contain the 4 projects (shared, streamer, navigator and testapp), and to use local Products as dependencies of the others to shorten development time.
 e.g: in your local clone of **r2-navigator-swift**, create a debug target which uses the Product of your local clone of **r2-shared-swift**. That way, when you modify and compile **r2-shared-swift**, the modifications are directly taken in your next **r2-navigator-swift** build.
-
