@@ -104,7 +104,7 @@ public extension NavigatorDelegate {
         }
     }
     
-    func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: Link, content: String, source: String) -> Bool {
+    func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: Link, content: String, referrer: String?) -> Bool {
         return true
     }
 
