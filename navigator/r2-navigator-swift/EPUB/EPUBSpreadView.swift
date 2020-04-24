@@ -11,6 +11,7 @@
 
 import WebKit
 import R2Shared
+import SwiftSoup
 
 
 protocol EPUBSpreadViewDelegate: class {
@@ -27,7 +28,7 @@ protocol EPUBSpreadViewDelegate: class {
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnExternalURL url: URL)
     
     /// Called when the user tapped on an internal link.
-    func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, anchor: String?)
+    func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, tapData: TapData?)
     
     /// Called when the pages visible in the spread changed.
     func spreadViewPagesDidChange(_ spreadView: EPUBSpreadView)
@@ -51,7 +52,7 @@ class EPUBSpreadView: UIView, Loggable {
     let userSettings: UserSettings
     let editingActions: EditingActionsController
     
-    var lastTap: TapData? = nil
+    private var lastTap: TapData? = nil
 
     /// If YES, the content will be faded in once loaded.
     let animatedLoad: Bool
@@ -201,7 +202,13 @@ class EPUBSpreadView: UIView, Loggable {
         let tapData = TapData(data: data)
         lastTap = tapData
         
-        guard tapData.shouldHandle else { return }
+        guard !tapData.defaultPrevented else { return }
+        if let interactive = tapData.interactiveElement {
+            let isNoteref = (try? parse(interactive).select("a[epub:type=noteref]").first()) == nil
+            if !isNoteref {
+                return
+            }
+        }
         
         guard let point = pointFromTap(tapData) else { return }
         delegate?.spreadView(self, didTapAt: point)
@@ -427,7 +434,7 @@ extension EPUBSpreadView: WKNavigationDelegate {
                 // Check if url is internal or external
                 if let baseURL = publication.baseURL, url.host == baseURL.host {
                     let href = url.absoluteString.replacingOccurrences(of: baseURL.absoluteString, with: "/")
-                    delegate?.spreadView(self, didTapOnInternalLink: href, anchor: self.lastTap?.anchor)
+                    delegate?.spreadView(self, didTapOnInternalLink: href, tapData: self.lastTap)
                 } else {
                     delegate?.spreadView(self, didTapOnExternalURL: url)
                 }
@@ -511,20 +518,22 @@ private extension EPUBSpreadView {
 
 /// Produced by gestures.js
 struct TapData {
-    let shouldHandle: Bool
+    let defaultPrevented: Bool
     let screenX: Int
     let screenY: Int
     let clientX: Int
     let clientY: Int
-    let anchor: String?
+    let targetElement: String
+    let interactiveElement: String?
     
     init(dict: [String: Any]) {
-        self.shouldHandle = dict["shouldHandle"] as? Bool ?? false
+        self.defaultPrevented = dict["defaultPrevented"] as? Bool ?? false
         self.screenX = dict["screenX"] as? Int ?? 0
         self.screenY = dict["screenY"] as? Int ?? 0
         self.clientX = dict["clientX"] as? Int ?? 0
         self.clientY = dict["clientY"] as? Int ?? 0
-        self.anchor = dict["anchor"] as? String
+        self.targetElement = dict["targetElement"] as? String ?? ""
+        self.interactiveElement = dict["interactiveElement"] as? String
     }
     
     init(data: Any) {
