@@ -7,16 +7,16 @@
   });
 
   function onClick(event) {
-    if (isNoteref(event.target)) {
-      event.stopPropagation();
-      event.preventDefault();
  
-      webkit.messageHandlers.tapNoteref.postMessage(event.target.outerHTML);
-      return;
-    }
+    // If the app should handle the tap.
+    // Examples of the app handling the tap would be
+    // navigating left/right, or show/hide the toolbar.
+    // If false, the tap is being handled within the webview,
+    // such as with a hyperlink or by an publication's JS handler.
+    let appShouldHandle = true;
  
     if (event.defaultPrevented || isInteractiveElement(event.target)) {
-      return;
+      appShouldHandle = false;
     }
 
     if (!window.getSelection().isCollapsed) {
@@ -24,11 +24,16 @@
       return;
     }
 
+    // Send the tap data over the JS bridge even if it's been handled
+    // within the webview, so that it can be preserved and used
+    // by the WKNavigationDelegate if needed.
     webkit.messageHandlers.tap.postMessage({
+      "shouldHandle": appShouldHandle,
       "screenX": event.screenX,
       "screenY": event.screenY,
       "clientX": event.clientX,
       "clientY": event.clientY,
+      "anchor": getNearestAnchor(event.target),
     });
 
     // We don't want to disable the default WebView behavior as it breaks some features without bringing any value.
@@ -69,16 +74,18 @@
     return false;
   }
 
-  function isNoteref(element) {
-    if (
-        element.nodeName.toLowerCase() === 'a' &&
-        element.getAttributeNS('http://www.idpf.org/2007/ops', 'type') === 'noteref'
-    ) {
-      return true;
+  // Retrieves the markup of <a>...</a> if the tap was
+  // anywhere within such an element (i.e. even on an <em> tag within it).
+  // We return the markup rather than just a boolean as this could be more
+  // useful further up the line.
+  function getNearestAnchor(element) {
+    if (element.nodeName.toLowerCase() === 'a') {
+      return element.outerHTML;
     }
     if (element.parentElement) {
-      return isNoteref(element.parentElement);
+      return getNearestAnchor(element.parentElement);
     }
+    return null;
   }
 
 })();

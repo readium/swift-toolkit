@@ -12,11 +12,9 @@
 import Foundation
 import SafariServices
 import R2Shared
-import SwiftSoup
-import WebKit
 
 
-public protocol Navigator: UIViewController {
+public protocol Navigator {
     
     /// Current position in the publication.
     /// Can be used to save a bookmark to the current position.
@@ -88,8 +86,8 @@ public protocol NavigatorDelegate: AnyObject {
     /// Called when the user tapped an external URL. The default implementation opens the URL with the default browser.
     func navigator(_ navigator: Navigator, presentExternalURL url: URL)
     
-    /// Called when the user tapped on a noteref such as a footnote. The default implementation opens the target "aside" in a modal.
-    func navigator(_ navigator: Navigator, presentNote content: String, at link: Link, from source: String)
+    /// Called when the user taps on a noteref link.
+    func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: Link, content: String, source: String) -> Bool
     
 }
 
@@ -101,47 +99,11 @@ public extension NavigatorDelegate {
             UIApplication.shared.openURL(url)
         }
     }
-
-}
-
-public extension NavigatorDelegate {
     
-    func navigator(_ navigator: Navigator, presentNote content: String, at link: Link, from source: String) {
-        
-        var title = try? clean(source, .none())
-        if title == "*" {
-            title = nil
-        }
-        
-        let content = (try? clean(content, .none())) ?? ""
-        let page =
-        """
-        <html>
-            <head>
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            </head>
-            <body>
-                \(content)
-            </body>
-        </html>
-        """
-        
-        
-        let wk = WKWebView()
-        wk.loadHTMLString(page, baseURL: nil)
-        
-        let vc = UIViewController()
-        vc.view = wk
-        vc.navigationItem.title = title
-        vc.navigationItem.leftBarButtonItem = BarButtonItem(barButtonSystemItem: .done, actionHandler: { (item) in
-            vc.dismiss(animated: true, completion: nil)
-        })
-        
-        let nav = UINavigationController(rootViewController: vc)
-        nav.modalPresentationStyle = .formSheet
-        navigator.present(nav, animated: true, completion: nil)
+    func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: Link, content: String, source: String) -> Bool {
+        return true
     }
-    
+
 }
 
 

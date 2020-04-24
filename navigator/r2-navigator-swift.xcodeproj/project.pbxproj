@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		0D77748B244F978A00A5E857 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D777488244F977E00A5E857 /* R2Shared.framework */; };
 		0D77748D244F97F200A5E857 /* SwiftSoup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D77747E244F970E00A5E857 /* SwiftSoup.framework */; };
-		0D777495244FEB2200A5E857 /* BarButtonItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D777494244FEB2200A5E857 /* BarButtonItem.swift */; };
 		CA0B3AC3222EE555006D9363 /* PDFNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */; };
 		CA1E4F4B240037E6009C4DE3 /* CompletionList.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA1E4F4A240037E6009C4DE3 /* CompletionList.swift */; };
 		CA26EF7E22803FE90011653E /* VisualNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA26EF7D22803FE90011653E /* VisualNavigator.swift */; };
@@ -58,7 +57,6 @@
 		03C3CC67222DBD8600A01731 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0D77747E244F970E00A5E857 /* SwiftSoup.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftSoup.framework; path = "../r2-testapp-swift/Carthage/Build/iOS/SwiftSoup.framework"; sourceTree = "<group>"; };
 		0D777482244F977E00A5E857 /* r2-shared-swift.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "r2-shared-swift.xcodeproj"; path = "../r2-shared-swift/r2-shared-swift.xcodeproj"; sourceTree = "<group>"; };
-		0D777494244FEB2200A5E857 /* BarButtonItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarButtonItem.swift; sourceTree = "<group>"; };
 		0D82BF0D244EAC62006FDB31 /* SwiftSoup.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftSoup.framework; path = Carthage/Build/iOS/SwiftSoup.framework; sourceTree = "<group>"; };
 		0D82BF11244EAE04006FDB31 /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
 		CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFNavigatorViewController.swift; sourceTree = "<group>"; };
@@ -131,8 +129,6 @@
 				CAF1E3F422DF23F400E807EA /* PaginationView.swift */,
 				CAC2A6D62292E4BA000AA2A7 /* WebView.swift */,
 				CAD178B522B3B553004E6812 /* R2NavigatorLocalizedString.swift */,
-				CA1E4F4A240037E6009C4DE3 /* CompletionList.swift */,
-				0D777494244FEB2200A5E857 /* BarButtonItem.swift */,
 			);
 			path = Toolkit;
 			sourceTree = "<group>";
@@ -353,7 +349,6 @@
 				F3E7D3E61F4D84EF00DF166D /* EPUBSpreadView.swift in Sources */,
 				F3E7D42E1F4EE0FE00DF166D /* CBZNavigatorViewController.swift in Sources */,
 				CA479DC52264AEA20053445E /* UIColor.swift in Sources */,
-				0D777495244FEB2200A5E857 /* BarButtonItem.swift in Sources */,
 				CAD178B622B3B553004E6812 /* R2NavigatorLocalizedString.swift in Sources */,
 				CAEACA222272EFBD00476340 /* ImageViewController.swift in Sources */,
 				CACE84FB2254BFEE00E19E8B /* EditingAction.swift in Sources */,

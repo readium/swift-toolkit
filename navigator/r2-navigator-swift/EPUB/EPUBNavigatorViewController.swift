@@ -367,49 +367,67 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         delegate?.navigator(self, presentExternalURL: url)
     }
     
-    func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String) {
+    func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, anchor: String?) {
+        
+        // Check to see if this was a noteref link and give delegate the opportunity to display it.
+        if let anchor = anchor, let note = getNoteContent(anchor: anchor), let delegate = self.delegate {
+            if delegate.navigator(self,
+                                   shouldNavigateToNoteAt: Link(href: href),
+                                   content: note,
+                                   source: anchor) == false {
+                return
+            }
+        }
+            
         go(to: Link(href: href))
     }
     
-    func spreadView(_ spreadView: EPUBSpreadView, didTapOnNoterefLink html: String, resource: URL) {
-        
+    func getNoteContent(anchor: String) -> String? {
         do {
-            let doc = try parse(html)
-            guard let link = try doc.select("a[epub:type=noteref]").first() else {
-                return log(.error, "Could not find noteref link")
-            }
+            let doc = try parse(anchor)
+            guard let link = try doc.select("a[epub:type=noteref]").first() else { return nil }
             
             let href = try link.attr("href")
             guard let hashIndex = href.lastIndex(of: "#") else {
-                return log(.error, "Could not find hash in link \(href)")
+                log(.error, "Could not find hash in link \(href)")
+                return nil
             }
             let id = String(href[href.index(hashIndex, offsetBy: 1)...])
             let withoutFragment = String(href[..<hashIndex])
             
-            guard let absolute = URL(string: withoutFragment, relativeTo: resource) else {
-                log(.error, "Could not get absolute URL from \(withoutFragment) relative to \(resource)")
-                return
+            guard var loc = self.currentLocation?.href else {
+                log(.error, "Couldn't get current location")
+                return nil
+            }
+            if loc.hasPrefix("/") {
+                loc = String(loc.dropFirst())
             }
             
+            guard let base = publication.baseURL else {
+                log(.error, "Couldn't get publication base URL")
+                return nil
+            }
+            
+            let resource = base.appendingPathComponent(loc)
+            guard let absolute = URL(string: withoutFragment, relativeTo: resource) else {
+                log(.error, "Could not get absolute URL from \(withoutFragment) relative to \(self.resourcesURL?.absoluteString ?? "(no self.resourcesURL)")")
+                return nil
+            }
+            
+            log(.debug, "Fetching note contents from \(absolute.absoluteString)")
             let contents = try String(contentsOf: absolute)
             let document = try parse(contents)
             guard let aside = try document.select("#\(id)").first() else {
                 log(.error, "Could not find the element '#\(id)' in document \(absolute)")
-                return
+                return nil
             }
             
-            guard let safe = try clean(aside.html(), .relaxed()) else {
-                return log(.error, "Could not clean <aside>")
-            }
-            
-            let from = try link.html()
-            
-            delegate?.navigator(self, presentNote: safe, at: Link(href: absolute.absoluteString), from: from)
+            return try aside.html()
             
         } catch {
-            log(.error, "Caught error while displaying noteref: \(error)")
+            log(.error, "Caught error while getting note content: \(error)")
+            return nil
         }
-
     }
     
     func spreadViewPagesDidChange(_ spreadView: EPUBSpreadView) {

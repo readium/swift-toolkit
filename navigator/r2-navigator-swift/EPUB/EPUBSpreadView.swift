@@ -27,10 +27,7 @@ protocol EPUBSpreadViewDelegate: class {
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnExternalURL url: URL)
     
     /// Called when the user tapped on an internal link.
-    func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String)
-    
-    /// Called when the user taps on a noteref link.
-    func spreadView(_ spreadView: EPUBSpreadView, didTapOnNoterefLink html: String, resource: URL)
+    func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, anchor: String?)
     
     /// Called when the pages visible in the spread changed.
     func spreadViewPagesDidChange(_ spreadView: EPUBSpreadView)
@@ -53,6 +50,8 @@ class EPUBSpreadView: UIView, Loggable {
     let readingProgression: ReadingProgression
     let userSettings: UserSettings
     let editingActions: EditingActionsController
+    
+    var lastTap: TapData? = nil
 
     /// If YES, the content will be faded in once loaded.
     let animatedLoad: Bool
@@ -196,27 +195,20 @@ class EPUBSpreadView: UIView, Loggable {
     }
   
     /// Called from the JS code when a tap is detected.
-    private func didTap(_ body: Any) {
-        guard let body = body as? [String: Any],
-            let point = pointFromTap(body) else
-        {
-            return
-        }
-
+    /// If the JS indicates the tap is being handled within the webview, don't take action,
+    /// just save the tap data for use by webView(_ webView:decidePolicyFor:decisionHandler:)
+    private func didTap(_ data: Any) {
+        let tapData = TapData(data: data)
+        lastTap = tapData
+        
+        guard tapData.shouldHandle else { return }
+        
+        guard let point = pointFromTap(tapData) else { return }
         delegate?.spreadView(self, didTapAt: point)
     }
     
-    /// Called from the JS code when a noteref is tapped.
-    private func didTapNoteref(_ html: Any) {
-        guard
-            let html = html as? String,
-            let url = self.webView.url
-            else { return }
-        delegate?.spreadView(self, didTapOnNoterefLink: html, resource: url)
-    }
-    
     /// Converts the touch data returned by the JavaScript `tap` event into a point in the webview's coordinate space.
-    func pointFromTap(_ data: [String: Any]) -> CGPoint? {
+    func pointFromTap(_ data: TapData) -> CGPoint? {
         // To override in subclasses.
         return nil
     }
@@ -356,7 +348,6 @@ class EPUBSpreadView: UIView, Loggable {
         registerJSMessage(named: "tap") { [weak self] in self?.didTap($0) }
         registerJSMessage(named: "spreadLoaded") { [weak self] in self?.spreadDidLoad($0) }
         registerJSMessage(named: "selectionChanged") { [weak self] in self?.selectionDidChange($0) }
-        registerJSMessage(named: "tapNoteref") { [weak self] in self?.didTapNoteref($0) }
     }
     
     /// Add the message handlers for incoming javascript events.
@@ -436,7 +427,7 @@ extension EPUBSpreadView: WKNavigationDelegate {
                 // Check if url is internal or external
                 if let baseURL = publication.baseURL, url.host == baseURL.host {
                     let href = url.absoluteString.replacingOccurrences(of: baseURL.absoluteString, with: "/")
-                    delegate?.spreadView(self, didTapOnInternalLink: href)
+                    delegate?.spreadView(self, didTapOnInternalLink: href, anchor: self.lastTap?.anchor)
                 } else {
                     delegate?.spreadView(self, didTapOnExternalURL: url)
                 }
@@ -516,4 +507,27 @@ private extension EPUBSpreadView {
         activityIndicatorView = view
     }
 
+}
+
+/// Produced by gestures.js
+struct TapData {
+    let shouldHandle: Bool
+    let screenX: Int
+    let screenY: Int
+    let clientX: Int
+    let clientY: Int
+    let anchor: String?
+    
+    init(dict: [String: Any]) {
+        self.shouldHandle = dict["shouldHandle"] as? Bool ?? false
+        self.screenX = dict["screenX"] as? Int ?? 0
+        self.screenY = dict["screenY"] as? Int ?? 0
+        self.clientX = dict["clientX"] as? Int ?? 0
+        self.clientY = dict["clientY"] as? Int ?? 0
+        self.anchor = dict["anchor"] as? String
+    }
+    
+    init(data: Any) {
+        self.init(dict: data as? [String: Any] ?? [String: Any]())
+    }
 }
