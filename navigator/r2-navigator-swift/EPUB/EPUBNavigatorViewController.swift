@@ -13,6 +13,7 @@ import UIKit
 import R2Shared
 import WebKit
 import SafariServices
+import SwiftSoup
 
 
 public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate {
@@ -368,6 +369,47 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String) {
         go(to: Link(href: href))
+    }
+    
+    func spreadView(_ spreadView: EPUBSpreadView, didTapOnNoterefLink html: String, resource: URL) {
+        
+        do {
+            let doc = try parse(html)
+            guard let link = try doc.select("a[epub:type=noteref]").first() else {
+                return log(.error, "Could not find noteref link")
+            }
+            
+            let href = try link.attr("href")
+            guard let hashIndex = href.lastIndex(of: "#") else {
+                return log(.error, "Could not find hash in link \(href)")
+            }
+            let id = String(href[href.index(hashIndex, offsetBy: 1)...])
+            let withoutFragment = String(href[..<hashIndex])
+            
+            guard let absolute = URL(string: withoutFragment, relativeTo: resource) else {
+                log(.error, "Could not get absolute URL from \(withoutFragment) relative to \(resource)")
+                return
+            }
+            
+            let contents = try String(contentsOf: absolute)
+            let document = try parse(contents)
+            guard let aside = try document.select("#\(id)").first() else {
+                log(.error, "Could not find the element '#\(id)' in document \(absolute)")
+                return
+            }
+            
+            guard let safe = try clean(aside.html(), .relaxed()) else {
+                return log(.error, "Could not clean <aside>")
+            }
+            
+            let from = try link.html()
+            
+            delegate?.navigator(self, presentNote: safe, at: Link(href: absolute.absoluteString), from: from)
+            
+        } catch {
+            log(.error, "Caught error while displaying noteref: \(error)")
+        }
+
     }
     
     func spreadViewPagesDidChange(_ spreadView: EPUBSpreadView) {

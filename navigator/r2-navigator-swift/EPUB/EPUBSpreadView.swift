@@ -29,6 +29,9 @@ protocol EPUBSpreadViewDelegate: class {
     /// Called when the user tapped on an internal link.
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String)
     
+    /// Called when the user taps on a noteref link.
+    func spreadView(_ spreadView: EPUBSpreadView, didTapOnNoterefLink html: String, resource: URL)
+    
     /// Called when the pages visible in the spread changed.
     func spreadViewPagesDidChange(_ spreadView: EPUBSpreadView)
     
@@ -203,6 +206,15 @@ class EPUBSpreadView: UIView, Loggable {
         delegate?.spreadView(self, didTapAt: point)
     }
     
+    /// Called from the JS code when a noteref is tapped.
+    private func didTapNoteref(_ html: Any) {
+        guard
+            let html = html as? String,
+            let url = self.webView.url
+            else { return }
+        delegate?.spreadView(self, didTapOnNoterefLink: html, resource: url)
+    }
+    
     /// Converts the touch data returned by the JavaScript `tap` event into a point in the webview's coordinate space.
     func pointFromTap(_ data: [String: Any]) -> CGPoint? {
         // To override in subclasses.
@@ -344,6 +356,7 @@ class EPUBSpreadView: UIView, Loggable {
         registerJSMessage(named: "tap") { [weak self] in self?.didTap($0) }
         registerJSMessage(named: "spreadLoaded") { [weak self] in self?.spreadDidLoad($0) }
         registerJSMessage(named: "selectionChanged") { [weak self] in self?.selectionDidChange($0) }
+        registerJSMessage(named: "tapNoteref") { [weak self] in self?.didTapNoteref($0) }
     }
     
     /// Add the message handlers for incoming javascript events.

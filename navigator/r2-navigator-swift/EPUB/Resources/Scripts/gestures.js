@@ -7,6 +7,14 @@
   });
 
   function onClick(event) {
+    if (isNoteref(event.target)) {
+      event.stopPropagation();
+      event.preventDefault();
+ 
+      webkit.messageHandlers.tapNoteref.postMessage(event.target.outerHTML);
+      return;
+    }
+ 
     if (event.defaultPrevented || isInteractiveElement(event.target)) {
       return;
     }
@@ -59,6 +67,18 @@
     }
     
     return false;
+  }
+
+  function isNoteref(element) {
+    if (
+        element.nodeName.toLowerCase() === 'a' &&
+        element.getAttributeNS('http://www.idpf.org/2007/ops', 'type') === 'noteref'
+    ) {
+      return true;
+    }
+    if (element.parentElement) {
+      return isNoteref(element.parentElement);
+    }
   }
 
 })();

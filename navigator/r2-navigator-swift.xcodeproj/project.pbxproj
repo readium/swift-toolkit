@@ -7,7 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		03C3CC68222DBD8600A01731 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03C3CC67222DBD8600A01731 /* R2Shared.framework */; };
+		0D77748B244F978A00A5E857 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D777488244F977E00A5E857 /* R2Shared.framework */; };
+		0D77748D244F97F200A5E857 /* SwiftSoup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D77747E244F970E00A5E857 /* SwiftSoup.framework */; };
+		0D777495244FEB2200A5E857 /* BarButtonItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D777494244FEB2200A5E857 /* BarButtonItem.swift */; };
 		CA0B3AC3222EE555006D9363 /* PDFNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */; };
 		CA1E4F4B240037E6009C4DE3 /* CompletionList.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA1E4F4A240037E6009C4DE3 /* CompletionList.swift */; };
 		CA26EF7E22803FE90011653E /* VisualNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA26EF7D22803FE90011653E /* VisualNavigator.swift */; };
@@ -35,8 +37,30 @@
 		F3E7D42E1F4EE0FE00DF166D /* CBZNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D42D1F4EE0FE00DF166D /* CBZNavigatorViewController.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		0D777487244F977E00A5E857 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0D777482244F977E00A5E857 /* r2-shared-swift.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F3E7D3F41F4EBE2100DF166D;
+			remoteInfo = "r2-shared-swift";
+		};
+		0D777489244F977E00A5E857 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0D777482244F977E00A5E857 /* r2-shared-swift.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = CA6161EA21FB257700D2CFE3;
+			remoteInfo = "r2-shared-swiftTests";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		03C3CC67222DBD8600A01731 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		0D77747E244F970E00A5E857 /* SwiftSoup.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftSoup.framework; path = "../r2-testapp-swift/Carthage/Build/iOS/SwiftSoup.framework"; sourceTree = "<group>"; };
+		0D777482244F977E00A5E857 /* r2-shared-swift.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "r2-shared-swift.xcodeproj"; path = "../r2-shared-swift/r2-shared-swift.xcodeproj"; sourceTree = "<group>"; };
+		0D777494244FEB2200A5E857 /* BarButtonItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarButtonItem.swift; sourceTree = "<group>"; };
+		0D82BF0D244EAC62006FDB31 /* SwiftSoup.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftSoup.framework; path = Carthage/Build/iOS/SwiftSoup.framework; sourceTree = "<group>"; };
+		0D82BF11244EAE04006FDB31 /* R2Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2Shared.framework; path = Carthage/Build/iOS/R2Shared.framework; sourceTree = "<group>"; };
 		CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFNavigatorViewController.swift; sourceTree = "<group>"; };
 		CA1E4F4A240037E6009C4DE3 /* CompletionList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletionList.swift; sourceTree = "<group>"; };
 		CA26EF7D22803FE90011653E /* VisualNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualNavigator.swift; sourceTree = "<group>"; };
@@ -73,13 +97,23 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				03C3CC68222DBD8600A01731 /* R2Shared.framework in Frameworks */,
+				0D77748B244F978A00A5E857 /* R2Shared.framework in Frameworks */,
+				0D77748D244F97F200A5E857 /* SwiftSoup.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0D777483244F977E00A5E857 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0D777488244F977E00A5E857 /* R2Shared.framework */,
+				0D77748A244F977E00A5E857 /* r2-shared-swiftTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		CA0B3AC1222EE530006D9363 /* PDF */ = {
 			isa = PBXGroup;
 			children = (
@@ -98,6 +132,7 @@
 				CAC2A6D62292E4BA000AA2A7 /* WebView.swift */,
 				CAD178B522B3B553004E6812 /* R2NavigatorLocalizedString.swift */,
 				CA1E4F4A240037E6009C4DE3 /* CompletionList.swift */,
+				0D777494244FEB2200A5E857 /* BarButtonItem.swift */,
 			);
 			path = Toolkit;
 			sourceTree = "<group>";
@@ -191,6 +226,10 @@
 		F3E7D3E71F4DC40800DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				0D77747E244F970E00A5E857 /* SwiftSoup.framework */,
+				0D777482244F977E00A5E857 /* r2-shared-swift.xcodeproj */,
+				0D82BF11244EAE04006FDB31 /* R2Shared.framework */,
+				0D82BF0D244EAC62006FDB31 /* SwiftSoup.framework */,
 				03C3CC67222DBD8600A01731 /* R2Shared.framework */,
 			);
 			name = Frameworks;
@@ -255,12 +294,35 @@
 			mainGroup = F3E7D3B91F4D83B000DF166D;
 			productRefGroup = F3E7D3C41F4D83B000DF166D /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 0D777483244F977E00A5E857 /* Products */;
+					ProjectRef = 0D777482244F977E00A5E857 /* r2-shared-swift.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				F3E7D3C21F4D83B000DF166D /* r2-navigator-swift */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		0D777488244F977E00A5E857 /* R2Shared.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = R2Shared.framework;
+			remoteRef = 0D777487244F977E00A5E857 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		0D77748A244F977E00A5E857 /* r2-shared-swiftTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "r2-shared-swiftTests.xctest";
+			remoteRef = 0D777489244F977E00A5E857 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		F3E7D3C11F4D83B000DF166D /* Resources */ = {
@@ -291,6 +353,7 @@
 				F3E7D3E61F4D84EF00DF166D /* EPUBSpreadView.swift in Sources */,
 				F3E7D42E1F4EE0FE00DF166D /* CBZNavigatorViewController.swift in Sources */,
 				CA479DC52264AEA20053445E /* UIColor.swift in Sources */,
+				0D777495244FEB2200A5E857 /* BarButtonItem.swift in Sources */,
 				CAD178B622B3B553004E6812 /* R2NavigatorLocalizedString.swift in Sources */,
 				CAEACA222272EFBD00476340 /* ImageViewController.swift in Sources */,
 				CACE84FB2254BFEE00E19E8B /* EditingAction.swift in Sources */,
