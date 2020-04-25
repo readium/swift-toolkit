@@ -256,7 +256,7 @@
 					<string>LCPL</string>
 				</array>
 				<key>public.mime-type</key>
-				<string>application/vnd.readium.lcp.license.v1.0</string>
+				<string>application/vnd.readium.lcp.license.v1.0+json</string>
 			</dict>
 		</dict>
 		<dict>
