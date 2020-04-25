@@ -24,7 +24,7 @@ public func R2EnableLog(withMinimumSeverityLevel level: SeverityLevel, customLog
 
 /// The Logger protocol.
 public protocol LoggerType {
-    func log(level: SeverityLevel, value: Any?, _ path: String, _ function: String, _ className: String, _ line: Int)
+    func log(level: SeverityLevel, value: Any?, file: String, line: Int)
 }
 
 /// Logger singleton.
@@ -67,14 +67,12 @@ public final class Logger {
 
     // MARK: - Internal methods.
 
-    internal func log(_ value: Any?, at level: SeverityLevel, _ path: String,
-                      _ function: String, _ className: String, _ line: Int) {
+    internal func log(_ value: Any?, at level: SeverityLevel, file: String, line: Int) {
         if let minimumSeverityLevel = minimumSeverityLevel {
-
             guard level.rawValue >= minimumSeverityLevel.rawValue else {
                 return
             }
         }
-        activeLogger?.log(level: level, value: value, path, function, className, line)
+        activeLogger?.log(level: level, value: value, file: file, line: line)
     }
 }
