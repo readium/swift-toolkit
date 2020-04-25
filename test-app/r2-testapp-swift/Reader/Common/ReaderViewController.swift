@@ -14,6 +14,8 @@ import SafariServices
 import UIKit
 import R2Navigator
 import R2Shared
+import SwiftSoup
+import WebKit
 
 
 /// This class is meant to be subclassed by each publication format view controller. It contains the shared behavior, eg. navigation bar toggling.
@@ -192,7 +194,7 @@ class ReaderViewController: UIViewController, Loggable {
     }()
     
     private lazy var accessibilityToolbar: UIToolbar = {
-        func makeItem(_ item: UIBarButtonItem.SystemItem, label: String? = nil, action: Selector? = nil) -> UIBarButtonItem {
+        func makeItem(_ item: UIBarButtonItem.SystemItem, label: String? = nil, action: UIKit.Selector? = nil) -> UIBarButtonItem {
             let button = UIBarButtonItem(barButtonSystemItem: item, target: (action != nil) ? self : nil, action: action)
             button.accessibilityLabel = label
             return button
@@ -265,6 +267,46 @@ extension ReaderViewController: NavigatorDelegate {
     
     func navigator(_ navigator: Navigator, presentError error: NavigatorError) {
         moduleDelegate?.presentError(error, from: self)
+    }
+    
+    func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: Link, content: String, referrer: String?) -> Bool {
+        
+        var title = referrer
+        if let t = title {
+            title = try? clean(t, .none())
+        }
+        if title == "*" {
+            title = nil
+        }
+        
+        let content = (try? clean(content, .none())) ?? ""
+        let page =
+        """
+        <html>
+            <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body>
+                \(content)
+            </body>
+        </html>
+        """
+        
+        let wk = WKWebView()
+        wk.loadHTMLString(page, baseURL: nil)
+        
+        let vc = UIViewController()
+        vc.view = wk
+        vc.navigationItem.title = title
+        vc.navigationItem.leftBarButtonItem = BarButtonItem(barButtonSystemItem: .done, actionHandler: { (item) in
+            vc.dismiss(animated: true, completion: nil)
+        })
+        
+        let nav = UINavigationController(rootViewController: vc)
+        nav.modalPresentationStyle = .formSheet
+        self.present(nav, animated: true, completion: nil)
+        
+        return false
     }
     
 }
