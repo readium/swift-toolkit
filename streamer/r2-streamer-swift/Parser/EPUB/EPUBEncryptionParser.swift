@@ -35,8 +35,8 @@ final class EPUBEncryptionParser: Loggable {
         }
     }
 
-    private lazy var document: XMLDocument? = {
-        let document = try? XMLDocument(data: data)
+    private lazy var document: Fuzi.XMLDocument? = {
+        let document = try? Fuzi.XMLDocument(data: data)
         document?.definePrefix("enc", forNamespace: "http://www.w3.org/2001/04/xmlenc#")
         document?.definePrefix("ds", forNamespace: "http://www.w3.org/2000/09/xmldsig#")
         document?.definePrefix("comp", forNamespace: "http://www.idpf.org/2016/encryption#compression")
@@ -87,7 +87,7 @@ final class EPUBEncryptionParser: Loggable {
     /// - Parameters:
     ///   - encryptionProperty: The EncryptionProperty element, parent of <Compression>.
     ///   - encryption: The Encryption structure to fill.
-    private func parseCompressionElement(from encryptionProperty: XMLElement, to encryption: inout Encryption) {
+    private func parseCompressionElement(from encryptionProperty: Fuzi.XMLElement, to encryption: inout Encryption) {
         // Check that we have a compression element, with originalLength, not empty.
         guard let compressionElement = encryptionProperty.firstChild(xpath:"comp:Compression"),
             let method = compressionElement.attr("Method"),
