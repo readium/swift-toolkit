@@ -160,7 +160,7 @@ extension LicenseValidation {
                 } else {
                     self = .fetchStatus(license)
                 }
-            case let (.validateLicense(_), .failed(error)):
+            case let (.validateLicense(_, _), .failed(error)):
                 self = .failure(error)
 
             // 2. Fetch the status document
