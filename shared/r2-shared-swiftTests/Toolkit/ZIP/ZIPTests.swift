@@ -127,23 +127,23 @@ struct ZIPTester<Archive: ZIPArchive> {
 
 }
 
-class ZIPFoundationTests: XCTestCase {
-    
-    lazy var tester = ZIPTester<ZIPFoundationArchive>()
-
-    func testOpenSuccess() { tester.testOpenSuccess() }
-    func testOpenNotFound() { tester.testOpenNotFound() }
-    func testOpenNotAZIP() { tester.testOpenNotAZIP() }
-    func testGetNonExistingEntry() { tester.testGetNonExistingEntry() }
-    func testGetFileEntry() { tester.testGetFileEntry() }
-    func testGetUncompressedFileEntry() { tester.testGetUncompressedFileEntry() }
-    func testGetDirectoryEntry() { tester.testGetDirectoryEntry() }
-    func testGetEntries() { tester.testGetEntries() }
-    func testReadCompressedEntry() { tester.testReadCompressedEntry() }
-    func testReadUncompressedEntry() { tester.testReadUncompressedEntry() }
-    func testReadRange() { tester.testReadRange() }
-
-}
+//class ZIPFoundationTests: XCTestCase {
+//
+//    lazy var tester = ZIPTester<ZIPFoundationArchive>()
+//
+//    func testOpenSuccess() { tester.testOpenSuccess() }
+//    func testOpenNotFound() { tester.testOpenNotFound() }
+//    func testOpenNotAZIP() { tester.testOpenNotAZIP() }
+//    func testGetNonExistingEntry() { tester.testGetNonExistingEntry() }
+//    func testGetFileEntry() { tester.testGetFileEntry() }
+//    func testGetUncompressedFileEntry() { tester.testGetUncompressedFileEntry() }
+//    func testGetDirectoryEntry() { tester.testGetDirectoryEntry() }
+//    func testGetEntries() { tester.testGetEntries() }
+//    func testReadCompressedEntry() { tester.testReadCompressedEntry() }
+//    func testReadUncompressedEntry() { tester.testReadUncompressedEntry() }
+//    func testReadRange() { tester.testReadRange() }
+//
+//}
 
 class MinizipTests: XCTestCase {
     
@@ -168,7 +168,7 @@ class ZIPBenchmarkingTests: XCTestCase {
     func testCompareRange() {
         let archives: [ZIPArchive] = [
             try! MinizipArchive(file: fixtures.url(for: "test.zip")),
-            try! ZIPFoundationArchive(file: fixtures.url(for: "test.zip"))
+//            try! ZIPFoundationArchive(file: fixtures.url(for: "test.zip"))
         ]
         let path = "A folder/wasteland-cover.jpg"
         let length = 103477

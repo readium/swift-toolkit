@@ -13,6 +13,9 @@ import Foundation
 import ZIPFoundation
 
 /// A `ZIPArchive` using the ZIPFoundation library.
+///
+/// Note: At the moment, the Minizip version is used. Keeping this in case we migrate to
+/// ZIPFoundation.
 class ZIPFoundationArchive: ZIPArchive, Loggable {
     
     fileprivate let archive: Archive
