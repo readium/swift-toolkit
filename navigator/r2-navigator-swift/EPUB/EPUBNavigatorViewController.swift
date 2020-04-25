@@ -373,7 +373,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         if
             let tapData = tapData,
             let interactive = tapData.interactiveElement,
-            let (note, referrer) = getNoteData(anchor: interactive),
+            let (note, referrer) = getNoteData(anchor: interactive, href: href),
             let delegate = self.delegate
         {
             if !delegate.navigator(
@@ -389,26 +389,32 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         go(to: Link(href: href))
     }
     
-    func getNoteData(anchor: String) -> (String, String)? {
+    /// Checks if the internal link is a noteref, and retrieves both the referring text of the link and the body of the note.
+    ///
+    /// Uses the navigation href from didTapOnInternalLink because it is normalized to a path within the book,
+    /// whereas the anchor tag may have just a hash fragment like `#abc123` which is hard to work with.
+    /// We do at least validate to ensure that the two hrefs match.
+    ///
+    /// Uses `#id` when retrieving the body of the note, not `aside#id` because it may be a `<section>`.
+    /// See https://idpf.github.io/epub-vocabs/structure/#footnotes
+    /// and http://kb.daisy.org/publishing/docs/html/epub-type.html#ex
+    func getNoteData(anchor: String, href: String) -> (String, String)? {
         do {
             let doc = try parse(anchor)
             guard let link = try doc.select("a[epub:type=noteref]").first() else { return nil }
             
-            let href = try link.attr("href")
+            let anchorHref = try link.attr("href")
+            guard href.hasSuffix(anchorHref) else { return nil}
+            
             let hashParts = href.split(separator: "#")
             guard hashParts.count == 2 else {
                 log(.error, "Could not find hash in link \(href)")
                 return nil
             }
             let id = String(hashParts[1])
-            let withoutFragment = String(hashParts[0])
-            
-            guard var loc = self.currentLocation?.href else {
-                log(.error, "Couldn't get current location")
-                return nil
-            }
-            if loc.hasPrefix("/") {
-                loc = String(loc.dropFirst())
+            var withoutFragment = String(hashParts[0])
+            if withoutFragment.hasPrefix("/") {
+                withoutFragment = String(withoutFragment.dropFirst())
             }
             
             guard let base = publication.baseURL else {
@@ -416,19 +422,12 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
                 return nil
             }
             
-            let resource = base.appendingPathComponent(loc)
-            guard let absolute = URL(string: withoutFragment, relativeTo: resource) else {
-                log(.error, "Could not get absolute URL from \(withoutFragment) relative to \(self.resourcesURL?.absoluteString ?? "(no self.resourcesURL)")")
-                return nil
-            }
+            let absolute = base.appendingPathComponent(withoutFragment)
             
             log(.debug, "Fetching note contents from \(absolute.absoluteString)")
             let contents = try String(contentsOf: absolute)
             let document = try parse(contents)
             
-            /// Note that we don't link to `aside#id` because it may not be an `<aside>` element.
-            /// See https://idpf.github.io/epub-vocabs/structure/#footnotes
-            /// and http://kb.daisy.org/publishing/docs/html/epub-type.html#ex
             guard let aside = try document.select("#\(id)").first() else {
                 log(.error, "Could not find the element '#\(id)' in document \(absolute)")
                 return nil
