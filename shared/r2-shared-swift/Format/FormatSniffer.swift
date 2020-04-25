@@ -199,7 +199,7 @@ public extension Format {
             if rwpm.allReadingOrderIsBitmap {
                 return isManifest ? .DiViNaManifest : .DiViNa
             }
-            if isLCPProtected, rwpm.allReadingOrder({ $0.hasMediaType(.PDF) }) {
+            if isLCPProtected, rwpm.allReadingOrder({ $0.mediaType?.isPartOf(.PDF) ?? false }) {
                 return .LCPProtectedPDF
             }
             if rwpm.link(withRel: "self")?.type == "application/webpub+json" {

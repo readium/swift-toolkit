@@ -115,35 +115,47 @@ public struct MediaType: Equatable, Hashable {
         return contains(other)
     }
     
+    /// Returns whether this media type is included in the provided `other` media type.
+    ///
+    /// For example, `text/html;charset=utf-8` is part of `text/html`.
+    public func isPartOf(_ other: Self?) -> Bool {
+        return other?.contains(self) ?? false
+    }
+    
+    /// Returns whether this media type is included in the provided `other` media type.
+    public func isPartOf(_ other: String?) -> Bool {
+        return other.flatMap(MediaType.init)?.contains(self) ?? false
+    }
+
     /// Returns whether this media type is of an OPDS feed.
     public var isOPDS: Bool {
-        return MediaType.OPDS1.contains(self)
-            || MediaType.OPDS1Entry.contains(self)
-            || MediaType.OPDS2.contains(self)
-            || MediaType.OPDS2Publication.contains(self)
+        return isPartOf(.OPDS1)
+            || isPartOf(.OPDS1Entry)
+            || isPartOf(.OPDS2)
+            || isPartOf(.OPDS2Publication)
     }
     
     /// Returns whether this media type is of an HTML document.
     public var isHTML: Bool {
-        return MediaType.HTML.contains(self)
-            || MediaType.XHTML.contains(self)
+        return isPartOf(.HTML)
+            || isPartOf(.XHTML)
     }
     
     /// Returns whether this media type is of a bitmap image, so excluding vectorial formats.
     public var isBitmap: Bool {
-        return MediaType.BMP.contains(self)
-            || MediaType.GIF.contains(self)
-            || MediaType.JPEG.contains(self)
-            || MediaType.PNG.contains(self)
-            || MediaType.TIFF.contains(self)
-            || MediaType.WebP.contains(self)
+        return isPartOf(.BMP)
+            || isPartOf(.GIF)
+            || isPartOf(.JPEG)
+            || isPartOf(.PNG)
+            || isPartOf(.TIFF)
+            || isPartOf(.WebP)
     }
     
     /// Returns whether this media type is of a Readium Web Publication Manifest.
     public var isRWPM: Bool {
-        return MediaType.AudiobookManifest.contains(self)
-            || MediaType.DiViNaManifest.contains(self)
-            || MediaType.WebPubManifest.contains(self)
+        return isPartOf(.AudiobookManifest)
+            || isPartOf(.DiViNaManifest)
+            || isPartOf(.WebPubManifest)
     }
 
     
@@ -205,6 +217,10 @@ public struct MediaType: Equatable, Hashable {
     public static let ZAB = MediaType("application/x.readium.zab+zip")!  // non-existent
     public static let ZIP = MediaType("application/zip")!
 
+    public static func ~= (pattern: MediaType, value: MediaType) -> Bool {
+        return pattern.contains(value)
+    }
+
 }
 
 
@@ -214,10 +230,5 @@ public extension Link {
     var mediaType: MediaType? {
         type.flatMap { MediaType($0) }
     }
-    
-    /// Returns whether this link's media type is contained in the given `mediaType`.
-    func hasMediaType(_ mediaType: MediaType) -> Bool {
-        return mediaType.contains(self.mediaType)
-    }
-    
+
 }

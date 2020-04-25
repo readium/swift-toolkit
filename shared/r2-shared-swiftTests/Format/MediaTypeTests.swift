@@ -167,6 +167,86 @@ class MediaTypeTests: XCTestCase {
             .contains("text/html;charset=utf-8"))
     }
     
+    func testIsPartOfEqualMediaType() {
+        XCTAssertTrue(MediaType("text/html;charset=utf-8")!
+            .isPartOf(MediaType("text/html;charset=utf-8")!))
+    }
+    
+    func testIsPartOfMustMatchParameters() {
+        XCTAssertFalse(MediaType("text/html;charset=ascii")!
+            .isPartOf(MediaType("text/html;charset=utf-8")!))
+        XCTAssertFalse(MediaType("text/html")!
+            .isPartOf(MediaType("text/html;charset=utf-8")!))
+    }
+    
+    func testIsPartOfIgnoresParametersOrder() {
+        XCTAssertTrue(MediaType("text/html;charset=utf-8;type=entry")!
+            .isPartOf(MediaType("text/html;type=entry;charset=utf-8")!))
+    }
+    
+    func testIsPartOfIgnoresExtraParameters() {
+        XCTAssertTrue(MediaType("text/html;charset=utf-8")!
+            .isPartOf(MediaType("text/html")!))
+    }
+    
+    func testIsPartOfSupportsWildcards() {
+        XCTAssertTrue(MediaType("text/html;charset=utf-8")!
+            .isPartOf(MediaType("*/*")!))
+        XCTAssertTrue(MediaType("text/html;charset=utf-8")!
+            .isPartOf(MediaType("text/*")!))
+        XCTAssertFalse(MediaType("application/zip")!
+            .isPartOf(MediaType("text/*")!))
+    }
+    
+    func testIsPartOfFromString() {
+        XCTAssertTrue(MediaType("text/html;charset=utf-8")!
+            .isPartOf("text/html;charset=utf-8"))
+    }
+    
+    func testPatternMatch() {
+        let mediaType: MediaType? = .JSON
+        XCTAssertTrue(.JSON ~= mediaType)
+        XCTAssertTrue(.JSON ~= MediaType("application/json")!)
+        XCTAssertTrue(.JSON ~= MediaType("application/json;charset=utf-8")!)
+        XCTAssertFalse(.JSON ~= MediaType("application/opds+json")!)
+        XCTAssertFalse(MediaType.JSON ~= nil)
+    }
+
+    func testPatternMatchEqualMediaType() {
+        XCTAssertTrue(MediaType("text/html;charset=utf-8")!
+            ~= MediaType("text/html;charset=utf-8")!)
+    }
+    
+    func testPatternMatchNil() {
+        XCTAssertFalse(MediaType("text/html;charset=utf-8")! ~= nil)
+    }
+    
+    func testPatternMatchMustMatchParameters() {
+        XCTAssertFalse(MediaType("text/html;charset=utf-8")!
+            ~= MediaType("text/html;charset=ascii")!)
+        XCTAssertFalse(MediaType("text/html;charset=utf-8")!
+            ~= MediaType("text/html")!)
+    }
+    
+    func testPatternMatchIgnoresParametersOrder() {
+        XCTAssertTrue(MediaType("text/html;charset=utf-8;type=entry")!
+            ~= MediaType("text/html;type=entry;charset=utf-8")!)
+    }
+    
+    func testPatternMatchIgnoresExtraParameters() {
+        XCTAssertTrue(MediaType("text/html")!
+            ~= MediaType("text/html;charset=utf-8")!)
+    }
+    
+    func testPatternMatchSupportsWildcards() {
+        XCTAssertTrue(MediaType("*/*")!
+            ~= MediaType("text/html;charset=utf-8")!)
+        XCTAssertTrue(MediaType("text/*")!
+            ~= MediaType("text/html;charset=utf-8")!)
+        XCTAssertFalse(MediaType("text/*")!
+            ~= MediaType("application/zip")!)
+    }
+
     func testIsOPDS() {
         XCTAssertFalse(MediaType("text/html")!.isOPDS)
         XCTAssertTrue(MediaType("application/atom+xml;profile=opds-catalog")!.isOPDS)
