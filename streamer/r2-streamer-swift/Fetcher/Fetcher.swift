@@ -144,11 +144,11 @@ internal class Fetcher {
             throw FetcherError.missingContainerMimetype
         }
         switch format {
-        case .EPUB:
+        case .epub:
             return ContentFiltersEpub()
-        case .CBZ:
+        case .cbz:
             return ContentFiltersCbz()
-        case .PDF, .LCPProtectedPDF:
+        case .pdf, .lcpProtectedPDF:
             return ContentFiltersPDF()
         default:
             throw FetcherError.missingContainerMimetype

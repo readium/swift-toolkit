@@ -112,9 +112,9 @@ final class OPFParser: Loggable {
                     log(.warning, "Can't parse link with ID \(id)")
                     return nil
                 }
-    
+            
                 // If the link reference a Smil resource, retrieve and fill its duration.
-                if MediaType.SMIL.contains(link.type),
+                if link.mediaType?.isPartOf(.smil) ?? false,
                     let durationMeta = metas["duration", in: .media, refining: id].first,
                     let duration = Double(SMILParser.smilTimeToSeconds(durationMeta.content)) {
                     link.duration = duration

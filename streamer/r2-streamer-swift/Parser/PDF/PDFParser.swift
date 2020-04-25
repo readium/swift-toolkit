@@ -64,9 +64,9 @@ public final class PDFParser: PublicationParser, Loggable {
         
         let pubBox: PubBox
         switch format {
-        case .PDF:
+        case .pdf:
             pubBox = try parsePDF(at: url, parserType: parserType)
-        case .LCPProtectedPDF:
+        case .lcpProtectedPDF:
             pubBox = try parseLCPDF(at: url, parserType: parserType)
         default:
             throw PDFParserError.openFailed
@@ -122,7 +122,7 @@ public final class PDFParser: PublicationParser, Loggable {
                 numberOfPages: try parser.parseNumberOfPages()
             ),
             readingOrder: [
-                Link(href: documentHref, type: MediaType.PDF.string)
+                Link(href: documentHref, type: MediaType.pdf.string)
             ],
             resources: resources,
             tableOfContents: pdfMetadata.outline.links(withHref: documentHref)
@@ -149,7 +149,7 @@ public final class PDFParser: PublicationParser, Loggable {
         publication.positionListFactory = makePositionListFactory(container: container, parserType: parserType)
         
         // Checks the requirements from the spec, see. https://readium.org/lcp-specs/drafts/lcpdf
-        guard !publication.readingOrder.isEmpty, publication.readingOrder.filter(byType: .PDF) == publication.readingOrder else {
+        guard !publication.readingOrder.isEmpty, publication.readingOrder.filter(byType: .pdf) == publication.readingOrder else {
             throw PDFParserError.invalidLCPDF
         }
         
@@ -223,7 +223,7 @@ public final class PDFParser: PublicationParser, Loggable {
             let totalProgression = Double(startPosition + position - 1) / Double(totalPageCount)
             return Locator(
                 href: link.href,
-                type: link.type ?? MediaType.PDF.string,
+                type: link.type ?? MediaType.pdf.string,
                 locations: .init(
                     fragments: ["page=\(position)"],
                     progression: progression,

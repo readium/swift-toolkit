@@ -152,7 +152,7 @@ final public class EpubParser: PublicationParser {
     ///   - publication: The Epub publication.
     private static func parseNCXDocument(from container: Container, to publication: inout Publication) {
         // Get the link in the readingOrder pointing to the NCX document.
-        guard let ncxLink = publication.resources.first(withType: .NCX),
+        guard let ncxLink = publication.resources.first(withType: .ncx),
             let ncxDocumentData = try? container.data(relativePath: ncxLink.href) else
         {
             return
@@ -176,7 +176,7 @@ final public class EpubParser: PublicationParser {
     ///   - container: The Epub Container.
     ///   - publication: The Publication object representing the Epub data.
     private static func parseMediaOverlay(from fetcher: Fetcher, to publication: inout Publication) throws {
-        let mediaOverlays = publication.resources.filter(byType: .SMIL)
+        let mediaOverlays = publication.resources.filter(byType: .smil)
 
         guard !mediaOverlays.isEmpty else {
             log(.info, "No media-overlays found in the Publication.")
@@ -232,9 +232,9 @@ final public class EpubParser: PublicationParser {
         
         guard let container: Container = {
             if isDirectory.boolValue {
-                return DirectoryContainer(directory: path, mimetype: MediaType.EPUB.string)
+                return DirectoryContainer(directory: path, mimetype: MediaType.epub.string)
             } else {
-                return ArchiveContainer(path: path, mimetype: MediaType.EPUB.string)
+                return ArchiveContainer(path: path, mimetype: MediaType.epub.string)
             }
         }() else {
             throw EPUBParserError.missingFile(path: path)
@@ -333,7 +333,7 @@ final public class EpubParser: PublicationParser {
     private static func makeLocator(from link: Link, progression: Double, position: Int) -> Locator {
         return Locator(
             href: link.href,
-            type: link.type ?? MediaType.HTML.string,
+            type: link.type ?? MediaType.html.string,
             title: link.title,
             locations: .init(
                 progression: progression,

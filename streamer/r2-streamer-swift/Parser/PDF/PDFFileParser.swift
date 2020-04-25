@@ -52,7 +52,7 @@ extension Array where Element == PDFOutlineNode {
         return map { node in
             return Link(
                 href: "\(href)#page=\(node.pageNumber)",
-                type: MediaType.PDF.string,
+                type: MediaType.pdf.string,
                 title: node.title,
                 children: node.children.links(withHref: href)
             )

@@ -27,7 +27,7 @@ final class PDFFileContainer: FileContainer, PDFContainer {
     var context: Any?
     
     init?(path: String) {
-        super.init(path: path, mimetype: MediaType.PDF.string)
+        super.init(path: path, mimetype: MediaType.pdf.string)
     }
     
 }
@@ -38,6 +38,6 @@ final class LCPDFContainer: ArchiveContainer, PDFContainer {
     var context: Any?
     
     init?(path: String) {
-        super.init(path: path, mimetype: MediaType.LCPProtectedPDF.string)
+        super.init(path: path, mimetype: MediaType.lcpProtectedPDF.string)
     }
 }
