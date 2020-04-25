@@ -23,8 +23,8 @@ final class LicensesService: Loggable {
     
     // Mapping between an unprotected format to the matching LCP protected format.
     private let formatsMapping: [Format: Format] = [
-        .Audiobook: .LCPProtectedAudiobook,
-        .PDF: .LCPProtectedPDF
+        .audiobook: .lcpProtectedAudiobook,
+        .pdf: .lcpProtectedPDF
     ]
 
     init(licenses: LicensesRepository, crl: CRLService, device: DeviceService, network: NetworkService, passphrases: PassphrasesService) {
