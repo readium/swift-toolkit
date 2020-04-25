@@ -86,10 +86,10 @@ public extension Format {
     /// Sniffs an HTML document.
     private static func sniffHTML(context: FormatSnifferContext) -> Format? {
         if context.hasFileExtension("htm", "html", "xht", "xhtml") || context.hasMediaType("text/html", "application/xhtml+xml") {
-            return .HTML
+            return .html
         }
         if context.contentAsXML?.documentElement?.localName.lowercased() == "html" {
-            return .HTML
+            return .html
         }
         return nil
     }
@@ -97,17 +97,17 @@ public extension Format {
     /// Sniffs an OPDS 1 document.
     private static func sniffOPDS1(context: FormatSnifferContext) -> Format? {
         if context.hasMediaType("application/atom+xml;type=entry;profile=opds-catalog") {
-            return .OPDS1Entry
+            return .opds1Entry
         }
         if context.hasMediaType("application/atom+xml;profile=opds-catalog") {
-            return .OPDS1Feed
+            return .opds1Feed
         }
         if let xml = context.contentAsXML {
             let namespaces = [(prefix: "atom", uri: "http://www.w3.org/2005/Atom")]
             if xml.first("/atom:feed", with: namespaces) != nil {
-                return .OPDS1Feed
+                return .opds1Feed
             } else if xml.first("/atom:entry", with: namespaces) != nil {
-                return .OPDS1Entry
+                return .opds1Entry
             }
         }
         return nil
@@ -116,17 +116,17 @@ public extension Format {
     /// Sniffs an OPDS 2 document.
     private static func sniffOPDS2(context: FormatSnifferContext) -> Format? {
         if context.hasMediaType("application/opds+json") {
-            return .OPDS2Feed
+            return .opds2Feed
         }
         if context.hasMediaType("application/opds-publication+json") {
-            return .OPDS2Publication
+            return .opds2Publication
         }
         if let rwpm = context.contentAsRWPM {
             if rwpm.link(withRel: "self")?.type == "application/opds+json" {
-                return .OPDS2Feed
+                return .opds2Feed
             }
             if rwpm.link(withRelMatching: { $0.hasPrefix("http://opds-spec.org/acquisition") }) != nil {
-                return .OPDS2Publication
+                return .opds2Publication
             }
         }
         return nil
@@ -135,11 +135,11 @@ public extension Format {
     /// Sniffs an LCP License Document.
     private static func sniffLCPLicense(context: FormatSnifferContext) -> Format? {
         if context.hasFileExtension("lcpl") || context.hasMediaType("application/vnd.readium.lcp.license.v1.0+json") {
-            return .LCPLicense
+            return .lcpLicense
         }
         if let json = context.contentAsJSON as? [String: Any] {
             if Set(json.keys).isSuperset(of: ["id", "issued", "provider", "encryption"]) {
-                return .LCPLicense
+                return .lcpLicense
             }
         }
         return nil
@@ -148,31 +148,31 @@ public extension Format {
     /// Sniffs a Readium Web Publication, protected or not by LCP.
     private static func sniffWebPub(context: FormatSnifferContext) -> Format? {
         if context.hasFileExtension("audiobook") || context.hasMediaType("application/audiobook+zip") {
-            return .Audiobook
+            return .audiobook
         }
         if context.hasMediaType("application/audiobook+json") {
-            return .AudiobookManifest
+            return .audiobookManifest
         }
         
         if context.hasFileExtension("divina") || context.hasMediaType("application/divina+zip") {
-            return .DiViNa
+            return .divina
         }
         if context.hasMediaType("application/divina+json") {
-            return .DiViNaManifest
+            return .divinaManifest
         }
         
         if context.hasFileExtension("webpub") || context.hasMediaType("application/webpub+zip") {
-            return .WebPub
+            return .webpub
         }
         if context.hasMediaType("application/webpub+json") {
-            return .WebPubManifest
+            return .webpubManifest
         }
         
         if context.hasFileExtension("lcpa") || context.hasMediaType("application/audiobook+lcp") {
-            return .LCPProtectedAudiobook
+            return .lcpProtectedAudiobook
         }
         if context.hasFileExtension("lcpdf") || context.hasMediaType("application/pdf+lcp") {
-            return .LCPProtectedPDF
+            return .lcpProtectedPDF
         }
         
         /// Reads a RWPM, either from a manifest.json file, or from a manifest.json ZIP entry, if
@@ -193,17 +193,17 @@ public extension Format {
             let isLCPProtected = context.containsZIPEntry(at: "license.lcpl")
 
             if rwpm.metadata.type == "http://schema.org/Audiobook" {
-                return isManifest ? .AudiobookManifest :
-                    isLCPProtected ? .LCPProtectedAudiobook : .Audiobook
+                return isManifest ? .audiobookManifest :
+                    isLCPProtected ? .lcpProtectedAudiobook : .audiobook
             }
             if rwpm.allReadingOrderIsBitmap {
-                return isManifest ? .DiViNaManifest : .DiViNa
+                return isManifest ? .divinaManifest : .divina
             }
-            if isLCPProtected, rwpm.allReadingOrder({ $0.mediaType?.isPartOf(.PDF) ?? false }) {
-                return .LCPProtectedPDF
+            if isLCPProtected, rwpm.allReadingOrder({ $0.mediaType?.isPartOf(.pdf) ?? false }) {
+                return .lcpProtectedPDF
             }
             if rwpm.link(withRel: "self")?.type == "application/webpub+json" {
-                return isManifest ? .WebPubManifest : .WebPub
+                return isManifest ? .webpubManifest : .webpub
             }
         }
 
@@ -216,7 +216,7 @@ public extension Format {
             let context = json["@context"] as? [Any],
             context.contains(where: { ($0 as? String) == "https://www.w3.org/ns/wp-context" })
         {
-            return .W3CWPUBManifest
+            return .w3cWPUBManifest
         }
         return nil
     }
@@ -225,13 +225,13 @@ public extension Format {
     /// Reference: https://www.w3.org/publishing/epub3/epub-ocf.html#sec-zip-container-mime
     private static func sniffEPUB(context: FormatSnifferContext) -> Format? {
         if context.hasFileExtension("epub") || context.hasMediaType("application/epub+zip") {
-            return .EPUB
+            return .epub
         }
         if let mimetypeData = context.readZIPEntry(at: "mimetype"),
             let mimetype = String(data: mimetypeData, encoding: .ascii),
             mimetype == "application/epub+zip"
         {
-            return .EPUB
+            return .epub
         }
         return nil
     }
@@ -242,17 +242,17 @@ public extension Format {
     /// * https://www.w3.org/TR/pub-manifest/
     private static func sniffLPF(context: FormatSnifferContext) -> Format? {
         if context.hasFileExtension("lpf") || context.hasMediaType("application/lpf+zip") {
-            return .LPF
+            return .lpf
         }
         if context.containsZIPEntry(at: "index.html") {
-            return .LPF
+            return .lpf
         }
         if let data = context.readZIPEntry(at: "publication.json"),
             let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
             let contexts = json["@context"] as? [Any],
             contexts.contains(where: {($0 as? String) == "https://www.w3.org/ns/pub-context"})
         {
-            return .LPF
+            return .lpf
         }
         return nil
     }
@@ -273,10 +273,10 @@ public extension Format {
     /// Reference: https://wiki.mobileread.com/wiki/CBR_and_CBZ
     private static func sniffZIP(context: FormatSnifferContext) -> Format? {
         if context.hasFileExtension("cbz") || context.hasMediaType("application/vnd.comicbook+zip", "application/x-cbz", "application/x-cbr") {
-            return .CBZ
+            return .cbz
         }
         if context.hasFileExtension("zab") {
-            return .ZAB
+            return .zab
         }
         
         if context.contentAsZIP != nil {
@@ -292,10 +292,10 @@ public extension Format {
             }
 
             if zipContainsOnlyExtensions(cbzExtensions) {
-                return .CBZ
+                return .cbz
             }
             if zipContainsOnlyExtensions(zabExtensions) {
-                return .ZAB
+                return .zab
             }
         }
         
@@ -306,10 +306,10 @@ public extension Format {
     /// Reference: https://www.loc.gov/preservation/digital/formats/fdd/fdd000123.shtml
     private static func sniffPDF(context: FormatSnifferContext) -> Format? {
         if context.hasFileExtension("pdf") || context.hasMediaType("application/pdf") {
-            return .PDF
+            return .pdf
         }
         if context.readFileSignature(length: 5) == "%PDF-" {
-            return .PDF
+            return .pdf
         }
         return nil
     }
@@ -317,22 +317,22 @@ public extension Format {
     /// Sniffs a bitmap image.
     private static func sniffBitmap(context: FormatSnifferContext) -> Format? {
         if context.hasFileExtension("bmp", "dib") || context.hasMediaType("image/bmp", "image/x-bmp") {
-            return .BMP
+            return .bmp
         }
         if context.hasFileExtension("gif") || context.hasMediaType("image/gif") {
-            return .GIF
+            return .gif
         }
         if context.hasFileExtension("jpg", "jpeg", "jpe", "jif", "jfif", "jfi") || context.hasMediaType("image/jpeg") {
-            return .JPEG
+            return .jpeg
         }
         if context.hasFileExtension("png") || context.hasMediaType("image/png") {
-            return .PNG
+            return .png
         }
         if context.hasFileExtension("tiff", "tif") || context.hasMediaType("image/tiff", "image/tiff-fx") {
-            return .TIFF
+            return .tiff
         }
         if context.hasFileExtension("webp") || context.hasMediaType("image/webp") {
-            return .WebP
+            return .webp
         }
         return nil
     }

@@ -139,7 +139,7 @@ public class Publication: JSONEquatable, Loggable {
         links.removeAll { $0.rels.contains("self") }
         links.append(Link(
             href: href,
-            type: MediaType.WebPubManifest.string,
+            type: MediaType.webpubManifest.string,
             rel: "self"
         ))
     }
@@ -272,13 +272,13 @@ public class Publication: JSONEquatable, Loggable {
                 return
             }
             switch format {
-            case .EPUB:
+            case .epub:
                 self = .epub
-            case .CBZ:
+            case .cbz:
                 self = .cbz
-            case .PDF, .LCPProtectedPDF:
+            case .pdf, .lcpProtectedPDF:
                 self = .pdf
-            case .WebPubManifest, .AudiobookManifest:
+            case .webpubManifest, .audiobookManifest:
                 self = .webpub
             default:
                 self = .unknown

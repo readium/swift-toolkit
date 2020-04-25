@@ -28,159 +28,159 @@ public struct Format: Equatable, Hashable, Loggable {
     // Formats used by Readium. Reading apps are welcome to extend the static constants with
     // additional formats.
     
-    public static let Audiobook = Format(
+    public static let audiobook = Format(
         name: "Audiobook",
-        mediaType: .Audiobook,
+        mediaType: .audiobook,
         fileExtension: "audiobook"
     )
     
-    public static let AudiobookManifest = Format(
+    public static let audiobookManifest = Format(
         name: "Audiobook",
-        mediaType: .AudiobookManifest,
+        mediaType: .audiobookManifest,
         fileExtension: "json"
     )
     
-    public static let BMP = Format(
+    public static let bmp = Format(
         name: "BMP",
-        mediaType: .BMP,
+        mediaType: .bmp,
         fileExtension: "bmp"
     )
     
-    public static let CBZ = Format(
+    public static let cbz = Format(
         name: "Comic Book Archive",
-        mediaType: .CBZ,
+        mediaType: .cbz,
         fileExtension: "cbz"
     )
     
-    public static let DiViNa = Format(
+    public static let divina = Format(
         name: "Digital Visual Narratives",
-        mediaType: .DiViNa,
+        mediaType: .divina,
         fileExtension: "divina"
     )
     
-    public static let DiViNaManifest = Format(
+    public static let divinaManifest = Format(
         name: "Digital Visual Narratives",
-        mediaType: .DiViNaManifest,
+        mediaType: .divinaManifest,
         fileExtension: "json"
     )
     
-    public static let EPUB = Format(
+    public static let epub = Format(
         name: "EPUB",
-        mediaType: .EPUB,
+        mediaType: .epub,
         fileExtension: "epub"
     )
     
-    public static let GIF = Format(
+    public static let gif = Format(
         name: "GIF",
-        mediaType: .GIF,
+        mediaType: .gif,
         fileExtension: "gif"
     )
     
-    public static let HTML = Format(
+    public static let html = Format(
         name: "HTML",
-        mediaType: .HTML,
+        mediaType: .html,
         fileExtension: "html"
     )
     
-    public static let JPEG = Format(
+    public static let jpeg = Format(
         name: "JPEG",
-        mediaType: .JPEG,
+        mediaType: .jpeg,
         fileExtension: "jpg"
     )
     
-    public static let OPDS1Feed = Format(
+    public static let opds1Feed = Format(
         name: "OPDS",
-        mediaType: .OPDS1,
+        mediaType: .opds1,
         fileExtension: "atom"
     )
     
-    public static let OPDS1Entry = Format(
+    public static let opds1Entry = Format(
         name: "OPDS",
-        mediaType: .OPDS1Entry,
+        mediaType: .opds1Entry,
         fileExtension: "atom"
     )
     
-    public static let OPDS2Feed = Format(
+    public static let opds2Feed = Format(
         name: "OPDS",
-        mediaType: .OPDS2,
+        mediaType: .opds2,
         fileExtension: "json"
     )
     
-    public static let OPDS2Publication = Format(
+    public static let opds2Publication = Format(
         name: "OPDS",
-        mediaType: .OPDS2Publication,
+        mediaType: .opds2Publication,
         fileExtension: "json"
     )
     
-    public static let LCPProtectedAudiobook = Format(
+    public static let lcpProtectedAudiobook = Format(
         name: "LCP Protected Audiobook",
-        mediaType: .LCPProtectedAudiobook,
+        mediaType: .lcpProtectedAudiobook,
         fileExtension: "lcpa"
     )
     
-    public static let LCPProtectedPDF = Format(
+    public static let lcpProtectedPDF = Format(
         name: "LCP Protected PDF",
-        mediaType: .LCPProtectedPDF,
+        mediaType: .lcpProtectedPDF,
         fileExtension: "lcpdf"
     )
     
-    public static let LCPLicense = Format(
+    public static let lcpLicense = Format(
         name: "LCP License",
-        mediaType: .LCPLicenseDocument,
+        mediaType: .lcpLicenseDocument,
         fileExtension: "lcpl"
     )
     
-    public static let LPF = Format(
+    public static let lpf = Format(
         name: "Lightweight Packaging Format",
-        mediaType: .LPF,
+        mediaType: .lpf,
         fileExtension: "lpf"
     )
     
-    public static let PDF = Format(
+    public static let pdf = Format(
         name: "PDF",
-        mediaType: .PDF,
+        mediaType: .pdf,
         fileExtension: "pdf"
     )
     
-    public static let PNG = Format(
+    public static let png = Format(
         name: "PNG",
-        mediaType: .PNG,
+        mediaType: .png,
         fileExtension: "png"
     )
     
-    public static let TIFF = Format(
+    public static let tiff = Format(
         name: "TIFF",
-        mediaType: .TIFF,
+        mediaType: .tiff,
         fileExtension: "tiff"
     )
     
-    public static let W3CWPUBManifest = Format(
+    public static let w3cWPUBManifest = Format(
         name: "Web Publication",
-        mediaType: .W3CWPUBManifest,
+        mediaType: .w3cWPUBManifest,
         fileExtension: "json"
     )
     
-    public static let WebP = Format(
+    public static let webp = Format(
         name: "WebP",
-        mediaType: .WebP,
+        mediaType: .webp,
         fileExtension: "webp"
     )
     
-    public static let WebPub = Format(
+    public static let webpub = Format(
         name: "Web Publication",
-        mediaType: .WebPub,
+        mediaType: .webpub,
         fileExtension: "webpub"
     )
     
-    public static let WebPubManifest = Format(
+    public static let webpubManifest = Format(
         name: "Web Publication",
-        mediaType: .WebPubManifest,
+        mediaType: .webpubManifest,
         fileExtension: "json"
     )
     
-    public static let ZAB = Format(
+    public static let zab = Format(
         name: "Zipped Audio Book",
-        mediaType: .ZAB,
+        mediaType: .zab,
         fileExtension: "zab"
     )
 

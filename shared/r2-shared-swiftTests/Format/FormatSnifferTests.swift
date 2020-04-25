@@ -17,30 +17,30 @@ class FormatSnifferTests: XCTestCase {
     let fixtures = Fixtures(path: "Format")
     
     func testSniffIgnoresExtensionCase() {
-        XCTAssertEqual(Format.of(fileExtensions: ["EPUB"]), .EPUB)
+        XCTAssertEqual(Format.of(fileExtensions: ["EPUB"]), .epub)
     }
     
     func testSniffIgnoresMediaTypeCase() {
-        XCTAssertEqual(Format.of(mediaTypes: ["APPLICATION/EPUB+ZIP"]), .EPUB)
+        XCTAssertEqual(Format.of(mediaTypes: ["APPLICATION/EPUB+ZIP"]), .epub)
     }
     
     func testSniffIgnoresMediaTypeExtraParameters() {
-        XCTAssertEqual(Format.of(mediaTypes: ["application/epub+zip;param=value"]), .EPUB)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/epub+zip;param=value"]), .epub)
     }
     
     func testSniffFromMetadata() {
-        XCTAssertEqual(Format.of(fileExtensions: ["audiobook"]), .Audiobook)
-        XCTAssertEqual(Format.of(mediaTypes: ["application/audiobook+zip"]), .Audiobook)
-        XCTAssertEqual(Format.of(mediaTypes: ["application/audiobook+zip"], fileExtensions: ["audiobook"]), .Audiobook)
+        XCTAssertEqual(Format.of(fileExtensions: ["audiobook"]), .audiobook)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/audiobook+zip"]), .audiobook)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/audiobook+zip"], fileExtensions: ["audiobook"]), .audiobook)
     }
     
     func testSniffFromAFile() {
-        XCTAssertEqual(Format.of(fixtures.url(for: "audiobook.json")), .AudiobookManifest)
+        XCTAssertEqual(Format.of(fixtures.url(for: "audiobook.json")), .audiobookManifest)
     }
     
     func testSniffFromBytes() {
         let data = try! Data(contentsOf: fixtures.url(for: "audiobook.json"))
-        XCTAssertEqual(Format.of({ data }), .AudiobookManifest)
+        XCTAssertEqual(Format.of({ data }), .audiobookManifest)
     }
 
     func testSniffUnknownFormat() {
@@ -49,161 +49,161 @@ class FormatSnifferTests: XCTestCase {
     }
     
     func testSniffAudiobook() {
-        XCTAssertEqual(Format.of(fileExtensions: ["audiobook"]), .Audiobook)
-        XCTAssertEqual(Format.of(mediaTypes: ["application/audiobook+zip"]), .Audiobook)
-        XCTAssertEqual(Format.of(fixtures.url(for: "audiobook-package.unknown")), .Audiobook)
+        XCTAssertEqual(Format.of(fileExtensions: ["audiobook"]), .audiobook)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/audiobook+zip"]), .audiobook)
+        XCTAssertEqual(Format.of(fixtures.url(for: "audiobook-package.unknown")), .audiobook)
     }
     
     func testSniffAudiobookManifest() {
-        XCTAssertEqual(Format.of(mediaTypes: ["application/audiobook+json"]), .AudiobookManifest)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/audiobook+json"]), .audiobookManifest)
         
-        XCTAssertEqual(Format.of(fixtures.url(for: "audiobook.json")), .AudiobookManifest)
+        XCTAssertEqual(Format.of(fixtures.url(for: "audiobook.json")), .audiobookManifest)
     }
     
     func testSniffBMP() {
-        XCTAssertEqual(Format.of(fileExtensions: ["bmp"]), .BMP)
-        XCTAssertEqual(Format.of(fileExtensions: ["dib"]), .BMP)
-        XCTAssertEqual(Format.of(mediaTypes: ["image/bmp"]), .BMP)
-        XCTAssertEqual(Format.of(mediaTypes: ["image/x-bmp"]), .BMP)
+        XCTAssertEqual(Format.of(fileExtensions: ["bmp"]), .bmp)
+        XCTAssertEqual(Format.of(fileExtensions: ["dib"]), .bmp)
+        XCTAssertEqual(Format.of(mediaTypes: ["image/bmp"]), .bmp)
+        XCTAssertEqual(Format.of(mediaTypes: ["image/x-bmp"]), .bmp)
     }
     
     func testSniffCBZ() {
-        XCTAssertEqual(Format.of(fileExtensions: ["cbz"]), .CBZ)
-        XCTAssertEqual(Format.of(mediaTypes: ["application/vnd.comicbook+zip"]), .CBZ)
-        XCTAssertEqual(Format.of(mediaTypes: ["application/x-cbz"]), .CBZ)
-        XCTAssertEqual(Format.of(mediaTypes: ["application/x-cbr"]), .CBZ)
-        XCTAssertEqual(Format.of(fixtures.url(for: "cbz.unknown")), .CBZ)
+        XCTAssertEqual(Format.of(fileExtensions: ["cbz"]), .cbz)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/vnd.comicbook+zip"]), .cbz)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/x-cbz"]), .cbz)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/x-cbr"]), .cbz)
+        XCTAssertEqual(Format.of(fixtures.url(for: "cbz.unknown")), .cbz)
     }
     
     func testSniffDiViNa() {
-        XCTAssertEqual(Format.of(fileExtensions: ["divina"]), .DiViNa)
-        XCTAssertEqual(Format.of(mediaTypes: ["application/divina+zip"]), .DiViNa)
-        XCTAssertEqual(Format.of(fixtures.url(for: "divina-package.unknown")), .DiViNa)
+        XCTAssertEqual(Format.of(fileExtensions: ["divina"]), .divina)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/divina+zip"]), .divina)
+        XCTAssertEqual(Format.of(fixtures.url(for: "divina-package.unknown")), .divina)
     }
     
     func testSniffDiViNaManifest() {
-        XCTAssertEqual(Format.of(mediaTypes: ["application/divina+json"]), .DiViNaManifest)
-        XCTAssertEqual(Format.of(fixtures.url(for: "divina.json")), .DiViNaManifest)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/divina+json"]), .divinaManifest)
+        XCTAssertEqual(Format.of(fixtures.url(for: "divina.json")), .divinaManifest)
     }
 
     func testSniffEPUB() {
-        XCTAssertEqual(Format.of(fileExtensions: ["epub"]), .EPUB)
-        XCTAssertEqual(Format.of(mediaTypes: ["application/epub+zip"]), .EPUB)
-        XCTAssertEqual(Format.of(fixtures.url(for: "epub.unknown")), .EPUB)
+        XCTAssertEqual(Format.of(fileExtensions: ["epub"]), .epub)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/epub+zip"]), .epub)
+        XCTAssertEqual(Format.of(fixtures.url(for: "epub.unknown")), .epub)
     }
     
     func testSniffGIF() {
-        XCTAssertEqual(Format.of(fileExtensions: ["gif"]), .GIF)
-        XCTAssertEqual(Format.of(mediaTypes: ["image/gif"]), .GIF)
+        XCTAssertEqual(Format.of(fileExtensions: ["gif"]), .gif)
+        XCTAssertEqual(Format.of(mediaTypes: ["image/gif"]), .gif)
     }
     
     func testSniffHTML() {
-        XCTAssertEqual(Format.of(fileExtensions: ["htm"]), .HTML)
-        XCTAssertEqual(Format.of(fileExtensions: ["html"]), .HTML)
-        XCTAssertEqual(Format.of(fileExtensions: ["xht"]), .HTML)
-        XCTAssertEqual(Format.of(fileExtensions: ["xhtml"]), .HTML)
-        XCTAssertEqual(Format.of(mediaTypes: ["text/html"]), .HTML)
-        XCTAssertEqual(Format.of(mediaTypes: ["application/xhtml+xml"]), .HTML)
-        XCTAssertEqual(Format.of(fixtures.url(for: "html.unknown")), .HTML)
-        XCTAssertEqual(Format.of(fixtures.url(for: "xhtml.unknown")), .HTML)
+        XCTAssertEqual(Format.of(fileExtensions: ["htm"]), .html)
+        XCTAssertEqual(Format.of(fileExtensions: ["html"]), .html)
+        XCTAssertEqual(Format.of(fileExtensions: ["xht"]), .html)
+        XCTAssertEqual(Format.of(fileExtensions: ["xhtml"]), .html)
+        XCTAssertEqual(Format.of(mediaTypes: ["text/html"]), .html)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/xhtml+xml"]), .html)
+        XCTAssertEqual(Format.of(fixtures.url(for: "html.unknown")), .html)
+        XCTAssertEqual(Format.of(fixtures.url(for: "xhtml.unknown")), .html)
     }
     
     func testSniffJPEG() {
-        XCTAssertEqual(Format.of(fileExtensions: ["jpg"]), .JPEG)
-        XCTAssertEqual(Format.of(fileExtensions: ["jpeg"]), .JPEG)
-        XCTAssertEqual(Format.of(fileExtensions: ["jpe"]), .JPEG)
-        XCTAssertEqual(Format.of(fileExtensions: ["jif"]), .JPEG)
-        XCTAssertEqual(Format.of(fileExtensions: ["jfif"]), .JPEG)
-        XCTAssertEqual(Format.of(fileExtensions: ["jfi"]), .JPEG)
-        XCTAssertEqual(Format.of(mediaTypes: ["image/jpeg"]), .JPEG)
+        XCTAssertEqual(Format.of(fileExtensions: ["jpg"]), .jpeg)
+        XCTAssertEqual(Format.of(fileExtensions: ["jpeg"]), .jpeg)
+        XCTAssertEqual(Format.of(fileExtensions: ["jpe"]), .jpeg)
+        XCTAssertEqual(Format.of(fileExtensions: ["jif"]), .jpeg)
+        XCTAssertEqual(Format.of(fileExtensions: ["jfif"]), .jpeg)
+        XCTAssertEqual(Format.of(fileExtensions: ["jfi"]), .jpeg)
+        XCTAssertEqual(Format.of(mediaTypes: ["image/jpeg"]), .jpeg)
     }
     
     func testSniffOPDS1Feed() {
-        XCTAssertEqual(Format.of(mediaTypes: ["application/atom+xml;profile=opds-catalog"]), .OPDS1Feed)
-        XCTAssertEqual(Format.of(fixtures.url(for: "opds1-feed.unknown")), .OPDS1Feed)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/atom+xml;profile=opds-catalog"]), .opds1Feed)
+        XCTAssertEqual(Format.of(fixtures.url(for: "opds1-feed.unknown")), .opds1Feed)
     }
     
     func testSniffOPDS1Entry() {
-        XCTAssertEqual(Format.of(mediaTypes: ["application/atom+xml;type=entry;profile=opds-catalog"]), .OPDS1Entry)
-        XCTAssertEqual(Format.of(fixtures.url(for: "opds1-entry.unknown")), .OPDS1Entry)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/atom+xml;type=entry;profile=opds-catalog"]), .opds1Entry)
+        XCTAssertEqual(Format.of(fixtures.url(for: "opds1-entry.unknown")), .opds1Entry)
     }
     
     func testSniffOPDS2Feed() {
-        XCTAssertEqual(Format.of(mediaTypes: ["application/opds+json"]), .OPDS2Feed)
-        XCTAssertEqual(Format.of(fixtures.url(for: "opds2-feed.json")), .OPDS2Feed)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/opds+json"]), .opds2Feed)
+        XCTAssertEqual(Format.of(fixtures.url(for: "opds2-feed.json")), .opds2Feed)
     }
     
     func testSniffOPDS2Publication() {
-        XCTAssertEqual(Format.of(mediaTypes: ["application/opds-publication+json"]), .OPDS2Publication)
-        XCTAssertEqual(Format.of(fixtures.url(for: "opds2-publication.json")), .OPDS2Publication)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/opds-publication+json"]), .opds2Publication)
+        XCTAssertEqual(Format.of(fixtures.url(for: "opds2-publication.json")), .opds2Publication)
     }
     
     func testSniffLCPProtectedAudiobook() {
-        XCTAssertEqual(Format.of(fileExtensions: ["lcpa"]), .LCPProtectedAudiobook)
-        XCTAssertEqual(Format.of(mediaTypes: ["application/audiobook+lcp"]), .LCPProtectedAudiobook)
-        XCTAssertEqual(Format.of(fixtures.url(for: "audiobook-lcp.unknown")), .LCPProtectedAudiobook)
+        XCTAssertEqual(Format.of(fileExtensions: ["lcpa"]), .lcpProtectedAudiobook)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/audiobook+lcp"]), .lcpProtectedAudiobook)
+        XCTAssertEqual(Format.of(fixtures.url(for: "audiobook-lcp.unknown")), .lcpProtectedAudiobook)
     }
     
     func testSniffLCPProtectedPDF() {
-        XCTAssertEqual(Format.of(fileExtensions: ["lcpdf"]), .LCPProtectedPDF)
-        XCTAssertEqual(Format.of(mediaTypes: ["application/pdf+lcp"]), .LCPProtectedPDF)
-        XCTAssertEqual(Format.of(fixtures.url(for: "pdf-lcp.unknown")), .LCPProtectedPDF)
+        XCTAssertEqual(Format.of(fileExtensions: ["lcpdf"]), .lcpProtectedPDF)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/pdf+lcp"]), .lcpProtectedPDF)
+        XCTAssertEqual(Format.of(fixtures.url(for: "pdf-lcp.unknown")), .lcpProtectedPDF)
     }
     
     func testSniffLCPLicenseDocument() {
-        XCTAssertEqual(Format.of(fileExtensions: ["lcpl"]), .LCPLicense)
-        XCTAssertEqual(Format.of(mediaTypes: ["application/vnd.readium.lcp.license.v1.0+json"]), .LCPLicense)
-        XCTAssertEqual(Format.of(fixtures.url(for: "lcpl.unknown")), .LCPLicense)
+        XCTAssertEqual(Format.of(fileExtensions: ["lcpl"]), .lcpLicense)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/vnd.readium.lcp.license.v1.0+json"]), .lcpLicense)
+        XCTAssertEqual(Format.of(fixtures.url(for: "lcpl.unknown")), .lcpLicense)
     }
     
     func testSniffLPF() {
-        XCTAssertEqual(Format.of(fileExtensions: ["lpf"]), .LPF)
-        XCTAssertEqual(Format.of(mediaTypes: ["application/lpf+zip"]), .LPF)
-        XCTAssertEqual(Format.of(fixtures.url(for: "lpf.unknown")), .LPF)
-        XCTAssertEqual(Format.of(fixtures.url(for: "lpf-index-html.unknown")), .LPF)
+        XCTAssertEqual(Format.of(fileExtensions: ["lpf"]), .lpf)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/lpf+zip"]), .lpf)
+        XCTAssertEqual(Format.of(fixtures.url(for: "lpf.unknown")), .lpf)
+        XCTAssertEqual(Format.of(fixtures.url(for: "lpf-index-html.unknown")), .lpf)
     }
     
     func testSniffPDF() {
-        XCTAssertEqual(Format.of(fileExtensions: ["pdf"]), .PDF)
-        XCTAssertEqual(Format.of(mediaTypes: ["application/pdf"]), .PDF)
-        XCTAssertEqual(Format.of(fixtures.url(for: "pdf.unknown")), .PDF)
+        XCTAssertEqual(Format.of(fileExtensions: ["pdf"]), .pdf)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/pdf"]), .pdf)
+        XCTAssertEqual(Format.of(fixtures.url(for: "pdf.unknown")), .pdf)
     }
     
     func testSniffPNG() {
-        XCTAssertEqual(Format.of(fileExtensions: ["png"]), .PNG)
-        XCTAssertEqual(Format.of(mediaTypes: ["image/png"]), .PNG)
+        XCTAssertEqual(Format.of(fileExtensions: ["png"]), .png)
+        XCTAssertEqual(Format.of(mediaTypes: ["image/png"]), .png)
     }
     
     func testSniffTIFF() {
-        XCTAssertEqual(Format.of(fileExtensions: ["tiff"]), .TIFF)
-        XCTAssertEqual(Format.of(fileExtensions: ["tif"]), .TIFF)
-        XCTAssertEqual(Format.of(mediaTypes: ["image/tiff"]), .TIFF)
-        XCTAssertEqual(Format.of(mediaTypes: ["image/tiff-fx"]), .TIFF)
+        XCTAssertEqual(Format.of(fileExtensions: ["tiff"]), .tiff)
+        XCTAssertEqual(Format.of(fileExtensions: ["tif"]), .tiff)
+        XCTAssertEqual(Format.of(mediaTypes: ["image/tiff"]), .tiff)
+        XCTAssertEqual(Format.of(mediaTypes: ["image/tiff-fx"]), .tiff)
     }
     
     func testSniffWebP() {
-        XCTAssertEqual(Format.of(fileExtensions: ["webp"]), .WebP)
-        XCTAssertEqual(Format.of(mediaTypes: ["image/webp"]), .WebP)
+        XCTAssertEqual(Format.of(fileExtensions: ["webp"]), .webp)
+        XCTAssertEqual(Format.of(mediaTypes: ["image/webp"]), .webp)
     }
 
     func testSniffWebPub() {
-        XCTAssertEqual(Format.of(fileExtensions: ["webpub"]), .WebPub)
-        XCTAssertEqual(Format.of(mediaTypes: ["application/webpub+zip"]), .WebPub)
-        XCTAssertEqual(Format.of(fixtures.url(for: "webpub-package.unknown")), .WebPub)
+        XCTAssertEqual(Format.of(fileExtensions: ["webpub"]), .webpub)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/webpub+zip"]), .webpub)
+        XCTAssertEqual(Format.of(fixtures.url(for: "webpub-package.unknown")), .webpub)
     }
     
     func testSniffWebPubManifest() {
-        XCTAssertEqual(Format.of(mediaTypes: ["application/webpub+json"]), .WebPubManifest)
-        XCTAssertEqual(Format.of(fixtures.url(for: "webpub.json")), .WebPubManifest)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/webpub+json"]), .webpubManifest)
+        XCTAssertEqual(Format.of(fixtures.url(for: "webpub.json")), .webpubManifest)
     }
     
     func testSniffW3CWPUBManifest() {
-        XCTAssertEqual(Format.of(fixtures.url(for: "w3c-wpub.json")), .W3CWPUBManifest)
+        XCTAssertEqual(Format.of(fixtures.url(for: "w3c-wpub.json")), .w3cWPUBManifest)
     }
     
     func testSniffZAB() {
-        XCTAssertEqual(Format.of(fileExtensions: ["zab"]), .ZAB)
-        XCTAssertEqual(Format.of(fixtures.url(for: "zab.unknown")), .ZAB)
+        XCTAssertEqual(Format.of(fileExtensions: ["zab"]), .zab)
+        XCTAssertEqual(Format.of(fixtures.url(for: "zab.unknown")), .zab)
     }
 
 }

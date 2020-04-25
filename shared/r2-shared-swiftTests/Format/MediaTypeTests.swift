@@ -204,12 +204,12 @@ class MediaTypeTests: XCTestCase {
     }
     
     func testPatternMatch() {
-        let mediaType: MediaType? = .JSON
-        XCTAssertTrue(.JSON ~= mediaType)
-        XCTAssertTrue(.JSON ~= MediaType("application/json")!)
-        XCTAssertTrue(.JSON ~= MediaType("application/json;charset=utf-8")!)
-        XCTAssertFalse(.JSON ~= MediaType("application/opds+json")!)
-        XCTAssertFalse(MediaType.JSON ~= nil)
+        let mediaType: MediaType? = .json
+        XCTAssertTrue(.json ~= mediaType)
+        XCTAssertTrue(.json ~= MediaType("application/json")!)
+        XCTAssertTrue(.json ~= MediaType("application/json;charset=utf-8")!)
+        XCTAssertFalse(.json ~= MediaType("application/opds+json")!)
+        XCTAssertFalse(MediaType.json ~= nil)
     }
 
     func testPatternMatchEqualMediaType() {

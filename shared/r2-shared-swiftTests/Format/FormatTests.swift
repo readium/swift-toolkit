@@ -16,12 +16,12 @@ class FormatTests: XCTestCase {
 
     func testEqualsChecksOnlyMediaType() {
         XCTAssertEqual(
-            Format(name: "A", mediaType: MediaType.PNG, fileExtension: "a"),
-            Format(name: "B", mediaType: MediaType.PNG, fileExtension: "b")
+            Format(name: "A", mediaType: MediaType.png, fileExtension: "a"),
+            Format(name: "B", mediaType: MediaType.png, fileExtension: "b")
         )
         XCTAssertNotEqual(
-            Format(name: "A", mediaType: MediaType.PNG, fileExtension: "a"),
-            Format(name: "A", mediaType: MediaType.JPEG, fileExtension: "a")
+            Format(name: "A", mediaType: MediaType.png, fileExtension: "a"),
+            Format(name: "A", mediaType: MediaType.jpeg, fileExtension: "a")
         )
     }
 
