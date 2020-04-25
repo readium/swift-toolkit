@@ -41,6 +41,17 @@ public struct MediaType: Equatable, Hashable {
         return "\(type)/\(subtype)\(params.isEmpty ? "" : ";\(params)")"
     }
     
+    /// Structured syntax suffix, e.g. `+zip` in `application/epub+zip`
+    ///
+    /// Gives a hint on the underlying structure of this media type.
+    /// See. https://tools.ietf.org/html/rfc6838#section-4.2.8
+    public var structuredSyntaxSuffix: String? {
+        let parts = subtype.split(separator: "+", omittingEmptySubsequences: true)
+        return (parts.count > 1)
+            ? "+\(parts.last!)"
+            : nil
+    }
+    
     /// Encoding as declared in the `charset` parameter, if there's any.
     public var encoding: String.Encoding? {
         parameters["charset"].flatMap { String.Encoding(charset: $0) }
@@ -125,6 +136,20 @@ public struct MediaType: Equatable, Hashable {
     /// Returns whether this media type is included in the provided `other` media type.
     public func isPartOf(_ other: String?) -> Bool {
         return other.flatMap(MediaType.init)?.contains(self) ?? false
+    }
+    
+    /// Returns whether this media type is structured as a ZIP archive.
+    public var isZIP: Bool {
+        return isPartOf(.zip)
+            || isPartOf(.lcpProtectedAudiobook)
+            || isPartOf(.lcpProtectedPDF)
+            || structuredSyntaxSuffix == "+zip"
+    }
+    
+    /// Returns whether this media type is structured as a JSON file.
+    public var isJSON: Bool {
+        return isPartOf(.json)
+            || structuredSyntaxSuffix == "+json"
     }
 
     /// Returns whether this media type is of an OPDS feed.

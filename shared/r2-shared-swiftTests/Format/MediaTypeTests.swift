@@ -82,6 +82,13 @@ class MediaTypeTests: XCTestCase {
         )
     }
     
+    func testGetStructuredSyntaxSuffix() {
+        XCTAssertNil(MediaType("foo/bar")!.structuredSyntaxSuffix)
+        XCTAssertNil(MediaType("application/zip")!.structuredSyntaxSuffix)
+        XCTAssertEqual(MediaType("application/epub+zip")!.structuredSyntaxSuffix, "+zip")
+        XCTAssertEqual(MediaType("foo/bar+json+zip")!.structuredSyntaxSuffix, "+zip")
+    }
+    
     func testGetEncoding() {
         XCTAssertNil(MediaType("text/html")!.encoding)
         XCTAssertEqual(MediaType("text/html;charset=utf-8")!.encoding, .utf8)
@@ -245,6 +252,23 @@ class MediaTypeTests: XCTestCase {
             ~= MediaType("text/html;charset=utf-8")!)
         XCTAssertFalse(MediaType("text/*")!
             ~= MediaType("application/zip")!)
+    }
+
+    func testIsZIP() {
+        XCTAssertFalse(MediaType("text/plain")!.isZIP)
+        XCTAssertTrue(MediaType("application/zip")!.isZIP)
+        XCTAssertTrue(MediaType("application/zip;charset=utf-8")!.isZIP)
+        XCTAssertTrue(MediaType("application/epub+zip")!.isZIP)
+        // These media types must be explicitely matched since they don't have any ZIP hint
+        XCTAssertTrue(MediaType("application/audiobook+lcp")!.isZIP)
+        XCTAssertTrue(MediaType("application/pdf+lcp")!.isZIP)
+    }
+
+    func testIsJSON() {
+        XCTAssertFalse(MediaType("text/plain")!.isJSON)
+        XCTAssertTrue(MediaType("application/json")!.isJSON)
+        XCTAssertTrue(MediaType("application/json;charset=utf-8")!.isJSON)
+        XCTAssertTrue(MediaType("application/opds+json")!.isJSON)
     }
 
     func testIsOPDS() {
