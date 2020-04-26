@@ -44,7 +44,7 @@ class FormatSnifferTests: XCTestCase {
     }
 
     func testSniffUnknownFormat() {
-        XCTAssertNil(Format.of(mediaTypes: ["text/plain"]))
+        XCTAssertNil(Format.of(mediaTypes: ["unknown/type"]))
         XCTAssertNil(Format.of(fixtures.url(for: "unknown")))
     }
     
@@ -204,6 +204,20 @@ class FormatSnifferTests: XCTestCase {
     func testSniffZAB() {
         XCTAssertEqual(Format.of(fileExtensions: ["zab"]), .zab)
         XCTAssertEqual(Format.of(fixtures.url(for: "zab.unknown")), .zab)
+    }
+    
+    func testSniffSystemUTI() {
+        let css = Format(name: "CSS", mediaType: MediaType("text/css")!, fileExtension: "css")
+        XCTAssertEqual(Format.of(fileExtensions: ["css"]), css)
+        XCTAssertEqual(Format.of(mediaTypes: ["text/css"]), css)
+        
+        let xlsx = Format(
+            name: "Office Open XML spreadsheet",
+            mediaType: MediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")!,
+            fileExtension: "xlsx"
+        )
+        XCTAssertEqual(Format.of(fileExtensions: ["xlsx"]), xlsx)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"]), xlsx)
     }
 
 }

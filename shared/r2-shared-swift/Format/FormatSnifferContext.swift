@@ -24,10 +24,10 @@ public final class FormatSnifferContext {
     // MARK: Metadata
 
     /// Media type hints.
-    private let mediaTypes: [MediaType]
+    let mediaTypes: [MediaType]
     
     /// File extension hints.
-    private let fileExtensions: [String]
+    let fileExtensions: [String]
 
     /// Finds the first `Encoding` declared in the media types' `charset` parameter.
     public lazy var encoding: String.Encoding? =

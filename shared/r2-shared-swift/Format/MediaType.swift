@@ -58,6 +58,10 @@ public struct MediaType: Equatable, Hashable {
     }
 
     public init?(_ string: String) {
+        guard !string.isEmpty else {
+            return nil
+        }
+        
         // Grammar: https://tools.ietf.org/html/rfc2045#section-5.1
         let components = string.split(separator: ";")
             .map { $0.trimmingCharacters(in: .whitespaces) }

@@ -75,6 +75,8 @@
 		CA6D426D240439F4002FBED4 /* OPDSCopiesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D426C240439F4002FBED4 /* OPDSCopiesTests.swift */; };
 		CA6D426F24043A44002FBED4 /* OPDSAvailability.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D426E24043A44002FBED4 /* OPDSAvailability.swift */; };
 		CA6D427124043AF1002FBED4 /* OPDSAvailabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D427024043AF1002FBED4 /* OPDSAvailabilityTests.swift */; };
+		CA7116EF2455935100C029FD /* DocumentTypesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7116EE2455935100C029FD /* DocumentTypesTests.swift */; };
+		CA7116F12455FAF900C029FD /* UTI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7116F02455FAF900C029FD /* UTI.swift */; };
 		CA86728E24485BE70035FDF4 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA86728D24485BE70035FDF4 /* CoreServices.framework */; };
 		CA94291622BCD08C00305CDB /* ResourcesServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA94291522BCD08B00305CDB /* ResourcesServer.swift */; };
 		CA9A40D1221B0AA200531EA1 /* Either.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D0221B0AA200531EA1 /* Either.swift */; };
@@ -208,6 +210,8 @@
 		CA6D426C240439F4002FBED4 /* OPDSCopiesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSCopiesTests.swift; sourceTree = "<group>"; };
 		CA6D426E24043A44002FBED4 /* OPDSAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSAvailability.swift; sourceTree = "<group>"; };
 		CA6D427024043AF1002FBED4 /* OPDSAvailabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSAvailabilityTests.swift; sourceTree = "<group>"; };
+		CA7116EE2455935100C029FD /* DocumentTypesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentTypesTests.swift; sourceTree = "<group>"; };
+		CA7116F02455FAF900C029FD /* UTI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UTI.swift; sourceTree = "<group>"; };
 		CA86728D24485BE70035FDF4 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		CA94291522BCD08B00305CDB /* ResourcesServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourcesServer.swift; sourceTree = "<group>"; };
 		CA9A40D0221B0AA200531EA1 /* Either.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Either.swift; sourceTree = "<group>"; };
@@ -286,6 +290,7 @@
 				CA50B86D22B2A1CF003AFF24 /* R2LocalizedString.swift */,
 				CA94291522BCD08B00305CDB /* ResourcesServer.swift */,
 				CADD69E122C3B17500A4CADF /* DocumentTypes.swift */,
+				CA7116F02455FAF900C029FD /* UTI.swift */,
 			);
 			path = Toolkit;
 			sourceTree = "<group>";
@@ -372,6 +377,7 @@
 			isa = PBXGroup;
 			children = (
 				CA252DDF2447A5B40005067C /* ZIP */,
+				CA7116EE2455935100C029FD /* DocumentTypesTests.swift */,
 			);
 			path = Toolkit;
 			sourceTree = "<group>";
@@ -796,6 +802,7 @@
 				CA6D427124043AF1002FBED4 /* OPDSAvailabilityTests.swift in Sources */,
 				CA176381223A7DB700959FEB /* Publication+OPDSTests.swift in Sources */,
 				CA16A86E2232F7AC00E66255 /* LinkTests.swift in Sources */,
+				CA7116EF2455935100C029FD /* DocumentTypesTests.swift in Sources */,
 				CA5F8F0124041BA700926120 /* Properties+PresentationTests.swift in Sources */,
 				CA252DE12447A5C00005067C /* ZIPTests.swift in Sources */,
 				CA3386F024056E7A00FDCBBA /* Locator+HTMLTests.swift in Sources */,
@@ -855,6 +862,7 @@
 				CA16A8722232FBBB00E66255 /* Properties.swift in Sources */,
 				CA176392223AAC1A00959FEB /* UserSettings.swift in Sources */,
 				CAD0FEC2244310BB0053C998 /* Array.swift in Sources */,
+				CA7116F12455FAF900C029FD /* UTI.swift in Sources */,
 				CACD75F32236B0A5004F20CA /* PublicationCollection.swift in Sources */,
 				CA50B86E22B2A1CF003AFF24 /* R2LocalizedString.swift in Sources */,
 				CA6D42672404370C002FBED4 /* OPDSHolds.swift in Sources */,

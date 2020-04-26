@@ -9,6 +9,7 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
+import CoreServices
 import Foundation
 import Fuzi
 
@@ -68,7 +69,12 @@ public extension Format {
             }
         }
         
-        return nil
+        // Falls back on the Document Types registered in the reading app, or on system-wide UTIs.
+        // Note: This is done after the heavy sniffing of the provided `sniffers`, because otherwise
+        // the Document Types or system UTI will detect JSON, XML or ZIP formats before we have a
+        // chance of sniffing their content (for example, for RWPM).
+        return sniffDocumentTypes(context)
+            ?? sniffUTIs(context)
     }
     
     
@@ -80,7 +86,7 @@ public extension Format {
     /// The sniffers order is important, because some formats are subsets of other formats.
     static var sniffers: [Sniffer] = [
         sniffHTML, sniffOPDS1, sniffOPDS2, sniffLCPLicense, sniffBitmap,
-        sniffWebPub, sniffW3CWPUB, sniffEPUB, sniffLPF, sniffZIP, sniffPDF,
+        sniffWebPub, sniffW3CWPUB, sniffEPUB, sniffLPF, sniffZIP, sniffPDF
     ]
 
     /// Sniffs an HTML document.
@@ -257,11 +263,16 @@ public extension Format {
         return nil
     }
 
-    /// Authorized extensions for CBZ
+    /// Authorized extensions for resources in a CBZ archive.
     /// Reference: https://wiki.mobileread.com/wiki/CBR_and_CBZ
-    private static let cbzExtensions = ["acbf", "bmp", "dib", "gif", "jif", "jfi", "jfif", "jpg", "jpeg", "png", "tif", "tiff", "webp", "xml"]
+    private static let cbzExtensions = [
+        // bitmap
+        "bmp", "dib", "gif", "jif", "jfi", "jfif", "jpg", "jpeg", "png", "tif", "tiff", "webp",
+        // metadata
+        "acbf", "xml"
+    ]
     
-    /// Authorized extensions for ZAB (Zipped Audio Book)
+    /// Authorized extensions for resources in a ZAB archive (Zipped Audio Book).
     private static let zabExtensions = [
         // audio
         "aac", "aiff", "alac", "flac", "m4a", "m4b", "mp3", "ogg", "oga", "mogg", "opus", "wav", "webm",
@@ -335,6 +346,80 @@ public extension Format {
             return .webp
         }
         return nil
+    }
+    
+    /// Sniffs the formats declared in the Document Types section of the app's `Info.plist`.
+    private static func sniffDocumentTypes(_ context: FormatSnifferContext) -> Format? {
+        func sniff(_ documentType: DocumentType) -> Format? {
+            guard let format = documentType.format else {
+                return nil
+            }
+            
+            for mediaType in documentType.mediaTypes {
+                if context.hasMediaType(mediaType.string) {
+                    return format
+                }
+            }
+            
+            for fileExtension in documentType.fileExtensions {
+                if context.hasFileExtension(fileExtension) {
+                    return format
+                }
+            }
+            
+            return nil
+        }
+
+        for type in DocumentTypes.main.all {
+            if let format = sniff(type) {
+                return format
+            }
+        }
+        
+        return nil
+    }
+    
+    /// Sniffs the Uniform Type Identifiers registered on the system.
+    private static func sniffUTIs(_ context: FormatSnifferContext) -> Format? {
+        guard let uti = UTI.findFrom(mediaTypes: context.mediaTypes, fileExtensions: context.fileExtensions),
+            let name = uti.name,
+            let mediaType = uti.preferredTag(withClass: .mediaType).flatMap(MediaType.init),
+            let fileExtension = uti.preferredTag(withClass: .fileExtension) else
+        {
+            return nil
+        }
+        
+        return Format(name: name, mediaType: mediaType, fileExtension: fileExtension)
+    }
+
+}
+
+public extension URLResponse {
+
+    /// Resolves the format for this `URLResponse`, with optional extra file extension and media
+    /// type hints.
+    func sniffFormat(data: (() -> Data)? = nil, mediaTypes: [String] = [], fileExtensions: [String] = [], sniffers: [Format.Sniffer] = Format.sniffers) -> Format? {
+        var mediaTypes = mediaTypes
+        // The value of the `Content-Type` HTTP header.
+        if let mimeType = mimeType {
+            mediaTypes.insert(mimeType, at: 0)
+        }
+        
+        var fileExtensions = fileExtensions
+        // The URL file extension.
+        if let urlExtension = url?.pathExtension {
+            fileExtensions.insert(urlExtension, at: 0)
+        }
+        // The suggested filename extension, part of the HTTP header `Content-Disposition`.
+        if let suggestedFileExtension = suggestedFilename.map(URL.init(fileURLWithPath:))?.pathExtension {
+            fileExtensions.insert(suggestedFileExtension, at: 0)
+        }
+        
+        if let data = data {
+            return Format.of({ data() }, mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
+        } else {
+            return Format.of(mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
+        }
     }
 
 }
