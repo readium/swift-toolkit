@@ -33,6 +33,13 @@ class ReaderViewController: UIViewController, Loggable {
     private(set) var stackView: UIStackView!
     private lazy var positionLabel = UILabel()
     
+    /// This regex matches any string with at least 2 consecutive letters (not limited to ASCII).
+    /// It's used when evaluating whether to display the body of a noteref referrer as the note's title.
+    /// I.e. a `*` or `1` would not be used as a title, but `on` or `好書` would.
+    private static var noterefTitleRegex: NSRegularExpression = {
+        return try! NSRegularExpression(pattern: "[\\p{Ll}\\p{Lu}\\p{Lt}\\p{Lo}]{2}")
+    }()
+    
     init(navigator: UIViewController & Navigator, publication: Publication, book: Book, drm: DRM?) {
         self.navigator = navigator
         self.publication = publication
@@ -275,7 +282,7 @@ extension ReaderViewController: NavigatorDelegate {
         if let t = title {
             title = try? clean(t, .none())
         }
-        if title == "*" {
+        if !suitableTitle(title) {
             title = nil
         }
         
@@ -307,6 +314,14 @@ extension ReaderViewController: NavigatorDelegate {
         self.present(nav, animated: true, completion: nil)
         
         return false
+    }
+    
+    /// Checks to ensure the title is non-nil and contains at least 2 letters.
+    func suitableTitle(_ title: String?) -> Bool {
+        guard let title = title else { return false }
+        let range = NSRange(location: 0, length: title.utf16.count)
+        let match = ReaderViewController.noterefTitleRegex.firstMatch(in: title, range: range)
+        return match != nil
     }
     
 }
