@@ -148,7 +148,7 @@ class LibraryViewController: UIViewController, Loggable {
     }
     
     private func addBookFromDevice() {
-        var utis = DocumentTypes.utis
+        var utis = DocumentTypes.main.supportedUTIs
         utis.append(String(kUTTypeText))
         let documentPicker = UIDocumentPickerViewController(documentTypes: utis, in: .import)
         documentPicker.delegate = self
