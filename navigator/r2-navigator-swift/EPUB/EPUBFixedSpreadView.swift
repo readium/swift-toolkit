@@ -81,10 +81,9 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         """)
     }
     
-    override func pointFromTap(_ data: [String : Any]) -> CGPoint? {
-        guard let x = data["screenX"] as? Int, let y = data["screenY"] as? Int else {
-            return nil
-        }
+    override func pointFromTap(_ data: TapData) -> CGPoint? {
+        let x = data.screenX
+        let y = data.screenY
 
         return CGPoint(
             x: CGFloat(x) * scrollView.zoomScale - scrollView.contentOffset.x + webView.frame.minX,

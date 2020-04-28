@@ -108,10 +108,9 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         }
     }
     
-    override func pointFromTap(_ data: [String : Any]) -> CGPoint? {
-        guard let x = data["clientX"] as? Int, let y = data["clientY"] as? Int else {
-            return nil
-        }
+    override func pointFromTap(_ data: TapData) -> CGPoint? {
+        let x = data.clientX
+        let y = data.clientY
         
         var point = CGPoint(x: x, y: y)
         if isScrollEnabled {

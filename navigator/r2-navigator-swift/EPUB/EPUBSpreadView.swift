@@ -11,6 +11,7 @@
 
 import WebKit
 import R2Shared
+import SwiftSoup
 
 
 protocol EPUBSpreadViewDelegate: class {
@@ -27,7 +28,7 @@ protocol EPUBSpreadViewDelegate: class {
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnExternalURL url: URL)
     
     /// Called when the user tapped on an internal link.
-    func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String)
+    func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, tapData: TapData?)
     
     /// Called when the pages visible in the spread changed.
     func spreadViewPagesDidChange(_ spreadView: EPUBSpreadView)
@@ -50,6 +51,8 @@ class EPUBSpreadView: UIView, Loggable {
     let readingProgression: ReadingProgression
     let userSettings: UserSettings
     let editingActions: EditingActionsController
+    
+    private var lastTap: TapData? = nil
 
     /// If YES, the content will be faded in once loaded.
     let animatedLoad: Bool
@@ -193,18 +196,26 @@ class EPUBSpreadView: UIView, Loggable {
     }
   
     /// Called from the JS code when a tap is detected.
-    private func didTap(_ body: Any) {
-        guard let body = body as? [String: Any],
-            let point = pointFromTap(body) else
-        {
-            return
+    /// If the JS indicates the tap is being handled within the webview, don't take action,
+    /// just save the tap data for use by webView(_ webView:decidePolicyFor:decisionHandler:)
+    private func didTap(_ data: Any) {
+        let tapData = TapData(data: data)
+        lastTap = tapData
+        
+        guard !tapData.defaultPrevented else { return }
+        if let interactive = tapData.interactiveElement {
+            let isNoteref = (try? parse(interactive).select("a[epub:type=noteref]").first()) == nil
+            if !isNoteref {
+                return
+            }
         }
-
+        
+        guard let point = pointFromTap(tapData) else { return }
         delegate?.spreadView(self, didTapAt: point)
     }
     
     /// Converts the touch data returned by the JavaScript `tap` event into a point in the webview's coordinate space.
-    func pointFromTap(_ data: [String: Any]) -> CGPoint? {
+    func pointFromTap(_ data: TapData) -> CGPoint? {
         // To override in subclasses.
         return nil
     }
@@ -423,7 +434,7 @@ extension EPUBSpreadView: WKNavigationDelegate {
                 // Check if url is internal or external
                 if let baseURL = publication.baseURL, url.host == baseURL.host {
                     let href = url.absoluteString.replacingOccurrences(of: baseURL.absoluteString, with: "/")
-                    delegate?.spreadView(self, didTapOnInternalLink: href)
+                    delegate?.spreadView(self, didTapOnInternalLink: href, tapData: self.lastTap)
                 } else {
                     delegate?.spreadView(self, didTapOnExternalURL: url)
                 }
@@ -503,4 +514,29 @@ private extension EPUBSpreadView {
         activityIndicatorView = view
     }
 
+}
+
+/// Produced by gestures.js
+struct TapData {
+    let defaultPrevented: Bool
+    let screenX: Int
+    let screenY: Int
+    let clientX: Int
+    let clientY: Int
+    let targetElement: String
+    let interactiveElement: String?
+    
+    init(dict: [String: Any]) {
+        self.defaultPrevented = dict["defaultPrevented"] as? Bool ?? false
+        self.screenX = dict["screenX"] as? Int ?? 0
+        self.screenY = dict["screenY"] as? Int ?? 0
+        self.clientX = dict["clientX"] as? Int ?? 0
+        self.clientY = dict["clientY"] as? Int ?? 0
+        self.targetElement = dict["targetElement"] as? String ?? ""
+        self.interactiveElement = dict["interactiveElement"] as? String
+    }
+    
+    init(data: Any) {
+        self.init(dict: data as? [String: Any] ?? [String: Any]())
+    }
 }
