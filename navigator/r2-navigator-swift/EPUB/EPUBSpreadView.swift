@@ -202,16 +202,12 @@ class EPUBSpreadView: UIView, Loggable {
         let tapData = TapData(data: data)
         lastTap = tapData
         
-        guard !tapData.defaultPrevented else { return }
-        if let interactive = tapData.interactiveElement {
-            let isNoteref = (try? parse(interactive).select("a[epub:type=noteref]").first()) == nil
-            if !isNoteref {
-                return
-            }
+        // Ignores taps on interactive elements, or if the script prevents the default behavior.
+        if !tapData.defaultPrevented && tapData.interactiveElement == nil,
+            let point = pointFromTap(tapData)
+        {
+            delegate?.spreadView(self, didTapAt: point)
         }
-        
-        guard let point = pointFromTap(tapData) else { return }
-        delegate?.spreadView(self, didTapAt: point)
     }
     
     /// Converts the touch data returned by the JavaScript `tap` event into a point in the webview's coordinate space.
