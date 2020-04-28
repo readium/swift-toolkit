@@ -11,6 +11,8 @@
 
 import Foundation
 
+// FIXME: ZIP and XML capabilities are internal for now, until the API of ZIPArchive and XMLDocument is stable.
+
 /// A companion type of `Format.Sniffer` holding the type hints (file extensions, media types) and
 /// providing an access to the file content.
 public final class FormatSnifferContext {
@@ -70,12 +72,12 @@ public final class FormatSnifferContext {
         .flatMap { String(data: $0, encoding: encoding ?? .utf8) }
 
     /// Content as an XML document.
-    public lazy var contentAsXML: XMLDocument? = contentAsString
+    lazy var contentAsXML: XMLDocument? = contentAsString
         .flatMap { FuziXMLDocument(string: $0) }
 
     /// Content as a ZIP archive.
     /// Warning: ZIP is only supported for a local file, for now.
-    public lazy var contentAsZIP: ZIPArchive? = (content as? FormatSnifferFileContent)
+    lazy var contentAsZIP: ZIPArchive? = (content as? FormatSnifferFileContent)
         .flatMap { try? MinizipArchive(file: $0.file) }
 
     /// Content parsed from JSON.

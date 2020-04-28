@@ -11,7 +11,7 @@
 
 import Foundation
 
-public enum ZIPError: Error {
+enum ZIPError: Error {
     /// The provided password was incorrect.
     case invalidPassword
     /// Impossible to open the given ZIP archive.
@@ -21,7 +21,7 @@ public enum ZIPError: Error {
 }
 
 /// Holds a ZIP entry's metadata.
-public struct ZIPEntry: Equatable {
+struct ZIPEntry: Equatable {
     
     /// Absolute path to the entry in the archive.
     let path: String
@@ -40,7 +40,7 @@ public struct ZIPEntry: Equatable {
 }
 
 /// Represents an immutable ZIP archive.
-public protocol ZIPArchive {
+protocol ZIPArchive {
     
     /// Creates a ZIP archive from a file URL.
     /// 
@@ -62,7 +62,7 @@ public protocol ZIPArchive {
 
 }
 
-public extension ZIPArchive {
+extension ZIPArchive {
     
     /// Creates a ZIP archive from a file URL.
     init(file: URL) throws {
@@ -72,7 +72,7 @@ public extension ZIPArchive {
 }
 
 /// A ZIP archive which can modify its entries.
-public protocol MutableZIPArchive: ZIPArchive {
+protocol MutableZIPArchive: ZIPArchive {
 
     /// Replaces (or adds) a file entry in the ZIP archive.
     ///

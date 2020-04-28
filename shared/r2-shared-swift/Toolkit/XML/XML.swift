@@ -12,9 +12,9 @@
 import Foundation
 import Fuzi
 
-public typealias XMLNamespace = (prefix: String, uri: String)
+typealias XMLNamespace = (prefix: String, uri: String)
 
-public protocol XMLNode {
+protocol XMLNode {
     
     /// Concatenated string content of all descendants.
     var textContent: String? { get }
@@ -27,7 +27,7 @@ public protocol XMLNode {
     
 }
 
-public extension XMLNode {
+extension XMLNode {
     
     func first(_ xpath: String) -> XMLElement? {
         return first(xpath, with: [])
@@ -39,7 +39,7 @@ public extension XMLNode {
     
 }
 
-public protocol XMLDocument: XMLNode {
+protocol XMLDocument: XMLNode {
 
     /// Creates an `XMLDocument`.
     ///
@@ -53,7 +53,7 @@ public protocol XMLDocument: XMLNode {
 
 }
 
-public extension XMLDocument {
+extension XMLDocument {
     
     init?(string: String) {
         self.init(string: string, namespaces: [])
@@ -61,7 +61,7 @@ public extension XMLDocument {
     
 }
 
-public protocol XMLElement: XMLNode {
+protocol XMLElement: XMLNode {
 
     /// Returns the element tag name without its prefix, and with the original case.
     /// You should uppercase/lowercase it to perform comparisons.
