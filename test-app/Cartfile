@@ -10,3 +10,4 @@ github "readium/r2-shared-swift" == 1.4.3
 github "readium/r2-streamer-swift" == 1.2.5
 github "readium/r2-navigator-swift" == 1.2.6
 github "readium/readium-opds-swift" == 1.2.3
+github "scinfu/SwiftSoup" == 2.3.1

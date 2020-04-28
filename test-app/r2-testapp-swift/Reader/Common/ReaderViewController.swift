@@ -14,6 +14,8 @@ import SafariServices
 import UIKit
 import R2Navigator
 import R2Shared
+import SwiftSoup
+import WebKit
 
 
 /// This class is meant to be subclassed by each publication format view controller. It contains the shared behavior, eg. navigation bar toggling.
@@ -30,6 +32,13 @@ class ReaderViewController: UIViewController, Loggable {
     
     private(set) var stackView: UIStackView!
     private lazy var positionLabel = UILabel()
+    
+    /// This regex matches any string with at least 2 consecutive letters (not limited to ASCII).
+    /// It's used when evaluating whether to display the body of a noteref referrer as the note's title.
+    /// I.e. a `*` or `1` would not be used as a title, but `on` or `好書` would.
+    private static var noterefTitleRegex: NSRegularExpression = {
+        return try! NSRegularExpression(pattern: "[\\p{Ll}\\p{Lu}\\p{Lt}\\p{Lo}]{2}")
+    }()
     
     init(navigator: UIViewController & Navigator, publication: Publication, book: Book, drm: DRM?) {
         self.navigator = navigator
@@ -192,7 +201,7 @@ class ReaderViewController: UIViewController, Loggable {
     }()
     
     private lazy var accessibilityToolbar: UIToolbar = {
-        func makeItem(_ item: UIBarButtonItem.SystemItem, label: String? = nil, action: Selector? = nil) -> UIBarButtonItem {
+        func makeItem(_ item: UIBarButtonItem.SystemItem, label: String? = nil, action: UIKit.Selector? = nil) -> UIBarButtonItem {
             let button = UIBarButtonItem(barButtonSystemItem: item, target: (action != nil) ? self : nil, action: action)
             button.accessibilityLabel = label
             return button
@@ -267,6 +276,54 @@ extension ReaderViewController: NavigatorDelegate {
         moduleDelegate?.presentError(error, from: self)
     }
     
+    func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: Link, content: String, referrer: String?) -> Bool {
+        
+        var title = referrer
+        if let t = title {
+            title = try? clean(t, .none())
+        }
+        if !suitableTitle(title) {
+            title = nil
+        }
+        
+        let content = (try? clean(content, .none())) ?? ""
+        let page =
+        """
+        <html>
+            <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body>
+                \(content)
+            </body>
+        </html>
+        """
+        
+        let wk = WKWebView()
+        wk.loadHTMLString(page, baseURL: nil)
+        
+        let vc = UIViewController()
+        vc.view = wk
+        vc.navigationItem.title = title
+        vc.navigationItem.leftBarButtonItem = BarButtonItem(barButtonSystemItem: .done, actionHandler: { (item) in
+            vc.dismiss(animated: true, completion: nil)
+        })
+        
+        let nav = UINavigationController(rootViewController: vc)
+        nav.modalPresentationStyle = .formSheet
+        self.present(nav, animated: true, completion: nil)
+        
+        return false
+    }
+    
+    /// Checks to ensure the title is non-nil and contains at least 2 letters.
+    func suitableTitle(_ title: String?) -> Bool {
+        guard let title = title else { return false }
+        let range = NSRange(location: 0, length: title.utf16.count)
+        let match = ReaderViewController.noterefTitleRegex.firstMatch(in: title, range: range)
+        return match != nil
+    }
+    
 }
 
 extension ReaderViewController: VisualNavigatorDelegate {
@@ -295,4 +352,32 @@ extension ReaderViewController: OutlineTableViewControllerDelegate {
         navigator.go(to: location)
     }
 
+}
+
+class BarButtonItem: UIBarButtonItem {
+    typealias ActionFunc = (UIBarButtonItem) -> Void
+
+    private var actionFunc: ActionFunc?
+
+    convenience init(title: String?, style: UIBarButtonItem.Style, actionHandler: ActionFunc?) {
+        self.init(title: title, style: style, target: nil, action: #selector(handlePress))
+        target = self
+        self.actionFunc = actionHandler
+    }
+
+    convenience init(image: UIImage?, style: UIBarButtonItem.Style, actionFunc: ActionFunc?) {
+        self.init(image: image, style: style, target: nil, action: #selector(handlePress))
+        target = self
+        self.actionFunc = actionFunc
+    }
+
+    convenience init(barButtonSystemItem systemItem: UIBarButtonItem.SystemItem, actionHandler: ActionFunc?) {
+        self.init(barButtonSystemItem: systemItem, target: nil, action: #selector(handlePress))
+        target = self
+        self.actionFunc = actionHandler
+    }
+
+    @objc func handlePress(sender: UIBarButtonItem) {
+        actionFunc?(sender)
+    }
 }
