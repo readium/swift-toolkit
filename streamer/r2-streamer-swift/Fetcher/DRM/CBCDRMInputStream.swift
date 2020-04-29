@@ -118,7 +118,7 @@ final class CBCDRMInputStream: DRMInputStream {
         }
         
         // TODO: Double check if there is a different way to remove padding from HTML resources only.
-        if (link.type == "application/xhtml+xml") {
+        if link.mediaType?.isHTML == true {
           let padding = Int(data[data.count - 1])
           data = data.subdata(in: Range(uncheckedBounds: (0, data.count - padding)))
         }

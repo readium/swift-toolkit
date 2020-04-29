@@ -22,28 +22,6 @@ public enum CBZParserError: Error {
 @available(*, deprecated, renamed: "CBZParserError")
 public typealias CbzParserError = CBZParserError
 
-/// CBZ related constants.
-struct CBZConstant {
-    public static let mimetype = "application/vnd.comicbook+zip"
-}
-
-public enum MediaType: String {
-    case jpeg = "image/jpeg"
-    case png = "image/png"
-    
-    init?(filename: String) {
-        switch filename.pathExtension.lowercased() {
-        case "jpg", "jpeg":
-            self = .jpeg
-        case "png":
-            self = .png
-        default:
-            return nil
-        }
-    }
-    
-}
-
 /// CBZ publication parsing class.
 public class CbzParser: PublicationParser {
 
@@ -84,12 +62,14 @@ public class CbzParser: PublicationParser {
             ),
             readingOrder: container.files
                 .compactMap { filename in
-                    guard let mediaType = MediaType(filename: filename) else {
+                    guard let format = Format.of(fileExtensions: [filename.pathExtension]),
+                        format.mediaType.isBitmap else
+                    {
                         return nil
                     }
                     return Link(
                         href: normalize(base: container.rootFile.rootFilePath, href: filename),
-                        type: mediaType.rawValue
+                        type: format.mediaType.string
                     )
                 }
         )

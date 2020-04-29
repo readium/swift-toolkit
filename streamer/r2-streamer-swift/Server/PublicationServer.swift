@@ -207,7 +207,7 @@ public class PublicationServer: ResourcesServer {
             guard let manifestData = publication.manifest else {
                 return GCDWebServerResponse(statusCode: 404)
             }
-            let type = "application/webpub+json; charset=utf-8"
+            let type = "\(MediaType.webpubManifest.string); charset=utf-8"
             return GCDWebServerDataResponse(data: manifestData, contentType: type)
         }
         webServer.addHandler(
@@ -309,9 +309,12 @@ public class PublicationServer: ResourcesServer {
             return GCDWebServerResponse(statusCode: 404)
         }
         
-        let contentType = DocumentTypes.contentType(for: file) ?? "application/octet-stream"
+        let contentType = Format.of(file)?.mediaType.string
+            ?? "application/octet-stream"
 
 //        log(.debug, "Serve resource `\(path)` (\(contentType))")
+        
+        assert(file.pathExtension.lowercased() != "css" || contentType == "text/css")
         return GCDWebServerDataResponse(data: data, contentType: contentType)
     }
     

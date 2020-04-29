@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import R2Shared
 
 
 /// Specializing the `Container` for CBZ publications.
@@ -24,7 +25,7 @@ protocol CBZContainer: Container {
 final class CBZArchiveContainer: ArchiveContainer, CBZContainer {
     
     init?(path: String) {
-        super.init(path: path, mimetype: CBZConstant.mimetype)
+        super.init(path: path, mimetype: MediaType.cbz.string)
         
         do {
             try archive.buildFilesList()
@@ -48,7 +49,7 @@ final class CBZArchiveContainer: ArchiveContainer, CBZContainer {
 final class CBZDirectoryContainer: DirectoryContainer, CBZContainer {
     
     init?(directory: String) {
-        super.init(directory: directory, mimetype: CBZConstant.mimetype)
+        super.init(directory: directory, mimetype: MediaType.cbz.string)
     }
     
     var files: [String] {

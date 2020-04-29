@@ -13,32 +13,31 @@ import Foundation
 import R2Shared
 
 public enum ReadiumParserError: Error {
-    case parseFailure(url: URL, Error)
+    case parseFailure(url: URL, Error?)
     case missingFile(path: String)
 }
 
 /// Parser for a Readium Web Publication (packaged, or as a manifest).
-public class ReadiumParser: PublicationParser {
+public class ReadiumParser: PublicationParser, Loggable {
     
-    private static let webpubMediaType = "application/webpub+zip"
-    private static let webpubManifestMediaType = "application/webpub+json"
-    private static let audiobookMediaType = "application/audiobook+json"
-    private static let audiobookManifestMediaType = "application/audiobook+json"
-    private static let lcpProtectedAudiobookMediaType = "application/audiobook+lcp"
-
     public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        if url.isFileURL && !["json", "audiobook-manifest"].contains(url.pathExtension.lowercased()) {
-            return try parsePackage(at: url)
+        guard let format = Format.of(url) else {
+            log(.error, "Can't determine the file format of \(url)")
+            throw ReadiumParserError.parseFailure(url: url, nil)
+        }
+
+        if format.mediaType.isRWPM {
+            return try parseManifest(at: url, format: format)
         } else {
-            return try parseManifest(at: url)
+            return try parsePackage(at: url, format: format)
         }
     }
     
-    public static func parseManifest(at url: URL) throws -> (PubBox, PubParsingCallback) {
+    public static func parseManifest(at url: URL, format: Format) throws -> (PubBox, PubParsingCallback) {
         do {
             let data = try Data(contentsOf: url)
-            var container: Container = HTTPContainer(baseURL: url.deletingLastPathComponent(), mimetype: webpubManifestMediaType)
-            let publication = try parsePublication(fromManifest: data, in: &container, sourceURL: url, isPackage: false)
+            var container: Container = HTTPContainer(baseURL: url.deletingLastPathComponent(), mimetype: MediaType.webpubManifest.string)
+            let publication = try parsePublication(fromManifest: data, in: &container, sourceURL: url, format: format, isPackage: false)
 
             func didLoadDRM(drm: DRM?) {
                 container.drm = drm
@@ -51,12 +50,12 @@ public class ReadiumParser: PublicationParser {
         }
     }
     
-    private static func parsePackage(at url: URL) throws -> (PubBox, PubParsingCallback) {
+    private static func parsePackage(at url: URL, format: Format) throws -> (PubBox, PubParsingCallback) {
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory),
             var container: Container = isDirectory.boolValue
-                ? DirectoryContainer(directory: url.path, mimetype: webpubMediaType)
-                : ArchiveContainer(path: url.path, mimetype: webpubMediaType) else
+                ? DirectoryContainer(directory: url.path, mimetype: MediaType.webpub.string)
+                : ArchiveContainer(path: url.path, mimetype: MediaType.webpub.string) else
         {
             throw ReadiumParserError.missingFile(path: url.path)
         }
@@ -65,7 +64,7 @@ public class ReadiumParser: PublicationParser {
             throw ReadiumParserError.missingFile(path: "manifest.json")
         }
         
-        let publication = try parsePublication(fromManifest: manifestData, in: &container, sourceURL: url, isPackage: true)
+        let publication = try parsePublication(fromManifest: manifestData, in: &container, sourceURL: url, format: format, isPackage: true)
 
         func didLoadDRM(drm: DRM?) {
             container.drm = drm
@@ -74,7 +73,7 @@ public class ReadiumParser: PublicationParser {
         return ((publication, container), didLoadDRM)
     }
     
-    private static func parsePublication(fromManifest manifestData: Data, in container: inout Container, sourceURL: URL, isPackage: Bool) throws -> Publication {
+    private static func parsePublication(fromManifest manifestData: Data, in container: inout Container, sourceURL: URL, format: Format, isPackage: Bool) throws -> Publication {
         do {
             let lcpProtected = (isPackage && isProtectedWithLCP(container))
             if lcpProtected {
@@ -84,10 +83,8 @@ public class ReadiumParser: PublicationParser {
             let json = try JSONSerialization.jsonObject(with: manifestData)
             let publication = try Publication(json: json)
             
-            let (format, mediaType) = parseFormat(of: publication, at: sourceURL, isPackage: isPackage, isProtectedWithLCP: lcpProtected)
-            
-            publication.format = format
-            container.rootFile.mimetype = mediaType
+            publication.format = .webpub
+            container.rootFile.mimetype = format.mediaType.string
 
             return publication
 
@@ -95,22 +92,7 @@ public class ReadiumParser: PublicationParser {
             throw ReadiumParserError.parseFailure(url: sourceURL, error)
         }
     }
-    
-    private static func parseFormat(of publication: Publication, at url: URL, isPackage: Bool, isProtectedWithLCP: Bool) -> (format: Publication.Format, mediaType: String) {
-        let selfMediaType = publication.link(withRel: "self")?.type
-        if selfMediaType == audiobookManifestMediaType
-            || publication.metadata.type == "http://schema.org/Audiobook"
-            || ["audiobook", "audiobook-manifest"].contains(url.pathExtension.lowercased())
-        {
-            return (.audiobook, mediaType: isPackage
-                ? (isProtectedWithLCP ? lcpProtectedAudiobookMediaType : audiobookMediaType)
-                : audiobookManifestMediaType
-            )
-        } else {
-            return (.webpub, mediaType: isPackage ? webpubMediaType : webpubManifestMediaType)
-        }
-    }
-    
+
     private static func isProtectedWithLCP(_ container: Container) -> Bool {
         return (try? container.data(relativePath: "license.lcpl")) != nil
     }

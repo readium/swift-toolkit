@@ -17,7 +17,7 @@ import R2Shared
 /// A parser for the META-INF/container.xml file.
 final class EPUBContainerParser: Loggable {
     
-    private let document: XMLDocument
+    private let document: Fuzi.XMLDocument
 
     init(data: Data) throws {
         self.document = try XMLDocument(data: data)

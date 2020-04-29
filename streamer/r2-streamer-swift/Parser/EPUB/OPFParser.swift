@@ -39,20 +39,20 @@ final class OPFParser: Loggable {
     private let basePath: String
     
     /// DOM representation of the OPF file.
-    private let document: XMLDocument
+    private let document: Fuzi.XMLDocument
 
     /// iBooks Display Options XML file to use as a fallback for metadata.
     /// See https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#epub-2x-9
-    private let displayOptions: XMLDocument?
+    private let displayOptions: Fuzi.XMLDocument?
     
     /// List of metadata declared in the package.
     private let metas: OPFMetaList
 
     init(basePath: String, data: Data, displayOptionsData: Data? = nil) throws {
         self.basePath = basePath
-        self.document = try XMLDocument(data: data)
+        self.document = try Fuzi.XMLDocument(data: data)
         self.document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
-        self.displayOptions = (displayOptionsData.map { try? XMLDocument(data: $0) }) ?? nil
+        self.displayOptions = (displayOptionsData.map { try? Fuzi.XMLDocument(data: $0) }) ?? nil
         self.metas = OPFMetaList(document: self.document)
     }
     
@@ -112,9 +112,9 @@ final class OPFParser: Loggable {
                     log(.warning, "Can't parse link with ID \(id)")
                     return nil
                 }
-    
+            
                 // If the link reference a Smil resource, retrieve and fill its duration.
-                if link.type == "application/smil+xml",
+                if link.mediaType?.isPartOf(.smil) ?? false,
                     let durationMeta = metas["duration", in: .media, refining: id].first,
                     let duration = Double(SMILParser.smilTimeToSeconds(durationMeta.content)) {
                     link.duration = duration
@@ -182,7 +182,7 @@ final class OPFParser: Loggable {
     ///
     /// - Parameter item: The XML element, or manifest XML item.
     /// - Returns: The `Link` representing the manifest XML item.
-    private func makeLink(from manifestItem: XMLElement) -> Link? {
+    private func makeLink(from manifestItem: Fuzi.XMLElement) -> Link? {
         guard let href = manifestItem.attr("href")?.removingPercentEncoding else {
             return nil
         }
