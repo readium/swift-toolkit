@@ -40,19 +40,25 @@ extension PublicationParser {
 public extension Publication {
     
     static func parse(at url: URL) throws -> (PubBox, PubParsingCallback)? {
-        let parsers: [Format: PublicationParser.Type] = [
-            .cbz: CbzParser.self,
-            .epub: EpubParser.self,
-            .pdf: PDFParser.self,
-            .webpub: WEBPUBParser.self
-        ]
-
-        let format = Format(file: url)
-        guard let parser = parsers[format] else {
+        guard let format = R2Shared.Format.of(url) else {
             return nil
         }
-        
-        return try parser.parse(at: url)
+
+        let parser: PublicationParser.Type? = {
+            switch format {
+            case .cbz:
+                return CbzParser.self
+            case .epub:
+                return EpubParser.self
+            case .pdf, .lcpProtectedPDF:
+                return PDFParser.self
+            case .webpub, .webpubManifest, .audiobook, .audiobookManifest:
+                return WEBPUBParser.self
+            default:
+                return nil
+            }
+        }()
+        return try parser?.parse(at: url)
     }
     
 }
