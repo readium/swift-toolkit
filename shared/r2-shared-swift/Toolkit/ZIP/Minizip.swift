@@ -128,7 +128,7 @@ private extension MinizipArchive {
     
     /// Moves the offset to the entry at `path`.
     func goToEntry(at path: String) -> Bool {
-        return execute { unzLocateFile(archive, path, nil) }
+        return unzLocateFile(archive, path, nil) == UNZ_OK
     }
     
     /// Creates a `ZIPEntry` from the entry at the current offset in the archive.

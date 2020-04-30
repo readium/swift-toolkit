@@ -56,8 +56,8 @@ class FormatSnifferTests: XCTestCase {
     
     func testSniffAudiobookManifest() {
         XCTAssertEqual(Format.of(mediaTypes: ["application/audiobook+json"]), .audiobookManifest)
-        
         XCTAssertEqual(Format.of(fixtures.url(for: "audiobook.json")), .audiobookManifest)
+        XCTAssertEqual(Format.of(fixtures.url(for: "audiobook-wrongtype.json")), .audiobookManifest)
     }
     
     func testSniffBMP() {

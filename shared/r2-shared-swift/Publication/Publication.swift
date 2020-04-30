@@ -225,7 +225,21 @@ public class Publication: JSONEquatable, Loggable {
     /// Returns whether all the resources in the reading order are bitmaps.
     internal var allReadingOrderIsBitmap: Bool {
         allReadingOrder { link in
-            link.type.flatMap { MediaType($0) }?.isBitmap ?? false
+            link.mediaType?.isBitmap ?? false
+        }
+    }
+    
+    /// Returns whether all the resources in the reading order are audio clips.
+    internal var allReadingOrderIsAudio: Bool {
+        allReadingOrder { link in
+            link.mediaType?.isAudio ?? false
+        }
+    }
+    
+    /// Returns whether all the resources in the reading order are contained in any of the given media types.
+    internal func allReadingOrderHas(mediaType: MediaType...) -> Bool {
+        allReadingOrder { link in
+            mediaType.first { link.mediaType?.isPartOf($0) ?? false } != nil
         }
     }
     

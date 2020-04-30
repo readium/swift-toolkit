@@ -198,14 +198,14 @@ public extension Format {
         if let (isManifest, rwpm) = readRWPM() {
             let isLCPProtected = context.containsZIPEntry(at: "license.lcpl")
 
-            if rwpm.metadata.type == "http://schema.org/Audiobook" {
+            if rwpm.metadata.type == "http://schema.org/Audiobook" || rwpm.allReadingOrderIsAudio {
                 return isManifest ? .audiobookManifest :
                     isLCPProtected ? .lcpProtectedAudiobook : .audiobook
             }
             if rwpm.allReadingOrderIsBitmap {
                 return isManifest ? .divinaManifest : .divina
             }
-            if isLCPProtected, rwpm.allReadingOrder({ $0.mediaType?.isPartOf(.pdf) ?? false }) {
+            if isLCPProtected, rwpm.allReadingOrderHas(mediaType: .pdf) {
                 return .lcpProtectedPDF
             }
             if rwpm.link(withRel: "self")?.type == "application/webpub+json" {

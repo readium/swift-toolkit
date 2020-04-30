@@ -180,6 +180,11 @@ public struct MediaType: Equatable, Hashable {
             || isPartOf(.webp)
     }
     
+    /// Returns whether this media type is of an audio clip.
+    public var isAudio: Bool {
+        return type == "audio"
+    }
+    
     /// Returns whether this media type is of a Readium Web Publication Manifest.
     public var isRWPM: Bool {
         return isPartOf(.audiobookManifest)
