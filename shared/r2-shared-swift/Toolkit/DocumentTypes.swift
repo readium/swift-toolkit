@@ -46,12 +46,18 @@ public struct DocumentTypes {
             .flatMap { $0.utis }
             .removingDuplicates()
         
-        self.supportedMediaTypes = types
-            .flatMap { $0.mediaTypes }
+        let utis = supportedUTIs.map(UTI.init(stringLiteral:))
+        
+        let utisMediaTypes = utis
+            .flatMap { $0.tags(withClass: .mediaType) }
+            .compactMap { MediaType($0) }
+        
+        let utisFileExtensions = utis.flatMap { $0.tags(withClass: .fileExtension) }
+        
+        self.supportedMediaTypes = (utisMediaTypes + types.flatMap({ $0.mediaTypes }))
             .removingDuplicates()
         
-        self.supportedFileExtensions = types
-            .flatMap { $0.fileExtensions }
+        self.supportedFileExtensions = (utisFileExtensions + types.flatMap({ $0.fileExtensions }))
             .map { $0.lowercased() }
             .removingDuplicates()
     }
@@ -186,7 +192,7 @@ extension DocumentTypes {
         guard let fileExtension = ext else {
             return nil
         }
-        return Format.of(fileExtensions: [fileExtension])?.mediaType.string
+        return Format.of(fileExtension: fileExtension)?.mediaType.string
     }
     
     /// Returns the document extension for given content type.
@@ -195,7 +201,7 @@ extension DocumentTypes {
         guard let mediaType = contentType else {
             return nil
         }
-        return Format.of(mediaTypes: [mediaType])?.fileExtension
+        return Format.of(mediaType: mediaType)?.fileExtension
     }
     
 }

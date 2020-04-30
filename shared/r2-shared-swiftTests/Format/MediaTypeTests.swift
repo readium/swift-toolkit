@@ -278,6 +278,7 @@ class MediaTypeTests: XCTestCase {
         XCTAssertTrue(MediaType("application/opds+json")!.isOPDS)
         XCTAssertTrue(MediaType("application/opds-publication+json")!.isOPDS)
         XCTAssertTrue(MediaType("application/opds+json;charset=utf-8")!.isOPDS)
+        XCTAssertTrue(MediaType("application/opds-authentication+json")!.isOPDS)
     }
     
     func testIsHTML() {

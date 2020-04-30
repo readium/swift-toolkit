@@ -79,15 +79,15 @@ class DocumentTypesTests: XCTestCase {
     
     func testSupportedMediaTypes() {
         XCTAssertEqual(sut.supportedMediaTypes, [
+            MediaType("application/epub+zip")!,
             MediaType("application/vnd.bar")!,
             MediaType("application/vnd.bar2")!,
-            MediaType("application/pdf")!,
-            MediaType("application/epub+zip")!
+            MediaType("application/pdf")!
         ])
     }
 
     func testSupportedFileExtensions() {
-        XCTAssertEqual(sut.supportedFileExtensions, ["foo", "foo2", "pdff", "epub", "epub2"])
+        XCTAssertEqual(sut.supportedFileExtensions, ["epub", "foo", "foo2", "pdff", "epub2"])
     }
     
     func testSupportsMediaType() {

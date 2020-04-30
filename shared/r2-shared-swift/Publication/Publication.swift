@@ -202,19 +202,22 @@ public class Publication: JSONEquatable, Loggable {
     
     /// Generates an URL to a publication's `Link`.
     public func url(to link: Link?) -> URL? {
-        guard let link = link else {
+        return url(to: link?.href)
+    }
+    
+    /// Generates an URL to a publication's `href`.
+    public func url(to href: String?) -> URL? {
+        guard let href = href else {
             return nil
         }
         
-        if let url = URL(string: link.href), url.scheme != nil {
+        if let url = URL(string: href), url.scheme != nil {
             return url
-        } else {
-            var href = link.href
-            if href.hasPrefix("/") {
-                href = String(href.dropFirst())
-            }
-            return baseURL.map { $0.appendingPathComponent(href) }
+        } else if let baseURL = baseURL {
+            return baseURL.appendingPathComponent(href.removingPrefix("/"))
         }
+        
+        return nil
     }
     
     /// Returns whether all the `Link` in the reading order match the given `predicate`.
@@ -277,7 +280,7 @@ public class Publication: JSONEquatable, Loggable {
         ///
         /// - Parameter mimetypes: Fallback mimetypes if the UTI can't be determined.
         public init(file: URL, mimetypes: [String] = []) {
-            self.init(format: .of(file, mediaTypes: mimetypes))
+            self.init(format: .of(file, mediaTypes: mimetypes, fileExtensions: []))
         }
         
         private init(format: R2Shared.Format?) {

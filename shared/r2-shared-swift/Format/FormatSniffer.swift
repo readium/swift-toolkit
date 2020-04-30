@@ -21,22 +21,40 @@ public extension Format {
     ///   sniffers.
     typealias Sniffer = (_ context: FormatSnifferContext) -> Format?
 
+    /// Resolves a format from a single file extension and media type hint, without checking the actual
+    /// content.
+    static func of(mediaType: String? = nil, fileExtension: String? = nil, sniffers: [Sniffer] = sniffers) -> Format? {
+        return of(content: nil, mediaTypes: Array(ofNotNil: mediaType), fileExtensions: Array(ofNotNil: fileExtension), sniffers: sniffers)
+    }
+
     /// Resolves a format from file extension and media type hints, without checking the actual
     /// content.
-    static func of(mediaTypes: [String] = [], fileExtensions: [String] = [], sniffers: [Sniffer] = sniffers) -> Format? {
+    static func of(mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer] = sniffers) -> Format? {
         return of(content: nil, mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
     }
     
     /// Resolves a format from a local file path.
     /// **Warning**: This API should never be called from the UI thread.
-    static func of(_ file: URL, mediaTypes: [String] = [], fileExtensions: [String] = [], sniffers: [Sniffer] = sniffers) -> Format? {
+    static func of(_ file: URL, mediaType: String? = nil, fileExtension: String? = nil, sniffers: [Sniffer] = sniffers) -> Format? {
+        return of(file, mediaTypes: Array(ofNotNil: mediaType), fileExtensions: Array(ofNotNil: fileExtension), sniffers: sniffers)
+    }
+    
+    /// Resolves a format from a local file path.
+    /// **Warning**: This API should never be called from the UI thread.
+    static func of(_ file: URL, mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer] = sniffers) -> Format? {
         let fileExtensions = [file.pathExtension] + fileExtensions
         return of(content: FormatSnifferFileContent(file: file), mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
     }
     
     /// Resolves a format from bytes, e.g. from an HTTP response.
     /// **Warning**: This API should never be called from the UI thread.
-    static func of(_ data: @escaping () -> Data, mediaTypes: [String] = [], fileExtensions: [String] = [], sniffers: [Sniffer] = sniffers) -> Format? {
+    static func of(_ data: @escaping () -> Data, mediaType: String? = nil, fileExtension: String? = nil, sniffers: [Sniffer] = sniffers) -> Format? {
+        return of(data, mediaTypes: Array(ofNotNil: mediaType), fileExtensions: Array(ofNotNil: fileExtension), sniffers: sniffers)
+    }
+    
+    /// Resolves a format from bytes, e.g. from an HTTP response.
+    /// **Warning**: This API should never be called from the UI thread.
+    static func of(_ data: @escaping () -> Data, mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer] = sniffers) -> Format? {
         return of(content: FormatSnifferDataContent(data: data), mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
     }
     
@@ -85,7 +103,7 @@ public extension Format {
     /// You can register additional sniffers globally by modifying this list.
     /// The sniffers order is important, because some formats are subsets of other formats.
     static var sniffers: [Sniffer] = [
-        sniffHTML, sniffOPDS1, sniffOPDS2, sniffLCPLicense, sniffBitmap,
+        sniffHTML, sniffOPDS, sniffLCPLicense, sniffBitmap,
         sniffWebPub, sniffW3CWPUB, sniffEPUB, sniffLPF, sniffZIP, sniffPDF
     ]
 
@@ -99,9 +117,10 @@ public extension Format {
         }
         return nil
     }
-    
-    /// Sniffs an OPDS 1 document.
-    private static func sniffOPDS1(context: FormatSnifferContext) -> Format? {
+
+    /// Sniffs an OPDS document.
+    private static func sniffOPDS(context: FormatSnifferContext) -> Format? {
+        // OPDS 1
         if context.hasMediaType("application/atom+xml;type=entry;profile=opds-catalog") {
             return .opds1Entry
         }
@@ -116,11 +135,8 @@ public extension Format {
                 return .opds1Entry
             }
         }
-        return nil
-    }
-    
-    /// Sniffs an OPDS 2 document.
-    private static func sniffOPDS2(context: FormatSnifferContext) -> Format? {
+        
+        // OPDS 2
         if context.hasMediaType("application/opds+json") {
             return .opds2Feed
         }
@@ -135,6 +151,17 @@ public extension Format {
                 return .opds2Publication
             }
         }
+        
+        // OPDS Authentication Document.
+        if context.hasMediaType("application/opds-authentication+json") || context.hasMediaType("application/vnd.opds.authentication.v1.0+json") {
+            return .opdsAuthentication
+        }
+        if let json = context.contentAsJSON as? [String: Any] {
+            if Set(json.keys).isSuperset(of: ["id", "title", "authentication"]) {
+                return .opdsAuthentication
+            }
+        }
+
         return nil
     }
     
@@ -234,7 +261,7 @@ public extension Format {
             return .epub
         }
         if let mimetypeData = context.readZIPEntry(at: "mimetype"),
-            let mimetype = String(data: mimetypeData, encoding: .ascii),
+            let mimetype = String(data: mimetypeData, encoding: .ascii)?.trimmingCharacters(in: .whitespacesAndNewlines),
             mimetype == "application/epub+zip"
         {
             return .epub
@@ -395,6 +422,11 @@ public extension Format {
 }
 
 public extension URLResponse {
+    
+    /// Sniffs the format for this `URLResponse`, using the default format sniffers.
+    var format: Format? {
+        sniffFormat()
+    }
 
     /// Resolves the format for this `URLResponse`, with optional extra file extension and media
     /// type hints.

@@ -162,6 +162,7 @@ public struct MediaType: Equatable, Hashable {
             || isPartOf(.opds1Entry)
             || isPartOf(.opds2)
             || isPartOf(.opds2Publication)
+            || isPartOf(.opdsAuthentication)
     }
     
     /// Returns whether this media type is of an HTML document.
@@ -191,6 +192,11 @@ public struct MediaType: Equatable, Hashable {
             || isPartOf(.divinaManifest)
             || isPartOf(.webpubManifest)
     }
+    
+    /// Returns whether this media type is declared in the Document Types section of the app's main bundle.
+    public var isSupportedDocumentType: Bool {
+        return DocumentTypes.main.supportsMediaType(string)
+    }
 
     
     // MARK: Known Media Types
@@ -217,6 +223,7 @@ public struct MediaType: Equatable, Hashable {
     public static let opds1Entry = MediaType("application/atom+xml;type=entry;profile=opds-catalog")!
     public static let opds2 = MediaType("application/opds+json")!
     public static let opds2Publication = MediaType("application/opds-publication+json")!
+    public static let opdsAuthentication = MediaType("application/opds-authentication+json")!
     public static let json = MediaType("application/json")!
     public static let lcpProtectedAudiobook = MediaType("application/audiobook+lcp")!
     public static let lcpProtectedPDF = MediaType("application/pdf+lcp")!

@@ -112,6 +112,12 @@ public struct Format: Equatable, Hashable, Loggable {
         fileExtension: "json"
     )
     
+    public static let opdsAuthentication = Format(
+        name: "OPDS Authentication Document",
+        mediaType: .opdsAuthentication,
+        fileExtension: "json"
+    )
+    
     public static let lcpProtectedAudiobook = Format(
         name: "LCP Protected Audiobook",
         mediaType: .lcpProtectedAudiobook,
