@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import R2Shared
 
 /// A Link to a resource.
 public struct Link {
@@ -77,6 +78,10 @@ public struct Link {
     /// Expands the href without any template context.
     var url: URL? {
         return url(with: [:])
+    }
+    
+    var mediaType: MediaType? {
+        type.flatMap { MediaType($0) }
     }
 
 }
