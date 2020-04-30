@@ -52,7 +52,7 @@ public extension Publication {
                 return EpubParser.self
             case .pdf, .lcpProtectedPDF:
                 return PDFParser.self
-            case .webpub, .webpubManifest, .audiobook, .audiobookManifest:
+            case .webpub, .webpubManifest, .audiobook, .audiobookManifest, .lcpProtectedAudiobook:
                 return ReadiumParser.self
             default:
                 return nil
@@ -69,6 +69,10 @@ internal func normalize(base: String, href: String?) -> String {
     guard let href = href, !href.isEmpty else {
         return ""
     }
+    if let url = URL(string: href), url.scheme != nil {
+        return href
+    }
+    
     let hrefComponents = href.components(separatedBy: "/").filter({!$0.isEmpty})
     var baseComponents = base.components(separatedBy: "/").filter({!$0.isEmpty})
 

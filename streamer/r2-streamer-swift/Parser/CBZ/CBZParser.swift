@@ -57,12 +57,13 @@ public class CbzParser: PublicationParser {
             positionListFactory: makePositionList(of:),
             metadata: Metadata(
                 identifier: url.lastPathComponent,
-                title: url.lastPathComponent
+                title: url.deletingPathExtension()
+                    .lastPathComponent
                     .replacingOccurrences(of: "_", with: " ")
             ),
             readingOrder: container.files
                 .compactMap { filename in
-                    guard let format = Format.of(fileExtensions: [filename.pathExtension]),
+                    guard let format = Format.of(fileExtension: filename.pathExtension),
                         format.mediaType.isBitmap else
                     {
                         return nil

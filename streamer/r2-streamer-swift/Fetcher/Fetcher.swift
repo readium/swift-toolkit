@@ -31,7 +31,7 @@ public enum FetcherError: Error {
 /// (decryption for example).
 
 // Default implementation.
-internal class Fetcher {
+internal class Fetcher: Loggable {
     /// The publication.
     let publication: Publication
     /// The container to fetch resources from.
@@ -39,7 +39,7 @@ internal class Fetcher {
     /// The relative path to the directory holding the resources in the container.
     let rootFileDirectory: String
     /// The content filter.
-    let contentFilters: ContentFilters!
+    let contentFilters: ContentFilters?
 
     internal init(publication: Publication, container: Container) throws {
         self.container = container
@@ -54,7 +54,7 @@ internal class Fetcher {
         } else {
             rootFileDirectory = ""
         }
-        contentFilters = try Fetcher.getContentFilters(forMimeType: container.rootFile.mimetype)
+        contentFilters = Fetcher.getContentFilters(forMimeType: container.rootFile.mimetype)
     }
 
     /// Gets the data from an resource file in a publication's container.
@@ -69,14 +69,18 @@ internal class Fetcher {
         }
         // Get the data from the container
         var data = try container.data(relativePath: path)
-        data = try contentFilters.apply(to: data, of: publication, with: container, at: path)
+        if let contentFilters = contentFilters {
+            data = try contentFilters.apply(to: data, of: publication, with: container, at: path)
+        }
         return data
     }
 
     internal func data(forLink link: Link) throws -> Data? {
         let path = link.href
         var data = try container.data(relativePath: path)
-        data = try contentFilters.apply(to: data, of: publication, with: container, at: path)
+        if let contentFilters = contentFilters {
+            data = try contentFilters.apply(to: data, of: publication, with: container, at: path)
+        }
         return data
     }
 
@@ -95,8 +99,9 @@ internal class Fetcher {
         // Get an input stream from the container
         inputStream = try container.dataInputStream(relativePath: path)
         // Apply content filters to inputStream data.
-        inputStream = try contentFilters.apply(to: inputStream, of: publication,
-                                               with: container, at: path)
+        if let contentFilters = contentFilters {
+            inputStream = try contentFilters.apply(to: inputStream, of: publication, with: container, at: path)
+        }
 
         return inputStream
     }
@@ -107,7 +112,9 @@ internal class Fetcher {
         // Get an input stream from the container
         inputStream = try container.dataInputStream(relativePath: path)
         // Apply content filters to inputStream data.
-        inputStream = try contentFilters.apply(to: inputStream, of: publication, with: container, at: path)
+        if let contentFilters = contentFilters {
+            inputStream = try contentFilters.apply(to: inputStream, of: publication, with: container, at: path)
+        }
 
         return inputStream
     }
@@ -137,21 +144,21 @@ internal class Fetcher {
     ///
     /// - Parameter mimeType: The mimetype string.
     /// - Returns: The corresponding ContentFilters subclass.
-    /// - Throws: In case the mimetype is nil or invalid, throws a
-    ///           `FetcherError.missingContainerMimetype`
-    static func getContentFilters(forMimeType mimeType: String?) throws -> ContentFilters {
-        guard let mimeType = mimeType, let format = Format.of(mediaTypes: [mimeType]) else {
-            throw FetcherError.missingContainerMimetype
+    static func getContentFilters(forMimeType mediaType: String?) -> ContentFilters? {
+        guard let format = Format.of(mediaType: mediaType) else {
+            log(.error, "Format can't be detected from: \(String(describing: mediaType))")
+            return nil
         }
+        
         switch format {
         case .epub:
             return ContentFiltersEpub()
         case .cbz:
             return ContentFiltersCbz()
-        case .pdf, .lcpProtectedPDF:
-            return ContentFiltersPDF()
+        case .lcpProtectedPDF, .lcpProtectedAudiobook:
+            return ContentFiltersLCP()
         default:
-            throw FetcherError.missingContainerMimetype
+            return nil
         }
     }
 }

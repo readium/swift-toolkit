@@ -68,6 +68,7 @@
 		CABAC16A22CDD83C00360595 /* CBCDRMInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABAC16922CDD83C00360595 /* CBCDRMInputStream.swift */; };
 		CAC5AEDA22C22A6F007DB8A8 /* HTTPContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC5AED922C22A6F007DB8A8 /* HTTPContainer.swift */; };
 		CAC5AEE122C236FB007DB8A8 /* ReadiumParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC5AEE022C236FB007DB8A8 /* ReadiumParser.swift */; };
+		CAD1EE6E245ABD6F00C1E684 /* PublicationParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD1EE6D245ABD6F00C1E684 /* PublicationParserTests.swift */; };
 		CAF58199229EC8B3009A04E8 /* EPUBMetadataParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF58198229EC8B3009A04E8 /* EPUBMetadataParserTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -146,6 +147,7 @@
 		CABAC16922CDD83C00360595 /* CBCDRMInputStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBCDRMInputStream.swift; sourceTree = "<group>"; };
 		CAC5AED922C22A6F007DB8A8 /* HTTPContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPContainer.swift; sourceTree = "<group>"; };
 		CAC5AEE022C236FB007DB8A8 /* ReadiumParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReadiumParser.swift; sourceTree = "<group>"; };
+		CAD1EE6D245ABD6F00C1E684 /* PublicationParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationParserTests.swift; sourceTree = "<group>"; };
 		CAF58198229EC8B3009A04E8 /* EPUBMetadataParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBMetadataParserTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -374,6 +376,7 @@
 			children = (
 				CA130DB2229E7CBE000A627C /* PublicationParsingTests.swift */,
 				CA130DB3229E7CBE000A627C /* EPUB */,
+				CAD1EE6D245ABD6F00C1E684 /* PublicationParserTests.swift */,
 			);
 			path = Parser;
 			sourceTree = "<group>";
@@ -593,6 +596,7 @@
 				CA3387072406632100FDCBBA /* Asserts.swift in Sources */,
 				CA6F97D422A52810007D2049 /* OPFParserTests.swift in Sources */,
 				CAF58199229EC8B3009A04E8 /* EPUBMetadataParserTests.swift in Sources */,
+				CAD1EE6E245ABD6F00C1E684 /* PublicationParserTests.swift in Sources */,
 				CA130F1C229E7CC1000A627C /* NCXParserTests.swift in Sources */,
 				CA130F19229E7CC1000A627C /* PublicationServerTests.swift in Sources */,
 			);

@@ -20,6 +20,9 @@ public enum ReadiumParserError: Error {
 /// Parser for a Readium Web Publication (packaged, or as a manifest).
 public class ReadiumParser: PublicationParser, Loggable {
     
+    /// Path of the RWPM in a ZIP package.
+    private static let manifestPath = "manifest.json"
+
     public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
         guard let format = Format.of(url) else {
             log(.error, "Can't determine the file format of \(url)")
@@ -60,11 +63,12 @@ public class ReadiumParser: PublicationParser, Loggable {
             throw ReadiumParserError.missingFile(path: url.path)
         }
         
-        guard let manifestData = try? container.data(relativePath: "manifest.json") else {
-            throw ReadiumParserError.missingFile(path: "manifest.json")
+        guard let manifestData = try? container.data(relativePath: manifestPath) else {
+            throw ReadiumParserError.missingFile(path: manifestPath)
         }
         
         let publication = try parsePublication(fromManifest: manifestData, in: &container, sourceURL: url, format: format, isPackage: true)
+        container.rootFile.rootFilePath = manifestPath
 
         func didLoadDRM(drm: DRM?) {
             container.drm = drm
@@ -81,7 +85,7 @@ public class ReadiumParser: PublicationParser, Loggable {
             }
             
             let json = try JSONSerialization.jsonObject(with: manifestData)
-            let publication = try Publication(json: json)
+            let publication = try Publication(json: json, normalizeHref: { normalize(base: "/", href: $0) })
             
             publication.format = .webpub
             container.rootFile.mimetype = format.mediaType.string
