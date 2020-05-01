@@ -174,40 +174,39 @@ class MediaTypeTests: XCTestCase {
             .contains("text/html;charset=utf-8"))
     }
     
-    func testIsPartOfEqualMediaType() {
+    func testMatchesEqualMediaType() {
         XCTAssertTrue(MediaType("text/html;charset=utf-8")!
-            .isPartOf(MediaType("text/html;charset=utf-8")!))
+            .matches(MediaType("text/html;charset=utf-8")!))
     }
     
-    func testIsPartOfMustMatchParameters() {
+    func testMatchesMustMatchParameters() {
         XCTAssertFalse(MediaType("text/html;charset=ascii")!
-            .isPartOf(MediaType("text/html;charset=utf-8")!))
-        XCTAssertFalse(MediaType("text/html")!
-            .isPartOf(MediaType("text/html;charset=utf-8")!))
+            .matches(MediaType("text/html;charset=utf-8")!))
     }
     
-    func testIsPartOfIgnoresParametersOrder() {
+    func testMatchesIgnoresParametersOrder() {
         XCTAssertTrue(MediaType("text/html;charset=utf-8;type=entry")!
-            .isPartOf(MediaType("text/html;type=entry;charset=utf-8")!))
+            .matches(MediaType("text/html;type=entry;charset=utf-8")!))
     }
     
-    func testIsPartOfIgnoresExtraParameters() {
+    func testMatchesIgnoresExtraParameters() {
         XCTAssertTrue(MediaType("text/html;charset=utf-8")!
-            .isPartOf(MediaType("text/html")!))
+            .matches(MediaType("text/html;charset=utf-8;extra=param")!))
+        XCTAssertTrue(MediaType("text/html;charset=utf-8;extra=param")!
+            .matches(MediaType("text/html;charset=utf-8")!))
     }
     
-    func testIsPartOfSupportsWildcards() {
-        XCTAssertTrue(MediaType("text/html;charset=utf-8")!
-            .isPartOf(MediaType("*/*")!))
-        XCTAssertTrue(MediaType("text/html;charset=utf-8")!
-            .isPartOf(MediaType("text/*")!))
-        XCTAssertFalse(MediaType("application/zip")!
-            .isPartOf(MediaType("text/*")!))
+    func testMatchesSupportsWildcards() {
+        XCTAssertTrue(MediaType("text/html;charset=utf-8")!.matches(MediaType("*/*")!))
+        XCTAssertTrue(MediaType("text/html;charset=utf-8")!.matches(MediaType("text/*")!))
+        XCTAssertFalse(MediaType("application/zip")!.matches(MediaType("text/*")!))
+        XCTAssertTrue(MediaType("*/*")!.matches(MediaType("text/html;charset=utf-8")!))
+        XCTAssertTrue(MediaType("text/*")!.matches(MediaType("text/html;charset=utf-8")!))
+        XCTAssertFalse(MediaType("text/*")!.matches(MediaType("application/zip")!))
     }
     
-    func testIsPartOfFromString() {
-        XCTAssertTrue(MediaType("text/html;charset=utf-8")!
-            .isPartOf("text/html;charset=utf-8"))
+    func testMatchesFromString() {
+        XCTAssertTrue(MediaType("text/html;charset=utf-8")!.matches("text/html;charset=utf-8"))
     }
     
     func testPatternMatch() {
@@ -217,6 +216,10 @@ class MediaTypeTests: XCTestCase {
         XCTAssertTrue(.json ~= MediaType("application/json;charset=utf-8")!)
         XCTAssertFalse(.json ~= MediaType("application/opds+json")!)
         XCTAssertFalse(MediaType.json ~= nil)
+        XCTAssertTrue(mediaType ~= .json)
+        XCTAssertTrue(MediaType("application/json")! ~= .json)
+        XCTAssertTrue(MediaType("application/json;charset=utf-8")! ~= .json)
+        XCTAssertFalse(MediaType("application/opds+json")! ~= .json)
     }
 
     func testPatternMatchEqualMediaType() {
@@ -231,8 +234,7 @@ class MediaTypeTests: XCTestCase {
     func testPatternMatchMustMatchParameters() {
         XCTAssertFalse(MediaType("text/html;charset=utf-8")!
             ~= MediaType("text/html;charset=ascii")!)
-        XCTAssertFalse(MediaType("text/html;charset=utf-8")!
-            ~= MediaType("text/html")!)
+        XCTAssertTrue(MediaType("text/html;charset=utf-8")! ~= MediaType("text/html;charset=utf-8")!)
     }
     
     func testPatternMatchIgnoresParametersOrder() {
@@ -241,17 +243,17 @@ class MediaTypeTests: XCTestCase {
     }
     
     func testPatternMatchIgnoresExtraParameters() {
-        XCTAssertTrue(MediaType("text/html")!
-            ~= MediaType("text/html;charset=utf-8")!)
+        XCTAssertTrue(MediaType("text/html")! ~= MediaType("text/html;charset=utf-8")!)
+        XCTAssertTrue(MediaType("text/html;charset=utf-8")! ~= MediaType("text/html")!)
     }
     
     func testPatternMatchSupportsWildcards() {
-        XCTAssertTrue(MediaType("*/*")!
-            ~= MediaType("text/html;charset=utf-8")!)
-        XCTAssertTrue(MediaType("text/*")!
-            ~= MediaType("text/html;charset=utf-8")!)
-        XCTAssertFalse(MediaType("text/*")!
-            ~= MediaType("application/zip")!)
+        XCTAssertTrue(MediaType("*/*")! ~= MediaType("text/html;charset=utf-8")!)
+        XCTAssertTrue(MediaType("text/*")! ~= MediaType("text/html;charset=utf-8")!)
+        XCTAssertFalse(MediaType("text/*")! ~= MediaType("application/zip")!)
+        XCTAssertTrue(MediaType("text/html;charset=utf-8")! ~= MediaType("*/*")!)
+        XCTAssertTrue(MediaType("text/html;charset=utf-8")! ~= MediaType("text/*")!)
+        XCTAssertFalse(MediaType("application/zip")! ~= MediaType("text/*")!)
     }
 
     func testIsZIP() {

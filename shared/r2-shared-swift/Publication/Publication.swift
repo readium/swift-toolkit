@@ -240,9 +240,9 @@ public class Publication: JSONEquatable, Loggable {
     }
     
     /// Returns whether all the resources in the reading order are contained in any of the given media types.
-    internal func allReadingOrderHas(mediaType: MediaType...) -> Bool {
+    internal func allReadingOrderMatches(mediaType: MediaType...) -> Bool {
         allReadingOrder { link in
-            mediaType.first { link.mediaType?.isPartOf($0) ?? false } != nil
+            mediaType.first { link.mediaType?.matches($0) ?? false } != nil
         }
     }
     

@@ -232,7 +232,7 @@ public extension Format {
             if rwpm.allReadingOrderIsBitmap {
                 return isManifest ? .divinaManifest : .divina
             }
-            if isLCPProtected, rwpm.allReadingOrderHas(mediaType: .pdf) {
+            if isLCPProtected, rwpm.allReadingOrderMatches(mediaType: .pdf) {
                 return .lcpProtectedPDF
             }
             if rwpm.link(withRel: "self")?.type == "application/webpub+json" {

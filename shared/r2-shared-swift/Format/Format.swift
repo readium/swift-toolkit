@@ -196,7 +196,7 @@ public struct Format: Equatable, Hashable, Loggable {
     /// Two formats are equal if they have the same media type, regardless of `name` and
     /// `fileExtension`.
     public static func == (lhs: Self, rhs: Self) -> Bool {
-        return lhs.mediaType == rhs.mediaType
+        return lhs.mediaType.string == rhs.mediaType.string
     }
 
 }

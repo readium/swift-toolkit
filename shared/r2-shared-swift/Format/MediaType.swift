@@ -130,55 +130,58 @@ public struct MediaType: Equatable, Hashable {
         return contains(other)
     }
     
-    /// Returns whether this media type is included in the provided `other` media type.
+    /// Returns whether this media type and `other` are the same, ignoring parameters that are not
+    /// in both media types.
     ///
-    /// For example, `text/html;charset=utf-8` is part of `text/html`.
-    public func isPartOf(_ other: Self?) -> Bool {
-        return other?.contains(self) ?? false
+    /// For example, `text/html` matches `text/html;charset=utf-8`, but `text/html;charset=ascii`
+    /// doesn't. This is basically like `contains`, but working in both direction.
+    public func matches(_ other: Self?) -> Bool {
+        return contains(other) || (other?.contains(self) ?? false)
     }
     
-    /// Returns whether this media type is included in the provided `other` media type.
-    public func isPartOf(_ other: String?) -> Bool {
-        return other.flatMap(MediaType.init)?.contains(self) ?? false
+    /// Returns whether this media type and `other` are the same, ignoring parameters that are not
+    /// in both media types.
+    public func matches(_ other: String?) -> Bool {
+        return matches(other.flatMap(MediaType.init))
     }
     
     /// Returns whether this media type is structured as a ZIP archive.
     public var isZIP: Bool {
-        return isPartOf(.zip)
-            || isPartOf(.lcpProtectedAudiobook)
-            || isPartOf(.lcpProtectedPDF)
+        return matches(.zip)
+            || matches(.lcpProtectedAudiobook)
+            || matches(.lcpProtectedPDF)
             || structuredSyntaxSuffix == "+zip"
     }
     
     /// Returns whether this media type is structured as a JSON file.
     public var isJSON: Bool {
-        return isPartOf(.json)
+        return matches(.json)
             || structuredSyntaxSuffix == "+json"
     }
 
     /// Returns whether this media type is of an OPDS feed.
     public var isOPDS: Bool {
-        return isPartOf(.opds1)
-            || isPartOf(.opds1Entry)
-            || isPartOf(.opds2)
-            || isPartOf(.opds2Publication)
-            || isPartOf(.opdsAuthentication)
+        return matches(.opds1)
+            || matches(.opds1Entry)
+            || matches(.opds2)
+            || matches(.opds2Publication)
+            || matches(.opdsAuthentication)
     }
     
     /// Returns whether this media type is of an HTML document.
     public var isHTML: Bool {
-        return isPartOf(.html)
-            || isPartOf(.xhtml)
+        return matches(.html)
+            || matches(.xhtml)
     }
     
     /// Returns whether this media type is of a bitmap image, so excluding vectorial formats.
     public var isBitmap: Bool {
-        return isPartOf(.bmp)
-            || isPartOf(.gif)
-            || isPartOf(.jpeg)
-            || isPartOf(.png)
-            || isPartOf(.tiff)
-            || isPartOf(.webp)
+        return matches(.bmp)
+            || matches(.gif)
+            || matches(.jpeg)
+            || matches(.png)
+            || matches(.tiff)
+            || matches(.webp)
     }
     
     /// Returns whether this media type is of an audio clip.
@@ -188,9 +191,9 @@ public struct MediaType: Equatable, Hashable {
     
     /// Returns whether this media type is of a Readium Web Publication Manifest.
     public var isRWPM: Bool {
-        return isPartOf(.audiobookManifest)
-            || isPartOf(.divinaManifest)
-            || isPartOf(.webpubManifest)
+        return matches(.audiobookManifest)
+            || matches(.divinaManifest)
+            || matches(.webpubManifest)
     }
     
     /// Returns whether this media type is declared in the Document Types section of the app's main bundle.
@@ -257,9 +260,19 @@ public struct MediaType: Equatable, Hashable {
     public static let xml = MediaType("application/xml")!
     public static let zab = MediaType("application/x.readium.zab+zip")!  // non-existent
     public static let zip = MediaType("application/zip")!
+    
+    /// `text/html` != `text/html;charset=utf-8` with strict equality comparison, which is most
+    /// likely not the desired result. Instead, you can use `matches()` to check if any of the media
+    /// types is a parameterized version of the other one.
+    ///
+    /// To ignore this warning, compare `MediaType.string` instead of `MediaType` itself.
+    @available(*, deprecated, message: "Strict media type comparisons can be a source of bug, if parameters are present", renamed: "matches()")
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        return lhs.string == rhs.string
+    }
 
     public static func ~= (pattern: MediaType, value: MediaType) -> Bool {
-        return pattern.contains(value)
+        return pattern.matches(value)
     }
 
 }
