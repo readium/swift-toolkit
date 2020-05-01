@@ -113,8 +113,8 @@ extension LicensesService: LCPService {
     /// Returns the suggested filename to be used when importing a publication.
     private func suggestedFilename(for file: URL, license: License) -> String {
         let fileExtension: String = {
-            let mediaTypes = Array(ofNotNil: license.license.link(for: .publication)?.type)
-            if var format = Format.of(file, mediaTypes: mediaTypes) {
+            let publicationLink = license.license.link(for: .publication)
+            if var format = Format.of(file, mediaType: publicationLink?.type) {
                 format = formatsMapping[format] ?? format
                 return format.fileExtension
             } else {
