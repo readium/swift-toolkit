@@ -62,7 +62,7 @@ public class CbzParser: PublicationParser {
             ),
             readingOrder: container.files
                 .compactMap { filename in
-                    guard let format = Format.of(fileExtensions: [filename.pathExtension]),
+                    guard let format = Format.of(fileExtension: filename.pathExtension),
                         format.mediaType.isBitmap else
                     {
                         return nil
