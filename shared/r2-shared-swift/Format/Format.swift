@@ -23,6 +23,12 @@ public struct Format: Equatable, Hashable, Loggable {
     /// The default file extension to use for this format.
     public let fileExtension: String
     
+    /// Returns whether this format is declared in the Document Types section of the app's main bundle.
+    public var isSupportedDocumentType: Bool {
+        return mediaType.isSupportedDocumentType
+            || DocumentTypes.main.supportsFileExtension(fileExtension)
+    }
+    
 
     // MARK: Default Supported Formats
     // Formats used by Readium. Reading apps are welcome to extend the static constants with
