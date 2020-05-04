@@ -196,6 +196,12 @@ public struct MediaType: Equatable, Hashable {
             || matches(.webpubManifest)
     }
     
+    /// Returns whether this media type is of a package protected with LCP.
+    public var isLCPProtected: Bool {
+        return matches(.lcpProtectedAudiobook)
+            || matches(.lcpProtectedPDF)
+    }
+    
     /// Returns whether this media type is declared in the Document Types section of the app's main bundle.
     public var isSupportedDocumentType: Bool {
         return DocumentTypes.main.supportsMediaType(string)

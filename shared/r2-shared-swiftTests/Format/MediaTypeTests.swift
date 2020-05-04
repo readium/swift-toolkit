@@ -314,5 +314,12 @@ class MediaTypeTests: XCTestCase {
         XCTAssertTrue(MediaType("application/webpub+json")!.isRWPM)
         XCTAssertTrue(MediaType("application/webpub+json;charset=utf-8")!.isRWPM)
     }
+    
+    func testIsLCPProtected() {
+        XCTAssertFalse(MediaType("text/html")!.isLCPProtected)
+        XCTAssertTrue(MediaType("application/pdf+lcp")!.isLCPProtected)
+        XCTAssertTrue(MediaType("application/audiobook+lcp")!.isLCPProtected)
+        XCTAssertTrue(MediaType("application/audiobook+lcp;param=value")!.isLCPProtected)
+    }
 
 }
