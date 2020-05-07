@@ -13,6 +13,9 @@ function FixedPage(iframeId) {
   // iFrame containing the page.
   var _iframe = document.getElementById(iframeId);
   _iframe.addEventListener('load', loadPageSize);
+    
+  // Viewport element containing the iFrame.
+  var _viewport = _iframe.closest('.viewport')
 
   // Parses the page size from the viewport meta tag of the loaded resource.
   function loadPageSize() {
@@ -112,14 +115,14 @@ function FixedPage(iframeId) {
       layoutPage();
     },
 
-    // Shows the page's iframe.
+    // Shows the page's viewport.
     'show': function() {
-      _iframe.style.display = 'block';
+      _viewport.style.display = 'block';
     },
 
-    // Hides the page's iframe.
+    // Hides the page's viewport.
     'hide': function() {
-      _iframe.style.display = 'none';
+      _viewport.style.display = 'none';
     }
   };
 }
