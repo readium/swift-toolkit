@@ -24,13 +24,13 @@ protocol Resource {
     ///
     /// This value must be treated as a hint, as it might not reflect the actual bytes length. To
     /// get the real length, you need to read the whole resource.
-    var length: Result<Int, ResourceError> { get }
+    var length: Result<UInt64, ResourceError> { get }
 
     /// Reads the bytes at the given range.
     ///
     /// When `range` is null, the whole content is returned. Out-of-range indexes are clamped to
     /// the available length automatically.
-    func read(range: Range<Int>?) -> Result<Data, ResourceError>
+    func read(range: Range<UInt64>?) -> Result<Data, ResourceError>
     
     /// Closes any opened file handles.
     func close()
@@ -97,9 +97,9 @@ final class FailureResource: Resource {
     
     let link: Link
     
-    var length: Result<Int, ResourceError> { .failure(error) }
+    var length: Result<UInt64, ResourceError> { .failure(error) }
 
-    func read(range: Range<Int>?) -> Result<Data, ResourceError> {
+    func read(range: Range<UInt64>?) -> Result<Data, ResourceError> {
         return .failure(error)
     }
     
@@ -111,6 +111,7 @@ final class FailureResource: Resource {
 final class DataResource: Resource {
 
     private let data: Data
+    private var dataLength: UInt64 { UInt64(data.count) }
     
     /// Creates a `Resource` serving an array of bytes.
     init(link: Link, data: Data) {
@@ -128,10 +129,10 @@ final class DataResource: Resource {
     
     let link: Link
 
-    var length: Result<Int, ResourceError> { .success(data.count) }
+    var length: Result<UInt64, ResourceError> { .success(dataLength) }
 
-    func read(range: Range<Int>?) -> Result<Data, ResourceError> {
-        if let range = range?.clamped(to: 0..<data.count) {
+    func read(range: Range<UInt64>?) -> Result<Data, ResourceError> {
+        if let range = range?.clamped(to: 0..<dataLength) {
             return .success(data[range])
         } else {
             return .success(data)

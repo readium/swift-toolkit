@@ -68,12 +68,12 @@ final class MinizipArchive: ZIPArchive, Loggable {
             }
             
             return openCurrentEntry {
-                readFromCurrentOffset(length: Int(entry.length))
+                readFromCurrentOffset(length: entry.length)
             }
         }
     }
     
-    func read(at path: String, range: Range<Int>) -> Data? {
+    func read(at path: String, range: Range<UInt64>) -> Data? {
         return transaction {
             guard goToEntry(at: path) else {
                 return nil
@@ -147,8 +147,8 @@ private extension MinizipArchive {
         return ZIPEntry(
             path: path,
             isDirectory: path.hasSuffix("/"),
-            length: Int(fileInfo.uncompressed_size),
-            compressedLength: Int(fileInfo.compressed_size)
+            length: UInt64(fileInfo.uncompressed_size),
+            compressedLength: UInt64(fileInfo.compressed_size)
         )
     }
     
@@ -169,7 +169,7 @@ private extension MinizipArchive {
     /// Advances the current position in the archive by the given `offset`.
     ///
     /// - Returns: Whether the seeking operation was successful.
-    func seek(by offset: Int) -> Bool {
+    func seek(by offset: UInt64) -> Bool {
         return readFromCurrentOffset(length: offset) { _, _ in
             // Unfortunately, deflate doesn't support random access, so we need to discard the content
             // until we reach the offset.
@@ -177,26 +177,26 @@ private extension MinizipArchive {
     }
 
     /// Reads the given `length` of data at the current offset in the archive.
-    func readFromCurrentOffset(length: Int) -> Data? {
-        var data = Data(capacity: length)
+    func readFromCurrentOffset(length: UInt64) -> Data? {
+        var data = Data(capacity: Int(length))
         let success = readFromCurrentOffset(length: length) { (bytes, length) in
-            data.append(bytes, count: length)
+            data.append(bytes, count: Int(length))
         }
         return success ? data : nil
     }
     
-    typealias Consumer = (_ bytes: UnsafePointer<UInt8>, _ length: Int) -> Void
+    typealias Consumer = (_ bytes: UnsafePointer<UInt8>, _ length: UInt64) -> Void
     
     /// Consumes the given `length` of data at the current offset in the archive.
-    func readFromCurrentOffset(length: Int, consumer: Consumer) -> Bool {
+    func readFromCurrentOffset(length: UInt64, consumer: Consumer) -> Bool {
         assert(isCurrentEntryOpened)
         
         var buffer = Array<CUnsignedChar>(repeating: 0, count: bufferLength)
 
-        var totalBytesRead = 0
+        var totalBytesRead: UInt64 = 0
         while totalBytesRead < length {
-            let bytesToRead = min(bufferLength, length - totalBytesRead)
-            let bytesRead = Int(unzReadCurrentFile(archive, &buffer, UInt32(bytesToRead)))
+            let bytesToRead = min(UInt64(bufferLength), length - totalBytesRead)
+            let bytesRead = UInt64(unzReadCurrentFile(archive, &buffer, UInt32(bytesToRead)))
             if bytesRead == 0 {
                 break
             }

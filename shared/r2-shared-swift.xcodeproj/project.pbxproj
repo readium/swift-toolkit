@@ -75,6 +75,11 @@
 		CA6D426D240439F4002FBED4 /* OPDSCopiesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D426C240439F4002FBED4 /* OPDSCopiesTests.swift */; };
 		CA6D426F24043A44002FBED4 /* OPDSAvailability.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D426E24043A44002FBED4 /* OPDSAvailability.swift */; };
 		CA6D427124043AF1002FBED4 /* OPDSAvailabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D427024043AF1002FBED4 /* OPDSAvailabilityTests.swift */; };
+		CA6F276E2469D8CF0065B405 /* ZIPFetcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F276D2469D8CF0065B405 /* ZIPFetcherTests.swift */; };
+		CA6F27702469D9050065B405 /* ZIPFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F276F2469D9050065B405 /* ZIPFetcher.swift */; };
+		CA6F27722469DB980065B405 /* Resource.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F27712469DB970065B405 /* Resource.swift */; };
+		CA6F27742469E4DA0065B405 /* FileFetcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F27732469E4DA0065B405 /* FileFetcherTests.swift */; };
+		CA6F27762469E5370065B405 /* FileFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F27752469E5370065B405 /* FileFetcher.swift */; };
 		CA7116EF2455935100C029FD /* DocumentTypesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7116EE2455935100C029FD /* DocumentTypesTests.swift */; };
 		CA7116F12455FAF900C029FD /* UTI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7116F02455FAF900C029FD /* UTI.swift */; };
 		CA86728E24485BE70035FDF4 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA86728D24485BE70035FDF4 /* CoreServices.framework */; };
@@ -216,6 +221,11 @@
 		CA6D426C240439F4002FBED4 /* OPDSCopiesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSCopiesTests.swift; sourceTree = "<group>"; };
 		CA6D426E24043A44002FBED4 /* OPDSAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSAvailability.swift; sourceTree = "<group>"; };
 		CA6D427024043AF1002FBED4 /* OPDSAvailabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSAvailabilityTests.swift; sourceTree = "<group>"; };
+		CA6F276D2469D8CF0065B405 /* ZIPFetcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZIPFetcherTests.swift; sourceTree = "<group>"; };
+		CA6F276F2469D9050065B405 /* ZIPFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZIPFetcher.swift; sourceTree = "<group>"; };
+		CA6F27712469DB970065B405 /* Resource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Resource.swift; sourceTree = "<group>"; };
+		CA6F27732469E4DA0065B405 /* FileFetcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileFetcherTests.swift; sourceTree = "<group>"; };
+		CA6F27752469E5370065B405 /* FileFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileFetcher.swift; sourceTree = "<group>"; };
 		CA7116EE2455935100C029FD /* DocumentTypesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentTypesTests.swift; sourceTree = "<group>"; };
 		CA7116F02455FAF900C029FD /* UTI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UTI.swift; sourceTree = "<group>"; };
 		CA86728D24485BE70035FDF4 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
@@ -513,6 +523,7 @@
 				CA5B7C382441BA5F003A2FE7 /* Fixtures.swift */,
 				CA5B7C362441B492003A2FE7 /* Fixtures */,
 				CA176390223AAAFB00959FEB /* Publication */,
+				CA6F276C2469D8BF0065B405 /* Fetcher */,
 				CA68BDBF244042BC009A6BAA /* Format */,
 				CA5F8EEF24040C0E00926120 /* OPDS */,
 				CA252DDE2447A5AE0005067C /* Toolkit */,
@@ -554,14 +565,26 @@
 			path = Extensions;
 			sourceTree = "<group>";
 		};
+		CA6F276C2469D8BF0065B405 /* Fetcher */ = {
+			isa = PBXGroup;
+			children = (
+				CA6F276D2469D8CF0065B405 /* ZIPFetcherTests.swift */,
+				CA6F27732469E4DA0065B405 /* FileFetcherTests.swift */,
+				CA6F27712469DB970065B405 /* Resource.swift */,
+			);
+			path = Fetcher;
+			sourceTree = "<group>";
+		};
 		CA8C84122468904100CE97A4 /* Fetcher */ = {
 			isa = PBXGroup;
 			children = (
 				CA8C84152468914900CE97A4 /* Resource.swift */,
 				CA8C84132468906600CE97A4 /* Fetcher.swift */,
+				CA6F27752469E5370065B405 /* FileFetcher.swift */,
 				CA8C841B2468A06300CE97A4 /* ProxyFetcher.swift */,
 				CA8C841924689E4000CE97A4 /* RoutingFetcher.swift */,
 				CA8C841724689CD000CE97A4 /* TransformingFetcher.swift */,
+				CA6F276F2469D9050065B405 /* ZIPFetcher.swift */,
 			);
 			path = Fetcher;
 			sourceTree = "<group>";
@@ -817,6 +840,7 @@
 				CA16A8742233004A00E66255 /* PropertiesTests.swift in Sources */,
 				CA16A8802233BE6900E66255 /* EncryptionTests.swift in Sources */,
 				CA5F8EFB2404142C00926120 /* EPUBLayoutTests.swift in Sources */,
+				CA6F27742469E4DA0065B405 /* FileFetcherTests.swift in Sources */,
 				CA40C07A21FF25F80069A50E /* JSON.swift in Sources */,
 				CA68BDD12440E123009A6BAA /* FormatSnifferTests.swift in Sources */,
 				CA68BDC724406873009A6BAA /* FormatTests.swift in Sources */,
@@ -824,6 +848,7 @@
 				CA5F8EEB240403F900926120 /* ReadingProgressionTests.swift in Sources */,
 				CA16A8602232D1B800E66255 /* LocalizedStringTests.swift in Sources */,
 				CA16A8862234021500E66255 /* MetadataTests.swift in Sources */,
+				CA6F276E2469D8CF0065B405 /* ZIPFetcherTests.swift in Sources */,
 				CA176383223A886500959FEB /* Properties+OPDSTests.swift in Sources */,
 				CA6D427124043AF1002FBED4 /* OPDSAvailabilityTests.swift in Sources */,
 				CA176381223A7DB700959FEB /* Publication+OPDSTests.swift in Sources */,
@@ -840,6 +865,7 @@
 				CA6D42692404381B002FBED4 /* OPDSHoldsTests.swift in Sources */,
 				CA3386E62404FD4600FDCBBA /* Properties+EncryptionTests.swift in Sources */,
 				CAB88C92224E766E00D36C99 /* LocatorTests.swift in Sources */,
+				CA6F27722469DB980065B405 /* Resource.swift in Sources */,
 				CACD75E0223657AD004F20CA /* PublicationTests.swift in Sources */,
 				CA17637E223A7C0300959FEB /* Publication+EPUBTests.swift in Sources */,
 				CABBB2FA2237CA94004EB039 /* OPDSAcquisitionTests.swift in Sources */,
@@ -876,6 +902,7 @@
 				CA16A85B2232C4E600E66255 /* LocalizedString.swift in Sources */,
 				CA9E6BAE223A76C600ECF6E4 /* Publication+OPDS.swift in Sources */,
 				CABEB3DC2215698600090B6C /* Deferred.swift in Sources */,
+				CA6F27702469D9050065B405 /* ZIPFetcher.swift in Sources */,
 				CA68BDC1244042D5009A6BAA /* MediaType.swift in Sources */,
 				CA3386EA24052D8B00FDCBBA /* DOMRange.swift in Sources */,
 				CA2006512225A1F300E6B3BD /* Observable.swift in Sources */,
@@ -905,6 +932,7 @@
 				CA8C84142468906600CE97A4 /* Fetcher.swift in Sources */,
 				CA5F8EFF24041AF200926120 /* Metadata+Presentation.swift in Sources */,
 				CA16A8642232DA2000E66255 /* Locator.swift in Sources */,
+				CA6F27762469E5370065B405 /* FileFetcher.swift in Sources */,
 				CA68BDCB24406C6C009A6BAA /* FormatSnifferContext.swift in Sources */,
 				CA9E6BA12239823300ECF6E4 /* Publication+Deprecated.swift in Sources */,
 				CABBB2E52237ADEB004EB039 /* Feed.swift in Sources */,
