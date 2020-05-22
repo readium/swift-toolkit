@@ -26,7 +26,7 @@ protocol FormatSnifferContent {
 }
 
 /// Used to sniff a local file.
-final class FormatSnifferFileContent: FormatSnifferContent {
+final class FormatSnifferFileContent: FormatSnifferContent, Loggable {
 
     let file: URL
     
@@ -36,12 +36,25 @@ final class FormatSnifferFileContent: FormatSnifferContent {
     }
     
     func read() -> Data? {
+        // We only read files smaller than 100KB to avoid going out of memory.
+        guard let length = length, length < 100000 else {
+            return nil
+        }
         return try? Data(contentsOf: file)
     }
 
     func stream() -> InputStream? {
         return InputStream(url: file)
     }
+    
+    private lazy var length: Int? = {
+        do {
+            return try file.resourceValues(forKeys: [.fileSizeKey]).fileSize
+        } catch {
+            log(.error, error)
+            return nil
+        }
+    }()
 
 }
 
