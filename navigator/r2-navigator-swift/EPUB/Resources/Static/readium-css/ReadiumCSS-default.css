@@ -1,5 +1,20 @@
-/* Readium CSS 
-   Default module for RTL scripts
+/* Readium CSS
+   Namespaces module
+
+   Namespaces to import in all 3 dist stylesheets
+
+   Repo: https://github.com/readium/readium-css */
+
+@namespace url("http://www.w3.org/1999/xhtml");
+
+@namespace epub url("http://www.idpf.org/2007/ops");
+
+@namespace m url("http://www.w3.org/1998/Math/MathML/");
+
+@namespace svg url("http://www.w3.org/2000/svg");
+
+/* Readium CSS
+   Default module
 
    A stylesheet for unstyled ebooks based on HTML5 Suggested Rendering
    Note: works in combination with Base module
@@ -32,29 +47,38 @@
 
 body {
   font-size: var(--RS__baseFontSize);
-  text-align: justify;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--RS__compFontFamily);
-  text-align: right;
 }
 
 /* Flow content */
 
-blockquote, figure, p, pre,
-aside, footer, form, hr {
+blockquote,
+figure,
+p,
+pre,
+aside,
+footer,
+form,
+hr {
   margin-top: var(--RS__flowSpacing);
   margin-bottom: var(--RS__flowSpacing);
 }
 
 p {
   margin-top: var(--RS__paraSpacing);
-  margin-bottom: var(--RS__paraSpacing); 
+  margin-bottom: var(--RS__paraSpacing);
   text-indent: var(--RS__paraIndent);
 }
 
-h1 + p, h2 + p, h3 + p, h4 + p, h5 + p, h6 + p,
+h1 + p,
+h2 + p,
+h3 + p,
+h4 + p,
+h5 + p,
+h6 + p,
 hr + p {
   text-indent: 0;
 }
@@ -122,14 +146,16 @@ h4 {
 h5 {
   margin-top: var(--RS__flowSpacing);
   margin-bottom: var(--RS__flowSpacing);
-  font-size: smaller;
+  font-size: 1em;
+  font-variant: small-caps;
 }
 
 h6 {
   margin-top: var(--RS__flowSpacing);
   margin-bottom: 0;
-  font-size: smaller;
-  font-weight: normal;
+  font-size: 1em;
+  text-transform: lowercase;
+  font-variant: small-caps;
 }
 
 /* Lists */
@@ -153,7 +179,7 @@ thead, tbody, tfoot, table > tr {
 }
 
 th {
-  text-align: initial;
+  text-align: left;
 }
 
 th, td {
