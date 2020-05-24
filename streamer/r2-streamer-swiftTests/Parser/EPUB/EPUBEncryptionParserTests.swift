@@ -85,7 +85,7 @@ class EPUBEncryptionParserTests: XCTestCase {
     func parseEncryptions(_ name: String, drm: DRM? = nil) -> [String: Encryption] {
         let url = SampleGenerator().getSamplesFileURL(named: "Encryption/\(name)", ofType: "xml")!
         let data = try! Data(contentsOf: url)
-        return EPUBEncryptionParser(data: data, drm: drm).parseEncryptions()
+        return EPUBEncryptionParser(container: FileContainer(path: "", mimetype: ""), data: data, drm: drm).parseEncryptions()
     }
     
 }

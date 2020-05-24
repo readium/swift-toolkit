@@ -41,7 +41,14 @@ final class EPUBMetadataParser: Loggable {
             throw OPFParserError.missingPublicationTitle
         }
         
-        var metadata = Metadata(
+        var otherMetadata = metas.otherMetadata
+        if !presentation.json.isEmpty {
+            otherMetadata["presentation"] = presentation.json
+        }
+        
+        let contributors = parseContributors()
+        
+        return Metadata(
             identifier: uniqueIdentifier,
             title: title,
             subtitle: subtitle,
@@ -50,17 +57,22 @@ final class EPUBMetadataParser: Loggable {
             languages: languages,
             sortAs: sortAs,
             subjects: subjects,
+            authors: contributors.authors,
+            translators: contributors.translators,
+            editors: contributors.editors,
+            artists: contributors.artists,
+            illustrators: contributors.illustrators,
+            colorists: contributors.colorists,
+            narrators: contributors.narrators,
+            contributors: contributors.contributors,
+            publishers: contributors.publishers,
             readingProgression: readingProgression,
             description: description,
             numberOfPages: numberOfPages,
             belongsToCollections: belongsToCollections,
             belongsToSeries: belongsToSeries,
-            otherMetadata: metas.otherMetadata
+            otherMetadata: otherMetadata
         )
-        parseContributors(to: &metadata)
-        metadata.presentation = presentation
-
-        return metadata
     }
     
     private lazy var languages: [String] = metas["language", in: .dcterms].map { $0.content }
@@ -248,11 +260,84 @@ final class EPUBMetadataParser: Loggable {
     ///
     /// - Parameters:
     ///   - metadata: The Metadata object to fill (inout).
-    private func parseContributors(to metadata: inout Metadata) {
-        // Parse XML elements and fill the metadata object.
-        for contributor in findContributorElements() {
-            parseContributor(from: contributor, to: &metadata)
+    private func parseContributors() -> (
+        authors: [Contributor],
+        translators: [Contributor],
+        editors: [Contributor],
+        artists: [Contributor],
+        illustrators: [Contributor],
+        colorists: [Contributor],
+        narrators: [Contributor],
+        contributors: [Contributor],
+        publishers: [Contributor]
+    ) {
+        var authors: [Contributor] = []
+        var translators: [Contributor] = []
+        var editors: [Contributor] = []
+        var artists: [Contributor] = []
+        var illustrators: [Contributor] = []
+        var colorists: [Contributor] = []
+        var narrators: [Contributor] = []
+        var contributors: [Contributor] = []
+        var publishers: [Contributor] = []
+        
+        for element in findContributorElements() {
+            // Look up for possible meta refines for contributor's role.
+            let roles = element.attr("id")
+                .map { id in metas["role", refining: id].map { $0.content } }
+                ?? []
+            
+            guard let contributor = createContributor(from: element, roles: roles) else {
+                continue
+            }
+            // Add the contributor to the proper property according to its `roles`
+            if !contributor.roles.isEmpty {
+                for role in contributor.roles {
+                    switch role {
+                    case "aut":
+                        authors.append(contributor)
+                    case "trl":
+                        translators.append(contributor)
+                    case "art":
+                        artists.append(contributor)
+                    case "edt":
+                        editors.append(contributor)
+                    case "ill":
+                        illustrators.append(contributor)
+                    case "clr":
+                        colorists.append(contributor)
+                    case "nrt":
+                        narrators.append(contributor)
+                    case "pbl":
+                        publishers.append(contributor)
+                    default:
+                        contributors.append(contributor)
+                    }
+                }
+            } else {
+                // No role, so do the branching using the element.name.
+                // The remaining ones go to to the contributors.
+                if element.tag == "creator" || element.attr("property") == "dcterms:creator" {
+                    authors.append(contributor)
+                } else if element.tag == "publisher" || element.attr("property") == "dcterms:publisher" {
+                    publishers.append(contributor)
+                } else {
+                    contributors.append(contributor)
+                }
+            }
         }
+        
+        return (
+            authors: authors,
+            translators: translators,
+            editors: editors,
+            artists: artists,
+            illustrators: illustrators,
+            colorists: colorists,
+            narrators: narrators,
+            contributors: contributors,
+            publishers: publishers
+        )
     }
 
     /// Returns the XML elements about the contributors.
@@ -268,62 +353,6 @@ final class EPUBMetadataParser: Loggable {
         return contributors.map { $0.element }
     }
 
-    /// Parse a `creator`, `contributor`, `publisher` element from the OPF XML
-    /// document, then builds and adds a Contributor to the metadata, to an
-    /// array according to its role (authors, translators, etc.).
-    ///
-    /// - Parameters:
-    ///   - element: The XML element to parse.
-    ///   - metadata: The Metadata object.
-    private func parseContributor(from element: Fuzi.XMLElement, to metadata: inout Metadata) {
-        guard var contributor = createContributor(from: element) else {
-            return
-        }
-
-        // Look up for possible meta refines for contributor's role.
-        if let eid = element.attr("id") {
-            contributor.roles.append(
-                contentsOf: metas["role", refining: eid].map { $0.content }
-            )
-        }
-        
-        // Add the contributor to the proper property according to its `roles`
-        if !contributor.roles.isEmpty {
-            for role in contributor.roles {
-                switch role {
-                case "aut":
-                    metadata.authors.append(contributor)
-                case "trl":
-                    metadata.translators.append(contributor)
-                case "art":
-                    metadata.artists.append(contributor)
-                case "edt":
-                    metadata.editors.append(contributor)
-                case "ill":
-                    metadata.illustrators.append(contributor)
-                case "clr":
-                    metadata.colorists.append(contributor)
-                case "nrt":
-                    metadata.narrators.append(contributor)
-                case "pbl":
-                    metadata.publishers.append(contributor)
-                default:
-                    metadata.contributors.append(contributor)
-                }
-            }
-        } else {
-            // No role, so do the branching using the element.name.
-            // The remaining ones go to to the contributors.
-            if element.tag == "creator" || element.attr("property") == "dcterms:creator" {
-                metadata.authors.append(contributor)
-            } else if element.tag == "publisher" || element.attr("property") == "dcterms:publisher" {
-                metadata.publishers.append(contributor)
-            } else {
-                metadata.contributors.append(contributor)
-            }
-        }
-    }
-
     /// Builds a `Contributor` instance from a `<dc:creator>`, `<dc:contributor>`
     /// or <dc:publisher> element, or <meta> element with property == "dcterms:
     /// creator", "dcterms:publisher", "dcterms:contributor".
@@ -331,15 +360,20 @@ final class EPUBMetadataParser: Loggable {
     /// - Parameters:
     ///   - element: The XML element reprensenting the contributor.
     /// - Returns: The newly created Contributor instance.
-    private func createContributor(from element: Fuzi.XMLElement) -> Contributor? {
+    private func createContributor(from element: Fuzi.XMLElement, roles: [String] = []) -> Contributor? {
         guard let name = localizedString(for: element) else {
             return nil
+        }
+        
+        var roles = roles
+        if let role = element.attr("role") {
+            roles.insert(role, at: 0)
         }
         
         return Contributor(
             name: name,
             sortAs: element.attr("file-as"),
-            role: element.attr("role")
+            roles: roles
         )
     }
 

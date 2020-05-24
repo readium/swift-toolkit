@@ -17,10 +17,12 @@ import R2Shared
 /// A parser module which provide methods to parse encrypted XML elements.
 final class EPUBEncryptionParser: Loggable {
     
+    private let container: Container
     private let data: Data
     private let drm: DRM?
 
-    init(data: Data, drm: DRM?) {
+    init(container: Container, data: Data, drm: DRM?) {
+        self.container = container
         self.data = data
         self.drm = drm
     }
@@ -29,7 +31,7 @@ final class EPUBEncryptionParser: Loggable {
         let path = "META-INF/encryption.xml"
         do {
             let data = try container.data(relativePath: path)
-            self.init(data: data, drm: drm)
+            self.init(container: container, data: data, drm: drm)
         } catch {
             throw EPUBParserError.missingFile(path: path)
         }
@@ -62,41 +64,48 @@ final class EPUBEncryptionParser: Loggable {
             }
             resourceURI = normalize(base: "/", href: resourceURI)
 
-            var encryption = Encryption(algorithm: algorithm)
-
+            var scheme: String?
+            var originalLength: Int?
+            var compression: String?
+            var profile: String?
+            
             // LCP. Tag LCP protected resources.
             let keyInfoURI = encryptedDataElement.firstChild(xpath: "ds:KeyInfo/ds:RetrievalMethod")?.attr("URI")
-            if keyInfoURI == "license.lcpl#/encryption/content_key",
-                drm?.brand == DRM.Brand.lcp
+            if keyInfoURI == "license.lcpl#/encryption/content_key", drm?.brand == DRM.Brand.lcp {
+                scheme = drm?.scheme.rawValue
+            }
+            
+            // FIXME: Move that to ContentProtection
+            if let licenseLCPLData = try? container.data(relativePath: "META-INF/license.lcpl"),
+                let licenseLCPL = try? JSONSerialization.jsonObject(with: licenseLCPLData) as? [String: Any],
+                let encryptionDict = licenseLCPL["encryption"] as? [String: Any]
             {
-                encryption.scheme = drm?.scheme.rawValue
+                profile = encryptionDict["profile"] as? String
             }
             // LCP END.
 
             for encryptionProperty in encryptedDataElement.xpath("enc:EncryptionProperties/enc:EncryptionProperty") {
-                parseCompressionElement(from: encryptionProperty, to: &encryption)
+                // Check that we have a compression element, with originalLength, not empty.
+                if let compressionElement = encryptionProperty.firstChild(xpath:"comp:Compression"),
+                    let method = compressionElement.attr("Method"),
+                    let length = compressionElement.attr("OriginalLength")
+                {
+                    originalLength = Int(length)
+                    compression = (method == "8" ? "deflate" : "none")
+                    break
+                }
             }
-            encryptions[resourceURI] = encryption
+            
+            encryptions[resourceURI] = Encryption(
+                algorithm: algorithm,
+                compression: compression,
+                originalLength: originalLength,
+                profile: profile,
+                scheme: scheme
+            )
         }
         
         return encryptions
-    }
-
-    /// Parse the <Compression> element.
-    ///
-    /// - Parameters:
-    ///   - encryptionProperty: The EncryptionProperty element, parent of <Compression>.
-    ///   - encryption: The Encryption structure to fill.
-    private func parseCompressionElement(from encryptionProperty: Fuzi.XMLElement, to encryption: inout Encryption) {
-        // Check that we have a compression element, with originalLength, not empty.
-        guard let compressionElement = encryptionProperty.firstChild(xpath:"comp:Compression"),
-            let method = compressionElement.attr("Method"),
-            let originalLength = compressionElement.attr("OriginalLength") else
-        {
-            return
-        }
-        encryption.originalLength = Int(originalLength)
-        encryption.compression = (method == "8" ? "deflate" : "none")
     }
     
 }

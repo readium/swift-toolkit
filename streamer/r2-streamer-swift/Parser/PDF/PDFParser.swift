@@ -145,7 +145,6 @@ public final class PDFParser: PublicationParser, Loggable {
             normalizeHref: { normalize(base: container.rootFile.rootFilePath, href: $0) }
         )
         publication.format = .pdf
-        publication.metadata.identifier = publication.metadata.identifier ?? container.rootFile.rootPath
         publication.positionListFactory = makePositionListFactory(container: container, parserType: parserType)
         
         // Checks the requirements from the spec, see. https://readium.org/lcp-specs/drafts/lcpdf
