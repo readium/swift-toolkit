@@ -245,15 +245,12 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
     }
     
     public var currentLocation: Locator? {
-        guard var locator = currentPosition else {
-            return nil
-        }
-
-        /// Adds some context for bookmarking
-        if let page = pdfView.currentPage {
-            locator.text = Locator.Text(highlight: String(page.string?.prefix(280) ?? ""))
-        }
-        return locator
+        currentPosition?.copy(text: { [weak self] in
+            /// Adds some context for bookmarking
+            if let page = self?.pdfView.currentPage {
+                $0 = .init(highlight: String(page.string?.prefix(280) ?? ""))
+            }
+        })
     }
 
     public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
