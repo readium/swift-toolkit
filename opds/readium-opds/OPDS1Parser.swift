@@ -155,18 +155,19 @@ public class OPDS1Parser: Loggable {
                 let href = link.attr("href"),
                 let absoluteHref = URLHelper.getAbsolute(href: href, base: feedURL)
             {
+                var properties: [String: Any] = [:]
+                if let facetElementCount = link.attr("count").map(Int.init) {
+                    properties["numberOfItems"] = facetElementCount
+                }
+                
                 let newLink = Link(
                     href: absoluteHref,
                     type: link.attr("type"),
                     title: entry.firstChild(tag: "title")?.stringValue,
-                    rel: link.attr("rel")
+                    rel: link.attr("rel"),
+                    properties: .init(properties)
                 )
 
-                if let facetElementCountStr = link.attr("count"),
-                    let facetElementCount = Int(facetElementCountStr) {
-                    newLink.properties.numberOfItems = facetElementCount
-                }
-                
                 // Check collection link
                 if let collectionLink = collectionLink {
                     addNavigationInGroup(feed, newLink, collectionLink)
@@ -181,27 +182,33 @@ public class OPDS1Parser: Loggable {
                 continue
             }
             
+            var rels = Array(ofNotNil: link.attributes["rel"])
+            var properties: [String: Any] = [:]
+            
+            let isFacet = rels.contains("http://opds-spec.org/facet")
+            if isFacet {
+                // Active Facet Check
+                if link.attr("activeFacet")?.lowercased() == "true" {
+                    rels.append("self")
+                }
+                
+                if let facetElementCount = link.attr("count").map(Int.init) {
+                    properties["numberOfItems"] = facetElementCount
+                }
+            }
+            
             let newLink = Link(
                 href: absoluteHref,
                 type: link.attributes["type"],
                 title: link.attributes["title"],
-                rel: link.attributes["rel"]
+                rels: rels,
+                properties: .init(properties)
             )
 
-            if let facetGroupName = link.attributes["facetGroup"],
-                newLink.rels.contains("http://opds-spec.org/facet")
-            {
-                if let facetElementCountStr = link.attributes["count"],
-                    let facetElementCount = Int(facetElementCountStr) {
-                    newLink.properties.numberOfItems = facetElementCount
+            if isFacet {
+                if let facetGroupName = link.attributes["facetGroup"] {
+                    addFacet(feed: feed, to: newLink, named: facetGroupName)
                 }
-                
-                // Active Facet Check
-                if link.attributes["activeFacet"] == "true" {
-                    newLink.rels.append("self")
-                }
-                
-                addFacet(feed: feed, to: newLink, named: facetGroupName)
             } else {
                 feed.links.append(newLink)
             }
@@ -351,15 +358,22 @@ public class OPDS1Parser: Loggable {
                 continue
             }
             
+            var properties: [String: Any] = [:]
+            if let price = parsePrice(link: linkElement)?.json, !price.isEmpty {
+                properties["price"] = price
+            }
+            let indirectAcquisition = parseIndirectAcquisition(children: linkElement.children(tag: "indirectAcquisition")).json
+            if !indirectAcquisition.isEmpty {
+                properties["indirectAcquisition"] = indirectAcquisition
+            }
+            
             let link = Link(
                 href: absoluteHref,
                 type: linkElement.attributes["type"],
                 title: linkElement.attributes["title"],
-                rel: linkElement.attributes["rel"]
+                rel: linkElement.attributes["rel"],
+                properties: .init(properties)
             )
-            
-            link.properties.price = parsePrice(link: linkElement)
-            link.properties.indirectAcquisitions = parseIndirectAcquisition(children: linkElement.children(tag: "indirectAcquisition"))
 
             let rels = link.rels
 
