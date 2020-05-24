@@ -11,13 +11,6 @@
 
 import Foundation
 
-private let pageListKey = "pageList"
-private let landmarksKey = "landmarks"
-private let loaKey = "loa"
-private let loiKey = "loi"
-private let lotKey = "lot"
-private let lovKey = "lov"
-
 /// EPUB Web Publication Extension
 /// https://readium.org/webpub-manifest/schema/extensions/epub/subcollections.schema.json
 extension Publication {
@@ -25,35 +18,29 @@ extension Publication {
     /// Provides navigation to positions in the Publication content that correspond to the locations
     /// of page boundaries present in a print source being represented by this EPUB Publication.
     public var pageList: [Link] {
-        get { return otherCollections.first(withRole: pageListKey)?.links ?? [] }
-        set { setCollectionLinks(newValue, forRole: pageListKey) }
+        otherCollections.first(withRole: "pageList")?.links ?? []
     }
     
     /// Identifies fundamental structural components of the publication in order to enable Reading
     /// Systems to provide the User efficient access to them..
     public var landmarks: [Link] {
-        get { return otherCollections.first(withRole: landmarksKey)?.links ?? [] }
-        set { setCollectionLinks(newValue, forRole: landmarksKey) }
+        otherCollections.first(withRole: "landmarks")?.links ?? []
     }
     
     public var listOfAudioClips: [Link] {
-        get { return otherCollections.first(withRole: loaKey)?.links ?? [] }
-        set { setCollectionLinks(newValue, forRole: loaKey) }
+        otherCollections.first(withRole: "loa")?.links ?? []
     }
     
     public var listOfIllustrations: [Link] {
-        get { return otherCollections.first(withRole: loiKey)?.links ?? [] }
-        set { setCollectionLinks(newValue, forRole: loiKey) }
+        otherCollections.first(withRole: "loi")?.links ?? []
     }
     
     public var listOfTables: [Link] {
-        get { return otherCollections.first(withRole: lotKey)?.links ?? [] }
-        set { setCollectionLinks(newValue, forRole: lotKey) }
+        otherCollections.first(withRole: "lot")?.links ?? []
     }
     
     public var listOfVideoClips: [Link] {
-        get { return otherCollections.first(withRole: lovKey)?.links ?? [] }
-        set { setCollectionLinks(newValue, forRole: lovKey) }
+        otherCollections.first(withRole: "lov")?.links ?? []
     }
 
 }

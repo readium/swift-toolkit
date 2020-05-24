@@ -16,54 +16,52 @@ import Foundation
 public struct Contributor: Equatable {
     
     /// The name of the contributor.
-    public var localizedName: LocalizedString
-    public var name: String {
-        return localizedName.string
-    }
+    public let localizedName: LocalizedString
+    public var name: String { localizedName.string }
 
     /// An unambiguous reference to this contributor.
-    public var identifier: String?
+    public let identifier: String?
     
     /// The string used to sort the name of the contributor.
-    public var sortAs: String?
+    public let sortAs: String?
     
     /// The role of the contributor in the publication making.
-    public var roles: [String] = []
+    public let roles: [String]
     
     /// The position of the publication in this collection/series, when the contributor represents a collection.
-    public var position: Double?
+    public let position: Double?
     
     /// Used to retrieve similar publications for the given contributor.
-    public var links: [Link] = []
+    public let links: [Link]
 
     public init(name: LocalizedStringConvertible, identifier: String? = nil, sortAs: String? = nil, roles: [String] = [], role: String? = nil, position: Double? = nil, links: [Link] = []) {
+        // convenience to set a single role during construction
+        var roles = roles
+        if let role = role {
+            roles.append(role)
+        }
+        
         self.localizedName = name.localizedString
         self.identifier = identifier
         self.sortAs = sortAs
         self.roles = roles
         self.position = position
         self.links = links
-        
-        // convenience to set a single role during construction
-        if let role = role {
-            self.roles.append(role)
-        }
     }
     
     public init(json: Any, normalizeHref: (String) -> String = { $0 }) throws {
         if let name = json as? String {
-            self.localizedName = name.localizedString
-            
-        } else if let json = json as? [String: Any] {
-            guard let name = try LocalizedString(json: json["name"]) else {
-                throw JSONError.parsing(Contributor.self)
-            }
-            self.localizedName = name
-            self.identifier = json["identifier"] as? String
-            self.sortAs = json["sortAs"] as? String
-            self.roles = parseArray(json["role"], allowingSingle: true)
-            self.position =  parseDouble(json["position"])
-            self.links = [Link](json: json["links"], normalizeHref: normalizeHref)
+            self.init(name: name)
+
+        } else if let json = json as? [String: Any], let name = try LocalizedString(json: json["name"]) {
+            self.init(
+                name: name,
+                identifier: json["identifier"] as? String,
+                sortAs: json["sortAs"] as? String,
+                roles: parseArray(json["role"], allowingSingle: true),
+                position: parseDouble(json["position"]),
+                links: .init(json: json["links"], normalizeHref: normalizeHref)
+            )
 
         } else {
             throw JSONError.parsing(Contributor.self)
@@ -71,7 +69,7 @@ public struct Contributor: Equatable {
     }
     
     public var json: [String: Any] {
-        return makeJSON([
+        makeJSON([
             "name": localizedName.json,
             "identifier": encodeIfNotNil(identifier),
             "sortAs": encodeIfNotNil(sortAs),

@@ -17,14 +17,11 @@ import Foundation
 public struct Properties: Equatable, Loggable {
     
     /// Additional properties for extensions.
-    public var otherProperties: [String: Any] {
-        get { return otherPropertiesJSON.json }
-        set { otherPropertiesJSON.json = newValue }
-    }
-    // Trick to keep the struct equatable despite [String: Any]
-    private var otherPropertiesJSON: JSONDictionary
-
+    public var otherProperties: [String: Any] { otherPropertiesJSON.json }
     
+    // Trick to keep the struct equatable despite [String: Any]
+    private let otherPropertiesJSON: JSONDictionary
+
     public init(_ otherProperties: [String: Any] = [:]) {
         self.otherPropertiesJSON = JSONDictionary(otherProperties) ?? JSONDictionary()
     }
@@ -40,33 +37,13 @@ public struct Properties: Equatable, Loggable {
     }
     
     public var json: [String: Any] {
-        return makeJSON(otherProperties)
+        makeJSON(otherProperties)
     }
 
     /// Syntactic sugar to access the `otherProperties` values by subscripting `Properties` directly.
     /// properties["price"] == properties.otherProperties["price"]
     public subscript(key: String) -> Any? {
-        get { return otherProperties[key] }
-        set { otherProperties[key] = newValue }
-    }
-    
-    
-    // MARK: Extension tools
-    
-    mutating func setProperty<T: RawRepresentable>(_ value: T?, forKey key: String) {
-        if let value = value {
-            otherProperties[key] = value.rawValue
-        } else {
-            otherProperties.removeValue(forKey: key)
-        }
-    }
-    
-    mutating func setProperty<T: Collection>(_ value: T?, forKey key: String) {
-        if let value = value, !value.isEmpty {
-            otherProperties[key] = value
-        } else {
-            otherProperties.removeValue(forKey: key)
-        }
+        otherProperties[key]
     }
 
 }

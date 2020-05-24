@@ -14,49 +14,44 @@ import XCTest
 
 class PropertiesOPDSTests: XCTestCase {
 
-    var sut: Properties!
-    
-    override func setUp() {
-        sut = Properties()
-    }
-
     func testNoNumberOfItems() {
+        let sut = Properties()
         XCTAssertNil(sut.numberOfItems)
     }
     
     func testNumberOfItems() {
-        sut.otherProperties["numberOfItems"] = 42
-
+        let sut = Properties(["numberOfItems": 42])
         XCTAssertEqual(sut.numberOfItems, 42)
     }
     
     func testNumberOfItemsMustBePositive() {
-        sut.otherProperties["numberOfItems"] = -20
-        
+        let sut = Properties(["numberOfItems": -20])
         XCTAssertNil(sut.numberOfItems)
     }
 
     func testNoPrice() {
+        let sut = Properties()
         XCTAssertNil(sut.price)
     }
     
     func testPrice() {
-        sut.otherProperties["price"] = [
+        let sut = Properties(["price": [
             "currency": "EUR",
             "value": 3.65
-        ]
-        
+        ]])
+
         XCTAssertEqual(sut.price, OPDSPrice(currency: "EUR", value: 3.65))
     }
 
     func testNoIndirectAcquisition() {
+        let sut = Properties()
         XCTAssertEqual(sut.indirectAcquisitions, [])
     }
     
     func testIndirectAcquisition() {
-        sut.otherProperties["indirectAcquisition"] = [
+        let sut = Properties(["indirectAcquisition": [
             [ "type": "acqtype" ]
-        ]
+        ]])
         
         XCTAssertEqual(sut.indirectAcquisitions, [
             OPDSAcquisition(type: "acqtype")
@@ -64,37 +59,40 @@ class PropertiesOPDSTests: XCTestCase {
     }
 
     func testNoHolds() {
+        let sut = Properties()
         XCTAssertNil(sut.holds)
     }
     
     func testHolds() {
-        sut.otherProperties["holds"] = [
+        let sut = Properties(["holds": [
             "total": 5
-        ]
+        ]])
         
         XCTAssertEqual(sut.holds, OPDSHolds(total: 5, position: nil))
     }
 
     func testNoCopies() {
+        let sut = Properties()
         XCTAssertNil(sut.copies)
     }
     
     func testCopies() {
-        sut.otherProperties["copies"] = [
+        let sut = Properties(["copies": [
             "total": 5
-        ]
+        ]])
         
         XCTAssertEqual(sut.copies, OPDSCopies(total: 5, available: nil))
     }
 
     func testNoAvailability() {
+        let sut = Properties()
         XCTAssertNil(sut.availability)
     }
     
     func testAvailability() {
-        sut.otherProperties["availability"] = [
+        let sut = Properties(["availability": [
             "state": "available"
-        ]
+        ]])
         
         XCTAssertEqual(sut.availability, OPDSAvailability(state: .available))
     }

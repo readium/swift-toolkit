@@ -135,6 +135,40 @@ class LocatorTests: XCTestCase {
         )
     }
     
+    func testCopy() {
+        let locator = Locator(
+            href: "http://locator",
+            type: "text/html",
+            title: "My Locator",
+            locations: .init(position: 42),
+            text: .init(highlight: "Excerpt")
+        )
+        AssertJSONEqual(locator.json, locator.copy().json)
+        
+        let copy = locator.copy(
+            title: "edited",
+            locations: { $0.progression = 0.4 },
+            text: { $0.before = "before" }
+        )
+
+        AssertJSONEqual(
+            copy.json,
+            [
+                "href": "http://locator",
+                "type": "text/html",
+                "title": "edited",
+                "locations": [
+                    "position": 42,
+                    "progression": 0.4
+                ],
+                "text": [
+                    "before": "before",
+                    "highlight": "Excerpt",
+                ]
+            ]
+        )
+    }
+    
 }
 
 

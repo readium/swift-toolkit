@@ -15,7 +15,7 @@ import Foundation
 extension Publication {
     
     public var images: [Link] {
-        return otherCollections.first(withRole: "images")?.links ?? []
+        otherCollections.first(withRole: "images")?.links ?? []
     }
 
 }

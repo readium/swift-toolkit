@@ -78,7 +78,7 @@ public struct Presentation: Equatable {
     }
     
     public var json: [String: Any] {
-        return makeJSON([
+        makeJSON([
             "clipped": encodeIfNotNil(clipped),
             "continuous": encodeIfNotNil(continuous),
             "fit": encodeRawIfNotNil(fit),

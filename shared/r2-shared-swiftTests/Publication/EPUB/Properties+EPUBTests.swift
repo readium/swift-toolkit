@@ -14,29 +14,23 @@ import XCTest
 
 class PropertiesEPUBTests: XCTestCase {
     
-    var sut: Properties!
-    
-    override func setUp() {
-        sut = Properties()
-    }
-    
     func testNoContains() {
+        let sut = Properties()
         XCTAssertEqual(sut.contains, [])
     }
     
     func testContains() {
-        sut.otherProperties["contains"] = ["mathml", "onix"]
-        
+        let sut = Properties(["contains": ["mathml", "onix"]])
         XCTAssertEqual(sut.contains, ["mathml", "onix"])
     }
     
     func testNoLayout() {
+        let sut = Properties()
         XCTAssertNil(sut.layout)
     }
     
     func testLayout() {
-        sut.otherProperties["layout"] = "fixed"
-        
+        let sut = Properties(["layout": "fixed"])
         XCTAssertEqual(sut.layout, .fixed)
     }
 

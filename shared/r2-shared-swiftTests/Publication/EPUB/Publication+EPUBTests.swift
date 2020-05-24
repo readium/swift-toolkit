@@ -14,21 +14,14 @@ import XCTest
 
 class PublicationEPUBTests: XCTestCase {
     
-    var sut: Publication!
-    
-    override func setUp() {
-        sut = Publication(metadata: Metadata(title: ""), links: [], readingOrder: [])
-    }
-
     func testNoPageList() {
+        let sut = makePublication()
         XCTAssertEqual(sut.pageList, [])
     }
 
     func testPageList() {
-        sut.otherCollections.append(
-            PublicationCollection(role: "pageList", links: [Link(href: "/page1.html")])
-        )
-        
+        let sut = makePublication(PublicationCollection(role: "pageList", links: [Link(href: "/page1.html")]))
+
         XCTAssertEqual(
             sut.pageList,
             [Link(href: "/page1.html")]
@@ -36,13 +29,12 @@ class PublicationEPUBTests: XCTestCase {
     }
 
     func testNoLandmarks() {
+        let sut = makePublication()
         XCTAssertEqual(sut.landmarks, [])
     }
     
     func testLandmarks() {
-        sut.otherCollections.append(
-            PublicationCollection(role: "landmarks", links: [Link(href: "/landmark.html")])
-        )
+        let sut = makePublication(PublicationCollection(role: "landmarks", links: [Link(href: "/landmark.html")]))
         
         XCTAssertEqual(
             sut.landmarks,
@@ -51,14 +43,13 @@ class PublicationEPUBTests: XCTestCase {
     }
 
     func testNoListOfAudioClips() {
+        let sut = makePublication()
         XCTAssertEqual(sut.listOfAudioClips, [])
     }
     
     func testListOfAudioClips() {
-        sut.otherCollections.append(
-            PublicationCollection(role: "loa", links: [Link(href: "/audio.mp3")])
-        )
-        
+        let sut = makePublication(PublicationCollection(role: "loa", links: [Link(href: "/audio.mp3")]))
+
         XCTAssertEqual(
             sut.listOfAudioClips,
             [Link(href: "/audio.mp3")]
@@ -66,14 +57,13 @@ class PublicationEPUBTests: XCTestCase {
     }
 
     func testNoListOfIllustrations() {
+        let sut = makePublication()
         XCTAssertEqual(sut.listOfIllustrations, [])
     }
     
     func testListOfIllustrations() {
-        sut.otherCollections.append(
-            PublicationCollection(role: "loi", links: [Link(href: "/image.jpg")])
-        )
-        
+        let sut = makePublication(PublicationCollection(role: "loi", links: [Link(href: "/image.jpg")]))
+
         XCTAssertEqual(
             sut.listOfIllustrations,
             [Link(href: "/image.jpg")]
@@ -81,14 +71,13 @@ class PublicationEPUBTests: XCTestCase {
     }
 
     func testNoListOfTables() {
+        let sut = makePublication()
         XCTAssertEqual(sut.listOfTables, [])
     }
     
     func testListOfTables() {
-        sut.otherCollections.append(
-            PublicationCollection(role: "lot", links: [Link(href: "/table.html")])
-        )
-        
+        let sut = makePublication(PublicationCollection(role: "lot", links: [Link(href: "/table.html")]))
+
         XCTAssertEqual(
             sut.listOfTables,
             [Link(href: "/table.html")]
@@ -96,18 +85,22 @@ class PublicationEPUBTests: XCTestCase {
     }
 
     func testNoListOfVideoClips() {
+        let sut = makePublication()
         XCTAssertEqual(sut.listOfVideoClips, [])
     }
     
     func testListOfVideoClips() {
-        sut.otherCollections.append(
-            PublicationCollection(role: "lov", links: [Link(href: "/video.mov")])
-        )
+        let sut = makePublication(PublicationCollection(role: "lov", links: [Link(href: "/video.mov")]))
         
         XCTAssertEqual(
             sut.listOfVideoClips,
             [Link(href: "/video.mov")]
         )
+    }
+    
+    private func makePublication(_ collection: PublicationCollection? = nil) -> Publication {
+        let collections = Array(ofNotNil: collection)
+        return Publication(metadata: Metadata(title: ""), links: [], readingOrder: [], otherCollections: collections)
     }
 
 }

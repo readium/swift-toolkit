@@ -11,8 +11,6 @@
 
 import Foundation
 
-private let encryptedKey = "encrypted"
-
 /// Encryption Link Properties Extension
 /// https://readium.org/webpub-manifest/schema/extensions/encryption/properties.schema.json
 extension Properties {
@@ -20,15 +18,12 @@ extension Properties {
     /// Indicates that a resource is encrypted/obfuscated and provides relevant information for
     /// decryption.
     public var encryption: Encryption? {
-        get {
-            do {
-                return try Encryption(json: otherProperties[encryptedKey])
-            } catch {
-                log(.warning, error)
-                return nil
-            }
+        do {
+            return try Encryption(json: otherProperties["encrypted"])
+        } catch {
+            log(.warning, error)
+            return nil
         }
-        set { setProperty(newValue?.json, forKey: encryptedKey) }
     }
     
 }

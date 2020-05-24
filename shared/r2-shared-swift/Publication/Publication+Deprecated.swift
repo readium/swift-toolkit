@@ -32,6 +32,9 @@ extension Publication {
         setSelfLink(href: manifestURL.absoluteString)
     }
     
+    @available(*, unavailable, message: "`Publication` is now immutable")
+    func setCollectionLinks(_ links: [Link], forRole role: String) {}
+
 }
 
 extension Publication {
@@ -49,26 +52,17 @@ public typealias MultilangString = LocalizedString
 
 extension LocalizedString {
     
-    @available(*, deprecated, message: "Get with the property `string`, or set using `LocalizedString.nonlocalized(string)`")
+    @available(*, deprecated, message: "Get with the property `string`")
     public var singleString: String? {
-        get { return string.isEmpty ? nil : string }
-        set { self = .nonlocalized(newValue ?? "") }
+        string.isEmpty ? nil : string
     }
     
-    @available(*, deprecated, message: "Get with `string(forLanguageCode:)`, or set using `LocalizedString.localized(strings)`")
+    @available(*, deprecated, message: "Get with `string(forLanguageCode:)`")
     public var multiString: [String: String] {
-        get {
-            guard case .localized(let strings) = self else {
-                return [:]
-            }
-            return strings
+        guard case .localized(let strings) = self else {
+            return [:]
         }
-        set {
-            guard !newValue.isEmpty else {
-                return
-            }
-            self = .localized(newValue)
-        }
+        return strings
     }
     
     @available(*, deprecated, renamed: "LocalizedString.localized")
@@ -81,28 +75,19 @@ extension LocalizedString {
 extension Metadata {
     
     @available(*, deprecated, renamed: "type")
-    public var rdfType: String? {
-        get { return type }
-        set { type = newValue }
-    }
-    
+    public var rdfType: String? { type }
+
     @available(*, deprecated, renamed: "localizedTitle")
-    public var multilangTitle: LocalizedString {
-        get { return localizedTitle }
-        set { localizedTitle = newValue }
-    }
-    
+    public var multilangTitle: LocalizedString { localizedTitle }
+
     @available(*, deprecated, renamed: "localizedSubtitle")
-    public var multilangSubtitle: LocalizedString? {
-        get { return localizedSubtitle }
-        set { localizedSubtitle = newValue }
-    }
-    
+    public var multilangSubtitle: LocalizedString? { localizedSubtitle }
+
     @available(*, unavailable, message: "Not used anymore, you can store the rights in `otherMetadata[\"rights\"]` if necessary")
-    public var rights: String? { get { return nil } set {} }
+    public var rights: String? { nil }
     
     @available(*, unavailable, message: "Not used anymore, you can store the source in `otherMetadata[\"source\"]` if necessary")
-    public var source: String? { get { return nil } set {} }
+    public var source: String? { nil }
     
     @available(*, deprecated, renamed: "init(title:)")
     public init() {
@@ -132,11 +117,8 @@ extension Metadata {
 extension Contributor {
     
     @available(*, deprecated, renamed: "localizedName")
-    public var multilangName: LocalizedString {
-        get { return localizedName }
-        set { localizedName = newValue }
-    }
-    
+    public var multilangName: LocalizedString { localizedName }
+
     @available(*, deprecated, renamed: "init(name:)")
     public init() {
         self.init(name: "")
@@ -166,16 +148,16 @@ extension Subject {
 extension Link {
     
     @available(*, deprecated, renamed: "type")
-    public var typeLink: String? { get { return type } set { type = newValue } }
+    public var typeLink: String? { type }
     
     @available(*, deprecated, renamed: "rels")
-    public var rel: [String] { get { return rels } set { rels = newValue } }
+    public var rel: [String] { rels }
     
     @available(*, deprecated, renamed: "href")
-    public var absoluteHref: String? { get { return href } set { href = newValue ?? href } }
+    public var absoluteHref: String? { href }
     
     @available(*, deprecated, renamed: "init(href:)")
-    public convenience init() {
+    public init() {
         self.init(href: "")
     }
     
@@ -205,6 +187,12 @@ extension Properties {
     @available(*, unavailable, message: "The media overlay API was only half implemented and will be refactored later")
     public var mediaOverlay: String? { nil }
     
+    @available(*, unavailable, message: "`Properties` is now immutable")
+    mutating func setProperty<T: RawRepresentable>(_ value: T?, forKey key: String) {}
+    
+    @available(*, unavailable, message: "`Properties` is now immutable")
+    mutating func setProperty<T: Collection>(_ value: T?, forKey key: String) {}
+
 }
 
 extension Presentation {
@@ -223,10 +211,10 @@ public typealias IndirectAcquisition = OPDSAcquisition
 extension OPDSAcquisition {
 
     @available(*, deprecated, renamed: "type")
-    public var typeAcquisition: String { get { return type } set { type = newValue } }
+    public var typeAcquisition: String { type }
     
     @available(*, deprecated, renamed: "children")
-    public var child: [OPDSAcquisition] { get { return children } set { children = newValue } }
+    public var child: [OPDSAcquisition] { children }
     
 }
 

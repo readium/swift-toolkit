@@ -16,19 +16,19 @@ import Foundation
 public struct Encryption: Equatable {
     
     /// Identifies the algorithm used to encrypt the resource.
-    public var algorithm: String  // URI
+    public let algorithm: String  // URI
     
     /// Compression method used on the resource.
-    public var compression: String?
+    public let compression: String?
     
     /// Original length of the resource in bytes before compression and/or encryption.
-    public var originalLength: Int?
+    public let originalLength: Int?
     
     /// Identifies the encryption profile used to encrypt the resource.
-    public var profile: String?  // URI
+    public let profile: String?  // URI
     
     /// Identifies the encryption scheme used to encrypt the resource.
-    public var scheme: String?  // URI
+    public let scheme: String?  // URI
     
     
     public init(algorithm: String, compression: String? = nil, originalLength: Int? = nil, profile: String? = nil, scheme: String? = nil) {
@@ -50,14 +50,16 @@ public struct Encryption: Equatable {
             throw JSONError.parsing(Encryption.self)
         }
         
-        self.algorithm = algorithm
-        self.compression = json["compression"] as? String
-        // Fallback on [original-length] for legacy reasons
-        // See https://github.com/readium/webpub-manifest/pull/43
-        self.originalLength = json["originalLength"] as? Int
-            ?? json["original-length"] as? Int
-        self.profile = json["profile"] as? String
-        self.scheme = json["scheme"] as? String
+        self.init(
+            algorithm: algorithm,
+            compression: json["compression"] as? String,
+            originalLength: json["originalLength"] as? Int
+                // Fallback on `original-length` for legacy reasons
+                // See https://github.com/readium/webpub-manifest/pull/43
+                ?? json["original-length"] as? Int,
+            profile: json["profile"] as? String,
+            scheme: json["scheme"] as? String
+        )
     }
     
     public var json: [String: Any] {

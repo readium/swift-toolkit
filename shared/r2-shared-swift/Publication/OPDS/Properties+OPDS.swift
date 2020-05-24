@@ -11,44 +11,29 @@
 
 import Foundation
 
-private let numberOfItemsKey = "numberOfItems"
-private let priceKey = "price"
-private let indirectAcquisitionKey = "indirectAcquisition"
-
 /// OPDS Link Properties Extension
 /// https://drafts.opds.io/schema/properties.schema.json
 extension Properties {
     
     /// Provides a hint about the expected number of items returned.
     public var numberOfItems: Int? {
-        get { return parsePositive(otherProperties[numberOfItemsKey]) }
-        set {
-            if let numberOfItems = newValue {
-                otherProperties[numberOfItemsKey] = numberOfItems
-            } else {
-                otherProperties.removeValue(forKey: numberOfItemsKey)
-            }
-        }
+        parsePositive(otherProperties["numberOfItems"])
     }
     
     /// The price of a publication is tied to its acquisition link.
     public var price: OPDSPrice? {
-        get {
-            do {
-                return try OPDSPrice(json: otherProperties[priceKey])
-            } catch {
-                log(.warning, error)
-                return nil
-            }
+        do {
+            return try OPDSPrice(json: otherProperties["price"])
+        } catch {
+            log(.warning, error)
+            return nil
         }
-        set { setProperty(newValue?.json, forKey: priceKey) }
     }
     
     /// Indirect acquisition provides a hint for the expected media type that will be acquired after
     /// additional steps.
     public var indirectAcquisitions: [OPDSAcquisition] {
-        get { return [OPDSAcquisition](json: otherProperties[indirectAcquisitionKey]) }
-        set { setProperty(newValue.json, forKey: indirectAcquisitionKey) }
+        [OPDSAcquisition](json: otherProperties["indirectAcquisition"])
     }
     
     /// Library-specific features when a specific book is unavailable but provides a hold list.

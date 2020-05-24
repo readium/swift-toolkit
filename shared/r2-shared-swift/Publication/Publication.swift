@@ -24,13 +24,16 @@ public class Publication: JSONEquatable, Loggable {
     /// Readium Web Publication
     /// See. https://readium.org/webpub-manifest/
     
-    public var context: [String]  // @context
-    public var metadata: Metadata
-    public var links: [Link]
-    public var readingOrder: [Link]
-    public var resources: [Link]
-    public var tableOfContents: [Link]
-    public var otherCollections: [PublicationCollection]
+    public let context: [String]  // @context
+    public let metadata: Metadata
+    public var links: [Link]  // FIXME: should not be mutable
+    public let readingOrder: [Link]
+    public let resources: [Link]
+    public let otherCollections: [PublicationCollection]
+    
+    public var tableOfContents: [Link] {
+        otherCollections.first(withRole: "toc")?.links ?? []
+    }
 
     /// Factory used to build lazily the `positionList`.
     /// By default, a parser will set this to parse the `positionList` from the publication. But the host app might want to overwrite this with a custom closure to implement for example a cache mechanism.
@@ -62,7 +65,7 @@ public class Publication: JSONEquatable, Loggable {
     
     /// Returns the content layout style for the default publication language.
     public var contentLayout: ContentLayout {
-        return contentLayout(forLanguage: nil)
+        contentLayout(forLanguage: nil)
     }
     
     /// Returns the content layout style for the given language code.
@@ -75,6 +78,12 @@ public class Publication: JSONEquatable, Loggable {
     }
     
     public init(format: Format = .unknown, formatVersion: String? = nil, positionListFactory: @escaping (Publication) -> [Locator] = { _ in [] }, context: [String] = [], metadata: Metadata, links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = [], tableOfContents: [Link] = [], otherCollections: [PublicationCollection] = []) {
+        // Convenience to set the table of contents during construction
+        var otherCollections = otherCollections
+        if !tableOfContents.isEmpty {
+            otherCollections.insert(PublicationCollection(role: "toc", links: tableOfContents), at: 0)
+        }
+        
         self.format = format
         self.formatVersion = formatVersion
         self.context = context
@@ -82,7 +91,6 @@ public class Publication: JSONEquatable, Loggable {
         self.links = links
         self.readingOrder = readingOrder
         self.resources = resources
-        self.tableOfContents = tableOfContents
         self.otherCollections = otherCollections
         self.positionListFactory = positionListFactory
     }
@@ -102,8 +110,7 @@ public class Publication: JSONEquatable, Loggable {
             .filter { $0.type != nil }
         self.resources = [Link](json: json.pop("resources"), normalizeHref: normalizeHref)
             .filter { $0.type != nil }
-        self.tableOfContents = [Link](json: json.pop("toc"), normalizeHref: normalizeHref)
-        
+
         // Parses sub-collections from remaining JSON properties.
         self.otherCollections = [PublicationCollection](json: json.json, normalizeHref: normalizeHref)
     }
@@ -122,16 +129,6 @@ public class Publication: JSONEquatable, Loggable {
     /// Returns the Manifest's data JSON representation.
     public var manifest: Data? {
         return serializeJSONData(json)
-    }
-
-    /// Replaces the links for the first found subcollection with the given role.
-    /// If none is found, creates a new subcollection.
-    func setCollectionLinks(_ links: [Link], forRole role: String) {
-        if let collection = otherCollections.first(withRole: role) {
-            collection.links = links
-        } else {
-            otherCollections.append(PublicationCollection(role: role, links: links))
-        }
     }
 
     /// Sets the URL where this `Publication`'s RWPM manifest is served.
@@ -318,15 +315,12 @@ extension Publication {
     
     @available(*, deprecated, renamed: "formatVersion")
     public var version: Double {
-        get {
-            guard let versionString = formatVersion,
-                let version = Double(versionString) else
-            {
-                return 0
-            }
-            return version
+        guard let versionString = formatVersion,
+            let version = Double(versionString) else
+        {
+            return 0
         }
-        set { formatVersion = String(newValue) }
+        return version
     }
 
     @available(*, deprecated, renamed: "baseURL")

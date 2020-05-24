@@ -14,19 +14,15 @@ import XCTest
 
 class PublicationOPDSTests: XCTestCase {
     
-    var sut: Publication!
-    
-    override func setUp() {
-        sut = Publication(metadata: Metadata(title: ""), links: [], readingOrder: [])
-    }
-    
     func testNoImages() {
+        let sut = Publication(metadata: Metadata(title: ""), links: [], readingOrder: [])
         XCTAssertEqual(sut.images, [])
     }
     
     func testImages() {
-        sut.otherCollections.append(
-            PublicationCollection(role: "images", links: [Link(href: "/image.png")])
+        let sut = Publication(
+            metadata: Metadata(title: ""), links: [], readingOrder: [],
+            otherCollections: [PublicationCollection(role: "images", links: [Link(href: "/image.png")])]
         )
         
         XCTAssertEqual(

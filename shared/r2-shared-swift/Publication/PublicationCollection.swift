@@ -15,14 +15,14 @@ import Foundation
 /// Core Collection Model
 /// https://readium.org/webpub-manifest/schema/subcollection.schema.json
 /// Can be used as extension point in the Readium Web Publication Manifest.
-public class PublicationCollection: JSONEquatable {
+public struct PublicationCollection: JSONEquatable {
     
     /// JSON key used to reference this collection in its parent.
-    public var role: String
+    public let role: String
     
-    public var metadata: [String: Any] = [:]
-    public var links: [Link] = []
-    public var otherCollections: [PublicationCollection] = []
+    public let metadata: [String: Any]
+    public let links: [Link]
+    public let otherCollections: [PublicationCollection]
     
     public init(role: String, metadata: [String: Any] = [:], links: [Link], otherCollections: [PublicationCollection] = []) {
         self.role = role
@@ -32,17 +32,24 @@ public class PublicationCollection: JSONEquatable {
     }
     
     public init(role: String, json: Any, normalizeHref: (String) -> String = { $0 }) throws {
-        self.role = role
-        
         // Parses a list of links.
         if let json = json as? [[String: Any]] {
-            self.links = [Link](json: json, normalizeHref: normalizeHref)
+            self.init(
+                role: role,
+                links: .init(json: json, normalizeHref: normalizeHref)
+            )
 
         // Parses a sub-collection object.
         } else if var json = JSONDictionary(json) {
-            self.metadata = json.pop("metadata") as? [String: Any] ?? [:]
-            self.links = [Link](json: json.pop("links"), normalizeHref: normalizeHref)
-            self.otherCollections = [PublicationCollection](json: json.json, normalizeHref: normalizeHref)
+            self.init(
+                role: role,
+                metadata: json.pop("metadata") as? [String: Any] ?? [:],
+                links: .init(json: json.pop("links"), normalizeHref: normalizeHref),
+                otherCollections: .init(json: json.json, normalizeHref: normalizeHref)
+            )
+            
+        } else {
+            self.init(role: role, links: [])
         }
 
         guard !links.isEmpty else {
