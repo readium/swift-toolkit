@@ -139,14 +139,27 @@ public class Publication: JSONEquatable, Loggable {
         links.removeAll { $0.rels.contains("self") }
         links.append(Link(
             href: href,
-            type: "application/webpub+json",
+            type: MediaType.webpubManifest.string,
             rel: "self"
         ))
     }
 
-    /// Finds the first `Link` having the given `rel` in the publications's links.
+    /// Finds the first `Link` having the given `rel` in the publication's links.
     public func link(withRel rel: String) -> Link? {
         return link { $0.rels.contains(rel) }
+    }
+
+    /// Finds the first `Link` having the given `rel` matching the given `predicate`, in the
+    /// publications' links.
+    internal func link(withRelMatching predicate: (String) -> Bool) -> Link? {
+        for link in links {
+            for rel in link.rels {
+                if predicate(rel) {
+                    return link
+                }
+            }
+        }
+        return nil
     }
     
     /// Finds the first Link having the given `href` in the publication's links.
@@ -189,18 +202,47 @@ public class Publication: JSONEquatable, Loggable {
     
     /// Generates an URL to a publication's `Link`.
     public func url(to link: Link?) -> URL? {
-        guard let link = link else {
+        return url(to: link?.href)
+    }
+    
+    /// Generates an URL to a publication's `href`.
+    public func url(to href: String?) -> URL? {
+        guard let href = href else {
             return nil
         }
         
-        if let url = URL(string: link.href), url.scheme != nil {
+        if let url = URL(string: href), url.scheme != nil {
             return url
-        } else {
-            var href = link.href
-            if href.hasPrefix("/") {
-                href = String(href.dropFirst())
-            }
-            return baseURL.map { $0.appendingPathComponent(href) }
+        } else if let baseURL = baseURL {
+            return baseURL.appendingPathComponent(href.removingPrefix("/"))
+        }
+        
+        return nil
+    }
+    
+    /// Returns whether all the `Link` in the reading order match the given `predicate`.
+    internal func allReadingOrder(_ predicate: (Link) -> Bool) -> Bool {
+        return readingOrder.allSatisfy(predicate)
+    }
+    
+    /// Returns whether all the resources in the reading order are bitmaps.
+    internal var allReadingOrderIsBitmap: Bool {
+        allReadingOrder { link in
+            link.mediaType?.isBitmap ?? false
+        }
+    }
+    
+    /// Returns whether all the resources in the reading order are audio clips.
+    internal var allReadingOrderIsAudio: Bool {
+        allReadingOrder { link in
+            link.mediaType?.isAudio ?? false
+        }
+    }
+    
+    /// Returns whether all the resources in the reading order are contained in any of the given media types.
+    internal func allReadingOrderMatches(mediaType: MediaType...) -> Bool {
+        allReadingOrder { link in
+            mediaType.first { link.mediaType?.matches($0) ?? false } != nil
         }
     }
     
@@ -210,7 +252,7 @@ public class Publication: JSONEquatable, Loggable {
         case cbz, epub, pdf, webpub
         /// Default value when the format is not specified.
         case unknown
-        
+
         /// Finds the format for the given mimetype.
         public init(mimetype: String?) {
             guard let mimetype = mimetype else {
@@ -222,35 +264,7 @@ public class Publication: JSONEquatable, Loggable {
 
         /// Finds the format from a list of possible mimetypes or fallback on a file extension.
         public init(mimetypes: [String] = [], fileExtension: String? = nil) {
-            self = {
-                for mimetype in mimetypes {
-                    switch mimetype {
-                    case "application/epub+zip", "application/oebps-package+xml":
-                        return .epub
-                    case "application/vnd.comicbook+zip", "application/x-cbr":
-                        return .cbz
-                    case "application/pdf", "application/pdf+lcp":
-                        return .pdf
-                    case "application/webpub+json", "application/audiobook+json":
-                        return .webpub
-                    default:
-                        break
-                    }
-                }
-                
-                switch fileExtension?.lowercased() {
-                case "epub":
-                    return .epub
-                case "cbz":
-                    return .cbz
-                case "pdf", "lcpdf":
-                    return .pdf
-                case "json":
-                    return .webpub
-                default:
-                    return .unknown
-                }
-            }()
+            self.init(format: .of(mediaTypes: mimetypes, fileExtensions: Array(ofNotNil: fileExtension)))
         }
         
         /// Finds the format of the publication at the given url.
@@ -266,26 +280,26 @@ public class Publication: JSONEquatable, Loggable {
         ///
         /// - Parameter mimetypes: Fallback mimetypes if the UTI can't be determined.
         public init(file: URL, mimetypes: [String] = []) {
-            func mimetype(of url: URL) -> String? {
-                // `mimetype` file in a directory
-                var isDirectory: ObjCBool = false
-                FileManager.default.fileExists(atPath: file.path, isDirectory: &isDirectory)
-                if isDirectory.boolValue {
-                    return try? String(contentsOf: file.appendingPathComponent("mimetype"), encoding: String.Encoding.utf8)
-                    // UTI
-                } else if let extUTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, file.pathExtension as CFString, nil)?.takeUnretainedValue() {
-                    return UTTypeCopyPreferredTagWithClass(extUTI, kUTTagClassMIMEType)?.takeRetainedValue() as String?
-                } else {
-                    return nil
-                }
+            self.init(format: .of(file, mediaTypes: mimetypes, fileExtensions: []))
+        }
+        
+        private init(format: R2Shared.Format?) {
+            guard let format = format else {
+                self = .unknown
+                return
             }
-            
-            var mimetypes = mimetypes
-            if let mimetype = mimetype(of: file) {
-                mimetypes.append(mimetype)
+            switch format {
+            case .epub:
+                self = .epub
+            case .cbz:
+                self = .cbz
+            case .pdf, .lcpProtectedPDF:
+                self = .pdf
+            case .webpubManifest, .audiobookManifest:
+                self = .webpub
+            default:
+                self = .unknown
             }
-
-            self.init(mimetypes: mimetypes, fileExtension: file.pathExtension)
         }
         
         @available(*, deprecated, renamed: "init(file:)")

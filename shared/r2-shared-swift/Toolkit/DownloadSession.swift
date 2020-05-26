@@ -85,7 +85,7 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
                 .appendingPathExtension(location.pathExtension)
             
             try FileManager.default.moveItem(at: location, to: tempURL)
-            done = download?.completion(tempURL, nil, nil, downloadTask)
+            done = download?.completion(tempURL, response, nil, downloadTask)
         } catch {
             done = download?.completion(nil, nil, error, downloadTask)
         }
