@@ -148,7 +148,7 @@ class LibraryViewController: UIViewController, Loggable {
     }
     
     private func addBookFromDevice() {
-        var utis = DocumentTypes.utis
+        var utis = DocumentTypes.main.supportedUTIs
         utis.append(String(kUTTypeText))
         let documentPicker = UIDocumentPickerViewController(documentTypes: utis, in: .import)
         documentPicker.delegate = self
@@ -188,7 +188,7 @@ class LibraryViewController: UIViewController, Loggable {
                         hideActivity()
                         let publication = data?.publication
                         
-                        if let selfLink = publication?.link(withRel: "self"), selfLink.type == "application/webpub+json" {
+                        if publication?.link(withRel: "self")?.mediaType?.isRWPM == true {
                             addWEBPUB()
                             return
                         }

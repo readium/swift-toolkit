@@ -342,7 +342,7 @@ final class LibraryService: Loggable {
             var success = false
             if let localURL = localURL, error == nil {
                 // Download succeeded. DownloadTask renames the file download, thus to be parsed correctly according to the filetype, we have to fix the extension.
-                let ext = DocumentTypes.extension(forContentType: link.type) ?? url.pathExtension
+                let ext = response?.sniffFormat(mediaTypes: Array(ofNotNil: link.type))?.fileExtension ?? url.pathExtension
                 let fixedURL = localURL.deletingLastPathComponent()
                     .appendingPathComponent("\(url.deletingPathExtension().lastPathComponent).\(ext)")
                 do {
