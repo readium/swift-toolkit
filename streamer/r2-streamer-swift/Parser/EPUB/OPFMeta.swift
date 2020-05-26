@@ -104,7 +104,7 @@ enum OPFVocabulary: String {
     /// > Reserved prefixes should not be overridden in the prefix attribute, but Reading Systems
     /// > must use such local overrides when encountered.
     /// http://www.idpf.org/epub/301/spec/epub-publications.html#sec-metadata-reserved-vocabs
-    static func prefixes(in document: XMLDocument) -> [String: String] {
+    static func prefixes(in document: Fuzi.XMLDocument) -> [String: String] {
         document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
         guard let prefixAttribute = document.firstChild(xpath: "/opf:package")?.attr("prefix") else {
             return [:]
@@ -138,16 +138,16 @@ struct OPFMeta {
     let id: String?
     /// ID of the metadata that is refined by this one, if any.
     let refines: String?
-    let element: XMLElement
+    let element: Fuzi.XMLElement
 }
 
 
 struct OPFMetaList {
     
-    private let document: XMLDocument
+    private let document: Fuzi.XMLDocument
     private let metas: [OPFMeta]
     
-    init(document: XMLDocument) {
+    init(document: Fuzi.XMLDocument) {
         self.document = document
         let prefixes = OPFVocabulary.prefixes(in: document)
         document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")

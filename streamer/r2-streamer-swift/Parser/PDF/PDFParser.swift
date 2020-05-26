@@ -15,18 +15,14 @@ import R2Shared
 
 
 /// PDF related constants.
-public struct PDFConstant {
-    /// PDF mime-types.
-    public static let pdfMimetype = "application/pdf"
-    public static let lcpdfMimetype = "application/pdf+lcp"
-    
+private struct PDFConstant {
     /// Default PDF file path inside the container, for standalone PDF files.
-    public static let pdfFilePath = "/"
+    static let pdfFilePath = "/"
     /// HRef for the pre-rendered cover of standalone PDF files.
-    public static let pdfFileCoverPath = "/cover.png"
+    static let pdfFileCoverPath = "/cover.png"
     
     /// Relative path to the manifest of a LCPDF package.
-    public static let lcpdfManifestPath = "/manifest.json"
+    static let lcpdfManifestPath = "/manifest.json"
 }
 
 
@@ -60,15 +56,17 @@ public final class PDFParser: PublicationParser, Loggable {
     /// - Returns: The Resulting publication, and a callback for parsing the possibly DRM encrypted metadata in the publication, once the DRM object is filled by a DRM module (eg. LCP).
     /// - Throws: `PDFParserError`
     public static func parse(at url: URL, parserType: PDFFileParser.Type) throws -> (PubBox, PubParsingCallback) {
-        guard FileManager.default.fileExists(atPath: url.path) else {
+        guard FileManager.default.fileExists(atPath: url.path),
+            let format = Format.of(url) else
+        {
             throw PDFParserError.openFailed
         }
         
         let pubBox: PubBox
-        switch url.pathExtension.lowercased() {
-        case "pdf":
+        switch format {
+        case .pdf:
             pubBox = try parsePDF(at: url, parserType: parserType)
-        case "lcpdf":
+        case .lcpProtectedPDF:
             pubBox = try parseLCPDF(at: url, parserType: parserType)
         default:
             throw PDFParserError.openFailed
@@ -124,7 +122,7 @@ public final class PDFParser: PublicationParser, Loggable {
                 numberOfPages: try parser.parseNumberOfPages()
             ),
             readingOrder: [
-                Link(href: documentHref, type: PDFConstant.pdfMimetype)
+                Link(href: documentHref, type: MediaType.pdf.string)
             ],
             resources: resources,
             tableOfContents: pdfMetadata.outline.links(withHref: documentHref)
@@ -151,7 +149,7 @@ public final class PDFParser: PublicationParser, Loggable {
         publication.positionListFactory = makePositionListFactory(container: container, parserType: parserType)
         
         // Checks the requirements from the spec, see. https://readium.org/lcp-specs/drafts/lcpdf
-        guard publication.readingOrder.contains(where: { $0.type == PDFConstant.pdfMimetype }) else {
+        guard !publication.readingOrder.isEmpty, publication.readingOrder.filter(byType: .pdf) == publication.readingOrder else {
             throw PDFParserError.invalidLCPDF
         }
         
@@ -225,7 +223,7 @@ public final class PDFParser: PublicationParser, Loggable {
             let totalProgression = Double(startPosition + position - 1) / Double(totalPageCount)
             return Locator(
                 href: link.href,
-                type: link.type ?? "application/pdf",
+                type: link.type ?? MediaType.pdf.string,
                 locations: .init(
                     fragments: ["page=\(position)"],
                     progression: progression,

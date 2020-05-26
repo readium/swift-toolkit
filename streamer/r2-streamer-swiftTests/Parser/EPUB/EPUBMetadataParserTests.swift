@@ -301,7 +301,7 @@ class EPUBMetadataParserTests: XCTestCase {
     // MARK: - Toolkit
     
     func parseMetadata(_ name: String, displayOptions: String? = nil) throws -> Metadata {
-        func parseDocument(named name: String, type: String) throws -> XMLDocument {
+        func parseDocument(named name: String, type: String) throws -> Fuzi.XMLDocument {
             return try XMLDocument(data: try Data(
                 contentsOf: SampleGenerator().getSamplesFileURL(named: "OPF/\(name)", ofType: type)!
             ))

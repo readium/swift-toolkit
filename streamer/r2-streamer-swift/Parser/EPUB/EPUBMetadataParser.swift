@@ -16,11 +16,11 @@ import Fuzi
 /// Reference: https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md
 final class EPUBMetadataParser: Loggable {
     
-    private let document: XMLDocument
-    private let displayOptions: XMLDocument?
+    private let document: Fuzi.XMLDocument
+    private let displayOptions: Fuzi.XMLDocument?
     private let metas: OPFMetaList
 
-    init(document: XMLDocument, displayOptions: XMLDocument?, metas: OPFMetaList) {
+    init(document: Fuzi.XMLDocument, displayOptions: Fuzi.XMLDocument?, metas: OPFMetaList) {
         self.document = document
         self.displayOptions = displayOptions
         self.metas = metas
@@ -31,7 +31,7 @@ final class EPUBMetadataParser: Loggable {
         document.definePrefix("rendition", forNamespace: "http://www.idpf.org/2013/rendition")
     }
     
-    private lazy var metadataElement: XMLElement? = {
+    private lazy var metadataElement: Fuzi.XMLElement? = {
         return document.firstChild(xpath: "/opf:package/opf:metadata")
     }()
 
@@ -71,7 +71,7 @@ final class EPUBMetadataParser: Loggable {
     ///   1. its xml:lang attribute
     ///   2. the package's xml:lang attribute
     ///   3. the primary language for the publication
-    private func language(for element: XMLElement) -> String? {
+    private func language(for element: Fuzi.XMLElement) -> String? {
         return element.attr("lang") ?? packageLanguage ?? languages.first
     }
     
@@ -140,7 +140,7 @@ final class EPUBMetadataParser: Loggable {
 
     /// Finds all the `<dc:title> element matching the given `title-type`.
     /// The elements are then sorted by the `display-seq` refines, when available.
-    private func titleElements(ofType titleType: EPUBTitleType) -> [XMLElement] {
+    private func titleElements(ofType titleType: EPUBTitleType) -> [Fuzi.XMLElement] {
         // Finds the XML element corresponding to the specific title type
         // `<meta refines="#.." property="title-type" id="title-type">titleType</meta>`
         return metas["title-type"]
@@ -171,7 +171,7 @@ final class EPUBMetadataParser: Loggable {
             }
     }()
     
-    private lazy var mainTitleElement: XMLElement? = titleElements(ofType: .main).first
+    private lazy var mainTitleElement: Fuzi.XMLElement? = titleElements(ofType: .main).first
         ?? metas["title", in: .dcterms].first?.element
     
     private lazy var mainTitle: LocalizedString? = localizedString(for: mainTitleElement)
@@ -261,7 +261,7 @@ final class EPUBMetadataParser: Loggable {
     ///
     /// - Parameter metadata: The XML metadata element.
     /// - Returns: The array of XML element representing the contributors.
-    private func findContributorElements() -> [XMLElement] {
+    private func findContributorElements() -> [Fuzi.XMLElement] {
         let contributors = metas["creator", in: .dcterms]
             + metas["publisher", in: .dcterms]
             + metas["contributor", in: .dcterms]
@@ -275,7 +275,7 @@ final class EPUBMetadataParser: Loggable {
     /// - Parameters:
     ///   - element: The XML element to parse.
     ///   - metadata: The Metadata object.
-    private func parseContributor(from element: XMLElement, to metadata: inout Metadata) {
+    private func parseContributor(from element: Fuzi.XMLElement, to metadata: inout Metadata) {
         guard var contributor = createContributor(from: element) else {
             return
         }
@@ -331,7 +331,7 @@ final class EPUBMetadataParser: Loggable {
     /// - Parameters:
     ///   - element: The XML element reprensenting the contributor.
     /// - Returns: The newly created Contributor instance.
-    private func createContributor(from element: XMLElement) -> Contributor? {
+    private func createContributor(from element: Fuzi.XMLElement) -> Contributor? {
         guard let name = localizedString(for: element) else {
             return nil
         }
@@ -411,7 +411,7 @@ final class EPUBMetadataParser: Loggable {
     ///
     /// - Parameters:
     ///   - element: The element to parse (can be a title or a contributor).
-    private func localizedString(for element: XMLElement?) -> LocalizedString? {
+    private func localizedString(for element: Fuzi.XMLElement?) -> LocalizedString? {
         guard let element = element else {
             return nil
         }

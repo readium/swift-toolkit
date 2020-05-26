@@ -24,7 +24,7 @@ final class SMILParser {
     ///   - parent: The parent MediaOverlayNode of the "to be creatred" nodes.
     ///   - readingOrder:
     ///   - base: The base location of the file for path normalization.
-    static internal func parseSequences(in element: XMLElement, withParent parent: MediaOverlayNode, publicationReadingOrder readingOrder: inout [Link], base: String) {
+    static internal func parseSequences(in element: Fuzi.XMLElement, withParent parent: MediaOverlayNode, publicationReadingOrder readingOrder: inout [Link], base: String) {
         // TODO: 2 lines differ from the version used in the parseMediaOverlay for loop. Refactor?
         for sequence in element.xpath("smil:seq") {
             guard let href = sequence.attr("textref") else {
@@ -60,7 +60,7 @@ final class SMILParser {
     /// - Parameters:
     ///   - element: The XML element which should contain <par>.
     ///   - parent: The parent MediaOverlayNode of the "to be creatred" nodes.
-    static internal func parseParameters(in element: XMLElement, withParent parent: MediaOverlayNode, base: String) {
+    static internal func parseParameters(in element: Fuzi.XMLElement, withParent parent: MediaOverlayNode, base: String) {
         // For each <par> in the current scope.
         for parameterElement in element.xpath("smil:par") {
             guard let href = parameterElement.firstChild(xpath: "smil:text")?.attr("src"),
@@ -104,7 +104,7 @@ final class SMILParser {
     ///
     /// - Parameter audioElement: The audio XML element.
     /// - Returns: The formated string representing the data.
-    static fileprivate func parse(base: String, audioElement: XMLElement) -> Clip? {
+    static fileprivate func parse(base: String, audioElement: Fuzi.XMLElement) -> Clip? {
         guard let audioSrc = audioElement.attr("src") else {
             return nil
         }
