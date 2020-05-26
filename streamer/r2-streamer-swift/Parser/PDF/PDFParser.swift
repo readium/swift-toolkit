@@ -190,7 +190,7 @@ public final class PDFParser: PublicationParser, Loggable {
             let resources = publication.readingOrder.map { link -> (Int, Link) in
                 guard let stream = try? fetcher.dataStream(forLink: link),
                     // FIXME: We should be able to use the stream directly here instead of reading it fully into a Data object, but somehow it fails with random access in CBCDRMInputStream.
-                    let data = try? Data.reading(stream),
+                    let data = try? Data.reading(stream, bufferSize: 500000 /* 500 KB */),
                     let parser = try? parserType.init(stream: DataInputStream(data: data)),
                     let pageCount = try? parser.parseNumberOfPages() else
                 {
