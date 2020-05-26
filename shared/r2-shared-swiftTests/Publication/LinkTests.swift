@@ -14,6 +14,28 @@ import XCTest
 
 class LinkTests: XCTestCase {
     
+    let fullLink = Link(
+        href: "http://href",
+        type: "application/pdf",
+        templated: true,
+        title: "Link Title",
+        rels: ["publication", "cover"],
+        properties: Properties(["orientation": "landscape"]),
+        height: 1024,
+        width: 768,
+        bitrate: 74.2,
+        duration: 45.6,
+        languages: ["fr"],
+        alternates: [
+            Link(href: "/alternate1"),
+            Link(href: "/alternate2")
+        ],
+        children: [
+            Link(href: "http://child1"),
+            Link(href: "http://child2")
+        ]
+    )
+
     func testParseMinimalJSON() {
         XCTAssertEqual(
             try? Link(json: ["href": "http://href"]),
@@ -46,27 +68,7 @@ class LinkTests: XCTestCase {
                     ["href": "http://child2"]
                 ]
             ]),
-            Link(
-                href: "http://href",
-                type: "application/pdf",
-                templated: true,
-                title: "Link Title",
-                rels: ["publication", "cover"],
-                properties: Properties(["orientation": "landscape"]),
-                height: 1024,
-                width: 768,
-                bitrate: 74.2,
-                duration: 45.6,
-                languages: ["fr"],
-                alternates: [
-                    Link(href: "/alternate1"),
-                    Link(href: "/alternate2")
-                ],
-                children: [
-                    Link(href: "http://child1"),
-                    Link(href: "http://child2")
-                ]
-            )
+            fullLink
         )
     }
     
@@ -173,27 +175,7 @@ class LinkTests: XCTestCase {
     
     func testGetFullJSON() {
         AssertJSONEqual(
-            Link(
-                href: "http://href",
-                type: "application/pdf",
-                templated: true,
-                title: "Link Title",
-                rels: ["publication", "cover"],
-                properties: Properties(["orientation": "landscape"]),
-                height: 1024,
-                width: 768,
-                bitrate: 74.2,
-                duration: 45.6,
-                languages: ["fr"],
-                alternates: [
-                    Link(href: "/alternate1"),
-                    Link(href: "/alternate2")
-                ],
-                children: [
-                    Link(href: "http://child1"),
-                    Link(href: "http://child2")
-                ]
-            ).json,
+            fullLink.json,
             [
                 "href": "http://href",
                 "type": "application/pdf",
@@ -229,6 +211,53 @@ class LinkTests: XCTestCase {
             [
                 ["href": "http://child1", "templated": false],
                 ["href": "http://child2", "templated": false]
+            ]
+        )
+    }
+    
+    func testCopy() {
+        let link = fullLink
+        
+        AssertJSONEqual(link.json, link.copy().json)
+        
+        let copy = link.copy(
+            href: "copy-href",
+            type: "copy-type",
+            templated: !link.templated,
+            title: "copy-title",
+            rels: ["copy-rel"],
+            properties: Properties(["copy": true]),
+            height: 923,
+            width: 482,
+            bitrate: 28.42,
+            duration: 542.2,
+            languages: ["copy-language"],
+            alternates: [Link(href: "copy-alternate")],
+            children: [Link(href: "copy-children")]
+        )
+
+        AssertJSONEqual(
+            copy.json,
+            [
+                "href": "copy-href",
+                "type": "copy-type",
+                "templated": !link.templated,
+                "title": "copy-title",
+                "rel": ["copy-rel"],
+                "properties": [
+                    "copy": true
+                ],
+                "height": 923,
+                "width": 482,
+                "bitrate": 28.42,
+                "duration": 542.2,
+                "language": ["copy-language"],
+                "alternate": [
+                    ["href": "copy-alternate", "templated": false]
+                ],
+                "children": [
+                    ["href": "copy-children", "templated": false]
+                ]
             ]
         )
     }

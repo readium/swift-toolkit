@@ -117,6 +117,39 @@ public struct Link: JSONEquatable {
             "children": encodeIfNotEmpty(children.json)
         ])
     }
+    
+    /// Makes a copy of the `Link`, after modifying some of its properties.
+    public func copy(
+        href: String? = nil,
+        type: String?? = nil,
+        templated: Bool? = nil,
+        title: String?? = nil,
+        rels: [String]? = nil,
+        properties: Properties? = nil,
+        height: Int?? = nil,
+        width: Int?? = nil,
+        bitrate: Double?? = nil,
+        duration: Double?? = nil,
+        languages: [String]? = nil,
+        alternates: [Link]? = nil,
+        children: [Link]? = nil
+    ) -> Link {
+        return Link(
+            href: href ?? self.href,
+            type: type ?? self.type,
+            templated: templated ?? self.templated,
+            title: title ?? self.title,
+            rels: rels ?? self.rels,
+            properties: properties ?? self.properties,
+            height: height ?? self.height,
+            width: width ?? self.width,
+            bitrate: bitrate ?? self.bitrate,
+            duration: duration ?? self.duration,
+            languages: languages ?? self.languages,
+            alternates: alternates ?? self.alternates,
+            children: children ?? self.children
+        )
+    }
 
 }
 

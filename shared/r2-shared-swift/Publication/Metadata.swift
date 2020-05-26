@@ -167,5 +167,70 @@ public struct Metadata: Equatable, Loggable {
             "belongsTo": encodeIfNotEmpty(belongsTo)
         ], additional: otherMetadata)
     }
+    
+    /// Makes a copy of the `Metadata`, after modifying some of its properties.
+    public func copy(
+        identifier: String?? = nil,
+        type: String?? = nil,
+        title: LocalizedStringConvertible? = nil,
+        subtitle: LocalizedStringConvertible?? = nil,
+        modified: Date?? = nil,
+        published: Date?? = nil,
+        languages: [String]? = nil,
+        sortAs: String?? = nil,
+        subjects: [Subject]? = nil,
+        authors: [Contributor]? = nil,
+        translators: [Contributor]? = nil,
+        editors: [Contributor]? = nil,
+        artists: [Contributor]? = nil,
+        illustrators: [Contributor]? = nil,
+        letterers: [Contributor]? = nil,
+        pencilers: [Contributor]? = nil,
+        colorists: [Contributor]? = nil,
+        inkers: [Contributor]? = nil,
+        narrators: [Contributor]? = nil,
+        contributors: [Contributor]? = nil,
+        publishers: [Contributor]? = nil,
+        imprints: [Contributor]? = nil,
+        readingProgression: ReadingProgression? = nil,
+        description: String?? = nil,
+        duration: Double?? = nil,
+        numberOfPages: Int?? = nil,
+        belongsToCollections: [Collection]? = nil,
+        belongsToSeries: [Collection]? = nil,
+        otherMetadata: [String: Any]? = nil
+    ) -> Metadata {
+        return Metadata(
+            identifier: identifier ?? self.identifier,
+            type: type ?? self.type,
+            title: title ?? self.localizedTitle,
+            subtitle: subtitle ?? self.localizedSubtitle,
+            modified: modified ?? self.modified,
+            published: published ?? self.published,
+            languages: languages ?? self.languages,
+            sortAs: sortAs ?? self.sortAs,
+            subjects: subjects ?? self.subjects,
+            authors: authors ?? self.authors,
+            translators: translators ?? self.translators,
+            editors: editors ?? self.editors,
+            artists: artists ?? self.artists,
+            illustrators: illustrators ?? self.illustrators,
+            letterers: letterers ?? self.letterers,
+            pencilers: pencilers ?? self.pencilers,
+            colorists: colorists ?? self.colorists,
+            inkers: inkers ?? self.inkers,
+            narrators: narrators ?? self.narrators,
+            contributors: contributors ?? self.contributors,
+            publishers: publishers ?? self.publishers,
+            imprints: imprints ?? self.imprints,
+            readingProgression: readingProgression ?? self.readingProgression,
+            description: description ?? self.description,
+            duration: duration ?? self.duration,
+            numberOfPages: numberOfPages ?? self.numberOfPages,
+            belongsToCollections: belongsToCollections ?? self.belongsToCollections,
+            belongsToSeries: belongsToSeries ?? self.belongsToSeries,
+            otherMetadata: otherMetadata ?? self.otherMetadata
+        )
+    }
 
 }
