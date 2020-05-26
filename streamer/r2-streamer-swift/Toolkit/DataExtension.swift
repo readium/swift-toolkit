@@ -13,7 +13,7 @@ import Foundation
 
 extension Data {
     
-    static func reading(_ stream: InputStream) throws -> Data {
+    static func reading(_ stream: InputStream, bufferSize: Int = 32768) throws -> Data {
         if let dataStream = stream as? DataInputStream {
             return dataStream.data
         }
@@ -24,7 +24,6 @@ extension Data {
             stream.close()
         }
 
-        let bufferSize = 1024
         let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
         defer {
             buffer.deallocate()
