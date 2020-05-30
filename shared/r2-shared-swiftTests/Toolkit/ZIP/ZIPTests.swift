@@ -171,11 +171,11 @@ class ZIPBenchmarkingTests: XCTestCase {
 //            try! ZIPFoundationArchive(file: fixtures.url(for: "test.zip"))
         ]
         let path = "A folder/wasteland-cover.jpg"
-        let length = 103477
+        let length: UInt64 = 103477
 
         measure {
-            let lower = Int.random(in: 0..<length - 100)
-            let upper = Int.random(in: lower..<length)
+            let lower = UInt64.random(in: 0..<length - 100)
+            let upper = UInt64.random(in: lower..<length)
             let range = lower..<upper
             let datas = archives.map { $0.read(at: path, range: range) }
             let data = datas[0]

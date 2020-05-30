@@ -31,11 +31,11 @@ struct ZIPEntry: Equatable {
     
     /// Uncompressed data length.
     /// Returns 0 if the entry is a directory.
-    let length: Int
+    let length: UInt64
     
     /// Compressed data length.
     /// Returns 0 if the entry is a directory.
-    let compressedLength: Int
+    let compressedLength: UInt64
 
 }
 
@@ -58,7 +58,7 @@ protocol ZIPArchive {
     func read(at path: String) -> Data?
     
     /// Reads a range of the content of this entry, if it's a file.
-    func read(at path: String, range: Range<Int>) -> Data?
+    func read(at path: String, range: Range<UInt64>) -> Data?
 
 }
 
