@@ -14,7 +14,7 @@ import Foundation
 
 
 /// Shared model for a Readium Publication.
-public class Publication: JSONEquatable, Loggable {
+public class Publication: Loggable {
 
     /// Format of the publication, if specified.
     public var format: Format = .unknown
@@ -85,15 +85,8 @@ public class Publication: JSONEquatable, Loggable {
     }
     
     /// Returns the Readium Web Publication Manifest as JSON.
-    public var json: [String: Any] {
-        return makeJSON([
-            "@context": encodeIfNotEmpty(context),
-            "metadata": metadata.json,
-            "links": links.json,
-            "readingOrder": readingOrder.json,
-            "resources": encodeIfNotEmpty(resources.json),
-            "toc": encodeIfNotEmpty(tableOfContents.json),
-        ], additional: otherCollections.json)
+    public var jsonManifest: Data? {
+        serializeJSONData(manifest.json)
     }
     
     public func findService<T>(_ serviceType: T.Type) -> T? {
@@ -101,13 +94,15 @@ public class Publication: JSONEquatable, Loggable {
     }
 
     /// Sets the URL where this `Publication`'s RWPM manifest is served.
-    public func setSelfLink(href: String) {
+    public func setSelfLink(href: String?) {
         manifest.links.removeAll { $0.rels.contains("self") }
-        manifest.links.insert(Link(
-            href: href,
-            type: MediaType.webpubManifest.string,
-            rel: "self"
-        ), at: 0)
+        if let href = href {
+            manifest.links.insert(Link(
+                href: href,
+                type: MediaType.webpubManifest.string,
+                rel: "self"
+            ), at: 0)
+        }
     }
 
     /// Finds the first `Link` having the given `rel` in the publication's links.

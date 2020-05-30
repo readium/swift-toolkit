@@ -72,7 +72,7 @@ extension Publication {
     }
     
     @available(*, unavailable, renamed: "json")
-    public var manifestCanonical: String { serializeJSONString(json) ?? "" }
+    public var manifestCanonical: String { jsonManifest.flatMap { String(data: $0, encoding: .utf8) } ?? "" }
     
     @available(*, deprecated, renamed: "init(json:)")
     public static func parse(pubDict: [String: Any]) throws -> Publication {

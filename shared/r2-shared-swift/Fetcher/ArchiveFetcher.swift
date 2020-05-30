@@ -1,5 +1,5 @@
 //
-//  ZIPFetcher.swift
+//  ArchiveFetcher.swift
 //  r2-shared-swift
 //
 //  Created by Mickaël Menu on 11/05/2020.
@@ -12,11 +12,11 @@
 import Foundation
 
 /** Provides access to entries of a ZIP archive. */
-final class ZIPFetcher: Fetcher, Loggable {
+public final class ArchiveFetcher: Fetcher, Loggable {
     
     private let archive: ZIPArchive
     
-    init?(archive: URL) {
+    public init?(archive: URL) {
         do {
             self.archive = try MinizipArchive(file: archive)
         } catch {
@@ -25,13 +25,13 @@ final class ZIPFetcher: Fetcher, Loggable {
         }
     }
     
-    func get(_ link: Link) -> Resource {
-        return ZIPResource(link: link, archive: archive)
+    public func get(_ link: Link) -> Resource {
+        return ArchiveResource(link: link, archive: archive)
     }
     
-    func close() {}
+    public func close() {}
     
-    private final class ZIPResource: Resource {
+    private final class ArchiveResource: Resource {
         
         let link: Link
         private let href: String

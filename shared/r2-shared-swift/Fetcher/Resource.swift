@@ -24,13 +24,13 @@ public protocol Resource {
     ///
     /// This value must be treated as a hint, as it might not reflect the actual bytes length. To
     /// get the real length, you need to read the whole resource.
-    var length: Result<UInt64, ResourceError> { get }
+    var length: ResourceResult<UInt64> { get }
 
     /// Reads the bytes at the given range.
     ///
     /// When `range` is null, the whole content is returned. Out-of-range indexes are clamped to
     /// the available length automatically.
-    func read(range: Range<UInt64>?) -> Result<Data, ResourceError>
+    func read(range: Range<UInt64>?) -> ResourceResult<Data>
     
     /// Closes any opened file handles.
     func close()
@@ -39,7 +39,7 @@ public protocol Resource {
 
 public extension Resource {
 
-    func read() -> Result<Data, ResourceError> {
+    func read() -> ResourceResult<Data> {
         return read(range: nil)
     }
     
@@ -47,7 +47,7 @@ public extension Resource {
     ///
     /// If `encoding` is null, then it is parsed from the `charset` parameter of `link.type`, or
     /// falls back on UTF-8.
-    func readAsString(encoding: String.Encoding? = nil) -> Result<String, ResourceError> {
+    func readAsString(encoding: String.Encoding? = nil) -> ResourceResult<String> {
         return read().map {
             let encoding = encoding ?? link.mediaType?.encoding ?? .utf8
             return String(data: $0, encoding: encoding) ?? ""
@@ -97,9 +97,9 @@ public final class FailureResource: Resource {
     
     public let link: Link
     
-    public var length: Result<UInt64, ResourceError> { .failure(error) }
+    public var length: ResourceResult<UInt64> { .failure(error) }
 
-    public func read(range: Range<UInt64>?) -> Result<Data, ResourceError> {
+    public func read(range: Range<UInt64>?) -> ResourceResult<Data> {
         return .failure(error)
     }
     
@@ -129,9 +129,9 @@ public final class DataResource: Resource {
     
     public let link: Link
 
-    public var length: Result<UInt64, ResourceError> { .success(dataLength) }
+    public var length: ResourceResult<UInt64> { .success(dataLength) }
 
-    public func read(range: Range<UInt64>?) -> Result<Data, ResourceError> {
+    public func read(range: Range<UInt64>?) -> ResourceResult<Data> {
         if let range = range?.clamped(to: 0..<dataLength) {
             return .success(data[range])
         } else {
@@ -143,12 +143,35 @@ public final class DataResource: Resource {
     
 }
 
+open class ResourceProxy: Resource {
+
+    public let resource: Resource
+    
+    public init(_ resource: Resource) {
+        self.resource = resource
+    }
+    
+    open var link: Link { resource.link }
+
+    open var length: ResourceResult<UInt64> { resource.length }
+    
+    open func read(range: Range<UInt64>?) -> ResourceResult<Data> {
+        return resource.read(range: range)
+    }
+    
+    open func close() {
+        resource.close()
+    }
+}
+
+public typealias ResourceResult<Success> = Result<Success, ResourceError>
+
 public extension Result where Failure == ResourceError {
     
     /// Maps the result with the given `transform`
     ///
     /// If the `transform` throws an `Error`, it is wrapped in a failure with `Resource.Error.Other`.
-    func tryMap<NewSuccess>(_ transform: (Success) throws -> NewSuccess) -> Result<NewSuccess, ResourceError> {
+    func tryMap<NewSuccess>(_ transform: (Success) throws -> NewSuccess) -> ResourceResult<NewSuccess> {
         return flatMap {
             do {
                 return .success(try transform($0))
@@ -160,6 +183,10 @@ public extension Result where Failure == ResourceError {
                 }
             }
         }
+    }
+    
+    func tryFlatMap<NewSuccess>(_ transform: (Success) throws -> ResourceResult<NewSuccess>) -> ResourceResult<NewSuccess> {
+        return tryMap(transform).flatMap { $0 }
     }
     
 }

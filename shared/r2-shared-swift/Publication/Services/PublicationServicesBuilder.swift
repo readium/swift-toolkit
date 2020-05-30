@@ -18,7 +18,9 @@ public struct PublicationServicesBuilder {
     
     private var factories: [String: PublicationServiceFactory] = [:]
     
-    public init() {}
+    public init(setup: ((inout PublicationServicesBuilder) -> Void)? = nil) {
+        setup?(&self)
+    }
 
     /// Builds the actual list of publication services to use in a `Publication`.
     ///

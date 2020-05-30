@@ -67,7 +67,7 @@ public extension PositionsService {
 
 // MARK: Publication Helpers
 
-extension Publication {
+public extension Publication {
     
     /// List of all the positions in the publication, grouped by the resource reading order index.
     var positionsByReadingOrder: [[Locator]] {
@@ -81,7 +81,7 @@ extension Publication {
     
     /// List of all the positions in each resource, indexed by their `href`.
     @available(*, deprecated, message: "Use `positionsByReadingOrder` instead", renamed: "positionsByReadingOrder")
-    public var positionsByResource: [String: [Locator]] {
+    var positionsByResource: [String: [Locator]] {
         Dictionary(grouping: positions, by: { $0.href })
     }
 

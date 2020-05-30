@@ -1,5 +1,5 @@
 //
-//  ZIPFetcherTests.swift
+//  ArchiveFetcherTests.swift
 //  r2-shared-swift
 //
 //  Created by Mickaël Menu on 11/05/2020.
@@ -12,14 +12,14 @@
 import XCTest
 @testable import R2Shared
 
-class ZIPFetcherTests: XCTestCase {
+class ArchiveFetcherTests: XCTestCase {
     
     let fixtures = Fixtures(path: "Fetcher")
-    var fetcher: ZIPFetcher!
+    var fetcher: ArchiveFetcher!
 
     override func setUp() {
         let url = fixtures.url(for: "epub.epub")
-        fetcher = ZIPFetcher(archive: url)!
+        fetcher = ArchiveFetcher(archive: url)!
     }
     
     func testReadEntryFully() {

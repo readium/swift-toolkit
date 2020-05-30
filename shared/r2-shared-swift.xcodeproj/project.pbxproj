@@ -75,8 +75,8 @@
 		CA6D426D240439F4002FBED4 /* OPDSCopiesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D426C240439F4002FBED4 /* OPDSCopiesTests.swift */; };
 		CA6D426F24043A44002FBED4 /* OPDSAvailability.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D426E24043A44002FBED4 /* OPDSAvailability.swift */; };
 		CA6D427124043AF1002FBED4 /* OPDSAvailabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D427024043AF1002FBED4 /* OPDSAvailabilityTests.swift */; };
-		CA6F276E2469D8CF0065B405 /* ZIPFetcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F276D2469D8CF0065B405 /* ZIPFetcherTests.swift */; };
-		CA6F27702469D9050065B405 /* ZIPFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F276F2469D9050065B405 /* ZIPFetcher.swift */; };
+		CA6F276E2469D8CF0065B405 /* ArchiveFetcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F276D2469D8CF0065B405 /* ArchiveFetcherTests.swift */; };
+		CA6F27702469D9050065B405 /* ArchiveFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F276F2469D9050065B405 /* ArchiveFetcher.swift */; };
 		CA6F27722469DB980065B405 /* Resource.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F27712469DB970065B405 /* Resource.swift */; };
 		CA6F27742469E4DA0065B405 /* FileFetcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F27732469E4DA0065B405 /* FileFetcherTests.swift */; };
 		CA6F27762469E5370065B405 /* FileFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F27752469E5370065B405 /* FileFetcher.swift */; };
@@ -228,8 +228,8 @@
 		CA6D426C240439F4002FBED4 /* OPDSCopiesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSCopiesTests.swift; sourceTree = "<group>"; };
 		CA6D426E24043A44002FBED4 /* OPDSAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSAvailability.swift; sourceTree = "<group>"; };
 		CA6D427024043AF1002FBED4 /* OPDSAvailabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSAvailabilityTests.swift; sourceTree = "<group>"; };
-		CA6F276D2469D8CF0065B405 /* ZIPFetcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZIPFetcherTests.swift; sourceTree = "<group>"; };
-		CA6F276F2469D9050065B405 /* ZIPFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZIPFetcher.swift; sourceTree = "<group>"; };
+		CA6F276D2469D8CF0065B405 /* ArchiveFetcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveFetcherTests.swift; sourceTree = "<group>"; };
+		CA6F276F2469D9050065B405 /* ArchiveFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveFetcher.swift; sourceTree = "<group>"; };
 		CA6F27712469DB970065B405 /* Resource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Resource.swift; sourceTree = "<group>"; };
 		CA6F27732469E4DA0065B405 /* FileFetcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileFetcherTests.swift; sourceTree = "<group>"; };
 		CA6F27752469E5370065B405 /* FileFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileFetcher.swift; sourceTree = "<group>"; };
@@ -586,7 +586,7 @@
 		CA6F276C2469D8BF0065B405 /* Fetcher */ = {
 			isa = PBXGroup;
 			children = (
-				CA6F276D2469D8CF0065B405 /* ZIPFetcherTests.swift */,
+				CA6F276D2469D8CF0065B405 /* ArchiveFetcherTests.swift */,
 				CA6F27732469E4DA0065B405 /* FileFetcherTests.swift */,
 				CA6F27712469DB970065B405 /* Resource.swift */,
 			);
@@ -602,7 +602,7 @@
 				CA8C841B2468A06300CE97A4 /* ProxyFetcher.swift */,
 				CA8C841924689E4000CE97A4 /* RoutingFetcher.swift */,
 				CA8C841724689CD000CE97A4 /* TransformingFetcher.swift */,
-				CA6F276F2469D9050065B405 /* ZIPFetcher.swift */,
+				CA6F276F2469D9050065B405 /* ArchiveFetcher.swift */,
 			);
 			path = Fetcher;
 			sourceTree = "<group>";
@@ -885,7 +885,7 @@
 				CA5F8EEB240403F900926120 /* ReadingProgressionTests.swift in Sources */,
 				CA16A8602232D1B800E66255 /* LocalizedStringTests.swift in Sources */,
 				CA16A8862234021500E66255 /* MetadataTests.swift in Sources */,
-				CA6F276E2469D8CF0065B405 /* ZIPFetcherTests.swift in Sources */,
+				CA6F276E2469D8CF0065B405 /* ArchiveFetcherTests.swift in Sources */,
 				CA176383223A886500959FEB /* Properties+OPDSTests.swift in Sources */,
 				CA9FC0792482657F0020B9CC /* PublicationServicesBuilderTests.swift in Sources */,
 				CA6D427124043AF1002FBED4 /* OPDSAvailabilityTests.swift in Sources */,
@@ -943,7 +943,7 @@
 				CABE2A012482C6F2008E286D /* PositionsService.swift in Sources */,
 				CA9E6BAE223A76C600ECF6E4 /* Publication+OPDS.swift in Sources */,
 				CABEB3DC2215698600090B6C /* Deferred.swift in Sources */,
-				CA6F27702469D9050065B405 /* ZIPFetcher.swift in Sources */,
+				CA6F27702469D9050065B405 /* ArchiveFetcher.swift in Sources */,
 				CA68BDC1244042D5009A6BAA /* MediaType.swift in Sources */,
 				CA3386EA24052D8B00FDCBBA /* DOMRange.swift in Sources */,
 				CA2006512225A1F300E6B3BD /* Observable.swift in Sources */,
