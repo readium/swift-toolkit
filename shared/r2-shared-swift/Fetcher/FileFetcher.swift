@@ -29,7 +29,7 @@ final class FileFetcher: Fetcher, Loggable {
         self.init(paths: [href: path])
     }
     
-    func get(_ link: Link, parameters: LinkParameters) -> Resource {
+    func get(_ link: Link) -> Resource {
         for (href, url) in paths {
             if link.href.hasPrefix(href) {
                 let resourceURL = url.appendingPathComponent(link.href.removingPrefix(href)).standardizedFileURL

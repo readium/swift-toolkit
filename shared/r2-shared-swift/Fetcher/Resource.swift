@@ -12,7 +12,7 @@
 import Foundation
 
 /// Acts as a proxy to an actual resource by handling read access.
-protocol Resource {
+public protocol Resource {
 
     /// The link from which the resource was retrieved.
     ///
@@ -37,7 +37,7 @@ protocol Resource {
 
 }
 
-extension Resource {
+public extension Resource {
 
     func read() -> Result<Data, ResourceError> {
         return read(range: nil)
@@ -56,7 +56,7 @@ extension Resource {
     
 }
 
-enum ResourceError: Swift.Error {
+public enum ResourceError: Swift.Error {
     
     /// Equivalent to a 404 HTTP error.
     case notFound
@@ -83,10 +83,10 @@ enum ResourceError: Swift.Error {
 /// an HTML document, pre-process – e.g. before indexing a publication's content, etc.
 ///
 /// If the transformation doesn't apply, simply return resource unchanged.
-typealias ResourceTransformer = (Resource) -> Resource
+public typealias ResourceTransformer = (Resource) -> Resource
 
 /// Creates a Resource that will always return the given `error`.
-final class FailureResource: Resource {
+public final class FailureResource: Resource {
 
     private let error: ResourceError
     
@@ -95,20 +95,20 @@ final class FailureResource: Resource {
         self.error = error
     }
     
-    let link: Link
+    public let link: Link
     
-    var length: Result<UInt64, ResourceError> { .failure(error) }
+    public var length: Result<UInt64, ResourceError> { .failure(error) }
 
-    func read(range: Range<UInt64>?) -> Result<Data, ResourceError> {
+    public func read(range: Range<UInt64>?) -> Result<Data, ResourceError> {
         return .failure(error)
     }
     
-    func close() {}
+    public func close() {}
 
 }
 
 /// Creates a `Resource` serving raw data.
-final class DataResource: Resource {
+public final class DataResource: Resource {
 
     private let data: Data
     private var dataLength: UInt64 { UInt64(data.count) }
@@ -127,11 +127,11 @@ final class DataResource: Resource {
         self.data = string.data(using: .utf8)!
     }
     
-    let link: Link
+    public let link: Link
 
-    var length: Result<UInt64, ResourceError> { .success(dataLength) }
+    public var length: Result<UInt64, ResourceError> { .success(dataLength) }
 
-    func read(range: Range<UInt64>?) -> Result<Data, ResourceError> {
+    public func read(range: Range<UInt64>?) -> Result<Data, ResourceError> {
         if let range = range?.clamped(to: 0..<dataLength) {
             return .success(data[range])
         } else {
@@ -139,11 +139,11 @@ final class DataResource: Resource {
         }
     }
     
-    func close() {}
+    public func close() {}
     
 }
 
-extension Result where Failure == ResourceError {
+public extension Result where Failure == ResourceError {
     
     /// Maps the result with the given `transform`
     ///
@@ -153,7 +153,11 @@ extension Result where Failure == ResourceError {
             do {
                 return .success(try transform($0))
             } catch {
-                return .failure(.other(error))
+                if let err = error as? ResourceError {
+                    return .failure(err)
+                } else {
+                    return .failure(.other(error))
+                }
             }
         }
     }

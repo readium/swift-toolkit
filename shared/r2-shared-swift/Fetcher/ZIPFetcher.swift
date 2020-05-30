@@ -25,7 +25,7 @@ final class ZIPFetcher: Fetcher, Loggable {
         }
     }
     
-    func get(_ link: Link, parameters: LinkParameters) -> Resource {
+    func get(_ link: Link) -> Resource {
         return ZIPResource(link: link, archive: archive)
     }
     

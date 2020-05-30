@@ -13,7 +13,7 @@ import Foundation
 
 /// Delegates the creation of a `Resource` to a `closure`.
 final class ProxyFetcher: Fetcher {
-    typealias Closure = (Link, LinkParameters) -> Resource
+    typealias Closure = (Link) -> Resource
     
     private let closure: Closure
     
@@ -21,8 +21,8 @@ final class ProxyFetcher: Fetcher {
         self.closure = closure
     }
     
-    func get(_ link: Link, parameters: LinkParameters) -> Resource {
-        return closure(link, parameters)
+    func get(_ link: Link) -> Resource {
+        return closure(link)
     }
     
     func close() {}

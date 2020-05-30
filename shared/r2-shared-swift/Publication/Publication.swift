@@ -22,6 +22,8 @@ public class Publication: JSONEquatable, Loggable {
     public var formatVersion: String?
     
     private var manifest: PublicationManifest
+    private let fetcher: Fetcher
+    private let services: [PublicationService]
     
     public var context: [String] { manifest.context }
     public var metadata: Metadata { manifest.metadata }
@@ -76,8 +78,20 @@ public class Publication: JSONEquatable, Loggable {
         )
     }
     
-    public init(manifest: PublicationManifest, format: Format = .unknown, formatVersion: String? = nil) {
+    public init(
+        manifest: PublicationManifest,
+        fetcher: Fetcher = EmptyFetcher(),
+        servicesBuilder: PublicationServicesBuilder = .init(),
+        format: Format = .unknown,
+        formatVersion: String? = nil
+    ) {
+        var manifest = manifest
+        let services = servicesBuilder.build(context: .init(manifest: manifest, fetcher: fetcher))
+        manifest.links.append(contentsOf: services.flatMap { $0.links })
+        
         self.manifest = manifest
+        self.fetcher = fetcher
+        self.services = services
         self.format = format
         self.formatVersion = formatVersion
     }
@@ -98,6 +112,10 @@ public class Publication: JSONEquatable, Loggable {
             "resources": encodeIfNotEmpty(resources.json),
             "toc": encodeIfNotEmpty(tableOfContents.json),
         ], additional: otherCollections.json)
+    }
+    
+    public func findService<T: PublicationService>() -> T? {
+        return services.first { $0 is T } as? T
     }
 
     /// Sets the URL where this `Publication`'s RWPM manifest is served.
@@ -211,7 +229,6 @@ public class Publication: JSONEquatable, Loggable {
             mediaType.first { link.mediaType?.matches($0) ?? false } != nil
         }
     }
-    
     
     public enum Format: Equatable, Hashable {
         /// Formats natively supported by Readium.

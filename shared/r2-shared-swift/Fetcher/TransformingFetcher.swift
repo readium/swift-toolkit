@@ -27,8 +27,8 @@ final class TransformingFetcher: Fetcher {
         self.init(fetcher: fetcher, transformers: [transformer])
     }
 
-    func get(_ link: Link, parameters: LinkParameters) -> Resource {
-        let resource = fetcher.get(link, parameters: parameters)
+    func get(_ link: Link) -> Resource {
+        let resource = fetcher.get(link)
         return transformers.reduce(resource) { resource, transformer in
             transformer(resource)
         }
