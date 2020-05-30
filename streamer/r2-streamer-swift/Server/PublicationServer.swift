@@ -204,7 +204,7 @@ public class PublicationServer: ResourcesServer {
     fileprivate func addManifestHandler(for publication: Publication, at endpoint: String) {
         /// The webserver handler to process the HTTP GET
         func manifestHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
-            guard let manifestData = publication.manifest else {
+            guard let manifestData = publication.jsonManifest else {
                 return GCDWebServerResponse(statusCode: 404)
             }
             let type = "\(MediaType.webpubManifest.string); charset=utf-8"
@@ -236,7 +236,7 @@ public class PublicationServer: ResourcesServer {
         publications.removeValue(forKey: endpoint)
         containers.removeValue(forKey: endpoint)
         // Remove selfLinks from publication.
-        publication.links.removeAll(where: { $0.rels.contains("self") })
+        publication.setSelfLink(href: nil)
         log(.info, "Publication at \(endpoint) has been successfully removed.")
     }
     
@@ -244,8 +244,7 @@ public class PublicationServer: ResourcesServer {
     public func removeAll() {
         for (endpoint, publication) in publications {
             // Remove selfLinks from publication.
-            publication.links.removeAll(where: { $0.rels.contains("self") })
-            
+            publication.setSelfLink(href: nil)
             log(.info, "Publication at \(endpoint) has been successfully removed.")
         }
         

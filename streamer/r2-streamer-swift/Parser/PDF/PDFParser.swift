@@ -62,31 +62,33 @@ public final class PDFParser: PublicationParser, Loggable {
             throw PDFParserError.openFailed
         }
         
-        let pubBox: PubBox
-        switch format {
-        case .pdf:
-            pubBox = try parsePDF(at: url, parserType: parserType)
-        case .lcpProtectedPDF:
-            pubBox = try parseLCPDF(at: url, parserType: parserType)
-        default:
-            throw PDFParserError.openFailed
-        }
+        let (pubBox, parsingCallback): (PubBox, PubParsingCallback?) = try {
+            switch format {
+            case .pdf:
+                return try parsePDF(at: url, parserType: parserType)
+            case .lcpProtectedPDF:
+                return try parseLCPDF(at: url, parserType: parserType)
+            default:
+                throw PDFParserError.openFailed
+            }
+        }()
 
         func didLoadDRM(drm: DRM?) throws {
+            try parsingCallback?(drm)
             pubBox.associatedContainer.drm = drm
         }
         
         return (pubBox, didLoadDRM)
     }
 
-    private static func parsePDF(at url: URL, parserType: PDFFileParser.Type) throws -> PubBox {
+    private static func parsePDF(at url: URL, parserType: PDFFileParser.Type) throws -> (PubBox, PubParsingCallback?) {
         let path = url.path
         guard let container = PDFFileContainer(path: path),
             let stream = FileInputStream(fileAtPath: path) else
         {
             throw PDFParserError.openFailed
         }
-        
+
         let parser = try parserType.init(stream: stream)
         container.files[PDFConstant.pdfFilePath] = .path(path)
         container.context = parser.context
@@ -112,49 +114,68 @@ public final class PDFParser: PublicationParser, Loggable {
         
         let documentHref = PDFConstant.pdfFilePath
         let publication = Publication(
-            format: .pdf,
-            formatVersion: pdfMetadata.version,
-            positionListFactory: makePositionListFactory(container: container, parserType: parserType),
-            metadata: Metadata(
-                identifier: pdfMetadata.identifier ?? container.rootFile.rootPath,
-                title: pdfMetadata.title ?? titleFromPath(container.rootFile.rootPath),
-                authors: authors,
-                numberOfPages: try parser.parseNumberOfPages()
+            manifest: PublicationManifest(
+                metadata: Metadata(
+                    identifier: pdfMetadata.identifier ?? container.rootFile.rootPath,
+                    title: pdfMetadata.title ?? titleFromPath(container.rootFile.rootPath),
+                    authors: authors,
+                    numberOfPages: try parser.parseNumberOfPages()
+                ),
+                readingOrder: [
+                    Link(href: documentHref, type: MediaType.pdf.string)
+                ],
+                resources: resources,
+                tableOfContents: pdfMetadata.outline.links(withHref: documentHref)
             ),
-            readingOrder: [
-                Link(href: documentHref, type: MediaType.pdf.string)
-            ],
-            resources: resources,
-            tableOfContents: pdfMetadata.outline.links(withHref: documentHref)
+            servicesBuilder: PublicationServicesBuilder {
+                $0.set(PositionsService.self, PDFPositionsService.create(context:))
+            },
+            format: .pdf,
+            formatVersion: pdfMetadata.version
         )
         
-        return (publication, container)
+        return ((publication, container), nil)
     }
 
-    private static func parseLCPDF(at url: URL, parserType: PDFFileParser.Type) throws -> PubBox {
+    private static func parseLCPDF(at url: URL, parserType: PDFFileParser.Type) throws -> (PubBox, PubParsingCallback?) {
         let path = url.path
-        guard let container = LCPDFContainer(path: path),
+        guard
+            var fetcher: R2Shared.Fetcher = ArchiveFetcher(archive: url),
+            let container = LCPDFContainer(path: path),
             let manifestData = try? container.data(relativePath: PDFConstant.lcpdfManifestPath),
             let manifestJSON = try? JSONSerialization.jsonObject(with: manifestData) else
         {
             throw PDFParserError.invalidLCPDF
         }
         
-        let publication = try Publication(
-            json: manifestJSON,
-            normalizeHref: { normalize(base: container.rootFile.rootFilePath, href: $0) }
+        container.drm = parseLCPDFDRM(in: container)
+        var didLoadDRM: PubParsingCallback? = nil
+        
+        if let decryptor = LCPDecryptor(drm: container.drm) {
+            fetcher = TransformingFetcher(fetcher: fetcher, transformer: decryptor.decrypt)
+            didLoadDRM = { drm in
+                decryptor.license = drm?.license
+            }
+        }
+        
+        let publication = Publication(
+            manifest: try PublicationManifest(
+                json: manifestJSON,
+                normalizeHref: { normalize(base: container.rootFile.rootFilePath, href: $0) }
+            ),
+            fetcher: fetcher,
+            servicesBuilder: PublicationServicesBuilder {
+                $0.set(PositionsService.self, LCPDFPositionsService.create(parserType: parserType))
+            },
+            format: .pdf
         )
-        publication.format = .pdf
-        publication.positionListFactory = makePositionListFactory(container: container, parserType: parserType)
         
         // Checks the requirements from the spec, see. https://readium.org/lcp-specs/drafts/lcpdf
         guard !publication.readingOrder.isEmpty, publication.readingOrder.filter(byType: .pdf) == publication.readingOrder else {
             throw PDFParserError.invalidLCPDF
         }
-        
-        container.drm = parseLCPDFDRM(in: container)
-        
-        return (publication, container)
+
+        return ((publication, container), didLoadDRM)
     }
     
     private static func parseLCPDFDRM(in container: Container) -> DRM? {
@@ -171,66 +192,6 @@ public final class PDFParser: PublicationParser, Loggable {
             .deletingPathExtension()
             .lastPathComponent
             .replacingOccurrences(of: "_", with: " ")
-    }
-    
-    private static func makePositionListFactory(container: PDFContainer, parserType: PDFFileParser.Type) -> (Publication) -> [Locator] {
-        return { publication -> [Locator] in
-            // In case it's a single PDF and the numberOfPages was already parsed from the metadata.
-            if publication.readingOrder.count == 1, let pageCount = publication.metadata.numberOfPages, pageCount > 0 {
-                return makePositionList(of: publication.readingOrder[0], pageCount: pageCount, totalPageCount: pageCount)
-            }
-            
-            // The resources could be encrypted, so we use the fetcher to go through the content filters.
-            guard let fetcher = try? Fetcher(publication: publication, container: container) else {
-                return []
-            }
-
-            // Calculates the page count of each resource from the reading order.
-            let resources = publication.readingOrder.map { link -> (Int, Link) in
-                guard let stream = try? fetcher.dataStream(forLink: link),
-                    // FIXME: We should be able to use the stream directly here instead of reading it fully into a Data object, but somehow it fails with random access in CBCDRMInputStream.
-                    let data = try? Data.reading(stream, bufferSize: 500000 /* 500 KB */),
-                    let parser = try? parserType.init(stream: DataInputStream(data: data)),
-                    let pageCount = try? parser.parseNumberOfPages() else
-                {
-                    log(.warning, "Can't get the number of pages from PDF document at \(link)")
-                    return (0, link)
-                }
-                return (pageCount, link)
-            }
-
-            let totalPageCount = resources.reduce(0) { count, current in count + current.0 }
-            
-            var lastPositionOfPreviousResource = 0
-            return resources.flatMap { pageCount, link -> [Locator] in
-                guard pageCount > 0 else {
-                    return []
-                }
-                let positionList = makePositionList(of: link, pageCount: pageCount, totalPageCount: totalPageCount, startPosition: lastPositionOfPreviousResource)
-                lastPositionOfPreviousResource += pageCount
-                return positionList
-            }
-        }
-    }
-    
-    private static func makePositionList(of link: Link, pageCount: Int, totalPageCount: Int, startPosition: Int = 0) -> [Locator] {
-        assert(pageCount > 0, "Invalid PDF page count")
-        assert(totalPageCount > 0, "Invalid PDF total page count")
-        
-        return (1...pageCount).map { position in
-            let progression = Double(position - 1) / Double(pageCount)
-            let totalProgression = Double(startPosition + position - 1) / Double(totalPageCount)
-            return Locator(
-                href: link.href,
-                type: link.type ?? MediaType.pdf.string,
-                locations: .init(
-                    fragments: ["page=\(position)"],
-                    progression: progression,
-                    totalProgression: totalProgression,
-                    position: startPosition + position
-                )
-            )
-        }
     }
 
 }
