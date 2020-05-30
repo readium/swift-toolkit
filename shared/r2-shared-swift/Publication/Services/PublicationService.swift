@@ -46,7 +46,7 @@ public protocol PublicationService {
 
 }
 
-extension PublicationService {
+public extension PublicationService {
     
     var links: [Link] { [] }
     
@@ -61,6 +61,6 @@ public typealias PublicationServiceFactory = (PublicationServiceContext) -> Publ
 
 /// Container for the context from which a service is created.
 public struct PublicationServiceContext {
-    let manifest: PublicationManifest
-    let fetcher: Fetcher
+    public let manifest: PublicationManifest
+    public let fetcher: Fetcher
 }

@@ -36,24 +36,6 @@ public class Publication: JSONEquatable, Loggable {
     public var tableOfContents: [Link] { manifest.tableOfContents }
     public var otherCollections: [PublicationCollection] { manifest.otherCollections }
 
-    /// Factory used to build lazily the `positionList`.
-    /// By default, a parser will set this to parse the `positionList` from the publication. But the host app might want to overwrite this with a custom closure to implement for example a cache mechanism.
-    public var positionListFactory: (Publication) -> [Locator] = { _ in [] }
-    
-    /// List of all the positions in the publication.
-    public lazy var positions: [Locator] = positionListFactory(self)
-    
-    /// List of all the positions in each resource, indexed by their `href`.
-    public lazy var positionsByResource: [String: [Locator]] = positions
-        .reduce([:]) { mapping, position in
-            var mapping = mapping
-            if mapping[position.href] == nil {
-                mapping[position.href] = []
-            }
-            mapping[position.href]?.append(position)
-            return mapping
-        }
-
     public var userProperties = UserProperties()
     
     // The status of User Settings properties (enabled or disabled).
@@ -114,7 +96,7 @@ public class Publication: JSONEquatable, Loggable {
         ], additional: otherCollections.json)
     }
     
-    public func findService<T: PublicationService>() -> T? {
+    public func findService<T>(_ serviceType: T.Type) -> T? {
         return services.first { $0 is T } as? T
     }
 

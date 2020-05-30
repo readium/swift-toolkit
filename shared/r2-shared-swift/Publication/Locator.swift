@@ -260,3 +260,22 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
     }
     
 }
+
+extension Array where Element == Locator {
+    
+    /// Parses multiple JSON locators into an array of `Locator`.
+    public init(json: Any?) {
+        self.init()
+        guard let json = json as? [Any] else {
+            return
+        }
+        
+        let links = json.compactMap { try? Locator(json: $0) }
+        append(contentsOf: links)
+    }
+    
+    public var json: [[String: Any]] {
+        map { $0.json }
+    }
+    
+}

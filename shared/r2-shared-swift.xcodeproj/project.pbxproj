@@ -109,6 +109,8 @@
 		CABBB2F82237C99E004EB039 /* OPDSAcquisition.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABBB2F72237C99E004EB039 /* OPDSAcquisition.swift */; };
 		CABBB2FA2237CA94004EB039 /* OPDSAcquisitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABBB2F92237CA94004EB039 /* OPDSAcquisitionTests.swift */; };
 		CABBB2FC22394450004EB039 /* ContentLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABBB2FB22394450004EB039 /* ContentLayout.swift */; };
+		CABE2A012482C6F2008E286D /* PositionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABE2A002482C6F2008E286D /* PositionsService.swift */; };
+		CABE2A032482C7A6008E286D /* PositionsServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABE2A022482C7A6008E286D /* PositionsServiceTests.swift */; };
 		CABEB3DC2215698600090B6C /* Deferred.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABEB3DB2215698600090B6C /* Deferred.swift */; };
 		CAC34F0A221C61BD002C452E /* DRM.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC34F06221C61BD002C452E /* DRM.swift */; };
 		CAC34F0C221C61BD002C452E /* DRM+Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC34F08221C61BD002C452E /* DRM+Deprecated.swift */; };
@@ -257,6 +259,8 @@
 		CABBB2F72237C99E004EB039 /* OPDSAcquisition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSAcquisition.swift; sourceTree = "<group>"; };
 		CABBB2F92237CA94004EB039 /* OPDSAcquisitionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSAcquisitionTests.swift; sourceTree = "<group>"; };
 		CABBB2FB22394450004EB039 /* ContentLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentLayout.swift; sourceTree = "<group>"; };
+		CABE2A002482C6F2008E286D /* PositionsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositionsService.swift; sourceTree = "<group>"; };
+		CABE2A022482C7A6008E286D /* PositionsServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositionsServiceTests.swift; sourceTree = "<group>"; };
 		CABEB3DB2215698600090B6C /* Deferred.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Deferred.swift; sourceTree = "<group>"; };
 		CAC34F06221C61BD002C452E /* DRM.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DRM.swift; sourceTree = "<group>"; };
 		CAC34F08221C61BD002C452E /* DRM+Deprecated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DRM+Deprecated.swift"; sourceTree = "<group>"; };
@@ -627,6 +631,7 @@
 			children = (
 				CA9FC073248256450020B9CC /* PublicationService.swift */,
 				CA9FC07524825A880020B9CC /* PublicationServicesBuilder.swift */,
+				CABE2A002482C6F2008E286D /* PositionsService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -635,6 +640,7 @@
 			isa = PBXGroup;
 			children = (
 				CA9FC0782482657F0020B9CC /* PublicationServicesBuilderTests.swift */,
+				CABE2A022482C7A6008E286D /* PositionsServiceTests.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -902,6 +908,7 @@
 				CACD75E0223657AD004F20CA /* PublicationTests.swift in Sources */,
 				CA17637E223A7C0300959FEB /* Publication+EPUBTests.swift in Sources */,
 				CABBB2FA2237CA94004EB039 /* OPDSAcquisitionTests.swift in Sources */,
+				CABE2A032482C7A6008E286D /* PositionsServiceTests.swift in Sources */,
 				CA5F8EED240404E300926120 /* ContentLayoutTests.swift in Sources */,
 				CA3386EC24052D9700FDCBBA /* DOMRangeTests.swift in Sources */,
 				CA68BDC3244043C8009A6BAA /* MediaTypeTests.swift in Sources */,
@@ -933,6 +940,7 @@
 				CA16A8702232F7CD00E66255 /* Link.swift in Sources */,
 				F3E7D4191F4EC69100DF166D /* RootFile.swift in Sources */,
 				CA16A85B2232C4E600E66255 /* LocalizedString.swift in Sources */,
+				CABE2A012482C6F2008E286D /* PositionsService.swift in Sources */,
 				CA9E6BAE223A76C600ECF6E4 /* Publication+OPDS.swift in Sources */,
 				CABEB3DC2215698600090B6C /* Deferred.swift in Sources */,
 				CA6F27702469D9050065B405 /* ZIPFetcher.swift in Sources */,

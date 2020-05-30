@@ -39,6 +39,11 @@ extension Publication {
         }
         return version
     }
+
+    /// Factory used to build lazily the `positionList`.
+    /// By default, a parser will set this to parse the `positionList` from the publication. But the host app might want to overwrite this with a custom closure to implement for example a cache mechanism.
+    @available(*, unavailable, message: "Implement `PositionsService` instead")
+    public var positionListFactory: (Publication) -> [Locator] { { _ in [] } }
     
     @available(*, deprecated, renamed: "baseURL")
     public var baseUrl: URL? { return baseURL }
