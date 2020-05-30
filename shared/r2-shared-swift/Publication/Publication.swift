@@ -21,19 +21,18 @@ public class Publication: JSONEquatable, Loggable {
     /// Version of the publication's format, eg. 3 for EPUB 3
     public var formatVersion: String?
     
-    /// Readium Web Publication
-    /// See. https://readium.org/webpub-manifest/
+    private var manifest: PublicationManifest
     
-    public let context: [String]  // @context
-    public let metadata: Metadata
-    public var links: [Link]  // FIXME: should not be mutable
-    public let readingOrder: [Link]
-    public let resources: [Link]
-    public let otherCollections: [PublicationCollection]
-    
-    public var tableOfContents: [Link] {
-        otherCollections.first(withRole: "toc")?.links ?? []
-    }
+    public var context: [String] { manifest.context }
+    public var metadata: Metadata { manifest.metadata }
+    public var links: [Link] { manifest.links }
+    /// Identifies a list of resources in reading order for the publication.
+    public var readingOrder: [Link] { manifest.readingOrder }
+    /// Identifies resources that are necessary for rendering the publication.
+    public var resources: [Link] { manifest.resources }
+    /// Identifies the collection that contains a table of contents.
+    public var tableOfContents: [Link] { manifest.tableOfContents }
+    public var otherCollections: [PublicationCollection] { manifest.otherCollections }
 
     /// Factory used to build lazily the `positionList`.
     /// By default, a parser will set this to parse the `positionList` from the publication. But the host app might want to overwrite this with a custom closure to implement for example a cache mechanism.
@@ -77,44 +76,19 @@ public class Publication: JSONEquatable, Loggable {
         )
     }
     
-    public init(format: Format = .unknown, formatVersion: String? = nil, positionListFactory: @escaping (Publication) -> [Locator] = { _ in [] }, context: [String] = [], metadata: Metadata, links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = [], tableOfContents: [Link] = [], otherCollections: [PublicationCollection] = []) {
-        // Convenience to set the table of contents during construction
-        var otherCollections = otherCollections
-        if !tableOfContents.isEmpty {
-            otherCollections.insert(PublicationCollection(role: "toc", links: tableOfContents), at: 0)
-        }
-        
+    public init(manifest: PublicationManifest, format: Format = .unknown, formatVersion: String? = nil) {
+        self.manifest = manifest
         self.format = format
         self.formatVersion = formatVersion
-        self.context = context
-        self.metadata = metadata
-        self.links = links
-        self.readingOrder = readingOrder
-        self.resources = resources
-        self.otherCollections = otherCollections
-        self.positionListFactory = positionListFactory
     }
     
     /// Parses a Readium Web Publication Manifest.
     /// https://readium.org/webpub-manifest/schema/publication.schema.json
-    public init(json: Any, normalizeHref: (String) -> String = { $0 }) throws {
-        guard var json = JSONDictionary(json) else {
-            throw JSONError.parsing(Publication.self)
-        }
-        
-        self.context = parseArray(json.pop("@context"), allowingSingle: true)
-        self.metadata = try Metadata(json: json.pop("metadata"), normalizeHref: normalizeHref)
-        self.links = [Link](json: json.pop("links"), normalizeHref: normalizeHref)
-        // `readingOrder` used to be `spine`, so we parse `spine` as a fallback.
-        self.readingOrder = [Link](json: json.pop("readingOrder") ?? json.pop("spine"), normalizeHref: normalizeHref)
-            .filter { $0.type != nil }
-        self.resources = [Link](json: json.pop("resources"), normalizeHref: normalizeHref)
-            .filter { $0.type != nil }
-
-        // Parses sub-collections from remaining JSON properties.
-        self.otherCollections = [PublicationCollection](json: json.json, normalizeHref: normalizeHref)
+    public convenience init(json: Any, normalizeHref: (String) -> String = { $0 }) throws {
+        self.init(manifest: try PublicationManifest(json: json, normalizeHref: normalizeHref))
     }
     
+    /// Returns the Readium Web Publication Manifest as JSON.
     public var json: [String: Any] {
         return makeJSON([
             "@context": encodeIfNotEmpty(context),
@@ -126,19 +100,14 @@ public class Publication: JSONEquatable, Loggable {
         ], additional: otherCollections.json)
     }
 
-    /// Returns the Manifest's data JSON representation.
-    public var manifest: Data? {
-        return serializeJSONData(json)
-    }
-
     /// Sets the URL where this `Publication`'s RWPM manifest is served.
     public func setSelfLink(href: String) {
-        links.removeAll { $0.rels.contains("self") }
-        links.append(Link(
+        manifest.links.removeAll { $0.rels.contains("self") }
+        manifest.links.insert(Link(
             href: href,
             type: MediaType.webpubManifest.string,
             rel: "self"
-        ))
+        ), at: 0)
     }
 
     /// Finds the first `Link` having the given `rel` in the publication's links.
@@ -299,75 +268,11 @@ public class Publication: JSONEquatable, Loggable {
             }
         }
         
-        @available(*, deprecated, renamed: "init(file:)")
+        @available(*, unavailable, renamed: "init(file:)")
         public init(url: URL) {
             self.init(file: url)
         }
 
     }
-    
-}
-
-
-// MARK: - Deprecated API
-
-extension Publication {
-    
-    @available(*, deprecated, renamed: "formatVersion")
-    public var version: Double {
-        guard let versionString = formatVersion,
-            let version = Double(versionString) else
-        {
-            return 0
-        }
-        return version
-    }
-
-    @available(*, deprecated, renamed: "baseURL")
-    public var baseUrl: URL? { return baseURL }
-    
-    @available(*, unavailable, message: "This is not used anymore, don't set it")
-    public var updatedDate: Date { return Date() }
-    
-    @available(*, deprecated, message: "Check the publication's type using `format` instead")
-    public var internalData: [String: String] {
-        // The code in the testapp used to check a property in `publication.internalData["type"]` to know which kind of publication this is.
-        // To avoid breaking any app, we reproduce this value here:
-        return [
-            "type": {
-                switch format {
-                case .epub:
-                    return "epub"
-                case .cbz:
-                    return "cbz"
-                case .pdf:
-                    return "pdf"
-                default:
-                    return "unknown"
-                }
-            }()
-        ]
-    }
-
-    @available(*, deprecated, renamed: "manifest")
-    public var manifestCanonical: String {
-        return String(data: manifest ?? Data(), encoding: .utf8) ?? ""
-    }
-    
-    @available(*, deprecated, renamed: "init(json:)")
-    public static func parse(pubDict: [String: Any]) throws -> Publication {
-        return try Publication(json: pubDict, normalizeHref: { $0 })
-    }
-    
-    @available(*, deprecated, renamed: "url(to:)")
-    public func uriTo(link: Link?) -> URL? {
-        return url(to: link)
-    }
-    
-    @available(*, deprecated, renamed: "positions")
-    public var positionList: [Locator] { positions }
-    
-    @available(*, deprecated, renamed: "positionsByResource")
-    public var positionListByResource: [String: [Locator]] { positionsByResource }
     
 }

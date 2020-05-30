@@ -16,10 +16,72 @@ public typealias WebPublication = Publication
 
 extension Publication {
     
-    @available(*, deprecated, renamed: "init(metadata:)")
+    @available(*, deprecated, renamed: "init(manifest:)")
     public convenience init() {
-        self.init(metadata: Metadata(title: ""))
+        self.init(manifest: PublicationManifest(metadata: Metadata(title: "")))
     }
+    
+    @available(*, deprecated, renamed: "init(format:formatVersion:manifest:)")
+    public convenience init(format: Format = .unknown, formatVersion: String? = nil, positionListFactory: @escaping (Publication) -> [Locator] = { _ in [] }, context: [String] = [], metadata: Metadata, links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = [], tableOfContents: [Link] = [], otherCollections: [PublicationCollection] = []) {
+        self.init(
+            manifest: PublicationManifest(context: context, metadata: metadata, links: links, readingOrder: readingOrder, resources: resources, tableOfContents: tableOfContents, otherCollections: otherCollections),
+            format: format,
+            formatVersion: formatVersion
+        )
+    }
+    
+    @available(*, deprecated, renamed: "formatVersion")
+    public var version: Double {
+        guard let versionString = formatVersion,
+            let version = Double(versionString) else
+        {
+            return 0
+        }
+        return version
+    }
+    
+    @available(*, deprecated, renamed: "baseURL")
+    public var baseUrl: URL? { return baseURL }
+    
+    @available(*, unavailable, message: "This is not used anymore, don't set it")
+    public var updatedDate: Date { Date() }
+    
+    @available(*, deprecated, message: "Check the publication's type using `format` instead")
+    public var internalData: [String: String] {
+        // The code in the testapp used to check a property in `publication.internalData["type"]` to know which kind of publication this is.
+        // To avoid breaking any app, we reproduce this value here:
+        return [
+            "type": {
+                switch format {
+                case .epub:
+                    return "epub"
+                case .cbz:
+                    return "cbz"
+                case .pdf:
+                    return "pdf"
+                default:
+                    return "unknown"
+                }
+            }()
+        ]
+    }
+    
+    @available(*, unavailable, renamed: "json")
+    public var manifestCanonical: String { serializeJSONString(json) ?? "" }
+    
+    @available(*, deprecated, renamed: "init(json:)")
+    public static func parse(pubDict: [String: Any]) throws -> Publication {
+        return try Publication(json: pubDict, normalizeHref: { $0 })
+    }
+    
+    @available(*, unavailable, renamed: "url(to:)")
+    public func uriTo(link: Link?) -> URL? { return url(to: link) }
+    
+    @available(*, deprecated, renamed: "positions")
+    public var positionList: [Locator] { positions }
+    
+    @available(*, deprecated, renamed: "positionsByResource")
+    public var positionListByResource: [String: [Locator]] { positionsByResource }
     
     @available(*, deprecated, renamed: "resource(withHref:)")
     public func resource(withRelativePath path: String) -> Link? {
@@ -232,3 +294,45 @@ public typealias Locations = Locator.Locations
 
 @available(*, deprecated, renamed: "Locator.Text")
 public typealias LocatorText = Locator.Text
+
+@available(*, deprecated, message: "Use your own Bookmark model in your app, this one is not used by Readium 2 anymore")
+public class Bookmark {
+    public var id: Int64?
+    public var bookID: Int = 0
+    public var publicationID: String
+    public var resourceIndex: Int
+    public var locator: Locator
+    public var creationDate: Date
+    
+    public init(id: Int64? = nil, publicationID: String, resourceIndex: Int, locator: Locator, creationDate: Date = Date()) {
+        self.id = id
+        self.publicationID = publicationID
+        self.resourceIndex = resourceIndex
+        self.locator = locator
+        self.creationDate = creationDate
+    }
+    
+    public convenience init(bookID: Int, publicationID: String, resourceIndex: Int, resourceHref: String, resourceType: String, resourceTitle: String, location: Locations, locatorText: LocatorText, creationDate: Date = Date(), id: Int64? = nil) {
+        self.init(
+            id: id,
+            publicationID: publicationID,
+            resourceIndex: resourceIndex,
+            locator: Locator(
+                href: resourceHref,
+                type: resourceType,
+                title: resourceTitle,
+                locations: location,
+                text: locatorText
+            ),
+            creationDate: creationDate
+        )
+    }
+    
+    public var resourceHref: String { return locator.href }
+    public var resourceType: String { return locator.type }
+    public var resourceTitle: String { return locator.title ?? "" }
+    public var location: Locations { return locator.locations }
+    public var locations: Locations? { return locator.locations }
+    public var locatorText: LocatorText { return locator.text }
+    
+}

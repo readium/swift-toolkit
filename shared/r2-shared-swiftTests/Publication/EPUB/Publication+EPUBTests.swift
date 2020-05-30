@@ -100,7 +100,7 @@ class PublicationEPUBTests: XCTestCase {
     
     private func makePublication(_ collection: PublicationCollection? = nil) -> Publication {
         let collections = Array(ofNotNil: collection)
-        return Publication(metadata: Metadata(title: ""), links: [], readingOrder: [], otherCollections: collections)
+        return Publication(manifest: .init(metadata: Metadata(title: ""), links: [], readingOrder: [], otherCollections: collections))
     }
 
 }
