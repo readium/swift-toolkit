@@ -13,19 +13,6 @@ import Foundation
 import CoreGraphics
 import R2Shared
 
-
-/// PDF related constants.
-private struct PDFConstant {
-    /// Default PDF file path inside the container, for standalone PDF files.
-    static let pdfFilePath = "/"
-    /// HRef for the pre-rendered cover of standalone PDF files.
-    static let pdfFileCoverPath = "/cover.png"
-    
-    /// Relative path to the manifest of a LCPDF package.
-    static let lcpdfManifestPath = "/manifest.json"
-}
-
-
 /// Errors thrown during the parsing of the PDF.
 public enum PDFParserError: Error {
     // The file at 'path' is missing from the container.
@@ -82,51 +69,47 @@ public final class PDFParser: PublicationParser, Loggable {
     }
 
     private static func parsePDF(at url: URL, parserType: PDFFileParser.Type) throws -> (PubBox, PubParsingCallback?) {
-        let path = url.path
-        guard let container = PDFFileContainer(path: path),
-            let stream = FileInputStream(fileAtPath: path) else
-        {
+        guard let stream = FileInputStream(fileAtPath: url.path) else {
             throw PDFParserError.openFailed
         }
 
         let parser = try parserType.init(stream: stream)
-        container.files[PDFConstant.pdfFilePath] = .path(path)
-        container.context = parser.context
-        
         let pdfMetadata = try parser.parseMetadata()
-        
+
         var authors: [Contributor] = []
         if let authorName = pdfMetadata.author {
             authors.append(Contributor(name: authorName))
         }
         
-        var resources: [Link] = []
-        if let cover = try parser.renderCover(), let coverData = cover.pngData() {
-            container.files[PDFConstant.pdfFileCoverPath] = .data(coverData)
-            resources.append(Link(
-                href: PDFConstant.pdfFileCoverPath,
-                type: "image/png",
-                rel: "cover",
-                height: Int(cover.size.height),
-                width: Int(cover.size.width)
-            ))
-        }
-        
-        let documentHref = PDFConstant.pdfFilePath
+        // FIXME: CoverService
+//        if let cover = try parser.renderCover(), let coverData = cover.pngData() {
+//            paths["/cover.png"] = .data(coverData)
+//            resources.append(Link(
+//                href: PDFConstant.pdfFileCoverPath,
+//                type: "image/png",
+//                rel: "cover",
+//                height: Int(cover.size.height),
+//                width: Int(cover.size.width)
+//            ))
+//        }
+
+        let pdfHref = "/publication.pdf"
+        let fetcher = FileFetcher(href: pdfHref, path: url)
+
         let publication = Publication(
             manifest: PublicationManifest(
                 metadata: Metadata(
-                    identifier: pdfMetadata.identifier ?? container.rootFile.rootPath,
-                    title: pdfMetadata.title ?? titleFromPath(container.rootFile.rootPath),
+                    identifier: pdfMetadata.identifier,
+                    title: pdfMetadata.title ?? url.title,
                     authors: authors,
                     numberOfPages: try parser.parseNumberOfPages()
                 ),
                 readingOrder: [
-                    Link(href: documentHref, type: MediaType.pdf.string)
+                    Link(href: pdfHref, type: MediaType.pdf.string)
                 ],
-                resources: resources,
-                tableOfContents: pdfMetadata.outline.links(withHref: documentHref)
+                tableOfContents: pdfMetadata.outline.links(withHref: pdfHref)
             ),
+            fetcher: fetcher,
             servicesBuilder: PublicationServicesBuilder {
                 $0.set(PositionsService.self, PDFPositionsService.create(context:))
             },
@@ -134,24 +117,27 @@ public final class PDFParser: PublicationParser, Loggable {
             formatVersion: pdfMetadata.version
         )
         
+        let container = PublicationContainer(
+            publication: publication,
+            path: url.path,
+            mimetype: MediaType.pdf.string
+        )
+        
         return ((publication, container), nil)
     }
 
     private static func parseLCPDF(at url: URL, parserType: PDFFileParser.Type) throws -> (PubBox, PubParsingCallback?) {
-        let path = url.path
         guard
             var fetcher: R2Shared.Fetcher = ArchiveFetcher(archive: url),
-            let container = LCPDFContainer(path: path),
-            let manifestData = try? container.data(relativePath: PDFConstant.lcpdfManifestPath),
-            let manifestJSON = try? JSONSerialization.jsonObject(with: manifestData) else
+            let manifestJSON = try? fetcher.get("/manifest.json").readAsJSON().get() else
         {
             throw PDFParserError.invalidLCPDF
         }
         
-        container.drm = parseLCPDFDRM(in: container)
+        let drm = DRM(brand: .lcp)
         var didLoadDRM: PubParsingCallback? = nil
         
-        if let decryptor = LCPDecryptor(drm: container.drm) {
+        if let decryptor = LCPDecryptor(drm: drm) {
             fetcher = TransformingFetcher(fetcher: fetcher, transformer: decryptor.decrypt)
             didLoadDRM = { drm in
                 decryptor.license = drm?.license
@@ -161,7 +147,7 @@ public final class PDFParser: PublicationParser, Loggable {
         let publication = Publication(
             manifest: try PublicationManifest(
                 json: manifestJSON,
-                normalizeHref: { normalize(base: container.rootFile.rootFilePath, href: $0) }
+                normalizeHref: { normalize(base: "", href: $0) }
             ),
             fetcher: fetcher,
             servicesBuilder: PublicationServicesBuilder {
@@ -174,24 +160,23 @@ public final class PDFParser: PublicationParser, Loggable {
         guard !publication.readingOrder.isEmpty, publication.readingOrder.filter(byType: .pdf) == publication.readingOrder else {
             throw PDFParserError.invalidLCPDF
         }
+        
+        let container = PublicationContainer(
+            publication: publication,
+            path: url.path,
+            mimetype: MediaType.lcpProtectedPDF.string,
+            drm: drm
+        )
 
         return ((publication, container), didLoadDRM)
     }
+
+}
+
+private extension URL {
     
-    private static func parseLCPDFDRM(in container: Container) -> DRM? {
-        guard let licenseLength = try? container.dataLength(relativePath: "license.lcpl"),
-            licenseLength > 0 else
-        {
-            return nil
-        }
-        return DRM(brand: .lcp)
+    var title: String {
+        deletingPathExtension().lastPathComponent.replacingOccurrences(of: "_", with: " ")
     }
-
-    private static func titleFromPath(_ path: String) -> String {
-        return URL(fileURLWithPath: path)
-            .deletingPathExtension()
-            .lastPathComponent
-            .replacingOccurrences(of: "_", with: " ")
-    }
-
+    
 }

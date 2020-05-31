@@ -24,7 +24,6 @@
 		CA130D5F229D4245000A627C /* CBZContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D27229D4245000A627C /* CBZContainer.swift */; };
 		CA130D60229D4245000A627C /* CBZParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D28229D4245000A627C /* CBZParser.swift */; };
 		CA130D61229D4245000A627C /* PDFParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D2A229D4245000A627C /* PDFParser.swift */; };
-		CA130D62229D4245000A627C /* PDFContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D2B229D4245000A627C /* PDFContainer.swift */; };
 		CA130D63229D4245000A627C /* PDFFileCGParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D2C229D4245000A627C /* PDFFileCGParser.swift */; };
 		CA130D64229D4245000A627C /* PDFFileParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D2D229D4245000A627C /* PDFFileParser.swift */; };
 		CA130D65229D4245000A627C /* PublicationParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D2E229D4245000A627C /* PublicationParser.swift */; };
@@ -62,6 +61,8 @@
 		CA6F97DA22A6A0B7007D2049 /* OPFMeta.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97D922A6A0B6007D2049 /* OPFMeta.swift */; };
 		CA7116EC24547E0A00C029FD /* Link.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7116EB24547E0A00C029FD /* Link.swift */; };
 		CA8672B2244868B50035FDF4 /* DataCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D20229D4245000A627C /* DataCompression.swift */; };
+		CA8F18D52483901700146D11 /* PublicationContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8F18D42483901700146D11 /* PublicationContainer.swift */; };
+		CA8F18D7248394F100146D11 /* ResourceInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8F18D6248394F100146D11 /* ResourceInputStream.swift */; };
 		CA94291822BCE42500305CDB /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA94291722BCE42500305CDB /* CoreServices.framework */; };
 		CABAC16622CDD6A200360595 /* DRMInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABAC16522CDD6A200360595 /* DRMInputStream.swift */; };
 		CABAC16822CDD7A500360595 /* FullDRMInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABAC16722CDD7A500360595 /* FullDRMInputStream.swift */; };
@@ -104,7 +105,6 @@
 		CA130D27229D4245000A627C /* CBZContainer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CBZContainer.swift; sourceTree = "<group>"; };
 		CA130D28229D4245000A627C /* CBZParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CBZParser.swift; sourceTree = "<group>"; };
 		CA130D2A229D4245000A627C /* PDFParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PDFParser.swift; sourceTree = "<group>"; };
-		CA130D2B229D4245000A627C /* PDFContainer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PDFContainer.swift; sourceTree = "<group>"; };
 		CA130D2C229D4245000A627C /* PDFFileCGParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PDFFileCGParser.swift; sourceTree = "<group>"; };
 		CA130D2D229D4245000A627C /* PDFFileParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PDFFileParser.swift; sourceTree = "<group>"; };
 		CA130D2E229D4245000A627C /* PublicationParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationParser.swift; sourceTree = "<group>"; };
@@ -143,6 +143,8 @@
 		CA6F97D322A52810007D2049 /* OPFParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPFParserTests.swift; sourceTree = "<group>"; };
 		CA6F97D922A6A0B6007D2049 /* OPFMeta.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPFMeta.swift; sourceTree = "<group>"; };
 		CA7116EB24547E0A00C029FD /* Link.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Link.swift; sourceTree = "<group>"; };
+		CA8F18D42483901700146D11 /* PublicationContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationContainer.swift; sourceTree = "<group>"; };
+		CA8F18D6248394F100146D11 /* ResourceInputStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceInputStream.swift; sourceTree = "<group>"; };
 		CA94291722BCE42500305CDB /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		CABAC16522CDD6A200360595 /* DRMInputStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DRMInputStream.swift; sourceTree = "<group>"; };
 		CABAC16722CDD7A500360595 /* FullDRMInputStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullDRMInputStream.swift; sourceTree = "<group>"; };
@@ -226,6 +228,7 @@
 			isa = PBXGroup;
 			children = (
 				CA130D00229D4245000A627C /* Seekable.swift */,
+				CA8F18D6248394F100146D11 /* ResourceInputStream.swift */,
 				CA130D01229D4245000A627C /* FileInputStream.swift */,
 				CA130D02229D4245000A627C /* DataInputStream.swift */,
 				CA130D03229D4245000A627C /* ZIPInputStream.swift */,
@@ -288,7 +291,6 @@
 			isa = PBXGroup;
 			children = (
 				CA130D2A229D4245000A627C /* PDFParser.swift */,
-				CA130D2B229D4245000A627C /* PDFContainer.swift */,
 				CA130D2C229D4245000A627C /* PDFFileCGParser.swift */,
 				CA130D2D229D4245000A627C /* PDFFileParser.swift */,
 				CABE2A082482DA34008E286D /* Services */,
@@ -330,6 +332,7 @@
 				CA130D3D229D4245000A627C /* ArchiveContainer.swift */,
 				CA130D3E229D4245000A627C /* DirectoryContainer.swift */,
 				CAC5AED922C22A6F007DB8A8 /* HTTPContainer.swift */,
+				CA8F18D42483901700146D11 /* PublicationContainer.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -575,14 +578,15 @@
 				CA130D6A229D4245000A627C /* NavigationDocumentParser.swift in Sources */,
 				CABE2A052482D1FF008E286D /* PDFPositionsService.swift in Sources */,
 				CA130D5A229D4245000A627C /* Fetcher.swift in Sources */,
+				CA8F18D7248394F100146D11 /* ResourceInputStream.swift in Sources */,
 				CA130D5D229D4245000A627C /* WebServerResourceResponse.swift in Sources */,
 				CA130D46229D4245000A627C /* DataInputStream.swift in Sources */,
 				CA130D70229D4245000A627C /* Container.swift in Sources */,
+				CA8F18D52483901700146D11 /* PublicationContainer.swift in Sources */,
 				CA130D60229D4245000A627C /* CBZParser.swift in Sources */,
 				CA130D69229D4245000A627C /* OPFParser.swift in Sources */,
 				CA130D6C229D4245000A627C /* EPUBMetadataParser.swift in Sources */,
 				CA6F97CE22A50F39007D2049 /* EPUBContainerParser.swift in Sources */,
-				CA130D62229D4245000A627C /* PDFContainer.swift in Sources */,
 				CA5F8EF4240410A500926120 /* Presentation+EPUB.swift in Sources */,
 				CAC5AEDA22C22A6F007DB8A8 /* HTTPContainer.swift in Sources */,
 				CA130D63229D4245000A627C /* PDFFileCGParser.swift in Sources */,

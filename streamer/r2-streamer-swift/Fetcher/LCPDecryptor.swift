@@ -39,12 +39,11 @@ final class LCPDecryptor {
         // Checks if the resource is encrypted and whether the encryption schemes of the resource
         // and the DRM license are the same.
         let link = resource.link
-        guard
-            let license = license,
-            let encryption = link.properties.encryption,
-            self.scheme == encryption.scheme else
-        {
+        guard let encryption = link.properties.encryption, self.scheme == encryption.scheme else {
             return resource
+        }
+        guard let license = license else {
+            return FailureResource(link: link, error: .forbidden)
         }
 
         if link.isDeflated || !link.isCbcEncrypted {
@@ -127,7 +126,8 @@ final class LCPDecryptor {
                 return license.decryptFully(resource)
             }
             
-            return resource.length.tryFlatMap { length in
+            return resource.length.tryFlatMap { totalLength in
+                let length = range.upperBound - range.lowerBound
                 let blockPosition = range.lowerBound % AESBlockSize
 
                 // For beginning of the cipher text, IV used for XOR.

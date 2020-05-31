@@ -206,11 +206,7 @@ internal class ContentFiltersCbz: ContentFilters {}
 internal class ContentFiltersPDF: ContentFilters {
 
     func apply(to input: SeekableInputStream, of publication: Publication, with container: Container, at path: String) throws -> SeekableInputStream {
-        /// Get the link for the resource.
-        guard let resourceLink = publication.link(withHref: path) else {
-            return input
-        }
-        return DRMDecoder.decoding(input, of: resourceLink, with: container.drm)
+        return input
     }
     
 }
