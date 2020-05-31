@@ -80,18 +80,6 @@ public final class PDFParser: PublicationParser, Loggable {
         if let authorName = pdfMetadata.author {
             authors.append(Contributor(name: authorName))
         }
-        
-        // FIXME: CoverService
-//        if let cover = try parser.renderCover(), let coverData = cover.pngData() {
-//            paths["/cover.png"] = .data(coverData)
-//            resources.append(Link(
-//                href: PDFConstant.pdfFileCoverPath,
-//                type: "image/png",
-//                rel: "cover",
-//                height: Int(cover.size.height),
-//                width: Int(cover.size.width)
-//            ))
-//        }
 
         let pdfHref = "/publication.pdf"
         let fetcher = FileFetcher(href: pdfHref, path: url)
@@ -111,7 +99,8 @@ public final class PDFParser: PublicationParser, Loggable {
             ),
             fetcher: fetcher,
             servicesBuilder: PublicationServicesBuilder {
-                $0.set(PositionsService.self, PDFPositionsService.create(context:))
+                $0.setPositions(PDFPositionsService.create(context:))
+                $0.setCover(InMemoryCoverService.create(cover: try? parser.renderCover()))
             },
             format: .pdf,
             formatVersion: pdfMetadata.version
@@ -151,7 +140,7 @@ public final class PDFParser: PublicationParser, Loggable {
             ),
             fetcher: fetcher,
             servicesBuilder: PublicationServicesBuilder {
-                $0.set(PositionsService.self, LCPDFPositionsService.create(parserType: parserType))
+                $0.setPositions(LCPDFPositionsService.create(parserType: parserType))
             },
             format: .pdf
         )
