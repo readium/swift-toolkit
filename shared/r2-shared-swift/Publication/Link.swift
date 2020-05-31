@@ -184,6 +184,10 @@ extension Array where Element == Link {
         return first(recursively: recursively) { ($0.properties.otherProperties[otherProperty] as? T) == matching }
     }
     
+    public func filter(byRel rel: String) -> [Link] {
+        return filter { $0.rels.contains(rel) }
+    }
+    
     /// Finds the first link matching the given predicate.
     ///
     /// - Parameter recursively: Finds links recursively through `children`.

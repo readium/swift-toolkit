@@ -119,6 +119,8 @@
 		CACD75E42236A0F0004F20CA /* SubjectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACD75E32236A0F0004F20CA /* SubjectTests.swift */; };
 		CACD75F32236B0A5004F20CA /* PublicationCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACD75F22236B0A5004F20CA /* PublicationCollection.swift */; };
 		CACD75F52236B2AF004F20CA /* PublicationCollectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACD75F42236B2AF004F20CA /* PublicationCollectionTests.swift */; };
+		CACDE5D52483A7AC006FEB1B /* CoverService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE5D42483A7AC006FEB1B /* CoverService.swift */; };
+		CACDE5D72483AAB0006FEB1B /* UIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE5D62483AAB0006FEB1B /* UIImage.swift */; };
 		CAD0FEC2244310BB0053C998 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0FEC1244310BB0053C998 /* Array.swift */; };
 		CAD0FECA24431BFE0053C998 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD0FEC3244318A90053C998 /* Fuzi.framework */; };
 		CAD0FED02444B5C30053C998 /* FormatSnifferContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0FECF2444B5C30053C998 /* FormatSnifferContent.swift */; };
@@ -269,6 +271,8 @@
 		CACD75E32236A0F0004F20CA /* SubjectTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectTests.swift; sourceTree = "<group>"; };
 		CACD75F22236B0A5004F20CA /* PublicationCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationCollection.swift; sourceTree = "<group>"; };
 		CACD75F42236B2AF004F20CA /* PublicationCollectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationCollectionTests.swift; sourceTree = "<group>"; };
+		CACDE5D42483A7AC006FEB1B /* CoverService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoverService.swift; sourceTree = "<group>"; };
+		CACDE5D62483AAB0006FEB1B /* UIImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImage.swift; sourceTree = "<group>"; };
 		CAD0FEC1244310BB0053C998 /* Array.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Array.swift; sourceTree = "<group>"; };
 		CAD0FEC3244318A90053C998 /* Fuzi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Fuzi.framework; path = Carthage/Build/iOS/Fuzi.framework; sourceTree = "<group>"; };
 		CAD0FECF2444B5C30053C998 /* FormatSnifferContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatSnifferContent.swift; sourceTree = "<group>"; };
@@ -579,6 +583,7 @@
 				CA68BDCD24407750009A6BAA /* StringEncoding.swift */,
 				CAD0FEC1244310BB0053C998 /* Array.swift */,
 				CAD1EE6F245AC29B00C1E684 /* String.swift */,
+				CACDE5D62483AAB0006FEB1B /* UIImage.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -632,6 +637,7 @@
 				CA9FC073248256450020B9CC /* PublicationService.swift */,
 				CA9FC07524825A880020B9CC /* PublicationServicesBuilder.swift */,
 				CABE2A002482C6F2008E286D /* PositionsService.swift */,
+				CACDE5D42483A7AC006FEB1B /* CoverService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -926,6 +932,7 @@
 				CA8C84162468914900CE97A4 /* Resource.swift in Sources */,
 				CA17637A223A7B8900959FEB /* Properties+OPDS.swift in Sources */,
 				CACD75E22236A0B7004F20CA /* Subject.swift in Sources */,
+				CACDE5D72483AAB0006FEB1B /* UIImage.swift in Sources */,
 				CA5F8EF9240413C900926120 /* EPUBLayout.swift in Sources */,
 				57470F7E20ED0D1A000CDCA3 /* DownloadSession.swift in Sources */,
 				CA252DD92447A3740005067C /* Minizip.swift in Sources */,
@@ -980,6 +987,7 @@
 				CA9E6BA12239823300ECF6E4 /* Publication+Deprecated.swift in Sources */,
 				CABBB2E52237ADEB004EB039 /* Feed.swift in Sources */,
 				CA9E6BA9223A749900ECF6E4 /* Publication+EPUB.swift in Sources */,
+				CACDE5D52483A7AC006FEB1B /* CoverService.swift in Sources */,
 				CABBB2E72237ADEB004EB039 /* Facet.swift in Sources */,
 				CA16A8822233FE3200E66255 /* Metadata.swift in Sources */,
 				CA68BDC924406C10009A6BAA /* FormatSniffer.swift in Sources */,
