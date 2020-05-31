@@ -58,9 +58,11 @@ final public class EpubParser: PublicationParser {
     ///           `EPUBParserError.xmlParse`,
     ///           `EPUBParserError.missingFile`
     static public func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        let path = url.path
+        guard var fetcher: R2Shared.Fetcher = ArchiveFetcher(archive: url) else {
+            throw EPUBParserError.missingFile(path: url.path)
+        }
         // Generate the `Container` for `fileAtPath`
-        var container = try generateContainerFrom(fileAtPath: path)
+        var container = try generateContainerFrom(fileAtPath: url.path)
         
         let drm = scanForDRM(in: container)
         // `Encryption` indexed by HREF.
@@ -69,17 +71,22 @@ final public class EpubParser: PublicationParser {
         // Extracts metadata and links from the OPF.
         let components = try OPFParser(container: container, encryptions: encryptions).parsePublication()
         let links = components.readingOrder + components.resources
-
-        let publication = Publication(
-            format: .epub,
-            formatVersion: components.version,
-            positionListFactory: makePositionListFactory(container: container),
-            metadata: components.metadata,
-            readingOrder: components.readingOrder,
-            resources: components.resources,
-            otherCollections: parseCollections(in: container, links: links)
-        )
         
+        let publication = Publication(
+            manifest: PublicationManifest(
+                metadata: components.metadata,
+                readingOrder: components.readingOrder,
+                resources: components.resources,
+                otherCollections: parseCollections(in: container, links: links)
+            ),
+            fetcher: fetcher,
+            servicesBuilder: PublicationServicesBuilder {
+                $0.setPositions(EPUBPositionsService.create())
+            },
+            format: .epub,
+            formatVersion: components.version
+        )
+
         func parseRemainingResource(protectedBy drm: DRM?) throws {
             container.drm = drm
         }
@@ -248,79 +255,4 @@ final public class EpubParser: PublicationParser {
         return container
     }
 
-    /// Factory to create an EPUB's positionList.
-    private static func makePositionListFactory(container: Container) -> (Publication) -> [Locator] {
-        return { publication in
-            var lastPositionOfPreviousResource = 0
-            var positionList = publication.readingOrder.flatMap { link -> [Locator] in
-                let (lastPosition, positionList): (Int, [Locator]) = {
-                    if publication.metadata.presentation.layout(of: link) == .fixed {
-                        return makeFixedPositionList(of: link, from: lastPositionOfPreviousResource)
-                    } else {
-                        return makeReflowablePositionList(of: link, in: container, from: lastPositionOfPreviousResource)
-                    }
-                }()
-                lastPositionOfPreviousResource = lastPosition
-                return positionList
-            }
-            
-            // Calculates totalProgression
-            let totalPageCount = positionList.count
-            if totalPageCount > 0 {
-                positionList = positionList.map { locator in
-                    locator.copy(locations: {
-                        if let position = $0.position {
-                            $0.totalProgression = Double(position - 1) / Double(totalPageCount)
-                        }
-                    })
-                }
-            }
-            
-            return positionList
-        }
-    }
-    
-    private static func makeFixedPositionList(of link: Link, from startPosition: Int) -> (Int, [Locator]) {
-        let position = startPosition + 1
-        let positionList = [
-            makeLocator(
-                from: link,
-                progression: 0,
-                position: position
-            )
-        ]
-        return (position, positionList)
-    }
-    
-    private static func makeReflowablePositionList(of link: Link, in container: Container, from startPosition: Int) -> (Int, [Locator]) {
-        // If the resource is encrypted, we use the originalLength declared in encryption.xml instead of the ZIP entry length
-        let length = link.properties.encryption?.originalLength
-            ?? Int((try? container.dataLength(relativePath: link.href)) ?? 0)
-        
-        // Arbitrary byte length of a single page in a resource.
-        let pageLength = 1024
-        let pageCount = max(1, Int(ceil((Double(length) / Double(pageLength)))))
-        
-        let positionList = (1...pageCount).map { position in
-            makeLocator(
-                from: link,
-                progression: Double(position - 1) / Double(pageCount),
-                position: startPosition + position
-            )
-        }
-        return (startPosition + pageCount, positionList)
-    }
-    
-    private static func makeLocator(from link: Link, progression: Double, position: Int) -> Locator {
-        return Locator(
-            href: link.href,
-            type: link.type ?? MediaType.html.string,
-            title: link.title,
-            locations: .init(
-                progression: progression,
-                position: position
-            )
-        )
-    }
-    
 }

@@ -82,7 +82,6 @@ public final class PDFParser: PublicationParser, Loggable {
         }
 
         let pdfHref = "/publication.pdf"
-        let fetcher = FileFetcher(href: pdfHref, path: url)
 
         let publication = Publication(
             manifest: PublicationManifest(
@@ -97,7 +96,7 @@ public final class PDFParser: PublicationParser, Loggable {
                 ],
                 tableOfContents: pdfMetadata.outline.links(withHref: pdfHref)
             ),
-            fetcher: fetcher,
+            fetcher: FileFetcher(href: pdfHref, path: url),
             servicesBuilder: PublicationServicesBuilder {
                 $0.setPositions(PDFPositionsService.create(context:))
                 $0.setCover(InMemoryCoverService.create(cover: try? parser.renderCover()))
