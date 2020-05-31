@@ -13,23 +13,23 @@ import Foundation
 
 /// Provides access to resources on the local file system.
 ///
-final class FileFetcher: Fetcher, Loggable {
+public final class FileFetcher: Fetcher, Loggable {
     
     /// Reachable local paths, indexed by the exposed HREF.
     /// Sub-paths are reachable as well, to be able to access a whole directory.
     private let paths: [String: URL]
     
     /// Provides access to a collection of local paths.
-    init(paths: [String: URL]) {
+    public init(paths: [String: URL]) {
         self.paths = paths.mapValues { $0.standardizedFileURL }
     }
     
     /// Provides access to the given local `path` at `href`.
-    convenience init(href: String, path: URL) {
+    public convenience init(href: String, path: URL) {
         self.init(paths: [href: path])
     }
     
-    func get(_ link: Link) -> Resource {
+    public func get(_ link: Link) -> Resource {
         for (href, url) in paths {
             if link.href.hasPrefix(href) {
                 let resourceURL = url.appendingPathComponent(link.href.removingPrefix(href)).standardizedFileURL
@@ -43,7 +43,7 @@ final class FileFetcher: Fetcher, Loggable {
         return FailureResource(link: link, error: .notFound)
     }
     
-    func close() { }
+    public func close() { }
     
     private final class FileResource: Resource, Loggable {
         

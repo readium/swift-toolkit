@@ -86,3 +86,18 @@ public extension Publication {
     }
 
 }
+
+
+// MARK: PublicationServicesBuilder Helpers
+
+public extension PublicationServicesBuilder {
+    
+    mutating func setPositions(_ factory: ((PublicationServiceContext) -> PositionsService?)?) {
+        if let factory = factory {
+            set(PositionsService.self, factory)
+        } else {
+            remove(PositionsService.self)
+        }
+    }
+    
+}

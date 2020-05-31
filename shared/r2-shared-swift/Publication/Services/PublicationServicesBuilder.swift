@@ -45,5 +45,5 @@ public struct PublicationServicesBuilder {
         let key = String(describing: serviceType)
         factories[key] = transform(factories[key])
     }
-
+    
 }

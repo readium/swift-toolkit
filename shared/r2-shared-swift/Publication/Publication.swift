@@ -92,6 +92,29 @@ public class Publication: Loggable {
     public func findService<T>(_ serviceType: T.Type) -> T? {
         return services.first { $0 is T } as? T
     }
+    
+    /// Returns the resource targeted by the given `link`.
+    ///
+    /// The `link.href` property is searched for in the `links`, `readingOrder` and `resources` properties
+    /// to find the matching manifest Link. This is to make sure that
+    /// the Link given to the Fetcher contains all properties declared in the manifest.
+    ///
+    /// The properties are searched recursively following `Link.alternate`, then `Link.children`.
+    /// But only after comparing all the links at the current level.
+    public func get(_ link: Link) -> Resource {
+        let link = self.link(withHref: link.href) ?? link
+        for service in services {
+            if let response = service.get(link: link) {
+                return response
+            }
+        }
+        return fetcher.get(link)
+    }
+    
+    /// Returns the resource targeted by the given `href`.
+    public func get(_ href: String) -> Resource {
+        return get(Link(href: href))
+    }
 
     /// Sets the URL where this `Publication`'s RWPM manifest is served.
     public func setSelfLink(href: String?) {
@@ -128,7 +151,7 @@ public class Publication: Loggable {
         return link { $0.href == href }
     }
     
-    /// Finds the first Link matching the given predicate in the publication's [Link] properties: `resources`, `readingOrder` and `links`.
+    /// Finds the first Link matching the given predicate in the publication's `Link` properties: `resources`, `readingOrder` and `links`.
     public func link(where predicate: (Link) -> Bool) -> Link? {
         return resources.first(where: predicate)
             ?? readingOrder.first(where: predicate)

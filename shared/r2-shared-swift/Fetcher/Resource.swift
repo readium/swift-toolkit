@@ -54,6 +54,13 @@ public extension Resource {
         }
     }
     
+    /// Reads the full content as a JSON object.
+    func readAsJSON(options: JSONSerialization.ReadingOptions = []) -> ResourceResult<Any> {
+        return read().tryMap {
+            try JSONSerialization.jsonObject(with: $0, options: options)
+        }
+    }
+    
 }
 
 public enum ResourceError: Swift.Error {
@@ -90,7 +97,7 @@ public final class FailureResource: Resource {
 
     private let error: ResourceError
     
-    init(link: Link, error: ResourceError) {
+    public init(link: Link, error: ResourceError) {
         self.link = link
         self.error = error
     }
