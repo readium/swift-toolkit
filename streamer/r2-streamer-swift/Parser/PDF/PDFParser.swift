@@ -160,11 +160,3 @@ public final class PDFParser: PublicationParser, Loggable {
     }
 
 }
-
-private extension URL {
-    
-    var title: String {
-        deletingPathExtension().lastPathComponent.replacingOccurrences(of: "_", with: " ")
-    }
-    
-}

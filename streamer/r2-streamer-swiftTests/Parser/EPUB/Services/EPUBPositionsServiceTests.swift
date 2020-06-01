@@ -411,6 +411,8 @@ private class MockFetcher: R2Shared.Fetcher {
     init(readingOrder: [(UInt64, Link)]) {
         self.readingOrder = readingOrder
     }
+    
+    var links: [Link] { [] }
 
     func get(_ requestedLink: Link) -> Resource {
         guard let (length, link) = readingOrder.first(where: { _, link in link.href == requestedLink.href }) else {

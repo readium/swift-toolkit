@@ -22,13 +22,15 @@ class FontDecoderTests: XCTestCase {
 
         // Setup test publication.
         testPublication = Publication(
-            metadata: Metadata(
-                identifier: "urn:uuid:36d5078e-ff7d-468e-a5f3-f47c14b91f2f",
-                title: "Title"
+            manifest: .init(
+                metadata: Metadata(
+                    identifier: "urn:uuid:36d5078e-ff7d-468e-a5f3-f47c14b91f2f",
+                    title: "Title"
+                )
             )
         )
         // Setup the testFontBytes.
-        guard var testFontUrl = sg.getSamplesUrl(named: "SmokeTestFXL/fonts/cut-cut", ofType: ".woff") else {
+        guard let testFontUrl = sg.getSamplesUrl(named: "SmokeTestFXL/fonts/cut-cut", ofType: ".woff") else {
             XCTFail("Couldn't generate the test font URL.")
             return
         }
