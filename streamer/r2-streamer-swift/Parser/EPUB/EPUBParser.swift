@@ -58,24 +58,35 @@ final public class EpubParser: PublicationParser {
     ///           `EPUBParserError.xmlParse`,
     ///           `EPUBParserError.missingFile`
     static public func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        guard let fetcher = ArchiveFetcher.make(archiveOrDirectory: url) else {
+        guard var fetcher = ArchiveFetcher.make(archiveOrDirectory: url) else {
             throw EPUBParserError.missingFile(path: url.path)
         }
         
         // Generate the `Container` for `fileAtPath`
         var container = try generateContainerFrom(fileAtPath: url.path)
-        
         let drm = scanForDRM(in: container)
+        container.drm = drm
+        
         // `Encryption` indexed by HREF.
         let encryptions = (try? EPUBEncryptionParser(container: container, drm: drm))?.parseEncryptions() ?? [:]
 
         // Extracts metadata and links from the OPF.
         let components = try OPFParser(container: container, encryptions: encryptions).parsePublication()
+        let metadata = components.metadata
         let links = components.readingOrder + components.resources
         
+        let userProperties = UserProperties()
+        let lcpDecryptor = LCPDecryptor(drm: drm)
+
+        fetcher = TransformingFetcher(fetcher: fetcher, transformers: [
+            lcpDecryptor?.decrypt(resource:),
+            EPUBDeobfuscator(publicationId: metadata.identifier ?? "").deobfuscate(resource:),
+            EPUBHTMLInjector(metadata: components.metadata, userProperties: userProperties).inject(resource:)
+        ].compactMap { $0 })
+
         let publication = Publication(
             manifest: PublicationManifest(
-                metadata: components.metadata,
+                metadata: metadata,
                 readingOrder: components.readingOrder,
                 resources: components.resources,
                 otherCollections: parseCollections(in: container, links: links)
@@ -87,12 +98,23 @@ final public class EpubParser: PublicationParser {
             format: .epub,
             formatVersion: components.version
         )
+        
+        publication.userProperties = userProperties
+        publication.userSettingsUIPreset = publication.contentLayout.userSettingsPreset
 
         func parseRemainingResource(protectedBy drm: DRM?) throws {
             container.drm = drm
+            lcpDecryptor?.license = drm?.license
         }
-        container.drm = drm
-        return ((publication, container), parseRemainingResource)
+        
+        let container2 = PublicationContainer(
+            publication: publication,
+            path: url.path,
+            mimetype: MediaType.epub.string,
+            drm: drm
+        )
+        
+        return ((publication, container2), parseRemainingResource)
     }
     
     static private func parseCollections(in container: Container, links: [Link]) -> [PublicationCollection] {

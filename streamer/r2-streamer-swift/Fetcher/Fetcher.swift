@@ -38,8 +38,6 @@ internal class Fetcher {
     let container: Container
     /// The relative path to the directory holding the resources in the container.
     let rootFileDirectory: String
-    /// The content filter.
-    let contentFilters: ContentFilters!
 
     internal init(publication: Publication, container: Container) throws {
         self.container = container
@@ -54,7 +52,6 @@ internal class Fetcher {
         } else {
             rootFileDirectory = ""
         }
-        contentFilters = try Fetcher.getContentFilters(forMimeType: container.rootFile.mimetype)
     }
 
     /// Gets the data from an resource file in a publication's container.
@@ -68,16 +65,12 @@ internal class Fetcher {
             throw FetcherError.missingFile(path: path)
         }
         // Get the data from the container
-        var data = try container.data(relativePath: path)
-        data = try contentFilters.apply(to: data, of: publication, with: container, at: path)
-        return data
+        return try container.data(relativePath: path)
     }
 
     internal func data(forLink link: Link) throws -> Data? {
         let path = link.href
-        var data = try container.data(relativePath: path)
-        data = try contentFilters.apply(to: data, of: publication, with: container, at: path)
-        return data
+        return try container.data(relativePath: path)
     }
 
     /// Get an input stream with the data of the resource.
@@ -93,23 +86,14 @@ internal class Fetcher {
             throw FetcherError.missingFile(path: path)
         }
         // Get an input stream from the container
-        inputStream = try container.dataInputStream(relativePath: path)
-        // Apply content filters to inputStream data.
-        inputStream = try contentFilters.apply(to: inputStream, of: publication,
-                                               with: container, at: path)
-
-        return inputStream
+        return try container.dataInputStream(relativePath: path)
     }
 
     internal func dataStream(forLink link: Link) throws -> SeekableInputStream? {
         var inputStream: SeekableInputStream
         let path = link.href
         // Get an input stream from the container
-        inputStream = try container.dataInputStream(relativePath: path)
-        // Apply content filters to inputStream data.
-        inputStream = try contentFilters.apply(to: inputStream, of: publication, with: container, at: path)
-
-        return inputStream
+        return try container.dataInputStream(relativePath: path)
     }
 
     /// Get the total length of the data in a resource file.
@@ -130,28 +114,5 @@ internal class Fetcher {
             throw FetcherError.missingFile(path: relativePath)
         }
         return length
-    }
-
-    /// Return the right ContentFilter subclass instance depending of the mime
-    /// type.
-    ///
-    /// - Parameter mimeType: The mimetype string.
-    /// - Returns: The corresponding ContentFilters subclass.
-    /// - Throws: In case the mimetype is nil or invalid, throws a
-    ///           `FetcherError.missingContainerMimetype`
-    static func getContentFilters(forMimeType mediaType: String?) throws -> ContentFilters {
-        guard let format = Format.of(mediaType: mediaType) else {
-            throw FetcherError.missingContainerMimetype
-        }
-        switch format {
-        case .epub:
-            return ContentFiltersEpub()
-        case .cbz:
-            return ContentFiltersCbz()
-        case .pdf, .lcpProtectedPDF:
-            return ContentFiltersPDF()
-        default:
-            throw FetcherError.missingContainerMimetype
-        }
     }
 }

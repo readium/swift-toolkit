@@ -14,9 +14,7 @@
 		CA130D46229D4245000A627C /* DataInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D02229D4245000A627C /* DataInputStream.swift */; };
 		CA130D47229D4245000A627C /* ZIPInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D03229D4245000A627C /* ZIPInputStream.swift */; };
 		CA130D56229D4245000A627C /* r2-streamer-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = CA130D1A229D4245000A627C /* r2-streamer-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		CA130D57229D4245000A627C /* FontDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D1C229D4245000A627C /* FontDecoder.swift */; };
 		CA130D58229D4245000A627C /* DRMDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D1D229D4245000A627C /* DRMDecoder.swift */; };
-		CA130D59229D4245000A627C /* ContentFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D1E229D4245000A627C /* ContentFilter.swift */; };
 		CA130D5A229D4245000A627C /* Fetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D1F229D4245000A627C /* Fetcher.swift */; };
 		CA130D5C229D4245000A627C /* PublicationServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D22229D4245000A627C /* PublicationServer.swift */; };
 		CA130D5D229D4245000A627C /* WebServerResourceResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D23229D4245000A627C /* WebServerResourceResponse.swift */; };
@@ -44,7 +42,6 @@
 		CA130D75229D4245000A627C /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D42229D4245000A627C /* StringExtension.swift */; };
 		CA130D7A229D42E2000A627C /* fonts in Resources */ = {isa = PBXBuildFile; fileRef = CA130D77229D42E2000A627C /* fonts */; };
 		CA130DA4229E7C83000A627C /* R2Streamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501DCD1E2FB0D700D1B4BF /* R2Streamer.framework */; };
-		CA130F18229E7CC1000A627C /* FontDecoderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130DAE229E7CBE000A627C /* FontDecoderTests.swift */; };
 		CA130F19229E7CC1000A627C /* PublicationServerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130DB0229E7CBE000A627C /* PublicationServerTests.swift */; };
 		CA130F1A229E7CC1000A627C /* PublicationParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130DB2229E7CBE000A627C /* PublicationParsingTests.swift */; };
 		CA130F1B229E7CC1000A627C /* EPUBEncryptionParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130DB4229E7CBE000A627C /* EPUBEncryptionParserTests.swift */; };
@@ -77,6 +74,8 @@
 		CACDE6102485301F006FEB1B /* EPUBPositionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE60D2485301F006FEB1B /* EPUBPositionsService.swift */; };
 		CACDE61224853035006FEB1B /* EPUBDeobfuscatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE61124853034006FEB1B /* EPUBDeobfuscatorTests.swift */; };
 		CACDE61424853093006FEB1B /* Fixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE61324853093006FEB1B /* Fixtures.swift */; };
+		CACDE61624853BC8006FEB1B /* EPUBHTMLInjector.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE61524853BC8006FEB1B /* EPUBHTMLInjector.swift */; };
+		CACDE61824854570006FEB1B /* ContentLayout+EPUB.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE61724854570006FEB1B /* ContentLayout+EPUB.swift */; };
 		CACE5C712482DF510076FE52 /* LCPDecryptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE5C702482DF510076FE52 /* LCPDecryptor.swift */; };
 		CAF58199229EC8B3009A04E8 /* EPUBMetadataParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF58198229EC8B3009A04E8 /* EPUBMetadataParserTests.swift */; };
 /* End PBXBuildFile section */
@@ -100,9 +99,7 @@
 		CA130D02229D4245000A627C /* DataInputStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataInputStream.swift; sourceTree = "<group>"; };
 		CA130D03229D4245000A627C /* ZIPInputStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZIPInputStream.swift; sourceTree = "<group>"; };
 		CA130D1A229D4245000A627C /* r2-streamer-swift.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "r2-streamer-swift.h"; sourceTree = "<group>"; };
-		CA130D1C229D4245000A627C /* FontDecoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FontDecoder.swift; sourceTree = "<group>"; };
 		CA130D1D229D4245000A627C /* DRMDecoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DRMDecoder.swift; sourceTree = "<group>"; };
-		CA130D1E229D4245000A627C /* ContentFilter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentFilter.swift; sourceTree = "<group>"; };
 		CA130D1F229D4245000A627C /* Fetcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Fetcher.swift; sourceTree = "<group>"; };
 		CA130D20229D4245000A627C /* DataCompression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataCompression.swift; sourceTree = "<group>"; };
 		CA130D22229D4245000A627C /* PublicationServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationServer.swift; sourceTree = "<group>"; };
@@ -132,7 +129,6 @@
 		CA130D43229D4245000A627C /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CA130D77229D42E2000A627C /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = fonts; sourceTree = "<group>"; };
 		CA130D9F229E7C83000A627C /* r2-streamer-swiftTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "r2-streamer-swiftTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		CA130DAE229E7CBE000A627C /* FontDecoderTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FontDecoderTests.swift; sourceTree = "<group>"; };
 		CA130DB0229E7CBE000A627C /* PublicationServerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationServerTests.swift; sourceTree = "<group>"; };
 		CA130DB2229E7CBE000A627C /* PublicationParsingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationParsingTests.swift; sourceTree = "<group>"; };
 		CA130DB4229E7CBE000A627C /* EPUBEncryptionParserTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPUBEncryptionParserTests.swift; sourceTree = "<group>"; };
@@ -165,6 +161,8 @@
 		CACDE60D2485301F006FEB1B /* EPUBPositionsService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPUBPositionsService.swift; sourceTree = "<group>"; };
 		CACDE61124853034006FEB1B /* EPUBDeobfuscatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBDeobfuscatorTests.swift; sourceTree = "<group>"; };
 		CACDE61324853093006FEB1B /* Fixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fixtures.swift; sourceTree = "<group>"; };
+		CACDE61524853BC8006FEB1B /* EPUBHTMLInjector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBHTMLInjector.swift; sourceTree = "<group>"; };
+		CACDE61724854570006FEB1B /* ContentLayout+EPUB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentLayout+EPUB.swift"; sourceTree = "<group>"; };
 		CACE5C702482DF510076FE52 /* LCPDecryptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDecryptor.swift; sourceTree = "<group>"; };
 		CAF58198229EC8B3009A04E8 /* EPUBMetadataParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBMetadataParserTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -260,9 +258,7 @@
 			isa = PBXGroup;
 			children = (
 				CACE5C702482DF510076FE52 /* LCPDecryptor.swift */,
-				CA130D1C229D4245000A627C /* FontDecoder.swift */,
 				CABAC16422CDD67A00360595 /* DRM */,
-				CA130D1E229D4245000A627C /* ContentFilter.swift */,
 				CA130D1F229D4245000A627C /* Fetcher.swift */,
 				CA130D20229D4245000A627C /* DataCompression.swift */,
 			);
@@ -366,7 +362,6 @@
 		CA130DAC229E7CBE000A627C /* r2-streamer-swiftTests */ = {
 			isa = PBXGroup;
 			children = (
-				CA130DAD229E7CBE000A627C /* Fetcher */,
 				CA130DAF229E7CBE000A627C /* Server */,
 				CA130DB1229E7CBE000A627C /* Parser */,
 				CA131063229E7CD0000A627C /* Fixtures */,
@@ -376,14 +371,6 @@
 				CA3387062406632100FDCBBA /* Asserts.swift */,
 			);
 			path = "r2-streamer-swiftTests";
-			sourceTree = "<group>";
-		};
-		CA130DAD229E7CBE000A627C /* Fetcher */ = {
-			isa = PBXGroup;
-			children = (
-				CA130DAE229E7CBE000A627C /* FontDecoderTests.swift */,
-			);
-			path = Fetcher;
 			sourceTree = "<group>";
 		};
 		CA130DAF229E7CBE000A627C /* Server */ = {
@@ -476,6 +463,7 @@
 			isa = PBXGroup;
 			children = (
 				CACDE6092485301F006FEB1B /* Presentation+EPUB.swift */,
+				CACDE61724854570006FEB1B /* ContentLayout+EPUB.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -484,6 +472,7 @@
 			isa = PBXGroup;
 			children = (
 				CACDE60B2485301F006FEB1B /* EPUBDeobfuscator.swift */,
+				CACDE61524853BC8006FEB1B /* EPUBHTMLInjector.swift */,
 			);
 			path = "Resource Transformers";
 			sourceTree = "<group>";
@@ -633,6 +622,7 @@
 				CA130D74229D4245000A627C /* DataExtension.swift in Sources */,
 				CABAC16622CDD6A200360595 /* DRMInputStream.swift in Sources */,
 				CA7116EC24547E0A00C029FD /* Link.swift in Sources */,
+				CACDE61624853BC8006FEB1B /* EPUBHTMLInjector.swift in Sources */,
 				CA130D75229D4245000A627C /* StringExtension.swift in Sources */,
 				CACDE5F12485079E006FEB1B /* ArchiveFetcher.swift in Sources */,
 				CABAC16A22CDD83C00360595 /* CBCDRMInputStream.swift in Sources */,
@@ -654,12 +644,11 @@
 				CA130D63229D4245000A627C /* PDFFileCGParser.swift in Sources */,
 				CA130D61229D4245000A627C /* PDFParser.swift in Sources */,
 				CA130D65229D4245000A627C /* PublicationParser.swift in Sources */,
+				CACDE61824854570006FEB1B /* ContentLayout+EPUB.swift in Sources */,
 				CAC5AEE122C236FB007DB8A8 /* WEBPUBParser.swift in Sources */,
 				CABE2A072482D470008E286D /* LCPDFPositionsService.swift in Sources */,
-				CA130D59229D4245000A627C /* ContentFilter.swift in Sources */,
 				CA130D6D229D4245000A627C /* ZIPArchive.swift in Sources */,
 				CA130D58229D4245000A627C /* DRMDecoder.swift in Sources */,
-				CA130D57229D4245000A627C /* FontDecoder.swift in Sources */,
 				CA130D67229D4245000A627C /* SMILParser.swift in Sources */,
 				CA130D72229D4245000A627C /* DirectoryContainer.swift in Sources */,
 			);
@@ -669,7 +658,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA130F18229E7CC1000A627C /* FontDecoderTests.swift in Sources */,
 				CA130F1B229E7CC1000A627C /* EPUBEncryptionParserTests.swift in Sources */,
 				CACDE5EF2484E955006FEB1B /* EPUBPositionsServiceTests.swift in Sources */,
 				CA130F1A229E7CC1000A627C /* PublicationParsingTests.swift in Sources */,
