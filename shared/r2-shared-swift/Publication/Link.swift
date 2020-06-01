@@ -150,6 +150,11 @@ public struct Link: JSONEquatable {
             children: children ?? self.children
         )
     }
+    
+    ///  Makes a copy of this `Link` after merging in the given additional other `properties`.
+    public func addingProperties(_ properties: [String: Any]) -> Link {
+        copy(properties: self.properties.adding(properties))
+    }
 
 }
 

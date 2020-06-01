@@ -33,14 +33,22 @@ public final class ArchiveFetcher: Fetcher, Loggable {
     
     private final class ArchiveResource: Resource {
         
-        let link: Link
+        lazy var link: Link = {
+            var link = originalLink
+            if let compressedLength = entry?.compressedLength {
+                link = link.addingProperties(["compressedLength": compressedLength])
+            }
+            return link
+        }()
+        
+        private let originalLink: Link
         private let href: String
         
         private let archive: ZIPArchive
         private lazy var entry: ZIPEntry? = archive.entry(at: href)
 
         init(link: Link, archive: ZIPArchive) {
-            self.link = link
+            self.originalLink = link
             self.href = link.href.removingPrefix("/")
             self.archive = archive
         }

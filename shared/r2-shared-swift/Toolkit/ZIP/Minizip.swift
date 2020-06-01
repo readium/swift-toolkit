@@ -92,8 +92,8 @@ final class MinizipArchive: ZIPArchive, Loggable {
     /// Makes the access to the Minizip archive thread-safe.
     @discardableResult
     private func transaction<T>(_ block: () -> T) -> T {
-        objc_sync_enter(archive)
-        defer { objc_sync_exit(archive) }
+        objc_sync_enter(self)
+        defer { objc_sync_exit(self) }
         return block()
     }
     

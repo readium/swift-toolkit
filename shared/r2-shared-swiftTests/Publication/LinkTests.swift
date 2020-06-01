@@ -261,5 +261,43 @@ class LinkTests: XCTestCase {
             ]
         )
     }
+    
+    func testAddingProperties() {
+        let link = fullLink
+        
+        let copy = link.addingProperties([
+            "additional": "property",
+            "orientation": "override"
+        ])
+
+        AssertJSONEqual(
+            copy.json,
+            [
+                "href": "http://href",
+                "type": "application/pdf",
+                "templated": true,
+                "title": "Link Title",
+                "rel": ["publication", "cover"],
+                "properties": [
+                    "orientation": "override",
+                    "additional": "property"
+                ],
+                "height": 1024,
+                "width": 768,
+                "bitrate": 74.2,
+                "duration": 45.6,
+                "language": ["fr"],
+                "alternate": [
+                    ["href": "/alternate1", "templated": false],
+                    ["href": "/alternate2", "templated": false]
+                ],
+                "children": [
+                    ["href": "http://child1", "templated": false],
+                    ["href": "http://child2", "templated": false]
+                ]
+            ]
+
+        )
+    }
 
 }

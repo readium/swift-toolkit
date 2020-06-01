@@ -213,7 +213,6 @@ class PositionsServiceTests: XCTestCase {
         
         XCTAssertEqual(publication.positions, [])
         XCTAssertEqual(publication.positionsByReadingOrder, [])
-        XCTAssertEqual(publication.positionsByResource, [])
     }
 
 }

@@ -59,4 +59,25 @@ class PropertiesTests: XCTestCase {
         )
     }
     
+    func testAddingProperties() {
+        let properties = Properties([
+            "other-property1": "value",
+            "other-property2": [42]
+        ])
+        
+        let copy = properties.adding([
+            "additional": "property",
+            "other-property1": "override"
+        ])
+        
+        AssertJSONEqual(
+            copy.json as Any,
+            [
+                "other-property1": "override",
+                "other-property2": [42],
+                "additional": "property"
+            ]
+        )
+    }
+    
 }

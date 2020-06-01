@@ -13,38 +13,17 @@ import XCTest
 @testable import R2Shared
 
 class PublicationTests: XCTestCase {
-    
-    func testParseJSON() {
-        XCTAssertEqual(
-            try? Publication(json: [
-                "metadata": ["title": "Title"],
-                "links": [
-                    ["href": "/manifest.json", "rel": "self"]
-                ],
-                "readingOrder": [
-                    ["href": "/chap1.html", "type": "text/html"]
-                ]
-            ]),
-            Publication(
-                manifest: PublicationManifest(
-                    metadata: Metadata(title: "Title"),
-                    links: [Link(href: "/manifest.json", rels: ["self"])],
-                    readingOrder: [Link(href: "/chap1.html", type: "text/html")]
-                )
-            )
-        )
-    }
 
     func testGetJSON() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             Publication(
                 manifest: PublicationManifest(
                     metadata: Metadata(title: "Title"),
                     links: [Link(href: "/manifest.json", rels: ["self"])],
                     readingOrder: [Link(href: "/chap1.html", type: "text/html")]
                 )
-            ).json,
-            [
+            ).jsonManifest,
+            serializeJSONData([
                 "metadata": ["title": "Title", "readingProgression": "auto"],
                 "links": [
                     ["href": "/manifest.json", "rel": ["self"], "templated": false]
@@ -52,7 +31,7 @@ class PublicationTests: XCTestCase {
                 "readingOrder": [
                     ["href": "/chap1.html", "type": "text/html", "templated": false]
                 ]
-            ]
+            ])
         )
     }
 

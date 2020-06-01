@@ -64,4 +64,9 @@ class ArchiveFetcherTests: XCTestCase {
         }
     }
     
+    func testAddsCompressedLengthToLink() {
+        let resource = fetcher.get(Link(href: "/EPUB/css/epub.css"))
+        XCTAssertEqual(resource.link.properties["compressedLength"] as? UInt64, 595)
+    }
+    
 }
