@@ -116,8 +116,8 @@ internal class SampleGenerator: XCTest {
     internal func getSamplesUrl(named: String, ofType: String?) -> URL? {
         let bundle = Bundle(for: type(of: self))
 
-        guard let path = bundle.path(forResource: "Samples/\(named)", ofType: ofType) else {
-            XCTFail("Couldn't find resource name \(named) in Samples/")
+        guard let path = bundle.path(forResource: "Fixtures/\(named)", ofType: ofType) else {
+            XCTFail("Couldn't find resource name \(named) in Fixtures/")
             return nil
         }
         return URL(fileURLWithPath: path)
@@ -125,7 +125,7 @@ internal class SampleGenerator: XCTest {
     
     internal func getSamplesFileURL(named: String, ofType: String?) -> URL? {
         let bundle = Bundle(for: type(of: self))
-        return bundle.url(forResource: "Samples/\(named)", withExtension: ofType)
+        return bundle.url(forResource: "Fixtures/\(named)", withExtension: ofType)
     }
     
 }

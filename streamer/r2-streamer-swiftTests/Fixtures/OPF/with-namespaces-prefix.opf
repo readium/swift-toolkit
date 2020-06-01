@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!-- DOCTYPE package 
+  PUBLIC "+//ISBN 0-9673008-1-9//DTD OEB 1.2 Package//EN"
+  "http://openebook.org/dtds/oeb-1.2/oebpkg12.dtd" -->
+<opf:package xmlns:opf="http://www.idpf.org/2007/opf" unique-identifier="pub-id" version="3.0" >
+  <opf:metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:title>Alice's Adventures in Wonderland</dc:title> 
+  </opf:metadata>
+  <opf:manifest>
+    <opf:item id="titlepage" href="titlepage.xhtml" media-type="application/xhtml+xml" />
+  </opf:manifest>
+  <opf:spine>
+    <opf:itemref idref="titlepage"/>
+  </opf:spine>
+</opf:package>

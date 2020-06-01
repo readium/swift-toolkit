@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<!-- DOCTYPE package 
+  PUBLIC "+//ISBN 0-9673008-1-9//DTD OEB 1.2 Package//EN"
+  "http://openebook.org/dtds/oeb-1.2/oebpkg12.dtd" -->
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="pub-id" version="3.0" >
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/"
+      xmlns:dc-alias="http://purl.org/dc/elements/1.1/"
+      xmlns:dcterms="http://purl.org/dc/terms/"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:opf="http://www.idpf.org/2007/opf">
+    <dc:title>Alice's Adventures in Wonderland</dc:title> 
+
+    <!-- dc:creator is by default an Author -->
+    <dc:creator>Author 1</dc:creator>
+    <!-- dc:publisher is by default a Publisher -->
+    <dc:publisher>Publisher 1</dc:publisher>
+    <!-- dc:contributor is by default a Contributor -->
+    <dc:contributor>Contributor 1</dc:contributor>
+
+    <!-- The refined roles override the tag, so Author 2 is not considered a Publisher -->
+    <dc:publisher id="author-2">Author 2</dc:publisher>
+    <meta refines="#author-2" property="role">aut</meta>
+
+    <dc:contributor id="author-3">Author 3</dc:contributor>
+    <meta refines="#author-3" property="role">aut</meta>
+
+    <dc:contributor id="translator">Translator</dc:contributor> 
+    <meta refines="#translator" property="role">trl</meta>
+
+    <dc:contributor id="editor">Editor</dc:contributor> 
+    <meta refines="#editor" property="role">edt</meta>
+
+    <dc:contributor id="artist">Artist</dc:contributor> 
+    <meta refines="#artist" property="role">art</meta>
+
+    <dc:contributor id="illustrator-1">Illustrator 1</dc:contributor> 
+    <meta refines="#illustrator-1" property="role">ill</meta>
+
+    <dc:contributor id="colorist">Colorist</dc:contributor> 
+    <meta refines="#colorist" property="role">clr</meta>
+
+    <dc:contributor id="narrator">Narrator</dc:contributor> 
+    <meta refines="#narrator" property="role">nrt</meta>
+
+    <dc:contributor id="publisher">Publisher 2</dc:contributor> 
+    <meta refines="#publisher" property="role">pbl</meta>
+
+    <!-- sortAs and role as attributes -->
+    <dc:contributor opf:file-as="sorting" opf:role="ill">Illustrator 2</dc:contributor> 
+
+    <dc:contributor id="unknown">Unknown</dc:contributor> 
+    <meta refines="#unknown" property="role">unknown</meta>
+
+    <!-- Contributor with several roles -->
+    <dc:contributor id="cameleon-1">Cameleon 1</dc:contributor> 
+    <meta refines="#cameleon-1" property="role">aut</meta>
+    <meta refines="#cameleon-1" property="role">pbl</meta>
+
+    <!-- Without namespace prefix -->
+    <creator xmlns="http://purl.org/dc/elements/1.1/">Author 4</creator>
+
+    <!-- With a "non-standard" namespace prefix -->
+    <dc-alias:creator>Author 5</dc-alias:creator>
+
+
+    <!-- EPUB 3 contributors -->
+
+    <!-- dcterms:creator is by default an Author -->
+    <meta property="dcterms:creator">Author A</meta>
+    <!-- dcterms:publisher is by default a Publisher -->
+    <meta property="dcterms:publisher">Publisher A</meta>
+    <!-- dcterms:contributor is by default a Contributor -->
+    <meta property="dcterms:contributor">Contributor A</meta>
+
+    <!-- The refined roles override the tag, so Author B is not considered a Publisher -->
+    <meta id="author-b" property="dcterms:publisher">Author B</meta>
+    <meta refines="#author-b" property="role">aut</meta>
+
+    <meta id="author-c" property="dcterms:publisher">Author C</meta>
+    <meta refines="#author-c" property="role">aut</meta>
+
+    <!-- sortAs and role as attributes -->
+    <meta property="dcterms:contributor" opf:file-as="sorting" opf:role="ill">Illustrator A</meta> 
+
+    <!-- Contributor with several roles -->
+    <meta id="cameleon-a" property="dcterms:contributor">Cameleon A</meta>
+    <meta refines="#cameleon-a" property="role">aut</meta>
+    <meta refines="#cameleon-a" property="role">pbl</meta>
+
+  </metadata>
+  <manifest>
+    <item id="titlepage" href="titlepage.xhtml" media-type="application/xhtml+xml" />
+  </manifest>
+  <spine>
+    <itemref idref="titlepage"/>
+  </spine>
+</package>
