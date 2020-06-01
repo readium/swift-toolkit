@@ -36,9 +36,6 @@ final class PublicationContainer: Container {
     }
     
     func dataInputStream(relativePath: String) throws -> SeekableInputStream {
-        let resource = publication.get(relativePath)
-        // Just to trigger an error early.
-        _ = try resource.length.get()
-        return resource.stream()
+        return try publication.get(relativePath).stream().get()
     }
 }

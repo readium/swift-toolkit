@@ -24,23 +24,24 @@ final class EPUBContainerParser: Loggable {
         self.document.definePrefix("cn", forNamespace: "urn:oasis:names:tc:opendocument:xmlns:container")
     }
     
-    convenience init(container: Container) throws {
-        let path = "META-INF/container.xml"
+    convenience init(fetcher: Fetcher) throws {
+        let href = "/META-INF/container.xml"
         do {
-            let data = try container.data(relativePath: path)
+            let data = try fetcher.readData(at: href)
             try self.init(data: data)
         } catch {
-            throw EPUBParserError.missingFile(path: path)
+            throw EPUBParserError.missingFile(path: href)
         }
     }
     
-    /// Parses the container.xml file and retrieves the relative path to the OPF file (rootFilePath) (the default one for now, not handling multiple renditions).
-    func parseRootFilePath() throws -> String {
+    /// Parses the container.xml file and retrieves the relative path to the OPF file (rootFilePath)
+    /// (the default one for now, not handling multiple renditions).
+    func parseOPFHREF() throws -> String {
         // Get the path of the OPF file, relative to the metadata.rootPath.
         guard let path = document.firstChild(xpath: "/cn:container/cn:rootfiles/cn:rootfile")?.attr("full-path") else {
             throw EPUBParserError.missingRootfile
         }
-        return path
+        return path.addingPrefix("/")
     }
     
 }

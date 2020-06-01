@@ -17,8 +17,9 @@ class ResourceInputStream: SeekableInputStream {
     
     private let resource: Resource
     
-    init(resource: Resource) {
+    init(resource: Resource, length: UInt64) {
         self.resource = resource
+        self._length = length
         super.init()
     }
     
@@ -31,16 +32,9 @@ class ResourceInputStream: SeekableInputStream {
     private var _offset: UInt64 = 0
     override var offset: UInt64 { _offset }
 
-    override var length: UInt64 {
-        switch resource.length {
-        case .success(let length):
-            return length
-        case .failure(let error):
-            _streamError = error
-            return 0
-        }
-    }
-    
+    private var _length: UInt64
+    override var length: UInt64 { _length }
+
     override var hasBytesAvailable: Bool { offset < length }
     
     override func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
@@ -102,8 +96,10 @@ class ResourceInputStream: SeekableInputStream {
 
 extension Resource {
     
-    func stream() -> SeekableInputStream {
-        return ResourceInputStream(resource: self)
+    func stream() -> ResourceResult<SeekableInputStream> {
+        return length.map { length in
+            ResourceInputStream(resource: self, length: length)
+        }
     }
     
 }

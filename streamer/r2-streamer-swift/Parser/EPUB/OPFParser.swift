@@ -60,16 +60,15 @@ final class OPFParser: Loggable {
         self.encryptions = encryptions
     }
     
-    convenience init(container: Container, encryptions: [String: Encryption] = [:]) throws {
-        let opfPath = container.rootFile.rootFilePath
+    convenience init(fetcher: Fetcher, opfHREF: String, encryptions: [String: Encryption] = [:]) throws {
         try self.init(
-            basePath: opfPath,
-            data: try container.data(relativePath: opfPath),
+            basePath: opfHREF,
+            data: try fetcher.readData(at: opfHREF),
             displayOptionsData: {
-                let iBooksPath = "META-INF/com.apple.ibooks.display-options.xml"
-                let koboPath = "META-INF/com.kobobooks.display-options.xml"
-                return (try? container.data(relativePath: iBooksPath))
-                    ?? (try? container.data(relativePath: koboPath))
+                let iBooksPath = "/META-INF/com.apple.ibooks.display-options.xml"
+                let koboPath = "/META-INF/com.kobobooks.display-options.xml"
+                return (try? fetcher.readData(at: iBooksPath))
+                    ?? (try? fetcher.readData(at: koboPath))
                     ?? nil
             }(),
             encryptions: encryptions

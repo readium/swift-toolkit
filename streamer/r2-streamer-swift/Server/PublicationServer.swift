@@ -161,11 +161,11 @@ public class PublicationServer: ResourcesServer {
             let href = String(request.path[request.path.index(endpoint.endIndex, offsetBy: 1)...])
 
             let resource = publication.get(href)
-            switch resource.length {
-            case .success(_):
+            switch resource.stream() {
+            case .success(let stream):
                 let range = request.hasByteRange() ? request.byteRange : nil
                 return WebServerResourceResponse(
-                    inputStream: resource.stream(),
+                    inputStream: stream,
                     range: range,
                     contentType: resource.link.type ?? MediaType.binary.string
                 )

@@ -14,8 +14,6 @@ import Fuzi
 
 /// Epub related constants.
 private struct EPUBConstant {
-    /// Lcpl file path.
-    static let lcplFilePath = "META-INF/license.lcpl"
     /// Media Overlays URL.
     static let mediaOverlayURL = "media-overlay?resource="
 }
@@ -62,16 +60,14 @@ final public class EpubParser: PublicationParser {
             throw EPUBParserError.missingFile(path: url.path)
         }
         
-        // Generate the `Container` for `fileAtPath`
-        var container = try generateContainerFrom(fileAtPath: url.path)
-        let drm = scanForDRM(in: container)
-        container.drm = drm
-        
+        let opfHREF = try EPUBContainerParser(fetcher: fetcher).parseOPFHREF()
+        let drm = scanForDRM(in: fetcher)
+
         // `Encryption` indexed by HREF.
-        let encryptions = (try? EPUBEncryptionParser(container: container, drm: drm))?.parseEncryptions() ?? [:]
+        let encryptions = (try? EPUBEncryptionParser(fetcher: fetcher, drm: drm))?.parseEncryptions() ?? [:]
 
         // Extracts metadata and links from the OPF.
-        let components = try OPFParser(container: container, encryptions: encryptions).parsePublication()
+        let components = try OPFParser(fetcher: fetcher, opfHREF: opfHREF, encryptions: encryptions).parsePublication()
         let metadata = components.metadata
         let links = components.readingOrder + components.resources
         
@@ -89,7 +85,7 @@ final public class EpubParser: PublicationParser {
                 metadata: metadata,
                 readingOrder: components.readingOrder,
                 resources: components.resources,
-                otherCollections: parseCollections(in: container, links: links)
+                otherCollections: parseCollections(in: fetcher, links: links)
             ),
             fetcher: fetcher,
             servicesBuilder: PublicationServicesBuilder {
@@ -102,26 +98,26 @@ final public class EpubParser: PublicationParser {
         publication.userProperties = userProperties
         publication.userSettingsUIPreset = publication.contentLayout.userSettingsPreset
 
-        func parseRemainingResource(protectedBy drm: DRM?) throws {
-            container.drm = drm
-            lcpDecryptor?.license = drm?.license
-        }
-        
-        let container2 = PublicationContainer(
+        let container = PublicationContainer(
             publication: publication,
             path: url.path,
             mimetype: MediaType.epub.string,
             drm: drm
         )
+
+        func parseRemainingResource(protectedBy drm: DRM?) throws {
+            container.drm = drm
+            lcpDecryptor?.license = drm?.license
+        }
         
-        return ((publication, container2), parseRemainingResource)
+        return ((publication, container), parseRemainingResource)
     }
     
-    static private func parseCollections(in container: Container, links: [Link]) -> [PublicationCollection] {
-        var collections = parseNavigationDocument(in: container, links: links)
+    static private func parseCollections(in fetcher: Fetcher, links: [Link]) -> [PublicationCollection] {
+        var collections = parseNavigationDocument(in: fetcher, links: links)
         if collections.first(withRole: "toc")?.links.isEmpty != false {
             // Falls back on the NCX tables.
-            collections.append(contentsOf: parseNCXDocument(in: container, links: links))
+            collections.append(contentsOf: parseNCXDocument(in: fetcher, links: links))
         }
         return collections
     }
@@ -134,20 +130,19 @@ final public class EpubParser: PublicationParser {
     ///
     /// - Parameter in: The Publication's Container.
     /// - Returns: The DRM if any found.
-    private static func scanForDRM(in container: Container) -> DRM? {
-        /// LCP.
-        // Check if a LCP license file is present in the container.
-        if ((try? container.data(relativePath: EPUBConstant.lcplFilePath)) != nil) {
+    private static func scanForDRM(in fetcher: Fetcher) -> DRM? {
+        // Check if a LCP license file is present in the package.
+        if ((try? fetcher.readData(at: "/META-INF/license.lcpl")) != nil) {
             return DRM(brand: .lcp)
         }
         return nil
     }
 
     /// Attempt to fill the `Publication`'s `tableOfContent`, `landmarks`, `pageList` and `listOfX` links collections using the navigation document.
-    private static func parseNavigationDocument(in container: Container, links: [Link]) -> [PublicationCollection] {
+    private static func parseNavigationDocument(in fetcher: Fetcher, links: [Link]) -> [PublicationCollection] {
         // Get the link in the readingOrder pointing to the Navigation Document.
         guard let navLink = links.first(withRel: "contents"),
-            let navDocumentData = try? container.data(relativePath: navLink.href) else
+            let navDocumentData = try? fetcher.readData(at: navLink.href) else
         {
             return []
         }
@@ -177,10 +172,10 @@ final public class EpubParser: PublicationParser {
     /// Attempt to fill `Publication.tableOfContent`/`.pageList` using the NCX
     /// document. Will only modify the Publication if it has not be filled
     /// previously (using the Navigation Document).
-    private static func parseNCXDocument(in container: Container, links: [Link]) -> [PublicationCollection] {
+    private static func parseNCXDocument(in fetcher: Fetcher, links: [Link]) -> [PublicationCollection] {
         // Get the link in the readingOrder pointing to the NCX document.
         guard let ncxLink = links.first(withType: .ncx),
-            let ncxDocumentData = try? container.data(relativePath: ncxLink.href) else
+            let ncxDocumentData = try? fetcher.readData(at: ncxLink.href) else
         {
             return []
         }
@@ -204,10 +199,6 @@ final public class EpubParser: PublicationParser {
     /// Parse the mediaOverlays informations contained in the ressources then
     /// parse the associted SMIL files to populate the MediaOverlays objects
     /// in each of the ReadingOrder's Links.
-    ///
-    /// - Parameters:
-    ///   - container: The Epub Container.
-    ///   - publication: The Publication object representing the Epub data.
     private static func parseMediaOverlay(from fetcher: Fetcher, to publication: inout Publication) throws {
         // FIXME: For now we don't fill the media-overlays anymore, since it was only half implemented and the API will change
 //        let mediaOverlays = publication.resources.filter(byType: .smil)
@@ -219,7 +210,7 @@ final public class EpubParser: PublicationParser {
 //        for mediaOverlayLink in mediaOverlays {
 //            let node = MediaOverlayNode()
 //
-//            guard let smilData = try? fetcher.data(forLink: mediaOverlayLink),
+//            guard let smilData = try? fetcher.data(at: mediaOverlayLink.href),
 //                let smilXml = try? XMLDocument(data: smilData) else
 //            {
 //                throw OPFParserError.invalidSmilResource
@@ -249,33 +240,6 @@ final public class EpubParser: PublicationParser {
 //            link.mediaOverlays.append(node)
 //            link.properties.mediaOverlay = EPUBConstant.mediaOverlayURL + link.href
 //        }
-    }
-
-    /// Generate a Container instance for the file at `fileAtPath`. It handles
-    /// 2 cases, epub files and unwrapped epub directories.
-    ///
-    /// - Parameter path: The absolute path of the file.
-    /// - Returns: The generated Container.
-    /// - Throws: `EPUBParserError.missingFile`.
-    private static func generateContainerFrom(fileAtPath path: String) throws -> Container {
-        var isDirectory: ObjCBool = false
-        guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) else {
-            throw EPUBParserError.missingFile(path: path)
-        }
-        
-        guard let container: Container = {
-            if isDirectory.boolValue {
-                return DirectoryContainer(directory: path, mimetype: MediaType.epub.string)
-            } else {
-                return ArchiveContainer(path: path, mimetype: MediaType.epub.string)
-            }
-        }() else {
-            throw EPUBParserError.missingFile(path: path)
-        }
-        
-        container.rootFile.rootFilePath = try EPUBContainerParser(container: container).parseRootFilePath()
-
-        return container
     }
 
 }

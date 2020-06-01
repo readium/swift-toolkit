@@ -22,7 +22,7 @@ class EPUBContainerParserTests: XCTestCase {
         let data = try Data(contentsOf: url)
         let parser = try EPUBContainerParser(data: data)
         
-        XCTAssertEqual(try parser.parseRootFilePath(), "EPUB/content.opf")
+        XCTAssertEqual(try parser.parseOPFHREF(), "/EPUB/content.opf")
     }
 
 }
