@@ -121,6 +121,10 @@
 		CACD75F52236B2AF004F20CA /* PublicationCollectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACD75F42236B2AF004F20CA /* PublicationCollectionTests.swift */; };
 		CACDE5D52483A7AC006FEB1B /* CoverService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE5D42483A7AC006FEB1B /* CoverService.swift */; };
 		CACDE5D72483AAB0006FEB1B /* UIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE5D62483AAB0006FEB1B /* UIImage.swift */; };
+		CACDE5FC24851631006FEB1B /* InMemoryCoverService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE5FB24851631006FEB1B /* InMemoryCoverService.swift */; };
+		CACDE5FE24851640006FEB1B /* DefaultCoverService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE5FD24851640006FEB1B /* DefaultCoverService.swift */; };
+		CACDE6002485166B006FEB1B /* PerResourcePositionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE5FF2485166B006FEB1B /* PerResourcePositionsService.swift */; };
+		CACDE6032485169F006FEB1B /* PerResourcePositionsServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE6022485169F006FEB1B /* PerResourcePositionsServiceTests.swift */; };
 		CAD0FEC2244310BB0053C998 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0FEC1244310BB0053C998 /* Array.swift */; };
 		CAD0FECA24431BFE0053C998 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD0FEC3244318A90053C998 /* Fuzi.framework */; };
 		CAD0FED02444B5C30053C998 /* FormatSnifferContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0FECF2444B5C30053C998 /* FormatSnifferContent.swift */; };
@@ -273,6 +277,10 @@
 		CACD75F42236B2AF004F20CA /* PublicationCollectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationCollectionTests.swift; sourceTree = "<group>"; };
 		CACDE5D42483A7AC006FEB1B /* CoverService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoverService.swift; sourceTree = "<group>"; };
 		CACDE5D62483AAB0006FEB1B /* UIImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImage.swift; sourceTree = "<group>"; };
+		CACDE5FB24851631006FEB1B /* InMemoryCoverService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryCoverService.swift; sourceTree = "<group>"; };
+		CACDE5FD24851640006FEB1B /* DefaultCoverService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultCoverService.swift; sourceTree = "<group>"; };
+		CACDE5FF2485166B006FEB1B /* PerResourcePositionsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerResourcePositionsService.swift; sourceTree = "<group>"; };
+		CACDE6022485169F006FEB1B /* PerResourcePositionsServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerResourcePositionsServiceTests.swift; sourceTree = "<group>"; };
 		CAD0FEC1244310BB0053C998 /* Array.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Array.swift; sourceTree = "<group>"; };
 		CAD0FEC3244318A90053C998 /* Fuzi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Fuzi.framework; path = Carthage/Build/iOS/Fuzi.framework; sourceTree = "<group>"; };
 		CAD0FECF2444B5C30053C998 /* FormatSnifferContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatSnifferContent.swift; sourceTree = "<group>"; };
@@ -636,8 +644,8 @@
 			children = (
 				CA9FC073248256450020B9CC /* PublicationService.swift */,
 				CA9FC07524825A880020B9CC /* PublicationServicesBuilder.swift */,
-				CABE2A002482C6F2008E286D /* PositionsService.swift */,
-				CACDE5D42483A7AC006FEB1B /* CoverService.swift */,
+				CACDE5FA24851620006FEB1B /* Cover */,
+				CACDE5F92485161A006FEB1B /* Positions */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -646,7 +654,7 @@
 			isa = PBXGroup;
 			children = (
 				CA9FC0782482657F0020B9CC /* PublicationServicesBuilderTests.swift */,
-				CABE2A022482C7A6008E286D /* PositionsServiceTests.swift */,
+				CACDE60124851681006FEB1B /* Positions */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -658,6 +666,34 @@
 				CAC34F08221C61BD002C452E /* DRM+Deprecated.swift */,
 			);
 			path = DRM;
+			sourceTree = "<group>";
+		};
+		CACDE5F92485161A006FEB1B /* Positions */ = {
+			isa = PBXGroup;
+			children = (
+				CABE2A002482C6F2008E286D /* PositionsService.swift */,
+				CACDE5FF2485166B006FEB1B /* PerResourcePositionsService.swift */,
+			);
+			path = Positions;
+			sourceTree = "<group>";
+		};
+		CACDE5FA24851620006FEB1B /* Cover */ = {
+			isa = PBXGroup;
+			children = (
+				CACDE5D42483A7AC006FEB1B /* CoverService.swift */,
+				CACDE5FD24851640006FEB1B /* DefaultCoverService.swift */,
+				CACDE5FB24851631006FEB1B /* InMemoryCoverService.swift */,
+			);
+			path = Cover;
+			sourceTree = "<group>";
+		};
+		CACDE60124851681006FEB1B /* Positions */ = {
+			isa = PBXGroup;
+			children = (
+				CABE2A022482C7A6008E286D /* PositionsServiceTests.swift */,
+				CACDE6022485169F006FEB1B /* PerResourcePositionsServiceTests.swift */,
+			);
+			path = Positions;
 			sourceTree = "<group>";
 		};
 		CAD0FED82444FDB50053C998 /* ZIP */ = {
@@ -881,6 +917,7 @@
 				CA6D426D240439F4002FBED4 /* OPDSCopiesTests.swift in Sources */,
 				CA176385223A897100959FEB /* Properties+EPUBTests.swift in Sources */,
 				CA16A8742233004A00E66255 /* PropertiesTests.swift in Sources */,
+				CACDE6032485169F006FEB1B /* PerResourcePositionsServiceTests.swift in Sources */,
 				CA16A8802233BE6900E66255 /* EncryptionTests.swift in Sources */,
 				CA5F8EFB2404142C00926120 /* EPUBLayoutTests.swift in Sources */,
 				CA6F27742469E4DA0065B405 /* FileFetcherTests.swift in Sources */,
@@ -945,6 +982,7 @@
 				CAD1EE70245AC29B00C1E684 /* String.swift in Sources */,
 				CA94291622BCD08C00305CDB /* ResourcesServer.swift in Sources */,
 				CA16A8702232F7CD00E66255 /* Link.swift in Sources */,
+				CACDE6002485166B006FEB1B /* PerResourcePositionsService.swift in Sources */,
 				F3E7D4191F4EC69100DF166D /* RootFile.swift in Sources */,
 				CA16A85B2232C4E600E66255 /* LocalizedString.swift in Sources */,
 				CABE2A012482C6F2008E286D /* PositionsService.swift in Sources */,
@@ -962,6 +1000,7 @@
 				CA9FC07624825A880020B9CC /* PublicationServicesBuilder.swift in Sources */,
 				CA2AE322221C1DCB008BD18F /* Loggable.swift in Sources */,
 				CA9A40D1221B0AA200531EA1 /* Either.swift in Sources */,
+				CACDE5FC24851631006FEB1B /* InMemoryCoverService.swift in Sources */,
 				CA60CE202446DE8E00149B22 /* XML.swift in Sources */,
 				CABBB2E62237ADEB004EB039 /* OpdsMetadata.swift in Sources */,
 				CABBB2E82237ADEB004EB039 /* Group.swift in Sources */,
@@ -982,6 +1021,7 @@
 				CA8C84142468906600CE97A4 /* Fetcher.swift in Sources */,
 				CA5F8EFF24041AF200926120 /* Metadata+Presentation.swift in Sources */,
 				CA16A8642232DA2000E66255 /* Locator.swift in Sources */,
+				CACDE5FE24851640006FEB1B /* DefaultCoverService.swift in Sources */,
 				CA6F27762469E5370065B405 /* FileFetcher.swift in Sources */,
 				CA68BDCB24406C6C009A6BAA /* FormatSnifferContext.swift in Sources */,
 				CA9E6BA12239823300ECF6E4 /* Publication+Deprecated.swift in Sources */,
