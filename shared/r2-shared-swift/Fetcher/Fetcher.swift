@@ -14,6 +14,14 @@ import Foundation
 /// Provides access to a `Resource` from a `Link`.
 public protocol Fetcher {
     
+    /// Known resources available in the medium, such as file paths on the file system
+    /// or entries in a ZIP archive. This list is not exhaustive, and additional
+    /// unknown resources might be reachable.
+    ///
+    /// If the medium has an inherent resource order, it should be followed.
+    /// Otherwise, HREFs are sorted alphabetically.
+    var links: [Link] { get }
+    
     /// Returns the `Resource` at the given `link`'s HREF.
     ///
     /// A `Resource` is always returned, since for some cases we can't know if it exists before
@@ -42,6 +50,8 @@ public extension Fetcher {
 public final class EmptyFetcher: Fetcher {
     
     public init() {}
+    
+    public var links: [Link] { [] }
     
     public func get(_ link: Link) -> Resource {
         return FailureResource(link: link, error: .notFound)

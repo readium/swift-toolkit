@@ -25,6 +25,14 @@ public final class ArchiveFetcher: Fetcher, Loggable {
         }
     }
     
+    public lazy var links: [Link] =
+        archive.entries.map { entry in
+            Link(
+                href: entry.path.addingPrefix("/"),
+                type: Format.of(fileExtension: URL(fileURLWithPath: entry.path).pathExtension)?.mediaType.string
+            )
+        }
+
     public func get(_ link: Link) -> Resource {
         return ArchiveResource(link: link, archive: archive)
     }
@@ -36,7 +44,7 @@ public final class ArchiveFetcher: Fetcher, Loggable {
         lazy var link: Link = {
             var link = originalLink
             if let compressedLength = entry?.compressedLength {
-                link = link.addingProperties(["compressedLength": compressedLength])
+                link = link.addingProperties(["compressedLength": Int(compressedLength)])
             }
             return link
         }()

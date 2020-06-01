@@ -21,6 +21,8 @@ final class MinizipArchive: ZIPArchive, Loggable {
     private var isCurrentEntryOpened = false
 
     init(file: URL, password: String?) throws {
+        assert(file.isFileURL, "Only file URLs are supported by MinizipArchive")
+        
         guard (try? file.checkResourceIsReachable()) ?? false,
             let archive = unzOpen64(file.path) else
         {

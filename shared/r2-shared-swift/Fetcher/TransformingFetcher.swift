@@ -26,6 +26,8 @@ public final class TransformingFetcher: Fetcher {
     public convenience init(fetcher: Fetcher, transformer: @escaping ResourceTransformer) {
         self.init(fetcher: fetcher, transformers: [transformer])
     }
+    
+    public var links: [Link] { fetcher.links }
 
     public func get(_ link: Link) -> Resource {
         let resource = fetcher.get(link)

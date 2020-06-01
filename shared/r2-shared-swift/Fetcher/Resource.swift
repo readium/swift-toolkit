@@ -121,13 +121,13 @@ public final class DataResource: Resource {
     private var dataLength: UInt64 { UInt64(data.count) }
     
     /// Creates a `Resource` serving an array of bytes.
-    init(link: Link, data: Data) {
+    public init(link: Link, data: Data = Data()) {
         self.link = link
         self.data = data
     }
     
     /// Creates a `Resource` serving a string encoded as UTF-8.
-    init(link: Link, string: String) {
+    public init(link: Link, string: String) {
         self.link = link
         // It's safe to force-unwrap when using a unicode encoding.
         // https://www.objc.io/blog/2018/02/13/string-to-data-and-back/

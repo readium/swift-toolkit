@@ -43,6 +43,34 @@ public final class FileFetcher: Fetcher, Loggable {
         return FailureResource(link: link, error: .notFound)
     }
     
+    public lazy var links: [Link] =
+        paths.keys.sorted().flatMap { href -> [Link] in
+            guard
+                let path = paths[href],
+                let enumerator = FileManager.default.enumerator(at: path, includingPropertiesForKeys: [.isDirectoryKey]) else
+            {
+                return []
+            }
+            
+            let hrefURL = URL(fileURLWithPath: href)
+            
+            return ([path] + enumerator).compactMap {
+                guard
+                    let url = $0 as? URL,
+                    let values = try? url.resourceValues(forKeys: [.isDirectoryKey]),
+                    values.isDirectory == false else
+                {
+                    return nil
+                }
+                
+                let subPath = url.standardizedFileURL.path.removingPrefix(path.standardizedFileURL.path)
+                return Link(
+                    href: hrefURL.appendingPathComponent(subPath).standardizedFileURL.path,
+                    type: Format.of(fileExtension: url.pathExtension)?.mediaType.string
+                )
+            }
+        }
+
     public func close() { }
     
     private final class FileResource: Resource, Loggable {

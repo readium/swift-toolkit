@@ -21,6 +21,8 @@ final class ProxyFetcher: Fetcher {
         self.closure = closure
     }
     
+    var links: [Link] { [] }
+    
     func get(_ link: Link) -> Resource {
         return closure(link)
     }

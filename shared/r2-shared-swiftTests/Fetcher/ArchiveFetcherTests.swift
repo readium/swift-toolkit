@@ -22,6 +22,24 @@ class ArchiveFetcherTests: XCTestCase {
         fetcher = ArchiveFetcher(archive: url)!
     }
     
+    func testLinks() {
+        XCTAssertEqual(
+            fetcher.links,
+            [
+                ("/mimetype", nil),
+                ("/EPUB/cover.xhtml", "text/html"),
+                ("/EPUB/css/epub.css", "text/css"),
+                ("/EPUB/css/nav.css", "text/css"),
+                ("/EPUB/images/cover.png", "image/png"),
+                ("/EPUB/nav.xhtml", "text/html"),
+                ("/EPUB/package.opf", nil),
+                ("/EPUB/s04.xhtml", "text/html"),
+                ("/EPUB/toc.ncx", nil),
+                ("/META-INF/container.xml", "application/xml")
+            ].map { href, type in Link(href: href, type: type) }
+        )
+    }
+    
     func testReadEntryFully() {
         let resource = fetcher.get(Link(href: "/mimetype"))
         let result = resource.read()
@@ -66,7 +84,7 @@ class ArchiveFetcherTests: XCTestCase {
     
     func testAddsCompressedLengthToLink() {
         let resource = fetcher.get(Link(href: "/EPUB/css/epub.css"))
-        XCTAssertEqual(resource.link.properties["compressedLength"] as? UInt64, 595)
+        XCTAssertEqual(resource.link.properties["compressedLength"] as? Int, 595)
     }
     
 }

@@ -38,7 +38,7 @@ final class RoutingFetcher: Fetcher {
     init(routes: [Route]) {
         self.routes = routes
     }
-    
+
     /// Will route requests to `local` if the `Link::href` starts with `/`, otherwise to `remote`.
     convenience init(local: Fetcher, remote: Fetcher) {
         self.init(routes: [
@@ -46,6 +46,8 @@ final class RoutingFetcher: Fetcher {
             Route(fetcher: remote)
         ])
     }
+    
+    var links: [Link] { routes.flatMap { $0.fetcher.links } }
     
     func get(_ link: Link) -> Resource {
         guard let route = routes.first(where: { $0.accepts(link) }) else {
