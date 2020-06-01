@@ -168,6 +168,20 @@ public struct Metadata: Equatable, Loggable {
         ], additional: otherMetadata)
     }
     
+    /// Returns the content layout style for the default publication language.
+    public var contentLayout: ContentLayout {
+        contentLayout(forLanguage: nil)
+    }
+    
+    /// Returns the content layout style for the given language code.
+    public func contentLayout(forLanguage language: String?) -> ContentLayout {
+        let language = (language?.isEmpty ?? true) ? nil : language
+        return ContentLayout(
+            language: language ?? languages.first ?? "",
+            readingProgression: readingProgression
+        )
+    }
+    
     /// Makes a copy of the `Metadata`, after modifying some of its properties.
     public func copy(
         identifier: String?? = nil,

@@ -171,6 +171,52 @@ open class ResourceProxy: Resource {
     }
 }
 
+/// A `Resource` proxy which applies a transformation on the original content.
+public class TransformingResource: ResourceProxy {
+    
+    private let transform: (Data) -> Data
+    
+    public init(_ resource: Resource, transform: @escaping (Data) -> Data) {
+        self.transform = transform
+        super.init(resource)
+    }
+    
+    public override var length: ResourceResult<UInt64> {
+        transformedData.map { UInt64($0.count) }
+    }
+    
+    public override func read(range: Range<UInt64>?) -> ResourceResult<Data> {
+        return transformedData.map { data in
+            if let range = range?.clamped(to: 0..<UInt64(data.count)) {
+                return data[range]
+            } else {
+                return data
+            }
+        }
+    }
+
+    private lazy var transformedData: ResourceResult<Data> =
+        resource.read().map(transform)
+
+}
+
+/// Convenient shortcuts to create a `TransformingResource`.
+public extension Resource {
+    
+    func map(transform: @escaping (Data) -> Data) -> Resource {
+        return TransformingResource(self, transform: transform)
+    }
+    
+    func mapAsString(encoding: String.Encoding? = nil, transform: @escaping (String) -> String) -> Resource {
+        let encoding = encoding ?? link.mediaType?.encoding ?? .utf8
+        return TransformingResource(self) { data in
+            let string = String(data: data, encoding: encoding) ?? ""
+            return transform(string).data(using: .utf8) ?? Data()
+        }
+    }
+    
+}
+
 public typealias ResourceResult<Success> = Result<Success, ResourceError>
 
 public extension Result where Failure == ResourceError {

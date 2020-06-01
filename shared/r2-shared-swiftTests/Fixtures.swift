@@ -25,4 +25,8 @@ class Fixtures {
         return bundle.resourceURL!.appendingPathComponent("Fixtures/\(path ?? "")/\(filepath)")
     }
     
+    func data(at filepath: String) -> Data {
+        return try! Data(contentsOf: url(for: filepath))
+    }
+    
 }
