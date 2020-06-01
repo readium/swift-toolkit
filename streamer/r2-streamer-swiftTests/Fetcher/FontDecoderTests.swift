@@ -32,7 +32,6 @@ class FontDecoderTests: XCTestCase {
             XCTFail("Couldn't generate the test font URL.")
             return
         }
-        testFontUrl = URL(string: "file://\(testFontUrl.absoluteString)")!
         guard let testFontData = try? Data(contentsOf: testFontUrl) else {
             XCTFail("Couldn't get the data from the test font file at \(testFontUrl).")
             return
@@ -52,7 +51,7 @@ class FontDecoderTests: XCTestCase {
             XCTFail("Couldn't generate the adobe font URL.")
             return
         }
-        obfuscatedFontStreamAdobe = FileInputStream(fileAtPath: adobeFontUrl.absoluteString)
+        obfuscatedFontStreamAdobe = FileInputStream(fileAtPath: adobeFontUrl.path)
     }
 
     func testIdpfFontDeobfuscation() {

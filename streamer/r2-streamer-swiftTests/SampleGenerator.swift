@@ -120,7 +120,7 @@ internal class SampleGenerator: XCTest {
             XCTFail("Couldn't find resource name \(named) in Samples/")
             return nil
         }
-        return URL(string: path)
+        return URL(fileURLWithPath: path)
     }
     
     internal func getSamplesFileURL(named: String, ofType: String?) -> URL? {

@@ -52,7 +52,7 @@ final class EPUBPositionsService: PositionsService {
         }
         
         // Calculates totalProgression
-        let totalPageCount = positions.count
+        let totalPageCount = positions.map { $0.count }.reduce(0, +)
         if totalPageCount > 0 {
             positions = positions.map { locators in
                 locators.map { locator in
@@ -86,7 +86,7 @@ final class EPUBPositionsService: PositionsService {
             ?? Int((try? fetcher.get(link).length.get()) ?? 0)
 
         // Arbitrary byte length of a single page in a resource.
-        let pageLength = 1024
+        let pageLength = reflowablePositionLength
         let pageCount = max(1, Int(ceil((Double(length) / Double(pageLength)))))
         
         let positions = (1...pageCount).map { position in

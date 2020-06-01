@@ -17,11 +17,9 @@ import R2Shared
 class OPFParserTests: XCTestCase {
     
     func testParseMinimalOPF() throws {
-        let sut = try parsePublication("minimal", at: "EPUB/content.opf")
+        let sut = try parseManifest("minimal", at: "EPUB/content.opf")
         
-        XCTAssertEqual(sut, Publication(
-            format: .epub,
-            formatVersion: "3.0",
+        XCTAssertEqual(sut.manifest, PublicationManifest(
             metadata: Metadata(
                 title: "Alice's Adventures in Wonderland",
                 otherMetadata: [
@@ -41,22 +39,22 @@ class OPFParserTests: XCTestCase {
     }
     
     func testParseEPUB2Version() throws {
-        let sut = try parsePublication("version-epub2")
-        XCTAssertEqual(sut.formatVersion, "2.0.1")
+        let sut = try parseManifest("version-epub2")
+        XCTAssertEqual(sut.version, "2.0.1")
     }
     
     func testParseEPUB3Version() throws {
-        let sut = try parsePublication("version-epub3")
-        XCTAssertEqual(sut.formatVersion, "3.0")
+        let sut = try parseManifest("version-epub3")
+        XCTAssertEqual(sut.version, "3.0")
     }
     
     func testParseDefaultEPUBVersion() throws {
-        let sut = try parsePublication("version-default")
-        XCTAssertEqual(sut.formatVersion, "1.2")
+        let sut = try parseManifest("version-default")
+        XCTAssertEqual(sut.version, "1.2")
     }
     
     func testParseLinks() throws {
-        let sut = try parsePublication("links", at: "EPUB/content.opf")
+        let sut = try parseManifest("links", at: "EPUB/content.opf").manifest
         
         XCTAssertEqual(sut.links, [])
         XCTAssertEqual(sut.readingOrder, [
@@ -77,7 +75,7 @@ class OPFParserTests: XCTestCase {
     }
     
     func testParseLinksFromSpine() throws {
-        let sut = try parsePublication("links-spine", at: "EPUB/content.opf")
+        let sut = try parseManifest("links-spine", at: "EPUB/content.opf").manifest
         
         XCTAssertEqual(sut.readingOrder, [
             link(id: "titlepage", href: "/EPUB/titlepage.xhtml")
@@ -85,7 +83,7 @@ class OPFParserTests: XCTestCase {
     }
     
     func testParseLinkProperties() throws {
-        let sut = try parsePublication("links-properties", at: "EPUB/content.opf")
+        let sut = try parseManifest("links-properties", at: "EPUB/content.opf").manifest
         
         XCTAssertEqual(sut.readingOrder.count, 8)
         XCTAssertEqual(sut.readingOrder[0], link(id: "chapter01", href: "/EPUB/chapter01.xhtml", rels: ["contents"], properties: Properties([
@@ -136,7 +134,7 @@ class OPFParserTests: XCTestCase {
     }
     
     func testParseEPUB2Cover() throws {
-        let sut = try parsePublication("cover-epub2", at: "EPUB/content.opf")
+        let sut = try parseManifest("cover-epub2", at: "EPUB/content.opf").manifest
         
         XCTAssertEqual(sut.resources, [
             link(id: "my-cover", href: "/EPUB/cover.jpg", type: "image/jpeg", rels: ["cover"])
@@ -144,7 +142,7 @@ class OPFParserTests: XCTestCase {
     }
     
     func testParseEPUB3Cover() throws {
-        let sut = try parsePublication("cover-epub3", at: "EPUB/content.opf")
+        let sut = try parseManifest("cover-epub3", at: "EPUB/content.opf").manifest
         
         XCTAssertEqual(sut.resources, [
             link(id: "my-cover", href: "/EPUB/cover.jpg", type: "image/jpeg", rels: ["cover"])
@@ -154,7 +152,7 @@ class OPFParserTests: XCTestCase {
 
     // MARK: - Toolkit
     
-    func parsePublication(_ name: String, at path: String = "EPUB/content.opf", displayOptions: String? = nil) throws -> Publication {
+    func parseManifest(_ name: String, at path: String = "EPUB/content.opf", displayOptions: String? = nil) throws -> (manifest: PublicationManifest, version: String) {
         func document(named name: String, type: String) throws -> Data {
             return try Data(contentsOf: SampleGenerator().getSamplesFileURL(named: "OPF/\(name)", ofType: type)!)
         }
@@ -165,13 +163,11 @@ class OPFParserTests: XCTestCase {
             encryptions: [:]
         ).parsePublication()
         
-        return Publication(
-            format: .epub,
-            formatVersion: parts.version,
+        return (PublicationManifest(
             metadata: parts.metadata,
             readingOrder: parts.readingOrder,
             resources: parts.resources
-        )
+        ), parts.version)
     }
     
     func link(id: String? = nil, href: String, type: String? = nil, templated: Bool = false, title: String? = nil, rels: [String] = [], properties: Properties = .init(), duration: Double? = nil, children: [Link] = []) -> Link {

@@ -58,9 +58,8 @@ final public class EpubParser: PublicationParser {
     ///           `EPUBParserError.xmlParse`,
     ///           `EPUBParserError.missingFile`
     static public func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        guard var fetcher: R2Shared.Fetcher = ArchiveFetcher(archive: url) else {
-            throw EPUBParserError.missingFile(path: url.path)
-        }
+        let fetcher = try makeFetcher(url: url)
+        
         // Generate the `Container` for `fileAtPath`
         var container = try generateContainerFrom(fileAtPath: url.path)
         
@@ -92,6 +91,18 @@ final public class EpubParser: PublicationParser {
         }
         container.drm = drm
         return ((publication, container), parseRemainingResource)
+    }
+    
+    private static func makeFetcher(url: URL) throws -> R2Shared.Fetcher {
+        let isDirectory = try url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory ?? false
+        if isDirectory {
+            return FileFetcher(href: "/", path: url)
+        } else {
+            guard let fetcher = ArchiveFetcher(archive: url) else {
+                throw EPUBParserError.missingFile(path: url.path)
+            }
+            return fetcher
+        }
     }
     
     static private func parseCollections(in container: Container, links: [Link]) -> [PublicationCollection] {
