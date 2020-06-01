@@ -404,7 +404,7 @@ private func makeProperties(layout: EPUBLayout? = nil, originalLength: Int? = ni
     return Properties(props)
 }
 
-private class MockFetcher: R2Shared.Fetcher {
+private class MockFetcher: Fetcher {
     
     private let readingOrder: [(UInt64, Link)]
     

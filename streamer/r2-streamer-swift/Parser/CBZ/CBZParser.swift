@@ -12,9 +12,6 @@
 import Foundation
 import R2Shared
 
-/// Errors related to the CBZ publications.
-///
-/// - missingFile: The file at 'path' is missing from the container.
 public enum CBZParserError: Error {
     case invalidCBZ(path: String)
 }
@@ -58,7 +55,7 @@ public class CbzParser: PublicationParser {
         return ((publication, container), { _ in })
     }
     
-    private static func parseManifest(in fetcher: R2Shared.Fetcher, at url: URL) -> PublicationManifest? {
+    private static func parseManifest(in fetcher: Fetcher, at url: URL) -> PublicationManifest? {
         var readingOrder = fetcher.links
             .filter { $0.mediaType?.isBitmap == true }
             .sorted { lhs, rhs in lhs.href < rhs.href }

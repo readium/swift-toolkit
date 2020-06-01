@@ -116,7 +116,7 @@ public final class PDFParser: PublicationParser, Loggable {
 
     private static func parseLCPDF(at url: URL, parserType: PDFFileParser.Type) throws -> (PubBox, PubParsingCallback?) {
         guard
-            var fetcher: R2Shared.Fetcher = ArchiveFetcher(archive: url),
+            var fetcher: Fetcher = ArchiveFetcher(archive: url),
             let manifestJSON = try? fetcher.get("/manifest.json").readAsJSON().get() else
         {
             throw PDFParserError.invalidLCPDF

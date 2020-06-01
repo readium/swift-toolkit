@@ -15,10 +15,10 @@ import R2Shared
 final class LCPDFPositionsService: PositionsService, Loggable {
 
     private let readingOrder: [Link]
-    private let fetcher: R2Shared.Fetcher
+    private let fetcher: Fetcher
     private let parserType: PDFFileParser.Type
 
-    init(readingOrder: [Link], fetcher: R2Shared.Fetcher, parserType: PDFFileParser.Type) {
+    init(readingOrder: [Link], fetcher: Fetcher, parserType: PDFFileParser.Type) {
         self.readingOrder = readingOrder
         self.fetcher = fetcher
         self.parserType = parserType

@@ -24,13 +24,13 @@ final class EPUBPositionsService: PositionsService {
     
     private let readingOrder: [Link]
     private let presentation: Presentation
-    private let fetcher: R2Shared.Fetcher
+    private let fetcher: Fetcher
     
     /// Length in bytes of a position in a reflowable resource. This is used to split a single
     /// reflowable resource into several positions.
     private let reflowablePositionLength: Int
     
-    init(readingOrder: [Link], presentation: Presentation, fetcher: R2Shared.Fetcher, reflowablePositionLength: Int) {
+    init(readingOrder: [Link], presentation: Presentation, fetcher: Fetcher, reflowablePositionLength: Int) {
         self.readingOrder = readingOrder
         self.fetcher = fetcher
         self.presentation = presentation

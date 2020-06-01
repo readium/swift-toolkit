@@ -15,7 +15,7 @@ import R2Shared
 extension ArchiveFetcher {
     
     /// Creates an `ArchiveFetcher` from either an archive file, or an exploded directory.
-    static func make(archiveOrDirectory url: URL) -> R2Shared.Fetcher? {
+    static func make(archiveOrDirectory url: URL) -> Fetcher? {
         let isDirectory = try? url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory ?? false
         if isDirectory ?? false {
             return FileFetcher(href: "/", path: url)

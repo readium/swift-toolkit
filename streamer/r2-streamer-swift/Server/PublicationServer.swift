@@ -150,20 +150,8 @@ public class PublicationServer: ResourcesServer {
     }
     
     fileprivate func addResourcesHandler(for publication: Publication, container: Container, at endpoint: String) throws {
-        let fetcher: Fetcher
-        
-        // Initialize the Fetcher.
-        do {
-            fetcher = try Fetcher(publication: publication, container: container)
-        } catch {
-            log(.error, "Fetcher initialisation failed.")
-            throw PublicationServerError.fetcher(underlyingError: error)
-        }
-        
         /// Webserver HTTP GET ressources request handler.
         func resourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
-            let response: GCDWebServerResponse
-            
             guard let request = request else {
                 log(.error, "The request received is nil.")
                 return GCDWebServerErrorResponse(statusCode: 500)
@@ -171,34 +159,29 @@ public class PublicationServer: ResourcesServer {
             
             // Remove the prefix from the URI.
             let href = String(request.path[request.path.index(endpoint.endIndex, offsetBy: 1)...])
-            //
-            let resource = publication.resource(withHref: href)
-            let contentType = resource?.type ?? "application/octet-stream"
-            // Get a data input stream from the fetcher.
-            do {
-                let dataStream = try fetcher.dataStream(forRelativePath: href)
+
+            let resource = publication.get(href)
+            switch resource.length {
+            case .success(_):
                 let range = request.hasByteRange() ? request.byteRange : nil
+                return WebServerResourceResponse(
+                    inputStream: resource.stream(),
+                    range: range,
+                    contentType: resource.link.type ?? MediaType.binary.string
+                )
                 
-                response = WebServerResourceResponse(inputStream: dataStream,
-                                                     range: range,
-                                                     contentType: contentType)
-            } catch FetcherError.missingFile {
-                log(.error, "File not found, couldn't create stream.")
-                response = GCDWebServerErrorResponse(statusCode: 404)
-            } catch FetcherError.container {
-                log(.error, "Error while getting data stream from container.")
-                response = GCDWebServerErrorResponse(statusCode: 500)
-            } catch {
-                log(.error, error)
-                response = GCDWebServerErrorResponse(statusCode: 500)
+            case .failure(let error):
+                print("\(href): \(error)")
+                return GCDWebServerErrorResponse(statusCode: error.httpStatusCode)
             }
-            return response
         }
+        
         webServer.addHandler(
             forMethod: "GET",
             pathRegex: "/\(endpoint)/.*",
             request: GCDWebServerRequest.self,
-            processBlock: resourcesHandler)
+            processBlock: resourcesHandler
+        )
     }
     
     fileprivate func addManifestHandler(for publication: Publication, at endpoint: String) {
@@ -210,6 +193,7 @@ public class PublicationServer: ResourcesServer {
             let type = "\(MediaType.webpubManifest.string); charset=utf-8"
             return GCDWebServerDataResponse(data: manifestData, contentType: type)
         }
+        
         webServer.addHandler(
             forMethod: "GET",
             pathRegex: "/\(endpoint)/manifest.json",
