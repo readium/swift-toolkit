@@ -83,6 +83,20 @@ public enum ResourceError: Swift.Error {
     /// For any other error, such as HTTP 500.
     case other(Error)
     
+    /// HTTP status code for this `ResourceError`.
+    public var httpStatusCode: Int {
+        switch self {
+        case .notFound:
+            return 404
+        case .forbidden:
+            return 403
+        case .unavailable:
+            return 503
+        case .other:
+            return 500
+        }
+    }
+    
 }
 
 /// Implements the transformation of a Resource. It can be used, for example, to decrypt,
@@ -150,6 +164,10 @@ public final class DataResource: Resource {
     
 }
 
+/// A base class for a `Resource` which acts as a proxy to another one.
+///
+/// Every function is delegating to the proxied resource, and subclasses should override some of
+/// them.
 open class ResourceProxy: Resource {
 
     public let resource: Resource

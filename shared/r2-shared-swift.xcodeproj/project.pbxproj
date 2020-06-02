@@ -125,6 +125,7 @@
 		CACDE5FE24851640006FEB1B /* DefaultCoverService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE5FD24851640006FEB1B /* DefaultCoverService.swift */; };
 		CACDE6002485166B006FEB1B /* PerResourcePositionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE5FF2485166B006FEB1B /* PerResourcePositionsService.swift */; };
 		CACDE6032485169F006FEB1B /* PerResourcePositionsServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE6022485169F006FEB1B /* PerResourcePositionsServiceTests.swift */; };
+		CACDE61D24858C50006FEB1B /* HTTPFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE61C24858C50006FEB1B /* HTTPFetcher.swift */; };
 		CAD0FEC2244310BB0053C998 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0FEC1244310BB0053C998 /* Array.swift */; };
 		CAD0FECA24431BFE0053C998 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD0FEC3244318A90053C998 /* Fuzi.framework */; };
 		CAD0FED02444B5C30053C998 /* FormatSnifferContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0FECF2444B5C30053C998 /* FormatSnifferContent.swift */; };
@@ -281,6 +282,7 @@
 		CACDE5FD24851640006FEB1B /* DefaultCoverService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultCoverService.swift; sourceTree = "<group>"; };
 		CACDE5FF2485166B006FEB1B /* PerResourcePositionsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerResourcePositionsService.swift; sourceTree = "<group>"; };
 		CACDE6022485169F006FEB1B /* PerResourcePositionsServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerResourcePositionsServiceTests.swift; sourceTree = "<group>"; };
+		CACDE61C24858C50006FEB1B /* HTTPFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPFetcher.swift; sourceTree = "<group>"; };
 		CAD0FEC1244310BB0053C998 /* Array.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Array.swift; sourceTree = "<group>"; };
 		CAD0FEC3244318A90053C998 /* Fuzi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Fuzi.framework; path = Carthage/Build/iOS/Fuzi.framework; sourceTree = "<group>"; };
 		CAD0FECF2444B5C30053C998 /* FormatSnifferContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatSnifferContent.swift; sourceTree = "<group>"; };
@@ -611,11 +613,12 @@
 			children = (
 				CA8C84152468914900CE97A4 /* Resource.swift */,
 				CA8C84132468906600CE97A4 /* Fetcher.swift */,
+				CA6F276F2469D9050065B405 /* ArchiveFetcher.swift */,
 				CA6F27752469E5370065B405 /* FileFetcher.swift */,
+				CACDE61C24858C50006FEB1B /* HTTPFetcher.swift */,
 				CA8C841B2468A06300CE97A4 /* ProxyFetcher.swift */,
 				CA8C841924689E4000CE97A4 /* RoutingFetcher.swift */,
 				CA8C841724689CD000CE97A4 /* TransformingFetcher.swift */,
-				CA6F276F2469D9050065B405 /* ArchiveFetcher.swift */,
 			);
 			path = Fetcher;
 			sourceTree = "<group>";
@@ -1023,6 +1026,7 @@
 				CA16A8642232DA2000E66255 /* Locator.swift in Sources */,
 				CACDE5FE24851640006FEB1B /* DefaultCoverService.swift in Sources */,
 				CA6F27762469E5370065B405 /* FileFetcher.swift in Sources */,
+				CACDE61D24858C50006FEB1B /* HTTPFetcher.swift in Sources */,
 				CA68BDCB24406C6C009A6BAA /* FormatSnifferContext.swift in Sources */,
 				CA9E6BA12239823300ECF6E4 /* Publication+Deprecated.swift in Sources */,
 				CABBB2E52237ADEB004EB039 /* Feed.swift in Sources */,

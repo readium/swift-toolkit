@@ -45,6 +45,11 @@ public extension Fetcher {
         return get(Link(href: href))
     }
     
+    /// Shortcut to get the data of a file at given `href`.
+    func readData(at href: String) throws -> Data {
+        return try get(href).read().get()
+    }
+    
 }
 
 public final class EmptyFetcher: Fetcher {

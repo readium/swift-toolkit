@@ -12,7 +12,6 @@
 import Foundation
 
 /// Provides access to resources on the local file system.
-///
 public final class FileFetcher: Fetcher, Loggable {
     
     /// Reachable local paths, indexed by the exposed HREF.
@@ -30,9 +29,10 @@ public final class FileFetcher: Fetcher, Loggable {
     }
     
     public func get(_ link: Link) -> Resource {
+        let linkHREF = link.href.addingPrefix("/")
         for (href, url) in paths {
-            if link.href.hasPrefix(href) {
-                let resourceURL = url.appendingPathComponent(link.href.removingPrefix(href)).standardizedFileURL
+            if linkHREF.hasPrefix(href) {
+                let resourceURL = url.appendingPathComponent(linkHREF.removingPrefix(href)).standardizedFileURL
                 // Makes sure that the requested resource is `url` or one of its descendant.
                 if resourceURL.path.hasPrefix(url.path) {
                     return FileResource(link: link, file: resourceURL)
