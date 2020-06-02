@@ -12,6 +12,7 @@
 import Foundation
 import R2Shared
 import GCDWebServer
+import UIKit
 
 extension PublicationServer: Loggable {}
 
@@ -64,6 +65,23 @@ public class PublicationServer: ResourcesServer {
             return nil
         }
         addStaticResourcesHandlers()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func willEnterForeground(_ notification: Notification) {
+        // Restarts the server if it was stopped while the app was in the background.
+        if isPortFree(port) {
+            do {
+                try startWithPort(port)
+            } catch {
+                log(.error, error)
+            }
+        }
     }
     
     func startWebServer() -> Bool {
@@ -74,14 +92,9 @@ public class PublicationServer: ResourcesServer {
             return UInt(lowerBound + Int(arc4random_uniform(UInt32(upperBound - lowerBound))))
         }
         
-        for _ in 1...10 {
+        for _ in 1...50 {
             do {
-                // TODO: Check if we can use unix socket instead of tcp.
-                //       Check if it's supported by WKWebView first.
-                try webServer.start(options: [
-                    GCDWebServerOption_Port: makeRandomPort(),
-                    GCDWebServerOption_BindToLocalhost: true]
-                )
+                try startWithPort(makeRandomPort())
                 return true
             } catch {
                 log(.error, error)
@@ -92,6 +105,61 @@ public class PublicationServer: ResourcesServer {
         return false
     }
     
+    private func startWithPort(_ port: UInt) throws {
+        // TODO: Check if we can use unix socket instead of tcp.
+        //       Check if it's supported by WKWebView first.
+        webServer.stop()
+        try webServer.start(options: [
+            GCDWebServerOption_Port: port,
+            GCDWebServerOption_BindToLocalhost: true,
+            // We disable automatically suspending the server in the background, to be able to play
+            // audiobooks even with the screen locked.
+            GCDWebServerOption_AutomaticallySuspendInBackground: false
+        ])
+    }
+    
+    /// Checks if the given port is already taken (presumabily by the server).
+    /// Inspired by https://stackoverflow.com/questions/33086356/swift-2-check-if-port-is-busy
+    private func isPortFree(_ port: UInt) -> Bool {
+        let port = in_port_t(port)
+        
+        func getErrnoMessage() -> String {
+            return String(cString: UnsafePointer(strerror(errno)))
+        }
+
+        let socketDescriptor = socket(AF_INET, SOCK_STREAM, 0)
+        if socketDescriptor == -1 {
+            log(.error, "Socket creation failed: \(getErrnoMessage())")
+            // Just in case, returns true to attempt restarting the server.
+            return true
+        }
+        defer {
+            Darwin.shutdown(socketDescriptor, SHUT_RDWR)
+            close(socketDescriptor)
+        }
+
+        let addrSize = MemoryLayout<sockaddr_in>.size
+        var addr = sockaddr_in()
+        addr.sin_len = __uint8_t(addrSize)
+        addr.sin_family = sa_family_t(AF_INET)
+        addr.sin_port = Int(OSHostByteOrder()) == OSLittleEndian ? _OSSwapInt16(port) : port
+        addr.sin_addr = in_addr(s_addr: inet_addr("0.0.0.0"))
+        addr.sin_zero = (0, 0, 0, 0, 0, 0, 0, 0)
+        var bindAddr = sockaddr()
+        memcpy(&bindAddr, &addr, Int(addrSize))
+
+        if Darwin.bind(socketDescriptor, &bindAddr, socklen_t(addrSize)) == -1 {
+            // "Address already in use", the server is already started
+            if errno == EADDRINUSE {
+                return false
+            }
+            log(.error, "Bind failed: \(getErrnoMessage())")
+        }
+        
+        // It might not actually be free, but we'll try to restart the server.
+        return true
+    }
+
     // Add handlers for the static resources.
     public func addStaticResourcesHandlers() {
         guard let resourceURL = Bundle(for: PublicationServer.self).resourceURL else {

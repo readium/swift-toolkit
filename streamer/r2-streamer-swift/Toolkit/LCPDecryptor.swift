@@ -27,12 +27,15 @@ final class LCPDecryptor {
     
     private let scheme: String
 
-    init?(drm: DRM?) {
-        guard let drm = drm, drm.brand == .lcp else {
+    init() {
+        self.scheme = DRM.Scheme.lcp.rawValue
+    }
+    
+    convenience init?(drm: DRM?) {
+        guard drm?.brand == .lcp else {
             return nil
         }
-        
-        self.scheme = drm.scheme.rawValue
+        self.init()
     }
     
     func decrypt(resource: Resource) -> Resource {
