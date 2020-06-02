@@ -18,6 +18,7 @@
 		CA50B88022B2A777003AFF24 /* R2LCPLocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50B87F22B2A777003AFF24 /* R2LCPLocalizedString.swift */; };
 		CA50B88422B2A822003AFF24 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CA50B88622B2A822003AFF24 /* Localizable.strings */; };
 		CA9428FD22B9442300305CDB /* ReadiumLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9428FC22B9442300305CDB /* ReadiumLicenseContainer.swift */; };
+		CA78C9EB244F53BA00E559B3 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA78C9E8244F531A00E559B3 /* R2Shared.framework */; };
 		CAB131F6220D81E60097DFB5 /* LicensesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB131F5220D81E60097DFB5 /* LicensesRepository.swift */; };
 		CAB1320B220D9B200097DFB5 /* LCPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB1320A220D9B200097DFB5 /* LCPService.swift */; };
 		CAB13211220DB2B10097DFB5 /* LCPAuthenticating.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */; };
@@ -62,6 +63,7 @@
 		CA50B87F22B2A777003AFF24 /* R2LCPLocalizedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2LCPLocalizedString.swift; sourceTree = "<group>"; };
 		CA50B88522B2A822003AFF24 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		CA9428FC22B9442300305CDB /* ReadiumLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadiumLicenseContainer.swift; sourceTree = "<group>"; };
+		CA78C9E8244F531A00E559B3 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAB131F5220D81E60097DFB5 /* LicensesRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensesRepository.swift; sourceTree = "<group>"; };
 		CAB1320A220D9B200097DFB5 /* LCPService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPService.swift; sourceTree = "<group>"; };
 		CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPAuthenticating.swift; sourceTree = "<group>"; };
@@ -102,6 +104,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA78C9EB244F53BA00E559B3 /* R2Shared.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -266,6 +269,7 @@
 		F3B2C8AD1F6672E1007601E4 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CA78C9E8244F531A00E559B3 /* R2Shared.framework */,
 				03A5DB9F23B78AD500D5FCBD /* R2LCPClient.framework */,
 			);
 			name = Frameworks;
