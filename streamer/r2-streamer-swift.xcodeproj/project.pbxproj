@@ -67,7 +67,7 @@
 		CABAC16822CDD7A500360595 /* FullDRMInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABAC16722CDD7A500360595 /* FullDRMInputStream.swift */; };
 		CABAC16A22CDD83C00360595 /* CBCDRMInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABAC16922CDD83C00360595 /* CBCDRMInputStream.swift */; };
 		CAC5AEDA22C22A6F007DB8A8 /* HTTPContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC5AED922C22A6F007DB8A8 /* HTTPContainer.swift */; };
-		CAC5AEE122C236FB007DB8A8 /* WebPubParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC5AEE022C236FB007DB8A8 /* WebPubParser.swift */; };
+		CAC5AEE122C236FB007DB8A8 /* ReadiumWebPubParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC5AEE022C236FB007DB8A8 /* ReadiumWebPubParser.swift */; };
 		CAD1EE6E245ABD6F00C1E684 /* PublicationParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD1EE6D245ABD6F00C1E684 /* PublicationParserTests.swift */; };
 		CAF58199229EC8B3009A04E8 /* EPUBMetadataParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF58198229EC8B3009A04E8 /* EPUBMetadataParserTests.swift */; };
 /* End PBXBuildFile section */
@@ -146,7 +146,7 @@
 		CABAC16722CDD7A500360595 /* FullDRMInputStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullDRMInputStream.swift; sourceTree = "<group>"; };
 		CABAC16922CDD83C00360595 /* CBCDRMInputStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBCDRMInputStream.swift; sourceTree = "<group>"; };
 		CAC5AED922C22A6F007DB8A8 /* HTTPContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPContainer.swift; sourceTree = "<group>"; };
-		CAC5AEE022C236FB007DB8A8 /* WebPubParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebPubParser.swift; sourceTree = "<group>"; };
+		CAC5AEE022C236FB007DB8A8 /* ReadiumWebPubParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReadiumWebPubParser.swift; sourceTree = "<group>"; };
 		CAD1EE6D245ABD6F00C1E684 /* PublicationParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationParserTests.swift; sourceTree = "<group>"; };
 		CAF58198229EC8B3009A04E8 /* EPUBMetadataParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBMetadataParserTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -265,7 +265,7 @@
 				CA130D26229D4245000A627C /* CBZ */,
 				CA130D2F229D4245000A627C /* EPUB */,
 				CA130D29229D4245000A627C /* PDF */,
-				CAC5AEDF22C236FB007DB8A8 /* WebPub */,
+				CAC5AEDF22C236FB007DB8A8 /* Readium WebPub */,
 			);
 			path = Parser;
 			sourceTree = "<group>";
@@ -413,12 +413,12 @@
 			path = DRM;
 			sourceTree = "<group>";
 		};
-		CAC5AEDF22C236FB007DB8A8 /* WebPub */ = {
+		CAC5AEDF22C236FB007DB8A8 /* Readium WebPub */ = {
 			isa = PBXGroup;
 			children = (
-				CAC5AEE022C236FB007DB8A8 /* WebPubParser.swift */,
+				CAC5AEE022C236FB007DB8A8 /* ReadiumWebPubParser.swift */,
 			);
-			path = WebPub;
+			path = "Readium WebPub";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -572,7 +572,7 @@
 				CA130D63229D4245000A627C /* PDFFileCGParser.swift in Sources */,
 				CA130D61229D4245000A627C /* PDFParser.swift in Sources */,
 				CA130D65229D4245000A627C /* PublicationParser.swift in Sources */,
-				CAC5AEE122C236FB007DB8A8 /* WebPubParser.swift in Sources */,
+				CAC5AEE122C236FB007DB8A8 /* ReadiumWebPubParser.swift in Sources */,
 				CA130D5F229D4245000A627C /* CBZContainer.swift in Sources */,
 				CA130D59229D4245000A627C /* ContentFilter.swift in Sources */,
 				CA130D6D229D4245000A627C /* ZIPArchive.swift in Sources */,

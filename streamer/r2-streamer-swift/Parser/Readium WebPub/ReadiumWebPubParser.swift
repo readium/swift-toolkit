@@ -12,13 +12,13 @@
 import Foundation
 import R2Shared
 
-public enum WebPubParserError: Error {
+public enum ReadiumWebPubParserError: Error {
     case parseFailure(url: URL, Error?)
     case missingFile(path: String)
 }
 
 /// Parser for a Readium Web Publication (packaged, or as a manifest).
-public class WebPubParser: PublicationParser, Loggable {
+public class ReadiumWebPubParser: PublicationParser, Loggable {
     
     /// Path of the RWPM in a ZIP package.
     private static let manifestPath = "manifest.json"
@@ -26,7 +26,7 @@ public class WebPubParser: PublicationParser, Loggable {
     public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
         guard let format = Format.of(url) else {
             log(.error, "Can't determine the file format of \(url)")
-            throw WebPubParserError.parseFailure(url: url, nil)
+            throw ReadiumWebPubParserError.parseFailure(url: url, nil)
         }
 
         if format.mediaType.isRWPM {
@@ -49,7 +49,7 @@ public class WebPubParser: PublicationParser, Loggable {
             return ((publication, container), didLoadDRM)
             
         } catch {
-            throw WebPubParserError.parseFailure(url: url, error)
+            throw ReadiumWebPubParserError.parseFailure(url: url, error)
         }
     }
     
@@ -60,11 +60,11 @@ public class WebPubParser: PublicationParser, Loggable {
                 ? DirectoryContainer(directory: url.path, mimetype: MediaType.webpub.string)
                 : ArchiveContainer(path: url.path, mimetype: MediaType.webpub.string) else
         {
-            throw WebPubParserError.missingFile(path: url.path)
+            throw ReadiumWebPubParserError.missingFile(path: url.path)
         }
         
         guard let manifestData = try? container.data(relativePath: manifestPath) else {
-            throw WebPubParserError.missingFile(path: manifestPath)
+            throw ReadiumWebPubParserError.missingFile(path: manifestPath)
         }
         
         let publication = try parsePublication(fromManifest: manifestData, in: &container, sourceURL: url, format: format, isPackage: true)
@@ -93,7 +93,7 @@ public class WebPubParser: PublicationParser, Loggable {
             return publication
 
         } catch {
-            throw WebPubParserError.parseFailure(url: sourceURL, error)
+            throw ReadiumWebPubParserError.parseFailure(url: sourceURL, error)
         }
     }
 
@@ -103,8 +103,8 @@ public class WebPubParser: PublicationParser, Loggable {
 
 }
 
-@available(*, deprecated, renamed: "WebPubParserError")
-public typealias WEBPUBParserError = WebPubParserError
+@available(*, deprecated, renamed: "ReadiumWebPubParserError")
+public typealias WEBPUBParserError = ReadiumWebPubParserError
 
-@available(*, deprecated, renamed: "WebPubParser")
-public typealias WEBPUBParser = WebPubParser
+@available(*, deprecated, renamed: "ReadiumWebPubParser")
+public typealias WEBPUBParser = ReadiumWebPubParser
