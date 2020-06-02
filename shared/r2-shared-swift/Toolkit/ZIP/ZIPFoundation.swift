@@ -58,7 +58,7 @@ class ZIPFoundationArchive: ZIPArchive, Loggable {
         }
     }
     
-    func read(at path: String, range: Range<Int>) -> Data? {
+    func read(at path: String, range: Range<UInt64>) -> Data? {
         objc_sync_enter(archive)
         defer { objc_sync_exit(archive) }
         
