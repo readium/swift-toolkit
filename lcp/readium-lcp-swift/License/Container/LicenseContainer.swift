@@ -21,11 +21,16 @@ protocol LicenseContainer {
 }
 
 func makeLicenseContainer(for publication: URL, mimetypes: [String] = []) throws -> LicenseContainer {
-    switch Publication.Format(file: publication, mimetypes: mimetypes) {
-    case .pdf:
-        return LCPDFLicenseContainer(lcpdf: publication)
-    default:
-        // If we can't determine the format, we assume that the publication is an EPUB as this is the most common use case.
+    guard let format = Format.of(publication, mediaTypes: mimetypes, fileExtensions: []) else {
+        throw LCPError.licenseContainer(.openFailed)
+    }
+
+    switch format {
+    case .lcpProtectedPDF, .lcpProtectedAudiobook, .audiobook, .divina, .webpub:
+        return ReadiumLicenseContainer(path: publication)
+    case .epub:
         return EPUBLicenseContainer(epub: publication)
+    default:
+        throw LCPError.licenseContainer(.openFailed)
     }
 }
