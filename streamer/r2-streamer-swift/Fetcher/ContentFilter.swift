@@ -202,8 +202,8 @@ let userSettingsUIPreset:[ContentLayout: [ReadiumCSSName: Bool]] = [
 /// Content filter specialization for CBZ.
 internal class ContentFiltersCbz: ContentFilters {}
 
-/// Content filter specialization for PDF.
-internal class ContentFiltersPDF: ContentFilters {
+/// Content filter specialization for LCP protected packages (except EPUB).
+internal class ContentFiltersLCP: ContentFilters {
 
     func apply(to input: SeekableInputStream, of publication: Publication, with container: Container, at path: String) throws -> SeekableInputStream {
         /// Get the link for the resource.

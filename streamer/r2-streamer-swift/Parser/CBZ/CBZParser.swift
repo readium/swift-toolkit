@@ -57,7 +57,8 @@ public class CbzParser: PublicationParser {
             positionListFactory: makePositionList(of:),
             metadata: Metadata(
                 identifier: url.lastPathComponent,
-                title: url.lastPathComponent
+                title: url.deletingPathExtension()
+                    .lastPathComponent
                     .replacingOccurrences(of: "_", with: " ")
             ),
             readingOrder: container.files
@@ -81,7 +82,7 @@ public class CbzParser: PublicationParser {
     }
 
     /// Generate a Container instance for the file at `fileAtPath`. It handles
-    /// 2 cases, CBZ files and CBZ epub directories.
+    /// 2 cases, CBZ files and CBZ directories.
     ///
     /// - Parameter path: The absolute path of the file.
     /// - Returns: The generated Container.
