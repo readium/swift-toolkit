@@ -39,7 +39,22 @@
 
 /* Direction i.e. ltr and rtl */
 
-/* Readium CSS 
+/* Readium CSS
+   Namespaces module
+
+   Namespaces to import in all 3 dist stylesheets
+
+   Repo: https://github.com/readium/readium-css */
+
+@namespace url("http://www.w3.org/1999/xhtml");
+
+@namespace epub url("http://www.idpf.org/2007/ops");
+
+@namespace m url("http://www.w3.org/1998/Math/MathML/");
+
+@namespace svg url("http://www.w3.org/2000/svg");
+
+/* Readium CSS
    Pagination module
 
    A set of styles to paginate ePublications
@@ -48,9 +63,9 @@
 
 /* Config */
 
-/* Columns are responsive by default, even if column-width is set in pixels, 
+/* Columns are responsive by default, even if column-width is set in pixels,
    which means two-page spread will switch to single page depending on current font-size.
-   If you want more control, I’m afraid you’ll have to update colWidth/colGap dynamically, 
+   If you want more control, I’m afraid you’ll have to update colWidth/colGap dynamically,
    which is how a significant amount of RS do at the moment. */
 
 /* Default for smartphone portrait (small screens) */
@@ -79,7 +94,7 @@
 }
 
 /* :root selector has same specificity as a class i.e. 0010
-   We might have to change that to html / context 
+   We might have to change that to html / context
    -> https://css-tricks.com/almanac/selectors/r/root/ */
 
 :root {
@@ -187,7 +202,7 @@ body {
   }
 }
 
-/* Readium CSS 
+/* Readium CSS
    Scroll module
 
    A set of styles to scroll ePublications
@@ -196,7 +211,7 @@ body {
    Repo: https://github.com/readium/readium-css */
 
 :root[style*="readium-scroll-on"] {
-  
+
   /* Reset columns, auto + auto = columns can’t be created */
   -webkit-columns: auto auto !important;
   -moz-columns: auto auto !important;
@@ -207,57 +222,16 @@ body {
   max-height: none !important;
   /* Reset html size so that the user can scroll */
   min-width: 0 !important;
-  min-height: 0 !important;  
+  min-height: 0 !important;
 }
 
 /* Make sure line-length is limited in all configs */
 
 :root[style*="readium-scroll-on"] body {
-  --RS__maxLineLength: 40rem !important; 
-
-  margin-top: var(--RS__pageGutter) !important;
-  margin-bottom: var(--RS__pageGutter) !important;
+  --RS__maxLineLength: 40rem !important;
 }
 
-/* Scroll mode horizontal */
-
-/* Vertical writing needs body height set */
-
-/* Do we add a top/bottom margin for body in vertical scroll or not? */
-
-/* Readium CSS 
-   Default highlights
-
-   A stylesheet for user highlights
-
-   Repo: https://github.com/readium/readium-css */
-
-/* User Highlights */
-
-.readiumCSS-yellow-highlight {
-  background-color: rgba(255, 255, 0, 0.5);
-}
-
-.readiumCSS-green-highlight {
-  background-color: rgba(0, 255, 0, 0.5);
-}
-
-.readiumCSS-orange-highlight {
-  background-color: rgba(255, 165, 0, 0.5);
-}
-
-.readiumCSS-pink-highlight {
-  background-color: rgba(255, 105, 180, 0.5);
-}
-
-/* Media overlays */
-
-.readiumCSS-mo-active-default {
-  color: black !important;
-  background-color: yellow !important;
-}
-
-/* Readium CSS 
+/* Readium CSS
    Night mode
 
    A preset theme for night mode
@@ -303,8 +277,11 @@ body {
   color: var(--RS__visitedColor) !important;
 }
 
+/* For epub:type, in case the contents are served as text/html, namespaces won’t work hence why we’re using both syntax */
+
 :root[style*="readium-night-on"] img[class*="gaiji"],
-:root[style*="readium-night-on"] *[epub\:type~="titlepage"] img:only-child {
+:root[style*="readium-night-on"] *[epub\:type~="titlepage"] img:only-child,
+:root[style*="readium-night-on"] *[epub|type~="titlepage"] img:only-child {
   -webkit-filter: invert(100%);
   filter: invert(100%);
 }
@@ -330,7 +307,7 @@ body {
   filter: brightness(80%) invert(100%);
 }
 
-/* Readium CSS 
+/* Readium CSS
    Sepia mode
 
    A preset theme for sepia mode
@@ -355,11 +332,9 @@ body {
 
 /* we don’t need to redeclare bg-color and color for :root since we will inherit and update from day/default mode */
 
-:root[style*="readium-sepia-on"] body {
-  /* Should be transparent but Chrome bug https://bugs.chromium.org/p/chromium/issues/detail?id=711955&q=mix-blend-mode&colspec=ID%20Pri%20M%20Stars%20ReleaseBlock%20Component%20Status%20Owner%20Summary%20OS%20Modified */
-
-  color: inherit;
-  background-color: var(--RS__backgroundColor);
+:root[style*="readium-sepia-on"] *:not(a) {
+  color: inherit !important;
+  background-color: transparent !important;
 }
 
 :root[style*="readium-sepia-on"] a:link,
@@ -379,7 +354,7 @@ body {
   mix-blend-mode: multiply;
 }
 
-/* Readium CSS 
+/* Readium CSS
    OS Accessibility Modes
 
    A stylesheet to deal with OS accessibility settings
@@ -415,7 +390,8 @@ body {
 
 @media screen and (-ms-high-contrast: white-on-black) {
   :root[style*="readium-night-on"] img[class*="gaiji"],
-  :root[style*="readium-night-on"] *[epub\:type~="titlepage"] img:only-child {
+  :root[style*="readium-night-on"] *[epub\:type~="titlepage"] img:only-child,
+  :root[style*="readium-night-on"] *[epub|type~="titlepage"] img:only-child {
     -webkit-filter: none !important;
     filter: none !important;
   }
@@ -433,7 +409,8 @@ body {
 
 @media screen and (inverted-colors) {
   :root[style*="readium-night-on"] img[class*="gaiji"],
-  :root[style*="readium-night-on"] *[epub\:type~="titlepage"] img:only-child {
+  :root[style*="readium-night-on"] *[epub\:type~="titlepage"] img:only-child,
+  :root[style*="readium-night-on"] *[epub|type~="titlepage"] img:only-child {
     -webkit-filter: none !important;
     filter: none !important;
   }
@@ -456,7 +433,7 @@ body {
   /* If reduced motion is set on MacOS, in case we have animation/transition */
 }
 
-/* Readium CSS 
+/* Readium CSS
    Columns number pref
 
    A submodule managing columns number for user settings
@@ -494,7 +471,7 @@ body {
   }
 }
 
-/* Readium CSS 
+/* Readium CSS
    Page margins pref
 
    A submodule managing page margins for user settings
@@ -508,7 +485,7 @@ body {
   padding: 0 calc(var(--RS__pageGutter) * var(--USER__pageMargins)) !important;
 }
 
-/* Readium CSS 
+/* Readium CSS
    Custom colors pref
 
    A submodule managing custom colors for user settings
@@ -532,44 +509,7 @@ body {
   color: inherit !important;
 }
 
-/* Readium CSS 
-   Text align pref
-
-   A submodule managing text-align for user settings
-   Part of “User Overrides Advanced” class – “advanced settings” flag required.
-
-   Repo: https://github.com/readium/readium-css */
-
-:root[style*="readium-advanced-on"][style*="--USER__textAlign"] {
-  text-align: var(--USER__textAlign);
-}
-
-:root[style*="readium-advanced-on"][style*="--USER__textAlign"] body,
-:root[style*="readium-advanced-on"][style*="--USER__textAlign"] *:not(blockquote):not(figcaption) p,
-:root[style*="readium-advanced-on"][style*="--USER__textAlign"] li {
-  text-align: inherit !important;
-  -moz-text-align-last: auto !important;
-  -epub-text-align-last: auto !important;
-  text-align-last: auto !important;
-}
-
-/* In case something goes wrong at the programmatic level + rtl for body + rtl in ltr */
-
-:root[style*="readium-advanced-on"][dir="rtl"][style*="--USER__textAlign: left"],
-:root[style*="readium-advanced-on"][dir="rtl"][style*="--USER__textAlign:left"],
-:root[style*="readium-advanced-on"][style*="--USER__textAlign: left"] *[dir="rtl"],
-:root[style*="readium-advanced-on"][style*="--USER__textAlign:left"] *[dir="rtl"] {
-  text-align: right;
-}
-
-/* Edge, if logical value is used, think of it as a polyfill. For LTR, it will fall back to the default, which is left */
-
-:root[style*="readium-advanced-on"][dir="rtl"][style*="--USER__textAlign: start"],
-:root[style*="readium-advanced-on"][dir="rtl"][style*="--USER__textAlign:start"] {
-  text-align: right;
-}
-
-/* Readium CSS 
+/* Readium CSS
    Font Family pref
 
    A submodule managing font-family for user settings
@@ -605,7 +545,7 @@ body {
   font-family: inherit !important;
 }
 
-/* Readium CSS 
+/* Readium CSS
    Font size pref
 
    A submodule managing font-size for user settings
@@ -617,7 +557,7 @@ body {
   font-size: var(--USER__fontSize) !important;
 }
 
-/* Readium CSS 
+/* Readium CSS
    Line height pref
 
    A submodule managing line-height for user settings
@@ -636,7 +576,7 @@ body {
   line-height: inherit;
 }
 
-/* Readium CSS 
+/* Readium CSS
    Para spacing pref
 
    A submodule managing paragraphs’ top and bottom margins for user settings
@@ -649,42 +589,7 @@ body {
   margin-bottom: var(--USER__paraSpacing) !important;
 }
 
-/* Readium CSS 
-   Para indent pref
-
-   A submodule managing paragraphs’ text-indent for user settings
-   Part of “User Overrides Advanced” class – “advanced settings” flag required.
-
-   Repo: https://github.com/readium/readium-css */
-
-:root[style*="readium-advanced-on"][style*="--USER__paraIndent"] p {
-  text-indent: var(--USER__paraIndent) !important;
-}
-
-/* If there are inline-block elements in paragraphs, text-indent will inherit so we must reset it */
-
-:root[style*="readium-advanced-on"][style*="--USER__paraIndent"] p *,
-:root[style*="readium-advanced-on"][style*="--USER__paraIndent"] p:first-letter {
-  text-indent: 0 !important;
-}
-
-/* Readium CSS 
-   Ligatures pref
-
-   A submodule managing ligatures for user settings in the Arabic Script (can help with a11y)
-   Part of “User Overrides Advanced” class – “advanced settings” flag required.
-
-   Repo: https://github.com/readium/readium-css */
-
-:root[style*="readium-advanced-on"][style*="--USER__arabicLigatures"] {
-  font-variant-ligatures: var(--USER__ligatures) !important;
-}
-
-:root[style*="readium-advanced-on"][style*="--USER__arabicLigatures"] * {
-  font-variant-ligatures: inherit !important;
-}
-
-/* Readium CSS 
+/* Readium CSS
    Font size normalize
 
    A stylesheet to normalize font-size
@@ -743,7 +648,7 @@ body {
   font-size: 67.5% !important;
 }
 
-/* The following styles kick in if you define the typeScale variable in the DOM. 
+/* The following styles kick in if you define the typeScale variable in the DOM.
    No need to repeat declarations which don’t make use of the variable */
 
 :root[style*="readium-advanced-on"][style*="--USER__typeScale"] h1 {
@@ -756,5 +661,45 @@ body {
 
 :root[style*="readium-advanced-on"][style*="--USER__typeScale"] h3 {
   font-size: calc(1rem * var(--USER__typeScale)) !important;
+}
+
+/* Readium CSS
+   Default highlights
+
+   A stylesheet for user highlights
+
+   Repo: https://github.com/readium/readium-css */
+
+/* User Highlights */
+
+.readiumCSS-yellow-highlight,
+:root[style*="readium-sepia-on"] .readiumCSS-yellow-highlight,
+:root[style*="readium-night-on"] .readiumCSS-yellow-highlight {
+  background-color: rgba(255, 255, 0, 0.5) !important;
+}
+
+.readiumCSS-green-highlight,
+:root[style*="readium-sepia-on"] .readiumCSS-green-highlight,
+:root[style*="readium-night-on"] .readiumCSS-green-highlight {
+  background-color: rgba(0, 255, 0, 0.5) !important;
+}
+
+.readiumCSS-orange-highlight,
+:root[style*="readium-sepia-on"] .readiumCSS-orange-highlight,
+:root[style*="readium-night-on"] .readiumCSS-orange-highlight {
+  background-color: rgba(255, 165, 0, 0.5) !important;
+}
+
+.readiumCSS-pink-highlight,
+:root[style*="readium-sepia-on"] .readiumCSS-pink-highlight,
+:root[style*="readium-night-on"] .readiumCSS-pink-highlight {
+  background-color: rgba(255, 105, 180, 0.5) !important;
+}
+
+/* Media overlays */
+
+.readiumCSS-mo-active-default {
+  color: black !important;
+  background-color: yellow !important;
 }
 /*# sourceMappingURL=ReadiumCSS-after.css.map */
