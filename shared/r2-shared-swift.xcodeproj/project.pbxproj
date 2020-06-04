@@ -75,10 +75,20 @@
 		CA6D426D240439F4002FBED4 /* OPDSCopiesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D426C240439F4002FBED4 /* OPDSCopiesTests.swift */; };
 		CA6D426F24043A44002FBED4 /* OPDSAvailability.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D426E24043A44002FBED4 /* OPDSAvailability.swift */; };
 		CA6D427124043AF1002FBED4 /* OPDSAvailabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D427024043AF1002FBED4 /* OPDSAvailabilityTests.swift */; };
+		CA6F276E2469D8CF0065B405 /* ZIPFetcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F276D2469D8CF0065B405 /* ZIPFetcherTests.swift */; };
+		CA6F27702469D9050065B405 /* ZIPFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F276F2469D9050065B405 /* ZIPFetcher.swift */; };
+		CA6F27722469DB980065B405 /* Resource.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F27712469DB970065B405 /* Resource.swift */; };
+		CA6F27742469E4DA0065B405 /* FileFetcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F27732469E4DA0065B405 /* FileFetcherTests.swift */; };
+		CA6F27762469E5370065B405 /* FileFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F27752469E5370065B405 /* FileFetcher.swift */; };
 		CA7116EF2455935100C029FD /* DocumentTypesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7116EE2455935100C029FD /* DocumentTypesTests.swift */; };
 		CA7116F12455FAF900C029FD /* UTI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7116F02455FAF900C029FD /* UTI.swift */; };
 		CA81741C24585E6700033776 /* NowPlayingInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA81741B24585E6700033776 /* NowPlayingInfo.swift */; };
 		CA86728E24485BE70035FDF4 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA86728D24485BE70035FDF4 /* CoreServices.framework */; };
+		CA8C84142468906600CE97A4 /* Fetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8C84132468906600CE97A4 /* Fetcher.swift */; };
+		CA8C84162468914900CE97A4 /* Resource.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8C84152468914900CE97A4 /* Resource.swift */; };
+		CA8C841824689CD000CE97A4 /* TransformingFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8C841724689CD000CE97A4 /* TransformingFetcher.swift */; };
+		CA8C841A24689E4000CE97A4 /* RoutingFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8C841924689E4000CE97A4 /* RoutingFetcher.swift */; };
+		CA8C841C2468A06300CE97A4 /* ProxyFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8C841B2468A06300CE97A4 /* ProxyFetcher.swift */; };
 		CA94291622BCD08C00305CDB /* ResourcesServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA94291522BCD08B00305CDB /* ResourcesServer.swift */; };
 		CA9A40D1221B0AA200531EA1 /* Either.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D0221B0AA200531EA1 /* Either.swift */; };
 		CA9E6BA12239823300ECF6E4 /* Publication+Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9E6BA02239823300ECF6E4 /* Publication+Deprecated.swift */; };
@@ -213,10 +223,20 @@
 		CA6D426C240439F4002FBED4 /* OPDSCopiesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSCopiesTests.swift; sourceTree = "<group>"; };
 		CA6D426E24043A44002FBED4 /* OPDSAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSAvailability.swift; sourceTree = "<group>"; };
 		CA6D427024043AF1002FBED4 /* OPDSAvailabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSAvailabilityTests.swift; sourceTree = "<group>"; };
+		CA6F276D2469D8CF0065B405 /* ZIPFetcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZIPFetcherTests.swift; sourceTree = "<group>"; };
+		CA6F276F2469D9050065B405 /* ZIPFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZIPFetcher.swift; sourceTree = "<group>"; };
+		CA6F27712469DB970065B405 /* Resource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Resource.swift; sourceTree = "<group>"; };
+		CA6F27732469E4DA0065B405 /* FileFetcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileFetcherTests.swift; sourceTree = "<group>"; };
+		CA6F27752469E5370065B405 /* FileFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileFetcher.swift; sourceTree = "<group>"; };
 		CA7116EE2455935100C029FD /* DocumentTypesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentTypesTests.swift; sourceTree = "<group>"; };
 		CA7116F02455FAF900C029FD /* UTI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UTI.swift; sourceTree = "<group>"; };
 		CA81741B24585E6700033776 /* NowPlayingInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingInfo.swift; sourceTree = "<group>"; };
 		CA86728D24485BE70035FDF4 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		CA8C84132468906600CE97A4 /* Fetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fetcher.swift; sourceTree = "<group>"; };
+		CA8C84152468914900CE97A4 /* Resource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Resource.swift; sourceTree = "<group>"; };
+		CA8C841724689CD000CE97A4 /* TransformingFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformingFetcher.swift; sourceTree = "<group>"; };
+		CA8C841924689E4000CE97A4 /* RoutingFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutingFetcher.swift; sourceTree = "<group>"; };
+		CA8C841B2468A06300CE97A4 /* ProxyFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyFetcher.swift; sourceTree = "<group>"; };
 		CA94291522BCD08B00305CDB /* ResourcesServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourcesServer.swift; sourceTree = "<group>"; };
 		CA9A40D0221B0AA200531EA1 /* Either.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Either.swift; sourceTree = "<group>"; };
 		CA9E6BA02239823300ECF6E4 /* Publication+Deprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publication+Deprecated.swift"; sourceTree = "<group>"; };
@@ -509,6 +529,7 @@
 				CA5B7C382441BA5F003A2FE7 /* Fixtures.swift */,
 				CA5B7C362441B492003A2FE7 /* Fixtures */,
 				CA176390223AAAFB00959FEB /* Publication */,
+				CA6F276C2469D8BF0065B405 /* Fetcher */,
 				CA68BDBF244042BC009A6BAA /* Format */,
 				CA5F8EEF24040C0E00926120 /* OPDS */,
 				CA252DDE2447A5AE0005067C /* Toolkit */,
@@ -557,6 +578,30 @@
 				CA81741B24585E6700033776 /* NowPlayingInfo.swift */,
 			);
 			path = Media;
+			sourceTree = "<group>";
+		};
+		CA6F276C2469D8BF0065B405 /* Fetcher */ = {
+			isa = PBXGroup;
+			children = (
+				CA6F276D2469D8CF0065B405 /* ZIPFetcherTests.swift */,
+				CA6F27732469E4DA0065B405 /* FileFetcherTests.swift */,
+				CA6F27712469DB970065B405 /* Resource.swift */,
+			);
+			path = Fetcher;
+			sourceTree = "<group>";
+		};
+		CA8C84122468904100CE97A4 /* Fetcher */ = {
+			isa = PBXGroup;
+			children = (
+				CA8C84152468914900CE97A4 /* Resource.swift */,
+				CA8C84132468906600CE97A4 /* Fetcher.swift */,
+				CA6F27752469E5370065B405 /* FileFetcher.swift */,
+				CA8C841B2468A06300CE97A4 /* ProxyFetcher.swift */,
+				CA8C841924689E4000CE97A4 /* RoutingFetcher.swift */,
+				CA8C841724689CD000CE97A4 /* TransformingFetcher.swift */,
+				CA6F276F2469D9050065B405 /* ZIPFetcher.swift */,
+			);
+			path = Fetcher;
 			sourceTree = "<group>";
 		};
 		CA9E6BAB223A766200ECF6E4 /* EPUB */ = {
@@ -639,6 +684,7 @@
 				F3E7D3F81F4EBE2100DF166D /* Info.plist */,
 				F3E7D40C1F4EC69100DF166D /* RootFile.swift */,
 				CA16A8572232C27F00E66255 /* Publication */,
+				CA8C84122468904100CE97A4 /* Fetcher */,
 				CA68BDBE24404298009A6BAA /* Format */,
 				F3B1879E1FA33D3700BB46BF /* OPDS */,
 				CAC34F04221C61BD002C452E /* DRM */,
@@ -809,6 +855,7 @@
 				CA16A8742233004A00E66255 /* PropertiesTests.swift in Sources */,
 				CA16A8802233BE6900E66255 /* EncryptionTests.swift in Sources */,
 				CA5F8EFB2404142C00926120 /* EPUBLayoutTests.swift in Sources */,
+				CA6F27742469E4DA0065B405 /* FileFetcherTests.swift in Sources */,
 				CA40C07A21FF25F80069A50E /* JSON.swift in Sources */,
 				CA68BDD12440E123009A6BAA /* FormatSnifferTests.swift in Sources */,
 				CA68BDC724406873009A6BAA /* FormatTests.swift in Sources */,
@@ -816,6 +863,7 @@
 				CA5F8EEB240403F900926120 /* ReadingProgressionTests.swift in Sources */,
 				CA16A8602232D1B800E66255 /* LocalizedStringTests.swift in Sources */,
 				CA16A8862234021500E66255 /* MetadataTests.swift in Sources */,
+				CA6F276E2469D8CF0065B405 /* ZIPFetcherTests.swift in Sources */,
 				CA176383223A886500959FEB /* Properties+OPDSTests.swift in Sources */,
 				CA6D427124043AF1002FBED4 /* OPDSAvailabilityTests.swift in Sources */,
 				CA176381223A7DB700959FEB /* Publication+OPDSTests.swift in Sources */,
@@ -832,6 +880,7 @@
 				CA6D42692404381B002FBED4 /* OPDSHoldsTests.swift in Sources */,
 				CA3386E62404FD4600FDCBBA /* Properties+EncryptionTests.swift in Sources */,
 				CAB88C92224E766E00D36C99 /* LocatorTests.swift in Sources */,
+				CA6F27722469DB980065B405 /* Resource.swift in Sources */,
 				CACD75E0223657AD004F20CA /* PublicationTests.swift in Sources */,
 				CA17637E223A7C0300959FEB /* Publication+EPUBTests.swift in Sources */,
 				CABBB2FA2237CA94004EB039 /* OPDSAcquisitionTests.swift in Sources */,
@@ -849,6 +898,7 @@
 				CA17638D223A984600959FEB /* Publication.swift in Sources */,
 				F3E7D4231F4ECB3D00DF166D /* Date+ISO8601.swift in Sources */,
 				CA60CE242446E97400149B22 /* Fuzi.swift in Sources */,
+				CA8C84162468914900CE97A4 /* Resource.swift in Sources */,
 				CA17637A223A7B8900959FEB /* Properties+OPDS.swift in Sources */,
 				CACD75E22236A0B7004F20CA /* Subject.swift in Sources */,
 				CA5F8EF9240413C900926120 /* EPUBLayout.swift in Sources */,
@@ -858,6 +908,7 @@
 				CABBB2F82237C99E004EB039 /* OPDSAcquisition.swift in Sources */,
 				CAF4EAE72237AD6000A17DA1 /* UserProperties.swift in Sources */,
 				CA176387223A898B00959FEB /* Properties+EPUB.swift in Sources */,
+				CA8C841824689CD000CE97A4 /* TransformingFetcher.swift in Sources */,
 				CA6D426F24043A44002FBED4 /* OPDSAvailability.swift in Sources */,
 				CAD1EE70245AC29B00C1E684 /* String.swift in Sources */,
 				CA94291622BCD08C00305CDB /* ResourcesServer.swift in Sources */,
@@ -867,11 +918,13 @@
 				CA81741C24585E6700033776 /* NowPlayingInfo.swift in Sources */,
 				CA9E6BAE223A76C600ECF6E4 /* Publication+OPDS.swift in Sources */,
 				CABEB3DC2215698600090B6C /* Deferred.swift in Sources */,
+				CA6F27702469D9050065B405 /* ZIPFetcher.swift in Sources */,
 				CA68BDC1244042D5009A6BAA /* MediaType.swift in Sources */,
 				CA3386EA24052D8B00FDCBBA /* DOMRange.swift in Sources */,
 				CA2006512225A1F300E6B3BD /* Observable.swift in Sources */,
 				CA9E6BA4223A657900ECF6E4 /* JSON.swift in Sources */,
 				CA68BDC5244064F6009A6BAA /* Format.swift in Sources */,
+				CA8C841C2468A06300CE97A4 /* ProxyFetcher.swift in Sources */,
 				CAD0FEDA2444FDB60053C998 /* ZIP.swift in Sources */,
 				CA2AE321221C1DCB008BD18F /* LoggerStub.swift in Sources */,
 				CA2AE322221C1DCB008BD18F /* Loggable.swift in Sources */,
@@ -891,9 +944,12 @@
 				CAF4EAE42237ABC700A17DA1 /* MediaOverlayNode.swift in Sources */,
 				CAC34F0C221C61BD002C452E /* DRM+Deprecated.swift in Sources */,
 				CA3386E42404FD0300FDCBBA /* Properties+Encryption.swift in Sources */,
+				CA8C841A24689E4000CE97A4 /* RoutingFetcher.swift in Sources */,
 				CA5F8EE92404035D00926120 /* ReadingProgression.swift in Sources */,
+				CA8C84142468906600CE97A4 /* Fetcher.swift in Sources */,
 				CA5F8EFF24041AF200926120 /* Metadata+Presentation.swift in Sources */,
 				CA16A8642232DA2000E66255 /* Locator.swift in Sources */,
+				CA6F27762469E5370065B405 /* FileFetcher.swift in Sources */,
 				CA68BDCB24406C6C009A6BAA /* FormatSnifferContext.swift in Sources */,
 				CA9E6BA12239823300ECF6E4 /* Publication+Deprecated.swift in Sources */,
 				CABBB2E52237ADEB004EB039 /* Feed.swift in Sources */,
