@@ -307,6 +307,12 @@ class MediaTypeTests: XCTestCase {
         XCTAssertTrue(MediaType("audio/mpeg;param=value")!.isAudio)
     }
     
+    func testIsVideo() {
+        XCTAssertFalse(MediaType("text/html")!.isVideo)
+        XCTAssertTrue(MediaType("video/unknown")!.isVideo)
+        XCTAssertTrue(MediaType("video/mpeg;param=value")!.isVideo)
+    }
+    
     func testIsRWPM() {
         XCTAssertFalse(MediaType("text/html")!.isRWPM)
         XCTAssertTrue(MediaType("application/audiobook+json")!.isRWPM)

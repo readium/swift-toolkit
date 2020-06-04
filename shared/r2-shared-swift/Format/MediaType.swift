@@ -189,6 +189,11 @@ public struct MediaType: Equatable, Hashable {
         return type == "audio"
     }
     
+    /// Returns whether this media type is of a video clip.
+    public var isVideo: Bool {
+        return type == "video"
+    }
+    
     /// Returns whether this media type is of a Readium Web Publication Manifest.
     public var isRWPM: Bool {
         return matches(.audiobookManifest)

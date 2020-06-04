@@ -177,55 +177,73 @@ extension Array where Element == Link {
         map { $0.json }
     }
     
-    public func first(withRel rel: String, recursively: Bool = false) -> Link? {
-        return first(recursively: recursively) { $0.rels.contains(rel) }
+    /// Finds the first link with the given relation.
+    public func first(withRel rel: String) -> Link? {
+        return first { $0.rels.contains(rel) }
     }
-    
-    public func first(withHref href: String, recursively: Bool = false) -> Link? {
-        return first(recursively: recursively) { $0.href == href }
-    }
-    
-    public func first<T: Equatable>(withProperty otherProperty: String, matching: T, recursively: Bool = false) -> Link? {
-        return first(recursively: recursively) { ($0.properties.otherProperties[otherProperty] as? T) == matching }
-    }
-    
+
+    /// Finds all the links with the given relation.
     public func filter(byRel rel: String) -> [Link] {
         return filter { $0.rels.contains(rel) }
     }
     
-    /// Finds the first link matching the given predicate.
-    ///
-    /// - Parameter recursively: Finds links recursively through `children`.
-    public func first(recursively: Bool, where predicate: (Link) -> Bool) -> Link? {
-        return firstIndex(recursively: recursively, where: predicate)
-            .map { self[$0] }
-    }
-
-    public func firstIndex(withHref href: String, recursively: Bool = false) -> Int? {
-        return firstIndex(recursively: recursively) { $0.href == href }
+    /// Finds the first link matching the given HREF.
+    public func first(withHref href: String) -> Link? {
+        return first { $0.href == href }
     }
     
+    /// Finds the index of the first link matching the given HREF.
+    public func firstIndex(withHref href: String) -> Int? {
+        return firstIndex { $0.href == href }
+    }
+    
+    /// Finds the first link matching the given media type.
+    public func first(withMediaType mediaType: MediaType) -> Link? {
+        return first { mediaType.matches($0.type) }
+    }
+    
+    /// Finds all the links matching the given media type.
+    public func filter(byMediaType mediaType: MediaType) -> [Link] {
+        return filter { mediaType.matches($0.type) }
+    }
+    
+    /// Returns whether all the resources in the collection are bitmaps.
+    public var allIsBitmap: Bool {
+        allSatisfy { $0.mediaType?.isBitmap == true }
+    }
+    
+    /// Returns whether all the resources in the collection are audio clips.
+    public var allIsAudio: Bool {
+        allSatisfy { $0.mediaType?.isAudio == true }
+    }
+    
+    /// Returns whether all the resources in the collection are video clips.
+    public var allIsVideo: Bool {
+        allSatisfy { $0.mediaType?.isVideo == true }
+    }
+    
+    /// Returns whether all the resources in the collection are HTML documents.
+    public var allIsHTML: Bool {
+        allSatisfy { $0.mediaType?.isHTML == true }
+    }
+    
+    /// Returns whether all the resources in the collection are matching the given media type.
+    public func all(matchesMediaType mediaType: MediaType) -> Bool {
+        allSatisfy { mediaType.matches($0.type) }
+    }
+    
+    /// Returns whether all the resources in the collection are matching any of the given media types.
+    public func all(matchesMediaTypes mediaTypes: [MediaType]) -> Bool {
+        allSatisfy { link in
+            mediaTypes.contains { mediaType in
+                mediaType.matches(link.type)
+            }
+        }
+    }
+    
+    @available(*, deprecated, message: "This API will be removed.")
     public func firstIndex<T: Equatable>(withProperty otherProperty: String, matching: T, recursively: Bool = false) -> Int? {
-        return firstIndex(recursively: recursively) { ($0.properties.otherProperties[otherProperty] as? T) == matching }
+        return firstIndex { ($0.properties.otherProperties[otherProperty] as? T) == matching }
     }
     
-    /// Finds the index of the first link matching the given predicate.
-    ///
-    /// - Parameter recursively: Finds links recursively through `children`.
-    public func firstIndex(recursively: Bool, where predicate: (Link) -> Bool) -> Int? {
-        if !recursively {
-            return firstIndex(where: predicate)
-        }
-        
-        for (index, link) in enumerated() {
-            if predicate(link) {
-                return index
-            }
-            if let childIndex = link.children.firstIndex(recursively: true, where: predicate) {
-                return childIndex
-            }
-        }
-        return nil
-    }
-
 }
