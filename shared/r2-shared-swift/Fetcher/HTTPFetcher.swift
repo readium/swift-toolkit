@@ -12,28 +12,48 @@
 import Foundation
 
 /// Fetches remote resources with HTTP.
-final class HTTPFetcher: Fetcher {
+public final class HTTPFetcher: Fetcher {
     
     enum Error: Swift.Error {
         case invalidURL(String)
         case serverFailure
     }
 
-    let links: [Link] = []
+    public init(baseURL: URL? = nil) {
+        self.baseURL = baseURL
+    }
     
-    func get(_ link: Link) -> Resource {
-        guard
-            let url = URL(string: link.href),
-            let scheme = url.scheme?.lowercased(),
-            ["http", "https"].contains(scheme) else
-        {
+    public let links: [Link] = []
+    
+    public func get(_ link: Link) -> Resource {
+        guard let url = url(for: link.href) else {
             return FailureResource(link: link, error: .other(Error.invalidURL(link.href)))
         }
-        
         return HTTPResource(link: link, url: url)
     }
     
-    func close() { }
+    public func close() { }
+
+    /// Base URL from which relative HREF are served.
+    private let baseURL: URL?
+    
+    private func url(for href: String) -> URL? {
+        // HREF relative to the baseURL.
+        if href.hasPrefix("/"), let baseURL = baseURL {
+            return baseURL.appendingPathComponent(href)
+        }
+        
+        // Absolute URL.
+        if
+            let url = URL(string: href),
+            let scheme = url.scheme?.lowercased(),
+            ["http", "https"].contains(scheme)
+        {
+            return url
+        }
+        
+        return nil
+    }
     
     final class HTTPResource: Resource {
 
