@@ -118,6 +118,25 @@ public struct Link: JSONEquatable {
         ])
     }
     
+    /// List of URI template parameter keys, if the `Link` is templated.
+    public var templateParameters: Set<String> {
+        guard templated else {
+            return []
+        }
+        return URITemplate(href).parameters
+    }
+
+    /// Expands the [Link]'s HREF by replacing URI template variables by the given parameters.
+    ///
+    /// Any extra parameter is appended as query parameters.
+    /// See RFC 6570 on URI template: https://tools.ietf.org/html/rfc6570
+    public func expand(with parameters: [String: String]) -> Link {
+        return copy(
+            href: URITemplate(href).expand(with: parameters),
+            templated: false
+        )
+    }
+    
     /// Makes a copy of the `Link`, after modifying some of its properties.
     public func copy(
         href: String? = nil,

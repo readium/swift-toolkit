@@ -215,6 +215,86 @@ class LinkTests: XCTestCase {
         )
     }
     
+    func testTemplateParameters() {
+        XCTAssertEqual(
+            Link(
+                href:  "/url{?x,hello,y}name{z,y,w}",
+                templated: true
+            ).templateParameters,
+            ["x", "hello", "y", "z", "w"]
+        )
+    }
+    
+    func testTemplateParametersWithNoVariables() {
+        XCTAssertEqual(
+            Link(
+                href:  "/url",
+                templated: true
+            ).templateParameters,
+            []
+        )
+    }
+    
+    func testTemplateParametersForNonTemplatedLink() {
+        XCTAssertEqual(
+            Link(href:  "/url{?x,hello,y}name{z,y,w}").templateParameters,
+            []
+        )
+    }
+    
+    func testExpandSimpleStringTemplates() {
+        XCTAssertEqual(
+            Link(
+                href: "/url{x,hello,y}name{z,y,w}",
+                templated: true
+            ).expand(with: [
+                "x": "aaa",
+                "hello": "Hello, world",
+                "y": "b",
+                "z": "45",
+                "w": "w"
+            ]),
+            Link(href: "/urlaaa,Hello, world,bname45,b,w")
+        )
+    }
+
+    func testExpandFormStyleAmpersandSeparatedTemplates() {
+        XCTAssertEqual(
+            Link(
+                href: "/url{?x,hello,y}name",
+                templated: true
+            ).expand(with: [
+                "x": "aaa",
+                "hello": "Hello, world",
+                "y": "b"
+            ]),
+            Link(href: "/url?x=aaa&hello=Hello, world&y=bname")
+        )
+    }
+    
+    func testExpandAddsExtraParametersAsQueryParameters() {
+        XCTAssertEqual(
+            Link(
+                href: "/path{?search}",
+                templated: true
+            ).expand(with: [
+                "search": "banana",
+                "code": "14"
+            ]),
+            Link(href: "/path?search=banana&code=14")
+        )
+    }
+    
+    func testExpandAddsQueryParametersWhenNotTemplated() {
+        XCTAssertEqual(
+            Link(href: "/path").expand(with: [
+                "search": "banana",
+                "code": "14"
+            ]),
+            Link(href: "/path?code=14&search=banana")
+        )
+    }
+
     func testCopy() {
         let link = fullLink
         
