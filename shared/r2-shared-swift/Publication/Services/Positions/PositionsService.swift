@@ -33,8 +33,7 @@ public extension PositionsService {
 
 private let positionsLink = Link(
     href: "/~readium/positions",
-    type: "application/vnd.readium.position-list+json",
-    rel: "http://readium.org/position-list"
+    type: "application/vnd.readium.position-list+json"
 )
 
 public extension PositionsService {

@@ -95,14 +95,7 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
     public var jsonString: String? {
         serializeJSONString(json)
     }
-    
-    /// Computes an absolute URL to the link, relative to the given `baseURL`.
-    ///
-    /// If the link's `href` is already absolute, the `baseURL` is ignored.
-    public func url(relativeTo baseURL: URL?) -> URL? {
-        return URL(string: href, relativeTo: baseURL)?.absoluteURL
-    }
-    
+
     public var description: String {
         jsonString ?? "{}"
     }

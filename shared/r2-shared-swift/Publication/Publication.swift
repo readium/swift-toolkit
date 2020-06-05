@@ -12,7 +12,6 @@
 import CoreServices
 import Foundation
 
-
 /// Shared model for a Readium Publication.
 public class Publication: Loggable {
 
@@ -34,7 +33,7 @@ public class Publication: Loggable {
     public var resources: [Link] { manifest.resources }
     /// Identifies the collection that contains a table of contents.
     public var tableOfContents: [Link] { manifest.tableOfContents }
-    public var otherCollections: [PublicationCollection] { manifest.otherCollections }
+    public var subcollections: [String: [PublicationCollection]] { manifest.subcollections }
 
     public var userProperties = UserProperties()
     

@@ -11,7 +11,9 @@
 
 import Foundation
 
-/// Readium Web Publication Manifest
+/// Holds the metadata of a Readium publication, as described in the Readium Web Publication
+/// Manifest.
+///
 /// See. https://readium.org/webpub-manifest/
 public struct PublicationManifest: JSONEquatable {
     
@@ -28,18 +30,18 @@ public struct PublicationManifest: JSONEquatable {
     /// Identifies resources that are necessary for rendering the publication.
     public let resources: [Link]
     
-    public let otherCollections: [PublicationCollection]
+    public let subcollections: [String: [PublicationCollection]]
     
     /// Identifies the collection that contains a table of contents.
     public var tableOfContents: [Link] {
-        otherCollections.first(withRole: "toc")?.links ?? []
+        subcollections["toc"]?.first?.links ?? []
     }
     
-    public init(context: [String] = [], metadata: Metadata, links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = [], tableOfContents: [Link] = [], otherCollections: [PublicationCollection] = []) {
+    public init(context: [String] = [], metadata: Metadata, links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = [], tableOfContents: [Link] = [], subcollections: [String: [PublicationCollection]] = [:]) {
         // Convenience to set the table of contents during construction
-        var otherCollections = otherCollections
+        var subcollections = subcollections
         if !tableOfContents.isEmpty {
-            otherCollections.insert(PublicationCollection(role: "toc", links: tableOfContents), at: 0)
+            subcollections["toc"] = [PublicationCollection(links: tableOfContents)]
         }
         
         self.context = context
@@ -47,7 +49,7 @@ public struct PublicationManifest: JSONEquatable {
         self.links = links
         self.readingOrder = readingOrder
         self.resources = resources
-        self.otherCollections = otherCollections
+        self.subcollections = subcollections
     }
 
     /// Parses a Readium Web Publication Manifest.
@@ -67,7 +69,7 @@ public struct PublicationManifest: JSONEquatable {
             .filter { $0.type != nil }
 
         // Parses sub-collections from remaining JSON properties.
-        self.otherCollections = [PublicationCollection](json: json.json, normalizeHref: normalizeHref)
+        self.subcollections = PublicationCollection.makeCollections(json: json.json, normalizeHref: normalizeHref)
     }
     
     public var json: [String: Any] {
@@ -78,7 +80,7 @@ public struct PublicationManifest: JSONEquatable {
             "readingOrder": readingOrder.json,
             "resources": encodeIfNotEmpty(resources.json),
             "toc": encodeIfNotEmpty(tableOfContents.json),
-        ], additional: otherCollections.json)
+        ], additional: PublicationCollection.serializeCollections(subcollections))
     }
     
     /// Finds the first link with the given relation in the manifest's links.

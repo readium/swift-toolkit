@@ -16,18 +16,18 @@ class PublicationCollectionTests: XCTestCase {
     
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            try? PublicationCollection(role: "guided", json: [
+            try? PublicationCollection(json: [
                 "links": [
                     ["href": "/link"]
                 ]
             ]),
-            PublicationCollection(role: "guided", links: [Link(href: "/link")])
+            PublicationCollection(links: [Link(href: "/link")])
         )
     }
     
     func testParseFullJSON() {
         XCTAssertEqual(
-            try? PublicationCollection(role: "guided", json: [
+            try? PublicationCollection(json: [
                 "metadata": [
                     "metadata1": "value"
                 ],
@@ -57,28 +57,29 @@ class PublicationCollectionTests: XCTestCase {
                 ]
             ]),
             PublicationCollection(
-                role: "guided",
                 metadata: [
                     "metadata1": "value"
                 ],
                 links: [Link(href: "/link")],
-                otherCollections: [
-                    PublicationCollection(role: "sub1", links: [Link(href: "/sublink")]),
-                    PublicationCollection(role: "sub2", links: [Link(href: "/sublink1"), Link(href: "/sublink2")]),
-                    PublicationCollection(role: "sub3", links: [Link(href: "/sublink3")]),
-                    PublicationCollection(role: "sub3", links: [Link(href: "/sublink4")]),
+                subcollections: [
+                    "sub1": [PublicationCollection(links: [Link(href: "/sublink")])],
+                    "sub2": [PublicationCollection(links: [Link(href: "/sublink1"), Link(href: "/sublink2")])],
+                    "sub3": [
+                        PublicationCollection(links: [Link(href: "/sublink3")]),
+                        PublicationCollection(links: [Link(href: "/sublink4")])
+                    ]
                 ]
             )
         )
     }
     
     func testParseInvalidJSON() {
-        XCTAssertThrowsError(try PublicationCollection(role: "guided", json: ""))
+        XCTAssertThrowsError(try PublicationCollection(json: ""))
     }
 
     func testParseJSONArray() {
         XCTAssertEqual(
-            [PublicationCollection](json: [
+            PublicationCollection.makeCollections(json: [
                 "ignored": [ "value" ],
                 "sub1": [
                     "links": [
@@ -103,17 +104,19 @@ class PublicationCollectionTests: XCTestCase {
                 ]
             ]),
             [
-                PublicationCollection(role: "sub1", links: [Link(href: "/sublink")]),
-                PublicationCollection(role: "sub2", links: [Link(href: "/sublink1"), Link(href: "/sublink2")]),
-                PublicationCollection(role: "sub3", links: [Link(href: "/sublink3")]),
-                PublicationCollection(role: "sub3", links: [Link(href: "/sublink4")]),
+                "sub1": [PublicationCollection(links: [Link(href: "/sublink")])],
+                "sub2": [PublicationCollection(links: [Link(href: "/sublink1"), Link(href: "/sublink2")])],
+                "sub3": [
+                    PublicationCollection(links: [Link(href: "/sublink3")]),
+                    PublicationCollection(links: [Link(href: "/sublink4")])
+                ]
             ]
         )
     }
     
     func testGetMinimalJSON() {
         AssertJSONEqual(
-            PublicationCollection(role: "guided", links: [Link(href: "/link")]).json,
+            PublicationCollection(links: [Link(href: "/link")]).json,
             [
                 "links": [
                     ["href": "/link", "templated": false]
@@ -125,17 +128,18 @@ class PublicationCollectionTests: XCTestCase {
     func testGetFullJSON() {
         AssertJSONEqual(
             PublicationCollection(
-                role: "guided",
                 metadata: [
                     "metadata1": "value"
                 ],
                 links: [Link(href: "/link")],
-                otherCollections: [
-                    PublicationCollection(role: "sub1", links: [Link(href: "/sublink")]),
-                    PublicationCollection(role: "sub2", links: [Link(href: "/sublink1"), Link(href: "/sublink2")]),
-                    PublicationCollection(role: "sub3", links: [Link(href: "/sublink3")]),
-                    PublicationCollection(role: "sub3", links: [Link(href: "/sublink4")]),
+                subcollections: [
+                    "sub1": [PublicationCollection(links: [Link(href: "/sublink")])],
+                    "sub2": [PublicationCollection(links: [Link(href: "/sublink1"), Link(href: "/sublink2")])],
+                    "sub3": [
+                        PublicationCollection(links: [Link(href: "/sublink3")]),
+                        PublicationCollection(links: [Link(href: "/sublink4")])
                     ]
+                ]
             ).json,
             [
                 "metadata": [
@@ -173,12 +177,14 @@ class PublicationCollectionTests: XCTestCase {
     
     func testGetJSONArray() {
         AssertJSONEqual(
-            [
-                PublicationCollection(role: "sub1", links: [Link(href: "/sublink")]),
-                PublicationCollection(role: "sub2", links: [Link(href: "/sublink1"), Link(href: "/sublink2")]),
-                PublicationCollection(role: "sub3", links: [Link(href: "/sublink3")]),
-                PublicationCollection(role: "sub3", links: [Link(href: "/sublink4")]),
-            ].json,
+            PublicationCollection.serializeCollections([
+                "sub1": [PublicationCollection(links: [Link(href: "/sublink")])],
+                "sub2": [PublicationCollection(links: [Link(href: "/sublink1"), Link(href: "/sublink2")])],
+                "sub3": [
+                    PublicationCollection(links: [Link(href: "/sublink3")]),
+                    PublicationCollection(links: [Link(href: "/sublink4")])
+                ]
+            ]),
             [
                 "sub1": [
                     "links": [

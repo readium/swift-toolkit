@@ -122,7 +122,12 @@ public struct Link: JSONEquatable {
     ///
     /// If the link's `href` is already absolute, the `baseURL` is ignored.
     public func url(relativeTo baseURL: URL?) -> URL? {
-        return URL(string: href, relativeTo: baseURL)?.absoluteURL
+        if let url = URL(string: href), url.scheme != nil {
+            return url
+        } else {
+            let safeHREF = (href.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? href).removingPrefix("/")
+            return URL(string: safeHREF, relativeTo: baseURL)?.absoluteURL
+        }
     }
     
     

@@ -222,13 +222,20 @@ class LinkTests: XCTestCase {
         )
     }
 
+    func testURLRelativeToBaseURLWithRootPrefix() {
+        XCTAssertEqual(
+            Link(href: "/file.html").url(relativeTo: URL(string: "http://host/folder/")!),
+            URL(string: "http://host/folder/file.html")!
+        )
+    }
+
     func testURLRelativeToNil() {
         XCTAssertEqual(
             Link(href: "folder/file.html").url(relativeTo: nil),
             URL(string: "folder/file.html")!
         )
     }
-    
+
     func testURLWithInvalidHREF() {
         XCTAssertNil(Link(href: "").url(relativeTo: URL(string: "http://test.com")!))
     }
@@ -237,6 +244,13 @@ class LinkTests: XCTestCase {
         XCTAssertEqual(
             Link(href: "http://test.com/folder/file.html").url(relativeTo: URL(string: "http://host/")!),
             URL(string: "http://test.com/folder/file.html")!
+        )
+    }
+    
+    func testURLWithHREFContainingInvalidCharacters() {
+        XCTAssertEqual(
+            Link(href: "/Cory Doctorow's/a-fc.jpg").url(relativeTo: URL(string: "http://host/folder/")),
+            URL(string: "http://host/folder/Cory%20Doctorow's/a-fc.jpg")!
         )
     }
 

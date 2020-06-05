@@ -22,7 +22,7 @@ class PublicationOPDSTests: XCTestCase {
     func testImages() {
         let sut = Publication(manifest: PublicationManifest(
             metadata: Metadata(title: ""), links: [], readingOrder: [],
-            otherCollections: [PublicationCollection(role: "images", links: [Link(href: "/image.png")])]
+            subcollections: ["images": [PublicationCollection(links: [Link(href: "/image.png")])]]
         ))
         
         XCTAssertEqual(

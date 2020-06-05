@@ -18,29 +18,29 @@ extension Publication {
     /// Provides navigation to positions in the Publication content that correspond to the locations
     /// of page boundaries present in a print source being represented by this EPUB Publication.
     public var pageList: [Link] {
-        otherCollections.first(withRole: "pageList")?.links ?? []
+        subcollections["pageList"]?.first?.links ?? []
     }
     
     /// Identifies fundamental structural components of the publication in order to enable Reading
     /// Systems to provide the User efficient access to them..
     public var landmarks: [Link] {
-        otherCollections.first(withRole: "landmarks")?.links ?? []
+        subcollections["landmarks"]?.first?.links ?? []
     }
     
     public var listOfAudioClips: [Link] {
-        otherCollections.first(withRole: "loa")?.links ?? []
+        subcollections["loa"]?.flatMap { $0.links } ?? []
     }
     
     public var listOfIllustrations: [Link] {
-        otherCollections.first(withRole: "loi")?.links ?? []
+        subcollections["loi"]?.flatMap { $0.links } ?? []
     }
     
     public var listOfTables: [Link] {
-        otherCollections.first(withRole: "lot")?.links ?? []
+        subcollections["lot"]?.flatMap { $0.links } ?? []
     }
     
     public var listOfVideoClips: [Link] {
-        otherCollections.first(withRole: "lov")?.links ?? []
+        subcollections["lov"]?.flatMap { $0.links } ?? []
     }
 
 }

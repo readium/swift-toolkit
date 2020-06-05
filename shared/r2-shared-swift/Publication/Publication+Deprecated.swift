@@ -22,9 +22,9 @@ extension Publication {
     }
     
     @available(*, deprecated, renamed: "init(format:formatVersion:manifest:)")
-    public convenience init(format: Format = .unknown, formatVersion: String? = nil, positionListFactory: @escaping (Publication) -> [Locator] = { _ in [] }, context: [String] = [], metadata: Metadata, links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = [], tableOfContents: [Link] = [], otherCollections: [PublicationCollection] = []) {
+    public convenience init(format: Format = .unknown, formatVersion: String? = nil, positionListFactory: @escaping (Publication) -> [Locator] = { _ in [] }, context: [String] = [], metadata: Metadata, links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = [], tableOfContents: [Link] = [], otherCollections: [String: [PublicationCollection]] = [:]) {
         self.init(
-            manifest: PublicationManifest(context: context, metadata: metadata, links: links, readingOrder: readingOrder, resources: resources, tableOfContents: tableOfContents, otherCollections: otherCollections),
+            manifest: PublicationManifest(context: context, metadata: metadata, links: links, readingOrder: readingOrder, resources: resources, tableOfContents: tableOfContents, subcollections: otherCollections),
             format: format,
             formatVersion: formatVersion
         )
@@ -84,6 +84,9 @@ extension Publication {
     
     @available(*, deprecated, renamed: "positionsByResource")
     public var positionListByResource: [String: [Locator]] { positionsByResource }
+    
+    @available(*, deprecated, renamed: "subcollections")
+    public var otherCollections: [String: [PublicationCollection]] { subcollections }
     
     @available(*, deprecated, renamed: "link(withHREF:)")
     public func resource(withRelativePath path: String) -> Link? {
@@ -205,6 +208,13 @@ extension Metadata {
     
     @available(*, deprecated, renamed: "presentation")
     public var rendition: EPUBRendition { presentation }
+    
+}
+
+extension PublicationCollection {
+    
+    @available(*, deprecated, renamed: "subcollections")
+    public var otherCollections: [String: [PublicationCollection]] { subcollections }
     
 }
 

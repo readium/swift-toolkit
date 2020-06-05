@@ -64,7 +64,7 @@ class PublicationManifestTests: XCTestCase {
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")],
                 resources: [Link(href: "/image.png", type: "image/png")],
                 tableOfContents: [Link(href: "/cover.html"), Link(href: "/chap1.html")],
-                otherCollections: [PublicationCollection(role: "sub", links: [Link(href: "/sublink")])]
+                subcollections: ["sub": [PublicationCollection(links: [Link(href: "/sublink")])]]
             )
         )
     }
@@ -201,7 +201,7 @@ class PublicationManifestTests: XCTestCase {
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")],
                 resources: [Link(href: "/image.png", type: "image/png")],
                 tableOfContents: [Link(href: "/cover.html"), Link(href: "/chap1.html")],
-                otherCollections: [PublicationCollection(role: "sub", links: [Link(href: "/sublink")])]
+                subcollections: ["sub": [PublicationCollection(links: [Link(href: "/sublink")])]]
             ).json,
             [
                 "@context": ["https://readium.org/webpub-manifest/context.jsonld"],

@@ -74,8 +74,7 @@ class PositionsServiceTests: XCTestCase {
             service.links,
             [Link(
                 href: "/~readium/positions",
-                type: "application/vnd.readium.position-list+json",
-                rel: "http://readium.org/position-list"
+                type: "application/vnd.readium.position-list+json"
             )]
         )
     }
