@@ -78,19 +78,21 @@ extension Publication {
     public static func parse(pubDict: [String: Any]) throws -> Publication {
         return try Publication(json: pubDict, normalizeHref: { $0 })
     }
-    
-    @available(*, unavailable, renamed: "url(to:)")
-    public func uriTo(link: Link?) -> URL? { return url(to: link) }
-    
+
     @available(*, deprecated, renamed: "positions")
     public var positionList: [Locator] { positions }
     
     @available(*, deprecated, renamed: "positionsByResource")
     public var positionListByResource: [String: [Locator]] { positionsByResource }
     
-    @available(*, deprecated, renamed: "resource(withHref:)")
+    @available(*, deprecated, renamed: "link(withHREF:)")
     public func resource(withRelativePath path: String) -> Link? {
-        return resource(withHref: path)
+        return link(withHREF: path)
+    }
+    
+    @available(*, deprecated, renamed: "link(withHREF:)")
+    public func resource(withHref href: String) -> Link? {
+        return link(withHREF: href)
     }
     
     @available(*, deprecated, message: "Use `setSelfLink` instead")
@@ -101,6 +103,31 @@ extension Publication {
     
     @available(*, unavailable, message: "`Publication` is now immutable")
     func setCollectionLinks(_ links: [Link], forRole role: String) {}
+    
+    @available(*, deprecated, renamed: "link(withHREF:)")
+    public func link(withHref href: String) -> Link? {
+        return link(withHREF: href)
+    }
+    
+    @available(*, deprecated, message: "This will be removed in a future version")
+    public func link(where predicate: (Link) -> Bool) -> Link? {
+        return (resources + readingOrder + links).first(where: predicate)
+    }
+    
+    @available(*, unavailable, message: "Use `link.url(relativeTo: publication.baseURL)` instead")
+    public func uriTo(link: Link?) -> URL? {
+        return link?.url(relativeTo: baseURL)
+    }
+    
+    @available(*, deprecated, message: "Use `link.url(relativeTo: publication.baseURL)` instead")
+    public func url(to link: Link?) -> URL? {
+        return link?.url(relativeTo: baseURL)
+    }
+    
+    @available(*, deprecated, message: "Use `link.url(relativeTo: publication.baseURL)` instead")
+    public func url(to href: String?) -> URL? {
+        return href.flatMap { link(withHREF: $0)?.url(relativeTo: baseURL) }
+    }
 
 }
 

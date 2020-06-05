@@ -225,14 +225,14 @@ public extension Format {
         if let (isManifest, rwpm) = readRWPM() {
             let isLCPProtected = context.containsZIPEntry(at: "license.lcpl")
 
-            if rwpm.metadata.type == "http://schema.org/Audiobook" || rwpm.allReadingOrderIsAudio {
+            if rwpm.metadata.type == "http://schema.org/Audiobook" || rwpm.readingOrder.allAreAudio {
                 return isManifest ? .audiobookManifest :
                     isLCPProtected ? .lcpProtectedAudiobook : .audiobook
             }
-            if rwpm.allReadingOrderIsBitmap {
+            if rwpm.readingOrder.allAreBitmap {
                 return isManifest ? .divinaManifest : .divina
             }
-            if isLCPProtected, rwpm.allReadingOrderMatches(mediaType: .pdf) {
+            if isLCPProtected, rwpm.readingOrder.all(matchMediaType: .pdf) {
                 return .lcpProtectedPDF
             }
             if rwpm.link(withRel: "self")?.type == "application/webpub+json" {
@@ -454,4 +454,21 @@ public extension URLResponse {
         }
     }
 
+}
+
+private extension Publication {
+
+    /// Finds the first `Link` having the given `rel` matching the given `predicate`, in the
+    /// publications' links.
+    func link(withRelMatching predicate: (String) -> Bool) -> Link? {
+        for link in links {
+            for rel in link.rels {
+                if predicate(rel) {
+                    return link
+                }
+            }
+        }
+        return nil
+    }
+    
 }

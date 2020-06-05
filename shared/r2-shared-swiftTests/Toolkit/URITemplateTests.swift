@@ -49,23 +49,22 @@ class URITemplateTests: XCTestCase {
         )
     }
     
-    func testExpandAddsExtraParametersAsQueryParameters() {
+    func testExpandIgnoresExtraParameters() {
         XCTAssertEqual(
             URITemplate("/path{?search}").expand(with: [
                 "search": "banana",
                 "code": "14"
             ]),
-            "/path?search=banana&code=14"
+            "/path?search=banana"
         )
     }
     
-    func testExpandAddsQueryParametersWithNoVariables() {
+    func testExpandWithNoVariables() {
         XCTAssertEqual(
             URITemplate("/path").expand(with: [
                 "search": "banana",
-                "code": "14"
             ]),
-            "/path?code=14&search=banana"
+            "/path"
         )
     }
 

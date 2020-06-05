@@ -195,6 +195,43 @@ class MetadataTests: XCTestCase {
         )
     }
     
+    func testEffectiveReadingProgressionFallsBackOnLTR() {
+        let metadata = makeMetadata(languages: [], readingProgression: .auto)
+        XCTAssertEqual(metadata.effectiveReadingProgression, .ltr)
+    }
+    
+    func testEffectiveReadingProgressionFallsBackOnTheProvidedReadingProgression() {
+        let metadata = makeMetadata(languages: [], readingProgression: .rtl)
+        XCTAssertEqual(metadata.effectiveReadingProgression, .rtl)
+    }
+    
+    func testEffectiveReadingProgressionWithRTLLanguage() {
+        XCTAssertEqual(makeMetadata(languages: ["zh-Hant"], readingProgression: .auto).effectiveReadingProgression, .rtl)
+        XCTAssertEqual(makeMetadata(languages: ["zh-TW"], readingProgression: .auto).effectiveReadingProgression, .rtl)
+        XCTAssertEqual(makeMetadata(languages: ["ar"], readingProgression: .auto).effectiveReadingProgression, .rtl)
+        XCTAssertEqual(makeMetadata(languages: ["fa"], readingProgression: .auto).effectiveReadingProgression, .rtl)
+        XCTAssertEqual(makeMetadata(languages: ["he"], readingProgression: .auto).effectiveReadingProgression, .rtl)
+        XCTAssertEqual(makeMetadata(languages: ["he"], readingProgression: .ltr).effectiveReadingProgression, .ltr)
+    }
+    
+    func testEffectiveReadingProgressionIgnoresMultipleLanguages() {
+        XCTAssertEqual(makeMetadata(languages: ["ar", "fa"], readingProgression: .auto).effectiveReadingProgression, .ltr)
+    }
+    
+    func testEffectiveReadingProgressionIgnoresLanguageCase() {
+        XCTAssertEqual(makeMetadata(languages: ["AR"], readingProgression: .auto).effectiveReadingProgression, .rtl)
+    }
+    
+    func testEffectiveReadingProgressionIgnoresLanguageRegion() {
+        XCTAssertEqual(makeMetadata(languages: ["ar-foo"], readingProgression: .auto).effectiveReadingProgression, .rtl)
+        // But not for ZH
+        XCTAssertEqual(makeMetadata(languages: ["zh-foo"], readingProgression: .auto).effectiveReadingProgression, .ltr)
+    }
+
+    private func makeMetadata(languages: [String], readingProgression: ReadingProgression) -> Metadata {
+        return Metadata(title: "", languages: languages, readingProgression: readingProgression)
+    }
+    
     func testCopy() {
         let metadata = fullMetadata
         

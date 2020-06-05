@@ -165,6 +165,31 @@ class LocatorTests: XCTestCase {
         )
     }
     
+    func testURLWithInvalidHREF() {
+        XCTAssertNil(Locator(href: "", type: "").url(relativeTo: URL(string: "http://test.com")!))
+    }
+    
+    func testURLRelativeToBaseURL() {
+        XCTAssertEqual(
+            Locator(href: "folder/file.html", type: "").url(relativeTo: URL(string: "http://host/")!),
+            URL(string: "http://host/folder/file.html")!
+        )
+    }
+
+    func testURLRelativeToNil() {
+        XCTAssertEqual(
+            Locator(href: "folder/file.html", type: "").url(relativeTo: nil),
+            URL(string: "folder/file.html")!
+        )
+    }
+    
+    func testURLWithAbsoluteHREF() {
+        XCTAssertEqual(
+            Locator(href: "http://test.com/folder/file.html", type: "").url(relativeTo: URL(string: "http://host/")!),
+            URL(string: "http://test.com/folder/file.html")!
+        )
+    }
+    
     func testCopy() {
         let locator = Locator(
             href: "http://locator",

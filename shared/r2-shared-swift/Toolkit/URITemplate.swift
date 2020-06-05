@@ -11,6 +11,10 @@
 
 import Foundation
 
+/// A lightweight implementation of URI Template (RFC 6570).
+///
+/// Only handles simple cases, fitting Readium's use cases.
+/// See https://tools.ietf.org/html/rfc6570
 public struct URITemplate: CustomStringConvertible {
     
     public let uri: String
@@ -53,30 +57,15 @@ public struct URITemplate: CustomStringConvertible {
                 .joined(separator: "&")
         }
         
-        var expanded = ReplacingRegularExpression(#"\{(\??)([^}]+)\}"#) { result, groups in
+        return ReplacingRegularExpression(#"\{(\??)([^}]+)\}"#) { result, groups in
             guard groups.count == 3 else {
                 return ""
             }
             return (groups[1].isEmpty)
                 ? expandSimpleString(groups[2])
                 : expandFormStyle(groups[2])
-            
+
         }.stringByReplacingMatches(in: uri)
-        
-        let templateParameters = self.parameters
-        let extra = parameters
-            .filter { key, _ in !templateParameters.contains(key) }
-            .map { key, value in "\(key)=\(value)" }
-            .sorted()
-            .joined(separator: "&")
-        
-        if !extra.isEmpty {
-            expanded = (!expanded.contains("?"))
-                ? "\(expanded)?\(extra)"
-                : "\(expanded)&\(extra)"
-        }
-        
-        return expanded
     }
 
     

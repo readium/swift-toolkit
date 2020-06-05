@@ -118,6 +118,16 @@ public struct Link: JSONEquatable {
         ])
     }
     
+    /// Computes an absolute URL to the link, relative to the given `baseURL`.
+    ///
+    /// If the link's `href` is already absolute, the `baseURL` is ignored.
+    public func url(relativeTo baseURL: URL?) -> URL? {
+        return URL(string: href, relativeTo: baseURL)?.absoluteURL
+    }
+    
+    
+    // MARK: URI Template
+    
     /// List of URI template parameter keys, if the `Link` is templated.
     public var templateParameters: Set<String> {
         guard templated else {
@@ -126,16 +136,21 @@ public struct Link: JSONEquatable {
         return URITemplate(href).parameters
     }
 
-    /// Expands the [Link]'s HREF by replacing URI template variables by the given parameters.
+    /// Expands the `Link`'s HREF by replacing URI template variables by the given parameters.
     ///
-    /// Any extra parameter is appended as query parameters.
     /// See RFC 6570 on URI template: https://tools.ietf.org/html/rfc6570
-    public func expand(with parameters: [String: String]) -> Link {
+    public func expandTemplate(with parameters: [String: String]) -> Link {
+        guard templated else {
+            return self
+        }
         return copy(
             href: URITemplate(href).expand(with: parameters),
             templated: false
         )
     }
+    
+    
+    // MARK: Copy
     
     /// Makes a copy of the `Link`, after modifying some of its properties.
     public func copy(
@@ -207,15 +222,15 @@ extension Array where Element == Link {
     }
     
     /// Finds the first link matching the given HREF.
-    public func first(withHref href: String) -> Link? {
+    public func first(withHREF href: String) -> Link? {
         return first { $0.href == href }
     }
-    
+
     /// Finds the index of the first link matching the given HREF.
-    public func firstIndex(withHref href: String) -> Int? {
+    public func firstIndex(withHREF href: String) -> Int? {
         return firstIndex { $0.href == href }
     }
-    
+
     /// Finds the first link matching the given media type.
     public func first(withMediaType mediaType: MediaType) -> Link? {
         return first { mediaType.matches($0.type) }
@@ -226,33 +241,42 @@ extension Array where Element == Link {
         return filter { mediaType.matches($0.type) }
     }
     
+    /// Finds all the links matching any of the given media types.
+    public func filter(byMediaTypes mediaTypes: [MediaType]) -> [Link] {
+        return filter { link in
+            mediaTypes.contains { mediaType in
+                mediaType.matches(link.type)
+            }
+        }
+    }
+    
     /// Returns whether all the resources in the collection are bitmaps.
-    public var allIsBitmap: Bool {
+    public var allAreBitmap: Bool {
         allSatisfy { $0.mediaType?.isBitmap == true }
     }
     
     /// Returns whether all the resources in the collection are audio clips.
-    public var allIsAudio: Bool {
+    public var allAreAudio: Bool {
         allSatisfy { $0.mediaType?.isAudio == true }
     }
     
     /// Returns whether all the resources in the collection are video clips.
-    public var allIsVideo: Bool {
+    public var allAreVideo: Bool {
         allSatisfy { $0.mediaType?.isVideo == true }
     }
     
     /// Returns whether all the resources in the collection are HTML documents.
-    public var allIsHTML: Bool {
+    public var allAreHTML: Bool {
         allSatisfy { $0.mediaType?.isHTML == true }
     }
     
     /// Returns whether all the resources in the collection are matching the given media type.
-    public func all(matchesMediaType mediaType: MediaType) -> Bool {
+    public func all(matchMediaType mediaType: MediaType) -> Bool {
         allSatisfy { mediaType.matches($0.type) }
     }
     
     /// Returns whether all the resources in the collection are matching any of the given media types.
-    public func all(matchesMediaTypes mediaTypes: [MediaType]) -> Bool {
+    public func all(matchMediaTypes mediaTypes: [MediaType]) -> Bool {
         allSatisfy { link in
             mediaTypes.contains { mediaType in
                 mediaType.matches(link.type)
@@ -263,6 +287,16 @@ extension Array where Element == Link {
     @available(*, deprecated, message: "This API will be removed.")
     public func firstIndex<T: Equatable>(withProperty otherProperty: String, matching: T, recursively: Bool = false) -> Int? {
         return firstIndex { ($0.properties.otherProperties[otherProperty] as? T) == matching }
+    }
+    
+    @available(*, deprecated, renamed: "first(withHREF:)")
+    public func first(withHref href: String) -> Link? {
+        return first(withHREF: href)
+    }
+    
+    @available(*, deprecated, renamed: "firstIndex(withHREF:)")
+    public func firstIndex(withHref href: String) -> Int? {
+        return firstIndex(withHREF: href)
     }
     
 }

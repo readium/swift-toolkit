@@ -80,5 +80,15 @@ public struct PublicationManifest: JSONEquatable {
             "toc": encodeIfNotEmpty(tableOfContents.json),
         ], additional: otherCollections.json)
     }
+    
+    /// Finds the first link with the given relation in the manifest's links.
+    public func link(withRel rel: String) -> Link? {
+        return (readingOrder + resources + links).first(withRel: rel)
+    }
+    
+    /// Finds all the links with the given relation in the manifest's links.
+    public func links(withRel rel: String) -> [Link] {
+        return (readingOrder + resources + links).filter(byRel: rel)
+    }
 
 }

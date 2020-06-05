@@ -228,4 +228,74 @@ class PublicationManifestTests: XCTestCase {
         )
     }
     
+    func testLinkWithRelInReadingOrder() {
+        XCTAssertEqual(
+            makeManifest(readingOrder: [
+                Link(href: "l1"),
+                Link(href: "l2", rel: "rel1")
+            ]).link(withRel: "rel1")?.href,
+            "l2"
+        )
+    }
+    
+    func testLinkWithRelInLinks() {
+        XCTAssertEqual(
+            makeManifest(links: [
+                Link(href: "l1"),
+                Link(href: "l2", rel: "rel1")
+            ]).link(withRel: "rel1")?.href,
+            "l2"
+        )
+    }
+    
+    func testLinkWithRelInResources() {
+        XCTAssertEqual(
+            makeManifest(resources: [
+                Link(href: "l1"),
+                Link(href: "l2", rel: "rel1")
+            ]).link(withRel: "rel1")?.href,
+            "l2"
+        )
+    }
+
+    func testLinksWithRel() {
+        XCTAssertEqual(
+            makeManifest(
+                links: [
+                    Link(href: "l1"),
+                    Link(href: "l2", rel: "rel1")
+                ],
+                readingOrder: [
+                    Link(href: "l3"),
+                    Link(href: "l4", rel: "rel1")
+                ],
+                resources: [
+                    Link(href: "l5", alternates: [
+                        Link(href: "alternate", rel: "rel1")
+                    ]),
+                    Link(href: "l6", rel: "rel1")
+                ]
+            ).links(withRel: "rel1"),
+            [
+                Link(href: "l4", rel: "rel1"),
+                Link(href: "l6", rel: "rel1"),
+                Link(href: "l2", rel: "rel1")
+            ]
+        )
+    }
+    
+    func testLinksWithRelEmpty() {
+        XCTAssertEqual(
+            makeManifest(resources: [
+                Link(href: "l1"),
+                Link(href: "l2")
+            ]).links(withRel: "rel1"),
+            []
+        )
+    }
+
+    private func makeManifest(metadata: Metadata = Metadata(title: ""), links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = []) -> PublicationManifest {
+        return PublicationManifest(metadata: metadata, links: links, readingOrder: readingOrder, resources: resources)
+    }
+
 }

@@ -85,31 +85,71 @@ public class Publication: Loggable {
         serializeJSONData(manifest.json)
     }
     
-    public func findService<T>(_ serviceType: T.Type) -> T? {
-        return services.first { $0 is T } as? T
+    /// The URL where this publication is served, computed from the `Link` with `self` relation.
+    ///
+    /// e.g. https://provider.com/pub1293/manifest.json gives https://provider.com/pub1293/
+    public var baseURL: URL? {
+        links.first(withRel: "self")
+            .flatMap { URL(string: $0.href)?.deletingLastPathComponent() }
+    }
+    
+    /// Finds the first Link having the given `href` in the publication's links.
+    public func link(withHREF href: String) -> Link? {
+        func find(in links: [Link]) -> Link? {
+            guard !links.isEmpty else {
+                return nil
+            }
+            
+            return links.first(withHREF: href)
+                ?? find(in: links.flatMap { $0.alternates + $0.children })
+        }
+        
+        var link = find(in: readingOrder + resources + links)
+        if
+            link == nil,
+            let shortHREF = href.components(separatedBy: .init(charactersIn: "#?")).first,
+            shortHREF != href
+        {
+            // Tries again, but without the anchor and query parameters.
+            link = self.link(withHREF: shortHREF)
+        }
+        
+        return link
+    }
+    
+    /// Finds the first link with the given relation in the publication's links.
+    public func link(withRel rel: String) -> Link? {
+        return manifest.link(withRel: rel)
+    }
+    
+    /// Finds all the links with the given relation in the publication's links.
+    public func links(withRel rel: String) -> [Link] {
+        return manifest.links(withRel: rel)
+    }
+
+    /// Finds the first link with a `cover` rel.
+    public var coverLink: Link? {
+        return link(withRel: "cover")
     }
     
     /// Returns the resource targeted by the given `link`.
-    ///
-    /// The `link.href` property is searched for in the `links`, `readingOrder` and `resources` properties
-    /// to find the matching manifest Link. This is to make sure that
-    /// the Link given to the Fetcher contains all properties declared in the manifest.
-    ///
-    /// The properties are searched recursively following `Link.alternate`, then `Link.children`.
-    /// But only after comparing all the links at the current level.
     public func get(_ link: Link) -> Resource {
-        let link = self.link(withHref: link.href) ?? link
-        for service in services {
-            if let response = service.get(link: link) {
-                return response
-            }
-        }
-        return fetcher.get(link)
+        let link = self.link(withHREF: link.href) ?? link
+        
+        return services.first { $0.get(link: link) }
+            ?? fetcher.get(link)
     }
     
     /// Returns the resource targeted by the given `href`.
     public func get(_ href: String) -> Resource {
         return get(Link(href: href))
+    }
+    
+    /// Finds the first `Publication.Service` implementing the given service type.
+    ///
+    /// e.g. `findService(PositionsService.self)`
+    public func findService<T>(_ serviceType: T.Type) -> T? {
+        return services.first { $0 is T } as? T
     }
 
     /// Sets the URL where this `Publication`'s RWPM manifest is served.
@@ -124,108 +164,6 @@ public class Publication: Loggable {
         }
     }
 
-    /// Finds the first `Link` having the given `rel` in the publication's links.
-    public func link(withRel rel: String) -> Link? {
-        return link { $0.rels.contains(rel) }
-    }
-
-    /// Finds the first `Link` having the given `rel` matching the given `predicate`, in the
-    /// publications' links.
-    internal func link(withRelMatching predicate: (String) -> Bool) -> Link? {
-        for link in links {
-            for rel in link.rels {
-                if predicate(rel) {
-                    return link
-                }
-            }
-        }
-        return nil
-    }
-    
-    /// Finds the first Link having the given `href` in the publication's links.
-    public func link(withHref href: String) -> Link? {
-        return link { $0.href == href }
-    }
-    
-    /// Finds the first Link matching the given predicate in the publication's `Link` properties: `resources`, `readingOrder` and `links`.
-    public func link(where predicate: (Link) -> Bool) -> Link? {
-        return resources.first(where: predicate)
-            ?? readingOrder.first(where: predicate)
-            ?? links.first(where: predicate)
-    }
-    
-    /// Finds a resource `Link` (asset or readingOrder item) at the given relative path.
-    ///
-    /// - Parameter href: The relative path to the resource
-    public func resource(withHref href: String) -> Link? {
-        return readingOrder.first(withHref: href)
-            ?? resources.first(withHref: href)
-    }
-    
-    /// Finds the first link to the publication's cover.
-    /// The link must have a `cover` rel.
-    public var coverLink: Link? {
-        return link(withRel: "cover")
-    }
-
-    /// Return the publication base URL based on the selfLink.
-    /// e.g.: "http://localhost:8000/publicationName/".
-    public var baseURL: URL? {
-        guard let link = links.first(withRel: "self"),
-            let url = URL(string: link.href)?.deletingLastPathComponent() else
-        {
-            log(.warning, "No or invalid `self` link found in publication")
-            return nil
-        }
-        return url
-    }
-    
-    /// Generates an URL to a publication's `Link`.
-    public func url(to link: Link?) -> URL? {
-        return url(to: link?.href)
-    }
-    
-    /// Generates an URL to a publication's `href`.
-    public func url(to href: String?) -> URL? {
-        guard let href = href else {
-            return nil
-        }
-        
-        if let url = URL(string: href), url.scheme != nil {
-            return url
-        } else if let baseURL = baseURL {
-            return baseURL.appendingPathComponent(href.removingPrefix("/"))
-        }
-        
-        return nil
-    }
-    
-    /// Returns whether all the `Link` in the reading order match the given `predicate`.
-    internal func allReadingOrder(_ predicate: (Link) -> Bool) -> Bool {
-        return readingOrder.allSatisfy(predicate)
-    }
-    
-    /// Returns whether all the resources in the reading order are bitmaps.
-    internal var allReadingOrderIsBitmap: Bool {
-        allReadingOrder { link in
-            link.mediaType?.isBitmap ?? false
-        }
-    }
-    
-    /// Returns whether all the resources in the reading order are audio clips.
-    internal var allReadingOrderIsAudio: Bool {
-        allReadingOrder { link in
-            link.mediaType?.isAudio ?? false
-        }
-    }
-    
-    /// Returns whether all the resources in the reading order are contained in any of the given media types.
-    internal func allReadingOrderMatches(mediaType: MediaType...) -> Bool {
-        allReadingOrder { link in
-            mediaType.first { link.mediaType?.matches($0) ?? false } != nil
-        }
-    }
-    
     public enum Format: Equatable, Hashable {
         /// Formats natively supported by Readium.
         case cbz, epub, pdf, webpub
