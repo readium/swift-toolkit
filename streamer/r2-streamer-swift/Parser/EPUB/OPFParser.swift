@@ -142,7 +142,7 @@ final class OPFParser: Loggable {
         for item in spineItems {
             // Find the `Link` that `idref` is referencing to from the `manifestLinks`.
             guard let idref = item.attr("idref"),
-                let index = resources.firstIndex(withProperty: "id", matching: idref),
+                let index = resources.firstIndex(where: { $0.properties["id"] as? String == idref }),
                 // Only linear items are added to the readingOrder.
                 item.attr("linear")?.lowercased() != "no" else
             {

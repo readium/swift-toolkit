@@ -85,7 +85,7 @@ final public class EpubParser: PublicationParser {
                 metadata: metadata,
                 readingOrder: components.readingOrder,
                 resources: components.resources,
-                otherCollections: parseCollections(in: fetcher, links: links)
+                subcollections: parseCollections(in: fetcher, links: links)
             ),
             fetcher: fetcher,
             servicesBuilder: PublicationServicesBuilder {
@@ -113,11 +113,11 @@ final public class EpubParser: PublicationParser {
         return ((publication, container), parseRemainingResource)
     }
     
-    static private func parseCollections(in fetcher: Fetcher, links: [Link]) -> [PublicationCollection] {
+    static private func parseCollections(in fetcher: Fetcher, links: [Link]) -> [String: [PublicationCollection]] {
         var collections = parseNavigationDocument(in: fetcher, links: links)
-        if collections.first(withRole: "toc")?.links.isEmpty != false {
+        if collections["toc"]?.first?.links.isEmpty != false {
             // Falls back on the NCX tables.
-            collections.append(contentsOf: parseNCXDocument(in: fetcher, links: links))
+            collections.merge(parseNCXDocument(in: fetcher, links: links), uniquingKeysWith: { first, second in first})
         }
         return collections
     }
@@ -139,61 +139,61 @@ final public class EpubParser: PublicationParser {
     }
 
     /// Attempt to fill the `Publication`'s `tableOfContent`, `landmarks`, `pageList` and `listOfX` links collections using the navigation document.
-    private static func parseNavigationDocument(in fetcher: Fetcher, links: [Link]) -> [PublicationCollection] {
+    private static func parseNavigationDocument(in fetcher: Fetcher, links: [Link]) -> [String: [PublicationCollection]] {
         // Get the link in the readingOrder pointing to the Navigation Document.
         guard let navLink = links.first(withRel: "contents"),
             let navDocumentData = try? fetcher.readData(at: navLink.href) else
         {
-            return []
+            return [:]
         }
         
         // Get the location of the navigation document in order to normalize href paths.
         let navigationDocument = NavigationDocumentParser(data: navDocumentData, at: navLink.href)
         
-        func makeCollection(_ type: NavigationDocumentParser.NavType, role: String) -> PublicationCollection? {
+        var collections: [String: [PublicationCollection]] = [:]
+        func addCollection(_ type: NavigationDocumentParser.NavType, role: String) {
             let links = navigationDocument.links(for: type)
-            guard !links.isEmpty else {
-                return nil
+            if !links.isEmpty {
+                collections[role] = [PublicationCollection(links: links)]
             }
-            return PublicationCollection(role: role, links: links)
         }
 
-        return [
-            makeCollection(.tableOfContents, role: "toc"),
-            makeCollection(.pageList, role: "pageList"),
-            makeCollection(.landmarks, role: "landmarks"),
-            makeCollection(.listOfAudiofiles, role: "loa"),
-            makeCollection(.listOfIllustrations, role: "loi"),
-            makeCollection(.listOfTables, role: "lot"),
-            makeCollection(.listOfVideos, role: "lov")
-        ].compactMap { $0 }
+        addCollection(.tableOfContents, role: "toc")
+        addCollection(.pageList, role: "pageList")
+        addCollection(.landmarks, role: "landmarks")
+        addCollection(.listOfAudiofiles, role: "loa")
+        addCollection(.listOfIllustrations, role: "loi")
+        addCollection(.listOfTables, role: "lot")
+        addCollection(.listOfVideos, role: "lov")
+        
+        return collections
     }
 
     /// Attempt to fill `Publication.tableOfContent`/`.pageList` using the NCX
     /// document. Will only modify the Publication if it has not be filled
     /// previously (using the Navigation Document).
-    private static func parseNCXDocument(in fetcher: Fetcher, links: [Link]) -> [PublicationCollection] {
+    private static func parseNCXDocument(in fetcher: Fetcher, links: [Link]) -> [String: [PublicationCollection]] {
         // Get the link in the readingOrder pointing to the NCX document.
-        guard let ncxLink = links.first(withType: .ncx),
+        guard let ncxLink = links.first(withMediaType: .ncx),
             let ncxDocumentData = try? fetcher.readData(at: ncxLink.href) else
         {
-            return []
+            return [:]
         }
         
         let ncx = NCXParser(data: ncxDocumentData, at: ncxLink.href)
         
-        func makeCollection(_ type: NCXParser.NavType, role: String) -> PublicationCollection? {
+        var collections: [String: [PublicationCollection]] = [:]
+        func addCollection(_ type: NCXParser.NavType, role: String) {
             let links = ncx.links(for: type)
-            guard !links.isEmpty else {
-                return nil
+            if !links.isEmpty {
+                collections[role] = [PublicationCollection(links: links)]
             }
-            return PublicationCollection(role: role, links: links)
         }
+
+        addCollection(.tableOfContents, role: "toc")
+        addCollection(.pageList, role: "pageList")
         
-        return [
-            makeCollection(.tableOfContents, role: "toc"),
-            makeCollection(.pageList, role: "pageList")
-        ].compactMap { $0 }
+        return collections
     }
 
     /// Parse the mediaOverlays informations contained in the ressources then

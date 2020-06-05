@@ -145,7 +145,7 @@ public final class PDFParser: PublicationParser, Loggable {
         )
         
         // Checks the requirements from the spec, see. https://readium.org/lcp-specs/drafts/lcpdf
-        guard !publication.readingOrder.isEmpty, publication.readingOrder.filter(byType: .pdf) == publication.readingOrder else {
+        guard !publication.readingOrder.isEmpty, publication.readingOrder.all(matchMediaType: .pdf) else {
             throw PDFParserError.invalidLCPDF
         }
         
