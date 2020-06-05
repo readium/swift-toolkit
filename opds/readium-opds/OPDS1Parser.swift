@@ -387,11 +387,13 @@ public class OPDS1Parser: Loggable {
         }
 
         return Publication(
-            metadata: metadata,
-            links: links,
-            otherCollections: [
-                PublicationCollection(role: "images", links: images)
-            ]
+            manifest: PublicationManifest(
+                metadata: metadata,
+                links: links,
+                subcollections: [
+                    "images": [PublicationCollection(links: images)]
+                ]
+            )
         )
     }
 
