@@ -186,8 +186,11 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
             }
         }
         
-        if let position = locator.locations.position,
-            let firstPosition = publication.positionsByResource[locator.href]?.first?.locations.position {
+        if
+            let position = locator.locations.position,
+            let index = publication.readingOrder.firstIndex(withHref: locator.href),
+            let firstPosition = publication.positionsByReadingOrder[index].first?.locations.position
+        {
             return position - firstPosition + 1
         }
         
@@ -202,14 +205,12 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         {
             return nil
         }
-        let href = publication.readingOrder[currentResourceIndex].href
-        guard let positionList = publication.positionsByResource[href],
-            1...positionList.count ~= pageNumber else
-        {
+        let positions = publication.positionsByReadingOrder[currentResourceIndex]
+        guard 1...positions.count ~= pageNumber else {
             return nil
         }
         
-        return positionList[pageNumber - 1]
+        return positions[pageNumber - 1]
     }
     
     
@@ -278,7 +279,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         
         let nextIndex = (currentResourceIndex ?? -1) + 1
         guard publication.readingOrder.indices.contains(nextIndex),
-            let nextPosition = publication.positionsByResource[publication.readingOrder[nextIndex].href]?.first else
+            let nextPosition = publication.positionsByReadingOrder[nextIndex].first else
         {
             return false
         }
@@ -294,7 +295,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         
         let previousIndex = (currentResourceIndex ?? 0) - 1
         guard publication.readingOrder.indices.contains(previousIndex),
-            let previousPosition = publication.positionsByResource[publication.readingOrder[previousIndex].href]?.first else
+            let previousPosition = publication.positionsByReadingOrder[previousIndex].first else
         {
             return false
         }
