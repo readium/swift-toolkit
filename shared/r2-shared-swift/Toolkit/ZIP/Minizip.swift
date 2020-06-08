@@ -183,16 +183,7 @@ private extension MinizipArchive {
 
         } else {
             // For non-compressed entries, we can seek directly in the content.
-            return execute {
-                // There's a bug with `unzseek64`, which seems to start from the ZIP entry local
-                // header by default. Reading a first byte seems to reset the seeking position.
-                if unztell(archive) == 0 {
-                    _ = readFromCurrentOffset(length: 1) { _, _ in }
-                    return unzseek64(archive, offset, SEEK_SET)
-                } else {
-                    return unzseek64(archive, offset, SEEK_CUR)
-                }
-            }
+            return execute { return unzseek64(archive, offset, SEEK_CUR) }
         }
     }
 
