@@ -47,7 +47,7 @@ class Book: Loggable {
     let href: String
     let title: String
     let author: String?
-    let identifier: String
+    let identifier: String?
     let cover: Data?
     var progression: String?
     
@@ -74,7 +74,7 @@ class Book: Loggable {
         href: String,
         title: String,
         author: String?,
-        identifier: String,
+        identifier: String?,
         cover: Data?,
         progression: String? = nil
     ) {
@@ -105,7 +105,7 @@ class BooksTable {
     let books = Table("BOOKS")
     
     let ID = Expression<Int64>("id")
-    let IDENTIFIER = Expression<String>("identifier")
+    let IDENTIFIER = Expression<String?>("identifier")
     let HREF = Expression<String>("href")
     let TITLE = Expression<String>("title")
     let AUTHOR = Expression<String?>("author")
@@ -151,8 +151,11 @@ class BooksTable {
     }
     
     private func exists(_ book: Book) -> Bool {
+        guard let identifier = book.identifier else {
+            return false
+        }
         let db = BooksDatabase.shared.connection
-        let filter = books.filter(self.IDENTIFIER == book.identifier)
+        let filter = books.filter(self.IDENTIFIER == identifier)
         return ((try? db.count(filter)) ?? 0) != 0
     }
     
