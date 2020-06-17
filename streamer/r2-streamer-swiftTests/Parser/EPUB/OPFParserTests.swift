@@ -19,7 +19,7 @@ class OPFParserTests: XCTestCase {
     func testParseMinimalOPF() throws {
         let sut = try parseManifest("minimal", at: "EPUB/content.opf")
         
-        XCTAssertEqual(sut.manifest, PublicationManifest(
+        XCTAssertEqual(sut.manifest, Manifest(
             metadata: Metadata(
                 title: "Alice's Adventures in Wonderland",
                 otherMetadata: [
@@ -152,7 +152,7 @@ class OPFParserTests: XCTestCase {
 
     // MARK: - Toolkit
     
-    func parseManifest(_ name: String, at path: String = "EPUB/content.opf", displayOptions: String? = nil) throws -> (manifest: PublicationManifest, version: String) {
+    func parseManifest(_ name: String, at path: String = "EPUB/content.opf", displayOptions: String? = nil) throws -> (manifest: Manifest, version: String) {
         func document(named name: String, type: String) throws -> Data {
             return try Data(contentsOf: SampleGenerator().getSamplesFileURL(named: "OPF/\(name)", ofType: type)!)
         }
@@ -163,7 +163,7 @@ class OPFParserTests: XCTestCase {
             encryptions: [:]
         ).parsePublication()
         
-        return (PublicationManifest(
+        return (Manifest(
             metadata: parts.metadata,
             readingOrder: parts.readingOrder,
             resources: parts.resources

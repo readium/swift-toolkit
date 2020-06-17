@@ -55,7 +55,7 @@ public class CbzParser: PublicationParser {
         return ((publication, container), { _ in })
     }
     
-    private static func parseManifest(in fetcher: Fetcher, at url: URL) -> PublicationManifest? {
+    private static func parseManifest(in fetcher: Fetcher, at url: URL) -> Manifest? {
         var readingOrder = fetcher.links
             .filter { $0.mediaType?.isBitmap == true }
             .sorted { lhs, rhs in lhs.href < rhs.href }
@@ -67,7 +67,7 @@ public class CbzParser: PublicationParser {
         // First valid resource is the cover.
         readingOrder[0] = readingOrder[0].copy(rels: ["cover"])
         
-        return PublicationManifest(
+        return Manifest(
             metadata: Metadata(
                 title: url.title
             ),

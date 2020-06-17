@@ -81,7 +81,7 @@ final public class EpubParser: PublicationParser {
         ].compactMap { $0 })
 
         let publication = Publication(
-            manifest: PublicationManifest(
+            manifest: Manifest(
                 metadata: metadata,
                 readingOrder: components.readingOrder,
                 resources: components.resources,

@@ -70,7 +70,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
             }
             
             let publication = try Publication(
-                manifest: PublicationManifest(
+                manifest: Manifest(
                     json: JSONSerialization.jsonObject(with: manifestData),
                     normalizeHref: { normalize(base: "/", href: $0) }
                 ),

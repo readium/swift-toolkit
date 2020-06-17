@@ -45,6 +45,7 @@
 		CA130F1E229E7CC1000A627C /* SampleGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130DB7229E7CBE000A627C /* SampleGenerator.swift */; };
 		CA131064229E7CD0000A627C /* Fixtures in Resources */ = {isa = PBXBuildFile; fileRef = CA131063229E7CD0000A627C /* Fixtures */; };
 		CA3387072406632100FDCBBA /* Asserts.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3387062406632100FDCBBA /* Asserts.swift */; };
+		CA3F3FA8248EB156005B8A0B /* Fetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3F3FA7248EB156005B8A0B /* Fetcher.swift */; };
 		CA6F97CE22A50F39007D2049 /* EPUBContainerParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97CD22A50F39007D2049 /* EPUBContainerParser.swift */; };
 		CA6F97D222A5161A007D2049 /* EPUBContainerParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97D122A5161A007D2049 /* EPUBContainerParserTests.swift */; };
 		CA6F97D422A52810007D2049 /* OPFParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97D322A52810007D2049 /* OPFParserTests.swift */; };
@@ -125,6 +126,7 @@
 		CA130F17229E7CC0000A627C /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CA131063229E7CD0000A627C /* Fixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Fixtures; sourceTree = "<group>"; };
 		CA3387062406632100FDCBBA /* Asserts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Asserts.swift; sourceTree = "<group>"; };
+		CA3F3FA7248EB156005B8A0B /* Fetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fetcher.swift; sourceTree = "<group>"; };
 		CA6F97CD22A50F39007D2049 /* EPUBContainerParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBContainerParser.swift; sourceTree = "<group>"; };
 		CA6F97D122A5161A007D2049 /* EPUBContainerParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBContainerParserTests.swift; sourceTree = "<group>"; };
 		CA6F97D322A52810007D2049 /* OPFParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPFParserTests.swift; sourceTree = "<group>"; };
@@ -382,6 +384,7 @@
 			children = (
 				CACDE5F02485079E006FEB1B /* ArchiveFetcher.swift */,
 				CACDE5F72485127E006FEB1B /* URL.swift */,
+				CA3F3FA7248EB156005B8A0B /* Fetcher.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -579,6 +582,7 @@
 				CA130D74229D4245000A627C /* DataExtension.swift in Sources */,
 				CACDE61624853BC8006FEB1B /* EPUBHTMLInjector.swift in Sources */,
 				CA130D75229D4245000A627C /* StringExtension.swift in Sources */,
+				CA3F3FA8248EB156005B8A0B /* Fetcher.swift in Sources */,
 				CACDE5F12485079E006FEB1B /* ArchiveFetcher.swift in Sources */,
 				CA130D68229D4245000A627C /* NCXParser.swift in Sources */,
 				CA130D6A229D4245000A627C /* NavigationDocumentParser.swift in Sources */,

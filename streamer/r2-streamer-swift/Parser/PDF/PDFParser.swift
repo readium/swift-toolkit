@@ -84,7 +84,7 @@ public final class PDFParser: PublicationParser, Loggable {
         let pdfHref = "/publication.pdf"
 
         let publication = Publication(
-            manifest: PublicationManifest(
+            manifest: Manifest(
                 metadata: Metadata(
                     identifier: pdfMetadata.identifier,
                     title: pdfMetadata.title ?? url.title,
@@ -133,7 +133,7 @@ public final class PDFParser: PublicationParser, Loggable {
         }
         
         let publication = Publication(
-            manifest: try PublicationManifest(
+            manifest: try Manifest(
                 json: manifestJSON,
                 normalizeHref: { normalize(base: "", href: $0) }
             ),
