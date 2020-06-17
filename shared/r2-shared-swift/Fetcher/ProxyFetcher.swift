@@ -12,21 +12,21 @@
 import Foundation
 
 /// Delegates the creation of a `Resource` to a `closure`.
-final class ProxyFetcher: Fetcher {
-    typealias Closure = (Link) -> Resource
+public final class ProxyFetcher: Fetcher {
+    public typealias Closure = (Link) -> Resource
     
     private let closure: Closure
     
-    init(closure: @escaping Closure) {
+    public init(closure: @escaping Closure) {
         self.closure = closure
     }
     
-    var links: [Link] { [] }
+    public var links: [Link] { [] }
     
-    func get(_ link: Link) -> Resource {
+    public func get(_ link: Link) -> Resource {
         return closure(link)
     }
     
-    func close() {}
+    public func close() {}
     
 }

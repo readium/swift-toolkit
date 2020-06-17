@@ -28,12 +28,6 @@ public protocol Fetcher {
     /// actually fetching it, such as HTTP. Therefore, errors are handled at the Resource level.
     func get(_ link: Link) -> Resource
     
-    /// Returns the `Resource` at the given `href`.
-    ///
-    /// A `Resource` is always returned, since for some cases we can't know if it exists before
-    /// actually fetching it, such as HTTP. Therefore, errors are handled at the Resource level.
-    func get(_ href: String) -> Resource
-    
     /// Closes any opened file handles, removes temporary files, etc.
     func close()
     
@@ -41,17 +35,17 @@ public protocol Fetcher {
 
 public extension Fetcher {
     
+    /// Returns the `Resource` at the given `href`.
+    ///
+    /// A `Resource` is always returned, since for some cases we can't know if it exists before
+    /// actually fetching it, such as HTTP. Therefore, errors are handled at the Resource level.
     func get(_ href: String) -> Resource {
         return get(Link(href: href))
     }
-    
-    /// Shortcut to get the data of a file at given `href`.
-    func readData(at href: String) throws -> Data {
-        return try get(href).read().get()
-    }
-    
+
 }
 
+/// A `Fetcher` providing no resources at all.
 public final class EmptyFetcher: Fetcher {
     
     public init() {}

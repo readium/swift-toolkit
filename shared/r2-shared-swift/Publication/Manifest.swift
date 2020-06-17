@@ -1,5 +1,5 @@
 //
-//  PublicationManifest.swift
+//  Manifest.swift
 //  r2-shared-swift
 //
 //  Created by Mickaël Menu on 30/05/2020.
@@ -15,7 +15,7 @@ import Foundation
 /// Manifest.
 ///
 /// See. https://readium.org/webpub-manifest/
-public struct PublicationManifest: JSONEquatable {
+public struct Manifest: JSONEquatable {
     
     public let context: [String]  // @context
     

@@ -18,13 +18,13 @@ extension Publication {
     
     @available(*, deprecated, renamed: "init(manifest:)")
     public convenience init() {
-        self.init(manifest: PublicationManifest(metadata: Metadata(title: "")))
+        self.init(manifest: Manifest(metadata: Metadata(title: "")))
     }
     
     @available(*, deprecated, renamed: "init(format:formatVersion:manifest:)")
     public convenience init(format: Format = .unknown, formatVersion: String? = nil, positionListFactory: @escaping (Publication) -> [Locator] = { _ in [] }, context: [String] = [], metadata: Metadata, links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = [], tableOfContents: [Link] = [], otherCollections: [String: [PublicationCollection]] = [:]) {
         self.init(
-            manifest: PublicationManifest(context: context, metadata: metadata, links: links, readingOrder: readingOrder, resources: resources, tableOfContents: tableOfContents, subcollections: otherCollections),
+            manifest: Manifest(context: context, metadata: metadata, links: links, readingOrder: readingOrder, resources: resources, tableOfContents: tableOfContents, subcollections: otherCollections),
             format: format,
             formatVersion: formatVersion
         )

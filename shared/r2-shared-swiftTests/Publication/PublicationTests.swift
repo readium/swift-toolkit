@@ -17,7 +17,7 @@ class PublicationTests: XCTestCase {
     func testGetJSON() {
         XCTAssertEqual(
             Publication(
-                manifest: PublicationManifest(
+                manifest: Manifest(
                     metadata: Metadata(title: "Title"),
                     links: [Link(href: "/manifest.json", rels: ["self"])],
                     readingOrder: [Link(href: "/chap1.html", type: "text/html")]
@@ -107,8 +107,8 @@ class PublicationTests: XCTestCase {
     func testLinkWithHREFInChildren() {
         XCTAssertEqual(
             makePublication(resources: [
-                Link(href: "l1", alternates: [
-                    Link(href: "l2", alternates: [
+                Link(href: "l1", children: [
+                    Link(href: "l2", children: [
                         Link(href: "l3")
                     ])
                 ])
@@ -216,7 +216,7 @@ class PublicationTests: XCTestCase {
     }
 
     private func makePublication(metadata: Metadata = Metadata(title: ""), links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = []) -> Publication {
-        return Publication(manifest: PublicationManifest(metadata: metadata, links: links, readingOrder: readingOrder, resources: resources))
+        return Publication(manifest: Manifest(metadata: metadata, links: links, readingOrder: readingOrder, resources: resources))
     }
 
 }

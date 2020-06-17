@@ -28,7 +28,7 @@ public protocol Resource {
 
     /// Reads the bytes at the given range.
     ///
-    /// When `range` is null, the whole content is returned. Out-of-range indexes are clamped to
+    /// When `range` is `nil`, the whole content is returned. Out-of-range indexes are clamped to
     /// the available length automatically.
     func read(range: Range<UInt64>?) -> ResourceResult<Data>
     
@@ -63,6 +63,7 @@ public extension Resource {
     
 }
 
+/// Errors occurring while accessing a resource.
 public enum ResourceError: Swift.Error {
     
     /// Equivalent to a 404 HTTP error.

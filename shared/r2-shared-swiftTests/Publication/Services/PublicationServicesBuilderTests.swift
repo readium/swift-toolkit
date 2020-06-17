@@ -23,7 +23,7 @@ struct BarServiceA: BarService {}
 class PublicationServicesBuilderTests: XCTestCase {
     
     private let context = PublicationServiceContext(
-        manifest: PublicationManifest(metadata: Metadata(title: "")),
+        manifest: Manifest(metadata: Metadata(title: "")),
         fetcher: EmptyFetcher()
     )
     

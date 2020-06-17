@@ -99,8 +99,8 @@
 		CA9E6BA4223A657900ECF6E4 /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9E6BA3223A657900ECF6E4 /* JSON.swift */; };
 		CA9E6BA9223A749900ECF6E4 /* Publication+EPUB.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9E6BA8223A749900ECF6E4 /* Publication+EPUB.swift */; };
 		CA9E6BAE223A76C600ECF6E4 /* Publication+OPDS.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9E6BAD223A76C600ECF6E4 /* Publication+OPDS.swift */; };
-		CA9FC06F24824C3B0020B9CC /* PublicationManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9FC06E24824C3B0020B9CC /* PublicationManifest.swift */; };
-		CA9FC071248252970020B9CC /* PublicationManifestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9FC070248252970020B9CC /* PublicationManifestTests.swift */; };
+		CA9FC06F24824C3B0020B9CC /* Manifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9FC06E24824C3B0020B9CC /* Manifest.swift */; };
+		CA9FC071248252970020B9CC /* ManifestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9FC070248252970020B9CC /* ManifestTests.swift */; };
 		CA9FC074248256450020B9CC /* PublicationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9FC073248256450020B9CC /* PublicationService.swift */; };
 		CA9FC07624825A880020B9CC /* PublicationServicesBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9FC07524825A880020B9CC /* PublicationServicesBuilder.swift */; };
 		CA9FC0792482657F0020B9CC /* PublicationServicesBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9FC0782482657F0020B9CC /* PublicationServicesBuilderTests.swift */; };
@@ -266,8 +266,8 @@
 		CA9E6BA6223A67D300ECF6E4 /* Publication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Publication.swift; sourceTree = "<group>"; };
 		CA9E6BA8223A749900ECF6E4 /* Publication+EPUB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publication+EPUB.swift"; sourceTree = "<group>"; };
 		CA9E6BAD223A76C600ECF6E4 /* Publication+OPDS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publication+OPDS.swift"; sourceTree = "<group>"; };
-		CA9FC06E24824C3B0020B9CC /* PublicationManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationManifest.swift; sourceTree = "<group>"; };
-		CA9FC070248252970020B9CC /* PublicationManifestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationManifestTests.swift; sourceTree = "<group>"; };
+		CA9FC06E24824C3B0020B9CC /* Manifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Manifest.swift; sourceTree = "<group>"; };
+		CA9FC070248252970020B9CC /* ManifestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManifestTests.swift; sourceTree = "<group>"; };
 		CA9FC073248256450020B9CC /* PublicationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationService.swift; sourceTree = "<group>"; };
 		CA9FC07524825A880020B9CC /* PublicationServicesBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationServicesBuilder.swift; sourceTree = "<group>"; };
 		CA9FC0782482657F0020B9CC /* PublicationServicesBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationServicesBuilderTests.swift; sourceTree = "<group>"; };
@@ -369,13 +369,13 @@
 				CA9E6BAC223A76BD00ECF6E4 /* OPDS */,
 				CA5F8EF024040DC700926120 /* Presentation */,
 				CA9E6BA6223A67D300ECF6E4 /* Publication.swift */,
-				CA9FC06E24824C3B0020B9CC /* PublicationManifest.swift */,
 				CACD75F22236B0A5004F20CA /* PublicationCollection.swift */,
 				CA16A85A2232C4E600E66255 /* LocalizedString.swift */,
 				CABBB2FB22394450004EB039 /* ContentLayout.swift */,
 				CA5F8EE82404035C00926120 /* ReadingProgression.swift */,
 				CA16A86F2232F7CD00E66255 /* Link.swift */,
 				CA16A8712232FBBB00E66255 /* Properties.swift */,
+				CA9FC06E24824C3B0020B9CC /* Manifest.swift */,
 				CA16A8812233FE3200E66255 /* Metadata.swift */,
 				CA16A8582232C2A800E66255 /* Contributor.swift */,
 				CACD75E12236A0B6004F20CA /* Subject.swift */,
@@ -428,12 +428,12 @@
 				CA5F8EEC240404E300926120 /* ContentLayoutTests.swift */,
 				CA5F8EEA240403F900926120 /* ReadingProgressionTests.swift */,
 				CACD75DF223657AD004F20CA /* PublicationTests.swift */,
-				CA9FC070248252970020B9CC /* PublicationManifestTests.swift */,
 				CACD75F42236B2AF004F20CA /* PublicationCollectionTests.swift */,
 				CA16A85F2232D1B800E66255 /* LocalizedStringTests.swift */,
 				CA16A86D2232F7AC00E66255 /* LinkTests.swift */,
 				CA13517B248936E00087E69E /* LinkArrayTests.swift */,
 				CA16A8732233004A00E66255 /* PropertiesTests.swift */,
+				CA9FC070248252970020B9CC /* ManifestTests.swift */,
 				CA16A8852234021400E66255 /* MetadataTests.swift */,
 				CA16A8612232D5F200E66255 /* ContributorTests.swift */,
 				CACD75E32236A0F0004F20CA /* SubjectTests.swift */,
@@ -972,7 +972,7 @@
 				CACD75F52236B2AF004F20CA /* PublicationCollectionTests.swift in Sources */,
 				CA5F8EFD24041A2500926120 /* Metadata+PresentationTests.swift in Sources */,
 				CA5F8EF72404112800926120 /* PresentationTests.swift in Sources */,
-				CA9FC071248252970020B9CC /* PublicationManifestTests.swift in Sources */,
+				CA9FC071248252970020B9CC /* ManifestTests.swift in Sources */,
 				CA5B7C392441BA5F003A2FE7 /* Fixtures.swift in Sources */,
 				CA16A8622232D5F200E66255 /* ContributorTests.swift in Sources */,
 				CA6D42692404381B002FBED4 /* OPDSHoldsTests.swift in Sources */,
@@ -1049,7 +1049,7 @@
 				CAF4EAE42237ABC700A17DA1 /* MediaOverlayNode.swift in Sources */,
 				CAC34F0C221C61BD002C452E /* DRM+Deprecated.swift in Sources */,
 				CA3386E42404FD0300FDCBBA /* Properties+Encryption.swift in Sources */,
-				CA9FC06F24824C3B0020B9CC /* PublicationManifest.swift in Sources */,
+				CA9FC06F24824C3B0020B9CC /* Manifest.swift in Sources */,
 				CA8C841A24689E4000CE97A4 /* RoutingFetcher.swift in Sources */,
 				CA5F8EE92404035D00926120 /* ReadingProgression.swift in Sources */,
 				CA8C84142468906600CE97A4 /* Fetcher.swift in Sources */,

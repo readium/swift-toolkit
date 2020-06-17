@@ -20,7 +20,7 @@ class PublicationOPDSTests: XCTestCase {
     }
     
     func testImages() {
-        let sut = Publication(manifest: PublicationManifest(
+        let sut = Publication(manifest: Manifest(
             metadata: Metadata(title: ""), links: [], readingOrder: [],
             subcollections: ["images": [PublicationCollection(links: [Link(href: "/image.png")])]]
         ))

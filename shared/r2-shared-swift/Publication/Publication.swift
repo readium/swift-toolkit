@@ -20,7 +20,7 @@ public class Publication: Loggable {
     /// Version of the publication's format, eg. 3 for EPUB 3
     public var formatVersion: String?
     
-    private var manifest: PublicationManifest
+    private var manifest: Manifest
     private let fetcher: Fetcher
     private let services: [PublicationService]
     
@@ -56,7 +56,7 @@ public class Publication: Loggable {
     }
     
     public init(
-        manifest: PublicationManifest,
+        manifest: Manifest,
         fetcher: Fetcher = EmptyFetcher(),
         servicesBuilder: PublicationServicesBuilder = .init(),
         format: Format = .unknown,
@@ -76,12 +76,12 @@ public class Publication: Loggable {
     /// Parses a Readium Web Publication Manifest.
     /// https://readium.org/webpub-manifest/schema/publication.schema.json
     public convenience init(json: Any, normalizeHref: (String) -> String = { $0 }) throws {
-        self.init(manifest: try PublicationManifest(json: json, normalizeHref: normalizeHref))
+        self.init(manifest: try Manifest(json: json, normalizeHref: normalizeHref))
     }
     
     /// Returns the Readium Web Publication Manifest as JSON.
-    public var jsonManifest: Data? {
-        serializeJSONData(manifest.json)
+    public var jsonManifest: String? {
+        serializeJSONString(manifest.json)
     }
     
     /// The URL where this publication is served, computed from the `Link` with `self` relation.
@@ -142,6 +142,12 @@ public class Publication: Loggable {
     /// Returns the resource targeted by the given `href`.
     public func get(_ href: String) -> Resource {
         return get(Link(href: href))
+    }
+    
+    /// Closes any opened resource associated with the `Publication`, including `services`.
+    public func close() {
+        fetcher.close()
+        services.forEach { $0.close() }
     }
     
     /// Finds the first `Publication.Service` implementing the given service type.

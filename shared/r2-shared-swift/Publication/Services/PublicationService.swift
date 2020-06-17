@@ -61,6 +61,6 @@ public typealias PublicationServiceFactory = (PublicationServiceContext) -> Publ
 
 /// Container for the context from which a service is created.
 public struct PublicationServiceContext {
-    public let manifest: PublicationManifest
+    public let manifest: Manifest
     public let fetcher: Fetcher
 }
