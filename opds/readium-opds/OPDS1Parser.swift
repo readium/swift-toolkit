@@ -387,7 +387,7 @@ public class OPDS1Parser: Loggable {
         }
 
         return Publication(
-            manifest: PublicationManifest(
+            manifest: Manifest(
                 metadata: metadata,
                 links: links,
                 subcollections: [
