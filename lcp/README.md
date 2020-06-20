@@ -1,6 +1,8 @@
-# readium-lcp-swift
+# r2-lcp-swift
+
 Swift wrapper module for LCP support
 
+[Changes and releases are documented in the Changelog](CHANGELOG.md)
 
 ## Adding the library to your iOS project
 
