@@ -145,66 +145,59 @@ public struct MediaType: Equatable, Hashable {
         return matches(other.flatMap(MediaType.init))
     }
     
+    /// Returns whether this media type matches any of the `others` media types.
+    public func matchesAny(_ other: Self...) -> Bool {
+        return other.contains { matches($0) }
+    }
+    
+    /// Returns whether this media type matches any of the `others` media types.
+    public func matchesAny(_ other: String...) -> Bool {
+        return other.contains { matches($0) }
+    }
+    
     /// Returns whether this media type is structured as a ZIP archive.
     public var isZIP: Bool {
-        return matches(.zip)
-            || matches(.lcpProtectedAudiobook)
-            || matches(.lcpProtectedPDF)
-            || structuredSyntaxSuffix == "+zip"
+        matchesAny(.zip, .lcpProtectedAudiobook, .lcpProtectedPDF) || structuredSyntaxSuffix == "+zip"
     }
     
     /// Returns whether this media type is structured as a JSON file.
     public var isJSON: Bool {
-        return matches(.json)
-            || structuredSyntaxSuffix == "+json"
+        matches(.json) || structuredSyntaxSuffix == "+json"
     }
 
     /// Returns whether this media type is of an OPDS feed.
     public var isOPDS: Bool {
-        return matches(.opds1)
-            || matches(.opds1Entry)
-            || matches(.opds2)
-            || matches(.opds2Publication)
-            || matches(.opdsAuthentication)
+        matchesAny(.opds1, .opds1Entry, .opds2, .opds2Publication, .opdsAuthentication)
     }
     
     /// Returns whether this media type is of an HTML document.
     public var isHTML: Bool {
-        return matches(.html)
-            || matches(.xhtml)
+        matchesAny(.html, .xhtml)
     }
     
     /// Returns whether this media type is of a bitmap image, so excluding vectorial formats.
     public var isBitmap: Bool {
-        return matches(.bmp)
-            || matches(.gif)
-            || matches(.jpeg)
-            || matches(.png)
-            || matches(.tiff)
-            || matches(.webp)
+        matchesAny(.bmp, .gif, .jpeg, .png, .tiff, .webp)
     }
     
     /// Returns whether this media type is of an audio clip.
     public var isAudio: Bool {
-        return type == "audio"
+        type == "audio"
     }
     
     /// Returns whether this media type is of a Readium Web Publication Manifest.
     public var isRWPM: Bool {
-        return matches(.audiobookManifest)
-            || matches(.divinaManifest)
-            || matches(.webpubManifest)
+        matchesAny(.readiumWebPubManifest, .readiumAudiobookManifest, .divinaManifest)
     }
     
     /// Returns whether this media type is of a package protected with LCP.
     public var isLCPProtected: Bool {
-        return matches(.lcpProtectedAudiobook)
-            || matches(.lcpProtectedPDF)
+        matchesAny(.lcpProtectedAudiobook, .lcpProtectedPDF)
     }
     
     /// Returns whether this media type is declared in the Document Types section of the app's main bundle.
     public var isSupportedDocumentType: Bool {
-        return DocumentTypes.main.supportsMediaType(string)
+        DocumentTypes.main.supportsMediaType(string)
     }
 
     
@@ -213,8 +206,6 @@ public struct MediaType: Equatable, Hashable {
     public static let aac = MediaType("audio/aac")!
     public static let acsm = MediaType("application/vnd.adobe.adept+xml")!
     public static let aiff = MediaType("audio/aiff")!
-    public static let audiobook = MediaType("application/audiobook+zip")!
-    public static let audiobookManifest = MediaType("application/audiobook+json")!
     public static let avi = MediaType("video/x-msvideo")!
     public static let binary = MediaType("application/octet-stream")!
     public static let bmp = MediaType("image/bmp")!
@@ -228,11 +219,6 @@ public struct MediaType: Equatable, Hashable {
     public static let javascript = MediaType("text/javascript")!
     public static let jpeg = MediaType("image/jpeg")!
     public static let html = MediaType("text/html")!
-    public static let opds1 = MediaType("application/atom+xml;profile=opds-catalog")!
-    public static let opds1Entry = MediaType("application/atom+xml;type=entry;profile=opds-catalog")!
-    public static let opds2 = MediaType("application/opds+json")!
-    public static let opds2Publication = MediaType("application/opds-publication+json")!
-    public static let opdsAuthentication = MediaType("application/opds-authentication+json")!
     public static let json = MediaType("application/json")!
     public static let lcpProtectedAudiobook = MediaType("application/audiobook+lcp")!
     public static let lcpProtectedPDF = MediaType("application/pdf+lcp")!
@@ -244,10 +230,19 @@ public struct MediaType: Equatable, Hashable {
     public static let ncx = MediaType("application/x-dtbncx+xml")!
     public static let ogg = MediaType("audio/ogg")!
     public static let ogv = MediaType("video/ogg")!
+    public static let opds1 = MediaType("application/atom+xml;profile=opds-catalog")!
+    public static let opds1Entry = MediaType("application/atom+xml;type=entry;profile=opds-catalog")!
+    public static let opds2 = MediaType("application/opds+json")!
+    public static let opds2Publication = MediaType("application/opds-publication+json")!
+    public static let opdsAuthentication = MediaType("application/opds-authentication+json")!
     public static let opus = MediaType("audio/opus")!
     public static let otf = MediaType("font/otf")!
     public static let pdf = MediaType("application/pdf")!
     public static let png = MediaType("image/png")!
+    public static let readiumAudiobook = MediaType("application/audiobook+zip")!
+    public static let readiumAudiobookManifest = MediaType("application/audiobook+json")!
+    public static let readiumWebPub = MediaType("application/webpub+zip")!
+    public static let readiumWebPubManifest = MediaType("application/webpub+json")!
     public static let smil = MediaType("application/smil+xml")!
     public static let svg = MediaType("image/svg+xml")!
     public static let text = MediaType("text/plain")!
@@ -258,15 +253,13 @@ public struct MediaType: Equatable, Hashable {
     public static let webmAudio = MediaType("audio/webm")!
     public static let webmVideo = MediaType("video/webm")!
     public static let webp = MediaType("image/webp")!
-    public static let webpub = MediaType("application/webpub+zip")!
-    public static let webpubManifest = MediaType("application/webpub+json")!
     public static let woff = MediaType("font/woff")!
     public static let woff2 = MediaType("font/woff2")!
     public static let xhtml = MediaType("application/xhtml+xml")!
     public static let xml = MediaType("application/xml")!
     public static let zab = MediaType("application/x.readium.zab+zip")!  // non-existent
     public static let zip = MediaType("application/zip")!
-    
+
     /// `text/html` != `text/html;charset=utf-8` with strict equality comparison, which is most
     /// likely not the desired result. Instead, you can use `matches()` to check if any of the media
     /// types is a parameterized version of the other one.
@@ -280,6 +273,15 @@ public struct MediaType: Equatable, Hashable {
     public static func ~= (pattern: MediaType, value: MediaType) -> Bool {
         return pattern.matches(value)
     }
+
+    @available(*, unavailable, renamed: "readiumAudiobook")
+    public static var audiobook: MediaType { readiumAudiobook }
+    @available(*, unavailable, renamed: "readiumAudiobookManifest")
+    public static var audiobookManifest: MediaType { readiumAudiobookManifest }
+    @available(*, unavailable, renamed: "readiumWebPub")
+    public static var webpub: MediaType { readiumWebPub }
+    @available(*, unavailable, renamed: "readiumWebPubManifest")
+    public static var webpubManifest: MediaType { readiumWebPubManifest }
 
 }
 

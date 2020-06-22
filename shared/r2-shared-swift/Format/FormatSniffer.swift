@@ -94,7 +94,7 @@ public extension Format {
         return sniffDocumentTypes(context)
             ?? sniffUTIs(context)
     }
-    
+
     
     // MARK: Sniffers
     
@@ -181,10 +181,10 @@ public extension Format {
     /// Sniffs a Readium Web Publication, protected or not by LCP.
     private static func sniffWebPub(context: FormatSnifferContext) -> Format? {
         if context.hasFileExtension("audiobook") || context.hasMediaType("application/audiobook+zip") {
-            return .audiobook
+            return .readiumAudiobook
         }
         if context.hasMediaType("application/audiobook+json") {
-            return .audiobookManifest
+            return .readiumAudiobookManifest
         }
         
         if context.hasFileExtension("divina") || context.hasMediaType("application/divina+zip") {
@@ -195,10 +195,10 @@ public extension Format {
         }
         
         if context.hasFileExtension("webpub") || context.hasMediaType("application/webpub+zip") {
-            return .webpub
+            return .readiumWebPub
         }
         if context.hasMediaType("application/webpub+json") {
-            return .webpubManifest
+            return .readiumWebPubManifest
         }
         
         if context.hasFileExtension("lcpa") || context.hasMediaType("application/audiobook+lcp") {
@@ -226,8 +226,8 @@ public extension Format {
             let isLCPProtected = context.containsZIPEntry(at: "license.lcpl")
 
             if rwpm.metadata.type == "http://schema.org/Audiobook" || rwpm.allReadingOrderIsAudio {
-                return isManifest ? .audiobookManifest :
-                    isLCPProtected ? .lcpProtectedAudiobook : .audiobook
+                return isManifest ? .readiumAudiobookManifest :
+                    isLCPProtected ? .lcpProtectedAudiobook : .readiumAudiobook
             }
             if rwpm.allReadingOrderIsBitmap {
                 return isManifest ? .divinaManifest : .divina
@@ -236,7 +236,7 @@ public extension Format {
                 return .lcpProtectedPDF
             }
             if rwpm.link(withRel: "self")?.type == "application/webpub+json" {
-                return isManifest ? .webpubManifest : .webpub
+                return isManifest ? .readiumWebPubManifest : .readiumWebPub
             }
         }
 
