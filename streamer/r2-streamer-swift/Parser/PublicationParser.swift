@@ -52,7 +52,7 @@ public extension Publication {
                 return EpubParser.self
             case .pdf, .lcpProtectedPDF:
                 return PDFParser.self
-            case .webpub, .webpubManifest, .audiobook, .audiobookManifest, .lcpProtectedAudiobook, .divina, .divinaManifest:
+            case .readiumWebPub, .readiumWebPubManifest, .readiumAudiobook, .readiumAudiobookManifest, .lcpProtectedAudiobook, .divina, .divinaManifest:
                 return ReadiumWebPubParser.self
             default:
                 return nil
