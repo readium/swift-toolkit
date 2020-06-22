@@ -14,51 +14,54 @@ import Foundation
 
 /// Link Object for the Readium Web Publication Manifest.
 /// https://readium.org/webpub-manifest/schema/link.schema.json
-///
-/// Note: This is not a struct because in certain situations Link has an Identity (eg. EPUB), and rely on reference semantics to manipulate the links.
-public class Link: JSONEquatable {
+public struct Link: JSONEquatable {
 
     /// URI or URI template of the linked resource.
     /// Note: a String because templates are lost with URL.
-    public var href: String  // URI
+    public let href: String  // URI
 
     /// MIME type of the linked resource.
-    public var type: String?
+    public let type: String?
     
     /// Indicates that a URI template is used in href.
-    public var templated: Bool
+    public let templated: Bool
     
     /// Title of the linked resource.
-    public var title: String?
+    public let title: String?
     
     /// Relation between the linked resource and its containing collection.
-    public var rels: [String]
+    public let rels: [String]
     
     /// Properties associated to the linked resource.
-    public var properties: Properties
+    public let properties: Properties
     
     /// Height of the linked resource in pixels.
-    public var height: Int?
+    public let height: Int?
     
     /// Width of the linked resource in pixels.
-    public var width: Int?
+    public let width: Int?
     
     /// Bitrate of the linked resource in kbps.
-    public var bitrate: Double?
+    public let bitrate: Double?
     
     /// Length of the linked resource in seconds.
-    public var duration: Double?
+    public let duration: Double?
     
     /// Expected language of the linked resource.
-    public var languages: [String]  // BCP 47 tag
+    public let languages: [String]  // BCP 47 tag
     
     /// Alternate resources for the linked resource.
-    public var alternates: [Link]
+    public let alternates: [Link]
     
     /// Resources that are children of the linked resource, in the context of a given collection role.
-    public var children: [Link]
+    public let children: [Link]
 
     public init(href: String, type: String? = nil, templated: Bool = false, title: String? = nil, rels: [String] = [], rel: String? = nil, properties: Properties = Properties(), height: Int? = nil, width: Int? = nil, bitrate: Double? = nil, duration: Double? = nil, languages: [String] = [], alternates: [Link] = [], children: [Link] = []) {
+        // convenience to set a single rel during construction
+        var rels = rels
+        if let rel = rel {
+            rels.append(rel)
+        }
         self.href = href
         self.type = type
         self.templated = templated
@@ -72,11 +75,6 @@ public class Link: JSONEquatable {
         self.languages = languages
         self.alternates = alternates
         self.children = children
-        
-        // convenience to set a single rel during construction
-        if let rel = rel {
-            self.rels.append(rel)
-        }
     }
     
     public init(json: Any, normalizeHref: (String) -> String = { $0 }) throws {
@@ -85,23 +83,25 @@ public class Link: JSONEquatable {
         {
             throw JSONError.parsing(Link.self)
         }
-        self.href = normalizeHref(href)
-        self.type = json["type"] as? String
-        self.templated = (json["templated"] as? Bool) ?? false
-        self.title = json["title"] as? String
-        self.rels = parseArray(json["rel"], allowingSingle: true)
-        self.properties = try Properties(json: json["properties"]) ?? Properties()
-        self.height = parsePositive(json["height"])
-        self.width = parsePositive(json["width"])
-        self.bitrate = parsePositiveDouble(json["bitrate"])
-        self.duration = parsePositiveDouble(json["duration"])
-        self.languages = parseArray(json["language"], allowingSingle: true)
-        self.alternates = [Link](json: json["alternate"], normalizeHref: normalizeHref)
-        self.children = [Link](json: json["children"], normalizeHref: normalizeHref)
+        self.init(
+            href: normalizeHref(href),
+            type: json["type"] as? String,
+            templated: (json["templated"] as? Bool) ?? false,
+            title: json["title"] as? String,
+            rels: parseArray(json["rel"], allowingSingle: true),
+            properties: try Properties(json: json["properties"]) ?? Properties(),
+            height: parsePositive(json["height"]),
+            width: parsePositive(json["width"]),
+            bitrate: parsePositiveDouble(json["bitrate"]),
+            duration: parsePositiveDouble(json["duration"]),
+            languages: parseArray(json["language"], allowingSingle: true),
+            alternates: .init(json: json["alternate"], normalizeHref: normalizeHref),
+            children: .init(json: json["children"], normalizeHref: normalizeHref)
+        )
     }
     
     public var json: [String: Any] {
-        return makeJSON([
+        makeJSON([
             "href": href,
             "type": encodeIfNotNil(type),
             "templated": templated,
@@ -116,6 +116,39 @@ public class Link: JSONEquatable {
             "alternate": encodeIfNotEmpty(alternates.json),
             "children": encodeIfNotEmpty(children.json)
         ])
+    }
+    
+    /// Makes a copy of the `Link`, after modifying some of its properties.
+    public func copy(
+        href: String? = nil,
+        type: String?? = nil,
+        templated: Bool? = nil,
+        title: String?? = nil,
+        rels: [String]? = nil,
+        properties: Properties? = nil,
+        height: Int?? = nil,
+        width: Int?? = nil,
+        bitrate: Double?? = nil,
+        duration: Double?? = nil,
+        languages: [String]? = nil,
+        alternates: [Link]? = nil,
+        children: [Link]? = nil
+    ) -> Link {
+        return Link(
+            href: href ?? self.href,
+            type: type ?? self.type,
+            templated: templated ?? self.templated,
+            title: title ?? self.title,
+            rels: rels ?? self.rels,
+            properties: properties ?? self.properties,
+            height: height ?? self.height,
+            width: width ?? self.width,
+            bitrate: bitrate ?? self.bitrate,
+            duration: duration ?? self.duration,
+            languages: languages ?? self.languages,
+            alternates: alternates ?? self.alternates,
+            children: children ?? self.children
+        )
     }
 
 }
@@ -136,7 +169,7 @@ extension Array where Element == Link {
     }
     
     public var json: [[String: Any]] {
-        return map { $0.json }
+        map { $0.json }
     }
     
     public func first(withRel rel: String, recursively: Bool = false) -> Link? {

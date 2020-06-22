@@ -61,7 +61,7 @@ public enum LocalizedString: Equatable {
 
     /// Returns the localized string matching the most the user's locale.
     public var string: String {
-        return string(forLanguageCode: nil)
+        string(forLanguageCode: nil)
     }
     
     /// Returns the localized string matching the given locale, or fallback on the user's locale.
@@ -93,9 +93,7 @@ public enum LocalizedString: Equatable {
 
 extension LocalizedString: CustomStringConvertible {
     
-    public var description: String {
-        return string
-    }
+    public var description: String { string }
     
 }
 
@@ -125,8 +123,6 @@ extension LocalizedString: LocalizedStringConvertible {
 
 extension Dictionary: LocalizedStringConvertible where Key == String, Value == String {
     
-    public var localizedString: LocalizedString {
-        return .localized(self)
-    }
+    public var localizedString: LocalizedString { .localized(self) }
     
 }

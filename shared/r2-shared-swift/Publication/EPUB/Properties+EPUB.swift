@@ -24,14 +24,12 @@ extension Properties {
     /// Identifies content contained in the linked resource, that cannot be strictly identified
     /// using a media type.
     public var contains: [String] {
-        get { return parseArray(otherProperties[containsKey]) }
-        set { setProperty(newValue, forKey: containsKey) }
+        parseArray(otherProperties["contains"])
     }
     
     /// Hint about the nature of the layout for the linked resources.
     public var layout: EPUBLayout? {
-        get { return parseRaw(otherProperties[layoutKey]) }
-        set { setProperty(newValue, forKey: layoutKey) }
+        parseRaw(otherProperties["layout"])
     }
 
 }

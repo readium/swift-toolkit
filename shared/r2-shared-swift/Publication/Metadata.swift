@@ -11,7 +11,6 @@
 
 import Foundation
 
-
 /// https://readium.org/webpub-manifest/schema/metadata.schema.json
 public struct Metadata: Equatable, Loggable {
 
@@ -19,58 +18,48 @@ public struct Metadata: Equatable, Loggable {
     /// For convenience, the JSON schema reuse the Contributor's definition.
     public typealias Collection = Contributor
 
+    public let identifier: String?  // URI
+    public let type: String?  // URI (@type)
+    
+    public let localizedTitle: LocalizedString
+    public var title: String { localizedTitle.string }
 
-    public var identifier: String?  // URI
-    public var type: String?  // URI (@type)
-    
-    public var localizedTitle: LocalizedString
-    public var title: String {
-        get { return localizedTitle.string }
-        set { localizedTitle = newValue.localizedString }
-    }
-    
-    public var localizedSubtitle: LocalizedString?
-    public var subtitle: String? {
-        get { return localizedSubtitle?.string }
-        set { localizedSubtitle = newValue?.localizedString }
-    }
-    
-    public var modified: Date?
-    public var published: Date?
-    public var languages: [String]  // BCP 47 tag
-    public var sortAs: String?
-    public var subjects: [Subject]
-    public var authors: [Contributor]
-    public var translators: [Contributor]
-    public var editors: [Contributor]
-    public var artists: [Contributor]
-    public var illustrators: [Contributor]
-    public var letterers: [Contributor]
-    public var pencilers: [Contributor]
-    public var colorists: [Contributor]
-    public var inkers: [Contributor]
-    public var narrators: [Contributor]
-    public var contributors: [Contributor]
-    public var publishers: [Contributor]
-    public var imprints: [Contributor]
+    public let localizedSubtitle: LocalizedString?
+    public var subtitle: String? { localizedSubtitle?.string }
+
+    public let modified: Date?
+    public let published: Date?
+    public let languages: [String]  // BCP 47 tag
+    public let sortAs: String?
+    public let subjects: [Subject]
+    public let authors: [Contributor]
+    public let translators: [Contributor]
+    public let editors: [Contributor]
+    public let artists: [Contributor]
+    public let illustrators: [Contributor]
+    public let letterers: [Contributor]
+    public let pencilers: [Contributor]
+    public let colorists: [Contributor]
+    public let inkers: [Contributor]
+    public let narrators: [Contributor]
+    public let contributors: [Contributor]
+    public let publishers: [Contributor]
+    public let imprints: [Contributor]
     /// WARNING: This contains the reading progression as declared in the publication, so it might be `auto`. To lay out the content, use `publication.contentLayout.readingProgression` to get the calculated reading progression from the declared direction and the language.
-    public var readingProgression: ReadingProgression
-    public var description: String?
-    public var duration: Double?
-    public var numberOfPages: Int?
-    public var belongsToCollections: [Collection]
-    public var belongsToSeries: [Collection]
+    public let readingProgression: ReadingProgression
+    public let description: String?
+    public let duration: Double?
+    public let numberOfPages: Int?
+    public let belongsToCollections: [Collection]
+    public let belongsToSeries: [Collection]
 
 
     /// Additional properties for extensions.
-    public var otherMetadata: [String: Any] {
-        get { return otherMetadataJSON.json }
-        set { otherMetadataJSON.json = newValue }
-    }
-    // Trick to keep the struct equatable despite [String: Any]
-    private var otherMetadataJSON: JSONDictionary
-
+    public var otherMetadata: [String: Any] { otherMetadataJSON.json }
     
+    // Trick to keep the struct equatable despite [String: Any]
+    private let otherMetadataJSON: JSONDictionary
+
     public init(identifier: String? = nil, type: String? = nil, title: LocalizedStringConvertible, subtitle: LocalizedStringConvertible? = nil, modified: Date? = nil, published: Date? = nil, languages: [String] = [], sortAs: String? = nil, subjects: [Subject] = [], authors: [Contributor] = [], translators: [Contributor] = [], editors: [Contributor] = [], artists: [Contributor] = [], illustrators: [Contributor] = [], letterers: [Contributor] = [], pencilers: [Contributor] = [], colorists: [Contributor] = [], inkers: [Contributor] = [], narrators: [Contributor] = [], contributors: [Contributor] = [], publishers: [Contributor] = [], imprints: [Contributor] = [], readingProgression: ReadingProgression = .auto, description: String? = nil, duration: Double? = nil, numberOfPages: Int? = nil, belongsToCollections: [Collection] = [], belongsToSeries: [Collection] = [], otherMetadata: [String: Any] = [:]) {
         self.identifier = identifier
         self.type = type
@@ -177,6 +166,71 @@ public struct Metadata: Equatable, Loggable {
             "numberOfPages": encodeIfNotNil(numberOfPages),
             "belongsTo": encodeIfNotEmpty(belongsTo)
         ], additional: otherMetadata)
+    }
+    
+    /// Makes a copy of the `Metadata`, after modifying some of its properties.
+    public func copy(
+        identifier: String?? = nil,
+        type: String?? = nil,
+        title: LocalizedStringConvertible? = nil,
+        subtitle: LocalizedStringConvertible?? = nil,
+        modified: Date?? = nil,
+        published: Date?? = nil,
+        languages: [String]? = nil,
+        sortAs: String?? = nil,
+        subjects: [Subject]? = nil,
+        authors: [Contributor]? = nil,
+        translators: [Contributor]? = nil,
+        editors: [Contributor]? = nil,
+        artists: [Contributor]? = nil,
+        illustrators: [Contributor]? = nil,
+        letterers: [Contributor]? = nil,
+        pencilers: [Contributor]? = nil,
+        colorists: [Contributor]? = nil,
+        inkers: [Contributor]? = nil,
+        narrators: [Contributor]? = nil,
+        contributors: [Contributor]? = nil,
+        publishers: [Contributor]? = nil,
+        imprints: [Contributor]? = nil,
+        readingProgression: ReadingProgression? = nil,
+        description: String?? = nil,
+        duration: Double?? = nil,
+        numberOfPages: Int?? = nil,
+        belongsToCollections: [Collection]? = nil,
+        belongsToSeries: [Collection]? = nil,
+        otherMetadata: [String: Any]? = nil
+    ) -> Metadata {
+        return Metadata(
+            identifier: identifier ?? self.identifier,
+            type: type ?? self.type,
+            title: title ?? self.localizedTitle,
+            subtitle: subtitle ?? self.localizedSubtitle,
+            modified: modified ?? self.modified,
+            published: published ?? self.published,
+            languages: languages ?? self.languages,
+            sortAs: sortAs ?? self.sortAs,
+            subjects: subjects ?? self.subjects,
+            authors: authors ?? self.authors,
+            translators: translators ?? self.translators,
+            editors: editors ?? self.editors,
+            artists: artists ?? self.artists,
+            illustrators: illustrators ?? self.illustrators,
+            letterers: letterers ?? self.letterers,
+            pencilers: pencilers ?? self.pencilers,
+            colorists: colorists ?? self.colorists,
+            inkers: inkers ?? self.inkers,
+            narrators: narrators ?? self.narrators,
+            contributors: contributors ?? self.contributors,
+            publishers: publishers ?? self.publishers,
+            imprints: imprints ?? self.imprints,
+            readingProgression: readingProgression ?? self.readingProgression,
+            description: description ?? self.description,
+            duration: duration ?? self.duration,
+            numberOfPages: numberOfPages ?? self.numberOfPages,
+            belongsToCollections: belongsToCollections ?? self.belongsToCollections,
+            belongsToSeries: belongsToSeries ?? self.belongsToSeries,
+            otherMetadata: otherMetadata ?? self.otherMetadata
+        )
     }
 
 }

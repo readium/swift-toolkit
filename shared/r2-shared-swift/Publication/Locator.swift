@@ -16,19 +16,19 @@ import Foundation
 public struct Locator: Equatable, CustomStringConvertible, Loggable {
 
     /// The URI of the resource that the Locator Object points to.
-    public var href: String  // URI
+    public let href: String  // URI
     
     /// The media type of the resource that the Locator Object points to.
-    public var type: String
+    public let type: String
     
     /// The title of the chapter or section which is more relevant in the context of this locator.
-    public var title: String?
+    public let title: String?
     
     /// One or more alternative expressions of the location.
-    public var locations: Locations
+    public let locations: Locations
     
     /// Textual context of the locator.
-    public var text: Text
+    public let text: Text
     
     public init(href: String, type: String, title: String? = nil, locations: Locations = .init(), text: Text = .init()) {
         self.href = href
@@ -49,11 +49,13 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
             throw JSONError.parsing(Locator.self)
         }
         
-        self.href = href
-        self.type = type
-        self.title = json["title"] as? String
-        self.locations = try Locations(json: json["locations"])
-        self.text = try Text(json: json["text"])
+        self.init(
+            href: href,
+            type: type,
+            title: json["title"] as? String,
+            locations:  try Locations(json: json["locations"]),
+            text: try Text(json: json["text"])
+        )
     }
     
     public init?(jsonString: String) throws {
@@ -70,16 +72,13 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
     
     public init(link: Link) {
         let components = link.href.split(separator: "#", maxSplits: 1).map(String.init)
-        var locations = Locations()
-        if components.count > 1 {
-            locations.fragments = [String(components[1])]
-        }
-        
+        let fragments = (components.count > 1) ? [String(components[1])] : []
+
         self.init(
             href: components.first ?? link.href,
             type: link.type ?? "",
             title: link.title,
-            locations: locations
+            locations: Locations(fragments: fragments)
         )
     }
     
@@ -94,18 +93,30 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
     }
     
     public var jsonString: String? {
-        return serializeJSONString(json)
+        serializeJSONString(json)
     }
     
     public var description: String {
-        return jsonString ?? "{}"
+        jsonString ?? "{}"
+    }
+    
+    /// Makes a copy of the `Locator`, after modifying some of its components.
+    public func copy(title: String?? = nil, locations transformLocations: ((inout Locations) -> Void)? = nil, text transformText: ((inout Text) -> Void)? = nil) -> Locator {
+        var locations = self.locations
+        var text = self.text
+        transformLocations?(&locations)
+        transformText?(&text)
+        return Locator(href: href, type: type, title: title ?? self.title, locations: locations, text: text)
     }
 
     /// One or more alternative expressions of the location.
     /// https://github.com/readium/architecture/tree/master/models/locators#the-location-object
+    ///
+    /// Properties are mutable for convenience when making a copy, but the `locations` property
+    /// is immutable in `Locator`, for safety.
     public struct Locations: Equatable, Loggable {
         /// Contains one or more fragment in the resource referenced by the `Locator`.
-        public var fragments: [String] = []
+        public var fragments: [String]
         /// Progression in the resource expressed as a percentage (between 0 and 1).
         public var progression: Double?
         /// Progression in the publication expressed as a percentage (between 0 and 1).
@@ -114,12 +125,10 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
         public var position: Int?
 
         /// Additional locations for extensions.
-        public var otherLocations: [String: Any] {
-            get { return otherLocationsJSON.json }
-            set { otherLocationsJSON.json = newValue }
-        }
+        public var otherLocations: [String: Any] { otherLocationsJSON.json }
+        
         // Trick to keep the struct equatable despite [String: Any]
-        private var otherLocationsJSON = JSONDictionary()
+        private let otherLocationsJSON: JSONDictionary
         
         public init(fragments: [String] = [], progression: Double? = nil, totalProgression: Double? = nil, position: Int? = nil, otherLocations: [String: Any] = [:]) {
             self.fragments = fragments
@@ -131,6 +140,7 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
         
         public init(json: Any?) throws {
             if json == nil {
+                self.init()
                 return
             }
             guard var json = JSONDictionary(json) else {
@@ -140,11 +150,13 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
             if let fragment = json.pop("fragment") as? String {
                 fragments.append(fragment)
             }
-            self.fragments = fragments
-            self.progression = json.pop("progression") as? Double
-            self.totalProgression = json.pop("totalProgression") as? Double
-            self.position = json.pop("position") as? Int
-            self.otherLocationsJSON = json
+            self.init(
+                fragments: fragments,
+                progression: json.pop("progression") as? Double,
+                totalProgression: json.pop("totalProgression") as? Double,
+                position: json.pop("position") as? Int,
+                otherLocations: json.json
+            )
         }
         
         public init(jsonString: String) {
@@ -157,9 +169,7 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
             }
         }
 
-        public var isEmpty: Bool {
-            return json.isEmpty
-        }
+        public var isEmpty: Bool { json.isEmpty }
         
         public var json: [String: Any] {
             return makeJSON([
@@ -170,17 +180,12 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
             ], additional: otherLocations)
         }
         
-        public var jsonString: String? {
-            return serializeJSONString(json)
-        }
+        public var jsonString: String? { serializeJSONString(json) }
 
         /// Syntactic sugar to access the `otherLocations` values by subscripting `Locations` directly.
         /// locations["cssSelector"] == locations.otherLocations["cssSelector"]
-        public subscript(key: String) -> Any? {
-            get { return otherLocations[key] }
-            set { otherLocations[key] = newValue }
-        }
-        
+        public subscript(key: String) -> Any? { otherLocations[key] }
+
         @available(*, deprecated, renamed: "init(jsonString:)")
         public init(fromString: String) {
             self.init(jsonString: fromString)
@@ -192,9 +197,7 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
         }
         
         @available(*, deprecated, message: "Use `fragments.first` instead")
-        public var fragment: String? {
-            return fragments.first
-        }
+        public var fragment: String? { fragments.first }
         
     }
     
@@ -211,14 +214,17 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
         
         public init(json: Any?) throws {
             if json == nil {
+                self.init()
                 return
             }
             guard let json = json as? [String: Any] else {
                 throw JSONError.parsing(Text.self)
             }
-            self.after = json["after"] as? String
-            self.before = json["before"] as? String
-            self.highlight = json["highlight"] as? String
+            self.init(
+                after: json["after"] as? String,
+                before: json["before"] as? String,
+                highlight: json["highlight"] as? String
+            )
         }
         
         public init(jsonString: String) {
@@ -239,9 +245,7 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
             ])
         }
         
-        public var jsonString: String? {
-            return serializeJSONString(json)
-        }
+        public var jsonString: String? { serializeJSONString(json) }
         
         @available(*, deprecated, renamed: "init(jsonString:)")
         public init(fromString: String) {
