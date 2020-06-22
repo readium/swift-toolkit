@@ -39,7 +39,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
     public static func parseManifest(at url: URL, format: Format) throws -> (PubBox, PubParsingCallback) {
         do {
             let data = try Data(contentsOf: url)
-            var container: Container = HTTPContainer(baseURL: url.deletingLastPathComponent(), mimetype: MediaType.webpubManifest.string)
+            var container: Container = HTTPContainer(baseURL: url.deletingLastPathComponent(), mimetype: MediaType.readiumWebPubManifest.string)
             let publication = try parsePublication(fromManifest: data, in: &container, sourceURL: url, format: format, isPackage: false)
 
             func didLoadDRM(drm: DRM?) {
@@ -57,8 +57,8 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory),
             var container: Container = isDirectory.boolValue
-                ? DirectoryContainer(directory: url.path, mimetype: MediaType.webpub.string)
-                : ArchiveContainer(path: url.path, mimetype: MediaType.webpub.string) else
+                ? DirectoryContainer(directory: url.path, mimetype: MediaType.readiumWebPub.string)
+                : ArchiveContainer(path: url.path, mimetype: MediaType.readiumWebPub.string) else
         {
             throw ReadiumWebPubParserError.missingFile(path: url.path)
         }

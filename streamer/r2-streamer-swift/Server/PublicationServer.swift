@@ -275,7 +275,7 @@ public class PublicationServer: ResourcesServer {
             guard let manifestData = publication.manifest else {
                 return GCDWebServerResponse(statusCode: 404)
             }
-            let type = "\(MediaType.webpubManifest.string); charset=utf-8"
+            let type = "\(MediaType.readiumWebPubManifest.string); charset=utf-8"
             return GCDWebServerDataResponse(data: manifestData, contentType: type)
         }
         webServer.addHandler(
