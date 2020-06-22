@@ -13,6 +13,7 @@ import R2Shared
 public struct ZipFileInfo {
     let path: String
     let length: UInt64
+    let isCompressed: Bool
     let compressionLevel: Int
     let crypted: Bool
     let compressedLength: UInt64
@@ -225,23 +226,32 @@ internal class ZipArchive: Loggable {
     ///
     /// - Parameter x: The number of bytes to advance the current offset to.
     internal func seek(_ offset: Int) throws {
-        // TODO: Check if you can seek directly to offset in minizip instead of reading the bytes
-        let ioffset = Int(offset)
-        var buffer = Array<CUnsignedChar>(repeating: 0, count: bufferLength)
+        let isCompressed = try informationsOfCurrentFile().isCompressed
+        if isCompressed {
+            // Deflate is stream-based, so we need to read the bytes from the beginning and discard
+            // them until we reach the offset.
+            let ioffset = Int(offset)
+            var buffer = Array<CUnsignedChar>(repeating: 0, count: bufferLength)
 
-        // FIXME: do that only when the data is compressed?
-        // Read the current file to the desired offset
-        var offsetBytesRead: Int = 0
-        while offsetBytesRead < ioffset {
-            let bytesToRead = min(bufferLength, ioffset - offsetBytesRead)
-            // Data is discarded
-            let bytesRead = unzReadCurrentFile(unzFile, &buffer, UInt32(bytesToRead))
-            if bytesRead == 0 {
-                break
+            // Read the current file to the desired offset
+            var offsetBytesRead: Int = 0
+            while offsetBytesRead < ioffset {
+                let bytesToRead = min(bufferLength, ioffset - offsetBytesRead)
+                // Data is discarded
+                let bytesRead = unzReadCurrentFile(unzFile, &buffer, UInt32(bytesToRead))
+                if bytesRead == 0 {
+                    break
+                }
+                if bytesRead > 0 {
+                    offsetBytesRead += Int(bytesRead)
+                } else {
+                    throw ZipArchiveError.minizipError
+                }
             }
-            if bytesRead > 0 {
-                offsetBytesRead += Int(bytesRead)
-            } else {
+            
+        } else {
+            // For non-compressed entries, we can seek directly in the content.
+            if unzseek(unzFile, offset, SEEK_CUR) != UNZ_OK {
                 throw ZipArchiveError.minizipError
             }
         }
@@ -303,13 +313,16 @@ internal class ZipArchive: Loggable {
                                             minute: Int(fileInfo.tmu_date.tm_min),
                                             second: Int(fileInfo.tmu_date.tm_sec))
         let date = dateComponents.date
-        let zipFileInfo = ZipFileInfo(path: path,
-                                      length: fileInfo.uncompressed_size,
-                                      compressionLevel: 0,
-                                      crypted: crypted,
-                                      compressedLength: fileInfo.compressed_size,
-                                      date: date,
-                                      crc32: UInt32(fileInfo.crc))
+        let zipFileInfo = ZipFileInfo(
+            path: path,
+            length: fileInfo.uncompressed_size,
+            isCompressed: fileInfo.compression_method != 0,
+            compressionLevel: 0,
+            crypted: crypted,
+            compressedLength: fileInfo.compressed_size,
+            date: date,
+            crc32: UInt32(fileInfo.crc)
+        )
         return zipFileInfo
     }
 
