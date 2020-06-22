@@ -26,7 +26,7 @@ func makeLicenseContainer(for publication: URL, mimetypes: [String] = []) throws
     }
 
     switch format {
-    case .lcpProtectedPDF, .lcpProtectedAudiobook, .audiobook, .divina, .webpub:
+    case .lcpProtectedPDF, .lcpProtectedAudiobook, .readiumAudiobook, .readiumWebPub, .divina:
         return ReadiumLicenseContainer(path: publication)
     case .epub:
         return EPUBLicenseContainer(epub: publication)
