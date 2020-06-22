@@ -61,47 +61,42 @@ final public class EpubParser: PublicationParser {
         let path = url.path
         // Generate the `Container` for `fileAtPath`
         var container = try generateContainerFrom(fileAtPath: path)
-
-        // Parse OPF file (Metadata, ReadingOrder, Resource).
-        var publication = try OPFParser(container: container).parsePublication()
-        publication.positionListFactory = makePositionListFactory(container: container)
         
-        // Parse navigation tables.
-        parseNavigationDocument(from: container, to: &publication)
-        if publication.tableOfContents.isEmpty || publication.pageList.isEmpty {
-            parseNCXDocument(from: container, to: &publication)
-        }
-        
-        // Check if the publication is DRM protected.
         let drm = scanForDRM(in: container)
-        // Parse the META-INF/Encryption.xml.
-        parseEncryption(from: container, to: &publication, drm)
+        // `Encryption` indexed by HREF.
+        let encryptions = (try? EPUBEncryptionParser(container: container, drm: drm))?.parseEncryptions() ?? [:]
+
+        // Extracts metadata and links from the OPF.
+        let components = try OPFParser(container: container, encryptions: encryptions).parsePublication()
+        let links = components.readingOrder + components.resources
+
+        let publication = Publication(
+            format: .epub,
+            formatVersion: components.version,
+            positionListFactory: makePositionListFactory(container: container),
+            metadata: components.metadata,
+            readingOrder: components.readingOrder,
+            resources: components.resources,
+            otherCollections: parseCollections(in: container, links: links)
+        )
         
         func parseRemainingResource(protectedBy drm: DRM?) throws {
             container.drm = drm
-            fillEncryptionProfile(forLinksIn: publication, using: drm)
         }
         container.drm = drm
         return ((publication, container), parseRemainingResource)
     }
+    
+    static private func parseCollections(in container: Container, links: [Link]) -> [PublicationCollection] {
+        var collections = parseNavigationDocument(in: container, links: links)
+        if collections.first(withRole: "toc")?.links.isEmpty != false {
+            // Falls back on the NCX tables.
+            collections.append(contentsOf: parseNCXDocument(in: container, links: links))
+        }
+        return collections
+    }
 
     // MARK: - Internal Methods.
-
-    /// Parse the Encryption.xml EPUB file. It contains the informationg about
-    /// encrypted resources and how to decrypt them.
-    private static func parseEncryption(from container: Container, to publication: inout Publication, _ drm: DRM?) {
-        guard let parser = try? EPUBEncryptionParser(container: container, drm: drm) else {
-            return
-        }
-
-        // Adds the encryption information to the `Link` with matching `href`.
-        for (href, encryption) in parser.parseEncryptions() {
-            guard let link = publication.link(withHref: href) else {
-                continue
-            }
-            link.properties.encryption = encryption
-        }
-    }
 
     /// WIP, currently only LCP.
     /// Scan Container (but later Publication too probably) to know if any DRM
@@ -119,53 +114,61 @@ final public class EpubParser: PublicationParser {
     }
 
     /// Attempt to fill the `Publication`'s `tableOfContent`, `landmarks`, `pageList` and `listOfX` links collections using the navigation document.
-    ///
-    /// - Parameters:
-    ///   - container: The Epub container.
-    ///   - publication: The Epub publication.
-    private static func parseNavigationDocument(from container: Container, to publication: inout Publication) {
+    private static func parseNavigationDocument(in container: Container, links: [Link]) -> [PublicationCollection] {
         // Get the link in the readingOrder pointing to the Navigation Document.
-        guard let navLink = publication.link(withRel: "contents"),
+        guard let navLink = links.first(withRel: "contents"),
             let navDocumentData = try? container.data(relativePath: navLink.href) else
         {
-            return
+            return []
         }
         
         // Get the location of the navigation document in order to normalize href paths.
         let navigationDocument = NavigationDocumentParser(data: navDocumentData, at: navLink.href)
+        
+        func makeCollection(_ type: NavigationDocumentParser.NavType, role: String) -> PublicationCollection? {
+            let links = navigationDocument.links(for: type)
+            guard !links.isEmpty else {
+                return nil
+            }
+            return PublicationCollection(role: role, links: links)
+        }
 
-        publication.tableOfContents = navigationDocument.links(for: .tableOfContents)
-        publication.pageList = navigationDocument.links(for: .pageList)
-        publication.landmarks = navigationDocument.links(for: .landmarks)
-        publication.listOfAudioClips = navigationDocument.links(for: .listOfAudiofiles)
-        publication.listOfIllustrations = navigationDocument.links(for: .listOfIllustrations)
-        publication.listOfTables = navigationDocument.links(for: .listOfTables)
-        publication.listOfVideoClips = navigationDocument.links(for: .listOfVideos)
+        return [
+            makeCollection(.tableOfContents, role: "toc"),
+            makeCollection(.pageList, role: "pageList"),
+            makeCollection(.landmarks, role: "landmarks"),
+            makeCollection(.listOfAudiofiles, role: "loa"),
+            makeCollection(.listOfIllustrations, role: "loi"),
+            makeCollection(.listOfTables, role: "lot"),
+            makeCollection(.listOfVideos, role: "lov")
+        ].compactMap { $0 }
     }
 
     /// Attempt to fill `Publication.tableOfContent`/`.pageList` using the NCX
     /// document. Will only modify the Publication if it has not be filled
     /// previously (using the Navigation Document).
-    ///
-    /// - Parameters:
-    ///   - container: The Epub container.
-    ///   - publication: The Epub publication.
-    private static func parseNCXDocument(from container: Container, to publication: inout Publication) {
+    private static func parseNCXDocument(in container: Container, links: [Link]) -> [PublicationCollection] {
         // Get the link in the readingOrder pointing to the NCX document.
-        guard let ncxLink = publication.resources.first(withType: .ncx),
+        guard let ncxLink = links.first(withType: .ncx),
             let ncxDocumentData = try? container.data(relativePath: ncxLink.href) else
         {
-            return
+            return []
         }
         
         let ncx = NCXParser(data: ncxDocumentData, at: ncxLink.href)
         
-        if publication.tableOfContents.isEmpty {
-            publication.tableOfContents = ncx.links(for: .tableOfContents)
+        func makeCollection(_ type: NCXParser.NavType, role: String) -> PublicationCollection? {
+            let links = ncx.links(for: type)
+            guard !links.isEmpty else {
+                return nil
+            }
+            return PublicationCollection(role: role, links: links)
         }
-        if publication.pageList.isEmpty {
-            publication.pageList = ncx.links(for: .pageList)
-        }
+        
+        return [
+            makeCollection(.tableOfContents, role: "toc"),
+            makeCollection(.pageList, role: "pageList")
+        ].compactMap { $0 }
     }
 
     /// Parse the mediaOverlays informations contained in the ressources then
@@ -176,38 +179,38 @@ final public class EpubParser: PublicationParser {
     ///   - container: The Epub Container.
     ///   - publication: The Publication object representing the Epub data.
     private static func parseMediaOverlay(from fetcher: Fetcher, to publication: inout Publication) throws {
-        let mediaOverlays = publication.resources.filter(byType: .smil)
-
-        guard !mediaOverlays.isEmpty else {
-            log(.info, "No media-overlays found in the Publication.")
-            return
-        }
-        for mediaOverlayLink in mediaOverlays {
-            let node = MediaOverlayNode()
-            
-            guard let smilData = try? fetcher.data(forLink: mediaOverlayLink),
-                let smilXml = try? XMLDocument(data: smilData) else
-            {
-                throw OPFParserError.invalidSmilResource
-            }
-
-            smilXml.definePrefix("smil", forNamespace: "http://www.w3.org/ns/SMIL")
-            smilXml.definePrefix("epub", forNamespace: "http://www.idpf.org/2007/ops")
-            guard let body = smilXml.firstChild(xpath: "./smil:body") else {
-                continue
-            }
-
-            node.role.append("section")
-            if let textRef = body.attr("textref") { // Prevent the crash on the japanese book
-                node.text = normalize(base: mediaOverlayLink.href, href: textRef)
-            }
-            // get body parameters <par>a
-            let href = mediaOverlayLink.href
-            SMILParser.parseParameters(in: body, withParent: node, base: href)
-            SMILParser.parseSequences(in: body, withParent: node, publicationReadingOrder: &publication.readingOrder, base: href)
+        // FIXME: For now we don't fill the media-overlays anymore, since it was only half implemented and the API will change
+//        let mediaOverlays = publication.resources.filter(byType: .smil)
+//
+//        guard !mediaOverlays.isEmpty else {
+//            log(.info, "No media-overlays found in the Publication.")
+//            return
+//        }
+//        for mediaOverlayLink in mediaOverlays {
+//            let node = MediaOverlayNode()
+//
+//            guard let smilData = try? fetcher.data(forLink: mediaOverlayLink),
+//                let smilXml = try? XMLDocument(data: smilData) else
+//            {
+//                throw OPFParserError.invalidSmilResource
+//            }
+//
+//            smilXml.definePrefix("smil", forNamespace: "http://www.w3.org/ns/SMIL")
+//            smilXml.definePrefix("epub", forNamespace: "http://www.idpf.org/2007/ops")
+//            guard let body = smilXml.firstChild(xpath: "./smil:body") else {
+//                continue
+//            }
+//
+//            node.role.append("section")
+//            if let textRef = body.attr("textref") { // Prevent the crash on the japanese book
+//                node.text = normalize(base: mediaOverlayLink.href, href: textRef)
+//            }
+//            // get body parameters <par>a
+//            let href = mediaOverlayLink.href
+//            SMILParser.parseParameters(in: body, withParent: node, base: href)
+//            SMILParser.parseSequences(in: body, withParent: node, publicationReadingOrder: &publication.readingOrder, base: href)
             // "/??/xhtml/mo-002.xhtml#mo-1" => "/??/xhtml/mo-002.xhtml"
             
-            // FIXME: For now we don't fill the media-overlays anymore, since it was only half implemented and the API will change
 //            guard let baseHref = node.text?.components(separatedBy: "#")[0],
 //                let link = publication.readingOrder.first(where: { baseHref.contains($0.href) }) else
 //            {
@@ -215,7 +218,7 @@ final public class EpubParser: PublicationParser {
 //            }
 //            link.mediaOverlays.append(node)
 //            link.properties.mediaOverlay = EPUBConstant.mediaOverlayURL + link.href
-        }
+//        }
     }
 
     /// Generate a Container instance for the file at `fileAtPath`. It handles
@@ -245,28 +248,6 @@ final public class EpubParser: PublicationParser {
         return container
     }
 
-    /// Called in the callback when the DRM has been informed of the encryption
-    /// scheme, in order to fill this information in the encrypted links.
-    ///
-    /// - Parameters:
-    ///   - publication: The Publication.
-    ///   - drm: The `DRM` object.
-    private static func fillEncryptionProfile(forLinksIn publication: Publication, using drm: DRM?) {
-        guard let drm = drm else {
-            return
-        }
-        for link in publication.resources {
-            if link.properties.encryption?.scheme == drm.scheme.rawValue{
-                link.properties.encryption?.profile = drm.license?.encryptionProfile
-            }
-        }
-        for link in publication.readingOrder {
-            if link.properties.encryption?.scheme == drm.scheme.rawValue {
-                link.properties.encryption?.profile = drm.license?.encryptionProfile
-            }
-        }
-    }
-    
     /// Factory to create an EPUB's positionList.
     private static func makePositionListFactory(container: Container) -> (Publication) -> [Locator] {
         return { publication in
@@ -287,11 +268,11 @@ final public class EpubParser: PublicationParser {
             let totalPageCount = positionList.count
             if totalPageCount > 0 {
                 positionList = positionList.map { locator in
-                    var locator = locator
-                    if let position = locator.locations.position {
-                        locator.locations.totalProgression = Double(position - 1) / Double(totalPageCount)
-                    }
-                    return locator
+                    locator.copy(locations: {
+                        if let position = $0.position {
+                            $0.totalProgression = Double(position - 1) / Double(totalPageCount)
+                        }
+                    })
                 }
             }
             

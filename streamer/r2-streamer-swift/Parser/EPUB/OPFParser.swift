@@ -44,19 +44,23 @@ final class OPFParser: Loggable {
     /// iBooks Display Options XML file to use as a fallback for metadata.
     /// See https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#epub-2x-9
     private let displayOptions: Fuzi.XMLDocument?
-    
+
     /// List of metadata declared in the package.
     private let metas: OPFMetaList
+    
+    /// Encryption information, indexed by resource HREF.
+    private let encryptions: [String: Encryption]
 
-    init(basePath: String, data: Data, displayOptionsData: Data? = nil) throws {
+    init(basePath: String, data: Data, displayOptionsData: Data? = nil, encryptions: [String: Encryption]) throws {
         self.basePath = basePath
         self.document = try Fuzi.XMLDocument(data: data)
         self.document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
         self.displayOptions = (displayOptionsData.map { try? Fuzi.XMLDocument(data: $0) }) ?? nil
         self.metas = OPFMetaList(document: self.document)
+        self.encryptions = encryptions
     }
     
-    convenience init(container: Container) throws {
+    convenience init(container: Container, encryptions: [String: Encryption] = [:]) throws {
         let opfPath = container.rootFile.rootFilePath
         try self.init(
             basePath: opfPath,
@@ -67,20 +71,20 @@ final class OPFParser: Loggable {
                 return (try? container.data(relativePath: iBooksPath))
                     ?? (try? container.data(relativePath: koboPath))
                     ?? nil
-            }()
+            }(),
+            encryptions: encryptions
         )
     }
     
     /// Parse the OPF file of the EPUB container and return a `Publication`.
     /// It also complete the informations stored in the container.
-    func parsePublication() throws -> Publication {
-        let manifestLinks = parseManifestLinks()
-        let (resources, readingOrder) = parseResourcesAndReadingOrderLinks(manifestLinks)
+    func parsePublication() throws -> (version: String, metadata: Metadata, readingOrder: [Link], resources: [Link]) {
+        let links = parseLinks()
+        let (resources, readingOrder) = splitResourcesAndReadingOrderLinks(links)
         let metadata = EPUBMetadataParser(document: document, displayOptions: displayOptions, metas: metas)
 
-        return Publication(
-            format: .epub,
-            formatVersion: parseEPUBVersion(),
+        return (
+            version: parseEPUBVersion(),
             metadata: try metadata.parse(),
             readingOrder: readingOrder,
             resources: resources
@@ -95,36 +99,33 @@ final class OPFParser: Loggable {
     }
     
     /// Parses XML elements of the <Manifest> in the package.opf file as a list of `Link`.
-    private func parseManifestLinks() -> [Link] {
+    private func parseLinks() -> [Link] {
         // Read meta to see if any Link is referenced as the Cover.
         let coverId = metas["cover"].first?.content
 
-        // Get the manifest children items
         let manifestItems = document.xpath("/opf:package/opf:manifest/opf:item")
         
-        return manifestItems.compactMap { item in
+        // Spine items indexed by IDRef
+        let spineItemsKVs = document.xpath("/opf:package/opf:spine/opf:itemref")
+            .compactMap { item in
+                item.attr("idref").map { ($0, item) }
+            }
+        let spineItems = Dictionary(spineItemsKVs, uniquingKeysWith: { first, _ in first })
+
+        return manifestItems.compactMap { manifestItem in
                 // Must have an ID.
-                guard let id = item.attr("id") else {
+                guard let id = manifestItem.attr("id") else {
                     log(.warning, "Manifest item MUST have an id, item ignored.")
                     return nil
                 }
-                guard let link = makeLink(from: item) else {
+            
+                let isCover = (id == coverId)
+
+                guard let link = makeLink(manifestItem: manifestItem, spineItem: spineItems[id], isCover: isCover) else {
                     log(.warning, "Can't parse link with ID \(id)")
                     return nil
                 }
-            
-                // If the link reference a Smil resource, retrieve and fill its duration.
-                if link.mediaType?.matches(.smil) == true,
-                    let durationMeta = metas["duration", in: .media, refining: id].first,
-                    let duration = Double(SMILParser.smilTimeToSeconds(durationMeta.content)) {
-                    link.duration = duration
-                }
-    
-                // Add the "cover" rel to the link if it is referenced as the cover in the meta property.
-                if let coverId = coverId, id == coverId {
-                    link.rels.append("cover")
-                }
-    
+
                 return link
             }
     }
@@ -134,147 +135,164 @@ final class OPFParser: Loggable {
     ///
     /// - Parameter manifestLinks: The `Link` parsed in the manifest items.
     /// - Returns: The `Link` in `resources` and in `readingOrder`, taken from the `manifestLinks`.
-    private func parseResourcesAndReadingOrderLinks(_ manifestLinks: [Link]) -> (resources: [Link], readingOrder: [Link]) {
+    private func splitResourcesAndReadingOrderLinks(_ manifestLinks: [Link]) -> (resources: [Link], readingOrder: [Link]) {
         var resources = manifestLinks
         var readingOrder: [Link] = []
         
-        // Get the readingOrder children items.
-        let readingOrderItems = document.xpath("/opf:package/opf:spine/opf:itemref")
-        for item in readingOrderItems {
+        let spineItems = document.xpath("/opf:package/opf:spine/opf:itemref")
+        for item in spineItems {
             // Find the `Link` that `idref` is referencing to from the `manifestLinks`.
             guard let idref = item.attr("idref"),
-                let index = resources.firstIndex(withProperty: "id", matching: idref) else
+                let index = resources.firstIndex(withProperty: "id", matching: idref),
+                // Only linear items are added to the readingOrder.
+                item.attr("linear")?.lowercased() != "no" else
             {
                 continue
             }
             
-            // Parse the additional link properties.
-            let link = resources[index]
-            if let propertyAttribute = item.attr("properties") {
-                let properties = propertyAttribute.components(separatedBy: CharacterSet.whitespaces)
-                parseProperties(&link.properties, from: properties)
-            }
-            
-            // Retrieve `idref`, referencing a resource id.
-            // Only linear items are added to the readingOrder.
-            guard isLinear(item.attr("linear")) else {
-                continue
-            }
-            
-            readingOrder.append(link)
-            // The resources should only contain the links that are not already in the readingOrder
+            readingOrder.append(resources[index])
+            // `resources` should only contain the links that are not already in `readingOrder`.
             resources.remove(at: index)
         }
         
         return (resources, readingOrder)
     }
 
-    /// Returns whether the XML attribute correspond to the linear one.
-    /// - Parameter linear: The linear attribute value, if any.
-    private func isLinear(_ linear: String?) -> Bool {
-        if linear != nil, linear?.lowercased() == "no" {
-            return false
-        }
-        return true
-    }
-
-    /// Generate a `Link` form the given manifest's XML element.
-    ///
-    /// - Parameter item: The XML element, or manifest XML item.
-    /// - Returns: The `Link` representing the manifest XML item.
-    private func makeLink(from manifestItem: Fuzi.XMLElement) -> Link? {
-        guard let href = manifestItem.attr("href")?.removingPercentEncoding else {
+    private func makeLink(manifestItem: Fuzi.XMLElement, spineItem: Fuzi.XMLElement?, isCover: Bool) -> Link? {
+        guard var href = manifestItem.attr("href")?.removingPercentEncoding else {
             return nil
         }
         
-        let propertiesArray = manifestItem.attr("properties")?.components(separatedBy: .whitespaces) ?? []
+        href = normalize(base: basePath, href: href)
+
+        // Merges the string properties found in the manifest and spine items.
+        let stringProperties = "\(manifestItem.attr("properties") ?? "") \(spineItem?.attr("properties") ?? "")"
+            .components(separatedBy: .whitespaces)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
 
         var rels: [String] = []
-        if propertiesArray.contains("nav") {
+        if stringProperties.contains("nav") {
             rels.append("contents")
         }
-        if propertiesArray.contains("cover-image") {
+        if isCover || stringProperties.contains("cover-image") {
             rels.append("cover")
         }
+
+        var properties = parseStringProperties(stringProperties)
         
-        var properties = Properties()
-        parseProperties(&properties, from: propertiesArray)
+        if let encryption = encryptions[href]?.json, !encryption.isEmpty {
+            properties["encrypted"] = encryption
+        }
+
+        let type = manifestItem.attr("media-type")
+        var duration: Double?
         
         if let id = manifestItem.attr("id") {
-            properties.otherProperties["id"] = id
+            properties["id"] = id
+            
+            // If the link references a SMIL resource, retrieves and fills its duration.
+            if MediaType.smil.matches(type), let durationMeta = metas["duration", in: .media, refining: id].first {
+                duration = Double(SMILParser.smilTimeToSeconds(durationMeta.content))
+            }
         }
 
         return Link(
-            href: normalize(base: basePath, href: href),
-            type: manifestItem.attr("media-type"),
+            href: href,
+            type: type,
             rels: rels,
-            properties: properties
+            properties: Properties(properties),
+            duration: duration
         )
     }
 
-    /// Parse properties string array and return a Properties object.
-    ///
-    /// - Parameter propertiesArray: The array of properties strings.
-    /// - Returns: The Properties instance created from the strings array info.
-    private func parseProperties(_ properties: inout Properties, from propertiesArray: [String]) {
-        // Look if item have any properties.
-        for property in propertiesArray {
+    /// Parse string properties into an `otherProperties` dictionary.
+    private func parseStringProperties(_ properties: [String]) -> [String: Any] {
+        var contains: [String] = []
+        var layout: EPUBLayout?
+        var orientation: Presentation.Orientation?
+        var overflow: Presentation.Overflow?
+        var page: Presentation.Page?
+        var spread: Presentation.Spread?
+
+        for property in properties {
             switch property {
-            /// Contains
+            // Contains
             case "scripted":
-                properties.contains.append("js")
+                contains.append("js")
             case "mathml":
-                properties.contains.append("mathml")
+                contains.append("mathml")
             case "onix-record":
-                properties.contains.append("onix")
+                contains.append("onix")
             case "svg":
-                properties.contains.append("svg")
+                contains.append("svg")
             case "xmp-record":
-                properties.contains.append("xmp")
+                contains.append("xmp")
             case "remote-resources":
-                properties.contains.append("remote-resources")
-            /// Page
+                contains.append("remote-resources")
+            // Page
             case "page-spread-left":
-                properties.page = .left
+                page = .left
             case "page-spread-right":
-                properties.page = .right
+                page = .right
             case "page-spread-center", "rendition:page-spread-center":
-                properties.page = .center
-            /// Spread
+                page = .center
+            // Spread
             case "rendition:spread-none", "rendition:spread-auto":
                 // If we don't qualify `.none` here it sets it to `nil`.
-                properties.spread = Presentation.Spread.none
+                spread = Presentation.Spread.none
             case "rendition:spread-landscape":
-                properties.spread = .landscape
+                spread = .landscape
             case "rendition:spread-portrait":
                 // `portrait` is deprecated and should fallback to `both`.
                 // See. https://readium.org/architecture/streamer/parser/metadata#epub-3x-11
-                properties.spread = .both
+                spread = .both
             case "rendition:spread-both":
-                properties.spread = .both
-            /// Layout
+                spread = .both
+            // Layout
             case "rendition:layout-reflowable":
-                properties.layout = .reflowable
+                layout = .reflowable
             case "rendition:layout-pre-paginated":
-                properties.layout = .fixed
-            /// Orientation
+                layout = .fixed
+            // Orientation
             case "rendition:orientation-auto":
-                properties.orientation = .auto
+                orientation = .auto
             case "rendition:orientation-landscape":
-                properties.orientation = .landscape
+                orientation = .landscape
             case "rendition:orientation-portrait":
-                properties.orientation = .portrait
-            /// Rendition
+                orientation = .portrait
+            // Rendition
             case "rendition:flow-auto":
-                properties.overflow = .auto
+                overflow = .auto
             case "rendition:flow-paginated":
-                properties.overflow = .paginated
+                overflow = .paginated
             case "rendition:flow-scrolled-continuous", "rendition:flow-scrolled-doc":
-                properties.overflow = .scrolled
+                overflow = .scrolled
             default:
                 continue
             }
         }
+        
+        var otherProperties: [String: Any] = [:]
+        if !contains.isEmpty {
+            otherProperties["contains"] = contains
+        }
+        if let layout = layout {
+            otherProperties["layout"] = layout.rawValue
+        }
+        if let orientation = orientation {
+            otherProperties["orientation"] = orientation.rawValue
+        }
+        if let overflow = overflow {
+            otherProperties["overflow"] = overflow.rawValue
+        }
+        if let page = page {
+            otherProperties["page"] = page.rawValue
+        }
+        if let spread = spread {
+            otherProperties["spread"] = spread.rawValue
+        }
+        
+        return otherProperties
     }
 
 }

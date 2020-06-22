@@ -158,19 +158,28 @@ class OPFParserTests: XCTestCase {
         func document(named name: String, type: String) throws -> Data {
             return try Data(contentsOf: SampleGenerator().getSamplesFileURL(named: "OPF/\(name)", ofType: type)!)
         }
-        return try OPFParser(
+        let parts = try OPFParser(
             basePath: path,
             data: try document(named: name, type: "opf"),
-            displayOptionsData: displayOptions.map { try document(named: $0, type: "xml") }
+            displayOptionsData: displayOptions.map { try document(named: $0, type: "xml") },
+            encryptions: [:]
         ).parsePublication()
+        
+        return Publication(
+            format: .epub,
+            formatVersion: parts.version,
+            metadata: parts.metadata,
+            readingOrder: parts.readingOrder,
+            resources: parts.resources
+        )
     }
     
     func link(id: String? = nil, href: String, type: String? = nil, templated: Bool = false, title: String? = nil, rels: [String] = [], properties: Properties = .init(), duration: Double? = nil, children: [Link] = []) -> Link {
-        var properties = properties
+        var properties = properties.otherProperties
         if let id = id {
-            properties.otherProperties["id"] = id
+            properties["id"] = id
         }
-        return Link(href: href, type: type, templated: templated, title: title, rels: rels, properties: properties, duration: duration, children: children)
+        return Link(href: href, type: type, templated: templated, title: title, rels: rels, properties: Properties(properties), duration: duration, children: children)
     }
     
 }

@@ -27,7 +27,7 @@ class FileContainer: Container, Loggable {
     /// Maps between container relative paths, and the matching File to serve.
     var files = [String: File]()
 
-    init?(path: String, mimetype: String) {
+    init(path: String, mimetype: String) {
         self.rootFile = RootFile(rootPath: path, mimetype: mimetype)
     }
     

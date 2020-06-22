@@ -52,6 +52,7 @@ public class CbzParser: PublicationParser {
     }
     
     private static func parsePublication(in container: CBZContainer, at url: URL) -> Publication {
+        var didSetCover = false
         let publication = Publication(
             format: .cbz,
             positionListFactory: makePositionList(of:),
@@ -68,15 +69,22 @@ public class CbzParser: PublicationParser {
                     {
                         return nil
                     }
+                    
+                    var rel: String?
+                    
+                    // First valid resource is the cover.
+                    if !didSetCover {
+                        didSetCover = true
+                        rel = "cover"
+                    }
+                    
                     return Link(
                         href: normalize(base: container.rootFile.rootFilePath, href: filename),
-                        type: format.mediaType.string
+                        type: format.mediaType.string,
+                        rel: rel
                     )
                 }
         )
-        
-        // First valid resource is the cover.
-        publication.readingOrder.first?.rels.append("cover")
         
         return publication
     }
