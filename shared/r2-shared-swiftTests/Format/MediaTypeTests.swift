@@ -209,6 +209,17 @@ class MediaTypeTests: XCTestCase {
         XCTAssertTrue(MediaType("text/html;charset=utf-8")!.matches("text/html;charset=utf-8"))
     }
     
+    func testMatchesAnyMediaTypes() {
+        XCTAssertTrue(MediaType("text/html")!
+            .matchesAny(MediaType("application/zip")!, MediaType("text/html;charset=utf-8")!))
+        XCTAssertFalse(MediaType("text/html")!
+            .matchesAny(MediaType("application/zip")!, MediaType("text/plain;charset=utf-8")!))
+        XCTAssertTrue(MediaType("text/html")!
+            .matchesAny("application/zip", "text/html;charset=utf-8"))
+        XCTAssertFalse(MediaType("text/html")!
+            .matchesAny("application/zip", "text/plain;charset=utf-8"))
+    }
+    
     func testPatternMatch() {
         let mediaType: MediaType? = .json
         XCTAssertTrue(.json ~= mediaType)

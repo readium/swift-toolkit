@@ -30,21 +30,21 @@ class FormatSnifferTests: XCTestCase {
     
     func testSniffFromMetadata() {
         XCTAssertNil(Format.of(fileExtension: nil))
-        XCTAssertEqual(Format.of(fileExtension: "audiobook"), .audiobook)
+        XCTAssertEqual(Format.of(fileExtension: "audiobook"), .readiumAudiobook)
         XCTAssertNil(Format.of(mediaType: nil))
-        XCTAssertEqual(Format.of(mediaType: "application/audiobook+zip"), .audiobook)
-        XCTAssertEqual(Format.of(mediaType: "application/audiobook+zip"), .audiobook)
-        XCTAssertEqual(Format.of(mediaType: "application/audiobook+zip", fileExtension: "audiobook"), .audiobook)
-        XCTAssertEqual(Format.of(mediaTypes: ["application/audiobook+zip"], fileExtensions: ["audiobook"]), .audiobook)
+        XCTAssertEqual(Format.of(mediaType: "application/audiobook+zip"), .readiumAudiobook)
+        XCTAssertEqual(Format.of(mediaType: "application/audiobook+zip"), .readiumAudiobook)
+        XCTAssertEqual(Format.of(mediaType: "application/audiobook+zip", fileExtension: "audiobook"), .readiumAudiobook)
+        XCTAssertEqual(Format.of(mediaTypes: ["application/audiobook+zip"], fileExtensions: ["audiobook"]), .readiumAudiobook)
     }
     
     func testSniffFromAFile() {
-        XCTAssertEqual(Format.of(fixtures.url(for: "audiobook.json")), .audiobookManifest)
+        XCTAssertEqual(Format.of(fixtures.url(for: "audiobook.json")), .readiumAudiobookManifest)
     }
     
     func testSniffFromBytes() {
         let data = try! Data(contentsOf: fixtures.url(for: "audiobook.json"))
-        XCTAssertEqual(Format.of({ data }), .audiobookManifest)
+        XCTAssertEqual(Format.of({ data }), .readiumAudiobookManifest)
     }
 
     func testSniffUnknownFormat() {
@@ -53,15 +53,15 @@ class FormatSnifferTests: XCTestCase {
     }
     
     func testSniffAudiobook() {
-        XCTAssertEqual(Format.of(fileExtension: "audiobook"), .audiobook)
-        XCTAssertEqual(Format.of(mediaType: "application/audiobook+zip"), .audiobook)
-        XCTAssertEqual(Format.of(fixtures.url(for: "audiobook-package.unknown")), .audiobook)
+        XCTAssertEqual(Format.of(fileExtension: "audiobook"), .readiumAudiobook)
+        XCTAssertEqual(Format.of(mediaType: "application/audiobook+zip"), .readiumAudiobook)
+        XCTAssertEqual(Format.of(fixtures.url(for: "audiobook-package.unknown")), .readiumAudiobook)
     }
     
     func testSniffAudiobookManifest() {
-        XCTAssertEqual(Format.of(mediaType: "application/audiobook+json"), .audiobookManifest)
-        XCTAssertEqual(Format.of(fixtures.url(for: "audiobook.json")), .audiobookManifest)
-        XCTAssertEqual(Format.of(fixtures.url(for: "audiobook-wrongtype.json")), .audiobookManifest)
+        XCTAssertEqual(Format.of(mediaType: "application/audiobook+json"), .readiumAudiobookManifest)
+        XCTAssertEqual(Format.of(fixtures.url(for: "audiobook.json")), .readiumAudiobookManifest)
+        XCTAssertEqual(Format.of(fixtures.url(for: "audiobook-wrongtype.json")), .readiumAudiobookManifest)
     }
     
     func testSniffBMP() {
@@ -197,14 +197,14 @@ class FormatSnifferTests: XCTestCase {
     }
 
     func testSniffWebPub() {
-        XCTAssertEqual(Format.of(fileExtension: "webpub"), .webpub)
-        XCTAssertEqual(Format.of(mediaType: "application/webpub+zip"), .webpub)
-        XCTAssertEqual(Format.of(fixtures.url(for: "webpub-package.unknown")), .webpub)
+        XCTAssertEqual(Format.of(fileExtension: "webpub"), .readiumWebPub)
+        XCTAssertEqual(Format.of(mediaType: "application/webpub+zip"), .readiumWebPub)
+        XCTAssertEqual(Format.of(fixtures.url(for: "webpub-package.unknown")), .readiumWebPub)
     }
     
     func testSniffWebPubManifest() {
-        XCTAssertEqual(Format.of(mediaType: "application/webpub+json"), .webpubManifest)
-        XCTAssertEqual(Format.of(fixtures.url(for: "webpub.json")), .webpubManifest)
+        XCTAssertEqual(Format.of(mediaType: "application/webpub+json"), .readiumWebPubManifest)
+        XCTAssertEqual(Format.of(fixtures.url(for: "webpub.json")), .readiumWebPubManifest)
     }
     
     func testSniffW3CWPUBManifest() {

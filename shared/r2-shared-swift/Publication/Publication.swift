@@ -136,7 +136,7 @@ public class Publication: JSONEquatable, Loggable {
         links.removeAll { $0.rels.contains("self") }
         links.append(Link(
             href: href,
-            type: MediaType.webpubManifest.string,
+            type: MediaType.readiumWebPubManifest.string,
             rel: "self"
         ))
     }
@@ -292,7 +292,7 @@ public class Publication: JSONEquatable, Loggable {
                 self = .cbz
             case .pdf, .lcpProtectedPDF:
                 self = .pdf
-            case .webpubManifest, .audiobookManifest:
+            case .readiumWebPubManifest, .readiumAudiobookManifest:
                 self = .webpub
             default:
                 self = .unknown
