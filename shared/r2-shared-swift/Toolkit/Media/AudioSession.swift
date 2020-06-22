@@ -14,10 +14,10 @@ import Foundation
 
 /// An user of the `AudioSession`, for example a media player object.
 @available(iOS 10.0, *)
-public protocol AudioSessionUser: AnyObject {
+public protocol _AudioSessionUser: AnyObject {
     
     /// Audio session configuration to use for this user.
-    var audioConfiguration: AudioSession.Configuration { get }
+    var audioConfiguration: _AudioSession.Configuration { get }
     
     /// Called when an audio interruption (e.g. phone call) finishes, to resume audio playback or
     /// recording.
@@ -26,15 +26,18 @@ public protocol AudioSessionUser: AnyObject {
 }
 
 @available(iOS 10.0, *)
-public extension AudioSessionUser {
+public extension _AudioSessionUser {
     
-    var audioConfiguration: AudioSession.Configuration { .init() }
+    var audioConfiguration: _AudioSession.Configuration { .init() }
     
 }
 
 /// Manages an activated `AVAudioSession`.
+/// 
+/// **WARNING:** This API is experimental and may change or be removed in a future release without
+/// notice. Use with caution.
 @available(iOS 10.0, *)
-public final class AudioSession: Loggable {
+public final class _AudioSession: Loggable {
     
     public struct Configuration {
         let category: AVAudioSession.Category
@@ -49,15 +52,15 @@ public final class AudioSession: Loggable {
     }
 
     /// Shared `AudioSession` for this app.
-    public static let shared = AudioSession()
+    public static let shared = _AudioSession()
     
     private init() {}
     
     /// Current user of the `AudioSession`.
-    private weak var user: AudioSessionUser?
+    private weak var user: _AudioSessionUser?
 
     /// Starts a new audio session with the given `user`.
-    public func start(with user: AudioSessionUser) {
+    public func start(with user: _AudioSessionUser) {
         guard self.user !== user else {
             return
         }
@@ -86,7 +89,7 @@ public final class AudioSession: Loggable {
     }
     
     /// Ends the current audio session.
-    public func end(for user: AudioSessionUser) {
+    public func end(for user: _AudioSessionUser) {
         guard self.user === user || self.user == nil else {
             return
         }

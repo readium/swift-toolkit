@@ -12,8 +12,8 @@
 import Foundation
 import Minizip
 
-/// A `ZIPArchive` using the Minizip library.
-final class MinizipArchive: ZIPArchive, Loggable {
+/// A ZIP `Archive` using the Minizip library.
+final class MinizipArchive: Archive, Loggable {
     
     private let archive: unzFile
 
@@ -24,7 +24,7 @@ final class MinizipArchive: ZIPArchive, Loggable {
         guard (try? file.checkResourceIsReachable()) ?? false,
             let archive = unzOpen64(file.path) else
         {
-            throw ZIPError.openFailed
+            throw ArchiveError.openFailed
         }
         self.archive = archive
     }
@@ -35,8 +35,8 @@ final class MinizipArchive: ZIPArchive, Loggable {
         }
     }
 
-    lazy var entries: [ZIPEntry] = transaction {
-        var entries = [ZIPEntry]()
+    lazy var entries: [ArchiveEntry] = transaction {
+        var entries = [ArchiveEntry]()
         guard goToFirstEntry() else {
             return entries
         }
@@ -50,7 +50,7 @@ final class MinizipArchive: ZIPArchive, Loggable {
         return entries
     }
 
-    func entry(at path: String) -> ZIPEntry? {
+    func entry(at path: String) -> ArchiveEntry? {
         return transaction {
             guard goToEntry(at: path) else {
                 return nil
@@ -131,8 +131,8 @@ private extension MinizipArchive {
         return unzLocateFile(archive, path, nil) == UNZ_OK
     }
     
-    /// Creates a `ZIPEntry` from the entry at the current offset in the archive.
-    func makeEntryAtCurrentOffset() -> ZIPEntry? {
+    /// Creates an `ArchiveEntry` from the entry at the current offset in the archive.
+    func makeEntryAtCurrentOffset() -> ArchiveEntry? {
         let filenameMaxSize = 1024
         var fileInfo = unz_file_info64()
         let filename = UnsafeMutablePointer<CChar>.allocate(capacity: filenameMaxSize)
@@ -144,7 +144,7 @@ private extension MinizipArchive {
             return nil
         }
         let path = String(cString: filename)
-        return ZIPEntry(
+        return ArchiveEntry(
             path: path,
             isDirectory: path.hasSuffix("/"),
             length: UInt64(fileInfo.uncompressed_size),
