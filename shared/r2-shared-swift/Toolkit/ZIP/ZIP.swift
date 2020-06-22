@@ -33,6 +33,9 @@ struct ZIPEntry: Equatable {
     /// Returns 0 if the entry is a directory.
     let length: UInt64
     
+    /// Whether the entry is compressed.
+    let isCompressed: Bool
+    
     /// Compressed data length.
     /// Returns 0 if the entry is a directory.
     let compressedLength: UInt64

@@ -46,6 +46,7 @@ struct ZIPTester<Archive: ZIPArchive> {
                 path: "A folder/wasteland-cover.jpg",
                 isDirectory: false,
                 length: 103477,
+                isCompressed: true,
                 compressedLength: 82374
             )
         )
@@ -59,6 +60,7 @@ struct ZIPTester<Archive: ZIPArchive> {
                 path: "uncompressed.jpg",
                 isDirectory: false,
                 length: 279551,
+                isCompressed: false,
                 compressedLength: 279551
             )
         )
@@ -73,6 +75,7 @@ struct ZIPTester<Archive: ZIPArchive> {
                 path: "A folder/",
                 isDirectory: true,
                 length: 0,
+                isCompressed: false,
                 compressedLength: 0
             )
         )
@@ -81,18 +84,29 @@ struct ZIPTester<Archive: ZIPArchive> {
     func testGetEntries() {
         let archive = try! Archive(file: fixtures.url(for: "test.zip"))
         XCTAssertEqual(archive.entries, [
-            ZIPEntry(path: ".hidden", isDirectory: false, length: 0, compressedLength: 0),
-            ZIPEntry(path: "A folder/", isDirectory: true, length: 0, compressedLength: 0),
-            ZIPEntry(path: "A folder/Sub.folder%/", isDirectory: true, length: 0, compressedLength: 0),
-            ZIPEntry(path: "A folder/Sub.folder%/file.txt", isDirectory: false, length: 20, compressedLength: 20),
-            ZIPEntry(path: "A folder/wasteland-cover.jpg", isDirectory: false, length: 103477, compressedLength: 82374),
-            ZIPEntry(path: "root.txt", isDirectory: false, length: 0, compressedLength: 0),
-            ZIPEntry(path: "uncompressed.jpg", isDirectory: false, length: 279551, compressedLength: 279551),
-            ZIPEntry(path: "uncompressed.txt", isDirectory: false, length: 30, compressedLength: 30)
+            ZIPEntry(path: ".hidden", isDirectory: false, length: 0, isCompressed: false, compressedLength: 0),
+            ZIPEntry(path: "A folder/", isDirectory: true, length: 0, isCompressed: false, compressedLength: 0),
+            ZIPEntry(path: "A folder/Sub.folder%/", isDirectory: true, length: 0, isCompressed: false, compressedLength: 0),
+            ZIPEntry(path: "A folder/Sub.folder%/file.txt", isDirectory: false, length: 20, isCompressed: false, compressedLength: 20),
+            ZIPEntry(path: "A folder/wasteland-cover.jpg", isDirectory: false, length: 103477, isCompressed: true, compressedLength: 82374),
+            ZIPEntry(path: "root.txt", isDirectory: false, length: 0, isCompressed: false, compressedLength: 0),
+            ZIPEntry(path: "uncompressed.jpg", isDirectory: false, length: 279551, isCompressed: false, compressedLength: 279551),
+            ZIPEntry(path: "uncompressed.txt", isDirectory: false, length: 30, isCompressed: false, compressedLength: 30),
+            ZIPEntry(path: "A folder/Sub.folder%/file-compressed.txt", isDirectory: false, length: 29609, isCompressed: true, compressedLength: 8659),
         ])
     }
 
     func testReadCompressedEntry() {
+        let archive = try! Archive(file: fixtures.url(for: "test.zip"))
+        let entry = archive.entry(at: "A folder/Sub.folder%/file-compressed.txt")!
+        let data = archive.read(at: entry.path)
+        XCTAssertNotNil(data)
+        let string = String(data: data!, encoding: .utf8)!
+        XCTAssertEqual(string.count, 29609)
+        XCTAssertTrue(string.hasPrefix("I'm inside\nthe ZIP."))
+    }
+    
+    func testReadUncompressedEntry() {
         let archive = try! Archive(file: fixtures.url(for: "test.zip"))
         let entry = archive.entry(at: "A folder/Sub.folder%/file.txt")!
         let data = archive.read(at: entry.path)
@@ -103,21 +117,22 @@ struct ZIPTester<Archive: ZIPArchive> {
         )
     }
     
-    func testReadUncompressedEntry() {
+    func testReadUncompressedRange() {
+        // FIXME: It looks like unzseek64 starts from the beginning of the file header, instead of the content. Reading a first byte solves this but then Minizip crashes randomly... Note that this only fails in the test case. I didn't see actual issues in LCPDF or videos embedded in EPUBs.
         let archive = try! Archive(file: fixtures.url(for: "test.zip"))
-        let entry = archive.entry(at: "uncompressed.txt")!
-        let data = archive.read(at: entry.path)
+        let entry = archive.entry(at: "A folder/Sub.folder%/file.txt")!
+        let data = archive.read(at: entry.path, range: 14..<20)
         XCTAssertNotNil(data)
         XCTAssertEqual(
             String(data: data!, encoding: .utf8),
-            "This content is uncompressed.\n"
+            " ZIP.\n"
         )
     }
     
-    func testReadRange() {
+    func testReadCompressedRange() {
         let archive = try! Archive(file: fixtures.url(for: "test.zip"))
-        let entry = archive.entry(at: "A folder/Sub.folder%/file.txt")!
-        let data = archive.read(at: entry.path, range: (entry.length - 6)..<entry.length)
+        let entry = archive.entry(at: "A folder/Sub.folder%/file-compressed.txt")!
+        let data = archive.read(at: entry.path, range: 14..<20)
         XCTAssertNotNil(data)
         XCTAssertEqual(
             String(data: data!, encoding: .utf8),
@@ -141,7 +156,8 @@ struct ZIPTester<Archive: ZIPArchive> {
 //    func testGetEntries() { tester.testGetEntries() }
 //    func testReadCompressedEntry() { tester.testReadCompressedEntry() }
 //    func testReadUncompressedEntry() { tester.testReadUncompressedEntry() }
-//    func testReadRange() { tester.testReadRange() }
+//    func testReadCompressedRange() { tester.testReadCompressedRange() }
+//    func testReadUncompressedRange() { tester.testReadUncompressedRange() }
 //
 //}
 
@@ -159,7 +175,8 @@ class MinizipTests: XCTestCase {
     func testGetEntries() { tester.testGetEntries() }
     func testReadCompressedEntry() { tester.testReadCompressedEntry() }
     func testReadUncompressedEntry() { tester.testReadUncompressedEntry() }
-    func testReadRange() { tester.testReadRange() }
+    func testReadCompressedRange() { tester.testReadCompressedRange() }
+    func testReadUncompressedRange() { tester.testReadUncompressedRange() }
     
 }
 

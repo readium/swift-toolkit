@@ -148,6 +148,7 @@ private extension MinizipArchive {
             path: path,
             isDirectory: path.hasSuffix("/"),
             length: UInt64(fileInfo.uncompressed_size),
+            isCompressed: fileInfo.compression_method != 0,
             compressedLength: UInt64(fileInfo.compressed_size)
         )
     }
@@ -170,9 +171,19 @@ private extension MinizipArchive {
     ///
     /// - Returns: Whether the seeking operation was successful.
     func seek(by offset: UInt64) -> Bool {
-        return readFromCurrentOffset(length: offset) { _, _ in
-            // Unfortunately, deflate doesn't support random access, so we need to discard the content
-            // until we reach the offset.
+        guard let entry = makeEntryAtCurrentOffset() else {
+            return false
+        }
+        
+        if entry.isCompressed {
+            // Deflate is stream-based, and can't be used for random access. Therefore, if the file
+            // is compressed we need to read and discard the content from the start until we reach
+            // the desired offset.
+            return readFromCurrentOffset(length: offset) { _, _ in }
+
+        } else {
+            // For non-compressed entries, we can seek directly in the content.
+            return execute { return unzseek64(archive, offset, SEEK_CUR) }
         }
     }
 
