@@ -275,10 +275,10 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         // Gets the current locator from the positionList, and fill its missing data.
         let progression = spreadView.progression(in: href)
         let positionIndex = Int(ceil(progression * Double(positionList.count - 1)))
-        var locator = positionList[positionIndex]
-        locator.title = tableOfContentsTitleByHref[href]
-        locator.locations.progression = progression
-        return locator
+        return positionList[positionIndex].copy(
+            title: tableOfContentsTitleByHref[href],
+            locations: { $0.progression = progression }
+        )
     }
 
     /// Last current location notified to the delegate.
@@ -565,9 +565,10 @@ extension EPUBNavigatorViewController {
     
     @available(*, deprecated, renamed: "go(to:)")
     public func displayReadingOrderItem(at index: Int, progression: Double) {
-        var location = Locator(link: publication.readingOrder[index])
-        location.locations = Locations(progression: progression)
-        goToReadingOrderIndex(index, location: location)
+        let locator = Locator(link: publication.readingOrder[index]).copy(
+            locations: { $0.progression = progression }
+        )
+        goToReadingOrderIndex(index, location: locator)
     }
     
     @available(*, deprecated, renamed: "go(to:)")
