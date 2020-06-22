@@ -141,6 +141,15 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         }
         return progression
     }
+
+    override func spreadDidLoad() {
+        // FIXME: We need to give the CSS and webview time to layout correctly. 0.2 seconds seems like a good value for it to work on an iPhone 5s. Look into solving this better
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.go(to: self.pendingLocation) {
+                self.showSpread()
+            }
+        }
+    }
     
     override func go(to direction: EPUBSpreadView.Direction, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
         guard !isScrollEnabled else {
@@ -176,19 +185,9 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         return true
     }
     
-    
     // Location to scroll to in the resource once the page is loaded.
-    private var initialLocation: PageLocation = .start
-    
-    override func spreadDidLoad() {
-        // FIXME: We need to give the CSS and webview time to layout correctly. 0.2 seconds seems like a good value for it to work on an iPhone 5s. Look into solving this better
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            self.go(to: self.initialLocation) {
-                self.showSpread()
-            }
-        }
-    }
-    
+    private var pendingLocation: PageLocation = .start
+
     private let goToCompletions = CompletionList()
 
     override func go(to location: PageLocation, completion: (() -> Void)?) {
@@ -196,7 +195,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
         guard spreadLoaded else {
             // Delays moving to the location until the document is loaded.
-            initialLocation = location
+            pendingLocation = location
             return
         }
 
