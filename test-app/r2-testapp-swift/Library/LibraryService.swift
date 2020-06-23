@@ -152,7 +152,7 @@ final class LibraryService: Loggable {
             author: publication.metadata.authors
                 .map { $0.name }
                 .joined(separator: ", "),
-            identifier: publication.metadata.identifier!,
+            identifier: publication.metadata.identifier ?? url.lastPathComponent,
             cover: image
         )
         if (try! BooksDatabase.shared.books.insert(book: book)) != nil {
@@ -253,7 +253,7 @@ final class LibraryService: Loggable {
                 author: publication.metadata.authors
                     .map { $0.name }
                     .joined(separator: ", "),
-                identifier: publication.metadata.identifier!,
+                identifier: publication.metadata.identifier ?? url.lastPathComponent,
                 cover: image
             )
             _ = try! BooksDatabase.shared.books.insert(book: book)
