@@ -141,6 +141,15 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         }
         return progression
     }
+
+    override func spreadDidLoad() {
+        // FIXME: We need to give the CSS and webview time to layout correctly. 0.2 seconds seems like a good value for it to work on an iPhone 5s. Look into solving this better
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.go(to: self.pendingLocation) {
+                self.showSpread()
+            }
+        }
+    }
     
     override func go(to direction: EPUBSpreadView.Direction, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
         guard !isScrollEnabled else {
@@ -176,19 +185,9 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         return true
     }
     
-    
     // Location to scroll to in the resource once the page is loaded.
-    private var initialLocation: PageLocation = .start
-    
-    override func spreadDidLoad() {
-        // FIXME: We need to give the CSS and webview time to layout correctly. 0.2 seconds seems like a good value for it to work on an iPhone 5s. Look into solving this better
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            self.go(to: self.initialLocation) {
-                self.showSpread()
-            }
-        }
-    }
-    
+    private var pendingLocation: PageLocation = .start
+
     private let goToCompletions = CompletionList()
 
     override func go(to location: PageLocation, completion: (() -> Void)?) {
@@ -196,7 +195,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
         guard spreadLoaded else {
             // Delays moving to the location until the document is loaded.
-            initialLocation = location
+            pendingLocation = location
             return
         }
 
@@ -302,18 +301,18 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         
         scripts.append(WKUserScript(source: EPUBReflowableSpreadView.reflowableScript, injectionTime: .atDocumentStart, forMainFrameOnly: true))
 
-        // Injects ReadiumCSS stylesheets.
+        // Injects Readium CSS's stylesheets.
         if let resourcesURL = resourcesURL {
             // When a publication is served from an HTTPS server, then WKWebView forbids accessing the stylesheets from the local, unsecured GCDWebServer instance. In this case we will inject directly the full content of the CSS in the JavaScript.
             if publication.baseURL?.scheme?.lowercased() == "https" {
                 func loadCSS(_ name: String) -> String {
-                    return loadResource(at: "styles/\(contentLayout.rawValue)/\(name).css")
+                    return loadResource(at: contentLayout.readiumCSSPath(for: name))
                         .replacingOccurrences(of: "\\", with: "\\\\")
                         .replacingOccurrences(of: "`", with: "\\`")
                 }
                 
-                let beforeCSS = loadCSS("ReadiumCSS-before")
-                let afterCSS = loadCSS("ReadiumCSS-after")
+                let beforeCSS = loadCSS("before")
+                let afterCSS = loadCSS("after")
                 scripts.append(WKUserScript(
                     source: EPUBReflowableSpreadView.cssInlineScript
                         .replacingOccurrences(of: "${css-before}", with: beforeCSS)
@@ -325,8 +324,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             } else {
                 scripts.append(WKUserScript(
                     source: EPUBReflowableSpreadView.cssScript
-                        .replacingOccurrences(of: "${resourcesURL}", with: resourcesURL.absoluteString)
-                        .replacingOccurrences(of: "${contentLayout}", with: contentLayout.rawValue),
+                        .replacingOccurrences(of: "${readiumCSSBaseURL}", with: resourcesURL.appendingPathComponent(contentLayout.readiumCSSBasePath).absoluteString),
                     injectionTime: .atDocumentStart,
                     forMainFrameOnly: false
                 ))
@@ -348,4 +346,28 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         perform(#selector(notifyPagesDidChange), with: nil, afterDelay: 0.3)
     }
 
+}
+
+private extension ContentLayout {
+    
+    var readiumCSSBasePath: String {
+        let folder: String = {
+            switch self {
+            case .ltr:
+                return ""
+            case .rtl:
+                return "rtl/"
+            case .cjkVertical:
+                return "cjk-vertical/"
+            case .cjkHorizontal:
+                return "cjk-horizontal/"
+            }
+        }()
+        return "readium-css/\(folder)"
+    }
+    
+    func readiumCSSPath(for name: String) -> String {
+        return "\(readiumCSSBasePath)ReadiumCSS-\(name).css"
+    }
+    
 }

@@ -82,7 +82,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     }
 
     /// Base URL on the resources server to the files in Static/
-    /// Used to serve the ReadiumCSS files.
+    /// Used to serve Readium CSS.
     private let resourcesURL: URL?
 
     public init(publication: Publication, license: DRMLicense? = nil, initialLocation: Locator? = nil, resourcesServer: ResourcesServer, config: Configuration = .init()) {

@@ -4,6 +4,8 @@
 
 A Swift implementation of the R2 Navigator
 
+[Changes and releases are documented in the Changelog](CHANGELOG.md)
+
 ## Adding the library to your iOS project
 
 > _Note:_ requires Swift 4.2 (and Xcode 10.1).

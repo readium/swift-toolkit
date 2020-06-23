@@ -39,10 +39,10 @@
 
 /* Direction i.e. ltr and rtl */
 
-/* Readium CSS 
-   Base module
+/* Readium CSS
+   Namespaces module
 
-   A minimal stylesheet for all ebooks
+   Namespaces to import in all 3 dist stylesheets
 
    Repo: https://github.com/readium/readium-css */
 
@@ -53,6 +53,13 @@
 @namespace m url("http://www.w3.org/1998/Math/MathML/");
 
 @namespace svg url("http://www.w3.org/2000/svg");
+
+/* Readium CSS
+   Base module
+
+   A minimal stylesheet for all ebooks
+
+   Repo: https://github.com/readium/readium-css */
 
 /* Define viewport, HTML5-style */
 
@@ -75,7 +82,7 @@
 
   /* Config */
   --RS__baseFontFamily: var(--RS__oldStyleTf);
-  
+
   /* For square-ish fonts (CJK, Indic, etc.), we must apply some compensation in dynamic leading. Default is 1 i.e. no compensation */
   --RS__lineHeightCompensation: 1;
 
@@ -170,7 +177,7 @@ math {
 
 :lang(ja) {
   --RS__baseFontFamily: "游ゴシック体", YuGothic, "ヒラギノ丸ゴ", "Hiragino Sans", "Yu Gothic UI", "Meiryo UI", "MS Gothic", Roboto, Noto, "Noto Sans CJK JP", sans-serif;
-  
+
   /* For CJK, the line-height is usually 15–20% more than for Latin */
   --RS__lineHeightCompensation: 1.167;
 
@@ -193,7 +200,7 @@ math {
 
 :lang(ko) {
   --RS__baseFontFamily: "Nanum Gothic", "Apple SD Gothic Neo", "Malgun Gothic", Roboto, Noto, "Noto Sans CJK KR", sans-serif;
-  
+
   /* For CJK, the line-height is usually 15–20% more than for Latin */
   --RS__lineHeightCompensation: 1.167;
 }
@@ -248,19 +255,19 @@ math {
 :lang(zh-Hant),
 :lang(zh-TW) {
   --RS__baseFontFamily: "方體", "PingFang TC", "黑體", "Heiti TC", "Microsoft JhengHei UI", "Microsoft JhengHei", Roboto, Noto, "Noto Sans CJK TC", sans-serif;
-  
+
   /* For CJK, the line-height is usually 15–20% more than for Latin */
   --RS__lineHeightCompensation: 1.167;
 }
 
 :lang(zh-HK) {
   --RS__baseFontFamily: "方體", "PingFang HK", "方體", "PingFang TC", "黑體", "Heiti TC", "Microsoft JhengHei UI", "Microsoft JhengHei", Roboto, Noto, "Noto Sans CJK TC", sans-serif;
-  
+
   /* For CJK, the line-height is usually 15–20% more than for Latin */
   --RS__lineHeightCompensation: 1.167;
 }
 
-/* Readium CSS 
+/* Readium CSS
    Day/Default mode
 
    A preset theme for day mode, which is the default
@@ -297,7 +304,7 @@ math {
 
 /* @import "modules/ReadiumCSS-fonts.css"; */
 
-/* Readium CSS 
+/* Readium CSS
    HTML5 SR Patch stylesheet
 
    A set of style to adjust HTML5 Suggested Rendering to paginated content
@@ -316,15 +323,28 @@ figcaption, th, td {
   orphans: 1;
 }
 
-h2, h3, h4, h5, h6, dt,
-hr, caption {
+h2,
+h3,
+h4,
+h5,
+h6,
+dt,
+hr,
+caption {
   -webkit-column-break-after: avoid;
   page-break-after: avoid;
   break-after: avoid;
 }
 
-h1, h2, h3, h4, h5, h6, dt, 
-figure, tr {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+dt,
+figure,
+tr {
   -webkit-column-break-inside: avoid;
   page-break-inside: avoid;
   break-inside: avoid;
@@ -342,9 +362,20 @@ body {
   hyphenate-limit-lines: 3;
 }
 
-h1, h2, h3, h4, h5, h6, dt,
-figcaption, pre, caption, address,
-center, code, var {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+dt,
+figcaption,
+pre,
+caption,
+address,
+center,
+code,
+var {
   -ms-hyphens: none;
   -moz-hyphens: none;
   -webkit-hyphens: none;
@@ -406,13 +437,13 @@ figure, blockquote {
   margin: 1em 5%;
 }
 
-/* 
+/*
 
 :lang(ja) figure, :lang(ja) blockquote,
 :lang(zh-Hant) figure, :lang(zh-Hant) blockquote,
 :lang(zh-TW) figure, :lang(zh-TW) blockquote,
 :lang(mn) figure, :lang(mn) blockquote {
-  margin: 5% 1em;  
+  margin: 5% 1em;
 }
 
 */
@@ -421,13 +452,13 @@ ul, ol {
   padding-left: 5%;
 }
 
-/* 
+/*
 
 :lang(ja) ul, :lang(ja) ol,
 :lang(zh-Hant) ul, :lang(zh-Hant) ol,
 :lang(zh-TW) ul, :lang(zh-TW) ol,
 :lang(mn) ul, :lang(mn) ol   {
-  padding-top: 5%;  
+  padding-top: 5%;
 }
 
 */
@@ -436,13 +467,13 @@ dd {
   margin-left: 5%;
 }
 
-/* 
+/*
 
 :lang(ja) dd,
 :lang(zh-Hant) dd,
-:lang(zh-TW) dd, 
+:lang(zh-TW) dd,
 :lang(mn) dd {
-  margin-top: 5%;  
+  margin-top: 5%;
 }
 
 */
@@ -479,19 +510,28 @@ ruby > rt, ruby > rp {
 *:lang(ja),
 *:lang(zh),
 *:lang(ko),
-:lang(ja) cite, :lang(ja) dfn, :lang(ja) em, :lang(ja) i,  
-:lang(zh) cite, :lang(zh) dfn, :lang(zh) em, :lang(zh) i,
-:lang(ko) cite, :lang(ko) dfn, :lang(ko) em, :lang(ko) i {
+:lang(ja) cite,
+:lang(ja) dfn,
+:lang(ja) em,
+:lang(ja) i,
+:lang(zh) cite,
+:lang(zh) dfn,
+:lang(zh) em,
+:lang(zh) i,
+:lang(ko) cite,
+:lang(ko) dfn,
+:lang(ko) em,
+:lang(ko) i {
   font-style: normal;
 }
 
-:lang(ja) a,  
+:lang(ja) a,
 :lang(zh) a,
 :lang(ko) a {
   text-decoration: none;
 }
 
-/* Readium CSS 
+/* Readium CSS
    Safeguards module
 
    A set of styles to prevent common issues in pagination
@@ -506,7 +546,7 @@ ruby > rt, ruby > rp {
   /* max-width for media, you can override that via JS if not compiled to static */
   --RS__maxMediaWidth: 100%;
 
-  /* max-height for media, you can override that via JS if not compiled to static 
+  /* max-height for media, you can override that via JS if not compiled to static
      Please consider figures might have a figcaption, which is why 95vh in the first place */
   --RS__maxMediaHeight: 95vh;
 

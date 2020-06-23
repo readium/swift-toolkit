@@ -185,9 +185,9 @@ final class PaginationView: UIView {
         currentIndex = index
         
         // To make sure that the views the most likely to be visible are loaded first, we first load the current one, then the next ones and to finish the previous ones.
-        let currentView = loadView(at: index)
-        let lastIndex = loadViews(upToPositionCount: preloadNextPositionCount, from: index, direction: .forward)
-        let firstIndex = loadViews(upToPositionCount: preloadPreviousPositionCount, from: index, direction: .backward)
+        loadView(at: index, location: location)
+        let lastIndex = loadViews(upToPositionCount: preloadNextPositionCount, from: index, direction: .forward, location: .start)
+        let firstIndex = loadViews(upToPositionCount: preloadPreviousPositionCount, from: index, direction: .backward, location: .end)
 
         for (i, view) in loadedViews {
             // Flushes the views that are not needed anymore.
@@ -202,10 +202,6 @@ final class PaginationView: UIView {
                 scrollView.addSubview(view)
             }
         }
-        
-        if let location = location {
-            currentView?.go(to: location)
-        }
 
         setNeedsLayout()
         delegate?.paginationViewDidUpdateViews(self)
@@ -215,7 +211,7 @@ final class PaginationView: UIView {
     ///
     /// - Returns: The loaded page view, if any.
     @discardableResult
-    private func loadView(at index: Int) -> (UIView & PageView)? {
+    private func loadView(at index: Int, location: PageLocation?) -> (UIView & PageView)? {
         if 0..<pageCount ~= index,
             loadedViews[index] == nil,
             let delegate = delegate,
@@ -223,7 +219,13 @@ final class PaginationView: UIView {
         {
             loadedViews[index] = view
         }
-        return loadedViews[index]
+        
+        let view = loadedViews[index]
+        if let location = location {
+            view?.go(to: location)
+        }
+        
+        return view
     }
     
     /// Loads views until reaching the given number of pre-loaded positions.
@@ -233,10 +235,10 @@ final class PaginationView: UIView {
     ///   - sourceIndex: Starting page index from which to pre-load the views.
     ///   - direction: The direction in which to load the views from the sourceIndex.
     /// - Returns: The last page index loaded after reaching the requested number of positions.
-    private func loadViews(upToPositionCount positionCount: Int, from sourceIndex: Int, direction: PageIndexDirection) -> Int {
+    private func loadViews(upToPositionCount positionCount: Int, from sourceIndex: Int, direction: PageIndexDirection, location: PageLocation?) -> Int {
         let index = sourceIndex + direction.rawValue
         guard positionCount > 0,
-            let pageView = loadView(at: index) else
+            let pageView = loadView(at: index, location: location) else
         {
             return sourceIndex
         }
@@ -244,7 +246,8 @@ final class PaginationView: UIView {
         return loadViews(
             upToPositionCount: positionCount - pageView.positionCount,
             from: index,
-            direction: direction
+            direction: direction,
+            location: location
         )
     }
     
