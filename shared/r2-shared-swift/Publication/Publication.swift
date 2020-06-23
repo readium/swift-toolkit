@@ -163,7 +163,7 @@ public class Publication: Loggable {
         if let href = href {
             manifest.links.insert(Link(
                 href: href,
-                type: MediaType.webpubManifest.string,
+                type: MediaType.readiumWebPubManifest.string,
                 rel: "self"
             ), at: 0)
         }
@@ -217,7 +217,7 @@ public class Publication: Loggable {
                 self = .cbz
             case .pdf, .lcpProtectedPDF:
                 self = .pdf
-            case .webpubManifest, .audiobookManifest:
+            case .readiumWebPubManifest, .readiumAudiobookManifest:
                 self = .webpub
             default:
                 self = .unknown

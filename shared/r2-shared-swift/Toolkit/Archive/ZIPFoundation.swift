@@ -1,5 +1,5 @@
 //
-//  ZFZIPArchive.swift
+//  ZIPFoundation.swift
 //  r2-shared-swift
 //
 //  Created by Mickaël Menu on 13/04/2020.
@@ -12,13 +12,13 @@
 import Foundation
 import ZIPFoundation
 
-/// A `ZIPArchive` using the ZIPFoundation library.
+/// A ZIP `Archive` using the ZIPFoundation library.
 ///
 /// Note: At the moment, the Minizip version is used. Keeping this in case we migrate to
 /// ZIPFoundation.
-class ZIPFoundationArchive: ZIPArchive, Loggable {
+class ZIPFoundationArchive: Archive, Loggable {
     
-    fileprivate let archive: Archive
+    fileprivate let archive: ZIPFoundation.Archive
     
     // Note: passwords are not supported with ZIPFoundation
     required convenience init(file: URL, password: String?) throws {
@@ -27,15 +27,15 @@ class ZIPFoundationArchive: ZIPArchive, Loggable {
     
     fileprivate init(file: URL, accessMode: Archive.AccessMode) throws {
         guard let archive = Archive(url: file, accessMode: accessMode) else {
-            throw ZIPError.openFailed
+            throw ArchiveError.openFailed
         }
         self.archive = archive
     }
 
-    lazy var entries: [ZIPEntry] = archive.map(ZIPEntry.init)
+    lazy var entries: [ArchiveEntry] = archive.map(ArchiveEntry.init)
 
-    func entry(at path: String) -> ZIPEntry? {
-        return archive[path].map(ZIPEntry.init)
+    func entry(at path: String) -> ArchiveEntry? {
+        return archive[path].map(ArchiveEntry.init)
     }
     
     func read(at path: String) -> Data? {
@@ -106,7 +106,7 @@ class ZIPFoundationArchive: ZIPArchive, Loggable {
 
 }
 
-final class MutableZIPFoundationArchive: ZIPFoundationArchive, MutableZIPArchive {
+final class MutableZIPFoundationArchive: ZIPFoundationArchive, MutableArchive {
 
     required convenience init(file: URL, password: String?) throws {
         try self.init(file: file, accessMode: .update)
@@ -128,13 +128,13 @@ final class MutableZIPFoundationArchive: ZIPFoundationArchive, MutableZIPArchive
             })
         } catch {
             log(.error, error)
-            throw ZIPError.updateFailed
+            throw ArchiveError.updateFailed
         }
     }
     
 }
 
-fileprivate extension ZIPEntry {
+fileprivate extension ArchiveEntry {
     
     init(entry: Entry) {
         self.init(

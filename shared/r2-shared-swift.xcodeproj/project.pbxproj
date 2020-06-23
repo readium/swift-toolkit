@@ -35,7 +35,7 @@
 		CA2006512225A1F300E6B3BD /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2006502225A1F300E6B3BD /* Observable.swift */; };
 		CA252DD92447A3740005067C /* Minizip.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA252DD82447A3740005067C /* Minizip.swift */; };
 		CA252DDB2447A3810005067C /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA252DDA2447A3810005067C /* Minizip.framework */; };
-		CA252DE12447A5C00005067C /* ZIPTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA252DE02447A5C00005067C /* ZIPTests.swift */; };
+		CA252DE12447A5C00005067C /* ArchiveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA252DE02447A5C00005067C /* ArchiveTests.swift */; };
 		CA2AE320221C1DCB008BD18F /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31D221C1DCB008BD18F /* Logger.swift */; };
 		CA2AE321221C1DCB008BD18F /* LoggerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31E221C1DCB008BD18F /* LoggerStub.swift */; };
 		CA2AE322221C1DCB008BD18F /* Loggable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31F221C1DCB008BD18F /* Loggable.swift */; };
@@ -135,7 +135,7 @@
 		CAD0FEC2244310BB0053C998 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0FEC1244310BB0053C998 /* Array.swift */; };
 		CAD0FECA24431BFE0053C998 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD0FEC3244318A90053C998 /* Fuzi.framework */; };
 		CAD0FED02444B5C30053C998 /* FormatSnifferContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0FECF2444B5C30053C998 /* FormatSnifferContent.swift */; };
-		CAD0FEDA2444FDB60053C998 /* ZIP.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0FED92444FDB50053C998 /* ZIP.swift */; };
+		CAD0FEDA2444FDB60053C998 /* Archive.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0FED92444FDB50053C998 /* Archive.swift */; };
 		CAD178AD22B3A75C004E6812 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CAD178AF22B3A75C004E6812 /* Localizable.strings */; };
 		CAD1EE70245AC29B00C1E684 /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD1EE6F245AC29B00C1E684 /* String.swift */; };
 		CADD69E222C3B17500A4CADF /* DocumentTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADD69E122C3B17500A4CADF /* DocumentTypes.swift */; };
@@ -199,7 +199,7 @@
 		CA2006502225A1F300E6B3BD /* Observable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Observable.swift; sourceTree = "<group>"; };
 		CA252DD82447A3740005067C /* Minizip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Minizip.swift; sourceTree = "<group>"; };
 		CA252DDA2447A3810005067C /* Minizip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Minizip.framework; path = Carthage/Build/iOS/Minizip.framework; sourceTree = "<group>"; };
-		CA252DE02447A5C00005067C /* ZIPTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZIPTests.swift; sourceTree = "<group>"; };
+		CA252DE02447A5C00005067C /* ArchiveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveTests.swift; sourceTree = "<group>"; };
 		CA2AE31D221C1DCB008BD18F /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		CA2AE31E221C1DCB008BD18F /* LoggerStub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoggerStub.swift; sourceTree = "<group>"; };
 		CA2AE31F221C1DCB008BD18F /* Loggable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Loggable.swift; sourceTree = "<group>"; };
@@ -298,7 +298,7 @@
 		CAD0FEC1244310BB0053C998 /* Array.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Array.swift; sourceTree = "<group>"; };
 		CAD0FEC3244318A90053C998 /* Fuzi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Fuzi.framework; path = Carthage/Build/iOS/Fuzi.framework; sourceTree = "<group>"; };
 		CAD0FECF2444B5C30053C998 /* FormatSnifferContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatSnifferContent.swift; sourceTree = "<group>"; };
-		CAD0FED92444FDB50053C998 /* ZIP.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZIP.swift; sourceTree = "<group>"; };
+		CAD0FED92444FDB50053C998 /* Archive.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Archive.swift; sourceTree = "<group>"; };
 		CAD0FEDB2444FDEC0053C998 /* ZIPFoundation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZIPFoundation.swift; sourceTree = "<group>"; };
 		CAD178AE22B3A75C004E6812 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		CAD1EE6F245AC29B00C1E684 /* String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
@@ -342,7 +342,7 @@
 			children = (
 				CA68BDCC24407745009A6BAA /* Extensions */,
 				CA60CE1E2446DE7500149B22 /* XML */,
-				CAD0FED82444FDB50053C998 /* ZIP */,
+				CAD0FED82444FDB50053C998 /* Archive */,
 				CA81741A24585E5800033776 /* Media */,
 				F3E7D4221F4ECB3D00DF166D /* Date+ISO8601.swift */,
 				CABEB3DB2215698600090B6C /* Deferred.swift */,
@@ -445,19 +445,19 @@
 		CA252DDE2447A5AE0005067C /* Toolkit */ = {
 			isa = PBXGroup;
 			children = (
-				CA252DDF2447A5B40005067C /* ZIP */,
+				CA252DDF2447A5B40005067C /* Archive */,
 				CA7116EE2455935100C029FD /* DocumentTypesTests.swift */,
 				CA7B1AA6248A2D1200152F73 /* URITemplateTests.swift */,
 			);
 			path = Toolkit;
 			sourceTree = "<group>";
 		};
-		CA252DDF2447A5B40005067C /* ZIP */ = {
+		CA252DDF2447A5B40005067C /* Archive */ = {
 			isa = PBXGroup;
 			children = (
-				CA252DE02447A5C00005067C /* ZIPTests.swift */,
+				CA252DE02447A5C00005067C /* ArchiveTests.swift */,
 			);
-			path = ZIP;
+			path = Archive;
 			sourceTree = "<group>";
 		};
 		CA2AE31C221C1DCB008BD18F /* Logger */ = {
@@ -634,6 +634,15 @@
 			path = Media;
 			sourceTree = "<group>";
 		};
+		CA81741A24585E5800033776 /* Media */ = {
+			isa = PBXGroup;
+			children = (
+				CAAF80C92456D7370024D7AE /* AudioSession.swift */,
+				CA81741B24585E6700033776 /* NowPlayingInfo.swift */,
+			);
+			path = Media;
+			sourceTree = "<group>";
+		};
 		CA8C84122468904100CE97A4 /* Fetcher */ = {
 			isa = PBXGroup;
 			children = (
@@ -725,14 +734,14 @@
 			path = Positions;
 			sourceTree = "<group>";
 		};
-		CAD0FED82444FDB50053C998 /* ZIP */ = {
+		CAD0FED82444FDB50053C998 /* Archive */ = {
 			isa = PBXGroup;
 			children = (
-				CAD0FED92444FDB50053C998 /* ZIP.swift */,
+				CAD0FED92444FDB50053C998 /* Archive.swift */,
 				CAD0FEDB2444FDEC0053C998 /* ZIPFoundation.swift */,
 				CA252DD82447A3740005067C /* Minizip.swift */,
 			);
-			path = ZIP;
+			path = Archive;
 			sourceTree = "<group>";
 		};
 		F3B1879E1FA33D3700BB46BF /* OPDS */ = {
@@ -967,7 +976,7 @@
 				CA16A86E2232F7AC00E66255 /* LinkTests.swift in Sources */,
 				CA7116EF2455935100C029FD /* DocumentTypesTests.swift in Sources */,
 				CA5F8F0124041BA700926120 /* Properties+PresentationTests.swift in Sources */,
-				CA252DE12447A5C00005067C /* ZIPTests.swift in Sources */,
+				CA252DE12447A5C00005067C /* ArchiveTests.swift in Sources */,
 				CA3386F024056E7A00FDCBBA /* Locator+HTMLTests.swift in Sources */,
 				CACD75F52236B2AF004F20CA /* PublicationCollectionTests.swift in Sources */,
 				CA5F8EFD24041A2500926120 /* Metadata+PresentationTests.swift in Sources */,
@@ -1028,7 +1037,7 @@
 				CA9E6BA4223A657900ECF6E4 /* JSON.swift in Sources */,
 				CA68BDC5244064F6009A6BAA /* Format.swift in Sources */,
 				CA8C841C2468A06300CE97A4 /* ProxyFetcher.swift in Sources */,
-				CAD0FEDA2444FDB60053C998 /* ZIP.swift in Sources */,
+				CAD0FEDA2444FDB60053C998 /* Archive.swift in Sources */,
 				CA2AE321221C1DCB008BD18F /* LoggerStub.swift in Sources */,
 				CA9FC07624825A880020B9CC /* PublicationServicesBuilder.swift in Sources */,
 				CA2AE322221C1DCB008BD18F /* Loggable.swift in Sources */,

@@ -33,19 +33,7 @@ public struct Format: Equatable, Hashable, Loggable {
     // MARK: Default Supported Formats
     // Formats used by Readium. Reading apps are welcome to extend the static constants with
     // additional formats.
-    
-    public static let audiobook = Format(
-        name: "Audiobook",
-        mediaType: .audiobook,
-        fileExtension: "audiobook"
-    )
-    
-    public static let audiobookManifest = Format(
-        name: "Audiobook",
-        mediaType: .audiobookManifest,
-        fileExtension: "json"
-    )
-    
+
     public static let bmp = Format(
         name: "BMP",
         mediaType: .bmp,
@@ -93,6 +81,30 @@ public struct Format: Equatable, Hashable, Loggable {
         mediaType: .jpeg,
         fileExtension: "jpg"
     )
+
+    public static let lcpProtectedAudiobook = Format(
+        name: "LCP Protected Audiobook",
+        mediaType: .lcpProtectedAudiobook,
+        fileExtension: "lcpa"
+    )
+    
+    public static let lcpProtectedPDF = Format(
+        name: "LCP Protected PDF",
+        mediaType: .lcpProtectedPDF,
+        fileExtension: "lcpdf"
+    )
+    
+    public static let lcpLicense = Format(
+        name: "LCP License",
+        mediaType: .lcpLicenseDocument,
+        fileExtension: "lcpl"
+    )
+    
+    public static let lpf = Format(
+        name: "Lightweight Packaging Format",
+        mediaType: .lpf,
+        fileExtension: "lpf"
+    )
     
     public static let opds1Feed = Format(
         name: "OPDS",
@@ -124,30 +136,6 @@ public struct Format: Equatable, Hashable, Loggable {
         fileExtension: "json"
     )
     
-    public static let lcpProtectedAudiobook = Format(
-        name: "LCP Protected Audiobook",
-        mediaType: .lcpProtectedAudiobook,
-        fileExtension: "lcpa"
-    )
-    
-    public static let lcpProtectedPDF = Format(
-        name: "LCP Protected PDF",
-        mediaType: .lcpProtectedPDF,
-        fileExtension: "lcpdf"
-    )
-    
-    public static let lcpLicense = Format(
-        name: "LCP License",
-        mediaType: .lcpLicenseDocument,
-        fileExtension: "lcpl"
-    )
-    
-    public static let lpf = Format(
-        name: "Lightweight Packaging Format",
-        mediaType: .lpf,
-        fileExtension: "lpf"
-    )
-    
     public static let pdf = Format(
         name: "PDF",
         mediaType: .pdf,
@@ -160,6 +148,30 @@ public struct Format: Equatable, Hashable, Loggable {
         fileExtension: "png"
     )
     
+    public static let readiumAudiobook = Format(
+        name: "Readium Audiobook",
+        mediaType: .readiumAudiobook,
+        fileExtension: "audiobook"
+    )
+    
+    public static let readiumAudiobookManifest = Format(
+        name: "Readium Audiobook",
+        mediaType: .readiumAudiobookManifest,
+        fileExtension: "json"
+    )
+    
+    public static let readiumWebPub = Format(
+        name: "Readium Web Publication",
+        mediaType: .readiumWebPub,
+        fileExtension: "webpub"
+    )
+    
+    public static let readiumWebPubManifest = Format(
+        name: "Readium Web Publication",
+        mediaType: .readiumWebPubManifest,
+        fileExtension: "json"
+    )
+
     public static let tiff = Format(
         name: "TIFF",
         mediaType: .tiff,
@@ -178,18 +190,6 @@ public struct Format: Equatable, Hashable, Loggable {
         fileExtension: "webp"
     )
     
-    public static let webpub = Format(
-        name: "Web Publication",
-        mediaType: .webpub,
-        fileExtension: "webpub"
-    )
-    
-    public static let webpubManifest = Format(
-        name: "Web Publication",
-        mediaType: .webpubManifest,
-        fileExtension: "json"
-    )
-    
     public static let zab = Format(
         name: "Zipped Audio Book",
         mediaType: .zab,
@@ -197,6 +197,16 @@ public struct Format: Equatable, Hashable, Loggable {
     )
 
     
+    @available(*, unavailable, renamed: "readiumAudiobook")
+    public static var audiobook: Format { readiumAudiobook }
+    @available(*, unavailable, renamed: "readiumAudiobookManifest")
+    public static var audiobookManifest: Format { readiumAudiobookManifest }
+    @available(*, unavailable, renamed: "readiumWebPub")
+    public static var webpub: Format { readiumWebPub }
+    @available(*, unavailable, renamed: "readiumWebPubManifest")
+    public static var webpubManifest: Format { readiumWebPubManifest }
+
+
     // MARK: Equatable
     
     /// Two formats are equal if they have the same media type, regardless of `name` and

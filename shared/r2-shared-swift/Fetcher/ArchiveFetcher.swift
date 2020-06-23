@@ -14,7 +14,7 @@ import Foundation
 /** Provides access to entries of a ZIP archive. */
 public final class ArchiveFetcher: Fetcher, Loggable {
     
-    private let archive: ZIPArchive
+    private let archive: Archive
     
     public init?(archive: URL) {
         do {
@@ -52,10 +52,10 @@ public final class ArchiveFetcher: Fetcher, Loggable {
         private let originalLink: Link
         private let href: String
         
-        private let archive: ZIPArchive
-        private lazy var entry: ZIPEntry? = archive.entry(at: href)
+        private let archive: Archive
+        private lazy var entry: ArchiveEntry? = archive.entry(at: href)
 
-        init(link: Link, archive: ZIPArchive) {
+        init(link: Link, archive: Archive) {
             self.originalLink = link
             self.href = link.href.removingPrefix("/")
             self.archive = archive

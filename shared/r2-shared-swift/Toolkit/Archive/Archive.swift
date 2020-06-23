@@ -1,5 +1,5 @@
 //
-//  ZIP.swift
+//  Archive.swift
 //  r2-shared-swift
 //
 //  Created by Mickaël Menu on 13/04/2020.
@@ -11,17 +11,17 @@
 
 import Foundation
 
-enum ZIPError: Error {
+enum ArchiveError: Error {
     /// The provided password was incorrect.
     case invalidPassword
-    /// Impossible to open the given ZIP archive.
+    /// Impossible to open the given archive.
     case openFailed
-    /// Impossible to modify the ZIP archive.
+    /// Impossible to modify the archive.
     case updateFailed
 }
 
-/// Holds a ZIP entry's metadata.
-struct ZIPEntry: Equatable {
+/// Holds an archive entry's metadata.
+struct ArchiveEntry: Equatable {
     
     /// Absolute path to the entry in the archive.
     let path: String
@@ -33,26 +33,29 @@ struct ZIPEntry: Equatable {
     /// Returns 0 if the entry is a directory.
     let length: UInt64
     
+    /// Whether the entry is compressed.
+    let isCompressed: Bool
+    
     /// Compressed data length.
     /// Returns 0 if the entry is a directory.
     let compressedLength: UInt64
 
 }
 
-/// Represents an immutable ZIP archive.
-protocol ZIPArchive {
+/// Represents an immutable archive, such as a ZIP file.
+protocol Archive {
     
-    /// Creates a ZIP archive from a file URL.
+    /// Creates an archive from a file URL.
     /// 
-    /// - Throws: `ZIPError.openFailed` if the given `file` can't be opened.
-    /// - Throws: `ZIPError.invalidPassword` if the provided `password` is wrong.
+    /// - Throws: `ArchiveError.openFailed` if the given `file` can't be opened.
+    /// - Throws: `ArchiveError.invalidPassword` if the provided `password` is wrong.
     init(file: URL, password: String?) throws
     
     /// List of all the archived entries.
-    var entries: [ZIPEntry] { get }
+    var entries: [ArchiveEntry] { get }
     
     /// Gets the entry at the given `path`.
-    func entry(at path: String) -> ZIPEntry?
+    func entry(at path: String) -> ArchiveEntry?
     
     /// Reads the whole content of the entry at the given `path`, if it's a file.
     func read(at path: String) -> Data?
@@ -62,19 +65,19 @@ protocol ZIPArchive {
 
 }
 
-extension ZIPArchive {
+extension Archive {
     
-    /// Creates a ZIP archive from a file URL.
+    /// Creates an archive from a file URL.
     init(file: URL) throws {
         try self.init(file: file, password: nil)
     }
     
 }
 
-/// A ZIP archive which can modify its entries.
-protocol MutableZIPArchive: ZIPArchive {
+/// An archive which can modify its entries.
+protocol MutableArchive: Archive {
 
-    /// Replaces (or adds) a file entry in the ZIP archive.
+    /// Replaces (or adds) a file entry in the archive.
     ///
     /// - Parameters:
     ///   - path: Entry path.
