@@ -1,8 +1,11 @@
 # OPDS Parser (Swift)
+
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](/LICENSE)
 
 A parser for OPDS 1.x and 2.0 written in Swift using the [Readium-2 shared model](https://github.com/readium/r2-shared-swift) 
 and [Readium Web Publication Manifest](https://github.com/readium/webpub-manifest).
+
+[Changes and releases are documented in the Changelog](CHANGELOG.md)
 
 ## Features
 
