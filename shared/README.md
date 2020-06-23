@@ -4,6 +4,8 @@
 
 Contains the definitions of the custom types (model) used across the readium-2 Swift projects.
 
+[Changes and releases are documented in the Changelog](CHANGELOG.md)
+
 ## Adding the library to your iOS project
 
 > _Note:_ requires Swift 4.2 (and Xcode 10.1).
