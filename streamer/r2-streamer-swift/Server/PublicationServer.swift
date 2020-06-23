@@ -255,10 +255,10 @@ public class PublicationServer: ResourcesServer {
     fileprivate func addManifestHandler(for publication: Publication, at endpoint: String) {
         /// The webserver handler to process the HTTP GET
         func manifestHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
-            guard let manifestData = publication.jsonManifest else {
+            guard let manifestData = publication.jsonManifest?.data(using: .utf8) else {
                 return GCDWebServerResponse(statusCode: 404)
             }
-            let type = "\(MediaType.webpubManifest.string); charset=utf-8"
+            let type = "\(MediaType.readiumWebPubManifest.string); charset=utf-8"
             return GCDWebServerDataResponse(data: manifestData, contentType: type)
         }
         

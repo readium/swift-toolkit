@@ -3,10 +3,10 @@
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
 [![JazzyDocumentation](https://img.shields.io/badge/Jazzy--Documentation-63%25-lightgrey.svg)](https://readium.github.io/r2-streamer-swift/)
 
-R2-streamer-swift aims at simplifying the usage of numeric publication by parsing and serving them.
+Readium Streamer aims at simplifying the usage of numeric publication by parsing and serving them.
 It takes the publication as input, and generates an accessible [WebPubManifest](https://github.com/readium/webpub-manifest)/object as output.
 
-The project documentation is available [here](https://readium.github.io/r2-streamer-swift/)
+[Changes and releases are documented in the Changelog](CHANGELOG.md)
 
 # Get started
 
