@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0305942C249590FC009F52DA /* SwiftSoup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA81740124581D9D00033776 /* SwiftSoup.framework */; };
+		0305943924959BD6009F52DA /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0377D42C23849BCD0019A0AA /* R2LCPClient.framework */; };
 		03061916222D72AB00646F1F /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061915222D72AB00646F1F /* ReadiumLCP.framework */; };
 		03061917222D72AB00646F1F /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03061915222D72AB00646F1F /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		03061919222D72AB00646F1F /* ReadiumOPDS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03061918222D72AB00646F1F /* ReadiumOPDS.framework */; };
@@ -88,7 +90,6 @@
 		0352073A222D68CD0000F0A4 /* Kingfisher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03520739222D68CC0000F0A4 /* Kingfisher.framework */; };
 		0352073C222D68EA0000F0A4 /* MBProgressHUD.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0352073B222D68EA0000F0A4 /* MBProgressHUD.framework */; };
 		0352073E222D69330000F0A4 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0352073D222D69330000F0A4 /* SQLite.framework */; };
-		0377D42D23849BCD0019A0AA /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0377D42C23849BCD0019A0AA /* R2LCPClient.framework */; };
 		0380490B21166627009F48BD /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0380490A21166627009F48BD /* Toast.swift */; };
 		03A5DB9D23B785FC00D5FCBD /* R2LCPClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0377D42C23849BCD0019A0AA /* R2LCPClient.framework */; };
 		03AE308F2259F3E400AA4C7C /* BooksDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AE308E2259F3E400AA4C7C /* BooksDatabase.swift */; };
@@ -567,8 +568,9 @@
 				03061934222D936100646F1F /* CryptoSwift.framework in Frameworks */,
 				03061937222D936100646F1F /* Minizip.framework in Frameworks */,
 				03061938222D936100646F1F /* ZIPFoundation.framework in Frameworks */,
+				0305943924959BD6009F52DA /* R2LCPClient.framework in Frameworks */,
+				0305942C249590FC009F52DA /* SwiftSoup.framework in Frameworks */,
 				03061939222D936100646F1F /* Fuzi.framework in Frameworks */,
-				0377D42D23849BCD0019A0AA /* R2LCPClient.framework in Frameworks */,
 				03061919222D72AB00646F1F /* ReadiumOPDS.framework in Frameworks */,
 				0306191F222D72AB00646F1F /* R2Shared.framework in Frameworks */,
 				03B94499238D43FF0027986F /* GCDWebServer.framework in Frameworks */,
