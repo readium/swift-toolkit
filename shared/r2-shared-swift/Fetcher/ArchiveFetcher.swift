@@ -18,7 +18,7 @@ public final class ArchiveFetcher: Fetcher, Loggable {
     
     public init?(archive: URL) {
         do {
-            self.archive = try MinizipArchive(file: archive)
+            self.archive = try MinizipArchive(url: archive)
         } catch {
             Self.log(.error, error)
             return nil
@@ -53,7 +53,7 @@ public final class ArchiveFetcher: Fetcher, Loggable {
         private let href: String
         
         private let archive: Archive
-        private lazy var entry: ArchiveEntry? = archive.entry(at: href)
+        private lazy var entry: ArchiveEntry? = try? archive.entry(at: href)
 
         init(link: Link, archive: Archive) {
             self.originalLink = link

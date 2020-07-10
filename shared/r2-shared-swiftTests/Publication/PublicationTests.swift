@@ -23,7 +23,7 @@ class PublicationTests: XCTestCase {
                     readingOrder: [Link(href: "/chap1.html", type: "text/html")]
                 )
             ).jsonManifest,
-            serializeJSONData([
+            serializeJSONString([
                 "metadata": ["title": "Title", "readingProgression": "auto"],
                 "links": [
                     ["href": "/manifest.json", "rel": ["self"], "templated": false]

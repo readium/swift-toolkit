@@ -78,7 +78,7 @@ public final class FormatSnifferContext {
     /// Content as a ZIP archive.
     /// Warning: ZIP is only supported for a local file, for now.
     lazy var contentAsZIP: Archive? = (content as? FormatSnifferFileContent)
-        .flatMap { try? MinizipArchive(file: $0.file) }
+        .flatMap { try? MinizipArchive(url: $0.file) }
 
     /// Content parsed from JSON.
     public lazy var contentAsJSON: Any? = contentAsString
@@ -118,7 +118,7 @@ public final class FormatSnifferContext {
     
     /// Returns whether a ZIP entry exists in this file.
     func containsZIPEntry(at path: String) -> Bool {
-        return contentAsZIP?.entry(at: path) != nil
+        return (try? contentAsZIP?.entry(at: path)) != nil
     }
     
     /// Returns the ZIP entry data at the given `path` in this file.
@@ -129,7 +129,7 @@ public final class FormatSnifferContext {
     /// Returns whether all the ZIP entry paths satisfy the given `predicate`.
     func zipEntriesAllSatisfy(_ predicate: (URL) -> Bool) -> Bool {
         return contentAsZIP?.entries
-            .map { URL(fileURLWithPath: $0.path, isDirectory: $0.isDirectory) }
+            .map { URL(fileURLWithPath: $0.path) }
             .allSatisfy(predicate)
             ?? false
     }

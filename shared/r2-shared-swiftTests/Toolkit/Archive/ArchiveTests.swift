@@ -17,34 +17,34 @@ fileprivate let fixtures = Fixtures(path: "ZIP")
 struct ZIPTester<A: Archive> {
 
     func testOpenSuccess() {
-        XCTAssertNoThrow(try A(file: fixtures.url(for: "test.zip")))
+        XCTAssertNoThrow(try A(url: fixtures.url(for: "test.zip")))
     }
 
     func testOpenNotFound() {
-        XCTAssertThrowsError(try A(file: fixtures.url(for: "unknown.zip"))) { error in
+        XCTAssertThrowsError(try A(url: fixtures.url(for: "unknown.zip"))) { error in
             XCTAssertEqual(error as? ArchiveError, ArchiveError.openFailed)
         }
     }
     
     func testOpenNotAZIP() {
-        XCTAssertThrowsError(try A(file: fixtures.url(for: "not-a.zip"))) { error in
+        XCTAssertThrowsError(try A(url: fixtures.url(for: "not-a.zip"))) { error in
             XCTAssertEqual(error as? ArchiveError, ArchiveError.openFailed)
         }
     }
     
-    func testGetNonExistingEntry() {
-        let archive = try! A(file: fixtures.url(for: "test.zip"))
-        let entry = archive.entry(at: "unknown")
-        XCTAssertNil(entry)
+    func testGetNonExistingEntry() throws {
+        let archive = try A(url: fixtures.url(for: "test.zip"))
+        XCTAssertThrowsError(try archive.entry(at: "unknown")) { error in
+            XCTAssertEqual(error as? ArchiveError, ArchiveError.entryNotFound)
+        }
     }
 
-    func testGetFileEntry() {
-        let archive = try! A(file: fixtures.url(for: "test.zip"))
+    func testGetFileEntry() throws {
+        let archive = try A(url: fixtures.url(for: "test.zip"))
         XCTAssertEqual(
-            archive.entry(at: "A folder/wasteland-cover.jpg"),
+            try archive.entry(at: "A folder/wasteland-cover.jpg"),
             ArchiveEntry(
                 path: "A folder/wasteland-cover.jpg",
-                isDirectory: false,
                 length: 103477,
                 isCompressed: true,
                 compressedLength: 82374
@@ -52,53 +52,45 @@ struct ZIPTester<A: Archive> {
         )
     }
 
-    func testGetUncompressedFileEntry() {
-        let archive = try! A(file: fixtures.url(for: "test.zip"))
+    func testGetUncompressedFileEntry() throws {
+        let archive = try A(url: fixtures.url(for: "test.zip"))
         XCTAssertEqual(
-            archive.entry(at: "uncompressed.jpg"),
+            try archive.entry(at: "uncompressed.jpg"),
             ArchiveEntry(
                 path: "uncompressed.jpg",
-                isDirectory: false,
                 length: 279551,
                 isCompressed: false,
-                compressedLength: 279551
+                compressedLength: nil
             )
         )
     }
 
-    func testGetDirectoryEntry() {
-        let archive = try! A(file: fixtures.url(for: "test.zip"))
-        XCTAssertNil(archive.entry(at: "A folder"))
-        XCTAssertEqual(
-            archive.entry(at: "A folder/"),
-            ArchiveEntry(
-                path: "A folder/",
-                isDirectory: true,
-                length: 0,
-                isCompressed: false,
-                compressedLength: 0
-            )
-        )
+    func testGetDirectoryEntry() throws {
+        let archive = try A(url: fixtures.url(for: "test.zip"))
+        XCTAssertThrowsError(try archive.entry(at: "A folder")) { error in
+            XCTAssertEqual(error as? ArchiveError, ArchiveError.entryNotFound)
+        }
+        XCTAssertThrowsError(try archive.entry(at: "A folder/")) { error in
+            XCTAssertEqual(error as? ArchiveError, ArchiveError.entryNotFound)
+        }
     }
     
-    func testGetEntries() {
-        let archive = try! A(file: fixtures.url(for: "test.zip"))
+    func testGetEntries() throws {
+        let archive = try A(url: fixtures.url(for: "test.zip"))
         XCTAssertEqual(archive.entries, [
-            ArchiveEntry(path: ".hidden", isDirectory: false, length: 0, isCompressed: false, compressedLength: 0),
-            ArchiveEntry(path: "A folder/", isDirectory: true, length: 0, isCompressed: false, compressedLength: 0),
-            ArchiveEntry(path: "A folder/Sub.folder%/", isDirectory: true, length: 0, isCompressed: false, compressedLength: 0),
-            ArchiveEntry(path: "A folder/Sub.folder%/file.txt", isDirectory: false, length: 20, isCompressed: false, compressedLength: 20),
-            ArchiveEntry(path: "A folder/wasteland-cover.jpg", isDirectory: false, length: 103477, isCompressed: true, compressedLength: 82374),
-            ArchiveEntry(path: "root.txt", isDirectory: false, length: 0, isCompressed: false, compressedLength: 0),
-            ArchiveEntry(path: "uncompressed.jpg", isDirectory: false, length: 279551, isCompressed: false, compressedLength: 279551),
-            ArchiveEntry(path: "uncompressed.txt", isDirectory: false, length: 30, isCompressed: false, compressedLength: 30),
-            ArchiveEntry(path: "A folder/Sub.folder%/file-compressed.txt", isDirectory: false, length: 29609, isCompressed: true, compressedLength: 8659),
+            ArchiveEntry(path: ".hidden", length: 0, isCompressed: false, compressedLength: nil),
+            ArchiveEntry(path: "A folder/Sub.folder%/file.txt", length: 20, isCompressed: false, compressedLength: nil),
+            ArchiveEntry(path: "A folder/wasteland-cover.jpg", length: 103477, isCompressed: true, compressedLength: 82374),
+            ArchiveEntry(path: "root.txt", length: 0, isCompressed: false, compressedLength: nil),
+            ArchiveEntry(path: "uncompressed.jpg", length: 279551, isCompressed: false, compressedLength: nil),
+            ArchiveEntry(path: "uncompressed.txt", length: 30, isCompressed: false, compressedLength: nil),
+            ArchiveEntry(path: "A folder/Sub.folder%/file-compressed.txt", length: 29609, isCompressed: true, compressedLength: 8659),
         ])
     }
 
-    func testReadCompressedEntry() {
-        let archive = try! A(file: fixtures.url(for: "test.zip"))
-        let entry = archive.entry(at: "A folder/Sub.folder%/file-compressed.txt")!
+    func testReadCompressedEntry() throws {
+        let archive = try A(url: fixtures.url(for: "test.zip"))
+        let entry = try archive.entry(at: "A folder/Sub.folder%/file-compressed.txt")
         let data = archive.read(at: entry.path)
         XCTAssertNotNil(data)
         let string = String(data: data!, encoding: .utf8)!
@@ -106,9 +98,9 @@ struct ZIPTester<A: Archive> {
         XCTAssertTrue(string.hasPrefix("I'm inside\nthe ZIP."))
     }
     
-    func testReadUncompressedEntry() {
-        let archive = try! A(file: fixtures.url(for: "test.zip"))
-        let entry = archive.entry(at: "A folder/Sub.folder%/file.txt")!
+    func testReadUncompressedEntry() throws {
+        let archive = try A(url: fixtures.url(for: "test.zip"))
+        let entry = try archive.entry(at: "A folder/Sub.folder%/file.txt")
         let data = archive.read(at: entry.path)
         XCTAssertNotNil(data)
         XCTAssertEqual(
@@ -117,10 +109,10 @@ struct ZIPTester<A: Archive> {
         )
     }
     
-    func testReadUncompressedRange() {
+    func testReadUncompressedRange() throws {
         // FIXME: It looks like unzseek64 starts from the beginning of the file header, instead of the content. Reading a first byte solves this but then Minizip crashes randomly... Note that this only fails in the test case. I didn't see actual issues in LCPDF or videos embedded in EPUBs.
-        let archive = try! A(file: fixtures.url(for: "test.zip"))
-        let entry = archive.entry(at: "A folder/Sub.folder%/file.txt")!
+        let archive = try A(url: fixtures.url(for: "test.zip"))
+        let entry = try archive.entry(at: "A folder/Sub.folder%/file.txt")
         let data = archive.read(at: entry.path, range: 14..<20)
         XCTAssertNotNil(data)
         XCTAssertEqual(
@@ -129,9 +121,9 @@ struct ZIPTester<A: Archive> {
         )
     }
     
-    func testReadCompressedRange() {
-        let archive = try! A(file: fixtures.url(for: "test.zip"))
-        let entry = archive.entry(at: "A folder/Sub.folder%/file-compressed.txt")!
+    func testReadCompressedRange() throws {
+        let archive = try A(url: fixtures.url(for: "test.zip"))
+        let entry = try archive.entry(at: "A folder/Sub.folder%/file-compressed.txt")
         let data = archive.read(at: entry.path, range: 14..<20)
         XCTAssertNotNil(data)
         XCTAssertEqual(
@@ -149,15 +141,15 @@ struct ZIPTester<A: Archive> {
 //    func testOpenSuccess() { tester.testOpenSuccess() }
 //    func testOpenNotFound() { tester.testOpenNotFound() }
 //    func testOpenNotAZIP() { tester.testOpenNotAZIP() }
-//    func testGetNonExistingEntry() { tester.testGetNonExistingEntry() }
-//    func testGetFileEntry() { tester.testGetFileEntry() }
-//    func testGetUncompressedFileEntry() { tester.testGetUncompressedFileEntry() }
-//    func testGetDirectoryEntry() { tester.testGetDirectoryEntry() }
-//    func testGetEntries() { tester.testGetEntries() }
-//    func testReadCompressedEntry() { tester.testReadCompressedEntry() }
-//    func testReadUncompressedEntry() { tester.testReadUncompressedEntry() }
-//    func testReadCompressedRange() { tester.testReadCompressedRange() }
-//    func testReadUncompressedRange() { tester.testReadUncompressedRange() }
+//    func testGetNonExistingEntry() throws { try tester.testGetNonExistingEntry() }
+//    func testGetFileEntry() throws { try tester.testGetFileEntry() }
+//    func testGetUncompressedFileEntry() throws { try tester.testGetUncompressedFileEntry() }
+//    func testGetDirectoryEntry() throws { try tester.testGetDirectoryEntry() }
+//    func testGetEntries() throws { try tester.testGetEntries() }
+//    func testReadCompressedEntry() throws { try tester.testReadCompressedEntry() }
+//    func testReadUncompressedEntry() throws { try tester.testReadUncompressedEntry() }
+//    func testReadCompressedRange() throws { try tester.testReadCompressedRange() }
+//    func testReadUncompressedRange() throws { try tester.testReadUncompressedRange() }
 //
 //}
 
@@ -168,15 +160,15 @@ class MinizipTests: XCTestCase {
     func testOpenSuccess() { tester.testOpenSuccess() }
     func testOpenNotFound() { tester.testOpenNotFound() }
     func testOpenNotAZIP() { tester.testOpenNotAZIP() }
-    func testGetNonExistingEntry() { tester.testGetNonExistingEntry() }
-    func testGetFileEntry() { tester.testGetFileEntry() }
-    func testGetUncompressedFileEntry() { tester.testGetUncompressedFileEntry() }
-    func testGetDirectoryEntry() { tester.testGetDirectoryEntry() }
-    func testGetEntries() { tester.testGetEntries() }
-    func testReadCompressedEntry() { tester.testReadCompressedEntry() }
-    func testReadUncompressedEntry() { tester.testReadUncompressedEntry() }
-    func testReadCompressedRange() { tester.testReadCompressedRange() }
-    func testReadUncompressedRange() { tester.testReadUncompressedRange() }
+    func testGetNonExistingEntry() throws { try tester.testGetNonExistingEntry() }
+    func testGetFileEntry() throws { try tester.testGetFileEntry() }
+    func testGetUncompressedFileEntry() throws { try tester.testGetUncompressedFileEntry() }
+    func testGetDirectoryEntry() throws { try tester.testGetDirectoryEntry() }
+    func testGetEntries() throws { try tester.testGetEntries() }
+    func testReadCompressedEntry() throws { try tester.testReadCompressedEntry() }
+    func testReadUncompressedEntry() throws { try tester.testReadUncompressedEntry() }
+    func testReadCompressedRange() throws { try tester.testReadCompressedRange() }
+    func testReadUncompressedRange() throws { try tester.testReadUncompressedRange() }
     
 }
 
@@ -184,8 +176,8 @@ class ZIPBenchmarkingTests: XCTestCase {
     
     func testCompareRange() {
         let archives: [Archive] = [
-            try! MinizipArchive(file: fixtures.url(for: "test.zip")),
-//            try! ZIPFoundationArchive(file: fixtures.url(for: "test.zip"))
+            try! MinizipArchive(url: fixtures.url(for: "test.zip")),
+//            try! ZIPFoundationArchive(url: fixtures.url(for: "test.zip"))
         ]
         let path = "A folder/wasteland-cover.jpg"
         let length: UInt64 = 103477

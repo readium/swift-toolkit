@@ -18,6 +18,8 @@ enum ArchiveError: Error {
     case openFailed
     /// Impossible to modify the archive.
     case updateFailed
+    /// The entry could not be found in the archive.
+    case entryNotFound
 }
 
 /// Holds an archive entry's metadata.
@@ -26,50 +28,50 @@ struct ArchiveEntry: Equatable {
     /// Absolute path to the entry in the archive.
     let path: String
     
-    /// Whether this entry is a directory, instead of a file.
-    let isDirectory: Bool
-    
     /// Uncompressed data length.
-    /// Returns 0 if the entry is a directory.
-    let length: UInt64
+    let length: UInt64?
     
     /// Whether the entry is compressed.
     let isCompressed: Bool
     
-    /// Compressed data length.
-    /// Returns 0 if the entry is a directory.
-    let compressedLength: UInt64
+    /// Compressed data length, or nil if the entry is not compressed.
+    let compressedLength: UInt64?
 
 }
 
-/// Represents an immutable archive, such as a ZIP file.
+/// Represents an immutable archive, such as a ZIP file or an exploded directory.
 protocol Archive {
     
-    /// Creates an archive from a file URL.
+    /// Creates an archive from a local file URL.
     /// 
     /// - Throws: `ArchiveError.openFailed` if the given `file` can't be opened.
     /// - Throws: `ArchiveError.invalidPassword` if the provided `password` is wrong.
-    init(file: URL, password: String?) throws
+    init(url: URL, password: String?) throws
     
     /// List of all the archived entries.
     var entries: [ArchiveEntry] { get }
     
-    /// Gets the entry at the given `path`.
-    func entry(at path: String) -> ArchiveEntry?
+    /// Gets the entry at the given `path`
+    ///
+    /// - Throws: `ArchiveError.entryNotFound` if the entry can't be located.
+    func entry(at path: String) throws -> ArchiveEntry
     
-    /// Reads the whole content of the entry at the given `path`, if it's a file.
+    /// Reads the whole content of the entry at the given `path`.
     func read(at path: String) -> Data?
     
-    /// Reads a range of the content of this entry, if it's a file.
+    /// Reads a range of the content of this entry.
     func read(at path: String, range: Range<UInt64>) -> Data?
+    
+    /// Closes the archive.
+    func close()
 
 }
 
 extension Archive {
     
-    /// Creates an archive from a file URL.
-    init(file: URL) throws {
-        try self.init(file: file, password: nil)
+    /// Creates an archive from a local file URL.
+    init(url: URL) throws {
+        try self.init(url: url, password: nil)
     }
     
 }
