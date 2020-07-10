@@ -35,7 +35,7 @@ class CBZViewController: ReaderViewController {
     override var currentBookmark: Bookmark? {
         guard let publicationID = publication.metadata.identifier,
             let locator = navigator.currentLocation,
-            let resourceIndex = publication.readingOrder.firstIndex(withHref: locator.href) else
+            let resourceIndex = publication.readingOrder.firstIndex(withHREF: locator.href) else
         {
             return nil
         }

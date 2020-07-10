@@ -322,7 +322,7 @@ final class LibraryService: Loggable {
     }
     
     func downloadPublication(_ publication: Publication? = nil, at link: Link, completion: @escaping (Bool) -> Void = { _ in }) {
-        guard let url = publication?.url(to: link) else {
+        guard let url = link.url(relativeTo: publication?.baseURL) else {
             completion(false)
             return
         }
