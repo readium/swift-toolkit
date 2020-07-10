@@ -188,7 +188,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         
         if
             let position = locator.locations.position,
-            let index = publication.readingOrder.firstIndex(withHref: locator.href),
+            let index = publication.readingOrder.firstIndex(withHREF: locator.href),
             let firstPosition = publication.positionsByReadingOrder[index].first?.locations.position
         {
             return position - firstPosition + 1
@@ -255,7 +255,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
     }
 
     public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
-        guard let index = publication.readingOrder.firstIndex(withHref: locator.href) else {
+        guard let index = publication.readingOrder.firstIndex(withHREF: locator.href) else {
             return false
         }
 

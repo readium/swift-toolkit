@@ -397,7 +397,13 @@ extension EPUBSpreadView: PageView {
     var positionCount: Int {
         // Sum of the number of positions in all the resources of the spread.
         return spread.links
-            .map { publication.positionsByResource[$0.href]?.count ?? 0 }
+            .map {
+                if let index = publication.readingOrder.firstIndex(withHREF: $0.href) {
+                    return publication.positionsByReadingOrder[index].count
+                } else {
+                    return 0
+                }
+            }
             .reduce(0, +)
     }
 
