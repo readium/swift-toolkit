@@ -117,18 +117,6 @@ class PublicationTests: XCTestCase {
         )
     }
     
-    func testLinkWithHREFSearchesBreadthFirst() {
-        XCTAssertEqual(
-            makePublication(resources: [
-                Link(href: "l1", alternates: [
-                    Link(href: "l2", rel: "l2")
-                ]),
-                Link(href: "l2", rel: "l3")
-            ]).link(withHREF: "l2")?.rels,
-            ["l3"]
-        )
-    }
-    
     func testLinkWithHREFIgnoresQuery() {
         let publication = makePublication(links: [
             Link(href: "l1?q=a"),

@@ -94,16 +94,21 @@ public class Publication: Loggable {
     
     /// Finds the first Link having the given `href` in the publication's links.
     public func link(withHREF href: String) -> Link? {
-        func find(in links: [Link]) -> Link? {
-            guard !links.isEmpty else {
-                return nil
+        func deepFind(in linkLists: [Link]...) -> Link? {
+            for links in linkLists {
+                for link in links {
+                    if link.href == href {
+                        return link
+                    } else if let child = deepFind(in: link.alternates, link.children) {
+                        return child
+                    }
+                }
             }
             
-            return links.first(withHREF: href)
-                ?? find(in: links.flatMap { $0.alternates + $0.children })
+            return nil
         }
         
-        var link = find(in: readingOrder + resources + links)
+        var link = deepFind(in: readingOrder, resources, links)
         if
             link == nil,
             let shortHREF = href.components(separatedBy: .init(charactersIn: "#?")).first,
