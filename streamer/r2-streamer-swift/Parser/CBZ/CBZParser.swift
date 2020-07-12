@@ -34,10 +34,8 @@ public class CbzParser: PublicationParser {
     /// Parse the Comic Book Archive at given `url` and return a `PubBox` object containing
     /// the resulting `Publication` and `Container` objects.
     public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        guard
-            let fetcher = ArchiveFetcher.make(archiveOrDirectory: url),
-            let manifest = parseManifest(in: fetcher, at: url) else
-        {
+        let fetcher = try ArchiveFetcher(url: url)
+        guard let manifest = parseManifest(in: fetcher, at: url) else {
             throw CBZParserError.invalidCBZ(path: url.path)
         }
         

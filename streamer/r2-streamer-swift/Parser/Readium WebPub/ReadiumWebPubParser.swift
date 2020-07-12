@@ -48,9 +48,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
     }
     
     private static func parsePackage(at url: URL, format: Format) throws -> (PubBox, PubParsingCallback) {
-        guard let fetcher = ArchiveFetcher.make(archiveOrDirectory: url) else {
-            throw ReadiumWebPubParserError.missingFile(path: url.path)
-        }
+        let fetcher = try ArchiveFetcher(url: url)
         guard let manifestData = try? fetcher.readData(at: manifestPath) else {
             throw ReadiumWebPubParserError.missingFile(path: manifestPath)
         }

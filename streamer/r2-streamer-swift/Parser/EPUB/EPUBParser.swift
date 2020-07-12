@@ -56,10 +56,7 @@ final public class EpubParser: PublicationParser {
     ///           `EPUBParserError.xmlParse`,
     ///           `EPUBParserError.missingFile`
     static public func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        guard var fetcher = ArchiveFetcher.make(archiveOrDirectory: url) else {
-            throw EPUBParserError.missingFile(path: url.path)
-        }
-        
+        var fetcher: Fetcher = try ArchiveFetcher(url: url)
         let opfHREF = try EPUBContainerParser(fetcher: fetcher).parseOPFHREF()
         let drm = scanForDRM(in: fetcher)
 
