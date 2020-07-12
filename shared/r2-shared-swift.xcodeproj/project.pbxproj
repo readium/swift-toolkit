@@ -35,7 +35,7 @@
 		CA2006512225A1F300E6B3BD /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2006502225A1F300E6B3BD /* Observable.swift */; };
 		CA252DD92447A3740005067C /* Minizip.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA252DD82447A3740005067C /* Minizip.swift */; };
 		CA252DDB2447A3810005067C /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA252DDA2447A3810005067C /* Minizip.framework */; };
-		CA252DE12447A5C00005067C /* ArchiveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA252DE02447A5C00005067C /* ArchiveTests.swift */; };
+		CA252DE12447A5C00005067C /* Archive+ZIPTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA252DE02447A5C00005067C /* Archive+ZIPTests.swift */; };
 		CA2AE320221C1DCB008BD18F /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31D221C1DCB008BD18F /* Logger.swift */; };
 		CA2AE321221C1DCB008BD18F /* LoggerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31E221C1DCB008BD18F /* LoggerStub.swift */; };
 		CA2AE322221C1DCB008BD18F /* Loggable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31F221C1DCB008BD18F /* Loggable.swift */; };
@@ -139,6 +139,10 @@
 		CAD178AD22B3A75C004E6812 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CAD178AF22B3A75C004E6812 /* Localizable.strings */; };
 		CAD1EE70245AC29B00C1E684 /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD1EE6F245AC29B00C1E684 /* String.swift */; };
 		CADD69E222C3B17500A4CADF /* DocumentTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADD69E122C3B17500A4CADF /* DocumentTypes.swift */; };
+		CAE4DCA024B8CC5B00611638 /* ExplodedArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE4DC9F24B8CC5B00611638 /* ExplodedArchive.swift */; };
+		CAE4DCA224B8CD3E00611638 /* ExplodedArchiveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE4DCA124B8CD3E00611638 /* ExplodedArchiveTests.swift */; };
+		CAE4DCAA24BB40F100611638 /* URL.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE4DCA924BB40F100611638 /* URL.swift */; };
+		CAE4DCAD24BB417D00611638 /* URLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE4DCAC24BB417D00611638 /* URLTests.swift */; };
 		CAF4EAE42237ABC700A17DA1 /* MediaOverlayNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4041F4EC69100DF166D /* MediaOverlayNode.swift */; };
 		CAF4EAE52237ABC700A17DA1 /* MediaOverlays.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D4051F4EC69100DF166D /* MediaOverlays.swift */; };
 		CAF4EAE72237AD6000A17DA1 /* UserProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF39DF220E3895200A560F3 /* UserProperties.swift */; };
@@ -199,7 +203,7 @@
 		CA2006502225A1F300E6B3BD /* Observable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Observable.swift; sourceTree = "<group>"; };
 		CA252DD82447A3740005067C /* Minizip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Minizip.swift; sourceTree = "<group>"; };
 		CA252DDA2447A3810005067C /* Minizip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Minizip.framework; path = Carthage/Build/iOS/Minizip.framework; sourceTree = "<group>"; };
-		CA252DE02447A5C00005067C /* ArchiveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveTests.swift; sourceTree = "<group>"; };
+		CA252DE02447A5C00005067C /* Archive+ZIPTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Archive+ZIPTests.swift"; sourceTree = "<group>"; };
 		CA2AE31D221C1DCB008BD18F /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		CA2AE31E221C1DCB008BD18F /* LoggerStub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoggerStub.swift; sourceTree = "<group>"; };
 		CA2AE31F221C1DCB008BD18F /* Loggable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Loggable.swift; sourceTree = "<group>"; };
@@ -303,6 +307,10 @@
 		CAD178AE22B3A75C004E6812 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		CAD1EE6F245AC29B00C1E684 /* String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
 		CADD69E122C3B17500A4CADF /* DocumentTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentTypes.swift; sourceTree = "<group>"; };
+		CAE4DC9F24B8CC5B00611638 /* ExplodedArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplodedArchive.swift; sourceTree = "<group>"; };
+		CAE4DCA124B8CD3E00611638 /* ExplodedArchiveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplodedArchiveTests.swift; sourceTree = "<group>"; };
+		CAE4DCA924BB40F100611638 /* URL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URL.swift; sourceTree = "<group>"; };
+		CAE4DCAC24BB417D00611638 /* URLTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLTests.swift; sourceTree = "<group>"; };
 		F3B1879F1FA33D4D00BB46BF /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
 		F3B187A11FA33DFA00BB46BF /* Facet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Facet.swift; sourceTree = "<group>"; };
 		F3B187A31FA33E1D00BB46BF /* OpdsMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpdsMetadata.swift; sourceTree = "<group>"; };
@@ -446,6 +454,7 @@
 			isa = PBXGroup;
 			children = (
 				CA252DDF2447A5B40005067C /* Archive */,
+				CAE4DCAB24BB416F00611638 /* Extensions */,
 				CA7116EE2455935100C029FD /* DocumentTypesTests.swift */,
 				CA7B1AA6248A2D1200152F73 /* URITemplateTests.swift */,
 			);
@@ -455,7 +464,8 @@
 		CA252DDF2447A5B40005067C /* Archive */ = {
 			isa = PBXGroup;
 			children = (
-				CA252DE02447A5C00005067C /* ArchiveTests.swift */,
+				CA252DE02447A5C00005067C /* Archive+ZIPTests.swift */,
+				CAE4DCA124B8CD3E00611638 /* ExplodedArchiveTests.swift */,
 			);
 			path = Archive;
 			sourceTree = "<group>";
@@ -611,6 +621,7 @@
 				CAD1EE6F245AC29B00C1E684 /* String.swift */,
 				CACDE5D62483AAB0006FEB1B /* UIImage.swift */,
 				CA13517D248952B10087E69E /* NSRegularExpression.swift */,
+				CAE4DCA924BB40F100611638 /* URL.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -623,15 +634,6 @@
 				CA6F27712469DB970065B405 /* Resource.swift */,
 			);
 			path = Fetcher;
-			sourceTree = "<group>";
-		};
-		CA81741A24585E5800033776 /* Media */ = {
-			isa = PBXGroup;
-			children = (
-				CAAF80C92456D7370024D7AE /* AudioSession.swift */,
-				CA81741B24585E6700033776 /* NowPlayingInfo.swift */,
-			);
-			path = Media;
 			sourceTree = "<group>";
 		};
 		CA81741A24585E5800033776 /* Media */ = {
@@ -738,10 +740,19 @@
 			isa = PBXGroup;
 			children = (
 				CAD0FED92444FDB50053C998 /* Archive.swift */,
+				CAE4DC9F24B8CC5B00611638 /* ExplodedArchive.swift */,
 				CAD0FEDB2444FDEC0053C998 /* ZIPFoundation.swift */,
 				CA252DD82447A3740005067C /* Minizip.swift */,
 			);
 			path = Archive;
+			sourceTree = "<group>";
+		};
+		CAE4DCAB24BB416F00611638 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				CAE4DCAC24BB417D00611638 /* URLTests.swift */,
+			);
+			path = Extensions;
 			sourceTree = "<group>";
 		};
 		F3B1879E1FA33D3700BB46BF /* OPDS */ = {
@@ -975,8 +986,9 @@
 				CA176381223A7DB700959FEB /* Publication+OPDSTests.swift in Sources */,
 				CA16A86E2232F7AC00E66255 /* LinkTests.swift in Sources */,
 				CA7116EF2455935100C029FD /* DocumentTypesTests.swift in Sources */,
+				CAE4DCA224B8CD3E00611638 /* ExplodedArchiveTests.swift in Sources */,
 				CA5F8F0124041BA700926120 /* Properties+PresentationTests.swift in Sources */,
-				CA252DE12447A5C00005067C /* ArchiveTests.swift in Sources */,
+				CA252DE12447A5C00005067C /* Archive+ZIPTests.swift in Sources */,
 				CA3386F024056E7A00FDCBBA /* Locator+HTMLTests.swift in Sources */,
 				CACD75F52236B2AF004F20CA /* PublicationCollectionTests.swift in Sources */,
 				CA5F8EFD24041A2500926120 /* Metadata+PresentationTests.swift in Sources */,
@@ -990,6 +1002,7 @@
 				CA6F27722469DB980065B405 /* Resource.swift in Sources */,
 				CACD75E0223657AD004F20CA /* PublicationTests.swift in Sources */,
 				CA17637E223A7C0300959FEB /* Publication+EPUBTests.swift in Sources */,
+				CAE4DCAD24BB417D00611638 /* URLTests.swift in Sources */,
 				CABBB2FA2237CA94004EB039 /* OPDSAcquisitionTests.swift in Sources */,
 				CABE2A032482C7A6008E286D /* PositionsServiceTests.swift in Sources */,
 				CA5F8EED240404E300926120 /* ContentLayoutTests.swift in Sources */,
@@ -1054,6 +1067,7 @@
 				CAAF80CA2456D7370024D7AE /* AudioSession.swift in Sources */,
 				CA50B86E22B2A1CF003AFF24 /* R2LocalizedString.swift in Sources */,
 				CA6D42672404370C002FBED4 /* OPDSHolds.swift in Sources */,
+				CAE4DCAA24BB40F100611638 /* URL.swift in Sources */,
 				CAD0FED02444B5C30053C998 /* FormatSnifferContent.swift in Sources */,
 				CAF4EAE42237ABC700A17DA1 /* MediaOverlayNode.swift in Sources */,
 				CAC34F0C221C61BD002C452E /* DRM+Deprecated.swift in Sources */,
@@ -1081,6 +1095,7 @@
 				CA3386EE24056ADB00FDCBBA /* Locator+HTML.swift in Sources */,
 				CA16A8592232C2A800E66255 /* Contributor.swift in Sources */,
 				CAC34F0A221C61BD002C452E /* DRM.swift in Sources */,
+				CAE4DCA024B8CC5B00611638 /* ExplodedArchive.swift in Sources */,
 				CA5F8F0324041D4B00926120 /* Properties+Presentation.swift in Sources */,
 				CA5F8EF224040DDE00926120 /* Presentation.swift in Sources */,
 				CA9FC074248256450020B9CC /* PublicationService.swift in Sources */,

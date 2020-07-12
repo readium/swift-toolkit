@@ -34,7 +34,7 @@ public final class FileFetcher: Fetcher, Loggable {
             if linkHREF.hasPrefix(href) {
                 let resourceURL = url.appendingPathComponent(linkHREF.removingPrefix(href)).standardizedFileURL
                 // Makes sure that the requested resource is `url` or one of its descendant.
-                if resourceURL.path.hasPrefix(url.path) {
+                if url.isParentOf(resourceURL) {
                     return FileResource(link: link, file: resourceURL)
                 }
             }

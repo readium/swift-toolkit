@@ -12,7 +12,7 @@
 import XCTest
 @testable import R2Shared
 
-fileprivate let fixtures = Fixtures(path: "ZIP")
+fileprivate let fixtures = Fixtures(path: "Archive")
 
 struct ZIPTester<A: Archive> {
 

@@ -11,7 +11,7 @@
 
 import Foundation
 
-enum ArchiveError: Error {
+public enum ArchiveError: Error {
     /// The provided password was incorrect.
     case invalidPassword
     /// Impossible to open the given archive.
@@ -23,7 +23,7 @@ enum ArchiveError: Error {
 }
 
 /// Holds an archive entry's metadata.
-struct ArchiveEntry: Equatable {
+public struct ArchiveEntry: Equatable {
     
     /// Absolute path to the entry in the archive.
     let path: String
@@ -40,7 +40,7 @@ struct ArchiveEntry: Equatable {
 }
 
 /// Represents an immutable archive, such as a ZIP file or an exploded directory.
-protocol Archive {
+public protocol Archive {
     
     /// Creates an archive from a local file URL.
     /// 
@@ -67,7 +67,7 @@ protocol Archive {
 
 }
 
-extension Archive {
+public extension Archive {
     
     /// Creates an archive from a local file URL.
     init(url: URL) throws {
@@ -87,4 +87,14 @@ protocol MutableArchive: Archive {
     ///   - deflated: If true, the entry will be compressed in the archive.
     func replace(at path: String, with data: Data, deflated: Bool) throws
 
+}
+
+public typealias ArchiveFactory = (_ url: URL, _ password: String?) throws -> Archive
+
+public let DefaultArchiveFactory: ArchiveFactory = { url, password in
+    do {
+        return try ExplodedArchive(url: url, password: password)
+    } catch {
+        return try MinizipArchive(url: url, password: password)
+    }
 }
