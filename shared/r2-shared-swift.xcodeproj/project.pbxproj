@@ -34,6 +34,8 @@
 		CA176392223AAC1A00959FEB /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA176391223AAC1A00959FEB /* UserSettings.swift */; };
 		CA2006512225A1F300E6B3BD /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2006502225A1F300E6B3BD /* Observable.swift */; };
 		CA228D1124BC5CF800879E2E /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA228D1024BC5CF800879E2E /* Result.swift */; };
+		CA228D1324BCD55600879E2E /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA228D1224BCD55600879E2E /* File.swift */; };
+		CA228D1524BCD78A00879E2E /* FileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA228D1424BCD78A00879E2E /* FileTests.swift */; };
 		CA252DD92447A3740005067C /* Minizip.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA252DD82447A3740005067C /* Minizip.swift */; };
 		CA252DDB2447A3810005067C /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA252DDA2447A3810005067C /* Minizip.framework */; };
 		CA252DE12447A5C00005067C /* Archive+ZIPTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA252DE02447A5C00005067C /* Archive+ZIPTests.swift */; };
@@ -206,6 +208,8 @@
 		CA176391223AAC1A00959FEB /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
 		CA2006502225A1F300E6B3BD /* Observable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Observable.swift; sourceTree = "<group>"; };
 		CA228D1024BC5CF800879E2E /* Result.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
+		CA228D1224BCD55600879E2E /* File.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = File.swift; sourceTree = "<group>"; };
+		CA228D1424BCD78A00879E2E /* FileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileTests.swift; sourceTree = "<group>"; };
 		CA252DD82447A3740005067C /* Minizip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Minizip.swift; sourceTree = "<group>"; };
 		CA252DDA2447A3810005067C /* Minizip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Minizip.framework; path = Carthage/Build/iOS/Minizip.framework; sourceTree = "<group>"; };
 		CA252DE02447A5C00005067C /* Archive+ZIPTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Archive+ZIPTests.swift"; sourceTree = "<group>"; };
@@ -362,15 +366,16 @@
 				CA81741A24585E5800033776 /* Media */,
 				F3E7D4221F4ECB3D00DF166D /* Date+ISO8601.swift */,
 				CABEB3DB2215698600090B6C /* Deferred.swift */,
-				CA2006502225A1F300E6B3BD /* Observable.swift */,
-				CA9A40D0221B0AA200531EA1 /* Either.swift */,
+				CADD69E122C3B17500A4CADF /* DocumentTypes.swift */,
 				57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */,
+				CA9A40D0221B0AA200531EA1 /* Either.swift */,
+				CA228D1224BCD55600879E2E /* File.swift */,
 				CA9E6BA3223A657900ECF6E4 /* JSON.swift */,
+				CA2006502225A1F300E6B3BD /* Observable.swift */,
 				CA50B86D22B2A1CF003AFF24 /* R2LocalizedString.swift */,
 				CA94291522BCD08B00305CDB /* ResourcesServer.swift */,
-				CADD69E122C3B17500A4CADF /* DocumentTypes.swift */,
-				CA7116F02455FAF900C029FD /* UTI.swift */,
 				CA7B1AA4248A2CFF00152F73 /* URITemplate.swift */,
+				CA7116F02455FAF900C029FD /* UTI.swift */,
 			);
 			path = Toolkit;
 			sourceTree = "<group>";
@@ -464,6 +469,7 @@
 				CA252DDF2447A5B40005067C /* Archive */,
 				CAE4DCAB24BB416F00611638 /* Extensions */,
 				CA7116EE2455935100C029FD /* DocumentTypesTests.swift */,
+				CA228D1424BCD78A00879E2E /* FileTests.swift */,
 				CA7B1AA6248A2D1200152F73 /* URITemplateTests.swift */,
 			);
 			path = Toolkit;
@@ -981,6 +987,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA228D1524BCD78A00879E2E /* FileTests.swift in Sources */,
 				CABBB2F42237BF42004EB039 /* OPDSPriceTests.swift in Sources */,
 				CACD75E42236A0F0004F20CA /* SubjectTests.swift in Sources */,
 				CA6D426D240439F4002FBED4 /* OPDSCopiesTests.swift in Sources */,
@@ -1061,6 +1068,7 @@
 				CA16A8702232F7CD00E66255 /* Link.swift in Sources */,
 				CACDE6002485166B006FEB1B /* PerResourcePositionsService.swift in Sources */,
 				CA13517E248952B10087E69E /* NSRegularExpression.swift in Sources */,
+				CA228D1324BCD55600879E2E /* File.swift in Sources */,
 				F3E7D4191F4EC69100DF166D /* RootFile.swift in Sources */,
 				CA16A85B2232C4E600E66255 /* LocalizedString.swift in Sources */,
 				CABE2A012482C6F2008E286D /* PositionsService.swift in Sources */,
