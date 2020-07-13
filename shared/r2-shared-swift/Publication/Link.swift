@@ -77,26 +77,27 @@ public struct Link: JSONEquatable {
         self.children = children
     }
     
-    public init(json: Any, normalizeHref: (String) -> String = { $0 }) throws {
-        guard let json = json as? [String: Any],
-            let href = json["href"] as? String else
+    public init(json: Any, warnings: WarningLogger? = nil, normalizeHref: (String) -> String = { $0 }) throws {
+        guard let jsonObject = json as? [String: Any],
+            let href = jsonObject["href"] as? String else
         {
-            throw JSONError.parsing(Link.self)
+            warnings?.log("`href` is required", model: Self.self, source: json)
+            throw JSONError.parsing(Self.self)
         }
         self.init(
             href: normalizeHref(href),
-            type: json["type"] as? String,
-            templated: (json["templated"] as? Bool) ?? false,
-            title: json["title"] as? String,
-            rels: parseArray(json["rel"], allowingSingle: true),
-            properties: try Properties(json: json["properties"]) ?? Properties(),
-            height: parsePositive(json["height"]),
-            width: parsePositive(json["width"]),
-            bitrate: parsePositiveDouble(json["bitrate"]),
-            duration: parsePositiveDouble(json["duration"]),
-            languages: parseArray(json["language"], allowingSingle: true),
-            alternates: .init(json: json["alternate"], normalizeHref: normalizeHref),
-            children: .init(json: json["children"], normalizeHref: normalizeHref)
+            type: jsonObject["type"] as? String,
+            templated: (jsonObject["templated"] as? Bool) ?? false,
+            title: jsonObject["title"] as? String,
+            rels: parseArray(jsonObject["rel"], allowingSingle: true),
+            properties: (try? Properties(json: jsonObject["properties"], warnings: warnings)) ?? Properties(),
+            height: parsePositive(jsonObject["height"]),
+            width: parsePositive(jsonObject["width"]),
+            bitrate: parsePositiveDouble(jsonObject["bitrate"]),
+            duration: parsePositiveDouble(jsonObject["duration"]),
+            languages: parseArray(jsonObject["language"], allowingSingle: true),
+            alternates: .init(json: jsonObject["alternate"], warnings: warnings, normalizeHref: normalizeHref),
+            children: .init(json: jsonObject["children"], warnings: warnings, normalizeHref: normalizeHref)
         )
     }
     
@@ -202,13 +203,13 @@ extension Array where Element == Link {
     
     /// Parses multiple JSON links into an array of Link.
     /// eg. let links = [Link](json: [["href", "http://link1"], ["href", "http://link2"]])
-    public init(json: Any?, normalizeHref: (String) -> String = { $0 }) {
+    public init(json: Any?, warnings: WarningLogger? = nil, normalizeHref: (String) -> String = { $0 }) {
         self.init()
         guard let json = json as? [Any] else {
             return
         }
         
-        let links = json.compactMap { try? Link(json: $0, normalizeHref: normalizeHref) }
+        let links = json.compactMap { try? Link(json: $0, warnings: warnings, normalizeHref: normalizeHref) }
         append(contentsOf: links)
     }
     

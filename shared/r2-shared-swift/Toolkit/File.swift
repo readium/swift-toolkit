@@ -28,8 +28,11 @@ public final class File: Loggable {
     /// Indicates whether the path points to a directory.
     ///
     /// This can be used to open exploded publication archives.
-    public lazy var isDirectory: Bool =
-        (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
+    /// *Warning*: This should not be called from the UI thread.
+    public lazy var isDirectory: Bool = {
+        warnIfMainThread()
+        return (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
+    }()
 
     private let mediaTypeHint: String?
     private let knownFormat: Format?
@@ -49,6 +52,8 @@ public final class File: Loggable {
     }
     
     /// Sniffed format of this file.
+    ///
+    /// *Warning*: This should not be called from the UI thread.
     lazy var format: Format? = {
         warnIfMainThread()
         if let format = knownFormat {

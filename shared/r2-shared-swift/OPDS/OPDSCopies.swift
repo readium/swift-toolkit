@@ -23,17 +23,18 @@ public struct OPDSCopies: Equatable {
         self.available = available
     }
     
-    public init?(json: Any?) throws {
+    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
         if json == nil {
             return nil
         }
-        guard let json = json as? [String: Any] else {
-            throw JSONError.parsing(OPDSCopies.self)
+        guard let jsonObject = json as? [String: Any] else {
+            warnings?.log("Invalid Copies object", model: Self.self, source: json)
+            throw JSONError.parsing(Self.self)
         }
         
         self.init(
-            total: parsePositive(json["total"]),
-            available: parsePositive(json["available"])
+            total: parsePositive(jsonObject["total"]),
+            available: parsePositive(jsonObject["available"])
         )
     }
     

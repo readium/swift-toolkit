@@ -54,22 +54,24 @@ public struct Manifest: JSONEquatable {
 
     /// Parses a Readium Web Publication Manifest.
     /// https://readium.org/webpub-manifest/schema/publication.schema.json
-    public init(json: Any, normalizeHref: (String) -> String = { $0 }) throws {
+    ///
+    /// If a non-fatal paring error occurs, it will be logged through `warnings`.
+    public init(json: Any, warnings: WarningLogger? = nil, normalizeHref: (String) -> String = { $0 }) throws {
         guard var json = JSONDictionary(json) else {
             throw JSONError.parsing(Publication.self)
         }
         
         self.context = parseArray(json.pop("@context"), allowingSingle: true)
-        self.metadata = try Metadata(json: json.pop("metadata"), normalizeHref: normalizeHref)
-        self.links = [Link](json: json.pop("links"), normalizeHref: normalizeHref)
+        self.metadata = try Metadata(json: json.pop("metadata"), warnings: warnings, normalizeHref: normalizeHref)
+        self.links = [Link](json: json.pop("links"), warnings: warnings, normalizeHref: normalizeHref)
         // `readingOrder` used to be `spine`, so we parse `spine` as a fallback.
-        self.readingOrder = [Link](json: json.pop("readingOrder") ?? json.pop("spine"), normalizeHref: normalizeHref)
+        self.readingOrder = [Link](json: json.pop("readingOrder") ?? json.pop("spine"), warnings: warnings, normalizeHref: normalizeHref)
             .filter { $0.type != nil }
-        self.resources = [Link](json: json.pop("resources"), normalizeHref: normalizeHref)
+        self.resources = [Link](json: json.pop("resources"), warnings: warnings, normalizeHref: normalizeHref)
             .filter { $0.type != nil }
 
         // Parses sub-collections from remaining JSON properties.
-        self.subcollections = PublicationCollection.makeCollections(json: json.json, normalizeHref: normalizeHref)
+        self.subcollections = PublicationCollection.makeCollections(json: json.json, warnings: warnings, normalizeHref: normalizeHref)
     }
     
     public var json: [String: Any] {

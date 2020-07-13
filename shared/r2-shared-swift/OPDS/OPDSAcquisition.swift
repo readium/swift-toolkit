@@ -24,15 +24,16 @@ public struct OPDSAcquisition: Equatable {
         self.children = children
     }
     
-    public init(json: Any?) throws {
-        guard let json = json as? [String: Any],
-            let type = json["type"] as? String else
+    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+        guard let jsonObject = json as? [String: Any],
+            let type = jsonObject["type"] as? String else
         {
-            throw JSONError.parsing(OPDSAcquisition.self)
+            warnings?.log("`type` is required", model: Self.self, source: json)
+            throw JSONError.parsing(Self.self)
         }
         
         self.type = type
-        self.children = [OPDSAcquisition](json: json["child"])
+        self.children = [OPDSAcquisition](json: jsonObject["child"], warnings: warnings)
     }
     
     public var json: [String: Any] {
@@ -48,13 +49,13 @@ extension Array where Element == OPDSAcquisition {
     
     /// Parses multiple JSON acquisitions into an array of OPDSAcquisitions.
     /// eg. let acquisitions = [OPDSAcquisition](json: [...])
-    public init(json: Any?) {
+    public init(json: Any?, warnings: WarningLogger? = nil) {
         self.init()
         guard let json = json as? [[String: Any]] else {
             return
         }
         
-        let acquisitions = json.compactMap { try? OPDSAcquisition(json: $0) }
+        let acquisitions = json.compactMap { try? OPDSAcquisition(json: $0, warnings: warnings) }
         append(contentsOf: acquisitions)
     }
     

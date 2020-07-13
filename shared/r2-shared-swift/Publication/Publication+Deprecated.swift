@@ -231,14 +231,14 @@ extension Contributor {
         self.init(name: "")
     }
     
-    @available(*, deprecated, renamed: "init(json:)")
+    @available(*, unavailable, renamed: "init(json:)")
     public static func parse(_ cDict: [String: Any]) throws -> Contributor {
-        return try Contributor(json: cDict, normalizeHref: { $0 })
+        fatalError()
     }
     
-    @available(*, deprecated, message: "Use `[Contributor](json:)` instead")
+    @available(*, unavailable, message: "Use `[Contributor](json:)` instead")
     public static func parse(contributors: Any) throws -> [Contributor] {
-        return [Contributor](json: contributors, normalizeHref: { $0 })
+        fatalError()
     }
     
 }
@@ -268,9 +268,9 @@ extension Link {
         self.init(href: "")
     }
     
-    @available(*, deprecated, renamed: "init(json:)")
+    @available(*, unavailable, renamed: "init(json:)")
     static public func parse(linkDict: [String: Any]) throws -> Link {
-        return try Link(json: linkDict, normalizeHref: { $0 })
+        fatalError()
     }
     
     @available(*, unavailable, message: "The media overlay API was only half implemented and will be refactored later")

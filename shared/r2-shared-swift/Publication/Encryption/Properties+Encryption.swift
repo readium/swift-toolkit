@@ -18,12 +18,7 @@ extension Properties {
     /// Indicates that a resource is encrypted/obfuscated and provides relevant information for
     /// decryption.
     public var encryption: Encryption? {
-        do {
-            return try Encryption(json: otherProperties["encrypted"])
-        } catch {
-            log(.warning, error)
-            return nil
-        }
+        try? Encryption(json: otherProperties["encrypted"], warnings: self)
     }
     
 }

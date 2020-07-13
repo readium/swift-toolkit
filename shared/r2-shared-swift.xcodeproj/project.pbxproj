@@ -36,6 +36,7 @@
 		CA228D1124BC5CF800879E2E /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA228D1024BC5CF800879E2E /* Result.swift */; };
 		CA228D1324BCD55600879E2E /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA228D1224BCD55600879E2E /* File.swift */; };
 		CA228D1524BCD78A00879E2E /* FileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA228D1424BCD78A00879E2E /* FileTests.swift */; };
+		CA228D1924BCE27300879E2E /* WarningLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA228D1824BCE27300879E2E /* WarningLogger.swift */; };
 		CA252DD92447A3740005067C /* Minizip.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA252DD82447A3740005067C /* Minizip.swift */; };
 		CA252DDB2447A3810005067C /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA252DDA2447A3810005067C /* Minizip.framework */; };
 		CA252DE12447A5C00005067C /* Archive+ZIPTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA252DE02447A5C00005067C /* Archive+ZIPTests.swift */; };
@@ -210,6 +211,7 @@
 		CA228D1024BC5CF800879E2E /* Result.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		CA228D1224BCD55600879E2E /* File.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = File.swift; sourceTree = "<group>"; };
 		CA228D1424BCD78A00879E2E /* FileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileTests.swift; sourceTree = "<group>"; };
+		CA228D1824BCE27300879E2E /* WarningLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarningLogger.swift; sourceTree = "<group>"; };
 		CA252DD82447A3740005067C /* Minizip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Minizip.swift; sourceTree = "<group>"; };
 		CA252DDA2447A3810005067C /* Minizip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Minizip.framework; path = Carthage/Build/iOS/Minizip.framework; sourceTree = "<group>"; };
 		CA252DE02447A5C00005067C /* Archive+ZIPTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Archive+ZIPTests.swift"; sourceTree = "<group>"; };
@@ -360,10 +362,11 @@
 		57470F7F20ED0D25000CDCA3 /* Toolkit */ = {
 			isa = PBXGroup;
 			children = (
-				CA68BDCC24407745009A6BAA /* Extensions */,
-				CA60CE1E2446DE7500149B22 /* XML */,
 				CAD0FED82444FDB50053C998 /* Archive */,
+				CA68BDCC24407745009A6BAA /* Extensions */,
+				CA228D1724BCE26000879E2E /* Logging */,
 				CA81741A24585E5800033776 /* Media */,
+				CA60CE1E2446DE7500149B22 /* XML */,
 				F3E7D4221F4ECB3D00DF166D /* Date+ISO8601.swift */,
 				CABEB3DB2215698600090B6C /* Deferred.swift */,
 				CADD69E122C3B17500A4CADF /* DocumentTypes.swift */,
@@ -461,6 +464,14 @@
 				CAB88C91224E766E00D36C99 /* LocatorTests.swift */,
 			);
 			path = Publication;
+			sourceTree = "<group>";
+		};
+		CA228D1724BCE26000879E2E /* Logging */ = {
+			isa = PBXGroup;
+			children = (
+				CA228D1824BCE27300879E2E /* WarningLogger.swift */,
+			);
+			path = Logging;
 			sourceTree = "<group>";
 		};
 		CA252DDE2447A5AE0005067C /* Toolkit */ = {
@@ -1089,6 +1100,7 @@
 				CA2AE322221C1DCB008BD18F /* Loggable.swift in Sources */,
 				CA9A40D1221B0AA200531EA1 /* Either.swift in Sources */,
 				CACDE5FC24851631006FEB1B /* GeneratedCoverService.swift in Sources */,
+				CA228D1924BCE27300879E2E /* WarningLogger.swift in Sources */,
 				CA60CE202446DE8E00149B22 /* XML.swift in Sources */,
 				CABBB2E62237ADEB004EB039 /* OpdsMetadata.swift in Sources */,
 				CABBB2E82237ADEB004EB039 /* Group.swift in Sources */,

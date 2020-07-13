@@ -57,23 +57,24 @@ public struct Presentation: Equatable {
         self.layout = layout
     }
     
-    public init(json: Any?) throws {
+    public init(json: Any?, warnings: WarningLogger? = nil) throws {
         guard json != nil else {
             self.init()
             return
         }
-        guard let json = json as? [String: Any] else {
-            throw JSONError.parsing(Presentation.self)
+        guard let jsonObject = json as? [String: Any] else {
+            warnings?.log("Invalid JSON object", model: Self.self, source: json)
+            throw JSONError.parsing(Self.self)
         }
         
         self.init(
-            clipped: json["clipped"] as? Bool,
-            continuous: json["continuous"] as? Bool,
-            fit: parseRaw(json["fit"]),
-            orientation: parseRaw(json["orientation"]),
-            overflow: parseRaw(json["overflow"]),
-            spread: parseRaw(json["spread"]),
-            layout: parseRaw(json["layout"])
+            clipped: jsonObject["clipped"] as? Bool,
+            continuous: jsonObject["continuous"] as? Bool,
+            fit: parseRaw(jsonObject["fit"]),
+            orientation: parseRaw(jsonObject["orientation"]),
+            overflow: parseRaw(jsonObject["overflow"]),
+            spread: parseRaw(jsonObject["spread"]),
+            layout: parseRaw(jsonObject["layout"])
         )
     }
     

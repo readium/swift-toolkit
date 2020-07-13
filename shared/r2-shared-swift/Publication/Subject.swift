@@ -31,11 +31,11 @@ public struct Subject: Equatable {
         self.links = links
     }
     
-    public init(json: Any) throws {
+    public init?(json: Any, warnings: WarningLogger? = nil) throws {
         if let name = json as? String {
             self.init(name: name)
 
-        } else if let json = json as? [String: Any], let name = try LocalizedString(json: json["name"]) {
+        } else if let json = json as? [String: Any], let name = try? LocalizedString(json: json["name"], warnings: warnings) {
             self.init(
                 name: name,
                 sortAs: json["sortAs"] as? String,
@@ -45,7 +45,8 @@ public struct Subject: Equatable {
             )
 
         } else {
-            throw JSONError.parsing(Subject.self)
+            warnings?.log("Invalid Subject object", model: Self.self, source: json, severity: .minor)
+            throw JSONError.parsing(Self.self)
         }
     }
     
@@ -65,16 +66,16 @@ extension Array where Element == Subject {
     
     /// Parses multiple JSON subjects into an array of Subjects.
     /// eg. let subjects = [Subject](json: ["Apple", "Pear"])
-    public init(json: Any?) {
+    public init(json: Any?, warnings: WarningLogger? = nil) {
         self.init()
         guard let json = json else {
             return
         }
         
         if let json = json as? [Any] {
-            let subjects = json.compactMap { try? Subject(json: $0) }
+            let subjects = json.compactMap { try? Subject(json: $0, warnings: warnings) }
             append(contentsOf: subjects)
-        } else if let subject = try? Subject(json: json) {
+        } else if let subject = try? Subject(json: json, warnings: warnings) {
             append(subject)
         }
     }

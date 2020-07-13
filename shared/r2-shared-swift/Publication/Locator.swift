@@ -38,36 +38,37 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
         self.text = text
     }
     
-    public init?(json: Any?) throws {
+    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
         if json == nil {
             return nil
         }
-        guard let json = json as? [String: Any],
-            let href = json["href"] as? String,
-            let type = json["type"] as? String else
+        guard let jsonObject = json as? [String: Any],
+            let href = jsonObject["href"] as? String,
+            let type = jsonObject["type"] as? String else
         {
-            throw JSONError.parsing(Locator.self)
+            warnings?.log("`href` and `type` required", model: Self.self, source: json)
+            throw JSONError.parsing(Self.self)
         }
         
         self.init(
             href: href,
             type: type,
-            title: json["title"] as? String,
-            locations:  try Locations(json: json["locations"]),
-            text: try Text(json: json["text"])
+            title: jsonObject["title"] as? String,
+            locations: try Locations(json: jsonObject["locations"], warnings: warnings),
+            text: try Text(json: jsonObject["text"], warnings: warnings)
         )
     }
     
-    public init?(jsonString: String) throws {
+    public init?(jsonString: String, warnings: WarningLogger? = nil) throws {
         let json: Any
         do {
             json = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
         } catch {
-            Locator.log(.error, error)
-            throw JSONError.parsing(Locator.self)
+            warnings?.log("Invalid Locator object: \(error)", model: Self.self)
+            throw JSONError.parsing(Self.self)
         }
         
-        try self.init(json: json)
+        try self.init(json: json, warnings: warnings)
     }
     
     public init(link: Link) {
@@ -114,7 +115,7 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
     ///
     /// Properties are mutable for convenience when making a copy, but the `locations` property
     /// is immutable in `Locator`, for safety.
-    public struct Locations: Equatable, Loggable {
+    public struct Locations: Equatable, Loggable, WarningLogger {
         /// Contains one or more fragment in the resource referenced by the `Locator`.
         public var fragments: [String]
         /// Progression in the resource expressed as a percentage (between 0 and 1).
@@ -138,34 +139,35 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
             self.otherLocationsJSON = JSONDictionary(otherLocations) ?? JSONDictionary()
         }
         
-        public init(json: Any?) throws {
+        public init(json: Any?, warnings: WarningLogger? = nil) throws {
             if json == nil {
                 self.init()
                 return
             }
-            guard var json = JSONDictionary(json) else {
-                throw JSONError.parsing(Locations.self)
+            guard var jsonObject = JSONDictionary(json) else {
+                warnings?.log("Invalid Locations object", model: Self.self, source: json)
+                throw JSONError.parsing(Self.self)
             }
-            var fragments = (json.pop("fragments") as? [String]) ?? []
-            if let fragment = json.pop("fragment") as? String {
+            var fragments = (jsonObject.pop("fragments") as? [String]) ?? []
+            if let fragment = jsonObject.pop("fragment") as? String {
                 fragments.append(fragment)
             }
             self.init(
                 fragments: fragments,
-                progression: json.pop("progression") as? Double,
-                totalProgression: json.pop("totalProgression") as? Double,
-                position: json.pop("position") as? Int,
-                otherLocations: json.json
+                progression: jsonObject.pop("progression") as? Double,
+                totalProgression: jsonObject.pop("totalProgression") as? Double,
+                position: jsonObject.pop("position") as? Int,
+                otherLocations: jsonObject.json
             )
         }
         
-        public init(jsonString: String) {
+        public init(jsonString: String, warnings: WarningLogger? = nil) throws {
             do {
                 let json = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
-                try self.init(json: json)
+                try self.init(json: json, warnings: warnings)
             } catch {
-                self.init()
-                log(.error, error)
+                warnings?.log("Invalid Locations object: \(error)", model: Self.self)
+                throw JSONError.parsing(Self.self)
             }
         }
 
@@ -186,14 +188,14 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
         /// locations["cssSelector"] == locations.otherLocations["cssSelector"]
         public subscript(key: String) -> Any? { otherLocations[key] }
 
-        @available(*, deprecated, renamed: "init(jsonString:)")
+        @available(*, unavailable, renamed: "init(jsonString:)")
         public init(fromString: String) {
-            self.init(jsonString: fromString)
+            fatalError()
         }
         
-        @available(*, deprecated, renamed: "jsonString")
+        @available(*, unavailable, renamed: "jsonString")
         public func toString() -> String? {
-            return jsonString
+            fatalError()
         }
         
         @available(*, deprecated, message: "Use `fragments.first` instead")
@@ -212,28 +214,29 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
             self.highlight = highlight
         }
         
-        public init(json: Any?) throws {
+        public init(json: Any?, warnings: WarningLogger? = nil) throws {
             if json == nil {
                 self.init()
                 return
             }
-            guard let json = json as? [String: Any] else {
-                throw JSONError.parsing(Text.self)
+            guard let jsonObject = json as? [String: Any] else {
+                warnings?.log("Invalid Text object", model: Self.self, source: json)
+                throw JSONError.parsing(Self.self)
             }
             self.init(
-                after: json["after"] as? String,
-                before: json["before"] as? String,
-                highlight: json["highlight"] as? String
+                after: jsonObject["after"] as? String,
+                before: jsonObject["before"] as? String,
+                highlight: jsonObject["highlight"] as? String
             )
         }
         
-        public init(jsonString: String) {
+        public init(jsonString: String, warnings: WarningLogger? = nil) throws {
             do {
                 let json = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
-                try self.init(json: json)
+                try self.init(json: json, warnings: warnings)
             } catch {
-                self.init()
-                log(.error, error)
+                warnings?.log("Invalid Text object", model: Self.self)
+                throw JSONError.parsing(Self.self)
             }
         }
         
@@ -247,14 +250,14 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
         
         public var jsonString: String? { serializeJSONString(json) }
         
-        @available(*, deprecated, renamed: "init(jsonString:)")
+        @available(*, unavailable, renamed: "init(jsonString:)")
         public init(fromString: String) {
-            self.init(jsonString: fromString)
+            fatalError()
         }
         
-        @available(*, deprecated, renamed: "jsonString")
+        @available(*, unavailable, renamed: "jsonString")
         public func toString() -> String? {
-            return jsonString
+            fatalError()
         }
         
     }
@@ -264,13 +267,13 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
 extension Array where Element == Locator {
     
     /// Parses multiple JSON locators into an array of `Locator`.
-    public init(json: Any?) {
+    public init(json: Any?, warnings: WarningLogger? = nil) {
         self.init()
         guard let json = json as? [Any] else {
             return
         }
         
-        let links = json.compactMap { try? Locator(json: $0) }
+        let links = json.compactMap { try? Locator(json: $0, warnings: warnings) }
         append(contentsOf: links)
     }
     

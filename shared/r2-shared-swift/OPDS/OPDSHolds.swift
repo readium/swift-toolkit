@@ -23,17 +23,18 @@ public struct OPDSHolds: Equatable {
         self.position = position
     }
     
-    public init?(json: Any?) throws {
+    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
         if json == nil {
             return nil
         }
-        guard let json = json as? [String: Any] else {
-            throw JSONError.parsing(OPDSHolds.self)
+        guard let jsonObject = json as? [String: Any] else {
+            warnings?.log("Invalid Holds object", model: Self.self, source: json)
+            throw JSONError.parsing(Self.self)
         }
         
         self.init(
-            total: parsePositive(json["total"]),
-            position: parsePositive(json["position"])
+            total: parsePositive(jsonObject["total"]),
+            position: parsePositive(jsonObject["position"])
         )
     }
     
