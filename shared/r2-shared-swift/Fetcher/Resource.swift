@@ -55,9 +55,12 @@ public extension Resource {
     }
     
     /// Reads the full content as a JSON object.
-    func readAsJSON(options: JSONSerialization.ReadingOptions = []) -> ResourceResult<Any> {
+    func readAsJSON(options: JSONSerialization.ReadingOptions = []) -> ResourceResult<[String: Any]> {
         return read().tryMap {
-            try JSONSerialization.jsonObject(with: $0, options: options)
+            guard let json = try JSONSerialization.jsonObject(with: $0, options: options) as? [String: Any] else {
+                throw JSONError.parsing([String: Any].self)
+            }
+            return json
         }
     }
     

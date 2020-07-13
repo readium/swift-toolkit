@@ -20,7 +20,7 @@ class CoverServiceTests: XCTestCase {
     lazy var cover = UIImage(contentsOfFile: coverURL.path)!
     lazy var cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
     
-    /// `Publication.cover` will use the `CoverService` if there's one available.
+    /// `Publication.cover` will use the `CoverService` if there's one.
     func testCoverHelperUsesCoverService() {
         let publication = makePublication { _ in TestCoverService(cover: self.cover2) }
         AssertImageEqual(publication.cover, cover2)
@@ -28,12 +28,12 @@ class CoverServiceTests: XCTestCase {
     
     /// `Publication.cover` will try to fetch the cover from a manifest link with rel `cover`, if
     /// no `CoverService` is provided.
-    func testCoverHelperFallsBackOnManifes() {
+    func testCoverHelperFallsBackOnManifest() {
         let publication = makePublication()
         AssertImageEqual(publication.cover, cover)
     }
     
-    /// `Publication.coverFitting` will use the `CoverService` if there's one available.
+    /// `Publication.coverFitting` will use the `CoverService` if there's one.
     func testCoverFittingHelperUsesCoverService() {
         let size = CGSize(width: 100, height: 100)
         let publication = makePublication { _ in TestCoverService(cover: self.cover2) }
@@ -42,7 +42,7 @@ class CoverServiceTests: XCTestCase {
     
     /// `Publication.coverFitting` will try to fetch the cover from a manifest link with rel `cover`, if
     /// no `CoverService` is provided.
-    func testCoverFittingHelperFallsBackOnManifes() {
+    func testCoverFittingHelperFallsBackOnManifest() {
         let size = CGSize(width: 100, height: 100)
         let publication = makePublication()
         AssertImageEqual(publication.coverFitting(maxSize: size), cover.scaleToFit(maxSize: size))

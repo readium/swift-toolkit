@@ -144,19 +144,13 @@ class PositionsServiceTests: XCTestCase {
         XCTAssertNil(resource)
     }
     
-    func testPublicationHelpers() {
-        let service = TestPositionsService(positions)
-        var builder = PublicationServicesBuilder()
-        builder.set(PositionsService.self) { _ in TestPositionsService(self.positions) }
-        
-        let publication = Publication(
-            manifest: .init(metadata: .init(title: "")),
-            servicesBuilder: builder
-        )
-        
-        XCTAssertEqual(publication.positions, service.positions)
-        XCTAssertEqual(publication.positionsByReadingOrder, service.positionsByReadingOrder)
-        
+    /// The Publication helpers will use the `PositionsService` if there's one.
+    func testPublicationHelpersUsesPositionsService() {
+        let publication = makePublication(positions: { _ in TestPositionsService(self.positions) })
+
+        XCTAssertEqual(publication.positionsByReadingOrder, positions)
+        XCTAssertEqual(publication.positions, positions.flatMap { $0 })
+
         XCTAssertEqual(
             publication.positionsByResource,
             [
@@ -205,13 +199,79 @@ class PositionsServiceTests: XCTestCase {
         )
     }
     
-    func testPublicationHelpersWithoutService() {
-        let publication = Publication(
-            manifest: .init(metadata: .init(title: ""))
-        )
+    /// The Publication helpers will attempt to fetch the positions from a Positions WS declared
+    /// in the manifest if there is no service.
+    func testPublicationHelpersFallbackOnManifest() {
+        let publication = makePublication(positions: nil)
         
-        XCTAssertEqual(publication.positions, [])
-        XCTAssertEqual(publication.positionsByReadingOrder, [])
+        XCTAssertEqual(publication.positions, [
+            Locator(href: "chap1", type: "text/html", locations: .init(position: 1)),
+            Locator(href: "chap1", type: "text/html", locations: .init(position: 2)),
+            Locator(href: "chap2", type: "text/html", locations: .init(position: 3)),
+        ])
+        XCTAssertEqual(publication.positionsByReadingOrder, [
+            [
+                Locator(href: "chap1", type: "text/html", locations: .init(position: 1)),
+                Locator(href: "chap1", type: "text/html", locations: .init(position: 2))
+            ],
+            [
+                Locator(href: "chap2", type: "text/html", locations: .init(position: 3))
+            ]
+        ])
+    }
+    
+    private func makePublication(positions: PositionsServiceFactory? = nil) -> Publication {
+        // Serve a default positions WS from `/positions`.
+        let positionsHref = "/positions"
+        let fetcher = ProxyFetcher { link in
+            guard link.href == "/positions" else {
+                return FailureResource(link: link, error: .notFound)
+            }
+            
+            return DataResource(link: link, string: """
+                {
+                    "positions": [
+                        {
+                            "href": "chap1",
+                            "locations": {
+                                "position": 1
+                            },
+                            "type": "text/html"
+                        },
+                        {
+                            "href": "chap1",
+                            "locations": {
+                                "position": 2
+                            },
+                            "type": "text/html"
+                        },
+                        {
+                            "href": "chap2",
+                            "locations": {
+                                "position": 3
+                            },
+                            "type": "text/html"
+                        }
+                    ],
+                    "total": 3
+                }
+                """)
+        }
+        
+        return Publication(
+            manifest: Manifest(
+                metadata: Metadata(title: ""),
+                links: [
+                    Link(href: positionsHref, type: "application/vnd.readium.position-list+json")
+                ],
+                readingOrder: [
+                    Link(href: "chap1", type: "text/html"),
+                    Link(href: "chap2", type: "text/html")
+                ]
+            ),
+            fetcher: fetcher,
+            servicesBuilder: PublicationServicesBuilder(positions: positions)
+        )
     }
 
 }

@@ -35,7 +35,7 @@ public extension PositionsService {
 
 private let positionsLink = Link(
     href: "/~readium/positions",
-    type: "application/vnd.readium.position-list+json"
+    type: MediaType.readiumPositionsService.string
 )
 
 public extension PositionsService {
@@ -72,18 +72,35 @@ public extension Publication {
     
     /// List of all the positions in the publication, grouped by the resource reading order index.
     var positionsByReadingOrder: [[Locator]] {
-        findService(PositionsService.self)?.positionsByReadingOrder ?? []
+        if let positions = findService(PositionsService.self)?.positionsByReadingOrder {
+            return positions
+        }
+        
+        let positionsByResource = Dictionary(grouping: positionsFromManifest(), by: \.href)
+        return readingOrder.map { positionsByResource[$0.href] ?? [] }
     }
     
     /// List of all the positions in the publication.
     var positions: [Locator] {
-        findService(PositionsService.self)?.positions ?? []
+        findService(PositionsService.self)?.positions
+            ?? positionsFromManifest()
     }
     
     /// List of all the positions in each resource, indexed by their `href`.
     @available(*, deprecated, message: "Use `positionsByReadingOrder` instead", renamed: "positionsByReadingOrder")
     var positionsByResource: [String: [Locator]] {
         Dictionary(grouping: positions, by: { $0.href })
+    }
+    
+    /// Fetches the positions from a web service declared in the manifest, if there's one.
+    private func positionsFromManifest() -> [Locator] {
+        return links.first(withMediaType: .readiumPositionsService)
+            .map { get($0) }?
+            .readAsJSON()
+            .map { $0["positions"] }
+            .map { [Locator](json: $0) }
+            .getOrNil()
+            ?? []
     }
 
 }
