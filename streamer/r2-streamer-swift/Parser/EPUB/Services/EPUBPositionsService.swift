@@ -111,7 +111,7 @@ final class EPUBPositionsService: PositionsService {
         )
     }
 
-    static func create(reflowablePositionLength: Int = 1024) -> (PublicationServiceContext) -> EPUBPositionsService? {
+    static func createFactory(reflowablePositionLength: Int = 1024) -> (PublicationServiceContext) -> EPUBPositionsService? {
         return { context in
             EPUBPositionsService(
                 readingOrder: context.manifest.readingOrder,

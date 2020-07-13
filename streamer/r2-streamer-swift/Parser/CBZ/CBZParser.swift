@@ -42,9 +42,9 @@ public class CbzParser: PublicationParser {
         let publication = Publication(
             manifest: manifest,
             fetcher: fetcher,
-            servicesBuilder: PublicationServicesBuilder {
-                $0.setPositions(PerResourcePositionsService.create(fallbackMediaType: "image/*"))
-            },
+            servicesBuilder: PublicationServicesBuilder(
+                positions: PerResourcePositionsService.createFactory(fallbackMediaType: "image/*")
+            ),
             format: .cbz
         )
         
@@ -67,6 +67,7 @@ public class CbzParser: PublicationParser {
         
         return Manifest(
             metadata: Metadata(
+                identifier: url.md5(),
                 title: url.title
             ),
             readingOrder: readingOrder

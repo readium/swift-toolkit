@@ -97,10 +97,10 @@ public final class PDFParser: PublicationParser, Loggable {
                 tableOfContents: pdfMetadata.outline.links(withHref: pdfHref)
             ),
             fetcher: FileFetcher(href: pdfHref, path: url),
-            servicesBuilder: PublicationServicesBuilder {
-                $0.setPositions(PDFPositionsService.create(context:))
-                $0.setCover(InMemoryCoverService.create(cover: try? parser.renderCover()))
-            },
+            servicesBuilder: PublicationServicesBuilder(
+                cover: (try? parser.renderCover()).map(GeneratedCoverService.createFactory(cover:)),
+                positions: PDFPositionsService.createFactory()
+            ),
             format: .pdf,
             formatVersion: pdfMetadata.version
         )
@@ -138,9 +138,9 @@ public final class PDFParser: PublicationParser, Loggable {
                 normalizeHref: { normalize(base: "", href: $0) }
             ),
             fetcher: fetcher,
-            servicesBuilder: PublicationServicesBuilder {
-                $0.setPositions(LCPDFPositionsService.create(parserType: parserType))
-            },
+            servicesBuilder: PublicationServicesBuilder(
+                positions: LCPDFPositionsService.createFactory(parserType: parserType)
+            ),
             format: .pdf
         )
         

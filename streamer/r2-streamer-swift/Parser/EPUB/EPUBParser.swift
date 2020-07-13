@@ -85,9 +85,9 @@ final public class EpubParser: PublicationParser {
                 subcollections: parseCollections(in: fetcher, links: links)
             ),
             fetcher: fetcher,
-            servicesBuilder: PublicationServicesBuilder {
-                $0.setPositions(EPUBPositionsService.create())
-            },
+            servicesBuilder: PublicationServicesBuilder(
+                positions: EPUBPositionsService.createFactory()
+            ),
             format: .epub,
             formatVersion: components.version
         )

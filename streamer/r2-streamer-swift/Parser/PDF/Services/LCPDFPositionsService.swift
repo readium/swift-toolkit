@@ -73,7 +73,7 @@ final class LCPDFPositionsService: PositionsService, Loggable {
         }
     }
     
-    static func create(parserType: PDFFileParser.Type) -> (PublicationServiceContext) -> LCPDFPositionsService? {
+    static func createFactory(parserType: PDFFileParser.Type) -> (PublicationServiceContext) -> LCPDFPositionsService? {
         return { context in
             LCPDFPositionsService(
                 readingOrder: context.manifest.readingOrder,

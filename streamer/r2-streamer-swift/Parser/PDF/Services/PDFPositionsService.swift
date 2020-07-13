@@ -37,15 +37,17 @@ final class PDFPositionsService: PositionsService {
         ]
     }
     
-    static func create(context: PublicationServiceContext) -> PDFPositionsService? {
-        guard
-            let link = context.manifest.readingOrder.first,
-            let pageCount = context.manifest.metadata.numberOfPages, pageCount > 0 else
-        {
-            return nil
+    static func createFactory() -> (PublicationServiceContext) -> PDFPositionsService? {
+        return { context in
+            guard
+                let link = context.manifest.readingOrder.first,
+                let pageCount = context.manifest.metadata.numberOfPages, pageCount > 0 else
+            {
+                return nil
+            }
+    
+            return PDFPositionsService(link: link, pageCount: pageCount, tableOfContents: context.manifest.tableOfContents)
         }
-        
-        return PDFPositionsService(link: link, pageCount: pageCount, tableOfContents: context.manifest.tableOfContents)
     }
 
 }
