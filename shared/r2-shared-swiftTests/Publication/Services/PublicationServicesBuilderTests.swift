@@ -27,6 +27,19 @@ class PublicationServicesBuilderTests: XCTestCase {
         fetcher: EmptyFetcher()
     )
     
+    func testInitWithCustomFactories() {
+        let builder = PublicationServicesBuilder(
+            cover: GeneratedCoverService.createFactory(cover: UIImage()),
+            positions: PerResourcePositionsService.createFactory(fallbackMediaType: "")
+        )
+
+        let services = builder.build(context: context)
+        
+        XCTAssert(services.count == 2)
+        XCTAssert(services.contains { $0 is CoverService })
+        XCTAssert(services.contains { $0 is PositionsService })
+    }
+    
     func testBuild() {
         var builder = PublicationServicesBuilder()
         builder.set(FooService.self) { _ in FooServiceA() }

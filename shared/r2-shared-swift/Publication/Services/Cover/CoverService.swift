@@ -12,6 +12,8 @@
 import Foundation
 import UIKit
 
+public typealias CoverServiceFactory = (PublicationServiceContext) -> CoverService?
+
 /// Provides an easy access to a bitmap version of the publication cover.
 ///
 /// While at first glance, getting the cover could be seen as a helper, the implementation
@@ -70,6 +72,16 @@ public extension Publication {
             ?? coverFromManifest()?.scaleToFit(maxSize: maxSize)
     }
     
+    /// Extracts the first valid cover from the manifest links with `cover` relation.
+    private func coverFromManifest() -> UIImage? {
+        for link in links(withRel: "cover") {
+            if let cover = try? get(link).read().map(UIImage.init).get() {
+                return cover
+            }
+        }
+        return nil
+    }
+    
 }
 
 
@@ -77,26 +89,12 @@ public extension Publication {
 
 public extension PublicationServicesBuilder {
     
-    mutating func setCover(_ factory: ((PublicationServiceContext) -> CoverService?)?) {
+    mutating func setCoverServiceFactory(_ factory: CoverServiceFactory?) {
         if let factory = factory {
             set(CoverService.self, factory)
         } else {
             remove(CoverService.self)
         }
-    }
-    
-}
-
-private extension Publication {
-    
-    /// Extracts the first valid cover from the manifest links with `cover` relation.
-    func coverFromManifest() -> UIImage? {
-        for link in links(withRel: "cover") {
-            if let cover = try? get(link).read().map(UIImage.init).get() {
-                return cover
-            }
-        }
-        return nil
     }
     
 }

@@ -150,11 +150,17 @@ public final class DataResource: Resource {
         }
     }
     
+    public convenience init(link: Link, data: Data) {
+        self.init {
+            return (link: link, data: .success(data))
+        }
+    }
+    
     /// Creates a `Resource` serving a string encoded as UTF-8.
     public convenience init(link: Link, string: String) {
         // It's safe to force-unwrap when using a unicode encoding.
         // https://www.objc.io/blog/2018/02/13/string-to-data-and-back/
-        self.init { (link: link, data: .success(string.data(using: .utf8)!)) }
+        self.init(link: link, data: string.data(using: .utf8)!)
     }
     
     public var link: Link { result.link }

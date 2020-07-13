@@ -11,6 +11,8 @@
 
 import Foundation
 
+public typealias PositionsServiceFactory = (PublicationServiceContext) -> PositionsService?
+
 /// Provides a list of discrete locations in the publication, no matter what the original format is.
 public protocol PositionsService: PublicationService {
     
@@ -91,7 +93,7 @@ public extension Publication {
 
 public extension PublicationServicesBuilder {
     
-    mutating func setPositions(_ factory: ((PublicationServiceContext) -> PositionsService?)?) {
+    mutating func setPositionsServiceFactory(_ factory: PositionsServiceFactory?) {
         if let factory = factory {
             set(PositionsService.self, factory)
         } else {

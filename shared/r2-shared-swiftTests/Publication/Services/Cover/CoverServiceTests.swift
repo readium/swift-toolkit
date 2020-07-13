@@ -48,7 +48,7 @@ class CoverServiceTests: XCTestCase {
         AssertImageEqual(publication.coverFitting(maxSize: size), cover.scaleToFit(maxSize: size))
     }
     
-    private func makePublication(cover: ((PublicationServiceContext) -> CoverService?)? = nil) -> Publication {
+    private func makePublication(cover: CoverServiceFactory? = nil) -> Publication {
         let coverPath = "/cover.jpg"
         return Publication(
             manifest: Manifest(
@@ -60,9 +60,7 @@ class CoverServiceTests: XCTestCase {
                 ]
             ),
             fetcher: FileFetcher(href: coverPath, path: coverURL),
-            servicesBuilder: PublicationServicesBuilder {
-                $0.setCover(cover)
-            }
+            servicesBuilder: PublicationServicesBuilder(cover: cover)
         )
     }
 

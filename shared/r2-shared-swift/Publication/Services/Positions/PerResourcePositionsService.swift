@@ -20,7 +20,7 @@ public final class PerResourcePositionsService: PositionsService {
     /// Media type that will be used as a fallback if the `Link` doesn't specify any.
     private let fallbackMediaType: String
     
-    public init(readingOrder: [Link], fallbackMediaType: String) {
+    init(readingOrder: [Link], fallbackMediaType: String) {
         self.readingOrder = readingOrder
         self.fallbackMediaType = fallbackMediaType
     }
@@ -41,7 +41,7 @@ public final class PerResourcePositionsService: PositionsService {
         ]
     }
     
-    public static func create(fallbackMediaType: String) -> (PublicationServiceContext) -> PerResourcePositionsService {
+    public static func createFactory(fallbackMediaType: String) -> (PublicationServiceContext) -> PerResourcePositionsService {
         return { context in
             PerResourcePositionsService(readingOrder: context.manifest.readingOrder, fallbackMediaType: fallbackMediaType)
         }

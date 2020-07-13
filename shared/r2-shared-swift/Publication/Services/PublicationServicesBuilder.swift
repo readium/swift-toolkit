@@ -17,9 +17,19 @@ import Foundation
 public struct PublicationServicesBuilder {
     
     private var factories: [String: PublicationServiceFactory] = [:]
-    
+
     public init(setup: ((inout PublicationServicesBuilder) -> Void)? = nil) {
         setup?(&self)
+    }
+    
+    public init(
+        cover: CoverServiceFactory? = nil,
+        positions: PositionsServiceFactory? = nil
+    ) {
+        self.init {
+            $0.setCoverServiceFactory(cover)
+            $0.setPositionsServiceFactory(positions)
+        }
     }
 
     /// Builds the actual list of publication services to use in a `Publication`.
