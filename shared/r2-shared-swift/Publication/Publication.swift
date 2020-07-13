@@ -133,17 +133,21 @@ public class Publication: Loggable {
 
     /// Returns the resource targeted by the given `link`.
     public func get(_ link: Link) -> Resource {
-        let link = self.link(withHREF: link.href) ?? link
-        
+        assert(!link.templated, "You must expand templated links before calling `Publication.get`")
+
         return services.first { $0.get(link: link) }
             ?? fetcher.get(link)
     }
     
     /// Returns the resource targeted by the given `href`.
     public func get(_ href: String) -> Resource {
-        return get(Link(href: href))
+        let link = self.link(withHREF: href)?
+            // Uses the original href to keep the query parameters
+            .copy(href: href, templated: false)
+        
+        return get(link ?? Link(href: href))
     }
-    
+
     /// Closes any opened resource associated with the `Publication`, including `services`.
     public func close() {
         fetcher.close()
