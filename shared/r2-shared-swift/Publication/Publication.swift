@@ -131,11 +131,6 @@ public class Publication: Loggable {
         return manifest.links(withRel: rel)
     }
 
-    /// Finds the first link with a `cover` rel.
-    public var coverLink: Link? {
-        return link(withRel: "cover")
-    }
-    
     /// Returns the resource targeted by the given `link`.
     public func get(_ link: Link) -> Resource {
         let link = self.link(withHREF: link.href) ?? link

@@ -19,7 +19,6 @@ public struct PublicationServicesBuilder {
     private var factories: [String: PublicationServiceFactory] = [:]
     
     public init(setup: ((inout PublicationServicesBuilder) -> Void)? = nil) {
-        setCover(DefaultCoverService.create())
         setup?(&self)
     }
 

@@ -131,33 +131,44 @@ public final class FailureResource: Resource {
 
 /// Creates a `Resource` serving raw data.
 public final class DataResource: Resource {
-
-    private let data: Data
-    private var dataLength: UInt64 { UInt64(data.count) }
     
+    public typealias Factory = () -> (link: Link, data: ResourceResult<Data>)
+
+    private let make: Factory
+    private lazy var result: (link: Link, data: ResourceResult<Data>) = make()
+
     /// Creates a `Resource` serving an array of bytes.
-    public init(link: Link, data: Data = Data()) {
-        self.link = link
-        self.data = data
+    public init(make: @escaping Factory) {
+        self.make = make
+    }
+    
+    public convenience init(link: Link, makeData: @escaping (inout Link) throws -> Data = { _ in Data() }) {
+        self.init {
+            var link = link
+            let data = ResourceResult<Data> { try makeData(&link) }
+            return (link: link, data: data)
+        }
     }
     
     /// Creates a `Resource` serving a string encoded as UTF-8.
-    public init(link: Link, string: String) {
-        self.link = link
+    public convenience init(link: Link, string: String) {
         // It's safe to force-unwrap when using a unicode encoding.
         // https://www.objc.io/blog/2018/02/13/string-to-data-and-back/
-        self.data = string.data(using: .utf8)!
+        self.init { (link: link, data: .success(string.data(using: .utf8)!)) }
     }
     
-    public let link: Link
+    public var link: Link { result.link }
 
-    public var length: ResourceResult<UInt64> { .success(dataLength) }
+    public var length: ResourceResult<UInt64> { result.data.map { UInt64($0.count) } }
 
     public func read(range: Range<UInt64>?) -> ResourceResult<Data> {
-        if let range = range?.clamped(to: 0..<dataLength) {
-            return .success(data[range])
-        } else {
-            return .success(data)
+        return result.data.map { data in
+            let length = UInt64(data.count)
+            if let range = range?.clamped(to: 0..<length) {
+                return data[range]
+            } else {
+                return data
+            }
         }
     }
     
@@ -239,6 +250,18 @@ public extension Resource {
 public typealias ResourceResult<Success> = Result<Success, ResourceError>
 
 public extension Result where Failure == ResourceError {
+    
+    init(block: () throws -> Success) {
+        do {
+            self = .success(try block())
+        } catch {
+            if let err = error as? ResourceError {
+                self = .failure(err)
+            } else {
+                self = .failure(.other(error))
+            }
+        }
+    }
     
     /// Maps the result with the given `transform`
     ///

@@ -34,8 +34,7 @@ class PublicationServicesBuilderTests: XCTestCase {
 
         let services = builder.build(context: context)
 
-        XCTAssert(services.count == 3)
-        XCTAssert(services.contains { $0 is DefaultCoverService })
+        XCTAssert(services.count == 2)
         XCTAssert(services.contains { $0 is FooServiceA })
         XCTAssert(services.contains { $0 is BarServiceA })
     }
@@ -43,7 +42,7 @@ class PublicationServicesBuilderTests: XCTestCase {
     func testBuildEmpty() {
         let builder = PublicationServicesBuilder()
         let services = builder.build(context: context)
-        XCTAssert(services.contains { $0 is DefaultCoverService })
+        XCTAssertEqual(services.count, 0)
     }
     
     func testSetOverwrite() {
@@ -53,8 +52,7 @@ class PublicationServicesBuilderTests: XCTestCase {
 
         let services = builder.build(context: context)
         
-        XCTAssert(services.count == 2)
-        XCTAssert(services.contains { $0 is DefaultCoverService })
+        XCTAssert(services.count == 1)
         XCTAssert(services.contains { $0 is FooServiceB })
     }
     
@@ -66,8 +64,7 @@ class PublicationServicesBuilderTests: XCTestCase {
         builder.remove(FooService.self)
         
         let services = builder.build(context: context)
-        XCTAssert(services.count == 2)
-        XCTAssert(services.contains { $0 is DefaultCoverService })
+        XCTAssert(services.count == 1)
         XCTAssert(services.contains { $0 is BarServiceA })
     }
     
@@ -78,8 +75,7 @@ class PublicationServicesBuilderTests: XCTestCase {
         builder.remove(BarService.self)
         
         let services = builder.build(context: context)
-        XCTAssert(services.count == 2)
-        XCTAssert(services.contains { $0 is DefaultCoverService })
+        XCTAssert(services.count == 1)
         XCTAssert(services.contains { $0 is FooServiceA })
     }
     
@@ -93,8 +89,7 @@ class PublicationServicesBuilderTests: XCTestCase {
         }
         
         let services = builder.build(context: context)
-        XCTAssert(services.count == 3)
-        XCTAssert(services.contains { $0 is DefaultCoverService })
+        XCTAssert(services.count == 2)
         XCTAssert(services.contains { ($0 as? FooServiceC)?.wrapped is FooServiceB })
         XCTAssert(services.contains { $0 is BarServiceA })
     }

@@ -60,12 +60,14 @@ public extension Publication {
     var cover: UIImage? {
         warnIfMainThread()
         return findService(CoverService.self)?.cover
+            ?? coverFromManifest()
     }
     
     /// Returns the publication cover as a bitmap, scaled down to fit the given `maxSize`.
     func coverFitting(maxSize: CGSize) -> UIImage? {
         warnIfMainThread()
         return findService(CoverService.self)?.coverFitting(maxSize: maxSize)
+            ?? coverFromManifest()?.scaleToFit(maxSize: maxSize)
     }
     
 }
@@ -81,6 +83,20 @@ public extension PublicationServicesBuilder {
         } else {
             remove(CoverService.self)
         }
+    }
+    
+}
+
+private extension Publication {
+    
+    /// Extracts the first valid cover from the manifest links with `cover` relation.
+    func coverFromManifest() -> UIImage? {
+        for link in links(withRel: "cover") {
+            if let cover = try? get(link).read().map(UIImage.init).get() {
+                return cover
+            }
+        }
+        return nil
     }
     
 }

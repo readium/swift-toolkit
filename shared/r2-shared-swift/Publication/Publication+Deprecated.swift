@@ -132,6 +132,9 @@ extension Publication {
         return href.flatMap { link(withHREF: $0)?.url(relativeTo: baseURL) }
     }
 
+    @available(*, deprecated, message: "Use `cover` to get the `UIImage` directly, or `link(withRel: \"cover\")` if you really want the cover link", renamed: "cover")
+    public var coverLink: Link? { link(withRel: "cover") }
+
 }
 
 extension Publication {
