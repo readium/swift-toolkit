@@ -235,4 +235,48 @@ public class Publication: Loggable {
 
     }
     
+    /// Errors occurring while opening a Publication.
+    public enum OpeningError: Error {
+        /// The opening was canceled by the user.
+        case canceled
+        /// The file format could not be recognized by any parser.
+        case unsupportedFormat
+        /// The publication file was not found on the file system.
+        case notFound
+        /// The publication parser failed with the given underlying exception.
+        case parsingFailed(Error)
+        /// We're not allowed to open the publication at all, for example because it expired.
+        case forbidden(Error?)
+        /// The publication can't be opened at the moment, for example because of a networking error.
+        /// This error is generally temporary, so the operation may be retried or postponed.
+        case unavailable(Error?)
+        /// The provided credentials are incorrect and we can't open the publication in a
+        /// `restricted` state (e.g. for a password-protected ZIP).
+        case incorrectCredentials
+    }
+    
+    /// Builds a `Publication` from its components.
+    ///
+    /// A `Publication`'s construction is distributed over the Streamer and its parsers, so a
+    /// builder is useful to pass the parts around.
+    public struct Builder {
+        public var manifest: Manifest
+        public var fetcher: Fetcher
+        public var servicesBuilder: PublicationServicesBuilder
+
+        public func build() -> Publication {
+            return Publication(
+                manifest: manifest,
+                fetcher: fetcher,
+                servicesBuilder: servicesBuilder
+            )
+        }
+    }
+
+    public typealias OnCreateManifest = (File, Manifest) -> Manifest
+    public typealias OnCreateFetcher = (File, Manifest, Fetcher) -> Fetcher
+    public typealias OnCreateServices = (File, Manifest, PublicationServicesBuilder) -> Void
+    /// Called when a content protection wants to prompt the user for its credentials.
+    public typealias OnAskCredentials = (_ sender: Any?, _ callback: (String?) -> Void) -> Void
+    
 }

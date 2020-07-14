@@ -37,6 +37,7 @@
 		CA228D1324BCD55600879E2E /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA228D1224BCD55600879E2E /* File.swift */; };
 		CA228D1524BCD78A00879E2E /* FileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA228D1424BCD78A00879E2E /* FileTests.swift */; };
 		CA228D1924BCE27300879E2E /* WarningLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA228D1824BCE27300879E2E /* WarningLogger.swift */; };
+		CA228D1D24BD990000879E2E /* ContentProtection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA228D1C24BD990000879E2E /* ContentProtection.swift */; };
 		CA252DD92447A3740005067C /* Minizip.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA252DD82447A3740005067C /* Minizip.swift */; };
 		CA252DDB2447A3810005067C /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA252DDA2447A3810005067C /* Minizip.framework */; };
 		CA252DE12447A5C00005067C /* Archive+ZIPTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA252DE02447A5C00005067C /* Archive+ZIPTests.swift */; };
@@ -212,6 +213,7 @@
 		CA228D1224BCD55600879E2E /* File.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = File.swift; sourceTree = "<group>"; };
 		CA228D1424BCD78A00879E2E /* FileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileTests.swift; sourceTree = "<group>"; };
 		CA228D1824BCE27300879E2E /* WarningLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarningLogger.swift; sourceTree = "<group>"; };
+		CA228D1C24BD990000879E2E /* ContentProtection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentProtection.swift; sourceTree = "<group>"; };
 		CA252DD82447A3740005067C /* Minizip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Minizip.swift; sourceTree = "<group>"; };
 		CA252DDA2447A3810005067C /* Minizip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Minizip.framework; path = Carthage/Build/iOS/Minizip.framework; sourceTree = "<group>"; };
 		CA252DE02447A5C00005067C /* Archive+ZIPTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Archive+ZIPTests.swift"; sourceTree = "<group>"; };
@@ -396,6 +398,7 @@
 				CACD75F22236B0A5004F20CA /* PublicationCollection.swift */,
 				CA16A85A2232C4E600E66255 /* LocalizedString.swift */,
 				CABBB2FB22394450004EB039 /* ContentLayout.swift */,
+				CA228D1C24BD990000879E2E /* ContentProtection.swift */,
 				CA5F8EE82404035C00926120 /* ReadingProgression.swift */,
 				CA16A86F2232F7CD00E66255 /* Link.swift */,
 				CA16A8712232FBBB00E66255 /* Properties.swift */,
@@ -1085,6 +1088,7 @@
 				CABE2A012482C6F2008E286D /* PositionsService.swift in Sources */,
 				CA81741C24585E6700033776 /* NowPlayingInfo.swift in Sources */,
 				CA9E6BAE223A76C600ECF6E4 /* Publication+OPDS.swift in Sources */,
+				CA228D1D24BD990000879E2E /* ContentProtection.swift in Sources */,
 				CABEB3DC2215698600090B6C /* Deferred.swift in Sources */,
 				CA6F27702469D9050065B405 /* ArchiveFetcher.swift in Sources */,
 				CA68BDC1244042D5009A6BAA /* MediaType.swift in Sources */,
