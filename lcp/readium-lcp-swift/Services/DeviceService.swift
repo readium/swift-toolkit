@@ -50,8 +50,8 @@ final class DeviceService {
     /// Registers the device for the given license.
     /// If the call was made, the updated Status Document data is given to the completion closure.
     @discardableResult
-    func registerLicense(_ license: LicenseDocument, at link: Link) -> Deferred<Data?> {
-        return Deferred {
+    func registerLicense(_ license: LicenseDocument, at link: Link) -> Deferred<Data?, Error> {
+        return deferred {
             let registered = try self.repository.isDeviceRegistered(for: license)
             guard !registered else {
                 return .success(nil)
@@ -61,7 +61,7 @@ final class DeviceService {
             }
             
             return self.network.fetch(url, method: .post)
-                .map { status, data in
+                .mapCatching { status, data in
                     guard status == 200 else {
                         return nil
                     }

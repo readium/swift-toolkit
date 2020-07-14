@@ -91,7 +91,7 @@ final class LicenseValidation: Loggable {
     
     /// Validates the given License or Status Document.
     /// If a validation is already running, `LCPError.licenseIsBusy` will be reported.
-    func validate(_ document: Document) -> Deferred<ValidatedDocuments> {
+    func validate(_ document: Document) -> Deferred<ValidatedDocuments?, Error> {
         let event: Event
         switch document {
         case .license(let data):
@@ -298,7 +298,7 @@ extension LicenseValidation {
         let url = try license.url(for: .status)
         // Short timeout to avoid blocking the License, since the LSD is optional.
         network.fetch(url, timeout: 5)
-            .map { status, data -> Event in
+            .mapCatching { status, data -> Event in
                 guard status == 200 else {
                     throw LCPError.network(nil)
                 }
@@ -317,7 +317,7 @@ extension LicenseValidation {
         let url = try status.url(for: .license)
         // Short timeout to avoid blocking the License, since it can be updated next time.
         network.fetch(url, timeout: 5)
-            .map { status, data -> Event in
+            .mapCatching { status, data -> Event in
                 guard status == 200 else {
                     throw LCPError.network(nil)
                 }
@@ -381,7 +381,7 @@ extension LicenseValidation {
         
         // 2. Creates the DRM context
         crl.retrieve()
-            .map { crl -> Event in
+            .mapCatching { crl -> Event in
                 let context = try createContext(jsonLicense: license.json, hashedPassphrase: passphrase, pemCrl: crl)
                 return .validatedIntegrity(context)
             }
@@ -400,7 +400,7 @@ extension LicenseValidation {
             switch state {
             case .start:
                 // We are back to start? It means the validation was cancelled by the user.
-                notifyObservers(documents: nil, error: nil)
+                notifyObservers(.success(nil))
             case let .validateLicense(data, _):
                 try validateLicense(data: data)
             case let .fetchStatus(license):
@@ -418,9 +418,9 @@ extension LicenseValidation {
             case let .registerDevice(documents, link):
                 registerDevice(for: documents.license, at: link)
             case let .valid(documents):
-                notifyObservers(documents: documents, error: nil)
+                notifyObservers(.success(documents))
             case let .failure(error):
-                notifyObservers(documents: nil, error: error)
+                notifyObservers(.failure(error))
             }
         } catch {
             try? raise(.failed(error))
@@ -428,15 +428,16 @@ extension LicenseValidation {
     }
     
     /// Syntactic sugar to raise either the given event, or an error wrapped as an Event.failed.
-    /// Can be used to resolve a Deferred<Event>.
-    fileprivate func raise(_ event: Event?, or error: Error?) {
-        if let event = event {
+    /// Can be used to resolve a Deferred<Event, Error>.
+    fileprivate func raise(_ result: Result<Event, Error>) {
+        switch result {
+        case .success(let event):
             do {
                 try raise(event)
             } catch {
                 try? raise(.failed(error))
             }
-        } else if let error = error {
+        case .failure(let error):
             try? raise(.failed(error))
         }
     }
@@ -447,7 +448,7 @@ extension LicenseValidation {
 /// Validation observers
 extension LicenseValidation {
     
-    typealias Observer = (ValidatedDocuments?, Error?) -> Void
+    typealias Observer = (Result<ValidatedDocuments?, Error>) -> Void
     
     enum ObserverPolicy {
         // The observer is automatically removed when called.
@@ -457,8 +458,8 @@ extension LicenseValidation {
     }
     
     /// Observes the validation occured after raising the given event.
-    fileprivate func observe(raising event: Event) -> Deferred<ValidatedDocuments> {
-        return Deferred { completion in
+    fileprivate func observe(raising event: Event) -> Deferred<ValidatedDocuments?, Error> {
+        return deferred { completion in
             try self.raise(event)
             self.observe(.once, completion)
         }
@@ -469,9 +470,9 @@ extension LicenseValidation {
         var notified = true
         switch (state) {
         case .valid(let documents):
-            observer(documents, nil)
+            observer(.success(documents))
         case .failure(let error):
-            observer(nil, error)
+            observer(.failure(error))
         default:
             notified = false
         }
@@ -482,9 +483,9 @@ extension LicenseValidation {
         self.observers.append((observer, policy))
     }
     
-    private func notifyObservers(documents: ValidatedDocuments?, error: Error?) {
+    private func notifyObservers(_ result: Result<ValidatedDocuments?, Error>) {
         for observer in observers {
-            observer.callback(documents, error)
+            observer.callback(result)
         }
         observers = observers.filter { $0.policy != .once }
     }

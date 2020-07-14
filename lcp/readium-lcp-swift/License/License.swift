@@ -33,8 +33,8 @@ final class License: Loggable {
         self.device = device
         self.network = network
 
-        validation.observe { [weak self] documents, error in
-            if let documents = documents {
+        validation.observe { [weak self] result in
+            if let documents = try? result.get() {
                 self?.documents = documents
             }
         }
@@ -147,9 +147,9 @@ extension License: LCPLicense {
     
     func renewLoan(to end: Date?, present: @escaping URLPresenter, completion: @escaping (LCPError?) -> Void) {
 
-        func callPUT(_ url: URL) -> Deferred<Data> {
+        func callPUT(_ url: URL) -> Deferred<Data, Error> {
             return self.network.fetch(url, method: .put)
-                .map { status, data -> Data in
+                .mapCatching { status, data -> Data in
                     switch status {
                     case 200:
                         break
@@ -164,16 +164,16 @@ extension License: LCPLicense {
                 }
         }
         
-        func callHTML(_ url: URL) throws -> Deferred<Data> {
+        func callHTML(_ url: URL) throws -> Deferred<Data, Error> {
             guard let statusURL = try? self.license.url(for: .status) else {
                 throw LCPError.licenseInteractionNotAvailable
             }
             
-            return Deferred<Void> { success, _ in present(url, { success(()) }) }
+            return deferred { success, _ in present(url, { success(()) }) }
                 .flatMap { _ in
                     // We fetch the Status Document again after the HTML interaction is done, in case it changed the License.
                     self.network.fetch(statusURL)
-                        .map { status, data in
+                        .mapCatching { status, data in
                             guard status == 200 else {
                                 throw LCPError.network(nil)
                             }
@@ -182,7 +182,7 @@ extension License: LCPLicense {
                 }
         }
 
-        Deferred<Data> {
+        deferred {
             var params = self.device.asQueryParameters
             if let end = end {
                 params["end"] = end.iso8601
@@ -202,7 +202,8 @@ extension License: LCPLicense {
             }
         }
         .flatMap(self.validateStatusDocument)
-        .resolve(LCPError.wrap(completion))
+        .mapError(LCPError.wrap)
+        .resolveWithError(completion)
     }
     
     var canReturnPublication: Bool {
@@ -218,7 +219,7 @@ extension License: LCPLicense {
         }
         
         network.fetch(url, method: .put)
-            .map { status, data in
+            .mapCatching { status, data in
                 switch status {
                 case 200:
                     break
@@ -232,7 +233,8 @@ extension License: LCPLicense {
                 return data
             }
             .flatMap(validateStatusDocument)
-            .resolve(LCPError.wrap(completion))
+            .mapError(LCPError.wrap)
+            .resolveWithError(completion)
     }
     
 }
@@ -242,47 +244,48 @@ extension License: LCPLicense {
 extension License {
 
     /// Downloads the publication and return the path to the downloaded resource.
-    func fetchPublication(completion: @escaping ((URL, URLSessionDownloadTask?)?, Error?) -> Void) -> Observable<DownloadProgress> {
+    func fetchPublication(completion: @escaping (Result<(URL, URLSessionDownloadTask?), Error>) -> Void) -> Observable<DownloadProgress> {
         do {
             let license = self.documents.license
             let link = license.link(for: .publication)
             let url = try license.url(for: .publication)
 
-            return self.network.download(url, title: link?.title) { result, error in
-                guard let (downloadedFile, task) = result else {
-                    completion(nil, error)
-                    return
-                }
-                
-                do {
-                    var mimetypes: [String] = []
-                    if let responseMimetype = task?.response?.mimeType {
-                        mimetypes.append(responseMimetype)
-                    }
-                    if let linkType = link?.type {
-                        mimetypes.append(linkType)
+            return self.network.download(url, title: link?.title) { result in
+                switch result {
+                case .success(let (downloadedFile, task)):
+                    do {
+                        var mimetypes: [String] = []
+                        if let responseMimetype = task?.response?.mimeType {
+                            mimetypes.append(responseMimetype)
+                        }
+                        if let linkType = link?.type {
+                            mimetypes.append(linkType)
+                        }
+                        
+                        // Saves the License Document into the downloaded publication
+                        let container = try makeLicenseContainer(for: downloadedFile, mimetypes: mimetypes)
+                        try container.write(license)
+                        completion(.success((downloadedFile, task)))
+                        
+                    } catch {
+                        completion(.failure(error))
                     }
                     
-                    // Saves the License Document into the downloaded publication
-                    let container = try makeLicenseContainer(for: downloadedFile, mimetypes: mimetypes)
-                    try container.write(license)
-                    completion((downloadedFile, task), nil)
-                    
-                } catch {
-                    completion(nil, error)
+                case .failure(let error):
+                    completion(.failure(error))
                 }
             }
             
         } catch {
             DispatchQueue.main.async {
-                completion(nil, error)
+                completion(.failure(error))
             }
             return Observable<DownloadProgress>(.infinite)
         }
     }
     
     /// Shortcut to be used in LSD interactions (eg. renew), to validate the returned Status Document.
-    fileprivate func validateStatusDocument(data: Data) -> Deferred<Void> {
+    fileprivate func validateStatusDocument(data: Data) -> Deferred<Void, Error> {
         return validation.validate(.status(data))
             .map { _ in () }  // We don't want to forward the Validated Documents
     }

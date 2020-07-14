@@ -22,8 +22,8 @@ final class NetworkService: Loggable {
         case put = "PUT"
     }
     
-    func fetch(_ url: URL, method: Method = .get, timeout: TimeInterval? = nil) -> Deferred<(status: Int, data: Data)> {
-        return Deferred { success, failure in
+    func fetch(_ url: URL, method: Method = .get, timeout: TimeInterval? = nil) -> Deferred<(status: Int, data: Data), Error> {
+        return deferred { success, failure in
             self.log(.info, "\(method.rawValue) \(url)")
     
             var request = URLRequest(url: url)
@@ -46,17 +46,17 @@ final class NetworkService: Loggable {
         }
     }
 
-    func download(_ url: URL, title: String? = nil, completion: @escaping ((file: URL, task: URLSessionDownloadTask?)?, Error?) -> Void) -> Observable<DownloadProgress> {
+    func download(_ url: URL, title: String? = nil, completion: @escaping (Result<(file: URL, task: URLSessionDownloadTask?), Error>) -> Void) -> Observable<DownloadProgress> {
         self.log(.info, "download \(url)")
 
         let request = URLRequest(url: url)
         return DownloadSession.shared.launch(request: request, description: title) { tmpLocalURL, response, error, downloadTask in
             guard let file = tmpLocalURL, error == nil else {
-                completion(nil, LCPError.network(error))
+                completion(.failure(LCPError.network(error)))
                 return false
             }
 
-            completion((file, downloadTask), nil)
+            completion(.success((file, downloadTask)))
             return true
         }
     }

@@ -20,10 +20,10 @@ public protocol LCPService {
     /// Imports a protected publication from a standalone LCPL file.
     /// - Returns: The download progress value as an `Observable`, from 0.0 to 1.0.
     @discardableResult
-    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, completion: @escaping (LCPImportedPublication?, LCPError?) -> Void) -> Observable<DownloadProgress>
+    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, completion: @escaping (Result<LCPImportedPublication?, LCPError>) -> Void) -> Observable<DownloadProgress>
     
     /// Opens the LCP license of a protected publication, to access its DRM metadata and decipher its content.
-    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, completion: @escaping (LCPLicense?, LCPError?) -> Void) -> Void
+    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, completion: @escaping (Result<LCPLicense?, LCPError>) -> Void) -> Void
     
 }
 

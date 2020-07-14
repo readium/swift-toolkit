@@ -28,8 +28,8 @@ final class PassphrasesService {
     /// Finds any valid passphrase for the given license in the passphrases repository.
     /// If none is found, requests a passphrase from the request delegate (ie. user prompt) until one is valid, or the request is cancelled.
     /// The returned passphrase is nil if the request was cancelled by the user.
-    func request(for license: LicenseDocument, authentication: LCPAuthenticating?) -> Deferred<String?> {
-        return Deferred {
+    func request(for license: LicenseDocument, authentication: LCPAuthenticating?) -> Deferred<String?, Error> {
+        return deferred(catching: {
             let candidates = self.possiblePassphrasesFromRepository(for: license)
             if let passphrase = findOneValidPassphrase(jsonLicense: license.json, hashedPassphrases: candidates) {
                 return .success(passphrase)
@@ -38,12 +38,12 @@ final class PassphrasesService {
             } else {
                 return .success(nil)
             }
-        }
+        })
     }
     
     /// Called when the service can't find any valid passphrase in the repository, as a fallback.
-    private func authenticate(for license: LicenseDocument, reason: LCPAuthenticationReason, using authentication: LCPAuthenticating) -> Deferred<String?> {
-        return Deferred<String?> { success, _ in
+    private func authenticate(for license: LicenseDocument, reason: LCPAuthenticationReason, using authentication: LCPAuthenticating) -> Deferred<String?, Error> {
+        return deferred { (success: @escaping (String?) -> Void, _) in
                 let authenticatedLicense = LCPAuthenticatedLicense(document: license)
                 authentication.requestPassphrase(for: authenticatedLicense, reason: reason, completion: success)
             }
