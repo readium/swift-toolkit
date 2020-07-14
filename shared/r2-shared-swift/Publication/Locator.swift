@@ -161,13 +161,13 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
             )
         }
         
-        public init(jsonString: String, warnings: WarningLogger? = nil) throws {
+        public init(jsonString: String, warnings: WarningLogger? = nil) {
             do {
                 let json = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
                 try self.init(json: json, warnings: warnings)
             } catch {
                 warnings?.log("Invalid Locations object: \(error)", model: Self.self)
-                throw JSONError.parsing(Self.self)
+                self.init()
             }
         }
 
@@ -230,13 +230,13 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
             )
         }
         
-        public init(jsonString: String, warnings: WarningLogger? = nil) throws {
+        public init(jsonString: String, warnings: WarningLogger? = nil) {
             do {
                 let json = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
                 try self.init(json: json, warnings: warnings)
             } catch {
                 warnings?.log("Invalid Text object", model: Self.self)
-                throw JSONError.parsing(Self.self)
+                self.init()
             }
         }
         
