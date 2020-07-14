@@ -32,30 +32,32 @@ class LCPLibraryService: DRMLibraryService {
         return file.pathExtension.lowercased() == "lcpl"
     }
     
-    func fulfill(_ file: URL, completion: @escaping (CancellableResult<DRMFulfilledPublication>) -> Void) {
-        lcpService.importPublication(from: file, authentication: self) { result, error in
-            if let result = result {
-                let publication = DRMFulfilledPublication(localURL: result.localURL, downloadTask: result.downloadTask, suggestedFilename: result.suggestedFilename)
-                completion(.success(publication))
-            } else if let error = error {
-                completion(.failure(error))
-            } else {
-                completion(.cancelled)
-            }
+    func fulfill(_ file: URL, completion: @escaping (CancelableResult<DRMFulfilledPublication, Error>) -> Void) {
+        lcpService.importPublication(from: file, authentication: self) { result in
+            let publication = CancelableResult(result)
+                .map {
+                    DRMFulfilledPublication(
+                        localURL: $0.localURL,
+                        downloadTask: $0.downloadTask,
+                        suggestedFilename: $0.suggestedFilename)
+                }
+                .mapError { $0 as Error }
+            
+            completion(publication)
         }
     }
     
-    func loadPublication(at publication: URL, drm: DRM, completion: @escaping (CancellableResult<DRM?>) -> Void) {
-        lcpService.retrieveLicense(from: publication, authentication: self) { license, error in
-            if let license = license {
-                var drm = drm
-                drm.license = license
-                completion(.success(drm))
-            } else if let error = error {
-                completion(.failure(error))
-            } else {
-                completion(.cancelled)
-            }
+    func loadPublication(at publication: URL, drm: DRM, completion: @escaping (CancelableResult<DRM?, Error>) -> Void) {
+        lcpService.retrieveLicense(from: publication, authentication: self) { result in
+            let result = CancelableResult(result)
+                .map { license -> DRM? in
+                    var drm = drm
+                    drm.license = license
+                    return drm
+                }
+                .mapError { $0 as Error }
+
+            completion(result)
         }
     }
     

@@ -279,9 +279,6 @@
 		CA7F5A4B2204A42100B88141 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
 		CA7F5A4C2204A42100B88141 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
 		CA7F5A4D2204A42100B88141 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
-		CA7F5A502204AF2900B88141 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A4F2204AF2900B88141 /* Result.swift */; };
-		CA7F5A512204AF5C00B88141 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A4F2204AF2900B88141 /* Result.swift */; };
-		CA7F5A522204AF5D00B88141 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A4F2204AF2900B88141 /* Result.swift */; };
 		CA81740224581D9D00033776 /* SwiftSoup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA81740124581D9D00033776 /* SwiftSoup.framework */; };
 		CA81740324581DAD00033776 /* SwiftSoup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA81740124581D9D00033776 /* SwiftSoup.framework */; };
 		CA81740424581DB400033776 /* SwiftSoup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA81740124581D9D00033776 /* SwiftSoup.framework */; };
@@ -306,7 +303,6 @@
 		CA822C81221C5737005800D1 /* DRMViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */; };
 		CA822C82221C5737005800D1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D43B1F4EF6D400DF166D /* AppDelegate.swift */; };
 		CA822C83221C5737005800D1 /* OPDSCatalogSelectorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113B12C120800FD50074A5A2 /* OPDSCatalogSelectorViewController.swift */; };
-		CA822C84221C5737005800D1 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A4F2204AF2900B88141 /* Result.swift */; };
 		CA822C85221C5737005800D1 /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0380490A21166627009F48BD /* Toast.swift */; };
 		CA822C86221C5737005800D1 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
 		CA822C87221C5737005800D1 /* LCPLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE315221C11F4008BD18F /* LCPLibraryService.swift */; };
@@ -487,7 +483,6 @@
 		CA6BA3BF22B1106E00A59462 /* LibraryError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryError.swift; sourceTree = "<group>"; };
 		CA6BA3C422B1418200A59462 /* ReaderError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderError.swift; sourceTree = "<group>"; };
 		CA7F5A402204A05700B88141 /* DRMLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DRMLibraryService.swift; sourceTree = "<group>"; };
-		CA7F5A4F2204AF2900B88141 /* Result.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		CA81740124581D9D00033776 /* SwiftSoup.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftSoup.framework; path = Carthage/Build/iOS/SwiftSoup.framework; sourceTree = "<group>"; };
 		CA817406245821AC00033776 /* BarButtonItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarButtonItem.swift; sourceTree = "<group>"; };
 		CA822CBE221C5737005800D1 /* r2-testapp-swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r2-testapp-swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -785,7 +780,6 @@
 		CA415F23221D7599003A0F7F /* Toolkit */ = {
 			isa = PBXGroup;
 			children = (
-				CA7F5A4F2204AF2900B88141 /* Result.swift */,
 				CA29B73222200EAA0037534C /* UIViewController.swift */,
 				F3E7D47B1F4F03B800DF166D /* UIImageExtension.swift */,
 				CA8672AD244864040035FDF4 /* ScreenOrientation.swift */,
@@ -1166,7 +1160,6 @@
 				0350FCF3211CD2CB006994C2 /* AppDelegate.swift in Sources */,
 				CA0B3AC8222EE726006D9363 /* PDFModule.swift in Sources */,
 				0350FCF4211CD2CB006994C2 /* OPDSCatalogSelectorViewController.swift in Sources */,
-				CA7F5A512204AF5C00B88141 /* Result.swift in Sources */,
 				0350FCF5211CD2CB006994C2 /* Toast.swift in Sources */,
 				CA7F5A4C2204A42100B88141 /* DRMLibraryService.swift in Sources */,
 				CA2AE317221C11F5008BD18F /* LCPLibraryService.swift in Sources */,
@@ -1231,7 +1224,6 @@
 				0350FD47211CD625006994C2 /* AppDelegate.swift in Sources */,
 				CA0B3AC9222EE726006D9363 /* PDFModule.swift in Sources */,
 				0350FD48211CD625006994C2 /* OPDSCatalogSelectorViewController.swift in Sources */,
-				CA7F5A522204AF5D00B88141 /* Result.swift in Sources */,
 				0350FD49211CD625006994C2 /* Toast.swift in Sources */,
 				CA7F5A4B2204A42100B88141 /* DRMLibraryService.swift in Sources */,
 				CA2AE318221C11F5008BD18F /* LCPLibraryService.swift in Sources */,
@@ -1296,7 +1288,6 @@
 				CA822C82221C5737005800D1 /* AppDelegate.swift in Sources */,
 				CA0B3ACA222EE726006D9363 /* PDFModule.swift in Sources */,
 				CA822C83221C5737005800D1 /* OPDSCatalogSelectorViewController.swift in Sources */,
-				CA822C84221C5737005800D1 /* Result.swift in Sources */,
 				CA822C85221C5737005800D1 /* Toast.swift in Sources */,
 				CA822C86221C5737005800D1 /* DRMLibraryService.swift in Sources */,
 				CA822C87221C5737005800D1 /* LCPLibraryService.swift in Sources */,
@@ -1360,7 +1351,6 @@
 				F3E7D43C1F4EF6D400DF166D /* AppDelegate.swift in Sources */,
 				113B12D220800FD60074A5A2 /* OPDSCatalogSelectorViewController.swift in Sources */,
 				CA0B3AC7222EE726006D9363 /* PDFModule.swift in Sources */,
-				CA7F5A502204AF2900B88141 /* Result.swift in Sources */,
 				0380490B21166627009F48BD /* Toast.swift in Sources */,
 				CA7F5A4D2204A42100B88141 /* DRMLibraryService.swift in Sources */,
 				F3E7D4881F4F044100DF166D /* UserSettingsTableViewController.swift in Sources */,

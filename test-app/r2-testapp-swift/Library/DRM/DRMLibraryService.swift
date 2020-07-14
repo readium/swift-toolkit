@@ -28,9 +28,9 @@ protocol DRMLibraryService {
     func canFulfill(_ file: URL) -> Bool
     
     /// Fulfills the given file to the fully protected publication.
-    func fulfill(_ file: URL, completion: @escaping (CancellableResult<DRMFulfilledPublication>) -> Void)
+    func fulfill(_ file: URL, completion: @escaping (CancelableResult<DRMFulfilledPublication, Error>) -> Void)
     
     /// Fills the DRM context of the given protected publication.
-    func loadPublication(at publication: URL, drm: DRM, completion: @escaping (CancellableResult<DRM?>) -> Void)
+    func loadPublication(at publication: URL, drm: DRM, completion: @escaping (CancelableResult<DRM?, Error>) -> Void)
 
 }

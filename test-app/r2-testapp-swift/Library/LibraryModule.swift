@@ -34,7 +34,7 @@ protocol LibraryModuleAPI {
     func downloadPublication(_ publication: Publication?, at link: Link, completion: @escaping (Bool) -> Void)
     
     /// Loads the R2 DRM object for the given publication.
-    func loadDRM(for book: Book, completion: @escaping (CancellableResult<DRM?>) -> Void)
+    func loadDRM(for book: Book, completion: @escaping (CancelableResult<DRM?, Error>) -> Void)
 
 }
 
@@ -81,7 +81,7 @@ final class LibraryModule: LibraryModuleAPI {
         library.downloadPublication(publication, at: link, completion: completion)
     }
     
-    func loadDRM(for book: Book, completion: @escaping (CancellableResult<DRM?>) -> Void) {
+    func loadDRM(for book: Book, completion: @escaping (CancelableResult<DRM?, Error>) -> Void) {
         library.loadDRM(for: book, completion: completion)
     }
     

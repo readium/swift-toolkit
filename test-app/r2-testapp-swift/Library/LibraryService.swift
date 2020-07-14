@@ -124,7 +124,7 @@ final class LibraryService: Loggable {
                     
                 case .failure(let error):
                     self.delegate?.libraryService(self, presentError: error)
-                case .cancelled:
+                case .canceled:
                     break
                 }
             }
@@ -191,7 +191,7 @@ final class LibraryService: Loggable {
     /// Complementary parsing of the publication.
     /// Will parse Nav/ncx + mo (files that are possibly encrypted)
     /// using the DRM object of the publication.container.
-    func loadDRM(for book: Book, completion: @escaping (CancellableResult<DRM?>) -> Void) {
+    func loadDRM(for book: Book, completion: @escaping (CancelableResult<DRM?, Error>) -> Void) {
         
         guard let filename = book.fileName, let (container, parsingCallback) = items[filename] else {
             completion(.success(nil))
