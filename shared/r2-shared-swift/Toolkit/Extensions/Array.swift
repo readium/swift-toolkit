@@ -28,6 +28,14 @@ extension Array {
         
         return nil
     }
+    
+    @inlinable public mutating func popFirst() -> Element? {
+        if isEmpty {
+            return nil
+        } else {
+            return removeFirst()
+        }
+    }
 
 }
 

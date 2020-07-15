@@ -44,7 +44,7 @@ public final class File: Loggable {
     ///
     /// Providing a known `mediaType` or `format` will improve performances when sniffing the
     /// file format.
-    init(url: URL, sourceURL: URL? = nil, mediaType: String? = nil, format: Format? = nil) {
+    public init(url: URL, sourceURL: URL? = nil, mediaType: String? = nil, format: Format? = nil) {
         self.url = url
         self.sourceURL = sourceURL
         self.mediaTypeHint = mediaType
@@ -54,7 +54,7 @@ public final class File: Loggable {
     /// Sniffed format of this file.
     ///
     /// *Warning*: This should not be called from the UI thread.
-    lazy var format: Format? = {
+    public lazy var format: Format? = {
         warnIfMainThread()
         if let format = knownFormat {
             return format

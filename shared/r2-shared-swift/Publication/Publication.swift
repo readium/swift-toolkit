@@ -255,15 +255,35 @@ public class Publication: Loggable {
         case incorrectCredentials
     }
     
-    /// Builds a `Publication` from its components.
+    /// Holds the components of a `Publication`
     ///
-    /// A `Publication`'s construction is distributed over the Streamer and its parsers, so a
-    /// builder is useful to pass the parts around.
-    public struct Builder {
-        public var manifest: Manifest
-        public var fetcher: Fetcher
-        public var servicesBuilder: PublicationServicesBuilder
+    /// A `Publication`'s construction is distributed over the Streamer and its parsers, and since
+    /// `Publication` is immutable, it's useful to pass the parts around before actually building
+    /// it.
+    public struct Components {
+        
+        /// Transform which can be used to modify a `Publication`'s components before building it.
+        /// For example, to add Publication Services or wrap the root Fetcher.
+        public typealias Transform = (_ format: Format, _ manifest: inout Manifest, _ fetcher: inout Fetcher, _ services: inout PublicationServicesBuilder) -> Void
+        
+        public let format: Format
+        public let manifest: Manifest
+        public let fetcher: Fetcher
+        public let servicesBuilder: PublicationServicesBuilder
+        
+        public func map(_ transform: Transform?) -> Components {
+            guard let transform = transform else {
+                return self
+            }
+            
+            var manifest = self.manifest
+            var fetcher = self.fetcher
+            var services = self.servicesBuilder
+            transform(format, &manifest, &fetcher, &services)
+            return Components(format: format, manifest: manifest, fetcher: fetcher, servicesBuilder: services)
+        }
 
+        /// Builds the `Publication` from its parts.
         public func build() -> Publication {
             return Publication(
                 manifest: manifest,
@@ -273,10 +293,4 @@ public class Publication: Loggable {
         }
     }
 
-    public typealias OnCreateManifest = (File, Manifest) -> Manifest
-    public typealias OnCreateFetcher = (File, Manifest, Fetcher) -> Fetcher
-    public typealias OnCreateServices = (File, Manifest, PublicationServicesBuilder) -> Void
-    /// Called when a content protection wants to prompt the user for its credentials.
-    public typealias OnAskCredentials = (_ sender: Any?, _ callback: (String?) -> Void) -> Void
-    
 }

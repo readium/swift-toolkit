@@ -91,14 +91,11 @@ public final class Deferred<Success, Failure: Error> {
     /// To keep things simple, this can only be called once since the value is not cached.
     /// The completion block is systematically dispatched asynchronously on the given queue (default
     /// is the main thread), to avoid temporal coupling at the calling site.
-    public func resolve(on completionQueue: DispatchQueue = .main, _ completion: Completion? = nil) {
+    public func resolve(on completionQueue: DispatchQueue = .main, _ completion: @escaping Completion = { _ in }) {
         assert(!resolved, "Deferred doesn't cache the closure's value. It must only be called once.")
         resolved = true
         
         let completionOnQueue: Completion = { result in
-            guard let completion = completion else {
-                return
-            }
             completionQueue.async {
                 completion(result)
             }

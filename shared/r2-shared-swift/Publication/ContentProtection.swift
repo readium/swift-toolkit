@@ -11,6 +11,9 @@
 
 import Foundation
 
+/// Called when a content protection wants to prompt the user for its credentials.
+public typealias OnAskCredentials = (_ sender: Any?, _ callback: (String?) -> Void) -> Void
+
 /// Bridge between a Content Protection technology and the Readium toolkit.
 ///
 /// Its responsibilities are to:
@@ -31,13 +34,12 @@ public protocol ContentProtection {
     /// - Returns: A `ProtectedFile` in case of success, nil if the file is not protected by this
     ///   technology or a `Publication.OpeningError` if the file can't be successfully opened, even
     ///   in restricted mode.
-    func open(file: File, fetcher: Fetcher, credentials: String?, allowUserInteraction: Bool, sender: Any?, onAskCredentials: Publication.OnAskCredentials?, completion: (Result<ProtectedFile, Publication.OpeningError>) -> Void)
+    func open(file: File, fetcher: Fetcher, credentials: String?, allowUserInteraction: Bool, sender: Any?, onAskCredentials: OnAskCredentials?, completion: (Result<ProtectedFile?, Publication.OpeningError>) -> Void)
     
 }
 
 /// Holds the result of opening a `File` with a `ContentProtection`.
-public struct ProtectedFile {
-    
+public typealias ProtectedFile = (
     /// Protected file which will be provided to the parsers.
     ///
     /// In most cases, this will be the file provided to `ContentProtection.open()`, but a Content
@@ -46,7 +48,7 @@ public struct ProtectedFile {
     ///   the Content Protection must return a file with the matching unprotected media type.
     /// - If the Content Protection technology needs to redirect the Streamer to a different file.
     ///   For example, this could be used to decrypt a publication to a temporary secure location.
-    let file: File
+    file: File,
 
     /// Primary leaf fetcher to be used by parsers.
     ///
@@ -57,14 +59,11 @@ public struct ProtectedFile {
     /// - Discarding the provided fetcher altogether and creating a new one to handle access
     ///   restrictions. For example, by creating an `HTTPFetcher` which will inject a Bearer Token
     ///   in requests.
-    let fetcher: Fetcher
+    fetcher: Fetcher,
 
-    /// Called before creating the Publication, to modify the parsed `Manifest` if desired.
-    let onCreateManifest: Publication.OnCreateManifest
-
-    /// Called before creating the `Publication`, to modify its list of service factories. Can be
-    /// used to add a Content Protection Service to the Publication that will be created by the
-    /// Streamer.
-    let onCreateServices: Publication.OnCreateServices
-    
-}
+    /// Transform which will be applied on the Publication components before creating it.
+    ///
+    /// Can be used to add a Content Protection Service to the Publication that will be created by
+    /// the Streamer.
+    transform: Publication.Components.Transform
+)
