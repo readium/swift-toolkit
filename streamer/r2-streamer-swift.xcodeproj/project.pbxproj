@@ -44,6 +44,7 @@
 		CA130F1D229E7CC1000A627C /* NavigationDocumentParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130DB6229E7CBE000A627C /* NavigationDocumentParserTests.swift */; };
 		CA130F1E229E7CC1000A627C /* SampleGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130DB7229E7CBE000A627C /* SampleGenerator.swift */; };
 		CA131064229E7CD0000A627C /* Fixtures in Resources */ = {isa = PBXBuildFile; fileRef = CA131063229E7CD0000A627C /* Fixtures */; };
+		CA228D1B24BD975500879E2E /* Streamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA228D1A24BD975500879E2E /* Streamer.swift */; };
 		CA3387072406632100FDCBBA /* Asserts.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3387062406632100FDCBBA /* Asserts.swift */; };
 		CA3F3FA8248EB156005B8A0B /* Fetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3F3FA7248EB156005B8A0B /* Fetcher.swift */; };
 		CA6F97CE22A50F39007D2049 /* EPUBContainerParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97CD22A50F39007D2049 /* EPUBContainerParser.swift */; };
@@ -124,6 +125,7 @@
 		CA130DB7229E7CBE000A627C /* SampleGenerator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SampleGenerator.swift; sourceTree = "<group>"; };
 		CA130F17229E7CC0000A627C /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CA131063229E7CD0000A627C /* Fixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Fixtures; sourceTree = "<group>"; };
+		CA228D1A24BD975500879E2E /* Streamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Streamer.swift; sourceTree = "<group>"; };
 		CA3387062406632100FDCBBA /* Asserts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Asserts.swift; sourceTree = "<group>"; };
 		CA3F3FA7248EB156005B8A0B /* Fetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fetcher.swift; sourceTree = "<group>"; };
 		CA6F97CD22A50F39007D2049 /* EPUBContainerParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBContainerParser.swift; sourceTree = "<group>"; };
@@ -205,14 +207,15 @@
 		CA130CFE229D4245000A627C /* r2-streamer-swift */ = {
 			isa = PBXGroup;
 			children = (
-				CA130D1A229D4245000A627C /* r2-streamer-swift.h */,
-				CA130D24229D4245000A627C /* r2-streamer-swift-Bridging-Header.h */,
-				CA130D43229D4245000A627C /* Info.plist */,
+				CA228D1A24BD975500879E2E /* Streamer.swift */,
 				CA130D04229D4245000A627C /* Resources */,
 				CA130D25229D4245000A627C /* Parser */,
 				CA130D21229D4245000A627C /* Server */,
 				CA130D3A229D4245000A627C /* Model */,
 				CA130D3F229D4245000A627C /* Toolkit */,
+				CA130D1A229D4245000A627C /* r2-streamer-swift.h */,
+				CA130D24229D4245000A627C /* r2-streamer-swift-Bridging-Header.h */,
+				CA130D43229D4245000A627C /* Info.plist */,
 			);
 			path = "r2-streamer-swift";
 			sourceTree = "<group>";
@@ -570,6 +573,7 @@
 				CA130D73229D4245000A627C /* Logger.swift in Sources */,
 				CACE5C712482DF510076FE52 /* LCPDecryptor.swift in Sources */,
 				CA130D6B229D4245000A627C /* EPUBEncryptionParser.swift in Sources */,
+				CA228D1B24BD975500879E2E /* Streamer.swift in Sources */,
 				CA130D64229D4245000A627C /* PDFFileParser.swift in Sources */,
 				CACDE5F82485127E006FEB1B /* URL.swift in Sources */,
 				CACDE60E2485301F006FEB1B /* Presentation+EPUB.swift in Sources */,

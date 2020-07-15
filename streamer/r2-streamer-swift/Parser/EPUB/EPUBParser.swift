@@ -42,6 +42,13 @@ extension EpubParser: Loggable {}
 /// An EPUB container parser that extracts the information from the relevant
 /// files and builds a `Publication` instance out of it.
 final public class EpubParser: PublicationParser {
+    
+    public init() {}
+    
+    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) -> Publication.Components? {
+        fatalError()
+    }
+    
     /// Parses the EPUB (file/directory) at `fileAtPath` and generate the
     /// corresponding `Publication` and `Container`.
     ///

@@ -31,6 +31,10 @@ public final class PDFParser: PublicationParser, Loggable {
     /// PDFParser contains only static methods.
     private init() {}
     
+    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) -> Publication.Components? {
+        fatalError()
+    }
+    
     public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
         // Having `metadataParser` as an argument with default value doesn't satisfy the `PublicationParser` protocol...
         return try parse(at: url, parserType: PDFFileCGParser.self)

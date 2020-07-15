@@ -21,6 +21,10 @@ public typealias CbzParserError = CBZParserError
 
 /// CBZ publication parsing class.
 public class CbzParser: PublicationParser {
+    
+    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) -> Publication.Components? {
+        fatalError()
+    }
 
     @available(*, deprecated, message: "Use the static method `CbzParser.parse()` instead of instantiationg `CbzParser`")
     public init() {}

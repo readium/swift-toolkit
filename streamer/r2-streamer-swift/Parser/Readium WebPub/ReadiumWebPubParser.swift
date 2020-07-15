@@ -22,6 +22,10 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
     
     /// Path of the RWPM in a ZIP package.
     private static let manifestPath = "manifest.json"
+    
+    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) -> Publication.Components? {
+        fatalError()
+    }
 
     public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
         guard let format = Format.of(url) else {
