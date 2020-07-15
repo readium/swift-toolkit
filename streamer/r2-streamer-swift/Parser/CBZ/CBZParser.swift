@@ -20,62 +20,31 @@ public enum CBZParserError: Error {
 public typealias CbzParserError = CBZParserError
 
 /// CBZ publication parsing class.
+@available(*, deprecated, message: "Use `ImageParser` instead")
 public class CbzParser: PublicationParser {
     
-    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) -> Publication.Components? {
-        fatalError()
+    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Components? {
+        return try ImageParser().parse(file: file, fetcher: fetcher, fallbackTitle: fallbackTitle, warnings: warnings)
     }
 
-    @available(*, deprecated, message: "Use the static method `CbzParser.parse()` instead of instantiationg `CbzParser`")
-    public init() {}
-
-    @available(*, deprecated, message: "Use the static method `CbzParser.parse()` instead of instantiationg `CbzParser`")
-    public func parse(fileAtPath path: String) throws -> PubBox {
-        // For legacy reason this parser used to be instantiated, compared to EPUBParser
-        return try CbzParser.parse(fileAtPath: path).0
-    }
-    
     /// Parse the Comic Book Archive at given `url` and return a `PubBox` object containing
     /// the resulting `Publication` and `Container` objects.
     public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        let fetcher = try ArchiveFetcher(url: url)
-        guard let manifest = parseManifest(in: fetcher, at: url) else {
+        guard
+            let fetcher = try? ArchiveFetcher(url: url),
+            let components = try? ImageParser().parse(file: File(url: url), fetcher: fetcher) else
+        {
             throw CBZParserError.invalidCBZ(path: url.path)
         }
-        
-        let publication = Publication(
-            manifest: manifest,
-            fetcher: fetcher,
-            servicesBuilder: PublicationServicesBuilder(
-                positions: PerResourcePositionsService.createFactory(fallbackMediaType: "image/*")
-            ),
-            format: .cbz
-        )
-        
+
+        let publication = components.build()
         let container = PublicationContainer(publication: publication, path: url.path, mimetype: MediaType.cbz.string)
-        
         return ((publication, container), { _ in })
     }
-    
-    private static func parseManifest(in fetcher: Fetcher, at url: URL) -> Manifest? {
-        var readingOrder = fetcher.links
-            .filter { $0.mediaType?.isBitmap == true }
-            .sorted { lhs, rhs in lhs.href < rhs.href }
-        
-        guard !readingOrder.isEmpty else {
-            return nil
-        }
-        
-        // First valid resource is the cover.
-        readingOrder[0] = readingOrder[0].copy(rels: ["cover"])
-        
-        return Manifest(
-            metadata: Metadata(
-                identifier: url.md5(),
-                title: url.title
-            ),
-            readingOrder: readingOrder
-        )
+
+    @available(*, unavailable, message: "Use the other `parse()` method.")
+    public func parse(fileAtPath path: String) throws -> PubBox {
+        fatalError("Not available.")
     }
 
 }

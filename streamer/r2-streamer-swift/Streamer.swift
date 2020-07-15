@@ -87,14 +87,15 @@ public final class Streamer {
     /// - Returns: Nil if the file was not recognized by any parser, or a `Publication.OpeningError`
     ///   in case of failure.
     public func open(file: File, allowUserInteraction: Bool, fallbackTitle: String? = nil, credentials: String? = nil, sender: Any? = nil, warnings: WarningLogger? = nil, completion: @escaping (Result<Publication, Publication.OpeningError>) -> Void) {
-        // FIXME:
         let fallbackTitle = fallbackTitle ?? file.name
-        
+
         return createFetcher(for: file, allowUserInteraction: allowUserInteraction, password: credentials, sender: sender)
             .flatMap { fetcher in
+                // Unlocks any protected file with the Content Protections.
                 self.openFile(at: file, with: fetcher, credentials: credentials, allowUserInteraction: allowUserInteraction, sender: sender)
             }
             .flatMap { file in
+                // Parses the Publication using the parsers.
                 self.parsePublication(from: file, fallbackTitle: fallbackTitle, warnings: warnings)
             }
             .resolve(on: .main, completion)
@@ -120,7 +121,7 @@ public final class Streamer {
                     .flatMap { self.createFetcher(for: file, allowUserInteraction: allowUserInteraction, password: $0, sender: sender) }
 
             } catch {
-                return .success(FileFetcher(href: "/", path: file.url))
+                return .success(FileFetcher(href: "/\(file.name)", path: file.url))
             }
         }
     }
@@ -138,6 +139,7 @@ public final class Streamer {
         }
     }
     
+    /// Unlocks any protected file with the provided Content Protections.
     private func openFile(at file: File, with fetcher: Fetcher, credentials: String?, allowUserInteraction: Bool, sender: Any?) -> Deferred<PublicationFile, Publication.OpeningError> {
         func unlock(using protections: [ContentProtection]) -> Deferred<ProtectedFile?, Publication.OpeningError> {
             return deferred {
@@ -165,6 +167,7 @@ public final class Streamer {
             }
     }
     
+    /// Parses the `Publication` from the provided file and the `parsers`.
     private func parsePublication(from file: PublicationFile, fallbackTitle: String, warnings: WarningLogger?) -> Deferred<Publication, Publication.OpeningError> {
         return deferred(on: .global(qos: .userInitiated)) {
             var parsers = self.parsers
@@ -194,8 +197,11 @@ public final class Streamer {
 
 }
 
+private typealias PublicationFile = (file: File, fetcher: Fetcher, transform: Publication.Components.Transform?)
+
 private extension ContentProtection {
     
+    /// Wrapper to use `Deferred` with `ContentProtection.open()`.
     func open(file: File, fetcher: Fetcher, credentials: String?, allowUserInteraction: Bool, sender: Any?, onAskCredentials: OnAskCredentials?) -> Deferred<ProtectedFile?, Publication.OpeningError> {
         return deferred { completion in
             self.open(file: file, fetcher: fetcher, credentials: credentials, allowUserInteraction: allowUserInteraction, sender: sender, onAskCredentials: onAskCredentials, completion: completion)
@@ -203,5 +209,3 @@ private extension ContentProtection {
     }
 
 }
-
-private typealias PublicationFile = (file: File, fetcher: Fetcher, transform: Publication.Components.Transform?)
