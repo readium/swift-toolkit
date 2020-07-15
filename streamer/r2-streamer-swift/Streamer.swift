@@ -15,10 +15,16 @@ import R2Shared
 /// Opens a `Publication` using a list of parsers.
 public final class Streamer {
     
-    /// Default parsers provided by Readium.
-    public static let defaultParsers: [PublicationParser] = [
-        EpubParser()
-    ]
+    /// Creates the default parsers provided by Readium.
+    public static func makeDefaultParsers() -> [PublicationParser] {
+        return [
+            EPUBParser(),
+            PDFParser(),
+            ReadiumWebPubParser(),
+            ImageParser(),
+            AudioParser()
+        ]
+    }
     
     /// `Streamer` is configured to use Readium's default parsers, which you can bypass using
     /// `ignoreDefaultParsers`. However, you can provide additional `parsers` which will take
@@ -45,7 +51,7 @@ public final class Streamer {
         openArchive: @escaping ArchiveFactory = DefaultArchiveFactory,
         onAskCredentials: @escaping OnAskCredentials = { _, callback in callback(nil) }
     ) {
-        self.parsers = parsers + (ignoreDefaultParsers ? [] : Self.defaultParsers)
+        self.parsers = parsers + (ignoreDefaultParsers ? [] : Streamer.makeDefaultParsers())
         self.contentProtections = contentProtections
         self.transform = transform
         self.openArchive = openArchive

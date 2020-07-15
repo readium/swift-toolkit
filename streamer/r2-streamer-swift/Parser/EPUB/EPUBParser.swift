@@ -37,11 +37,14 @@ public enum EPUBParserError: Error {
 @available(*, deprecated, renamed: "EPUBParserError")
 public typealias EpubParserError = EPUBParserError
 
-extension EpubParser: Loggable {}
+@available(*, deprecated, renamed: "EPUBParser")
+public typealias EpubParser = EPUBParser
+
+extension EPUBParser: Loggable {}
 
 /// An EPUB container parser that extracts the information from the relevant
 /// files and builds a `Publication` instance out of it.
-final public class EpubParser: PublicationParser {
+final public class EPUBParser: PublicationParser {
     
     public init() {}
     

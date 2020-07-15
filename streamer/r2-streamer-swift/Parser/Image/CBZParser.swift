@@ -31,7 +31,7 @@ public class CbzParser: PublicationParser {
     /// the resulting `Publication` and `Container` objects.
     public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
         guard
-            let fetcher = try? ArchiveFetcher(url: url),
+            let fetcher = try? makeFetcher(for: url),
             let components = try? ImageParser().parse(file: File(url: url), fetcher: fetcher) else
         {
             throw CBZParserError.invalidCBZ(path: url.path)

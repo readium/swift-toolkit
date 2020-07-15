@@ -28,8 +28,7 @@ public enum PDFParserError: Error {
 
 public final class PDFParser: PublicationParser, Loggable {
 
-    /// PDFParser contains only static methods.
-    private init() {}
+    public init() {}
     
     public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) -> Publication.Components? {
         fatalError()

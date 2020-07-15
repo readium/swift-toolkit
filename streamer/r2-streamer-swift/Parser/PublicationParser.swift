@@ -70,7 +70,7 @@ public extension Publication {
             case .cbz:
                 return CbzParser.self
             case .epub:
-                return EpubParser.self
+                return EPUBParser.self
             case .pdf, .lcpProtectedPDF:
                 return PDFParser.self
             case .readiumWebPub, .readiumWebPubManifest, .readiumAudiobook, .readiumAudiobookManifest, .lcpProtectedAudiobook, .divina, .divinaManifest:
