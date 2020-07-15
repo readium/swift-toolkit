@@ -195,6 +195,14 @@ public struct MediaType: Equatable, Hashable {
         matchesAny(.readiumWebPubManifest, .readiumAudiobookManifest, .divinaManifest)
     }
     
+    /// Returns whether this media type is of a Readium Web Publication profile.
+    public var isReadiumWebPubProfile: Bool {
+        matchesAny(
+            .readiumWebPub, .readiumWebPubManifest, .readiumAudiobook, .readiumAudiobookManifest,
+            .lcpProtectedAudiobook, .divina, .divinaManifest, .lcpProtectedPDF
+        )
+    }
+    
     /// Returns whether this media type is of a package protected with LCP.
     public var isLCPProtected: Bool {
         matchesAny(.lcpProtectedAudiobook, .lcpProtectedPDF)

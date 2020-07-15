@@ -264,12 +264,21 @@ public class Publication: Loggable {
         
         /// Transform which can be used to modify a `Publication`'s components before building it.
         /// For example, to add Publication Services or wrap the root Fetcher.
-        public typealias Transform = (_ format: Format, _ manifest: inout Manifest, _ fetcher: inout Fetcher, _ services: inout PublicationServicesBuilder) -> Void
+        public typealias Transform = (_ format: R2Shared.Format, _ manifest: inout Manifest, _ fetcher: inout Fetcher, _ services: inout PublicationServicesBuilder) -> Void
         
-        public let format: Format
-        public let manifest: Manifest
-        public let fetcher: Fetcher
-        public let servicesBuilder: PublicationServicesBuilder
+        private let fileFormat: R2Shared.Format
+        private let publicationFormat: Format
+        private let manifest: Manifest
+        private let fetcher: Fetcher
+        private let servicesBuilder: PublicationServicesBuilder
+        
+        public init(fileFormat: R2Shared.Format, publicationFormat: Format, manifest: Manifest, fetcher: Fetcher, servicesBuilder: PublicationServicesBuilder = .init()) {
+            self.fileFormat = fileFormat
+            self.publicationFormat = publicationFormat
+            self.manifest = manifest
+            self.fetcher = fetcher
+            self.servicesBuilder = servicesBuilder
+        }
         
         public func map(_ transform: Transform?) -> Components {
             guard let transform = transform else {
@@ -279,17 +288,19 @@ public class Publication: Loggable {
             var manifest = self.manifest
             var fetcher = self.fetcher
             var services = self.servicesBuilder
-            transform(format, &manifest, &fetcher, &services)
-            return Components(format: format, manifest: manifest, fetcher: fetcher, servicesBuilder: services)
+            transform(fileFormat, &manifest, &fetcher, &services)
+            return Components(fileFormat: fileFormat, publicationFormat: publicationFormat, manifest: manifest, fetcher: fetcher, servicesBuilder: services)
         }
 
         /// Builds the `Publication` from its parts.
         public func build() -> Publication {
-            return Publication(
+            let publication = Publication(
                 manifest: manifest,
                 fetcher: fetcher,
                 servicesBuilder: servicesBuilder
             )
+            publication.format = publicationFormat
+            return publication
         }
     }
 
