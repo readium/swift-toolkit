@@ -104,7 +104,7 @@ public extension Format {
     /// The sniffers order is important, because some formats are subsets of other formats.
     static var sniffers: [Sniffer] = [
         sniffHTML, sniffOPDS, sniffLCPLicense, sniffBitmap,
-        sniffWebPub, sniffW3CWPUB, sniffEPUB, sniffLPF, sniffZIP, sniffPDF
+        sniffWebPub, sniffW3CWPUB, sniffEPUB, sniffLPF, sniffArchive, sniffPDF
     ]
 
     /// Sniffs an HTML document.
@@ -208,14 +208,14 @@ public extension Format {
             return .lcpProtectedPDF
         }
         
-        /// Reads a RWPM, either from a manifest.json file, or from a manifest.json ZIP entry, if
-        /// the file is a ZIP archive.
-        func readRWPM() -> (isManifest: Bool, Publication)? {
+        /// Reads a RWPM, either from a manifest.json file, or from a manifest.json Archive entry,
+        /// if the file is an archive.
+        func readRWPM() -> (isManifest: Bool, Manifest)? {
             if let rwpm = context.contentAsRWPM {
                 return (isManifest: true, rwpm)
-            } else if let manifestData = context.readZIPEntry(at: "manifest.json"),
+            } else if let manifestData = context.readArchiveEntry(at: "manifest.json"),
                 let manifestJSON = try? JSONSerialization.jsonObject(with: manifestData),
-                let rwpm = try? Publication(json: manifestJSON) {
+                let rwpm = try? Manifest(json: manifestJSON) {
                 return (isManifest: false, rwpm)
             } else {
                 return nil
@@ -223,7 +223,7 @@ public extension Format {
         }
 
         if let (isManifest, rwpm) = readRWPM() {
-            let isLCPProtected = context.containsZIPEntry(at: "license.lcpl")
+            let isLCPProtected = context.containsArchiveEntry(at: "license.lcpl")
 
             if rwpm.metadata.type == "http://schema.org/Audiobook" || rwpm.readingOrder.allAreAudio {
                 return isManifest ? .readiumAudiobookManifest :
@@ -260,7 +260,7 @@ public extension Format {
         if context.hasFileExtension("epub") || context.hasMediaType("application/epub+zip") {
             return .epub
         }
-        if let mimetypeData = context.readZIPEntry(at: "mimetype"),
+        if let mimetypeData = context.readArchiveEntry(at: "mimetype"),
             let mimetype = String(data: mimetypeData, encoding: .ascii)?.trimmingCharacters(in: .whitespacesAndNewlines),
             mimetype == "application/epub+zip"
         {
@@ -277,10 +277,10 @@ public extension Format {
         if context.hasFileExtension("lpf") || context.hasMediaType("application/lpf+zip") {
             return .lpf
         }
-        if context.containsZIPEntry(at: "index.html") {
+        if context.containsArchiveEntry(at: "index.html") {
             return .lpf
         }
-        if let data = context.readZIPEntry(at: "publication.json"),
+        if let data = context.readArchiveEntry(at: "publication.json"),
             let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
             let contexts = json["@context"] as? [Any],
             contexts.contains(where: {($0 as? String) == "https://www.w3.org/ns/pub-context"})
@@ -307,9 +307,9 @@ public extension Format {
         "asx", "bio", "m3u", "m3u8", "pla", "pls", "smil", "vlc", "wpl", "xspf", "zpl"
     ]
     
-    /// Sniffs a simple ZIP-based format, like Comic Book Archive or Zipped Audio Book.
+    /// Sniffs a simple archive-based format, like Comic Book Archive or Zipped Audio Book.
     /// Reference: https://wiki.mobileread.com/wiki/CBR_and_CBZ
-    private static func sniffZIP(context: FormatSnifferContext) -> Format? {
+    private static func sniffArchive(context: FormatSnifferContext) -> Format? {
         if context.hasFileExtension("cbz") || context.hasMediaType("application/vnd.comicbook+zip", "application/x-cbz", "application/x-cbr") {
             return .cbz
         }
@@ -317,22 +317,22 @@ public extension Format {
             return .zab
         }
         
-        if context.contentAsZIP != nil {
+        if context.contentAsArchive != nil {
             func isIgnored(_ url: URL) -> Bool {
                 let filename = url.lastPathComponent
                 return url.hasDirectoryPath || filename.hasPrefix(".") || filename == "Thumbs.db"
             }
 
-            func zipContainsOnlyExtensions(_ fileExtensions: [String]) -> Bool {
-                return context.zipEntriesAllSatisfy { url in
+            func archiveContainsOnlyExtensions(_ fileExtensions: [String]) -> Bool {
+                return context.archiveEntriesAllSatisfy { url in
                     isIgnored(url) || fileExtensions.contains(url.pathExtension.lowercased())
                 }
             }
 
-            if zipContainsOnlyExtensions(cbzExtensions) {
+            if archiveContainsOnlyExtensions(cbzExtensions) {
                 return .cbz
             }
-            if zipContainsOnlyExtensions(zabExtensions) {
+            if archiveContainsOnlyExtensions(zabExtensions) {
                 return .zab
             }
         }
@@ -456,7 +456,7 @@ public extension URLResponse {
 
 }
 
-private extension Publication {
+private extension Manifest {
 
     /// Finds the first `Link` having the given `rel` matching the given `predicate`, in the
     /// publications' links.

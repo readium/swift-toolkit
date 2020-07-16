@@ -272,12 +272,17 @@ public class Publication: Loggable {
         private let fetcher: Fetcher
         private let servicesBuilder: PublicationServicesBuilder
         
-        public init(fileFormat: R2Shared.Format, publicationFormat: Format, manifest: Manifest, fetcher: Fetcher, servicesBuilder: PublicationServicesBuilder = .init()) {
+        /// Closure which will be called once the `Publication` is built.
+        /// This is used for backwrad compatibility, until `Publication` is purely immutable.
+        private let setupPublication: ((Publication) -> Void)?
+        
+        public init(fileFormat: R2Shared.Format, publicationFormat: Format, manifest: Manifest, fetcher: Fetcher, servicesBuilder: PublicationServicesBuilder = .init(), setupPublication: ((Publication) -> Void)? = nil) {
             self.fileFormat = fileFormat
             self.publicationFormat = publicationFormat
             self.manifest = manifest
             self.fetcher = fetcher
             self.servicesBuilder = servicesBuilder
+            self.setupPublication = setupPublication
         }
         
         public func map(_ transform: Transform?) -> Components {
@@ -300,6 +305,7 @@ public class Publication: Loggable {
                 servicesBuilder: servicesBuilder
             )
             publication.format = publicationFormat
+            setupPublication?(publication)
             return publication
         }
     }
