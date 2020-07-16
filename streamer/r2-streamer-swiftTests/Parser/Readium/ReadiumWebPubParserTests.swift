@@ -24,6 +24,9 @@ class ReadiumWebPubParserTests: XCTestCase {
     var packageFile: File!
     var packageFetcher: Fetcher!
     
+    var lcpdfFile: File!
+    var lcpdfFetcher: Fetcher!
+    
     override func setUpWithError() throws {
         parser = ReadiumWebPubParser()
 
@@ -32,6 +35,9 @@ class ReadiumWebPubParserTests: XCTestCase {
         
         packageFile = File(url: fixtures.url(for: "audiotest.lcpa"))
         packageFetcher = try ArchiveFetcher(url: packageFile.url)
+        
+        lcpdfFile = File(url: fixtures.url(for: "daisy.lcpdf"))
+        lcpdfFetcher = try ArchiveFetcher(url: lcpdfFile.url)
     }
     
     func testRefusesNonReadiumWebPub() throws {
@@ -46,6 +52,34 @@ class ReadiumWebPubParserTests: XCTestCase {
     
     func testAcceptsPackage() {
         XCTAssertNotNil(try parser.parse(file: packageFile, fetcher: packageFetcher))
+    }
+    
+    /// The `Link`s' hrefs are normalized to the `self` link for a manifest.
+    func testHrefsAreNormalizedToSelfForManifests() throws {
+        let publication = try XCTUnwrap(parser.parse(file: manifestFile, fetcher: manifestFetcher)?.build())
+
+        XCTAssertEqual(
+            publication.readingOrder.map { $0.href },
+            [
+                "http://www.archive.org/download/flatland_rg_librivox/flatland_1_abbott.mp3",
+                "https://readium.org/webpub-manifest/examples/Flatland/flatland_2_abbott.mp3",
+                "https://readium.org/flatland_3_abbott.mp3"
+            ]
+        )
+    }
+    
+    /// The `Link`s' hrefs are normalized to `/` for a package.
+    func testHrefsAreNormalizedToRootForPackages() throws {
+        let publication = try XCTUnwrap(parser.parse(file: packageFile, fetcher: packageFetcher)?.build())
+
+        XCTAssertEqual(
+            publication.readingOrder.map { $0.href },
+            [
+                "http://readium.org/audio/gtr-jazz.mp3",
+                "/audio/Latin.mp3",
+                "/audio/oboe-bassoon.mp3"
+            ]
+        )
     }
 
 }

@@ -136,10 +136,7 @@ public final class PDFParser: PublicationParser, Loggable {
         }
         
         let publication = Publication(
-            manifest: try Manifest(
-                json: manifestJSON,
-                normalizeHref: { normalize(base: "", href: $0) }
-            ),
+            manifest: try Manifest(json: manifestJSON),
             fetcher: fetcher,
             servicesBuilder: PublicationServicesBuilder(
                 positions: LCPDFPositionsService.createFactory(parserType: parserType)

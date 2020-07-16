@@ -22,6 +22,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
     
     public enum Error: Swift.Error {
         case manifestNotFound
+        case invalidManifest
     }
     
     public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Components? {
@@ -29,43 +30,54 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
             return nil
         }
         
-        if format.mediaType.isRWPM {
-            return try parseManifest(at: file, from: fetcher, format: format, warnings: warnings)
-        } else {
-            return try parsePackage(at: file, from: fetcher, format: format, warnings: warnings)
-        }
-    }
-
-    private func parseManifest(at file: File, from fetcher: Fetcher, format: Format, warnings: WarningLogger?) throws -> Publication.Components? {
-        guard
-            let manifestLink = fetcher.links.first,
-            let manifestData = try? fetcher.get(manifestLink).read().get() else
-        {
+        let isPackage = !format.mediaType.isRWPM
+        
+        // Reads the manifest data from the fetcher.
+        guard let manifestData: Data = (
+            isPackage
+                ? try? fetcher.readData(at: "/manifest.json")
+                // For a single manifest file, reads the first (and only) file in the fetcher.
+                : try? fetcher.readData(at: fetcher.links.first)
+        ) else {
             throw Error.manifestNotFound
         }
         
-        // We discard the `fetcher` provided by the Streamer, because it was only used to read the
-        // manifest file. We use an `HTTPFetcher` instead to serve the remote resources.
-        let fetcher = HTTPFetcher()
-        return try parsePublication(fromManifest: manifestData, in: fetcher, file: file, format: format, isPackage: false)
-    }
-    
-    private func parsePackage(at file: File, from fetcher: Fetcher, format: Format, warnings: WarningLogger?) throws -> Publication.Components? {
-        guard let manifestData = try? fetcher.readData(at: "/manifest.json") else {
-            throw Error.manifestNotFound
+        let manifest = try Manifest(json: JSONSerialization.jsonObject(with: manifestData), isPackaged: isPackage)
+        var fetcher = fetcher
+        var positionsFactory: PositionsServiceFactory? = nil
+        
+        // For a manifest, we discard the `fetcher` provided by the Streamer, because it was only
+        // used to read the manifest file. We use an `HTTPFetcher` instead to serve the remote
+        // resources.
+        if !isPackage {
+            fetcher = HTTPFetcher()
         }
-        return try parsePublication(fromManifest: manifestData, in: fetcher, file: file, format: format, isPackage: true)
-    }
-    
-    private func parsePublication(fromManifest manifestData: Data, in fetcher: Fetcher, file: File, format: Format, isPackage: Bool) throws -> Publication.Components? {
-        return try Publication.Components(
+
+        switch format {
+        case .lcpProtectedPDF:
+            // Checks the requirements from the spec, see. https://readium.org/lcp-specs/drafts/lcpdf
+            guard
+                !manifest.readingOrder.isEmpty,
+                manifest.readingOrder.all(matchMediaType: .pdf) else
+            {
+                throw Error.invalidManifest
+            }
+            // FIXME: parserType
+            positionsFactory = LCPDFPositionsService.createFactory(parserType: PDFFileCGParser.self)
+            
+        case .divina, .divinaManifest:
+            positionsFactory = PerResourcePositionsService.createFactory(fallbackMediaType: "image/*")
+            
+        default:
+            break
+        }
+
+        return Publication.Components(
             fileFormat: format,
-            publicationFormat: .webpub,
-            manifest: Manifest(
-                json: JSONSerialization.jsonObject(with: manifestData),
-                normalizeHref: { normalize(base: "/", href: $0) }
-            ),
-            fetcher: fetcher
+            publicationFormat: (format == .lcpProtectedPDF ? .pdf : .webpub),
+            manifest: manifest,
+            fetcher: fetcher,
+            servicesBuilder: .init(positions: positionsFactory)
         )
     }
 

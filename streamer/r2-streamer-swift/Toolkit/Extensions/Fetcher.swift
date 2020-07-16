@@ -14,9 +14,21 @@ import R2Shared
 
 extension Fetcher {
 
+    /// Returns the data of a file at given `link`.
+    func readData(at link: Link?) throws -> Data? {
+        guard let link = link else {
+            return nil
+        }
+        let resource = get(link)
+        defer { resource.close() }
+        return try resource.read().get()
+    }
+
     /// Returns the data of a file at given `href`.
     func readData(at href: String) throws -> Data {
-        return try get(href).read().get()
+        let resource = get(href)
+        defer { resource.close() }
+        return try resource.read().get()
     }
     
     /// Guesses a fetcher's archive title from its contents.

@@ -17,7 +17,7 @@ import R2Shared
 class OPFParserTests: XCTestCase {
     
     func testParseMinimalOPF() throws {
-        let sut = try parseManifest("minimal", at: "EPUB/content.opf")
+        let sut = try parseManifest("minimal", at: "/EPUB/content.opf")
         
         XCTAssertEqual(sut.manifest, Manifest(
             metadata: Metadata(
@@ -54,7 +54,7 @@ class OPFParserTests: XCTestCase {
     }
     
     func testParseLinks() throws {
-        let sut = try parseManifest("links", at: "EPUB/content.opf").manifest
+        let sut = try parseManifest("links", at: "/EPUB/content.opf").manifest
         
         XCTAssertEqual(sut.links, [])
         XCTAssertEqual(sut.readingOrder, [
@@ -75,7 +75,7 @@ class OPFParserTests: XCTestCase {
     }
     
     func testParseLinksFromSpine() throws {
-        let sut = try parseManifest("links-spine", at: "EPUB/content.opf").manifest
+        let sut = try parseManifest("links-spine", at: "/EPUB/content.opf").manifest
         
         XCTAssertEqual(sut.readingOrder, [
             link(id: "titlepage", href: "/EPUB/titlepage.xhtml")
@@ -83,7 +83,7 @@ class OPFParserTests: XCTestCase {
     }
     
     func testParseLinkProperties() throws {
-        let sut = try parseManifest("links-properties", at: "EPUB/content.opf").manifest
+        let sut = try parseManifest("links-properties", at: "/EPUB/content.opf").manifest
         
         XCTAssertEqual(sut.readingOrder.count, 8)
         XCTAssertEqual(sut.readingOrder[0], link(id: "chapter01", href: "/EPUB/chapter01.xhtml", rels: ["contents"], properties: Properties([
@@ -134,7 +134,7 @@ class OPFParserTests: XCTestCase {
     }
     
     func testParseEPUB2Cover() throws {
-        let sut = try parseManifest("cover-epub2", at: "EPUB/content.opf").manifest
+        let sut = try parseManifest("cover-epub2", at: "/EPUB/content.opf").manifest
         
         XCTAssertEqual(sut.resources, [
             link(id: "my-cover", href: "/EPUB/cover.jpg", type: "image/jpeg", rels: ["cover"])
@@ -142,7 +142,7 @@ class OPFParserTests: XCTestCase {
     }
     
     func testParseEPUB3Cover() throws {
-        let sut = try parseManifest("cover-epub3", at: "EPUB/content.opf").manifest
+        let sut = try parseManifest("cover-epub3", at: "/EPUB/content.opf").manifest
         
         XCTAssertEqual(sut.resources, [
             link(id: "my-cover", href: "/EPUB/cover.jpg", type: "image/jpeg", rels: ["cover"])
@@ -152,7 +152,7 @@ class OPFParserTests: XCTestCase {
 
     // MARK: - Toolkit
     
-    func parseManifest(_ name: String, at path: String = "EPUB/content.opf", displayOptions: String? = nil) throws -> (manifest: Manifest, version: String) {
+    func parseManifest(_ name: String, at path: String = "/EPUB/content.opf", displayOptions: String? = nil) throws -> (manifest: Manifest, version: String) {
         func document(named name: String, type: String) throws -> Data {
             return try Data(contentsOf: SampleGenerator().getSamplesFileURL(named: "OPF/\(name)", ofType: type)!)
         }

@@ -28,14 +28,8 @@
 
   "readingOrder": [
     {"href": "http://www.archive.org/download/flatland_rg_librivox/flatland_1_abbott.mp3", "type": "audio/mpeg", "bitrate": 128, "duration": 1371, "title": "Part 1, Sections 1 - 3"},
-    {"href": "http://www.archive.org/download/flatland_rg_librivox/flatland_2_abbott.mp3", "type": "audio/mpeg", "bitrate": 128, "duration": 1669, "title": "Part 1, Sections 4 - 5"}, 
-    {"href": "http://www.archive.org/download/flatland_rg_librivox/flatland_3_abbott.mp3", "type": "audio/mpeg", "bitrate": 128, "duration": 1506, "title": "Part 1, Sections 6 - 7"}, 
-    {"href": "http://www.archive.org/download/flatland_rg_librivox/flatland_4_abbott.mp3", "type": "audio/mpeg", "bitrate": 128, "duration": 1798, "title": "Part 1, Sections 8 - 10"}, 
-    {"href": "http://www.archive.org/download/flatland_rg_librivox/flatland_5_abbott.mp3", "type": "audio/mpeg", "bitrate": 128, "duration": 1225, "title": "Part 1, Sections 11 - 12"}, 
-    {"href": "http://www.archive.org/download/flatland_rg_librivox/flatland_6_abbott.mp3", "type": "audio/mpeg", "bitrate": 128, "duration": 1659, "title": "Part 2, Sections 13 - 14"}, 
-    {"href": "http://www.archive.org/download/flatland_rg_librivox/flatland_7_abbott.mp3", "type": "audio/mpeg", "bitrate": 128, "duration": 2086, "title": "Part 2, Sections 15 - 17"}, 
-    {"href": "http://www.archive.org/download/flatland_rg_librivox/flatland_8_abbott.mp3", "type": "audio/mpeg", "bitrate": 128, "duration": 2662, "title": "Part 2, Sections 18 - 20"}, 
-    {"href": "http://www.archive.org/download/flatland_rg_librivox/flatland_9_abbott.mp3", "type": "audio/mpeg", "bitrate": 128, "duration": 1177, "title": "Part 2, Sections 21 - 22"}
+    {"href": "flatland_2_abbott.mp3", "type": "audio/mpeg", "bitrate": 128, "duration": 1669, "title": "Part 1, Sections 4 - 5"},
+    {"href": "/flatland_3_abbott.mp3", "type": "audio/mpeg", "bitrate": 128, "duration": 1506, "title": "Part 1, Sections 6 - 7"},
   ],
 
   "toc": [
