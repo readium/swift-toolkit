@@ -47,6 +47,8 @@
 		CA2AE322221C1DCB008BD18F /* Loggable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31F221C1DCB008BD18F /* Loggable.swift */; };
 		CA2B6B3F24BF7976007AF537 /* HREF.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2B6B3E24BF7976007AF537 /* HREF.swift */; };
 		CA2B6B4124BF7A1E007AF537 /* HREFTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2B6B4024BF7A1E007AF537 /* HREFTests.swift */; };
+		CA2B6B5924C0A877007AF537 /* ContentProtectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2B6B5824C0A876007AF537 /* ContentProtectionService.swift */; };
+		CA2B6B5B24C0A9A5007AF537 /* UserRights.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2B6B5A24C0A9A5007AF537 /* UserRights.swift */; };
 		CA3386E12404FAD000FDCBBA /* Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3386E02404FACF00FDCBBA /* Encryption.swift */; };
 		CA3386E42404FD0300FDCBBA /* Properties+Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3386E32404FD0300FDCBBA /* Properties+Encryption.swift */; };
 		CA3386E62404FD4600FDCBBA /* Properties+EncryptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3386E52404FD4600FDCBBA /* Properties+EncryptionTests.swift */; };
@@ -226,6 +228,8 @@
 		CA2AE31F221C1DCB008BD18F /* Loggable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Loggable.swift; sourceTree = "<group>"; };
 		CA2B6B3E24BF7976007AF537 /* HREF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HREF.swift; sourceTree = "<group>"; };
 		CA2B6B4024BF7A1E007AF537 /* HREFTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HREFTests.swift; sourceTree = "<group>"; };
+		CA2B6B5824C0A876007AF537 /* ContentProtectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentProtectionService.swift; sourceTree = "<group>"; };
+		CA2B6B5A24C0A9A5007AF537 /* UserRights.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserRights.swift; sourceTree = "<group>"; };
 		CA3386E02404FACF00FDCBBA /* Encryption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Encryption.swift; sourceTree = "<group>"; };
 		CA3386E32404FD0300FDCBBA /* Properties+Encryption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Properties+Encryption.swift"; sourceTree = "<group>"; };
 		CA3386E52404FD4600FDCBBA /* Properties+EncryptionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Properties+EncryptionTests.swift"; sourceTree = "<group>"; };
@@ -517,6 +521,15 @@
 			path = Logger;
 			sourceTree = "<group>";
 		};
+		CA2B6B5724C0A868007AF537 /* Content Protection */ = {
+			isa = PBXGroup;
+			children = (
+				CA2B6B5824C0A876007AF537 /* ContentProtectionService.swift */,
+				CA2B6B5A24C0A9A5007AF537 /* UserRights.swift */,
+			);
+			path = "Content Protection";
+			sourceTree = "<group>";
+		};
 		CA3386DF2404FABC00FDCBBA /* Encryption */ = {
 			isa = PBXGroup;
 			children = (
@@ -723,6 +736,7 @@
 			children = (
 				CA9FC073248256450020B9CC /* PublicationService.swift */,
 				CA9FC07524825A880020B9CC /* PublicationServicesBuilder.swift */,
+				CA2B6B5724C0A868007AF537 /* Content Protection */,
 				CACDE5FA24851620006FEB1B /* Cover */,
 				CACDE5F92485161A006FEB1B /* Positions */,
 			);
@@ -1078,9 +1092,11 @@
 				CACD75E22236A0B7004F20CA /* Subject.swift in Sources */,
 				CACDE5D72483AAB0006FEB1B /* UIImage.swift in Sources */,
 				CA5F8EF9240413C900926120 /* EPUBLayout.swift in Sources */,
+				CA2B6B5B24C0A9A5007AF537 /* UserRights.swift in Sources */,
 				57470F7E20ED0D1A000CDCA3 /* DownloadSession.swift in Sources */,
 				CA252DD92447A3740005067C /* Minizip.swift in Sources */,
 				CAE4DCB624BB71FF00611638 /* Optional.swift in Sources */,
+				CA2B6B5924C0A877007AF537 /* ContentProtectionService.swift in Sources */,
 				CA2AE320221C1DCB008BD18F /* Logger.swift in Sources */,
 				CABBB2F82237C99E004EB039 /* OPDSAcquisition.swift in Sources */,
 				CAF4EAE72237AD6000A17DA1 /* UserProperties.swift in Sources */,

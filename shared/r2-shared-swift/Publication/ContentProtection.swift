@@ -34,7 +34,15 @@ public protocol ContentProtection {
     /// - Returns: A `ProtectedFile` in case of success, nil if the file is not protected by this
     ///   technology or a `Publication.OpeningError` if the file can't be successfully opened, even
     ///   in restricted mode.
-    func open(file: File, fetcher: Fetcher, credentials: String?, allowUserInteraction: Bool, sender: Any?, onAskCredentials: OnAskCredentials?, completion: (Result<ProtectedFile?, Publication.OpeningError>) -> Void)
+    func open(
+        file: File,
+        fetcher: Fetcher,
+        credentials: String?,
+        allowUserInteraction: Bool,
+        sender: Any?,
+        onAskCredentials: OnAskCredentials?,
+        completion: @escaping (Result<ProtectedFile?, Publication.OpeningError>) -> Void
+    )
     
 }
 
@@ -61,9 +69,9 @@ public typealias ProtectedFile = (
     ///   in requests.
     fetcher: Fetcher,
 
-    /// Transform which will be applied on the Publication components before creating it.
+    /// Transform which will be applied on the Publication Builder before creating the Publication.
     ///
     /// Can be used to add a Content Protection Service to the Publication that will be created by
     /// the Streamer.
-    transform: Publication.Components.Transform
+    onCreatePublication: Publication.Builder.Transform
 )

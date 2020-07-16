@@ -237,8 +237,6 @@ public class Publication: Loggable {
     
     /// Errors occurring while opening a Publication.
     public enum OpeningError: Error {
-        /// The opening was canceled by the user.
-        case canceled
         /// The file format could not be recognized by any parser.
         case unsupportedFormat
         /// The publication file was not found on the file system.
@@ -255,12 +253,12 @@ public class Publication: Loggable {
         case incorrectCredentials
     }
     
-    /// Holds the components of a `Publication`
+    /// Holds the components of a `Publication` to build it.
     ///
     /// A `Publication`'s construction is distributed over the Streamer and its parsers, and since
     /// `Publication` is immutable, it's useful to pass the parts around before actually building
     /// it.
-    public struct Components {
+    public struct Builder {
         
         /// Transform which can be used to modify a `Publication`'s components before building it.
         /// For example, to add Publication Services or wrap the root Fetcher.
@@ -268,9 +266,9 @@ public class Publication: Loggable {
         
         private let fileFormat: R2Shared.Format
         private let publicationFormat: Format
-        private let manifest: Manifest
-        private let fetcher: Fetcher
-        private let servicesBuilder: PublicationServicesBuilder
+        private var manifest: Manifest
+        private var fetcher: Fetcher
+        private var servicesBuilder: PublicationServicesBuilder
         
         /// Closure which will be called once the `Publication` is built.
         /// This is used for backwrad compatibility, until `Publication` is purely immutable.
@@ -285,16 +283,12 @@ public class Publication: Loggable {
             self.setupPublication = setupPublication
         }
         
-        public func map(_ transform: Transform?) -> Components {
+        public mutating func apply(_ transform: Transform?) {
             guard let transform = transform else {
-                return self
+                return
             }
             
-            var manifest = self.manifest
-            var fetcher = self.fetcher
-            var services = self.servicesBuilder
-            transform(fileFormat, &manifest, &fetcher, &services)
-            return Components(fileFormat: fileFormat, publicationFormat: publicationFormat, manifest: manifest, fetcher: fetcher, servicesBuilder: services)
+            transform(fileFormat, &manifest, &fetcher, &servicesBuilder)
         }
 
         /// Builds the `Publication` from its parts.
