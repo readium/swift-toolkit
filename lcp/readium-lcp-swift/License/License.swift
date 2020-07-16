@@ -78,31 +78,38 @@ extension License: LCPLicense {
         return (charactersToCopyLeft ?? 1) > 0
     }
     
-    func copy(_ text: String, consumes: Bool) -> String? {
+    func canCopy(text: String) -> Bool {
+        guard let charactersLeft = charactersToCopyLeft else {
+            return true
+        }
+        return text.count < charactersLeft
+    }
+    
+    func copy(text: String) -> Bool {
         guard var charactersLeft = charactersToCopyLeft else {
-            return text
+            return true
         }
-        guard charactersLeft > 0 else {
-            return nil
-        }
-        
-        var text = text
-        if text.count > charactersLeft {
-            // Truncates the text to the amount of characters left.
-            let endIndex = text.index(text.startIndex, offsetBy: charactersLeft)
-            text = String(text[..<endIndex])
+        guard text.count < charactersLeft else {
+            return false
         }
         
+        do {
+            charactersLeft = max(0, charactersLeft - text.count)
+            try licenses.setCopiesLeft(charactersLeft, for: license.id)
+        } catch {
+            log(.error, error)
+        }
+        
+        return true
+    }
+    
+    // Deprecated
+    func copy(_ text: String, consumes: Bool) -> String? {
         if consumes {
-            do {
-                charactersLeft = max(0, charactersLeft - text.count)
-                try licenses.setCopiesLeft(charactersLeft, for: license.id)
-            } catch {
-                log(.error, error)
-            }
+            return copy(text: text) ? text : nil
+        } else {
+            return canCopy(text: text) ? text : nil
         }
-        
-        return text
     }
     
     var pagesToPrintLeft: Int? {
@@ -120,16 +127,16 @@ extension License: LCPLicense {
         return (pagesToPrintLeft ?? 1) > 0
     }
     
-    func print(pagesCount: Int) -> Bool {
+    func print(pageCount: Int) -> Bool {
         guard var pagesLeft = pagesToPrintLeft else {
             return true
         }
-        guard pagesLeft >= pagesCount else {
+        guard pagesLeft >= pageCount else {
             return false
         }
         
         do {
-            pagesLeft = max(0, pagesLeft - pagesCount)
+            pagesLeft = max(0, pagesLeft - pageCount)
             try licenses.setPrintsLeft(pagesLeft, for: license.id)
         } catch {
             log(.error, error)

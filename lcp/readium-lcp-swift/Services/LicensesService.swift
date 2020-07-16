@@ -35,7 +35,7 @@ final class LicensesService: Loggable {
         self.passphrases = passphrases
     }
 
-    fileprivate func retrieveLicense(from container: LicenseContainer, authentication: LCPAuthenticating?) -> Deferred<License?, Error> {
+    fileprivate func retrieveLicense(from container: LicenseContainer, authentication: LCPAuthenticating?, sender: Any?) -> Deferred<License?, Error> {
         return deferred {
             let initialData = try container.read()
             
@@ -59,7 +59,7 @@ final class LicensesService: Loggable {
                 }
             }
             
-            let validation = LicenseValidation(authentication: authentication, crl: self.crl, device: self.device, network: self.network, passphrases: self.passphrases, onLicenseValidated: onLicenseValidated)
+            let validation = LicenseValidation(authentication: authentication, sender: sender, crl: self.crl, device: self.device, network: self.network, passphrases: self.passphrases, onLicenseValidated: onLicenseValidated)
 
             return validation.validate(.license(initialData))
                 .mapCatching { documents in
@@ -78,11 +78,11 @@ final class LicensesService: Loggable {
 }
 
 extension LicensesService: LCPService {
-    
-    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, completion: @escaping (Result<LCPImportedPublication?, LCPError>) -> Void) -> Observable<DownloadProgress> {
+
+    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, sender: Any?, completion: @escaping (Result<LCPImportedPublication?, LCPError>) -> Void) -> Observable<DownloadProgress> {
         let progress = MutableObservable<DownloadProgress>(.infinite)
         let container = LCPLLicenseContainer(lcpl: lcpl)
-        retrieveLicense(from: container, authentication: authentication)
+        retrieveLicense(from: container, authentication: authentication, sender: sender)
             .asyncMap { (license, completion: (@escaping (Result<LCPImportedPublication?, Error>) -> Void)) in
                 guard let license = license else {
                     completion(.success(nil))
@@ -109,16 +109,20 @@ extension LicensesService: LCPService {
         return progress
     }
     
-    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, completion: @escaping (Result<LCPLicense?, LCPError>) -> Void) {
+    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, sender: Any?, completion: @escaping (Result<LCPLicense?, LCPError>) -> Void) {
         do {
             let container = try makeLicenseContainer(for: publication)
-            retrieveLicense(from: container, authentication: authentication)
+            retrieveLicense(from: container, authentication: authentication, sender: sender)
                 .map { $0 as LCPLicense? }
                 .mapError(LCPError.wrap)
                 .resolve(completion)
         } catch {
             completion(.failure(LCPError.wrap(error)))
         }
+    }
+    
+    func contentProtection(with authentication: LCPAuthenticating) -> ContentProtection {
+        return LCPContentProtection(service: self, authentication: authentication)
     }
     
     /// Returns the suggested filename to be used when importing a publication.

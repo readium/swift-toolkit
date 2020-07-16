@@ -56,6 +56,7 @@ final class LicenseValidation: Loggable {
 
     // Dependencies for the State's handlers
     fileprivate let authentication: LCPAuthenticating?
+    fileprivate let sender: Any?
     fileprivate let crl: CRLService
     fileprivate let device: DeviceService
     fileprivate let network: NetworkService
@@ -74,8 +75,9 @@ final class LicenseValidation: Loggable {
         }
     }
 
-    init(authentication: LCPAuthenticating?, crl: CRLService, device: DeviceService, network: NetworkService, passphrases: PassphrasesService, onLicenseValidated: @escaping (LicenseDocument) throws -> Void) {
+    init(authentication: LCPAuthenticating?, sender: Any?, crl: CRLService, device: DeviceService, network: NetworkService, passphrases: PassphrasesService, onLicenseValidated: @escaping (LicenseDocument) throws -> Void) {
         self.authentication = authentication
+        self.sender = sender
         self.crl = crl
         self.device = device
         self.network = network
@@ -362,7 +364,7 @@ extension LicenseValidation {
     }
     
     private func requestPassphrase(for license: LicenseDocument) {
-        passphrases.request(for: license, authentication: authentication)
+        passphrases.request(for: license, authentication: authentication, sender: sender)
             .map { passphrase -> Event in
                 guard let passphrase = passphrase else {
                     return .cancelled

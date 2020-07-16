@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		CA26EF7C2280331E0011653E /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA26EF7B2280331E0011653E /* Connection.swift */; };
 		CA2AE328221C3CFB008BD18F /* Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE327221C3CFB008BD18F /* Deprecated.swift */; };
+		CA2B6B5224C07880007AF537 /* LCPContentProtection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2B6B5124C07880007AF537 /* LCPContentProtection.swift */; };
+		CA2B6B5424C07B12007AF537 /* LCPDecryptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2B6B5324C07B12007AF537 /* LCPDecryptor.swift */; };
+		CA2B6B5624C07B8C007AF537 /* DataCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2B6B5524C07B8C007AF537 /* DataCompression.swift */; };
 		CA4A38742208647400599297 /* PassphrasesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A38732208647400599297 /* PassphrasesRepository.swift */; };
 		CA4A388722086F7500599297 /* PassphrasesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388622086F7500599297 /* PassphrasesService.swift */; };
 		CA4A388C2209873B00599297 /* LicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388B2209873B00599297 /* LicenseContainer.swift */; };
@@ -17,8 +20,8 @@
 		CA4A3892220994E300599297 /* EPUBLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A3891220994E300599297 /* EPUBLicenseContainer.swift */; };
 		CA50B88022B2A777003AFF24 /* R2LCPLocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50B87F22B2A777003AFF24 /* R2LCPLocalizedString.swift */; };
 		CA50B88422B2A822003AFF24 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CA50B88622B2A822003AFF24 /* Localizable.strings */; };
-		CA9428FD22B9442300305CDB /* ReadiumLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9428FC22B9442300305CDB /* ReadiumLicenseContainer.swift */; };
 		CA78C9EB244F53BA00E559B3 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA78C9E8244F531A00E559B3 /* R2Shared.framework */; };
+		CA9428FD22B9442300305CDB /* ReadiumLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9428FC22B9442300305CDB /* ReadiumLicenseContainer.swift */; };
 		CAB131F6220D81E60097DFB5 /* LicensesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB131F5220D81E60097DFB5 /* LicensesRepository.swift */; };
 		CAB1320B220D9B200097DFB5 /* LCPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB1320A220D9B200097DFB5 /* LCPService.swift */; };
 		CAB13211220DB2B10097DFB5 /* LCPAuthenticating.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */; };
@@ -54,6 +57,9 @@
 		03A5DB9F23B78AD500D5FCBD /* R2LCPClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2LCPClient.framework; path = Carthage/Build/iOS/R2LCPClient.framework; sourceTree = "<group>"; };
 		CA26EF7B2280331E0011653E /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		CA2AE327221C3CFB008BD18F /* Deprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deprecated.swift; sourceTree = "<group>"; };
+		CA2B6B5124C07880007AF537 /* LCPContentProtection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPContentProtection.swift; sourceTree = "<group>"; };
+		CA2B6B5324C07B12007AF537 /* LCPDecryptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDecryptor.swift; sourceTree = "<group>"; };
+		CA2B6B5524C07B8C007AF537 /* DataCompression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataCompression.swift; sourceTree = "<group>"; };
 		CA4A38732208647400599297 /* PassphrasesRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassphrasesRepository.swift; sourceTree = "<group>"; };
 		CA4A388622086F7500599297 /* PassphrasesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassphrasesService.swift; sourceTree = "<group>"; };
 		CA4A388B2209873B00599297 /* LicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseContainer.swift; sourceTree = "<group>"; };
@@ -62,8 +68,8 @@
 		CA4A3891220994E300599297 /* EPUBLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBLicenseContainer.swift; sourceTree = "<group>"; };
 		CA50B87F22B2A777003AFF24 /* R2LCPLocalizedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2LCPLocalizedString.swift; sourceTree = "<group>"; };
 		CA50B88522B2A822003AFF24 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
-		CA9428FC22B9442300305CDB /* ReadiumLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadiumLicenseContainer.swift; sourceTree = "<group>"; };
 		CA78C9E8244F531A00E559B3 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA9428FC22B9442300305CDB /* ReadiumLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadiumLicenseContainer.swift; sourceTree = "<group>"; };
 		CAB131F5220D81E60097DFB5 /* LicensesRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensesRepository.swift; sourceTree = "<group>"; };
 		CAB1320A220D9B200097DFB5 /* LCPService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPService.swift; sourceTree = "<group>"; };
 		CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPAuthenticating.swift; sourceTree = "<group>"; };
@@ -111,10 +117,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		CA2B6B5024C07869007AF537 /* Content Protection */ = {
+			isa = PBXGroup;
+			children = (
+				CA2B6B5124C07880007AF537 /* LCPContentProtection.swift */,
+				CA2B6B5324C07B12007AF537 /* LCPDecryptor.swift */,
+			);
+			path = "Content Protection";
+			sourceTree = "<group>";
+		};
 		CA50B87E22B2A768003AFF24 /* Toolkit */ = {
 			isa = PBXGroup;
 			children = (
 				CA50B87F22B2A777003AFF24 /* R2LCPLocalizedString.swift */,
+				CA2B6B5524C07B8C007AF537 /* DataCompression.swift */,
 			);
 			path = Toolkit;
 			sourceTree = "<group>";
@@ -247,6 +263,7 @@
 				CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */,
 				CA2AE327221C3CFB008BD18F /* Deprecated.swift */,
 				CAB13214220DB5930097DFB5 /* License */,
+				CA2B6B5024C07869007AF537 /* Content Protection */,
 				CAB1321B220DB6430097DFB5 /* Services */,
 				CAB1321C220DB6570097DFB5 /* Persistence */,
 				CA50B87E22B2A768003AFF24 /* Toolkit */,
@@ -360,8 +377,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				CAE7FB7A220C2E6F00D03587 /* LicenseValidation.swift in Sources */,
+				CA2B6B5424C07B12007AF537 /* LCPDecryptor.swift in Sources */,
 				CA4A38742208647400599297 /* PassphrasesRepository.swift in Sources */,
 				CA4A3892220994E300599297 /* EPUBLicenseContainer.swift in Sources */,
+				CA2B6B5624C07B8C007AF537 /* DataCompression.swift in Sources */,
 				CAB1321F220DBA470097DFB5 /* NetworkService.swift in Sources */,
 				CA4A388E220988C800599297 /* LCPLLicenseContainer.swift in Sources */,
 				CAB131F6220D81E60097DFB5 /* LicensesRepository.swift in Sources */,
@@ -395,6 +414,7 @@
 				F38FB03E1F66840900F9D602 /* ContentKey.swift in Sources */,
 				F331FBF81F8228F8007F16DF /* Database.swift in Sources */,
 				CAB57BC12204811100E4CB12 /* LicensesService.swift in Sources */,
+				CA2B6B5224C07880007AF537 /* LCPContentProtection.swift in Sources */,
 				CAE7FB7C220C4B7700D03587 /* DeviceService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
