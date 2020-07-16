@@ -19,7 +19,7 @@ public final class Streamer {
     public static func makeDefaultParsers() -> [PublicationParser] {
         return [
             EPUBParser(),
-            PDFParser(),
+            PDFParser(parserType: PDFFileCGParser.self),
             ReadiumWebPubParser(),
             ImageParser(),
             AudioParser()

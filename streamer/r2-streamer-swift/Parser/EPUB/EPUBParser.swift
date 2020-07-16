@@ -121,12 +121,12 @@ final public class EPUBParser: PublicationParser {
             drm: drm
         )
 
-        func parseRemainingResource(protectedBy drm: DRM?) throws {
+        func didLoadDRM(_ drm: DRM?) throws {
             container.drm = drm
             lcpDecryptor?.license = drm?.license
         }
         
-        return ((publication, container), parseRemainingResource)
+        return ((publication, container), didLoadDRM)
     }
     
     private func parseCollections(in fetcher: Fetcher, links: [Link]) -> [String: [PublicationCollection]] {

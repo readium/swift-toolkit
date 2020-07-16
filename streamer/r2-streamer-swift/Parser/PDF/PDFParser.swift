@@ -27,53 +27,24 @@ public enum PDFParserError: Error {
 
 
 public final class PDFParser: PublicationParser, Loggable {
+    
+    enum Error: Swift.Error {
+        case fileNotReadable
+    }
 
-    public init() {}
+    private let parserType: PDFFileParser.Type
+    
+    public init(parserType: PDFFileParser.Type) {
+        self.parserType = parserType
+    }
     
     public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Components? {
-        fatalError()
-    }
-    
-    public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        // Having `metadataParser` as an argument with default value doesn't satisfy the `PublicationParser` protocol...
-        return try parse(at: url, parserType: PDFFileCGParser.self)
-    }
-    
-    /// Parses the PDF (file/directory) at `fileAtPath` and generates the corresponding `Publication` and `Container`.
-    ///
-    /// - Parameter url: The path to the PDF file.
-    /// - Parameter metadataParser: File metadata parser, you can provide your own implementation if you want to use a different PDF engine.
-    /// - Returns: The Resulting publication, and a callback for parsing the possibly DRM encrypted metadata in the publication, once the DRM object is filled by a DRM module (eg. LCP).
-    /// - Throws: `PDFParserError`
-    public static func parse(at url: URL, parserType: PDFFileParser.Type) throws -> (PubBox, PubParsingCallback) {
-        guard FileManager.default.fileExists(atPath: url.path),
-            let format = Format.of(url) else
-        {
-            throw PDFParserError.openFailed
+        guard file.format == .pdf else {
+            return nil
         }
         
-        let (pubBox, parsingCallback): (PubBox, PubParsingCallback?) = try {
-            switch format {
-            case .pdf:
-                return try parsePDF(at: url, parserType: parserType)
-            case .lcpProtectedPDF:
-                return try parseLCPDF(at: url, parserType: parserType)
-            default:
-                throw PDFParserError.openFailed
-            }
-        }()
-
-        func didLoadDRM(drm: DRM?) throws {
-            try parsingCallback?(drm)
-            pubBox.associatedContainer.drm = drm
-        }
-        
-        return (pubBox, didLoadDRM)
-    }
-
-    private static func parsePDF(at url: URL, parserType: PDFFileParser.Type) throws -> (PubBox, PubParsingCallback?) {
-        guard let stream = FileInputStream(fileAtPath: url.path) else {
-            throw PDFParserError.openFailed
+        guard let stream = FileInputStream(fileAtPath: file.url.path) else {
+            throw Error.fileNotReadable
         }
 
         let parser = try parserType.init(stream: stream)
@@ -84,13 +55,15 @@ public final class PDFParser: PublicationParser, Loggable {
             authors.append(Contributor(name: authorName))
         }
 
-        let pdfHref = "/publication.pdf"
+        let pdfHref = "/\(file.name)"
 
-        let publication = Publication(
+        return Publication.Components(
+            fileFormat: .pdf,
+            publicationFormat: .pdf,
             manifest: Manifest(
                 metadata: Metadata(
                     identifier: pdfMetadata.identifier,
-                    title: pdfMetadata.title ?? url.title,
+                    title: pdfMetadata.title ?? file.title,
                     authors: authors,
                     numberOfPages: try parser.parseNumberOfPages()
                 ),
@@ -99,14 +72,23 @@ public final class PDFParser: PublicationParser, Loggable {
                 ],
                 tableOfContents: pdfMetadata.outline.links(withHref: pdfHref)
             ),
-            fetcher: FileFetcher(href: pdfHref, path: url),
+            fetcher: FileFetcher(href: pdfHref, path: file.url),
             servicesBuilder: PublicationServicesBuilder(
                 cover: (try? parser.renderCover()).map(GeneratedCoverService.createFactory(cover:)),
                 positions: PDFPositionsService.createFactory()
-            ),
-            format: .pdf,
-            formatVersion: pdfMetadata.version
+            )
         )
+    }
+
+    public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
+        if Format.of(url) == .lcpProtectedPDF {
+            return try ReadiumWebPubParser.parse(at: url)
+        }
+        
+        let parser = PDFParser(parserType: PDFFileCGParser.self)
+        guard let publication = try parser.parse(file: File(url: url), fetcher: makeFetcher(for: url))?.build() else {
+            throw PDFParserError.openFailed
+        }
         
         let container = PublicationContainer(
             publication: publication,
@@ -114,49 +96,7 @@ public final class PDFParser: PublicationParser, Loggable {
             mimetype: MediaType.pdf.string
         )
         
-        return ((publication, container), nil)
-    }
-
-    private static func parseLCPDF(at url: URL, parserType: PDFFileParser.Type) throws -> (PubBox, PubParsingCallback?) {
-        guard
-            var fetcher: Fetcher = try? ArchiveFetcher(url: url),
-            let manifestJSON = try? fetcher.get("/manifest.json").readAsJSON().get() else
-        {
-            throw PDFParserError.invalidLCPDF
-        }
-        
-        let drm = DRM(brand: .lcp)
-        var didLoadDRM: PubParsingCallback? = nil
-        
-        if let decryptor = LCPDecryptor(drm: drm) {
-            fetcher = TransformingFetcher(fetcher: fetcher, transformer: decryptor.decrypt)
-            didLoadDRM = { drm in
-                decryptor.license = drm?.license
-            }
-        }
-        
-        let publication = Publication(
-            manifest: try Manifest(json: manifestJSON),
-            fetcher: fetcher,
-            servicesBuilder: PublicationServicesBuilder(
-                positions: LCPDFPositionsService.createFactory(parserType: parserType)
-            ),
-            format: .pdf
-        )
-        
-        // Checks the requirements from the spec, see. https://readium.org/lcp-specs/drafts/lcpdf
-        guard !publication.readingOrder.isEmpty, publication.readingOrder.all(matchMediaType: .pdf) else {
-            throw PDFParserError.invalidLCPDF
-        }
-        
-        let container = PublicationContainer(
-            publication: publication,
-            path: url.path,
-            mimetype: MediaType.lcpProtectedPDF.string,
-            drm: drm
-        )
-
-        return ((publication, container), didLoadDRM)
+        return ((publication, container), { _ in })
     }
 
 }
