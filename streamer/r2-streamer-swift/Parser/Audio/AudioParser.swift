@@ -20,7 +20,7 @@ public final class AudioParser: PublicationParser {
     
     public init() {}
     
-    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Components? {
+    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Builder? {
         guard accepts(file, fetcher) else {
             return nil
         }
@@ -33,7 +33,7 @@ public final class AudioParser: PublicationParser {
             return nil
         }
         
-        return Publication.Components(
+        return Publication.Builder(
             fileFormat: .zab,
             publicationFormat: .cbz,
             manifest: Manifest(

@@ -38,7 +38,7 @@ public final class PDFParser: PublicationParser, Loggable {
         self.parserType = parserType
     }
     
-    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Components? {
+    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Builder? {
         guard file.format == .pdf else {
             return nil
         }
@@ -57,7 +57,7 @@ public final class PDFParser: PublicationParser, Loggable {
 
         let pdfHref = "/\(file.name)"
 
-        return Publication.Components(
+        return Publication.Builder(
             fileFormat: .pdf,
             publicationFormat: .pdf,
             manifest: Manifest(

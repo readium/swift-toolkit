@@ -25,7 +25,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         case invalidManifest
     }
     
-    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Components? {
+    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Builder? {
         guard let format = file.format, format.mediaType.isReadiumWebPubProfile else {
             return nil
         }
@@ -72,7 +72,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
             break
         }
 
-        return Publication.Components(
+        return Publication.Builder(
             fileFormat: format,
             publicationFormat: (format == .lcpProtectedPDF ? .pdf : .webpub),
             manifest: manifest,

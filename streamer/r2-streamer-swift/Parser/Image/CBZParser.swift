@@ -23,7 +23,7 @@ public typealias CbzParserError = CBZParserError
 @available(*, deprecated, message: "Use `ImageParser` instead")
 public class CbzParser: PublicationParser {
     
-    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Components? {
+    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Builder? {
         return try ImageParser().parse(file: file, fetcher: fetcher, fallbackTitle: fallbackTitle, warnings: warnings)
     }
 

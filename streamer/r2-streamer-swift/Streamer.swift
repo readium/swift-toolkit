@@ -36,32 +36,32 @@ public final class Streamer {
     ///   - ignoreDefaultParsers: When true, only parsers provided in parsers will be used.
     ///   - contentProtections: List of `ContentProtection` used to unlock publications. Each
     ///     `ContentProtection` is tested in the given order.
-    ///   - transform: Transformation which will be applied on every parsed Publication
-    ///     Components. It can be used to modify the `Manifest`, the root `Fetcher` or the list of
-    ///     service factories of a `Publication`.
     ///   - openArchive: Opens an archive (e.g. ZIP, RAR), optionally protected by credentials.
     ///   - openPDF: Parses a PDF document, optionally protected by password.
+    ///   - onCreatePublication: Transformation which will be applied on every parsed Publication
+    ///     Builder. It can be used to modify the `Manifest`, the root `Fetcher` or the list of
+    ///     service factories of a `Publication`.
     ///   - onAskCredentials: Called when a content protection wants to prompt the user for its
     ///     credentials.
     public init(
         parsers: [PublicationParser] = [],
         ignoreDefaultParsers: Bool = false,
         contentProtections: [ContentProtection] = [],
-        transform: Publication.Components.Transform? = nil,
+        onCreatePublication: Publication.Builder.Transform? = nil,
         openArchive: @escaping ArchiveFactory = DefaultArchiveFactory,
         onAskCredentials: @escaping OnAskCredentials = { _, callback in callback(nil) }
     ) {
         self.parsers = parsers + (ignoreDefaultParsers ? [] : Streamer.makeDefaultParsers())
         self.contentProtections = contentProtections
-        self.transform = transform
         self.openArchive = openArchive
+        self.onCreatePublication = onCreatePublication
         self.onAskCredentials = onAskCredentials
     }
     
     private let parsers: [PublicationParser]
     private let contentProtections: [ContentProtection]
-    private let transform: Publication.Components.Transform?
     private let openArchive: ArchiveFactory
+    private let onCreatePublication: Publication.Builder.Transform?
     private let onAskCredentials: OnAskCredentials
     
     /// Parses a `Publication` from the given file.
@@ -90,9 +90,7 @@ public final class Streamer {
     ///   - sender: Free object that can be used by reading apps to give some UX context when
     ///     presenting dialogs.
     ///   - warnings: Logger used to broadcast non-fatal parsing warnings.
-    /// - Returns: Nil if the file was not recognized by any parser, or a `Publication.OpeningError`
-    ///   in case of failure.
-    public func open(file: File, allowUserInteraction: Bool, fallbackTitle: String? = nil, credentials: String? = nil, sender: Any? = nil, warnings: WarningLogger? = nil, completion: @escaping (Result<Publication, Publication.OpeningError>) -> Void) {
+    public func open(file: File, allowUserInteraction: Bool, fallbackTitle: String? = nil, credentials: String? = nil, sender: Any? = nil, warnings: WarningLogger? = nil, completion: @escaping (CancelableResult<Publication, Publication.OpeningError>) -> Void) {
         let fallbackTitle = fallbackTitle ?? file.name
 
         return createFetcher(for: file, allowUserInteraction: allowUserInteraction, password: credentials, sender: sender)
@@ -104,7 +102,9 @@ public final class Streamer {
                 // Parses the Publication using the parsers.
                 self.parsePublication(from: file, fallbackTitle: fallbackTitle, warnings: warnings)
             }
-            .resolve(on: .main, completion)
+            .resolve(on: .main) {
+                completion(CancelableResult($0))
+            }
     }
     
     /// Creates the leaf fetcher which will be passed to the content protections and parsers.
@@ -133,13 +133,13 @@ public final class Streamer {
     }
     
     /// Prompts the user for a password.
-    private func askPassword(sender: Any?) -> Deferred<String, Publication.OpeningError> {
+    private func askPassword(sender: Any?) -> Deferred<String?, Publication.OpeningError> {
         return deferred(on: .main) { success, failure in
             self.onAskCredentials(sender) { password in
                 if let password = password {
                     success(password)
                 } else {
-                    failure(.canceled)
+                    success(nil)
                 }
             }
         }
@@ -174,36 +174,34 @@ public final class Streamer {
     }
     
     /// Parses the `Publication` from the provided file and the `parsers`.
-    private func parsePublication(from file: PublicationFile, fallbackTitle: String, warnings: WarningLogger?) -> Deferred<Publication, Publication.OpeningError> {
+    private func parsePublication(from file: PublicationFile, fallbackTitle: String, warnings: WarningLogger?) -> Deferred<Publication?, Publication.OpeningError> {
         return deferred(on: .global(qos: .userInitiated)) {
             var parsers = self.parsers
-            var parsedComponents: Publication.Components?
-            while parsedComponents == nil, let parser = parsers.popFirst() {
+            var parsedBuilder: Publication.Builder?
+            while parsedBuilder == nil, let parser = parsers.popFirst() {
                 do {
-                    parsedComponents = try parser.parse(file: file.file, fetcher: file.fetcher, fallbackTitle: fallbackTitle, warnings: warnings)
+                    parsedBuilder = try parser.parse(file: file.file, fetcher: file.fetcher, fallbackTitle: fallbackTitle, warnings: warnings)
                 } catch {
                     return .failure(.parsingFailed(error))
                 }
             }
             
-            guard let components = parsedComponents else {
+            guard var builder = parsedBuilder else {
                 return .failure(.unsupportedFormat)
             }
             
-            let publication = components
-                // Transform from the Content Protection.
-                .map(file.transform)
-                // Transform provided by the reading app.
-                .map(self.transform)
-                .build()
-            
-            return .success(publication)
+            // Transform from the Content Protection.
+            builder.apply(file.onCreatePublication)
+            // Transform provided by the reading app.
+            builder.apply(self.onCreatePublication)
+
+            return .success(builder.build())
         }
     }
 
 }
 
-private typealias PublicationFile = (file: File, fetcher: Fetcher, transform: Publication.Components.Transform?)
+private typealias PublicationFile = (file: File, fetcher: Fetcher, onCreatePublication: Publication.Builder.Transform?)
 
 private extension ContentProtection {
     

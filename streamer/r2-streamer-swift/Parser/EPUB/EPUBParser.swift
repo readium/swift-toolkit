@@ -48,7 +48,7 @@ final public class EPUBParser: PublicationParser {
     
     public init() {}
     
-    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Components? {
+    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Builder? {
         guard file.format == .epub else {
             return nil
         }
@@ -65,7 +65,7 @@ final public class EPUBParser: PublicationParser {
         
         let userProperties = UserProperties()
 
-        return Publication.Components(
+        return Publication.Builder(
             fileFormat: .epub,
             publicationFormat: .epub,
             manifest: Manifest(

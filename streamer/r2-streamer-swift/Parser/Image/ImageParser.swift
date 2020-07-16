@@ -20,7 +20,7 @@ public final class ImageParser: PublicationParser {
     
     public init() {}
 
-    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Components? {
+    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Builder? {
         guard accepts(file, fetcher) else {
             return nil
         }
@@ -36,7 +36,7 @@ public final class ImageParser: PublicationParser {
         // First valid resource is the cover.
         readingOrder[0] = readingOrder[0].copy(rels: ["cover"])
 
-        return Publication.Components(
+        return Publication.Builder(
             fileFormat: .cbz,
             publicationFormat: .cbz,
             manifest: Manifest(

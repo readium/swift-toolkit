@@ -36,7 +36,7 @@ public protocol PublicationParser {
     ///   - warnings: Used to report non-fatal parsing warnings, such as publication authoring
     ///     mistakes. This is useful to warn users of potential rendering issues or help authors
     ///     debug their publications.
-    func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Components?
+    func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Builder?
     
     // Deprecated: use `parse(file:fetcher:fallbackTitle:warnings)` instead
     static func parse(at url: URL) throws -> (PubBox, PubParsingCallback)
@@ -47,7 +47,7 @@ public protocol PublicationParser {
 
 extension PublicationParser {
     
-    func parse(file: File, fetcher: Fetcher, fallbackTitle: String? = nil, warnings: WarningLogger? = nil) throws -> Publication.Components? {
+    func parse(file: File, fetcher: Fetcher, fallbackTitle: String? = nil, warnings: WarningLogger? = nil) throws -> Publication.Builder? {
         return try parse(file: file, fetcher: fetcher, fallbackTitle: fallbackTitle ?? file.name, warnings: warnings)
     }
     
@@ -60,6 +60,7 @@ extension PublicationParser {
 
 public extension Publication {
     
+    @available(*, deprecated, message: "Use an instance of `Streamer` to parse a publication")
     static func parse(at url: URL) throws -> (PubBox, PubParsingCallback)? {
         guard let format = R2Shared.Format.of(url) else {
             return nil
