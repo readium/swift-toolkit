@@ -162,7 +162,7 @@ final class OPFParser: Loggable {
             return nil
         }
         
-        href = normalize(base: basePath, href: href)
+        href = HREF(href, relativeTo: basePath).string
 
         // Merges the string properties found in the manifest and spine items.
         let stringProperties = "\(manifestItem.attr("properties") ?? "") \(spineItem?.attr("properties") ?? "")"

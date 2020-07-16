@@ -62,7 +62,7 @@ final class EPUBEncryptionParser: Loggable {
             {
                 continue
             }
-            resourceURI = normalize(base: "/", href: resourceURI)
+            resourceURI = HREF(resourceURI, relativeTo: "/").string
 
             var scheme: String?
             var originalLength: Int?

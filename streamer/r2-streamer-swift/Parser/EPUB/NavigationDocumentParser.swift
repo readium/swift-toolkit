@@ -84,17 +84,8 @@ final class NavigationDocumentParser {
             .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
         
-        let href: String? = {
-            guard let href = href else {
-                return nil
-            }
-            if href.hasPrefix("#") { // fragment inside the Navigation Document itself
-                return basePath + href
-            } else {
-                return normalize(base: basePath, href: href)
-            }
-        }()
-        
+        let href = href.map { HREF($0, relativeTo: basePath).string }
+
         guard
             // A zero-length text label must be ignored
             // http://www.idpf.org/epub/301/spec/epub-contentdocs.html#confreq-nav-a-cnt

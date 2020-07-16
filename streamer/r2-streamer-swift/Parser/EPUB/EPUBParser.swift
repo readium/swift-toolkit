@@ -231,7 +231,7 @@ final public class EPUBParser: PublicationParser {
 //
 //            node.role.append("section")
 //            if let textRef = body.attr("textref") { // Prevent the crash on the japanese book
-//                node.text = normalize(base: mediaOverlayLink.href, href: textRef)
+//                node.text = HREF(textRef, relativeTo: mediaOverlayLink.href).string
 //            }
 //            // get body parameters <par>a
 //            let href = mediaOverlayLink.href
