@@ -17,7 +17,7 @@ import R2Shared
 class EPUBEncryptionParserTests: XCTestCase {
     
     func testParseLCPEncryption() {
-        let sut = parseEncryptions("encryption-lcp", drm: DRM(brand: .lcp))
+        let sut = parseEncryptions("encryption-lcp")
 
         XCTAssertEqual(sut, [
             "/chapter01.xhtml": Encryption(
@@ -38,7 +38,7 @@ class EPUBEncryptionParserTests: XCTestCase {
     }
     
     func testParseEncryptionWithNamespaces() {
-        let sut = parseEncryptions("encryption-lcp-namespaces", drm: DRM(brand: .lcp))
+        let sut = parseEncryptions("encryption-lcp-namespaces")
 
         XCTAssertEqual(sut, [
             "/chapter01.xhtml": Encryption(
@@ -82,10 +82,10 @@ class EPUBEncryptionParserTests: XCTestCase {
 
     // MARK: - Toolkit
     
-    func parseEncryptions(_ name: String, drm: DRM? = nil) -> [String: Encryption] {
+    func parseEncryptions(_ name: String) -> [String: Encryption] {
         let url = SampleGenerator().getSamplesFileURL(named: "Encryption/\(name)", ofType: "xml")!
         let data = try! Data(contentsOf: url)
-        return EPUBEncryptionParser(fetcher: EmptyFetcher(), data: data, drm: drm).parseEncryptions()
+        return EPUBEncryptionParser(fetcher: EmptyFetcher(), data: data).parseEncryptions()
     }
     
 }

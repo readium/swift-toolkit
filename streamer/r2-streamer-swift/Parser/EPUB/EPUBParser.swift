@@ -48,8 +48,44 @@ final public class EPUBParser: PublicationParser {
     
     public init() {}
     
-    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) -> Publication.Components? {
-        fatalError()
+    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Components? {
+        guard file.format == .epub else {
+            return nil
+        }
+        
+        let opfHREF = try EPUBContainerParser(fetcher: fetcher).parseOPFHREF()
+
+        // `Encryption` indexed by HREF.
+        let encryptions = (try? EPUBEncryptionParser(fetcher: fetcher))?.parseEncryptions() ?? [:]
+
+        // Extracts metadata and links from the OPF.
+        let components = try OPFParser(fetcher: fetcher, opfHREF: opfHREF, encryptions: encryptions).parsePublication()
+        let metadata = components.metadata
+        let links = components.readingOrder + components.resources
+        
+        let userProperties = UserProperties()
+
+        return Publication.Components(
+            fileFormat: .epub,
+            publicationFormat: .epub,
+            manifest: Manifest(
+                metadata: metadata,
+                readingOrder: components.readingOrder,
+                resources: components.resources,
+                subcollections: parseCollections(in: fetcher, links: links)
+            ),
+            fetcher: TransformingFetcher(fetcher: fetcher, transformers: [
+                EPUBDeobfuscator(publicationId: metadata.identifier ?? "").deobfuscate(resource:),
+                EPUBHTMLInjector(metadata: components.metadata, userProperties: userProperties).inject(resource:)
+            ].compactMap { $0 }),
+            servicesBuilder: .init(
+                positions: EPUBPositionsService.createFactory()
+            ),
+            setupPublication: { publication in
+                publication.userProperties = userProperties
+                publication.userSettingsUIPreset = publication.contentLayout.userSettingsPreset
+            }
+        )
     }
     
     /// Parses the EPUB (file/directory) at `fileAtPath` and generate the
@@ -67,43 +103,16 @@ final public class EPUBParser: PublicationParser {
     ///           `EPUBParserError.missingFile`
     static public func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
         var fetcher: Fetcher = try ArchiveFetcher(url: url)
-        let opfHREF = try EPUBContainerParser(fetcher: fetcher).parseOPFHREF()
         let drm = scanForDRM(in: fetcher)
 
-        // `Encryption` indexed by HREF.
-        let encryptions = (try? EPUBEncryptionParser(fetcher: fetcher, drm: drm))?.parseEncryptions() ?? [:]
-
-        // Extracts metadata and links from the OPF.
-        let components = try OPFParser(fetcher: fetcher, opfHREF: opfHREF, encryptions: encryptions).parsePublication()
-        let metadata = components.metadata
-        let links = components.readingOrder + components.resources
-        
-        let userProperties = UserProperties()
         let lcpDecryptor = LCPDecryptor(drm: drm)
+        if let transformer = lcpDecryptor?.decrypt(resource:) {
+            fetcher = TransformingFetcher(fetcher: fetcher, transformer: transformer)
+        }
 
-        fetcher = TransformingFetcher(fetcher: fetcher, transformers: [
-            lcpDecryptor?.decrypt(resource:),
-            EPUBDeobfuscator(publicationId: metadata.identifier ?? "").deobfuscate(resource:),
-            EPUBHTMLInjector(metadata: components.metadata, userProperties: userProperties).inject(resource:)
-        ].compactMap { $0 })
-
-        let publication = Publication(
-            manifest: Manifest(
-                metadata: metadata,
-                readingOrder: components.readingOrder,
-                resources: components.resources,
-                subcollections: parseCollections(in: fetcher, links: links)
-            ),
-            fetcher: fetcher,
-            servicesBuilder: PublicationServicesBuilder(
-                positions: EPUBPositionsService.createFactory()
-            ),
-            format: .epub,
-            formatVersion: components.version
-        )
-        
-        publication.userProperties = userProperties
-        publication.userSettingsUIPreset = publication.contentLayout.userSettingsPreset
+        guard let publication = try EPUBParser().parse(file: File(url: url), fetcher: fetcher)?.build() else {
+            throw EPUBParserError.wrongMimeType
+        }
 
         let container = PublicationContainer(
             publication: publication,
@@ -120,7 +129,7 @@ final public class EPUBParser: PublicationParser {
         return ((publication, container), parseRemainingResource)
     }
     
-    static private func parseCollections(in fetcher: Fetcher, links: [Link]) -> [String: [PublicationCollection]] {
+    private func parseCollections(in fetcher: Fetcher, links: [Link]) -> [String: [PublicationCollection]] {
         var collections = parseNavigationDocument(in: fetcher, links: links)
         if collections["toc"]?.first?.links.isEmpty != false {
             // Falls back on the NCX tables.
@@ -146,7 +155,7 @@ final public class EPUBParser: PublicationParser {
     }
 
     /// Attempt to fill the `Publication`'s `tableOfContent`, `landmarks`, `pageList` and `listOfX` links collections using the navigation document.
-    private static func parseNavigationDocument(in fetcher: Fetcher, links: [Link]) -> [String: [PublicationCollection]] {
+    private func parseNavigationDocument(in fetcher: Fetcher, links: [Link]) -> [String: [PublicationCollection]] {
         // Get the link in the readingOrder pointing to the Navigation Document.
         guard let navLink = links.first(withRel: "contents"),
             let navDocumentData = try? fetcher.readData(at: navLink.href) else
@@ -179,7 +188,7 @@ final public class EPUBParser: PublicationParser {
     /// Attempt to fill `Publication.tableOfContent`/`.pageList` using the NCX
     /// document. Will only modify the Publication if it has not be filled
     /// previously (using the Navigation Document).
-    private static func parseNCXDocument(in fetcher: Fetcher, links: [Link]) -> [String: [PublicationCollection]] {
+    private func parseNCXDocument(in fetcher: Fetcher, links: [Link]) -> [String: [PublicationCollection]] {
         // Get the link in the readingOrder pointing to the NCX document.
         guard let ncxLink = links.first(withMediaType: .ncx),
             let ncxDocumentData = try? fetcher.readData(at: ncxLink.href) else
@@ -206,7 +215,7 @@ final public class EPUBParser: PublicationParser {
     /// Parse the mediaOverlays informations contained in the ressources then
     /// parse the associted SMIL files to populate the MediaOverlays objects
     /// in each of the ReadingOrder's Links.
-    private static func parseMediaOverlay(from fetcher: Fetcher, to publication: inout Publication) throws {
+    private func parseMediaOverlay(from fetcher: Fetcher, to publication: inout Publication) throws {
         // FIXME: For now we don't fill the media-overlays anymore, since it was only half implemented and the API will change
 //        let mediaOverlays = publication.resources.filter(byType: .smil)
 //

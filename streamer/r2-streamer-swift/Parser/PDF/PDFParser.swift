@@ -30,7 +30,7 @@ public final class PDFParser: PublicationParser, Loggable {
 
     public init() {}
     
-    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) -> Publication.Components? {
+    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Components? {
         fatalError()
     }
     
