@@ -75,8 +75,8 @@ public class Publication: Loggable {
     
     /// Parses a Readium Web Publication Manifest.
     /// https://readium.org/webpub-manifest/schema/publication.schema.json
-    public convenience init(json: Any, warnings: WarningLogger? = nil, normalizeHref: (String) -> String = { $0 }) throws {
-        self.init(manifest: try Manifest(json: json, warnings: warnings, normalizeHref: normalizeHref))
+    public convenience init(json: Any, warnings: WarningLogger? = nil) throws {
+        self.init(manifest: try Manifest(json: json, warnings: warnings))
     }
     
     /// Returns the Readium Web Publication Manifest as JSON.

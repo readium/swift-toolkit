@@ -36,6 +36,12 @@ extension Array {
             return removeFirst()
         }
     }
+    
+    @inlinable func appending(_ newElement: Element) -> Self {
+        var array = self
+        array.append(newElement)
+        return array
+    }
 
 }
 
@@ -54,4 +60,10 @@ extension Array where Element: Hashable {
         return result
     }
     
+    @inlinable func removing(_ element: Element) -> Self {
+        var array = self
+        array.removeAll { other in other == element }
+        return array
+    }
+
 }

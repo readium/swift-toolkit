@@ -45,6 +45,8 @@
 		CA2AE320221C1DCB008BD18F /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31D221C1DCB008BD18F /* Logger.swift */; };
 		CA2AE321221C1DCB008BD18F /* LoggerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31E221C1DCB008BD18F /* LoggerStub.swift */; };
 		CA2AE322221C1DCB008BD18F /* Loggable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE31F221C1DCB008BD18F /* Loggable.swift */; };
+		CA2B6B3F24BF7976007AF537 /* HREF.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2B6B3E24BF7976007AF537 /* HREF.swift */; };
+		CA2B6B4124BF7A1E007AF537 /* HREFTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2B6B4024BF7A1E007AF537 /* HREFTests.swift */; };
 		CA3386E12404FAD000FDCBBA /* Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3386E02404FACF00FDCBBA /* Encryption.swift */; };
 		CA3386E42404FD0300FDCBBA /* Properties+Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3386E32404FD0300FDCBBA /* Properties+Encryption.swift */; };
 		CA3386E62404FD4600FDCBBA /* Properties+EncryptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3386E52404FD4600FDCBBA /* Properties+EncryptionTests.swift */; };
@@ -222,6 +224,8 @@
 		CA2AE31D221C1DCB008BD18F /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		CA2AE31E221C1DCB008BD18F /* LoggerStub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoggerStub.swift; sourceTree = "<group>"; };
 		CA2AE31F221C1DCB008BD18F /* Loggable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Loggable.swift; sourceTree = "<group>"; };
+		CA2B6B3E24BF7976007AF537 /* HREF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HREF.swift; sourceTree = "<group>"; };
+		CA2B6B4024BF7A1E007AF537 /* HREFTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HREFTests.swift; sourceTree = "<group>"; };
 		CA3386E02404FACF00FDCBBA /* Encryption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Encryption.swift; sourceTree = "<group>"; };
 		CA3386E32404FD0300FDCBBA /* Properties+Encryption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Properties+Encryption.swift"; sourceTree = "<group>"; };
 		CA3386E52404FD4600FDCBBA /* Properties+EncryptionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Properties+EncryptionTests.swift"; sourceTree = "<group>"; };
@@ -378,6 +382,7 @@
 				57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */,
 				CA9A40D0221B0AA200531EA1 /* Either.swift */,
 				CA228D1224BCD55600879E2E /* File.swift */,
+				CA2B6B3E24BF7976007AF537 /* HREF.swift */,
 				CA9E6BA3223A657900ECF6E4 /* JSON.swift */,
 				CA2006502225A1F300E6B3BD /* Observable.swift */,
 				CA50B86D22B2A1CF003AFF24 /* R2LocalizedString.swift */,
@@ -487,6 +492,7 @@
 				CAE4DCAB24BB416F00611638 /* Extensions */,
 				CA7116EE2455935100C029FD /* DocumentTypesTests.swift */,
 				CA228D1424BCD78A00879E2E /* FileTests.swift */,
+				CA2B6B4024BF7A1E007AF537 /* HREFTests.swift */,
 				CA7B1AA6248A2D1200152F73 /* URITemplateTests.swift */,
 			);
 			path = Toolkit;
@@ -1046,6 +1052,7 @@
 				CAB88C92224E766E00D36C99 /* LocatorTests.swift in Sources */,
 				CA6F27722469DB980065B405 /* Resource.swift in Sources */,
 				CACD75E0223657AD004F20CA /* PublicationTests.swift in Sources */,
+				CA2B6B4124BF7A1E007AF537 /* HREFTests.swift in Sources */,
 				CA17637E223A7C0300959FEB /* Publication+EPUBTests.swift in Sources */,
 				CAE4DCAD24BB417D00611638 /* URLTests.swift in Sources */,
 				CABBB2FA2237CA94004EB039 /* OPDSAcquisitionTests.swift in Sources */,
@@ -1086,6 +1093,7 @@
 				CACDE6002485166B006FEB1B /* PerResourcePositionsService.swift in Sources */,
 				CA13517E248952B10087E69E /* NSRegularExpression.swift in Sources */,
 				CA228D1324BCD55600879E2E /* File.swift in Sources */,
+				CA2B6B3F24BF7976007AF537 /* HREF.swift in Sources */,
 				F3E7D4191F4EC69100DF166D /* RootFile.swift in Sources */,
 				CA16A85B2232C4E600E66255 /* LocalizedString.swift in Sources */,
 				CABE2A012482C6F2008E286D /* PositionsService.swift in Sources */,

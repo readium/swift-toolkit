@@ -30,6 +30,11 @@ extension Publication {
         )
     }
     
+    @available(*, unavailable, message: "Custom HREF normalization is not supported anymore", renamed: "init(json:)")
+    public convenience init(json: Any, warnings: WarningLogger? = nil, normalizeHref: (String) -> String = { $0 }) throws {
+        fatalError("Not available.")
+    }
+    
     @available(*, deprecated, renamed: "formatVersion")
     public var version: Double {
         guard let versionString = formatVersion,
@@ -74,9 +79,9 @@ extension Publication {
     @available(*, unavailable, renamed: "json")
     public var manifestCanonical: String { jsonManifest ?? "" }
     
-    @available(*, deprecated, renamed: "init(json:)")
+    @available(*, unavailable, renamed: "init(json:)")
     public static func parse(pubDict: [String: Any]) throws -> Publication {
-        return try Publication(json: pubDict, normalizeHref: { $0 })
+        fatalError("Not available")
     }
 
     @available(*, deprecated, renamed: "positions")

@@ -14,6 +14,8 @@ import XCTest
 
 class ManifestTests: XCTestCase {
     
+    let fixtures = Fixtures(path: "Publication")
+    
     func testParseMinimalJSON() {
         XCTAssertEqual(
             try? Manifest(json: [
@@ -171,6 +173,51 @@ class ManifestTests: XCTestCase {
                 resources: [Link(href: "/withtype", type: "text/html")]
             )
         )
+    }
+    
+    /// The `Link`s' hrefs are normalized to the `self` link for a RWPM.
+    func testHrefsAreNormalizedToSelfForManifests() {
+        let json: Any = fixtures.json(at: "flatland-href.json")
+        
+        XCTAssertEqual(
+            try Manifest(json: json, isPackaged: false).readingOrder.map { $0.href },
+            [
+                "http://www.archive.org/download/flatland_rg_librivox/flatland_1_abbott.mp3",
+                "https://readium.org/webpub-manifest/examples/Flatland/flatland_2_abbott.mp3",
+                "https://readium.org/webpub-manifest/examples/Flatland/directory/flatland_2_abbott.mp3",
+                "https://readium.org/flatland_3_abbott.mp3",
+                "https://readium.org/directory/flatland_4_abbott.mp3",
+                "https://readium.org/webpub-manifest/examples/flatland_5_abbott.mp3"
+            ]
+        )
+    }
+    
+    /// The `Link`s' hrefs are normalized to `/` for a package.
+    func testHrefsAreNormalizedToRootForPackages() {
+        let json: Any = fixtures.json(at: "flatland-href.json")
+
+        XCTAssertEqual(
+            try Manifest(json: json, isPackaged: true).readingOrder.map { $0.href },
+            [
+                "http://www.archive.org/download/flatland_rg_librivox/flatland_1_abbott.mp3",
+                "/flatland_2_abbott.mp3",
+                "/directory/flatland_2_abbott.mp3",
+                "/flatland_3_abbott.mp3",
+                "/directory/flatland_4_abbott.mp3",
+                "/../flatland_5_abbott.mp3"
+            ]
+        )
+    }
+    
+    /// The `Link` with `self` relation is converted to an `alternate` for a package.
+    func testSelfBecomesAlternateForPackages() throws {
+        let json: Any = fixtures.json(at: "flatland-href.json")
+        let manifest = try Manifest(json: json, isPackaged: true)
+        
+        XCTAssertNil(manifest.link(withRel: "self"))
+        XCTAssertEqual(manifest.links(withRel: "alternate"), [
+            Link(href: "https://readium.org/webpub-manifest/examples/Flatland/manifest.json", type: "application/audiobook+json", rels: ["other", "alternate"])
+        ])
     }
     
     func testGetMinimalJSON() {
