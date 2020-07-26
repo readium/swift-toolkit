@@ -28,11 +28,13 @@ public protocol LCPService {
     ///
     /// - Returns: The download progress value as an `Observable`, from 0.0 to 1.0.
     @discardableResult
-    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, sender: Any?, completion: @escaping (Result<LCPImportedPublication?, LCPError>) -> Void) -> Observable<DownloadProgress>
+    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, sender: Any?, completion: @escaping (CancellableResult<LCPImportedPublication, LCPError>) -> Void) -> Observable<DownloadProgress>
     
     /// Opens the LCP license of a protected publication, to access its DRM metadata and decipher
     /// its content.
-    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, sender: Any?, completion: @escaping (Result<LCPLicense?, LCPError>) -> Void) -> Void
+    ///
+    /// Returns `nil` if the publication is not protected with LCP.
+    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, sender: Any?, completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void) -> Void
     
     /// Creates a `ContentProtection` instance which can be used with a `Streamer` to unlock
     /// LCP protected publications.
@@ -43,11 +45,11 @@ public protocol LCPService {
 public extension LCPService {
     
     @discardableResult
-    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, completion: @escaping (Result<LCPImportedPublication?, LCPError>) -> Void) -> Observable<DownloadProgress> {
+    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, completion: @escaping (CancellableResult<LCPImportedPublication, LCPError>) -> Void) -> Observable<DownloadProgress> {
         return importPublication(from: lcpl, authentication: authentication, sender: nil, completion: completion)
     }
     
-    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, completion: @escaping (Result<LCPLicense?, LCPError>) -> Void) -> Void {
+    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void) -> Void {
         return retrieveLicense(from: publication, authentication: authentication, sender: nil, completion: completion)
     }
     

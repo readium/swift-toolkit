@@ -51,7 +51,7 @@ final class DeviceService {
     /// If the call was made, the updated Status Document data is given to the completion closure.
     @discardableResult
     func registerLicense(_ license: LicenseDocument, at link: Link) -> Deferred<Data?, Error> {
-        return deferred {
+        return deferredCatching {
             let registered = try self.repository.isDeviceRegistered(for: license)
             guard !registered else {
                 return .success(nil)

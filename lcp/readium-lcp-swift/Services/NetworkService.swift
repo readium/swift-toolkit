@@ -23,7 +23,7 @@ final class NetworkService: Loggable {
     }
     
     func fetch(_ url: URL, method: Method = .get, timeout: TimeInterval? = nil) -> Deferred<(status: Int, data: Data), Error> {
-        return deferred { success, failure in
+        return deferred { success, failure, _ in
             self.log(.info, "\(method.rawValue) \(url)")
     
             var request = URLRequest(url: url)
@@ -34,11 +34,12 @@ final class NetworkService: Loggable {
             }
     
             URLSession.shared.dataTask(with: request) { (data, response, error) in
-                guard let status = (response as? HTTPURLResponse)?.statusCode,
-                    let data = data
-                    else {
-                        failure(LCPError.network(error))
-                        return
+                guard
+                    let status = (response as? HTTPURLResponse)?.statusCode,
+                    let data = data else
+                {
+                    failure(LCPError.network(error))
+                    return
                 }
     
                 success((status, data))

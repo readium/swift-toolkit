@@ -28,6 +28,7 @@
 		CAB1321F220DBA470097DFB5 /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB1321E220DBA470097DFB5 /* NetworkService.swift */; };
 		CAB214E12269C241007E989D /* prod-license.lcpl in Resources */ = {isa = PBXBuildFile; fileRef = CAB214E02269C241007E989D /* prod-license.lcpl */; };
 		CAB57BC12204811100E4CB12 /* LicensesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB57BC02204811100E4CB12 /* LicensesService.swift */; };
+		CABD697D24CDDC6100B4AE17 /* Deferred.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABD697C24CDDC6100B4AE17 /* Deferred.swift */; };
 		CABEB3E32215756D00090B6C /* Links.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABEB3E22215756D00090B6C /* Links.swift */; };
 		CABEB3F62215C86C00090B6C /* LCPError+wrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABEB3F52215C86C00090B6C /* LCPError+wrap.swift */; };
 		CAE7FB7A220C2E6F00D03587 /* LicenseValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE7FB79220C2E6F00D03587 /* LicenseValidation.swift */; };
@@ -76,6 +77,7 @@
 		CAB1321E220DBA470097DFB5 /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
 		CAB214E02269C241007E989D /* prod-license.lcpl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "prod-license.lcpl"; sourceTree = "<group>"; };
 		CAB57BC02204811100E4CB12 /* LicensesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensesService.swift; sourceTree = "<group>"; };
+		CABD697C24CDDC6100B4AE17 /* Deferred.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deferred.swift; sourceTree = "<group>"; };
 		CABEB3E22215756D00090B6C /* Links.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Links.swift; sourceTree = "<group>"; };
 		CABEB3F52215C86C00090B6C /* LCPError+wrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LCPError+wrap.swift"; sourceTree = "<group>"; };
 		CAE7FB79220C2E6F00D03587 /* LicenseValidation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseValidation.swift; sourceTree = "<group>"; };
@@ -131,6 +133,7 @@
 			children = (
 				CA50B87F22B2A777003AFF24 /* R2LCPLocalizedString.swift */,
 				CA2B6B5524C07B8C007AF537 /* DataCompression.swift */,
+				CABD697C24CDDC6100B4AE17 /* Deferred.swift */,
 			);
 			path = Toolkit;
 			sourceTree = "<group>";
@@ -394,6 +397,7 @@
 				F38FB03C1F6683F300F9D602 /* UserKey.swift in Sources */,
 				CA4A388C2209873B00599297 /* LicenseContainer.swift in Sources */,
 				F3B2C8AB1F66727C007601E4 /* LCPError.swift in Sources */,
+				CABD697D24CDDC6100B4AE17 /* Deferred.swift in Sources */,
 				CAB1320B220D9B200097DFB5 /* LCPService.swift in Sources */,
 				F3B2C8AA1F66727C007601E4 /* Event.swift in Sources */,
 				CAB13211220DB2B10097DFB5 /* LCPAuthenticating.swift in Sources */,

@@ -34,9 +34,23 @@ final class LicensesService: Loggable {
         self.network = network
         self.passphrases = passphrases
     }
+    
+    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, sender: Any?) -> Deferred<LCPLicense?, LCPError> {
+        return makeLicenseContainer(for: publication)
+            .flatMap { container in
+                guard let container = container, container.containsLicense() else {
+                    // Not protected with LCP
+                    return .success(nil)
+                }
 
-    fileprivate func retrieveLicense(from container: LicenseContainer, authentication: LCPAuthenticating?, sender: Any?) -> Deferred<License?, Error> {
-        return deferred {
+                return self.retrieveLicense(from: container, authentication: authentication, sender: sender)
+                    .map { $0 as LCPLicense }
+                    .mapError(LCPError.wrap)
+            }
+    }
+
+    fileprivate func retrieveLicense(from container: LicenseContainer, authentication: LCPAuthenticating?, sender: Any?) -> Deferred<License, Error> {
+        return deferredCatching(on: .global(qos: .background)) {
             let initialData = try container.read()
             
             func onLicenseValidated(of license: LicenseDocument) throws {
@@ -63,14 +77,12 @@ final class LicensesService: Loggable {
 
             return validation.validate(.license(initialData))
                 .mapCatching { documents in
-                    return try documents.map {
-                        // Check the license status error if there's any
-                        // Note: Right now we don't want to return a License if it fails the Status check, that's why we attempt to get the DRM context. But it could change if we want to access, for example, the License metadata or perform an LSD interaction, but without being able to decrypt the book. In which case, we could remove this line.
-                        // Note2: The License already gets in this state when we perform a `return` successfully. We can't decrypt anymore but we still have access to the License Documents and LSD interactions.
-                        _ = try $0.getContext()
-    
-                        return License(documents: $0, validation: validation, licenses: self.licenses, device: self.device, network: self.network)
-                    }
+                    // Check the license status error if there's any
+                    // Note: Right now we don't want to return a License if it fails the Status check, that's why we attempt to get the DRM context. But it could change if we want to access, for example, the License metadata or perform an LSD interaction, but without being able to decrypt the book. In which case, we could remove this line.
+                    // Note2: The License already gets in this state when we perform a `return` successfully. We can't decrypt anymore but we still have access to the License Documents and LSD interactions.
+                    _ = try documents.getContext()
+
+                    return License(documents: documents, validation: validation, licenses: self.licenses, device: self.device, network: self.network)
                 }
         }
     }
@@ -79,16 +91,11 @@ final class LicensesService: Loggable {
 
 extension LicensesService: LCPService {
 
-    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, sender: Any?, completion: @escaping (Result<LCPImportedPublication?, LCPError>) -> Void) -> Observable<DownloadProgress> {
+    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, sender: Any?, completion: @escaping (CancellableResult<LCPImportedPublication, LCPError>) -> Void) -> Observable<DownloadProgress> {
         let progress = MutableObservable<DownloadProgress>(.infinite)
         let container = LCPLLicenseContainer(lcpl: lcpl)
         retrieveLicense(from: container, authentication: authentication, sender: sender)
-            .asyncMap { (license, completion: (@escaping (Result<LCPImportedPublication?, Error>) -> Void)) in
-                guard let license = license else {
-                    completion(.success(nil))
-                    return
-                }
-                
+            .asyncMap { (license, completion: (@escaping (CancellableResult<LCPImportedPublication, Error>) -> Void)) in
                 let downloadProgress = license.fetchPublication { result in
                     progress.value = .infinite
                     switch result {
@@ -109,16 +116,9 @@ extension LicensesService: LCPService {
         return progress
     }
     
-    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, sender: Any?, completion: @escaping (Result<LCPLicense?, LCPError>) -> Void) {
-        do {
-            let container = try makeLicenseContainer(for: publication)
-            retrieveLicense(from: container, authentication: authentication, sender: sender)
-                .map { $0 as LCPLicense? }
-                .mapError(LCPError.wrap)
-                .resolve(completion)
-        } catch {
-            completion(.failure(LCPError.wrap(error)))
-        }
+    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, sender: Any?, completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void) {
+        retrieveLicense(from: publication, authentication: authentication, sender: sender)
+            .resolve(completion)
     }
     
     func contentProtection(with authentication: LCPAuthenticating) -> ContentProtection {

@@ -24,6 +24,13 @@ class ZIPLicenseContainer: LicenseContainer {
         self.pathInZIP = pathInZIP
     }
     
+    func containsLicense() -> Bool {
+        guard let archive = Archive(url: zip, accessMode: .read) else {
+            return false
+        }
+        return archive[pathInZIP] != nil
+    }
+    
     func read() throws -> Data {
         guard let archive = Archive(url: zip, accessMode: .read) else  {
             throw LCPError.licenseContainer(.openFailed)

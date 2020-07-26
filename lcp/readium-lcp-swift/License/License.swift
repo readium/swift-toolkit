@@ -34,7 +34,7 @@ final class License: Loggable {
         self.network = network
 
         validation.observe { [weak self] result in
-            if let documents = try? result.get() {
+            if case .success(let documents) = result {
                 self?.documents = documents
             }
         }
@@ -176,7 +176,7 @@ extension License: LCPLicense {
                 throw LCPError.licenseInteractionNotAvailable
             }
             
-            return deferred { success, _ in present(url, { success(()) }) }
+            return deferred { success, _, _ in present(url, { success(()) }) }
                 .flatMap { _ in
                     // We fetch the Status Document again after the HTML interaction is done, in case it changed the License.
                     self.network.fetch(statusURL)
@@ -189,7 +189,7 @@ extension License: LCPLicense {
                 }
         }
 
-        deferred {
+        deferredCatching {
             var params = self.device.asQueryParameters
             if let end = end {
                 params["end"] = end.iso8601
@@ -260,24 +260,26 @@ extension License {
             return self.network.download(url, title: link?.title) { result in
                 switch result {
                 case .success(let (downloadedFile, task)):
-                    do {
-                        var mimetypes: [String] = []
-                        if let responseMimetype = task?.response?.mimeType {
-                            mimetypes.append(responseMimetype)
-                        }
-                        if let linkType = link?.type {
-                            mimetypes.append(linkType)
-                        }
-                        
-                        // Saves the License Document into the downloaded publication
-                        let container = try makeLicenseContainer(for: downloadedFile, mimetypes: mimetypes)
-                        try container.write(license)
-                        completion(.success((downloadedFile, task)))
-                        
-                    } catch {
-                        completion(.failure(error))
+                    var mimetypes: [String] = []
+                    if let responseMimetype = task?.response?.mimeType {
+                        mimetypes.append(responseMimetype)
                     }
-                    
+                    if let linkType = link?.type {
+                        mimetypes.append(linkType)
+                    }
+
+                    // Saves the License Document into the downloaded publication
+                    makeLicenseContainer(for: downloadedFile, mimetypes: mimetypes)
+                        .mapCatching(on: .global(qos: .background)) { container -> (URL, URLSessionDownloadTask?) in
+                            guard let container = container else {
+                                throw LCPError.licenseContainer(.openFailed)
+                            }
+
+                            try container.write(license)
+                            return (downloadedFile, task)
+                        }
+                        .resolve { completion($0.result) }
+
                 case .failure(let error):
                     completion(.failure(error))
                 }

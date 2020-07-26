@@ -93,7 +93,7 @@ final class LicenseValidation: Loggable {
     
     /// Validates the given License or Status Document.
     /// If a validation is already running, `LCPError.licenseIsBusy` will be reported.
-    func validate(_ document: Document) -> Deferred<ValidatedDocuments?, Error> {
+    func validate(_ document: Document) -> Deferred<ValidatedDocuments, Error> {
         let event: Event
         switch document {
         case .license(let data):
@@ -365,12 +365,7 @@ extension LicenseValidation {
     
     private func requestPassphrase(for license: LicenseDocument) {
         passphrases.request(for: license, authentication: authentication, sender: sender)
-            .map { passphrase -> Event in
-                guard let passphrase = passphrase else {
-                    return .cancelled
-                }
-                return .retrievedPassphrase(passphrase)
-            }
+            .map { .retrievedPassphrase($0) }
             .resolve(raise)
     }
     
@@ -402,7 +397,7 @@ extension LicenseValidation {
             switch state {
             case .start:
                 // We are back to start? It means the validation was cancelled by the user.
-                notifyObservers(.success(nil))
+                notifyObservers(.cancelled)
             case let .validateLicense(data, _):
                 try validateLicense(data: data)
             case let .fetchStatus(license):
@@ -431,7 +426,7 @@ extension LicenseValidation {
     
     /// Syntactic sugar to raise either the given event, or an error wrapped as an Event.failed.
     /// Can be used to resolve a Deferred<Event, Error>.
-    fileprivate func raise(_ result: Result<Event, Error>) {
+    fileprivate func raise(_ result: CancellableResult<Event, Error>) {
         switch result {
         case .success(let event):
             do {
@@ -441,6 +436,8 @@ extension LicenseValidation {
             }
         case .failure(let error):
             try? raise(.failed(error))
+        case .cancelled:
+            try? raise(Event.cancelled)
         }
     }
 
@@ -450,7 +447,7 @@ extension LicenseValidation {
 /// Validation observers
 extension LicenseValidation {
     
-    typealias Observer = (Result<ValidatedDocuments?, Error>) -> Void
+    typealias Observer = (CancellableResult<ValidatedDocuments, Error>) -> Void
     
     enum ObserverPolicy {
         // The observer is automatically removed when called.
@@ -460,8 +457,8 @@ extension LicenseValidation {
     }
     
     /// Observes the validation occured after raising the given event.
-    fileprivate func observe(raising event: Event) -> Deferred<ValidatedDocuments?, Error> {
-        return deferred { completion in
+    fileprivate func observe(raising event: Event) -> Deferred<ValidatedDocuments, Error> {
+        return deferredCatching(on: .main) { completion in
             try self.raise(event)
             self.observe(.once, completion)
         }
@@ -485,7 +482,7 @@ extension LicenseValidation {
         self.observers.append((observer, policy))
     }
     
-    private func notifyObservers(_ result: Result<ValidatedDocuments?, Error>) {
+    private func notifyObservers(_ result: CancellableResult<ValidatedDocuments, Error>) {
         for observer in observers {
             observer.callback(result)
         }

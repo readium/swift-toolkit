@@ -29,13 +29,8 @@ final class LCPContentProtection: ContentProtection {
         allowUserInteraction: Bool,
         sender: Any?,
         onAskCredentials: OnAskCredentials?,
-        completion: @escaping (Result<ProtectedFile?, Publication.OpeningError>) -> Void)
+        completion: @escaping (CancellableResult<ProtectedFile?, Publication.OpeningError>) -> Void)
     {
-        guard file.format?.mediaType.isLCPProtected == true else {
-            completion(.success(nil))
-            return
-        }
-        
         service.retrieveLicense(
             from: file.url,
             authentication: (allowUserInteraction || !authentication.requiresUserInteraction) ? authentication : nil,
@@ -43,24 +38,36 @@ final class LCPContentProtection: ContentProtection {
         ) { result in
             switch result {
             case .success(let license):
-                let protectedFile = ProtectedFile(
-                    file: file,
-                    fetcher: TransformingFetcher(
-                        fetcher: fetcher,
-                        transformer: LCPDecryptor(license: license).decrypt(resource:)
-                    ),
-                    onCreatePublication: { _, _, _, services in
-                        services.setContentProtectionServiceFactory { _ in
-                            LCPContentProtectionService(license: license)
-                        }
-                    }
-                )
-                completion(.success(protectedFile))
+                guard let license = license else {
+                    // Not protected with LCP.
+                    completion(.success(nil))
+                    return
+                }
+                completion(.success(self.makeProtectedFile(file: file, fetcher: fetcher, license: license)))
                 
             case .failure(let error):
                 completion(.failure(.wrap(error)))
+                
+            case .cancelled:
+                completion(.success(self.makeProtectedFile(file: file, fetcher: fetcher, license: nil)))
             }
         }
+    }
+    
+    /// If the `license` is nil, we open the `Publication` in a restricted state.
+    private func makeProtectedFile(file: File, fetcher: Fetcher, license: LCPLicense?) -> ProtectedFile {
+        return ProtectedFile(
+            file: file,
+            fetcher: TransformingFetcher(
+                fetcher: fetcher,
+                transformer: LCPDecryptor(license: license).decrypt(resource:)
+            ),
+            onCreatePublication: { _, _, _, services in
+                services.setContentProtectionServiceFactory { _ in
+                    LCPContentProtectionService(license: license)
+                }
+            }
+        )
     }
 
 }
@@ -82,7 +89,7 @@ private extension Publication.OpeningError {
 
 private final class LCPContentProtectionService: ContentProtectionService {
     
-    private let license: LCPLicense?
+    let license: LCPLicense?
     
     init(license: LCPLicense?) {
         self.license = license
@@ -100,4 +107,13 @@ private final class LCPContentProtectionService: ContentProtectionService {
         LocalizedString.nonlocalized("Readium LCP")
     }
 
+}
+
+public extension Publication {
+    
+    /// Indicates whether this `Publication` is protected by a Content Protection technology.
+    var lcpLicense: LCPLicense? {
+        findService(LCPContentProtectionService.self)?.license
+    }
+    
 }
