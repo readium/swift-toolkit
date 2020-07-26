@@ -13,7 +13,7 @@ import Foundation
 import R2Shared
 
 /// Opens a `Publication` using a list of parsers.
-public final class Streamer {
+public final class Streamer: Loggable {
     
     /// Creates the default parsers provided by Readium.
     public static func makeDefaultParsers() -> [PublicationParser] {
@@ -90,8 +90,10 @@ public final class Streamer {
     ///   - sender: Free object that can be used by reading apps to give some UX context when
     ///     presenting dialogs.
     ///   - warnings: Logger used to broadcast non-fatal parsing warnings.
-    public func open(file: File, allowUserInteraction: Bool, fallbackTitle: String? = nil, credentials: String? = nil, sender: Any? = nil, warnings: WarningLogger? = nil, completion: @escaping (CancelableResult<Publication, Publication.OpeningError>) -> Void) {
+    public func open(file: File, allowUserInteraction: Bool, fallbackTitle: String? = nil, credentials: String? = nil, sender: Any? = nil, warnings: WarningLogger? = nil, completion: @escaping (CancellableResult<Publication, Publication.OpeningError>) -> Void) {
         let fallbackTitle = fallbackTitle ?? file.name
+        
+        log(.info, "Open \(file.url.lastPathComponent)")
 
         return createFetcher(for: file, allowUserInteraction: allowUserInteraction, password: credentials, sender: sender)
             .flatMap { fetcher in
@@ -102,9 +104,7 @@ public final class Streamer {
                 // Parses the Publication using the parsers.
                 self.parsePublication(from: file, fallbackTitle: fallbackTitle, warnings: warnings)
             }
-            .resolve(on: .main) {
-                completion(CancelableResult($0))
-            }
+            .resolve(on: .main, completion)
     }
     
     /// Creates the leaf fetcher which will be passed to the content protections and parsers.
@@ -134,12 +134,12 @@ public final class Streamer {
     
     /// Prompts the user for a password.
     private func askPassword(sender: Any?) -> Deferred<String?, Publication.OpeningError> {
-        return deferred(on: .main) { success, failure in
+        return deferred(on: .main) { success, _, cancel in
             self.onAskCredentials(sender) { password in
                 if let password = password {
                     success(password)
                 } else {
-                    success(nil)
+                    cancel()
                 }
             }
         }
@@ -174,7 +174,7 @@ public final class Streamer {
     }
     
     /// Parses the `Publication` from the provided file and the `parsers`.
-    private func parsePublication(from file: PublicationFile, fallbackTitle: String, warnings: WarningLogger?) -> Deferred<Publication?, Publication.OpeningError> {
+    private func parsePublication(from file: PublicationFile, fallbackTitle: String, warnings: WarningLogger?) -> Deferred<Publication, Publication.OpeningError> {
         return deferred(on: .global(qos: .userInitiated)) {
             var parsers = self.parsers
             var parsedBuilder: Publication.Builder?
