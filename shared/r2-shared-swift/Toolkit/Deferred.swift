@@ -48,14 +48,13 @@ import Foundation
 ///         .map(processThing)  // Thrown errors are automatically forwarded
 ///         .resolve(completion)  // If you don't call resolve nothing is executed, unlike Promises which are eager.
 ///
-/// To keep things simple, almost every closure allows Error to be thrown. Deferred will
-/// automatically catch and forward them. You can then recover from the error using `catch`, or
-/// process it in `resolve`.
+/// `Deferred` uses internally `CancellableResult`, which means that the result can be in a
+///  cancelled state, which is convenient for asynchronous APIs.
 public final class Deferred<Success, Failure: Error> {
     
-    /// Traditional completion closure signature, with a `Result` object.
-    public typealias Completion = (Result<Success, Failure>) -> Void
-    public typealias NewCompletion<NewSuccess, NewFailure: Error> = (Result<NewSuccess, NewFailure>) -> Void
+    /// Traditional completion closure signature, with a `CancelableResult` object.
+    public typealias Completion = (CancellableResult<Success, Failure>) -> Void
+    public typealias NewCompletion<NewSuccess, NewFailure: Error> = (CancellableResult<NewSuccess, NewFailure>) -> Void
 
     private let closure: (@escaping Completion) -> Void
     
@@ -84,6 +83,11 @@ public final class Deferred<Success, Failure: Error> {
     public class func failure(_ error: Failure) -> Self {
         return Self { $0(.failure(error)) }
     }
+    
+    /// Shortcut to build a Deferred from a cancellation.
+    ///
+    /// Can be useful to return early a value in a `.flatMap` or `deferred { ... }` construct.
+    public class var cancelled: Self { Self { $0(.cancelled) } }
 
     /// Fires the deferred closure to resolve its value and forward it to the given traditional
     /// completion closure.
@@ -91,12 +95,14 @@ public final class Deferred<Success, Failure: Error> {
     /// To keep things simple, this can only be called once since the value is not cached.
     /// The completion block is systematically dispatched asynchronously on the given queue (default
     /// is the main thread), to avoid temporal coupling at the calling site.
-    public func resolve(on completionQueue: DispatchQueue = .main, _ completion: @escaping Completion = { _ in }) {
+    public func resolve(on completionQueue: DispatchQueue? = .main, _ completion: @escaping Completion = { _ in }) {
         assert(!resolved, "Deferred doesn't cache the closure's value. It must only be called once.")
         resolved = true
-        
+
         let completionOnQueue: Completion = { result in
-            completionQueue.async {
+            if let completionQueue = completionQueue {
+                completionQueue.async { completion(result) }
+            } else {
                 completion(result)
             }
         }
@@ -113,16 +119,18 @@ public final class Deferred<Success, Failure: Error> {
     ///     .map { user in
     ///        "Hello, \(user.name)"
     ///     }
-    public func map<NewSuccess>(_ transform: @escaping (Success) -> NewSuccess) -> Deferred<NewSuccess, Failure> {
+    public func map<NewSuccess>(on queue: DispatchQueue? = nil, _ transform: @escaping (Success) -> NewSuccess) -> Deferred<NewSuccess, Failure> {
         return map(
+            on: queue,
             success: { val, compl in compl(.success(transform(val))) },
             failure: { err, compl in compl(.failure(err)) }
         )
     }
 
     /// Transforms the value synchronously, catching any error.
-    public func mapCatching<NewSuccess>(_ transform: @escaping (Success) throws -> NewSuccess) -> Deferred<NewSuccess, Error> {
+    public func mapCatching<NewSuccess>(on queue: DispatchQueue? = nil, _ transform: @escaping (Success) throws -> NewSuccess) -> Deferred<NewSuccess, Error> {
         return map(
+            on: queue,
             success: { val, compl in
                 do {
                     compl(.success(try transform(val)))
@@ -141,22 +149,45 @@ public final class Deferred<Success, Failure: Error> {
     ///     .flatMap { val in
     ///        asyncOperation(val)
     ///     }
-    public func flatMap<NewSuccess>(_ transform: @escaping (Success) -> Deferred<NewSuccess, Failure>) -> Deferred<NewSuccess, Failure> {
+    public func flatMap<NewSuccess>(on queue: DispatchQueue? = nil, _ transform: @escaping (Success) -> Deferred<NewSuccess, Failure>) -> Deferred<NewSuccess, Failure> {
         return map(
+            on: queue,
             success: { val, compl in transform(val).resolve(compl) },
+            failure: { err, compl in compl(.failure(err)) }
+        )
+    }
+
+    /// Transforms the value asynchronously, through a nested Deferred, which may throw an error.
+    ///
+    ///     func asyncOperation(value: Int) throws -> Deferred<String>
+    ///
+    ///     .flatMapCatching { val in
+    ///        try asyncOperation(val)
+    ///     }
+    public func flatMapCatching<NewSuccess>(on queue: DispatchQueue? = nil, _ transform: @escaping (Success) throws -> Deferred<NewSuccess, Error>) -> Deferred<NewSuccess, Error> {
+        return map(
+            on: queue,
+            success: { val, compl in
+                do {
+                    try transform(val).resolve(compl)
+                } catch {
+                    compl(.failure(error))
+                }
+            },
             failure: { err, compl in compl(.failure(err)) }
         )
     }
     
     /// Transforms the value through a traditional completion-based asynchronous function.
     ///
-    ///     func traditionalAsync(value: Int, _ completion: @escaping (Result<String, Error>) -> Void) throws { ... }
+    ///     func traditionalAsync(value: Int, _ completion: @escaping (CancelableResult<String, Error>) -> Void) throws { ... }
     ///
     ///     .asyncMap { val, completion in
     ///        traditionalAsync(value: val, completion)
     ///     }
-    public func asyncMap<NewSuccess>(_ transform: @escaping (Success, @escaping NewCompletion<NewSuccess, Failure>) -> Void) -> Deferred<NewSuccess, Failure> {
+    public func asyncMap<NewSuccess>(on queue: DispatchQueue? = nil, _ transform: @escaping (Success, @escaping NewCompletion<NewSuccess, Failure>) -> Void) -> Deferred<NewSuccess, Failure> {
         return map(
+            on: queue,
             success: { val, compl in transform(val, compl) },
             failure: { err, compl in compl(.failure(err)) }
         )
@@ -173,8 +204,9 @@ public final class Deferred<Success, Failure: Error> {
     ///        }
     ///        traditionalAsync(value: val, completion)
     ///     }
-    public func asyncMapCatching<NewSuccess>(_ transform: @escaping (Success, @escaping NewCompletion<NewSuccess, Error>) throws -> Void) -> Deferred<NewSuccess, Error> {
+    public func asyncMapCatching<NewSuccess>(on queue: DispatchQueue? = nil, _ transform: @escaping (Success, @escaping NewCompletion<NewSuccess, Error>) throws -> Void) -> Deferred<NewSuccess, Error> {
         return map(
+            on: queue,
             success: { val, compl in
                 do {
                     try transform(val, compl)
@@ -196,26 +228,42 @@ public final class Deferred<Success, Failure: Error> {
     ///        }
     ///        throw error
     ///     }
-    public func `catch`(_ recover: @escaping (Failure) -> Result<Success, Failure>) -> Deferred<Success, Failure> {
+    public func `catch`(on queue: DispatchQueue? = nil, _ recover: @escaping (Failure) -> CancellableResult<Success, Failure>) -> Deferred<Success, Failure> {
         return map(
+            on: queue,
             success: { val, compl in compl(.success(val)) },
             failure: { err, compl in compl(recover(err)) }
         )
     }
 
     /// Same as `catch`, but attempts to recover asynchronously, by returning a new Deferred object.
-    public func flatCatch(_ recover: @escaping (Failure) -> Deferred<Success, Failure>) -> Deferred<Success, Failure> {
+    public func flatCatch(on queue: DispatchQueue? = nil, _ recover: @escaping (Failure) -> Deferred<Success, Failure>) -> Deferred<Success, Failure> {
         return map(
+            on: queue,
             success: { val, compl in compl(.success(val)) },
             failure: { err, compl in recover(err).resolve(compl) }
         )
     }
     
     /// Returns a new `Deferred`, mapping any failure value using the given transformation.
-    public func mapError<NewFailure>(_ transform: @escaping (Failure) -> NewFailure) -> Deferred<Success, NewFailure> {
+    public func mapError<NewFailure>(on queue: DispatchQueue? = nil, _ transform: @escaping (Failure) -> NewFailure) -> Deferred<Success, NewFailure> {
         return map(
+            on: queue,
             success: { val, compl in compl(.success(val)) },
             failure: { err, compl in compl(.failure(transform(err))) }
+        )
+    }
+    
+    /// Performs the given `block` once the `Deferred` is successfully resolved, without changing
+    /// its result.
+    public func also(on queue: DispatchQueue? = nil, _ block: @escaping (Success) -> ()) -> Deferred<Success, Failure> {
+        return map(
+            on: queue,
+            success: { val, compl in
+                block(val)
+                return compl(.success(val))
+            },
+            failure: { err, compl in compl(.failure(err)) }
         )
     }
     
@@ -226,47 +274,41 @@ public final class Deferred<Success, Failure: Error> {
     /// To add new mapping functions, first figure out the typed signature and then the
     /// implementation should flow naturally from available values, thanks to the type checker.
     private func map<NewSuccess, NewFailure>(
+        on queue: DispatchQueue? = nil,
         success: @escaping (Success, @escaping NewCompletion<NewSuccess, NewFailure>) -> Void,
-        failure: @escaping (Failure, @escaping NewCompletion<NewSuccess, NewFailure>) -> Void
+        failure: @escaping (Failure, @escaping NewCompletion<NewSuccess, NewFailure>) -> Void,
+        cancelled: @escaping (@escaping NewCompletion<NewSuccess, NewFailure>) -> Void = { $0(.cancelled) }
     ) -> Deferred<NewSuccess, NewFailure> {
         return Deferred<NewSuccess, NewFailure> { completion in
-            self.resolve { result in
+            self.resolve(on: queue) { result in
                 switch result {
                 case .success(let value):
                     success(value, completion)
                 case .failure(let error):
                     failure(error, completion)
+                case .cancelled:
+                    cancelled(completion)
                 }
             }
         }
     }
 
-}
-
-extension Deferred where Success == Void {
-    
-    public func resolveWithError(on queue: DispatchQueue = .main, _ completion: @escaping ((Failure?) -> Void)) {
-        resolve(on: queue, { result in
-            switch result {
-            case .success(_):
-                completion(nil)
-            case .failure(let error):
-                completion(error)
-            }
-        })
+    /// Returns a `Deferred` with the same value, but typed with a generic `Error`.
+    public func eraseToAnyError() -> Deferred<Success, Error> {
+        mapError { $0 as Error }
     }
-    
+
 }
 
 /// Constructs a Deferred from a closure taking a traditional completion block to return its
 /// result.
 ///
-///     func traditionalAsync(_ completion: @escaping (Result<String, Error>) -> Void) { ... }
+///     func traditionalAsync(_ completion: @escaping (CancelableResult<String, Error>) -> Void) { ... }
 ///
 ///     deferred { completion in
 ///         traditionalAsync(completion)
 ///     }
-public func deferred<Success, Failure: Error>(on queue: DispatchQueue? = nil, _ closure: @escaping (@escaping Deferred<Success, Failure>.Completion) -> Void) -> Deferred<Success, Failure> {
+public func deferred<Success, Failure: Error>(on queue: DispatchQueue? = nil, closure: @escaping (@escaping Deferred<Success, Failure>.Completion) -> Void) -> Deferred<Success, Failure> {
     return Deferred(on: queue, closure)
 }
 
@@ -274,7 +316,7 @@ public func deferred<Success, Failure: Error>(on queue: DispatchQueue? = nil, _ 
 /// result.
 ///
 /// Any thrown error is caught and wrapped in a result.
-public func deferred<Success>(on queue: DispatchQueue? = nil, catching closure: @escaping (@escaping Deferred<Success, Error>.Completion) throws -> Void) -> Deferred<Success, Error> {
+public func deferredCatching<Success>(on queue: DispatchQueue? = nil, closure: @escaping (@escaping Deferred<Success, Error>.Completion) throws -> Void) -> Deferred<Success, Error> {
     return Deferred(on: queue) { completion in
         do {
             try closure(completion)
@@ -303,7 +345,7 @@ public func deferred<Success>(on queue: DispatchQueue? = nil, catching closure: 
 ///                 }
 ///         }
 ///     }
-public func deferred<Success, Failure>(on queue: DispatchQueue? = nil, _ closure: @escaping () -> Deferred<Success, Failure>) -> Deferred<Success, Failure> {
+public func deferred<Success, Failure>(on queue: DispatchQueue? = nil, closure: @escaping () -> Deferred<Success, Failure>) -> Deferred<Success, Failure> {
     return Deferred(on: queue) { completion in
         closure().resolve(completion)
     }
@@ -312,7 +354,7 @@ public func deferred<Success, Failure>(on queue: DispatchQueue? = nil, _ closure
 /// Constructs a Deferred by wrapping another Deferred.
 ///
 /// Any thrown error is caught and wrapped in a result.
-public func deferred<Success>(on queue: DispatchQueue? = nil, catching closure: @escaping () throws -> Deferred<Success, Error>) -> Deferred<Success, Error> {
+public func deferredCatching<Success>(on queue: DispatchQueue? = nil, closure: @escaping () throws -> Deferred<Success, Error>) -> Deferred<Success, Error> {
     return Deferred(on: queue) { completion in
         do {
             try closure().resolve(completion)
@@ -322,10 +364,10 @@ public func deferred<Success>(on queue: DispatchQueue? = nil, catching closure: 
     }
 }
 
-/// Constructs a Deferred in a Promise style with two completion closures: one for the success
-/// and one for the failure.
+/// Constructs a Deferred in a Promise style with three completion closures: one for the success,
+/// one for the failure and one for cancellation.
 ///
-///     Deferred<Data> { success, failure in
+///     Deferred<Data> { success, failure, cancel in
 ///         fetch(input) { response in
 ///             guard response.status == 200 else {
 ///                 failure(Error.failed)
@@ -334,11 +376,12 @@ public func deferred<Success>(on queue: DispatchQueue? = nil, catching closure: 
 ///             success(response.data)
 ///         }
 ///     }
-public func deferred<Success, Failure>(on queue: DispatchQueue? = nil, _ closure: @escaping (@escaping (Success) -> Void, @escaping (Failure) -> Void) -> Void) -> Deferred<Success, Failure> {
+public func deferred<Success, Failure>(on queue: DispatchQueue? = nil, closure: @escaping (@escaping (Success) -> Void, @escaping (Failure) -> Void, @escaping () -> Void) -> Void) -> Deferred<Success, Failure> {
     return Deferred(on: queue) { completion in
         closure(
             { completion(.success($0)) },
-            { completion(.failure($0)) }
+            { completion(.failure($0)) },
+            { completion(.cancelled) }
         )
     }
 }

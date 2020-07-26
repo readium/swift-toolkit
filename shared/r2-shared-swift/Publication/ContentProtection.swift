@@ -41,7 +41,7 @@ public protocol ContentProtection {
         allowUserInteraction: Bool,
         sender: Any?,
         onAskCredentials: OnAskCredentials?,
-        completion: @escaping (Result<ProtectedFile?, Publication.OpeningError>) -> Void
+        completion: @escaping (CancellableResult<ProtectedFile?, Publication.OpeningError>) -> Void
     )
     
 }
