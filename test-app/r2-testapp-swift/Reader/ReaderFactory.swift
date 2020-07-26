@@ -34,11 +34,11 @@ extension ReaderFactory: OutlineTableViewControllerFactory {
 }
 
 extension ReaderFactory: DRMManagementTableViewControllerFactory {
-    func make(drm: DRM, delegate: ReaderModuleDelegate?) -> DRMManagementTableViewController {
+    func make(publication: Publication, delegate: ReaderModuleDelegate?) -> DRMManagementTableViewController {
         let controller =
             storyboards.drm.instantiateViewController(withIdentifier: "DRMManagementTableViewController") as! DRMManagementTableViewController
         controller.moduleDelegate = delegate
-        controller.viewModel = DRMViewModel.make(drm: drm, presentingViewController: controller)
+        controller.viewModel = DRMViewModel.make(publication: publication, presentingViewController: controller)
         return controller
     }
 }

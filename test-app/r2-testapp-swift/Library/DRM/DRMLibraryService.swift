@@ -24,13 +24,14 @@ protocol DRMLibraryService {
     
     var brand: DRM.Brand { get }
     
+    /// Returns the `ContentProtection` which will be provided to the `Streamer`, to unlock
+    /// publications.
+    var contentProtection: ContentProtection? { get }
+    
     /// Returns whether this DRM can fulfill the given file into a protected publication.
     func canFulfill(_ file: URL) -> Bool
     
     /// Fulfills the given file to the fully protected publication.
-    func fulfill(_ file: URL, completion: @escaping (CancelableResult<DRMFulfilledPublication, Error>) -> Void)
+    func fulfill(_ file: URL) -> Deferred<DRMFulfilledPublication, Error>
     
-    /// Fills the DRM context of the given protected publication.
-    func loadPublication(at publication: URL, drm: DRM, completion: @escaping (CancelableResult<DRM?, Error>) -> Void)
-
 }

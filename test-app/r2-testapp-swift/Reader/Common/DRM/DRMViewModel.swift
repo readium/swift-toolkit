@@ -19,32 +19,30 @@ class DRMViewModel: NSObject {
 
     /// Class cluster factory.
     /// Use this instead of regular constructors to create the right DRM view model.
-    static func make(drm: DRM, presentingViewController: UIViewController) -> DRMViewModel {
+    static func make(publication: Publication, presentingViewController: UIViewController) -> DRMViewModel {
         #if LCP
-        if case .lcp = drm.brand {
-            return LCPViewModel(drm: drm, presentingViewController: presentingViewController)
+        if let license = publication.lcpLicense {
+            return LCPViewModel(publication: publication, license: license, presentingViewController: presentingViewController)
         }
         #endif
         
-        return DRMViewModel(drm: drm, presentingViewController: presentingViewController)
+        return DRMViewModel(publication: publication, presentingViewController: presentingViewController)
     }
     
-    let drm: DRM
+    let publication: Publication
     
     /// Host view controller to be used to present any dialog.
     weak var presentingViewController: UIViewController?
 
-    init(drm: DRM, presentingViewController: UIViewController) {
-        self.drm = drm
+    init(publication: Publication, presentingViewController: UIViewController) {
+        assert(publication.isProtected)
+        
+        self.publication = publication
         self.presentingViewController = presentingViewController
     }
-    
-    var license: DRMLicense? {
-        return drm.license
-    }
-    
-    var type: String {
-        return drm.brand.rawValue
+
+    var name: String? {
+        return publication.protectionName
     }
     
     var state: String? {

@@ -18,10 +18,10 @@ import R2Streamer
 
 class CBZViewController: ReaderViewController {
 
-    init(publication: Publication, book: Book, drm: DRM?) {
+    init(publication: Publication, book: Book) {
         let navigator = CBZNavigatorViewController(publication: publication, initialLocation: book.progressionLocator)
         
-        super.init(navigator: navigator, publication: publication, book: book, drm: nil)
+        super.init(navigator: navigator, publication: publication, book: book)
         
         navigator.delegate = self
     }
