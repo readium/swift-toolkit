@@ -118,7 +118,6 @@ struct ZIPTester<A: Archive> {
     }
     
     func testReadUncompressedRange() {
-        // FIXME: It looks like unzseek64 starts from the beginning of the file header, instead of the content. Reading a first byte solves this but then Minizip crashes randomly... Note that this only fails in the test case. I didn't see actual issues in LCPDF or videos embedded in EPUBs.
         let archive = try! A(file: fixtures.url(for: "test.zip"))
         let entry = archive.entry(at: "A folder/Sub.folder%/file.txt")!
         let data = archive.read(at: entry.path, range: 14..<20)
