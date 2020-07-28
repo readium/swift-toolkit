@@ -128,7 +128,7 @@ public final class Deferred<Success, Failure: Error> {
     }
 
     /// Transforms the value synchronously, catching any error.
-    public func mapCatching<NewSuccess>(on queue: DispatchQueue? = nil, _ transform: @escaping (Success) throws -> NewSuccess) -> Deferred<NewSuccess, Error> {
+    public func tryMap<NewSuccess>(on queue: DispatchQueue? = nil, _ transform: @escaping (Success) throws -> NewSuccess) -> Deferred<NewSuccess, Error> {
         return map(
             on: queue,
             success: { val, compl in
@@ -161,10 +161,10 @@ public final class Deferred<Success, Failure: Error> {
     ///
     ///     func asyncOperation(value: Int) throws -> Deferred<String>
     ///
-    ///     .flatMapCatching { val in
+    ///     .tryFlatMap { val in
     ///        try asyncOperation(val)
     ///     }
-    public func flatMapCatching<NewSuccess>(on queue: DispatchQueue? = nil, _ transform: @escaping (Success) throws -> Deferred<NewSuccess, Error>) -> Deferred<NewSuccess, Error> {
+    public func tryFlatMap<NewSuccess>(on queue: DispatchQueue? = nil, _ transform: @escaping (Success) throws -> Deferred<NewSuccess, Error>) -> Deferred<NewSuccess, Error> {
         return map(
             on: queue,
             success: { val, compl in
@@ -198,13 +198,13 @@ public final class Deferred<Success, Failure: Error> {
     ///
     ///     func traditionalAsync(value: Int, _ completion: @escaping (Result<String, Error>) -> Void) throws { ... }
     ///
-    ///     .asyncMap { val, completion in
+    ///     .tryAsyncMap { val, completion in
     ///        guard let val = val else {
     ///           throw Error.x
     ///        }
     ///        traditionalAsync(value: val, completion)
     ///     }
-    public func asyncMapCatching<NewSuccess>(on queue: DispatchQueue? = nil, _ transform: @escaping (Success, @escaping NewCompletion<NewSuccess, Error>) throws -> Void) -> Deferred<NewSuccess, Error> {
+    public func tryAsyncMap<NewSuccess>(on queue: DispatchQueue? = nil, _ transform: @escaping (Success, @escaping NewCompletion<NewSuccess, Error>) throws -> Void) -> Deferred<NewSuccess, Error> {
         return map(
             on: queue,
             success: { val, compl in
