@@ -38,11 +38,11 @@ final class EditingActionsController {
     public weak var delegate: EditingActionsControllerDelegate?
 
     private let actions: [EditingAction]
-    private let license: DRMLicense?
+    private let rights: UserRights
 
-    init(actions: [EditingAction], license: DRMLicense?) {
+    init(actions: [EditingAction], rights: UserRights) {
         self.actions = actions
-        self.license = license
+        self.rights = rights
     }
 
     func canPerformAction(_ action: Selector) -> Bool {
@@ -63,17 +63,13 @@ final class EditingActionsController {
     /// Peeks into the available selection contents authorized for copy.
     /// To be used only when required to have the contents before actually using it (eg. Share dialog). To consume the actual copy, use `copy()`.
     var selectionAuthorizedForCopy: (text: String, frame: CGRect)? {
-        guard canCopy,
-            var selection = selection else
+        guard
+            let selection = selection,
+            rights.canCopy(text: selection.text) else
         {
             return nil
         }
-        if let license = license {
-            guard let authorizedText = license.copy(selection.text, consumes: false) else {
-                return nil
-            }
-            selection.text = authorizedText
-        }
+        
         return selection
     }
     
@@ -87,24 +83,17 @@ final class EditingActionsController {
 
     /// Returns whether the copy interaction is at all allowed. It doesn't guarantee that the next copy action will be valid, if the license cancels it.
     var canCopy: Bool {
-        return actions.contains(.copy) && (license?.canCopy ?? true)
+        return actions.contains(.copy) && rights.canCopy
     }
 
     /// Copies the authorized portion of the selection text into the pasteboard.
     func copy() {
-        guard canCopy else {
+        guard let text = selection?.text else {
+            return
+        }
+        guard rights.copy(text: text) else {
             delegate?.editingActionsDidPreventCopy(self)
             return
-        }
-        guard var text = selection?.text else {
-            return
-        }
-        
-        if let license = license {
-            guard let authorizedText = license.copy(text, consumes: true) else {
-                return
-            }
-            text = authorizedText
         }
         
         UIPasteboard.general.string = text
