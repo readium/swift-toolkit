@@ -53,7 +53,7 @@ final class CRLService {
         let url = URL(string: "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl")!
         
         return network.fetch(url, timeout: timeout)
-            .mapCatching { status, data in
+            .tryMap { status, data in
                 guard status == 200 else {
                     throw LCPError.crlFetching
                 }

@@ -82,14 +82,14 @@ extension License: LCPLicense {
         guard let charactersLeft = charactersToCopyLeft else {
             return true
         }
-        return text.count < charactersLeft
+        return text.count <= charactersLeft
     }
     
     func copy(text: String) -> Bool {
         guard var charactersLeft = charactersToCopyLeft else {
             return true
         }
-        guard text.count < charactersLeft else {
+        guard text.count <= charactersLeft else {
             return false
         }
         
@@ -156,7 +156,7 @@ extension License: LCPLicense {
 
         func callPUT(_ url: URL) -> Deferred<Data, Error> {
             return self.network.fetch(url, method: .put)
-                .mapCatching { status, data -> Data in
+                .tryMap { status, data -> Data in
                     switch status {
                     case 200:
                         break
@@ -180,7 +180,7 @@ extension License: LCPLicense {
                 .flatMap { _ in
                     // We fetch the Status Document again after the HTML interaction is done, in case it changed the License.
                     self.network.fetch(statusURL)
-                        .mapCatching { status, data in
+                        .tryMap { status, data in
                             guard status == 200 else {
                                 throw LCPError.network(nil)
                             }
@@ -226,7 +226,7 @@ extension License: LCPLicense {
         }
         
         network.fetch(url, method: .put)
-            .mapCatching { status, data in
+            .tryMap { status, data in
                 switch status {
                 case 200:
                     break
@@ -270,7 +270,7 @@ extension License {
 
                     // Saves the License Document into the downloaded publication
                     makeLicenseContainer(for: downloadedFile, mimetypes: mimetypes)
-                        .mapCatching(on: .global(qos: .background)) { container -> (URL, URLSessionDownloadTask?) in
+                        .tryMap(on: .global(qos: .background)) { container -> (URL, URLSessionDownloadTask?) in
                             guard let container = container else {
                                 throw LCPError.licenseContainer(.openFailed)
                             }

@@ -300,7 +300,7 @@ extension LicenseValidation {
         let url = try license.url(for: .status)
         // Short timeout to avoid blocking the License, since the LSD is optional.
         network.fetch(url, timeout: 5)
-            .mapCatching { status, data -> Event in
+            .tryMap { status, data -> Event in
                 guard status == 200 else {
                     throw LCPError.network(nil)
                 }
@@ -319,7 +319,7 @@ extension LicenseValidation {
         let url = try status.url(for: .license)
         // Short timeout to avoid blocking the License, since it can be updated next time.
         network.fetch(url, timeout: 5)
-            .mapCatching { status, data -> Event in
+            .tryMap { status, data -> Event in
                 guard status == 200 else {
                     throw LCPError.network(nil)
                 }
@@ -378,7 +378,7 @@ extension LicenseValidation {
         
         // 2. Creates the DRM context
         crl.retrieve()
-            .mapCatching { crl -> Event in
+            .tryMap { crl -> Event in
                 let context = try createContext(jsonLicense: license.json, hashedPassphrase: passphrase, pemCrl: crl)
                 return .validatedIntegrity(context)
             }

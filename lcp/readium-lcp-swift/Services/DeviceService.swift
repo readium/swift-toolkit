@@ -61,7 +61,7 @@ final class DeviceService {
             }
             
             return self.network.fetch(url, method: .post)
-                .mapCatching { status, data in
+                .tryMap { status, data in
                     guard status == 200 else {
                         return nil
                     }

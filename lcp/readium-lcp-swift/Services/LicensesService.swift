@@ -76,7 +76,7 @@ final class LicensesService: Loggable {
             let validation = LicenseValidation(authentication: authentication, sender: sender, crl: self.crl, device: self.device, network: self.network, passphrases: self.passphrases, onLicenseValidated: onLicenseValidated)
 
             return validation.validate(.license(initialData))
-                .mapCatching { documents in
+                .tryMap { documents in
                     // Check the license status error if there's any
                     // Note: Right now we don't want to return a License if it fails the Status check, that's why we attempt to get the DRM context. But it could change if we want to access, for example, the License metadata or perform an LSD interaction, but without being able to decrypt the book. In which case, we could remove this line.
                     // Note2: The License already gets in this state when we perform a `return` successfully. We can't decrypt anymore but we still have access to the License Documents and LSD interactions.
