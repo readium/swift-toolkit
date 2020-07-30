@@ -57,7 +57,6 @@ public class CbzParser: PublicationParser {
             format: .cbz,
             positionListFactory: makePositionList(of:),
             metadata: Metadata(
-                identifier: url.lastPathComponent,
                 title: url.deletingPathExtension()
                     .lastPathComponent
                     .replacingOccurrences(of: "_", with: " ")
