@@ -152,9 +152,10 @@ struct OPFMetaList {
         let prefixes = OPFVocabulary.prefixes(in: document)
         document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
         document.definePrefix("dc", forNamespace: "http://purl.org/dc/elements/1.1/")
-        
+
         // Parses `<meta>` and `<dc:x>` tags in order of appearance.
-        self.metas = document.xpath("/opf:package/opf:metadata/opf:meta|/opf:package/opf:metadata/dc:*")
+        let root = "/opf:package/opf:metadata"
+        self.metas = document.xpath("\(root)/opf:meta|\(root)/dc:*|\(root)/opf:dc-metadata/dc:*|\(root)/opf:x-metadata/opf:meta")
             .compactMap { meta in
                 if meta.tag == "meta" {
                     // EPUB 3
