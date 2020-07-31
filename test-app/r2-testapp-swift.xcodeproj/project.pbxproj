@@ -1672,7 +1672,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				MARKETING_VERSION = 2.1.0;
+				MARKETING_VERSION = "2.2.0-alpha.1";
 				OTHER_LDFLAGS = "-lxml2";
 				OTHER_SWIFT_FLAGS = "-DLCP";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.r2reader;
@@ -1709,7 +1709,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				MARKETING_VERSION = 2.1.0;
+				MARKETING_VERSION = "2.2.0-alpha.1";
 				OTHER_LDFLAGS = "-lxml2";
 				OTHER_SWIFT_FLAGS = "-DLCP";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.r2reader;
