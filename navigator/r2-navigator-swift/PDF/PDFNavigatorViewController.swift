@@ -37,6 +37,9 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
     private let editingActions: EditingActionsController
     /// Reading order index of the current resource.
     private var currentResourceIndex: Int?
+    
+    // Holds a reference to make sure it is not garbage-collected.
+    private var tapGestureController: PDFTapGestureController?
 
     public init(publication: Publication, license: DRMLicense? = nil, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
         self.publication = publication
@@ -62,16 +65,13 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         
         view.backgroundColor = .black
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(didTap))
-        tapGesture.numberOfTapsRequired = 1
-        tapGesture.delegate = self
-        view.addGestureRecognizer(tapGesture)
-        
         pdfView = PDFDocumentView(frame: view.bounds, editingActions: editingActions)
         pdfView.delegate = self
         pdfView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(pdfView)
         
+        tapGestureController = PDFTapGestureController(pdfView: pdfView, target: self, action: #selector(didTap))
+
         setupPDFView()
 
         NotificationCenter.default.addObserver(self, selector: #selector(pageDidChange), name: .PDFViewPageChanged, object: pdfView)
@@ -123,8 +123,12 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
     }
     
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
-        let point = gesture.location(in: view)
-        delegate?.navigator(self, didTapAt: point)
+        if pdfView.currentSelection != nil {
+            pdfView.clearSelection()
+        } else {
+            let point = gesture.location(in: view)
+            delegate?.navigator(self, didTapAt: point)
+        }
     }
     
     @objc private func pageDidChange() {
@@ -311,6 +315,10 @@ extension PDFNavigatorViewController: PDFViewDelegate {
         delegate?.navigator(self, presentExternalURL: url)
     }
     
+    public func pdfViewParentViewController() -> UIViewController {
+        return self
+    }
+
 }
 
 @available(iOS 11.0, *)
@@ -318,15 +326,6 @@ extension PDFNavigatorViewController: EditingActionsControllerDelegate {
     
     func editingActionsDidPreventCopy(_ editingActions: EditingActionsController) {
         delegate?.navigator(self, presentError: .copyForbidden)
-    }
-    
-}
-
-@available(iOS 11.0, *)
-extension PDFNavigatorViewController: UIGestureRecognizerDelegate {
-
-    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        return true
     }
     
 }

@@ -12,17 +12,26 @@
 import Foundation
 import PDFKit
 
-
 @available(iOS 11.0, *)
 public final class PDFDocumentView: PDFView {
     
     var editingActions: EditingActionsController
-    
+
     init(frame: CGRect, editingActions: EditingActionsController) {
         self.editingActions = editingActions
+
         super.init(frame: frame)
+        
+        // Prevents the pages from jumping down when the status bar is toggled
+        // Somehow setting `automaticallyAdjustsScrollViewInsets` in `PDFNavigatorViewController`
+        // is not enough...
+        for view in subviews {
+            if let scrollView = view as? UIScrollView {
+                scrollView.contentInsetAdjustmentBehavior = .never
+            }
+        }
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
