@@ -31,13 +31,12 @@ extension UIView {
         
         var windowSafeAreaInsets = window?.safeAreaInsets ?? safeAreaInsets
         
-        // Trick to ignore the status bar on devices without notches (pre iPhone X). In this case it
-        // is usually 20pts tall (except in some edge cases, eg. during a phone call, but the worst
-        // that could happen is that the page is slightly shifted).
+        // Trick to ignore the status bar on devices without notches (pre iPhone X).
+        // Notch height is usually at least 44pts tall.
         let statusBarSize = UIApplication.shared.statusBarFrame.size
         // The frame is in the coordinate space of the window, so it might be swapped in landscape.
         let statusBarHeight = min(statusBarSize.width, statusBarSize.height)
-        if statusBarHeight == 20 && windowSafeAreaInsets.top == statusBarHeight {
+        if statusBarHeight < 44 && windowSafeAreaInsets.top == statusBarHeight {
             windowSafeAreaInsets.top = 0
         }
         
