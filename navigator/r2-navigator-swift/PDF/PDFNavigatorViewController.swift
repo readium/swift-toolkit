@@ -48,7 +48,6 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         
         super.init(nibName: nil, bundle: nil)
         
-        automaticallyAdjustsScrollViewInsets = false
         self.editingActions.delegate = self
     }
     
@@ -123,12 +122,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
     }
     
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
-        if pdfView.currentSelection != nil {
-            pdfView.clearSelection()
-        } else {
-            let point = gesture.location(in: view)
-            delegate?.navigator(self, didTapAt: point)
-        }
+        let point = gesture.location(in: view)
+        delegate?.navigator(self, didTapAt: point)
     }
     
     @objc private func pageDidChange() {

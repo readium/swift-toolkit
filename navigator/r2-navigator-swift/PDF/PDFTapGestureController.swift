@@ -18,14 +18,19 @@ import PDFKit
 @available(iOS 11.0, *)
 final class PDFTapGestureController: NSObject {
     
-    private let tapRecognizer: UITapGestureRecognizer
+    private let pdfView: PDFView
+    private let tapAction: TargetAction
+    private var tapRecognizer: UITapGestureRecognizer!
     
-    init(pdfView: PDFView, target: Any?, action: Selector?) {
+    init(pdfView: PDFView, target: Any, action: Selector) {
         assert(pdfView.superview != nil, "The PDFView must be in the view hierarchy")
         
-        tapRecognizer = UITapGestureRecognizer(target: target, action: action)
+        self.pdfView = pdfView
+        self.tapAction = TargetAction(target: target, action: action)
 
         super.init()
+        
+        self.tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(didTap))
         
         if #available(iOS 13.0, *) {
             // If we add the gesture on the superview on iOS 13, then it will be triggered when
@@ -41,6 +46,17 @@ final class PDFTapGestureController: NSObject {
         }
     }
     
+    @objc private func didTap(_ gesture: UITapGestureRecognizer) {
+        // On iOS 13, the tap to clear text selection is broken by adding the tap recognizer, so
+        // we clear it manually.
+        guard pdfView.currentSelection == nil else {
+            pdfView.clearSelection()
+            return
+        }
+        
+        self.tapAction.invoke(from: gesture)
+    }
+    
 }
 
 @available(iOS 11.0, *)
@@ -51,8 +67,7 @@ extension PDFTapGestureController: UIGestureRecognizerDelegate {
     }
     
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        return gestureRecognizer == tapRecognizer
-            && (otherGestureRecognizer as? UITapGestureRecognizer)?.numberOfTouchesRequired == tapRecognizer.numberOfTouchesRequired
+        return (otherGestureRecognizer as? UITapGestureRecognizer)?.numberOfTouchesRequired == 1
     }
     
 }
