@@ -307,6 +307,8 @@ extension PDFNavigatorViewController: PDFViewDelegate {
     
     public func pdfViewWillClick(onLink sender: PDFView, with url: URL) {
         log(.debug, "Click URL: \(url)")
+        
+        let url = url.addingSchemeIfMissing("http")
         delegate?.navigator(self, presentExternalURL: url)
     }
     
