@@ -17,39 +17,33 @@ import Foundation
 /// Can be used as extension point in the Readium Web Publication Manifest.
 public struct PublicationCollection: JSONEquatable {
     
-    /// JSON key used to reference this collection in its parent.
-    public let role: String
-    
     public let metadata: [String: Any]
     public let links: [Link]
-    public let otherCollections: [PublicationCollection]
     
-    public init(role: String, metadata: [String: Any] = [:], links: [Link], otherCollections: [PublicationCollection] = []) {
-        self.role = role
+    /// Subcollections indexed by their role in this collection.
+    public let subcollections: [String: [PublicationCollection]]
+    
+    public init(metadata: [String: Any] = [:], links: [Link], subcollections: [String: [PublicationCollection]] = [:]) {
         self.metadata = metadata
         self.links = links
-        self.otherCollections = otherCollections
+        self.subcollections = subcollections
     }
     
-    public init(role: String, json: Any, normalizeHref: (String) -> String = { $0 }) throws {
+    public init(json: Any, normalizeHref: (String) -> String = { $0 }) throws {
         // Parses a list of links.
         if let json = json as? [[String: Any]] {
-            self.init(
-                role: role,
-                links: .init(json: json, normalizeHref: normalizeHref)
-            )
+            self.init(links: .init(json: json, normalizeHref: normalizeHref))
 
-        // Parses a sub-collection object.
+        // Parses a Collection object.
         } else if var json = JSONDictionary(json) {
             self.init(
-                role: role,
                 metadata: json.pop("metadata") as? [String: Any] ?? [:],
                 links: .init(json: json.pop("links"), normalizeHref: normalizeHref),
-                otherCollections: .init(json: json.json, normalizeHref: normalizeHref)
+                subcollections: Self.makeCollections(json: json.json, normalizeHref: normalizeHref)
             )
             
         } else {
-            self.init(role: role, links: [])
+            self.init(links: [])
         }
 
         guard !links.isEmpty else {
@@ -61,7 +55,7 @@ public struct PublicationCollection: JSONEquatable {
         return makeJSON([
             "metadata": encodeIfNotEmpty(metadata),
             "links": links.json,
-        ], additional: otherCollections.json)
+        ], additional: Self.serializeCollections(subcollections))
     }
     
     public static func == (lhs: PublicationCollection, rhs: PublicationCollection) -> Bool {
@@ -73,61 +67,42 @@ public struct PublicationCollection: JSONEquatable {
         let lMetadata = try? JSONSerialization.data(withJSONObject: lhs.metadata, options: [.sortedKeys])
         let rMetadata = try? JSONSerialization.data(withJSONObject: rhs.metadata, options: [.sortedKeys])
         return lMetadata == rMetadata
-            && lhs.role == rhs.role
             && lhs.links == rhs.links
-            && lhs.otherCollections == rhs.otherCollections
+            && lhs.subcollections == rhs.subcollections
     }
     
-}
-
-/// Syntactic sugar to parse multiple JSON collections into an array of PublicationCollections.
-/// eg. let collections = [PublicationCollection](json: [...])
-extension Array where Element == PublicationCollection {
-    
-    public init(json: Any?, normalizeHref: (String) -> String = { $0 }) {
-        self.init()
+    static func makeCollections(json: Any?, normalizeHref: (String) -> String = { $0 }) -> [String: [PublicationCollection]] {
         guard let json = json as? [String: Any] else {
-            return
+            return [:]
         }
         
-        let roles = json.keys.sorted()
-        for role in roles {
-            guard let subJSON = json[role] else {
-                continue
-            }
-            
+        return json.compactMapValues { json in
             // Parses list of links or a single collection object.
-            if let collection = try? PublicationCollection(role: role, json: subJSON, normalizeHref: normalizeHref) {
-                append(collection)
-                
+            if let collection = try? PublicationCollection(json: json, normalizeHref: normalizeHref) {
+                return [collection]
+
             // Parses list of collection objects.
-            } else if let subsJSON = subJSON as? [[String: Any]] {
-                let collections = subsJSON.compactMap { try? PublicationCollection(role: role, json: $0, normalizeHref: normalizeHref) }
-                append(contentsOf: collections)
+            } else if let collections = json as? [[String: Any]] {
+                return collections.compactMap {
+                    try? PublicationCollection(json: $0, normalizeHref: normalizeHref)
+                }
+
+            } else {
+                return nil
             }
         }
     }
     
-    public var json: [String: Any] {
-        // Groups the sub-collections by their role.
-        let dict = Dictionary(grouping: self, by: { $0.role } )
-            .mapValues { collections -> Any in
-                if collections.count == 1, let collection = collections.first {
-                    return collection.json
-                } else {
-                    return collections.map { $0.json }
-                }
+    static func serializeCollections(_ collections: [String: [PublicationCollection]]) -> [String: Any] {
+        return collections.compactMapValues { collections in
+            if collections.isEmpty {
+                return nil
+            } else if collections.count == 1 {
+                return collections[0].json
+            } else {
+                return collections.map { $0.json }
             }
-        
-        return dict
+        }
     }
     
-    public func first(withRole role: String) -> PublicationCollection? {
-        return first { $0.role == role }
-    }
-    
-    public func all(withRole role: String) -> [PublicationCollection] {
-        return filter { $0.role == role }
-    }
-
 }

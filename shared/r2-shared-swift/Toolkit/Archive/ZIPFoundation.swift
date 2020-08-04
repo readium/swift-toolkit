@@ -16,7 +16,7 @@ import ZIPFoundation
 ///
 /// Note: At the moment, the Minizip version is used. Keeping this in case we migrate to
 /// ZIPFoundation.
-class ZIPFoundationArchive: Archive, Loggable {
+final class ZIPFoundationArchive: Archive, Loggable {
     
     fileprivate let archive: ZIPFoundation.Archive
     
@@ -35,7 +35,9 @@ class ZIPFoundationArchive: Archive, Loggable {
     lazy var entries: [ArchiveEntry] = archive.map(ArchiveEntry.init)
 
     func entry(at path: String) -> ArchiveEntry? {
-        return archive[path].map(ArchiveEntry.init)
+        return archive[path]
+            .filter { $0.type != .directory }
+            .map(ArchiveEntry.init)
     }
     
     func read(at path: String) -> Data? {
@@ -139,7 +141,6 @@ fileprivate extension ArchiveEntry {
     init(entry: Entry) {
         self.init(
             path: entry.path,
-            isDirectory: entry.type == .directory,
             length: entry.uncompressedSize,
             compressedLength: entry.compressedSize
         )

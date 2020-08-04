@@ -58,6 +58,23 @@ class LocatorTests: XCTestCase {
         XCTAssertThrowsError(try Locator(json: ""))
     }
     
+    func testParseJSONArray() {
+        XCTAssertEqual(
+            [Locator](json: [
+                ["href": "loc1", "type": "text/html"],
+                ["href": "loc2", "type": "text/html"],
+            ]),
+            [
+                Locator(href: "loc1", type: "text/html"),
+                Locator(href: "loc2", type: "text/html")
+            ]
+        )
+    }
+    
+    func testParseJSONArrayWhenNil() {
+        XCTAssertEqual([Locator](json: nil), [])
+    }
+    
     func testMakeFromFullLink() {
         XCTAssertEqual(
             Locator(link: Link(
@@ -131,6 +148,19 @@ class LocatorTests: XCTestCase {
                 "text": [
                     "highlight": "Excerpt"
                 ]
+            ]
+        )
+    }
+    
+    func testGetJSONArray() {
+        AssertJSONEqual(
+            [
+                Locator(href: "loc1", type: "text/html"),
+                Locator(href: "loc2", type: "text/html")
+            ].json,
+            [
+                ["href": "loc1", "type": "text/html"],
+                ["href": "loc2", "type": "text/html"],
             ]
         )
     }

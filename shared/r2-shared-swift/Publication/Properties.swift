@@ -45,5 +45,10 @@ public struct Properties: Equatable, Loggable {
     public subscript(key: String) -> Any? {
         otherProperties[key]
     }
+    
+    /// Makes a copy of this `Properties` after merging in the given additional other `properties`.
+    public func adding(_ properties: [String: Any]) -> Properties {
+        return Properties(otherProperties.merging(properties, uniquingKeysWith: { first, second in second }))
+    }
 
 }

@@ -13,28 +13,30 @@ import Foundation
 
 /// Transforms the resources' content of a child fetcher using a list of `ResourceTransformer`
 /// functions.
-final class TransformingFetcher: Fetcher {
+public final class TransformingFetcher: Fetcher {
 
     private let fetcher: Fetcher
     private let transformers: [ResourceTransformer]
     
-    init(fetcher: Fetcher, transformers: [ResourceTransformer]) {
+    public init(fetcher: Fetcher, transformers: [ResourceTransformer]) {
         self.fetcher = fetcher
         self.transformers = transformers
     }
     
-    convenience init(fetcher: Fetcher, transformer: @escaping ResourceTransformer) {
+    public convenience init(fetcher: Fetcher, transformer: @escaping ResourceTransformer) {
         self.init(fetcher: fetcher, transformers: [transformer])
     }
+    
+    public var links: [Link] { fetcher.links }
 
-    func get(_ link: Link, parameters: LinkParameters) -> Resource {
-        let resource = fetcher.get(link, parameters: parameters)
+    public func get(_ link: Link) -> Resource {
+        let resource = fetcher.get(link)
         return transformers.reduce(resource) { resource, transformer in
             transformer(resource)
         }
     }
     
-    func close() {
+    public func close() {
         fetcher.close()
     }
     

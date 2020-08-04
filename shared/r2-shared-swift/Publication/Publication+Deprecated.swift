@@ -16,14 +16,86 @@ public typealias WebPublication = Publication
 
 extension Publication {
     
-    @available(*, deprecated, renamed: "init(metadata:)")
+    @available(*, deprecated, renamed: "init(manifest:)")
     public convenience init() {
-        self.init(metadata: Metadata(title: ""))
+        self.init(manifest: Manifest(metadata: Metadata(title: "")))
     }
     
-    @available(*, deprecated, renamed: "resource(withHref:)")
+    @available(*, deprecated, renamed: "init(format:formatVersion:manifest:)")
+    public convenience init(format: Format = .unknown, formatVersion: String? = nil, positionListFactory: @escaping (Publication) -> [Locator] = { _ in [] }, context: [String] = [], metadata: Metadata, links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = [], tableOfContents: [Link] = [], otherCollections: [String: [PublicationCollection]] = [:]) {
+        self.init(
+            manifest: Manifest(context: context, metadata: metadata, links: links, readingOrder: readingOrder, resources: resources, tableOfContents: tableOfContents, subcollections: otherCollections),
+            format: format,
+            formatVersion: formatVersion
+        )
+    }
+    
+    @available(*, deprecated, renamed: "formatVersion")
+    public var version: Double {
+        guard let versionString = formatVersion,
+            let version = Double(versionString) else
+        {
+            return 0
+        }
+        return version
+    }
+
+    /// Factory used to build lazily the `positionList`.
+    /// By default, a parser will set this to parse the `positionList` from the publication. But the host app might want to overwrite this with a custom closure to implement for example a cache mechanism.
+    @available(*, unavailable, message: "Implement `PositionsService` instead")
+    public var positionListFactory: (Publication) -> [Locator] { { _ in [] } }
+    
+    @available(*, deprecated, renamed: "baseURL")
+    public var baseUrl: URL? { return baseURL }
+    
+    @available(*, unavailable, message: "This is not used anymore, don't set it")
+    public var updatedDate: Date { Date() }
+    
+    @available(*, deprecated, message: "Check the publication's type using `format` instead")
+    public var internalData: [String: String] {
+        // The code in the testapp used to check a property in `publication.internalData["type"]` to know which kind of publication this is.
+        // To avoid breaking any app, we reproduce this value here:
+        return [
+            "type": {
+                switch format {
+                case .epub:
+                    return "epub"
+                case .cbz:
+                    return "cbz"
+                case .pdf:
+                    return "pdf"
+                default:
+                    return "unknown"
+                }
+            }()
+        ]
+    }
+    
+    @available(*, unavailable, renamed: "json")
+    public var manifestCanonical: String { jsonManifest ?? "" }
+    
+    @available(*, deprecated, renamed: "init(json:)")
+    public static func parse(pubDict: [String: Any]) throws -> Publication {
+        return try Publication(json: pubDict, normalizeHref: { $0 })
+    }
+
+    @available(*, deprecated, renamed: "positions")
+    public var positionList: [Locator] { positions }
+    
+    @available(*, deprecated, renamed: "positionsByResource")
+    public var positionListByResource: [String: [Locator]] { positionsByResource }
+    
+    @available(*, deprecated, renamed: "subcollections")
+    public var otherCollections: [String: [PublicationCollection]] { subcollections }
+    
+    @available(*, deprecated, renamed: "link(withHREF:)")
     public func resource(withRelativePath path: String) -> Link? {
-        return resource(withHref: path)
+        return link(withHREF: path)
+    }
+    
+    @available(*, deprecated, renamed: "link(withHREF:)")
+    public func resource(withHref href: String) -> Link? {
+        return link(withHREF: href)
     }
     
     @available(*, deprecated, message: "Use `setSelfLink` instead")
@@ -34,6 +106,34 @@ extension Publication {
     
     @available(*, unavailable, message: "`Publication` is now immutable")
     func setCollectionLinks(_ links: [Link], forRole role: String) {}
+    
+    @available(*, deprecated, renamed: "link(withHREF:)")
+    public func link(withHref href: String) -> Link? {
+        return link(withHREF: href)
+    }
+    
+    @available(*, deprecated, message: "This will be removed in a future version")
+    public func link(where predicate: (Link) -> Bool) -> Link? {
+        return (resources + readingOrder + links).first(where: predicate)
+    }
+    
+    @available(*, unavailable, message: "Use `link.url(relativeTo: publication.baseURL)` instead")
+    public func uriTo(link: Link?) -> URL? {
+        return link?.url(relativeTo: baseURL)
+    }
+    
+    @available(*, deprecated, message: "Use `link.url(relativeTo: publication.baseURL)` instead")
+    public func url(to link: Link?) -> URL? {
+        return link?.url(relativeTo: baseURL)
+    }
+    
+    @available(*, deprecated, message: "Use `link.url(relativeTo: publication.baseURL)` instead")
+    public func url(to href: String?) -> URL? {
+        return href.flatMap { link(withHREF: $0)?.url(relativeTo: baseURL) }
+    }
+
+    @available(*, deprecated, message: "Use `cover` to get the `UIImage` directly, or `link(withRel: \"cover\")` if you really want the cover link", renamed: "cover")
+    public var coverLink: Link? { link(withRel: "cover") }
 
 }
 
@@ -111,6 +211,13 @@ extension Metadata {
     
     @available(*, deprecated, renamed: "presentation")
     public var rendition: EPUBRendition { presentation }
+    
+}
+
+extension PublicationCollection {
+    
+    @available(*, deprecated, renamed: "subcollections")
+    public var otherCollections: [String: [PublicationCollection]] { subcollections }
     
 }
 
@@ -232,3 +339,45 @@ public typealias Locations = Locator.Locations
 
 @available(*, deprecated, renamed: "Locator.Text")
 public typealias LocatorText = Locator.Text
+
+@available(*, deprecated, message: "Use your own Bookmark model in your app, this one is not used by Readium 2 anymore")
+public class Bookmark {
+    public var id: Int64?
+    public var bookID: Int = 0
+    public var publicationID: String
+    public var resourceIndex: Int
+    public var locator: Locator
+    public var creationDate: Date
+    
+    public init(id: Int64? = nil, publicationID: String, resourceIndex: Int, locator: Locator, creationDate: Date = Date()) {
+        self.id = id
+        self.publicationID = publicationID
+        self.resourceIndex = resourceIndex
+        self.locator = locator
+        self.creationDate = creationDate
+    }
+    
+    public convenience init(bookID: Int, publicationID: String, resourceIndex: Int, resourceHref: String, resourceType: String, resourceTitle: String, location: Locations, locatorText: LocatorText, creationDate: Date = Date(), id: Int64? = nil) {
+        self.init(
+            id: id,
+            publicationID: publicationID,
+            resourceIndex: resourceIndex,
+            locator: Locator(
+                href: resourceHref,
+                type: resourceType,
+                title: resourceTitle,
+                locations: location,
+                text: locatorText
+            ),
+            creationDate: creationDate
+        )
+    }
+    
+    public var resourceHref: String { return locator.href }
+    public var resourceType: String { return locator.type }
+    public var resourceTitle: String { return locator.title ?? "" }
+    public var location: Locations { return locator.locations }
+    public var locations: Locations? { return locator.locations }
+    public var locatorText: LocatorText { return locator.text }
+    
+}

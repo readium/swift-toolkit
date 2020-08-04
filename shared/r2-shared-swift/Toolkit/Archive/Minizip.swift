@@ -14,15 +14,17 @@ import Minizip
 
 /// A ZIP `Archive` using the Minizip library.
 final class MinizipArchive: Archive, Loggable {
-    
+
     private let archive: unzFile
 
     /// Returns whether the current entry is opened.
     private var isCurrentEntryOpened = false
 
-    init(file: URL, password: String?) throws {
-        guard (try? file.checkResourceIsReachable()) ?? false,
-            let archive = unzOpen64(file.path) else
+    init(url: URL, password: String?) throws {
+        assert(url.isFileURL, "Only file URLs are supported by MinizipArchive")
+        
+        guard (try? url.checkResourceIsReachable()) ?? false,
+            let archive = unzOpen64(url.path) else
         {
             throw ArchiveError.openFailed
         }
@@ -30,9 +32,7 @@ final class MinizipArchive: Archive, Loggable {
     }
     
     deinit {
-        transaction {
-            unzClose(archive)
-        }
+        close()
     }
 
     lazy var entries: [ArchiveEntry] = transaction {
@@ -50,25 +50,28 @@ final class MinizipArchive: Archive, Loggable {
         return entries
     }
 
-    func entry(at path: String) -> ArchiveEntry? {
-        return transaction {
-            guard goToEntry(at: path) else {
-                return nil
+    func entry(at path: String) throws -> ArchiveEntry {
+        return try transaction {
+            guard
+                goToEntry(at: path),
+                let entry = makeEntryAtCurrentOffset() else
+            {
+                throw ArchiveError.entryNotFound
             }
-            return makeEntryAtCurrentOffset()
+            return entry
         }
     }
     
     func read(at path: String) -> Data? {
         return transaction {
             guard goToEntry(at: path),
-                let entry = makeEntryAtCurrentOffset() else
+                let length = makeEntryAtCurrentOffset()?.length else
             {
                 return nil
             }
             
             return openCurrentEntry {
-                readFromCurrentOffset(length: entry.length)
+                readFromCurrentOffset(length: length)
             }
         }
     }
@@ -91,10 +94,16 @@ final class MinizipArchive: Archive, Loggable {
     
     /// Makes the access to the Minizip archive thread-safe.
     @discardableResult
-    private func transaction<T>(_ block: () -> T) -> T {
-        objc_sync_enter(archive)
-        defer { objc_sync_exit(archive) }
-        return block()
+    private func transaction<T>(_ block: () throws -> T) rethrows -> T {
+        objc_sync_enter(self)
+        defer { objc_sync_exit(self) }
+        return try block()
+    }
+    
+    func close() {
+        transaction {
+            unzClose(archive)
+        }
     }
     
 }
@@ -144,12 +153,19 @@ private extension MinizipArchive {
             return nil
         }
         let path = String(cString: filename)
+        
+        // We ignore directories.
+        guard !path.hasSuffix("/") else {
+            return nil
+        }
+        
+        let isCompressed = (fileInfo.compression_method != 0)
+        
         return ArchiveEntry(
             path: path,
-            isDirectory: path.hasSuffix("/"),
             length: UInt64(fileInfo.uncompressed_size),
-            isCompressed: fileInfo.compression_method != 0,
-            compressedLength: UInt64(fileInfo.compressed_size)
+            isCompressed: isCompressed,
+            compressedLength: isCompressed ? UInt64(fileInfo.compressed_size) : nil
         )
     }
     

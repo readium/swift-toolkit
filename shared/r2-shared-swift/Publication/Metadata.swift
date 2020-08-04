@@ -45,14 +45,16 @@ public struct Metadata: Equatable, Loggable {
     public let contributors: [Contributor]
     public let publishers: [Contributor]
     public let imprints: [Contributor]
-    /// WARNING: This contains the reading progression as declared in the publication, so it might be `auto`. To lay out the content, use `publication.contentLayout.readingProgression` to get the calculated reading progression from the declared direction and the language.
-    public let readingProgression: ReadingProgression
     public let description: String?
     public let duration: Double?
     public let numberOfPages: Int?
     public let belongsToCollections: [Collection]
     public let belongsToSeries: [Collection]
-
+    
+    /// WARNING: This contains the reading progression as declared in the manifest, so it might be
+    /// `auto`. To know the effective reading progression used to lay out the content, use
+    /// `effectiveReadingProgression` instead.
+    public let readingProgression: ReadingProgression
 
     /// Additional properties for extensions.
     public var otherMetadata: [String: Any] { otherMetadataJSON.json }
@@ -60,7 +62,37 @@ public struct Metadata: Equatable, Loggable {
     // Trick to keep the struct equatable despite [String: Any]
     private let otherMetadataJSON: JSONDictionary
 
-    public init(identifier: String? = nil, type: String? = nil, title: LocalizedStringConvertible, subtitle: LocalizedStringConvertible? = nil, modified: Date? = nil, published: Date? = nil, languages: [String] = [], sortAs: String? = nil, subjects: [Subject] = [], authors: [Contributor] = [], translators: [Contributor] = [], editors: [Contributor] = [], artists: [Contributor] = [], illustrators: [Contributor] = [], letterers: [Contributor] = [], pencilers: [Contributor] = [], colorists: [Contributor] = [], inkers: [Contributor] = [], narrators: [Contributor] = [], contributors: [Contributor] = [], publishers: [Contributor] = [], imprints: [Contributor] = [], readingProgression: ReadingProgression = .auto, description: String? = nil, duration: Double? = nil, numberOfPages: Int? = nil, belongsToCollections: [Collection] = [], belongsToSeries: [Collection] = [], otherMetadata: [String: Any] = [:]) {
+    public init(
+        identifier: String? = nil,
+        type: String? = nil,
+        title: LocalizedStringConvertible,
+        subtitle: LocalizedStringConvertible? = nil,
+        modified: Date? = nil,
+        published: Date? = nil,
+        languages: [String] = [],
+        sortAs: String? = nil,
+        subjects: [Subject] = [],
+        authors: [Contributor] = [],
+        translators: [Contributor] = [],
+        editors: [Contributor] = [],
+        artists: [Contributor] = [],
+        illustrators: [Contributor] = [],
+        letterers: [Contributor] = [],
+        pencilers: [Contributor] = [],
+        colorists: [Contributor] = [],
+        inkers: [Contributor] = [],
+        narrators: [Contributor] = [],
+        contributors: [Contributor] = [],
+        publishers: [Contributor] = [],
+        imprints: [Contributor] = [],
+        readingProgression: ReadingProgression = .auto,
+        description: String? = nil,
+        duration: Double? = nil,
+        numberOfPages: Int? = nil,
+        belongsToCollections: [Collection] = [],
+        belongsToSeries: [Collection] = [],
+        otherMetadata: [String: Any] = [:]
+    ) {
         self.identifier = identifier
         self.type = type
         self.localizedTitle = title.localizedString
@@ -166,6 +198,47 @@ public struct Metadata: Equatable, Loggable {
             "numberOfPages": encodeIfNotNil(numberOfPages),
             "belongsTo": encodeIfNotEmpty(belongsTo)
         ], additional: otherMetadata)
+    }
+    
+    /// Computes a `ReadingProgression` when the value of `readingProgression` is set to `auto`,
+    /// using the publication language.
+    ///
+    /// See this issue for more details: https://github.com/readium/architecture/issues/113
+    public var effectiveReadingProgression: ReadingProgression {
+        guard readingProgression == .auto else {
+            return readingProgression
+        }
+        
+        // https://github.com/readium/readium-css/blob/develop/docs/CSS16-internationalization.md#missing-page-progression-direction
+        guard languages.count == 1, var language = languages.first?.lowercased() else {
+            return .ltr
+        }
+        
+        if ["zh-hant", "zh-tw"].contains(language) {
+            return .rtl
+        }
+        
+        // The region is ignored for ar, fa and he.
+        language = language.split(separator: "-").first.map(String.init) ?? language
+        if ["ar", "fa", "he"].contains(language) {
+            return .rtl
+        }
+        
+        return .ltr
+    }
+
+    /// Returns the content layout style for the default publication language.
+    public var contentLayout: ContentLayout {
+        contentLayout(forLanguage: nil)
+    }
+    
+    /// Returns the content layout style for the given language code.
+    public func contentLayout(forLanguage language: String?) -> ContentLayout {
+        let language = (language?.isEmpty ?? true) ? nil : language
+        return ContentLayout(
+            language: language ?? languages.first ?? "",
+            readingProgression: readingProgression
+        )
     }
     
     /// Makes a copy of the `Metadata`, after modifying some of its properties.

@@ -12,29 +12,29 @@
 import Foundation
 
 /// Provides access to resources on the local file system.
-///
-final class FileFetcher: Fetcher, Loggable {
+public final class FileFetcher: Fetcher, Loggable {
     
     /// Reachable local paths, indexed by the exposed HREF.
     /// Sub-paths are reachable as well, to be able to access a whole directory.
     private let paths: [String: URL]
     
     /// Provides access to a collection of local paths.
-    init(paths: [String: URL]) {
+    public init(paths: [String: URL]) {
         self.paths = paths.mapValues { $0.standardizedFileURL }
     }
     
     /// Provides access to the given local `path` at `href`.
-    convenience init(href: String, path: URL) {
+    public convenience init(href: String, path: URL) {
         self.init(paths: [href: path])
     }
     
-    func get(_ link: Link, parameters: LinkParameters) -> Resource {
+    public func get(_ link: Link) -> Resource {
+        let linkHREF = link.href.addingPrefix("/")
         for (href, url) in paths {
-            if link.href.hasPrefix(href) {
-                let resourceURL = url.appendingPathComponent(link.href.removingPrefix(href)).standardizedFileURL
+            if linkHREF.hasPrefix(href) {
+                let resourceURL = url.appendingPathComponent(linkHREF.removingPrefix(href)).standardizedFileURL
                 // Makes sure that the requested resource is `url` or one of its descendant.
-                if resourceURL.path.hasPrefix(url.path) {
+                if url.isParentOf(resourceURL) {
                     return FileResource(link: link, file: resourceURL)
                 }
             }
@@ -43,7 +43,35 @@ final class FileFetcher: Fetcher, Loggable {
         return FailureResource(link: link, error: .notFound)
     }
     
-    func close() { }
+    public lazy var links: [Link] =
+        paths.keys.sorted().flatMap { href -> [Link] in
+            guard
+                let path = paths[href],
+                let enumerator = FileManager.default.enumerator(at: path, includingPropertiesForKeys: [.isDirectoryKey]) else
+            {
+                return []
+            }
+            
+            let hrefURL = URL(fileURLWithPath: href)
+            
+            return ([path] + enumerator).compactMap {
+                guard
+                    let url = $0 as? URL,
+                    let values = try? url.resourceValues(forKeys: [.isDirectoryKey]),
+                    values.isDirectory == false else
+                {
+                    return nil
+                }
+                
+                let subPath = url.standardizedFileURL.path.removingPrefix(path.standardizedFileURL.path)
+                return Link(
+                    href: hrefURL.appendingPathComponent(subPath).standardizedFileURL.path,
+                    type: Format.of(fileExtension: url.pathExtension)?.mediaType.string
+                )
+            }
+        }
+
+    public func close() { }
     
     private final class FileResource: Resource, Loggable {
         

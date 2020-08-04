@@ -1,5 +1,5 @@
 //
-//  ZIPFetcher.swift
+//  ArchiveFetcher.swift
 //  r2-shared-swift
 //
 //  Created by Mickaël Menu on 11/05/2020.
@@ -12,35 +12,46 @@
 import Foundation
 
 /** Provides access to entries of a ZIP archive. */
-final class ZIPFetcher: Fetcher, Loggable {
+public final class ArchiveFetcher: Fetcher, Loggable {
     
     private let archive: Archive
     
-    init?(archive: URL) {
-        do {
-            self.archive = try MinizipArchive(file: archive)
-        } catch {
-            Self.log(.error, error)
-            return nil
+    public init(url: URL, password: String? = nil, openArchive: ArchiveFactory = DefaultArchiveFactory) throws {
+        self.archive = try openArchive(url, password)
+    }
+    
+    public lazy var links: [Link] =
+        archive.entries.map { entry in
+            Link(
+                href: entry.path.addingPrefix("/"),
+                type: Format.of(fileExtension: URL(fileURLWithPath: entry.path).pathExtension)?.mediaType.string
+            )
         }
+
+    public func get(_ link: Link) -> Resource {
+        return ArchiveResource(link: link, archive: archive)
     }
     
-    func get(_ link: Link, parameters: LinkParameters) -> Resource {
-        return ZIPResource(link: link, archive: archive)
-    }
+    public func close() {}
     
-    func close() {}
-    
-    private final class ZIPResource: Resource {
+    private final class ArchiveResource: Resource {
         
-        let link: Link
+        lazy var link: Link = {
+            var link = originalLink
+            if let compressedLength = entry?.compressedLength {
+                link = link.addingProperties(["compressedLength": Int(compressedLength)])
+            }
+            return link
+        }()
+        
+        private let originalLink: Link
         private let href: String
         
         private let archive: Archive
-        private lazy var entry: ArchiveEntry? = archive.entry(at: href)
+        private lazy var entry: ArchiveEntry? = try? archive.entry(at: href)
 
         init(link: Link, archive: Archive) {
-            self.link = link
+            self.originalLink = link
             self.href = link.href.removingPrefix("/")
             self.archive = archive
         }

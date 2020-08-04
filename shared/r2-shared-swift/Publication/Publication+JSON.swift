@@ -14,11 +14,14 @@ import Foundation
 
 enum JSONError: LocalizedError {
     case parsing(Any.Type)
+    case serializing(Any.Type)
 
     var errorDescription: String? {
         switch self {
         case .parsing(let type):
             return R2SharedLocalizedString("JSONError.parsing", "\(type)")
+        case .serializing(let type):
+            return R2SharedLocalizedString("JSONError.serializing", "\(type)")
         }
     }
     

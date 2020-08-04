@@ -15,7 +15,7 @@ import Foundation
 extension Publication {
     
     public var images: [Link] {
-        otherCollections.first(withRole: "images")?.links ?? []
+        subcollections["images"]?.flatMap { $0.links } ?? []
     }
 
 }

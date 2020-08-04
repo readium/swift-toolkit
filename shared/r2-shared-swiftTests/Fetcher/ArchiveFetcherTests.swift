@@ -1,5 +1,5 @@
 //
-//  ZIPFetcherTests.swift
+//  ArchiveFetcherTests.swift
 //  r2-shared-swift
 //
 //  Created by Mickaël Menu on 11/05/2020.
@@ -12,14 +12,32 @@
 import XCTest
 @testable import R2Shared
 
-class ZIPFetcherTests: XCTestCase {
+class ArchiveFetcherTests: XCTestCase {
     
     let fixtures = Fixtures(path: "Fetcher")
-    var fetcher: ZIPFetcher!
+    var fetcher: ArchiveFetcher!
 
-    override func setUp() {
+    override func setUpWithError() throws {
         let url = fixtures.url(for: "epub.epub")
-        fetcher = ZIPFetcher(archive: url)!
+        fetcher = try ArchiveFetcher(url: url)
+    }
+    
+    func testLinks() {
+        XCTAssertEqual(
+            fetcher.links,
+            [
+                ("/mimetype", nil),
+                ("/EPUB/cover.xhtml", "text/html"),
+                ("/EPUB/css/epub.css", "text/css"),
+                ("/EPUB/css/nav.css", "text/css"),
+                ("/EPUB/images/cover.png", "image/png"),
+                ("/EPUB/nav.xhtml", "text/html"),
+                ("/EPUB/package.opf", nil),
+                ("/EPUB/s04.xhtml", "text/html"),
+                ("/EPUB/toc.ncx", nil),
+                ("/META-INF/container.xml", "application/xml")
+            ].map { href, type in Link(href: href, type: type) }
+        )
     }
     
     func testReadEntryFully() {
@@ -62,6 +80,11 @@ class ZIPFetcherTests: XCTestCase {
         XCTAssertThrowsError(try result.get()) { error in
             XCTAssertEqual(ResourceError.notFound, error as? ResourceError)
         }
+    }
+    
+    func testAddsCompressedLengthToLink() {
+        let resource = fetcher.get(Link(href: "/EPUB/css/epub.css"))
+        XCTAssertEqual(resource.link.properties["compressedLength"] as? Int, 595)
     }
     
 }

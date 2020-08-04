@@ -20,7 +20,7 @@ class PublicationEPUBTests: XCTestCase {
     }
 
     func testPageList() {
-        let sut = makePublication(PublicationCollection(role: "pageList", links: [Link(href: "/page1.html")]))
+        let sut = makePublication(["pageList": [PublicationCollection(links: [Link(href: "/page1.html")])]])
 
         XCTAssertEqual(
             sut.pageList,
@@ -34,7 +34,7 @@ class PublicationEPUBTests: XCTestCase {
     }
     
     func testLandmarks() {
-        let sut = makePublication(PublicationCollection(role: "landmarks", links: [Link(href: "/landmark.html")]))
+        let sut = makePublication(["landmarks": [PublicationCollection(links: [Link(href: "/landmark.html")])]])
         
         XCTAssertEqual(
             sut.landmarks,
@@ -48,7 +48,7 @@ class PublicationEPUBTests: XCTestCase {
     }
     
     func testListOfAudioClips() {
-        let sut = makePublication(PublicationCollection(role: "loa", links: [Link(href: "/audio.mp3")]))
+        let sut = makePublication(["loa": [PublicationCollection(links: [Link(href: "/audio.mp3")])]])
 
         XCTAssertEqual(
             sut.listOfAudioClips,
@@ -62,7 +62,7 @@ class PublicationEPUBTests: XCTestCase {
     }
     
     func testListOfIllustrations() {
-        let sut = makePublication(PublicationCollection(role: "loi", links: [Link(href: "/image.jpg")]))
+        let sut = makePublication(["loi": [PublicationCollection(links: [Link(href: "/image.jpg")])]])
 
         XCTAssertEqual(
             sut.listOfIllustrations,
@@ -76,7 +76,7 @@ class PublicationEPUBTests: XCTestCase {
     }
     
     func testListOfTables() {
-        let sut = makePublication(PublicationCollection(role: "lot", links: [Link(href: "/table.html")]))
+        let sut = makePublication(["lot": [PublicationCollection(links: [Link(href: "/table.html")])]])
 
         XCTAssertEqual(
             sut.listOfTables,
@@ -90,7 +90,7 @@ class PublicationEPUBTests: XCTestCase {
     }
     
     func testListOfVideoClips() {
-        let sut = makePublication(PublicationCollection(role: "lov", links: [Link(href: "/video.mov")]))
+        let sut = makePublication(["lov": [PublicationCollection(links: [Link(href: "/video.mov")])]])
         
         XCTAssertEqual(
             sut.listOfVideoClips,
@@ -98,9 +98,8 @@ class PublicationEPUBTests: XCTestCase {
         )
     }
     
-    private func makePublication(_ collection: PublicationCollection? = nil) -> Publication {
-        let collections = Array(ofNotNil: collection)
-        return Publication(metadata: Metadata(title: ""), links: [], readingOrder: [], otherCollections: collections)
+    private func makePublication(_ collections: [String: [PublicationCollection]] = [:]) -> Publication {
+        return Publication(manifest: .init(metadata: Metadata(title: ""), links: [], readingOrder: [], subcollections: collections))
     }
 
 }

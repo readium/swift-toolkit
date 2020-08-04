@@ -21,3 +21,7 @@ func AssertJSONEqual(_ json1: Any, _ json2: Any, file: StaticString = #file, lin
         XCTFail(error.localizedDescription)
     }
 }
+
+func AssertImageEqual(_ image1: UIImage?, _ image2: UIImage?, file: StaticString = #file, line: UInt = #line) {
+    XCTAssertEqual(image1?.pngData(), image2?.pngData(), file: file, line: line)
+}

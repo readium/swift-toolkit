@@ -95,7 +95,7 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
     public var jsonString: String? {
         serializeJSONString(json)
     }
-    
+
     public var description: String {
         jsonString ?? "{}"
     }
@@ -261,45 +261,21 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
     
 }
 
-
-@available(*, deprecated, message: "Use your own Bookmark model in your app, this one is not used by Readium 2 anymore")
-public class Bookmark {
-    public var id: Int64?
-    public var bookID: Int = 0
-    public var publicationID: String
-    public var resourceIndex: Int
-    public var locator: Locator
-    public var creationDate: Date
+extension Array where Element == Locator {
     
-    public init(id: Int64? = nil, publicationID: String, resourceIndex: Int, locator: Locator, creationDate: Date = Date()) {
-        self.id = id
-        self.publicationID = publicationID
-        self.resourceIndex = resourceIndex
-        self.locator = locator
-        self.creationDate = creationDate
+    /// Parses multiple JSON locators into an array of `Locator`.
+    public init(json: Any?) {
+        self.init()
+        guard let json = json as? [Any] else {
+            return
+        }
+        
+        let links = json.compactMap { try? Locator(json: $0) }
+        append(contentsOf: links)
     }
     
-    public convenience init(bookID: Int, publicationID: String, resourceIndex: Int, resourceHref: String, resourceType: String, resourceTitle: String, location: Locations, locatorText: LocatorText, creationDate: Date = Date(), id: Int64? = nil) {
-        self.init(
-            id: id,
-            publicationID: publicationID,
-            resourceIndex: resourceIndex,
-            locator: Locator(
-                href: resourceHref,
-                type: resourceType,
-                title: resourceTitle,
-                locations: location,
-                text: locatorText
-            ),
-            creationDate: creationDate
-        )
+    public var json: [[String: Any]] {
+        map { $0.json }
     }
-
-    public var resourceHref: String { return locator.href }
-    public var resourceType: String { return locator.type }
-    public var resourceTitle: String { return locator.title ?? "" }
-    public var location: Locations { return locator.locations }
-    public var locations: Locations? { return locator.locations }
-    public var locatorText: LocatorText { return locator.text }
     
 }

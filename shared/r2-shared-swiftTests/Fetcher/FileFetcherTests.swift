@@ -24,6 +24,15 @@ class FileFetcherTests: XCTestCase {
         ])
     }
     
+    func testLinks() {
+        XCTAssertEqual(fetcher.links, [
+            Link(href: "/dir_href/subdirectory/hello.mp3", type: "audio/mpeg"),
+            Link(href: "/dir_href/subdirectory/text2.txt", type: "text/plain"),
+            Link(href: "/dir_href/text1.txt", type: "text/plain"),
+            Link(href: "/file_href", type: "text/plain")
+        ])
+    }
+    
     func testReadFile() {
         let resource = fetcher.get(Link(href: "/file_href"))
         let result = resource.read()

@@ -13,6 +13,15 @@ import Foundation
 
 extension String {
     
+    /// Returns a copy of the string after adding the given `prefix` if it's not already there.
+    public func addingPrefix(_ prefix: String) -> String {
+        if hasPrefix(prefix) {
+            return self
+        } else {
+            return prefix + self
+        }
+    }
+    
     /// Returns a copy of the string after removing the given `prefix`, when present.
     public func removingPrefix(_ prefix: String) -> String {
         guard hasPrefix(prefix) else {

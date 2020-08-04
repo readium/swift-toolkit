@@ -18,6 +18,16 @@ extension Array {
     public init(ofNotNil element: Element?) {
         self.init(element.map { [$0] } ?? [])
     }
+    
+    func first<T>(where transform: (Element) throws -> T?) rethrows -> T? {
+        for element in self {
+            if let result = try transform(element) {
+                return result
+            }
+        }
+        
+        return nil
+    }
 
 }
 

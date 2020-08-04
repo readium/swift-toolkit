@@ -15,15 +15,15 @@ import XCTest
 class PublicationOPDSTests: XCTestCase {
     
     func testNoImages() {
-        let sut = Publication(metadata: Metadata(title: ""), links: [], readingOrder: [])
+        let sut = Publication(manifest: .init(metadata: Metadata(title: ""), links: [], readingOrder: []))
         XCTAssertEqual(sut.images, [])
     }
     
     func testImages() {
-        let sut = Publication(
+        let sut = Publication(manifest: Manifest(
             metadata: Metadata(title: ""), links: [], readingOrder: [],
-            otherCollections: [PublicationCollection(role: "images", links: [Link(href: "/image.png")])]
-        )
+            subcollections: ["images": [PublicationCollection(links: [Link(href: "/image.png")])]]
+        ))
         
         XCTAssertEqual(
             sut.images,

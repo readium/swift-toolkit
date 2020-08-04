@@ -13,174 +13,17 @@ import XCTest
 @testable import R2Shared
 
 class PublicationTests: XCTestCase {
-    
-    func testParseMinimalJSON() {
+
+    func testGetJSON() {
         XCTAssertEqual(
-            try? Publication(json: [
-                "metadata": ["title": "Title"],
-                "links": [
-                    ["href": "/manifest.json", "rel": "self"]
-                ],
-                "readingOrder": [
-                    ["href": "/chap1.html", "type": "text/html"]
-                ]
-            ]),
             Publication(
-                metadata: Metadata(title: "Title"),
-                links: [Link(href: "/manifest.json", rels: ["self"])],
-                readingOrder: [Link(href: "/chap1.html", type: "text/html")]
-            )
-        )
-    }
-    
-    func testParseFullJSON() {
-        XCTAssertEqual(
-            try? Publication(json: [
-                "@context": "https://readium.org/webpub-manifest/context.jsonld",
-                "metadata": ["title": "Title"],
-                "links": [
-                    ["href": "/manifest.json", "rel": "self"]
-                ],
-                "readingOrder": [
-                    ["href": "/chap1.html", "type": "text/html"]
-                ],
-                "resources": [
-                    ["href": "/image.png", "type": "image/png"]
-                ],
-                "toc": [
-                    ["href": "/cover.html"],
-                    ["href": "/chap1.html"]
-                ],
-                "sub": [
-                    "links": [
-                        ["href": "/sublink"]
-                    ]
-                ]
-            ]),
-            Publication(
-                context: ["https://readium.org/webpub-manifest/context.jsonld"],
-                metadata: Metadata(title: "Title"),
-                links: [Link(href: "/manifest.json", rels: ["self"])],
-                readingOrder: [Link(href: "/chap1.html", type: "text/html")],
-                resources: [Link(href: "/image.png", type: "image/png")],
-                tableOfContents: [Link(href: "/cover.html"), Link(href: "/chap1.html")],
-                otherCollections: [PublicationCollection(role: "sub", links: [Link(href: "/sublink")])]
-            )
-        )
-    }
-    
-    func testParseContextAsArray() {
-        XCTAssertEqual(
-            try? Publication(json: [
-                "@context": ["context1", "context2"],
-                "metadata": ["title": "Title"],
-                "links": [
-                    ["href": "/manifest.json", "rel": "self"]
-                ],
-                "readingOrder": [
-                    ["href": "/chap1.html", "type": "text/html"]
-                ]
-                ]),
-            Publication(
-                context: ["context1", "context2"],
-                metadata: Metadata(title: "Title"),
-                links: [Link(href: "/manifest.json", rels: ["self"])],
-                readingOrder: [Link(href: "/chap1.html", type: "text/html")]
-            )
-        )
-    }
-    
-    func testParseInvalidJSON() {
-        XCTAssertThrowsError(try Publication(json: ""))
-    }
-    
-    func testParseJSONRequiresMetadata() {
-        XCTAssertThrowsError(try Publication(json: [
-            "links": [
-                ["href": "/manifest.json", "rel": "self"]
-            ],
-            "readingOrder": [
-                ["href": "/chap1.html", "type": "text/html"]
-            ]
-        ]))
-    }
-    
-    func testParseJSONSpineAsReadingOrder() {
-        // `readingOrder` used to be `spine`, so we parse `spine` as a fallback.
-        XCTAssertEqual(
-            try? Publication(json: [
-                "metadata": ["title": "Title"],
-                "links": [
-                    ["href": "/manifest.json", "rel": "self"]
-                ],
-                "spine": [
-                    ["href": "/chap1.html", "type": "text/html"]
-                ]
-            ]),
-            Publication(
-                metadata: Metadata(title: "Title"),
-                links: [Link(href: "/manifest.json", rels: ["self"])],
-                readingOrder: [Link(href: "/chap1.html", type: "text/html")]
-            )
-        )
-    }
-                    
-    func testParseJSONIgnoresReadingOrderWithoutType() {
-        XCTAssertEqual(
-            try Publication(json: [
-                "metadata": ["title": "Title"],
-                "links": [
-                    ["href": "/manifest.json", "rel": "self"]
-                ],
-                "readingOrder": [
-                    ["href": "/chap1.html", "type": "text/html"],
-                    ["href": "/chap2.html"]
-                ]
-            ]),
-            Publication(
-                metadata: Metadata(title: "Title"),
-                links: [
-                    Link(href: "/manifest.json", rels: ["self"]),
-                ],
-                readingOrder: [Link(href: "/chap1.html", type: "text/html")]
-            )
-        )
-    }
-    
-    func testParseJSONIgnoresRessourcesWithoutType() {
-        XCTAssertEqual(
-            try Publication(json: [
-                "metadata": ["title": "Title"],
-                "links": [
-                    ["href": "/manifest.json", "rel": "self"]
-                ],
-                "readingOrder": [
-                    ["href": "/chap1.html", "type": "text/html"]
-                ],
-                "resources": [
-                    ["href": "/withtype", "type": "text/html"],
-                    ["href": "/withouttype"]
-                ]
-            ]),
-            Publication(
-                metadata: Metadata(title: "Title"),
-                links: [
-                    Link(href: "/manifest.json", rels: ["self"]),
-                ],
-                readingOrder: [Link(href: "/chap1.html", type: "text/html")],
-                resources: [Link(href: "/withtype", type: "text/html")]
-            )
-        )
-    }
-    
-    func testGetMinimalJSON() {
-        AssertJSONEqual(
-            Publication(
-                metadata: Metadata(title: "Title"),
-                links: [Link(href: "/manifest.json", rels: ["self"])],
-                readingOrder: [Link(href: "/chap1.html", type: "text/html")]
-            ).json,
-            [
+                manifest: Manifest(
+                    metadata: Metadata(title: "Title"),
+                    links: [Link(href: "/manifest.json", rels: ["self"])],
+                    readingOrder: [Link(href: "/chap1.html", type: "text/html")]
+                )
+            ).jsonManifest,
+            serializeJSONString([
                 "metadata": ["title": "Title", "readingProgression": "auto"],
                 "links": [
                     ["href": "/manifest.json", "rel": ["self"], "templated": false]
@@ -188,60 +31,266 @@ class PublicationTests: XCTestCase {
                 "readingOrder": [
                     ["href": "/chap1.html", "type": "text/html", "templated": false]
                 ]
-            ]
+            ])
         )
     }
     
-    func testGetFullJSON() {
-        AssertJSONEqual(
-            Publication(
-                context: ["https://readium.org/webpub-manifest/context.jsonld"],
-                metadata: Metadata(title: "Title"),
-                links: [Link(href: "/manifest.json", rels: ["self"])],
-                readingOrder: [Link(href: "/chap1.html", type: "text/html")],
-                resources: [Link(href: "/image.png", type: "image/png")],
-                tableOfContents: [Link(href: "/cover.html"), Link(href: "/chap1.html")],
-                otherCollections: [PublicationCollection(role: "sub", links: [Link(href: "/sublink")])]
-            ).json,
-            [
-                "@context": ["https://readium.org/webpub-manifest/context.jsonld"],
-                "metadata": ["title": "Title", "readingProgression": "auto"],
-                "links": [
-                    ["href": "/manifest.json", "rel": ["self"], "templated": false]
-                ],
-                "readingOrder": [
-                    ["href": "/chap1.html", "type": "text/html", "templated": false]
-                ],
-                "resources": [
-                    ["href": "/image.png", "type": "image/png", "templated": false]
-                ],
-                "toc": [
-                    ["href": "/cover.html", "templated": false],
-                    ["href": "/chap1.html", "templated": false]
-                ],
-                "sub": [
-                    "links": [
-                        ["href": "/sublink", "templated": false]
-                    ]
-                ]
-            ]
-        )
-    }
-    
-    func testGetFullManifest() {
+    func testBaseURL() {
         XCTAssertEqual(
-            Publication(
-                context: ["https://readium.org/webpub-manifest/context.jsonld"],
-                metadata: Metadata(title: "Title"),
-                links: [Link(href: "/manifest.json", rels: ["self"])],
-                readingOrder: [Link(href: "/chap1.html", type: "text/html")],
-                resources: [Link(href: "/image.png", type: "image/png")],
-                tableOfContents: [Link(href: "/cover.html"), Link(href: "/chap1.html")]
-            ).manifest,
-            """
-            {"@context":["https://readium.org/webpub-manifest/context.jsonld"],"links":[{"href":"/manifest.json","rel":["self"],"templated":false}],"metadata":{"readingProgression":"auto","title":"Title"},"readingOrder":[{"href":"/chap1.html","templated":false,"type":"text/html"}],"resources":[{"href":"/image.png","templated":false,"type":"image/png"}],"toc":[{"href":"/cover.html","templated":false},{"href":"/chap1.html","templated":false}]}
-            """.data(using: .utf8)
+            makePublication(links: [
+                Link(href: "http://host/folder/manifest.json", rel: "self")
+            ]).baseURL,
+            URL(string: "http://host/folder/")!
         )
+    }
+    
+    func testBaseURLMissing() {
+        XCTAssertNil(
+            makePublication(links: [
+                Link(href: "http://host/folder/manifest.json")
+            ]).baseURL
+        )
+    }
+    
+    func testBaseURLRoot() {
+        XCTAssertEqual(
+            makePublication(links: [
+                Link(href: "http://host/manifest.json", rel: "self")
+            ]).baseURL,
+            URL(string: "http://host/")!
+        )
+    }
+    
+    func testLinkWithHREFInReadingOrder() {
+        XCTAssertEqual(
+            makePublication(readingOrder: [
+                Link(href: "l1"),
+                Link(href: "l2")
+            ]).link(withHREF: "l2")?.href,
+            "l2"
+        )
+    }
+    
+    func testLinkWithHREFInLinks() {
+        XCTAssertEqual(
+            makePublication(links: [
+                Link(href: "l1"),
+                Link(href: "l2")
+            ]).link(withHREF: "l2")?.href,
+            "l2"
+        )
+    }
+    
+    func testLinkWithHREFInResources() {
+        XCTAssertEqual(
+            makePublication(resources: [
+                Link(href: "l1"),
+                Link(href: "l2")
+            ]).link(withHREF: "l2")?.href,
+            "l2"
+        )
+    }
+    
+    func testLinkWithHREFInAlternate() {
+        XCTAssertEqual(
+            makePublication(resources: [
+                Link(href: "l1", alternates: [
+                    Link(href: "l2", alternates: [
+                        Link(href: "l3")
+                    ])
+                ])
+            ]).link(withHREF: "l3")?.href,
+            "l3"
+        )
+    }
+    
+    func testLinkWithHREFInChildren() {
+        XCTAssertEqual(
+            makePublication(resources: [
+                Link(href: "l1", children: [
+                    Link(href: "l2", children: [
+                        Link(href: "l3")
+                    ])
+                ])
+            ]).link(withHREF: "l3")?.href,
+            "l3"
+        )
+    }
+    
+    func testLinkWithHREFIgnoresQuery() {
+        let publication = makePublication(links: [
+            Link(href: "l1?q=a"),
+            Link(href: "l2")
+        ])
+        
+        XCTAssertEqual(publication.link(withHREF: "l1?q=a")?.href, "l1?q=a")
+        XCTAssertEqual(publication.link(withHREF: "l2?q=b")?.href, "l2")
+    }
+    
+    func testLinkWithHREFIgnoresAnchor() {
+        let publication = makePublication(links: [
+            Link(href: "l1#a"),
+            Link(href: "l2")
+        ])
+        
+        XCTAssertEqual(publication.link(withHREF: "l1#a")?.href, "l1#a")
+        XCTAssertEqual(publication.link(withHREF: "l2#b")?.href, "l2")
+    }
+    
+    func testLinkWithRelInReadingOrder() {
+        XCTAssertEqual(
+            makePublication(readingOrder: [
+                Link(href: "l1"),
+                Link(href: "l2", rel: "rel1")
+            ]).link(withRel: "rel1")?.href,
+            "l2"
+        )
+    }
+    
+    func testLinkWithRelInLinks() {
+        XCTAssertEqual(
+            makePublication(links: [
+                Link(href: "l1"),
+                Link(href: "l2", rel: "rel1")
+            ]).link(withRel: "rel1")?.href,
+            "l2"
+        )
+    }
+    
+    func testLinkWithRelInResources() {
+        XCTAssertEqual(
+            makePublication(resources: [
+                Link(href: "l1"),
+                Link(href: "l2", rel: "rel1")
+            ]).link(withRel: "rel1")?.href,
+            "l2"
+        )
+    }
+    
+    func testLinksWithRel() {
+        XCTAssertEqual(
+            makePublication(
+                links: [
+                    Link(href: "l1"),
+                    Link(href: "l2", rel: "rel1")
+                ],
+                readingOrder: [
+                    Link(href: "l3"),
+                    Link(href: "l4", rel: "rel1")
+                ],
+                resources: [
+                    Link(href: "l5", alternates: [
+                        Link(href: "alternate", rel: "rel1")
+                    ]),
+                    Link(href: "l6", rel: "rel1")
+                ]
+            ).links(withRel: "rel1"),
+            [
+                Link(href: "l4", rel: "rel1"),
+                Link(href: "l6", rel: "rel1"),
+                Link(href: "l2", rel: "rel1")
+            ]
+        )
+    }
+    
+    func testLinksWithRelEmpty() {
+        XCTAssertEqual(
+            makePublication(resources: [
+                Link(href: "l1"),
+                Link(href: "l2")
+            ]).links(withRel: "rel1"),
+            []
+        )
+    }
+    
+    /// `Publication.get()` delegates to the `Fetcher`.
+    func testGetDelegatesToFetcher() {
+        let link = Link(href: "test", type: "text/html")
+        let publication = makePublication(
+            links: [link],
+            fetcher: ProxyFetcher {
+                if link.href == $0.href {
+                    return DataResource(link: $0, string: "hello")
+                } else {
+                    return FailureResource(link: $0, error: .notFound)
+                }
+            }
+        )
+        
+        XCTAssertEqual(publication.get(link).readAsString().getOrNil(), "hello")
+    }
+    
+    /// Services take precedence over the Fetcher in `Publication.get()`.
+    func testGetServicesTakePrecedence() {
+        let link = Link(href: "test", type: "text/html")
+        let publication = makePublication(
+            links: [link],
+            fetcher: ProxyFetcher {
+                if link.href == $0.href {
+                    return DataResource(link: $0, string: "hello")
+                } else {
+                    return FailureResource(link: $0, error: .notFound)
+                }
+            },
+            services: .init {
+                $0.set(TestService.self) { _ in TestService(link: link) }
+            }
+        )
+        
+        XCTAssertEqual(publication.get(link).readAsString().getOrNil(), "world")
+    }
+    
+    /// `Publication.get(String)` keeps the query parameters and automatically untemplate the `Link`.
+    func testGetKeepsQueryParameters() {
+        let link = Link(href: "test", type: "text/html", templated: true)
+        var requestedLink: Link?
+        let publication = makePublication(
+            links: [link],
+            fetcher: ProxyFetcher {
+                requestedLink = $0
+                return FailureResource(link: $0, error: .notFound)
+            }
+        )
+        
+        _ = publication.get("test?query=param")
+        
+        XCTAssertEqual(requestedLink, Link(href: "test?query=param", type: "text/html", templated: false))
+    }
+
+    private func makePublication(
+        metadata: Metadata = Metadata(title: ""),
+        links: [Link] = [],
+        readingOrder: [Link] = [],
+        resources: [Link] = [],
+        fetcher: Fetcher? = nil,
+        services: PublicationServicesBuilder = PublicationServicesBuilder()
+    ) -> Publication {
+        return Publication(
+            manifest: Manifest(
+                metadata: metadata,
+                links: links,
+                readingOrder: readingOrder,
+                resources: resources
+            ),
+            fetcher: fetcher ?? EmptyFetcher(),
+            servicesBuilder: services
+        )
+    }
+
+}
+
+private struct TestService: PublicationService {
+    
+    let link: Link
+    
+    lazy var links: [Link] = [link]
+    
+    func get(link: Link) -> Resource? {
+        if link.href == self.link.href {
+            return DataResource(link: link, string: "world")
+        } else {
+            return FailureResource(link: link, error: .notFound)
+        }
     }
     
 }

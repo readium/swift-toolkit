@@ -214,7 +214,116 @@ class LinkTests: XCTestCase {
             ]
         )
     }
+
+    func testURLRelativeToBaseURL() {
+        XCTAssertEqual(
+            Link(href: "folder/file.html").url(relativeTo: URL(string: "http://host/")!),
+            URL(string: "http://host/folder/file.html")!
+        )
+    }
+
+    func testURLRelativeToBaseURLWithRootPrefix() {
+        XCTAssertEqual(
+            Link(href: "/file.html").url(relativeTo: URL(string: "http://host/folder/")!),
+            URL(string: "http://host/folder/file.html")!
+        )
+    }
+
+    func testURLRelativeToNil() {
+        XCTAssertEqual(
+            Link(href: "folder/file.html").url(relativeTo: nil),
+            URL(string: "folder/file.html")!
+        )
+    }
+
+    func testURLWithInvalidHREF() {
+        XCTAssertNil(Link(href: "").url(relativeTo: URL(string: "http://test.com")!))
+    }
     
+    func testURLWithAbsoluteHREF() {
+        XCTAssertEqual(
+            Link(href: "http://test.com/folder/file.html").url(relativeTo: URL(string: "http://host/")!),
+            URL(string: "http://test.com/folder/file.html")!
+        )
+    }
+    
+    func testURLWithHREFContainingInvalidCharacters() {
+        XCTAssertEqual(
+            Link(href: "/Cory Doctorow's/a-fc.jpg").url(relativeTo: URL(string: "http://host/folder/")),
+            URL(string: "http://host/folder/Cory%20Doctorow's/a-fc.jpg")!
+        )
+    }
+
+    func testTemplateParameters() {
+        XCTAssertEqual(
+            Link(
+                href:  "/url{?x,hello,y}name{z,y,w}",
+                templated: true
+            ).templateParameters,
+            ["x", "hello", "y", "z", "w"]
+        )
+    }
+    
+    func testTemplateParametersWithNoVariables() {
+        XCTAssertEqual(
+            Link(
+                href:  "/url",
+                templated: true
+            ).templateParameters,
+            []
+        )
+    }
+    
+    func testTemplateParametersForNonTemplatedLink() {
+        XCTAssertEqual(
+            Link(href:  "/url{?x,hello,y}name{z,y,w}").templateParameters,
+            []
+        )
+    }
+    
+    func testExpandSimpleStringTemplates() {
+        XCTAssertEqual(
+            Link(
+                href: "/url{x,hello,y}name{z,y,w}",
+                templated: true
+            ).expandTemplate(with: [
+                "x": "aaa",
+                "hello": "Hello, world",
+                "y": "b",
+                "z": "45",
+                "w": "w"
+            ]),
+            Link(href: "/urlaaa,Hello, world,bname45,b,w")
+        )
+    }
+
+    func testExpandFormStyleAmpersandSeparatedTemplates() {
+        XCTAssertEqual(
+            Link(
+                href: "/url{?x,hello,y}name",
+                templated: true
+            ).expandTemplate(with: [
+                "x": "aaa",
+                "hello": "Hello, world",
+                "y": "b"
+            ]),
+            Link(href: "/url?x=aaa&hello=Hello, world&y=bname")
+        )
+    }
+    
+    func testExpandIgnoresExtraParameters() {
+        XCTAssertEqual(
+            Link(
+                href: "/path{?search}",
+                templated: true
+            ).expandTemplate(with: [
+                "search": "banana",
+                "code": "14"
+            ]),
+            Link(href: "/path?search=banana")
+        )
+    }
+
     func testCopy() {
         let link = fullLink
         
@@ -259,6 +368,44 @@ class LinkTests: XCTestCase {
                     ["href": "copy-children", "templated": false]
                 ]
             ]
+        )
+    }
+    
+    func testAddingProperties() {
+        let link = fullLink
+        
+        let copy = link.addingProperties([
+            "additional": "property",
+            "orientation": "override"
+        ])
+
+        AssertJSONEqual(
+            copy.json,
+            [
+                "href": "http://href",
+                "type": "application/pdf",
+                "templated": true,
+                "title": "Link Title",
+                "rel": ["publication", "cover"],
+                "properties": [
+                    "orientation": "override",
+                    "additional": "property"
+                ],
+                "height": 1024,
+                "width": 768,
+                "bitrate": 74.2,
+                "duration": 45.6,
+                "language": ["fr"],
+                "alternate": [
+                    ["href": "/alternate1", "templated": false],
+                    ["href": "/alternate2", "templated": false]
+                ],
+                "children": [
+                    ["href": "http://child1", "templated": false],
+                    ["href": "http://child2", "templated": false]
+                ]
+            ]
+
         )
     }
 
