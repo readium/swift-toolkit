@@ -137,14 +137,11 @@ final class LibraryService: Loggable {
     
     @discardableResult
     func addPublication(at url: URL, downloadTask: URLSessionDownloadTask? = nil) -> Bool {
-        guard let (publication, container) = parsePublication(at: url) else {
+        guard let (publication, _) = parsePublication(at: url) else {
             delegate?.libraryService(self, presentError: LibraryError.publicationIsNotValid)
             try? FileManager.default.removeItem(at: url)
             return false
         }
-        
-        let image: Data? = publication.coverLink
-            .flatMap { try? container.data(relativePath: $0.href) }
         
         let book = Book(
             href: url.isFileURL ? url.lastPathComponent : url.absoluteString,
@@ -153,7 +150,7 @@ final class LibraryService: Loggable {
                 .map { $0.name }
                 .joined(separator: ", "),
             identifier: publication.metadata.identifier ?? url.lastPathComponent,
-            cover: image
+            cover: publication.cover?.pngData()
         )
         if (try! BooksDatabase.shared.books.insert(book: book)) != nil {
             delegate?.reloadLibrary(with: downloadTask, canceled: false)
@@ -239,13 +236,10 @@ final class LibraryService: Loggable {
         // Load the publications.
         for url in urlsFromSamples() {
             let filename = url.lastPathComponent
-            guard let (publication, container) = parsePublication(at: url) else {
+            guard let publication = parsePublication(at: url)?.publication else {
                 log(.error, "Error loading publication \(filename).")
                 continue
             }
-            
-            let image: Data? = publication.coverLink
-                .flatMap { try? container.data(relativePath: $0.href) }
             
             let book = Book(
                 href: filename,
@@ -254,7 +248,7 @@ final class LibraryService: Loggable {
                     .map { $0.name }
                     .joined(separator: ", "),
                 identifier: publication.metadata.identifier ?? url.lastPathComponent,
-                cover: image
+                cover: publication.cover?.pngData()
             )
             _ = try! BooksDatabase.shared.books.insert(book: book)
         }
@@ -328,7 +322,7 @@ final class LibraryService: Loggable {
     }
     
     func downloadPublication(_ publication: Publication? = nil, at link: Link, completion: @escaping (Bool) -> Void = { _ in }) {
-        guard let url = publication?.url(to: link) else {
+        guard let url = link.url(relativeTo: publication?.baseURL) else {
             completion(false)
             return
         }

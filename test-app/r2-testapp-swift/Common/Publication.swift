@@ -20,7 +20,7 @@ extension Publication {
     var downloadLinks: [Link] {
         links.filter {
             return DocumentTypes.main.supportsMediaType($0.type)
-                || DocumentTypes.main.supportsFileExtension(url(to: $0)?.pathExtension)
+                || DocumentTypes.main.supportsFileExtension($0.url(relativeTo: nil)?.pathExtension)
         }
     }
 
