@@ -235,7 +235,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
 
     // Reading order index of the left-most resource in the visible spread.
     private var currentResourceIndex: Int? {
-        return publication.readingOrder.firstIndex(withHref: spreads[currentSpreadIndex].left.href)
+        return publication.readingOrder.firstIndex(withHREF: spreads[currentSpreadIndex].left.href)
     }
 
     private func reloadSpreads(at locator: Locator? = nil) {
@@ -264,11 +264,16 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     // MARK: - Navigator
     
     public var currentLocation: Locator? {
-        guard let spreadView = paginationView.currentView as? EPUBSpreadView,
+        guard
+            let spreadView = paginationView.currentView as? EPUBSpreadView,
             let href = Optional(spreadView.spread.leading.href),
-            let positionList = publication.positionsByResource[href],
-            positionList.count > 0 else
+            let index = publication.readingOrder.firstIndex(withHREF: href) else
         {
+            return nil
+        }
+        
+        let positionList = publication.positionsByReadingOrder[index]
+        guard positionList.count > 0 else {
             return nil
         }
 

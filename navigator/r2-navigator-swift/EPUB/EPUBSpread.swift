@@ -70,7 +70,7 @@ struct EPUBSpread: Loggable {
 
     /// Returns whether the spread contains a resource with the given href.
     func contains(href: String) -> Bool {
-        return links.first(withHref: href) != nil
+        return links.first(withHREF: href) != nil
     }
     
     /// Returns a JSON representation of the links in the spread.
@@ -81,7 +81,7 @@ struct EPUBSpread: Loggable {
     ///   - page [left|center|right]: (optional) Page position of the linked resource in the spread.
     func json(for publication: Publication) -> [[String: String]] {
         func makeLinkJSON(_ link: Link, page: Presentation.Page? = nil) -> [String: String]? {
-            guard let url = publication.url(to: link) else {
+            guard let url = link.url(relativeTo: publication.baseURL) else {
                 log(.error, "Can't get URL for link \(link.href)")
                 return nil
             }

@@ -29,7 +29,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     public init(publication: Publication, initialLocation: Locator? = nil) {
         self.publication = publication
         self.initialIndex = {
-            guard let initialLocation = initialLocation, let initialIndex = publication.readingOrder.firstIndex(withHref: initialLocation.href) else {
+            guard let initialLocation = initialLocation, let initialIndex = publication.readingOrder.firstIndex(withHREF: initialLocation.href) else {
                 return 0
             }
             return initialIndex
@@ -115,7 +115,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     
     private func imageViewController(at index: Int) -> ImageViewController? {
         guard publication.readingOrder.indices.contains(index),
-            let url = publication.url(to: publication.readingOrder[index]) else
+            let url = publication.readingOrder[index].url(relativeTo: publication.baseURL) else
         {
             return nil
         }
@@ -135,14 +135,14 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     }
     
     public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
-        guard let index = publication.readingOrder.firstIndex(withHref: locator.href) else {
+        guard let index = publication.readingOrder.firstIndex(withHREF: locator.href) else {
             return false
         }
         return goToResourceAtIndex(index, animated: animated, completion: completion)
     }
     
     public func go(to link: Link, animated: Bool, completion: @escaping () -> Void) -> Bool {
-        guard let index = publication.readingOrder.firstIndex(withHref: link.href) else {
+        guard let index = publication.readingOrder.firstIndex(withHREF: link.href) else {
             return false
         }
         return goToResourceAtIndex(index, animated: animated, completion: completion)

@@ -55,7 +55,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             return
         }
         let link = spread.leading
-        guard let url = publication.url(to: link) else {
+        guard let url = link.url(relativeTo: publication.baseURL) else {
             log(.error, "Can't get URL for link \(link.href)")
             return
         }
