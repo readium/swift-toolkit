@@ -14,8 +14,6 @@ import Fuzi
 
 /// Epub related constants.
 private struct EPUBConstant {
-    /// Lcpl file path.
-    static let lcplFilePath = "META-INF/license.lcpl"
     /// Media Overlays URL.
     static let mediaOverlayURL = "media-overlay?resource="
 }
@@ -58,40 +56,65 @@ final public class EpubParser: PublicationParser {
     ///           `EPUBParserError.xmlParse`,
     ///           `EPUBParserError.missingFile`
     static public func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        let path = url.path
-        // Generate the `Container` for `fileAtPath`
-        var container = try generateContainerFrom(fileAtPath: path)
-        
-        let drm = scanForDRM(in: container)
+        var fetcher: Fetcher = try ArchiveFetcher(url: url)
+        let opfHREF = try EPUBContainerParser(fetcher: fetcher).parseOPFHREF()
+        let drm = scanForDRM(in: fetcher)
+
         // `Encryption` indexed by HREF.
-        let encryptions = (try? EPUBEncryptionParser(container: container, drm: drm))?.parseEncryptions() ?? [:]
+        let encryptions = (try? EPUBEncryptionParser(fetcher: fetcher, drm: drm))?.parseEncryptions() ?? [:]
 
         // Extracts metadata and links from the OPF.
-        let components = try OPFParser(container: container, encryptions: encryptions).parsePublication()
+        let components = try OPFParser(fetcher: fetcher, opfHREF: opfHREF, encryptions: encryptions).parsePublication()
+        let metadata = components.metadata
         let links = components.readingOrder + components.resources
+        
+        let userProperties = UserProperties()
+        let lcpDecryptor = LCPDecryptor(drm: drm)
+
+        fetcher = TransformingFetcher(fetcher: fetcher, transformers: [
+            lcpDecryptor?.decrypt(resource:),
+            EPUBDeobfuscator(publicationId: metadata.identifier ?? "").deobfuscate(resource:),
+            EPUBHTMLInjector(metadata: components.metadata, userProperties: userProperties).inject(resource:)
+        ].compactMap { $0 })
 
         let publication = Publication(
+            manifest: Manifest(
+                metadata: metadata,
+                readingOrder: components.readingOrder,
+                resources: components.resources,
+                subcollections: parseCollections(in: fetcher, links: links)
+            ),
+            fetcher: fetcher,
+            servicesBuilder: PublicationServicesBuilder(
+                positions: EPUBPositionsService.createFactory()
+            ),
             format: .epub,
-            formatVersion: components.version,
-            positionListFactory: makePositionListFactory(container: container),
-            metadata: components.metadata,
-            readingOrder: components.readingOrder,
-            resources: components.resources,
-            otherCollections: parseCollections(in: container, links: links)
+            formatVersion: components.version
         )
         
+        publication.userProperties = userProperties
+        publication.userSettingsUIPreset = publication.contentLayout.userSettingsPreset
+
+        let container = PublicationContainer(
+            publication: publication,
+            path: url.path,
+            mimetype: MediaType.epub.string,
+            drm: drm
+        )
+
         func parseRemainingResource(protectedBy drm: DRM?) throws {
             container.drm = drm
+            lcpDecryptor?.license = drm?.license
         }
-        container.drm = drm
+        
         return ((publication, container), parseRemainingResource)
     }
     
-    static private func parseCollections(in container: Container, links: [Link]) -> [PublicationCollection] {
-        var collections = parseNavigationDocument(in: container, links: links)
-        if collections.first(withRole: "toc")?.links.isEmpty != false {
+    static private func parseCollections(in fetcher: Fetcher, links: [Link]) -> [String: [PublicationCollection]] {
+        var collections = parseNavigationDocument(in: fetcher, links: links)
+        if collections["toc"]?.first?.links.isEmpty != false {
             // Falls back on the NCX tables.
-            collections.append(contentsOf: parseNCXDocument(in: container, links: links))
+            collections.merge(parseNCXDocument(in: fetcher, links: links), uniquingKeysWith: { first, second in first})
         }
         return collections
     }
@@ -104,80 +127,75 @@ final public class EpubParser: PublicationParser {
     ///
     /// - Parameter in: The Publication's Container.
     /// - Returns: The DRM if any found.
-    private static func scanForDRM(in container: Container) -> DRM? {
-        /// LCP.
-        // Check if a LCP license file is present in the container.
-        if ((try? container.data(relativePath: EPUBConstant.lcplFilePath)) != nil) {
+    private static func scanForDRM(in fetcher: Fetcher) -> DRM? {
+        // Check if a LCP license file is present in the package.
+        if ((try? fetcher.readData(at: "/META-INF/license.lcpl")) != nil) {
             return DRM(brand: .lcp)
         }
         return nil
     }
 
     /// Attempt to fill the `Publication`'s `tableOfContent`, `landmarks`, `pageList` and `listOfX` links collections using the navigation document.
-    private static func parseNavigationDocument(in container: Container, links: [Link]) -> [PublicationCollection] {
+    private static func parseNavigationDocument(in fetcher: Fetcher, links: [Link]) -> [String: [PublicationCollection]] {
         // Get the link in the readingOrder pointing to the Navigation Document.
         guard let navLink = links.first(withRel: "contents"),
-            let navDocumentData = try? container.data(relativePath: navLink.href) else
+            let navDocumentData = try? fetcher.readData(at: navLink.href) else
         {
-            return []
+            return [:]
         }
         
         // Get the location of the navigation document in order to normalize href paths.
         let navigationDocument = NavigationDocumentParser(data: navDocumentData, at: navLink.href)
         
-        func makeCollection(_ type: NavigationDocumentParser.NavType, role: String) -> PublicationCollection? {
+        var collections: [String: [PublicationCollection]] = [:]
+        func addCollection(_ type: NavigationDocumentParser.NavType, role: String) {
             let links = navigationDocument.links(for: type)
-            guard !links.isEmpty else {
-                return nil
+            if !links.isEmpty {
+                collections[role] = [PublicationCollection(links: links)]
             }
-            return PublicationCollection(role: role, links: links)
         }
 
-        return [
-            makeCollection(.tableOfContents, role: "toc"),
-            makeCollection(.pageList, role: "pageList"),
-            makeCollection(.landmarks, role: "landmarks"),
-            makeCollection(.listOfAudiofiles, role: "loa"),
-            makeCollection(.listOfIllustrations, role: "loi"),
-            makeCollection(.listOfTables, role: "lot"),
-            makeCollection(.listOfVideos, role: "lov")
-        ].compactMap { $0 }
+        addCollection(.tableOfContents, role: "toc")
+        addCollection(.pageList, role: "pageList")
+        addCollection(.landmarks, role: "landmarks")
+        addCollection(.listOfAudiofiles, role: "loa")
+        addCollection(.listOfIllustrations, role: "loi")
+        addCollection(.listOfTables, role: "lot")
+        addCollection(.listOfVideos, role: "lov")
+        
+        return collections
     }
 
     /// Attempt to fill `Publication.tableOfContent`/`.pageList` using the NCX
     /// document. Will only modify the Publication if it has not be filled
     /// previously (using the Navigation Document).
-    private static func parseNCXDocument(in container: Container, links: [Link]) -> [PublicationCollection] {
+    private static func parseNCXDocument(in fetcher: Fetcher, links: [Link]) -> [String: [PublicationCollection]] {
         // Get the link in the readingOrder pointing to the NCX document.
-        guard let ncxLink = links.first(withType: .ncx),
-            let ncxDocumentData = try? container.data(relativePath: ncxLink.href) else
+        guard let ncxLink = links.first(withMediaType: .ncx),
+            let ncxDocumentData = try? fetcher.readData(at: ncxLink.href) else
         {
-            return []
+            return [:]
         }
         
         let ncx = NCXParser(data: ncxDocumentData, at: ncxLink.href)
         
-        func makeCollection(_ type: NCXParser.NavType, role: String) -> PublicationCollection? {
+        var collections: [String: [PublicationCollection]] = [:]
+        func addCollection(_ type: NCXParser.NavType, role: String) {
             let links = ncx.links(for: type)
-            guard !links.isEmpty else {
-                return nil
+            if !links.isEmpty {
+                collections[role] = [PublicationCollection(links: links)]
             }
-            return PublicationCollection(role: role, links: links)
         }
+
+        addCollection(.tableOfContents, role: "toc")
+        addCollection(.pageList, role: "pageList")
         
-        return [
-            makeCollection(.tableOfContents, role: "toc"),
-            makeCollection(.pageList, role: "pageList")
-        ].compactMap { $0 }
+        return collections
     }
 
     /// Parse the mediaOverlays informations contained in the ressources then
     /// parse the associted SMIL files to populate the MediaOverlays objects
     /// in each of the ReadingOrder's Links.
-    ///
-    /// - Parameters:
-    ///   - container: The Epub Container.
-    ///   - publication: The Publication object representing the Epub data.
     private static func parseMediaOverlay(from fetcher: Fetcher, to publication: inout Publication) throws {
         // FIXME: For now we don't fill the media-overlays anymore, since it was only half implemented and the API will change
 //        let mediaOverlays = publication.resources.filter(byType: .smil)
@@ -189,7 +207,7 @@ final public class EpubParser: PublicationParser {
 //        for mediaOverlayLink in mediaOverlays {
 //            let node = MediaOverlayNode()
 //
-//            guard let smilData = try? fetcher.data(forLink: mediaOverlayLink),
+//            guard let smilData = try? fetcher.data(at: mediaOverlayLink.href),
 //                let smilXml = try? XMLDocument(data: smilData) else
 //            {
 //                throw OPFParserError.invalidSmilResource
@@ -221,106 +239,4 @@ final public class EpubParser: PublicationParser {
 //        }
     }
 
-    /// Generate a Container instance for the file at `fileAtPath`. It handles
-    /// 2 cases, epub files and unwrapped epub directories.
-    ///
-    /// - Parameter path: The absolute path of the file.
-    /// - Returns: The generated Container.
-    /// - Throws: `EPUBParserError.missingFile`.
-    private static func generateContainerFrom(fileAtPath path: String) throws -> Container {
-        var isDirectory: ObjCBool = false
-        guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) else {
-            throw EPUBParserError.missingFile(path: path)
-        }
-        
-        guard let container: Container = {
-            if isDirectory.boolValue {
-                return DirectoryContainer(directory: path, mimetype: MediaType.epub.string)
-            } else {
-                return ArchiveContainer(path: path, mimetype: MediaType.epub.string)
-            }
-        }() else {
-            throw EPUBParserError.missingFile(path: path)
-        }
-        
-        container.rootFile.rootFilePath = try EPUBContainerParser(container: container).parseRootFilePath()
-
-        return container
-    }
-
-    /// Factory to create an EPUB's positionList.
-    private static func makePositionListFactory(container: Container) -> (Publication) -> [Locator] {
-        return { publication in
-            var lastPositionOfPreviousResource = 0
-            var positionList = publication.readingOrder.flatMap { link -> [Locator] in
-                let (lastPosition, positionList): (Int, [Locator]) = {
-                    if publication.metadata.presentation.layout(of: link) == .fixed {
-                        return makeFixedPositionList(of: link, from: lastPositionOfPreviousResource)
-                    } else {
-                        return makeReflowablePositionList(of: link, in: container, from: lastPositionOfPreviousResource)
-                    }
-                }()
-                lastPositionOfPreviousResource = lastPosition
-                return positionList
-            }
-            
-            // Calculates totalProgression
-            let totalPageCount = positionList.count
-            if totalPageCount > 0 {
-                positionList = positionList.map { locator in
-                    locator.copy(locations: {
-                        if let position = $0.position {
-                            $0.totalProgression = Double(position - 1) / Double(totalPageCount)
-                        }
-                    })
-                }
-            }
-            
-            return positionList
-        }
-    }
-    
-    private static func makeFixedPositionList(of link: Link, from startPosition: Int) -> (Int, [Locator]) {
-        let position = startPosition + 1
-        let positionList = [
-            makeLocator(
-                from: link,
-                progression: 0,
-                position: position
-            )
-        ]
-        return (position, positionList)
-    }
-    
-    private static func makeReflowablePositionList(of link: Link, in container: Container, from startPosition: Int) -> (Int, [Locator]) {
-        // If the resource is encrypted, we use the originalLength declared in encryption.xml instead of the ZIP entry length
-        let length = link.properties.encryption?.originalLength
-            ?? Int((try? container.dataLength(relativePath: link.href)) ?? 0)
-        
-        // Arbitrary byte length of a single page in a resource.
-        let pageLength = 1024
-        let pageCount = max(1, Int(ceil((Double(length) / Double(pageLength)))))
-        
-        let positionList = (1...pageCount).map { position in
-            makeLocator(
-                from: link,
-                progression: Double(position - 1) / Double(pageCount),
-                position: startPosition + position
-            )
-        }
-        return (startPosition + pageCount, positionList)
-    }
-    
-    private static func makeLocator(from link: Link, progression: Double, position: Int) -> Locator {
-        return Locator(
-            href: link.href,
-            type: link.type ?? MediaType.html.string,
-            title: link.title,
-            locations: .init(
-                progression: progression,
-                position: position
-            )
-        )
-    }
-    
 }

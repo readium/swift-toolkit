@@ -218,20 +218,8 @@ public class PublicationServer: ResourcesServer {
     }
     
     fileprivate func addResourcesHandler(for publication: Publication, container: Container, at endpoint: String) throws {
-        let fetcher: Fetcher
-        
-        // Initialize the Fetcher.
-        do {
-            fetcher = try Fetcher(publication: publication, container: container)
-        } catch {
-            log(.error, "Fetcher initialisation failed.")
-            throw PublicationServerError.fetcher(underlyingError: error)
-        }
-        
         /// Webserver HTTP GET ressources request handler.
         func resourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
-            let response: GCDWebServerResponse
-            
             guard let request = request else {
                 log(.error, "The request received is nil.")
                 return GCDWebServerErrorResponse(statusCode: 500)
@@ -239,45 +227,41 @@ public class PublicationServer: ResourcesServer {
             
             // Remove the prefix from the URI.
             let href = String(request.path[request.path.index(endpoint.endIndex, offsetBy: 1)...])
-            //
-            let resource = publication.resource(withHref: href)
-            let contentType = resource?.type ?? "application/octet-stream"
-            // Get a data input stream from the fetcher.
-            do {
-                let dataStream = try fetcher.dataStream(forRelativePath: href)
+
+            let resource = publication.get(href)
+            switch resource.stream() {
+            case .success(let stream):
                 let range = request.hasByteRange() ? request.byteRange : nil
+                return WebServerResourceResponse(
+                    inputStream: stream,
+                    range: range,
+                    contentType: resource.link.type ?? MediaType.binary.string
+                )
                 
-                response = WebServerResourceResponse(inputStream: dataStream,
-                                                     range: range,
-                                                     contentType: contentType)
-            } catch FetcherError.missingFile {
-                log(.error, "File not found, couldn't create stream.")
-                response = GCDWebServerErrorResponse(statusCode: 404)
-            } catch FetcherError.container {
-                log(.error, "Error while getting data stream from container.")
-                response = GCDWebServerErrorResponse(statusCode: 500)
-            } catch {
-                log(.error, error)
-                response = GCDWebServerErrorResponse(statusCode: 500)
+            case .failure(let error):
+                print("\(href): \(error)")
+                return GCDWebServerErrorResponse(statusCode: error.httpStatusCode)
             }
-            return response
         }
+        
         webServer.addHandler(
             forMethod: "GET",
             pathRegex: "/\(endpoint)/.*",
             request: GCDWebServerRequest.self,
-            processBlock: resourcesHandler)
+            processBlock: resourcesHandler
+        )
     }
     
     fileprivate func addManifestHandler(for publication: Publication, at endpoint: String) {
         /// The webserver handler to process the HTTP GET
         func manifestHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
-            guard let manifestData = publication.manifest else {
+            guard let manifestData = publication.jsonManifest?.data(using: .utf8) else {
                 return GCDWebServerResponse(statusCode: 404)
             }
             let type = "\(MediaType.readiumWebPubManifest.string); charset=utf-8"
             return GCDWebServerDataResponse(data: manifestData, contentType: type)
         }
+        
         webServer.addHandler(
             forMethod: "GET",
             pathRegex: "/\(endpoint)/manifest.json",
@@ -304,7 +288,7 @@ public class PublicationServer: ResourcesServer {
         publications.removeValue(forKey: endpoint)
         containers.removeValue(forKey: endpoint)
         // Remove selfLinks from publication.
-        publication.links.removeAll(where: { $0.rels.contains("self") })
+        publication.setSelfLink(href: nil)
         log(.info, "Publication at \(endpoint) has been successfully removed.")
     }
     
@@ -312,8 +296,7 @@ public class PublicationServer: ResourcesServer {
     public func removeAll() {
         for (endpoint, publication) in publications {
             // Remove selfLinks from publication.
-            publication.links.removeAll(where: { $0.rels.contains("self") })
-            
+            publication.setSelfLink(href: nil)
             log(.info, "Publication at \(endpoint) has been successfully removed.")
         }
         

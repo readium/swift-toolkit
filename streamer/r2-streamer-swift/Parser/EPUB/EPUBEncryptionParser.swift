@@ -17,21 +17,21 @@ import R2Shared
 /// A parser module which provide methods to parse encrypted XML elements.
 final class EPUBEncryptionParser: Loggable {
     
-    private let container: Container
+    private let fetcher: Fetcher
     private let data: Data
     private let drm: DRM?
 
-    init(container: Container, data: Data, drm: DRM?) {
-        self.container = container
+    init(fetcher: Fetcher, data: Data, drm: DRM?) {
+        self.fetcher = fetcher
         self.data = data
         self.drm = drm
     }
     
-    convenience init(container: Container, drm: DRM?) throws {
-        let path = "META-INF/encryption.xml"
+    convenience init(fetcher: Fetcher, drm: DRM?) throws {
+        let path = "/META-INF/encryption.xml"
         do {
-            let data = try container.data(relativePath: path)
-            self.init(container: container, data: data, drm: drm)
+            let data = try fetcher.readData(at: path)
+            self.init(fetcher: fetcher, data: data, drm: drm)
         } catch {
             throw EPUBParserError.missingFile(path: path)
         }
@@ -76,7 +76,7 @@ final class EPUBEncryptionParser: Loggable {
             }
             
             // FIXME: Move that to ContentProtection
-            if let licenseLCPLData = try? container.data(relativePath: "META-INF/license.lcpl"),
+            if let licenseLCPLData = try? fetcher.readData(at: "/META-INF/license.lcpl"),
                 let licenseLCPL = try? JSONSerialization.jsonObject(with: licenseLCPLData) as? [String: Any],
                 let encryptionDict = licenseLCPL["encryption"] as? [String: Any]
             {

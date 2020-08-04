@@ -39,66 +39,64 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
     public static func parseManifest(at url: URL, format: Format) throws -> (PubBox, PubParsingCallback) {
         do {
             let data = try Data(contentsOf: url)
-            var container: Container = HTTPContainer(baseURL: url.deletingLastPathComponent(), mimetype: MediaType.readiumWebPubManifest.string)
-            let publication = try parsePublication(fromManifest: data, in: &container, sourceURL: url, format: format, isPackage: false)
+            let fetcher = HTTPFetcher(baseURL: url.deletingLastPathComponent())
+            return try parsePublication(fromManifest: data, in: fetcher, sourceURL: url, format: format, isPackage: false)
 
-            func didLoadDRM(drm: DRM?) {
-                container.drm = drm
-            }
-            
-            return ((publication, container), didLoadDRM)
-            
         } catch {
             throw ReadiumWebPubParserError.parseFailure(url: url, error)
         }
     }
     
     private static func parsePackage(at url: URL, format: Format) throws -> (PubBox, PubParsingCallback) {
-        var isDirectory: ObjCBool = false
-        guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory),
-            var container: Container = isDirectory.boolValue
-                ? DirectoryContainer(directory: url.path, mimetype: MediaType.readiumWebPub.string)
-                : ArchiveContainer(path: url.path, mimetype: MediaType.readiumWebPub.string) else
-        {
-            throw ReadiumWebPubParserError.missingFile(path: url.path)
-        }
-        
-        guard let manifestData = try? container.data(relativePath: manifestPath) else {
+        let fetcher = try ArchiveFetcher(url: url)
+        guard let manifestData = try? fetcher.readData(at: manifestPath) else {
             throw ReadiumWebPubParserError.missingFile(path: manifestPath)
         }
         
-        let publication = try parsePublication(fromManifest: manifestData, in: &container, sourceURL: url, format: format, isPackage: true)
-        container.rootFile.rootFilePath = manifestPath
-
-        func didLoadDRM(drm: DRM?) {
-            container.drm = drm
-        }
-        
-        return ((publication, container), didLoadDRM)
+        return try parsePublication(fromManifest: manifestData, in: fetcher, sourceURL: url, format: format, isPackage: true)
     }
     
-    private static func parsePublication(fromManifest manifestData: Data, in container: inout Container, sourceURL: URL, format: Format, isPackage: Bool) throws -> Publication {
+    private static func parsePublication(fromManifest manifestData: Data, in fetcher: Fetcher, sourceURL: URL, format: Format, isPackage: Bool) throws -> (PubBox, PubParsingCallback) {
         do {
-            let lcpProtected = (isPackage && isProtectedWithLCP(container))
+            var fetcher = fetcher
+            
+            var decryptor: LCPDecryptor?
+            let lcpProtected = (isPackage && isProtectedWithLCP(fetcher))
             if lcpProtected {
-                container.drm = DRM(brand: .lcp)
+                decryptor = LCPDecryptor()
+                fetcher = TransformingFetcher(fetcher: fetcher, transformer: decryptor!.decrypt)
             }
             
-            let json = try JSONSerialization.jsonObject(with: manifestData)
-            let publication = try Publication(json: json, normalizeHref: { normalize(base: "/", href: $0) })
-            
-            publication.format = .webpub
-            container.rootFile.mimetype = format.mediaType.string
+            let publication = try Publication(
+                manifest: Manifest(
+                    json: JSONSerialization.jsonObject(with: manifestData),
+                    normalizeHref: { normalize(base: "/", href: $0) }
+                ),
+                fetcher: fetcher,
+                format: .webpub
+            )
 
-            return publication
+            let container = PublicationContainer(
+                publication: publication,
+                path: sourceURL.path,
+                mimetype: format.mediaType.string,
+                drm: lcpProtected ? DRM(brand: .lcp) : nil
+            )
+
+            func didLoadDRM(drm: DRM?) {
+                container.drm = drm
+                decryptor?.license = drm?.license
+            }
+            
+            return ((publication, container), didLoadDRM)
 
         } catch {
             throw ReadiumWebPubParserError.parseFailure(url: sourceURL, error)
         }
     }
 
-    private static func isProtectedWithLCP(_ container: Container) -> Bool {
-        return (try? container.data(relativePath: "license.lcpl")) != nil
+    private static func isProtectedWithLCP(_ fetcher: Fetcher) -> Bool {
+        return (try? fetcher.readData(at: "license.lcpl")) != nil
     }
 
 }

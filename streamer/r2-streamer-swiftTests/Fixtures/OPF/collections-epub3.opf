@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!-- DOCTYPE package 
+  PUBLIC "+//ISBN 0-9673008-1-9//DTD OEB 1.2 Package//EN"
+  "http://openebook.org/dtds/oeb-1.2/oebpkg12.dtd" -->
+<package xml:lang="en" xmlns="http://www.idpf.org/2007/opf" unique-identifier="pub-id" version="3.0" >
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/"
+      xmlns:dcterms="http://purl.org/dc/terms/"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:opf="http://www.idpf.org/2007/opf">
+    <dc:title>Alice's Adventures in Wonderland</dc:title>
+
+    <meta property="belongs-to-collection" id="c1">Series A  </meta>
+    <meta refines="#c1" property="collection-type">series</meta>
+    <meta refines="#c1" property="alternate-script" xml:lang="fr">  Série A   </meta>
+    <meta refines="#c1" property="group-position">2</meta>
+    <meta property="belongs-to-collection" id="c2">Series B</meta>
+    <meta refines="#c2" property="collection-type">series</meta>
+    <meta property="belongs-to-collection" id="c3">Collection A</meta>
+    <meta refines="#c3" property="collection-type">unknown</meta>
+    <meta refines="#c3" property="file-as">ColA</meta>
+    <meta refines="#c3" property="dcterms:identifier">col-a</meta>
+    <meta refines="#c3" property="group-position">1.5</meta>
+    <meta property="belongs-to-collection" id="c4">Collection B</meta>
+  </metadata>
+  <manifest>
+    <item id="titlepage" href="titlepage.xhtml"/>
+  </manifest>
+  <spine>
+    <itemref idref="titlepage"/>
+  </spine>
+</package>

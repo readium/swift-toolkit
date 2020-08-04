@@ -70,9 +70,6 @@ public protocol PDFFileParser {
     /// You must `open` and `close` the stream when needed.
     init(stream: SeekableInputStream) throws
     
-    /// An optional object that will be stored in `PDFContainer.context` after parsing the `Publication`. You can reuse this object later to render the PDF with a custom navigator, for example. This is a way to avoid opening and parsing the PDF several time with a custom PDF engine.
-    var context: Any? { get }
-    
     /// Renders the PDF's first page.
     func renderCover() throws -> UIImage?
     
@@ -82,10 +79,4 @@ public protocol PDFFileParser {
     /// Parses the PDF file metadata.
     func parseMetadata() throws -> PDFFileMetadata
 
-}
-
-extension PDFFileParser {
-    
-    var context: Any? { return nil }
-    
 }

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+<head>
+  <meta charset="utf-8" />
+</head>
+<body>
+  <nav epub:type="toc">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><a href="ch1.xhtml">Chapter 1</a></li>
+      <li><a href="ch2.xhtml">Chapter 2</a></li>
+      <li>
+        <span>Unlinked <span>section <bold>with</bold> nested</span> <span>HTML       elements          </span></span>
+        <ol hidden="hidden"> <!-- `hidden` should not be ignored when reporting the list of Link -->
+          <li>
+            <a href="ssec1.xhtml">Linked sub-section</a>
+            <ol>
+              <li><a href="ssec1.xhtml#p1">Paragraph</a></li>
+            </ol>
+          </li>
+        </ol>
+      </li>
+      <li><a href="dir/ch3.xhtml">A <span>link <bold>with</bold> nested</span> HTML <span>elements</span>     </a></li>
+      <li>
+        <a href="../ch4.xhtml">    A link
+          with <span>newlines</span>
+          splitting        the text
+        </a>
+      </li>
+      <li><span>An unlinked element without children must be ignored</span></li>
+      <li><a href="ch5.xhtml"> <!-- A zero-length text label must be ignored --> </a></li>
+    </ol>
+  </nav>
+
+  <nav epub:type="page-list">
+    <h2>Page List</h2>
+    <ol>
+      <li><a href="ch1.xhtml#page1">1</a></li>
+      <li><a href="ch1.xhtml#page2">2</a></li>
+    </ol>
+  </nav>
+
+  <nav epub:type="landmarks">
+    <h2>Landmarks</h2>
+    <ol>
+      <li><a epub:type="toc" href="#toc">Table of Contents</a></li>
+      <li><a epub:type="bodymatter" href="ch1.xhtml">Begin Reading</a></li>
+    </ol>
+  </nav>
+</body>
+</html>
