@@ -1,4 +1,4 @@
-# Readium-2 Test App (Swift/iOS)
+# Readium Mobile Test App (Swift/iOS)
 
 A test app for the Swift implementation of Readium-2. Stable builds are [published on TestFlight](https://testflight.apple.com/join/lYEMEfBr).
 
