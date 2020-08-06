@@ -1,6 +1,6 @@
-# Readium-2 Test App (Swift/iOS) [![Available on the AppStore](https://devimages-cdn.apple.com/app-store/marketing/guidelines/images/badge-download-on-the-app-store.svg)](https://itunes.apple.com/us/app/r2-reader/id1363963230)
+# Readium-2 Test App (Swift/iOS)
 
-A test app for the Swift implementation of Readium-2. Stable builds are [published on the AppStore](https://itunes.apple.com/us/app/r2-reader/id1363963230).
+A test app for the Swift implementation of Readium-2. Stable builds are [published on TestFlight](https://testflight.apple.com/join/lYEMEfBr).
 
 Follow the project on [ZenHub](https://app.zenhub.com/workspace/o/readium/r2-testapp-swift/boards).
 
@@ -16,7 +16,7 @@ Follow the project on [ZenHub](https://app.zenhub.com/workspace/o/readium/r2-tes
 - [x] Pagination and scrolling
 - [x] Table of contents
 - [x] OPDS 1.x and 2.0 support
-- [ ] FXL support
+- [x] FXL support
 - [ ] RTL support
 
 ## Demo
