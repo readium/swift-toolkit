@@ -20,6 +20,13 @@ public protocol ContentProtectionService: PublicationService {
     /// rendered in a Navigator.
     var isRestricted: Bool { get }
     
+    /// The error raised when trying to unlock the `Publication`, if any.
+    ///
+    /// This can be used by a Content Protection to return a status error, for example if a
+    /// publication is expired or revoked. Reading apps should present this error to the user when
+    /// attempting to render a restricted `Publication` with a navigator.
+    var error: Error? { get }
+    
     /// Credentials used to unlock this `Publication`.
     ///
     /// If provided, reading apps may store the credentials in a secure location, to reuse them the
@@ -60,6 +67,15 @@ public extension Publication {
     /// rendered in a Navigator.
     var isRestricted: Bool {
         contentProtectionService?.isRestricted == true
+    }
+    
+    /// The error raised when trying to unlock the `Publication`, if any.
+    ///
+    /// This can be used by a Content Protection to return a status error, for example if a
+    /// publication is expired or revoked. Reading apps should present this error to the user when
+    /// attempting to render a restricted `Publication` with a navigator.
+    var protectionError: Error? {
+        contentProtectionService?.error
     }
     
     /// Credentials used to unlock this `Publication`.
