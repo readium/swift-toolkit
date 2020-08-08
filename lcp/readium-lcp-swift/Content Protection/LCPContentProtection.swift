@@ -25,10 +25,9 @@ final class LCPContentProtection: ContentProtection {
     func open(
         file: File,
         fetcher: Fetcher,
-        credentials: String?,
         allowUserInteraction: Bool,
+        credentials: String?,
         sender: Any?,
-        onAskCredentials: OnAskCredentials?,
         completion: @escaping (CancellableResult<ProtectedFile?, Publication.OpeningError>) -> Void)
     {
         service.retrieveLicense(
