@@ -35,38 +35,28 @@ final class LCPContentProtection: ContentProtection {
             authentication: (allowUserInteraction || !authentication.requiresUserInteraction) ? authentication : nil,
             sender: sender
         ) { result in
-            switch result {
-            case .success(let license):
-                guard let license = license else {
-                    // Not protected with LCP.
-                    completion(.success(nil))
-                    return
-                }
-                completion(.success(self.makeProtectedFile(file: file, fetcher: fetcher, license: license)))
-                
-            case .failure(let error):
-                completion(.failure(.wrap(error)))
-                
-            case .cancelled:
-                completion(.success(self.makeProtectedFile(file: file, fetcher: fetcher, license: nil)))
+            if case .success(let license) = result, license == nil {
+                // Not protected with LCP.
+                completion(.success(nil))
+                return
             }
+            
+            let license = try? result.get()
+            let protectedFile = ProtectedFile(
+                file: file,
+                fetcher: TransformingFetcher(
+                    fetcher: fetcher,
+                    transformer: LCPDecryptor(license: license).decrypt(resource:)
+                ),
+                onCreatePublication: { _, _, _, services in
+                    services.setContentProtectionServiceFactory { _ in
+                        LCPContentProtectionService(result: result)
+                    }
+                }
+            )
+            
+            completion(.success(protectedFile))
         }
-    }
-    
-    /// If the `license` is nil, we open the `Publication` in a restricted state.
-    private func makeProtectedFile(file: File, fetcher: Fetcher, license: LCPLicense?) -> ProtectedFile {
-        return ProtectedFile(
-            file: file,
-            fetcher: TransformingFetcher(
-                fetcher: fetcher,
-                transformer: LCPDecryptor(license: license).decrypt(resource:)
-            ),
-            onCreatePublication: { _, _, _, services in
-                services.setContentProtectionServiceFactory { _ in
-                    LCPContentProtectionService(license: license)
-                }
-            }
-        )
     }
 
 }
@@ -89,9 +79,22 @@ private extension Publication.OpeningError {
 private final class LCPContentProtectionService: ContentProtectionService {
     
     let license: LCPLicense?
-    
-    init(license: LCPLicense?) {
+    let error: Error?
+
+    init(license: LCPLicense? = nil, error: Error? = nil) {
         self.license = license
+        self.error = error
+    }
+    
+    convenience init(result: CancellableResult<LCPLicense?, LCPError>) {
+        switch result {
+        case .success(let license):
+            self.init(license: license)
+        case .failure(let error):
+            self.init(error: error)
+        case .cancelled:
+            self.init()
+        }
     }
     
     var isRestricted: Bool {
