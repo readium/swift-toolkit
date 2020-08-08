@@ -41,29 +41,24 @@ public final class Streamer: Loggable {
     ///   - onCreatePublication: Transformation which will be applied on every parsed Publication
     ///     Builder. It can be used to modify the `Manifest`, the root `Fetcher` or the list of
     ///     service factories of a `Publication`.
-    ///   - onAskCredentials: Called when a content protection wants to prompt the user for its
-    ///     credentials.
     public init(
         parsers: [PublicationParser] = [],
         ignoreDefaultParsers: Bool = false,
         contentProtections: [ContentProtection] = [],
-        onCreatePublication: Publication.Builder.Transform? = nil,
         openArchive: @escaping ArchiveFactory = DefaultArchiveFactory,
-        onAskCredentials: @escaping OnAskCredentials = { _, callback in callback(nil) }
+        onCreatePublication: Publication.Builder.Transform? = nil
     ) {
         self.parsers = parsers + (ignoreDefaultParsers ? [] : Streamer.makeDefaultParsers())
         self.contentProtections = contentProtections
         self.openArchive = openArchive
         self.onCreatePublication = onCreatePublication
-        self.onAskCredentials = onAskCredentials
     }
     
     private let parsers: [PublicationParser]
     private let contentProtections: [ContentProtection]
     private let openArchive: ArchiveFactory
     private let onCreatePublication: Publication.Builder.Transform?
-    private let onAskCredentials: OnAskCredentials
-    
+
     /// Parses a `Publication` from the given file.
     ///
     /// If you are opening the publication to render it in a Navigator, you must set
@@ -82,7 +77,7 @@ public final class Streamer: Loggable {
     /// - Parameters:
     ///   - file: Path to the publication file.
     ///   - allowUserInteraction: Indicates whether the user can be prompted during opening, for
-    ///     example to ask their credentials.    ///
+    ///     example to ask their credentials.
     ///   - fallbackTitle: The Publication's title is mandatory, but some formats might not have a
     ///     way of declaring a title (e.g. CBZ). In which case, `fallbackTitle` will be used.
     ///   - credentials: Credentials that Content Protections can use to attempt to unlock a
@@ -98,7 +93,7 @@ public final class Streamer: Loggable {
         return createFetcher(for: file, allowUserInteraction: allowUserInteraction, password: credentials, sender: sender)
             .flatMap { fetcher in
                 // Unlocks any protected file with the Content Protections.
-                self.openFile(at: file, with: fetcher, credentials: credentials, allowUserInteraction: allowUserInteraction, sender: sender)
+                self.openFile(at: file, with: fetcher, allowUserInteraction: allowUserInteraction, credentials: credentials, sender: sender)
             }
             .flatMap { file in
                 // Parses the Publication using the parsers.
@@ -121,10 +116,8 @@ public final class Streamer: Loggable {
                 let fetcher = try ArchiveFetcher(url: file.url, password: password, openArchive: self.openArchive)
                 return .success(fetcher)
                 
-            } catch ArchiveError.invalidPassword where allowUserInteraction == true {
-                // Attempts to recover by asking the user for its credentials
-                return self.askPassword(sender: sender)
-                    .flatMap { self.createFetcher(for: file, allowUserInteraction: allowUserInteraction, password: $0, sender: sender) }
+            } catch ArchiveError.invalidPassword {
+                return .failure(.incorrectCredentials)
 
             } catch {
                 return .success(FileFetcher(href: "/\(file.name)", path: file.url))
@@ -132,21 +125,8 @@ public final class Streamer: Loggable {
         }
     }
     
-    /// Prompts the user for a password.
-    private func askPassword(sender: Any?) -> Deferred<String?, Publication.OpeningError> {
-        return deferred(on: .main) { success, _, cancel in
-            self.onAskCredentials(sender) { password in
-                if let password = password {
-                    success(password)
-                } else {
-                    cancel()
-                }
-            }
-        }
-    }
-    
     /// Unlocks any protected file with the provided Content Protections.
-    private func openFile(at file: File, with fetcher: Fetcher, credentials: String?, allowUserInteraction: Bool, sender: Any?) -> Deferred<PublicationFile, Publication.OpeningError> {
+    private func openFile(at file: File, with fetcher: Fetcher, allowUserInteraction: Bool, credentials: String?, sender: Any?) -> Deferred<PublicationFile, Publication.OpeningError> {
         func unlock(using protections: [ContentProtection]) -> Deferred<ProtectedFile?, Publication.OpeningError> {
             return deferred {
                 var protections = protections
@@ -156,7 +136,7 @@ public final class Streamer: Loggable {
                 }
     
                 return protection
-                    .open(file: file, fetcher: fetcher, credentials: credentials, allowUserInteraction: allowUserInteraction, sender: sender, onAskCredentials: self.onAskCredentials)
+                    .open(file: file, fetcher: fetcher, allowUserInteraction: allowUserInteraction, credentials: credentials, sender: sender)
                     .flatMap {
                         if let protectedFile = $0 {
                             return .success(protectedFile)
@@ -206,9 +186,9 @@ private typealias PublicationFile = (file: File, fetcher: Fetcher, onCreatePubli
 private extension ContentProtection {
     
     /// Wrapper to use `Deferred` with `ContentProtection.open()`.
-    func open(file: File, fetcher: Fetcher, credentials: String?, allowUserInteraction: Bool, sender: Any?, onAskCredentials: OnAskCredentials?) -> Deferred<ProtectedFile?, Publication.OpeningError> {
+    func open(file: File, fetcher: Fetcher, allowUserInteraction: Bool, credentials: String?, sender: Any?) -> Deferred<ProtectedFile?, Publication.OpeningError> {
         return deferred { completion in
-            self.open(file: file, fetcher: fetcher, credentials: credentials, allowUserInteraction: allowUserInteraction, sender: sender, onAskCredentials: onAskCredentials, completion: completion)
+            self.open(file: file, fetcher: fetcher, allowUserInteraction: allowUserInteraction, credentials: credentials, sender: sender, completion: completion)
         }
     }
 
