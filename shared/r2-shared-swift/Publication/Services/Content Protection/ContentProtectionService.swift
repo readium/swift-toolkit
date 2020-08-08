@@ -62,6 +62,14 @@ public extension Publication {
         contentProtectionService?.isRestricted == true
     }
     
+    /// Credentials used to unlock this `Publication`.
+    ///
+    /// If provided, reading apps may store the credentials in a secure location, to reuse them the
+    /// next time the user opens the publication.
+    var credentials: String? {
+        contentProtectionService?.credentials
+    }
+    
     /// Manages consumption of user rights and permissions.
     var rights: UserRights {
         contentProtectionService?.rights ?? UnrestrictedUserRights()

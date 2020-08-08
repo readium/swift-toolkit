@@ -11,9 +11,6 @@
 
 import Foundation
 
-/// Called when a content protection wants to prompt the user for its credentials.
-public typealias OnAskCredentials = (_ sender: Any?, _ callback: (String?) -> Void) -> Void
-
 /// Bridge between a Content Protection technology and the Readium toolkit.
 ///
 /// Its responsibilities are to:
@@ -37,10 +34,9 @@ public protocol ContentProtection {
     func open(
         file: File,
         fetcher: Fetcher,
-        credentials: String?,
         allowUserInteraction: Bool,
+        credentials: String?,
         sender: Any?,
-        onAskCredentials: OnAskCredentials?,
         completion: @escaping (CancellableResult<ProtectedFile?, Publication.OpeningError>) -> Void
     )
     
@@ -73,5 +69,5 @@ public typealias ProtectedFile = (
     ///
     /// Can be used to add a Content Protection Service to the Publication that will be created by
     /// the Streamer.
-    onCreatePublication: Publication.Builder.Transform
+    onCreatePublication: Publication.Builder.Transform?
 )

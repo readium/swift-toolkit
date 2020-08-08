@@ -241,7 +241,7 @@ public class Publication: Loggable {
         case unsupportedFormat
         /// The publication file was not found on the file system.
         case notFound
-        /// The publication parser failed with the given underlying exception.
+        /// The publication parser failed with the given underlying error.
         case parsingFailed(Error)
         /// We're not allowed to open the publication at all, for example because it expired.
         case forbidden(Error?)
