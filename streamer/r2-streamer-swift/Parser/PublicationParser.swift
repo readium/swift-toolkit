@@ -31,24 +31,22 @@ public protocol PublicationParser {
     ///       - support content protection technologies
     ///       - parse exploded archives or in archiving formats unknown to the parser, e.g. RAR
     ///     If the file is not an archive, it will be reachable at the HREF /<file.name>.
-    ///   - fallbackTitle: Publication's title is mandatory, but some formats might not have a way
-    ///     of declaring a title. In which case, `fallbackTitle` will be used.
     ///   - warnings: Used to report non-fatal parsing warnings, such as publication authoring
     ///     mistakes. This is useful to warn users of potential rendering issues or help authors
     ///     debug their publications.
-    func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Builder?
+    func parse(file: File, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder?
     
-    // Deprecated: use `parse(file:fetcher:fallbackTitle:warnings)` instead
+    // Deprecated: use `parse(file:fetcher:warnings)` instead
     static func parse(at url: URL) throws -> (PubBox, PubParsingCallback)
-    // Deprecated: use `parse(file:fetcher:fallbackTitle:warnings)` instead
+    // Deprecated: use `parse(file:fetcher:warnings)` instead
     static func parse(fileAtPath path: String) throws -> (PubBox, PubParsingCallback)
 
 }
 
 extension PublicationParser {
     
-    func parse(file: File, fetcher: Fetcher, fallbackTitle: String? = nil, warnings: WarningLogger? = nil) throws -> Publication.Builder? {
-        return try parse(file: file, fetcher: fetcher, fallbackTitle: fallbackTitle ?? file.name, warnings: warnings)
+    func parse(file: File, fetcher: Fetcher, warnings: WarningLogger? = nil) throws -> Publication.Builder? {
+        return try parse(file: file, fetcher: fetcher, warnings: warnings)
     }
     
     public static func parse(fileAtPath path: String) throws -> (PubBox, PubParsingCallback) {

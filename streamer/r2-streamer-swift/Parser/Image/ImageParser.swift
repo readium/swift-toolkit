@@ -20,7 +20,7 @@ public final class ImageParser: PublicationParser {
     
     public init() {}
 
-    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Builder? {
+    public func parse(file: File, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
         guard accepts(file, fetcher) else {
             return nil
         }
@@ -41,7 +41,7 @@ public final class ImageParser: PublicationParser {
             publicationFormat: .cbz,
             manifest: Manifest(
                 metadata: Metadata(
-                    title: fetcher.guessTitle(ignoring: ignores) ?? fallbackTitle
+                    title: fetcher.guessTitle(ignoring: ignores) ?? file.name
                 ),
                 readingOrder: readingOrder
             ),

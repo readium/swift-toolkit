@@ -25,7 +25,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         case invalidManifest
     }
     
-    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Builder? {
+    public func parse(file: File, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
         guard let format = file.format, format.mediaType.isReadiumWebPubProfile else {
             return nil
         }

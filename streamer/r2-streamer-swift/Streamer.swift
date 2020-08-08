@@ -78,16 +78,12 @@ public final class Streamer: Loggable {
     ///   - file: Path to the publication file.
     ///   - allowUserInteraction: Indicates whether the user can be prompted during opening, for
     ///     example to ask their credentials.
-    ///   - fallbackTitle: The Publication's title is mandatory, but some formats might not have a
-    ///     way of declaring a title (e.g. CBZ). In which case, `fallbackTitle` will be used.
     ///   - credentials: Credentials that Content Protections can use to attempt to unlock a
     ///     publication, for example a password.
     ///   - sender: Free object that can be used by reading apps to give some UX context when
     ///     presenting dialogs.
     ///   - warnings: Logger used to broadcast non-fatal parsing warnings.
-    public func open(file: File, allowUserInteraction: Bool, fallbackTitle: String? = nil, credentials: String? = nil, sender: Any? = nil, warnings: WarningLogger? = nil, completion: @escaping (CancellableResult<Publication, Publication.OpeningError>) -> Void) {
-        let fallbackTitle = fallbackTitle ?? file.name
-        
+    public func open(file: File, allowUserInteraction: Bool, credentials: String? = nil, sender: Any? = nil, warnings: WarningLogger? = nil, completion: @escaping (CancellableResult<Publication, Publication.OpeningError>) -> Void) {
         log(.info, "Open \(file.url.lastPathComponent)")
 
         return createFetcher(for: file, allowUserInteraction: allowUserInteraction, password: credentials, sender: sender)
@@ -97,7 +93,7 @@ public final class Streamer: Loggable {
             }
             .flatMap { file in
                 // Parses the Publication using the parsers.
-                self.parsePublication(from: file, fallbackTitle: fallbackTitle, warnings: warnings)
+                self.parsePublication(from: file, warnings: warnings)
             }
             .resolve(on: .main, completion)
     }
@@ -154,13 +150,13 @@ public final class Streamer: Loggable {
     }
     
     /// Parses the `Publication` from the provided file and the `parsers`.
-    private func parsePublication(from file: PublicationFile, fallbackTitle: String, warnings: WarningLogger?) -> Deferred<Publication, Publication.OpeningError> {
+    private func parsePublication(from file: PublicationFile, warnings: WarningLogger?) -> Deferred<Publication, Publication.OpeningError> {
         return deferred(on: .global(qos: .userInitiated)) {
             var parsers = self.parsers
             var parsedBuilder: Publication.Builder?
             while parsedBuilder == nil, let parser = parsers.popFirst() {
                 do {
-                    parsedBuilder = try parser.parse(file: file.file, fetcher: file.fetcher, fallbackTitle: fallbackTitle, warnings: warnings)
+                    parsedBuilder = try parser.parse(file: file.file, fetcher: file.fetcher, warnings: warnings)
                 } catch {
                     return .failure(.parsingFailed(error))
                 }

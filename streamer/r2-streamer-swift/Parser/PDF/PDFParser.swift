@@ -38,7 +38,7 @@ public final class PDFParser: PublicationParser, Loggable {
         self.parserType = parserType
     }
     
-    public func parse(file: File, fetcher: Fetcher, fallbackTitle: String, warnings: WarningLogger?) throws -> Publication.Builder? {
+    public func parse(file: File, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
         guard file.format == .pdf else {
             return nil
         }
@@ -63,7 +63,7 @@ public final class PDFParser: PublicationParser, Loggable {
             manifest: Manifest(
                 metadata: Metadata(
                     identifier: pdfMetadata.identifier,
-                    title: pdfMetadata.title ?? file.title,
+                    title: pdfMetadata.title ?? file.name,
                     authors: authors,
                     numberOfPages: try parser.parseNumberOfPages()
                 ),
