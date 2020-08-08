@@ -63,14 +63,4 @@ public final class File: Loggable {
         }
     }()
 
-    /// Computes a file title from the URL's filename.
-    public var title: String { title() }
-    
-    /// Computes a file title from the URL's filename, capitalized with the given `locale`.
-    public func title(with locale: Locale? = nil) -> String {
-        url.deletingPathExtension().lastPathComponent
-            .replacingOccurrences(of: "_", with: " ")
-            .capitalized(with: locale)
-    }
-    
 }
