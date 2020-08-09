@@ -102,9 +102,28 @@ class OPDSPublicationInfoViewController: UIViewController, Loggable {
         
         downloadActivityIndicator.startAnimating()
         downloadButton.isEnabled = false
-        delegate.opdsDownloadPublication(publication, at: downloadLink) { [weak self] _ in
-            self?.downloadActivityIndicator.stopAnimating()
-            self?.downloadButton.isEnabled = true
+        delegate.opdsDownloadPublication(publication, at: downloadLink) { [weak self] result in
+            guard let self = self else {
+                return
+            }
+            
+            self.downloadActivityIndicator.stopAnimating()
+            self.downloadButton.isEnabled = true
+            
+            switch result {
+            case .success(let book):
+                delegate.presentAlert(
+                    NSLocalizedString("success_title", comment: "Title of the alert when a publication is successfully downloaded"),
+                    message: String(format: NSLocalizedString("library_download_success_message", comment: "Message of the alert when a publication is successfully downloaded"), book.title),
+                    from: self
+                )
+                
+            case .failure(let error):
+                delegate.presentError(error, from: self)
+
+            case .cancelled:
+                break
+            }
         }
     }
 

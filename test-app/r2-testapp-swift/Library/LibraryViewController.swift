@@ -450,26 +450,15 @@ extension LibraryViewController: DownloadDisplayDelegate {
     }
     
     func didFinishDownload(task:URLSessionDownloadTask) {
-        
-        let newList = try! BooksDatabase.shared.books.all()
-        if newList.count == books.count {return}
-        
-        books = newList
+        books = try! BooksDatabase.shared.books.all()
         
         let offset = downloadSet.index(of: task)
         downloadSet.remove(task)
         downloadTaskToRatio.removeValue(forKey: task)
-        let description = downloadTaskDescription[task] ?? ""
         downloadTaskDescription.removeValue(forKey: task)
         
         let theIndexPath = IndexPath(item: offset, section: 0)
         let newIndexPath = IndexPath(item: downloadSet.count, section: 0)
-        
-        libraryDelegate?.presentAlert(
-            NSLocalizedString("success_title", comment: "Title of the alert when a publication is successfully downloaded"),
-            message: String(format: NSLocalizedString("library_download_success_message", comment: "Message of the alert when a publication is successfully downloaded"), description),
-            from: self
-        )
         
         if newIndexPath == theIndexPath {
             self.collectionView.reloadItems(at: [newIndexPath])
@@ -516,10 +505,6 @@ extension LibraryViewController: DownloadDisplayDelegate {
             guard let cell = self.collectionView.cellForItem(at: indexPath) as? PublicationCollectionViewCell else {return}
             cell.progress = percentage
         }
-    }
-    
-    func reloadWith(downloadTask: URLSessionDownloadTask) {
-        self.didFinishDownload(task: downloadTask)
     }
     
     func insertNewItemWithUpdatedDataSource() {
