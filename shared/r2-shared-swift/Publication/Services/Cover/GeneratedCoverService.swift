@@ -44,13 +44,20 @@ public final class GeneratedCoverService: CoverService {
         guard link.href == coverLink.href else {
             return nil
         }
-        return DataResource(link: coverLink) { link in
-            let cover = try self.generatedCover.get()
-            link = link.copy(
-                height: Int(cover.size.height),
-                width: Int(cover.size.width)
-            )
-            return try cover.pngData().orThrow(Error.generationFailed)
+        
+        return LazyResource {
+            do {
+                let cover = try self.generatedCover.get()
+                return DataResource(
+                    link: self.coverLink.copy(
+                        height: Int(cover.size.height),
+                        width: Int(cover.size.width)
+                    ),
+                    data: try cover.pngData().orThrow(Error.generationFailed)
+                )
+            } catch {
+                return FailureResource(link: self.coverLink, error: .wrap(error))
+            }
         }
     }
     

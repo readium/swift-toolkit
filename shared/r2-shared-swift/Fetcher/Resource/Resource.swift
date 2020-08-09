@@ -108,6 +108,11 @@ public enum ResourceError: Swift.Error {
         }
     }
     
+    public static func wrap(_ error: Error) -> ResourceError {
+        return error as? ResourceError
+            ?? .other(error)
+    }
+    
 }
 
 /// Implements the transformation of a Resource. It can be used, for example, to decrypt,
@@ -120,16 +125,12 @@ public typealias ResourceTransformer = (Resource) -> Resource
 public typealias ResourceResult<Success> = Result<Success, ResourceError>
 
 public extension Result where Failure == ResourceError {
-    
+
     init(block: () throws -> Success) {
         do {
             self = .success(try block())
         } catch {
-            if let err = error as? ResourceError {
-                self = .failure(err)
-            } else {
-                self = .failure(.other(error))
-            }
+            self = .failure(.wrap(error))
         }
     }
     
@@ -141,11 +142,7 @@ public extension Result where Failure == ResourceError {
             do {
                 return .success(try transform($0))
             } catch {
-                if let err = error as? ResourceError {
-                    return .failure(err)
-                } else {
-                    return .failure(.other(error))
-                }
+                return .failure(.wrap(error))
             }
         }
     }

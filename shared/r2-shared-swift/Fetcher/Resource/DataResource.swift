@@ -14,28 +14,13 @@ import Foundation
 /// Creates a `Resource` serving raw data.
 public final class DataResource: Resource {
     
-    public typealias Factory = () -> (link: Link, data: ResourceResult<Data>)
-    
-    private let make: Factory
-    private lazy var result: (link: Link, data: ResourceResult<Data>) = make()
-    
+    private let makeData: () throws -> Data
+    private lazy var data = ResourceResult<Data> { try makeData() }
+
     /// Creates a `Resource` serving an array of bytes.
-    public init(make: @escaping Factory) {
-        self.make = make
-    }
-    
-    public convenience init(link: Link, makeData: @escaping (inout Link) throws -> Data = { _ in Data() }) {
-        self.init {
-            var link = link
-            let data = ResourceResult<Data> { try makeData(&link) }
-            return (link: link, data: data)
-        }
-    }
-    
-    public convenience init(link: Link, data: Data) {
-        self.init {
-            return (link: link, data: .success(data))
-        }
+    public init(link: Link, data: @autoclosure @escaping () throws -> Data = Data()) {
+        self.link = link
+        self.makeData = data
     }
     
     /// Creates a `Resource` serving a string encoded as UTF-8.
@@ -45,12 +30,12 @@ public final class DataResource: Resource {
         self.init(link: link, data: string.data(using: .utf8)!)
     }
     
-    public var link: Link { result.link }
+    public let link: Link
     
-    public var length: ResourceResult<UInt64> { result.data.map { UInt64($0.count) } }
+    public var length: ResourceResult<UInt64> { data.map { UInt64($0.count) } }
     
     public func read(range: Range<UInt64>?) -> ResourceResult<Data> {
-        return result.data.map { data in
+        return data.map { data in
             let length = UInt64(data.count)
             if let range = range?.clamped(to: 0..<length) {
                 return data[range]
