@@ -219,7 +219,10 @@ public class PublicationServer: ResourcesServer {
             }
             
             // Remove the prefix from the URI.
-            let href = String(request.path[request.path.index(endpoint.endIndex, offsetBy: 1)...])
+            var href = request.url.absoluteString
+            if let range = href.range(of: endpoint) {
+                href = String(href[range.upperBound...])
+            }
 
             let resource = publication.get(href)
             switch resource.stream() {
