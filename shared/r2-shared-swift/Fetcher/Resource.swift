@@ -69,6 +69,11 @@ public extension Resource {
 /// Errors occurring while accessing a resource.
 public enum ResourceError: Swift.Error {
     
+    /// Equivalent to a 400 HTTP error.
+    ///
+    /// This can be used for templated HREFs, when the provided arguments are invalid.
+    case badRequest(Error)
+    
     /// Equivalent to a 404 HTTP error.
     case notFound
     
@@ -90,6 +95,8 @@ public enum ResourceError: Swift.Error {
     /// HTTP status code for this `ResourceError`.
     public var httpStatusCode: Int {
         switch self {
+        case .badRequest:
+            return 400
         case .notFound:
             return 404
         case .forbidden:

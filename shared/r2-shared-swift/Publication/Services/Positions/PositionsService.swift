@@ -35,7 +35,7 @@ public extension PositionsService {
 
 private let positionsLink = Link(
     href: "/~readium/positions",
-    type: MediaType.readiumPositionsService.string
+    type: MediaType.readiumPositions.string
 )
 
 public extension PositionsService {
@@ -94,7 +94,7 @@ public extension Publication {
     
     /// Fetches the positions from a web service declared in the manifest, if there's one.
     private func positionsFromManifest() -> [Locator] {
-        return links.first(withMediaType: .readiumPositionsService)
+        return links.first(withMediaType: .readiumPositions)
             .map { get($0) }?
             .readAsJSON()
             .map { $0["positions"] }

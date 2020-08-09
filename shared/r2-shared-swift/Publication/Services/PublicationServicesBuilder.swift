@@ -23,10 +23,12 @@ public struct PublicationServicesBuilder {
     }
     
     public init(
+        contentProtection: ContentProtectionServiceFactory? = nil,
         cover: CoverServiceFactory? = nil,
         positions: PositionsServiceFactory? = nil
     ) {
         self.init {
+            $0.setContentProtectionServiceFactory(contentProtection)
             $0.setCoverServiceFactory(cover)
             $0.setPositionsServiceFactory(positions)
         }

@@ -85,7 +85,7 @@ public class AllRestrictedUserRights: UserRights {
     public func canCopy(text: String) -> Bool { return false }
     public func copy(text: String) -> Bool { return false }
     
-    public var canPrint: Bool { true }
+    public var canPrint: Bool { false }
     public func canPrint(pageCount: Int) -> Bool { return false }
     public func print(pageCount: Int) -> Bool { return false }
     

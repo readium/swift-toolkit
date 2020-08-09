@@ -19,7 +19,7 @@ public struct HREF {
     private let href: String
     private let baseHREF: String
     
-    public init(_ href: String, relativeTo baseHREF: String) {
+    public init(_ href: String, relativeTo baseHREF: String = "/") {
         self.href = href
         self.baseHREF = baseHREF.isEmpty ? "/" : baseHREF
     }
@@ -48,10 +48,37 @@ public struct HREF {
         return (url.scheme != nil ? url.absoluteString : url.path) + suffix
     }
     
+    /// Returns the query parameters present in this HREF, in the order they appear.
+    public var queryParameters: [QueryParameter] {
+        guard let items = URLComponents(string: href)?.queryItems else {
+            return []
+        }
+        return items.map {
+            QueryParameter(name: $0.name, value: $0.value)
+        }
+    }
+    
     static func normalizer(relativeTo baseHREF: String) -> (String) -> String {
         return { href in
             HREF(href, relativeTo: baseHREF).string
         }
     }
+    
+    public struct QueryParameter: Equatable {
+        let name: String
+        let value: String?
+    }
 
+}
+
+public extension Array where Element == HREF.QueryParameter {
+    
+    func first(named name: String) -> String? {
+        return first { $0.name == name }?.value
+    }
+    
+    func all(named name: String) -> [String] {
+        return filter { $0.name == name }.compactMap { $0.value }
+    }
+    
 }

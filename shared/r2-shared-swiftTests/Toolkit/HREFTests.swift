@@ -74,6 +74,47 @@ class HREFTests: XCTestCase {
         assert("#anchor", base: "http://example.com/folder/", equals:"http://example.com/folder/#anchor")
     }
     
+    func testQueryParameters() {
+        XCTAssertEqual(HREF("http://domain.com/path").queryParameters, [])
+        XCTAssertEqual(HREF("http://domain.com/path?query=param#anchor").queryParameters, [
+            .init(name: "query", value: "param")
+        ])
+        XCTAssertEqual(HREF("http://domain.com/path?query=param&fruit=banana&query=other&empty").queryParameters, [
+            .init(name: "query", value: "param"),
+            .init(name: "fruit", value: "banana"),
+            .init(name: "query", value: "other"),
+            .init(name: "empty", value: nil)
+        ])
+    }
+    
+    func testFirstNamed() {
+        let params: [HREF.QueryParameter] = [
+            .init(name: "query", value: "param"),
+            .init(name: "fruit", value: "banana"),
+            .init(name: "query", value: "other"),
+            .init(name: "empty", value: nil)
+        ]
+        
+        XCTAssertEqual(params.first(named: "query"), "param")
+        XCTAssertEqual(params.first(named: "fruit"), "banana")
+        XCTAssertNil(params.first(named: "empty"))
+        XCTAssertNil(params.first(named: "not-found"))
+    }
+    
+    func testAllNamed() {
+        let params: [HREF.QueryParameter] = [
+            .init(name: "query", value: "param"),
+            .init(name: "fruit", value: "banana"),
+            .init(name: "query", value: "other"),
+            .init(name: "empty", value: nil)
+        ]
+        
+        XCTAssertEqual(params.all(named: "query"), ["param", "other"])
+        XCTAssertEqual(params.all(named: "fruit"), ["banana"])
+        XCTAssertEqual(params.all(named: "empty"), [])
+        XCTAssertEqual(params.all(named: "not-found"), [])
+    }
+    
     private func assert(_ href: String, base: String, equals expected: String, file: StaticString = #file, line: UInt = #line) {
         XCTAssertEqual(HREF(href, relativeTo: base).string, expected, file: file, line: line)
     }
