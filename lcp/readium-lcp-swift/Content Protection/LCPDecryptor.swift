@@ -44,9 +44,9 @@ final class LCPDecryptor {
         }
         
         if link.isDeflated || !link.isCbcEncrypted {
-            return FullLCPResource(resource, license)
+            return FullLCPResource(resource, license: license).cached()
         } else {
-            return CBCLCPResource(resource, license)
+            return CBCLCPResource(resource, license: license)
         }
     }
     
@@ -54,44 +54,35 @@ final class LCPDecryptor {
     ///
     /// Can be used when it's impossible to map a read range (byte range request) to the encrypted
     /// resource, for example when the resource is deflated before encryption.
-    private class FullLCPResource: ResourceProxy {
+    private class FullLCPResource: TransformingResource {
         
         private let license: DRMLicense
         
-        init(_ resource: Resource, _ license: DRMLicense) {
+        init(_ resource: Resource, license: DRMLicense) {
             self.license = license
             super.init(resource)
         }
         
-        /// Cached decrypted data.
-        private lazy var data: ResourceResult<Data> = license.decryptFully(resource)
+        override func transform(_ data: ResourceResult<Data>) -> ResourceResult<Data> {
+            return license.decryptFully(data: data, isDeflated: resource.link.isDeflated)
+        }
         
         override var length: ResourceResult<UInt64> {
             // Uses `originalLength` or falls back on the actual decrypted data length.
             resource.link.properties.encryption?.originalLength.map { .success(UInt64($0)) }
-                ?? data.map { UInt64($0.count) }
+                ?? super.length
         }
-        
-        override func read(range: Range<UInt64>?) -> ResourceResult<Data> {
-            data.map {
-                if let range = range {
-                    return $0[Int(range.lowerBound)..<Int(range.upperBound)]
-                } else {
-                    return $0
-                }
-            }
-        }
-        
+
     }
     
     /// A LCP resource used to read content encrypted with the CBC algorithm.
     ///
     /// Supports random access for byte range requests, but the resource MUST NOT be deflated.
-    private class CBCLCPResource: ResourceProxy {
+    private class CBCLCPResource: ProxyResource {
         
         private let license: DRMLicense
         
-        init(_ resource: Resource, _ license: DRMLicense) {
+        init(_ resource: Resource, license: DRMLicense) {
             assert(!resource.link.isDeflated)
             assert(resource.link.isCbcEncrypted)
             self.license = license
@@ -120,7 +111,7 @@ final class LCPDecryptor {
         
         override func read(range: Range<UInt64>?) -> ResourceResult<Data> {
             guard let range = range else {
-                return license.decryptFully(resource)
+                return license.decryptFully(data: resource.read(), isDeflated: resource.link.isDeflated)
             }
             
             return resource.length.tryFlatMap { totalLength in
@@ -172,8 +163,8 @@ final class LCPDecryptor {
 
 private extension DRMLicense {
     
-    func decryptFully(_ resource: Resource) -> ResourceResult<Data> {
-        return resource.read().tryMap {
+    func decryptFully(data: ResourceResult<Data>, isDeflated: Bool) -> ResourceResult<Data> {
+        return data.tryMap {
             // Decrypts the resource.
             guard var data = try self.decipher($0) else {
                 throw LCPDecryptor.Error.emptyDecryptedData
@@ -184,7 +175,7 @@ private extension DRMLicense {
             data = data[0..<(data.count - padding)]
             
             // If the ressource was compressed using deflate, inflate it.
-            if resource.link.isDeflated {
+            if isDeflated {
                 guard let inflatedData = data.inflate() else {
                     throw LCPDecryptor.Error.inflateFailed
                 }

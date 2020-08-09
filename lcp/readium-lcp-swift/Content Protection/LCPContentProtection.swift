@@ -113,7 +113,7 @@ private final class LCPContentProtectionService: ContentProtectionService {
 
 public extension Publication {
     
-    /// Indicates whether this `Publication` is protected by a Content Protection technology.
+    /// Returns the `LCPLicense` if the `Protection` is protected by LCP and the license is opened.
     var lcpLicense: LCPLicense? {
         findService(LCPContentProtectionService.self)?.license
     }
