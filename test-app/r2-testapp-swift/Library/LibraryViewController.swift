@@ -230,11 +230,19 @@ extension LibraryViewController: UIDocumentPickerDelegate {
         guard controller.documentPickerMode == .import else {
             return
         }
-        library.importPublications(from: urls)
+        library.importPublications(from: urls) { result in
+            if case .failure(let error) = result {
+                self.libraryDelegate?.presentError(error, from: self)
+            }
+        }
     }
     
     public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
-        library.importPublication(from: url)
+        library.importPublication(from: url) { result in
+            if case .failure(let error) = result {
+                self.libraryDelegate?.presentError(error, from: self)
+            }
+        }
     }
     
 }
@@ -555,7 +563,7 @@ extension LibraryViewController: LibraryServiceDelegate {
     }
 
     func confirmImportingDuplicatePublication(withTitle title: String) -> Deferred<Void, Error> {
-        return deferred { success, _, cancel in
+        return deferred(on: .main) { success, _, cancel in
             let confirmAction = UIAlertAction(title: NSLocalizedString("add_button", comment: "Confirmation button to import a duplicated publication"), style: .default) { _ in
                 success(())
             }

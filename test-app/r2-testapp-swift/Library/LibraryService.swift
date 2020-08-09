@@ -57,22 +57,22 @@ final class LibraryService: Loggable {
     ///
     /// If the `Publication` is intended to be presented in a navigator, set `forPresentation`.
     func openBook(_ book: Book, forPresentation prepareForPresentation: Bool, completion: @escaping (CancellableResult<Publication, LibraryError>) -> Void) {
-        do {
-            openPublication(at: try book.url(), allowUserInteraction: true)
-                .flatMap { publication in
-                    guard !publication.isRestricted else {
+        deferredCatching { .success(try book.url()) }
+            .flatMap { self.openPublication(at: $0, allowUserInteraction: true) }
+            .flatMap { publication in
+                guard !publication.isRestricted else {
+                    if let error = publication.protectionError {
+                        return .failure(error)
+                    } else {
                         return .cancelled
                     }
-    
-                    self.preparePresentation(of: publication, book: book)
-                    return .success(publication)
                 }
-                .mapError { LibraryError.openFailed($0) }
-                .resolve(completion)
-            
-        } catch {
-            completion(.failure(.openFailed(error)))
-        }
+
+                self.preparePresentation(of: publication, book: book)
+                return .success(publication)
+            }
+            .mapError { LibraryError.openFailed($0) }
+            .resolve(completion)
     }
     
     /// Opens the Readium 2 Publication at the given `url`.
@@ -101,7 +101,7 @@ final class LibraryService: Loggable {
     // MARK: Importation
     
     /// Imports a bunch of publications.
-    func importPublications(from sourceURLs: [URL], completion: @escaping (CancellableResult<(), LibraryError>) -> Void = { _ in }) {
+    func importPublications(from sourceURLs: [URL], completion: @escaping (CancellableResult<(), LibraryError>) -> Void) {
         var sourceURLs = sourceURLs
         guard let url = sourceURLs.popFirst() else {
             completion(.success(()))
