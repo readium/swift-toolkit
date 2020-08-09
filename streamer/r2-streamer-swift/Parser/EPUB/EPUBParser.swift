@@ -59,7 +59,7 @@ final public class EPUBParser: PublicationParser {
         let encryptions = (try? EPUBEncryptionParser(fetcher: fetcher))?.parseEncryptions() ?? [:]
 
         // Extracts metadata and links from the OPF.
-        let components = try OPFParser(fetcher: fetcher, opfHREF: opfHREF, encryptions: encryptions).parsePublication()
+        let components = try OPFParser(fetcher: fetcher, opfHREF: opfHREF, fallbackTitle: file.name, encryptions: encryptions).parsePublication()
         let metadata = components.metadata
         let links = components.readingOrder + components.resources
         

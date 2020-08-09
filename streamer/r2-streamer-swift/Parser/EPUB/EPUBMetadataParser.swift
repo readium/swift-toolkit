@@ -17,11 +17,13 @@ import Fuzi
 final class EPUBMetadataParser: Loggable {
     
     private let document: Fuzi.XMLDocument
+    private let fallbackTitle: String
     private let displayOptions: Fuzi.XMLDocument?
     private let metas: OPFMetaList
 
-    init(document: Fuzi.XMLDocument, displayOptions: Fuzi.XMLDocument?, metas: OPFMetaList) {
+    init(document: Fuzi.XMLDocument, fallbackTitle: String, displayOptions: Fuzi.XMLDocument?, metas: OPFMetaList) {
         self.document = document
+        self.fallbackTitle = fallbackTitle
         self.displayOptions = displayOptions
         self.metas = metas
         
@@ -37,10 +39,6 @@ final class EPUBMetadataParser: Loggable {
 
     /// Parses the Metadata in the XML <metadata> element.
     func parse() throws -> Metadata {
-        guard let title = mainTitle else {
-            throw OPFParserError.missingPublicationTitle
-        }
-        
         var otherMetadata = metas.otherMetadata
         if !presentation.json.isEmpty {
             otherMetadata["presentation"] = presentation.json
@@ -50,7 +48,7 @@ final class EPUBMetadataParser: Loggable {
         
         return Metadata(
             identifier: uniqueIdentifier,
-            title: title,
+            title: mainTitle ?? fallbackTitle,
             subtitle: subtitle,
             modified: modifiedDate,
             published: publishedDate,
