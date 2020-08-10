@@ -62,7 +62,7 @@ class AudioParserTests: XCTestCase {
     
     func testHasNoCover() throws {
         let publication = try XCTUnwrap(parser.parse(file: zabFile, fetcher: zabFetcher)?.build())
-        XCTAssertNil(publication.link(withRel: "cover"))
+        XCTAssertNil(publication.link(withRel: .cover))
     }
     
     func testComputeTitleFromArchiveRootDirectory() throws {

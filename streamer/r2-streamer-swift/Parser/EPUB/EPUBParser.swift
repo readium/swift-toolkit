@@ -157,7 +157,7 @@ final public class EPUBParser: PublicationParser {
     /// Attempt to fill the `Publication`'s `tableOfContent`, `landmarks`, `pageList` and `listOfX` links collections using the navigation document.
     private func parseNavigationDocument(in fetcher: Fetcher, links: [Link]) -> [String: [PublicationCollection]] {
         // Get the link in the readingOrder pointing to the Navigation Document.
-        guard let navLink = links.first(withRel: "contents"),
+        guard let navLink = links.first(withRel: .contents),
             let navDocumentData = try? fetcher.readData(at: navLink.href) else
         {
             return [:]

@@ -48,7 +48,7 @@ class EPUBDeobfuscatorTests: XCTestCase {
                 ]
             ])
         )
-        return DataResource(link: link, data: fixtures.data(at: path))
+        return DataResource(link: link, data: self.fixtures.data(at: path))
     }
 
 }

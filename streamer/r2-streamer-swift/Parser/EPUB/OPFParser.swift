@@ -175,12 +175,12 @@ final class OPFParser: Loggable {
             .components(separatedBy: .whitespaces)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
 
-        var rels: [String] = []
+        var rels: [Link.Relation] = []
         if stringProperties.contains("nav") {
-            rels.append("contents")
+            rels.append(.contents)
         }
         if isCover || stringProperties.contains("cover-image") {
-            rels.append("cover")
+            rels.append(.cover)
         }
 
         var properties = parseStringProperties(stringProperties)

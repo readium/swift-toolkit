@@ -54,7 +54,7 @@ class ImageParserTests: XCTestCase {
         let publication = try XCTUnwrap(parser.parse(file: cbzFile, fetcher: cbzFetcher)?.build())
         
         XCTAssertEqual(publication.readingOrder, [
-            Link(href: "/Cory Doctorow's Futuristic Tales of the Here and Now/a-fc.jpg", type: "image/jpeg", rels: ["cover"]),
+            Link(href: "/Cory Doctorow's Futuristic Tales of the Here and Now/a-fc.jpg", type: "image/jpeg", rels: [.cover]),
             Link(href: "/Cory Doctorow's Futuristic Tales of the Here and Now/x-002.jpg", type: "image/jpeg"),
             Link(href: "/Cory Doctorow's Futuristic Tales of the Here and Now/x-003.jpg", type: "image/jpeg"),
             Link(href: "/Cory Doctorow's Futuristic Tales of the Here and Now/x-153.jpg", type: "image/jpeg"),
@@ -64,7 +64,7 @@ class ImageParserTests: XCTestCase {
     
     func testFirstReadingOrderItemIsCover() throws {
         let publication = try XCTUnwrap(parser.parse(file: cbzFile, fetcher: cbzFetcher)?.build())
-        let cover = try XCTUnwrap(publication.link(withRel: "cover"))
+        let cover = try XCTUnwrap(publication.link(withRel: .cover))
         XCTAssertEqual(publication.readingOrder.first, cover)
     }
     
