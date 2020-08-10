@@ -138,7 +138,7 @@ extension Publication {
     }
 
     @available(*, deprecated, message: "Use `cover` to get the `UIImage` directly, or `link(withRel: \"cover\")` if you really want the cover link", renamed: "cover")
-    public var coverLink: Link? { link(withRel: "cover") }
+    public var coverLink: Link? { link(withRel: .cover) }
 
 }
 
@@ -263,7 +263,7 @@ extension Link {
     public var typeLink: String? { type }
     
     @available(*, deprecated, renamed: "rels")
-    public var rel: [String] { rels }
+    public var rel: [String] { rels.map { $0.rawValue } }
     
     @available(*, deprecated, renamed: "href")
     public var absoluteHref: String? { href }

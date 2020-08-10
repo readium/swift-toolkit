@@ -33,7 +33,7 @@ public final class GeneratedCoverService: CoverService {
     private let coverLink = Link(
         href: "/~readium/cover",
         type: "image/png",
-        rel: "cover"
+        rel: .cover
     )
     
     public var cover: UIImage? { try? generatedCover.get() }

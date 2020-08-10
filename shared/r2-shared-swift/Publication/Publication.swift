@@ -88,7 +88,7 @@ public class Publication: Loggable {
     ///
     /// e.g. https://provider.com/pub1293/manifest.json gives https://provider.com/pub1293/
     public var baseURL: URL? {
-        links.first(withRel: "self")
+        links.first(withRel: .self)
             .flatMap { URL(string: $0.href)?.deletingLastPathComponent() }
     }
     
@@ -122,12 +122,12 @@ public class Publication: Loggable {
     }
     
     /// Finds the first link with the given relation in the publication's links.
-    public func link(withRel rel: String) -> Link? {
+    public func link(withRel rel: Link.Relation) -> Link? {
         return manifest.link(withRel: rel)
     }
     
     /// Finds all the links with the given relation in the publication's links.
-    public func links(withRel rel: String) -> [Link] {
+    public func links(withRel rel: Link.Relation) -> [Link] {
         return manifest.links(withRel: rel)
     }
 
@@ -163,12 +163,12 @@ public class Publication: Loggable {
 
     /// Sets the URL where this `Publication`'s RWPM manifest is served.
     public func setSelfLink(href: String?) {
-        manifest.links.removeAll { $0.rels.contains("self") }
+        manifest.links.removeAll { $0.rels.contains(.self) }
         if let href = href {
             manifest.links.insert(Link(
                 href: href,
                 type: MediaType.readiumWebPubManifest.string,
-                rel: "self"
+                rel: .self
             ), at: 0)
         }
     }

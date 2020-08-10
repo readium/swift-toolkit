@@ -144,7 +144,7 @@ public extension Format {
             return .opds2Publication
         }
         if let rwpm = context.contentAsRWPM {
-            if rwpm.link(withRel: "self")?.type == "application/opds+json" {
+            if rwpm.link(withRel: .self)?.type == "application/opds+json" {
                 return .opds2Feed
             }
             if rwpm.link(withRelMatching: { $0.hasPrefix("http://opds-spec.org/acquisition") }) != nil {
@@ -235,7 +235,7 @@ public extension Format {
             if isLCPProtected, rwpm.readingOrder.all(matchMediaType: .pdf) {
                 return .lcpProtectedPDF
             }
-            if rwpm.link(withRel: "self")?.type == "application/webpub+json" {
+            if rwpm.link(withRel: .self)?.type == "application/webpub+json" {
                 return isManifest ? .readiumWebPubManifest : .readiumWebPub
             }
         }
@@ -460,7 +460,7 @@ private extension Manifest {
 
     /// Finds the first `Link` having the given `rel` matching the given `predicate`, in the
     /// publications' links.
-    func link(withRelMatching predicate: (String) -> Bool) -> Link? {
+    func link(withRelMatching predicate: (Link.Relation) -> Bool) -> Link? {
         for link in links {
             for rel in link.rels {
                 if predicate(rel) {

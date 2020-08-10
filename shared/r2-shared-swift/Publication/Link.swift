@@ -30,7 +30,7 @@ public struct Link: JSONEquatable {
     public let title: String?
     
     /// Relation between the linked resource and its containing collection.
-    public let rels: [String]
+    public let rels: [Relation]
     
     /// Properties associated to the linked resource.
     public let properties: Properties
@@ -56,8 +56,8 @@ public struct Link: JSONEquatable {
     /// Resources that are children of the linked resource, in the context of a given collection role.
     public let children: [Link]
 
-    public init(href: String, type: String? = nil, templated: Bool = false, title: String? = nil, rels: [String] = [], rel: String? = nil, properties: Properties = Properties(), height: Int? = nil, width: Int? = nil, bitrate: Double? = nil, duration: Double? = nil, languages: [String] = [], alternates: [Link] = [], children: [Link] = []) {
-        // convenience to set a single rel during construction
+    public init(href: String, type: String? = nil, templated: Bool = false, title: String? = nil, rels: [Relation] = [], rel: Relation? = nil, properties: Properties = Properties(), height: Int? = nil, width: Int? = nil, bitrate: Double? = nil, duration: Double? = nil, languages: [String] = [], alternates: [Link] = [], children: [Link] = []) {
+        // Convenience to set a single rel during construction.
         var rels = rels
         if let rel = rel {
             rels.append(rel)
@@ -89,7 +89,7 @@ public struct Link: JSONEquatable {
             type: jsonObject["type"] as? String,
             templated: (jsonObject["templated"] as? Bool) ?? false,
             title: jsonObject["title"] as? String,
-            rels: parseArray(jsonObject["rel"], allowingSingle: true),
+            rels: .init(json: jsonObject["rel"]),
             properties: (try? Properties(json: jsonObject["properties"], warnings: warnings)) ?? Properties(),
             height: parsePositive(jsonObject["height"]),
             width: parsePositive(jsonObject["width"]),
@@ -107,7 +107,7 @@ public struct Link: JSONEquatable {
             "type": encodeIfNotNil(type),
             "templated": templated,
             "title": encodeIfNotNil(title),
-            "rel": encodeIfNotEmpty(rels),
+            "rel": encodeIfNotEmpty(rels.json),
             "properties": encodeIfNotEmpty(properties.json),
             "height": encodeIfNotNil(height),
             "width": encodeIfNotNil(width),
@@ -164,7 +164,7 @@ public struct Link: JSONEquatable {
         type: String?? = nil,
         templated: Bool? = nil,
         title: String?? = nil,
-        rels: [String]? = nil,
+        rels: [Relation]? = nil,
         properties: Properties? = nil,
         height: Int?? = nil,
         width: Int?? = nil,
@@ -195,6 +195,90 @@ public struct Link: JSONEquatable {
     public func addingProperties(_ properties: [String: Any]) -> Link {
         copy(properties: self.properties.adding(properties))
     }
+    
+    /// Link relations as defined on https://readium.org/webpub-manifest/relationships.html
+    public enum Relation: ExpressibleByStringLiteral, RawRepresentable, Hashable {
+        /// Designates a substitute for the link's context.
+        case alternate
+        /// Refers to a table of contents.
+        case contents
+        /// Refers to a publication's cover.
+        case cover
+        /// Links to a manifest.
+        case manifest
+        /// Refers to a URI or templated URI that will perform a search.
+        case search
+        /// Conveys an identifier for the link's context.
+        case `self`
+        
+        /// IANA – https://www.iana.org/assignments/link-relations/link-relations.xhtml
+        case publication
+        case collection
+        case previous
+        case next
+        
+        /// OPDS
+        case opdsFacet
+        
+        /// Extension or any other relation defined in the IANA link registry.
+        case other(String)
+        
+        public var rawValue: String {
+            switch self {
+            case .alternate: return "alternate"
+            case .contents: return "contents"
+            case .cover: return "cover"
+            case .manifest: return "manifest"
+            case .search: return "search"
+            case .self: return "self"
+                
+            case .publication: return "publication"
+            case .collection: return "collection"
+            case .previous: return "previous"
+            case .next: return "next"
+            
+            case .opdsFacet: return "http://opds-spec.org/facet"
+                
+            case .other(let value): return value
+            }
+        }
+        
+        public init(rawValue: String) {
+            switch rawValue.lowercased() {
+            case "alternate": self = .alternate
+            case "contents": self = .contents
+            case "cover": self = .cover
+            case "manifest": self = .manifest
+            case "search": self = .search
+            case "self": self = .self
+            
+            case "publication": self = .publication
+            case "collection": self = .collection
+            case "previous": self = .previous
+            case "next": self = .next
+                
+            case "http://opds-spec.org/facet": self = .opdsFacet
+                
+            default: self = .other(rawValue)
+            }
+        }
+        
+        public init(stringLiteral value: String) {
+            self.init(rawValue: value)
+        }
+        
+        public func hasPrefix(_ prefix: String) -> Bool {
+            return rawValue.hasPrefix(prefix)
+        }
+        
+        public func hash(into hasher: inout Hasher) {
+            hasher.combine(rawValue)
+        }
+        
+        public var hashValue: Int {
+            rawValue.hashValue
+        }
+    }
 
 }
 
@@ -218,12 +302,12 @@ extension Array where Element == Link {
     }
     
     /// Finds the first link with the given relation.
-    public func first(withRel rel: String) -> Link? {
+    public func first(withRel rel: Link.Relation) -> Link? {
         return first { $0.rels.contains(rel) }
     }
 
     /// Finds all the links with the given relation.
-    public func filter(byRel rel: String) -> [Link] {
+    public func filter(byRel rel: Link.Relation) -> [Link] {
         return filter { $0.rels.contains(rel) }
     }
     
@@ -303,6 +387,27 @@ extension Array where Element == Link {
     @available(*, deprecated, renamed: "firstIndex(withHREF:)")
     public func firstIndex(withHref href: String) -> Int? {
         return firstIndex(withHREF: href)
+    }
+    
+}
+
+
+extension Array where Element == Link.Relation {
+    
+    /// Parses multiple JSON relations into an array of Link.Relation.
+    public init(json: Any?) {
+        self.init()
+        
+        if let json = json as? String {
+            append(Link.Relation(rawValue: json))
+        } else if let json = json as? [String] {
+            let rels = json.compactMap { Link.Relation(rawValue: $0) }
+            append(contentsOf: rels)
+        }
+    }
+    
+    public var json: [String] {
+        map { $0.rawValue }
     }
     
 }

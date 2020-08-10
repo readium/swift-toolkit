@@ -63,7 +63,7 @@ public struct Manifest: JSONEquatable {
         
         let baseHREF = isPackaged ? "/" : (
             [Link](json: json.json["links"], warnings: warnings)
-                .first(withRel: "self")
+                .first(withRel: .self)
                 .flatMap { URL(string: $0.href) }?
                 .absoluteString
                 ?? "/"
@@ -77,8 +77,8 @@ public struct Manifest: JSONEquatable {
         self.links = [Link](json: json.pop("links"), warnings: warnings, normalizeHref: normalizer)
             // If the manifest is packaged, replace any `self` link by an `alternate`.
             .map { link in
-                (isPackaged && link.rels.contains("self"))
-                    ? link.copy(rels: link.rels.removing("self").appending("alternate"))
+                (isPackaged && link.rels.contains(.self))
+                    ? link.copy(rels: link.rels.removing(.self).appending(.alternate))
                     : link
             }
         
@@ -104,14 +104,14 @@ public struct Manifest: JSONEquatable {
     }
     
     /// Finds the first link with the given relation in the manifest's links.
-    public func link(withRel rel: String) -> Link? {
+    public func link(withRel rel: Link.Relation) -> Link? {
         return readingOrder.first(withRel: rel)
             ?? resources.first(withRel: rel)
             ?? links.first(withRel: rel)
     }
     
     /// Finds all the links with the given relation in the manifest's links.
-    public func links(withRel rel: String) -> [Link] {
+    public func links(withRel rel: Link.Relation) -> [Link] {
         return (readingOrder + resources + links).filter(byRel: rel)
     }
 

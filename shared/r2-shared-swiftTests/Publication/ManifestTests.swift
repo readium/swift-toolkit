@@ -29,7 +29,7 @@ class ManifestTests: XCTestCase {
             ]),
             Manifest(
                 metadata: Metadata(title: "Title"),
-                links: [Link(href: "/manifest.json", rels: ["self"])],
+                links: [Link(href: "/manifest.json", rels: [.self])],
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")]
             )
         )
@@ -62,7 +62,7 @@ class ManifestTests: XCTestCase {
             Manifest(
                 context: ["https://readium.org/webpub-manifest/context.jsonld"],
                 metadata: Metadata(title: "Title"),
-                links: [Link(href: "/manifest.json", rels: ["self"])],
+                links: [Link(href: "/manifest.json", rels: [.self])],
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")],
                 resources: [Link(href: "/image.png", type: "image/png")],
                 tableOfContents: [Link(href: "/cover.html"), Link(href: "/chap1.html")],
@@ -86,7 +86,7 @@ class ManifestTests: XCTestCase {
             Manifest(
                 context: ["context1", "context2"],
                 metadata: Metadata(title: "Title"),
-                links: [Link(href: "/manifest.json", rels: ["self"])],
+                links: [Link(href: "/manifest.json", rels: [.self])],
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")]
             )
         )
@@ -121,7 +121,7 @@ class ManifestTests: XCTestCase {
             ]),
             Manifest(
                 metadata: Metadata(title: "Title"),
-                links: [Link(href: "/manifest.json", rels: ["self"])],
+                links: [Link(href: "/manifest.json", rels: [.self])],
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")]
             )
         )
@@ -142,7 +142,7 @@ class ManifestTests: XCTestCase {
             Manifest(
                 metadata: Metadata(title: "Title"),
                 links: [
-                    Link(href: "/manifest.json", rels: ["self"]),
+                    Link(href: "/manifest.json", rels: [.self]),
                 ],
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")]
             )
@@ -167,7 +167,7 @@ class ManifestTests: XCTestCase {
             Manifest(
                 metadata: Metadata(title: "Title"),
                 links: [
-                    Link(href: "/manifest.json", rels: ["self"]),
+                    Link(href: "/manifest.json", rels: [.self]),
                 ],
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")],
                 resources: [Link(href: "/withtype", type: "text/html")]
@@ -214,9 +214,9 @@ class ManifestTests: XCTestCase {
         let json: Any = fixtures.json(at: "flatland-href.json")
         let manifest = try Manifest(json: json, isPackaged: true)
         
-        XCTAssertNil(manifest.link(withRel: "self"))
-        XCTAssertEqual(manifest.links(withRel: "alternate"), [
-            Link(href: "https://readium.org/webpub-manifest/examples/Flatland/manifest.json", type: "application/audiobook+json", rels: ["other", "alternate"])
+        XCTAssertNil(manifest.link(withRel: .self))
+        XCTAssertEqual(manifest.links(withRel: .alternate), [
+            Link(href: "https://readium.org/webpub-manifest/examples/Flatland/manifest.json", type: "application/audiobook+json", rels: ["other", .alternate])
         ])
     }
     
@@ -224,7 +224,7 @@ class ManifestTests: XCTestCase {
         AssertJSONEqual(
             Manifest(
                 metadata: Metadata(title: "Title"),
-                links: [Link(href: "/manifest.json", rels: ["self"])],
+                links: [Link(href: "/manifest.json", rels: [.self])],
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")]
             ).json,
             [
@@ -244,7 +244,7 @@ class ManifestTests: XCTestCase {
             Manifest(
                 context: ["https://readium.org/webpub-manifest/context.jsonld"],
                 metadata: Metadata(title: "Title"),
-                links: [Link(href: "/manifest.json", rels: ["self"])],
+                links: [Link(href: "/manifest.json", rels: [.self])],
                 readingOrder: [Link(href: "/chap1.html", type: "text/html")],
                 resources: [Link(href: "/image.png", type: "image/png")],
                 tableOfContents: [Link(href: "/cover.html"), Link(href: "/chap1.html")],
