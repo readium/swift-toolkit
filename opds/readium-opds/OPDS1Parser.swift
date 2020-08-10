@@ -135,7 +135,7 @@ public class OPDS1Parser: Loggable {
                         collectionLink = Link(
                             href: absoluteHref,
                             title: link.attributes["title"],
-                            rel: "collection"
+                            rel: .collection
                         )
                     }
                 }
@@ -164,7 +164,7 @@ public class OPDS1Parser: Loggable {
                     href: absoluteHref,
                     type: link.attr("type"),
                     title: entry.firstChild(tag: "title")?.stringValue,
-                    rel: link.attr("rel"),
+                    rel: link.attr("rel").map(Link.Relation.init(rawValue:)),
                     properties: .init(properties)
                 )
 
@@ -182,14 +182,17 @@ public class OPDS1Parser: Loggable {
                 continue
             }
             
-            var rels = Array(ofNotNil: link.attributes["rel"])
+            var rels: [Link.Relation] = []
+            if let rel = link.attributes["rel"], !rel.isEmpty {
+                rels.append(.init(stringLiteral: rel))
+            }
             var properties: [String: Any] = [:]
             
-            let isFacet = rels.contains("http://opds-spec.org/facet")
+            let isFacet = rels.contains(.opdsFacet)
             if isFacet {
                 // Active Facet Check
                 if link.attr("activeFacet")?.lowercased() == "true" {
-                    rels.append("self")
+                    rels.append(.self)
                 }
                 
                 if let facetElementCount = link.attr("count").map(Int.init) {
@@ -231,7 +234,7 @@ public class OPDS1Parser: Loggable {
     /// Fetch an Open Search template from an OPDS feed.
     /// - parameter feed: The OPDS feed
     public static func fetchOpenSearchTemplate(feed: Feed, completion: @escaping (String?, Error?) -> Void) {
-        guard let openSearchHref = feed.links.first(withRel: "search")?.href,
+        guard let openSearchHref = feed.links.first(withRel: .search)?.href,
             let openSearchURL = URL(string: openSearchHref) else
         {
             completion(nil, OPDSParserOpenSearchHelperError.searchLinkNotFound)
@@ -259,7 +262,7 @@ public class OPDS1Parser: Loggable {
             // We match by mimetype and profile; if that fails, by mimetype; and if that fails, the first url is returned
             var typeAndProfileMatch: Fuzi.XMLElement? = nil
             var typeMatch: Fuzi.XMLElement? = nil
-            if let selfMimeType = feed.links.first(withRel: "self")?.type {
+            if let selfMimeType = feed.links.first(withRel: .self)?.type {
                 let selfMimeParams = parseMimeType(mimeTypeString: selfMimeType)
                 for url in urls {
                     guard let urlMimeType = url.attributes["type"] else {
@@ -371,7 +374,7 @@ public class OPDS1Parser: Loggable {
                 href: absoluteHref,
                 type: linkElement.attributes["type"],
                 title: linkElement.attributes["title"],
-                rel: linkElement.attributes["rel"],
+                rel: linkElement.attributes["rel"].map(Link.Relation.init(rawValue:)),
                 properties: .init(properties)
             )
 
@@ -427,7 +430,7 @@ public class OPDS1Parser: Loggable {
             let selfLink = Link(
                 href: collectionLink.href,
                 title: collectionLink.title,
-                rel: "self"
+                rel: .self
             )
             newGroup.links.append(selfLink)
             newGroup.publications.append(publication)
@@ -452,7 +455,7 @@ public class OPDS1Parser: Loggable {
             let selfLink = Link(
                 href: collectionLink.href,
                 title: collectionLink.title,
-                rel: "self"
+                rel: .self
             )
             newGroup.links.append(selfLink)
             newGroup.navigation.append(link)
