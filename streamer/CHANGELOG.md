@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.0-alpha.1]
+
 ### Added
 
 * `ReadiumWebPubParser` to parse all Readium Web Publication profiles, including [Audiobooks](https://readium.org/webpub-manifest/extensions/audiobook.html) and [LCP for PDF](https://readium.org/lcp-specs/notes/lcp-for-pdf.html). It parses both manifests and packages.
@@ -16,4 +18,4 @@ All notable changes to this project will be documented in this file.
 * [Prevent the embedded HTTP server from stopping when the device is locked](https://github.com/readium/r2-streamer-swift/pull/163), to allow background playback of audiobooks.
 
 [unreleased]: https://github.com/readium/r2-streamer-swift/compare/master...HEAD
-[x.x.x]: https://github.com/readium/r2-streamer-swift/compare/1.2.5...x.x.x
+[2.0.0-alpha.1]: https://github.com/readium/r2-streamer-swift/compare/1.2.5...2.0.0-alpha.1
