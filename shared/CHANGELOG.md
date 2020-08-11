@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.0-alpha.1]
+
 ### Added
 
 * The new [Format API](https://github.com/readium/architecture/blob/master/proposals/001-format-api.md) simplifies the detection of file formats, including known publication formats such as EPUB and PDF.
@@ -27,4 +29,4 @@ All notable changes to this project will be documented in this file.
 * Dependencies to format-related third-party libraries such as ZIP, XML and PDF are being consolidated into `r2-shared-swift`. Therefore, `r2-shared-swift` now depends on Fuzi and ZIPFoundation. This change will improve maintainability by isolating third-party code and allow (work in progress) to substitute the default libraries with custom ones.
 
 [unreleased]: https://github.com/readium/r2-shared-swift/compare/master...HEAD
-[x.x.x]: https://github.com/readium/r2-shared-swift/compare/1.4.3...x.x.x
+[2.0.0-alpha.1]: https://github.com/readium/r2-shared-swift/compare/1.4.3...2.0.0-alpha.1

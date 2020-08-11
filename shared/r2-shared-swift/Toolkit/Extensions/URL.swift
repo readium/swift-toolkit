@@ -1,4 +1,7 @@
 //
+//  URL.swift
+//  r2-shared-swift
+//
 //  Created by Mickaël Menu on 12/07/2020.
 //
 //  Copyright 2020 Readium Foundation. All rights reserved.
@@ -58,4 +61,15 @@ extension URL: Loggable {
         }
     }
     
+    /// Adds the given `newScheme` to the URL, but only if the URL doesn't already have one.
+    public func addingSchemeIfMissing(_ newScheme: String) -> URL {
+        guard scheme == nil else {
+            return self
+        }
+        
+        var components = URLComponents(url: self, resolvingAgainstBaseURL: true)
+        components?.scheme = newScheme
+        return components?.url ?? self
+    }
+
 }
