@@ -28,7 +28,7 @@ class ReaderViewController: UIViewController, Loggable {
     let book: Book
     let drm: DRM?
 
-    lazy var bookmarksDataSource: BookmarkDataSource? = BookmarkDataSource(publicationID: publication.metadata.identifier ?? "")
+    lazy var bookmarksDataSource: BookmarkDataSource? = BookmarkDataSource(bookID: book.id)
     
     private(set) var stackView: UIStackView!
     private lazy var positionLabel = UILabel()

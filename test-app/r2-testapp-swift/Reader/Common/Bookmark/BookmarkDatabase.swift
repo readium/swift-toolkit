@@ -45,7 +45,7 @@ class BookmarksTable {
     let tableName = Table("BOOKMARKS")
     
     let bookmarkID = Expression<Int64>("id")
-    let publicationID = Expression<String>("publicationID")
+    let bookID = Expression<Int64>("bookID")
   
     let resourceIndex = Expression<Int>("resourceIndex")
     let resourceHref = Expression<String>("resourceHref")
@@ -70,7 +70,7 @@ class BookmarksTable {
         _ = try? connection.run(tableName.create(temporary: false, ifNotExists: true) { t in
             t.column(bookmarkID, primaryKey: PrimaryKey.autoincrement)
             t.column(creationDate)
-            t.column(publicationID)
+            t.column(bookID)
             t.column(resourceHref)
             t.column(resourceIndex)
             t.column(resourceType)
@@ -83,7 +83,7 @@ class BookmarksTable {
     func insert(newBookmark: Bookmark) throws -> Int64? {
         let db = BookmarkDatabase.shared.connection
         
-        let bookmark = tableName.filter(self.publicationID == newBookmark.publicationID && self.resourceHref == newBookmark.locator.href && self.resourceIndex == newBookmark.resourceIndex && self.locations == (newBookmark.locator.locations.jsonString ?? ""))
+        let bookmark = tableName.filter(self.bookID == newBookmark.bookID && self.resourceHref == newBookmark.locator.href && self.resourceIndex == newBookmark.resourceIndex && self.locations == (newBookmark.locator.locations.jsonString ?? ""))
         
         // Check if empty.
         guard try db.count(bookmark) == 0 else {
@@ -92,7 +92,7 @@ class BookmarksTable {
         
         let insertQuery = tableName.insert(
             creationDate <- newBookmark.creationDate,
-            publicationID <- newBookmark.publicationID,
+            bookID <- newBookmark.bookID,
             resourceHref <- newBookmark.locator.href,
             resourceIndex <- newBookmark.resourceIndex,
             resourceType <- newBookmark.locator.type,
@@ -121,7 +121,7 @@ class BookmarksTable {
         return true
     }
     
-    func bookmarkList(for publicationID:String?=nil, resourceIndex:Int?=nil) throws -> [Bookmark]? {
+    func bookmarkList(for bookID: Int64? = nil, resourceIndex: Int? = nil) throws -> [Bookmark]? {
         
         let db = BookmarkDatabase.shared.connection
         // Check if empty.
@@ -130,12 +130,12 @@ class BookmarksTable {
         }
         
         let resultList = try { () -> AnySequence<Row> in
-            if let fetchingID = publicationID {
+            if let fetchingID = bookID {
                 if let fetchingIndex = resourceIndex {
-                    let query = self.tableName.filter(self.publicationID == fetchingID && self.resourceIndex == fetchingIndex)
+                    let query = self.tableName.filter(self.bookID == fetchingID && self.resourceIndex == fetchingIndex)
                     return try db.prepare(query)
                 }
-                let query = self.tableName.filter(self.publicationID == fetchingID)
+                let query = self.tableName.filter(self.bookID == fetchingID)
                 return try db.prepare(query)
             }
             return try db.prepare(self.tableName)
@@ -144,7 +144,7 @@ class BookmarksTable {
         return resultList.map { row in
             Bookmark(
                 id: row[self.bookmarkID],
-                publicationID: row[self.publicationID],
+                bookID: row[self.bookID],
                 resourceIndex: row[self.resourceIndex],
                 locator: Locator(
                     href: row[self.resourceHref],
