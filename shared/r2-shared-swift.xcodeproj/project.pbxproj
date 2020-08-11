@@ -95,6 +95,8 @@
 		CA9E6BA4223A657900ECF6E4 /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9E6BA3223A657900ECF6E4 /* JSON.swift */; };
 		CA9E6BA9223A749900ECF6E4 /* Publication+EPUB.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9E6BA8223A749900ECF6E4 /* Publication+EPUB.swift */; };
 		CA9E6BAE223A76C600ECF6E4 /* Publication+OPDS.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9E6BAD223A76C600ECF6E4 /* Publication+OPDS.swift */; };
+		CAAABA9D24D7F248004A4466 /* URL.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAABA9C24D7F248004A4466 /* URL.swift */; };
+		CAAABAA024D7F2DC004A4466 /* URLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAABA9F24D7F2DC004A4466 /* URLTests.swift */; };
 		CAAF80CA2456D7370024D7AE /* AudioSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAF80C92456D7370024D7AE /* AudioSession.swift */; };
 		CAB88C92224E766E00D36C99 /* LocatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB88C91224E766E00D36C99 /* LocatorTests.swift */; };
 		CABBB2E52237ADEB004EB039 /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B1879F1FA33D4D00BB46BF /* Feed.swift */; };
@@ -244,6 +246,8 @@
 		CA9E6BA6223A67D300ECF6E4 /* Publication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Publication.swift; sourceTree = "<group>"; };
 		CA9E6BA8223A749900ECF6E4 /* Publication+EPUB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publication+EPUB.swift"; sourceTree = "<group>"; };
 		CA9E6BAD223A76C600ECF6E4 /* Publication+OPDS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publication+OPDS.swift"; sourceTree = "<group>"; };
+		CAAABA9C24D7F248004A4466 /* URL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URL.swift; sourceTree = "<group>"; };
+		CAAABA9F24D7F2DC004A4466 /* URLTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLTests.swift; sourceTree = "<group>"; };
 		CAAF80C92456D7370024D7AE /* AudioSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSession.swift; sourceTree = "<group>"; };
 		CAB88C91224E766E00D36C99 /* LocatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocatorTests.swift; sourceTree = "<group>"; };
 		CABBB2F32237BF42004EB039 /* OPDSPriceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPriceTests.swift; sourceTree = "<group>"; };
@@ -403,6 +407,7 @@
 		CA252DDE2447A5AE0005067C /* Toolkit */ = {
 			isa = PBXGroup;
 			children = (
+				CAAABA9E24D7F2CD004A4466 /* Extensions */,
 				CA252DDF2447A5B40005067C /* Archive */,
 				CA7116EE2455935100C029FD /* DocumentTypesTests.swift */,
 			);
@@ -566,6 +571,7 @@
 				CA68BDCD24407750009A6BAA /* StringEncoding.swift */,
 				CAD0FEC1244310BB0053C998 /* Array.swift */,
 				CAD1EE6F245AC29B00C1E684 /* String.swift */,
+				CAAABA9C24D7F248004A4466 /* URL.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -620,6 +626,14 @@
 				CA176379223A7B8900959FEB /* Properties+OPDS.swift */,
 			);
 			path = OPDS;
+			sourceTree = "<group>";
+		};
+		CAAABA9E24D7F2CD004A4466 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				CAAABA9F24D7F2DC004A4466 /* URLTests.swift */,
+			);
+			path = Extensions;
 			sourceTree = "<group>";
 		};
 		CAC34F04221C61BD002C452E /* DRM */ = {
@@ -854,6 +868,7 @@
 				CA16A8742233004A00E66255 /* PropertiesTests.swift in Sources */,
 				CA16A8802233BE6900E66255 /* EncryptionTests.swift in Sources */,
 				CA5F8EFB2404142C00926120 /* EPUBLayoutTests.swift in Sources */,
+				CAAABAA024D7F2DC004A4466 /* URLTests.swift in Sources */,
 				CA6F27742469E4DA0065B405 /* FileFetcherTests.swift in Sources */,
 				CA40C07A21FF25F80069A50E /* JSON.swift in Sources */,
 				CA68BDD12440E123009A6BAA /* FormatSnifferTests.swift in Sources */,
@@ -956,6 +971,7 @@
 				CABBB2E72237ADEB004EB039 /* Facet.swift in Sources */,
 				CA16A8822233FE3200E66255 /* Metadata.swift in Sources */,
 				CA68BDC924406C10009A6BAA /* FormatSniffer.swift in Sources */,
+				CAAABA9D24D7F248004A4466 /* URL.swift in Sources */,
 				CA3386E12404FAD000FDCBBA /* Encryption.swift in Sources */,
 				CAF4EAE52237ABC700A17DA1 /* MediaOverlays.swift in Sources */,
 				CA3386EE24056ADB00FDCBBA /* Locator+HTML.swift in Sources */,
@@ -1180,10 +1196,12 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
+				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
 				INFOPLIST_FILE = "r2-shared-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				OTHER_LDFLAGS = "-lxml2";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-shared-swift";
 				PRODUCT_NAME = R2Shared;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1212,10 +1230,12 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
+				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
 				INFOPLIST_FILE = "r2-shared-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				OTHER_LDFLAGS = "-lxml2";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-shared-swift";
 				PRODUCT_NAME = R2Shared;
 				PROVISIONING_PROFILE_SPECIFIER = "";
