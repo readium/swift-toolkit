@@ -17,6 +17,7 @@
 		CA90372222D8C94C00D4C86F /* fxl-spread-two.html in Resources */ = {isa = PBXBuildFile; fileRef = CA90372022D8C94C00D4C86F /* fxl-spread-two.html */; };
 		CA94292122BCF97700305CDB /* Static in Resources */ = {isa = PBXBuildFile; fileRef = CA94292022BCF97700305CDB /* Static */; };
 		CA94293022BD2D2F00305CDB /* Scripts in Resources */ = {isa = PBXBuildFile; fileRef = CA94292F22BD2D2F00305CDB /* Scripts */; };
+		CAAABA9B24D695E5004A4466 /* TargetAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAABA9A24D695E5004A4466 /* TargetAction.swift */; };
 		CAB9086B22492D4C00711C3F /* Navigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB9086A22492D4C00711C3F /* Navigator.swift */; };
 		CAC2A6D72292E4BA000AA2A7 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC2A6D62292E4BA000AA2A7 /* WebView.swift */; };
 		CACE84F82254BE5F00E19E8B /* PDFDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE84F72254BE5F00E19E8B /* PDFDocumentView.swift */; };
@@ -28,6 +29,7 @@
 		CAEACA222272EFBD00476340 /* ImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAEACA212272EFBD00476340 /* ImageViewController.swift */; };
 		CAF1E3F122DC98C200E807EA /* EPUBSpread.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF1E3F022DC98C200E807EA /* EPUBSpread.swift */; };
 		CAF1E3F522DF23F400E807EA /* PaginationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF1E3F422DF23F400E807EA /* PaginationView.swift */; };
+		CAFB017724D48FC2006B074C /* PDFTapGestureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFB017624D48FC2006B074C /* PDFTapGestureController.swift */; };
 		F341C2711F506ED5005E6758 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F341C2701F506ED5005E6758 /* UserSettings.swift */; };
 		F3E7D3D41F4D83B000DF166D /* r2-navigator-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F3E7D3E21F4D84A000DF166D /* EPUBNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E7D3E11F4D84A000DF166D /* EPUBNavigatorViewController.swift */; };
@@ -46,6 +48,7 @@
 		CA90372022D8C94C00D4C86F /* fxl-spread-two.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "fxl-spread-two.html"; sourceTree = "<group>"; };
 		CA94292022BCF97700305CDB /* Static */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Static; sourceTree = "<group>"; };
 		CA94292F22BD2D2F00305CDB /* Scripts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Scripts; sourceTree = "<group>"; };
+		CAAABA9A24D695E5004A4466 /* TargetAction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TargetAction.swift; sourceTree = "<group>"; };
 		CAB9086A22492D4C00711C3F /* Navigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Navigator.swift; sourceTree = "<group>"; };
 		CAC2A6D62292E4BA000AA2A7 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
 		CACE84F72254BE5F00E19E8B /* PDFDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDocumentView.swift; sourceTree = "<group>"; };
@@ -57,6 +60,7 @@
 		CAEACA212272EFBD00476340 /* ImageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewController.swift; sourceTree = "<group>"; };
 		CAF1E3F022DC98C200E807EA /* EPUBSpread.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBSpread.swift; sourceTree = "<group>"; };
 		CAF1E3F422DF23F400E807EA /* PaginationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaginationView.swift; sourceTree = "<group>"; };
+		CAFB017624D48FC2006B074C /* PDFTapGestureController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFTapGestureController.swift; sourceTree = "<group>"; };
 		F341C2701F506ED5005E6758 /* UserSettings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
 		F3E7D3C31F4D83B000DF166D /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "r2-navigator-swift.h"; sourceTree = "<group>"; };
@@ -85,6 +89,7 @@
 			children = (
 				CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */,
 				CACE84F72254BE5F00E19E8B /* PDFDocumentView.swift */,
+				CAFB017624D48FC2006B074C /* PDFTapGestureController.swift */,
 			);
 			path = PDF;
 			sourceTree = "<group>";
@@ -92,12 +97,13 @@
 		CA479DC1226493390053445E /* Toolkit */ = {
 			isa = PBXGroup;
 			children = (
+				CA1E4F4A240037E6009C4DE3 /* CompletionList.swift */,
+				CAF1E3F422DF23F400E807EA /* PaginationView.swift */,
+				CAD178B522B3B553004E6812 /* R2NavigatorLocalizedString.swift */,
+				CAAABA9A24D695E5004A4466 /* TargetAction.swift */,
 				CA479DC2226493570053445E /* UIView.swift */,
 				CA479DC42264AEA20053445E /* UIColor.swift */,
-				CAF1E3F422DF23F400E807EA /* PaginationView.swift */,
 				CAC2A6D62292E4BA000AA2A7 /* WebView.swift */,
-				CAD178B522B3B553004E6812 /* R2NavigatorLocalizedString.swift */,
-				CA1E4F4A240037E6009C4DE3 /* CompletionList.swift */,
 			);
 			path = Toolkit;
 			sourceTree = "<group>";
@@ -251,6 +257,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
 			mainGroup = F3E7D3B91F4D83B000DF166D;
 			productRefGroup = F3E7D3C41F4D83B000DF166D /* Products */;
@@ -289,11 +296,13 @@
 				CAB9086B22492D4C00711C3F /* Navigator.swift in Sources */,
 				CA0B3AC3222EE555006D9363 /* PDFNavigatorViewController.swift in Sources */,
 				F3E7D3E61F4D84EF00DF166D /* EPUBSpreadView.swift in Sources */,
+				CAAABA9B24D695E5004A4466 /* TargetAction.swift in Sources */,
 				F3E7D42E1F4EE0FE00DF166D /* CBZNavigatorViewController.swift in Sources */,
 				CA479DC52264AEA20053445E /* UIColor.swift in Sources */,
 				CAD178B622B3B553004E6812 /* R2NavigatorLocalizedString.swift in Sources */,
 				CAEACA222272EFBD00476340 /* ImageViewController.swift in Sources */,
 				CACE84FB2254BFEE00E19E8B /* EditingAction.swift in Sources */,
+				CAFB017724D48FC2006B074C /* PDFTapGestureController.swift in Sources */,
 				F341C2711F506ED5005E6758 /* UserSettings.swift in Sources */,
 				CACE851F225CDE3400E19E8B /* EPUBFixedSpreadView.swift in Sources */,
 				CA479DC3226493570053445E /* UIView.swift in Sources */,
@@ -456,6 +465,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
+				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
 				INFOPLIST_FILE = "r2-navigator-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -485,6 +495,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
+				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
 				INFOPLIST_FILE = "r2-navigator-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;

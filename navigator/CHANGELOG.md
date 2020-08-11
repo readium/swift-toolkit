@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.0-alpha.1]
+
 ### Added
 
 * Support for pop-up footnotes (contributed by [@tooolbox](https://github.com/readium/r2-navigator-swift/pull/118)).
@@ -29,4 +31,4 @@ All notable changes to this project will be documented in this file.
 * Touching interactive elements in fixed-layout EPUBs, when two-page spreads are enabled.
 
 [unreleased]: https://github.com/readium/r2-navigator-swift/compare/master...HEAD
-[x.x.x]: https://github.com/readium/r2-navigator-swift/compare/1.2.6...x.x.x
+[2.0.0-alpha.1]: https://github.com/readium/r2-navigator-swift/compare/1.2.6...2.0.0-alpha.1
