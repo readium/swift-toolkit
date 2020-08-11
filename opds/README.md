@@ -35,7 +35,7 @@ install ReadiumOPDS with Carthage:
  2. Update your Cartfile to include the following:
 
     ```ruby
-    github "readium/r2-opds-swift" ~> 1.0.4
+    github "readium/r2-opds-swift" "develop"
     ```
 
  3. Run `carthage update` and
@@ -67,7 +67,7 @@ ReadiumOPDS with CocoaPods:
     use_frameworks!
 
     target 'YourAppTargetName' do
-        pod 'ReadiumOPDS', :git => 'https://github.com/readium/r2-opds-swift.git'
+        pod 'ReadiumOPDS', :git => 'https://github.com/readium/r2-opds-swift.git', :branch => 'develop'
     end
     ```
 
