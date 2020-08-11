@@ -192,14 +192,14 @@ final class EPUBMetadataParser: Loggable {
 
     /// Parse and return the Epub unique identifier.
     /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#identifier
-    private lazy var uniqueIdentifier: String? = metadataElement?
-        .firstChild(xpath:"dc:identifier[@id=/opf:package/@unique-identifier]")?
-        .stringValue
+    private lazy var uniqueIdentifier: String? =
+        dcElement(tag: "identifier[@id=/opf:package/@unique-identifier]")?
+            .stringValue
 
     /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#publication-date
-    private lazy var publishedDate = metadataElement?
-        .firstChild(xpath: "dc:date[not(@opf:event) or @opf:event='publication']")?
-        .stringValue.dateFromISO8601
+    private lazy var publishedDate =
+        dcElement(tag: "date[not(@opf:event) or @opf:event='publication']")?
+            .stringValue.dateFromISO8601
 
     /// Parse the modifiedDate (date of last modification of the EPUB).
     /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#modification-date
@@ -210,7 +210,7 @@ final class EPUBMetadataParser: Loggable {
                 .first
         }
         let epub2Date = {
-            self.metadataElement?.firstChild(xpath: "dc:date[@opf:event='modification']")?
+            self.dcElement(tag: "date[@opf:event='modification']")?
                 .stringValue.dateFromISO8601
         }
         return epub3Date() ?? epub2Date()
@@ -477,6 +477,14 @@ final class EPUBMetadataParser: Loggable {
         } else {
             return strings.first?.value.localizedString
         }
+    }
+    
+    /// Returns the given `dc:` tag in the `metadata` element.
+    ///
+    /// This looks under `metadata/dc-metadata` as well, to be compatible with old EPUB 2 files.
+    private func dcElement(tag: String) -> XMLElement? {
+        return metadataElement?
+            .firstChild(xpath:"(.|opf:dc-metadata)/dc:\(tag)")
     }
     
 }
