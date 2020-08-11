@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.0-alpha.1]
+
 ### Added
 
 * Support for [PDF](https://readium.org/lcp-specs/notes/lcp-for-pdf.html) and [Readium Audiobooks](https://readium.org/lcp-specs/notes/lcp-for-audiobooks.html) protected with LCP.
@@ -17,4 +19,4 @@ All notable changes to this project will be documented in this file.
 
 
 [unreleased]: https://github.com/readium/r2-lcp-swift/compare/master...HEAD
-[x.x.x]: https://github.com/readium/r2-lcp-swift/compare/1.2.3...x.x.x
+[2.0.0-alpha.1]: https://github.com/readium/r2-lcp-swift/compare/1.2.3...2.0.0-alpha.1
