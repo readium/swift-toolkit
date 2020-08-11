@@ -20,7 +20,7 @@ install R2Navigator with Carthage:
  2. Update your Cartfile to include the following:
 
     ```ruby
-    github "readium/r2-navigator-swift" ~> 1.0.6
+    github "readium/r2-navigator-swift" "develop"
     ```
 
  3. Run `carthage update` and
@@ -52,7 +52,7 @@ R2Navigator with CocoaPods:
     use_frameworks!
 
     target 'YourAppTargetName' do
-        pod 'R2Navigator', :git => 'https://github.com/readium/r2-navigator-swift.git', '~> 1.0.6'
+        pod 'R2Navigator', :git => 'https://github.com/readium/r2-navigator-swift.git', :branch => 'develop'
     end
     ```
 
