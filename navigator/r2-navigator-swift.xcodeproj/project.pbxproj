@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		035CE41724F7E2090062EE28 /* SwiftSoup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 035CE41624F7E2090062EE28 /* SwiftSoup.framework */; };
 		03C3CC68222DBD8600A01731 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03C3CC67222DBD8600A01731 /* R2Shared.framework */; };
 		CA0B3AC3222EE555006D9363 /* PDFNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */; };
 		CA1E4F4B240037E6009C4DE3 /* CompletionList.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA1E4F4A240037E6009C4DE3 /* CompletionList.swift */; };
@@ -38,6 +39,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		035CE41624F7E2090062EE28 /* SwiftSoup.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SwiftSoup.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03C3CC67222DBD8600A01731 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFNavigatorViewController.swift; sourceTree = "<group>"; };
 		CA1E4F4A240037E6009C4DE3 /* CompletionList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletionList.swift; sourceTree = "<group>"; };
@@ -78,6 +80,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				03C3CC68222DBD8600A01731 /* R2Shared.framework in Frameworks */,
+				035CE41724F7E2090062EE28 /* SwiftSoup.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -197,6 +200,7 @@
 		F3E7D3E71F4DC40800DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				035CE41624F7E2090062EE28 /* SwiftSoup.framework */,
 				03C3CC67222DBD8600A01731 /* R2Shared.framework */,
 			);
 			name = Frameworks;
