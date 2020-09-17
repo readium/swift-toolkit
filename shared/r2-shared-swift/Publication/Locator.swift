@@ -125,10 +125,13 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
         public var position: Int?
 
         /// Additional locations for extensions.
-        public var otherLocations: [String: Any] { otherLocationsJSON.json }
-        
+        public var otherLocations: [String: Any] {
+          get { otherLocationsJSON.json }
+          set { otherLocationsJSON = JSONDictionary(newValue) ?? JSONDictionary() }
+        }
+
         // Trick to keep the struct equatable despite [String: Any]
-        private let otherLocationsJSON: JSONDictionary
+        private var otherLocationsJSON: JSONDictionary
         
         public init(fragments: [String] = [], progression: Double? = nil, totalProgression: Double? = nil, position: Int? = nil, otherLocations: [String: Any] = [:]) {
             self.fragments = fragments
