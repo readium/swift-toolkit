@@ -276,7 +276,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         // unless a Publication Positions Web Service is provided.
         if
             let index = publication.readingOrder.firstIndex(withHREF: href),
-            let positionList = publication.positionsByReadingOrder[href],
+            let positionList = Optional(publication.positionsByReadingOrder[index]),
             positionList.count > 0
         {
             // Gets the current locator from the positionList, and fill its missing data.

@@ -75,7 +75,8 @@ final class PaginationView: UIView {
     /// Pre-loaded page views, indexed by their position.
     private(set) var loadedViews: [Int: (UIView & PageView)] = [:]
     
-    /// Number of positions (as in `Publication.positionList`) to preload before and after the current page.
+    /// Number of positions (as in `Publication.positionList`) to preload before and after the
+    /// current page.
     private let preloadPreviousPositionCount: Int
     private let preloadNextPositionCount: Int
     
@@ -118,7 +119,11 @@ final class PaginationView: UIView {
         scrollView.showsHorizontalScrollIndicator = false
         addSubview(scrollView)
         
-        // Adds an empty view before the scroll view to have a consistent behavior on all iOS versions, regarding to the content inset adjustements. Even if automaticallyAdjustsScrollViewInsets is not set to false on the navigator's parent view controller, the scroll view insets won't be adjusted if the scroll view is not the first child in the subviews hierarchy.
+        // Adds an empty view before the scroll view to have a consistent behavior on all iOS
+        // versions, regarding to the content inset adjustements. Even if
+        // `automaticallyAdjustsScrollViewInsets` is not set to false on the navigator's parent
+        // view controller, the scroll view insets won't be adjusted if the scroll view is not the
+        // first child in the subviews hierarchy.
         insertSubview(UIView(frame: .zero), at: 0)
         if #available(iOS 11.0, *) {
             // Prevents the content from jumping down when the status bar is toggled
@@ -141,10 +146,17 @@ final class PaginationView: UIView {
         scrollView.contentSize = CGSize(width: size.width * CGFloat(pageCount), height: size.height)
         
         for (index, view) in loadedViews {
-            view.frame = CGRect(origin: CGPoint(x: size.width * CGFloat(index), y: 0), size: size)
+            view.frame = CGRect(origin: CGPoint(x: xOffsetForIndex(index), y: 0), size: size)
         }
         
         scrollView.contentOffset.x = xOffsetForIndex(currentIndex)
+    }
+    
+    /// Returns the x offset to the page view with given index in the scroll view.
+    private func xOffsetForIndex(_ index: Int) -> CGFloat {
+        return (readingProgression == .rtl)
+            ? scrollView.contentSize.width - (CGFloat(index + 1) * scrollView.bounds.width)
+            : scrollView.bounds.width * CGFloat(index)
     }
     
     /// Reloads the pagination with the given total number of pages and current index.
@@ -168,13 +180,6 @@ final class PaginationView: UIView {
         
         setCurrentIndex(index, location: location)
     }
-    
-    /// Returns the x offset to the page view with given index in the scroll view.
-    private func xOffsetForIndex(_ index: Int) -> CGFloat {
-        return (readingProgression == .rtl)
-            ? scrollView.contentSize.width - (CGFloat(index + 1) * scrollView.bounds.width)
-            : scrollView.bounds.width * CGFloat(index)
-    }
 
     /// Updates the current and pre-loaded views.
     private func setCurrentIndex(_ index: Int, location: PageLocation? = nil) {
@@ -182,9 +187,16 @@ final class PaginationView: UIView {
             return
         }
         
+        // If no explicit location is given, we'll load either the beginning or the end of the
+        // resource depending on the last index. This allows to navigate backward across resources,
+        // starting from the end of each previous resource.
+        let movingBackward = (currentIndex - 1 == index)
+        let location = location ?? (movingBackward ? .end : .start)
+
         currentIndex = index
         
-        // To make sure that the views the most likely to be visible are loaded first, we first load the current one, then the next ones and to finish the previous ones.
+        // To make sure that the views the most likely to be visible are loaded first, we first load
+        // the current one, then the next ones and to finish the previous ones.
         loadView(at: index, location: location)
         let lastIndex = loadViews(upToPositionCount: preloadNextPositionCount, from: index, direction: .forward, location: .start)
         let firstIndex = loadViews(upToPositionCount: preloadPreviousPositionCount, from: index, direction: .backward, location: .end)
@@ -211,7 +223,7 @@ final class PaginationView: UIView {
     ///
     /// - Returns: The loaded page view, if any.
     @discardableResult
-    private func loadView(at index: Int, location: PageLocation?) -> (UIView & PageView)? {
+    private func loadView(at index: Int, location: PageLocation) -> (UIView & PageView)? {
         if 0..<pageCount ~= index,
             loadedViews[index] == nil,
             let delegate = delegate,
@@ -221,10 +233,7 @@ final class PaginationView: UIView {
         }
         
         let view = loadedViews[index]
-        if let location = location {
-            view?.go(to: location)
-        }
-        
+        view?.go(to: location)
         return view
     }
     
@@ -235,7 +244,7 @@ final class PaginationView: UIView {
     ///   - sourceIndex: Starting page index from which to pre-load the views.
     ///   - direction: The direction in which to load the views from the sourceIndex.
     /// - Returns: The last page index loaded after reaching the requested number of positions.
-    private func loadViews(upToPositionCount positionCount: Int, from sourceIndex: Int, direction: PageIndexDirection, location: PageLocation?) -> Int {
+    private func loadViews(upToPositionCount positionCount: Int, from sourceIndex: Int, direction: PageIndexDirection, location: PageLocation) -> Int {
         let index = sourceIndex + direction.rawValue
         guard positionCount > 0,
             let pageView = loadView(at: index, location: location) else
