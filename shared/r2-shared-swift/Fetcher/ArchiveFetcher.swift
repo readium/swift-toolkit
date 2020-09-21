@@ -16,8 +16,8 @@ public final class ArchiveFetcher: Fetcher, Loggable {
     
     private let archive: Archive
     
-    public init(url: URL, password: String? = nil, openArchive: ArchiveFactory = DefaultArchiveFactory) throws {
-        self.archive = try openArchive(url, password)
+    public init(url: URL, password: String? = nil, archiveFactory: ArchiveFactory = DefaultArchiveFactory) throws {
+        self.archive = try archiveFactory(url, password)
     }
     
     public lazy var links: [Link] =
