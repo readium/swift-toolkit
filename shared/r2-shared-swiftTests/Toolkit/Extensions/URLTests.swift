@@ -51,4 +51,15 @@ class URLTests: XCTestCase {
         XCTAssertFalse(folder.isParentOf(URL(fileURLWithPath: "/root/folder/child/../../folder-sibling/child")))
     }
 
+    func testAddingSchemeIfMissing() {
+        XCTAssertEqual(
+            URL(string: "//www.google.com/path")!.addingSchemeIfMissing("test"),
+            URL(string: "test://www.google.com/path")!
+        )
+        XCTAssertEqual(
+            URL(string: "http://www.google.com/path")!.addingSchemeIfMissing("test"),
+            URL(string: "http://www.google.com/path")!
+        )
+    }
+
 }

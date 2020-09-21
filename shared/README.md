@@ -20,7 +20,7 @@ install R2Shared with Carthage:
  2. Update your Cartfile to include the following:
 
     ```ruby
-    github "readium/r2-shared-swift" ~> 1.2.7
+    github "readium/r2-shared-swift" "develop"
     ```
 
  3. Run `carthage update` and
@@ -52,7 +52,7 @@ R2Shared with CocoaPods:
     use_frameworks!
 
     target 'YourAppTargetName' do
-        pod 'R2Shared', :git => 'https://github.com/readium/r2-shared-swift.git', '~> 1.2.7'
+        pod 'R2Shared', :git => 'https://github.com/readium/r2-shared-swift.git', :branch => 'develop'
     end
     ```
 

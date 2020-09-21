@@ -32,6 +32,7 @@
 		CA176387223A898B00959FEB /* Properties+EPUB.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA176386223A898B00959FEB /* Properties+EPUB.swift */; };
 		CA17638D223A984600959FEB /* Publication.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9E6BA6223A67D300ECF6E4 /* Publication.swift */; };
 		CA176392223AAC1A00959FEB /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA176391223AAC1A00959FEB /* UserSettings.swift */; };
+		CA1AB0C424E2D0EA00004BC0 /* URL.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA1AB0C324E2D0EA00004BC0 /* URL.swift */; };
 		CA2006512225A1F300E6B3BD /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2006502225A1F300E6B3BD /* Observable.swift */; };
 		CA228D1124BC5CF800879E2E /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA228D1024BC5CF800879E2E /* Result.swift */; };
 		CA228D1324BCD55600879E2E /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA228D1224BCD55600879E2E /* File.swift */; };
@@ -159,7 +160,6 @@
 		CADD69E222C3B17500A4CADF /* DocumentTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADD69E122C3B17500A4CADF /* DocumentTypes.swift */; };
 		CAE4DCA024B8CC5B00611638 /* ExplodedArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE4DC9F24B8CC5B00611638 /* ExplodedArchive.swift */; };
 		CAE4DCA224B8CD3E00611638 /* ExplodedArchiveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE4DCA124B8CD3E00611638 /* ExplodedArchiveTests.swift */; };
-		CAE4DCAA24BB40F100611638 /* URL.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE4DCA924BB40F100611638 /* URL.swift */; };
 		CAE4DCAD24BB417D00611638 /* URLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE4DCAC24BB417D00611638 /* URLTests.swift */; };
 		CAE4DCAF24BB5FF900611638 /* UIImageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE4DCAE24BB5FF900611638 /* UIImageTests.swift */; };
 		CAE4DCB224BB669D00611638 /* GeneratedCoverServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE4DCB124BB669D00611638 /* GeneratedCoverServiceTests.swift */; };
@@ -222,6 +222,7 @@
 		CA176384223A897100959FEB /* Properties+EPUBTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Properties+EPUBTests.swift"; sourceTree = "<group>"; };
 		CA176386223A898B00959FEB /* Properties+EPUB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Properties+EPUB.swift"; sourceTree = "<group>"; };
 		CA176391223AAC1A00959FEB /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
+		CA1AB0C324E2D0EA00004BC0 /* URL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = URL.swift; sourceTree = "<group>"; };
 		CA2006502225A1F300E6B3BD /* Observable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Observable.swift; sourceTree = "<group>"; };
 		CA228D1024BC5CF800879E2E /* Result.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		CA228D1224BCD55600879E2E /* File.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = File.swift; sourceTree = "<group>"; };
@@ -316,6 +317,7 @@
 		CA9FC073248256450020B9CC /* PublicationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationService.swift; sourceTree = "<group>"; };
 		CA9FC07524825A880020B9CC /* PublicationServicesBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationServicesBuilder.swift; sourceTree = "<group>"; };
 		CA9FC0782482657F0020B9CC /* PublicationServicesBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationServicesBuilderTests.swift; sourceTree = "<group>"; };
+		CAAABA9F24D7F2DC004A4466 /* URLTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLTests.swift; sourceTree = "<group>"; };
 		CAAF80C92456D7370024D7AE /* AudioSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSession.swift; sourceTree = "<group>"; };
 		CAB88C91224E766E00D36C99 /* LocatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocatorTests.swift; sourceTree = "<group>"; };
 		CABBB2F32237BF42004EB039 /* OPDSPriceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSPriceTests.swift; sourceTree = "<group>"; };
@@ -349,7 +351,6 @@
 		CADD69E122C3B17500A4CADF /* DocumentTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentTypes.swift; sourceTree = "<group>"; };
 		CAE4DC9F24B8CC5B00611638 /* ExplodedArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplodedArchive.swift; sourceTree = "<group>"; };
 		CAE4DCA124B8CD3E00611638 /* ExplodedArchiveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplodedArchiveTests.swift; sourceTree = "<group>"; };
-		CAE4DCA924BB40F100611638 /* URL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URL.swift; sourceTree = "<group>"; };
 		CAE4DCAC24BB417D00611638 /* URLTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLTests.swift; sourceTree = "<group>"; };
 		CAE4DCAE24BB5FF900611638 /* UIImageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImageTests.swift; sourceTree = "<group>"; };
 		CAE4DCB124BB669D00611638 /* GeneratedCoverServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratedCoverServiceTests.swift; sourceTree = "<group>"; };
@@ -510,6 +511,7 @@
 		CA252DDE2447A5AE0005067C /* Toolkit */ = {
 			isa = PBXGroup;
 			children = (
+				CAAABA9E24D7F2CD004A4466 /* Extensions */,
 				CA252DDF2447A5B40005067C /* Archive */,
 				CAE4DCAB24BB416F00611638 /* Extensions */,
 				CA7116EE2455935100C029FD /* DocumentTypesTests.swift */,
@@ -715,7 +717,7 @@
 				CA68BDCD24407750009A6BAA /* StringEncoding.swift */,
 				CAD1EE6F245AC29B00C1E684 /* String.swift */,
 				CACDE5D62483AAB0006FEB1B /* UIImage.swift */,
-				CAE4DCA924BB40F100611638 /* URL.swift */,
+				CA1AB0C324E2D0EA00004BC0 /* URL.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -794,6 +796,14 @@
 				CACDE60124851681006FEB1B /* Positions */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		CAAABA9E24D7F2CD004A4466 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				CAAABA9F24D7F2DC004A4466 /* URLTests.swift */,
+			);
+			path = Extensions;
 			sourceTree = "<group>";
 		};
 		CAC34F04221C61BD002C452E /* DRM */ = {
@@ -1193,7 +1203,6 @@
 				CAAF80CA2456D7370024D7AE /* AudioSession.swift in Sources */,
 				CA50B86E22B2A1CF003AFF24 /* R2LocalizedString.swift in Sources */,
 				CA6D42672404370C002FBED4 /* OPDSHolds.swift in Sources */,
-				CAE4DCAA24BB40F100611638 /* URL.swift in Sources */,
 				CAD0FED02444B5C30053C998 /* FormatSnifferContent.swift in Sources */,
 				CAF4EAE42237ABC700A17DA1 /* MediaOverlayNode.swift in Sources */,
 				CAC34F0C221C61BD002C452E /* DRM+Deprecated.swift in Sources */,
@@ -1206,6 +1215,7 @@
 				CA5F8EFF24041AF200926120 /* Metadata+Presentation.swift in Sources */,
 				CA16A8642232DA2000E66255 /* Locator.swift in Sources */,
 				CA6F27762469E5370065B405 /* FileFetcher.swift in Sources */,
+				CA1AB0C424E2D0EA00004BC0 /* URL.swift in Sources */,
 				CACDE61D24858C50006FEB1B /* HTTPFetcher.swift in Sources */,
 				CA68BDCB24406C6C009A6BAA /* FormatSnifferContext.swift in Sources */,
 				CA9E6BA12239823300ECF6E4 /* Publication+Deprecated.swift in Sources */,
@@ -1444,10 +1454,12 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
+				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
 				INFOPLIST_FILE = "r2-shared-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				OTHER_LDFLAGS = "-lxml2";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-shared-swift";
 				PRODUCT_NAME = R2Shared;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1476,10 +1488,12 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
+				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
 				INFOPLIST_FILE = "r2-shared-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				OTHER_LDFLAGS = "-lxml2";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-shared-swift";
 				PRODUCT_NAME = R2Shared;
 				PROVISIONING_PROFILE_SPECIFIER = "";

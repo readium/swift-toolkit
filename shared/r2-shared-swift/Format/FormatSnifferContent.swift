@@ -30,8 +30,11 @@ final class FormatSnifferFileContent: FormatSnifferContent, Loggable {
 
     let file: URL
     
-    init(file: URL) {
-        assert(file.isFileURL || file.scheme == nil)
+    init?(file: URL) {
+        guard file.isFileURL || file.scheme == nil else {
+            return nil
+        }
+        
         self.file = file
     }
     

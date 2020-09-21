@@ -13,7 +13,7 @@
 import Foundation
 
 /// https://github.com/readium/architecture/tree/master/locators
-public struct Locator: Equatable, CustomStringConvertible, Loggable {
+public struct Locator: Hashable, CustomStringConvertible, Loggable {
 
     /// The URI of the resource that the Locator Object points to.
     public let href: String  // URI
@@ -115,7 +115,7 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
     ///
     /// Properties are mutable for convenience when making a copy, but the `locations` property
     /// is immutable in `Locator`, for safety.
-    public struct Locations: Equatable, Loggable, WarningLogger {
+    public struct Locations: Hashable, Loggable, WarningLogger {
         /// Contains one or more fragment in the resource referenced by the `Locator`.
         public var fragments: [String]
         /// Progression in the resource expressed as a percentage (between 0 and 1).
@@ -126,10 +126,13 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
         public var position: Int?
 
         /// Additional locations for extensions.
-        public var otherLocations: [String: Any] { otherLocationsJSON.json }
-        
+        public var otherLocations: [String: Any] {
+          get { otherLocationsJSON.json }
+          set { otherLocationsJSON = JSONDictionary(newValue) ?? JSONDictionary() }
+        }
+
         // Trick to keep the struct equatable despite [String: Any]
-        private let otherLocationsJSON: JSONDictionary
+        private var otherLocationsJSON: JSONDictionary
         
         public init(fragments: [String] = [], progression: Double? = nil, totalProgression: Double? = nil, position: Int? = nil, otherLocations: [String: Any] = [:]) {
             self.fragments = fragments
@@ -203,7 +206,7 @@ public struct Locator: Equatable, CustomStringConvertible, Loggable {
         
     }
     
-    public struct Text: Equatable, Loggable {
+    public struct Text: Hashable, Loggable {
         public var after: String?
         public var before: String?
         public var highlight: String?
