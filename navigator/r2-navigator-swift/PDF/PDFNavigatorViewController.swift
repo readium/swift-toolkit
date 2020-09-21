@@ -41,10 +41,10 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
     // Holds a reference to make sure it is not garbage-collected.
     private var tapGestureController: PDFTapGestureController?
 
-    public init(publication: Publication, license: DRMLicense? = nil, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
+    public init(publication: Publication, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
         self.publication = publication
         self.initialLocation = initialLocation
-        self.editingActions = EditingActionsController(actions: editingActions, license: license)
+        self.editingActions = EditingActionsController(actions: editingActions, rights: publication.rights)
         
         super.init(nibName: nil, bundle: nil)
         
@@ -300,7 +300,6 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         }
         return go(to: previousPosition, animated: animated, completion: completion)
     }
-
 }
 
 @available(iOS 11.0, *)
@@ -324,6 +323,29 @@ extension PDFNavigatorViewController: EditingActionsControllerDelegate {
     
     func editingActionsDidPreventCopy(_ editingActions: EditingActionsController) {
         delegate?.navigator(self, presentError: .copyForbidden)
+    }
+    
+}
+
+@available(iOS 11.0, *)
+extension PDFNavigatorViewController: UIGestureRecognizerDelegate {
+
+    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+    
+}
+
+
+// MARK: - Deprecated
+
+@available(iOS 11.0, *)
+extension PDFNavigatorViewController {
+    
+    /// This initializer is deprecated.
+    /// `license` is not needed anymore.
+    public convenience init(publication: Publication, license: DRMLicense?, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
+        self.init(publication: publication, initialLocation: initialLocation, editingActions: editingActions)
     }
     
 }
