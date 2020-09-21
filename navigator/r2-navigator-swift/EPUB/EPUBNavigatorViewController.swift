@@ -262,26 +262,32 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     // MARK: - Navigator
     
     public var currentLocation: Locator? {
-        guard
-            let spreadView = paginationView.currentView as? EPUBSpreadView,
-            let href = Optional(spreadView.spread.leading.href),
-            let index = publication.readingOrder.firstIndex(withHREF: href) else
-        {
+        guard let spreadView = paginationView.currentView as? EPUBSpreadView else {
             return nil
         }
         
-        let positionList = publication.positionsByReadingOrder[index]
-        guard positionList.count > 0 else {
-            return nil
-        }
-
-        // Gets the current locator from the positionList, and fill its missing data.
+        let link = spreadView.spread.leading
+        let href = link.href
         let progression = spreadView.progression(in: href)
-        let positionIndex = Int(ceil(progression * Double(positionList.count - 1)))
-        return positionList[positionIndex].copy(
-            title: tableOfContentsTitleByHref[href],
-            locations: { $0.progression = progression }
-        )
+        
+        // The positions are not always available, for example a Readium WebPub doesn't have any
+        // unless a Publication Positions Web Service is provided.
+        if
+            let index = publication.readingOrder.firstIndex(withHREF: href),
+            let positionList = Optional(publication.positionsByReadingOrder[index]),
+            positionList.count > 0
+        {
+            // Gets the current locator from the positionList, and fill its missing data.
+            let positionIndex = Int(ceil(progression * Double(positionList.count - 1)))
+            return positionList[positionIndex].copy(
+                title: tableOfContentsTitleByHref[href],
+                locations: { $0.progression = progression }
+            )
+        } else {
+            return Locator(link: link).copy(
+                locations: { $0.progression = progression }
+            )
+        }
     }
 
     /// Last current location notified to the delegate.
