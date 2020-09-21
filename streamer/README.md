@@ -25,7 +25,7 @@ install R2Streamer with Carthage:
  2. Update your Cartfile to include the following:
 
     ```ruby
-    github "readium/r2-streamer-swift" ~> 1.0.7
+    github "readium/r2-streamer-swift" "develop"
     ```
 
  3. Run `carthage update` and
@@ -57,7 +57,7 @@ R2Streamer with CocoaPods:
     use_frameworks!
 
     target 'YourAppTargetName' do
-        pod 'R2Streamer', :git => 'https://github.com/readium/r2-streamer-swift.git', '~> 1.0.7'
+        pod 'R2Streamer', :git => 'https://github.com/readium/r2-streamer-swift.git', :branch => 'develop'
     end
     ```
 

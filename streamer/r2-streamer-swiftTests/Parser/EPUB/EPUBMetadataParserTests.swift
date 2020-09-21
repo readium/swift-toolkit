@@ -99,6 +99,17 @@ class EPUBMetadataParserTests: XCTestCase {
         ))
     }
     
+    /// Old EPUB 2 files sometimes contain the `dc` tags under `dc-metadata` and `x-metadata`.
+    /// See http://idpf.org/epub/20/spec/OPF_2.0_final_spec.html#Section2.2
+    func testParseUnderDCMetadataElement() throws {
+        let sut = try parseMetadata("dc-metadata")
+        
+        XCTAssertEqual(sut.identifier, "urn:uuid:1a16ce38-82bd-4e9b-861e-773c2e787a50")
+        XCTAssertEqual(sut.title, "Alice's Adventures in Wonderland")
+        XCTAssertEqual(sut.modified, "2012-04-02T12:47:00Z".dateFromISO8601)
+        XCTAssertEqual(sut.authors, [Contributor(name: "Lewis Carroll")])
+    }
+    
     func testParseMainTitle() throws {
         let sut = try parseMetadata("title-main")
         XCTAssertEqual(sut.title, "Main title takes precedence")
