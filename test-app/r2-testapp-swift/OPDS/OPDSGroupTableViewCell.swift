@@ -100,14 +100,9 @@ extension OPDSGroupTableViewCell: UICollectionViewDataSource {
                         .joined(separator: ", ")
                 )
                 
-                var coverURL: URL?
-                if publication.coverLink != nil {
-                    coverURL = publication.coverLink?.url(relativeTo: publication.baseURL)
-                } else if publication.images.count > 0 {
-                    let coverHref = publication.images[0].href
-                    coverURL = URL(string: coverHref)
-                }
-                
+                let coverURL: URL? = publication.link(withRel: .cover)?.url(relativeTo: publication.baseURL)
+                    ?? publication.images.first.flatMap { URL(string: $0.href) }
+
                 if let coverURL = coverURL {
                     UIApplication.shared.isNetworkActivityIndicatorVisible = true
                     cell.coverImageView.kf.setImage(
