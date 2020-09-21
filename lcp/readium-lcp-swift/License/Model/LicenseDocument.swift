@@ -101,7 +101,7 @@ public struct LicenseDocument {
 
     /// Gets and expands the URL for the given rel, if it exits.
     /// - Throws: `LCPError.invalidLink` if the URL can't be built.
-    func url(for rel: Rel, with parameters: [String: CustomStringConvertible] = [:]) throws -> URL {
+    func url(for rel: Rel, with parameters: [String: LosslessStringConvertible] = [:]) throws -> URL {
         guard let url = link(for: rel)?.url(with: parameters) else {
             throw ParsingError.url(rel: rel.rawValue)
         }
