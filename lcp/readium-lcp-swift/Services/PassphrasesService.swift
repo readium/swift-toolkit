@@ -28,30 +28,32 @@ final class PassphrasesService {
     /// Finds any valid passphrase for the given license in the passphrases repository.
     /// If none is found, requests a passphrase from the request delegate (ie. user prompt) until one is valid, or the request is cancelled.
     /// The returned passphrase is nil if the request was cancelled by the user.
-    func request(for license: LicenseDocument, authentication: LCPAuthenticating?) -> Deferred<String?> {
-        return Deferred {
+    func request(for license: LicenseDocument, authentication: LCPAuthenticating?, sender: Any?) -> Deferred<String, Error> {
+        return deferredCatching {
             let candidates = self.possiblePassphrasesFromRepository(for: license)
             if let passphrase = findOneValidPassphrase(jsonLicense: license.json, hashedPassphrases: candidates) {
                 return .success(passphrase)
             } else if let authentication = authentication {
-                return self.authenticate(for: license, reason: .passphraseNotFound, using: authentication)
+                return self.authenticate(for: license, reason: .passphraseNotFound, using: authentication, sender: sender)
             } else {
-                return .success(nil)
+                return .cancelled
             }
         }
     }
     
     /// Called when the service can't find any valid passphrase in the repository, as a fallback.
-    private func authenticate(for license: LicenseDocument, reason: LCPAuthenticationReason, using authentication: LCPAuthenticating) -> Deferred<String?> {
-        return Deferred<String?> { success, _ in
+    private func authenticate(for license: LicenseDocument, reason: LCPAuthenticationReason, using authentication: LCPAuthenticating, sender: Any?) -> Deferred<String, Error> {
+        return deferred { (success: @escaping (String) -> Void, _, cancel) in
                 let authenticatedLicense = LCPAuthenticatedLicense(document: license)
-                authentication.requestPassphrase(for: authenticatedLicense, reason: reason, completion: success)
+                authentication.requestPassphrase(for: authenticatedLicense, reason: reason, sender: sender) { passphrase in
+                    if let passphrase = passphrase {
+                        success(passphrase)
+                    } else {
+                        cancel()
+                    }
+                }
             }
             .flatMap { clearPassphrase in
-                guard let clearPassphrase = clearPassphrase else {
-                    return .success(nil)
-                }
-    
                 let hashedPassphrase = clearPassphrase.sha256()
                 var passphrases = [hashedPassphrase]
                 // Note: The C++ LCP lib crashes if we provide a passphrase that is not a valid
@@ -62,7 +64,7 @@ final class PassphrasesService {
                 
                 guard let passphrase = findOneValidPassphrase(jsonLicense: license.json, hashedPassphrases: passphrases) else {
                     // Tries again if the passphrase is invalid, until cancelled
-                    return self.authenticate(for: license, reason: .invalidPassphrase, using: authentication)
+                    return self.authenticate(for: license, reason: .invalidPassphrase, using: authentication, sender: sender)
                 }
 
                 // Saves the passphrase to open the publication right away next time

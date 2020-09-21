@@ -42,13 +42,9 @@ extension LCPError {
         }
     }
     
-    static func wrap<T>(_ completion: @escaping (T?, LCPError?) -> Void) -> (T?, Error?) -> Void {
-        return { value, error in
-            if let error = error {
-                completion(value, LCPError.wrap(error))
-            } else {
-                completion(value, nil)
-            }
+    static func wrap<T>(_ completion: @escaping (Result<T, LCPError>) -> Void) -> (Result<T, Error>) -> Void {
+        return { result in
+            completion(result.mapError(LCPError.wrap))
         }
     }
     

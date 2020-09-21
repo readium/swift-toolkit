@@ -33,8 +33,8 @@ final class License: Loggable {
         self.device = device
         self.network = network
 
-        validation.observe { [weak self] documents, error in
-            if let documents = documents {
+        validation.observe { [weak self] result in
+            if case .success(let documents) = result {
                 self?.documents = documents
             }
         }
@@ -78,31 +78,38 @@ extension License: LCPLicense {
         return (charactersToCopyLeft ?? 1) > 0
     }
     
-    func copy(_ text: String, consumes: Bool) -> String? {
+    func canCopy(text: String) -> Bool {
+        guard let charactersLeft = charactersToCopyLeft else {
+            return true
+        }
+        return text.count <= charactersLeft
+    }
+    
+    func copy(text: String) -> Bool {
         guard var charactersLeft = charactersToCopyLeft else {
-            return text
+            return true
         }
-        guard charactersLeft > 0 else {
-            return nil
-        }
-        
-        var text = text
-        if text.count > charactersLeft {
-            // Truncates the text to the amount of characters left.
-            let endIndex = text.index(text.startIndex, offsetBy: charactersLeft)
-            text = String(text[..<endIndex])
+        guard text.count <= charactersLeft else {
+            return false
         }
         
+        do {
+            charactersLeft = max(0, charactersLeft - text.count)
+            try licenses.setCopiesLeft(charactersLeft, for: license.id)
+        } catch {
+            log(.error, error)
+        }
+        
+        return true
+    }
+    
+    // Deprecated
+    func copy(_ text: String, consumes: Bool) -> String? {
         if consumes {
-            do {
-                charactersLeft = max(0, charactersLeft - text.count)
-                try licenses.setCopiesLeft(charactersLeft, for: license.id)
-            } catch {
-                log(.error, error)
-            }
+            return copy(text: text) ? text : nil
+        } else {
+            return canCopy(text: text) ? text : nil
         }
-        
-        return text
     }
     
     var pagesToPrintLeft: Int? {
@@ -120,16 +127,16 @@ extension License: LCPLicense {
         return (pagesToPrintLeft ?? 1) > 0
     }
     
-    func print(pagesCount: Int) -> Bool {
+    func print(pageCount: Int) -> Bool {
         guard var pagesLeft = pagesToPrintLeft else {
             return true
         }
-        guard pagesLeft >= pagesCount else {
+        guard pagesLeft >= pageCount else {
             return false
         }
         
         do {
-            pagesLeft = max(0, pagesLeft - pagesCount)
+            pagesLeft = max(0, pagesLeft - pageCount)
             try licenses.setPrintsLeft(pagesLeft, for: license.id)
         } catch {
             log(.error, error)
@@ -147,9 +154,9 @@ extension License: LCPLicense {
     
     func renewLoan(to end: Date?, present: @escaping URLPresenter, completion: @escaping (LCPError?) -> Void) {
 
-        func callPUT(_ url: URL) -> Deferred<Data> {
+        func callPUT(_ url: URL) -> Deferred<Data, Error> {
             return self.network.fetch(url, method: .put)
-                .map { status, data -> Data in
+                .tryMap { status, data -> Data in
                     switch status {
                     case 200:
                         break
@@ -164,16 +171,16 @@ extension License: LCPLicense {
                 }
         }
         
-        func callHTML(_ url: URL) throws -> Deferred<Data> {
+        func callHTML(_ url: URL) throws -> Deferred<Data, Error> {
             guard let statusURL = try? self.license.url(for: .status) else {
                 throw LCPError.licenseInteractionNotAvailable
             }
             
-            return Deferred<Void> { success, _ in present(url, { success(()) }) }
+            return deferred { success, _, _ in present(url, { success(()) }) }
                 .flatMap { _ in
                     // We fetch the Status Document again after the HTML interaction is done, in case it changed the License.
                     self.network.fetch(statusURL)
-                        .map { status, data in
+                        .tryMap { status, data in
                             guard status == 200 else {
                                 throw LCPError.network(nil)
                             }
@@ -182,7 +189,7 @@ extension License: LCPLicense {
                 }
         }
 
-        Deferred<Data> {
+        deferredCatching {
             var params = self.device.asQueryParameters
             if let end = end {
                 params["end"] = end.iso8601
@@ -202,7 +209,8 @@ extension License: LCPLicense {
             }
         }
         .flatMap(self.validateStatusDocument)
-        .resolve(LCPError.wrap(completion))
+        .mapError(LCPError.wrap)
+        .resolveWithError(completion)
     }
     
     var canReturnPublication: Bool {
@@ -218,7 +226,7 @@ extension License: LCPLicense {
         }
         
         network.fetch(url, method: .put)
-            .map { status, data in
+            .tryMap { status, data in
                 switch status {
                 case 200:
                     break
@@ -232,7 +240,8 @@ extension License: LCPLicense {
                 return data
             }
             .flatMap(validateStatusDocument)
-            .resolve(LCPError.wrap(completion))
+            .mapError(LCPError.wrap)
+            .resolveWithError(completion)
     }
     
 }
@@ -242,19 +251,15 @@ extension License: LCPLicense {
 extension License {
 
     /// Downloads the publication and return the path to the downloaded resource.
-    func fetchPublication(completion: @escaping ((URL, URLSessionDownloadTask?)?, Error?) -> Void) -> Observable<DownloadProgress> {
+    func fetchPublication(completion: @escaping (Result<(URL, URLSessionDownloadTask?), Error>) -> Void) -> Observable<DownloadProgress> {
         do {
             let license = self.documents.license
             let link = license.link(for: .publication)
             let url = try license.url(for: .publication)
 
-            return self.network.download(url, title: link?.title) { result, error in
-                guard let (downloadedFile, task) = result else {
-                    completion(nil, error)
-                    return
-                }
-                
-                do {
+            return self.network.download(url, title: link?.title) { result in
+                switch result {
+                case .success(let (downloadedFile, task)):
                     var mimetypes: [String] = []
                     if let responseMimetype = task?.response?.mimeType {
                         mimetypes.append(responseMimetype)
@@ -262,27 +267,34 @@ extension License {
                     if let linkType = link?.type {
                         mimetypes.append(linkType)
                     }
-                    
+
                     // Saves the License Document into the downloaded publication
-                    let container = try makeLicenseContainer(for: downloadedFile, mimetypes: mimetypes)
-                    try container.write(license)
-                    completion((downloadedFile, task), nil)
-                    
-                } catch {
-                    completion(nil, error)
+                    makeLicenseContainer(for: downloadedFile, mimetypes: mimetypes)
+                        .tryMap(on: .global(qos: .background)) { container -> (URL, URLSessionDownloadTask?) in
+                            guard let container = container else {
+                                throw LCPError.licenseContainer(.openFailed)
+                            }
+
+                            try container.write(license)
+                            return (downloadedFile, task)
+                        }
+                        .resolve { completion($0.result) }
+
+                case .failure(let error):
+                    completion(.failure(error))
                 }
             }
             
         } catch {
             DispatchQueue.main.async {
-                completion(nil, error)
+                completion(.failure(error))
             }
             return Observable<DownloadProgress>(.infinite)
         }
     }
     
     /// Shortcut to be used in LSD interactions (eg. renew), to validate the returned Status Document.
-    fileprivate func validateStatusDocument(data: Data) -> Deferred<Void> {
+    fileprivate func validateStatusDocument(data: Data) -> Deferred<Void, Error> {
         return validation.validate(.status(data))
             .map { _ in () }  // We don't want to forward the Validated Documents
     }

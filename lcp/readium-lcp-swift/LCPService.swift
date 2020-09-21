@@ -14,16 +14,44 @@ import R2Shared
 
 
 /// Service used to fulfill and access protected publications.
-/// If an LCPAuthenticating instance is not given when expected, the request is cancelled if no passphrase is found in the local database. This can be the desired behavior when trying to import a license in the background, without prompting the user for its passphrase.
+///
+/// If an `LCPAuthenticating` instance is not given when expected, the request is cancelled if no
+/// passphrase is found in the local database. This can be the desired behavior when trying to
+/// import a license in the background, without prompting the user for its passphrase.
+///
+/// You can freely use the `sender` parameter to give some UI context which will be forwarded to
+/// your instance of `LCPAuthenticating`. This can be useful to provide the host `UIViewController`
+/// when presenting a dialog, for example.
 public protocol LCPService {
 
     /// Imports a protected publication from a standalone LCPL file.
+    ///
     /// - Returns: The download progress value as an `Observable`, from 0.0 to 1.0.
     @discardableResult
-    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, completion: @escaping (LCPImportedPublication?, LCPError?) -> Void) -> Observable<DownloadProgress>
+    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, sender: Any?, completion: @escaping (CancellableResult<LCPImportedPublication, LCPError>) -> Void) -> Observable<DownloadProgress>
     
-    /// Opens the LCP license of a protected publication, to access its DRM metadata and decipher its content.
-    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, completion: @escaping (LCPLicense?, LCPError?) -> Void) -> Void
+    /// Opens the LCP license of a protected publication, to access its DRM metadata and decipher
+    /// its content.
+    ///
+    /// Returns `nil` if the publication is not protected with LCP.
+    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, sender: Any?, completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void) -> Void
+    
+    /// Creates a `ContentProtection` instance which can be used with a `Streamer` to unlock
+    /// LCP protected publications.
+    func contentProtection(with authentication: LCPAuthenticating) -> ContentProtection
+
+}
+
+public extension LCPService {
+    
+    @discardableResult
+    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, completion: @escaping (CancellableResult<LCPImportedPublication, LCPError>) -> Void) -> Observable<DownloadProgress> {
+        return importPublication(from: lcpl, authentication: authentication, sender: nil, completion: completion)
+    }
+    
+    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void) -> Void {
+        return retrieveLicense(from: publication, authentication: authentication, sender: nil, completion: completion)
+    }
     
 }
 
@@ -44,7 +72,7 @@ public struct LCPImportedPublication {
 
 
 /// Opened license, used to decipher a protected publication and manage its license.
-public protocol LCPLicense: DRMLicense {
+public protocol LCPLicense: DRMLicense, UserRights {
     
     typealias URLPresenter = (URL, _ dismissed: @escaping () -> Void) -> Void
     
@@ -58,14 +86,6 @@ public protocol LCPLicense: DRMLicense {
     /// Number of pages allowed to be printed by the user.
     /// If nil, there's no limit.
     var pagesToPrintLeft: Int? { get }
-    
-    /// Returns whether the user is allowed to print pages of the publication.
-    var canPrint: Bool { get }
-    
-    /// Requests to print the given number of pages.
-    /// The caller is responsible to perform the actual print. This method is only used to know if the action is allowed.
-    /// - Returns: Whether the user is allowed to print that many pages.
-    func print(pagesCount: Int) -> Bool
 
     /// Can the user renew the loaned publication?
     var canRenewLoan: Bool { get }

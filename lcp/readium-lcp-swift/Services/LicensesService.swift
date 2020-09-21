@@ -34,9 +34,23 @@ final class LicensesService: Loggable {
         self.network = network
         self.passphrases = passphrases
     }
+    
+    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, sender: Any?) -> Deferred<LCPLicense?, LCPError> {
+        return makeLicenseContainer(for: publication)
+            .flatMap { container in
+                guard let container = container, container.containsLicense() else {
+                    // Not protected with LCP
+                    return .success(nil)
+                }
 
-    fileprivate func retrieveLicense(from container: LicenseContainer, authentication: LCPAuthenticating?) -> Deferred<License> {
-        return Deferred {
+                return self.retrieveLicense(from: container, authentication: authentication, sender: sender)
+                    .map { $0 as LCPLicense }
+                    .mapError(LCPError.wrap)
+            }
+    }
+
+    fileprivate func retrieveLicense(from container: LicenseContainer, authentication: LCPAuthenticating?, sender: Any?) -> Deferred<License, Error> {
+        return deferredCatching(on: .global(qos: .background)) {
             let initialData = try container.read()
             
             func onLicenseValidated(of license: LicenseDocument) throws {
@@ -59,15 +73,15 @@ final class LicensesService: Loggable {
                 }
             }
             
-            let validation = LicenseValidation(authentication: authentication, crl: self.crl, device: self.device, network: self.network, passphrases: self.passphrases, onLicenseValidated: onLicenseValidated)
+            let validation = LicenseValidation(authentication: authentication, sender: sender, crl: self.crl, device: self.device, network: self.network, passphrases: self.passphrases, onLicenseValidated: onLicenseValidated)
 
             return validation.validate(.license(initialData))
-                .map { documents in
+                .tryMap { documents in
                     // Check the license status error if there's any
                     // Note: Right now we don't want to return a License if it fails the Status check, that's why we attempt to get the DRM context. But it could change if we want to access, for example, the License metadata or perform an LSD interaction, but without being able to decrypt the book. In which case, we could remove this line.
                     // Note2: The License already gets in this state when we perform a `return` successfully. We can't decrypt anymore but we still have access to the License Documents and LSD interactions.
                     _ = try documents.getContext()
-                    
+
                     return License(documents: documents, validation: validation, licenses: self.licenses, device: self.device, network: self.network)
                 }
         }
@@ -76,38 +90,39 @@ final class LicensesService: Loggable {
 }
 
 extension LicensesService: LCPService {
-    
-    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, completion: @escaping (LCPImportedPublication?, LCPError?) -> Void) -> Observable<DownloadProgress> {
+
+    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, sender: Any?, completion: @escaping (CancellableResult<LCPImportedPublication, LCPError>) -> Void) -> Observable<DownloadProgress> {
         let progress = MutableObservable<DownloadProgress>(.infinite)
         let container = LCPLLicenseContainer(lcpl: lcpl)
-        retrieveLicense(from: container, authentication: authentication)
-            .asyncMap { license, completion in
-                let downloadProgress = license.fetchPublication { result, error in
+        retrieveLicense(from: container, authentication: authentication, sender: sender)
+            .asyncMap { (license, completion: (@escaping (CancellableResult<LCPImportedPublication, Error>) -> Void)) in
+                let downloadProgress = license.fetchPublication { result in
                     progress.value = .infinite
-                    if let result = result {
-                        let filename = self.suggestedFilename(for: result.0, license: license)
-                        let publication = LCPImportedPublication(localURL: result.0, downloadTask: result.1, suggestedFilename: filename)
-                        completion(publication, nil)
-                    } else {
-                        completion(nil, error)
+                    switch result {
+                    case .success(let res):
+                        let filename = self.suggestedFilename(for: res.0, license: license)
+                        let publication = LCPImportedPublication(localURL: res.0, downloadTask: res.1, suggestedFilename: filename)
+                        completion(.success(publication))
+                    case .failure(let error):
+                        completion(.failure(error))
                     }
                 }
                 // Forwards the download progress to the global import progress
                 downloadProgress.observe(progress)
             }
-            .resolve(LCPError.wrap(completion))
+            .mapError(LCPError.wrap)
+            .resolve(completion)
         
         return progress
     }
     
-    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, completion: @escaping (LCPLicense?, LCPError?) -> Void) {
-        do {
-            let container = try makeLicenseContainer(for: publication)
-            retrieveLicense(from: container, authentication: authentication)
-                .resolve(LCPError.wrap(completion))
-        } catch {
-            completion(nil, LCPError.wrap(error))
-        }
+    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, sender: Any?, completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void) {
+        retrieveLicense(from: publication, authentication: authentication, sender: sender)
+            .resolve(completion)
+    }
+    
+    func contentProtection(with authentication: LCPAuthenticating) -> ContentProtection {
+        return LCPContentProtection(service: self, authentication: authentication)
     }
     
     /// Returns the suggested filename to be used when importing a publication.
