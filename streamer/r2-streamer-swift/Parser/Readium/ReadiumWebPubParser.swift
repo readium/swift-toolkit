@@ -81,6 +81,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         )
     }
 
+    @available(*, deprecated, message: "Use an instance of `Streamer` to open a `Publication`")
     public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
         var fetcher = try makeFetcher(for: url)
         var drm: DRM?

@@ -80,6 +80,7 @@ public final class PDFParser: PublicationParser, Loggable {
         )
     }
 
+    @available(*, deprecated, message: "Use an instance of `Streamer` to open a `Publication`")
     public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
         if Format.of(url) == .lcpProtectedPDF {
             return try ReadiumWebPubParser.parse(at: url)

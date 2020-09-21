@@ -14,6 +14,7 @@ import R2Shared
 
 
 /// `Publication` and the associated `Container`.
+@available(*, deprecated, message: "Use an instance of `Streamer` to open a `Publication`")
 public typealias PubBox = (publication: Publication, associatedContainer: Container)
 /// A callback called when the publication license is loaded in the given DRM object.
 public typealias PubParsingCallback = (DRM?) throws -> Void
@@ -37,8 +38,10 @@ public protocol PublicationParser {
     func parse(file: File, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder?
     
     // Deprecated: use `parse(file:fetcher:warnings)` instead
+    @available(*, deprecated, message: "Use an instance of `Streamer` to open a `Publication`")
     static func parse(at url: URL) throws -> (PubBox, PubParsingCallback)
     // Deprecated: use `parse(file:fetcher:warnings)` instead
+    @available(*, deprecated, message: "Use an instance of `Streamer` to open a `Publication`")
     static func parse(fileAtPath path: String) throws -> (PubBox, PubParsingCallback)
 
 }
@@ -49,6 +52,7 @@ extension PublicationParser {
         return try parse(file: file, fetcher: fetcher, warnings: warnings)
     }
     
+    @available(*, deprecated, message: "Use an instance of `Streamer` to open a `Publication`")
     public static func parse(fileAtPath path: String) throws -> (PubBox, PubParsingCallback) {
         return try parse(at: URL(fileURLWithPath: path))
     }

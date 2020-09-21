@@ -101,6 +101,7 @@ final public class EPUBParser: PublicationParser {
     /// - Throws: `EPUBParserError.wrongMimeType`,
     ///           `EPUBParserError.xmlParse`,
     ///           `EPUBParserError.missingFile`
+    @available(*, deprecated, message: "Use an instance of `Streamer` to open a `Publication`")
     static public func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
         var fetcher: Fetcher = try ArchiveFetcher(url: url)
         let drm = scanForDRM(in: fetcher)
