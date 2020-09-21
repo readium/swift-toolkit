@@ -40,6 +40,10 @@ final class OPFParser: Loggable {
     
     /// DOM representation of the OPF file.
     private let document: Fuzi.XMLDocument
+    
+    /// EPUB title which will be used as a fallback if we can't parse one. Title is mandatory in
+    /// RWPM.
+    private let fallbackTitle: String
 
     /// iBooks Display Options XML file to use as a fallback for metadata.
     /// See https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#epub-2x-9
@@ -51,8 +55,9 @@ final class OPFParser: Loggable {
     /// Encryption information, indexed by resource HREF.
     private let encryptions: [String: Encryption]
 
-    init(basePath: String, data: Data, displayOptionsData: Data? = nil, encryptions: [String: Encryption]) throws {
+    init(basePath: String, data: Data, fallbackTitle: String, displayOptionsData: Data? = nil, encryptions: [String: Encryption]) throws {
         self.basePath = basePath
+        self.fallbackTitle = fallbackTitle
         self.document = try Fuzi.XMLDocument(data: data)
         self.document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
         self.displayOptions = (displayOptionsData.map { try? Fuzi.XMLDocument(data: $0) }) ?? nil
@@ -60,10 +65,11 @@ final class OPFParser: Loggable {
         self.encryptions = encryptions
     }
     
-    convenience init(fetcher: Fetcher, opfHREF: String, encryptions: [String: Encryption] = [:]) throws {
+    convenience init(fetcher: Fetcher, opfHREF: String, fallbackTitle: String, encryptions: [String: Encryption] = [:]) throws {
         try self.init(
             basePath: opfHREF,
             data: try fetcher.readData(at: opfHREF),
+            fallbackTitle: fallbackTitle,
             displayOptionsData: {
                 let iBooksPath = "/META-INF/com.apple.ibooks.display-options.xml"
                 let koboPath = "/META-INF/com.kobobooks.display-options.xml"
@@ -80,7 +86,7 @@ final class OPFParser: Loggable {
     func parsePublication() throws -> (version: String, metadata: Metadata, readingOrder: [Link], resources: [Link]) {
         let links = parseLinks()
         let (resources, readingOrder) = splitResourcesAndReadingOrderLinks(links)
-        let metadata = EPUBMetadataParser(document: document, displayOptions: displayOptions, metas: metas)
+        let metadata = EPUBMetadataParser(document: document, fallbackTitle: fallbackTitle, displayOptions: displayOptions, metas: metas)
 
         return (
             version: parseEPUBVersion(),
@@ -162,19 +168,19 @@ final class OPFParser: Loggable {
             return nil
         }
         
-        href = normalize(base: basePath, href: href)
+        href = HREF(href, relativeTo: basePath).string
 
         // Merges the string properties found in the manifest and spine items.
         let stringProperties = "\(manifestItem.attr("properties") ?? "") \(spineItem?.attr("properties") ?? "")"
             .components(separatedBy: .whitespaces)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
 
-        var rels: [String] = []
+        var rels: [Link.Relation] = []
         if stringProperties.contains("nav") {
-            rels.append("contents")
+            rels.append(.contents)
         }
         if isCover || stringProperties.contains("cover-image") {
-            rels.append("cover")
+            rels.append(.cover)
         }
 
         var properties = parseStringProperties(stringProperties)

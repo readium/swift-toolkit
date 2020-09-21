@@ -38,7 +38,7 @@ class PublicationParsingTests: XCTestCase, Loggable {
     }
 
     func testParseCbz() {
-        guard let url = sg.getSamplesUrl(named: "Cory_Doctorow_Futuristic_Tales_of_the_Here_and_Now", ofType: "cbz") else {
+        guard let url = sg.getSamplesUrl(named: "futuristic_tales", ofType: "cbz") else {
             XCTFail()
             return
         }
@@ -46,7 +46,7 @@ class PublicationParsingTests: XCTestCase, Loggable {
     }
 
     func testParseCbzDirectory() {
-        guard let url = sg.getSamplesUrl(named: "Cory_Doctorow_Futuristic_Tales_of_the_Here_and_Now", ofType: nil) else {
+        guard let url = sg.getSamplesUrl(named: "futuristic_tales", ofType: nil) else {
             XCTFail()
             return
         }

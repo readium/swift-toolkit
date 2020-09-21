@@ -19,19 +19,17 @@ final class EPUBEncryptionParser: Loggable {
     
     private let fetcher: Fetcher
     private let data: Data
-    private let drm: DRM?
 
-    init(fetcher: Fetcher, data: Data, drm: DRM?) {
+    init(fetcher: Fetcher, data: Data) {
         self.fetcher = fetcher
         self.data = data
-        self.drm = drm
     }
     
-    convenience init(fetcher: Fetcher, drm: DRM?) throws {
+    convenience init(fetcher: Fetcher) throws {
         let path = "/META-INF/encryption.xml"
         do {
             let data = try fetcher.readData(at: path)
-            self.init(fetcher: fetcher, data: data, drm: drm)
+            self.init(fetcher: fetcher, data: data)
         } catch {
             throw EPUBParserError.missingFile(path: path)
         }
@@ -62,28 +60,20 @@ final class EPUBEncryptionParser: Loggable {
             {
                 continue
             }
-            resourceURI = normalize(base: "/", href: resourceURI)
+            resourceURI = HREF(resourceURI, relativeTo: "/").string
 
             var scheme: String?
             var originalLength: Int?
             var compression: String?
-            var profile: String?
-            
-            // LCP. Tag LCP protected resources.
-            let keyInfoURI = encryptedDataElement.firstChild(xpath: "ds:KeyInfo/ds:RetrievalMethod")?.attr("URI")
-            if keyInfoURI == "license.lcpl#/encryption/content_key", drm?.brand == DRM.Brand.lcp {
-                scheme = drm?.scheme.rawValue
-            }
-            
-            // FIXME: Move that to ContentProtection
-            if let licenseLCPLData = try? fetcher.readData(at: "/META-INF/license.lcpl"),
-                let licenseLCPL = try? JSONSerialization.jsonObject(with: licenseLCPLData) as? [String: Any],
-                let encryptionDict = licenseLCPL["encryption"] as? [String: Any]
-            {
-                profile = encryptionDict["profile"] as? String
-            }
-            // LCP END.
 
+            // LCP. Tag LCP protected resources.
+            // FIXME: Move to ContentProtection?
+            let keyInfoURI = encryptedDataElement.firstChild(xpath: "ds:KeyInfo/ds:RetrievalMethod")?.attr("URI")
+            if keyInfoURI == "license.lcpl#/encryption/content_key" {
+                scheme = DRM.Scheme.lcp.rawValue
+            }
+            // END LCP
+            
             for encryptionProperty in encryptedDataElement.xpath("enc:EncryptionProperties/enc:EncryptionProperty") {
                 // Check that we have a compression element, with originalLength, not empty.
                 if let compressionElement = encryptionProperty.firstChild(xpath:"comp:Compression"),
@@ -100,7 +90,6 @@ final class EPUBEncryptionParser: Loggable {
                 algorithm: algorithm,
                 compression: compression,
                 originalLength: originalLength,
-                profile: profile,
                 scheme: scheme
             )
         }

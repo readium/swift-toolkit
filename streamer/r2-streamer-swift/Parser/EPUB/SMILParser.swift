@@ -33,8 +33,8 @@ final class SMILParser {
             
             let newNode = MediaOverlayNode()
             newNode.role.append("section")
-            newNode.text = normalize(base: base, href: href)
-            
+            newNode.text = HREF(href, relativeTo: base).string
+
             parseParameters(in: sequence, withParent: newNode, base: base)
             parseSequences(in: sequence, withParent: newNode, publicationReadingOrder: &readingOrder, base: base)
             
@@ -70,7 +70,7 @@ final class SMILParser {
                 continue
             }
             
-            let nodeText = normalize(base: base, href: href)
+            let nodeText = HREF(href, relativeTo: base).string
             let newNode = MediaOverlayNode(nodeText, clip: audioClip)
             parent.children.append(newNode)
         }
@@ -119,7 +119,7 @@ final class SMILParser {
         let timeBegin = Double(parsedBegin) ?? 0.0
         let timeEnd = Double(parsedEnd) ?? -1.0
         
-        let audioString = normalize(base: base, href: audioSrc)
+        let audioString = HREF(audioSrc, relativeTo: base).string
         guard let audioURL = URL(string: audioString) else {return nil}
         
         var newClip = Clip()

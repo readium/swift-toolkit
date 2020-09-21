@@ -36,9 +36,6 @@ public class PublicationServer: ResourcesServer {
     
     // Mapping between endpoint and the matching publication.
     public private(set) var publications: [String: Publication] = [:]
-    
-    // Mapping between endpoint and the matching container.
-    public private(set) var containers: [String: Container] = [:]
 
     /// The port is initially set to 0 to choose a random port when first starting the server.
     /// Only the first time the server is started a random port is chosen, to make sure we keep the same port when coming out of background.
@@ -174,20 +171,17 @@ public class PublicationServer: ResourcesServer {
             }
         }
     }
-    
+
     /// Add a publication to the server.
     ///
     /// - Parameters:
     ///   - publication: The `Publication` object containing the publication data.
-    ///   - container: The `Container` object giving access to the resources.
     ///   - endpoint: The relative URL to access the resource on the server. The
     ///               default value is a unique generated id.
     /// - Throws: `PublicationServerError.usedEndpoint`,
     ///           `PublicationServerError.nilBaseUrl`,
     ///           `PublicationServerError.fetcher`.
-    public func add(_ publication: Publication,
-                    with container: Container,
-                    at endpoint: String = UUID().uuidString) throws {
+    public func add(_ publication: Publication, at endpoint: String = UUID().uuidString) throws {
         // TODO: verif that endpoint is a simple string and not a path.
         guard publications[endpoint] == nil else {
             log(.error, "\(endpoint) is already in use.")
@@ -203,11 +197,10 @@ public class PublicationServer: ResourcesServer {
         publication.setSelfLink(href: manifestURL.absoluteString)
         
         publications[endpoint] = publication
-        containers[endpoint] = container
-        
+
         /// Add resources handler.
         do {
-            try addResourcesHandler(for: publication, container: container, at: endpoint)
+            try addResourcesHandler(for: publication, at: endpoint)
         } catch {
             throw PublicationServerError.fetcher(underlyingError: error)
         }
@@ -217,7 +210,7 @@ public class PublicationServer: ResourcesServer {
         log(.info, "Publication at \(endpoint) has been successfully added.")
     }
     
-    fileprivate func addResourcesHandler(for publication: Publication, container: Container, at endpoint: String) throws {
+    fileprivate func addResourcesHandler(for publication: Publication, at endpoint: String) throws {
         /// Webserver HTTP GET ressources request handler.
         func resourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
             guard let request = request else {
@@ -226,7 +219,10 @@ public class PublicationServer: ResourcesServer {
             }
             
             // Remove the prefix from the URI.
-            let href = String(request.path[request.path.index(endpoint.endIndex, offsetBy: 1)...])
+            var href = request.url.absoluteString
+            if let range = href.range(of: endpoint) {
+                href = String(href[range.upperBound...])
+            }
 
             let resource = publication.get(href)
             switch resource.stream() {
@@ -286,7 +282,6 @@ public class PublicationServer: ResourcesServer {
             return
         }
         publications.removeValue(forKey: endpoint)
-        containers.removeValue(forKey: endpoint)
         // Remove selfLinks from publication.
         publication.setSelfLink(href: nil)
         log(.info, "Publication at \(endpoint) has been successfully removed.")
@@ -301,7 +296,6 @@ public class PublicationServer: ResourcesServer {
         }
         
         publications.removeAll()
-        containers.removeAll()
     }
     
     
@@ -368,6 +362,15 @@ public class PublicationServer: ResourcesServer {
         assert(file.pathExtension.lowercased() != "css" || contentType == "text/css")
         return GCDWebServerDataResponse(data: data, contentType: contentType)
     }
+    
+    @available(*, deprecated, message: "Passing a `Container` is not needed anymore")
+    public func add(_ publication: Publication, with container: Container, at endpoint: String = UUID().uuidString) throws {
+        try add(publication, at: endpoint)
+    }
+    
+    // Mapping between endpoint and the matching container.
+    @available(*, unavailable, message: "`Container` is not used anymore in the `PublicationServer")
+    public private(set) var containers: [String: Container] = [:]
     
 }
 

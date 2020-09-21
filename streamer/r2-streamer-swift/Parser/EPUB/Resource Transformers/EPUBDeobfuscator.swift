@@ -45,7 +45,7 @@ final class EPUBDeobfuscator {
         return EPUBDeobfuscatingResource(resource: resource, algorithm: algorithm, key: key)
     }
 
-    private final class EPUBDeobfuscatingResource: ResourceProxy {
+    private final class EPUBDeobfuscatingResource: ProxyResource {
 
         private let algorithm: ObfuscationAlgorithm
         private let key: [UInt8]

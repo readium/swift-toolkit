@@ -17,7 +17,7 @@ import R2Shared
 class OPFParserTests: XCTestCase {
     
     func testParseMinimalOPF() throws {
-        let sut = try parseManifest("minimal", at: "EPUB/content.opf")
+        let sut = try parseManifest("minimal", at: "/EPUB/content.opf")
         
         XCTAssertEqual(sut.manifest, Manifest(
             metadata: Metadata(
@@ -54,7 +54,7 @@ class OPFParserTests: XCTestCase {
     }
     
     func testParseLinks() throws {
-        let sut = try parseManifest("links", at: "EPUB/content.opf").manifest
+        let sut = try parseManifest("links", at: "/EPUB/content.opf").manifest
         
         XCTAssertEqual(sut.links, [])
         XCTAssertEqual(sut.readingOrder, [
@@ -63,19 +63,19 @@ class OPFParserTests: XCTestCase {
         ])
         XCTAssertEqual(sut.resources, [
             link(id: "font0", href: "/EPUB/fonts/MinionPro.otf", type: "application/vnd.ms-opentype"),
-            link(id: "nav", href: "/EPUB/nav.xhtml", type: "application/xhtml+xml", rels: ["contents"]),
+            link(id: "nav", href: "/EPUB/nav.xhtml", type: "application/xhtml+xml", rels: [.contents]),
             link(id: "css", href: "/style.css", type: "text/css"),
             link(id: "chapter02", href: "/EPUB/chapter02.xhtml", type: "application/xhtml+xml"),
             link(id: "chapter01_smil", href: "/EPUB/chapter01.smil", type: "application/smil+xml"),
             link(id: "chapter02_smil", href: "/EPUB/chapter02.smil", type: "application/smil+xml", duration: 1949),
-            link(id: "img01a", href: "/EPUB/images/alice01a.png", type: "image/png", rels: ["cover"]),
+            link(id: "img01a", href: "/EPUB/images/alice01a.png", type: "image/png", rels: [.cover]),
             link(id: "img02a", href: "/EPUB/images/alice02a.gif", type: "image/gif"),
             link(id: "nomediatype", href: "/EPUB/nomediatype.txt")
         ])
     }
     
     func testParseLinksFromSpine() throws {
-        let sut = try parseManifest("links-spine", at: "EPUB/content.opf").manifest
+        let sut = try parseManifest("links-spine", at: "/EPUB/content.opf").manifest
         
         XCTAssertEqual(sut.readingOrder, [
             link(id: "titlepage", href: "/EPUB/titlepage.xhtml")
@@ -83,10 +83,10 @@ class OPFParserTests: XCTestCase {
     }
     
     func testParseLinkProperties() throws {
-        let sut = try parseManifest("links-properties", at: "EPUB/content.opf").manifest
+        let sut = try parseManifest("links-properties", at: "/EPUB/content.opf").manifest
         
         XCTAssertEqual(sut.readingOrder.count, 8)
-        XCTAssertEqual(sut.readingOrder[0], link(id: "chapter01", href: "/EPUB/chapter01.xhtml", rels: ["contents"], properties: Properties([
+        XCTAssertEqual(sut.readingOrder[0], link(id: "chapter01", href: "/EPUB/chapter01.xhtml", rels: [.contents], properties: Properties([
                 "contains": ["mathml"],
                 "orientation": "auto",
                 "overflow": "auto",
@@ -134,31 +134,32 @@ class OPFParserTests: XCTestCase {
     }
     
     func testParseEPUB2Cover() throws {
-        let sut = try parseManifest("cover-epub2", at: "EPUB/content.opf").manifest
+        let sut = try parseManifest("cover-epub2", at: "/EPUB/content.opf").manifest
         
         XCTAssertEqual(sut.resources, [
-            link(id: "my-cover", href: "/EPUB/cover.jpg", type: "image/jpeg", rels: ["cover"])
+            link(id: "my-cover", href: "/EPUB/cover.jpg", type: "image/jpeg", rels: [.cover])
         ])
     }
     
     func testParseEPUB3Cover() throws {
-        let sut = try parseManifest("cover-epub3", at: "EPUB/content.opf").manifest
+        let sut = try parseManifest("cover-epub3", at: "/EPUB/content.opf").manifest
         
         XCTAssertEqual(sut.resources, [
-            link(id: "my-cover", href: "/EPUB/cover.jpg", type: "image/jpeg", rels: ["cover"])
+            link(id: "my-cover", href: "/EPUB/cover.jpg", type: "image/jpeg", rels: [.cover])
         ])
     }
     
 
     // MARK: - Toolkit
     
-    func parseManifest(_ name: String, at path: String = "EPUB/content.opf", displayOptions: String? = nil) throws -> (manifest: Manifest, version: String) {
+    func parseManifest(_ name: String, at path: String = "/EPUB/content.opf", displayOptions: String? = nil) throws -> (manifest: Manifest, version: String) {
         func document(named name: String, type: String) throws -> Data {
             return try Data(contentsOf: SampleGenerator().getSamplesFileURL(named: "OPF/\(name)", ofType: type)!)
         }
         let parts = try OPFParser(
             basePath: path,
             data: try document(named: name, type: "opf"),
+            fallbackTitle: "title",
             displayOptionsData: displayOptions.map { try document(named: $0, type: "xml") },
             encryptions: [:]
         ).parsePublication()
@@ -170,7 +171,7 @@ class OPFParserTests: XCTestCase {
         ), parts.version)
     }
     
-    func link(id: String? = nil, href: String, type: String? = nil, templated: Bool = false, title: String? = nil, rels: [String] = [], properties: Properties = .init(), duration: Double? = nil, children: [Link] = []) -> Link {
+    func link(id: String? = nil, href: String, type: String? = nil, templated: Bool = false, title: String? = nil, rels: [Link.Relation] = [], properties: Properties = .init(), duration: Double? = nil, children: [Link] = []) -> Link {
         var properties = properties.otherProperties
         if let id = id {
             properties["id"] = id

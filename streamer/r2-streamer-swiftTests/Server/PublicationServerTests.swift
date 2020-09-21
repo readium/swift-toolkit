@@ -41,7 +41,7 @@ class PublicationServerTests: XCTestCase, Loggable {
 
             print("Adding \(element.key)")
             do {
-                try publicationServer?.add(publication, with: container, at: endPoint)
+                try publicationServer?.add(publication, at: endPoint)
             } catch {
                 let title = publication.metadata.title
                 XCTFail("An exception occured while adding epub [\(title)] to the server")
