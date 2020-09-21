@@ -67,6 +67,8 @@
 "library_error_publicationIsNotValid" = "The publication isn't valid";
 /* Error message used when a low-level error occured while importing a publication */
 "library_error_importFailed" = "Error while importing this publication: %@";
+/* Error message used when a low-level error occured while opening a publication */
+"library_error_openFailed" = "Error while opening this publication: %@";
 /* Error message when the download of a publication failed */
 "library_error_downloadFailed" = "Download failed: %@";
 /* Error message used when trying to import a book protected with an unsupported DRM */

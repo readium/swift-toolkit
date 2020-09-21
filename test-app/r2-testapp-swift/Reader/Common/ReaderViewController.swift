@@ -26,7 +26,6 @@ class ReaderViewController: UIViewController, Loggable {
     let navigator: UIViewController & Navigator
     let publication: Publication
     let book: Book
-    let drm: DRM?
 
     lazy var bookmarksDataSource: BookmarkDataSource? = BookmarkDataSource(bookID: book.id)
     
@@ -40,12 +39,11 @@ class ReaderViewController: UIViewController, Loggable {
         return try! NSRegularExpression(pattern: "[\\p{Ll}\\p{Lu}\\p{Lt}\\p{Lo}]{2}")
     }()
     
-    init(navigator: UIViewController & Navigator, publication: Publication, book: Book, drm: DRM?) {
+    init(navigator: UIViewController & Navigator, publication: Publication, book: Book) {
         self.navigator = navigator
         self.publication = publication
         self.book = book
-        self.drm = drm
-        
+
         super.init(nibName: nil, bundle: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: Notification.Name(UIAccessibilityVoiceOverStatusChanged), object: nil)
@@ -119,7 +117,7 @@ class ReaderViewController: UIViewController, Loggable {
         // Table of Contents
         buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self, action: #selector(presentOutline)))
         // DRM management
-        if drm != nil {
+        if publication.isProtected {
             buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "drm"), style: .plain, target: self, action: #selector(presentDRMManagement)))
         }
         // Bookmarks
@@ -179,10 +177,10 @@ class ReaderViewController: UIViewController, Loggable {
     // MARK: - DRM
     
     @objc func presentDRMManagement() {
-        guard let drm = drm else {
+        guard publication.isProtected else {
             return
         }
-        moduleDelegate?.presentDRM(drm, from: self)
+        moduleDelegate?.presentDRM(for: publication, from: self)
     }
     
 

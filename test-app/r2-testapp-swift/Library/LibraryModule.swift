@@ -25,29 +25,38 @@ protocol LibraryModuleAPI {
     /// Can be used to present the library to the user.
     var rootViewController: UINavigationController { get }
     
-    /// Adds a new publication to the library, from a local file URL.
-    /// To be called from UIApplicationDelegate(open:options:).
-    /// - Returns: Whether the URL was handled.
-    func addPublication(at url: URL, from downloadTask: URLSessionDownloadTask?) -> Bool
+    /// Loads the sample publications if needed.
+    func preloadSamples() throws
     
-    /// Downloads a remote publication (eg. OPDS entry) to the library.
-    func downloadPublication(_ publication: Publication?, at link: Link, completion: @escaping (Bool) -> Void)
-    
-    /// Loads the R2 DRM object for the given publication.
-    func loadDRM(for book: Book, completion: @escaping (CancellableResult<DRM?>) -> Void)
+    /// Imports a new publication to the library, either from:
+    /// - a local file URL
+    /// - a remote URL which will be downloaded
+    ///
+    /// - Parameters:
+    ///   - url: Source URL to import.
+    ///   - title: Title of the publication when known, to provide context.
+    func importPublication(from url: URL, title: String?, completion: @escaping (CancellableResult<Book, LibraryError>) -> Void)
 
+}
+
+extension LibraryModuleAPI {
+    
+    func importPublication(from url: URL, title: String? = nil) {
+        importPublication(from: url, title: title, completion: { _ in })
+    }
+    
 }
 
 protocol LibraryModuleDelegate: ModuleDelegate {
     
     /// Called when the user tap on a publication in the library.
     func libraryDidSelectPublication(_ publication: Publication, book: Book, completion: @escaping () -> Void)
-    
+
 }
 
 
 final class LibraryModule: LibraryModuleAPI {
-    
+
     weak var delegate: LibraryModuleDelegate?
     
     private let library: LibraryService
@@ -69,20 +78,12 @@ final class LibraryModule: LibraryModuleAPI {
         return library
     }()
     
-    func addPublication(at url: URL, from downloadTask: URLSessionDownloadTask?) -> Bool {
-        if url.isFileURL {
-            return library.movePublicationToLibrary(from: url, downloadTask: downloadTask)
-        } else {
-            return library.addPublication(at: url, downloadTask: downloadTask)
-        }
+    func preloadSamples() throws {
+        try library.preloadSamples()
     }
     
-    func downloadPublication(_ publication: Publication?, at link: Link, completion: @escaping (Bool) -> Void) {
-        library.downloadPublication(publication, at: link, completion: completion)
+    func importPublication(from url: URL, title: String?, completion: @escaping (CancellableResult<Book, LibraryError>) -> Void) {
+        library.importPublication(from: url, title: title, completion: completion)
     }
-    
-    func loadDRM(for book: Book, completion: @escaping (CancellableResult<DRM?>) -> Void) {
-        library.loadDRM(for: book, completion: completion)
-    }
-    
+
 }

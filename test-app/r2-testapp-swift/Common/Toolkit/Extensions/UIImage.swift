@@ -1,5 +1,5 @@
 //
-//  UIImageExtension.swift
+//  UIImage.swift
 //  r2-testapp-swift
 //
 //  Created by Alexandre Camilleri on 8/24/17.

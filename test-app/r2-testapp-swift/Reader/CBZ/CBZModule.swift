@@ -27,8 +27,8 @@ final class CBZModule: ReaderFormatModule {
         return [.cbz]
     }
     
-    func makeReaderViewController(for publication: Publication, book: Book, drm: DRM?, resourcesServer: ResourcesServer) throws -> UIViewController {
-        let cbzVC = CBZViewController(publication: publication, book: book, drm: drm)
+    func makeReaderViewController(for publication: Publication, book: Book, resourcesServer: ResourcesServer) throws -> UIViewController {
+        let cbzVC = CBZViewController(publication: publication, book: book)
         cbzVC.moduleDelegate = self.delegate
         return cbzVC
     }

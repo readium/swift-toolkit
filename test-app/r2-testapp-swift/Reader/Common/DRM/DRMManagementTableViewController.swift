@@ -15,7 +15,7 @@ import R2Shared
 import R2Navigator
 
 protocol DRMManagementTableViewControllerFactory {
-    func make(drm: DRM, delegate: ReaderModuleDelegate?) -> DRMManagementTableViewController
+    func make(publication: Publication, delegate: ReaderModuleDelegate?) -> DRMManagementTableViewController
 }
 
 class DRMManagementTableViewController: UITableViewController {
@@ -119,7 +119,7 @@ class DRMManagementTableViewController: UITableViewController {
     }
     
     internal func reload() {
-        typeLabel.text = viewModel.type
+        typeLabel.text = viewModel.name
         stateLabel.text = viewModel.state
         providerLabel.text = viewModel.provider
         issuedLabel.text = viewModel.issued?.description

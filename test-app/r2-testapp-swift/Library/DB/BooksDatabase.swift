@@ -51,21 +51,43 @@ class Book: Loggable {
     let cover: Data?
     var progression: String?
     
-    var fileName: String? {
-        let url = URL(string: href)
-        guard url?.scheme == nil || (url?.isFileURL ?? false) else {
-            return nil
-        }
-        return href
+    enum Error: Swift.Error {
+        case notFound(Swift.Error?)
     }
     
-    var url: URL? {
-        guard let url = URL(string: href),
-            url.scheme != nil else
-        {
-            return nil
+    func url() throws -> URL {
+        // Absolute URL.
+        if let url = URL(string: href), url.scheme != nil {
+            return url
         }
-        return url
+        
+        // Absolute file path.
+        if href.hasPrefix("/") {
+            return URL(fileURLWithPath: href)
+        }
+        
+        do {
+            // Path relative to Documents/.
+            let files = FileManager.default
+            let documents = try files.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+
+            let documentURL = documents.appendingPathComponent(href)
+            if (try? documentURL.checkResourceIsReachable()) == true {
+                return documentURL
+            }
+    
+            // Path relative to the Samples/ directory in the App bundle.
+            if
+                let sampleURL = Bundle.main.url(forResource: href, withExtension: nil, subdirectory: "Samples"),
+                (try? sampleURL.checkResourceIsReachable()) == true
+            {
+                return sampleURL
+            }
+        } catch {
+            throw Error.notFound(error)
+        }
+        
+        throw Error.notFound(nil)
     }
     
     init(
