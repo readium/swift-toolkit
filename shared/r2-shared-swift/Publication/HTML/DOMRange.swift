@@ -39,17 +39,18 @@ public struct DOMRange: JSONEquatable {
         self.end = end
     }
     
-    public init?(json: Any?) throws {
+    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
         // Convenience when parsing parent structures.
         if json == nil {
             return nil
         }
-        guard let json = json as? [String: Any],
-            let start = try? Point(json: json["start"]) else
+        guard let jsonObject = json as? [String: Any],
+            let start = try? Point(json: jsonObject["start"], warnings: warnings) else
         {
-            throw JSONError.parsing(DOMRange.self)
+            warnings?.log("`start` is required", model: Self.self, source: json, severity: .moderate)
+            throw JSONError.parsing(Self.self)
         }
-        self.init(start: start, end: try? Point(json: json["end"]))
+        self.init(start: start, end: try? Point(json: jsonObject["end"], warnings: warnings))
     }
     
     public var json: [String: Any] {
@@ -83,21 +84,22 @@ public struct DOMRange: JSONEquatable {
             self.charOffset = charOffset
         }
 
-        public init?(json: Any?) throws {
+        public init?(json: Any?, warnings: WarningLogger? = nil) throws {
             // Convenience when parsing parent structures.
             if json == nil {
                 return nil
             }
-            guard let json = json as? [String: Any],
-                let cssSelector = json["cssSelector"] as? String,
-                let textNodeIndex: Int = parsePositive(json["textNodeIndex"]) else
+            guard let jsonObject = json as? [String: Any],
+                let cssSelector = jsonObject["cssSelector"] as? String,
+                let textNodeIndex: Int = parsePositive(jsonObject["textNodeIndex"]) else
             {
-                throw JSONError.parsing(DOMRange.self)
+                warnings?.log("`cssSelector` and `textNodeIndex` are required", model: Self.self, source: json, severity: .moderate)
+                throw JSONError.parsing(Self.self)
             }
             self.init(
                 cssSelector: cssSelector,
                 textNodeIndex: textNodeIndex,
-                charOffset: parsePositive(json["charOffset"])
+                charOffset: parsePositive(jsonObject["charOffset"])
             )
         }
         

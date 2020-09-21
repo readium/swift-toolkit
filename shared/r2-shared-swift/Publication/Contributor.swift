@@ -49,22 +49,23 @@ public struct Contributor: Equatable {
         self.links = links
     }
     
-    public init(json: Any, normalizeHref: (String) -> String = { $0 }) throws {
+    public init?(json: Any, warnings: WarningLogger? = nil, normalizeHref: (String) -> String = { $0 }) throws {
         if let name = json as? String {
             self.init(name: name)
 
-        } else if let json = json as? [String: Any], let name = try LocalizedString(json: json["name"]) {
+        } else if let json = json as? [String: Any], let name = try? LocalizedString(json: json["name"], warnings: warnings) {
             self.init(
                 name: name,
                 identifier: json["identifier"] as? String,
                 sortAs: json["sortAs"] as? String,
                 roles: parseArray(json["role"], allowingSingle: true),
                 position: parseDouble(json["position"]),
-                links: .init(json: json["links"], normalizeHref: normalizeHref)
+                links: .init(json: json["links"], warnings: warnings, normalizeHref: normalizeHref)
             )
 
         } else {
-            throw JSONError.parsing(Contributor.self)
+            warnings?.log("Invalid Contributor object", model: Self.self, source: json, severity: .moderate)
+            throw JSONError.parsing(Self.self)
         }
     }
     
@@ -85,16 +86,16 @@ extension Array where Element == Contributor {
     
     /// Parses multiple JSON contributors into an array of Contributors.
     /// eg. let authors = [Contributor](json: ["Apple", "Pear"])
-    public init(json: Any?, normalizeHref: (String) -> String = { $0 }) {
+    public init(json: Any?, warnings: WarningLogger? = nil, normalizeHref: (String) -> String = { $0 }) {
         self.init()
         guard let json = json else {
             return
         }
 
         if let json = json as? [Any] {
-            let contributors = json.compactMap { try? Contributor(json: $0, normalizeHref: normalizeHref) }
+            let contributors = json.compactMap { try? Contributor(json: $0, warnings: warnings, normalizeHref: normalizeHref) }
             append(contentsOf: contributors)
-        } else if let contributor = try? Contributor(json: json, normalizeHref: normalizeHref) {
+        } else if let contributor = try? Contributor(json: json, warnings: warnings, normalizeHref: normalizeHref) {
             append(contributor)
         }
     }

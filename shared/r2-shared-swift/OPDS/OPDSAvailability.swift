@@ -29,20 +29,21 @@ public struct OPDSAvailability: Equatable {
         self.until = until
     }
     
-    public init?(json: Any?) throws {
+    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
         if json == nil {
             return nil
         }
-        guard let json = json as? [String: Any],
-            let state: State = parseRaw(json["state"]) else
+        guard let jsonObject = json as? [String: Any],
+            let state: State = parseRaw(jsonObject["state"]) else
         {
-            throw JSONError.parsing(OPDSAvailability.self)
+            warnings?.log("`state` is required", model: Self.self, source: json)
+            throw JSONError.parsing(Self.self)
         }
         
         self.init(
             state: state,
-            since: parseDate(json["since"]),
-            until: parseDate(json["until"])
+            since: parseDate(jsonObject["since"]),
+            until: parseDate(jsonObject["until"])
         )
     }
     

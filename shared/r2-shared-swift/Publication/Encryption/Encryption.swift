@@ -39,26 +39,27 @@ public struct Encryption: Equatable {
         self.scheme = scheme
     }
     
-    public init?(json: Any?) throws {
+    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
         // Convenience when parsing parent structures.
         if json == nil {
             return nil
         }
-        guard let json = json as? [String: Any],
-            let algorithm = json["algorithm"] as? String else
+        guard let jsonObject = json as? [String: Any],
+            let algorithm = jsonObject["algorithm"] as? String else
         {
-            throw JSONError.parsing(Encryption.self)
+            warnings?.log("`algorithm` is required", model: Self.self, source: json)
+            throw JSONError.parsing(Self.self)
         }
         
         self.init(
             algorithm: algorithm,
-            compression: json["compression"] as? String,
-            originalLength: json["originalLength"] as? Int
+            compression: jsonObject["compression"] as? String,
+            originalLength: jsonObject["originalLength"] as? Int
                 // Fallback on `original-length` for legacy reasons
                 // See https://github.com/readium/webpub-manifest/pull/43
-                ?? json["original-length"] as? Int,
-            profile: json["profile"] as? String,
-            scheme: json["scheme"] as? String
+                ?? jsonObject["original-length"] as? Int,
+            profile: jsonObject["profile"] as? String,
+            scheme: jsonObject["scheme"] as? String
         )
     }
     

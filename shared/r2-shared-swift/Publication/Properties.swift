@@ -14,7 +14,7 @@ import Foundation
 
 /// Link Properties
 /// https://readium.org/webpub-manifest/schema/properties.schema.json
-public struct Properties: Equatable, Loggable {
+public struct Properties: Equatable, Loggable, WarningLogger {
     
     /// Additional properties for extensions.
     public var otherProperties: [String: Any] { otherPropertiesJSON.json }
@@ -26,14 +26,15 @@ public struct Properties: Equatable, Loggable {
         self.otherPropertiesJSON = JSONDictionary(otherProperties) ?? JSONDictionary()
     }
     
-    public init?(json: Any?) throws {
+    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
         if json == nil {
             return nil
         }
-        guard let json = JSONDictionary(json) else {
-            throw JSONError.parsing(Properties.self)
+        guard let jsonDictionary = JSONDictionary(json) else {
+            warnings?.log("Invalid Properties object", model: Self.self, source: json)
+            throw JSONError.parsing(Self.self)
         }
-        self.otherPropertiesJSON = json
+        self.otherPropertiesJSON = jsonDictionary
     }
     
     public var json: [String: Any] {

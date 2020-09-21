@@ -19,7 +19,7 @@ class LinkTests: XCTestCase {
         type: "application/pdf",
         templated: true,
         title: "Link Title",
-        rels: ["publication", "cover"],
+        rels: [.publication, .cover],
         properties: Properties(["orientation": "landscape"]),
         height: 1024,
         width: 768,
@@ -79,7 +79,7 @@ class LinkTests: XCTestCase {
     func testParseJSONRelAsSingleString() {
         XCTAssertEqual(
             try? Link(json: ["href": "a", "rel": "publication"]),
-            Link(href: "a", rels: ["publication"])
+            Link(href: "a", rels: [.publication])
         )
     }
     

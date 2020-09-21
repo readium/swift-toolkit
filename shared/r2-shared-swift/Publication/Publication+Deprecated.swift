@@ -30,6 +30,11 @@ extension Publication {
         )
     }
     
+    @available(*, unavailable, message: "Custom HREF normalization is not supported anymore", renamed: "init(json:)")
+    public convenience init(json: Any, warnings: WarningLogger? = nil, normalizeHref: (String) -> String = { $0 }) throws {
+        fatalError("Not available.")
+    }
+    
     @available(*, deprecated, renamed: "formatVersion")
     public var version: Double {
         guard let versionString = formatVersion,
@@ -74,9 +79,9 @@ extension Publication {
     @available(*, unavailable, renamed: "json")
     public var manifestCanonical: String { jsonManifest ?? "" }
     
-    @available(*, deprecated, renamed: "init(json:)")
+    @available(*, unavailable, renamed: "init(json:)")
     public static func parse(pubDict: [String: Any]) throws -> Publication {
-        return try Publication(json: pubDict, normalizeHref: { $0 })
+        fatalError("Not available")
     }
 
     @available(*, deprecated, renamed: "positions")
@@ -133,7 +138,7 @@ extension Publication {
     }
 
     @available(*, deprecated, message: "Use `cover` to get the `UIImage` directly, or `link(withRel: \"cover\")` if you really want the cover link", renamed: "cover")
-    public var coverLink: Link? { link(withRel: "cover") }
+    public var coverLink: Link? { link(withRel: .cover) }
 
 }
 
@@ -231,14 +236,14 @@ extension Contributor {
         self.init(name: "")
     }
     
-    @available(*, deprecated, renamed: "init(json:)")
+    @available(*, unavailable, renamed: "init(json:)")
     public static func parse(_ cDict: [String: Any]) throws -> Contributor {
-        return try Contributor(json: cDict, normalizeHref: { $0 })
+        fatalError()
     }
     
-    @available(*, deprecated, message: "Use `[Contributor](json:)` instead")
+    @available(*, unavailable, message: "Use `[Contributor](json:)` instead")
     public static func parse(contributors: Any) throws -> [Contributor] {
-        return [Contributor](json: contributors, normalizeHref: { $0 })
+        fatalError()
     }
     
 }
@@ -258,7 +263,7 @@ extension Link {
     public var typeLink: String? { type }
     
     @available(*, deprecated, renamed: "rels")
-    public var rel: [String] { rels }
+    public var rel: [String] { rels.map { $0.rawValue } }
     
     @available(*, deprecated, renamed: "href")
     public var absoluteHref: String? { href }
@@ -268,9 +273,9 @@ extension Link {
         self.init(href: "")
     }
     
-    @available(*, deprecated, renamed: "init(json:)")
+    @available(*, unavailable, renamed: "init(json:)")
     static public func parse(linkDict: [String: Any]) throws -> Link {
-        return try Link(json: linkDict, normalizeHref: { $0 })
+        fatalError()
     }
     
     @available(*, unavailable, message: "The media overlay API was only half implemented and will be refactored later")

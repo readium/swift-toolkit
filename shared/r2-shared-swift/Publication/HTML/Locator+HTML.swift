@@ -31,12 +31,7 @@ extension Locator.Locations {
     
     /// An HTML DOM range.
     var domRange: DOMRange? {
-        do {
-            return try DOMRange(json: otherLocations["domRange"])
-        } catch {
-            log(.warning, error)
-            return nil
-        }
+        try? DOMRange(json: otherLocations["domRange"], warnings: self)
     }
     
 }

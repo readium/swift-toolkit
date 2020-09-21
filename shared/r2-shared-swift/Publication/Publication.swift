@@ -75,8 +75,8 @@ public class Publication: Loggable {
     
     /// Parses a Readium Web Publication Manifest.
     /// https://readium.org/webpub-manifest/schema/publication.schema.json
-    public convenience init(json: Any, normalizeHref: (String) -> String = { $0 }) throws {
-        self.init(manifest: try Manifest(json: json, normalizeHref: normalizeHref))
+    public convenience init(json: Any, warnings: WarningLogger? = nil) throws {
+        self.init(manifest: try Manifest(json: json, warnings: warnings))
     }
     
     /// Returns the Readium Web Publication Manifest as JSON.
@@ -88,7 +88,7 @@ public class Publication: Loggable {
     ///
     /// e.g. https://provider.com/pub1293/manifest.json gives https://provider.com/pub1293/
     public var baseURL: URL? {
-        links.first(withRel: "self")
+        links.first(withRel: .self)
             .flatMap { URL(string: $0.href)?.deletingLastPathComponent() }
     }
     
@@ -122,12 +122,12 @@ public class Publication: Loggable {
     }
     
     /// Finds the first link with the given relation in the publication's links.
-    public func link(withRel rel: String) -> Link? {
+    public func link(withRel rel: Link.Relation) -> Link? {
         return manifest.link(withRel: rel)
     }
     
     /// Finds all the links with the given relation in the publication's links.
-    public func links(withRel rel: String) -> [Link] {
+    public func links(withRel rel: Link.Relation) -> [Link] {
         return manifest.links(withRel: rel)
     }
 
@@ -163,12 +163,12 @@ public class Publication: Loggable {
 
     /// Sets the URL where this `Publication`'s RWPM manifest is served.
     public func setSelfLink(href: String?) {
-        manifest.links.removeAll { $0.rels.contains("self") }
+        manifest.links.removeAll { $0.rels.contains(.self) }
         if let href = href {
             manifest.links.insert(Link(
                 href: href,
                 type: MediaType.readiumWebPubManifest.string,
-                rel: "self"
+                rel: .self
             ), at: 0)
         }
     }
@@ -235,4 +235,73 @@ public class Publication: Loggable {
 
     }
     
+    /// Errors occurring while opening a Publication.
+    public enum OpeningError: Error {
+        /// The file format could not be recognized by any parser.
+        case unsupportedFormat
+        /// The publication file was not found on the file system.
+        case notFound
+        /// The publication parser failed with the given underlying error.
+        case parsingFailed(Error)
+        /// We're not allowed to open the publication at all, for example because it expired.
+        case forbidden(Error?)
+        /// The publication can't be opened at the moment, for example because of a networking error.
+        /// This error is generally temporary, so the operation may be retried or postponed.
+        case unavailable(Error?)
+        /// The provided credentials are incorrect and we can't open the publication in a
+        /// `restricted` state (e.g. for a password-protected ZIP).
+        case incorrectCredentials
+    }
+    
+    /// Holds the components of a `Publication` to build it.
+    ///
+    /// A `Publication`'s construction is distributed over the Streamer and its parsers, and since
+    /// `Publication` is immutable, it's useful to pass the parts around before actually building
+    /// it.
+    public struct Builder {
+        
+        /// Transform which can be used to modify a `Publication`'s components before building it.
+        /// For example, to add Publication Services or wrap the root Fetcher.
+        public typealias Transform = (_ format: R2Shared.Format, _ manifest: inout Manifest, _ fetcher: inout Fetcher, _ services: inout PublicationServicesBuilder) -> Void
+        
+        private let fileFormat: R2Shared.Format
+        private let publicationFormat: Format
+        private var manifest: Manifest
+        private var fetcher: Fetcher
+        private var servicesBuilder: PublicationServicesBuilder
+        
+        /// Closure which will be called once the `Publication` is built.
+        /// This is used for backwrad compatibility, until `Publication` is purely immutable.
+        private let setupPublication: ((Publication) -> Void)?
+        
+        public init(fileFormat: R2Shared.Format, publicationFormat: Format, manifest: Manifest, fetcher: Fetcher, servicesBuilder: PublicationServicesBuilder = .init(), setupPublication: ((Publication) -> Void)? = nil) {
+            self.fileFormat = fileFormat
+            self.publicationFormat = publicationFormat
+            self.manifest = manifest
+            self.fetcher = fetcher
+            self.servicesBuilder = servicesBuilder
+            self.setupPublication = setupPublication
+        }
+        
+        public mutating func apply(_ transform: Transform?) {
+            guard let transform = transform else {
+                return
+            }
+            
+            transform(fileFormat, &manifest, &fetcher, &servicesBuilder)
+        }
+
+        /// Builds the `Publication` from its parts.
+        public func build() -> Publication {
+            let publication = Publication(
+                manifest: manifest,
+                fetcher: fetcher,
+                servicesBuilder: servicesBuilder
+            )
+            publication.format = publicationFormat
+            setupPublication?(publication)
+            return publication
+        }
+    }
+
 }

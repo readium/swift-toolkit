@@ -56,7 +56,7 @@ class CoverServiceTests: XCTestCase {
                     title: "title"
                 ),
                 resources: [
-                    Link(href: coverPath, rels: ["cover"])
+                    Link(href: coverPath, rels: [.cover])
                 ]
             ),
             fetcher: FileFetcher(href: coverPath, path: coverURL),

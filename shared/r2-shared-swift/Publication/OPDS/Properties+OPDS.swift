@@ -22,49 +22,29 @@ extension Properties {
     
     /// The price of a publication is tied to its acquisition link.
     public var price: OPDSPrice? {
-        do {
-            return try OPDSPrice(json: otherProperties["price"])
-        } catch {
-            log(.warning, error)
-            return nil
-        }
+        try? OPDSPrice(json: otherProperties["price"], warnings: self)
     }
     
     /// Indirect acquisition provides a hint for the expected media type that will be acquired after
     /// additional steps.
     public var indirectAcquisitions: [OPDSAcquisition] {
-        [OPDSAcquisition](json: otherProperties["indirectAcquisition"])
+        [OPDSAcquisition](json: otherProperties["indirectAcquisition"], warnings: self)
     }
     
     /// Library-specific features when a specific book is unavailable but provides a hold list.
     public var holds: OPDSHolds? {
-        do {
-            return try OPDSHolds(json: otherProperties["holds"])
-        } catch {
-            log(.warning, error)
-            return nil
-        }
+        try? OPDSHolds(json: otherProperties["holds"], warnings: self)
     }
     
     /// Library-specific feature that contains information about the copies that a library has
     /// acquired.
     public var copies: OPDSCopies? {
-        do {
-            return try OPDSCopies(json: otherProperties["copies"])
-        } catch {
-            log(.warning, error)
-            return nil
-        }
+        try? OPDSCopies(json: otherProperties["copies"], warnings: self)
     }
     
     /// Indicated the availability of a given resource.
     public var availability: OPDSAvailability? {
-        do {
-            return try OPDSAvailability(json: otherProperties["availability"])
-        } catch {
-            log(.warning, error)
-            return nil
-        }
+        try? OPDSAvailability(json: otherProperties["availability"], warnings: self)
     }
     
 }

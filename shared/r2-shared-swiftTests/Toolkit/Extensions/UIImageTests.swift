@@ -37,8 +37,8 @@ class UIImageTests: XCTestCase {
     }
 
     func testScaleToFitScalesDownFittingWidth() {
-        let size = image.scaleToFit(maxSize: CGSize(width: 400, height: 800)).size
-        XCTAssertEqual(size, CGSize(width: 400, height: 535.5))
+        let size = image.scaleToFit(maxSize: CGSize(width: 399, height: 800)).size
+        XCTAssertEqual(size, CGSize(width: 399, height: 534))
     }
 
 }

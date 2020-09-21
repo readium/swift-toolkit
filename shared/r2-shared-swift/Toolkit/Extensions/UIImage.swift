@@ -27,7 +27,7 @@ extension UIImage {
                 draw(in: targetRect)
             }
         } else {
-            // We're going to move to iOS 10 soon, so fow now the fallback doesn't rescale the image
+            // FIXME: We're going to move to iOS 10 soon, so for now the fallback doesn't rescale the image
             return self
         }
     }

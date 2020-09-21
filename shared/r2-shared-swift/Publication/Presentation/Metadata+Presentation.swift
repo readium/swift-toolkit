@@ -15,12 +15,7 @@ import Foundation
 extension Metadata {
     
     public var presentation: Presentation {
-        do {
-            return try Presentation(json: otherMetadata["presentation"])
-        } catch {
-            log(.warning, error)
-            return Presentation()
-        }
+        (try? Presentation(json: otherMetadata["presentation"], warnings: self)) ?? Presentation()
     }
     
 }

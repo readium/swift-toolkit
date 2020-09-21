@@ -74,7 +74,7 @@ public extension Publication {
     
     /// Extracts the first valid cover from the manifest links with `cover` relation.
     private func coverFromManifest() -> UIImage? {
-        for link in links(withRel: "cover") {
+        for link in links(withRel: .cover) {
             if let cover = try? get(link).read().map(UIImage.init).get() {
                 return cover
             }

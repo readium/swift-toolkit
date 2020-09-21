@@ -12,7 +12,7 @@
 import Foundation
 
 /// https://readium.org/webpub-manifest/schema/metadata.schema.json
-public struct Metadata: Equatable, Loggable {
+public struct Metadata: Equatable, Loggable, WarningLogger {
 
     /// Collection type used for collection/series metadata.
     /// For convenience, the JSON schema reuse the Contributor's definition.
@@ -124,9 +124,9 @@ public struct Metadata: Equatable, Loggable {
         self.otherMetadataJSON = JSONDictionary(otherMetadata) ?? JSONDictionary()
     }
     
-    init(json: Any?, normalizeHref: (String) -> String = { $0 }) throws {
+    init(json: Any?, warnings: WarningLogger? = nil, normalizeHref: (String) -> String = { $0 }) throws {
         guard var json = JSONDictionary(json),
-            let title = try LocalizedString(json: json.pop("title")) else
+            let title = try? LocalizedString(json: json.pop("title"), warnings: warnings) else
         {
             throw JSONError.parsing(Metadata.self)
         }
@@ -134,32 +134,32 @@ public struct Metadata: Equatable, Loggable {
         self.identifier = json.pop("identifier") as? String
         self.type = json.pop("@type") as? String ?? json.pop("type") as? String
         self.localizedTitle = title
-        self.localizedSubtitle = try LocalizedString(json: json.pop("subtitle"))
+        self.localizedSubtitle = try? LocalizedString(json: json.pop("subtitle"), warnings: warnings)
         self.modified = parseDate(json.pop("modified"))
         self.published = parseDate(json.pop("published"))
         self.languages = parseArray(json.pop("language"), allowingSingle: true)
         self.sortAs = json.pop("sortAs") as? String
-        self.subjects = [Subject](json: json.pop("subject"))
-        self.authors = [Contributor](json: json.pop("author"), normalizeHref: normalizeHref)
-        self.translators = [Contributor](json: json.pop("translator"), normalizeHref: normalizeHref)
-        self.editors = [Contributor](json: json.pop("editor"), normalizeHref: normalizeHref)
-        self.artists = [Contributor](json: json.pop("artist"), normalizeHref: normalizeHref)
-        self.illustrators = [Contributor](json: json.pop("illustrator"), normalizeHref: normalizeHref)
-        self.letterers = [Contributor](json: json.pop("letterer"), normalizeHref: normalizeHref)
-        self.pencilers = [Contributor](json: json.pop("penciler"), normalizeHref: normalizeHref)
-        self.colorists = [Contributor](json: json.pop("colorist"), normalizeHref: normalizeHref)
-        self.inkers = [Contributor](json: json.pop("inker"), normalizeHref: normalizeHref)
-        self.narrators = [Contributor](json: json.pop("narrator"), normalizeHref: normalizeHref)
-        self.contributors = [Contributor](json: json.pop("contributor"), normalizeHref: normalizeHref)
-        self.publishers = [Contributor](json: json.pop("publisher"), normalizeHref: normalizeHref)
-        self.imprints = [Contributor](json: json.pop("imprint"), normalizeHref: normalizeHref)
+        self.subjects = [Subject](json: json.pop("subject"), warnings: warnings)
+        self.authors = [Contributor](json: json.pop("author"), warnings: warnings,  normalizeHref: normalizeHref)
+        self.translators = [Contributor](json: json.pop("translator"), warnings: warnings, normalizeHref: normalizeHref)
+        self.editors = [Contributor](json: json.pop("editor"), warnings: warnings, normalizeHref: normalizeHref)
+        self.artists = [Contributor](json: json.pop("artist"), warnings: warnings, normalizeHref: normalizeHref)
+        self.illustrators = [Contributor](json: json.pop("illustrator"), warnings: warnings, normalizeHref: normalizeHref)
+        self.letterers = [Contributor](json: json.pop("letterer"), warnings: warnings, normalizeHref: normalizeHref)
+        self.pencilers = [Contributor](json: json.pop("penciler"), warnings: warnings, normalizeHref: normalizeHref)
+        self.colorists = [Contributor](json: json.pop("colorist"), warnings: warnings, normalizeHref: normalizeHref)
+        self.inkers = [Contributor](json: json.pop("inker"), warnings: warnings, normalizeHref: normalizeHref)
+        self.narrators = [Contributor](json: json.pop("narrator"), warnings: warnings, normalizeHref: normalizeHref)
+        self.contributors = [Contributor](json: json.pop("contributor"), warnings: warnings, normalizeHref: normalizeHref)
+        self.publishers = [Contributor](json: json.pop("publisher"), warnings: warnings, normalizeHref: normalizeHref)
+        self.imprints = [Contributor](json: json.pop("imprint"), warnings: warnings, normalizeHref: normalizeHref)
         self.readingProgression = parseRaw(json.pop("readingProgression")) ?? .auto
         self.description = json.pop("description") as? String
         self.duration = parsePositiveDouble(json.pop("duration"))
         self.numberOfPages = parsePositive(json.pop("numberOfPages"))
         let belongsTo = json.pop("belongsTo") as? [String: Any]
-        self.belongsToCollections = [Collection](json: belongsTo?["collection"], normalizeHref: normalizeHref)
-        self.belongsToSeries = [Collection](json: belongsTo?["series"], normalizeHref: normalizeHref)
+        self.belongsToCollections = [Collection](json: belongsTo?["collection"], warnings: warnings, normalizeHref: normalizeHref)
+        self.belongsToSeries = [Collection](json: belongsTo?["series"], warnings: warnings, normalizeHref: normalizeHref)
         self.otherMetadataJSON = json
     }
     

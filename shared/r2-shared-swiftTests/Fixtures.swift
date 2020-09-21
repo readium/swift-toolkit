@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import XCTest
 
 class Fixtures {
     
@@ -22,11 +23,15 @@ class Fixtures {
     private lazy var bundle = Bundle(for: type(of: self))
     
     func url(for filepath: String) -> URL {
-        return bundle.resourceURL!.appendingPathComponent("Fixtures/\(path ?? "")/\(filepath)")
+        return try! XCTUnwrap(bundle.resourceURL?.appendingPathComponent("Fixtures/\(path ?? "")/\(filepath)"))
     }
     
     func data(at filepath: String) -> Data {
-        return try! Data(contentsOf: url(for: filepath))
+        return try! XCTUnwrap(try? Data(contentsOf: url(for: filepath)))
+    }
+    
+    func json<T>(at filepath: String) -> T {
+        return try! XCTUnwrap(JSONSerialization.jsonObject(with: data(at: filepath)) as? T)
     }
     
 }

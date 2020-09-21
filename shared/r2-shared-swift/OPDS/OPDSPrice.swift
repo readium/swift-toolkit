@@ -26,15 +26,16 @@ public struct OPDSPrice: Equatable {
         self.value = value
     }
     
-    public init?(json: Any?) throws {
+    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
         if json == nil {
             return nil
         }
-        guard let json = json as? [String: Any],
-            let currency = json["currency"] as? String,
-            let value = parsePositiveDouble(json["value"]) else
+        guard let jsonObject = json as? [String: Any],
+            let currency = jsonObject["currency"] as? String,
+            let value = parsePositiveDouble(jsonObject["value"]) else
         {
-            throw JSONError.parsing(OPDSPrice.self)
+            warnings?.log("`currency` and `value` are required", model: Self.self, source: json)
+            throw JSONError.parsing(Self.self)
         }
         
         self.currency = currency
