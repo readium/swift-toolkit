@@ -16,14 +16,14 @@ import R2Shared
 public class Bookmark {
     
     public var id: Int64?
-    public var publicationID: String
+    public var bookID: Int64
     public var resourceIndex: Int
     public var locator: Locator
     public var creationDate: Date
     
-    public init(id: Int64? = nil, publicationID: String, resourceIndex: Int, locator: Locator, creationDate: Date = Date()) {
+    public init(id: Int64? = nil, bookID: Int64, resourceIndex: Int, locator: Locator, creationDate: Date = Date()) {
         self.id = id
-        self.publicationID = publicationID
+        self.bookID = bookID
         self.resourceIndex = resourceIndex
         self.locator = locator
         self.creationDate = creationDate

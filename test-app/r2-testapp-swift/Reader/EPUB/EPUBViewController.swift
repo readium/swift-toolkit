@@ -88,13 +88,13 @@ class EPUBViewController: ReaderViewController {
     }
     
     override var currentBookmark: Bookmark? {
-        guard let publicationID = publication.metadata.identifier,
+        guard
             let locator = navigator.currentLocation,
             let resourceIndex = publication.readingOrder.firstIndex(withHREF: locator.href) else
         {
             return nil
         }
-        return Bookmark(publicationID: publicationID, resourceIndex: resourceIndex, locator: locator)
+        return Bookmark(bookID: book.id, resourceIndex: resourceIndex, locator: locator)
     }
     
     @objc func presentUserSettings() {

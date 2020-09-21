@@ -31,7 +31,7 @@ final class PDFViewController: ReaderViewController {
     }
     
     override var currentBookmark: Bookmark? {
-        guard let publicationID = publication.metadata.identifier,
+        guard
             let locator = navigator.currentLocation,
             let resourceIndex = publication.readingOrder.firstIndex(withHREF: locator.href) else
         {
@@ -39,7 +39,7 @@ final class PDFViewController: ReaderViewController {
         }
 
         return Bookmark(
-            publicationID: publicationID,
+            bookID: book.id,
             resourceIndex: resourceIndex,
             locator: locator
         )
