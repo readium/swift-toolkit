@@ -45,6 +45,8 @@ github "readium/readium-opds-swift" "develop"
 
 `$> carthage update --platform ios`
 
+**Warning: Carthage can't build the dependencies with Xcode 12 at the moment. [See this issue for a workaround.](https://github.com/readium/r2-testapp-swift/issues/351)**
+
 3) Generate Carthage input/output filelist using [Carting](https://github.com/artemnovichkov/Carting) :
 
 `$> carting update`
