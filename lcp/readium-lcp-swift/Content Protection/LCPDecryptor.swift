@@ -23,6 +23,7 @@ final class LCPDecryptor {
     enum Error: Swift.Error {
         case emptyDecryptedData
         case invalidCBCData
+        case invalidRange(Range<UInt64>)
         case inflateFailed
     }
     
@@ -102,9 +103,11 @@ final class LCPDecryptor {
                             throw LCPDecryptor.Error.emptyDecryptedData
                         }
                         
+                        let paddingSize = UInt64(data.last ?? 0)
+                        
                         return length
                             - AESBlockSize  // Minus IV or previous block
-                            - (AESBlockSize - UInt64(data.count)) % AESBlockSize  // Minus padding part
+                            - paddingSize  // Minus padding part
                 }
             }
         }()
@@ -114,43 +117,36 @@ final class LCPDecryptor {
                 return license.decryptFully(data: resource.read(), isDeflated: resource.link.isDeflated)
             }
             
-            return resource.length.tryFlatMap { totalLength in
-                let length = range.upperBound - range.lowerBound
-                let blockPosition = range.lowerBound % AESBlockSize
-                
-                // For beginning of the cipher text, IV used for XOR.
-                // For cipher text in the middle, previous block used for XOR.
-                let readPosition = range.lowerBound - blockPosition
-                
-                // Count blocks to read.
-                // First block for IV or previous block to perform XOR.
-                var blocksCount: UInt64 = 1
-                var bytesInFirstBlock = (AESBlockSize - blockPosition) % AESBlockSize
-                if (length < bytesInFirstBlock) {
-                    bytesInFirstBlock = 0
-                }
-                if (bytesInFirstBlock > 0) {
-                    blocksCount += 1
+            return resource.length.tryFlatMap { encryptedLength in
+                guard let rangeFirst = range.first, let rangeLast = range.last else {
+                    throw LCPDecryptor.Error.invalidRange(range)
                 }
                 
-                blocksCount += (length - bytesInFirstBlock) / AESBlockSize
-                if (length - bytesInFirstBlock) % AESBlockSize != 0 {
-                    blocksCount += 1
-                }
-                
-                let readSize = blocksCount * AESBlockSize
-                
-                return resource.read(range: readPosition..<(readPosition + readSize))
-                    .tryMap { encryptedData in
-                        guard var data = try license.decipher(encryptedData) else {
-                            throw LCPDecryptor.Error.emptyDecryptedData
-                        }
-                        
-                        if (data.count > length) {
-                            data = data[0..<length]
-                        }
-                        
-                        return data
+                // Encrypted data is shifted by AESBlockSize, because of IV and because the
+                // previous block must be provided to perform XOR on intermediate blocks.
+                let encryptedStart = rangeFirst.floorMultiple(of: AESBlockSize)
+                let encryptedEndExclusive = (rangeLast + 1).ceilMultiple(of: AESBlockSize) + AESBlockSize
+
+                return resource.read(range: encryptedStart..<encryptedEndExclusive).tryMap { encryptedData in
+                    guard let bytes = try license.decipher(encryptedData) else {
+                        throw LCPDecryptor.Error.emptyDecryptedData
+                    }
+
+                    // Exclude the bytes added to match a multiple of AESBlockSize.
+                    let sliceStart = (rangeFirst - encryptedStart)
+
+                    let isLastBlockRead = encryptedLength - encryptedEndExclusive <= AESBlockSize
+                    let rangeLength = isLastBlockRead
+                        // Use decrypted length to ensure `rangeLast` doesn't exceed decrypted length - 1.
+                        ? min(rangeLast, try length.get() - 1) - rangeFirst + 1
+                        // The last block won't be read, so there's no need to compute the length
+                        : rangeLast - rangeFirst + 1
+
+                    // Keep only enough bytes to fit the length-corrected request in order to never
+                    // include padding.
+                    let sliceEnd = sliceStart + rangeLength
+
+                    return bytes[sliceStart..<sliceEnd]
                 }
             }
         }
@@ -196,6 +192,19 @@ private extension R2Link {
     
     var isCbcEncrypted: Bool {
         properties.encryption?.algorithm == "http://www.w3.org/2001/04/xmlenc#aes256-cbc"
+    }
+    
+}
+
+
+private extension UInt64 {
+    
+    func ceilMultiple(of divisor: UInt64) -> UInt64 {
+        divisor * (self / divisor + ((self % divisor == 0) ? 0 : 1))
+    }
+
+    func floorMultiple(of divisor: UInt64) -> UInt64 {
+        divisor * (self / divisor)
     }
     
 }

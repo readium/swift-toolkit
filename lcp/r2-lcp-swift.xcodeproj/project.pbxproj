@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -20,6 +20,10 @@
 		CA4A3892220994E300599297 /* EPUBLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A3891220994E300599297 /* EPUBLicenseContainer.swift */; };
 		CA50B88022B2A777003AFF24 /* R2LCPLocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50B87F22B2A777003AFF24 /* R2LCPLocalizedString.swift */; };
 		CA50B88422B2A822003AFF24 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CA50B88622B2A822003AFF24 /* Localizable.strings */; };
+		CA5A5E0A25208F1B00CF1CCE /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3B2C8871F667222007601E4 /* ReadiumLCP.framework */; platformFilter = ios; };
+		CA5A5E152520908900CF1CCE /* Fixtures in Resources */ = {isa = PBXBuildFile; fileRef = CA5A5E142520908900CF1CCE /* Fixtures */; };
+		CA5A5E1B252090C100CF1CCE /* LCPDecryptorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A5E1A252090C100CF1CCE /* LCPDecryptorTests.swift */; };
+		CA5A5E21252091E000CF1CCE /* Fixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A5E20252091DF00CF1CCE /* Fixtures.swift */; };
 		CA78C9EB244F53BA00E559B3 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA78C9E8244F531A00E559B3 /* R2Shared.framework */; };
 		CA9428FD22B9442300305CDB /* ReadiumLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9428FC22B9442300305CDB /* ReadiumLicenseContainer.swift */; };
 		CAB131F6220D81E60097DFB5 /* LicensesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB131F5220D81E60097DFB5 /* LicensesRepository.swift */; };
@@ -54,6 +58,16 @@
 		F3B2C8AC1F66727C007601E4 /* Link.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B2C8A61F66727C007601E4 /* Link.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		CA5A5E0B25208F1B00CF1CCE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F3B2C87E1F667222007601E4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F3B2C8861F667222007601E4;
+			remoteInfo = "r2-lcp-swift";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		03A5DB9F23B78AD500D5FCBD /* R2LCPClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2LCPClient.framework; path = Carthage/Build/iOS/R2LCPClient.framework; sourceTree = "<group>"; };
 		CA26EF7B2280331E0011653E /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
@@ -69,6 +83,12 @@
 		CA4A3891220994E300599297 /* EPUBLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBLicenseContainer.swift; sourceTree = "<group>"; };
 		CA50B87F22B2A777003AFF24 /* R2LCPLocalizedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2LCPLocalizedString.swift; sourceTree = "<group>"; };
 		CA50B88522B2A822003AFF24 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		CA5A5E0525208F1B00CF1CCE /* readium-lcp-swiftTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "readium-lcp-swiftTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA5A5E0925208F1B00CF1CCE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CA5A5E142520908900CF1CCE /* Fixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Fixtures; sourceTree = "<group>"; };
+		CA5A5E19252090C100CF1CCE /* readium-lcp-swiftTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "readium-lcp-swiftTests-Bridging-Header.h"; sourceTree = "<group>"; };
+		CA5A5E1A252090C100CF1CCE /* LCPDecryptorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDecryptorTests.swift; sourceTree = "<group>"; };
+		CA5A5E20252091DF00CF1CCE /* Fixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fixtures.swift; sourceTree = "<group>"; };
 		CA78C9E8244F531A00E559B3 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA9428FC22B9442300305CDB /* ReadiumLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadiumLicenseContainer.swift; sourceTree = "<group>"; };
 		CAB131F5220D81E60097DFB5 /* LicensesRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensesRepository.swift; sourceTree = "<group>"; };
@@ -98,8 +118,6 @@
 		F3B2C8871F667222007601E4 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3B2C88A1F667223007601E4 /* readium-lcp-swift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "readium-lcp-swift.h"; sourceTree = "<group>"; };
 		F3B2C88B1F667223007601E4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		F3B2C8951F667223007601E4 /* readium_lcp_swiftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = readium_lcp_swiftTests.swift; sourceTree = "<group>"; };
-		F3B2C8971F667223007601E4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F3B2C8A11F66727C007601E4 /* LicenseDocument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LicenseDocument.swift; sourceTree = "<group>"; };
 		F3B2C8A21F66727C007601E4 /* StatusDocument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatusDocument.swift; sourceTree = "<group>"; };
 		F3B2C8A41F66727C007601E4 /* Event.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
@@ -108,6 +126,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		CA5A5E0225208F1B00CF1CCE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA5A5E0A25208F1B00CF1CCE /* ReadiumLCP.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F3B2C8831F667222007601E4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -145,6 +171,26 @@
 				CA50B88622B2A822003AFF24 /* Localizable.strings */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		CA5A5E0625208F1B00CF1CCE /* readium-lcp-swiftTests */ = {
+			isa = PBXGroup;
+			children = (
+				CA5A5E18252090A600CF1CCE /* Content Protection */,
+				CA5A5E20252091DF00CF1CCE /* Fixtures.swift */,
+				CA5A5E142520908900CF1CCE /* Fixtures */,
+				CA5A5E0925208F1B00CF1CCE /* Info.plist */,
+				CA5A5E19252090C100CF1CCE /* readium-lcp-swiftTests-Bridging-Header.h */,
+			);
+			path = "readium-lcp-swiftTests";
+			sourceTree = "<group>";
+		};
+		CA5A5E18252090A600CF1CCE /* Content Protection */ = {
+			isa = PBXGroup;
+			children = (
+				CA5A5E1A252090C100CF1CCE /* LCPDecryptorTests.swift */,
+			);
+			path = "Content Protection";
 			sourceTree = "<group>";
 		};
 		CAB13214220DB5930097DFB5 /* License */ = {
@@ -244,7 +290,7 @@
 			isa = PBXGroup;
 			children = (
 				F3B2C8891F667222007601E4 /* readium-lcp-swift */,
-				F3B2C8941F667223007601E4 /* readium-lcp-swiftTests */,
+				CA5A5E0625208F1B00CF1CCE /* readium-lcp-swiftTests */,
 				F3B2C8881F667222007601E4 /* Products */,
 				F3B2C8AD1F6672E1007601E4 /* Frameworks */,
 			);
@@ -254,6 +300,7 @@
 			isa = PBXGroup;
 			children = (
 				F3B2C8871F667222007601E4 /* ReadiumLCP.framework */,
+				CA5A5E0525208F1B00CF1CCE /* readium-lcp-swiftTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -275,15 +322,6 @@
 				F3B2C88A1F667223007601E4 /* readium-lcp-swift.h */,
 			);
 			path = "readium-lcp-swift";
-			sourceTree = "<group>";
-		};
-		F3B2C8941F667223007601E4 /* readium-lcp-swiftTests */ = {
-			isa = PBXGroup;
-			children = (
-				F3B2C8951F667223007601E4 /* readium_lcp_swiftTests.swift */,
-				F3B2C8971F667223007601E4 /* Info.plist */,
-			);
-			path = "readium-lcp-swiftTests";
 			sourceTree = "<group>";
 		};
 		F3B2C8AD1F6672E1007601E4 /* Frameworks */ = {
@@ -309,6 +347,24 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		CA5A5E0425208F1B00CF1CCE /* readium-lcp-swiftTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA5A5E0D25208F1B00CF1CCE /* Build configuration list for PBXNativeTarget "readium-lcp-swiftTests" */;
+			buildPhases = (
+				CA5A5E0125208F1B00CF1CCE /* Sources */,
+				CA5A5E0225208F1B00CF1CCE /* Frameworks */,
+				CA5A5E0325208F1B00CF1CCE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA5A5E0C25208F1B00CF1CCE /* PBXTargetDependency */,
+			);
+			name = "readium-lcp-swiftTests";
+			productName = "readium-lcp-swiftTests";
+			productReference = CA5A5E0525208F1B00CF1CCE /* readium-lcp-swiftTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		F3B2C8861F667222007601E4 /* r2-lcp-swift */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = F3B2C89B1F667223007601E4 /* Build configuration list for PBXNativeTarget "r2-lcp-swift" */;
@@ -333,10 +389,16 @@
 		F3B2C87E1F667222007601E4 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 0830;
+				LastSwiftUpdateCheck = 1200;
 				LastUpgradeCheck = 1020;
 				ORGANIZATIONNAME = Readium;
 				TargetAttributes = {
+					CA5A5E0425208F1B00CF1CCE = {
+						CreatedOnToolsVersion = 12.0;
+						DevelopmentTeam = 327YA3JNGT;
+						LastSwiftMigration = 1200;
+						ProvisioningStyle = Automatic;
+					};
 					F3B2C8861F667222007601E4 = {
 						CreatedOnToolsVersion = 8.3.3;
 						LastSwiftMigration = 1010;
@@ -358,11 +420,20 @@
 			projectRoot = "";
 			targets = (
 				F3B2C8861F667222007601E4 /* r2-lcp-swift */,
+				CA5A5E0425208F1B00CF1CCE /* readium-lcp-swiftTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		CA5A5E0325208F1B00CF1CCE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA5A5E152520908900CF1CCE /* Fixtures in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F3B2C8851F667222007601E4 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -375,6 +446,15 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		CA5A5E0125208F1B00CF1CCE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA5A5E1B252090C100CF1CCE /* LCPDecryptorTests.swift in Sources */,
+				CA5A5E21252091E000CF1CCE /* Fixtures.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F3B2C8821F667222007601E4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -425,6 +505,15 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		CA5A5E0C25208F1B00CF1CCE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			platformFilter = ios;
+			target = F3B2C8861F667222007601E4 /* r2-lcp-swift */;
+			targetProxy = CA5A5E0B25208F1B00CF1CCE /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin PBXVariantGroup section */
 		CA50B88622B2A822003AFF24 /* Localizable.strings */ = {
 			isa = PBXVariantGroup;
@@ -437,6 +526,62 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		CA5A5E0E25208F1B00CF1CCE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 327YA3JNGT;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = "readium-lcp-swiftTests/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.readium-lcp-swift.readium-lcp-swiftTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "readium-lcp-swiftTests/readium-lcp-swiftTests-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CA5A5E0F25208F1B00CF1CCE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 327YA3JNGT;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = "readium-lcp-swiftTests/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.readium-lcp-swift.readium-lcp-swiftTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "readium-lcp-swiftTests/readium-lcp-swiftTests-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		F3B2C8991F667223007601E4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -549,7 +694,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
@@ -578,7 +724,12 @@
 				INFOPLIST_FILE = "readium-lcp-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks $(PROJECT_DIR)/Carthage/Build/iOS";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -611,7 +762,12 @@
 				INFOPLIST_FILE = "readium-lcp-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks $(PROJECT_DIR)/Carthage/Build/iOS";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -628,6 +784,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		CA5A5E0D25208F1B00CF1CCE /* Build configuration list for PBXNativeTarget "readium-lcp-swiftTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA5A5E0E25208F1B00CF1CCE /* Debug */,
+				CA5A5E0F25208F1B00CF1CCE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		F3B2C8811F667222007601E4 /* Build configuration list for PBXProject "r2-lcp-swift" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
