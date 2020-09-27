@@ -427,8 +427,8 @@
 			isa = PBXGroup;
 			children = (
 				CA0D3C0E2518E213005B47BC /* PDFDocument.swift */,
-				CA0D3C122518E604005B47BC /* CGPDFDocument.swift */,
 				CA0D3C102518E2F6005B47BC /* PDFOutlineNode.swift */,
+				CA0D3C122518E604005B47BC /* CGPDFDocument.swift */,
 			);
 			path = PDF;
 			sourceTree = "<group>";

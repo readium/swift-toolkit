@@ -1,12 +1,7 @@
 //
-//  PDFOutlineNode.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 21/09/2020.
-//
 //  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -21,6 +16,12 @@ public struct PDFOutlineNode {
     
     /// Children of this item, if it's not a leaf.
     public let children: [PDFOutlineNode]
+    
+    public init(title: String?, pageNumber: Int, children: [PDFOutlineNode]) {
+        self.title = title
+        self.pageNumber = pageNumber
+        self.children = children
+    }
     
     /// Converts a PDF outline node and its descendants to a `Link` object.
     ///
