@@ -13,6 +13,7 @@
 		CA0D3C112518E2F6005B47BC /* PDFOutlineNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0D3C102518E2F6005B47BC /* PDFOutlineNode.swift */; };
 		CA0D3C132518E604005B47BC /* CGPDF.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0D3C122518E604005B47BC /* CGPDF.swift */; };
 		CA038E5025222B0900489729 /* ControlFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA038E4F25222B0900489729 /* ControlFlow.swift */; };
+		CA038E2F2520D3F700489729 /* PDFKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA038E2E2520D3F700489729 /* PDFKit.swift */; };
 		CA0D3C0F2518E213005B47BC /* PDFDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0D3C0E2518E213005B47BC /* PDFDocument.swift */; };
 		CA0D3C112518E2F6005B47BC /* PDFOutlineNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0D3C102518E2F6005B47BC /* PDFOutlineNode.swift */; };
 		CA0D3C132518E604005B47BC /* CGPDF.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0D3C122518E604005B47BC /* CGPDF.swift */; };
@@ -214,6 +215,7 @@
 		CA0D3C102518E2F6005B47BC /* PDFOutlineNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFOutlineNode.swift; sourceTree = "<group>"; };
 		CA0D3C122518E604005B47BC /* CGPDF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGPDF.swift; sourceTree = "<group>"; };
 		CA038E4F25222B0900489729 /* ControlFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlFlow.swift; sourceTree = "<group>"; };
+		CA038E2E2520D3F700489729 /* PDFKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFKit.swift; sourceTree = "<group>"; };
 		CA0D3C0E2518E213005B47BC /* PDFDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDocument.swift; sourceTree = "<group>"; };
 		CA0D3C102518E2F6005B47BC /* PDFOutlineNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFOutlineNode.swift; sourceTree = "<group>"; };
 		CA0D3C122518E604005B47BC /* CGPDF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGPDF.swift; sourceTree = "<group>"; };
