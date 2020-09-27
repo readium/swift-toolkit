@@ -7,120 +7,19 @@
 import Foundation
 import UIKit
 
-/// Implementation of `PDFDocument` build with Core Graphics's `CGPDFDocument`.
+/// Extends Core Graphics's `CGPDFDocument` to conform to `PDFDocument`.
 ///
-/// For now, we use CGPDFDocument instead of PDFDocument to be the most compatible and efficient
-/// possible:
-///  - PDFDocument is only available on iOS 11+
-///  - CGPDFDocument can use a CGDataProvider to read through the PDF document without keeping all
-///    the data in memory.
-final class CGPDFDocument: PDFDocument, Loggable {
-    
-    /// Underlying CoreGraphics's CGPDFDocument.
-    private let document: UIKit.CGPDFDocument
+/// Compared to using PDFKit, Core Graphics offers several advantages:
+///  - PDFKit is only available on iOS 11+
+///  - `CGPDFDocument` can use a `CGDataProvider` to read a PDF stream instead of loading the full
+///    document in memory.
+///
+/// Use `CGPDFDocumentFactory` to create a `CGPDFDocument` from a `Resource`.
+extension CGPDFDocument: PDFDocument {
 
-    private init(document: UIKit.CGPDFDocument, password: String?) throws {
-        if (document.isEncrypted) {
-            guard
-                let password = password?.cString(using: .utf8),
-                document.unlockWithPassword(password) else
-            {
-                throw PDFDocumentError.invalidPassword
-            }
-        }
-        
-        self.document = document
-    }
-    
-    convenience init(url: URL, password: String?) throws {
-        guard let document = UIKit.CGPDFDocument(url as CFURL) else {
-            throw PDFDocumentError.openFailed
-        }
-        
-        try self.init(document: document, password: password)
-    }
-
-    convenience init(resource: Resource, password: String?) throws {
-        var callbacks = CGDataProviderSequentialCallbacks(
-            version: 0,
-
-            getBytes: { info, buffer, count -> Int in
-                guard let context = CGPDFDocument.context(from: info) else {
-                    return 0
-                }
-                
-                let end = min(context.offset + UInt64(count), context.length)
-                if context.offset >= end {
-                    return 0
-                }
-
-                let result = context.resource.read(range: context.offset..<end)
-                switch result {
-                case .success(let data):
-                    data.copyBytes(to: buffer.assumingMemoryBound(to: UInt8.self), count: data.count)
-                    context.offset += UInt64(data.count)
-                    return data.count
-                case .failure(let error):
-                    CGPDFDocument.log(.error, error)
-                    return 0
-                }
-            },
-
-            skipForward: { info, count -> off_t in
-                guard let context = CGPDFDocument.context(from: info) else {
-                    return 0
-                }
-                
-                let current = context.offset
-                context.offset = min(context.offset + UInt64(count), context.length)
-                return off_t(context.offset - current)
-            },
-
-            rewind: { info in
-                guard let context = CGPDFDocument.context(from: info) else {
-                    return
-                }
-                context.offset = 0
-            },
-
-            releaseInfo: { _ in }
-        )
-            
-        var context = ResourceContext(resource: resource)
+    public var identifier: String? {
         guard
-            let provider = CGDataProvider(sequentialInfo: &context, callbacks: &callbacks),
-            let document = UIKit.CGPDFDocument(provider) else
-        {
-            throw PDFDocumentError.openFailed
-        }
-                
-        try self.init(document: document, password: password)
-    }
-    
-    class ResourceContext {
-        let resource: Resource
-        var offset: UInt64 = 0
-        
-        lazy var length: UInt64 = resource.length.getOrNil() ?? 0
-        
-        init(resource: Resource) {
-            self.resource = resource
-        }
-    }
-
-    /// This can't be a nested func in `init(resource:password:)` because the C-function pointers of
-    /// CGDataProvider's callbacks can't capture context.
-    private static func context(from info: UnsafeMutableRawPointer?) -> ResourceContext? {
-        let context = info?.assumingMemoryBound(to: ResourceContext.self).pointee
-        if context == nil {
-            log(.error, "Can't get the `ResourceContext` from `CGDataProvider.info`")
-        }
-        return context
-    }
-
-    lazy var identifier: String? = {
-        guard
-            let identifierArray = document.fileIdentifier,
+            let identifierArray = fileIdentifier,
             CGPDFArrayGetCount(identifierArray) > 0 else
         {
             return nil
@@ -134,26 +33,30 @@ final class CGPDFDocument: PDFDocument, Loggable {
         
         // Converts the raw data to a hexadecimal string
         return identifierData.reduce("") { $0 + String(format: "%02x", $1)}
-    }()
-    
-    var pageCount: Int {
-        document.numberOfPages
     }
     
-    lazy var title: String? =
-        string(forKey: "Title", in: document.info)
+    public var pageCount: Int {
+        numberOfPages
+    }
+
+    public var title: String? {
+        string(forKey: "Title", in: info)
+    }
     
-    lazy var author: String? =
-        string(forKey: "Author", in: document.info)
+    public var author: String? {
+        string(forKey: "Author", in: info)
+    }
 
-    lazy var subject: String? =
-        string(forKey: "Subject", in: document.info)
+    public var subject: String? {
+        string(forKey: "Subject", in: info)
+    }
 
-    lazy var keywords: [String] =
-        stringList(forKey: "Keywords", in: document.info)
+    public var keywords: [String] {
+        stringList(forKey: "Keywords", in: info)
+    }
 
-    lazy var cover: UIImage? = {
-        guard let page = document.page(at: 1) else {
+    public var cover: UIImage? {
+        guard let page = page(at: 1) else {
             return nil
         }
 
@@ -197,12 +100,13 @@ final class CGPDFDocument: PDFDocument, Loggable {
             return nil
         }
         return UIImage(cgImage: cgImage)
-    }()
+    }
 
-    lazy var outline: [PDFOutlineNode] = {
-        guard #available(iOS 11.0, *),
-            let outline = document.outline as? [String: Any] else
-        {
+    public var tableOfContents: [PDFOutlineNode] {
+        guard
+            #available(iOS 11.0, *),
+            let outline = self.outline as? [String: Any]
+        else {
             return []
         }
         
@@ -227,7 +131,7 @@ final class CGPDFDocument: PDFDocument, Loggable {
         }
         
         return nodes(in: outline[kCGPDFOutlineChildren as String] as? [[String: Any]])
-    }()
+    }
 
     private func stringList(forKey key: String, in dictionary: CGPDFDictionaryRef?) -> [String] {
         guard let string = string(forKey: key, in: dictionary) else {
@@ -266,5 +170,108 @@ final class CGPDFDocument: PDFDocument, Loggable {
         }
         return Data(bytes: bytes, count: CGPDFStringGetLength(stringRef))
     }
+    
+}
 
+public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
+    
+    public func open(url: URL, password: String?) throws -> PDFDocument {
+        guard let document = CGPDFDocument(url as CFURL) else {
+            throw PDFDocumentError.openFailed
+        }
+        
+        return try open(document: document, password: password)
+    }
+    
+    public func open(resource: Resource, password: String?) throws -> PDFDocument {
+        var callbacks = CGDataProviderSequentialCallbacks(
+            version: 0,
+
+            getBytes: { info, buffer, count -> Int in
+                guard let context = CGPDFDocumentFactory.context(from: info) else {
+                    return 0
+                }
+
+                let end = min(context.offset + UInt64(count), context.length)
+                if context.offset >= end {
+                    return 0
+                }
+
+                let result = context.resource.read(range: context.offset..<end)
+                switch result {
+                case .success(let data):
+                    data.copyBytes(to: buffer.assumingMemoryBound(to: UInt8.self), count: data.count)
+                    context.offset += UInt64(data.count)
+                    return data.count
+                case .failure(let error):
+                    CGPDFDocumentFactory.log(.error, error)
+                    return 0
+                }
+            },
+
+            skipForward: { info, count -> off_t in
+                guard let context = CGPDFDocumentFactory.context(from: info) else {
+                    return 0
+                }
+
+                let current = context.offset
+                context.offset = min(context.offset + UInt64(count), context.length)
+                return off_t(context.offset - current)
+            },
+
+            rewind: { info in
+                guard let context = CGPDFDocumentFactory.context(from: info) else {
+                    return
+                }
+                context.offset = 0
+            },
+
+            releaseInfo: { _ in }
+        )
+
+        var context = ResourceContext(resource: resource)
+        guard
+            let provider = CGDataProvider(sequentialInfo: &context, callbacks: &callbacks),
+            let document = UIKit.CGPDFDocument(provider) else
+        {
+            throw PDFDocumentError.openFailed
+        }
+
+        return try open(document: document, password: password)
+    }
+    
+    private func open(document: CGPDFDocument, password: String?) throws -> PDFDocument {
+        if (document.isEncrypted) {
+            guard
+                let password = password?.cString(using: .utf8),
+                document.unlockWithPassword(password) else
+            {
+                throw PDFDocumentError.invalidPassword
+            }
+        }
+        
+        return document
+    }
+
+    private class ResourceContext {
+        let resource: Resource
+        var offset: UInt64 = 0
+
+        lazy var length: UInt64 = resource.length.getOrNil() ?? 0
+
+        init(resource: Resource) {
+            self.resource = resource
+        }
+    }
+
+    /// This can't be a nested func in `init(resource:password:)` because the C-function pointers of
+    /// CGDataProvider's callbacks can't capture context.
+    private static func context(from info: UnsafeMutableRawPointer?) -> ResourceContext? {
+        let context = info?.assumingMemoryBound(to: ResourceContext.self).pointee
+        if context == nil {
+            log(.error, "Can't get the `ResourceContext` from `CGDataProvider.info`")
+        }
+        return context
+    }
+    
 }

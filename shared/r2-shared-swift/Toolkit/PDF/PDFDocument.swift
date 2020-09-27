@@ -45,7 +45,7 @@ public protocol PDFDocument {
     var keywords: [String] { get }
     
     /// Outline to build the table of contents.
-    var outline: [PDFOutlineNode] { get }
+    var tableOfContents: [PDFOutlineNode] { get }
     
 }
 
@@ -61,16 +61,17 @@ public protocol PDFDocumentFactory {
 
 public class DefaultPDFDocumentFactory: PDFDocumentFactory, Loggable {
     
+    /// The default PDF document factory uses Core Graphics.
+    private let factory = CGPDFDocumentFactory()
+    
     public init() {}
     
     public func open(url: URL, password: String?) throws -> PDFDocument {
-        warnIfMainThread()
-        return try CGPDFDocument(url: url, password: password)
+        return try factory.open(url: url, password: password)
     }
     
     public func open(resource: Resource, password: String?) throws -> PDFDocument {
-        warnIfMainThread()
-        return try CGPDFDocument(resource: resource, password: password)
+        return try factory.open(resource: resource, password: password)
     }
     
 }
