@@ -12,11 +12,11 @@
 import Foundation
 import R2Shared
 
-final class LCPDFPositionsService: PositionsService, Loggable {
+final class LCPDFPositionsService: PositionsService, PDFPublicationService, Loggable {
 
     private let readingOrder: [Link]
     private let fetcher: Fetcher
-    private let pdfFactory: PDFDocumentFactory
+    var pdfFactory: PDFDocumentFactory
 
     init(readingOrder: [Link], fetcher: Fetcher, pdfFactory: PDFDocumentFactory) {
         self.readingOrder = readingOrder
