@@ -25,6 +25,12 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         case invalidManifest
     }
     
+    private let pdfFactory: PDFDocumentFactory
+    
+    public init(pdfFactory: PDFDocumentFactory = DefaultPDFDocumentFactory()) {
+        self.pdfFactory = pdfFactory
+    }
+    
     public func parse(file: File, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
         guard let format = file.format, format.mediaType.isReadiumWebPubProfile else {
             return nil
@@ -62,11 +68,10 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
             {
                 throw Error.invalidManifest
             }
-            // FIXME: parserType
-            positionsFactory = LCPDFPositionsService.createFactory(parserType: PDFFileCGParser.self)
+            positionsFactory = LCPDFPositionsService.makeFactory(pdfFactory: pdfFactory)
             
         case .divina, .divinaManifest:
-            positionsFactory = PerResourcePositionsService.createFactory(fallbackMediaType: "image/*")
+            positionsFactory = PerResourcePositionsService.makeFactory(fallbackMediaType: "image/*")
             
         default:
             break

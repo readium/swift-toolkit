@@ -20,7 +20,6 @@
 		CA130D5E229D4245000A627C /* r2-streamer-swift-Bridging-Header.h in Headers */ = {isa = PBXBuildFile; fileRef = CA130D24229D4245000A627C /* r2-streamer-swift-Bridging-Header.h */; };
 		CA130D60229D4245000A627C /* CBZParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D28229D4245000A627C /* CBZParser.swift */; };
 		CA130D61229D4245000A627C /* PDFParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D2A229D4245000A627C /* PDFParser.swift */; };
-		CA130D63229D4245000A627C /* PDFFileCGParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D2C229D4245000A627C /* PDFFileCGParser.swift */; };
 		CA130D64229D4245000A627C /* PDFFileParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D2D229D4245000A627C /* PDFFileParser.swift */; };
 		CA130D65229D4245000A627C /* PublicationParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D2E229D4245000A627C /* PublicationParser.swift */; };
 		CA130D66229D4245000A627C /* EPUBParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D30229D4245000A627C /* EPUBParser.swift */; };
@@ -51,6 +50,7 @@
 		CA2D155F24BEFA0F0034927C /* FetcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2D155E24BEFA0F0034927C /* FetcherTests.swift */; };
 		CA3387072406632100FDCBBA /* Asserts.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3387062406632100FDCBBA /* Asserts.swift */; };
 		CA3F3FA8248EB156005B8A0B /* Fetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3F3FA7248EB156005B8A0B /* Fetcher.swift */; };
+		CA5A5DDC251FAA9000CF1CCE /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A5DDB251FAA9000CF1CCE /* Extensions.swift */; };
 		CA6F97CE22A50F39007D2049 /* EPUBContainerParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97CD22A50F39007D2049 /* EPUBContainerParser.swift */; };
 		CA6F97D222A5161A007D2049 /* EPUBContainerParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97D122A5161A007D2049 /* EPUBContainerParserTests.swift */; };
 		CA6F97D422A52810007D2049 /* OPFParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97D322A52810007D2049 /* OPFParserTests.swift */; };
@@ -104,7 +104,6 @@
 		CA130D24229D4245000A627C /* r2-streamer-swift-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "r2-streamer-swift-Bridging-Header.h"; sourceTree = "<group>"; };
 		CA130D28229D4245000A627C /* CBZParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CBZParser.swift; sourceTree = "<group>"; };
 		CA130D2A229D4245000A627C /* PDFParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PDFParser.swift; sourceTree = "<group>"; };
-		CA130D2C229D4245000A627C /* PDFFileCGParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PDFFileCGParser.swift; sourceTree = "<group>"; };
 		CA130D2D229D4245000A627C /* PDFFileParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PDFFileParser.swift; sourceTree = "<group>"; };
 		CA130D2E229D4245000A627C /* PublicationParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationParser.swift; sourceTree = "<group>"; };
 		CA130D30229D4245000A627C /* EPUBParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPUBParser.swift; sourceTree = "<group>"; };
@@ -137,6 +136,7 @@
 		CA2D155E24BEFA0F0034927C /* FetcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetcherTests.swift; sourceTree = "<group>"; };
 		CA3387062406632100FDCBBA /* Asserts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Asserts.swift; sourceTree = "<group>"; };
 		CA3F3FA7248EB156005B8A0B /* Fetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fetcher.swift; sourceTree = "<group>"; };
+		CA5A5DDB251FAA9000CF1CCE /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		CA6F97CD22A50F39007D2049 /* EPUBContainerParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBContainerParser.swift; sourceTree = "<group>"; };
 		CA6F97D122A5161A007D2049 /* EPUBContainerParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBContainerParserTests.swift; sourceTree = "<group>"; };
 		CA6F97D322A52810007D2049 /* OPFParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPFParserTests.swift; sourceTree = "<group>"; };
@@ -278,7 +278,6 @@
 			isa = PBXGroup;
 			children = (
 				CA130D2A229D4245000A627C /* PDFParser.swift */,
-				CA130D2C229D4245000A627C /* PDFFileCGParser.swift */,
 				CA130D2D229D4245000A627C /* PDFFileParser.swift */,
 				CABE2A082482DA34008E286D /* Services */,
 			);
@@ -349,6 +348,7 @@
 				CACDE61324853093006FEB1B /* Fixtures.swift */,
 				CA130F17229E7CC0000A627C /* Info.plist */,
 				CA3387062406632100FDCBBA /* Asserts.swift */,
+				CA5A5DDB251FAA9000CF1CCE /* Extensions.swift */,
 			);
 			path = "r2-streamer-swiftTests";
 			sourceTree = "<group>";
@@ -664,7 +664,6 @@
 				CA130D6C229D4245000A627C /* EPUBMetadataParser.swift in Sources */,
 				CA6F97CE22A50F39007D2049 /* EPUBContainerParser.swift in Sources */,
 				CAC5AEDA22C22A6F007DB8A8 /* HTTPContainer.swift in Sources */,
-				CA130D63229D4245000A627C /* PDFFileCGParser.swift in Sources */,
 				CA130D61229D4245000A627C /* PDFParser.swift in Sources */,
 				CA130D65229D4245000A627C /* PublicationParser.swift in Sources */,
 				CACDE61824854570006FEB1B /* ContentLayout+EPUB.swift in Sources */,
@@ -684,6 +683,7 @@
 				CA130F1A229E7CC1000A627C /* PublicationParsingTests.swift in Sources */,
 				CA130F1D229E7CC1000A627C /* NavigationDocumentParserTests.swift in Sources */,
 				CAD0CD2624BF32F500680131 /* ReadiumWebPubParserTests.swift in Sources */,
+				CA5A5DDC251FAA9000CF1CCE /* Extensions.swift in Sources */,
 				CACDE61424853093006FEB1B /* Fixtures.swift in Sources */,
 				CA6F97D222A5161A007D2049 /* EPUBContainerParserTests.swift in Sources */,
 				CA130F1E229E7CC1000A627C /* SampleGenerator.swift in Sources */,

@@ -32,52 +32,47 @@ public final class PDFParser: PublicationParser, Loggable {
         case fileNotReadable
     }
 
-    private let parserType: PDFFileParser.Type
+    private let pdfFactory: PDFDocumentFactory
     
-    public init(parserType: PDFFileParser.Type) {
-        self.parserType = parserType
+    public init(pdfFactory: PDFDocumentFactory = DefaultPDFDocumentFactory()) {
+        self.pdfFactory = pdfFactory
     }
-    
+
     public func parse(file: File, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
         guard file.format == .pdf else {
             return nil
         }
         
-        guard let stream = FileInputStream(fileAtPath: file.url.path) else {
-            throw Error.fileNotReadable
-        }
-
-        let parser = try parserType.init(stream: stream)
-        let pdfMetadata = try parser.parseMetadata()
-
-        var authors: [Contributor] = []
-        if let authorName = pdfMetadata.author {
-            authors.append(Contributor(name: authorName))
-        }
-
         let pdfHref = "/\(file.name)"
+        let document = try pdfFactory.open(url: file.url, password: nil)
+        let authors = Array(ofNotNil: document.author.map { Contributor(name: $0) })
 
         return Publication.Builder(
             fileFormat: .pdf,
             publicationFormat: .pdf,
             manifest: Manifest(
                 metadata: Metadata(
-                    identifier: pdfMetadata.identifier,
-                    title: pdfMetadata.title ?? file.name,
+                    identifier: document.identifier,
+                    title: document.title ?? file.name,
                     authors: authors,
-                    numberOfPages: try parser.parseNumberOfPages()
+                    numberOfPages: document.pageCount
                 ),
                 readingOrder: [
                     Link(href: pdfHref, type: MediaType.pdf.string)
                 ],
-                tableOfContents: pdfMetadata.outline.links(withHref: pdfHref)
+                tableOfContents: document.tableOfContents.links(withDocumentHREF: pdfHref)
             ),
             fetcher: FileFetcher(href: pdfHref, path: file.url),
             servicesBuilder: PublicationServicesBuilder(
-                cover: (try? parser.renderCover()).map(GeneratedCoverService.createFactory(cover:)),
-                positions: PDFPositionsService.createFactory()
+                cover: document.cover.map(GeneratedCoverService.makeFactory(cover:)),
+                positions: PDFPositionsService.makeFactory()
             )
         )
+    }
+    
+    @available(*, deprecated, message: "Use `init(pdfFactory:)` instead")
+    public convenience init(parserType: PDFFileParser.Type) {
+        self.init(pdfFactory: PDFFileParserFactory(parserType: parserType))
     }
 
     @available(*, deprecated, message: "Use an instance of `Streamer` to open a `Publication`")
@@ -86,7 +81,7 @@ public final class PDFParser: PublicationParser, Loggable {
             return try ReadiumWebPubParser.parse(at: url)
         }
         
-        let parser = PDFParser(parserType: PDFFileCGParser.self)
+        let parser = PDFParser(pdfFactory: DefaultPDFDocumentFactory())
         guard let publication = try parser.parse(file: File(url: url), fetcher: makeFetcher(for: url))?.build() else {
             throw PDFParserError.openFailed
         }

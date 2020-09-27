@@ -79,7 +79,7 @@ final public class EPUBParser: PublicationParser {
                 EPUBHTMLInjector(metadata: components.metadata, userProperties: userProperties).inject(resource:)
             ].compactMap { $0 }),
             servicesBuilder: .init(
-                positions: EPUBPositionsService.createFactory()
+                positions: EPUBPositionsService.makeFactory()
             ),
             setupPublication: { publication in
                 publication.userProperties = userProperties
@@ -103,7 +103,7 @@ final public class EPUBParser: PublicationParser {
     ///           `EPUBParserError.missingFile`
     @available(*, deprecated, message: "Use an instance of `Streamer` to open a `Publication`")
     static public func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        var fetcher: Fetcher = try ArchiveFetcher(url: url)
+        var fetcher: Fetcher = try makeFetcher(for: url)
         let drm = scanForDRM(in: fetcher)
 
         let lcpDecryptor = LCPDecryptor(drm: drm)
