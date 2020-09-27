@@ -1,12 +1,7 @@
 //
-//  CGPDFDocument.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 21/09/2020.
-//
 //  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -53,11 +48,17 @@ final class CGPDFDocument: PDFDocument, Loggable {
                 guard let context = CGPDFDocument.context(from: info) else {
                     return 0
                 }
+                
+                let end = min(context.offset + UInt64(count), context.length)
+                if context.offset >= end {
+                    return 0
+                }
 
-                let result = context.resource.read(range: context.offset..<UInt64(count))
+                let result = context.resource.read(range: context.offset..<end)
                 switch result {
                 case .success(let data):
                     data.copyBytes(to: buffer.assumingMemoryBound(to: UInt8.self), count: data.count)
+                    context.offset += UInt64(data.count)
                     return data.count
                 case .failure(let error):
                     CGPDFDocument.log(.error, error)
@@ -69,9 +70,9 @@ final class CGPDFDocument: PDFDocument, Loggable {
                 guard let context = CGPDFDocument.context(from: info) else {
                     return 0
                 }
-
+                
                 let current = context.offset
-                context.offset = min(context.offset + UInt64(count), context.length - 1)
+                context.offset = min(context.offset + UInt64(count), context.length)
                 return off_t(context.offset - current)
             },
 
@@ -82,9 +83,7 @@ final class CGPDFDocument: PDFDocument, Loggable {
                 context.offset = 0
             },
 
-            releaseInfo: { info in
-                CGPDFDocument.context(from: info)?.resource.close()
-            }
+            releaseInfo: { _ in }
         )
             
         var context = ResourceContext(resource: resource)

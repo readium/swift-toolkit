@@ -445,6 +445,7 @@
 				CA038E2E2520D3F700489729 /* PDFKit.swift */,
 				CA0D3C122518E604005B47BC /* CGPDFDocument.swift */,
 				CA0D3C102518E2F6005B47BC /* PDFOutlineNode.swift */,
+				CA0D3C122518E604005B47BC /* CGPDFDocument.swift */,
 			);
 			path = PDF;
 			sourceTree = "<group>";
