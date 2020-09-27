@@ -41,7 +41,7 @@ public final class PerResourcePositionsService: PositionsService {
         ]
     }
     
-    public static func createFactory(fallbackMediaType: String) -> (PublicationServiceContext) -> PerResourcePositionsService {
+    public static func makeFactory(fallbackMediaType: String) -> (PublicationServiceContext) -> PerResourcePositionsService {
         return { context in
             PerResourcePositionsService(readingOrder: context.manifest.readingOrder, fallbackMediaType: fallbackMediaType)
         }

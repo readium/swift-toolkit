@@ -61,11 +61,11 @@ public final class GeneratedCoverService: CoverService {
         }
     }
     
-    public static func createFactory(makeCover: @escaping () -> UIImage) -> (PublicationServiceContext) -> GeneratedCoverService? {
+    public static func makeFactory(makeCover: @escaping () -> UIImage) -> (PublicationServiceContext) -> GeneratedCoverService? {
         return { _ in GeneratedCoverService(makeCover: makeCover) }
     }
     
-    public static func createFactory(cover: UIImage) -> (PublicationServiceContext) -> GeneratedCoverService? {
+    public static func makeFactory(cover: UIImage) -> (PublicationServiceContext) -> GeneratedCoverService? {
         return { _ in GeneratedCoverService(cover: cover) }
     }
     
