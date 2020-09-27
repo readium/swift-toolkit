@@ -15,7 +15,7 @@
 		CA038E5025222B0900489729 /* ControlFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA038E4F25222B0900489729 /* ControlFlow.swift */; };
 		CA0D3C0F2518E213005B47BC /* PDFDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0D3C0E2518E213005B47BC /* PDFDocument.swift */; };
 		CA0D3C112518E2F6005B47BC /* PDFOutlineNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0D3C102518E2F6005B47BC /* PDFOutlineNode.swift */; };
-		CA0D3C132518E604005B47BC /* CGPDFDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0D3C122518E604005B47BC /* CGPDFDocument.swift */; };
+		CA0D3C132518E604005B47BC /* CGPDF.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0D3C122518E604005B47BC /* CGPDF.swift */; };
 		CA13517C248936E00087E69E /* LinkArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA13517B248936E00087E69E /* LinkArrayTests.swift */; };
 		CA13517E248952B10087E69E /* NSRegularExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA13517D248952B10087E69E /* NSRegularExpression.swift */; };
 		CA16A8592232C2A800E66255 /* Contributor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A8582232C2A800E66255 /* Contributor.swift */; };
@@ -216,7 +216,7 @@
 		CA038E4F25222B0900489729 /* ControlFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlFlow.swift; sourceTree = "<group>"; };
 		CA0D3C0E2518E213005B47BC /* PDFDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDocument.swift; sourceTree = "<group>"; };
 		CA0D3C102518E2F6005B47BC /* PDFOutlineNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFOutlineNode.swift; sourceTree = "<group>"; };
-		CA0D3C122518E604005B47BC /* CGPDFDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGPDFDocument.swift; sourceTree = "<group>"; };
+		CA0D3C122518E604005B47BC /* CGPDF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGPDF.swift; sourceTree = "<group>"; };
 		CA13517B248936E00087E69E /* LinkArrayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkArrayTests.swift; sourceTree = "<group>"; };
 		CA13517D248952B10087E69E /* NSRegularExpression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSRegularExpression.swift; sourceTree = "<group>"; };
 		CA16A8582232C2A800E66255 /* Contributor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contributor.swift; sourceTree = "<group>"; };
