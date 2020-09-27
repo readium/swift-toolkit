@@ -173,6 +173,7 @@ extension CGPDFDocument: PDFDocument {
     
 }
 
+/// Creates a `PDFDocument` using Core Graphics.
 public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
     
     public func open(url: URL, password: String?) throws -> PDFDocument {

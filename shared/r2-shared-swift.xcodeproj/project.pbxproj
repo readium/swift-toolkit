@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		57470F7E20ED0D1A000CDCA3 /* DownloadSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */; };
+		CA038E2F2520D3F700489729 /* PDFKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA038E2E2520D3F700489729 /* PDFKit.swift */; };
 		CA0D3C0F2518E213005B47BC /* PDFDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0D3C0E2518E213005B47BC /* PDFDocument.swift */; };
 		CA0D3C112518E2F6005B47BC /* PDFOutlineNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0D3C102518E2F6005B47BC /* PDFOutlineNode.swift */; };
 		CA0D3C132518E604005B47BC /* CGPDF.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0D3C122518E604005B47BC /* CGPDF.swift */; };
@@ -203,6 +204,7 @@
 		0318F709221DD4CA004E5114 /* Locator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Locator.swift; sourceTree = "<group>"; };
 		57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadSession.swift; sourceTree = "<group>"; };
 		AEF39DF220E3895200A560F3 /* UserProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProperties.swift; sourceTree = "<group>"; };
+		CA038E2E2520D3F700489729 /* PDFKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFKit.swift; sourceTree = "<group>"; };
 		CA0D3C0E2518E213005B47BC /* PDFDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDocument.swift; sourceTree = "<group>"; };
 		CA0D3C102518E2F6005B47BC /* PDFOutlineNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFOutlineNode.swift; sourceTree = "<group>"; };
 		CA0D3C122518E604005B47BC /* CGPDF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGPDF.swift; sourceTree = "<group>"; };
@@ -429,6 +431,7 @@
 				CA0D3C0E2518E213005B47BC /* PDFDocument.swift */,
 				CA0D3C102518E2F6005B47BC /* PDFOutlineNode.swift */,
 				CA0D3C122518E604005B47BC /* CGPDF.swift */,
+				CA038E2E2520D3F700489729 /* PDFKit.swift */,
 			);
 			path = PDF;
 			sourceTree = "<group>";
@@ -1160,6 +1163,7 @@
 				F3E7D4231F4ECB3D00DF166D /* Date+ISO8601.swift in Sources */,
 				CA60CE242446E97400149B22 /* Fuzi.swift in Sources */,
 				CA8C84162468914900CE97A4 /* Resource.swift in Sources */,
+				CA038E2F2520D3F700489729 /* PDFKit.swift in Sources */,
 				CA62B37E24E02FA30046CDCF /* LazyResource.swift in Sources */,
 				CA17637A223A7B8900959FEB /* Properties+OPDS.swift in Sources */,
 				CACD75E22236A0B7004F20CA /* Subject.swift in Sources */,
