@@ -75,3 +75,46 @@ public class DefaultPDFDocumentFactory: PDFDocumentFactory, Loggable {
     }
     
 }
+
+/// A PDF document factory which will iterate over a list of factories until one works.
+public class CompositePDFDocumentFactory: PDFDocumentFactory, Loggable  {
+    
+    private let factories: [PDFDocumentFactory]
+    
+    public init(factories: [PDFDocumentFactory]) {
+        self.factories = factories
+    }
+    
+    public func open(url: URL, password: String?) throws -> PDFDocument {
+        return try eachFactory { try $0.open(url: url, password: password) }
+    }
+    
+    public func open(resource: Resource, password: String?) throws -> PDFDocument {
+        return try eachFactory { try $0.open(resource: resource, password: password) }
+    }
+    
+    private func eachFactory(tryOpen: (PDFDocumentFactory) throws -> PDFDocument) throws -> PDFDocument {
+        for factory in factories {
+            do {
+                return try tryOpen(factory)
+            } catch PDFDocumentError.openFailed {
+                continue
+            }
+        }
+        throw PDFDocumentError.openFailed
+    }
+    
+}
+
+/// Protocol to be implemented by publication services using an overridable PDF factory.
+///
+/// This can be used for optimization reasons: to avoid opening a PDF document several times. For
+/// example, if a PDF document was opened by a PDF Navigator, we can reuse its instance when used by
+/// a PositionsService. In this case, the PDF Navigator can overwrite the `pdfFactory` property
+/// of all the services conforming to `PDFPublicationService`.
+public protocol PDFPublicationService: class, PublicationService {
+    
+    /// Factory used by the publication service to open PDF documents.
+    var pdfFactory: PDFDocumentFactory { get set }
+    
+}
