@@ -10,7 +10,6 @@
 //
 
 import Foundation
-import Fuzi
 
 typealias XMLNamespace = (prefix: String, uri: String)
 
@@ -41,24 +40,9 @@ extension XMLNode {
 
 protocol XMLDocument: XMLNode {
 
-    /// Creates an `XMLDocument`.
-    ///
-    /// - Parameters:
-    ///   - string: XML string representation.
-    ///   - namespaces: List of namespace prefixes to declare in the document.
-    init?(string: String, namespaces: [XMLNamespace])
-    
     /// Root element in the XML document.
     var documentElement: XMLElement? { get }
 
-}
-
-extension XMLDocument {
-    
-    init?(string: String) {
-        self.init(string: string, namespaces: [])
-    }
-    
 }
 
 protocol XMLElement: XMLNode {
@@ -73,5 +57,34 @@ protocol XMLElement: XMLNode {
     /// Returns the attribute with the given `localName` and `namespace`.
     /// For example, with `opf:role`: `role` and `http://www.idpf.org/2007/opf`
     func attribute(named localName: String, namespace: String?) -> String?
+
+}
+
+protocol XMLDocumentFactory {
+    
+    /// Opens an XML document from a local file path.
+    ///
+    /// - Parameter namespaces: List of namespace prefixes to declare in the document.
+    func open(url: URL, namespaces: [XMLNamespace]) throws -> XMLDocument
+    
+    /// Opens an XML document from its raw string content.
+    ///
+    /// - Parameter namespaces: List of namespace prefixes to declare in the document.
+    func open(string: String, namespaces: [XMLNamespace]) throws -> XMLDocument
+    
+}
+
+class DefaultXMLDocumentFactory: XMLDocumentFactory, Loggable {
+    
+    init() {}
+    
+    func open(url: URL, namespaces: [XMLNamespace]) throws -> XMLDocument {
+        warnIfMainThread()
+        return try open(string: String(contentsOf: url), namespaces: namespaces)
+    }
+    
+    func open(string: String, namespaces: [XMLNamespace]) throws -> XMLDocument {
+        return try FuziXMLDocument(string: string, namespaces: namespaces)
+    }
 
 }
