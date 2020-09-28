@@ -321,41 +321,28 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     
     // MARK: - User settings
     
-    private var needsUpdateUserSettings: Bool = false
-    
     public func updateUserSettingStyle() {
         assert(Thread.isMainThread, "User settings must be updated from the main thread")
-        
-        guard !needsUpdateUserSettings else {
-            return
-        }
-        needsUpdateUserSettings = true
+        _updateUserSettingsStyle()
+    }
+    
+    private lazy var _updateUserSettingsStyle = execute(
+        when: { [weak self] in self?.state == .idle && self?.paginationView.isEmpty == false },
+        pollingInterval: 0.1
+    ) { [weak self] in
+        guard let self = self else { return }
 
-        func update() {
-            guard
-                state == .idle,
-                !paginationView.isEmpty
-            else {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: update)
-                return
-            }
-    
-            reloadSpreads()
-    
-            let location = currentLocation
-            for (_, view) in paginationView.loadedViews {
-                (view as? EPUBSpreadView)?.applyUserSettingsStyle()
-            }
-    
-            // Re-positions the navigator to the location before applying the settings
-            if let location = location {
-                go(to: location)
-            }
-    
-            needsUpdateUserSettings = false
+        self.reloadSpreads()
+
+        let location = self.currentLocation
+        for (_, view) in self.paginationView.loadedViews {
+            (view as? EPUBSpreadView)?.applyUserSettingsStyle()
         }
-        
-        update()
+
+        // Re-positions the navigator to the location before applying the settings
+        if let location = location {
+            self.go(to: location)
+        }
     }
 
     
@@ -447,37 +434,24 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     /// Used to avoid sending twice the same location.
     private var notifiedCurrentLocation: Locator?
     
-    private var needsNotifyCurrentLocation = false
-    
-    fileprivate func notifyCurrentLocation() {
-        guard !needsNotifyCurrentLocation else {
+    private lazy var notifyCurrentLocation = execute(
+        // If we're not in an `idle` state, we postpone the notification.
+        when: { [weak self] in self?.state == .idle },
+        pollingInterval: 0.1
+    ) { [weak self] in
+        guard
+            let self = self,
+            let delegate = self.delegate,
+            let location = self.currentLocation,
+            location != self.notifiedCurrentLocation
+        else {
             return
         }
-        needsNotifyCurrentLocation = true
-        
-        func notify() {
-            // If we're not in a `idle` state, we postpone the notification.
-            guard state == .idle else {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: notify)
-                return
-            }
-            needsNotifyCurrentLocation = false
-            
-            guard
-                let delegate = delegate,
-                let location = currentLocation,
-                location != notifiedCurrentLocation
-            else {
-                return
-            }
-    
-            notifiedCurrentLocation = location
-            delegate.navigator(self, locationDidChange: location)
-        }
-        
-        notify()
+
+        self.notifiedCurrentLocation = location
+        delegate.navigator(self, locationDidChange: location)
     }
-    
+
     public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
         guard
             let spreadIndex = spreads.firstIndex(withHref: locator.href),
