@@ -164,7 +164,7 @@ public class OPDS1Parser: Loggable {
                     href: absoluteHref,
                     type: link.attr("type"),
                     title: entry.firstChild(tag: "title")?.stringValue,
-                    rel: link.attr("rel").map(Link.Relation.init(rawValue:)),
+                    rel: link.attr("rel").map { LinkRelation($0) },
                     properties: .init(properties)
                 )
 
@@ -182,9 +182,9 @@ public class OPDS1Parser: Loggable {
                 continue
             }
             
-            var rels: [Link.Relation] = []
+            var rels: [LinkRelation] = []
             if let rel = link.attributes["rel"], !rel.isEmpty {
-                rels.append(.init(stringLiteral: rel))
+                rels.append(.init(rel))
             }
             var properties: [String: Any] = [:]
             
@@ -374,7 +374,7 @@ public class OPDS1Parser: Loggable {
                 href: absoluteHref,
                 type: linkElement.attributes["type"],
                 title: linkElement.attributes["title"],
-                rel: linkElement.attributes["rel"].map(Link.Relation.init(rawValue:)),
+                rel: linkElement.attributes["rel"].map { LinkRelation($0) },
                 properties: .init(properties)
             )
 
