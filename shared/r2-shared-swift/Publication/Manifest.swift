@@ -114,5 +114,26 @@ public struct Manifest: JSONEquatable {
     public func links(withRel rel: LinkRelation) -> [Link] {
         return (readingOrder + resources + links).filter(byRel: rel)
     }
+    
+    /// Makes a copy of the `Manifest`, after modifying some of its properties.
+    public func copy(
+        context: [String]? = nil,
+        metadata: Metadata? = nil,
+        links: [Link]? = nil,
+        readingOrder: [Link]? = nil,
+        resources: [Link]? = nil,
+        tableOfContents: [Link]? = nil,
+        subcollections: [String: [PublicationCollection]]? = nil
+    ) -> Manifest {
+        Manifest(
+            context: context ?? self.context,
+            metadata: metadata ?? self.metadata,
+            links: links ?? self.links,
+            readingOrder: readingOrder ?? self.readingOrder,
+            resources: resources ?? self.resources,
+            tableOfContents: tableOfContents ?? self.tableOfContents,
+            subcollections: subcollections ?? self.subcollections
+        )
+    }
 
 }
