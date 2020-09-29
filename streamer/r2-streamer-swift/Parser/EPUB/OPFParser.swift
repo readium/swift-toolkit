@@ -175,7 +175,7 @@ final class OPFParser: Loggable {
             .components(separatedBy: .whitespaces)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
 
-        var rels: [Link.Relation] = []
+        var rels: [LinkRelation] = []
         if stringProperties.contains("nav") {
             rels.append(.contents)
         }
