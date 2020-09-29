@@ -122,12 +122,12 @@ public class Publication: Loggable {
     }
     
     /// Finds the first link with the given relation in the publication's links.
-    public func link(withRel rel: Link.Relation) -> Link? {
+    public func link(withRel rel: LinkRelation) -> Link? {
         return manifest.link(withRel: rel)
     }
     
     /// Finds all the links with the given relation in the publication's links.
-    public func links(withRel rel: Link.Relation) -> [Link] {
+    public func links(withRel rel: LinkRelation) -> [Link] {
         return manifest.links(withRel: rel)
     }
 

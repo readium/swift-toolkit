@@ -460,7 +460,7 @@ private extension Manifest {
 
     /// Finds the first `Link` having the given `rel` matching the given `predicate`, in the
     /// publications' links.
-    func link(withRelMatching predicate: (Link.Relation) -> Bool) -> Link? {
+    func link(withRelMatching predicate: (LinkRelation) -> Bool) -> Link? {
         for link in links {
             for rel in link.rels {
                 if predicate(rel) {
