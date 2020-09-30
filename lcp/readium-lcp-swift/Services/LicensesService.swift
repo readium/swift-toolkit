@@ -35,7 +35,7 @@ final class LicensesService: Loggable {
         self.passphrases = passphrases
     }
     
-    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, sender: Any?) -> Deferred<LCPLicense?, LCPError> {
+    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, allowUserInteraction: Bool, sender: Any?) -> Deferred<LCPLicense?, LCPError> {
         return makeLicenseContainer(for: publication)
             .flatMap { container in
                 guard let container = container, container.containsLicense() else {
@@ -43,13 +43,13 @@ final class LicensesService: Loggable {
                     return .success(nil)
                 }
 
-                return self.retrieveLicense(from: container, authentication: authentication, sender: sender)
+                return self.retrieveLicense(from: container, authentication: authentication, allowUserInteraction: allowUserInteraction, sender: sender)
                     .map { $0 as LCPLicense }
                     .mapError(LCPError.wrap)
             }
     }
 
-    fileprivate func retrieveLicense(from container: LicenseContainer, authentication: LCPAuthenticating?, sender: Any?) -> Deferred<License, Error> {
+    fileprivate func retrieveLicense(from container: LicenseContainer, authentication: LCPAuthenticating?, allowUserInteraction: Bool, sender: Any?) -> Deferred<License, Error> {
         return deferredCatching(on: .global(qos: .background)) {
             let initialData = try container.read()
             
@@ -73,7 +73,7 @@ final class LicensesService: Loggable {
                 }
             }
             
-            let validation = LicenseValidation(authentication: authentication, sender: sender, crl: self.crl, device: self.device, network: self.network, passphrases: self.passphrases, onLicenseValidated: onLicenseValidated)
+            let validation = LicenseValidation(authentication: authentication, allowUserInteraction: allowUserInteraction, sender: sender, crl: self.crl, device: self.device, network: self.network, passphrases: self.passphrases, onLicenseValidated: onLicenseValidated)
 
             return validation.validate(.license(initialData))
                 .tryMap { documents in
@@ -94,7 +94,7 @@ extension LicensesService: LCPService {
     func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, sender: Any?, completion: @escaping (CancellableResult<LCPImportedPublication, LCPError>) -> Void) -> Observable<DownloadProgress> {
         let progress = MutableObservable<DownloadProgress>(.infinite)
         let container = LCPLLicenseContainer(lcpl: lcpl)
-        retrieveLicense(from: container, authentication: authentication, sender: sender)
+        retrieveLicense(from: container, authentication: authentication, allowUserInteraction: true, sender: sender)
             .asyncMap { (license, completion: (@escaping (CancellableResult<LCPImportedPublication, Error>) -> Void)) in
                 let downloadProgress = license.fetchPublication { result in
                     progress.value = .infinite
@@ -116,8 +116,8 @@ extension LicensesService: LCPService {
         return progress
     }
     
-    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, sender: Any?, completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void) {
-        retrieveLicense(from: publication, authentication: authentication, sender: sender)
+    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, allowUserInteraction: Bool, sender: Any?, completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void) {
+        retrieveLicense(from: publication, authentication: authentication, allowUserInteraction: allowUserInteraction, sender: sender)
             .resolve(completion)
     }
     
