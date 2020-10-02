@@ -267,7 +267,7 @@ public class PublicationServer: ResourcesServer {
     }
     
     public func remove(_ publication: Publication) {
-        guard let endpoint = publications.first(where: { $0.value.metadata.identifier == publication.metadata.identifier })?.key else {
+        guard let endpoint = publications.first(where: { $0.value === publication })?.key else {
             return
         }
         remove(at: endpoint)
