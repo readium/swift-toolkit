@@ -148,7 +148,6 @@
 		CABE2A012482C6F2008E286D /* PositionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABE2A002482C6F2008E286D /* PositionsService.swift */; };
 		CABE2A032482C7A6008E286D /* PositionsServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABE2A022482C7A6008E286D /* PositionsServiceTests.swift */; };
 		CABEB3DC2215698600090B6C /* Deferred.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABEB3DB2215698600090B6C /* Deferred.swift */; };
-		CAC34F0A221C61BD002C452E /* DRM.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC34F06221C61BD002C452E /* DRM.swift */; };
 		CAC34F0C221C61BD002C452E /* DRM+Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC34F08221C61BD002C452E /* DRM+Deprecated.swift */; };
 		CACD75E0223657AD004F20CA /* PublicationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACD75DF223657AD004F20CA /* PublicationTests.swift */; };
 		CACD75E22236A0B7004F20CA /* Subject.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACD75E12236A0B6004F20CA /* Subject.swift */; };
@@ -348,7 +347,6 @@
 		CABE2A002482C6F2008E286D /* PositionsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositionsService.swift; sourceTree = "<group>"; };
 		CABE2A022482C7A6008E286D /* PositionsServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositionsServiceTests.swift; sourceTree = "<group>"; };
 		CABEB3DB2215698600090B6C /* Deferred.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Deferred.swift; sourceTree = "<group>"; };
-		CAC34F06221C61BD002C452E /* DRM.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DRM.swift; sourceTree = "<group>"; };
 		CAC34F08221C61BD002C452E /* DRM+Deprecated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DRM+Deprecated.swift"; sourceTree = "<group>"; };
 		CACD75DF223657AD004F20CA /* PublicationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationTests.swift; sourceTree = "<group>"; };
 		CACD75E12236A0B6004F20CA /* Subject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Subject.swift; sourceTree = "<group>"; };
@@ -846,7 +844,6 @@
 		CAC34F04221C61BD002C452E /* DRM */ = {
 			isa = PBXGroup;
 			children = (
-				CAC34F06221C61BD002C452E /* DRM.swift */,
 				CAC34F08221C61BD002C452E /* DRM+Deprecated.swift */,
 			);
 			path = DRM;
@@ -1275,7 +1272,6 @@
 				CAF4EAE52237ABC700A17DA1 /* MediaOverlays.swift in Sources */,
 				CA3386EE24056ADB00FDCBBA /* Locator+HTML.swift in Sources */,
 				CA16A8592232C2A800E66255 /* Contributor.swift in Sources */,
-				CAC34F0A221C61BD002C452E /* DRM.swift in Sources */,
 				CAE4DCA024B8CC5B00611638 /* ExplodedArchive.swift in Sources */,
 				CA5F8F0324041D4B00926120 /* Properties+Presentation.swift in Sources */,
 				CA5F8EF224040DDE00926120 /* Presentation.swift in Sources */,

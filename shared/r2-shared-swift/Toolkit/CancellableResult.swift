@@ -105,3 +105,6 @@ public enum CancellableResult<Success, Failure: Error> {
     }
 
 }
+
+extension CancellableResult: Equatable where Success: Equatable, Failure: Equatable {
+}
