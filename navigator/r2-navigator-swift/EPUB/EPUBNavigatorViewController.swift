@@ -672,7 +672,7 @@ extension EPUBNavigatorViewController {
     
     /// This initializer is deprecated.
     /// `license` is not needed anymore.
-    @available(*, unavailable, renamed: "init(publication:license:initialLocation:resourcesServer:config:)")
+    @available(*, unavailable, renamed: "init(publication:initialLocation:resourcesServer:config:)")
     public convenience init(publication: Publication, license: DRMLicense?, initialLocation: Locator? = nil, resourcesServer: ResourcesServer, config: Configuration = .init()) {
         self.init(publication: publication, initialLocation: initialLocation, resourcesServer: resourcesServer, config: config)
     }
@@ -681,7 +681,7 @@ extension EPUBNavigatorViewController {
     /// Replace `pageTransition` by the `animated` property of the `goTo` functions.
     /// Replace `disableDragAndDrop` by `EditingAction.copy`, since drag and drop is equivalent to copy.
     /// Replace `initialIndex` and `initialProgression` by `initialLocation`.
-    @available(*, deprecated, renamed: "init(publication:license:initialLocation:resourcesServer:config:)")
+    @available(*, deprecated, renamed: "init(publication:initialLocation:resourcesServer:config:)")
     public convenience init(for publication: Publication, license: DRMLicense? = nil, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = EditingAction.defaultActions, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]? = nil) {
         fatalError("This initializer is not available anymore.")
     }
