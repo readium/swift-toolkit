@@ -8,7 +8,7 @@ import Foundation
 
 /// An object giving info about the DRM encrypting a publication.
 /// This object come back from the streamer, and can be filled by a DRM module, then sent back to the streamer (with the decypher func filled) in order to allow the fetcher to be able to decypher content later on.
-@available(*, deprecated, message: "The new `Streamer` is handling DRM through a `ContentProtectionService`")
+@available(*, unavailable, message: "The new `Streamer` is handling DRM through a `ContentProtectionService`")
 public struct DRM {
     public let brand: Brand
     public let scheme: Scheme
@@ -36,7 +36,7 @@ public struct DRM {
 /// Shared DRM behavior for a particular license/publication.
 /// DRMs can be very different beasts, so DRMLicense is not meant to be a generic interface for all DRM behaviors (eg. loan return). The goal of DRMLicense is to provide generic features that are used inside Readium's projects directly. For example, data decryption or copy of text selection in the navigator.
 /// If there's a need for other generic DRM features, it can be implemented as a set of adapters in the client app, to cater to the interface's needs and capabilities.
-@available(*, deprecated, message: "The new `Streamer` is handling DRM through a `ContentProtectionService`")
+@available(*, unavailable, message: "The new `Streamer` is handling DRM through a `ContentProtectionService`")
 public protocol DRMLicense {
 
     /// Encryption profile, if available.
@@ -56,7 +56,7 @@ public protocol DRMLicense {
     
 }
 
-@available(*, deprecated)
+@available(*, unavailable)
 public extension DRMLicense {
     
     var encryptionProfile: String? { return nil }
@@ -69,14 +69,14 @@ public extension DRMLicense {
     
 }
 
-@available(*, deprecated, renamed: "DRM")
+@available(*, unavailable, renamed: "DRM")
 public typealias Drm = DRM
 
-@available(*, deprecated, renamed: "DRMLicense")
+@available(*, unavailable, renamed: "DRMLicense")
 public typealias DrmLicense = DRMLicense
 
 
-@available(*, deprecated)
+@available(*, unavailable)
 extension DRM {
 
     @available(*, deprecated, message: "Use `license?.encryptionProfile` instead")
@@ -87,7 +87,7 @@ extension DRM {
 }
 
 
-@available(*, deprecated)
+@available(*, unavailable)
 extension DRMLicense {
     
     @available(*, deprecated, message: "Use `LCPLicense.renewLoan` instead")
