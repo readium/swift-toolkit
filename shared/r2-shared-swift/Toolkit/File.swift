@@ -19,9 +19,6 @@ public final class File: Loggable {
     /// File URL on the file system.
     public let url: URL
     
-    /// Remote source URL from which this file was downloaded, if relevant.
-    public let sourceURL: URL?
-    
     /// Last path component, or filename.
     public var name: String { url.lastPathComponent }
     
@@ -39,14 +36,10 @@ public final class File: Loggable {
     
     /// Creates a `File` from a file `url`.
     ///
-    /// If the file was downloaded from a remote source, set it with `sourceURL` to give more
-    /// context.
-    ///
     /// Providing a known `mediaType` or `format` will improve performances when sniffing the
     /// file format.
-    public init(url: URL, sourceURL: URL? = nil, mediaType: String? = nil, format: Format? = nil) {
+    public init(url: URL, mediaType: String? = nil, format: Format? = nil) {
         self.url = url
-        self.sourceURL = sourceURL
         self.mediaTypeHint = mediaType
         self.knownFormat = format
     }
