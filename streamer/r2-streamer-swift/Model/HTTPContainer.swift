@@ -14,7 +14,7 @@ import R2Shared
 
 
 /// Container to access remote files through HTTP requests.
-@available(*, deprecated, message: "Use `Publication.get()` to access a publication's resources")
+@available(*, unavailable, message: "Use `Publication.get()` to access a publication's resources")
 class HTTPContainer: Container, Loggable {
     
     var rootFile: RootFile

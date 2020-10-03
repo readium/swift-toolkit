@@ -364,13 +364,13 @@ public class PublicationServer: ResourcesServer {
         return GCDWebServerDataResponse(data: data, contentType: contentType)
     }
     
-    @available(*, deprecated, message: "Passing a `Container` is not needed anymore")
+    @available(*, unavailable, message: "Passing a `Container` is not needed anymore")
     public func add(_ publication: Publication, with container: Container, at endpoint: String = UUID().uuidString) throws {
         try add(publication, at: endpoint)
     }
     
     // Mapping between endpoint and the matching container.
-    @available(*, deprecated, message: "`Container` is not used anymore in the `PublicationServer")
+    @available(*, unavailable, message: "`Container` is not used anymore in the `PublicationServer")
     public private(set) var containers: [String: Container] = [:]
     
 }

@@ -51,6 +51,7 @@
 		CA3387072406632100FDCBBA /* Asserts.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3387062406632100FDCBBA /* Asserts.swift */; };
 		CA3F3FA8248EB156005B8A0B /* Fetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3F3FA7248EB156005B8A0B /* Fetcher.swift */; };
 		CA5A5DDC251FAA9000CF1CCE /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A5DDB251FAA9000CF1CCE /* Extensions.swift */; };
+		CA6CF2152528E5D80025BBB2 /* Parser+Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6CF2142528E5D80025BBB2 /* Parser+Deprecated.swift */; };
 		CA6F97CE22A50F39007D2049 /* EPUBContainerParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97CD22A50F39007D2049 /* EPUBContainerParser.swift */; };
 		CA6F97D222A5161A007D2049 /* EPUBContainerParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97D122A5161A007D2049 /* EPUBContainerParserTests.swift */; };
 		CA6F97D422A52810007D2049 /* OPFParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97D322A52810007D2049 /* OPFParserTests.swift */; };
@@ -71,7 +72,6 @@
 		CACDE61424853093006FEB1B /* Fixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE61324853093006FEB1B /* Fixtures.swift */; };
 		CACDE61624853BC8006FEB1B /* EPUBHTMLInjector.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE61524853BC8006FEB1B /* EPUBHTMLInjector.swift */; };
 		CACDE61824854570006FEB1B /* ContentLayout+EPUB.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE61724854570006FEB1B /* ContentLayout+EPUB.swift */; };
-		CACE5C712482DF510076FE52 /* LCPDecryptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE5C702482DF510076FE52 /* LCPDecryptor.swift */; };
 		CAD0CD2024BF171100680131 /* AudioParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0CD1F24BF171100680131 /* AudioParser.swift */; };
 		CAD0CD2324BF17A300680131 /* AudioParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0CD2224BF17A300680131 /* AudioParserTests.swift */; };
 		CAD0CD2624BF32F500680131 /* ReadiumWebPubParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0CD2524BF32F500680131 /* ReadiumWebPubParserTests.swift */; };
@@ -137,6 +137,7 @@
 		CA3387062406632100FDCBBA /* Asserts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Asserts.swift; sourceTree = "<group>"; };
 		CA3F3FA7248EB156005B8A0B /* Fetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fetcher.swift; sourceTree = "<group>"; };
 		CA5A5DDB251FAA9000CF1CCE /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		CA6CF2142528E5D80025BBB2 /* Parser+Deprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Parser+Deprecated.swift"; sourceTree = "<group>"; };
 		CA6F97CD22A50F39007D2049 /* EPUBContainerParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBContainerParser.swift; sourceTree = "<group>"; };
 		CA6F97D122A5161A007D2049 /* EPUBContainerParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBContainerParserTests.swift; sourceTree = "<group>"; };
 		CA6F97D322A52810007D2049 /* OPFParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPFParserTests.swift; sourceTree = "<group>"; };
@@ -156,7 +157,6 @@
 		CACDE61324853093006FEB1B /* Fixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fixtures.swift; sourceTree = "<group>"; };
 		CACDE61524853BC8006FEB1B /* EPUBHTMLInjector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBHTMLInjector.swift; sourceTree = "<group>"; };
 		CACDE61724854570006FEB1B /* ContentLayout+EPUB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentLayout+EPUB.swift"; sourceTree = "<group>"; };
-		CACE5C702482DF510076FE52 /* LCPDecryptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDecryptor.swift; sourceTree = "<group>"; };
 		CAD0CD1F24BF171100680131 /* AudioParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioParser.swift; sourceTree = "<group>"; };
 		CAD0CD2224BF17A300680131 /* AudioParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioParserTests.swift; sourceTree = "<group>"; };
 		CAD0CD2524BF32F500680131 /* ReadiumWebPubParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadiumWebPubParserTests.swift; sourceTree = "<group>"; };
@@ -265,6 +265,7 @@
 			isa = PBXGroup;
 			children = (
 				CA130D2E229D4245000A627C /* PublicationParser.swift */,
+				CA6CF2142528E5D80025BBB2 /* Parser+Deprecated.swift */,
 				CAD0CD1E24BF170500680131 /* Audio */,
 				CA2D154E24BEEC280034927C /* Image */,
 				CA130D2F229D4245000A627C /* EPUB */,
@@ -328,7 +329,6 @@
 				CA7116EA24547DFE00C029FD /* Extensions */,
 				CA130D37229D4245000A627C /* ZIPArchive */,
 				CA130CFF229D4245000A627C /* Streams */,
-				CACE5C702482DF510076FE52 /* LCPDecryptor.swift */,
 				CA130D40229D4245000A627C /* Logger.swift */,
 				CA130D41229D4245000A627C /* DataExtension.swift */,
 				CA130D20229D4245000A627C /* DataCompression.swift */,
@@ -635,7 +635,6 @@
 				CA130D66229D4245000A627C /* EPUBParser.swift in Sources */,
 				CA130D47229D4245000A627C /* ZIPInputStream.swift in Sources */,
 				CA130D73229D4245000A627C /* Logger.swift in Sources */,
-				CACE5C712482DF510076FE52 /* LCPDecryptor.swift in Sources */,
 				CA130D6B229D4245000A627C /* EPUBEncryptionParser.swift in Sources */,
 				CA228D1B24BD975500879E2E /* Streamer.swift in Sources */,
 				CA130D64229D4245000A627C /* PDFFileParser.swift in Sources */,
@@ -668,6 +667,7 @@
 				CA130D65229D4245000A627C /* PublicationParser.swift in Sources */,
 				CACDE61824854570006FEB1B /* ContentLayout+EPUB.swift in Sources */,
 				CABE2A072482D470008E286D /* LCPDFPositionsService.swift in Sources */,
+				CA6CF2152528E5D80025BBB2 /* Parser+Deprecated.swift in Sources */,
 				CA130D6D229D4245000A627C /* ZIPArchive.swift in Sources */,
 				CA130D67229D4245000A627C /* SMILParser.swift in Sources */,
 			);

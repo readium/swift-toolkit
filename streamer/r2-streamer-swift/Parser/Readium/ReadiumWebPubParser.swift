@@ -86,41 +86,9 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         )
     }
 
-    @available(*, deprecated, message: "Use an instance of `Streamer` to open a `Publication`")
+    @available(*, unavailable, message: "Use an instance of `Streamer` to open a `Publication`")
     public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        var fetcher = try makeFetcher(for: url)
-        var drm: DRM?
-
-        var decryptor: LCPDecryptor?
-        let lcpProtected = (try? fetcher.readData(at: "/license.lcpl")) != nil
-        if lcpProtected {
-            drm = DRM(brand: .lcp)
-            decryptor = LCPDecryptor()
-            fetcher = TransformingFetcher(fetcher: fetcher, transformer: decryptor!.decrypt(resource:))
-        }
-        
-        let file = File(url: url)
-        guard
-            let format = file.format,
-            let components = try? ReadiumWebPubParser().parse(file: file, fetcher: fetcher) else
-        {
-            throw ReadiumWebPubParserError.parseFailure(url: url, nil)
-        }
-        
-        let publication = components.build()
-        let container = PublicationContainer(
-            publication: publication,
-            path: url.path,
-            mimetype: format.mediaType.string,
-            drm: drm
-        )
-
-        func didLoadDRM(_ drm: DRM?) throws {
-            container.drm = drm
-            decryptor?.license = drm?.license
-        }
-
-        return ((publication, container), didLoadDRM)
+        fatalError("Not available")
     }
 
 }

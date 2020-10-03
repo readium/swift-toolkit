@@ -70,7 +70,7 @@ final class EPUBEncryptionParser: Loggable {
             // FIXME: Move to ContentProtection?
             let keyInfoURI = encryptedDataElement.firstChild(xpath: "ds:KeyInfo/ds:RetrievalMethod")?.attr("URI")
             if keyInfoURI == "license.lcpl#/encryption/content_key" {
-                scheme = DRM.Scheme.lcp.rawValue
+                scheme = "http://readium.org/2014/01/lcp"
             }
             // END LCP
             

@@ -66,7 +66,7 @@ public final class AudioParser: PublicationParser {
             || filename == "Thumbs.db"
     }
     
-    @available(*, deprecated, message: "Not supported for `AudioParser`")
+    @available(*, unavailable, message: "Not supported for `AudioParser`")
     public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
         fatalError("Not supported for `AudioParser`")
     }
