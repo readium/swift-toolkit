@@ -222,6 +222,7 @@ public class PublicationServer: ResourcesServer {
             var href = request.url.absoluteString
             if let range = href.range(of: endpoint) {
                 href = String(href[range.upperBound...])
+                href = href.removingPercentEncoding ?? href
             }
 
             let resource = publication.get(href)
