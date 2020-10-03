@@ -22,10 +22,6 @@ class LCPLibraryService: DRMLibraryService {
     private var lcpService = LCPService()
     private let authentication = LCPDialogAuthentication()
     
-    var brand: DRM.Brand {
-        return .lcp
-    }
-    
     var contentProtection: ContentProtection? {
         lcpService.contentProtection(with: authentication)
     }

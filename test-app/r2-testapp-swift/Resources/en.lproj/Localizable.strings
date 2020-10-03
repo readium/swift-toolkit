@@ -71,8 +71,6 @@
 "library_error_openFailed" = "Error while opening this publication: %@";
 /* Error message when the download of a publication failed */
 "library_error_downloadFailed" = "Download failed: %@";
-/* Error message used when trying to import a book protected with an unsupported DRM */
-"library_error_drmNotSupported" = "%@ DRM not supported";
 
 /* Accessibility label for the library collection view */
 "library_a11y_label" = "Library";

@@ -272,7 +272,6 @@
 		CA7F5A4C2204A42100B88141 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
 		CA7F5A4D2204A42100B88141 /* DRMLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7F5A402204A05700B88141 /* DRMLibraryService.swift */; };
 		CA81740224581D9D00033776 /* SwiftSoup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA81740124581D9D00033776 /* SwiftSoup.framework */; };
-		CA81740324581DAD00033776 /* SwiftSoup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA81740124581D9D00033776 /* SwiftSoup.framework */; };
 		CA81740424581DB400033776 /* SwiftSoup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA81740124581D9D00033776 /* SwiftSoup.framework */; };
 		CA81740524581DB900033776 /* SwiftSoup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA81740124581D9D00033776 /* SwiftSoup.framework */; };
 		CA817407245821AC00033776 /* BarButtonItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA817406245821AC00033776 /* BarButtonItem.swift */; };
@@ -564,7 +563,6 @@
 				03061919222D72AB00646F1F /* ReadiumOPDS.framework in Frameworks */,
 				0306191F222D72AB00646F1F /* R2Shared.framework in Frameworks */,
 				03B94499238D43FF0027986F /* GCDWebServer.framework in Frameworks */,
-				CA81740324581DAD00033776 /* SwiftSoup.framework in Frameworks */,
 				0352073E222D69330000F0A4 /* SQLite.framework in Frameworks */,
 				0306191C222D72AB00646F1F /* R2Navigator.framework in Frameworks */,
 				0352073C222D68EA0000F0A4 /* MBProgressHUD.framework in Frameworks */,
@@ -977,7 +975,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0830;
-				LastUpgradeCheck = 1020;
+				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = Readium;
 				TargetAttributes = {
 					CA822C71221C5737005800D1 = {
@@ -1718,6 +1716,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -1780,6 +1779,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
