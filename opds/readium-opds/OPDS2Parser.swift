@@ -195,7 +195,7 @@ public class OPDS2Parser: Loggable {
                         throw OPDS2ParserError.invalidFacet
                     }
                     for linkDict in links {
-                        let link = try Link(json: linkDict, normalizeHref: {
+                        let link = try Link(json: linkDict, normalizeHREF: {
                             URLHelper.getAbsolute(href: $0, base: feedURL) ?? $0
                         })
                         facet.links.append(link)
@@ -208,7 +208,7 @@ public class OPDS2Parser: Loggable {
 
     static func parseLinks(feed: Feed, links: [[String: Any]]) throws {
         for linkDict in links {
-            let link = try Link(json: linkDict, normalizeHref: hrefNormalizer(feedURL))
+            let link = try Link(json: linkDict, normalizeHREF: hrefNormalizer(feedURL))
             feed.links.append(link)
         }
     }
@@ -222,7 +222,7 @@ public class OPDS2Parser: Loggable {
 
     static func parseNavigation(feed: Feed, navLinks: [[String: Any]]) throws {
         for navDict in navLinks {
-            let link = try Link(json: navDict, normalizeHref: hrefNormalizer(feedURL))
+            let link = try Link(json: navDict, normalizeHREF: hrefNormalizer(feedURL))
             feed.navigation.append(link)
         }
     }
@@ -247,7 +247,7 @@ public class OPDS2Parser: Loggable {
                         throw OPDS2ParserError.invalidGroup
                     }
                     for linkDict in links {
-                        let link = try Link(json: linkDict, normalizeHref: hrefNormalizer(feedURL))
+                        let link = try Link(json: linkDict, normalizeHREF: hrefNormalizer(feedURL))
                         group.links.append(link)
                     }
                 case "navigation":
@@ -255,7 +255,7 @@ public class OPDS2Parser: Loggable {
                         throw OPDS2ParserError.invalidGroup
                     }
                     for linkDict in links {
-                        let link = try Link(json: linkDict, normalizeHref: hrefNormalizer(feedURL))
+                        let link = try Link(json: linkDict, normalizeHREF: hrefNormalizer(feedURL))
                         group.navigation.append(link)
                     }
                 case "publications":
