@@ -211,7 +211,7 @@ extension Metadata {
     
     @available(*, deprecated, renamed: "init(json:)")
     public static func parse(metadataDict: [String: Any]) throws -> Metadata {
-        return try Metadata(json: metadataDict, normalizeHref: { $0 })
+        return try Metadata(json: metadataDict, normalizeHREF: { $0 })
     }
     
     @available(*, deprecated, renamed: "presentation")
@@ -273,6 +273,12 @@ extension Link {
         self.init(href: "")
     }
     
+    @available(*, deprecated, renamed: "init(json:warnings:normalizeHREF:)")
+    public init(json: Any, warnings: WarningLogger? = nil, normalizeHref: (String) -> String) throws {
+        try self.init(json: json, warnings: warnings, normalizeHREF: normalizeHref)
+    }
+    
+    
     @available(*, unavailable, renamed: "init(json:)")
     static public func parse(linkDict: [String: Any]) throws -> Link {
         fatalError()
@@ -281,6 +287,15 @@ extension Link {
     @available(*, unavailable, message: "The media overlay API was only half implemented and will be refactored later")
     public var mediaOverlays: MediaOverlays { MediaOverlays() }
     
+}
+
+extension Array where Element == Link {
+    
+    @available(*, deprecated, renamed: "init(json:warnings:normalizeHREF:)")
+    public init(json: Any?, warnings: WarningLogger? = nil, normalizeHref: (String) -> String) {
+        self.init(json: json, warnings: warnings, normalizeHREF: normalizeHref)
+    }
+        
 }
 
 extension Properties {

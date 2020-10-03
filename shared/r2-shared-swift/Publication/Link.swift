@@ -77,7 +77,7 @@ public struct Link: JSONEquatable {
         self.children = children
     }
     
-    public init(json: Any, warnings: WarningLogger? = nil, normalizeHref: (String) -> String = { $0 }) throws {
+    public init(json: Any, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) throws {
         guard let jsonObject = json as? [String: Any],
             let href = jsonObject["href"] as? String else
         {
@@ -85,7 +85,7 @@ public struct Link: JSONEquatable {
             throw JSONError.parsing(Self.self)
         }
         self.init(
-            href: normalizeHref(href),
+            href: normalizeHREF(href),
             type: jsonObject["type"] as? String,
             templated: (jsonObject["templated"] as? Bool) ?? false,
             title: jsonObject["title"] as? String,
@@ -96,8 +96,8 @@ public struct Link: JSONEquatable {
             bitrate: parsePositiveDouble(jsonObject["bitrate"]),
             duration: parsePositiveDouble(jsonObject["duration"]),
             languages: parseArray(jsonObject["language"], allowingSingle: true),
-            alternates: .init(json: jsonObject["alternate"], warnings: warnings, normalizeHref: normalizeHref),
-            children: .init(json: jsonObject["children"], warnings: warnings, normalizeHref: normalizeHref)
+            alternates: .init(json: jsonObject["alternate"], warnings: warnings, normalizeHREF: normalizeHREF),
+            children: .init(json: jsonObject["children"], warnings: warnings, normalizeHREF: normalizeHREF)
         )
     }
     
@@ -203,13 +203,13 @@ extension Array where Element == Link {
     
     /// Parses multiple JSON links into an array of Link.
     /// eg. let links = [Link](json: [["href", "http://link1"], ["href", "http://link2"]])
-    public init(json: Any?, warnings: WarningLogger? = nil, normalizeHref: (String) -> String = { $0 }) {
+    public init(json: Any?, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) {
         self.init()
         guard let json = json as? [Any] else {
             return
         }
         
-        let links = json.compactMap { try? Link(json: $0, warnings: warnings, normalizeHref: normalizeHref) }
+        let links = json.compactMap { try? Link(json: $0, warnings: warnings, normalizeHREF: normalizeHREF) }
         append(contentsOf: links)
     }
     

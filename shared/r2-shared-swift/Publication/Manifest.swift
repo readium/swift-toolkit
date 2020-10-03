@@ -72,9 +72,9 @@ public struct Manifest: JSONEquatable {
         let normalizer = HREF.normalizer(relativeTo: baseHREF)
 
         self.context = parseArray(json.pop("@context"), allowingSingle: true)
-        self.metadata = try Metadata(json: json.pop("metadata"), warnings: warnings, normalizeHref: normalizer)
+        self.metadata = try Metadata(json: json.pop("metadata"), warnings: warnings, normalizeHREF: normalizer)
         
-        self.links = [Link](json: json.pop("links"), warnings: warnings, normalizeHref: normalizer)
+        self.links = [Link](json: json.pop("links"), warnings: warnings, normalizeHREF: normalizer)
             // If the manifest is packaged, replace any `self` link by an `alternate`.
             .map { link in
                 (isPackaged && link.rels.contains(.self))
@@ -83,13 +83,13 @@ public struct Manifest: JSONEquatable {
             }
         
         // `readingOrder` used to be `spine`, so we parse `spine` as a fallback.
-        self.readingOrder = [Link](json: json.pop("readingOrder") ?? json.pop("spine"), warnings: warnings, normalizeHref: normalizer)
+        self.readingOrder = [Link](json: json.pop("readingOrder") ?? json.pop("spine"), warnings: warnings, normalizeHREF: normalizer)
             .filter { $0.type != nil }
-        self.resources = [Link](json: json.pop("resources"), warnings: warnings, normalizeHref: normalizer)
+        self.resources = [Link](json: json.pop("resources"), warnings: warnings, normalizeHREF: normalizer)
             .filter { $0.type != nil }
 
         // Parses sub-collections from remaining JSON properties.
-        self.subcollections = PublicationCollection.makeCollections(json: json.json, warnings: warnings, normalizeHref: normalizer)
+        self.subcollections = PublicationCollection.makeCollections(json: json.json, warnings: warnings, normalizeHREF: normalizer)
     }
     
     public var json: [String: Any] {

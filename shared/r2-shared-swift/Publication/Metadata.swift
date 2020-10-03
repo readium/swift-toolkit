@@ -124,7 +124,7 @@ public struct Metadata: Equatable, Loggable, WarningLogger {
         self.otherMetadataJSON = JSONDictionary(otherMetadata) ?? JSONDictionary()
     }
     
-    init(json: Any?, warnings: WarningLogger? = nil, normalizeHref: (String) -> String = { $0 }) throws {
+    init(json: Any?, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) throws {
         guard var json = JSONDictionary(json),
             let title = try? LocalizedString(json: json.pop("title"), warnings: warnings) else
         {
@@ -140,26 +140,26 @@ public struct Metadata: Equatable, Loggable, WarningLogger {
         self.languages = parseArray(json.pop("language"), allowingSingle: true)
         self.sortAs = json.pop("sortAs") as? String
         self.subjects = [Subject](json: json.pop("subject"), warnings: warnings)
-        self.authors = [Contributor](json: json.pop("author"), warnings: warnings,  normalizeHref: normalizeHref)
-        self.translators = [Contributor](json: json.pop("translator"), warnings: warnings, normalizeHref: normalizeHref)
-        self.editors = [Contributor](json: json.pop("editor"), warnings: warnings, normalizeHref: normalizeHref)
-        self.artists = [Contributor](json: json.pop("artist"), warnings: warnings, normalizeHref: normalizeHref)
-        self.illustrators = [Contributor](json: json.pop("illustrator"), warnings: warnings, normalizeHref: normalizeHref)
-        self.letterers = [Contributor](json: json.pop("letterer"), warnings: warnings, normalizeHref: normalizeHref)
-        self.pencilers = [Contributor](json: json.pop("penciler"), warnings: warnings, normalizeHref: normalizeHref)
-        self.colorists = [Contributor](json: json.pop("colorist"), warnings: warnings, normalizeHref: normalizeHref)
-        self.inkers = [Contributor](json: json.pop("inker"), warnings: warnings, normalizeHref: normalizeHref)
-        self.narrators = [Contributor](json: json.pop("narrator"), warnings: warnings, normalizeHref: normalizeHref)
-        self.contributors = [Contributor](json: json.pop("contributor"), warnings: warnings, normalizeHref: normalizeHref)
-        self.publishers = [Contributor](json: json.pop("publisher"), warnings: warnings, normalizeHref: normalizeHref)
-        self.imprints = [Contributor](json: json.pop("imprint"), warnings: warnings, normalizeHref: normalizeHref)
+        self.authors = [Contributor](json: json.pop("author"), warnings: warnings,  normalizeHREF: normalizeHREF)
+        self.translators = [Contributor](json: json.pop("translator"), warnings: warnings, normalizeHREF: normalizeHREF)
+        self.editors = [Contributor](json: json.pop("editor"), warnings: warnings, normalizeHREF: normalizeHREF)
+        self.artists = [Contributor](json: json.pop("artist"), warnings: warnings, normalizeHREF: normalizeHREF)
+        self.illustrators = [Contributor](json: json.pop("illustrator"), warnings: warnings, normalizeHREF: normalizeHREF)
+        self.letterers = [Contributor](json: json.pop("letterer"), warnings: warnings, normalizeHREF: normalizeHREF)
+        self.pencilers = [Contributor](json: json.pop("penciler"), warnings: warnings, normalizeHREF: normalizeHREF)
+        self.colorists = [Contributor](json: json.pop("colorist"), warnings: warnings, normalizeHREF: normalizeHREF)
+        self.inkers = [Contributor](json: json.pop("inker"), warnings: warnings, normalizeHREF: normalizeHREF)
+        self.narrators = [Contributor](json: json.pop("narrator"), warnings: warnings, normalizeHREF: normalizeHREF)
+        self.contributors = [Contributor](json: json.pop("contributor"), warnings: warnings, normalizeHREF: normalizeHREF)
+        self.publishers = [Contributor](json: json.pop("publisher"), warnings: warnings, normalizeHREF: normalizeHREF)
+        self.imprints = [Contributor](json: json.pop("imprint"), warnings: warnings, normalizeHREF: normalizeHREF)
         self.readingProgression = parseRaw(json.pop("readingProgression")) ?? .auto
         self.description = json.pop("description") as? String
         self.duration = parsePositiveDouble(json.pop("duration"))
         self.numberOfPages = parsePositive(json.pop("numberOfPages"))
         let belongsTo = json.pop("belongsTo") as? [String: Any]
-        self.belongsToCollections = [Collection](json: belongsTo?["collection"], warnings: warnings, normalizeHref: normalizeHref)
-        self.belongsToSeries = [Collection](json: belongsTo?["series"], warnings: warnings, normalizeHref: normalizeHref)
+        self.belongsToCollections = [Collection](json: belongsTo?["collection"], warnings: warnings, normalizeHREF: normalizeHREF)
+        self.belongsToSeries = [Collection](json: belongsTo?["series"], warnings: warnings, normalizeHREF: normalizeHREF)
         self.otherMetadataJSON = json
     }
     

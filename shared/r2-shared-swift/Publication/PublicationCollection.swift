@@ -29,17 +29,17 @@ public struct PublicationCollection: JSONEquatable {
         self.subcollections = subcollections
     }
     
-    public init?(json: Any, warnings: WarningLogger? = nil, normalizeHref: (String) -> String = { $0 }) throws {
+    public init?(json: Any, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) throws {
         // Parses a list of links.
         if let json = json as? [[String: Any]] {
-            self.init(links: .init(json: json, warnings: warnings, normalizeHref: normalizeHref))
+            self.init(links: .init(json: json, warnings: warnings, normalizeHREF: normalizeHREF))
 
         // Parses a Collection object.
         } else if var json = JSONDictionary(json) {
             self.init(
                 metadata: json.pop("metadata") as? [String: Any] ?? [:],
-                links: .init(json: json.pop("links"), normalizeHref: normalizeHref),
-                subcollections: Self.makeCollections(json: json.json, normalizeHref: normalizeHref)
+                links: .init(json: json.pop("links"), normalizeHREF: normalizeHREF),
+                subcollections: Self.makeCollections(json: json.json, normalizeHREF: normalizeHREF)
             )
             
         } else {
@@ -72,20 +72,20 @@ public struct PublicationCollection: JSONEquatable {
             && lhs.subcollections == rhs.subcollections
     }
     
-    static func makeCollections(json: Any?, warnings: WarningLogger? = nil, normalizeHref: (String) -> String = { $0 }) -> [String: [PublicationCollection]] {
+    static func makeCollections(json: Any?, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) -> [String: [PublicationCollection]] {
         guard let json = json as? [String: Any] else {
             return [:]
         }
         
         return json.compactMapValues { json in
             // Parses list of links or a single collection object.
-            if let collection = try? PublicationCollection(json: json, warnings: warnings, normalizeHref: normalizeHref) {
+            if let collection = try? PublicationCollection(json: json, warnings: warnings, normalizeHREF: normalizeHREF) {
                 return [collection]
 
             // Parses list of collection objects.
             } else if let collections = json as? [[String: Any]] {
                 return collections.compactMap {
-                    try? PublicationCollection(json: $0, warnings: warnings, normalizeHref: normalizeHref)
+                    try? PublicationCollection(json: $0, warnings: warnings, normalizeHREF: normalizeHREF)
                 }
 
             } else {

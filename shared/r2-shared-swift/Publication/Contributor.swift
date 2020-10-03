@@ -49,7 +49,7 @@ public struct Contributor: Equatable {
         self.links = links
     }
     
-    public init?(json: Any, warnings: WarningLogger? = nil, normalizeHref: (String) -> String = { $0 }) throws {
+    public init?(json: Any, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) throws {
         if let name = json as? String {
             self.init(name: name)
 
@@ -60,7 +60,7 @@ public struct Contributor: Equatable {
                 sortAs: json["sortAs"] as? String,
                 roles: parseArray(json["role"], allowingSingle: true),
                 position: parseDouble(json["position"]),
-                links: .init(json: json["links"], warnings: warnings, normalizeHref: normalizeHref)
+                links: .init(json: json["links"], warnings: warnings, normalizeHREF: normalizeHREF)
             )
 
         } else {
@@ -86,16 +86,16 @@ extension Array where Element == Contributor {
     
     /// Parses multiple JSON contributors into an array of Contributors.
     /// eg. let authors = [Contributor](json: ["Apple", "Pear"])
-    public init(json: Any?, warnings: WarningLogger? = nil, normalizeHref: (String) -> String = { $0 }) {
+    public init(json: Any?, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) {
         self.init()
         guard let json = json else {
             return
         }
 
         if let json = json as? [Any] {
-            let contributors = json.compactMap { try? Contributor(json: $0, warnings: warnings, normalizeHref: normalizeHref) }
+            let contributors = json.compactMap { try? Contributor(json: $0, warnings: warnings, normalizeHREF: normalizeHREF) }
             append(contentsOf: contributors)
-        } else if let contributor = try? Contributor(json: json, warnings: warnings, normalizeHref: normalizeHref) {
+        } else if let contributor = try? Contributor(json: json, warnings: warnings, normalizeHREF: normalizeHREF) {
             append(contributor)
         }
     }
