@@ -123,20 +123,6 @@
 
 /* MARK: LCP */
 
-/* Prompt messages when asking for the passphrase */
-"lcp_prompt_message1" = "This publication is protected by Readium LCP.";
-"lcp_prompt_message2" = "In order to open it, we need to know the passphrase required by:\n\n%@\n\nTo help you remember it, the following hint is available:";
-/* Reason to ask for the passphrase when it was not found */
-"lcp_passphraseNotFound_message" = "Passphrase Required";
-/* Reason to ask for the passphrase when the one entered was incorrect */
-"lcp_invalidPassphrase_message" = "Incorrect Passphrase";
-
-/* Button to contact the support when entering the passphrase */
-"lcp_support_button" = "Support";
-"lcp_support_website" = "Website";
-"lcp_support_phone" = "Phone";
-"lcp_support_mail" = "Mail";
-
 /* Quantity of characters left to be copied */
 "lcp_characters_label" = "%d characters";
 /* Quantity of pages left to be printed */
