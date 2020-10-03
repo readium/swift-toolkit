@@ -59,7 +59,13 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
     /// Returns: an observable download progress value, from 0.0 to 1.0
     @discardableResult
     public func launch(request: URLRequest, description: String?, completionHandler: CompletionHandler?) -> Observable<DownloadProgress> {
-        let task = self.session.downloadTask(with: request); task.resume()
+        launchTask(request: request, description: description, completionHandler: completionHandler).progress
+    }
+    
+    @discardableResult
+    public func launchTask(request: URLRequest, description: String?, completionHandler: CompletionHandler?) -> (task: URLSessionDownloadTask, progress: Observable<DownloadProgress>) {
+        let task = self.session.downloadTask(with: request)
+        task.resume()
         let download = Download(completion: completionHandler ?? { _, _, _, _ in return true })
         self.taskMap[task] = download
 
@@ -68,9 +74,9 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
             self.displayDelegate?.didStartDownload(task: task, description: localizedDescription)
         }
         
-        return download.progress
+        return (task, download.progress)
     }
-    
+        
     public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
         let done: Bool?
         let download = taskMap[downloadTask]
