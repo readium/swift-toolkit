@@ -267,6 +267,15 @@ public final class Deferred<Success, Failure: Error> {
         )
     }
     
+    /// Delays the chain by the given `seconds`, and then continue on the given `queue`.
+    public func delay(for seconds: TimeInterval, on queue: DispatchQueue? = nil) -> Deferred<Success, Failure> {
+        return asyncMap(on: queue) { output, completion in
+            (queue ?? .main).asyncAfter(deadline: .now() + seconds) {
+                completion(.success(output))
+            }
+        }
+    }
+    
     /// Transforms (potentially) asynchronously the resolved value or error.
     /// The transformation is wrapped in another Deferred to be able to chain the transformations.
     ///
