@@ -59,6 +59,8 @@ final class PassphrasesService {
                     }
                 }
             }
+            // Delays a bit to make sure any dialog was dismissed.
+            .delay(for: 0.3)
             .flatMap { clearPassphrase in
                 let hashedPassphrase = clearPassphrase.sha256()
                 var passphrases = [hashedPassphrase]

@@ -72,7 +72,7 @@ class LCPDecryptorTests: XCTestCase {
         let completionExpectation = expectation(description: "License opened")
         
         let url = fixtures.url(for: path)
-        service.retrieveLicense(from: url, authentication: LCPPassphrase(passphrase), allowUserInteraction: false) { result in
+        service.retrieveLicense(from: url, authentication: LCPPassphraseAuthentication(passphrase), allowUserInteraction: false) { result in
             try! completion((try! result.get())!)
             completionExpectation.fulfill()
         }
