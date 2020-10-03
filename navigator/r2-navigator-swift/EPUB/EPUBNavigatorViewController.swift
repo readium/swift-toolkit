@@ -672,7 +672,7 @@ extension EPUBNavigatorViewController {
     
     /// This initializer is deprecated.
     /// `license` is not needed anymore.
-    @available(*, unavailable, renamed: "init(publication:initialLocation:resourcesServer:config:)")
+    @available(*, deprecated, renamed: "init(publication:initialLocation:resourcesServer:config:)")
     public convenience init(publication: Publication, license: DRMLicense?, initialLocation: Locator? = nil, resourcesServer: ResourcesServer, config: Configuration = .init()) {
         self.init(publication: publication, initialLocation: initialLocation, resourcesServer: resourcesServer, config: config)
     }
@@ -688,7 +688,7 @@ extension EPUBNavigatorViewController {
     
     /// This initializer is deprecated.
     /// Use the new Configuration object.
-    @available(*, unavailable, renamed: "init(publication:license:initialLocation:resourcesServer:config:)")
+    @available(*, deprecated, renamed: "init(publication:license:initialLocation:resourcesServer:config:)")
     public convenience init(publication: Publication, license: DRMLicense? = nil, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]? = nil, resourcesServer: ResourcesServer) {
         var config = Configuration()
         config.editingActions = editingActions
