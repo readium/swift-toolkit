@@ -243,56 +243,7 @@ extension License: LCPLicense {
             .mapError(LCPError.wrap)
             .resolveWithError(completion)
     }
-    
-}
 
-
-/// Internal API
-extension License {
-
-    /// Downloads the publication and return the path to the downloaded resource.
-    func fetchPublication(completion: @escaping (Result<(URL, URLSessionDownloadTask?), Error>) -> Void) -> Observable<DownloadProgress> {
-        do {
-            let license = self.documents.license
-            let link = license.link(for: .publication)
-            let url = try license.url(for: .publication)
-
-            return self.network.download(url, title: link?.title) { result in
-                switch result {
-                case .success(let (downloadedFile, task)):
-                    var mimetypes: [String] = []
-                    if let responseMimetype = task?.response?.mimeType {
-                        mimetypes.append(responseMimetype)
-                    }
-                    if let linkType = link?.type {
-                        mimetypes.append(linkType)
-                    }
-
-                    // Saves the License Document into the downloaded publication
-                    makeLicenseContainer(for: downloadedFile, mimetypes: mimetypes)
-                        .tryMap(on: .global(qos: .background)) { container -> (URL, URLSessionDownloadTask?) in
-                            guard let container = container else {
-                                throw LCPError.licenseContainer(.openFailed)
-                            }
-
-                            try container.write(license)
-                            return (downloadedFile, task)
-                        }
-                        .resolve { completion($0.result) }
-
-                case .failure(let error):
-                    completion(.failure(error))
-                }
-            }
-            
-        } catch {
-            DispatchQueue.main.async {
-                completion(.failure(error))
-            }
-            return Observable<DownloadProgress>(.infinite)
-        }
-    }
-    
     /// Shortcut to be used in LSD interactions (eg. renew), to validate the returned Status Document.
     fileprivate func validateStatusDocument(data: Data) -> Deferred<Void, Error> {
         return validation.validate(.status(data))

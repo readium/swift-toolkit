@@ -24,6 +24,8 @@
 		CA5A5E152520908900CF1CCE /* Fixtures in Resources */ = {isa = PBXBuildFile; fileRef = CA5A5E142520908900CF1CCE /* Fixtures */; };
 		CA5A5E1B252090C100CF1CCE /* LCPDecryptorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A5E1A252090C100CF1CCE /* LCPDecryptorTests.swift */; };
 		CA5A5E21252091E000CF1CCE /* Fixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A5E20252091DF00CF1CCE /* Fixtures.swift */; };
+		CA6CF1A725286FC20025BBB2 /* LCPAcquisition.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6CF1A625286FC20025BBB2 /* LCPAcquisition.swift */; };
+		CA6CF1B32528984F0025BBB2 /* LCPLicense.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6CF1B22528984F0025BBB2 /* LCPLicense.swift */; };
 		CA78C9EB244F53BA00E559B3 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA78C9E8244F531A00E559B3 /* R2Shared.framework */; };
 		CA9428FD22B9442300305CDB /* ReadiumLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9428FC22B9442300305CDB /* ReadiumLicenseContainer.swift */; };
 		CAB131F6220D81E60097DFB5 /* LicensesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB131F5220D81E60097DFB5 /* LicensesRepository.swift */; };
@@ -89,6 +91,8 @@
 		CA5A5E19252090C100CF1CCE /* readium-lcp-swiftTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "readium-lcp-swiftTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		CA5A5E1A252090C100CF1CCE /* LCPDecryptorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDecryptorTests.swift; sourceTree = "<group>"; };
 		CA5A5E20252091DF00CF1CCE /* Fixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fixtures.swift; sourceTree = "<group>"; };
+		CA6CF1A625286FC20025BBB2 /* LCPAcquisition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPAcquisition.swift; sourceTree = "<group>"; };
+		CA6CF1B22528984F0025BBB2 /* LCPLicense.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPLicense.swift; sourceTree = "<group>"; };
 		CA78C9E8244F531A00E559B3 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA9428FC22B9442300305CDB /* ReadiumLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadiumLicenseContainer.swift; sourceTree = "<group>"; };
 		CAB131F5220D81E60097DFB5 /* LicensesRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensesRepository.swift; sourceTree = "<group>"; };
@@ -310,7 +314,9 @@
 			children = (
 				CAB1320A220D9B200097DFB5 /* LCPService.swift */,
 				F3B2C8A51F66727C007601E4 /* LCPError.swift */,
+				CA6CF1A625286FC20025BBB2 /* LCPAcquisition.swift */,
 				CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */,
+				CA6CF1B22528984F0025BBB2 /* LCPLicense.swift */,
 				CA2AE327221C3CFB008BD18F /* Deprecated.swift */,
 				CAB13214220DB5930097DFB5 /* License */,
 				CA2B6B5024C07869007AF537 /* Content Protection */,
@@ -466,6 +472,8 @@
 				CA2B6B5624C07B8C007AF537 /* DataCompression.swift in Sources */,
 				CAB1321F220DBA470097DFB5 /* NetworkService.swift in Sources */,
 				CA4A388E220988C800599297 /* LCPLLicenseContainer.swift in Sources */,
+				CA6CF1B32528984F0025BBB2 /* LCPLicense.swift in Sources */,
+				CA6CF1A725286FC20025BBB2 /* LCPAcquisition.swift in Sources */,
 				CAB131F6220D81E60097DFB5 /* LicensesRepository.swift in Sources */,
 				F38CDB221F697D3A004156CB /* PotentialRights.swift in Sources */,
 				CABEB3F62215C86C00090B6C /* LCPError+wrap.swift in Sources */,

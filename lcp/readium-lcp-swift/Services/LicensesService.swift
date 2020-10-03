@@ -14,18 +14,18 @@ import R2Shared
 
 
 final class LicensesService: Loggable {
+
+    // Mapping between an unprotected format to the matching LCP protected format.
+    private let formatsMapping: [Format: Format] = [
+        .readiumAudiobook: .lcpProtectedAudiobook,
+        .pdf: .lcpProtectedPDF
+    ]
     
     private let licenses: LicensesRepository
     private let crl: CRLService
     private let device: DeviceService
     private let network: NetworkService
     private let passphrases: PassphrasesService
-    
-    // Mapping between an unprotected format to the matching LCP protected format.
-    private let formatsMapping: [Format: Format] = [
-        .readiumAudiobook: .lcpProtectedAudiobook,
-        .pdf: .lcpProtectedPDF
-    ]
 
     init(licenses: LicensesRepository, crl: CRLService, device: DeviceService, network: NetworkService, passphrases: PassphrasesService) {
         self.licenses = licenses
@@ -34,8 +34,8 @@ final class LicensesService: Loggable {
         self.network = network
         self.passphrases = passphrases
     }
-    
-    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, allowUserInteraction: Bool, sender: Any?) -> Deferred<LCPLicense?, LCPError> {
+
+    func retrieve(from publication: URL, authentication: LCPAuthenticating?, allowUserInteraction: Bool, sender: Any?) -> Deferred<License?, LCPError> {
         return makeLicenseContainer(for: publication)
             .flatMap { container in
                 guard let container = container, container.containsLicense() else {
@@ -43,13 +43,13 @@ final class LicensesService: Loggable {
                     return .success(nil)
                 }
 
-                return self.retrieveLicense(from: container, authentication: authentication, allowUserInteraction: allowUserInteraction, sender: sender)
-                    .map { $0 as LCPLicense }
+                return self.retrieve(from: container, authentication: authentication, allowUserInteraction: allowUserInteraction, sender: sender)
+                    .map { $0 as License? }
                     .mapError(LCPError.wrap)
             }
     }
 
-    fileprivate func retrieveLicense(from container: LicenseContainer, authentication: LCPAuthenticating?, allowUserInteraction: Bool, sender: Any?) -> Deferred<License, Error> {
+    fileprivate func retrieve(from container: LicenseContainer, authentication: LCPAuthenticating?, allowUserInteraction: Bool, sender: Any?) -> Deferred<License, Error> {
         return deferredCatching(on: .global(qos: .background)) {
             let initialData = try container.read()
             
@@ -86,49 +86,122 @@ final class LicensesService: Loggable {
                 }
         }
     }
-
-}
-
-extension LicensesService: LCPService {
-
-    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, sender: Any?, completion: @escaping (CancellableResult<LCPImportedPublication, LCPError>) -> Void) -> Observable<DownloadProgress> {
-        let progress = MutableObservable<DownloadProgress>(.infinite)
-        let container = LCPLLicenseContainer(lcpl: lcpl)
-        retrieveLicense(from: container, authentication: authentication, allowUserInteraction: true, sender: sender)
-            .asyncMap { (license, completion: (@escaping (CancellableResult<LCPImportedPublication, Error>) -> Void)) in
-                let downloadProgress = license.fetchPublication { result in
-                    progress.value = .infinite
-                    switch result {
-                    case .success(let res):
-                        let filename = self.suggestedFilename(for: res.0, license: license)
-                        let publication = LCPImportedPublication(localURL: res.0, downloadTask: res.1, suggestedFilename: filename)
-                        completion(.success(publication))
-                    case .failure(let error):
-                        completion(.failure(error))
-                    }
+    
+    func acquirePublication(from lcpl: URL) -> LCPAcquisition {
+        let acquisition = LCPAcquisition()
+        
+        readLicense(from: lcpl).resolve { result in
+            switch result {
+            case .success(let license):
+                guard let license = license else {
+                    acquisition.cancel()
+                    return
                 }
-                // Forwards the download progress to the global import progress
-                downloadProgress.observe(progress)
+
+                self.acquirePublication(from: license, using: acquisition)
+
+            case .failure(let error):
+                acquisition.didComplete(with: .failure(error))
+            case .cancelled:
+                acquisition.cancel()
+            }
+        }
+
+        return acquisition
+    }
+    
+    private func readLicense(from lcpl: URL) -> Deferred<LicenseDocument?, LCPError> {
+        makeLicenseContainer(for: lcpl)
+            .tryMap { container in
+                guard let container = container, container.containsLicense() else {
+                    // Not protected with LCP
+                    return nil
+                }
+                
+                return try LicenseDocument(data: container.read())
             }
             .mapError(LCPError.wrap)
-            .resolve(completion)
-        
-        return progress
+    }
+
+    private func acquirePublication(from license: LicenseDocument, using acquisition: LCPAcquisition) {
+        guard !acquisition.isCancelled else {
+            return
+        }
+
+        do {
+            let link = license.link(for: .publication)
+            let url = try license.url(for: .publication)
+
+            let (task, progress) = network.download(url, title: link?.title) { result in
+                guard !acquisition.isCancelled else {
+                    return
+                }
+
+                switch result {
+                case .success(let (downloadedFile, task)):
+                    self.injectLicense(license, in: downloadedFile, downloadTask: task)
+                        .resolve { result in
+                            switch result {
+                            case .success(let file):
+                                acquisition.didComplete(with: .success(.init(
+                                    localURL: file,
+                                    suggestedFilename: self.suggestedFilename(for: file, license: license),
+                                    downloadTask: acquisition.downloadTask
+                                )))
+                            case .failure(let error):
+                                acquisition.didComplete(with: .failure(LCPError.wrap(error)))
+                            case .cancelled:
+                                acquisition.cancel()
+                            }
+                        }
+
+                case .failure(let error):
+                    acquisition.didComplete(with: .failure(LCPError.wrap(error)))
+                }
+            }
+
+            acquisition.downloadTask = task
+
+            progress.observe { progress in
+                switch progress {
+                case .infinite:
+                    acquisition.progress.value = .indefinite
+                case .finite(let value):
+                    acquisition.progress.value = .percent(value)
+                }
+            }
+
+        } catch {
+            acquisition.didComplete(with: .failure(.wrap(error)))
+        }
     }
     
-    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, allowUserInteraction: Bool, sender: Any?, completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void) {
-        retrieveLicense(from: publication, authentication: authentication, allowUserInteraction: allowUserInteraction, sender: sender)
-            .resolve(completion)
+    /// Injects the given License Document into the `file` acquired using `downloadTask`.
+    private func injectLicense(_ license: LicenseDocument, in file: URL, downloadTask: URLSessionDownloadTask?) -> Deferred<URL, LCPError> {
+        var mimetypes: [String] = []
+        if let responseMimetype = downloadTask?.response?.mimeType {
+            mimetypes.append(responseMimetype)
+        }
+        if let linkType = license.link(for: .publication)?.type {
+            mimetypes.append(linkType)
+        }
+
+        return makeLicenseContainer(for: file, mimetypes: mimetypes)
+            .tryMap(on: .global(qos: .background)) { container -> URL in
+                guard let container = container else {
+                    throw LCPError.licenseContainer(.openFailed)
+                }
+
+                try container.write(license)
+                return file
+            }
+            .mapError(LCPError.wrap)
     }
-    
-    func contentProtection(with authentication: LCPAuthenticating) -> ContentProtection {
-        return LCPContentProtection(service: self, authentication: authentication)
-    }
-    
+
     /// Returns the suggested filename to be used when importing a publication.
-    private func suggestedFilename(for file: URL, license: License) -> String {
+    private func suggestedFilename(for file: URL, license: LicenseDocument) -> String {
         let fileExtension: String = {
-            let publicationLink = license.license.link(for: .publication)
+            let publicationLink = license.link(for: .publication)
             if var format = Format.of(file, mediaType: publicationLink?.type) {
                 format = formatsMapping[format] ?? format
                 return format.fileExtension
@@ -136,8 +209,8 @@ extension LicensesService: LCPService {
                 return file.pathExtension
             }
         }()
-        
-        return "\(license.license.id).\(fileExtension)"
+
+        return "\(license.id).\(fileExtension)"
     }
 
 }

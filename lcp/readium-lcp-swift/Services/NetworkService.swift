@@ -47,11 +47,11 @@ final class NetworkService: Loggable {
         }
     }
 
-    func download(_ url: URL, title: String? = nil, completion: @escaping (Result<(file: URL, task: URLSessionDownloadTask?), Error>) -> Void) -> Observable<DownloadProgress> {
+    func download(_ url: URL, title: String? = nil, completion: @escaping (Result<(file: URL, task: URLSessionDownloadTask?), Error>) -> Void) -> (task: URLSessionDownloadTask, progress: Observable<DownloadProgress>) {
         self.log(.info, "download \(url)")
 
         let request = URLRequest(url: url)
-        return DownloadSession.shared.launch(request: request, description: title) { tmpLocalURL, response, error, downloadTask in
+        return DownloadSession.shared.launchTask(request: request, description: title) { tmpLocalURL, response, error, downloadTask in
             guard let file = tmpLocalURL, error == nil else {
                 completion(.failure(LCPError.network(error)))
                 return false

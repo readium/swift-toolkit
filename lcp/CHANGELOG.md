@@ -6,6 +6,21 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+* LCP implementation of the [Content Protection API](https://github.com/readium/architecture/blob/master/proposals/006-content-protection.md) to work with the new [Streamer API](https://github.com/readium/architecture/blob/master/proposals/005-streamer-api.md).
+  * It is highly recommended that you upgrade to the new `Streamer` API to open publications, which will simplify DRM unlocking.
+* `LCPService.acquirePublication()` is a new API to acquire a publication from a standalone license. Compared to the former `importPublication()`:
+  * It doesn't require the passphrase, to allow bulk imports.
+  * It can be cancelled by calling `cancel()` on the returned `LCPAuthentication` object.
+* `LCPService.isLCPProtected()` provides a way to check if a file is protected with LCP.
+* `LCPService.addPassphrase()` can be used to preload LCP passphrases, for example when using [LCP Automatic Key Retrieval](https://readium.org/lcp-specs/notes/lcp-key-retrieval.html).
+
+### Changed
+
+* `LCPAuthenticating` is now provided with more information and you will need to update your implementation.
+
+
 ## [2.0.0-alpha.1]
 
 ### Added
