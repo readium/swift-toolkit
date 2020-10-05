@@ -25,7 +25,7 @@ public struct URITemplate: CustomStringConvertible {
     
     /// List of URI template parameter keys.
     public var parameters: Set<String> {
-        return Set(
+        Set(
             NSRegularExpression(#"\{\??([^}]+)\}"#)
                 .matches(in: uri)
                 .flatMap { groups -> [String] in
@@ -44,16 +44,18 @@ public struct URITemplate: CustomStringConvertible {
     /// See RFC 6570 on URI template: https://tools.ietf.org/html/rfc6570
     public func expand(with parameters: [String: String]) -> String {
         func expandSimpleString(_ string: String) -> String {
-            return string
+            string
                 .split(separator: ",")
-                .map { parameters[String($0)] ?? "" }
+                .map { parameters[String($0)]?.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? "" }
                 .joined(separator: ",")
         }
         
         func expandFormStyle(_ string: String) -> String {
-            return "?" + string
+            "?" + string
                 .split(separator: ",")
-                .map { "\($0)=\(parameters[String($0)] ?? "")" }
+                .map {
+                    "\($0)=\(parameters[String($0)]?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
+                }
                 .joined(separator: "&")
         }
         
