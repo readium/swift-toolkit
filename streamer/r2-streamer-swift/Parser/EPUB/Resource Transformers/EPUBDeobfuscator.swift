@@ -58,13 +58,16 @@ final class EPUBDeobfuscator {
 
         override func read(range: Range<UInt64>?) -> ResourceResult<Data> {
             resource.read(range: range).map { data in
-                let range = range ?? 0..<UInt64(data.count)
-                let toDeobfuscate = max(range.lowerBound, 0)..<min(range.upperBound, UInt64(algorithm.obfuscatedLength))
-                
                 var data = data
-                for i in toDeobfuscate {
-                    let i = Int(i)
-                    data[i] = data[i] ^ key[i % key.count]
+
+                let range = range ?? 0..<UInt64(data.count)
+                if range.lowerBound < algorithm.obfuscatedLength {
+                    let toDeobfuscate = max(range.lowerBound, 0)..<min(range.upperBound, UInt64(algorithm.obfuscatedLength))
+
+                    for i in toDeobfuscate {
+                        let i = Int(i)
+                        data[i] = data[i] ^ key[i % key.count]
+                    }
                 }
                 
                 return data
