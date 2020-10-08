@@ -18,27 +18,25 @@ public struct PublicationServicesBuilder {
     
     private var factories: [String: PublicationServiceFactory] = [:]
 
-    public init(setup: ((inout PublicationServicesBuilder) -> Void)? = nil) {
-        setup?(&self)
-    }
-    
     public init(
         contentProtection: ContentProtectionServiceFactory? = nil,
         cover: CoverServiceFactory? = nil,
-        positions: PositionsServiceFactory? = nil
+        locator: LocatorServiceFactory? = { DefaultLocatorService(readingOrder: $0.manifest.readingOrder) },
+        positions: PositionsServiceFactory? = nil,
+        setup: (inout PublicationServicesBuilder) -> Void = { _ in }
     ) {
-        self.init {
-            $0.setContentProtectionServiceFactory(contentProtection)
-            $0.setCoverServiceFactory(cover)
-            $0.setPositionsServiceFactory(positions)
-        }
+        setContentProtectionServiceFactory(contentProtection)
+        setCoverServiceFactory(cover)
+        setLocatorServiceFactory(locator)
+        setPositionsServiceFactory(positions)
+        setup(&self)
     }
 
     /// Builds the actual list of publication services to use in a `Publication`.
     ///
     /// - Parameter context: Context provided to the service factories.
     public func build(context: PublicationServiceContext) -> [PublicationService] {
-        return factories.values.compactMap { $0(context) }
+        factories.values.compactMap { $0(context) }
     }
 
     /// Sets the publication service factory for the given service type.

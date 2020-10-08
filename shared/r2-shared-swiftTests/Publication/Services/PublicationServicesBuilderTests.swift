@@ -35,7 +35,7 @@ class PublicationServicesBuilderTests: XCTestCase {
 
         let services = builder.build(context: context)
         
-        XCTAssert(services.count == 2)
+        XCTAssert(services.count == 3)
         XCTAssert(services.contains { $0 is CoverService })
         XCTAssert(services.contains { $0 is PositionsService })
     }
@@ -47,15 +47,16 @@ class PublicationServicesBuilderTests: XCTestCase {
 
         let services = builder.build(context: context)
 
-        XCTAssert(services.count == 2)
+        XCTAssert(services.count == 3)
         XCTAssert(services.contains { $0 is FooServiceA })
         XCTAssert(services.contains { $0 is BarServiceA })
     }
     
-    func testBuildEmpty() {
+    func testBuildDefault() {
         let builder = PublicationServicesBuilder()
         let services = builder.build(context: context)
-        XCTAssertEqual(services.count, 0)
+        XCTAssertEqual(services.count, 1)
+        XCTAssert(services.contains { $0 is DefaultLocatorService })
     }
     
     func testSetOverwrite() {
@@ -65,7 +66,6 @@ class PublicationServicesBuilderTests: XCTestCase {
 
         let services = builder.build(context: context)
         
-        XCTAssert(services.count == 1)
         XCTAssert(services.contains { $0 is FooServiceB })
     }
     
@@ -77,8 +77,8 @@ class PublicationServicesBuilderTests: XCTestCase {
         builder.remove(FooService.self)
         
         let services = builder.build(context: context)
-        XCTAssert(services.count == 1)
         XCTAssert(services.contains { $0 is BarServiceA })
+        XCTAssert(!services.contains { $0 is FooServiceA })
     }
     
     func testRemoveUnknown() {
@@ -88,7 +88,6 @@ class PublicationServicesBuilderTests: XCTestCase {
         builder.remove(BarService.self)
         
         let services = builder.build(context: context)
-        XCTAssert(services.count == 1)
         XCTAssert(services.contains { $0 is FooServiceA })
     }
     
@@ -102,7 +101,6 @@ class PublicationServicesBuilderTests: XCTestCase {
         }
         
         let services = builder.build(context: context)
-        XCTAssert(services.count == 2)
         XCTAssert(services.contains { ($0 as? FooServiceC)?.wrapped is FooServiceB })
         XCTAssert(services.contains { $0 is BarServiceA })
     }
