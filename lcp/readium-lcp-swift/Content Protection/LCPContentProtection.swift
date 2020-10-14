@@ -25,8 +25,8 @@ final class LCPContentProtection: ContentProtection {
     func open(
         file: File,
         fetcher: Fetcher,
-        allowUserInteraction: Bool,
         credentials: String?,
+        allowUserInteraction: Bool,
         sender: Any?,
         completion: @escaping (CancellableResult<ProtectedFile?, Publication.OpeningError>) -> Void)
     {
