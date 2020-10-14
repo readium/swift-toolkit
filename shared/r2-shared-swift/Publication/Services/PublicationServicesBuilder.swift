@@ -51,9 +51,8 @@ public struct PublicationServicesBuilder {
         factories.removeValue(forKey: String(describing: serviceType))
     }
 
-    /// Replaces the service factory associated with the given service type with the result of
-    /// `transform`.
-    public mutating func wrap<T>(_ serviceType: T.Type, _ transform: (PublicationServiceFactory?) -> PublicationServiceFactory) {
+    /// Decorates the service factory associated with the given service type using `transform`.
+    public mutating func decorate<T>(_ serviceType: T.Type, _ transform: (PublicationServiceFactory?) -> PublicationServiceFactory) {
         let key = String(describing: serviceType)
         factories[key] = transform(factories[key])
     }

@@ -38,7 +38,7 @@ class ContentProtectionServiceTests: XCTestCase {
         )
     }
     
-    func testGetContentProtection() {
+    func testGetContentProtection() throws {
         let service = TestContentProtectionService(
             isRestricted: true,
             error: Publication.OpeningError.notFound,

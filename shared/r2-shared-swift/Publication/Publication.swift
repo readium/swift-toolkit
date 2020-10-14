@@ -161,7 +161,7 @@ public class Publication: Loggable {
         return services.first { $0 is T } as? T
     }
     
-    /// Finds all the services implementing matching the given type.
+    /// Finds all the services implementing the given service type.
     public func findServices<T>(_ serviceType: T.Type) -> [T] {
         return services.filter { $0 is T } as! [T]
     }

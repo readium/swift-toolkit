@@ -97,7 +97,7 @@ class PublicationServicesBuilderTests: XCTestCase {
         builder.set(FooService.self) { _ in FooServiceB() }
         builder.set(BarService.self) { _ in BarServiceA() }
         
-        builder.wrap(FooService.self) { oldFactory in
+        builder.decorate(FooService.self) { oldFactory in
             { context in FooServiceC(wrapped: oldFactory?(context) as? FooService) }
         }
         

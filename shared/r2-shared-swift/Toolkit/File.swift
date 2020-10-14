@@ -36,14 +36,22 @@ public final class File: Loggable {
     
     /// Creates a `File` from a file `url`.
     ///
-    /// Providing a known `mediaType` or `format` will improve performances when sniffing the
-    /// file format.
-    public init(url: URL, mediaType: String? = nil, format: Format? = nil) {
+    /// Providing a known `mediaType` will improve performances when sniffing the file format.
+    public init(url: URL, mediaType: String? = nil) {
         self.url = url
         self.mediaTypeHint = mediaType
+        self.knownFormat = nil
+    }
+
+    /// Creates a `File` from a file `url`.
+    ///
+    /// Providing a known `format` will improve performances when sniffing the file format.
+    public init(url: URL, format: Format?) {
+        self.url = url
+        self.mediaTypeHint = nil
         self.knownFormat = format
     }
-    
+
     /// Sniffed format of this file.
     ///
     /// *Warning*: This should not be called from the UI thread.
