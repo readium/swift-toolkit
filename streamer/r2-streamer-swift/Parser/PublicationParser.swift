@@ -25,11 +25,3 @@ public protocol PublicationParser {
     func parse(file: File, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder?
 
 }
-
-extension PublicationParser {
-    
-    func parse(file: File, fetcher: Fetcher, warnings: WarningLogger? = nil) throws -> Publication.Builder? {
-        return try parse(file: file, fetcher: fetcher, warnings: warnings)
-    }
-
-}
