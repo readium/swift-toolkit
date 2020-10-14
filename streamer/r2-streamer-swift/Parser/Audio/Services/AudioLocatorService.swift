@@ -69,7 +69,7 @@ final class AudioLocatorService: LocatorService {
         )
     }
     
-    static func createFactory() -> (PublicationServiceContext) -> AudioLocatorService {
+    static func makeFactory() -> (PublicationServiceContext) -> AudioLocatorService {
         { context in AudioLocatorService(readingOrder: context.manifest.readingOrder) }
     }
     

@@ -42,7 +42,10 @@ public final class AudioParser: PublicationParser {
                 ),
                 readingOrder: readingOrder
             ),
-            fetcher: fetcher
+            fetcher: fetcher,
+            servicesBuilder: .init(
+                locator: AudioLocatorService.makeFactory()
+            )
         )
     }
     
