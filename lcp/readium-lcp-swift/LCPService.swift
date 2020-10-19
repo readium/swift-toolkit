@@ -101,7 +101,11 @@ public final class LCPService: Loggable {
 
     /// Creates a `ContentProtection` instance which can be used with a `Streamer` to unlock
     /// LCP protected publications.
-    public func contentProtection(with authentication: LCPAuthenticating) -> ContentProtection {
+    ///
+    /// The provided `authentication` will be used to retrieve the user passphrase when opening an
+    /// LCP license. The default implementation `LCPDialogAuthentication` presents a dialog to the
+    /// user to enter their passphrase.
+    public func contentProtection(with authentication: LCPAuthenticating = LCPDialogAuthentication()) -> ContentProtection {
         LCPContentProtection(service: self, authentication: authentication)
     }
 
