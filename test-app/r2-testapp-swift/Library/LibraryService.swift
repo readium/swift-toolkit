@@ -76,7 +76,7 @@ final class LibraryService: Loggable {
     }
     
     /// Opens the Readium 2 Publication at the given `url`.
-    private func openPublication(at url: URL, allowUserInteraction: Bool, sender: UIViewController) -> Deferred<Publication, Error> {
+    private func openPublication(at url: URL, allowUserInteraction: Bool, sender: UIViewController?) -> Deferred<Publication, Error> {
         return deferred {
                 self.streamer.open(file: File(url: url), allowUserInteraction: allowUserInteraction, sender: sender, completion: $0)
             }
@@ -264,7 +264,7 @@ final class LibraryService: Loggable {
             return
         }
         
-        openPublication(at: url, allowUserInteraction: false, sender: UIApplication.shared.keyWindow!.rootViewController!)
+        openPublication(at: url, allowUserInteraction: false, sender: nil)
             .map(on: .global(qos: .background)) { Book(publication: $0, url: url) }
             .flatMap { self.insertBook($0, allowDuplicate: false) }
             .resolve { result in

@@ -20,11 +20,8 @@ import ReadiumLCP
 class LCPLibraryService: DRMLibraryService {
 
     private var lcpService = LCPService()
-    private let authentication = LCPDialogAuthentication()
     
-    var contentProtection: ContentProtection? {
-        lcpService.contentProtection(with: authentication)
-    }
+    lazy var contentProtection: ContentProtection? = lcpService.contentProtection()
     
     func canFulfill(_ file: URL) -> Bool {
         return file.pathExtension.lowercased() == "lcpl"
