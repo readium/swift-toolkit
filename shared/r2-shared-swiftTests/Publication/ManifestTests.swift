@@ -340,6 +340,56 @@ class ManifestTests: XCTestCase {
             []
         )
     }
+    
+    func testCopy() {
+        let manifest = Manifest(
+            context: ["https://readium.org/webpub-manifest/context.jsonld"],
+            metadata: Metadata(title: "Title"),
+            links: [Link(href: "/manifest.json", rels: [.self])],
+            readingOrder: [Link(href: "/chap1.html", type: "text/html")],
+            resources: [Link(href: "/image.png", type: "image/png")],
+            tableOfContents: [Link(href: "/cover.html"), Link(href: "/chap1.html")],
+            subcollections: ["sub": [PublicationCollection(links: [Link(href: "/sublink")])]]
+        )
+
+        AssertJSONEqual(manifest.json, manifest.copy().json)
+        
+        let copy = manifest.copy(
+            context: ["copy-context"],
+            metadata: Metadata(title: "copy-title"),
+            links: [Link(href: "copy-links")],
+            readingOrder: [Link(href: "copy-reading-order")],
+            resources: [Link(href: "copy-resources")],
+            tableOfContents: [Link(href: "copy-toc")],
+            subcollections: ["copy": [PublicationCollection(links: [])]]
+        )
+
+        AssertJSONEqual(
+            copy.json,
+            [
+                "@context": ["copy-context"],
+                "metadata": [
+                    "title": "copy-title",
+                    "readingProgression": "auto"
+                ],
+                "links": [
+                    ["href": "copy-links", "templated": false]
+                ],
+                "readingOrder": [
+                    ["href": "copy-reading-order", "templated": false]
+                ],
+                "resources": [
+                    ["href": "copy-resources", "templated": false]
+                ],
+                "toc": [
+                    ["href": "copy-toc", "templated": false]
+                ],
+                "copy": [
+                    "links": []
+                ]
+            ]
+        )
+    }
 
     private func makeManifest(metadata: Metadata = Metadata(title: ""), links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = []) -> Manifest {
         return Manifest(metadata: metadata, links: links, readingOrder: readingOrder, resources: resources)

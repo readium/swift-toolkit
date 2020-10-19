@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+* Add a new `LinkRelation` type to represent link relations, instead of using raw strings.
+  * This will improve code safety through type checking and enable code completion.
+  * Since `LinkRelation` conforms to `ExpressibleByStringLiteral`, you can continue using raw strings in the API. However, migrating your code is recommended, e.g. `links.first(withRel: .cover)`.
+  * Known link relations (including from OPDS specifications) are available under the `LinkRelation` namespace. You can easily add custom relations to the namespace by declaring `static` properties in a `LinkRelation` extension.
+
 ## [2.0.0-alpha.1]
 
 ### Added

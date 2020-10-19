@@ -155,6 +155,16 @@ public struct MediaType: Equatable, Hashable {
         return other.contains { matches($0) }
     }
     
+    /// Returns whether this media type matches any of the `others` media types.
+    public func matchesAny(_ others: [Self]) -> Bool {
+        return others.contains { matches($0) }
+    }
+    
+    /// Returns whether this media type matches any of the `others` media types.
+    public func matchesAny(_ others: [String]) -> Bool {
+        return others.contains { matches($0) }
+    }
+
     /// Returns whether this media type is structured as a ZIP archive.
     public var isZIP: Bool {
         matchesAny(.zip, .lcpProtectedAudiobook, .lcpProtectedPDF) || structuredSyntaxSuffix == "+zip"

@@ -104,15 +104,36 @@ public struct Manifest: JSONEquatable {
     }
     
     /// Finds the first link with the given relation in the manifest's links.
-    public func link(withRel rel: Link.Relation) -> Link? {
+    public func link(withRel rel: LinkRelation) -> Link? {
         return readingOrder.first(withRel: rel)
             ?? resources.first(withRel: rel)
             ?? links.first(withRel: rel)
     }
     
     /// Finds all the links with the given relation in the manifest's links.
-    public func links(withRel rel: Link.Relation) -> [Link] {
+    public func links(withRel rel: LinkRelation) -> [Link] {
         return (readingOrder + resources + links).filter(byRel: rel)
+    }
+    
+    /// Makes a copy of the `Manifest`, after modifying some of its properties.
+    public func copy(
+        context: [String]? = nil,
+        metadata: Metadata? = nil,
+        links: [Link]? = nil,
+        readingOrder: [Link]? = nil,
+        resources: [Link]? = nil,
+        tableOfContents: [Link]? = nil,
+        subcollections: [String: [PublicationCollection]]? = nil
+    ) -> Manifest {
+        Manifest(
+            context: context ?? self.context,
+            metadata: metadata ?? self.metadata,
+            links: links ?? self.links,
+            readingOrder: readingOrder ?? self.readingOrder,
+            resources: resources ?? self.resources,
+            tableOfContents: tableOfContents ?? self.tableOfContents,
+            subcollections: subcollections ?? self.subcollections
+        )
     }
 
 }

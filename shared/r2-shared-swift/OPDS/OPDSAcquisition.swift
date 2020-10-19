@@ -19,6 +19,8 @@ public struct OPDSAcquisition: Equatable {
     public var type: String
     public var children: [OPDSAcquisition] = []
     
+    public var mediaType: MediaType? { MediaType(type) }
+    
     public init(type: String, children: [OPDSAcquisition] = []) {
         self.type = type
         self.children = children
