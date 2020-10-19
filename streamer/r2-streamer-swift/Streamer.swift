@@ -85,8 +85,11 @@ public final class Streamer: Loggable {
     ///     publication, for example a password.
     ///   - sender: Free object that can be used by reading apps to give some UX context when
     ///     presenting dialogs.
+    ///   - onCreatePublication: Transformation which will be applied on the Publication Builder.
+    ///     It can be used to modify the `Manifest`, the root `Fetcher` or the list of service
+    ///     factories of the `Publication`.
     ///   - warnings: Logger used to broadcast non-fatal parsing warnings.
-    public func open(file: File, allowUserInteraction: Bool, credentials: String? = nil, sender: Any? = nil, warnings: WarningLogger? = nil, completion: @escaping (CancellableResult<Publication, Publication.OpeningError>) -> Void) {
+    public func open(file: File, allowUserInteraction: Bool, credentials: String? = nil, sender: Any? = nil, warnings: WarningLogger? = nil, onCreatePublication: Publication.Builder.Transform? = nil, completion: @escaping (CancellableResult<Publication, Publication.OpeningError>) -> Void) {
         log(.info, "Open \(file.url.lastPathComponent)")
 
         return makeFetcher(for: file, allowUserInteraction: allowUserInteraction, password: credentials, sender: sender)
@@ -96,7 +99,7 @@ public final class Streamer: Loggable {
             }
             .flatMap { file in
                 // Parses the Publication using the parsers.
-                self.parsePublication(from: file, warnings: warnings)
+                self.parsePublication(from: file, warnings: warnings, onCreatePublication: onCreatePublication)
             }
             .resolve(on: .main, completion)
     }
@@ -153,7 +156,7 @@ public final class Streamer: Loggable {
     }
     
     /// Parses the `Publication` from the provided file and the `parsers`.
-    private func parsePublication(from file: PublicationFile, warnings: WarningLogger?) -> Deferred<Publication, Publication.OpeningError> {
+    private func parsePublication(from file: PublicationFile, warnings: WarningLogger?, onCreatePublication: Publication.Builder.Transform?) -> Deferred<Publication, Publication.OpeningError> {
         return deferred(on: .global(qos: .userInitiated)) {
             var parsers = self.parsers
             var parsedBuilder: Publication.Builder?
@@ -171,8 +174,12 @@ public final class Streamer: Loggable {
             
             // Transform from the Content Protection.
             builder.apply(file.onCreatePublication)
-            // Transform provided by the reading app.
+            // Transform provided by the reading app during the construction of the `Streamer`.
             builder.apply(self.onCreatePublication)
+            // Transform provided by the reading app in `Streamer.open()`.
+            if let onCreatePublication = onCreatePublication {
+                builder.apply(onCreatePublication)
+            }
 
             return .success(builder.build())
         }
