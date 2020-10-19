@@ -75,3 +75,36 @@ public struct LCPAuthenticatedLicense {
     }
 
 }
+
+/// An `LCPAuthenticating` implementation which can directly use a provided clear or hashed
+/// passphrase.
+///
+/// If the provided `passphrase` is incorrect, the given `fallback` authentication is used.
+public class LCPPassphrase: LCPAuthenticating {
+    
+    private let passphrase: String
+    private let fallback: LCPAuthenticating?
+    
+    public init(_ passphrase: String, fallback: LCPAuthenticating? = nil) {
+        self.passphrase = passphrase
+        self.fallback = fallback
+    }
+    
+    public var requiresUserInteraction: Bool {
+        fallback?.requiresUserInteraction ?? false
+    }
+    
+    public func requestPassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, sender: Any?, completion: @escaping (String?) -> Void) {
+        guard reason == .passphraseNotFound else {
+            if let fallback = fallback {
+                fallback.requestPassphrase(for: license, reason: reason, sender: sender, completion: completion)
+            } else {
+                completion(nil)
+            }
+            return
+        }
+        
+        completion(passphrase)
+    }
+    
+}
