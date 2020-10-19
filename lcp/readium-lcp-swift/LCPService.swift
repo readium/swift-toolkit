@@ -34,7 +34,10 @@ public protocol LCPService {
     /// its content.
     ///
     /// Returns `nil` if the publication is not protected with LCP.
-    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, sender: Any?, completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void) -> Void
+    ///
+    /// - Parameters:
+    ///   - allowUserInteraction: Indicates whether the user can be prompted for their passphrase.
+    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, allowUserInteraction: Bool, sender: Any?, completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void) -> Void
     
     /// Creates a `ContentProtection` instance which can be used with a `Streamer` to unlock
     /// LCP protected publications.
@@ -50,7 +53,7 @@ public extension LCPService {
     }
     
     func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void) -> Void {
-        return retrieveLicense(from: publication, authentication: authentication, sender: nil, completion: completion)
+        return retrieveLicense(from: publication, authentication: authentication, allowUserInteraction: true, sender: nil, completion: completion)
     }
     
 }

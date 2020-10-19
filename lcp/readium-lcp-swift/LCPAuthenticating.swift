@@ -12,11 +12,7 @@
 import Foundation
 
 public protocol LCPAuthenticating {
-    
-    /// Indicates whether the user might be prompted to ask their credentials, when calling
-    /// `requestPassphrase()`.
-    var requiresUserInteraction: Bool { get }
-    
+
     /// Requests a passphrase to decrypt the given license.
     ///
     /// The reading app can prompt the user to enter the passphrase, or retrieve it by any other
@@ -25,11 +21,14 @@ public protocol LCPAuthenticating {
     /// - Parameters:
     ///   - license: Information to show to the user about the license being opened.
     ///   - reason: Reason why the passphrase is requested. It should be used to prompt the user.
+    ///   - allowUserInteraction: Indicates whether the user can be prompted for their passphrase.
+    ///     If your implementation requires it and `allowUserInteraction` is false, terminate
+    ///     quickly by sending `nil` to the completion block.
     ///   - sender: Free object that can be used by reading apps to give some UX context when
     ///     presenting dialogs. For example, the host `UIViewController`.
     ///   - completion: Used to return the retrieved passphrase. If the user cancelled, send nil.
     ///     The passphrase may be already hashed.
-    func requestPassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, sender: Any?, completion: @escaping (String?) -> Void)
+    func requestPassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, allowUserInteraction: Bool, sender: Any?, completion: @escaping (String?) -> Void)
     
 }
 
@@ -90,14 +89,10 @@ public class LCPPassphrase: LCPAuthenticating {
         self.fallback = fallback
     }
     
-    public var requiresUserInteraction: Bool {
-        fallback?.requiresUserInteraction ?? false
-    }
-    
-    public func requestPassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, sender: Any?, completion: @escaping (String?) -> Void) {
+    public func requestPassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, allowUserInteraction: Bool, sender: Any?, completion: @escaping (String?) -> Void) {
         guard reason == .passphraseNotFound else {
             if let fallback = fallback {
-                fallback.requestPassphrase(for: license, reason: reason, sender: sender, completion: completion)
+                fallback.requestPassphrase(for: license, reason: reason, allowUserInteraction: allowUserInteraction, sender: sender, completion: completion)
             } else {
                 completion(nil)
             }

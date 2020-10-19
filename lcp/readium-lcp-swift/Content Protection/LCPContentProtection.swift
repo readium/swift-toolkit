@@ -32,7 +32,8 @@ final class LCPContentProtection: ContentProtection {
     {
         service.retrieveLicense(
             from: file.url,
-            authentication: (allowUserInteraction || !authentication.requiresUserInteraction) ? authentication : nil,
+            authentication: authentication,
+            allowUserInteraction: allowUserInteraction,
             sender: sender
         ) { result in
             if case .success(let license) = result, license == nil {
