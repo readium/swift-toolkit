@@ -176,7 +176,7 @@ class LibraryViewController: UIViewController, Loggable {
             }
             
             func tryAdd(from url: URL) {
-                library.importPublication(from: url) { result in
+                library.importPublication(from: url, sender: self) { result in
                     if case .failure(let error) = result {
                         retry(message: error.localizedDescription)
                     }
@@ -230,7 +230,7 @@ extension LibraryViewController: UIDocumentPickerDelegate {
         guard controller.documentPickerMode == .import else {
             return
         }
-        library.importPublications(from: urls) { result in
+        library.importPublications(from: urls, sender: self) { result in
             if case .failure(let error) = result {
                 self.libraryDelegate?.presentError(error, from: self)
             }
@@ -238,7 +238,7 @@ extension LibraryViewController: UIDocumentPickerDelegate {
     }
     
     public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
-        library.importPublication(from: url) { result in
+        library.importPublication(from: url, sender: self) { result in
             if case .failure(let error) = result {
                 self.libraryDelegate?.presentError(error, from: self)
             }

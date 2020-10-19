@@ -76,7 +76,7 @@ final class LibraryService: Loggable {
     }
     
     /// Opens the Readium 2 Publication at the given `url`.
-    private func openPublication(at url: URL, allowUserInteraction: Bool, sender: Any?) -> Deferred<Publication, Error> {
+    private func openPublication(at url: URL, allowUserInteraction: Bool, sender: UIViewController) -> Deferred<Publication, Error> {
         return deferred {
                 self.streamer.open(file: File(url: url), allowUserInteraction: allowUserInteraction, sender: sender, completion: $0)
             }
@@ -101,17 +101,17 @@ final class LibraryService: Loggable {
     // MARK: Importation
     
     /// Imports a bunch of publications.
-    func importPublications(from sourceURLs: [URL], completion: @escaping (CancellableResult<(), LibraryError>) -> Void) {
+    func importPublications(from sourceURLs: [URL], sender: UIViewController, completion: @escaping (CancellableResult<(), LibraryError>) -> Void) {
         var sourceURLs = sourceURLs
         guard let url = sourceURLs.popFirst() else {
             completion(.success(()))
             return
         }
         
-        importPublication(from: url) { result in
+        importPublication(from: url, sender: sender) { result in
             switch result {
             case .success, .cancelled:
-                self.importPublications(from: sourceURLs, completion: completion)
+                self.importPublications(from: sourceURLs, sender: sender, completion: completion)
             case .failure(let error):
                 completion(.failure(error))
             }
@@ -125,12 +125,12 @@ final class LibraryService: Loggable {
     ///
     /// DRM services are used to fulfill the publication, in case the URL locates a licensing
     /// document.
-    func importPublication(from sourceURL: URL, title: String? = nil, completion: @escaping (CancellableResult<Book, LibraryError>) -> Void = { _ in }) {
+    func importPublication(from sourceURL: URL, title: String? = nil, sender: UIViewController, completion: @escaping (CancellableResult<Book, LibraryError>) -> Void = { _ in }) {
         downloadIfNeeded(sourceURL, title: title)
             .flatMap { self.moveToDocuments($0) }
             .flatMap { self.fulfillIfNeeded($0) }
             .flatMap { url in
-                self.openPublication(at: url, allowUserInteraction: false, sender: nil)
+                self.openPublication(at: url, allowUserInteraction: false, sender: sender)
                     // Map on background because we will read the publication cover to create the
                     // `Book`, which might take some CPU time.
                     .map(on: .global(qos: .background)) { Book(publication: $0, url: url) }
@@ -264,7 +264,7 @@ final class LibraryService: Loggable {
             return
         }
         
-        openPublication(at: url, allowUserInteraction: false, sender: nil)
+        openPublication(at: url, allowUserInteraction: false, sender: UIApplication.shared.keyWindow!.rootViewController!)
             .map(on: .global(qos: .background)) { Book(publication: $0, url: url) }
             .flatMap { self.insertBook($0, allowDuplicate: false) }
             .resolve { result in

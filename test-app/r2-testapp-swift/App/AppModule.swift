@@ -95,13 +95,13 @@ extension AppModule: ReaderModuleDelegate {
 
 extension AppModule: OPDSModuleDelegate {
     
-    func opdsDownloadPublication(_ publication: Publication?, at link: Link, completion: @escaping (CancellableResult<Book, Error>) -> Void) {
+    func opdsDownloadPublication(_ publication: Publication?, at link: Link, sender: UIViewController, completion: @escaping (CancellableResult<Book, Error>) -> ()) {
         guard let url = link.url(relativeTo: publication?.baseURL) else {
             completion(.cancelled)
             return
         }
         
-        library.importPublication(from: url, title: publication?.metadata.title) {
+        library.importPublication(from: url, title: publication?.metadata.title, sender: sender) {
             completion($0.eraseToAnyError())
         }
     }

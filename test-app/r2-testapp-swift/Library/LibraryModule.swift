@@ -35,14 +35,14 @@ protocol LibraryModuleAPI {
     /// - Parameters:
     ///   - url: Source URL to import.
     ///   - title: Title of the publication when known, to provide context.
-    func importPublication(from url: URL, title: String?, completion: @escaping (CancellableResult<Book, LibraryError>) -> Void)
+    func importPublication(from url: URL, title: String?, sender: UIViewController, completion: @escaping (CancellableResult<Book, LibraryError>) -> Void)
 
 }
 
 extension LibraryModuleAPI {
     
-    func importPublication(from url: URL, title: String? = nil) {
-        importPublication(from: url, title: title, completion: { _ in })
+    func importPublication(from url: URL, title: String? = nil, sender: UIViewController) {
+        importPublication(from: url, title: title, sender: sender, completion: { _ in })
     }
     
 }
@@ -82,8 +82,8 @@ final class LibraryModule: LibraryModuleAPI {
         try library.preloadSamples()
     }
     
-    func importPublication(from url: URL, title: String?, completion: @escaping (CancellableResult<Book, LibraryError>) -> Void) {
-        library.importPublication(from: url, title: title, completion: completion)
+    func importPublication(from url: URL, title: String?, sender: UIViewController, completion: @escaping (CancellableResult<Book, LibraryError>) -> ()) {
+        library.importPublication(from: url, title: title, sender: sender, completion: completion)
     }
 
 }

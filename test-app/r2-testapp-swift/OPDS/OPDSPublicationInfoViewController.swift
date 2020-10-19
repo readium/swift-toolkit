@@ -102,7 +102,7 @@ class OPDSPublicationInfoViewController: UIViewController, Loggable {
         
         downloadActivityIndicator.startAnimating()
         downloadButton.isEnabled = false
-        delegate.opdsDownloadPublication(publication, at: downloadLink) { [weak self] result in
+        delegate.opdsDownloadPublication(publication, at: downloadLink, sender: self) { [weak self] result in
             guard let self = self else {
                 return
             }
