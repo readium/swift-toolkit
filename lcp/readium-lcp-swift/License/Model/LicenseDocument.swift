@@ -53,7 +53,7 @@ public struct LicenseDocument {
     let json: String
     let data: Data
 
-    init(data: Data) throws {
+    public init(data: Data) throws {
         guard let jsonString = String(data: data, encoding: .utf8),
             let deserializedJSON = try? JSONSerialization.jsonObject(with: data) else
         {

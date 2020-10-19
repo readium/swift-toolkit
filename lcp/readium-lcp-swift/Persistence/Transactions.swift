@@ -42,6 +42,17 @@ class Transactions: Loggable {
 
 extension Transactions: PassphrasesRepository {
     
+    func all() -> [String] {
+        let db = Database.shared.connection
+        let query = transactions.select(passphrase)
+        do {
+            return try db.prepare(query).compactMap({ try $0.get(passphrase) })
+        } catch {
+            log(.error, error)
+            return []
+        }
+    }
+    
     func passphrase(forLicenseId licenseId: String) -> String? {
         do {
             let db = Database.shared.connection
@@ -68,19 +79,21 @@ extension Transactions: PassphrasesRepository {
         }
     }
     
-    func addPassphrase(_ passphraseHash: String, forLicenseId licenseId: String, provider: String, userId: String?) {
+    func addPassphrase(_ passphraseHash: String, forLicenseId licenseId: String?, provider: String?, userId: String?) -> Bool {
         let db = Database.shared.connection
 
         let insertQuery = transactions.insert(
-            self.licenseId <- licenseId,
-            self.origin <- provider,
+            self.licenseId <- licenseId ?? "",
+            self.origin <- provider ?? "",
             self.userId <- userId,
             self.passphrase <- passphraseHash
         )
         do {
             try db.run(insertQuery)
+            return true
         } catch {
             log(.error, error)
+            return false
         }
     }
     

@@ -24,6 +24,12 @@
 		CA5A5E152520908900CF1CCE /* Fixtures in Resources */ = {isa = PBXBuildFile; fileRef = CA5A5E142520908900CF1CCE /* Fixtures */; };
 		CA5A5E1B252090C100CF1CCE /* LCPDecryptorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A5E1A252090C100CF1CCE /* LCPDecryptorTests.swift */; };
 		CA5A5E21252091E000CF1CCE /* Fixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A5E20252091DF00CF1CCE /* Fixtures.swift */; };
+		CA6CF1A725286FC20025BBB2 /* LCPAcquisition.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6CF1A625286FC20025BBB2 /* LCPAcquisition.swift */; };
+		CA6CF1B32528984F0025BBB2 /* LCPLicense.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6CF1B22528984F0025BBB2 /* LCPLicense.swift */; };
+		CA6CF1C72528CB690025BBB2 /* LCPDialogAuthentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6CF1C62528CB690025BBB2 /* LCPDialogAuthentication.swift */; };
+		CA6CF1CD2528CB830025BBB2 /* LCPPassphraseAuthentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6CF1CC2528CB830025BBB2 /* LCPPassphraseAuthentication.swift */; };
+		CA6CF1E52528CC8E0025BBB2 /* LCPDialogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6CF1E12528CC8E0025BBB2 /* LCPDialogViewController.swift */; };
+		CA6CF1ED2528CC9A0025BBB2 /* LCPDialogViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = CA6CF1EB2528CC9A0025BBB2 /* LCPDialogViewController.xib */; };
 		CA78C9EB244F53BA00E559B3 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA78C9E8244F531A00E559B3 /* R2Shared.framework */; };
 		CA9428FD22B9442300305CDB /* ReadiumLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9428FC22B9442300305CDB /* ReadiumLicenseContainer.swift */; };
 		CAB131F6220D81E60097DFB5 /* LicensesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB131F5220D81E60097DFB5 /* LicensesRepository.swift */; };
@@ -89,6 +95,12 @@
 		CA5A5E19252090C100CF1CCE /* readium-lcp-swiftTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "readium-lcp-swiftTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		CA5A5E1A252090C100CF1CCE /* LCPDecryptorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDecryptorTests.swift; sourceTree = "<group>"; };
 		CA5A5E20252091DF00CF1CCE /* Fixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fixtures.swift; sourceTree = "<group>"; };
+		CA6CF1A625286FC20025BBB2 /* LCPAcquisition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPAcquisition.swift; sourceTree = "<group>"; };
+		CA6CF1B22528984F0025BBB2 /* LCPLicense.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPLicense.swift; sourceTree = "<group>"; };
+		CA6CF1C62528CB690025BBB2 /* LCPDialogAuthentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDialogAuthentication.swift; sourceTree = "<group>"; };
+		CA6CF1CC2528CB830025BBB2 /* LCPPassphraseAuthentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPPassphraseAuthentication.swift; sourceTree = "<group>"; };
+		CA6CF1E12528CC8E0025BBB2 /* LCPDialogViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCPDialogViewController.swift; sourceTree = "<group>"; };
+		CA6CF1EC2528CC9A0025BBB2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LCPDialogViewController.xib; sourceTree = "<group>"; };
 		CA78C9E8244F531A00E559B3 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA9428FC22B9442300305CDB /* ReadiumLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadiumLicenseContainer.swift; sourceTree = "<group>"; };
 		CAB131F5220D81E60097DFB5 /* LicensesRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensesRepository.swift; sourceTree = "<group>"; };
@@ -191,6 +203,18 @@
 				CA5A5E1A252090C100CF1CCE /* LCPDecryptorTests.swift */,
 			);
 			path = "Content Protection";
+			sourceTree = "<group>";
+		};
+		CA6CF1C52528CB380025BBB2 /* Authentications */ = {
+			isa = PBXGroup;
+			children = (
+				CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */,
+				CA6CF1CC2528CB830025BBB2 /* LCPPassphraseAuthentication.swift */,
+				CA6CF1C62528CB690025BBB2 /* LCPDialogAuthentication.swift */,
+				CA6CF1E12528CC8E0025BBB2 /* LCPDialogViewController.swift */,
+				CA6CF1EB2528CC9A0025BBB2 /* LCPDialogViewController.xib */,
+			);
+			path = Authentications;
 			sourceTree = "<group>";
 		};
 		CAB13214220DB5930097DFB5 /* License */ = {
@@ -310,8 +334,10 @@
 			children = (
 				CAB1320A220D9B200097DFB5 /* LCPService.swift */,
 				F3B2C8A51F66727C007601E4 /* LCPError.swift */,
-				CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */,
+				CA6CF1A625286FC20025BBB2 /* LCPAcquisition.swift */,
+				CA6CF1B22528984F0025BBB2 /* LCPLicense.swift */,
 				CA2AE327221C3CFB008BD18F /* Deprecated.swift */,
+				CA6CF1C52528CB380025BBB2 /* Authentications */,
 				CAB13214220DB5930097DFB5 /* License */,
 				CA2B6B5024C07869007AF537 /* Content Protection */,
 				CAB1321B220DB6430097DFB5 /* Services */,
@@ -390,7 +416,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1200;
-				LastUpgradeCheck = 1020;
+				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = Readium;
 				TargetAttributes = {
 					CA5A5E0425208F1B00CF1CCE = {
@@ -440,6 +466,7 @@
 			files = (
 				CAB214E12269C241007E989D /* prod-license.lcpl in Resources */,
 				CA50B88422B2A822003AFF24 /* Localizable.strings in Resources */,
+				CA6CF1ED2528CC9A0025BBB2 /* LCPDialogViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -466,12 +493,15 @@
 				CA2B6B5624C07B8C007AF537 /* DataCompression.swift in Sources */,
 				CAB1321F220DBA470097DFB5 /* NetworkService.swift in Sources */,
 				CA4A388E220988C800599297 /* LCPLLicenseContainer.swift in Sources */,
+				CA6CF1B32528984F0025BBB2 /* LCPLicense.swift in Sources */,
+				CA6CF1A725286FC20025BBB2 /* LCPAcquisition.swift in Sources */,
 				CAB131F6220D81E60097DFB5 /* LicensesRepository.swift in Sources */,
 				F38CDB221F697D3A004156CB /* PotentialRights.swift in Sources */,
 				CABEB3F62215C86C00090B6C /* LCPError+wrap.swift in Sources */,
 				CA4A388722086F7500599297 /* PassphrasesService.swift in Sources */,
 				CAE7FB82220C64D100D03587 /* CRLService.swift in Sources */,
 				CA9428FD22B9442300305CDB /* ReadiumLicenseContainer.swift in Sources */,
+				CA6CF1CD2528CB830025BBB2 /* LCPPassphraseAuthentication.swift in Sources */,
 				F36F9E261F826C17001D0DB4 /* Licenses.swift in Sources */,
 				F35AFA011F6AD54400D3F670 /* License.swift in Sources */,
 				F38FB03C1F6683F300F9D602 /* UserKey.swift in Sources */,
@@ -494,8 +524,10 @@
 				CA26EF7C2280331E0011653E /* Connection.swift in Sources */,
 				CAE7FB7E220C4C5C00D03587 /* DeviceRepository.swift in Sources */,
 				F38FB03A1F6683D800F9D602 /* Encryption.swift in Sources */,
+				CA6CF1E52528CC8E0025BBB2 /* LCPDialogViewController.swift in Sources */,
 				F3B2C8AC1F66727C007601E4 /* Link.swift in Sources */,
 				F38FB03E1F66840900F9D602 /* ContentKey.swift in Sources */,
+				CA6CF1C72528CB690025BBB2 /* LCPDialogAuthentication.swift in Sources */,
 				F331FBF81F8228F8007F16DF /* Database.swift in Sources */,
 				CAB57BC12204811100E4CB12 /* LicensesService.swift in Sources */,
 				CA2B6B5224C07880007AF537 /* LCPContentProtection.swift in Sources */,
@@ -521,6 +553,14 @@
 				CA50B88522B2A822003AFF24 /* en */,
 			);
 			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		CA6CF1EB2528CC9A0025BBB2 /* LCPDialogViewController.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CA6CF1EC2528CC9A0025BBB2 /* Base */,
+			);
+			name = LCPDialogViewController.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -608,6 +648,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -672,6 +713,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;

@@ -1,19 +1,14 @@
 //
-//  LCPService.swift
-//  r2-lcp-swift
-//
-//  Created by Mickaël Menu on 08.02.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 import R2Shared
 
 
-/// Service used to fulfill and access protected publications.
+/// Service used to acquire and open publications protected with LCP.
 ///
 /// If an `LCPAuthenticating` instance is not given when expected, the request is cancelled if no
 /// passphrase is found in the local database. This can be the desired behavior when trying to
@@ -22,13 +17,63 @@ import R2Shared
 /// You can freely use the `sender` parameter to give some UI context which will be forwarded to
 /// your instance of `LCPAuthenticating`. This can be useful to provide the host `UIViewController`
 /// when presenting a dialog, for example.
-public protocol LCPService {
-
-    /// Imports a protected publication from a standalone LCPL file.
+public final class LCPService: Loggable {
+    
+    private let licenses: LicensesService
+    private let passphrases: PassphrasesRepository
+    
+    public init() {
+        let db = Database.shared
+        let network = NetworkService()
+        passphrases = db.transactions
+        licenses = LicensesService(
+            licenses: db.licenses,
+            crl: CRLService(network: network),
+            device: DeviceService(repository: db.licenses, network: network),
+            network: network,
+            passphrases: PassphrasesService(repository: passphrases)
+        )
+    }
+    
+    /// Returns whether the given `file` is protected by LCP.
+    public func isLCPProtected(_ file: URL) -> Bool {
+        warnIfMainThread()
+        return makeLicenseContainerSync(for: file)?.containsLicense() == true
+    }
+    
+    /// Preloads the given `passphrase` to prevent showing the user a passphrase dialog.
     ///
-    /// - Returns: The download progress value as an `Observable`, from 0.0 to 1.0.
+    /// If the passphrase is already hashed, set `hashed` to true.
+    ///
+    /// This can be used in the context of LCP Automatic Key Retrieval, for example.
+    /// https://readium.org/lcp-specs/notes/lcp-key-retrieval.html
+    public func addPassphrase(_ passphrase: String, hashed: Bool, for license: LicenseDocument) -> Bool {
+        return addPassphrase(passphrase, hashed: hashed, licenseId: license.id, provider: license.provider, userId: license.user.id)
+    }
+    
+    /// Preloads the given `passphrase` to prevent showing the user a passphrase dialog.
+    ///
+    /// If the passphrase is already hashed, set `hashed` to true.    ///
+    ///
+    /// This can be used in the context of LCP Automatic Key Retrieval, for example.
+    /// https://readium.org/lcp-specs/notes/lcp-key-retrieval.html
     @discardableResult
-    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, sender: Any?, completion: @escaping (CancellableResult<LCPImportedPublication, LCPError>) -> Void) -> Observable<DownloadProgress>
+    public func addPassphrase(_ passphrase: String, hashed: Bool, licenseId: String? = nil, provider: String? = nil, userId: String? = nil) -> Bool {
+        warnIfMainThread()
+        
+        var passphrase = passphrase
+        if !hashed {
+            passphrase = passphrase.sha256()
+        }
+        
+        return passphrases.addPassphrase(passphrase, forLicenseId: licenseId, provider: provider, userId: userId)
+    }
+    
+    /// Acquires a protected publication from a standalone LCPL file.
+    @discardableResult
+    public func acquirePublication(from lcpl: URL) -> LCPAcquisition {
+        licenses.acquirePublication(from: lcpl)
+    }
     
     /// Opens the LCP license of a protected publication, to access its DRM metadata and decipher
     /// its content.
@@ -36,90 +81,28 @@ public protocol LCPService {
     /// Returns `nil` if the publication is not protected with LCP.
     ///
     /// - Parameters:
+    ///   - authentication: Used to retrieve the user passphrase if it is not already known.
+    ///     The request will be cancelled if no passphrase is found on the LCP passphrase storage
+    ///     and no instance of `LCPAuthenticating` is provided.
     ///   - allowUserInteraction: Indicates whether the user can be prompted for their passphrase.
-    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, allowUserInteraction: Bool, sender: Any?, completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void) -> Void
-    
+    ///   - sender: Free object that can be used by reading apps to give some UX context when
+    ///     presenting dialogs with `LCPAuthenticating`.
+    public func retrieveLicense(
+        from publication: URL,
+        authentication: LCPAuthenticating?,
+        allowUserInteraction: Bool,
+        sender: Any? = nil,
+        completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void
+    ) -> Void {
+        licenses.retrieve(from: publication, authentication: authentication, allowUserInteraction: allowUserInteraction, sender: sender)
+            .map { $0 as LCPLicense? }
+            .resolve(completion)
+    }
+
     /// Creates a `ContentProtection` instance which can be used with a `Streamer` to unlock
     /// LCP protected publications.
-    func contentProtection(with authentication: LCPAuthenticating) -> ContentProtection
-
-}
-
-public extension LCPService {
-    
-    @discardableResult
-    func importPublication(from lcpl: URL, authentication: LCPAuthenticating?, completion: @escaping (CancellableResult<LCPImportedPublication, LCPError>) -> Void) -> Observable<DownloadProgress> {
-        return importPublication(from: lcpl, authentication: authentication, sender: nil, completion: completion)
+    public func contentProtection(with authentication: LCPAuthenticating) -> ContentProtection {
+        LCPContentProtection(service: self, authentication: authentication)
     }
-    
-    func retrieveLicense(from publication: URL, authentication: LCPAuthenticating?, completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void) -> Void {
-        return retrieveLicense(from: publication, authentication: authentication, allowUserInteraction: true, sender: nil, completion: completion)
-    }
-    
-}
 
-
-/// Informations about a downloaded publication.
-public struct LCPImportedPublication {
-    /// Path to the downloaded publication.
-    /// You must move this file to the user library's folder.
-    public let localURL: URL
-    
-    /// Download task used to fetch the publication.
-    /// Note: this is for legacy purpose, when using R2Shared.DownloadSession.
-    public let downloadTask: URLSessionDownloadTask?
-    
-    /// Filename that should be used for the publication when importing it in the user library.
-    public let suggestedFilename: String
-}
-
-
-/// Opened license, used to decipher a protected publication and manage its license.
-public protocol LCPLicense: DRMLicense, UserRights {
-    
-    typealias URLPresenter = (URL, _ dismissed: @escaping () -> Void) -> Void
-    
-    var license: LicenseDocument { get }
-    var status: StatusDocument? { get }
-    
-    /// Number of remaining characters allowed to be copied by the user.
-    /// If nil, there's no limit.
-    var charactersToCopyLeft: Int? { get }
-    
-    /// Number of pages allowed to be printed by the user.
-    /// If nil, there's no limit.
-    var pagesToPrintLeft: Int? { get }
-
-    /// Can the user renew the loaned publication?
-    var canRenewLoan: Bool { get }
-
-    /// The maximum potential date to renew to.
-    /// If nil, then the renew date might not be customizable.
-    var maxRenewDate: Date? { get }
-    
-    /// Renews the loan up to a certain date (if possible).
-    ///
-    /// - Parameter presenting: Used when the renew requires to present an HTML page to the user. The caller is responsible for presenting the URL (for example with SFSafariViewController) and then calling the `dismissed` callback once the website is closed by the user.
-    func renewLoan(to end: Date?, present: @escaping URLPresenter, completion: @escaping (LCPError?) -> Void)
-
-    /// Can the user return the loaned publication?
-    var canReturnPublication: Bool { get }
-    
-    /// Returns the publication to its provider.
-    func returnPublication(completion: @escaping (LCPError?) -> Void)
-    
-}
-
-
-/// LCP service factory.
-public func R2MakeLCPService() -> LCPService {
-    // Composition root
-    let db = Database.shared
-    let network = NetworkService()
-    let device = DeviceService(repository: db.licenses, network: network)
-    let crl = CRLService(network: network)
-    let passphrases = PassphrasesService(repository: db.transactions)
-    let licenses = LicensesService(licenses: db.licenses, crl: crl, device: device, network: network, passphrases: passphrases)
-    
-    return licenses
 }

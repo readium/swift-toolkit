@@ -26,7 +26,8 @@ final class PassphrasesService {
     }
     
     /// Finds any valid passphrase for the given license in the passphrases repository.
-    /// If none is found, requests a passphrase from the request delegate (ie. user prompt) until one is valid, or the request is cancelled.
+    /// If none is found, requests a passphrase from the request delegate (ie. user prompt) until
+    /// one is valid, or the request is cancelled.
     /// The returned passphrase is nil if the request was cancelled by the user.
     func request(for license: LicenseDocument, authentication: LCPAuthenticating?, allowUserInteraction: Bool, sender: Any?) -> Deferred<String, Error> {
         return deferredCatching {
@@ -58,6 +59,8 @@ final class PassphrasesService {
                     }
                 }
             }
+            // Delays a bit to make sure any dialog was dismissed.
+            .delay(for: 0.3)
             .flatMap { clearPassphrase in
                 let hashedPassphrase = clearPassphrase.sha256()
                 var passphrases = [hashedPassphrase]
@@ -79,7 +82,8 @@ final class PassphrasesService {
             }
     }
     
-    /// Finds any potential passphrase candidates (eg. similar user ID) for the given license, from the passphrases repository.
+    /// Finds any potential passphrase candidates (eg. similar user ID) for the given license,
+    /// from the passphrases repository.
     private func possiblePassphrasesFromRepository(for license: LicenseDocument) -> [String] {
         var passphrases: [String] = []
 
@@ -91,6 +95,8 @@ final class PassphrasesService {
             let userPassphrases = repository.passphrases(forUserId: userId)
             passphrases.append(contentsOf: userPassphrases)
         }
+        
+        passphrases.append(contentsOf: repository.all())
 
         return passphrases
     }

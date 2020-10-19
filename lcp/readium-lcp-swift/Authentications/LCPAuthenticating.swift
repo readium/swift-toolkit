@@ -1,12 +1,7 @@
 //
-//  LCPAuthenticating.swift
-//  r2-lcp-swift
-//
-//  Created by Mickaël Menu on 08.02.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -73,33 +68,4 @@ public struct LCPAuthenticatedLicense {
         self.document = document
     }
 
-}
-
-/// An `LCPAuthenticating` implementation which can directly use a provided clear or hashed
-/// passphrase.
-///
-/// If the provided `passphrase` is incorrect, the given `fallback` authentication is used.
-public class LCPPassphrase: LCPAuthenticating {
-    
-    private let passphrase: String
-    private let fallback: LCPAuthenticating?
-    
-    public init(_ passphrase: String, fallback: LCPAuthenticating? = nil) {
-        self.passphrase = passphrase
-        self.fallback = fallback
-    }
-    
-    public func requestPassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, allowUserInteraction: Bool, sender: Any?, completion: @escaping (String?) -> Void) {
-        guard reason == .passphraseNotFound else {
-            if let fallback = fallback {
-                fallback.requestPassphrase(for: license, reason: reason, allowUserInteraction: allowUserInteraction, sender: sender, completion: completion)
-            } else {
-                completion(nil)
-            }
-            return
-        }
-        
-        completion(passphrase)
-    }
-    
 }

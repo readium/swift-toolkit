@@ -27,20 +27,23 @@ protocol LicenseContainer {
 
 func makeLicenseContainer(for file: URL, mimetypes: [String] = []) -> Deferred<LicenseContainer?, LCPError> {
     return deferred(on: .global(qos: .background)) { success, _, _ in
-        guard let format = Format.of(file, mediaTypes: mimetypes, fileExtensions: []) else {
-            success(nil)
-            return
-        }
+        success(makeLicenseContainerSync(for: file, mimetypes: mimetypes))
+    }
+}
 
-        switch format {
-        case .lcpLicense:
-            success(LCPLLicenseContainer(lcpl: file))
-        case .lcpProtectedPDF, .lcpProtectedAudiobook, .readiumAudiobook, .readiumWebPub, .divina:
-            success(ReadiumLicenseContainer(path: file))
-        case .epub:
-            success(EPUBLicenseContainer(epub: file))
-        default:
-            success(nil)
-        }
+func makeLicenseContainerSync(for file: URL, mimetypes: [String] = []) -> LicenseContainer? {
+    guard let format = Format.of(file, mediaTypes: mimetypes, fileExtensions: []) else {
+        return nil
+    }
+
+    switch format {
+    case .lcpLicense:
+        return LCPLLicenseContainer(lcpl: file)
+    case .lcpProtectedPDF, .lcpProtectedAudiobook, .readiumAudiobook, .readiumWebPub, .divina:
+        return ReadiumLicenseContainer(path: file)
+    case .epub:
+        return EPUBLicenseContainer(epub: file)
+    default:
+        return nil
     }
 }

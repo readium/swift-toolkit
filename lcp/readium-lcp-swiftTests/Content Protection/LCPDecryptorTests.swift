@@ -17,7 +17,7 @@ class LCPDecryptorTests: XCTestCase {
     var clearData: Data!
 
     override func setUpWithError() throws {
-        service = R2MakeLCPService()
+        service = LCPService()
         
         let fetcher = ArchiveFetcher(archive: try DefaultArchiveFactory().open(url: self.fixtures.url(for: "daisy.lcpdf"), password: nil))
         encryptedResource = fetcher.get(Link(
@@ -72,7 +72,7 @@ class LCPDecryptorTests: XCTestCase {
         let completionExpectation = expectation(description: "License opened")
         
         let url = fixtures.url(for: path)
-        service.retrieveLicense(from: url, authentication: LCPPassphrase(passphrase)) { result in
+        service.retrieveLicense(from: url, authentication: LCPPassphraseAuthentication(passphrase), allowUserInteraction: false) { result in
             try! completion((try! result.get())!)
             completionExpectation.fulfill()
         }

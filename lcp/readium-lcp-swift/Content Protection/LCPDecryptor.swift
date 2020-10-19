@@ -57,9 +57,9 @@ final class LCPDecryptor {
     /// resource, for example when the resource is deflated before encryption.
     private class FullLCPResource: TransformingResource {
         
-        private let license: DRMLicense
+        private let license: LCPLicense
         
-        init(_ resource: Resource, license: DRMLicense) {
+        init(_ resource: Resource, license: LCPLicense) {
             self.license = license
             super.init(resource)
         }
@@ -81,9 +81,9 @@ final class LCPDecryptor {
     /// Supports random access for byte range requests, but the resource MUST NOT be deflated.
     private class CBCLCPResource: ProxyResource {
         
-        private let license: DRMLicense
+        private let license: LCPLicense
         
-        init(_ resource: Resource, license: DRMLicense) {
+        init(_ resource: Resource, license: LCPLicense) {
             assert(!resource.link.isDeflated)
             assert(resource.link.isCbcEncrypted)
             self.license = license
@@ -157,7 +157,7 @@ final class LCPDecryptor {
     
 }
 
-private extension DRMLicense {
+private extension LCPLicense {
     
     func decryptFully(data: ResourceResult<Data>, isDeflated: Bool) -> ResourceResult<Data> {
         return data.tryMap {
