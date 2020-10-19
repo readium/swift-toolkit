@@ -225,7 +225,7 @@ public class PublicationServer: ResourcesServer {
                 href = href.removingPercentEncoding ?? href
             }
 
-            let resource = publication.get(href)
+            let resource = publication.get(href.removingPercentEncoding ?? href)
             switch resource.stream() {
             case .success(let stream):
                 let range = request.hasByteRange() ? request.byteRange : nil
