@@ -171,7 +171,7 @@ class OPFParserTests: XCTestCase {
         ), parts.version)
     }
     
-    func link(id: String? = nil, href: String, type: String? = nil, templated: Bool = false, title: String? = nil, rels: [Link.Relation] = [], properties: Properties = .init(), duration: Double? = nil, children: [Link] = []) -> Link {
+    func link(id: String? = nil, href: String, type: String? = nil, templated: Bool = false, title: String? = nil, rels: [LinkRelation] = [], properties: Properties = .init(), duration: Double? = nil, children: [Link] = []) -> Link {
         var properties = properties.otherProperties
         if let id = id {
             properties["id"] = id
