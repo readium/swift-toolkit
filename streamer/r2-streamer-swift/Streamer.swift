@@ -16,11 +16,11 @@ import R2Shared
 public final class Streamer: Loggable {
     
     /// Creates the default parsers provided by Readium.
-    public static func makeDefaultParsers() -> [PublicationParser] {
-        return [
+    public static func makeDefaultParsers(pdfFactory: PDFDocumentFactory) -> [PublicationParser] {
+        [
             EPUBParser(),
-            PDFParser(parserType: PDFFileCGParser.self),
-            ReadiumWebPubParser(),
+            PDFParser(pdfFactory: pdfFactory),
+            ReadiumWebPubParser(pdfFactory: pdfFactory),
             ImageParser(),
             AudioParser()
         ]
@@ -36,8 +36,8 @@ public final class Streamer: Loggable {
     ///   - ignoreDefaultParsers: When true, only parsers provided in parsers will be used.
     ///   - contentProtections: List of `ContentProtection` used to unlock publications. Each
     ///     `ContentProtection` is tested in the given order.
-    ///   - openArchive: Opens an archive (e.g. ZIP, RAR), optionally protected by credentials.
-    ///   - openPDF: Parses a PDF document, optionally protected by password.
+    ///   - archiveFactory: Opens an archive (e.g. ZIP, RAR), optionally protected by credentials.
+    ///   - pdfFactory: Parses a PDF document, optionally protected by password.
     ///   - onCreatePublication: Transformation which will be applied on every parsed Publication
     ///     Builder. It can be used to modify the `Manifest`, the root `Fetcher` or the list of
     ///     service factories of a `Publication`.
@@ -45,18 +45,21 @@ public final class Streamer: Loggable {
         parsers: [PublicationParser] = [],
         ignoreDefaultParsers: Bool = false,
         contentProtections: [ContentProtection] = [],
-        openArchive: @escaping ArchiveFactory = DefaultArchiveFactory,
+        archiveFactory: ArchiveFactory = DefaultArchiveFactory(),
+        pdfFactory: PDFDocumentFactory = DefaultPDFDocumentFactory(),
         onCreatePublication: Publication.Builder.Transform? = nil
     ) {
-        self.parsers = parsers + (ignoreDefaultParsers ? [] : Streamer.makeDefaultParsers())
+        self.parsers = parsers + (ignoreDefaultParsers ? [] : Streamer.makeDefaultParsers(pdfFactory: pdfFactory))
         self.contentProtections = contentProtections
-        self.openArchive = openArchive
+        self.archiveFactory = archiveFactory
+        self.pdfFactory = pdfFactory
         self.onCreatePublication = onCreatePublication
     }
     
     private let parsers: [PublicationParser]
     private let contentProtections: [ContentProtection]
-    private let openArchive: ArchiveFactory
+    private let archiveFactory: ArchiveFactory
+    private let pdfFactory: PDFDocumentFactory
     private let onCreatePublication: Publication.Builder.Transform?
 
     /// Parses a `Publication` from the given file.
@@ -86,7 +89,7 @@ public final class Streamer: Loggable {
     public func open(file: File, allowUserInteraction: Bool, credentials: String? = nil, sender: Any? = nil, warnings: WarningLogger? = nil, completion: @escaping (CancellableResult<Publication, Publication.OpeningError>) -> Void) {
         log(.info, "Open \(file.url.lastPathComponent)")
 
-        return createFetcher(for: file, allowUserInteraction: allowUserInteraction, password: credentials, sender: sender)
+        return makeFetcher(for: file, allowUserInteraction: allowUserInteraction, password: credentials, sender: sender)
             .flatMap { fetcher in
                 // Unlocks any protected file with the Content Protections.
                 self.openFile(at: file, with: fetcher, allowUserInteraction: allowUserInteraction, credentials: credentials, sender: sender)
@@ -102,15 +105,15 @@ public final class Streamer: Loggable {
     ///
     /// We attempt to open an `ArchiveFetcher`, and fall back on a `FileFetcher` if the file is not
     /// an archive.
-    private func createFetcher(for file: File, allowUserInteraction: Bool, password: String?, sender: Any?) -> Deferred<Fetcher, Publication.OpeningError> {
+    private func makeFetcher(for file: File, allowUserInteraction: Bool, password: String?, sender: Any?) -> Deferred<Fetcher, Publication.OpeningError> {
         return deferred(on: .global(qos: .userInitiated)) {
             guard (try? file.url.checkResourceIsReachable()) == true else {
                 return .failure(.notFound)
             }
             
             do {
-                let fetcher = try ArchiveFetcher(url: file.url, password: password, openArchive: self.openArchive)
-                return .success(fetcher)
+                let archive = try self.archiveFactory.open(url: file.url, password: password)
+                return .success(ArchiveFetcher(archive: archive))
                 
             } catch ArchiveError.invalidPassword {
                 return .failure(.incorrectCredentials)

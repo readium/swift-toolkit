@@ -47,7 +47,7 @@ public final class ImageParser: PublicationParser {
             ),
             fetcher: fetcher,
             servicesBuilder: .init(
-                positions: PerResourcePositionsService.createFactory(fallbackMediaType: "image/*")
+                positions: PerResourcePositionsService.makeFactory(fallbackMediaType: "image/*")
             )
         )
     }

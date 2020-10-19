@@ -369,7 +369,7 @@ public class PublicationServer: ResourcesServer {
     }
     
     // Mapping between endpoint and the matching container.
-    @available(*, unavailable, message: "`Container` is not used anymore in the `PublicationServer")
+    @available(*, deprecated, message: "`Container` is not used anymore in the `PublicationServer")
     public private(set) var containers: [String: Container] = [:]
     
 }

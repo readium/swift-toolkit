@@ -37,7 +37,7 @@ final class PDFPositionsService: PositionsService {
         ]
     }
     
-    static func createFactory() -> (PublicationServiceContext) -> PDFPositionsService? {
+    static func makeFactory() -> (PublicationServiceContext) -> PDFPositionsService? {
         return { context in
             guard
                 let link = context.manifest.readingOrder.first,

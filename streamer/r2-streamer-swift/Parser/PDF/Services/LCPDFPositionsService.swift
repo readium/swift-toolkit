@@ -12,32 +12,27 @@
 import Foundation
 import R2Shared
 
-final class LCPDFPositionsService: PositionsService, Loggable {
+final class LCPDFPositionsService: PositionsService, PDFPublicationService, Loggable {
 
     private let readingOrder: [Link]
     private let fetcher: Fetcher
-    private let parserType: PDFFileParser.Type
+    var pdfFactory: PDFDocumentFactory
 
-    init(readingOrder: [Link], fetcher: Fetcher, parserType: PDFFileParser.Type) {
+    init(readingOrder: [Link], fetcher: Fetcher, pdfFactory: PDFDocumentFactory) {
         self.readingOrder = readingOrder
         self.fetcher = fetcher
-        self.parserType = parserType
+        self.pdfFactory = pdfFactory
     }
     
     lazy var positionsByReadingOrder: [[Locator]] = {
         // Calculates the page count of each resource from the reading order.
         let resources = readingOrder.map { link -> (Int, Link) in
             let resource = fetcher.get(link)
-            guard
-                // FIXME: We should be able to use the stream directly here instead of reading it fully into a Data object, but somehow it fails with random access in CBCDRMInputStream.
-                let data = try? resource.read().get(),
-                let parser = try? parserType.init(stream: DataInputStream(data: data)),
-                let pageCount = try? parser.parseNumberOfPages() else
-            {
+            guard let document = try? pdfFactory.open(resource: resource, password: nil) else {
                 log(.warning, "Can't get the number of pages from PDF document at \(link)")
                 return (0, link)
             }
-            return (pageCount, link)
+            return (document.pageCount, link)
         }
         
         let totalPageCount = resources.reduce(0) { count, current in count + current.0 }
@@ -73,12 +68,12 @@ final class LCPDFPositionsService: PositionsService, Loggable {
         }
     }
     
-    static func createFactory(parserType: PDFFileParser.Type) -> (PublicationServiceContext) -> LCPDFPositionsService? {
+    static func makeFactory(pdfFactory: PDFDocumentFactory) -> (PublicationServiceContext) -> LCPDFPositionsService? {
         return { context in
             LCPDFPositionsService(
                 readingOrder: context.manifest.readingOrder,
                 fetcher: context.fetcher,
-                parserType: parserType
+                pdfFactory: pdfFactory
             )
         }
     }
