@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		57470F7E20ED0D1A000CDCA3 /* DownloadSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */; };
+		CA038E5025222B0900489729 /* ControlFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA038E4F25222B0900489729 /* ControlFlow.swift */; };
 		CA13517C248936E00087E69E /* LinkArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA13517B248936E00087E69E /* LinkArrayTests.swift */; };
 		CA13517E248952B10087E69E /* NSRegularExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA13517D248952B10087E69E /* NSRegularExpression.swift */; };
 		CA16A8592232C2A800E66255 /* Contributor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA16A8582232C2A800E66255 /* Contributor.swift */; };
@@ -200,6 +201,7 @@
 		0318F709221DD4CA004E5114 /* Locator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Locator.swift; sourceTree = "<group>"; };
 		57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadSession.swift; sourceTree = "<group>"; };
 		AEF39DF220E3895200A560F3 /* UserProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProperties.swift; sourceTree = "<group>"; };
+		CA038E4F25222B0900489729 /* ControlFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlFlow.swift; sourceTree = "<group>"; };
 		CA13517B248936E00087E69E /* LinkArrayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkArrayTests.swift; sourceTree = "<group>"; };
 		CA13517D248952B10087E69E /* NSRegularExpression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSRegularExpression.swift; sourceTree = "<group>"; };
 		CA16A8582232C2A800E66255 /* Contributor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contributor.swift; sourceTree = "<group>"; };
@@ -410,6 +412,7 @@
 				CA2006502225A1F300E6B3BD /* Observable.swift */,
 				CA50B86D22B2A1CF003AFF24 /* R2LocalizedString.swift */,
 				CA94291522BCD08B00305CDB /* ResourcesServer.swift */,
+				CA038E4F25222B0900489729 /* ControlFlow.swift */,
 				CA7B1AA4248A2CFF00152F73 /* URITemplate.swift */,
 				CA7116F02455FAF900C029FD /* UTI.swift */,
 			);
@@ -1181,6 +1184,7 @@
 				CA3386EA24052D8B00FDCBBA /* DOMRange.swift in Sources */,
 				CA2006512225A1F300E6B3BD /* Observable.swift in Sources */,
 				CA62B37C24E02F7C0046CDCF /* TransformingResource.swift in Sources */,
+				CA038E5025222B0900489729 /* ControlFlow.swift in Sources */,
 				CA9E6BA4223A657900ECF6E4 /* JSON.swift in Sources */,
 				CA68BDC5244064F6009A6BAA /* Format.swift in Sources */,
 				CA8C841C2468A06300CE97A4 /* ProxyFetcher.swift in Sources */,
