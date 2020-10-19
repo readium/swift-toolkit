@@ -75,13 +75,9 @@ extension OPDSPublicationTableViewCell: UICollectionViewDataSource {
                     .joined(separator: ", ")
             )
 
-            var coverURL: URL?
-            if publication.coverLink != nil {
-                coverURL = publication.coverLink?.url(relativeTo: publication.baseURL)
-            } else if publication.images.count > 0 {
-                coverURL = URL(string: publication.images[0].href)
-            }
-            
+            let coverURL: URL? = publication.link(withRel: .cover)?.url(relativeTo: publication.baseURL)
+                ?? publication.images.first.flatMap { URL(string: $0.href) }
+
             if let coverURL = coverURL {
                 UIApplication.shared.isNetworkActivityIndicatorVisible = true
                 cell.coverImageView.kf.setImage(

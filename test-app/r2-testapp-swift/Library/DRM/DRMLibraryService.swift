@@ -22,8 +22,6 @@ struct DRMFulfilledPublication {
 
 protocol DRMLibraryService {
     
-    var brand: DRM.Brand { get }
-    
     /// Returns the `ContentProtection` which will be provided to the `Streamer`, to unlock
     /// publications.
     var contentProtection: ContentProtection? { get }

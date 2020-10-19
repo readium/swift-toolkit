@@ -56,9 +56,9 @@ final class LibraryService: Loggable {
     /// Opens the Readium 2 Publication for the given `book`.
     ///
     /// If the `Publication` is intended to be presented in a navigator, set `forPresentation`.
-    func openBook(_ book: Book, forPresentation prepareForPresentation: Bool, completion: @escaping (CancellableResult<Publication, LibraryError>) -> Void) {
+    func openBook(_ book: Book, forPresentation prepareForPresentation: Bool, sender: UIViewController, completion: @escaping (CancellableResult<Publication, LibraryError>) -> Void) {
         deferredCatching { .success(try book.url()) }
-            .flatMap { self.openPublication(at: $0, allowUserInteraction: true) }
+            .flatMap { self.openPublication(at: $0, allowUserInteraction: true, sender: sender) }
             .flatMap { publication in
                 guard !publication.isRestricted else {
                     if let error = publication.protectionError {
@@ -76,9 +76,9 @@ final class LibraryService: Loggable {
     }
     
     /// Opens the Readium 2 Publication at the given `url`.
-    private func openPublication(at url: URL, allowUserInteraction: Bool) -> Deferred<Publication, Error> {
+    private func openPublication(at url: URL, allowUserInteraction: Bool, sender: Any?) -> Deferred<Publication, Error> {
         return deferred {
-                self.streamer.open(file: File(url: url), allowUserInteraction: allowUserInteraction, completion: $0)
+                self.streamer.open(file: File(url: url), allowUserInteraction: allowUserInteraction, sender: sender, completion: $0)
             }
             .eraseToAnyError()
     }
@@ -91,7 +91,7 @@ final class LibraryService: Loggable {
         
         publicationServer.removeAll()
         do {
-            try publicationServer.add(publication, at: book.href)
+            try publicationServer.add(publication)
         } catch {
             log(.error, error)
         }
@@ -130,7 +130,7 @@ final class LibraryService: Loggable {
             .flatMap { self.moveToDocuments($0) }
             .flatMap { self.fulfillIfNeeded($0) }
             .flatMap { url in
-                self.openPublication(at: url, allowUserInteraction: false)
+                self.openPublication(at: url, allowUserInteraction: false, sender: nil)
                     // Map on background because we will read the publication cover to create the
                     // `Book`, which might take some CPU time.
                     .map(on: .global(qos: .background)) { Book(publication: $0, url: url) }
@@ -264,7 +264,7 @@ final class LibraryService: Loggable {
             return
         }
         
-        openPublication(at: url, allowUserInteraction: false)
+        openPublication(at: url, allowUserInteraction: false, sender: nil)
             .map(on: .global(qos: .background)) { Book(publication: $0, url: url) }
             .flatMap { self.insertBook($0, allowDuplicate: false) }
             .resolve { result in

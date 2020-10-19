@@ -348,7 +348,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
             collectionView.isUserInteractionEnabled = true
         }
         
-        library.openBook(book, forPresentation: true) { result in
+        library.openBook(book, forPresentation: true, sender: self) { result in
             switch result {
             case .success(let publication):
                 libraryDelegate.libraryDidSelectPublication(publication, book: book, completion: done)
@@ -411,7 +411,7 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
     func displayInformation(forCellAt indexPath: IndexPath) {
         let book = books[indexPath.row]
         
-        library.openBook(book, forPresentation: false) { result in
+        library.openBook(book, forPresentation: false, sender: self) { result in
             switch result {
             case .success(let publication):
                 let detailsViewController = self.factory.make(publication: publication)
