@@ -166,7 +166,8 @@ final class PaginationView: UIView {
     ///   - location: Location to be displayed in the page.
     ///   - pageCount: Total number of pages in the pagination view.
     ///   - readingProgression: Direction of reading progression.
-    func reloadAtIndex(_ index: Int, location: PageLocation, pageCount: Int, readingProgression: ReadingProgression) {
+    ///   - completion: Closure called when the location is loaded.
+    func reloadAtIndex(_ index: Int, location: PageLocation, pageCount: Int, readingProgression: ReadingProgression, completion: @escaping () -> Void) {
         precondition(pageCount >= 1)
         precondition(0..<pageCount ~= index)
         
@@ -178,12 +179,13 @@ final class PaginationView: UIView {
         }
         loadedViews.removeAll()
         
-        setCurrentIndex(index, location: location)
+        setCurrentIndex(index, location: location, completion: completion)
     }
 
     /// Updates the current and pre-loaded views.
-    private func setCurrentIndex(_ index: Int, location: PageLocation? = nil) {
+    private func setCurrentIndex(_ index: Int, location: PageLocation? = nil, completion: @escaping () -> Void = {}) {
         guard isEmpty || index != currentIndex else {
+            completion()
             return
         }
         
@@ -197,7 +199,7 @@ final class PaginationView: UIView {
         
         // To make sure that the views the most likely to be visible are loaded first, we first load
         // the current one, then the next ones and to finish the previous ones.
-        loadView(at: index, location: location)
+        loadView(at: index, location: location, completion: completion)
         let lastIndex = loadViews(upToPositionCount: preloadNextPositionCount, from: index, direction: .forward, location: .start)
         let firstIndex = loadViews(upToPositionCount: preloadPreviousPositionCount, from: index, direction: .backward, location: .end)
 
@@ -223,7 +225,7 @@ final class PaginationView: UIView {
     ///
     /// - Returns: The loaded page view, if any.
     @discardableResult
-    private func loadView(at index: Int, location: PageLocation) -> (UIView & PageView)? {
+    private func loadView(at index: Int, location: PageLocation, completion: @escaping () -> Void = {}) -> (UIView & PageView)? {
         if 0..<pageCount ~= index,
             loadedViews[index] == nil,
             let delegate = delegate,
@@ -232,8 +234,12 @@ final class PaginationView: UIView {
             loadedViews[index] = view
         }
         
-        let view = loadedViews[index]
-        view?.go(to: location)
+        guard let view = loadedViews[index] else {
+            completion()
+            return nil
+        }
+        
+        view.go(to: location, completion: completion)
         return view
     }
     
