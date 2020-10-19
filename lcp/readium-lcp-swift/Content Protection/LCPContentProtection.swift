@@ -30,6 +30,9 @@ final class LCPContentProtection: ContentProtection {
         sender: Any?,
         completion: @escaping (CancellableResult<ProtectedFile?, Publication.OpeningError>) -> Void)
     {
+        let authentication = credentials.map { LCPPassphraseAuthentication($0, fallback: self.authentication) }
+            ?? self.authentication
+        
         service.retrieveLicense(
             from: file.url,
             authentication: authentication,
