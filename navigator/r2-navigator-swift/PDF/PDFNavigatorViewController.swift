@@ -38,7 +38,10 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
     /// Reading order index of the current resource.
     private var currentResourceIndex: Int?
     
-    // Holds a reference to make sure it is not garbage-collected.
+    /// Holds the currently opened PDF Document.
+    private let documentHolder = PDFDocumentHolder()
+    
+    /// Holds a reference to make sure it is not garbage-collected.
     private var tapGestureController: PDFTapGestureController?
 
     public init(publication: Publication, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
@@ -49,6 +52,15 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         super.init(nibName: nil, bundle: nil)
         
         self.editingActions.delegate = self
+        
+        // Wraps the PDF factories of publication services to return the currently opened document
+        // held in `documentHolder` when relevant. This prevents opening several times the same
+        // document, which is useful in particular with `LCPDFPositionService`.
+        for service in publication.findServices(PDFPublicationService.self) {
+            service.pdfFactory = CompositePDFDocumentFactory(factories: [
+                documentHolder, service.pdfFactory
+            ])
+        }
     }
     
     public required init?(coder aDecoder: NSCoder) {
@@ -145,8 +157,9 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
                 log(.error, "Can't open PDF document at \(link)")
                 return false
             }
-    
+            
             currentResourceIndex = index
+            documentHolder.set(document, at: link.href)
             pdfView.document = document
             updateScaleFactors()
         }
@@ -185,15 +198,19 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
             }
         }
         
+        guard var position = locator.locations.position else {
+            return nil
+        }
+        
         if
-            let position = locator.locations.position,
+            publication.readingOrder.count > 1,
             let index = publication.readingOrder.firstIndex(withHREF: locator.href),
             let firstPosition = publication.positionsByReadingOrder[index].first?.locations.position
         {
-            return position - firstPosition + 1
+            position = position - firstPosition + 1
         }
         
-        return nil
+        return position
     }
     
     /// Returns the position locator of the current page.
@@ -205,7 +222,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
             return nil
         }
         let positions = publication.positionsByReadingOrder[currentResourceIndex]
-        guard 1...positions.count ~= pageNumber else {
+        guard positions.count > 0, 1...positions.count ~= pageNumber else {
             return nil
         }
         
