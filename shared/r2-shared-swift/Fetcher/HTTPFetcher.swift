@@ -96,21 +96,21 @@ public final class HTTPFetcher: Fetcher {
         func read(range: Range<UInt64>?) -> ResourceResult<Data> {
             // FIXME:
             fatalError("Not yet fully implemented")
-            if let range = range {
-                return headResponse.flatMap { response in
-                    var request = URLRequest(url: url)
-                    if response.acceptsRanges {
-                        request.setBytesRange(range)
-                    }
-                    return URLSession.shared.synchronousDataTask(with: request)
-                        .map { data, _ in data }
-                }
-
-            } else {
-                let request = URLRequest(url: url)
-                return URLSession.shared.synchronousDataTask(with: request)
-                    .map { data, _ in data }
-            }
+//            if let range = range {
+//                return headResponse.flatMap { response in
+//                    var request = URLRequest(url: url)
+//                    if response.acceptsRanges {
+//                        request.setBytesRange(range)
+//                    }
+//                    return URLSession.shared.synchronousDataTask(with: request)
+//                        .map { data, _ in data }
+//                }
+//
+//            } else {
+//                let request = URLRequest(url: url)
+//                return URLSession.shared.synchronousDataTask(with: request)
+//                    .map { data, _ in data }
+//            }
         }
         
         func close() { }

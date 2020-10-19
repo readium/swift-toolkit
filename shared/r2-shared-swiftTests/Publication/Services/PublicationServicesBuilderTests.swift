@@ -29,8 +29,8 @@ class PublicationServicesBuilderTests: XCTestCase {
     
     func testInitWithCustomFactories() {
         let builder = PublicationServicesBuilder(
-            cover: GeneratedCoverService.createFactory(cover: UIImage()),
-            positions: PerResourcePositionsService.createFactory(fallbackMediaType: "")
+            cover: GeneratedCoverService.makeFactory(cover: UIImage()),
+            positions: PerResourcePositionsService.makeFactory(fallbackMediaType: "")
         )
 
         let services = builder.build(context: context)

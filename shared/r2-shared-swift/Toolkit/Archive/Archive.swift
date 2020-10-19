@@ -89,12 +89,24 @@ protocol MutableArchive: Archive {
 
 }
 
-public typealias ArchiveFactory = (_ url: URL, _ password: String?) throws -> Archive
+public protocol ArchiveFactory {
+    
+    /// Opens an archive from a local file path.
+    func open(url: URL, password: String?) throws -> Archive
+    
+}
 
-public let DefaultArchiveFactory: ArchiveFactory = { url, password in
-    do {
-        return try ExplodedArchive(url: url, password: password)
-    } catch {
-        return try MinizipArchive(url: url, password: password)
+public class DefaultArchiveFactory: ArchiveFactory, Loggable {
+    
+    public init() {}
+    
+    public func open(url: URL, password: String?) throws -> Archive {
+        warnIfMainThread()
+        do {
+            return try ExplodedArchive(url: url, password: password)
+        } catch {
+            return try MinizipArchive(url: url, password: password)
+        }
     }
+    
 }

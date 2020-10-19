@@ -17,10 +17,15 @@ import Foundation
 /// providing an access to the file content.
 public final class FormatSnifferContext {
     
-    internal init(content: FormatSnifferContent? = nil, mediaTypes: [String], fileExtensions: [String]) {
+    private let archiveFactory: ArchiveFactory
+    private let xmlFactory: XMLDocumentFactory
+    
+    internal init(content: FormatSnifferContent? = nil, mediaTypes: [String], fileExtensions: [String], archiveFactory: ArchiveFactory = DefaultArchiveFactory(), xmlFactory: XMLDocumentFactory = DefaultXMLDocumentFactory()) {
         self.content = content
         self.mediaTypes = mediaTypes.compactMap { MediaType($0) }
         self.fileExtensions = fileExtensions.map { $0.lowercased() }
+        self.archiveFactory = archiveFactory
+        self.xmlFactory = xmlFactory
     }
     
     // MARK: Metadata
@@ -73,12 +78,12 @@ public final class FormatSnifferContext {
 
     /// Content as an XML document.
     lazy var contentAsXML: XMLDocument? = contentAsString
-        .flatMap { FuziXMLDocument(string: $0) }
+        .flatMap { try? xmlFactory.open(string: $0, namespaces: []) }
 
     /// Content as an archive.
     /// Warning: ZIP is only supported for a local file, for now.
     lazy var contentAsArchive: Archive? = (content as? FormatSnifferFileContent)
-        .flatMap { try? DefaultArchiveFactory($0.file, nil) }
+        .flatMap { try? archiveFactory.open(url: $0.file, password: nil) }
 
     /// Content parsed from JSON.
     public lazy var contentAsJSON: Any? = contentAsString

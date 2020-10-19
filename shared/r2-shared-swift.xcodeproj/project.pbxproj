@@ -8,6 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		57470F7E20ED0D1A000CDCA3 /* DownloadSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */; };
+		CA038E2F2520D3F700489729 /* PDFKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA038E2E2520D3F700489729 /* PDFKit.swift */; };
+		CA0D3C0F2518E213005B47BC /* PDFDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0D3C0E2518E213005B47BC /* PDFDocument.swift */; };
+		CA0D3C112518E2F6005B47BC /* PDFOutlineNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0D3C102518E2F6005B47BC /* PDFOutlineNode.swift */; };
+		CA0D3C132518E604005B47BC /* CGPDF.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0D3C122518E604005B47BC /* CGPDF.swift */; };
 		CA038E5025222B0900489729 /* ControlFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA038E4F25222B0900489729 /* ControlFlow.swift */; };
 		CA13517C248936E00087E69E /* LinkArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA13517B248936E00087E69E /* LinkArrayTests.swift */; };
 		CA13517E248952B10087E69E /* NSRegularExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA13517D248952B10087E69E /* NSRegularExpression.swift */; };
@@ -201,6 +205,10 @@
 		0318F709221DD4CA004E5114 /* Locator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Locator.swift; sourceTree = "<group>"; };
 		57470F7D20ED0D1A000CDCA3 /* DownloadSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadSession.swift; sourceTree = "<group>"; };
 		AEF39DF220E3895200A560F3 /* UserProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProperties.swift; sourceTree = "<group>"; };
+		CA038E2E2520D3F700489729 /* PDFKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFKit.swift; sourceTree = "<group>"; };
+		CA0D3C0E2518E213005B47BC /* PDFDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDocument.swift; sourceTree = "<group>"; };
+		CA0D3C102518E2F6005B47BC /* PDFOutlineNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFOutlineNode.swift; sourceTree = "<group>"; };
+		CA0D3C122518E604005B47BC /* CGPDF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGPDF.swift; sourceTree = "<group>"; };
 		CA038E4F25222B0900489729 /* ControlFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlFlow.swift; sourceTree = "<group>"; };
 		CA13517B248936E00087E69E /* LinkArrayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkArrayTests.swift; sourceTree = "<group>"; };
 		CA13517D248952B10087E69E /* NSRegularExpression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSRegularExpression.swift; sourceTree = "<group>"; };
@@ -399,6 +407,7 @@
 				CA68BDCC24407745009A6BAA /* Extensions */,
 				CA228D1724BCE26000879E2E /* Logging */,
 				CA81741A24585E5800033776 /* Media */,
+				CA0D3C0D2518E1F9005B47BC /* PDF */,
 				CA60CE1E2446DE7500149B22 /* XML */,
 				CA228D1E24BDDDAF00879E2E /* CancellableResult.swift */,
 				F3E7D4221F4ECB3D00DF166D /* Date+ISO8601.swift */,
@@ -417,6 +426,17 @@
 				CA7116F02455FAF900C029FD /* UTI.swift */,
 			);
 			path = Toolkit;
+			sourceTree = "<group>";
+		};
+		CA0D3C0D2518E1F9005B47BC /* PDF */ = {
+			isa = PBXGroup;
+			children = (
+				CA0D3C0E2518E213005B47BC /* PDFDocument.swift */,
+				CA0D3C102518E2F6005B47BC /* PDFOutlineNode.swift */,
+				CA0D3C122518E604005B47BC /* CGPDF.swift */,
+				CA038E2E2520D3F700489729 /* PDFKit.swift */,
+			);
+			path = PDF;
 			sourceTree = "<group>";
 		};
 		CA16A8572232C27F00E66255 /* Publication */ = {
@@ -1146,6 +1166,7 @@
 				F3E7D4231F4ECB3D00DF166D /* Date+ISO8601.swift in Sources */,
 				CA60CE242446E97400149B22 /* Fuzi.swift in Sources */,
 				CA8C84162468914900CE97A4 /* Resource.swift in Sources */,
+				CA038E2F2520D3F700489729 /* PDFKit.swift in Sources */,
 				CA62B37E24E02FA30046CDCF /* LazyResource.swift in Sources */,
 				CA17637A223A7B8900959FEB /* Properties+OPDS.swift in Sources */,
 				CACD75E22236A0B7004F20CA /* Subject.swift in Sources */,
@@ -1189,6 +1210,7 @@
 				CA68BDC5244064F6009A6BAA /* Format.swift in Sources */,
 				CA8C841C2468A06300CE97A4 /* ProxyFetcher.swift in Sources */,
 				CA228D1124BC5CF800879E2E /* Result.swift in Sources */,
+				CA0D3C112518E2F6005B47BC /* PDFOutlineNode.swift in Sources */,
 				CAD0FEDA2444FDB60053C998 /* Archive.swift in Sources */,
 				CA2AE321221C1DCB008BD18F /* LoggerStub.swift in Sources */,
 				CA9FC07624825A880020B9CC /* PublicationServicesBuilder.swift in Sources */,
@@ -1215,6 +1237,7 @@
 				CA9FC06F24824C3B0020B9CC /* Manifest.swift in Sources */,
 				CA8C841A24689E4000CE97A4 /* RoutingFetcher.swift in Sources */,
 				CA5F8EE92404035D00926120 /* ReadingProgression.swift in Sources */,
+				CA0D3C0F2518E213005B47BC /* PDFDocument.swift in Sources */,
 				CA8C84142468906600CE97A4 /* Fetcher.swift in Sources */,
 				CA5F8EFF24041AF200926120 /* Metadata+Presentation.swift in Sources */,
 				CA16A8642232DA2000E66255 /* Locator.swift in Sources */,
@@ -1222,6 +1245,7 @@
 				CA1AB0C424E2D0EA00004BC0 /* URL.swift in Sources */,
 				CACDE61D24858C50006FEB1B /* HTTPFetcher.swift in Sources */,
 				CA68BDCB24406C6C009A6BAA /* FormatSnifferContext.swift in Sources */,
+				CA0D3C132518E604005B47BC /* CGPDF.swift in Sources */,
 				CA9E6BA12239823300ECF6E4 /* Publication+Deprecated.swift in Sources */,
 				CABBB2E52237ADEB004EB039 /* Feed.swift in Sources */,
 				CA9E6BA9223A749900ECF6E4 /* Publication+EPUB.swift in Sources */,

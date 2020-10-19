@@ -160,6 +160,11 @@ public class Publication: Loggable {
     public func findService<T>(_ serviceType: T.Type) -> T? {
         return services.first { $0 is T } as? T
     }
+    
+    /// Finds all the services implementing matching the given type.
+    public func findServices<T>(_ serviceType: T.Type) -> [T] {
+        return services.filter { $0 is T } as! [T]
+    }
 
     /// Sets the URL where this `Publication`'s RWPM manifest is served.
     public func setSelfLink(href: String?) {

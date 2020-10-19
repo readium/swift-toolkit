@@ -16,13 +16,8 @@ final class FuziXMLDocument: XMLDocument, Loggable {
     
     fileprivate let document: Fuzi.XMLDocument
     
-    init?(string: String, namespaces: [XMLNamespace]) {
-        do {
-            self.document = try Fuzi.XMLDocument(string: string)
-        } catch {
-            Self.log(.error, error)
-            return nil
-        }
+    init(string: String, namespaces: [XMLNamespace]) throws {
+        self.document = try Fuzi.XMLDocument(string: string)
     }
     
     lazy var documentElement: XMLElement? =

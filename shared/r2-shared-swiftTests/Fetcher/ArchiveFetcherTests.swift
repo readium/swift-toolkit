@@ -19,7 +19,7 @@ class ArchiveFetcherTests: XCTestCase {
 
     override func setUpWithError() throws {
         let url = fixtures.url(for: "epub.epub")
-        fetcher = try ArchiveFetcher(url: url)
+        fetcher = try ArchiveFetcher(archive: DefaultArchiveFactory().open(url: url, password: nil))
     }
     
     func testLinks() {
