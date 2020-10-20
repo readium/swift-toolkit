@@ -16,6 +16,8 @@ import R2Shared
 
 class NCXParserTests: XCTestCase {
     
+    let fixtures = Fixtures(path: "Navigation Documents")
+    
     func testParseTOC() {
         let document = parseNCX("nav")
         let sut = document.links(for: .tableOfContents)
@@ -53,9 +55,8 @@ class NCXParserTests: XCTestCase {
     
     // MARK: - Toolkit
     
-    func parseNCX(_ name: String, type: String = "ncx") -> NCXParser {
-        let url = SampleGenerator().getSamplesFileURL(named: "Navigation Documents/\(name)", ofType: type)!
-        let data = try! Data(contentsOf: url)
+    func parseNCX(_ name: String) -> NCXParser {
+        let data = fixtures.data(at: "\(name).ncx")
         return NCXParser(data: data, at: "/base/nav.xhtml")
     }
     

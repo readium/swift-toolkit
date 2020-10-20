@@ -43,20 +43,20 @@ class ReadiumWebPubParserTests: XCTestCase {
     func testRefusesNonReadiumWebPub() throws {
         let file = File(url: fixtures.url(for: "cc-shared-culture.epub"))
         let fetcher = try ArchiveFetcher(url: file.url)
-        XCTAssertNil(try parser.parse(file: file, fetcher: fetcher))
+        XCTAssertNil(try parser.parse(file: file, fetcher: fetcher, warnings: nil))
     }
     
     func testAcceptsManifest() {
-        XCTAssertNotNil(try parser.parse(file: manifestFile, fetcher: manifestFetcher))
+        XCTAssertNotNil(try parser.parse(file: manifestFile, fetcher: manifestFetcher, warnings: nil))
     }
     
     func testAcceptsPackage() {
-        XCTAssertNotNil(try parser.parse(file: packageFile, fetcher: packageFetcher))
+        XCTAssertNotNil(try parser.parse(file: packageFile, fetcher: packageFetcher, warnings: nil))
     }
     
     /// The `Link`s' hrefs are normalized to the `self` link for a manifest.
     func testHrefsAreNormalizedToSelfForManifests() throws {
-        let publication = try XCTUnwrap(parser.parse(file: manifestFile, fetcher: manifestFetcher)?.build())
+        let publication = try XCTUnwrap(try parser.parse(file: manifestFile, fetcher: manifestFetcher, warnings: nil)?.build())
 
         XCTAssertEqual(
             publication.readingOrder.map { $0.href },
@@ -70,7 +70,7 @@ class ReadiumWebPubParserTests: XCTestCase {
     
     /// The `Link`s' hrefs are normalized to `/` for a package.
     func testHrefsAreNormalizedToRootForPackages() throws {
-        let publication = try XCTUnwrap(parser.parse(file: packageFile, fetcher: packageFetcher)?.build())
+        let publication = try XCTUnwrap(parser.parse(file: packageFile, fetcher: packageFetcher, warnings: nil)?.build())
 
         XCTAssertEqual(
             publication.readingOrder.map { $0.href },

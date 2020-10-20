@@ -16,6 +16,8 @@ import R2Shared
 
 class OPFParserTests: XCTestCase {
     
+    let fixtures = Fixtures(path: "OPF")
+    
     func testParseMinimalOPF() throws {
         let sut = try parseManifest("minimal", at: "/EPUB/content.opf")
         
@@ -153,14 +155,11 @@ class OPFParserTests: XCTestCase {
     // MARK: - Toolkit
     
     func parseManifest(_ name: String, at path: String = "/EPUB/content.opf", displayOptions: String? = nil) throws -> (manifest: Manifest, version: String) {
-        func document(named name: String, type: String) throws -> Data {
-            return try Data(contentsOf: SampleGenerator().getSamplesFileURL(named: "OPF/\(name)", ofType: type)!)
-        }
         let parts = try OPFParser(
             basePath: path,
-            data: try document(named: name, type: "opf"),
+            data: fixtures.data(at: "\(name).opf"),
             fallbackTitle: "title",
-            displayOptionsData: displayOptions.map { try document(named: $0, type: "xml") },
+            displayOptionsData: displayOptions.map { fixtures.data(at: "\($0).xml") },
             encryptions: [:]
         ).parsePublication()
         

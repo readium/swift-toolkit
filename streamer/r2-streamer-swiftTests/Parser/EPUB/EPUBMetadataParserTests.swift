@@ -17,6 +17,8 @@ import R2Shared
 
 class EPUBMetadataParserTests: XCTestCase {
     
+    let fixtures = Fixtures(path: "OPF")
+    
     func testParseFullMetadata() throws {
         let sut = try parseMetadata("full-metadata")
 
@@ -313,10 +315,9 @@ class EPUBMetadataParserTests: XCTestCase {
     
     func parseMetadata(_ name: String, displayOptions: String? = nil) throws -> Metadata {
         func parseDocument(named name: String, type: String) throws -> Fuzi.XMLDocument {
-            return try XMLDocument(data: try Data(
-                contentsOf: SampleGenerator().getSamplesFileURL(named: "OPF/\(name)", ofType: type)!
-            ))
+            return try XMLDocument(data: fixtures.data(at: "\(name).\(type)"))
         }
+        
         let document = try parseDocument(named: name, type: "opf")
         return try EPUBMetadataParser(
             document: document,

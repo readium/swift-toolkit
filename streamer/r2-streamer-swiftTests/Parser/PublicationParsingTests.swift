@@ -1,9 +1,7 @@
 //
-//  PublicationParsingTests.swift
-//  R2Streamer
-//
-//  Created by Alexandre Camilleri on 3/3/17.
-//  Copyright © 2017 Readium. All rights reserved.
+//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import XCTest
@@ -11,45 +9,45 @@ import R2Shared
 @testable import R2Streamer
 
 class PublicationParsingTests: XCTestCase, Loggable {
-    let sg = SampleGenerator()
-
-    override func setUp() {
-        R2EnableLog(withMinimumSeverityLevel: .debug)
-        // Retrieve the samples URLs.
-        sg.getSampleEpubUrl()
-    }
-
-    // Mark: - Tests methods.
+    
+    let fixtures = Fixtures()
+    let streamer = Streamer()
 
     /// Try to parse the .epub samples.
     func testParseEpub() {
-        for url in sg.pubUrls {
-            // Parse the epub at URL and assert if failure.
-            _ = sg.parseEpub(at: url)
-        }
+        parse(url: fixtures.url(for: "cc-shared-culture.epub"))
+        parse(url: fixtures.url(for: "SmokeTestFXL.epub"))
     }
 
     /// Attemp to parse the Epub directories samples.
     func testParseEpubDirectory() {
-        for url in sg.pubDirectoryUrls {
-            // Parse the epub at URL and assert if failure.
-            _ = sg.parseEpub(at: url)
-        }
+        parse(url: fixtures.url(for: "cc-shared-culture"))
+        parse(url: fixtures.url(for: "SmokeTestFXL"))
     }
 
     func testParseCbz() {
-        guard let url = sg.getSamplesUrl(named: "futuristic_tales", ofType: "cbz") else {
-            XCTFail()
-            return
-        }
-        _ = sg.parseCbz(at: url)
+        parse(url: fixtures.url(for: "futuristic_tales.cbz"))
     }
 
     func testParseCbzDirectory() {
-        guard let url = sg.getSamplesUrl(named: "futuristic_tales", ofType: nil) else {
-            XCTFail()
-            return
-        }
-        _ = sg.parseCbz(at: url)
+        parse(url: fixtures.url(for: "futuristic_tales"))
     }
+    
+    private func parse(url: URL) {
+        let expect = expectation(description: "Publication parsed")
+    
+        streamer.open(file: File(url: url), allowUserInteraction: false) { result in
+            switch result {
+            case .success:
+                expect.fulfill()
+            case .failure:
+                XCTFail("Failed to parse \(url)")
+            case .cancelled:
+                XCTFail("Parsing of \(url) cancelled")
+            }
+        }
+    
+        waitForExpectations(timeout: 2, handler: nil)
+    }
+    
 }
