@@ -12,7 +12,7 @@
 import Foundation
 
 /// https://readium.org/webpub-manifest/schema/metadata.schema.json
-public struct Metadata: Equatable, Loggable, WarningLogger {
+public struct Metadata: Hashable, Loggable, WarningLogger {
 
     /// Collection type used for collection/series metadata.
     /// For convenience, the JSON schema reuse the Contributor's definition.

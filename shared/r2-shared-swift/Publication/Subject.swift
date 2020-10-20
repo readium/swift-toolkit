@@ -13,7 +13,7 @@ import Foundation
 
 
 // https://github.com/readium/webpub-manifest/tree/master/contexts/default#subjects
-public struct Subject: Equatable {
+public struct Subject: Hashable {
     
     public let localizedName: LocalizedString
     public var name: String { localizedName.string }

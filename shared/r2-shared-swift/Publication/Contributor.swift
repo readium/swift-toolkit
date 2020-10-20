@@ -13,7 +13,7 @@ import Foundation
 
 
 /// https://readium.org/webpub-manifest/schema/contributor-object.schema.json
-public struct Contributor: Equatable {
+public struct Contributor: Hashable {
     
     /// The name of the contributor.
     public let localizedName: LocalizedString

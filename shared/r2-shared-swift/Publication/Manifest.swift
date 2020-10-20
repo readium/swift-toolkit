@@ -15,7 +15,7 @@ import Foundation
 /// Manifest.
 ///
 /// See. https://readium.org/webpub-manifest/
-public struct Manifest: JSONEquatable {
+public struct Manifest: JSONEquatable, Hashable {
     
     public let context: [String]  // @context
     

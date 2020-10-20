@@ -14,7 +14,7 @@ import Foundation
 
 /// Link Object for the Readium Web Publication Manifest.
 /// https://readium.org/webpub-manifest/schema/link.schema.json
-public struct Link: JSONEquatable {
+public struct Link: JSONEquatable, Hashable {
 
     /// URI or URI template of the linked resource.
     /// Note: a String because templates are lost with URL.

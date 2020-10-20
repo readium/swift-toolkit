@@ -15,16 +15,20 @@ import Foundation
 /// Core Collection Model
 /// https://readium.org/webpub-manifest/schema/subcollection.schema.json
 /// Can be used as extension point in the Readium Web Publication Manifest.
-public struct PublicationCollection: JSONEquatable {
+public struct PublicationCollection: JSONEquatable, Hashable {
     
-    public let metadata: [String: Any]
+    public var metadata: [String: Any] { metadataJSON.json }
+    
     public let links: [Link]
     
     /// Subcollections indexed by their role in this collection.
     public let subcollections: [String: [PublicationCollection]]
     
+    // Trick to keep the struct hashable despite [String: Any]
+    private let metadataJSON: JSONDictionary
+    
     public init(metadata: [String: Any] = [:], links: [Link], subcollections: [String: [PublicationCollection]] = [:]) {
-        self.metadata = metadata
+        self.metadataJSON = JSONDictionary(metadata) ?? JSONDictionary()
         self.links = links
         self.subcollections = subcollections
     }
