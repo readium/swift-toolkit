@@ -138,7 +138,11 @@ final class LibraryService: Loggable {
             .flatMap { self.insertBook($0) }
             .mapError { LibraryError.importFailed($0) }
             // FIXME: The Library should automatically observe the database instead.
-            .also { _ in self.delegate?.reloadLibrary() }
+            .also { _ in
+                DispatchQueue.main.async {
+                    self.delegate?.reloadLibrary()
+                }
+            }
             .resolve(completion)
     }
     
