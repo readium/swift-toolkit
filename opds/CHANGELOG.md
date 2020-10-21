@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+* Update internal usage of the `Publication` shared models.
+
 ## [2.0.0-alpha.1]
 
 ### Changed
