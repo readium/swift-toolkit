@@ -27,6 +27,8 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     private let pageViewController: UIPageViewController
 
     public init(publication: Publication, initialLocation: Locator? = nil) {
+        assert(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
+        
         self.publication = publication
         self.initialIndex = {
             guard let initialLocation = initialLocation, let initialIndex = publication.readingOrder.firstIndex(withHREF: initialLocation.href) else {

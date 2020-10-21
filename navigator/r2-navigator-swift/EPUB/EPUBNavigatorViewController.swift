@@ -178,6 +178,8 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     private let resourcesURL: URL?
 
     public init(publication: Publication, initialLocation: Locator? = nil, resourcesServer: ResourcesServer, config: Configuration = .init()) {
+        assert(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
+        
         self.publication = publication
         self.editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
         self.userSettings = UserSettings()

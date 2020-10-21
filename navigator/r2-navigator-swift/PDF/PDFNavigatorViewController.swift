@@ -45,6 +45,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
     private var tapGestureController: PDFTapGestureController?
 
     public init(publication: Publication, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
+        assert(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
+        
         self.publication = publication
         self.initialLocation = initialLocation
         self.editingActions = EditingActionsController(actions: editingActions, rights: publication.rights)
