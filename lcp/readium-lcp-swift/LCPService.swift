@@ -7,7 +7,6 @@
 import Foundation
 import R2Shared
 
-
 /// Service used to acquire and open publications protected with LCP.
 ///
 /// If an `LCPAuthenticating` instance is not given when expected, the request is cancelled if no
@@ -39,34 +38,6 @@ public final class LCPService: Loggable {
     public func isLCPProtected(_ file: URL) -> Bool {
         warnIfMainThread()
         return makeLicenseContainerSync(for: file)?.containsLicense() == true
-    }
-    
-    /// Preloads the given `passphrase` to prevent showing the user a passphrase dialog.
-    ///
-    /// If the passphrase is already hashed, set `hashed` to true.
-    ///
-    /// This can be used in the context of LCP Automatic Key Retrieval, for example.
-    /// https://readium.org/lcp-specs/notes/lcp-key-retrieval.html
-    public func addPassphrase(_ passphrase: String, hashed: Bool, for license: LicenseDocument) -> Bool {
-        return addPassphrase(passphrase, hashed: hashed, licenseId: license.id, provider: license.provider, userId: license.user.id)
-    }
-    
-    /// Preloads the given `passphrase` to prevent showing the user a passphrase dialog.
-    ///
-    /// If the passphrase is already hashed, set `hashed` to true.    ///
-    ///
-    /// This can be used in the context of LCP Automatic Key Retrieval, for example.
-    /// https://readium.org/lcp-specs/notes/lcp-key-retrieval.html
-    @discardableResult
-    public func addPassphrase(_ passphrase: String, hashed: Bool, licenseId: String? = nil, provider: String? = nil, userId: String? = nil) -> Bool {
-        warnIfMainThread()
-        
-        var passphrase = passphrase
-        if !hashed {
-            passphrase = passphrase.sha256()
-        }
-        
-        return passphrases.addPassphrase(passphrase, forLicenseId: licenseId, provider: provider, userId: userId)
     }
     
     /// Acquires a protected publication from a standalone LCPL file.

@@ -17,7 +17,6 @@ All notable changes to this project will be documented in this file.
   * It doesn't require the passphrase, to allow bulk imports.
   * It can be cancelled by calling `cancel()` on the returned `LCPAcquisition` object.
 * `LCPService.isLCPProtected()` provides a way to check if a file is protected with LCP.
-* `LCPService.addPassphrase()` can be used to preload LCP passphrases, for example when using [LCP Automatic Key Retrieval](https://readium.org/lcp-specs/notes/lcp-key-retrieval.html).
 
 ### Changed
 
