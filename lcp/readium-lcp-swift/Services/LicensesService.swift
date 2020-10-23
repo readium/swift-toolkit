@@ -87,8 +87,8 @@ final class LicensesService: Loggable {
         }
     }
     
-    func acquirePublication(from lcpl: URL) -> LCPAcquisition {
-        let acquisition = LCPAcquisition()
+    func acquirePublication(from lcpl: URL, onProgress: @escaping (LCPAcquisition.Progress) -> Void, completion: @escaping (CancellableResult<LCPAcquisition.Publication, LCPError>) -> Void) -> LCPAcquisition {
+        let acquisition = LCPAcquisition(onProgress: onProgress, completion: completion)
         
         readLicense(from: lcpl).resolve { result in
             switch result {

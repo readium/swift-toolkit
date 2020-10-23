@@ -41,9 +41,11 @@ public final class LCPService: Loggable {
     }
     
     /// Acquires a protected publication from a standalone LCPL file.
+    ///
+    /// You can cancel the on-going download with `acquisition.cancel()`.
     @discardableResult
-    public func acquirePublication(from lcpl: URL) -> LCPAcquisition {
-        licenses.acquirePublication(from: lcpl)
+    public func acquirePublication(from lcpl: URL, onProgress: @escaping (LCPAcquisition.Progress) -> Void = { _ in }, completion: @escaping (CancellableResult<LCPAcquisition.Publication, LCPError>) -> Void) -> LCPAcquisition {
+        licenses.acquirePublication(from: lcpl, onProgress: onProgress, completion: completion)
     }
     
     /// Opens the LCP license of a protected publication, to access its DRM metadata and decipher
