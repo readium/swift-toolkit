@@ -29,19 +29,18 @@ class LCPLibraryService: DRMLibraryService {
     
     func fulfill(_ file: URL) -> Deferred<DRMFulfilledPublication, Error> {
         return deferred { completion in
-            self.lcpService.acquirePublication(from: file)
-                .onCompletion { result in
-                    completion(result
-                        .map {
-                            DRMFulfilledPublication(
-                                localURL: $0.localURL,
-                                downloadTask: $0.downloadTask,
-                                suggestedFilename: $0.suggestedFilename
-                            )
-                        }
-                        .eraseToAnyError()
-                    )
-                }
+            self.lcpService.acquirePublication(from: file) { result in
+                completion(result
+                    .map {
+                        DRMFulfilledPublication(
+                            localURL: $0.localURL,
+                            downloadTask: $0.downloadTask,
+                            suggestedFilename: $0.suggestedFilename
+                        )
+                    }
+                    .eraseToAnyError()
+                )
+            }
         }
     }
 
