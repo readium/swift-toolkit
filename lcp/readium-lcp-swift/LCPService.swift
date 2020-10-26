@@ -7,7 +7,6 @@
 import Foundation
 import R2Shared
 
-
 /// Service used to acquire and open publications protected with LCP.
 ///
 /// If an `LCPAuthenticating` instance is not given when expected, the request is cancelled if no
@@ -41,38 +40,12 @@ public final class LCPService: Loggable {
         return makeLicenseContainerSync(for: file)?.containsLicense() == true
     }
     
-    /// Preloads the given `passphrase` to prevent showing the user a passphrase dialog.
-    ///
-    /// If the passphrase is already hashed, set `hashed` to true.
-    ///
-    /// This can be used in the context of LCP Automatic Key Retrieval, for example.
-    /// https://readium.org/lcp-specs/notes/lcp-key-retrieval.html
-    public func addPassphrase(_ passphrase: String, hashed: Bool, for license: LicenseDocument) -> Bool {
-        return addPassphrase(passphrase, hashed: hashed, licenseId: license.id, provider: license.provider, userId: license.user.id)
-    }
-    
-    /// Preloads the given `passphrase` to prevent showing the user a passphrase dialog.
-    ///
-    /// If the passphrase is already hashed, set `hashed` to true.    ///
-    ///
-    /// This can be used in the context of LCP Automatic Key Retrieval, for example.
-    /// https://readium.org/lcp-specs/notes/lcp-key-retrieval.html
-    @discardableResult
-    public func addPassphrase(_ passphrase: String, hashed: Bool, licenseId: String? = nil, provider: String? = nil, userId: String? = nil) -> Bool {
-        warnIfMainThread()
-        
-        var passphrase = passphrase
-        if !hashed {
-            passphrase = passphrase.sha256()
-        }
-        
-        return passphrases.addPassphrase(passphrase, forLicenseId: licenseId, provider: provider, userId: userId)
-    }
-    
     /// Acquires a protected publication from a standalone LCPL file.
+    ///
+    /// You can cancel the on-going download with `acquisition.cancel()`.
     @discardableResult
-    public func acquirePublication(from lcpl: URL) -> LCPAcquisition {
-        licenses.acquirePublication(from: lcpl)
+    public func acquirePublication(from lcpl: URL, onProgress: @escaping (LCPAcquisition.Progress) -> Void = { _ in }, completion: @escaping (CancellableResult<LCPAcquisition.Publication, LCPError>) -> Void) -> LCPAcquisition {
+        licenses.acquirePublication(from: lcpl, onProgress: onProgress, completion: completion)
     }
     
     /// Opens the LCP license of a protected publication, to access its DRM metadata and decipher
@@ -82,15 +55,15 @@ public final class LCPService: Loggable {
     ///
     /// - Parameters:
     ///   - authentication: Used to retrieve the user passphrase if it is not already known.
-    ///     The request will be cancelled if no passphrase is found on the LCP passphrase storage
-    ///     and no instance of `LCPAuthenticating` is provided.
+    ///     The request will be cancelled if no passphrase is found in the LCP passphrase storage
+    ///     and in the given `authentication`.
     ///   - allowUserInteraction: Indicates whether the user can be prompted for their passphrase.
     ///   - sender: Free object that can be used by reading apps to give some UX context when
     ///     presenting dialogs with `LCPAuthenticating`.
     public func retrieveLicense(
         from publication: URL,
-        authentication: LCPAuthenticating?,
-        allowUserInteraction: Bool,
+        authentication: LCPAuthenticating = LCPDialogAuthentication(),
+        allowUserInteraction: Bool = true,
         sender: Any? = nil,
         completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void
     ) -> Void {
@@ -101,7 +74,11 @@ public final class LCPService: Loggable {
 
     /// Creates a `ContentProtection` instance which can be used with a `Streamer` to unlock
     /// LCP protected publications.
-    public func contentProtection(with authentication: LCPAuthenticating) -> ContentProtection {
+    ///
+    /// The provided `authentication` will be used to retrieve the user passphrase when opening an
+    /// LCP license. The default implementation `LCPDialogAuthentication` presents a dialog to the
+    /// user to enter their passphrase.
+    public func contentProtection(with authentication: LCPAuthenticating = LCPDialogAuthentication()) -> ContentProtection {
         LCPContentProtection(service: self, authentication: authentication)
     }
 

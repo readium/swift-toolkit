@@ -75,7 +75,7 @@ extension License: LCPLicense {
     }
     
     var canCopy: Bool {
-        return (charactersToCopyLeft ?? 1) > 0
+        (charactersToCopyLeft ?? 1) > 0
     }
     
     func canCopy(text: String) -> Bool {
@@ -123,8 +123,15 @@ extension License: LCPLicense {
         return nil
     }
     
+    func canPrint(pageCount: Int) -> Bool {
+        guard let pagesLeft = pagesToPrintLeft else {
+            return true
+        }
+        return pageCount <= pagesLeft
+    }
+    
     var canPrint: Bool {
-        return (pagesToPrintLeft ?? 1) > 0
+        (pagesToPrintLeft ?? 1) > 0
     }
     
     func print(pageCount: Int) -> Bool {

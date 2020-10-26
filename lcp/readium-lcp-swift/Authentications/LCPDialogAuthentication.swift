@@ -25,7 +25,7 @@ public class LCPDialogAuthentication: LCPAuthenticating, Loggable {
         self.modalTransitionStyle = modalTransitionStyle
     }
 
-    public func requestPassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, allowUserInteraction: Bool, sender: Any?, completion: @escaping (String?) -> Void) {
+    public func retrievePassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, allowUserInteraction: Bool, sender: Any?, completion: @escaping (String?) -> Void) {
         guard allowUserInteraction, let viewController = sender as? UIViewController else {
             if !(sender is UIViewController) {
                 log(.error, "Tried to present the LCP dialog without providing a `UIViewController` as `sender`")

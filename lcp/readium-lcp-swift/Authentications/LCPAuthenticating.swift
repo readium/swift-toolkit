@@ -8,10 +8,12 @@ import Foundation
 
 public protocol LCPAuthenticating {
 
-    /// Requests a passphrase to decrypt the given license.
+    /// Retrieves the passphrase to decrypt the given license.
     ///
-    /// The reading app can prompt the user to enter the passphrase, or retrieve it by any other
-    /// means (eg. web service).
+    /// If `allowUserInteraction` is true, the reading app can prompt the user to enter the
+    /// passphrase. Otherwise, use a background retrieval method (e.g. web service) or return null.
+    ///
+    /// The returned passphrase can be clear or already hashed.
     ///
     /// - Parameters:
     ///   - license: Information to show to the user about the license being opened.
@@ -23,7 +25,7 @@ public protocol LCPAuthenticating {
     ///     presenting dialogs. For example, the host `UIViewController`.
     ///   - completion: Used to return the retrieved passphrase. If the user cancelled, send nil.
     ///     The passphrase may be already hashed.
-    func requestPassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, allowUserInteraction: Bool, sender: Any?, completion: @escaping (String?) -> Void)
+    func retrievePassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, allowUserInteraction: Bool, sender: Any?, completion: @escaping (String?) -> Void)
     
 }
 

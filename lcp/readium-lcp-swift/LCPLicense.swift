@@ -15,7 +15,7 @@ public protocol LCPLicense: UserRights {
     var license: LicenseDocument { get }
     var status: StatusDocument? { get }
     
-    /// Depichers the given encrypted data to be displayed in the reader.
+    /// Deciphers the given encrypted data to be displayed in the reader.
     func decipher(_ data: Data) throws -> Data?
 
     /// Number of remaining characters allowed to be copied by the user.

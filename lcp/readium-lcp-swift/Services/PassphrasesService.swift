@@ -46,7 +46,7 @@ final class PassphrasesService {
     private func authenticate(for license: LicenseDocument, reason: LCPAuthenticationReason, using authentication: LCPAuthenticating, allowUserInteraction: Bool, sender: Any?) -> Deferred<String, Error> {
         return deferred { (success: @escaping (String) -> Void, _, cancel) in
                 let authenticatedLicense = LCPAuthenticatedLicense(document: license)
-                authentication.requestPassphrase(
+                authentication.retrievePassphrase(
                     for: authenticatedLicense,
                     reason: reason,
                     allowUserInteraction: allowUserInteraction,

@@ -20,10 +20,10 @@ public class LCPPassphraseAuthentication: LCPAuthenticating {
         self.fallback = fallback
     }
     
-    public func requestPassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, allowUserInteraction: Bool, sender: Any?, completion: @escaping (String?) -> Void) {
+    public func retrievePassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, allowUserInteraction: Bool, sender: Any?, completion: @escaping (String?) -> Void) {
         guard reason == .passphraseNotFound else {
             if let fallback = fallback {
-                fallback.requestPassphrase(for: license, reason: reason, allowUserInteraction: allowUserInteraction, sender: sender, completion: completion)
+                fallback.retrievePassphrase(for: license, reason: reason, allowUserInteraction: allowUserInteraction, sender: sender, completion: completion)
             } else {
                 completion(nil)
             }
