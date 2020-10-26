@@ -95,7 +95,7 @@ public final class HTTPFetcher: Fetcher {
         
         func read(range: Range<UInt64>?) -> ResourceResult<Data> {
             // FIXME:
-            fatalError("Not yet fully implemented")
+            return .failure(.unavailable)
 //            if let range = range {
 //                return headResponse.flatMap { response in
 //                    var request = URLRequest(url: url)

@@ -25,13 +25,13 @@ public enum SeverityLevel: String {
     var symbol: String {
         switch self {
         case .debug:
-            return "⚪"
+            return "🔎️"
         case .info:
-            return "⚫"
+            return "☝️"
         case .warning:
-            return "🔵"
+            return "⚠️"
         case .error:
-            return "🔴"
+            return "❌"
         }
     }
 }
