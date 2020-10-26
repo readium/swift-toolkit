@@ -55,15 +55,15 @@ public final class LCPService: Loggable {
     ///
     /// - Parameters:
     ///   - authentication: Used to retrieve the user passphrase if it is not already known.
-    ///     The request will be cancelled if no passphrase is found on the LCP passphrase storage
-    ///     and no instance of `LCPAuthenticating` is provided.
+    ///     The request will be cancelled if no passphrase is found in the LCP passphrase storage
+    ///     and in the given `authentication`.
     ///   - allowUserInteraction: Indicates whether the user can be prompted for their passphrase.
     ///   - sender: Free object that can be used by reading apps to give some UX context when
     ///     presenting dialogs with `LCPAuthenticating`.
     public func retrieveLicense(
         from publication: URL,
-        authentication: LCPAuthenticating?,
-        allowUserInteraction: Bool,
+        authentication: LCPAuthenticating = LCPDialogAuthentication(),
+        allowUserInteraction: Bool = true,
         sender: Any? = nil,
         completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void
     ) -> Void {
