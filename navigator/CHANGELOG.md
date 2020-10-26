@@ -6,6 +6,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+* Support for the new `Publication` model using the [Content Protection](https://readium.org/architecture/proposals/006-content-protection) for DRM rights and the [Fetcher](https://readium.org/architecture/proposals/002-composite-fetcher-api) for resource access.
+  * This replaces the `Container` and `DRMLicense` objects which were needed by the navigator before.
+
+### Fixed
+
+* Layout of right-to–left EPUB.
+* [Various EPUB navigation issues](https://github.com/readium/r2-navigator-swift/pull/142):
+  * Prevent breaking initial location when calling `updateUserSettings` too soon.
+  * Fix weird scrolling behavior when double tapping on the edges to turn pages.
+  * Don't send intermediate incorrect locators when loading a pending locator.
+* Optimize positions calculation for LCP protected PDF.
+  
 ## [2.0.0-alpha.1]
 
 ### Added
