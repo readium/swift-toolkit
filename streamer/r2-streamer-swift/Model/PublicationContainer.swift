@@ -14,7 +14,7 @@ import R2Shared
 
 /// Temporary solution to migrate `Publication.get()` while ensuring backward compatibility with
 /// `Container`.
-@available(*, deprecated, message: "Use `Publication.get()` to access a publication's resources")
+@available(*, unavailable, message: "Use `Publication.get()` to access a publication's resources")
 final class PublicationContainer: Container {
     
     var rootFile: RootFile

@@ -16,6 +16,8 @@ import R2Shared
 
 class EPUBEncryptionParserTests: XCTestCase {
     
+    let fixtures = Fixtures(path: "Encryption")
+    
     func testParseLCPEncryption() {
         let sut = parseEncryptions("encryption-lcp")
 
@@ -83,8 +85,7 @@ class EPUBEncryptionParserTests: XCTestCase {
     // MARK: - Toolkit
     
     func parseEncryptions(_ name: String) -> [String: Encryption] {
-        let url = SampleGenerator().getSamplesFileURL(named: "Encryption/\(name)", ofType: "xml")!
-        let data = try! Data(contentsOf: url)
+        let data = fixtures.data(at: "\(name).xml")
         return EPUBEncryptionParser(fetcher: EmptyFetcher(), data: data).parseEncryptions()
     }
     

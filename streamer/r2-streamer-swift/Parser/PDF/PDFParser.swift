@@ -75,24 +75,9 @@ public final class PDFParser: PublicationParser, Loggable {
         self.init(pdfFactory: PDFFileParserFactory(parserType: parserType))
     }
 
-    @available(*, deprecated, message: "Use an instance of `Streamer` to open a `Publication`")
+    @available(*, unavailable, message: "Use an instance of `Streamer` to open a `Publication`")
     public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        if Format.of(url) == .lcpProtectedPDF {
-            return try ReadiumWebPubParser.parse(at: url)
-        }
-        
-        let parser = PDFParser(pdfFactory: DefaultPDFDocumentFactory())
-        guard let publication = try parser.parse(file: File(url: url), fetcher: makeFetcher(for: url))?.build() else {
-            throw PDFParserError.openFailed
-        }
-        
-        let container = PublicationContainer(
-            publication: publication,
-            path: url.path,
-            mimetype: MediaType.pdf.string
-        )
-        
-        return ((publication, container), { _ in })
+        fatalError("Not available")
     }
 
 }

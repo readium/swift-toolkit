@@ -72,7 +72,7 @@ public final class ImageParser: PublicationParser {
             || filename == "Thumbs.db"
     }
     
-    @available(*, deprecated, message: "Not supported for `ImageParser`")
+    @available(*, unavailable, message: "Not supported for `ImageParser`")
     public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
         fatalError("Not supported for `ImageParser`")
     }

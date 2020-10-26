@@ -79,23 +79,31 @@ public final class Streamer: Loggable {
     ///
     /// - Parameters:
     ///   - file: Path to the publication file.
-    ///   - allowUserInteraction: Indicates whether the user can be prompted during opening, for
-    ///     example to ask their credentials.
     ///   - credentials: Credentials that Content Protections can use to attempt to unlock a
     ///     publication, for example a password.
+    ///   - allowUserInteraction: Indicates whether the user can be prompted during opening, for
+    ///     example to ask their credentials.
     ///   - sender: Free object that can be used by reading apps to give some UX context when
     ///     presenting dialogs.
     ///   - onCreatePublication: Transformation which will be applied on the Publication Builder.
     ///     It can be used to modify the `Manifest`, the root `Fetcher` or the list of service
     ///     factories of the `Publication`.
     ///   - warnings: Logger used to broadcast non-fatal parsing warnings.
-    public func open(file: File, allowUserInteraction: Bool, credentials: String? = nil, sender: Any? = nil, warnings: WarningLogger? = nil, onCreatePublication: Publication.Builder.Transform? = nil, completion: @escaping (CancellableResult<Publication, Publication.OpeningError>) -> Void) {
+    public func open(
+        file: File,
+        credentials: String? = nil,
+        allowUserInteraction: Bool,
+        sender: Any? = nil,
+        warnings: WarningLogger? = nil,
+        onCreatePublication: Publication.Builder.Transform? = nil,
+        completion: @escaping (CancellableResult<Publication, Publication.OpeningError>) -> Void
+    ) {
         log(.info, "Open \(file.url.lastPathComponent)")
 
         return makeFetcher(for: file, allowUserInteraction: allowUserInteraction, password: credentials, sender: sender)
             .flatMap { fetcher in
                 // Unlocks any protected file with the Content Protections.
-                self.openFile(at: file, with: fetcher, allowUserInteraction: allowUserInteraction, credentials: credentials, sender: sender)
+                self.openFile(at: file, with: fetcher, credentials: credentials, allowUserInteraction: allowUserInteraction, sender: sender)
             }
             .flatMap { file in
                 // Parses the Publication using the parsers.
@@ -128,7 +136,7 @@ public final class Streamer: Loggable {
     }
     
     /// Unlocks any protected file with the provided Content Protections.
-    private func openFile(at file: File, with fetcher: Fetcher, allowUserInteraction: Bool, credentials: String?, sender: Any?) -> Deferred<PublicationFile, Publication.OpeningError> {
+    private func openFile(at file: File, with fetcher: Fetcher, credentials: String?, allowUserInteraction: Bool, sender: Any?) -> Deferred<PublicationFile, Publication.OpeningError> {
         func unlock(using protections: [ContentProtection]) -> Deferred<ProtectedFile?, Publication.OpeningError> {
             return deferred {
                 var protections = protections
@@ -138,7 +146,7 @@ public final class Streamer: Loggable {
                 }
     
                 return protection
-                    .open(file: file, fetcher: fetcher, allowUserInteraction: allowUserInteraction, credentials: credentials, sender: sender)
+                    .open(file: file, fetcher: fetcher, credentials: credentials, allowUserInteraction: allowUserInteraction, sender: sender)
                     .flatMap {
                         if let protectedFile = $0 {
                             return .success(protectedFile)
@@ -192,9 +200,9 @@ private typealias PublicationFile = (file: File, fetcher: Fetcher, onCreatePubli
 private extension ContentProtection {
     
     /// Wrapper to use `Deferred` with `ContentProtection.open()`.
-    func open(file: File, fetcher: Fetcher, allowUserInteraction: Bool, credentials: String?, sender: Any?) -> Deferred<ProtectedFile?, Publication.OpeningError> {
+    func open(file: File, fetcher: Fetcher, credentials: String?, allowUserInteraction: Bool, sender: Any?) -> Deferred<ProtectedFile?, Publication.OpeningError> {
         return deferred { completion in
-            self.open(file: file, fetcher: fetcher, allowUserInteraction: allowUserInteraction, credentials: credentials, sender: sender, completion: completion)
+            self.open(file: file, fetcher: fetcher, credentials: credentials, allowUserInteraction: allowUserInteraction, sender: sender, completion: completion)
         }
     }
 

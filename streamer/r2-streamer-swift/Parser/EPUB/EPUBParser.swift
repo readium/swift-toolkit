@@ -88,46 +88,9 @@ final public class EPUBParser: PublicationParser {
         )
     }
     
-    /// Parses the EPUB (file/directory) at `fileAtPath` and generate the
-    /// corresponding `Publication` and `Container`.
-    ///
-    /// - Parameter url: The path to the epub file.
-    /// - Returns: The Resulting publication, and a callback for parsing the
-    ///            possibly DRM encrypted in the publication. The callback need
-    ///            to be called by sending back the DRM object (or nil).
-    ///            The point is to get DRM informations in the DRM object, and
-    ///            inform the decypher() function in  the DRM object to allow
-    ///            the fetcher to decypher encrypted resources.
-    /// - Throws: `EPUBParserError.wrongMimeType`,
-    ///           `EPUBParserError.xmlParse`,
-    ///           `EPUBParserError.missingFile`
-    @available(*, deprecated, message: "Use an instance of `Streamer` to open a `Publication`")
+    @available(*, unavailable, message: "Use an instance of `Streamer` to open a `Publication`")
     static public func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        var fetcher: Fetcher = try makeFetcher(for: url)
-        let drm = scanForDRM(in: fetcher)
-
-        let lcpDecryptor = LCPDecryptor(drm: drm)
-        if let transformer = lcpDecryptor?.decrypt(resource:) {
-            fetcher = TransformingFetcher(fetcher: fetcher, transformer: transformer)
-        }
-
-        guard let publication = try EPUBParser().parse(file: File(url: url), fetcher: fetcher)?.build() else {
-            throw EPUBParserError.wrongMimeType
-        }
-
-        let container = PublicationContainer(
-            publication: publication,
-            path: url.path,
-            mimetype: MediaType.epub.string,
-            drm: drm
-        )
-
-        func didLoadDRM(_ drm: DRM?) throws {
-            container.drm = drm
-            lcpDecryptor?.license = drm?.license
-        }
-        
-        return ((publication, container), didLoadDRM)
+        fatalError("Not available")
     }
     
     private func parseCollections(in fetcher: Fetcher, links: [Link]) -> [String: [PublicationCollection]] {
@@ -140,20 +103,6 @@ final public class EPUBParser: PublicationParser {
     }
 
     // MARK: - Internal Methods.
-
-    /// WIP, currently only LCP.
-    /// Scan Container (but later Publication too probably) to know if any DRM
-    /// are protecting the publication.
-    ///
-    /// - Parameter in: The Publication's Container.
-    /// - Returns: The DRM if any found.
-    private static func scanForDRM(in fetcher: Fetcher) -> DRM? {
-        // Check if a LCP license file is present in the package.
-        if ((try? fetcher.readData(at: "/META-INF/license.lcpl")) != nil) {
-            return DRM(brand: .lcp)
-        }
-        return nil
-    }
 
     /// Attempt to fill the `Publication`'s `tableOfContent`, `landmarks`, `pageList` and `listOfX` links collections using the navigation document.
     private func parseNavigationDocument(in fetcher: Fetcher, links: [Link]) -> [String: [PublicationCollection]] {
