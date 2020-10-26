@@ -14,7 +14,7 @@ import Foundation
 
 /// Link Properties
 /// https://readium.org/webpub-manifest/schema/properties.schema.json
-public struct Properties: Equatable, Loggable, WarningLogger {
+public struct Properties: Hashable, Loggable, WarningLogger {
     
     /// Additional properties for extensions.
     public var otherProperties: [String: Any] { otherPropertiesJSON.json }

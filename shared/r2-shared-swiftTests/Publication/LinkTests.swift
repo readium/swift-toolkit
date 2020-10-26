@@ -293,7 +293,7 @@ class LinkTests: XCTestCase {
                 "z": "45",
                 "w": "w"
             ]),
-            Link(href: "/urlaaa,Hello, world,bname45,b,w")
+            Link(href: "/urlaaa,Hello,%20world,bname45,b,w")
         )
     }
 
@@ -307,7 +307,7 @@ class LinkTests: XCTestCase {
                 "hello": "Hello, world",
                 "y": "b"
             ]),
-            Link(href: "/url?x=aaa&hello=Hello, world&y=bname")
+            Link(href: "/url?x=aaa&hello=Hello,%20world&y=bname")
         )
     }
     

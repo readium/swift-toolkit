@@ -26,17 +26,21 @@ class ArchiveFetcherTests: XCTestCase {
         XCTAssertEqual(
             fetcher.links,
             [
-                ("/mimetype", nil),
-                ("/EPUB/cover.xhtml", "text/html"),
-                ("/EPUB/css/epub.css", "text/css"),
-                ("/EPUB/css/nav.css", "text/css"),
-                ("/EPUB/images/cover.png", "image/png"),
-                ("/EPUB/nav.xhtml", "text/html"),
-                ("/EPUB/package.opf", nil),
-                ("/EPUB/s04.xhtml", "text/html"),
-                ("/EPUB/toc.ncx", nil),
-                ("/META-INF/container.xml", "application/xml")
-            ].map { href, type in Link(href: href, type: type) }
+                ("/mimetype", nil, nil),
+                ("/EPUB/cover.xhtml", "text/html", 259),
+                ("/EPUB/css/epub.css", "text/css", 595),
+                ("/EPUB/css/nav.css", "text/css", 306),
+                ("/EPUB/images/cover.png", "image/png", 35809),
+                ("/EPUB/nav.xhtml", "text/html", 2293),
+                ("/EPUB/package.opf", nil, 773),
+                ("/EPUB/s04.xhtml", "text/html", 118269),
+                ("/EPUB/toc.ncx", nil, 1697),
+                ("/META-INF/container.xml", "application/xml", 176)
+            ].map { href, type, compressedLength in
+                Link(href: href, type: type, properties: .init([
+                    "compressedLength": compressedLength as Any
+                ]))
+            }
         )
     }
     

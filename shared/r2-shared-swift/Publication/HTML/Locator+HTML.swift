@@ -16,7 +16,7 @@ import Foundation
 extension Locator.Locations {
     
     /// A CSS Selector.
-    var cssSelector: String? {
+    public var cssSelector: String? {
         otherLocations["cssSelector"] as? String
     }
     
@@ -25,12 +25,12 @@ extension Locator.Locations {
     /// exclamation mark (which denotes the "step indirection" into a publication document). Note
     /// that the wrapping `epubcfi(***)` syntax is not used for the `partialCFI` string, i.e.
     /// the "fragment" part of the CFI grammar is ignored.
-    var partialCFI: String? {
+    public var partialCFI: String? {
         otherLocations["partialCfi"] as? String
     }
     
     /// An HTML DOM range.
-    var domRange: DOMRange? {
+    public var domRange: DOMRange? {
         try? DOMRange(json: otherLocations["domRange"], warnings: self)
     }
     

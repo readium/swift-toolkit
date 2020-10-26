@@ -16,7 +16,7 @@ import Foundation
 /// Can be either:
 ///   - a single nonlocalized string
 ///   - a dictionary of localized strings indexed by the BCP 47 language tag
-public enum LocalizedString: Equatable {
+public enum LocalizedString: Hashable {
     case nonlocalized(String)
     case localized([String: String])
     

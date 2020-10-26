@@ -56,23 +56,18 @@ public protocol UserRights {
     
 }
 
-/// The default implementation of `UserRights` API authorizes everything.
-public extension UserRights {
-    
-    var canCopy: Bool { true }
-    func canCopy(text: String) -> Bool { return true }
-    func copy(text: String) -> Bool { return true }
-    
-    var canPrint: Bool { true }
-    func canPrint(pageCount: Int) -> Bool { return true }
-    func print(pageCount: Int) -> Bool { return true }
-
-}
-
 /// A `UserRights` without any restriction.
 public class UnrestrictedUserRights: UserRights {
     
     public init() {}
+    
+    public var canCopy: Bool { true }
+    public func canCopy(text: String) -> Bool { true }
+    public func copy(text: String) -> Bool { true }
+    
+    public var canPrint: Bool { true }
+    public func canPrint(pageCount: Int) -> Bool { true }
+    public func print(pageCount: Int) -> Bool { true }
     
 }
 
@@ -82,11 +77,11 @@ public class AllRestrictedUserRights: UserRights {
     public init() {}
     
     public var canCopy: Bool { false }
-    public func canCopy(text: String) -> Bool { return false }
-    public func copy(text: String) -> Bool { return false }
+    public func canCopy(text: String) -> Bool { false }
+    public func copy(text: String) -> Bool { false }
     
     public var canPrint: Bool { false }
-    public func canPrint(pageCount: Int) -> Bool { return false }
-    public func print(pageCount: Int) -> Bool { return false }
+    public func canPrint(pageCount: Int) -> Bool { false }
+    public func print(pageCount: Int) -> Bool { false }
     
 }

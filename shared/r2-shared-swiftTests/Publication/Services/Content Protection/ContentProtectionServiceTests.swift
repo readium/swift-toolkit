@@ -38,7 +38,7 @@ class ContentProtectionServiceTests: XCTestCase {
         )
     }
     
-    func testGetContentProtection() {
+    func testGetContentProtection() throws {
         let service = TestContentProtectionService(
             isRestricted: true,
             error: Publication.OpeningError.notFound,
@@ -52,7 +52,7 @@ class ContentProtectionServiceTests: XCTestCase {
         XCTAssertEqual(
             try resource?.readAsString().get(),
             """
-            {"error":"The operation couldn’t be completed. (R2Shared.Publication.OpeningError error 4.)","isRestricted":true,"name":{"en":"DRM","fr":"GDN"},"rights":{"canCopy":false,"canPrint":false}}
+            {"error":"File not found","isRestricted":true,"name":{"en":"DRM","fr":"GDN"},"rights":{"canCopy":false,"canPrint":false}}
             """
         )
     }

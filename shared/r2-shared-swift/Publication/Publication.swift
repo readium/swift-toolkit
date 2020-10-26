@@ -161,7 +161,7 @@ public class Publication: Loggable {
         return services.first { $0 is T } as? T
     }
     
-    /// Finds all the services implementing matching the given type.
+    /// Finds all the services implementing the given service type.
     public func findServices<T>(_ serviceType: T.Type) -> [T] {
         return services.filter { $0 is T } as! [T]
     }
@@ -241,7 +241,7 @@ public class Publication: Loggable {
     }
     
     /// Errors occurring while opening a Publication.
-    public enum OpeningError: Error {
+    public enum OpeningError: LocalizedError {
         /// The file format could not be recognized by any parser.
         case unsupportedFormat
         /// The publication file was not found on the file system.
@@ -256,6 +256,24 @@ public class Publication: Loggable {
         /// The provided credentials are incorrect and we can't open the publication in a
         /// `restricted` state (e.g. for a password-protected ZIP).
         case incorrectCredentials
+        
+        public var errorDescription: String? {
+            switch self {
+            case .unsupportedFormat:
+                return R2SharedLocalizedString("Publication.OpeningError.unsupportedFormat")
+            case .notFound:
+                return R2SharedLocalizedString("Publication.OpeningError.notFound")
+            case .parsingFailed:
+                return R2SharedLocalizedString("Publication.OpeningError.parsingFailed")
+            case .forbidden:
+                return R2SharedLocalizedString("Publication.OpeningError.forbidden")
+            case .unavailable:
+                return R2SharedLocalizedString("Publication.OpeningError.unavailable")
+            case .incorrectCredentials:
+                return R2SharedLocalizedString("Publication.OpeningError.incorrectCredentials")
+            }
+        }
+        
     }
     
     /// Holds the components of a `Publication` to build it.

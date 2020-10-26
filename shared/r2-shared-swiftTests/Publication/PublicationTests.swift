@@ -19,7 +19,7 @@ class PublicationTests: XCTestCase {
             Publication(
                 manifest: Manifest(
                     metadata: Metadata(title: "Title"),
-                    links: [Link(href: "/manifest.json", rels: [.self])],
+                    links: [Link(href: "/manifest.json", rels: [.`self`])],
                     readingOrder: [Link(href: "/chap1.html", type: "text/html")]
                 )
             ).jsonManifest,
@@ -38,7 +38,7 @@ class PublicationTests: XCTestCase {
     func testBaseURL() {
         XCTAssertEqual(
             makePublication(links: [
-                Link(href: "http://host/folder/manifest.json", rel: .self)
+                Link(href: "http://host/folder/manifest.json", rel: .`self`)
             ]).baseURL,
             URL(string: "http://host/folder/")!
         )
@@ -55,7 +55,7 @@ class PublicationTests: XCTestCase {
     func testBaseURLRoot() {
         XCTAssertEqual(
             makePublication(links: [
-                Link(href: "http://host/manifest.json", rel: .self)
+                Link(href: "http://host/manifest.json", rel: .`self`)
             ]).baseURL,
             URL(string: "http://host/")!
         )
@@ -265,7 +265,7 @@ class PublicationTests: XCTestCase {
         fetcher: Fetcher? = nil,
         services: PublicationServicesBuilder = PublicationServicesBuilder()
     ) -> Publication {
-        return Publication(
+        Publication(
             manifest: Manifest(
                 metadata: metadata,
                 links: links,

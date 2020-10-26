@@ -24,7 +24,10 @@ public final class ArchiveFetcher: Fetcher, Loggable {
         archive.entries.map { entry in
             Link(
                 href: entry.path.addingPrefix("/"),
-                type: Format.of(fileExtension: URL(fileURLWithPath: entry.path).pathExtension)?.mediaType.string
+                type: Format.of(fileExtension: URL(fileURLWithPath: entry.path).pathExtension)?.mediaType.string,
+                properties: .init([
+                    "compressedLength": entry.compressedLength as Any
+                ])
             )
         }
 

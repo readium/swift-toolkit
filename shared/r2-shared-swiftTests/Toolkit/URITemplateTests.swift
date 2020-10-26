@@ -34,7 +34,7 @@ class URITemplateTests: XCTestCase {
                 "z": "45",
                 "w": "w"
             ]),
-            "/urlaaa,Hello, world,bname45,b,w"
+            "/urlaaa,Hello,%20world,bname45,b,w"
         )
     }
     
@@ -45,7 +45,7 @@ class URITemplateTests: XCTestCase {
                 "hello": "Hello, world",
                 "y": "b"
             ]),
-            "/url?x=aaa&hello=Hello, world&y=bname"
+            "/url?x=aaa&hello=Hello,%20world&y=bname"
         )
     }
     

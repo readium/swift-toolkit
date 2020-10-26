@@ -67,7 +67,7 @@ public extension Resource {
 }
 
 /// Errors occurring while accessing a resource.
-public enum ResourceError: Swift.Error {
+public enum ResourceError: LocalizedError {
     
     /// Equivalent to a 400 HTTP error.
     ///
@@ -111,6 +111,21 @@ public enum ResourceError: Swift.Error {
     public static func wrap(_ error: Error) -> ResourceError {
         return error as? ResourceError
             ?? .other(error)
+    }
+    
+    public var errorDescription: String? {
+        switch self {
+        case .badRequest:
+            return R2SharedLocalizedString("Publication.ResourceError.badRequest")
+        case .notFound:
+            return R2SharedLocalizedString("Publication.ResourceError.notFound")
+        case .forbidden:
+            return R2SharedLocalizedString("Publication.ResourceError.forbidden")
+        case .unavailable:
+            return R2SharedLocalizedString("Publication.ResourceError.unavailable")
+        case .other:
+            return R2SharedLocalizedString("Publication.ResourceError.other")
+        }
     }
     
 }

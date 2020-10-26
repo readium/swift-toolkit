@@ -1,12 +1,7 @@
-/* 
-  Localizable.strings
-  r2-shared-swift
-
-  Created by Mickaël Menu on 14.06.19.
- 
-  Copyright 2019 Readium Foundation. All rights reserved.
-  Use of this source code is governed by a BSD-style license which is detailed
-  in the LICENSE file present in the project repository where this source code is maintained.
+/*
+  Copyright 2020 Readium Foundation. All rights reserved.
+  Use of this source code is governed by the BSD-style license
+  available in the top-level LICENSE file of the project.
 */
 
 /* Error while parsing a given JSON type */
@@ -14,3 +9,19 @@
 
 /* 404 Not found error during a network request made with DownloadSession */
 "R2Shared.DownloadSession.RequestError.notFound" = "Request failed: not found";
+
+
+/* Publication.OpeningError */
+"R2Shared.Publication.OpeningError.unsupportedFormat" = "Format not supported";
+"R2Shared.Publication.OpeningError.notFound" = "File not found";
+"R2Shared.Publication.OpeningError.parsingFailed" = "The file is corrupted and can't be opened";
+"R2Shared.Publication.OpeningError.forbidden" = "You are not allowed to open this publication";
+"R2Shared.Publication.OpeningError.unavailable" = "Not available, please try again later";
+"R2Shared.Publication.OpeningError.incorrectCredentials" = "Provided credentials were incorrect";
+
+/* ResourceError */
+"R2Shared.Publication.ResourceError.badRequest" = "Invalid request which can't be processed";
+"R2Shared.Publication.ResourceError.notFound" = "Resource not found";
+"R2Shared.Publication.ResourceError.forbidden" = "You are not allowed to access the resource";
+"R2Shared.Publication.ResourceError.unavailable" = "The resource is currently unavailable, please try again later";
+"R2Shared.Publication.ResourceError.other" = "A service error occurred";
