@@ -1,3 +1,3 @@
 github "cezheng/Fuzi" "3.1.2"
 github "dexman/Minizip" "1.4.0"
-github "readium/r2-shared-swift" "ef446a7ab96910ab78381841465c5d104310b87e"
+github "readium/r2-shared-swift" "2.0.0-alpha.2"
