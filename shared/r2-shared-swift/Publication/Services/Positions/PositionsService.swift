@@ -76,7 +76,7 @@ public extension Publication {
             return positions
         }
         
-        let positionsByResource = Dictionary(grouping: positionsFromManifest(), by: \.href)
+        let positionsByResource = Dictionary(grouping: positionsFromManifest(), by: { $0.href })
         return readingOrder.map { positionsByResource[$0.href] ?? [] }
     }
     

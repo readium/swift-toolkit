@@ -87,7 +87,7 @@ public final class Deferred<Success, Failure: Error> {
     /// Shortcut to build a Deferred from a cancellation.
     ///
     /// Can be useful to return early a value in a `.flatMap` or `deferred { ... }` construct.
-    public class var cancelled: Self { Self { $0(.cancelled) } }
+    public class var cancelled: Deferred<Success, Failure> { Deferred { $0(.cancelled) } }
 
     /// Fires the deferred closure to resolve its value and forward it to the given traditional
     /// completion closure.

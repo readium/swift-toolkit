@@ -263,7 +263,7 @@ extension Link {
     public var typeLink: String? { type }
     
     @available(*, deprecated, renamed: "rels")
-    public var rel: [String] { rels.map(\.string) }
+    public var rel: [String] { rels.map { $0.string } }
     
     @available(*, deprecated, renamed: "href")
     public var absoluteHref: String? { href }
