@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+
+## [2.0.0-alpha.2]
+
 ### Added
 
 * Support for the new `Publication` model using the [Content Protection](https://readium.org/architecture/proposals/006-content-protection) for DRM rights and the [Fetcher](https://readium.org/architecture/proposals/002-composite-fetcher-api) for resource access.
@@ -19,7 +22,8 @@ All notable changes to this project will be documented in this file.
   * Fix weird scrolling behavior when double tapping on the edges to turn pages.
   * Don't send intermediate incorrect locators when loading a pending locator.
 * Optimize positions calculation for LCP protected PDF.
-  
+
+
 ## [2.0.0-alpha.1]
 
 ### Added
@@ -46,3 +50,4 @@ All notable changes to this project will be documented in this file.
 
 [unreleased]: https://github.com/readium/r2-navigator-swift/compare/master...HEAD
 [2.0.0-alpha.1]: https://github.com/readium/r2-navigator-swift/compare/1.2.6...2.0.0-alpha.1
+[2.0.0-alpha.2]: https://github.com/readium/r2-navigator-swift/compare/2.0.0-alpha.1...2.0.0-alpha.2
