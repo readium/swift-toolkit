@@ -70,7 +70,6 @@
 		CACDE61224853035006FEB1B /* EPUBDeobfuscatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE61124853034006FEB1B /* EPUBDeobfuscatorTests.swift */; };
 		CACDE61424853093006FEB1B /* Fixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE61324853093006FEB1B /* Fixtures.swift */; };
 		CACDE61624853BC8006FEB1B /* EPUBHTMLInjector.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE61524853BC8006FEB1B /* EPUBHTMLInjector.swift */; };
-		CACDE61824854570006FEB1B /* ContentLayout+EPUB.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACDE61724854570006FEB1B /* ContentLayout+EPUB.swift */; };
 		CAD0CD2024BF171100680131 /* AudioParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0CD1F24BF171100680131 /* AudioParser.swift */; };
 		CAD0CD2324BF17A300680131 /* AudioParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0CD2224BF17A300680131 /* AudioParserTests.swift */; };
 		CAD0CD2624BF32F500680131 /* ReadiumWebPubParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0CD2524BF32F500680131 /* ReadiumWebPubParserTests.swift */; };
@@ -154,7 +153,6 @@
 		CACDE61124853034006FEB1B /* EPUBDeobfuscatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBDeobfuscatorTests.swift; sourceTree = "<group>"; };
 		CACDE61324853093006FEB1B /* Fixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fixtures.swift; sourceTree = "<group>"; };
 		CACDE61524853BC8006FEB1B /* EPUBHTMLInjector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBHTMLInjector.swift; sourceTree = "<group>"; };
-		CACDE61724854570006FEB1B /* ContentLayout+EPUB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentLayout+EPUB.swift"; sourceTree = "<group>"; };
 		CAD0CD1F24BF171100680131 /* AudioParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioParser.swift; sourceTree = "<group>"; };
 		CAD0CD2224BF17A300680131 /* AudioParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioParserTests.swift; sourceTree = "<group>"; };
 		CAD0CD2524BF32F500680131 /* ReadiumWebPubParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadiumWebPubParserTests.swift; sourceTree = "<group>"; };
@@ -463,7 +461,6 @@
 			isa = PBXGroup;
 			children = (
 				CACDE6092485301F006FEB1B /* Presentation+EPUB.swift */,
-				CACDE61724854570006FEB1B /* ContentLayout+EPUB.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -662,7 +659,6 @@
 				CAC5AEDA22C22A6F007DB8A8 /* HTTPContainer.swift in Sources */,
 				CA130D61229D4245000A627C /* PDFParser.swift in Sources */,
 				CA130D65229D4245000A627C /* PublicationParser.swift in Sources */,
-				CACDE61824854570006FEB1B /* ContentLayout+EPUB.swift in Sources */,
 				CABE2A072482D470008E286D /* LCPDFPositionsService.swift in Sources */,
 				CA6CF2152528E5D80025BBB2 /* Parser+Deprecated.swift in Sources */,
 				CA130D6D229D4245000A627C /* ZIPArchive.swift in Sources */,

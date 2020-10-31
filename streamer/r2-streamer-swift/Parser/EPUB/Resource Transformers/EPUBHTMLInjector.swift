@@ -40,7 +40,6 @@ final class EPUBHTMLInjector {
 
             var content = content
             let language = metadata.languages.first ?? document.root?.attr("lang")
-            let contentLayout = metadata.contentLayout(forLanguage: language)
 
             // User properties injection
             if let htmlStart = content.endIndex(of: "<html") {
@@ -49,7 +48,7 @@ final class EPUBHTMLInjector {
             }
     
             // RTL dir attributes injection
-            if case .rtl = contentLayout.readingProgression {
+            if case .rtl = metadata.effectiveReadingProgression {
                 // We need to add the dir="rtl" attribute on <html> and <body> if not already present.
                 // https://readium.org/readium-css/docs/CSS03-injection_and_pagination.html#right-to-left-progression
                 func addRTLDir(to tagName: String, in html: String) -> String {
