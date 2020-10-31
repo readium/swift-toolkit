@@ -79,12 +79,11 @@ final class AudioLocatorService: LocatorService {
         var current: Double = 0
         for (i, duration) in durations.enumerated() {
             let link = readingOrder[i]
-            let itemDuration = link.duration ?? 0
-            if current..<current+itemDuration ~= position {
+            if current..<current+duration ~= position {
                 return (link, startPosition: current)
             }
             
-            current += itemDuration
+            current += duration
         }
         
         if position == totalDuration, let link = readingOrder.last {

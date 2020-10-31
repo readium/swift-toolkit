@@ -62,7 +62,7 @@ public final class Streamer: Loggable {
     private let pdfFactory: PDFDocumentFactory
     private let onCreatePublication: Publication.Builder.Transform?
 
-    /// Parses a `Publication` from the given file.
+    /// Parses a `Publication` from the given asset.
     ///
     /// If you are opening the publication to render it in a Navigator, you must set
     /// `allowUserInteraction`to true to prompt the user for its credentials when the publication is
@@ -78,7 +78,7 @@ public final class Streamer: Loggable {
     /// issues.
     ///
     /// - Parameters:
-    ///   - file: Path to the publication file.
+    ///   - asset: Digital medium (e.g. a file) used to access the publication.
     ///   - credentials: Credentials that Content Protections can use to attempt to unlock a
     ///     publication, for example a password.
     ///   - allowUserInteraction: Indicates whether the user can be prompted during opening, for
@@ -90,7 +90,7 @@ public final class Streamer: Loggable {
     ///     factories of the `Publication`.
     ///   - warnings: Logger used to broadcast non-fatal parsing warnings.
     public func open(
-        file: File,
+        asset: PublicationAsset,
         credentials: String? = nil,
         allowUserInteraction: Bool,
         sender: Any? = nil,
@@ -98,58 +98,42 @@ public final class Streamer: Loggable {
         onCreatePublication: Publication.Builder.Transform? = nil,
         completion: @escaping (CancellableResult<Publication, Publication.OpeningError>) -> Void
     ) {
-        log(.info, "Open \(file.url.lastPathComponent)")
+        log(.info, "Open \(asset)")
 
-        return makeFetcher(for: file, allowUserInteraction: allowUserInteraction, password: credentials, sender: sender)
+        return makeFetcher(for: asset, allowUserInteraction: allowUserInteraction, credentials: credentials, sender: sender)
             .flatMap { fetcher in
-                // Unlocks any protected file with the Content Protections.
-                self.openFile(at: file, with: fetcher, credentials: credentials, allowUserInteraction: allowUserInteraction, sender: sender)
+                // Unlocks any protected asset with the Content Protections.
+                self.unlockAsset(asset, with: fetcher, credentials: credentials, allowUserInteraction: allowUserInteraction, sender: sender)
             }
-            .flatMap { file in
+            .flatMap { asset in
                 // Parses the Publication using the parsers.
-                self.parsePublication(from: file, warnings: warnings, onCreatePublication: onCreatePublication)
+                self.parsePublication(from: asset, warnings: warnings, onCreatePublication: onCreatePublication)
             }
             .resolve(on: .main, completion)
     }
     
     /// Creates the leaf fetcher which will be passed to the content protections and parsers.
-    ///
-    /// We attempt to open an `ArchiveFetcher`, and fall back on a `FileFetcher` if the file is not
-    /// an archive.
-    private func makeFetcher(for file: File, allowUserInteraction: Bool, password: String?, sender: Any?) -> Deferred<Fetcher, Publication.OpeningError> {
-        return deferred(on: .global(qos: .userInitiated)) {
-            guard (try? file.url.checkResourceIsReachable()) == true else {
-                return .failure(.notFound)
-            }
-            
-            do {
-                let archive = try self.archiveFactory.open(url: file.url, password: password)
-                return .success(ArchiveFetcher(archive: archive))
-                
-            } catch ArchiveError.invalidPassword {
-                return .failure(.incorrectCredentials)
-
-            } catch {
-                return .success(FileFetcher(href: "/\(file.name)", path: file.url))
-            }
+    private func makeFetcher(for asset: PublicationAsset, allowUserInteraction: Bool, credentials: String?, sender: Any?) -> Deferred<Fetcher, Publication.OpeningError> {
+        deferred { [self] completion in
+            asset.makeFetcher(using: .init(archiveFactory: self.archiveFactory), credentials: credentials, completion: completion)
         }
     }
     
-    /// Unlocks any protected file with the provided Content Protections.
-    private func openFile(at file: File, with fetcher: Fetcher, credentials: String?, allowUserInteraction: Bool, sender: Any?) -> Deferred<PublicationFile, Publication.OpeningError> {
-        func unlock(using protections: [ContentProtection]) -> Deferred<ProtectedFile?, Publication.OpeningError> {
+    /// Unlocks any protected asset with the provided Content Protections.
+    private func unlockAsset(_ asset: PublicationAsset, with fetcher: Fetcher, credentials: String?, allowUserInteraction: Bool, sender: Any?) -> Deferred<OpenedAsset, Publication.OpeningError> {
+        func unlock(using protections: [ContentProtection]) -> Deferred<ProtectedAsset?, Publication.OpeningError> {
             return deferred {
                 var protections = protections
                 guard let protection = protections.popFirst() else {
-                    // No Content Protection applied, this file is probably not protected.
+                    // No Content Protection applied, this asset is probably not protected.
                     return .success(nil)
                 }
     
                 return protection
-                    .open(file: file, fetcher: fetcher, credentials: credentials, allowUserInteraction: allowUserInteraction, sender: sender)
+                    .open(asset: asset, fetcher: fetcher, credentials: credentials, allowUserInteraction: allowUserInteraction, sender: sender)
                     .flatMap {
-                        if let protectedFile = $0 {
-                            return .success(protectedFile)
+                        if let protectedAsset = $0 {
+                            return .success(protectedAsset)
                         } else {
                             return unlock(using: protections)
                         }
@@ -158,19 +142,19 @@ public final class Streamer: Loggable {
         }
         
         return unlock(using: contentProtections)
-            .map { protectedFile in
-                protectedFile ?? PublicationFile(file, fetcher, nil)
+            .map { protectedAsset in
+                protectedAsset ?? OpenedAsset(asset, fetcher, nil)
             }
     }
     
-    /// Parses the `Publication` from the provided file and the `parsers`.
-    private func parsePublication(from file: PublicationFile, warnings: WarningLogger?, onCreatePublication: Publication.Builder.Transform?) -> Deferred<Publication, Publication.OpeningError> {
+    /// Parses the `Publication` from the provided asset and the `parsers`.
+    private func parsePublication(from openedAsset: OpenedAsset, warnings: WarningLogger?, onCreatePublication: Publication.Builder.Transform?) -> Deferred<Publication, Publication.OpeningError> {
         return deferred(on: .global(qos: .userInitiated)) {
             var parsers = self.parsers
             var parsedBuilder: Publication.Builder?
             while parsedBuilder == nil, let parser = parsers.popFirst() {
                 do {
-                    parsedBuilder = try parser.parse(file: file.file, fetcher: file.fetcher, warnings: warnings)
+                    parsedBuilder = try parser.parse(asset: openedAsset.asset, fetcher: openedAsset.fetcher, warnings: warnings)
                 } catch {
                     return .failure(.parsingFailed(error))
                 }
@@ -181,7 +165,7 @@ public final class Streamer: Loggable {
             }
             
             // Transform from the Content Protection.
-            builder.apply(file.onCreatePublication)
+            builder.apply(openedAsset.onCreatePublication)
             // Transform provided by the reading app during the construction of the `Streamer`.
             builder.apply(self.onCreatePublication)
             // Transform provided by the reading app in `Streamer.open()`.
@@ -192,17 +176,20 @@ public final class Streamer: Loggable {
             return .success(builder.build())
         }
     }
+    
+    @available(*, unavailable, message: "Provide a `FileAsset` instead", renamed: "open(asset:credentials:allowUserInteraction:sender:warnings:onCreatePublication:completion:)")
+    public func open(file: File, credentials: String? = nil, allowUserInteraction: Bool, sender: Any? = nil, warnings: WarningLogger? = nil, onCreatePublication: Publication.Builder.Transform? = nil, completion: @escaping (CancellableResult<Publication, Publication.OpeningError>) -> Void) {}
 
 }
 
-private typealias PublicationFile = (file: File, fetcher: Fetcher, onCreatePublication: Publication.Builder.Transform?)
+private typealias OpenedAsset = (asset: PublicationAsset, fetcher: Fetcher, onCreatePublication: Publication.Builder.Transform?)
 
 private extension ContentProtection {
     
     /// Wrapper to use `Deferred` with `ContentProtection.open()`.
-    func open(file: File, fetcher: Fetcher, credentials: String?, allowUserInteraction: Bool, sender: Any?) -> Deferred<ProtectedFile?, Publication.OpeningError> {
+    func open(asset: PublicationAsset, fetcher: Fetcher, credentials: String?, allowUserInteraction: Bool, sender: Any?) -> Deferred<ProtectedAsset?, Publication.OpeningError> {
         return deferred { completion in
-            self.open(file: file, fetcher: fetcher, credentials: credentials, allowUserInteraction: allowUserInteraction, sender: sender, completion: completion)
+            self.open(asset: asset, fetcher: fetcher, credentials: credentials, allowUserInteraction: allowUserInteraction, sender: sender, completion: completion)
         }
     }
 

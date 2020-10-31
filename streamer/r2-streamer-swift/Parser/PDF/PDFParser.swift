@@ -37,14 +37,19 @@ public final class PDFParser: PublicationParser, Loggable {
     public init(pdfFactory: PDFDocumentFactory = DefaultPDFDocumentFactory()) {
         self.pdfFactory = pdfFactory
     }
-
-    public func parse(file: File, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
-        guard file.format == .pdf else {
+    
+    public func parse(asset: PublicationAsset, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
+        guard asset.format == .pdf else {
             return nil
         }
+       
+        let readingOrder = fetcher.links.filter(byMediaType: .pdf)
+        guard let firstLink = readingOrder.first else {
+            throw PDFDocumentError.openFailed
+        }
         
-        let pdfHref = "/\(file.name)"
-        let document = try pdfFactory.open(url: file.url, password: nil)
+        let resource = fetcher.get(firstLink)
+        let document = try pdfFactory.open(resource: resource, password: nil)
         let authors = Array(ofNotNil: document.author.map { Contributor(name: $0) })
 
         return Publication.Builder(
@@ -53,16 +58,14 @@ public final class PDFParser: PublicationParser, Loggable {
             manifest: Manifest(
                 metadata: Metadata(
                     identifier: document.identifier,
-                    title: document.title ?? file.name,
+                    title: document.title ?? asset.name,
                     authors: authors,
                     numberOfPages: document.pageCount
                 ),
-                readingOrder: [
-                    Link(href: pdfHref, type: MediaType.pdf.string)
-                ],
-                tableOfContents: document.tableOfContents.links(withDocumentHREF: pdfHref)
+                readingOrder: readingOrder,
+                tableOfContents: document.tableOfContents.links(withDocumentHREF: firstLink.href)
             ),
-            fetcher: FileFetcher(href: pdfHref, path: file.url),
+            fetcher: fetcher,
             servicesBuilder: PublicationServicesBuilder(
                 cover: document.cover.map(GeneratedCoverService.makeFactory(cover:)),
                 positions: PDFPositionsService.makeFactory()
