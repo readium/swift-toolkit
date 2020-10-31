@@ -59,6 +59,8 @@ public final class HTTPFetcher: Fetcher {
 
         let link: Link
         
+        let file: URL? = nil
+        
         private let url: URL
         
         private var cachedHeadResponse: HTTPURLResponse?

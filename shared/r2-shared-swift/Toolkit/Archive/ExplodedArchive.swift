@@ -70,6 +70,10 @@ final class ExplodedArchive: Archive, Loggable {
         }
     }
     
+    func file(at path: String) -> URL? {
+        return entryURL(fromPath: path)
+    }
+    
     func close() {}
 
     private func makeEntry(at url: URL) -> ArchiveEntry? {

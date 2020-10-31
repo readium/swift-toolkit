@@ -23,6 +23,8 @@ public final class FailureResource: Resource {
     
     public let link: Link
     
+    public let file: URL? = nil
+    
     public var length: ResourceResult<UInt64> { .failure(error) }
     
     public func read(range: Range<UInt64>?) -> ResourceResult<Data> {

@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+* `PublicationAsset` is a new protocol which can be used to open a publication from various medium, such as a file, a remote URL or a custom source.
+  * `File` was replaced by `FileAsset`, which implements `PublicationAsset`.
+
 ### Changed
 
 * `Format` got merged into `MediaType`, to simplify the media type APIs.

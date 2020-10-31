@@ -18,41 +18,42 @@ import Foundation
 /// - Create a `ContentProtectionService` publication service.
 public protocol ContentProtection {
     
-    /// Attempts to unlock a potentially protected file.
+    /// Attempts to unlock a potentially protected publication asset.
     ///
-    /// The Streamer will create a leaf `fetcher` for the low-level `file` access (e.g.
-    /// `ArchiveFetcher` for a ZIP archive), to avoid having each Content Protection open the file
+    /// The Streamer will create a leaf `fetcher` for the low-level `asset` access (e.g.
+    /// `ArchiveFetcher` for a ZIP archive), to avoid having each Content Protection open the asset
     /// to check if it's protected or not.
     ///
-    /// A publication might be protected in such a way that the package format can't be recognized,
+    /// A publication might be protected in such a way that the asset format can't be recognized,
     /// in which case the Content Protection will have the responsibility of creating a new leaf
     /// `Fetcher`.
     ///
-    /// - Returns: A `ProtectedFile` in case of success, nil if the file is not protected by this
-    ///   technology or a `Publication.OpeningError` if the file can't be successfully opened, even
+    /// - Returns: A `ProtectedAsset` in case of success, nil if the asset is not protected by this
+    ///   technology or a `Publication.OpeningError` if the asset can't be successfully opened, even
     ///   in restricted mode.
     func open(
-        file: File,
+        asset: PublicationAsset,
         fetcher: Fetcher,
         credentials: String?,
         allowUserInteraction: Bool,
         sender: Any?,
-        completion: @escaping (CancellableResult<ProtectedFile?, Publication.OpeningError>) -> Void
+        completion: @escaping (CancellableResult<ProtectedAsset?, Publication.OpeningError>) -> Void
     )
     
 }
 
-/// Holds the result of opening a `File` with a `ContentProtection`.
-public typealias ProtectedFile = (
-    /// Protected file which will be provided to the parsers.
+/// Holds the result of opening a `PublicationAsset` with a `ContentProtection`.
+public typealias ProtectedAsset = (
+    
+    /// Publication asset which will be provided to the parsers.
     ///
-    /// In most cases, this will be the file provided to `ContentProtection.open()`, but a Content
+    /// In most cases, this will be the asset provided to `ContentProtection.open()`, but a Content
     /// Protection might modify it in some cases:
-    /// - If the original file has a media type that can't be recognized by parsers,
-    ///   the Content Protection must return a file with the matching unprotected media type.
-    /// - If the Content Protection technology needs to redirect the Streamer to a different file.
+    /// - If the original asset has a media type that can't be recognized by parsers,
+    ///   the Content Protection must return an asset with the matching unprotected media type.
+    /// - If the Content Protection technology needs to redirect the Streamer to a different asset.
     ///   For example, this could be used to decrypt a publication to a temporary secure location.
-    file: File,
+    asset: PublicationAsset,
 
     /// Primary leaf fetcher to be used by parsers.
     ///

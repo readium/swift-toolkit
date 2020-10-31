@@ -77,15 +77,16 @@ public final class FileFetcher: Fetcher, Loggable {
         
         let link: Link
 
-        private let file: URL
+        private let _file: URL
+        var file: URL? { _file }
         
         private lazy var handle: Result<FileHandle, ResourceError> = {
             do {
-                let values = try file.resourceValues(forKeys:[.isReadableKey, .isDirectoryKey])
+                let values = try _file.resourceValues(forKeys:[.isReadableKey, .isDirectoryKey])
                 guard let isReadable = values.isReadable, values.isDirectory != true else {
                     return .failure(.notFound)
                 }
-                return .success(try FileHandle(forReadingFrom: file))
+                return .success(try FileHandle(forReadingFrom: _file))
             } catch {
                 return .failure(.other(error))
             }
@@ -94,12 +95,12 @@ public final class FileFetcher: Fetcher, Loggable {
         init(link: Link, file: URL) {
             assert(file.isFileURL)
             self.link = link
-            self.file = file
+            self._file = file
         }
 
         lazy var length: Result<UInt64, ResourceError> = {
             do {
-                let values = try file.resourceValues(forKeys:[.fileSizeKey])
+                let values = try _file.resourceValues(forKeys:[.fileSizeKey])
                 guard let length = values.fileSize else {
                     return .failure(.notFound)
                 }

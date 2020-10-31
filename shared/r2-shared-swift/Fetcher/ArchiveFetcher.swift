@@ -47,6 +47,8 @@ public final class ArchiveFetcher: Fetcher, Loggable {
             return link
         }()
         
+        var file: URL? { archive.file(at: href) }
+        
         private let originalLink: Link
         private let href: String
         
