@@ -78,7 +78,7 @@ final class LibraryService: Loggable {
     /// Opens the Readium 2 Publication at the given `url`.
     private func openPublication(at url: URL, allowUserInteraction: Bool, sender: UIViewController?) -> Deferred<Publication, Error> {
         return deferred {
-                self.streamer.open(file: File(url: url), allowUserInteraction: allowUserInteraction, sender: sender, completion: $0)
+                self.streamer.open(asset: FileAsset(url: url), allowUserInteraction: allowUserInteraction, sender: sender, completion: $0)
             }
             .eraseToAnyError()
     }
