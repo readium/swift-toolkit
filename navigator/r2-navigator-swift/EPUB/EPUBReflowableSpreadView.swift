@@ -20,6 +20,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     private var topConstraint: NSLayoutConstraint!
     private var bottomConstraint: NSLayoutConstraint!
+    
+    private lazy var layout = ReadiumCSSLayout(languages: publication.metadata.languages, readingProgression: readingProgression)
 
     override func setupWebView() {
         super.setupWebView()
@@ -306,7 +308,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             // When a publication is served from an HTTPS server, then WKWebView forbids accessing the stylesheets from the local, unsecured GCDWebServer instance. In this case we will inject directly the full content of the CSS in the JavaScript.
             if publication.baseURL?.scheme?.lowercased() == "https" {
                 func loadCSS(_ name: String) -> String {
-                    return loadResource(at: contentLayout.readiumCSSPath(for: name))
+                    return loadResource(at: layout.readiumCSSPath(for: name))
                         .replacingOccurrences(of: "\\", with: "\\\\")
                         .replacingOccurrences(of: "`", with: "\\`")
                 }
@@ -324,7 +326,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             } else {
                 scripts.append(WKUserScript(
                     source: EPUBReflowableSpreadView.cssScript
-                        .replacingOccurrences(of: "${readiumCSSBaseURL}", with: resourcesURL.appendingPathComponent(contentLayout.readiumCSSBasePath).absoluteString),
+                        .replacingOccurrences(of: "${readiumCSSBaseURL}", with: resourcesURL.appendingPathComponent(layout.readiumCSSBasePath).absoluteString),
                     injectionTime: .atDocumentStart,
                     forMainFrameOnly: false
                 ))
@@ -362,7 +364,33 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
 }
 
-private extension ContentLayout {
+/// Determines the Readium CSS stylesheets to use depending on the publication languages and
+/// reading progression.
+// FIXME: To move in a dedicated native Readium CSS module
+private enum ReadiumCSSLayout: String {
+    case ltr
+    case rtl
+    case cjkVertical
+    case cjkHorizontal
+    
+    init(languages: [String], readingProgression: ReadingProgression) {
+        let isCJK: Bool = {
+            guard
+                languages.count == 1,
+                let language = languages.first?.split(separator: "-").first.map(String.init)?.lowercased()
+            else {
+                return false
+            }
+            return ["zh", "ja", "ko"].contains(language)
+        }()
+        
+        switch readingProgression {
+        case .rtl, .btt:
+            self = isCJK ? .cjkVertical : .rtl
+        case .ltr, .ttb, .auto:
+            self = isCJK ? .cjkHorizontal : .ltr
+        }
+    }
     
     var readiumCSSBasePath: String {
         let folder: String = {

@@ -129,7 +129,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     // MARK: - Navigator
     
     public var readingProgression: ReadingProgression {
-        return publication.contentLayout.readingProgression
+        publication.metadata.effectiveReadingProgression
     }
 
     public var currentLocation: Locator? {

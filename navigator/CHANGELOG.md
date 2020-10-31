@@ -2,9 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-**Warning:** Features marked as *experimental* may change or be removed in a future release without notice. Use with caution.
+**Warning:** Features marked as *experimental* may change or be removed in a future release without notice. Use with
+*caution.
 
 ## [Unreleased]
+
+### Fixed
+
+* EPUBs declaring multiple languages were laid out from right to left if the first language had an RTL reading
+progression. Now if no reading progression is set, the `effectiveReadingProgression` will be LTR.
 
 
 ## [2.0.0-alpha.2]

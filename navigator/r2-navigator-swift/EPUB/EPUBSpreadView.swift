@@ -42,7 +42,6 @@ class EPUBSpreadView: UIView, Loggable {
     let resourcesURL: URL?
     let webView: WebView
 
-    let contentLayout: ContentLayout
     let readingProgression: ReadingProgression
     let userSettings: UserSettings
     let editingActions: EditingActionsController
@@ -65,11 +64,10 @@ class EPUBSpreadView: UIView, Loggable {
 
     private(set) var spreadLoaded = false
 
-    required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL?, contentLayout: ContentLayout, readingProgression: ReadingProgression, userSettings: UserSettings, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+    required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL?, readingProgression: ReadingProgression, userSettings: UserSettings, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
         self.publication = publication
         self.spread = spread
         self.resourcesURL = resourcesURL
-        self.contentLayout = contentLayout
         self.readingProgression = readingProgression
         self.userSettings = userSettings
         self.editingActions = editingActions
