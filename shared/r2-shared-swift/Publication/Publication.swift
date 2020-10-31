@@ -45,16 +45,6 @@ public class Publication: Loggable {
     /// Called when the User Settings changed.
     public var userSettingsUIPresetUpdated: (([ReadiumCSSName: Bool]?) -> Void)?
     
-    /// Returns the content layout style for the default publication language.
-    public var contentLayout: ContentLayout {
-        metadata.contentLayout
-    }
-    
-    /// Returns the content layout style for the given language code.
-    public func contentLayout(forLanguage language: String?) -> ContentLayout {
-        return metadata.contentLayout(forLanguage: language)
-    }
-    
     public init(
         manifest: Manifest,
         fetcher: Fetcher = EmptyFetcher(),

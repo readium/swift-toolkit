@@ -69,7 +69,6 @@
 		CA5B7C392441BA5F003A2FE7 /* Fixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5B7C382441BA5F003A2FE7 /* Fixtures.swift */; };
 		CA5F8EE92404035D00926120 /* ReadingProgression.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5F8EE82404035C00926120 /* ReadingProgression.swift */; };
 		CA5F8EEB240403F900926120 /* ReadingProgressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5F8EEA240403F900926120 /* ReadingProgressionTests.swift */; };
-		CA5F8EED240404E300926120 /* ContentLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5F8EEC240404E300926120 /* ContentLayoutTests.swift */; };
 		CA5F8EF224040DDE00926120 /* Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5F8EF124040DDE00926120 /* Presentation.swift */; };
 		CA5F8EF72404112800926120 /* PresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5F8EF62404112800926120 /* PresentationTests.swift */; };
 		CA5F8EF9240413C900926120 /* EPUBLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5F8EF8240413C900926120 /* EPUBLayout.swift */; };
@@ -264,7 +263,6 @@
 		CA5B7C382441BA5F003A2FE7 /* Fixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fixtures.swift; sourceTree = "<group>"; };
 		CA5F8EE82404035C00926120 /* ReadingProgression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingProgression.swift; sourceTree = "<group>"; };
 		CA5F8EEA240403F900926120 /* ReadingProgressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingProgressionTests.swift; sourceTree = "<group>"; };
-		CA5F8EEC240404E300926120 /* ContentLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentLayoutTests.swift; sourceTree = "<group>"; };
 		CA5F8EF124040DDE00926120 /* Presentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation.swift; sourceTree = "<group>"; };
 		CA5F8EF62404112800926120 /* PresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentationTests.swift; sourceTree = "<group>"; };
 		CA5F8EF8240413C900926120 /* EPUBLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBLayout.swift; sourceTree = "<group>"; };
@@ -507,7 +505,6 @@
 				CA3386E724052D4300FDCBBA /* HTML */,
 				CA17637F223A7DA700959FEB /* OPDS */,
 				CA5F8EF52404111900926120 /* Presentation */,
-				CA5F8EEC240404E300926120 /* ContentLayoutTests.swift */,
 				CA5F8EEA240403F900926120 /* ReadingProgressionTests.swift */,
 				CACD75DF223657AD004F20CA /* PublicationTests.swift */,
 				CACD75F42236B2AF004F20CA /* PublicationCollectionTests.swift */,
@@ -1148,7 +1145,6 @@
 				CAE4DCAD24BB417D00611638 /* URLTests.swift in Sources */,
 				CABBB2FA2237CA94004EB039 /* OPDSAcquisitionTests.swift in Sources */,
 				CABE2A032482C7A6008E286D /* PositionsServiceTests.swift in Sources */,
-				CA5F8EED240404E300926120 /* ContentLayoutTests.swift in Sources */,
 				CA3386EC24052D9700FDCBBA /* DOMRangeTests.swift in Sources */,
 				CAE4DCB424BB6D9E00611638 /* CoverServiceTests.swift in Sources */,
 				CA62B37324DFF8A90046CDCF /* UserRightsTests.swift in Sources */,

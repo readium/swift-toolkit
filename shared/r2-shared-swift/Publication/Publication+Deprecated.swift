@@ -139,6 +139,12 @@ extension Publication {
 
     @available(*, deprecated, message: "Use `cover` to get the `UIImage` directly, or `link(withRel: \"cover\")` if you really want the cover link", renamed: "cover")
     public var coverLink: Link? { link(withRel: .cover) }
+    
+    @available(*, unavailable, message: "Use `metadata.effectiveReadingProgression` instead", renamed: "metadata.effectiveReadingProgression")
+    public var contentLayout: ReadingProgression { metadata.effectiveReadingProgression }
+    
+    @available(*, unavailable, message: "Use `metadata.effectiveReadingProgression` instead", renamed: "metadata.effectiveReadingProgression")
+    public func contentLayout(forLanguage language: String?) -> ReadingProgression { metadata.effectiveReadingProgression }
 
 }
 
@@ -216,7 +222,13 @@ extension Metadata {
     
     @available(*, deprecated, renamed: "presentation")
     public var rendition: EPUBRendition { presentation }
-    
+
+    @available(*, unavailable, message: "Use `effectiveReadingProgression` instead", renamed: "effectiveReadingProgression")
+    public var contentLayout: ReadingProgression { effectiveReadingProgression }
+
+    @available(*, unavailable, message: "Use `effectiveReadingProgression` instead", renamed: "effectiveReadingProgression")
+    public func contentLayout(forLanguage language: String?) -> ReadingProgression { effectiveReadingProgression }
+
 }
 
 extension PublicationCollection {
