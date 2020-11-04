@@ -48,8 +48,8 @@ public final class PDFParser: PublicationParser, Loggable {
         let authors = Array(ofNotNil: document.author.map { Contributor(name: $0) })
 
         return Publication.Builder(
-            fileFormat: .pdf,
-            publicationFormat: .pdf,
+            mediaType: .pdf,
+            format: .pdf,
             manifest: Manifest(
                 metadata: Metadata(
                     identifier: document.identifier,

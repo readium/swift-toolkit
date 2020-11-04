@@ -355,7 +355,7 @@ public class PublicationServer: ResourcesServer {
             return GCDWebServerResponse(statusCode: 404)
         }
         
-        let contentType = Format.of(file)?.mediaType.string
+        let contentType = MediaType.of(file)?.string
             ?? "application/octet-stream"
 
 //        log(.debug, "Serve resource `\(path)` (\(contentType))")

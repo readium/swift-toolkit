@@ -37,8 +37,8 @@ public final class ImageParser: PublicationParser {
         readingOrder[0] = readingOrder[0].copy(rels: [.cover])
 
         return Publication.Builder(
-            fileFormat: .cbz,
-            publicationFormat: .cbz,
+            mediaType: .cbz,
+            format: .cbz,
             manifest: Manifest(
                 metadata: Metadata(
                     title: fetcher.guessTitle(ignoring: ignores) ?? file.name

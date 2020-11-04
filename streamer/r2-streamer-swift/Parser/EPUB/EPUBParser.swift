@@ -66,8 +66,8 @@ final public class EPUBParser: PublicationParser {
         let userProperties = UserProperties()
 
         return Publication.Builder(
-            fileFormat: .epub,
-            publicationFormat: .epub,
+            mediaType: .epub,
+            format: .epub,
             manifest: Manifest(
                 metadata: metadata,
                 readingOrder: components.readingOrder,

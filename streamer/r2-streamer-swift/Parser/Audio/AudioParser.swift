@@ -34,8 +34,8 @@ public final class AudioParser: PublicationParser {
         }
         
         return Publication.Builder(
-            fileFormat: .zab,
-            publicationFormat: .cbz,
+            mediaType: .zab,
+            format: .cbz,
             manifest: Manifest(
                 metadata: Metadata(
                     title: fetcher.guessTitle(ignoring: ignores) ?? file.name
