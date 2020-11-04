@@ -32,12 +32,12 @@ func makeLicenseContainer(for file: URL, mimetypes: [String] = []) -> Deferred<L
 }
 
 func makeLicenseContainerSync(for file: URL, mimetypes: [String] = []) -> LicenseContainer? {
-    guard let format = Format.of(file, mediaTypes: mimetypes, fileExtensions: []) else {
+    guard let mediaType = MediaType.of(file, mediaTypes: mimetypes, fileExtensions: []) else {
         return nil
     }
 
-    switch format {
-    case .lcpLicense:
+    switch mediaType {
+    case .lcpLicenseDocument:
         return LCPLLicenseContainer(lcpl: file)
     case .lcpProtectedPDF, .lcpProtectedAudiobook, .readiumAudiobook, .readiumWebPub, .divina:
         return ReadiumLicenseContainer(path: file)
