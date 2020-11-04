@@ -1,95 +1,90 @@
 //
-//  FormatSniffer.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 10/04/2020.
-//
 //  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import CoreServices
 import Foundation
 import Fuzi
 
-public extension Format {
+public extension MediaType {
     
-    /// Determines if the provided content matches a known format.
+    /// Determines if the provided content matches a known media type.
     ///
     /// - Parameter context: Holds the file metadata and cached content, which are shared among the
     ///   sniffers.
-    typealias Sniffer = (_ context: FormatSnifferContext) -> Format?
+    typealias Sniffer = (_ context: MediaTypeSnifferContext) -> MediaType?
 
-    /// Resolves a format from a single file extension and media type hint, without checking the actual
-    /// content.
-    static func of(mediaType: String? = nil, fileExtension: String? = nil, sniffers: [Sniffer] = sniffers) -> Format? {
+    /// resolves a media type from a single file extension and media type hint, without checking the
+    /// actual content.
+    static func of(mediaType: String? = nil, fileExtension: String? = nil, sniffers: [Sniffer] = sniffers) -> MediaType? {
         return of(content: nil, mediaTypes: Array(ofNotNil: mediaType), fileExtensions: Array(ofNotNil: fileExtension), sniffers: sniffers)
     }
 
-    /// Resolves a format from file extension and media type hints, without checking the actual
+    /// Resolves a media type from file extension and media type hints, without checking the actual
     /// content.
-    static func of(mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer] = sniffers) -> Format? {
+    static func of(mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer] = sniffers) -> MediaType? {
         return of(content: nil, mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
     }
     
-    /// Resolves a format from a local file path.
+    /// Resolves a media type from a local file path.
     /// **Warning**: This API should never be called from the UI thread.
-    static func of(_ file: URL, mediaType: String? = nil, fileExtension: String? = nil, sniffers: [Sniffer] = sniffers) -> Format? {
+    static func of(_ file: URL, mediaType: String? = nil, fileExtension: String? = nil, sniffers: [Sniffer] = sniffers) -> MediaType? {
         return of(file, mediaTypes: Array(ofNotNil: mediaType), fileExtensions: Array(ofNotNil: fileExtension), sniffers: sniffers)
     }
     
-    /// Resolves a format from a local file path.
+    /// Resolves a media type from a local file path.
     /// **Warning**: This API should never be called from the UI thread.
-    static func of(_ file: URL, mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer] = sniffers) -> Format? {
+    static func of(_ file: URL, mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer] = sniffers) -> MediaType? {
         let fileExtensions = [file.pathExtension] + fileExtensions
-        return of(content: FormatSnifferFileContent(file: file), mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
+        return of(content: FileMediaTypeSnifferContent(file: file), mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
     }
     
-    /// Resolves a format from bytes, e.g. from an HTTP response.
+    /// Resolves a media type from bytes, e.g. from an HTTP response.
     /// **Warning**: This API should never be called from the UI thread.
-    static func of(_ data: @escaping () -> Data, mediaType: String? = nil, fileExtension: String? = nil, sniffers: [Sniffer] = sniffers) -> Format? {
+    static func of(_ data: @escaping () -> Data, mediaType: String? = nil, fileExtension: String? = nil, sniffers: [Sniffer] = sniffers) -> MediaType? {
         return of(data, mediaTypes: Array(ofNotNil: mediaType), fileExtensions: Array(ofNotNil: fileExtension), sniffers: sniffers)
     }
     
-    /// Resolves a format from bytes, e.g. from an HTTP response.
+    /// Resolves a media type from bytes, e.g. from an HTTP response.
     /// **Warning**: This API should never be called from the UI thread.
-    static func of(_ data: @escaping () -> Data, mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer] = sniffers) -> Format? {
-        return of(content: FormatSnifferDataContent(data: data), mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
+    static func of(_ data: @escaping () -> Data, mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer] = sniffers) -> MediaType? {
+        return of(content: DataMediaTypeSnifferContent(data: data), mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
     }
     
-    /// Resolves a format from a sniffer context.
+    /// Resolves a media type from a sniffer context.
     ///
-    /// Sniffing a format is done in two rounds, because we want to give an opportunity to all
-    /// sniffers to return a `Format` quickly before inspecting the content itself:
+    /// Sniffing a media type is done in two rounds, because we want to give an opportunity to all
+    /// sniffers to return a `MediaType` quickly before inspecting the content itself:
     /// * *Light Sniffing* checks only the provided file extension or media type hints.
     /// * *Heavy Sniffing* reads the bytes to perform more advanced sniffing.
-    private static func of(content: FormatSnifferContent?, mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer]) -> Format? {
+    private static func of(content: MediaTypeSnifferContent?, mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer]) -> MediaType? {
         if content != nil {
             warnIfMainThread()
         }
         
         // Light sniffing
-        let context = FormatSnifferContext(mediaTypes: mediaTypes, fileExtensions: fileExtensions)
+        let context = MediaTypeSnifferContext(mediaTypes: mediaTypes, fileExtensions: fileExtensions)
         for sniffer in sniffers {
-            if let format = sniffer(context) {
-                return format
+            if let mediaType = sniffer(context) {
+                return mediaType
             }
         }
         
         // Heavy sniffing
         if let content = content {
-            let context = FormatSnifferContext(content: content, mediaTypes: mediaTypes, fileExtensions: fileExtensions)
+            let context = MediaTypeSnifferContext(content: content, mediaTypes: mediaTypes, fileExtensions: fileExtensions)
             for sniffer in sniffers {
-                if let format = sniffer(context) {
-                    return format
+                if let mediaType = sniffer(context) {
+                    return mediaType
                 }
             }
         }
         
         // Falls back on the Document Types registered in the reading app, or on system-wide UTIs.
         // Note: This is done after the heavy sniffing of the provided `sniffers`, because otherwise
-        // the Document Types or system UTI will detect JSON, XML or ZIP formats before we have a
+        // the Document Types or system UTI will detect JSON, XML or ZIP media types before we have a
         // chance of sniffing their content (for example, for RWPM).
         return sniffDocumentTypes(context)
             ?? sniffUTIs(context)
@@ -98,17 +93,17 @@ public extension Format {
     
     // MARK: Sniffers
     
-    /// The default sniffers provided by Readium 2 to resolve a `Format`.
+    /// The default sniffers provided by Readium 2 to resolve a `MediaType`.
     ///
     /// You can register additional sniffers globally by modifying this list.
-    /// The sniffers order is important, because some formats are subsets of other formats.
+    /// The sniffers order is important, because some media types are subsets of other media types.
     static var sniffers: [Sniffer] = [
         sniffHTML, sniffOPDS, sniffLCPLicense, sniffBitmap,
         sniffWebPub, sniffW3CWPUB, sniffEPUB, sniffLPF, sniffArchive, sniffPDF
     ]
 
     /// Sniffs an HTML document.
-    private static func sniffHTML(context: FormatSnifferContext) -> Format? {
+    private static func sniffHTML(context: MediaTypeSnifferContext) -> MediaType? {
         if context.hasFileExtension("htm", "html", "xht", "xhtml") || context.hasMediaType("text/html", "application/xhtml+xml") {
             return .html
         }
@@ -119,18 +114,18 @@ public extension Format {
     }
 
     /// Sniffs an OPDS document.
-    private static func sniffOPDS(context: FormatSnifferContext) -> Format? {
+    private static func sniffOPDS(context: MediaTypeSnifferContext) -> MediaType? {
         // OPDS 1
         if context.hasMediaType("application/atom+xml;type=entry;profile=opds-catalog") {
             return .opds1Entry
         }
         if context.hasMediaType("application/atom+xml;profile=opds-catalog") {
-            return .opds1Feed
+            return .opds1
         }
         if let xml = context.contentAsXML {
             let namespaces = [(prefix: "atom", uri: "http://www.w3.org/2005/Atom")]
             if xml.first("/atom:feed", with: namespaces) != nil {
-                return .opds1Feed
+                return .opds1
             } else if xml.first("/atom:entry", with: namespaces) != nil {
                 return .opds1Entry
             }
@@ -138,14 +133,14 @@ public extension Format {
         
         // OPDS 2
         if context.hasMediaType("application/opds+json") {
-            return .opds2Feed
+            return .opds2
         }
         if context.hasMediaType("application/opds-publication+json") {
             return .opds2Publication
         }
         if let rwpm = context.contentAsRWPM {
-            if rwpm.link(withRel: .self)?.type == "application/opds+json" {
-                return .opds2Feed
+            if rwpm.link(withRel: .`self`)?.type == "application/opds+json" {
+                return .opds2
             }
             if rwpm.link(withRelMatching: { $0.hasPrefix("http://opds-spec.org/acquisition") }) != nil {
                 return .opds2Publication
@@ -166,20 +161,20 @@ public extension Format {
     }
     
     /// Sniffs an LCP License Document.
-    private static func sniffLCPLicense(context: FormatSnifferContext) -> Format? {
+    private static func sniffLCPLicense(context: MediaTypeSnifferContext) -> MediaType? {
         if context.hasFileExtension("lcpl") || context.hasMediaType("application/vnd.readium.lcp.license.v1.0+json") {
-            return .lcpLicense
+            return .lcpLicenseDocument
         }
         if let json = context.contentAsJSON as? [String: Any] {
             if Set(json.keys).isSuperset(of: ["id", "issued", "provider", "encryption"]) {
-                return .lcpLicense
+                return .lcpLicenseDocument
             }
         }
         return nil
     }
     
     /// Sniffs a Readium Web Publication, protected or not by LCP.
-    private static func sniffWebPub(context: FormatSnifferContext) -> Format? {
+    private static func sniffWebPub(context: MediaTypeSnifferContext) -> MediaType? {
         if context.hasFileExtension("audiobook") || context.hasMediaType("application/audiobook+zip") {
             return .readiumAudiobook
         }
@@ -235,7 +230,7 @@ public extension Format {
             if isLCPProtected, rwpm.readingOrder.all(matchMediaType: .pdf) {
                 return .lcpProtectedPDF
             }
-            if rwpm.link(withRel: .self)?.type == "application/webpub+json" {
+            if rwpm.link(withRel: .`self`)?.type == "application/webpub+json" {
                 return isManifest ? .readiumWebPubManifest : .readiumWebPub
             }
         }
@@ -244,7 +239,7 @@ public extension Format {
     }
     
     /// Sniffs a W3C Web Publication Manifest.
-    private static func sniffW3CWPUB(context: FormatSnifferContext) -> Format? {
+    private static func sniffW3CWPUB(context: MediaTypeSnifferContext) -> MediaType? {
         if let json = context.contentAsJSON as? [String: Any],
             let context = json["@context"] as? [Any],
             context.contains(where: { ($0 as? String) == "https://www.w3.org/ns/wp-context" })
@@ -256,7 +251,7 @@ public extension Format {
 
     /// Sniffs an EPUB publication.
     /// Reference: https://www.w3.org/publishing/epub3/epub-ocf.html#sec-zip-container-mime
-    private static func sniffEPUB(context: FormatSnifferContext) -> Format? {
+    private static func sniffEPUB(context: MediaTypeSnifferContext) -> MediaType? {
         if context.hasFileExtension("epub") || context.hasMediaType("application/epub+zip") {
             return .epub
         }
@@ -273,7 +268,7 @@ public extension Format {
     /// References:
     /// * https://www.w3.org/TR/lpf/
     /// * https://www.w3.org/TR/pub-manifest/
-    private static func sniffLPF(context: FormatSnifferContext) -> Format? {
+    private static func sniffLPF(context: MediaTypeSnifferContext) -> MediaType? {
         if context.hasFileExtension("lpf") || context.hasMediaType("application/lpf+zip") {
             return .lpf
         }
@@ -309,7 +304,7 @@ public extension Format {
     
     /// Sniffs a simple archive-based format, like Comic Book Archive or Zipped Audio Book.
     /// Reference: https://wiki.mobileread.com/wiki/CBR_and_CBZ
-    private static func sniffArchive(context: FormatSnifferContext) -> Format? {
+    private static func sniffArchive(context: MediaTypeSnifferContext) -> MediaType? {
         if context.hasFileExtension("cbz") || context.hasMediaType("application/vnd.comicbook+zip", "application/x-cbz", "application/x-cbr") {
             return .cbz
         }
@@ -342,7 +337,7 @@ public extension Format {
 
     /// Sniffs a PDF document.
     /// Reference: https://www.loc.gov/preservation/digital/formats/fdd/fdd000123.shtml
-    private static func sniffPDF(context: FormatSnifferContext) -> Format? {
+    private static func sniffPDF(context: MediaTypeSnifferContext) -> MediaType? {
         if context.hasFileExtension("pdf") || context.hasMediaType("application/pdf") {
             return .pdf
         }
@@ -353,7 +348,7 @@ public extension Format {
     }
     
     /// Sniffs a bitmap image.
-    private static func sniffBitmap(context: FormatSnifferContext) -> Format? {
+    private static func sniffBitmap(context: MediaTypeSnifferContext) -> MediaType? {
         if context.hasFileExtension("bmp", "dib") || context.hasMediaType("image/bmp", "image/x-bmp") {
             return .bmp
         }
@@ -375,22 +370,22 @@ public extension Format {
         return nil
     }
     
-    /// Sniffs the formats declared in the Document Types section of the app's `Info.plist`.
-    private static func sniffDocumentTypes(_ context: FormatSnifferContext) -> Format? {
-        func sniff(_ documentType: DocumentType) -> Format? {
-            guard let format = documentType.format else {
+    /// Sniffs the media types declared in the Document Types section of the app's `Info.plist`.
+    private static func sniffDocumentTypes(_ context: MediaTypeSnifferContext) -> MediaType? {
+        func sniff(_ documentType: DocumentType) -> MediaType? {
+            guard let mediaType = documentType.preferredMediaType else {
                 return nil
             }
             
             for mediaType in documentType.mediaTypes {
                 if context.hasMediaType(mediaType.string) {
-                    return format
+                    return mediaType
                 }
             }
             
             for fileExtension in documentType.fileExtensions {
                 if context.hasFileExtension(fileExtension) {
-                    return format
+                    return mediaType
                 }
             }
             
@@ -398,8 +393,8 @@ public extension Format {
         }
 
         for type in DocumentTypes.main.all {
-            if let format = sniff(type) {
-                return format
+            if let mediaType = sniff(type) {
+                return mediaType
             }
         }
         
@@ -407,30 +402,30 @@ public extension Format {
     }
     
     /// Sniffs the Uniform Type Identifiers registered on the system.
-    private static func sniffUTIs(_ context: FormatSnifferContext) -> Format? {
+    private static func sniffUTIs(_ context: MediaTypeSnifferContext) -> MediaType? {
         guard let uti = UTI.findFrom(mediaTypes: context.mediaTypes, fileExtensions: context.fileExtensions),
             let name = uti.name,
-            let mediaType = uti.preferredTag(withClass: .mediaType).flatMap(MediaType.init),
+            let mediaType = uti.preferredTag(withClass: .mediaType),
             let fileExtension = uti.preferredTag(withClass: .fileExtension) else
         {
             return nil
         }
         
-        return Format(name: name, mediaType: mediaType, fileExtension: fileExtension)
+        return MediaType(mediaType, name: name, fileExtension: fileExtension)
     }
 
 }
 
 public extension URLResponse {
     
-    /// Sniffs the format for this `URLResponse`, using the default format sniffers.
-    var format: Format? {
-        sniffFormat()
+    /// Sniffs the media type for this `URLResponse`, using the default media type sniffers.
+    var mediaType: MediaType? {
+        sniffMediaType()
     }
 
-    /// Resolves the format for this `URLResponse`, with optional extra file extension and media
+    /// Resolves the media type for this `URLResponse`, with optional extra file extension and media
     /// type hints.
-    func sniffFormat(data: (() -> Data)? = nil, mediaTypes: [String] = [], fileExtensions: [String] = [], sniffers: [Format.Sniffer] = Format.sniffers) -> Format? {
+    func sniffMediaType(data: (() -> Data)? = nil, mediaTypes: [String] = [], fileExtensions: [String] = [], sniffers: [MediaType.Sniffer] = MediaType.sniffers) -> MediaType? {
         var mediaTypes = mediaTypes
         // The value of the `Content-Type` HTTP header.
         if let mimeType = mimeType {
@@ -448,9 +443,9 @@ public extension URLResponse {
         }
         
         if let data = data {
-            return Format.of({ data() }, mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
+            return MediaType.of({ data() }, mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
         } else {
-            return Format.of(mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
+            return MediaType.of(mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
         }
     }
 

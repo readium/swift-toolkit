@@ -1,26 +1,21 @@
 //
-//  FormatSnifferContext.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 10/04/2020.
-//
 //  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 
 // FIXME: ZIP and XML capabilities are internal for now, until the API of `Archive` and `XMLDocument` are stable.
 
-/// A companion type of `Format.Sniffer` holding the type hints (file extensions, media types) and
+/// A companion type of `MediaType.Sniffer` holding the type hints (file extensions, media types) and
 /// providing an access to the file content.
-public final class FormatSnifferContext {
+public final class MediaTypeSnifferContext {
     
     private let archiveFactory: ArchiveFactory
     private let xmlFactory: XMLDocumentFactory
     
-    internal init(content: FormatSnifferContent? = nil, mediaTypes: [String], fileExtensions: [String], archiveFactory: ArchiveFactory = DefaultArchiveFactory(), xmlFactory: XMLDocumentFactory = DefaultXMLDocumentFactory()) {
+    internal init(content: MediaTypeSnifferContent? = nil, mediaTypes: [String], fileExtensions: [String], archiveFactory: ArchiveFactory = DefaultArchiveFactory(), xmlFactory: XMLDocumentFactory = DefaultXMLDocumentFactory()) {
         self.content = content
         self.mediaTypes = mediaTypes.compactMap { MediaType($0) }
         self.fileExtensions = fileExtensions.map { $0.lowercased() }
@@ -67,7 +62,7 @@ public final class FormatSnifferContext {
     // MARK: Content
 
     /// Underlying content holder.
-    private let content: FormatSnifferContent?
+    private let content: MediaTypeSnifferContent?
     
     /// Content as plain text.
     ///
@@ -82,7 +77,7 @@ public final class FormatSnifferContext {
 
     /// Content as an archive.
     /// Warning: ZIP is only supported for a local file, for now.
-    lazy var contentAsArchive: Archive? = (content as? FormatSnifferFileContent)
+    lazy var contentAsArchive: Archive? = (content as? FileMediaTypeSnifferContent)
         .flatMap { try? archiveFactory.open(url: $0.file, password: nil) }
 
     /// Content parsed from JSON.

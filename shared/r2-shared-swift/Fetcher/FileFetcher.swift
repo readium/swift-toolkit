@@ -66,7 +66,7 @@ public final class FileFetcher: Fetcher, Loggable {
                 let subPath = url.standardizedFileURL.path.removingPrefix(path.standardizedFileURL.path)
                 return Link(
                     href: hrefURL.appendingPathComponent(subPath).standardizedFileURL.path,
-                    type: Format.of(fileExtension: url.pathExtension)?.mediaType.string
+                    type: MediaType.of(url)?.string
                 )
             }
         }

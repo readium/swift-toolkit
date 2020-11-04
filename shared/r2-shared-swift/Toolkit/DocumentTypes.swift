@@ -93,36 +93,28 @@ public struct DocumentType: Equatable, Loggable {
     
     // Uniform Type Identifiers supported by this document type.
     public let utis: [String]
-
-    // Media (MIME) types recognized by this document type.
-    public let mediaTypes: [MediaType]
+    
     // The preferred media type used to identify this document type.
     public let preferredMediaType: MediaType?
     
+    // Media (MIME) types recognized by this document type.
+    public let mediaTypes: [MediaType]
     // File extensions recognized by this document type.
     public let fileExtensions: [String]
-    // The preferred file extension used for this document type.
-    public let preferredFileExtension: String?
     
-    // R2 Format identifying this document type.
-    public let format: Format?
     
     init(
         name: String,
         utis: [String],
-        mediaTypes: [MediaType],
         preferredMediaType: MediaType?,
-        fileExtensions: [String],
-        preferredFileExtension: String?,
-        format: Format?
+        mediaTypes: [MediaType],
+        fileExtensions: [String]
     ) {
         self.name = name
         self.utis = utis
-        self.mediaTypes = mediaTypes
         self.preferredMediaType = preferredMediaType
+        self.mediaTypes = mediaTypes
         self.fileExtensions = fileExtensions
-        self.preferredFileExtension = preferredFileExtension
-        self.format = format
     }
     
     init?(dictionary: [String: Any]) {
@@ -130,38 +122,38 @@ public struct DocumentType: Equatable, Loggable {
             Self.log(.error, "Document Type without a `CFBundleTypeName`")
             return nil
         }
-        
+
         self.name = name
         self.utis = (dictionary["LSItemContentTypes"] as? [String] ?? [])
         let utis = self.utis.map(UTI.init(stringLiteral:))
 
-        let mediaTypeStrings =
-            utis.flatMap { $0.tags(withClass: .mediaType) } +
-            (dictionary["CFBundleTypeMIMETypes"] as? [String] ?? [])
-        let mediaTypes = mediaTypeStrings.compactMap(MediaType.init)
-            .removingDuplicates()
-        
-        self.mediaTypes = mediaTypes
-        self.preferredMediaType =
-            utis.preferredTag(withClass: .mediaType).flatMap(MediaType.init)
-            ?? mediaTypes.first
-        
         let fileExtensions =
             utis.flatMap { $0.tags(withClass: .fileExtension) } +
-            (dictionary["CFBundleTypeExtensions"] as? [String] ?? [])
-        
-        self.fileExtensions = fileExtensions.map { $0.lowercased() }
+                (dictionary["CFBundleTypeExtensions"] as? [String] ?? [])
+
+        self.fileExtensions = fileExtensions
+            .map { $0.lowercased() }
             .removingDuplicates()
-        self.preferredFileExtension =
-            utis.preferredTag(withClass: .fileExtension)?.lowercased()
-            ?? fileExtensions.first
-        
-        if let mediaType = preferredMediaType, let fileExtension = preferredFileExtension {
-            self.format = Format(name: name, mediaType: mediaType, fileExtension: fileExtension)
-        } else {
-            self.format = nil
-        }
+
+        let mediaTypeStrings =
+            utis.flatMap { $0.tags(withClass: .mediaType) } +
+                (dictionary["CFBundleTypeMIMETypes"] as? [String] ?? [])
+        let mediaTypes = mediaTypeStrings.compactMap { MediaType($0) }
+            .removingDuplicates()
+
+        self.mediaTypes = mediaTypes
+
+        let preferredFileExtension =
+            utis.preferredTag(withClass: .fileExtension)
+                ?? fileExtensions.first
+
+        self.preferredMediaType = utis.preferredTag(withClass: .mediaType)
+            .flatMap { MediaType($0, name: name, fileExtension: preferredFileExtension?.lowercased()) }
+            ?? mediaTypes.first
     }
+
+    @available(*, deprecated, renamed: "preferredMediaType")
+    public var format: MediaType? { preferredMediaType }
 
 }
 
@@ -192,7 +184,7 @@ extension DocumentTypes {
         guard let fileExtension = ext else {
             return nil
         }
-        return Format.of(fileExtension: fileExtension)?.mediaType.string
+        return MediaType.of(fileExtension: fileExtension)?.string
     }
     
     /// Returns the document extension for given content type.
@@ -201,7 +193,7 @@ extension DocumentTypes {
         guard let mediaType = contentType else {
             return nil
         }
-        return Format.of(mediaType: mediaType)?.fileExtension
+        return MediaType.of(mediaType: mediaType)?.fileExtension
     }
-    
+
 }
