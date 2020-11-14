@@ -97,14 +97,15 @@ public final class MediaTypeSnifferContext {
         return content?.stream()
     }
 
-    /// Reads the file signature, aka magic number, at the beginning of the content, up to `length`
-    /// bytes.
-    /// i.e. https://en.wikipedia.org/wiki/List_of_file_signatures
-    public func readFileSignature(length: Int) -> String? {
+    /// Reads the first `length` bytes.
+    ///
+    /// It can be used to check a file signature, aka magic number.
+    /// See https://en.wikipedia.org/wiki/List_of_file_signatures
+    func read(length: Int) -> Data? {
         guard let stream = stream() else {
             return nil
         }
-        
+
         let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: length)
         stream.open()
         defer {
@@ -113,7 +114,11 @@ public final class MediaTypeSnifferContext {
         }
         
         let bytesRead = stream.read(buffer, maxLength: length)
-        return bytesRead > 0 ? String(cString: buffer) : nil
+        guard bytesRead > 0 else {
+            return nil
+        }
+
+        return Data(bytes: buffer, count: bytesRead)
     }
     
     /// Returns whether an Archive entry exists in this file.

@@ -347,7 +347,7 @@ public extension MediaType {
         if context.hasFileExtension("pdf") || context.hasMediaType("application/pdf") {
             return .pdf
         }
-        if context.readFileSignature(length: 5) == "%PDF-" {
+        if context.read(length: 5).flatMap({ String(data: $0, encoding: .utf8) }) == "%PDF-" {
             return .pdf
         }
         return nil
