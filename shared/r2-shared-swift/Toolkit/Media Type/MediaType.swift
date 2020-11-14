@@ -6,7 +6,7 @@
 
 import Foundation
 
-/// Represents a string media type.
+/// Represents a document format, identified by a unique RFC 6838 media type.
 ///
 /// `MediaType` handles:
 /// * components parsing – eg. type, subtype and parameters,
@@ -229,20 +229,7 @@ public struct MediaType: Hashable, Loggable {
     public var isRWPM: Bool {
         matchesAny(.readiumWebPubManifest, .readiumAudiobookManifest, .divinaManifest)
     }
-    
-    /// Returns whether this media type is of a Readium Web Publication profile.
-    public var isReadiumWebPubProfile: Bool {
-        matchesAny(
-            .readiumWebPub, .readiumWebPubManifest, .readiumAudiobook, .readiumAudiobookManifest,
-            .lcpProtectedAudiobook, .divina, .divinaManifest, .lcpProtectedPDF
-        )
-    }
-    
-    /// Returns whether this media type is of a package protected with LCP.
-    public var isLCPProtected: Bool {
-        matchesAny(.lcpProtectedAudiobook, .lcpProtectedPDF)
-    }
-    
+
     /// Returns whether this media type is declared in the Document Types section of the app's main
     /// bundle.
     public var isSupportedDocumentType: Bool {
@@ -266,13 +253,13 @@ public struct MediaType: Hashable, Loggable {
     public static let epub = MediaType("application/epub+zip", name: "EPUB", fileExtension: "epub")!
     public static let gif = MediaType("image/gif", fileExtension: "gif")!
     public static let gz = MediaType("application/gzip", fileExtension: "gz")!
+    public static let html = MediaType("text/html", fileExtension: "html")!
     public static let javascript = MediaType("text/javascript", fileExtension: "js")!
     public static let jpeg = MediaType("image/jpeg", fileExtension: "jpg")!
-    public static let html = MediaType("text/html", fileExtension: "html")!
     public static let json = MediaType("application/json", fileExtension: "json")!
+    public static let lcpLicenseDocument = MediaType("application/vnd.readium.lcp.license.v1.0+json", name: "LCP License", fileExtension: "lcpl")!
     public static let lcpProtectedAudiobook = MediaType("application/audiobook+lcp", name: "LCP Protected Audiobook", fileExtension: "lcpa")!
     public static let lcpProtectedPDF = MediaType("application/pdf+lcp", name: "LCP Protected PDF", fileExtension: "lcpdf")!
-    public static let lcpLicenseDocument = MediaType("application/vnd.readium.lcp.license.v1.0+json", name: "LCP License", fileExtension: "lcpl")!
     public static let lcpStatusDocument = MediaType("application/vnd.readium.license.status.v1.0+json")!
     public static let lpf = MediaType("application/lpf+zip", fileExtension: "lpf")!
     public static let mp3 = MediaType("audio/mpeg", fileExtension: "mp3")!

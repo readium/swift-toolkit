@@ -82,12 +82,18 @@ public extension MediaType {
             }
         }
         
-        // Falls back on the Document Types registered in the reading app, or on system-wide UTIs.
+        // Falls back on either:
+        //
+        // - the Document Types registered in the reading app
+        // - system-wide UTIs
+        // - the first valid media type hint provided
+        //
         // Note: This is done after the heavy sniffing of the provided `sniffers`, because otherwise
         // the Document Types or system UTI will detect JSON, XML or ZIP media types before we have a
         // chance of sniffing their content (for example, for RWPM).
         return sniffDocumentTypes(context)
             ?? sniffUTIs(context)
+            ?? mediaTypes.first { MediaType($0) }
     }
 
     

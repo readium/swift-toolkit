@@ -332,25 +332,5 @@ class MediaTypeTests: XCTestCase {
         XCTAssertTrue(MediaType("application/webpub+json")!.isRWPM)
         XCTAssertTrue(MediaType("application/webpub+json;charset=utf-8")!.isRWPM)
     }
-    
-    func testIsReadiumWebPubProfile() {
-        XCTAssertFalse(MediaType("text/html")!.isReadiumWebPubProfile)
-        XCTAssertTrue(MediaType("application/audiobook+zip")!.isReadiumWebPubProfile)
-        XCTAssertTrue(MediaType("application/audiobook+json")!.isReadiumWebPubProfile)
-        XCTAssertTrue(MediaType("application/audiobook+lcp")!.isLCPProtected)
-        XCTAssertTrue(MediaType("application/divina+zip")!.isReadiumWebPubProfile)
-        XCTAssertTrue(MediaType("application/divina+json")!.isReadiumWebPubProfile)
-        XCTAssertTrue(MediaType("application/pdf+lcp")!.isLCPProtected)
-        XCTAssertTrue(MediaType("application/webpub+zip")!.isReadiumWebPubProfile)
-        XCTAssertTrue(MediaType("application/webpub+json")!.isReadiumWebPubProfile)
-        XCTAssertTrue(MediaType("application/webpub+json;charset=utf-8")!.isReadiumWebPubProfile)
-    }
-    
-    func testIsLCPProtected() {
-        XCTAssertFalse(MediaType("text/html")!.isLCPProtected)
-        XCTAssertTrue(MediaType("application/pdf+lcp")!.isLCPProtected)
-        XCTAssertTrue(MediaType("application/audiobook+lcp")!.isLCPProtected)
-        XCTAssertTrue(MediaType("application/audiobook+lcp;param=value")!.isLCPProtected)
-    }
 
 }

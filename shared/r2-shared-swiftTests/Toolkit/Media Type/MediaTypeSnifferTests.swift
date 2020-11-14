@@ -22,6 +22,15 @@ class MediaTypeSnifferTests: XCTestCase {
     func testSniffIgnoresMediaTypeExtraParameters() {
         XCTAssertEqual(MediaType.of(mediaType: "application/epub+zip;param=value"), .epub)
     }
+
+    func testSniffFallbackOnParse() {
+        let expected = MediaType("fruit/grapes")!
+        XCTAssertEqual(MediaType.of(mediaType: "fruit/grapes"), expected)
+        XCTAssertEqual(MediaType.of(mediaType: "fruit/grapes"), expected)
+        XCTAssertEqual(MediaType.of(mediaTypes: ["invalid", "fruit/grapes"], fileExtensions: []), expected)
+        XCTAssertEqual(MediaType.of(mediaTypes: ["fruit/grapes", "vegetable/brocoli"], fileExtensions: []), expected)
+
+    }
     
     func testSniffFromMetadata() {
         XCTAssertNil(MediaType.of(fileExtension: nil))
@@ -43,7 +52,7 @@ class MediaTypeSnifferTests: XCTestCase {
     }
 
     func testSniffUnknownMediaType() {
-        XCTAssertNil(MediaType.of(mediaType: "unknown/type"))
+        XCTAssertNil(MediaType.of(mediaType: "unknown"))
         XCTAssertNil(MediaType.of(fixtures.url(for: "unknown")))
     }
     
