@@ -209,7 +209,7 @@ extension License: LCPLicense {
                 throw LCPError.licenseInteractionNotAvailable
             }
             
-            if link.mediaType?.isHTML == true {
+            if link.mediaType.isHTML {
                 return try callHTML(url)
             } else {
                 return callPUT(url)

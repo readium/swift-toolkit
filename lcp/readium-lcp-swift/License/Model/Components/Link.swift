@@ -71,8 +71,8 @@ public struct Link {
         return url(with: [:])
     }
     
-    var mediaType: MediaType? {
-        type.flatMap { MediaType($0) }
+    var mediaType: MediaType {
+        type.flatMap { MediaType.of(mediaType: $0) } ?? .binary
     }
 
 }
