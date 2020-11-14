@@ -49,7 +49,7 @@ public extension Resource {
     /// falls back on UTF-8.
     func readAsString(encoding: String.Encoding? = nil) -> ResourceResult<String> {
         return read().map {
-            let encoding = encoding ?? link.mediaType?.encoding ?? .utf8
+            let encoding = encoding ?? link.mediaType.encoding ?? .utf8
             return String(data: $0, encoding: encoding) ?? ""
         }
     }

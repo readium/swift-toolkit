@@ -19,7 +19,7 @@ public struct OPDSAcquisition: Equatable {
     public var type: String
     public var children: [OPDSAcquisition] = []
     
-    public var mediaType: MediaType? { MediaType(type) }
+    public var mediaType: MediaType { MediaType.of(mediaType: type) ?? .binary }
     
     public init(type: String, children: [OPDSAcquisition] = []) {
         self.type = type
