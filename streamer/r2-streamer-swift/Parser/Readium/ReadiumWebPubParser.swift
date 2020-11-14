@@ -93,6 +93,18 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
 
 }
 
+private extension MediaType {
+
+    /// Returns whether this media type is of a Readium Web Publication profile.
+    var isReadiumWebPubProfile: Bool {
+        matchesAny(
+            .readiumWebPub, .readiumWebPubManifest, .readiumAudiobook, .readiumAudiobookManifest,
+            .lcpProtectedAudiobook, .divina, .divinaManifest, .lcpProtectedPDF
+        )
+    }
+
+}
+
 @available(*, deprecated, renamed: "ReadiumWebPubParserError")
 public typealias WEBPUBParserError = ReadiumWebPubParserError
 
