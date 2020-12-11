@@ -16,7 +16,7 @@ import R2Shared
 final class LicensesService: Loggable {
 
     // Mapping between an unprotected format to the matching LCP protected format.
-    private let formatsMapping: [Format: Format] = [
+    private let mediaTypesMapping: [MediaType: MediaType] = [
         .readiumAudiobook: .lcpProtectedAudiobook,
         .pdf: .lcpProtectedPDF
     ]
@@ -202,9 +202,9 @@ final class LicensesService: Loggable {
     private func suggestedFilename(for file: URL, license: LicenseDocument) -> String {
         let fileExtension: String = {
             let publicationLink = license.link(for: .publication)
-            if var format = Format.of(file, mediaType: publicationLink?.type) {
-                format = formatsMapping[format] ?? format
-                return format.fileExtension
+            if var mediaType = MediaType.of(file, mediaType: publicationLink?.type) {
+                mediaType = mediaTypesMapping[mediaType] ?? mediaType
+                return mediaType.fileExtension ?? file.pathExtension
             } else {
                 return file.pathExtension
             }
