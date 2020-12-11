@@ -213,7 +213,7 @@ struct EPUBSpread: Loggable {
         /// Two resources are consecutive if their position hint (Properties.Page) are paired according to the reading progression.
         func areConsecutive(_ first: Link, _ second: Link) -> Bool {
             // Here we use the default publication reading progression instead of the custom one provided, otherwise the page position hints might be wrong, and we could end up with only one-page spreads.
-            switch publication.contentLayout.readingProgression {
+            switch publication.metadata.effectiveReadingProgression {
             case .ltr, .ttb, .auto:
                 let firstPosition = first.properties.page ?? .left
                 let secondPosition = second.properties.page ?? .right
