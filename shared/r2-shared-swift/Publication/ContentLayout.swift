@@ -11,26 +11,14 @@
 
 import Foundation
 
+@available(*, deprecated, message: "Use `publication.metadata.effectiveReadingProgression` instead")
 public enum ContentLayout: String {
     case rtl = "rtl"
     case ltr = "ltr"
     case cjkVertical = "cjk-vertical"
     case cjkHorizontal = "cjk-horizontal"
-
-    public init(language: String, readingProgression: ReadingProgression = .auto) {
-        let language = language.split(separator: "-").first.map(String.init)
-            ?? language
-        
-        switch language.lowercased() {
-        case "ar", "fa", "he":
-            self = readingProgression.getContentLayoutOrFallback(fallback: .rtl)
-        case "zh", "ja", "ko":
-            self = readingProgression.getContentLayoutOrFallback(fallback: .cjkHorizontal, isCJK: true)
-        default:
-            self = readingProgression.getContentLayoutOrFallback(fallback: .ltr)
-        }
-    }
     
+    @available(*, unavailable, message: "Use `publication.metadata.effectiveReadingProgression` instead", renamed: "metadata.effectiveReadingProgression")
     public var readingProgression: ReadingProgression {
         switch self {
         case .rtl, .cjkVertical:
@@ -40,19 +28,4 @@ public enum ContentLayout: String {
         }
     }
 
-}
-
-private extension ReadingProgression {
-    
-    func getContentLayoutOrFallback(fallback: ContentLayout, isCJK: Bool = false) -> ContentLayout {
-        switch (self) {
-        case .rtl, .btt:
-            return isCJK ? .cjkVertical : .rtl
-        case .ltr, .ttb:
-            return isCJK ? .cjkHorizontal : .ltr
-        case .auto:
-            return fallback
-        }
-    }
-    
 }
