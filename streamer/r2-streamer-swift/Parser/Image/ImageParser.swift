@@ -26,7 +26,7 @@ public final class ImageParser: PublicationParser {
         }
         
         var readingOrder = fetcher.links
-            .filter { !ignores($0) && $0.mediaType?.isBitmap == true }
+            .filter { !ignores($0) && $0.mediaType.isBitmap }
             .sorted { $0.href.localizedCaseInsensitiveCompare($1.href) == .orderedAscending }
         
         guard !readingOrder.isEmpty else {
@@ -37,8 +37,8 @@ public final class ImageParser: PublicationParser {
         readingOrder[0] = readingOrder[0].copy(rels: [.cover])
 
         return Publication.Builder(
-            fileFormat: .cbz,
-            publicationFormat: .cbz,
+            mediaType: .cbz,
+            format: .cbz,
             manifest: Manifest(
                 metadata: Metadata(
                     title: fetcher.guessTitle(ignoring: ignores) ?? file.name
@@ -59,7 +59,7 @@ public final class ImageParser: PublicationParser {
         
         // Checks if the fetcher contains only bitmap-based resources.
         return !fetcher.links.isEmpty
-            && fetcher.links.allSatisfy { ignores($0) || $0.mediaType?.isBitmap == true }
+            && fetcher.links.allSatisfy { ignores($0) || $0.mediaType.isBitmap }
     }
     
     private func ignores(_ link: Link) -> Bool {

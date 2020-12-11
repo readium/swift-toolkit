@@ -32,12 +32,12 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
     }
     
     public func parse(file: File, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
-        guard let format = file.format, format.mediaType.isReadiumWebPubProfile else {
+        guard let mediaType = file.format, mediaType.isReadiumWebPubProfile else {
             return nil
         }
         
-        let isPackage = !format.mediaType.isRWPM
-        
+        let isPackage = !mediaType.isRWPM
+
         // Reads the manifest data from the fetcher.
         guard let manifestData: Data = (
             isPackage
@@ -59,7 +59,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
             fetcher = HTTPFetcher()
         }
 
-        switch format {
+        switch mediaType {
         case .lcpProtectedPDF:
             // Checks the requirements from the spec, see. https://readium.org/lcp-specs/drafts/lcpdf
             guard
@@ -78,8 +78,8 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         }
 
         return Publication.Builder(
-            fileFormat: format,
-            publicationFormat: (format == .lcpProtectedPDF ? .pdf : .webpub),
+            mediaType: mediaType,
+            format: (mediaType.matches(.lcpProtectedPDF) ? .pdf : .webpub),
             manifest: manifest,
             fetcher: fetcher,
             servicesBuilder: .init(positions: positionsFactory)
@@ -89,6 +89,18 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
     @available(*, unavailable, message: "Use an instance of `Streamer` to open a `Publication`")
     public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
         fatalError("Not available")
+    }
+
+}
+
+private extension MediaType {
+
+    /// Returns whether this media type is of a Readium Web Publication profile.
+    var isReadiumWebPubProfile: Bool {
+        matchesAny(
+            .readiumWebPub, .readiumWebPubManifest, .readiumAudiobook, .readiumAudiobookManifest,
+            .lcpProtectedAudiobook, .divina, .divinaManifest, .lcpProtectedPDF
+        )
     }
 
 }

@@ -27,7 +27,7 @@ final class EPUBHTMLInjector {
     func inject(resource: Resource) -> Resource {
         // We only transform reflowable HTML resources.
         guard
-            resource.link.mediaType?.isHTML == true,
+            resource.link.mediaType.isHTML,
             metadata.presentation.layout(of: resource.link) == .reflowable else
         {
             return resource
