@@ -28,48 +28,30 @@ class DocumentTypesTests: XCTestCase {
         XCTAssertEqual(all[0], DocumentType(
             name: "Foo Format",
             utis: [],
+            preferredMediaType: MediaType("application/vnd.bar")!,
             mediaTypes: [
                 MediaType("application/vnd.bar")!,
                 MediaType("application/vnd.bar2")!
             ],
-            preferredMediaType: MediaType("application/vnd.bar")!,
-            fileExtensions: ["foo", "foo2"],
-            preferredFileExtension: "foo",
-            format: Format(
-                name: "Foo Format",
-                mediaType: MediaType("application/vnd.bar")!,
-                fileExtension: "foo"
-            )
+            fileExtensions: ["foo", "foo2"]
         ))
         XCTAssertEqual(all[1], DocumentType(
             name: "PDF Publication",
             utis: [],
+            preferredMediaType: MediaType("application/pdf")!,
             mediaTypes: [
                 MediaType("application/pdf")!
             ],
-            preferredMediaType: MediaType("application/pdf")!,
-            fileExtensions: ["pdff"],
-            preferredFileExtension: "pdff",
-            format: Format(
-                name: "PDF Publication",
-                mediaType: MediaType("application/pdf")!,
-                fileExtension: "pdff"
-            )
+            fileExtensions: ["pdff"]
         ))
         XCTAssertEqual(all[2], DocumentType(
             name: "EPUB Publication",
             utis: ["org.idpf.epub-container"],
+            preferredMediaType: MediaType("application/epub+zip", name: "EPUB Publication", fileExtension: "epub")!,
             mediaTypes: [
                 MediaType("application/epub+zip")!
             ],
-            preferredMediaType: MediaType("application/epub+zip")!,
-            fileExtensions: ["epub", "epub2"],
-            preferredFileExtension: "epub",
-            format: Format(
-                name: "EPUB Publication",
-                mediaType: MediaType("application/epub+zip")!,
-                fileExtension: "epub"
-            )
+            fileExtensions: ["epub", "epub2"]
         ))
     }
     

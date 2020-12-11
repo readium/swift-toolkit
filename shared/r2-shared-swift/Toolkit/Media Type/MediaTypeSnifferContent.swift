@@ -1,18 +1,13 @@
 //
-//  FormatSnifferContent.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 13/04/2020.
-//
 //  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 
-/// Provides an access to a file's content to sniff its format.
-protocol FormatSnifferContent {
+/// Provides an access to a file's content to sniff its media type.
+protocol MediaTypeSnifferContent {
     
     /// Reads the whole content as raw bytes.
     func read() -> Data?
@@ -26,7 +21,7 @@ protocol FormatSnifferContent {
 }
 
 /// Used to sniff a local file.
-final class FormatSnifferFileContent: FormatSnifferContent, Loggable {
+final class FileMediaTypeSnifferContent: MediaTypeSnifferContent, Loggable {
 
     let file: URL
     
@@ -62,7 +57,7 @@ final class FormatSnifferFileContent: FormatSnifferContent, Loggable {
 }
 
 /// Used to sniff a bytes array.
-final class FormatSnifferDataContent: FormatSnifferContent {
+final class DataMediaTypeSnifferContent: MediaTypeSnifferContent {
     
     lazy var data: Data = getData()
     private let getData: () -> Data

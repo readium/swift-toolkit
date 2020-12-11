@@ -1,12 +1,7 @@
 //
-//  MediaTypeTests.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 10/04/2020.
-//
 //  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import XCTest
@@ -81,7 +76,7 @@ class MediaTypeTests: XCTestCase {
             ]
         )
     }
-    
+
     func testGetStructuredSyntaxSuffix() {
         XCTAssertNil(MediaType("foo/bar")!.structuredSyntaxSuffix)
         XCTAssertNil(MediaType("application/zip")!.structuredSyntaxSuffix)
@@ -104,7 +99,13 @@ class MediaTypeTests: XCTestCase {
     func testCharsetValueIsUppercased() {
         XCTAssertEqual(MediaType("text/html;charset=utf-8")!.parameters["charset"], "UTF-8")
     }
-    
+
+    func testCanonicalized() {
+        XCTAssertEqual(MediaType("text/html;charset=utf-8")!.canonicalized, MediaType("text/html", fileExtension: "html"))
+        XCTAssertEqual(MediaType("application/atom+xml;profile=opds-catalog;charset=utf-8")!.canonicalized, MediaType("application/atom+xml;profile=opds-catalog")!)
+        XCTAssertEqual(MediaType("application/unknown;charset=utf-8")!.canonicalized, MediaType("application/unknown;charset=utf-8"))
+    }
+
     func testEquals() {
         XCTAssertEqual(MediaType("application/atom+xml")!, MediaType("application/atom+xml")!)
         XCTAssertEqual(MediaType("application/atom+xml;profile=opds-catalog")!, MediaType("application/atom+xml;profile=opds-catalog")!)
@@ -330,26 +331,6 @@ class MediaTypeTests: XCTestCase {
         XCTAssertTrue(MediaType("application/divina+json")!.isRWPM)
         XCTAssertTrue(MediaType("application/webpub+json")!.isRWPM)
         XCTAssertTrue(MediaType("application/webpub+json;charset=utf-8")!.isRWPM)
-    }
-    
-    func testIsReadiumWebPubProfile() {
-        XCTAssertFalse(MediaType("text/html")!.isReadiumWebPubProfile)
-        XCTAssertTrue(MediaType("application/audiobook+zip")!.isReadiumWebPubProfile)
-        XCTAssertTrue(MediaType("application/audiobook+json")!.isReadiumWebPubProfile)
-        XCTAssertTrue(MediaType("application/audiobook+lcp")!.isLCPProtected)
-        XCTAssertTrue(MediaType("application/divina+zip")!.isReadiumWebPubProfile)
-        XCTAssertTrue(MediaType("application/divina+json")!.isReadiumWebPubProfile)
-        XCTAssertTrue(MediaType("application/pdf+lcp")!.isLCPProtected)
-        XCTAssertTrue(MediaType("application/webpub+zip")!.isReadiumWebPubProfile)
-        XCTAssertTrue(MediaType("application/webpub+json")!.isReadiumWebPubProfile)
-        XCTAssertTrue(MediaType("application/webpub+json;charset=utf-8")!.isReadiumWebPubProfile)
-    }
-    
-    func testIsLCPProtected() {
-        XCTAssertFalse(MediaType("text/html")!.isLCPProtected)
-        XCTAssertTrue(MediaType("application/pdf+lcp")!.isLCPProtected)
-        XCTAssertTrue(MediaType("application/audiobook+lcp")!.isLCPProtected)
-        XCTAssertTrue(MediaType("application/audiobook+lcp;param=value")!.isLCPProtected)
     }
 
 }

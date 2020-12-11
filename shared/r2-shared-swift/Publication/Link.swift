@@ -258,22 +258,22 @@ extension Array where Element == Link {
     
     /// Returns whether all the resources in the collection are bitmaps.
     public var allAreBitmap: Bool {
-        allSatisfy { $0.mediaType?.isBitmap == true }
+        allSatisfy { $0.mediaType.isBitmap }
     }
     
     /// Returns whether all the resources in the collection are audio clips.
     public var allAreAudio: Bool {
-        allSatisfy { $0.mediaType?.isAudio == true }
+        allSatisfy { $0.mediaType.isAudio }
     }
     
     /// Returns whether all the resources in the collection are video clips.
     public var allAreVideo: Bool {
-        allSatisfy { $0.mediaType?.isVideo == true }
+        allSatisfy { $0.mediaType.isVideo }
     }
     
     /// Returns whether all the resources in the collection are HTML documents.
     public var allAreHTML: Bool {
-        allSatisfy { $0.mediaType?.isHTML == true }
+        allSatisfy { $0.mediaType.isHTML }
     }
     
     /// Returns whether all the resources in the collection are matching the given media type.
