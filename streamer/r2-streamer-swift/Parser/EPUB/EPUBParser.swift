@@ -81,9 +81,9 @@ final public class EPUBParser: PublicationParser {
             servicesBuilder: .init(
                 positions: EPUBPositionsService.makeFactory()
             ),
-            setupPublication: { publication in
+            setupPublication: { [self] publication in
                 publication.userProperties = userProperties
-                publication.userSettingsUIPreset = publication.contentLayout.userSettingsPreset
+                publication.userSettingsUIPreset = userSettingsPreset(for: publication.metadata)
             }
         )
     }
@@ -160,6 +160,62 @@ final public class EPUBParser: PublicationParser {
         addCollection(.pageList, role: "pageList")
         
         return collections
+    }
+    
+    private func userSettingsPreset(for metadata: Metadata) ->  [ReadiumCSSName: Bool] {
+        let isCJK: Bool = {
+            guard
+                metadata.languages.count == 1,
+                let language = metadata.languages.first?.split(separator: "-").first.map(String.init)?.lowercased()
+            else {
+                return false
+            }
+            return ["zh", "ja", "ko"].contains(language)
+        }()
+
+        switch metadata.effectiveReadingProgression {
+        case .rtl, .btt:
+            if isCJK {
+                // CJK vertical
+                return [
+                    .scroll: true,
+                    .columnCount: false,
+                    .textAlignment: false,
+                    .hyphens: false,
+                    .paraIndent: false,
+                    .wordSpacing: false,
+                    .letterSpacing: false
+                ]
+                
+            } else {
+                // RTL
+                return [
+                    .hyphens: false,
+                    .wordSpacing: false,
+                    .letterSpacing: false,
+                    .ligatures: true
+                ]
+            }
+            
+        case .ltr, .ttb, .auto:
+            if isCJK {
+                // CJK horizontal
+                return [
+                    .textAlignment: false,
+                    .hyphens: false,
+                    .paraIndent: false,
+                    .wordSpacing: false,
+                    .letterSpacing: false
+                ]
+                
+            } else {
+                // LTR
+                return [
+                    .hyphens: false,
+                    .ligatures: false
+                ]
+            }
+        }
     }
 
     /// Parse the mediaOverlays informations contained in the ressources then
