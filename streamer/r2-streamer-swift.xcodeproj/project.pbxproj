@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		035CE41B24F7E21F0062EE28 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 035CE41A24F7E21F0062EE28 /* CryptoSwift.framework */; };
 		03C3CC6A222DBD9E00A01731 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03C3CC69222DBD9E00A01731 /* R2Shared.framework */; };
+		3ED942BF0954B24A5F3F5D71 /* AudioLocatorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ED94D22A77852209E10020F /* AudioLocatorService.swift */; };
+		3ED94DC63C2F625454292E69 /* AudioLocatorServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ED949B2D13E096711C56F83 /* AudioLocatorServiceTests.swift */; };
 		59501E201E2FB2AD00D1B4BF /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E1F1E2FB2AD00D1B4BF /* libz.tbd */; };
 		CA130D44229D4245000A627C /* Seekable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D00229D4245000A627C /* Seekable.swift */; };
 		CA130D45229D4245000A627C /* FileInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D01229D4245000A627C /* FileInputStream.swift */; };
@@ -89,6 +91,8 @@
 /* Begin PBXFileReference section */
 		035CE41A24F7E21F0062EE28 /* CryptoSwift.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CryptoSwift.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03C3CC69222DBD9E00A01731 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3ED949B2D13E096711C56F83 /* AudioLocatorServiceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioLocatorServiceTests.swift; sourceTree = "<group>"; };
+		3ED94D22A77852209E10020F /* AudioLocatorService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioLocatorService.swift; sourceTree = "<group>"; };
 		59501DCD1E2FB0D700D1B4BF /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		59501E1F1E2FB2AD00D1B4BF /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		CA130D00229D4245000A627C /* Seekable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Seekable.swift; sourceTree = "<group>"; };
@@ -182,6 +186,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3ED943760DD2B40448E376B4 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				3ED949B2D13E096711C56F83 /* AudioLocatorServiceTests.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		3ED94700BCEC05F7A7853B20 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				3ED94D22A77852209E10020F /* AudioLocatorService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 		59501DC31E2FB0D700D1B4BF = {
 			isa = PBXGroup;
 			children = (
@@ -486,6 +506,7 @@
 			isa = PBXGroup;
 			children = (
 				CAD0CD1F24BF171100680131 /* AudioParser.swift */,
+				3ED94700BCEC05F7A7853B20 /* Services */,
 			);
 			path = Audio;
 			sourceTree = "<group>";
@@ -494,6 +515,7 @@
 			isa = PBXGroup;
 			children = (
 				CAD0CD2224BF17A300680131 /* AudioParserTests.swift */,
+				3ED943760DD2B40448E376B4 /* Services */,
 			);
 			path = Audio;
 			sourceTree = "<group>";
@@ -663,6 +685,7 @@
 				CA6CF2152528E5D80025BBB2 /* Parser+Deprecated.swift in Sources */,
 				CA130D6D229D4245000A627C /* ZIPArchive.swift in Sources */,
 				CA130D67229D4245000A627C /* SMILParser.swift in Sources */,
+				3ED942BF0954B24A5F3F5D71 /* AudioLocatorService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -687,6 +710,7 @@
 				CACDE61224853035006FEB1B /* EPUBDeobfuscatorTests.swift in Sources */,
 				CA130F19229E7CC1000A627C /* PublicationServerTests.swift in Sources */,
 				CAD0CD2324BF17A300680131 /* AudioParserTests.swift in Sources */,
+				3ED94DC63C2F625454292E69 /* AudioLocatorServiceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
