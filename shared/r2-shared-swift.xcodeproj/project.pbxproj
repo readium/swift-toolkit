@@ -95,6 +95,8 @@
 		CA62B37C24E02F7C0046CDCF /* TransformingResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA62B37B24E02F7C0046CDCF /* TransformingResource.swift */; };
 		CA62B37E24E02FA30046CDCF /* LazyResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA62B37D24E02FA30046CDCF /* LazyResource.swift */; };
 		CA62B38024E030C00046CDCF /* CachingResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA62B37F24E030C00046CDCF /* CachingResource.swift */; };
+		CA6511742588BC0E007C1C9E /* LocatorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6511722588BC0E007C1C9E /* LocatorService.swift */; };
+		CA6511752588BC0E007C1C9E /* DefaultLocatorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6511732588BC0E007C1C9E /* DefaultLocatorService.swift */; };
 		CA68BDCE24407750009A6BAA /* StringEncoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA68BDCD24407750009A6BAA /* StringEncoding.swift */; };
 		CA6D42672404370C002FBED4 /* OPDSHolds.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D42662404370C002FBED4 /* OPDSHolds.swift */; };
 		CA6D42692404381B002FBED4 /* OPDSHoldsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D42682404381B002FBED4 /* OPDSHoldsTests.swift */; };
@@ -290,6 +292,8 @@
 		CA62B37B24E02F7C0046CDCF /* TransformingResource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformingResource.swift; sourceTree = "<group>"; };
 		CA62B37D24E02FA30046CDCF /* LazyResource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LazyResource.swift; sourceTree = "<group>"; };
 		CA62B37F24E030C00046CDCF /* CachingResource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachingResource.swift; sourceTree = "<group>"; };
+		CA6511722588BC0E007C1C9E /* LocatorService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocatorService.swift; sourceTree = "<group>"; };
+		CA6511732588BC0E007C1C9E /* DefaultLocatorService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DefaultLocatorService.swift; sourceTree = "<group>"; };
 		CA68BDCD24407750009A6BAA /* StringEncoding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringEncoding.swift; sourceTree = "<group>"; };
 		CA6D42662404370C002FBED4 /* OPDSHolds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSHolds.swift; sourceTree = "<group>"; };
 		CA6D42682404381B002FBED4 /* OPDSHoldsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSHoldsTests.swift; sourceTree = "<group>"; };
@@ -726,6 +730,15 @@
 			path = Resource;
 			sourceTree = "<group>";
 		};
+		CA6511712588BC0E007C1C9E /* Locator */ = {
+			isa = PBXGroup;
+			children = (
+				CA6511722588BC0E007C1C9E /* LocatorService.swift */,
+				CA6511732588BC0E007C1C9E /* DefaultLocatorService.swift */,
+			);
+			path = Locator;
+			sourceTree = "<group>";
+		};
 		CA68BDCC24407745009A6BAA /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
@@ -801,6 +814,7 @@
 				CA9FC07524825A880020B9CC /* PublicationServicesBuilder.swift */,
 				CA2B6B5724C0A868007AF537 /* Content Protection */,
 				CACDE5FA24851620006FEB1B /* Cover */,
+				CA6511712588BC0E007C1C9E /* Locator */,
 				CACDE5F92485161A006FEB1B /* Positions */,
 			);
 			path = Services;
@@ -1225,6 +1239,7 @@
 				CAC34F0C221C61BD002C452E /* DRM+Deprecated.swift in Sources */,
 				CA62B38024E030C00046CDCF /* CachingResource.swift in Sources */,
 				CA3386E42404FD0300FDCBBA /* Properties+Encryption.swift in Sources */,
+				CA6511742588BC0E007C1C9E /* LocatorService.swift in Sources */,
 				CA9FC06F24824C3B0020B9CC /* Manifest.swift in Sources */,
 				CA8C841A24689E4000CE97A4 /* RoutingFetcher.swift in Sources */,
 				CA5F8EE92404035D00926120 /* ReadingProgression.swift in Sources */,
@@ -1262,6 +1277,7 @@
 				3ED94ADFB10A3028249246DB /* MediaTypeSnifferContent.swift in Sources */,
 				3ED947E4B657163DB35B4874 /* MediaType.swift in Sources */,
 				3ED94588C74689AF63D0B13E /* MediaType+Deprecated.swift in Sources */,
+				CA6511752588BC0E007C1C9E /* DefaultLocatorService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

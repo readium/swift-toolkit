@@ -102,12 +102,29 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
     }
     
     /// Makes a copy of the `Locator`, after modifying some of its components.
-    public func copy(title: String?? = nil, locations transformLocations: ((inout Locations) -> Void)? = nil, text transformText: ((inout Text) -> Void)? = nil) -> Locator {
+    public func copy(href: String? = nil, type: String? = nil, title: String?? = nil, locations transformLocations: ((inout Locations) -> Void)? = nil, text transformText: ((inout Text) -> Void)? = nil) -> Locator {
         var locations = self.locations
         var text = self.text
         transformLocations?(&locations)
         transformText?(&text)
-        return Locator(href: href, type: type, title: title ?? self.title, locations: locations, text: text)
+        return Locator(
+            href: href ?? self.href,
+            type: type ?? self.type,
+            title: title ?? self.title,
+            locations: locations,
+            text: text
+        )
+    }
+    
+    /// Makes a copy of the `Locator`, after modifying some of its components.
+    public func copy(href: String? = nil, type: String? = nil, title: String?? = nil, locations: Locations? = nil, text: Text? = nil) -> Locator {
+        Locator(
+            href: href ?? self.href,
+            type: type ?? self.type,
+            title: title ?? self.title,
+            locations: locations ?? self.locations,
+            text: text ?? self.text
+        )
     }
 
     /// One or more alternative expressions of the location.

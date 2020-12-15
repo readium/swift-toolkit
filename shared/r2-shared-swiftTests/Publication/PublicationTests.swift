@@ -232,9 +232,9 @@ class PublicationTests: XCTestCase {
                     return FailureResource(link: $0, error: .notFound)
                 }
             },
-            services: .init {
+            services: PublicationServicesBuilder(setup: {
                 $0.set(TestService.self) { _ in TestService(link: link) }
-            }
+            })
         )
         
         XCTAssertEqual(publication.get(link).readAsString().getOrNil(), "world")
