@@ -179,7 +179,7 @@ extension License: LCPLicense {
         }
         
         func callHTML(_ url: URL) throws -> Deferred<Data, Error> {
-            guard let statusURL = try? self.license.url(for: .status) else {
+            guard let statusURL = try? self.license.url(for: .status, preferredType: .lcpStatusDocument) else {
                 throw LCPError.licenseInteractionNotAvailable
             }
             
@@ -226,7 +226,7 @@ extension License: LCPLicense {
     
     func returnPublication(completion: @escaping (LCPError?) -> Void) {
         guard let status = self.documents.status,
-            let url = try? status.url(for: .return, with: device.asQueryParameters) else
+            let url = try? status.url(for: .return, preferredType: .lcpStatusDocument, with: device.asQueryParameters) else
         {
             completion(LCPError.licenseInteractionNotAvailable)
             return

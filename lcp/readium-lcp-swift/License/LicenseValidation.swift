@@ -308,7 +308,7 @@ extension LicenseValidation {
     }
     
     private func fetchStatus(of license: LicenseDocument) throws {
-        let url = try license.url(for: .status)
+        let url = try license.url(for: .status, preferredType: .lcpStatusDocument)
         // Short timeout to avoid blocking the License, since the LSD is optional.
         network.fetch(url, timeout: 5)
             .tryMap { status, data -> Event in
@@ -327,7 +327,7 @@ extension LicenseValidation {
     }
     
     private func fetchLicense(from status: StatusDocument) throws {
-        let url = try status.url(for: .license)
+        let url = try status.url(for: .license, preferredType: .lcpLicenseDocument)
         // Short timeout to avoid blocking the License, since it can be updated next time.
         network.fetch(url, timeout: 5)
             .tryMap { status, data -> Event in
