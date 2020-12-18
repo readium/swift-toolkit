@@ -312,7 +312,7 @@ extension LicenseValidation {
         // Short timeout to avoid blocking the License, since the LSD is optional.
         network.fetch(url, timeout: 5)
             .tryMap { status, data -> Event in
-                guard status == 200 else {
+                guard 100..<400 ~= status else {
                     throw LCPError.network(nil)
                 }
                 
@@ -331,7 +331,7 @@ extension LicenseValidation {
         // Short timeout to avoid blocking the License, since it can be updated next time.
         network.fetch(url, timeout: 5)
             .tryMap { status, data -> Event in
-                guard status == 200 else {
+                guard 100..<400 ~= status else {
                     throw LCPError.network(nil)
                 }
                 return .retrievedLicenseData(data)

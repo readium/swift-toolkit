@@ -62,7 +62,7 @@ final class DeviceService {
             
             return self.network.fetch(url, method: .post)
                 .tryMap { status, data in
-                    guard status == 200 else {
+                    guard 100..<400 ~= status else {
                         return nil
                     }
                     

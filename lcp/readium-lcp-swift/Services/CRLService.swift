@@ -54,7 +54,7 @@ final class CRLService {
         
         return network.fetch(url, timeout: timeout)
             .tryMap { status, data in
-                guard status == 200 else {
+                guard 100..<400 ~= status else {
                     throw LCPError.crlFetching
                 }
                 return "-----BEGIN X509 CRL-----\(data.base64EncodedString())-----END X509 CRL-----";

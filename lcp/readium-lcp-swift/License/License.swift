@@ -165,7 +165,7 @@ extension License: LCPLicense {
             return self.network.fetch(url, method: .put)
                 .tryMap { status, data -> Data in
                     switch status {
-                    case 200:
+                    case 100..<400:
                         break
                     case 400:
                         throw RenewError.renewFailed
@@ -188,7 +188,7 @@ extension License: LCPLicense {
                     // We fetch the Status Document again after the HTML interaction is done, in case it changed the License.
                     self.network.fetch(statusURL)
                         .tryMap { status, data in
-                            guard status == 200 else {
+                            guard 100..<400 ~= status else {
                                 throw LCPError.network(nil)
                             }
                             return data
@@ -235,7 +235,7 @@ extension License: LCPLicense {
         network.fetch(url, method: .put)
             .tryMap { status, data in
                 switch status {
-                case 200:
+                case 100..<400:
                     break
                 case 400:
                     throw ReturnError.returnFailed
