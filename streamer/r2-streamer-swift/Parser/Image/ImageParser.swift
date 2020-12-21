@@ -19,9 +19,9 @@ import R2Shared
 public final class ImageParser: PublicationParser {
     
     public init() {}
-
-    public func parse(file: File, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
-        guard accepts(file, fetcher) else {
+    
+    public func parse(asset: PublicationAsset, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
+        guard accepts(asset, fetcher) else {
             return nil
         }
         
@@ -41,7 +41,7 @@ public final class ImageParser: PublicationParser {
             format: .cbz,
             manifest: Manifest(
                 metadata: Metadata(
-                    title: fetcher.guessTitle(ignoring: ignores) ?? file.name
+                    title: fetcher.guessTitle(ignoring: ignores) ?? asset.name
                 ),
                 readingOrder: readingOrder
             ),
@@ -52,8 +52,8 @@ public final class ImageParser: PublicationParser {
         )
     }
     
-    private func accepts(_ file: File, _ fetcher: Fetcher) -> Bool {
-        if file.format == .cbz {
+    private func accepts(_ asset: PublicationAsset, _ fetcher: Fetcher) -> Bool {
+        if asset.mediaType() == .cbz {
             return true
         }
         

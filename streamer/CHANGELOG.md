@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+* `Streamer` is now expecting a `PublicationAsset` instead of a `File`. You can create custom implementations of
+`PublicationAsset` to open a publication from different medium, such as a file, a remote URL, in-memory bytes, etc.
+  * `FileAsset` can be used to replace `File` and provides the same behavior.
+  
 
 ## [2.0.0-alpha.2]
 

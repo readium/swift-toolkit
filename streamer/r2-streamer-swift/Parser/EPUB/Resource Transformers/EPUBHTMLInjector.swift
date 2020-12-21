@@ -34,12 +34,7 @@ final class EPUBHTMLInjector {
         }
 
         return resource.mapAsString { [metadata] content in
-            guard let document = try? XMLDocument(string: content) else {
-                return content
-            }
-
             var content = content
-            let language = metadata.languages.first ?? document.root?.attr("lang")
 
             // User properties injection
             if let htmlStart = content.endIndex(of: "<html") {

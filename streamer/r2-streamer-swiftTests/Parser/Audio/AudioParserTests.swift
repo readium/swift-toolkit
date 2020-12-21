@@ -18,40 +18,40 @@ class AudioParserTests: XCTestCase {
     let fixtures = Fixtures()
     var parser: AudioParser!
     
-    var zabFile: File!
+    var zabAsset: FileAsset!
     var zabFetcher: Fetcher!
     
-    var mp3File: File!
+    var mp3Asset: FileAsset!
     var mp3Fetcher: Fetcher!
     
     override func setUpWithError() throws {
         parser = AudioParser()
         
-        zabFile = File(url: fixtures.url(for: "audiotest.zab"))
-        zabFetcher = try ArchiveFetcher(url: zabFile.url)
+        zabAsset = FileAsset(url: fixtures.url(for: "audiotest.zab"))
+        zabFetcher = try ArchiveFetcher(url: zabAsset.url)
         
-        mp3File = File(url: fixtures.url(for: "audiotest/Test Audiobook/Latin.mp3"))
-        mp3Fetcher = FileFetcher(href: "/Latin.mp3", path: mp3File.url)
+        mp3Asset = FileAsset(url: fixtures.url(for: "audiotest/Test Audiobook/Latin.mp3"))
+        mp3Fetcher = FileFetcher(href: "/Latin.mp3", path: mp3Asset.url)
     }
     
     func testRefusesNonAudioBased() throws {
-        let file = File(url: fixtures.url(for: "cc-shared-culture.epub"))
-        let fetcher = try ArchiveFetcher(url: file.url)
-        XCTAssertNil(try parser.parse(file: file, fetcher: fetcher, warnings: nil))
+        let asset = FileAsset(url: fixtures.url(for: "cc-shared-culture.epub"))
+        let fetcher = try ArchiveFetcher(url: asset.url)
+        XCTAssertNil(try parser.parse(asset: asset, fetcher: fetcher, warnings: nil))
     }
     
     func testAcceptsZAB() {
-        XCTAssertNotNil(try parser.parse(file: zabFile, fetcher: zabFetcher, warnings: nil))
+        XCTAssertNotNil(try parser.parse(asset: zabAsset, fetcher: zabFetcher, warnings: nil))
     }
     
     func testAcceptsMP3() {
-        XCTAssertNotNil(try parser.parse(file: mp3File, fetcher: mp3Fetcher, warnings: nil))
+        XCTAssertNotNil(try parser.parse(asset: mp3Asset, fetcher: mp3Fetcher, warnings: nil))
     }
     
     /// The reading order is sorted alphabetically, ignores Thumbs.db, hidden files and non-audio
     /// files.
     func testReadingOrderIsSortedAlphabetically() throws {
-        let publication = try XCTUnwrap(parser.parse(file: zabFile, fetcher: zabFetcher, warnings: nil)?.build())
+        let publication = try XCTUnwrap(parser.parse(asset: zabAsset, fetcher: zabFetcher, warnings: nil)?.build())
         
         XCTAssertEqual(publication.readingOrder, [
             Link(href: "/Test Audiobook/gtr-jazz.mp3", type: "audio/mpeg", properties: Properties(["compressedLength": 150237])),
@@ -61,17 +61,17 @@ class AudioParserTests: XCTestCase {
     }
     
     func testHasNoCover() throws {
-        let publication = try XCTUnwrap(parser.parse(file: zabFile, fetcher: zabFetcher, warnings: nil)?.build())
+        let publication = try XCTUnwrap(parser.parse(asset: zabAsset, fetcher: zabFetcher, warnings: nil)?.build())
         XCTAssertNil(publication.link(withRel: .cover))
     }
     
     func testComputeTitleFromArchiveRootDirectory() throws {
-        let publication = try XCTUnwrap(parser.parse(file: zabFile, fetcher: zabFetcher, warnings: nil)?.build())
+        let publication = try XCTUnwrap(parser.parse(asset: zabAsset, fetcher: zabFetcher, warnings: nil)?.build())
         XCTAssertEqual(publication.metadata.title, "Test Audiobook")
     }
     
     func testHasNoPositions() throws {
-        let publication = try XCTUnwrap(parser.parse(file: zabFile, fetcher: zabFetcher, warnings: nil)?.build())
+        let publication = try XCTUnwrap(parser.parse(asset: zabAsset, fetcher: zabFetcher, warnings: nil)?.build())
         
         XCTAssertEqual(publication.positions.count, 0)
     }

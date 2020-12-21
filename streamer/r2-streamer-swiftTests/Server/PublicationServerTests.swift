@@ -32,7 +32,7 @@ class PublicationServerTests: XCTestCase, Loggable {
     private func testPublication(at url: URL) {
         let expect = expectation(description: "Publication tested")
         
-        streamer.open(file: File(url: url), allowUserInteraction: false) { [self] result in
+        streamer.open(asset: FileAsset(url: url), allowUserInteraction: false) { [self] result in
             guard case .success(let publication) = result else {
                 XCTFail("Failed to parse \(url)")
                 return

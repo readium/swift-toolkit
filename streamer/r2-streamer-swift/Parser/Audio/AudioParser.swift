@@ -20,8 +20,8 @@ public final class AudioParser: PublicationParser {
     
     public init() {}
     
-    public func parse(file: File, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
-        guard accepts(file, fetcher) else {
+    public func parse(asset: PublicationAsset, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
+        guard accepts(asset, fetcher) else {
             return nil
         }
         
@@ -38,7 +38,7 @@ public final class AudioParser: PublicationParser {
             format: .cbz,
             manifest: Manifest(
                 metadata: Metadata(
-                    title: fetcher.guessTitle(ignoring: ignores) ?? file.name
+                    title: fetcher.guessTitle(ignoring: ignores) ?? asset.name
                 ),
                 readingOrder: readingOrder
             ),
@@ -49,8 +49,8 @@ public final class AudioParser: PublicationParser {
         )
     }
     
-    private func accepts(_ file: File, _ fetcher: Fetcher) -> Bool {
-        if file.format == .zab {
+    private func accepts(_ asset: PublicationAsset, _ fetcher: Fetcher) -> Bool {
+        if asset.mediaType() == .zab {
             return true
         }
         

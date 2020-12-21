@@ -18,45 +18,45 @@ class ReadiumWebPubParserTests: XCTestCase {
     let fixtures = Fixtures()
     var parser: ReadiumWebPubParser!
     
-    var manifestFile: File!
+    var manifestAsset: FileAsset!
     var manifestFetcher: Fetcher!
     
-    var packageFile: File!
+    var packageAsset: FileAsset!
     var packageFetcher: Fetcher!
     
-    var lcpdfFile: File!
+    var lcpdfAsset: FileAsset!
     var lcpdfFetcher: Fetcher!
     
     override func setUpWithError() throws {
         parser = ReadiumWebPubParser()
 
-        manifestFile = File(url: fixtures.url(for: "flatland.json"))
-        manifestFetcher = FileFetcher(href: "/flatland.json", path: manifestFile.url)
+        manifestAsset = FileAsset(url: fixtures.url(for: "flatland.json"))
+        manifestFetcher = FileFetcher(href: "/flatland.json", path: manifestAsset.url)
         
-        packageFile = File(url: fixtures.url(for: "audiotest.lcpa"))
-        packageFetcher = try ArchiveFetcher(url: packageFile.url)
+        packageAsset = FileAsset(url: fixtures.url(for: "audiotest.lcpa"))
+        packageFetcher = try ArchiveFetcher(url: packageAsset.url)
         
-        lcpdfFile = File(url: fixtures.url(for: "daisy.lcpdf"))
-        lcpdfFetcher = try ArchiveFetcher(url: lcpdfFile.url)
+        lcpdfAsset = FileAsset(url: fixtures.url(for: "daisy.lcpdf"))
+        lcpdfFetcher = try ArchiveFetcher(url: lcpdfAsset.url)
     }
     
     func testRefusesNonReadiumWebPub() throws {
-        let file = File(url: fixtures.url(for: "cc-shared-culture.epub"))
-        let fetcher = try ArchiveFetcher(url: file.url)
-        XCTAssertNil(try parser.parse(file: file, fetcher: fetcher, warnings: nil))
+        let asset = FileAsset(url: fixtures.url(for: "cc-shared-culture.epub"))
+        let fetcher = try ArchiveFetcher(url: asset.url)
+        XCTAssertNil(try parser.parse(asset: asset, fetcher: fetcher, warnings: nil))
     }
     
     func testAcceptsManifest() {
-        XCTAssertNotNil(try parser.parse(file: manifestFile, fetcher: manifestFetcher, warnings: nil))
+        XCTAssertNotNil(try parser.parse(asset: manifestAsset, fetcher: manifestFetcher, warnings: nil))
     }
     
     func testAcceptsPackage() {
-        XCTAssertNotNil(try parser.parse(file: packageFile, fetcher: packageFetcher, warnings: nil))
+        XCTAssertNotNil(try parser.parse(asset: packageAsset, fetcher: packageFetcher, warnings: nil))
     }
     
     /// The `Link`s' hrefs are normalized to the `self` link for a manifest.
     func testHrefsAreNormalizedToSelfForManifests() throws {
-        let publication = try XCTUnwrap(try parser.parse(file: manifestFile, fetcher: manifestFetcher, warnings: nil)?.build())
+        let publication = try XCTUnwrap(try parser.parse(asset: manifestAsset, fetcher: manifestFetcher, warnings: nil)?.build())
 
         XCTAssertEqual(
             publication.readingOrder.map { $0.href },
@@ -70,7 +70,7 @@ class ReadiumWebPubParserTests: XCTestCase {
     
     /// The `Link`s' hrefs are normalized to `/` for a package.
     func testHrefsAreNormalizedToRootForPackages() throws {
-        let publication = try XCTUnwrap(parser.parse(file: packageFile, fetcher: packageFetcher, warnings: nil)?.build())
+        let publication = try XCTUnwrap(parser.parse(asset: packageAsset, fetcher: packageFetcher, warnings: nil)?.build())
 
         XCTAssertEqual(
             publication.readingOrder.map { $0.href },

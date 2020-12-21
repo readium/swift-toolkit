@@ -36,7 +36,7 @@ class PublicationParsingTests: XCTestCase, Loggable {
     private func parse(url: URL) {
         let expect = expectation(description: "Publication parsed")
     
-        streamer.open(file: File(url: url), allowUserInteraction: false) { result in
+        streamer.open(asset: FileAsset(url: url), allowUserInteraction: false) { result in
             switch result {
             case .success:
                 expect.fulfill()

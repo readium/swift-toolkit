@@ -18,40 +18,40 @@ class ImageParserTests: XCTestCase {
     let fixtures = Fixtures()
     var parser: ImageParser!
     
-    var cbzFile: File!
+    var cbzAsset: FileAsset!
     var cbzFetcher: Fetcher!
     
-    var jpgFile: File!
+    var jpgAsset: FileAsset!
     var jpgFetcher: Fetcher!
 
     override func setUpWithError() throws {
         parser = ImageParser()
         
-        cbzFile = File(url: fixtures.url(for: "futuristic_tales.cbz"))
-        cbzFetcher = try ArchiveFetcher(url: cbzFile.url)
+        cbzAsset = FileAsset(url: fixtures.url(for: "futuristic_tales.cbz"))
+        cbzFetcher = try ArchiveFetcher(url: cbzAsset.url)
         
-        jpgFile = File(url: fixtures.url(for: "futuristic_tales/Cory Doctorow's Futuristic Tales of the Here and Now/a-fc.jpg"))
-        jpgFetcher = FileFetcher(href: "/a-fc.jpg", path: jpgFile.url)
+        jpgAsset = FileAsset(url: fixtures.url(for: "futuristic_tales/Cory Doctorow's Futuristic Tales of the Here and Now/a-fc.jpg"))
+        jpgFetcher = FileFetcher(href: "/a-fc.jpg", path: jpgAsset.url)
     }
     
     func testRefusesNonBitmapBased() throws {
-        let file = File(url: fixtures.url(for: "cc-shared-culture.epub"))
-        let fetcher = try ArchiveFetcher(url: file.url)
-        XCTAssertNil(try parser.parse(file: file, fetcher: fetcher, warnings: nil))
+        let asset = FileAsset(url: fixtures.url(for: "cc-shared-culture.epub"))
+        let fetcher = try ArchiveFetcher(url: asset.url)
+        XCTAssertNil(try parser.parse(asset: asset, fetcher: fetcher, warnings: nil))
     }
     
     func testAcceptsCBZ() {
-        XCTAssertNotNil(try parser.parse(file: cbzFile, fetcher: cbzFetcher, warnings: nil))
+        XCTAssertNotNil(try parser.parse(asset: cbzAsset, fetcher: cbzFetcher, warnings: nil))
     }
     
     func testAcceptsJPG() {
-        XCTAssertNotNil(try parser.parse(file: jpgFile, fetcher: jpgFetcher, warnings: nil))
+        XCTAssertNotNil(try parser.parse(asset: jpgAsset, fetcher: jpgFetcher, warnings: nil))
     }
 
     /// The reading order is sorted alphabetically, ignores Thumbs.db, hidden files and non-bitmap
     /// files.
     func testReadingOrderIsSortedAlphabetically() throws {
-        let publication = try XCTUnwrap(parser.parse(file: cbzFile, fetcher: cbzFetcher, warnings: nil)?.build())
+        let publication = try XCTUnwrap(parser.parse(asset: cbzAsset, fetcher: cbzFetcher, warnings: nil)?.build())
         
         XCTAssertEqual(publication.readingOrder, [
             Link(href: "/Cory Doctorow's Futuristic Tales of the Here and Now/a-fc.jpg", type: "image/jpeg", rels: [.cover], properties: Properties(["compressedLength": 145844])),
@@ -63,18 +63,18 @@ class ImageParserTests: XCTestCase {
     }
     
     func testFirstReadingOrderItemIsCover() throws {
-        let publication = try XCTUnwrap(parser.parse(file: cbzFile, fetcher: cbzFetcher, warnings: nil)?.build())
+        let publication = try XCTUnwrap(parser.parse(asset: cbzAsset, fetcher: cbzFetcher, warnings: nil)?.build())
         let cover = try XCTUnwrap(publication.link(withRel: .cover))
         XCTAssertEqual(publication.readingOrder.first, cover)
     }
     
     func testComputeTitleFromArchiveRootDirectory() throws {
-        let publication = try XCTUnwrap(parser.parse(file: cbzFile, fetcher: cbzFetcher, warnings: nil)?.build())
+        let publication = try XCTUnwrap(parser.parse(asset: cbzAsset, fetcher: cbzFetcher, warnings: nil)?.build())
         XCTAssertEqual(publication.metadata.title, "Cory Doctorow's Futuristic Tales of the Here and Now")
     }
     
     func testPositions() throws {
-        let publication = try XCTUnwrap(parser.parse(file: cbzFile, fetcher: cbzFetcher, warnings: nil)?.build())
+        let publication = try XCTUnwrap(parser.parse(asset: cbzAsset, fetcher: cbzFetcher, warnings: nil)?.build())
         
         XCTAssertEqual(publication.positions, [
             Locator(
