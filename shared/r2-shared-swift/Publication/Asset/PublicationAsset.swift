@@ -12,10 +12,10 @@ public protocol PublicationAsset {
     /// Name of the asset, e.g. a filename.
     var name: String { get }
     
-    /// Media type of the asset, when known.
+    /// Resolves the media type of the asset.
     ///
     /// *Warning*: This should not be called from the UI thread.
-    var format: Format? { get }
+    func mediaType() -> MediaType?
     
     /// Creates a fetcher used to access the asset's content.
     func makeFetcher(using dependencies: PublicationAssetDependencies, credentials: String?, completion: @escaping (CancellableResult<Fetcher, Publication.OpeningError>) -> Void) -> Void
