@@ -12,7 +12,7 @@
 import Foundation
 import R2Shared
 
-final class LCPContentProtection: ContentProtection {
+final class LCPContentProtection: ContentProtection, Loggable {
     
     private let service: LCPService
     private let authentication: LCPAuthenticating
@@ -23,13 +23,19 @@ final class LCPContentProtection: ContentProtection {
     }
     
     func open(
-        file: File,
+        asset: PublicationAsset,
         fetcher: Fetcher,
         credentials: String?,
         allowUserInteraction: Bool,
         sender: Any?,
-        completion: @escaping (CancellableResult<ProtectedFile?, Publication.OpeningError>) -> Void)
-    {
+        completion: @escaping (CancellableResult<ProtectedAsset?, Publication.OpeningError>) -> Void
+    ) {
+        guard let file = asset as? FileAsset else {
+            log(.error, "Only `FileAsset` is supported with the `LCPContentProtection`. Make sure you are trying to open a package from the file system.")
+            completion(.failure(.unsupportedFormat))
+            return
+        }
+        
         let authentication = credentials.map { LCPPassphraseAuthentication($0, fallback: self.authentication) }
             ?? self.authentication
         
@@ -46,8 +52,8 @@ final class LCPContentProtection: ContentProtection {
             }
             
             let license = try? result.get()
-            let protectedFile = ProtectedFile(
-                file: file,
+            let protectedAsset = ProtectedAsset(
+                asset: asset,
                 fetcher: TransformingFetcher(
                     fetcher: fetcher,
                     transformer: LCPDecryptor(license: license).decrypt(resource:)
@@ -59,7 +65,7 @@ final class LCPContentProtection: ContentProtection {
                 }
             )
             
-            completion(.success(protectedFile))
+            completion(.success(protectedAsset))
         }
     }
 
