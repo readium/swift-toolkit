@@ -31,6 +31,8 @@ public final class CachingResource: Resource {
         self.resource = resource
     }
     
+    public lazy var file: URL? = resource.file
+    
     public lazy var link: Link = resource.link
     
     public lazy var length: ResourceResult<UInt64> = isDataLoaded

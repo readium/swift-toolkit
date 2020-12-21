@@ -185,6 +185,10 @@ public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
     }
     
     public func open(resource: Resource, password: String?) throws -> PDFDocument {
+        if let url = resource.file {
+            return try open(url: url, password: password)
+        }
+        
         var callbacks = CGDataProviderSequentialCallbacks(
             version: 0,
 

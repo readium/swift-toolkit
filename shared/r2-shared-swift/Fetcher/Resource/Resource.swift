@@ -14,6 +14,14 @@ import Foundation
 /// Acts as a proxy to an actual resource by handling read access.
 public protocol Resource {
 
+    /// Direct file to this resource, when available.
+    ///
+    /// This is meant to be used as an optimization for consumers which can't work efficiently
+    /// with streams. However, `file` is not guaranteed to be set, for example if the resource
+    /// underwent transformations or is being read from an archive. Therefore, consumers should
+    /// always fallback on regular stream reading, using `read` or `ResourceInputStream`.
+    var file: URL? { get }
+    
     /// The link from which the resource was retrieved.
     ///
     /// It might be modified by the `Resource` to include additional metadata, e.g. the

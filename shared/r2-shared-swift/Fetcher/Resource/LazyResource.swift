@@ -27,6 +27,8 @@ public final class LazyResource: Resource {
         self.factory = factory
     }
     
+    public var file: URL? { resource.file }
+    
     public var link: Link { resource.link }
     
     public var length: ResourceResult<UInt64> { resource.length }

@@ -115,17 +115,6 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
             text: text
         )
     }
-    
-    /// Makes a copy of the `Locator`, after modifying some of its components.
-    public func copy(href: String? = nil, type: String? = nil, title: String?? = nil, locations: Locations? = nil, text: Text? = nil) -> Locator {
-        Locator(
-            href: href ?? self.href,
-            type: type ?? self.type,
-            title: title ?? self.title,
-            locations: locations ?? self.locations,
-            text: text ?? self.text
-        )
-    }
 
     /// One or more alternative expressions of the location.
     /// https://github.com/readium/architecture/tree/master/models/locators#the-location-object

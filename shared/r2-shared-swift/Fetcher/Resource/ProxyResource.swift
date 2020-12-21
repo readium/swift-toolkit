@@ -23,6 +23,8 @@ open class ProxyResource: Resource {
         self.resource = resource
     }
     
+    open var file: URL? { resource.file }
+    
     open var link: Link { resource.link }
     
     open var length: ResourceResult<UInt64> { resource.length }

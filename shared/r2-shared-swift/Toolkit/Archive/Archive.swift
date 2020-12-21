@@ -62,6 +62,14 @@ public protocol Archive {
     /// Reads a range of the content of this entry.
     func read(at path: String, range: Range<UInt64>) -> Data?
     
+    /// Direct file to the entry at given `path`, when available.
+    /// For example when the archive is exploded on the file system.
+    ///
+    /// This is meant to be used as an optimization for consumers which can't work efficiently with
+    /// streams. However, the file is not guaranteed to be found, for example if the archive is a
+    /// ZIP. Therefore, consumers should always fallback on regular stream reading, using `read()`.
+    func file(at path: String) -> URL?
+    
     /// Closes the archive.
     func close()
 
@@ -72,6 +80,10 @@ public extension Archive {
     /// Creates an archive from a local file URL.
     init(url: URL) throws {
         try self.init(url: url, password: nil)
+    }
+    
+    func file(at path: String) -> URL? {
+        return nil
     }
     
 }
