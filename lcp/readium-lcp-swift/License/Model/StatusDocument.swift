@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import R2Shared
 
 /// Document that contains information about the history of a License Document, along with its current status and available interactions.
 /// https://github.com/readium/lcp-specs/blob/master/schema/status.schema.json
@@ -90,25 +91,32 @@ public struct StatusDocument {
     }
 
     /// Returns the first link containing the given rel.
-    public func link(for rel: Rel) -> Link? {
-        return links[rel.rawValue].first
+    public func link(for rel: Rel, type: MediaType? = nil) -> Link? {
+        links.firstWithRel(rel.rawValue, type: type)
     }
 
     /// Returns all the links containing the given rel.
-    public func links(for rel: Rel) -> [Link] {
-        return links[rel.rawValue]
+    public func links(for rel: Rel, type: MediaType? = nil) -> [Link] {
+        links.filterWithRel(rel.rawValue, type: type)
     }
 
     /// Gets and expands the URL for the given rel, if it exits.
+    ///
+    /// If a `preferredType` is given, the first link with both the `rel` and given type will be returned. If none
+    /// are found, the first link with the `rel` and an empty `type` will be returned.
+    ///
     /// - Throws: `LCPError.invalidLink` if the URL can't be built.
-    func url(for rel: Rel, with parameters: [String: LosslessStringConvertible] = [:]) throws -> URL {
-        guard let url = link(for: rel)?.url(with: parameters) else {
+    func url(for rel: Rel, preferredType: MediaType? = nil, with parameters: [String: LosslessStringConvertible] = [:]) throws -> URL {
+        let link = self.link(for: rel, type: preferredType)
+            ?? links.firstWithRelAndNoType(rel.rawValue)
+
+        guard let url = link?.url(with: parameters) else {
             throw ParsingError.url(rel: rel.rawValue)
         }
-        
+
         return url
     }
-    
+
     /// Returns all the events with the given type.
     public func events(for type: Event.EventType) -> [Event] {
         return events(for: type.rawValue)
