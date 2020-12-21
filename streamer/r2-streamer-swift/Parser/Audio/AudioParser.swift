@@ -50,7 +50,7 @@ public final class AudioParser: PublicationParser {
     }
     
     private func accepts(_ asset: PublicationAsset, _ fetcher: Fetcher) -> Bool {
-        if asset.format == .zab {
+        if asset.mediaType() == .zab {
             return true
         }
         

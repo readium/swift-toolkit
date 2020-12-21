@@ -53,7 +53,7 @@ public final class ImageParser: PublicationParser {
     }
     
     private func accepts(_ asset: PublicationAsset, _ fetcher: Fetcher) -> Bool {
-        if asset.format == .cbz {
+        if asset.mediaType() == .cbz {
             return true
         }
         

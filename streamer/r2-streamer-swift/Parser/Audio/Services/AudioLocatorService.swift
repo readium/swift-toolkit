@@ -33,7 +33,7 @@ final class AudioLocatorService: LocatorService {
         if let totalProgression = locator.locations.totalProgression, let target = locate(progression: totalProgression) {
             return target.copy(
                 title: locator.title,
-                text: locator.text
+                text: { $0 = locator.text }
             )
         }
         

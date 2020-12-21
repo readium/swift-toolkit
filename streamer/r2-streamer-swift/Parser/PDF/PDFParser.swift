@@ -39,7 +39,7 @@ public final class PDFParser: PublicationParser, Loggable {
     }
     
     public func parse(asset: PublicationAsset, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
-        guard asset.format == .pdf else {
+        guard asset.mediaType() == .pdf else {
             return nil
         }
        

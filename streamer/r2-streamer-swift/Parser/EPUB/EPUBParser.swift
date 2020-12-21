@@ -49,7 +49,7 @@ final public class EPUBParser: PublicationParser {
     public init() {}
     
     public func parse(asset: PublicationAsset, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
-        guard asset.format == .epub else {
+        guard asset.mediaType() == .epub else {
             return nil
         }
         

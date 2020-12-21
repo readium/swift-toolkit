@@ -426,6 +426,7 @@ private class MockFetcher: Fetcher {
     struct MockResource: Resource {
 
         let link: Link
+        let file: URL? = nil
         var length: ResourceResult<UInt64> { .success(_length) }
         
         private let _length: UInt64

@@ -32,7 +32,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
     }
     
     public func parse(asset: PublicationAsset, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
-        guard let mediaType = asset.format, mediaType.isReadiumWebPubProfile else {
+        guard let mediaType = asset.mediaType(), mediaType.isReadiumWebPubProfile else {
             return nil
         }
         
@@ -73,7 +73,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
             format: (mediaType.matches(.lcpProtectedPDF) ? .pdf : .webpub),
             manifest: manifest,
             fetcher: fetcher,
-            servicesBuilder: PublicationServicesBuilder {
+            servicesBuilder: PublicationServicesBuilder(setup:  {
                 switch mediaType {
                 case .lcpProtectedPDF:
                     $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory(pdfFactory: self.pdfFactory))
@@ -84,7 +84,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
                 default:
                     break
                 }
-            }
+            })
         )
     }
 
