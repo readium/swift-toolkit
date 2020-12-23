@@ -1,4 +1,4 @@
-github "readium/r2-shared-swift" "develop"
+github "readium/r2-shared-swift" == 2.0.0-beta.1
 github "stephencelis/SQLite.swift" == 0.12.2
 github "krzyzanowskim/CryptoSwift" == 1.3.2
 github "weichsel/ZIPFoundation" == 0.9.11

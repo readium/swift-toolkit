@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.0-beta.1]
+
+### Changed
+
+* Upgraded shared dependencies.
+
 
 ## [2.0.0-alpha.2]
 
@@ -45,3 +51,4 @@ All notable changes to this project will be documented in this file.
 [unreleased]: https://github.com/readium/r2-lcp-swift/compare/master...HEAD
 [2.0.0-alpha.1]: https://github.com/readium/r2-lcp-swift/compare/1.2.3...2.0.0-alpha.1
 [2.0.0-alpha.2]: https://github.com/readium/r2-lcp-swift/compare/2.0.0-alpha.1...2.0.0-alpha.2
+[2.0.0-beta.1]: https://github.com/readium/r2-lcp-swift/compare/2.0.0-alpha.2...2.0.0-beta.1
