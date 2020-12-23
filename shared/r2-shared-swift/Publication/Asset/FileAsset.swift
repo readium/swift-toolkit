@@ -45,15 +45,15 @@ public final class FileAsset: PublicationAsset, Loggable {
     }()
 
     public func makeFetcher(using dependencies: PublicationAssetDependencies, credentials: String?, completion: @escaping (CancellableResult<Fetcher, Publication.OpeningError>) -> Void) {
-        DispatchQueue.global(qos: .background).async { [self] in
-            guard (try? url.checkResourceIsReachable()) == true else {
+        DispatchQueue.global(qos: .background).async {
+            guard (try? self.url.checkResourceIsReachable()) == true else {
                 completion(.failure(.notFound))
                 return
             }
     
             do {
                 // Attempts to open the file as a ZIP or exploded directory.
-                let archive = try dependencies.archiveFactory.open(url: url, password: credentials)
+                let archive = try dependencies.archiveFactory.open(url: self.url, password: credentials)
                 completion(.success(ArchiveFetcher(archive: archive)))
         
             } catch ArchiveError.invalidPassword {
@@ -61,7 +61,7 @@ public final class FileAsset: PublicationAsset, Loggable {
         
             } catch {
                 // Falls back on serving the file as a single resource.
-                completion(.success(FileFetcher(href: "/\(name)", path: url)))
+                completion(.success(FileFetcher(href: "/\(self.name)", path: self.url)))
             }
         }
     }
