@@ -81,9 +81,9 @@ final public class EPUBParser: PublicationParser {
             servicesBuilder: .init(
                 positions: EPUBPositionsService.makeFactory()
             ),
-            setupPublication: { [self] publication in
+            setupPublication: { publication in
                 publication.userProperties = userProperties
-                publication.userSettingsUIPreset = userSettingsPreset(for: publication.metadata)
+                publication.userSettingsUIPreset = self.userSettingsPreset(for: publication.metadata)
             }
         )
     }
