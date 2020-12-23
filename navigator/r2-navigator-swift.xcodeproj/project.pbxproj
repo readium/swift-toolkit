@@ -9,8 +9,8 @@
 /* Begin PBXBuildFile section */
 		035CE41724F7E2090062EE28 /* SwiftSoup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 035CE41624F7E2090062EE28 /* SwiftSoup.framework */; };
 		03C3CC68222DBD8600A01731 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03C3CC67222DBD8600A01731 /* R2Shared.framework */; };
-		CA038E4A2521F34E00489729 /* WKWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA038E492521F34E00489729 /* WKWebView.swift */; };
 		CA038E322520DAF300489729 /* PDFDocumentHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA038E312520DAF300489729 /* PDFDocumentHolder.swift */; };
+		CA038E4A2521F34E00489729 /* WKWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA038E492521F34E00489729 /* WKWebView.swift */; };
 		CA0B3AC3222EE555006D9363 /* PDFNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */; };
 		CA1E4F4B240037E6009C4DE3 /* CompletionList.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA1E4F4A240037E6009C4DE3 /* CompletionList.swift */; };
 		CA26EF7E22803FE90011653E /* VisualNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA26EF7D22803FE90011653E /* VisualNavigator.swift */; };
@@ -43,8 +43,8 @@
 /* Begin PBXFileReference section */
 		035CE41624F7E2090062EE28 /* SwiftSoup.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SwiftSoup.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03C3CC67222DBD8600A01731 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		CA038E492521F34E00489729 /* WKWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WKWebView.swift; sourceTree = "<group>"; };
 		CA038E312520DAF300489729 /* PDFDocumentHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDocumentHolder.swift; sourceTree = "<group>"; };
+		CA038E492521F34E00489729 /* WKWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WKWebView.swift; sourceTree = "<group>"; };
 		CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFNavigatorViewController.swift; sourceTree = "<group>"; };
 		CA1E4F4A240037E6009C4DE3 /* CompletionList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletionList.swift; sourceTree = "<group>"; };
 		CA26EF7D22803FE90011653E /* VisualNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualNavigator.swift; sourceTree = "<group>"; };
@@ -259,7 +259,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0830;
-				LastUpgradeCheck = 1200;
+				LastUpgradeCheck = 1230;
 				ORGANIZATIONNAME = Readium;
 				TargetAttributes = {
 					F3E7D3C21F4D83B000DF166D = {
