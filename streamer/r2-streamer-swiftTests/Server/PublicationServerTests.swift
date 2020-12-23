@@ -32,7 +32,7 @@ class PublicationServerTests: XCTestCase, Loggable {
     private func testPublication(at url: URL) {
         let expect = expectation(description: "Publication tested")
         
-        streamer.open(asset: FileAsset(url: url), allowUserInteraction: false) { [self] result in
+        streamer.open(asset: FileAsset(url: url), allowUserInteraction: false) { result in
             guard case .success(let publication) = result else {
                 XCTFail("Failed to parse \(url)")
                 return
@@ -40,8 +40,8 @@ class PublicationServerTests: XCTestCase, Loggable {
     
             do {
                 let endpoint = UUID().uuidString
-                try publicationServer.add(publication, at: endpoint)
-                verifyManifestJson(atEndpoint: endpoint) { expect.fulfill() }
+                try self.publicationServer.add(publication, at: endpoint)
+                self.verifyManifestJson(atEndpoint: endpoint) { expect.fulfill() }
             } catch {
                 XCTFail("Failed to verify \(url)")
             }

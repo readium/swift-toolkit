@@ -114,7 +114,7 @@ public final class Streamer: Loggable {
     
     /// Creates the leaf fetcher which will be passed to the content protections and parsers.
     private func makeFetcher(for asset: PublicationAsset, allowUserInteraction: Bool, credentials: String?, sender: Any?) -> Deferred<Fetcher, Publication.OpeningError> {
-        deferred { [self] completion in
+        deferred { completion in
             asset.makeFetcher(using: .init(archiveFactory: self.archiveFactory), credentials: credentials, completion: completion)
         }
     }
