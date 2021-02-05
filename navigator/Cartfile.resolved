@@ -1,4 +1,4 @@
-github "cezheng/Fuzi" "3.1.2"
+github "cezheng/Fuzi" "3.1.3"
 github "dexman/Minizip" "1.4.0"
-github "readium/r2-shared-swift" "2.0.0-beta.1"
+github "readium/r2-shared-swift" "d910ba69290f2e49e5850c7392df1cbe6e93f98f"
 github "scinfu/SwiftSoup" "2.3.2"

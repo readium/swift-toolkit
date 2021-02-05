@@ -3,12 +3,10 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		035CE41724F7E2090062EE28 /* SwiftSoup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 035CE41624F7E2090062EE28 /* SwiftSoup.framework */; };
-		03C3CC68222DBD8600A01731 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03C3CC67222DBD8600A01731 /* R2Shared.framework */; };
 		CA038E322520DAF300489729 /* PDFDocumentHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA038E312520DAF300489729 /* PDFDocumentHolder.swift */; };
 		CA038E4A2521F34E00489729 /* WKWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA038E492521F34E00489729 /* WKWebView.swift */; };
 		CA0B3AC3222EE555006D9363 /* PDFNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */; };
@@ -16,6 +14,10 @@
 		CA26EF7E22803FE90011653E /* VisualNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA26EF7D22803FE90011653E /* VisualNavigator.swift */; };
 		CA479DC3226493570053445E /* UIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA479DC2226493570053445E /* UIView.swift */; };
 		CA479DC52264AEA20053445E /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA479DC42264AEA20053445E /* UIColor.swift */; };
+		CA4CF4DD25CDAC50005DD935 /* Fuzi.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4D925CDAC50005DD935 /* Fuzi.xcframework */; };
+		CA4CF4DE25CDAC50005DD935 /* Minizip.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4DA25CDAC50005DD935 /* Minizip.xcframework */; };
+		CA4CF4DF25CDAC50005DD935 /* SwiftSoup.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4DB25CDAC50005DD935 /* SwiftSoup.xcframework */; };
+		CA4CF4E025CDAC50005DD935 /* R2Shared.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4DC25CDAC50005DD935 /* R2Shared.xcframework */; };
 		CA90372122D8C94C00D4C86F /* fxl-spread-one.html in Resources */ = {isa = PBXBuildFile; fileRef = CA90371F22D8C94C00D4C86F /* fxl-spread-one.html */; };
 		CA90372222D8C94C00D4C86F /* fxl-spread-two.html in Resources */ = {isa = PBXBuildFile; fileRef = CA90372022D8C94C00D4C86F /* fxl-spread-two.html */; };
 		CA94292122BCF97700305CDB /* Static in Resources */ = {isa = PBXBuildFile; fileRef = CA94292022BCF97700305CDB /* Static */; };
@@ -50,6 +52,10 @@
 		CA26EF7D22803FE90011653E /* VisualNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualNavigator.swift; sourceTree = "<group>"; };
 		CA479DC2226493570053445E /* UIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIView.swift; sourceTree = "<group>"; };
 		CA479DC42264AEA20053445E /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColor.swift; sourceTree = "<group>"; };
+		CA4CF4D925CDAC50005DD935 /* Fuzi.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Fuzi.xcframework; path = Carthage/Build/Fuzi.xcframework; sourceTree = "<group>"; };
+		CA4CF4DA25CDAC50005DD935 /* Minizip.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Minizip.xcframework; path = Carthage/Build/Minizip.xcframework; sourceTree = "<group>"; };
+		CA4CF4DB25CDAC50005DD935 /* SwiftSoup.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SwiftSoup.xcframework; path = Carthage/Build/SwiftSoup.xcframework; sourceTree = "<group>"; };
+		CA4CF4DC25CDAC50005DD935 /* R2Shared.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = R2Shared.xcframework; path = Carthage/Build/R2Shared.xcframework; sourceTree = "<group>"; };
 		CA90371F22D8C94C00D4C86F /* fxl-spread-one.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "fxl-spread-one.html"; sourceTree = "<group>"; };
 		CA90372022D8C94C00D4C86F /* fxl-spread-two.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "fxl-spread-two.html"; sourceTree = "<group>"; };
 		CA94292022BCF97700305CDB /* Static */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Static; sourceTree = "<group>"; };
@@ -83,8 +89,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				03C3CC68222DBD8600A01731 /* R2Shared.framework in Frameworks */,
-				035CE41724F7E2090062EE28 /* SwiftSoup.framework in Frameworks */,
+				CA4CF4DD25CDAC50005DD935 /* Fuzi.xcframework in Frameworks */,
+				CA4CF4DE25CDAC50005DD935 /* Minizip.xcframework in Frameworks */,
+				CA4CF4DF25CDAC50005DD935 /* SwiftSoup.xcframework in Frameworks */,
+				CA4CF4E025CDAC50005DD935 /* R2Shared.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -214,6 +222,10 @@
 		F3E7D3E71F4DC40800DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CA4CF4D925CDAC50005DD935 /* Fuzi.xcframework */,
+				CA4CF4DA25CDAC50005DD935 /* Minizip.xcframework */,
+				CA4CF4DC25CDAC50005DD935 /* R2Shared.xcframework */,
+				CA4CF4DB25CDAC50005DD935 /* SwiftSoup.xcframework */,
 				035CE41624F7E2090062EE28 /* SwiftSoup.framework */,
 				03C3CC67222DBD8600A01731 /* R2Shared.framework */,
 			);
@@ -463,7 +475,8 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_NAME = "";
 				SDKROOT = iphoneos;
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
@@ -483,15 +496,15 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Carthage/Build/iOS",
-				);
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
 				INFOPLIST_FILE = "r2-navigator-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-navigator-swift";
 				PRODUCT_NAME = R2Navigator;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -513,15 +526,15 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Carthage/Build/iOS",
-				);
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
 				INFOPLIST_FILE = "r2-navigator-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-navigator-swift";
 				PRODUCT_NAME = R2Navigator;
 				PROVISIONING_PROFILE_SPECIFIER = "";

@@ -23,7 +23,7 @@ install R2Navigator with Carthage:
     github "readium/r2-navigator-swift" "develop"
     ```
 
- 3. Run `carthage update` and
+ 3. Run `carthage update --use-xcframeworks` and
     [add the appropriate framework][Carthage Usage].
 
 
@@ -31,35 +31,6 @@ install R2Navigator with Carthage:
 [Carthage Installation]: https://github.com/Carthage/Carthage#installing-carthage
 [Carthage Usage]: https://github.com/Carthage/Carthage#adding-frameworks-to-an-application
 
-
-### CocoaPods
-
-[CocoaPods][] is a dependency manager for Cocoa projects. To install
-R2Navigator with CocoaPods:
-
- 1. Make sure CocoaPods is [installed][CocoaPods Installation]. (R2Navigator
-    requires version 1.0.0 or greater.)
-
-    ```sh
-    # Using the default Ruby install will require you to use sudo when
-    # installing and updating gems.
-    [sudo] gem install cocoapods
-    ```
-
- 2. Update your Podfile to include the following:
-
-    ```ruby
-    use_frameworks!
-
-    target 'YourAppTargetName' do
-        pod 'R2Navigator', :git => 'https://github.com/readium/r2-navigator-swift.git', :branch => 'develop'
-    end
-    ```
-
- 3. Run `pod install --repo-update`.
-
-[CocoaPods]: https://cocoapods.org
-[CocoaPods Installation]: https://guides.cocoapods.org/using/getting-started.html#getting-started
 
 ##### Import
 
