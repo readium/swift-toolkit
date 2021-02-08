@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+* CocoaPods is not supported anymore.
+
+
 ## [2.0.0-beta.1]
 
 ### Fixed

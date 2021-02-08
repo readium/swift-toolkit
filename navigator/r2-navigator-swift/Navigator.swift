@@ -100,7 +100,7 @@ public extension NavigatorDelegate {
     
     func navigator(_ navigator: Navigator, presentExternalURL url: URL) {
         if UIApplication.shared.canOpenURL(url) {
-            UIApplication.shared.openURL(url)
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }
     }
     

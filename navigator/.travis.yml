@@ -1,5 +1,5 @@
 language: swift
-osx_image: xcode11
+osx_image: xcode12.2
 xcode_project: r2-navigator-swift.xcodeproj
 xcode_scheme: r2-navigator-swift
 xcode_destination: platform=iOS Simulator,OS=11.3,name=iPhone X
@@ -17,7 +17,7 @@ cache:
 before_install:
   - brew update
   - brew outdated carthage || brew upgrade carthage
-  - carthage bootstrap --verbose --no-use-binaries --platform iOS --cache-builds
+  - carthage bootstrap --verbose --no-use-binaries --use-xcframeworks --platform iOS --cache-builds
 
 script:
   - xcodebuild clean build -quiet
