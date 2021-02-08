@@ -3,12 +3,10 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		035CE41B24F7E21F0062EE28 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 035CE41A24F7E21F0062EE28 /* CryptoSwift.framework */; };
-		03C3CC6A222DBD9E00A01731 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03C3CC69222DBD9E00A01731 /* R2Shared.framework */; };
 		3ED942BF0954B24A5F3F5D71 /* AudioLocatorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ED94D22A77852209E10020F /* AudioLocatorService.swift */; };
 		3ED94DC63C2F625454292E69 /* AudioLocatorServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ED949B2D13E096711C56F83 /* AudioLocatorServiceTests.swift */; };
 		59501E201E2FB2AD00D1B4BF /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 59501E1F1E2FB2AD00D1B4BF /* libz.tbd */; };
@@ -51,6 +49,16 @@
 		CA2D155F24BEFA0F0034927C /* FetcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2D155E24BEFA0F0034927C /* FetcherTests.swift */; };
 		CA3387072406632100FDCBBA /* Asserts.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3387062406632100FDCBBA /* Asserts.swift */; };
 		CA3F3FA8248EB156005B8A0B /* Fetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3F3FA7248EB156005B8A0B /* Fetcher.swift */; };
+		CA4CF4F325CDAF9C005DD935 /* Minizip.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4EE25CDAF9C005DD935 /* Minizip.xcframework */; };
+		CA4CF4F425CDAF9C005DD935 /* R2Shared.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4EF25CDAF9C005DD935 /* R2Shared.xcframework */; };
+		CA4CF4F525CDAF9C005DD935 /* Fuzi.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4F025CDAF9C005DD935 /* Fuzi.xcframework */; };
+		CA4CF4F625CDAF9C005DD935 /* GCDWebServer.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4F125CDAF9C005DD935 /* GCDWebServer.xcframework */; };
+		CA4CF4F725CDAF9C005DD935 /* CryptoSwift.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4F225CDAF9C005DD935 /* CryptoSwift.xcframework */; };
+		CA4CF4FA25CDAFA2005DD935 /* CryptoSwift.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4F225CDAF9C005DD935 /* CryptoSwift.xcframework */; };
+		CA4CF4FB25CDAFA2005DD935 /* Fuzi.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4F025CDAF9C005DD935 /* Fuzi.xcframework */; };
+		CA4CF4FC25CDAFA2005DD935 /* GCDWebServer.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4F125CDAF9C005DD935 /* GCDWebServer.xcframework */; };
+		CA4CF4FD25CDAFA2005DD935 /* Minizip.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4EE25CDAF9C005DD935 /* Minizip.xcframework */; };
+		CA4CF4FE25CDAFA2005DD935 /* R2Shared.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4EF25CDAF9C005DD935 /* R2Shared.xcframework */; };
 		CA5A5DDC251FAA9000CF1CCE /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A5DDB251FAA9000CF1CCE /* Extensions.swift */; };
 		CA6CF2152528E5D80025BBB2 /* Parser+Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6CF2142528E5D80025BBB2 /* Parser+Deprecated.swift */; };
 		CA6F97CE22A50F39007D2049 /* EPUBContainerParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97CD22A50F39007D2049 /* EPUBContainerParser.swift */; };
@@ -60,7 +68,6 @@
 		CA8672B2244868B50035FDF4 /* DataCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D20229D4245000A627C /* DataCompression.swift */; };
 		CA8F18D52483901700146D11 /* PublicationContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8F18D42483901700146D11 /* PublicationContainer.swift */; };
 		CA8F18D7248394F100146D11 /* ResourceInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8F18D6248394F100146D11 /* ResourceInputStream.swift */; };
-		CA94291822BCE42500305CDB /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA94291722BCE42500305CDB /* CoreServices.framework */; };
 		CABDB69F248694DB007D251E /* ReadiumWebPubParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC5AEE022C236FB007DB8A8 /* ReadiumWebPubParser.swift */; };
 		CABE2A052482D1FF008E286D /* PDFPositionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABE2A042482D1FF008E286D /* PDFPositionsService.swift */; };
 		CABE2A072482D470008E286D /* LCPDFPositionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABE2A062482D470008E286D /* LCPDFPositionsService.swift */; };
@@ -137,6 +144,11 @@
 		CA2D155E24BEFA0F0034927C /* FetcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetcherTests.swift; sourceTree = "<group>"; };
 		CA3387062406632100FDCBBA /* Asserts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Asserts.swift; sourceTree = "<group>"; };
 		CA3F3FA7248EB156005B8A0B /* Fetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fetcher.swift; sourceTree = "<group>"; };
+		CA4CF4EE25CDAF9C005DD935 /* Minizip.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Minizip.xcframework; path = Carthage/Build/Minizip.xcframework; sourceTree = "<group>"; };
+		CA4CF4EF25CDAF9C005DD935 /* R2Shared.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = R2Shared.xcframework; path = Carthage/Build/R2Shared.xcframework; sourceTree = "<group>"; };
+		CA4CF4F025CDAF9C005DD935 /* Fuzi.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Fuzi.xcframework; path = Carthage/Build/Fuzi.xcframework; sourceTree = "<group>"; };
+		CA4CF4F125CDAF9C005DD935 /* GCDWebServer.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = GCDWebServer.xcframework; path = Carthage/Build/GCDWebServer.xcframework; sourceTree = "<group>"; };
+		CA4CF4F225CDAF9C005DD935 /* CryptoSwift.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = CryptoSwift.xcframework; path = Carthage/Build/CryptoSwift.xcframework; sourceTree = "<group>"; };
 		CA5A5DDB251FAA9000CF1CCE /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		CA6CF2142528E5D80025BBB2 /* Parser+Deprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Parser+Deprecated.swift"; sourceTree = "<group>"; };
 		CA6F97CD22A50F39007D2049 /* EPUBContainerParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBContainerParser.swift; sourceTree = "<group>"; };
@@ -168,10 +180,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA94291822BCE42500305CDB /* CoreServices.framework in Frameworks */,
-				03C3CC6A222DBD9E00A01731 /* R2Shared.framework in Frameworks */,
 				59501E201E2FB2AD00D1B4BF /* libz.tbd in Frameworks */,
-				035CE41B24F7E21F0062EE28 /* CryptoSwift.framework in Frameworks */,
+				CA4CF4F325CDAF9C005DD935 /* Minizip.xcframework in Frameworks */,
+				CA4CF4F425CDAF9C005DD935 /* R2Shared.xcframework in Frameworks */,
+				CA4CF4F525CDAF9C005DD935 /* Fuzi.xcframework in Frameworks */,
+				CA4CF4F625CDAF9C005DD935 /* GCDWebServer.xcframework in Frameworks */,
+				CA4CF4F725CDAF9C005DD935 /* CryptoSwift.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -180,6 +194,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA130DA4229E7C83000A627C /* R2Streamer.framework in Frameworks */,
+				CA4CF4FA25CDAFA2005DD935 /* CryptoSwift.xcframework in Frameworks */,
+				CA4CF4FB25CDAFA2005DD935 /* Fuzi.xcframework in Frameworks */,
+				CA4CF4FC25CDAFA2005DD935 /* GCDWebServer.xcframework in Frameworks */,
+				CA4CF4FD25CDAFA2005DD935 /* Minizip.xcframework in Frameworks */,
+				CA4CF4FE25CDAFA2005DD935 /* R2Shared.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -224,6 +243,11 @@
 		59501E171E2FB1F500D1B4BF /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CA4CF4F225CDAF9C005DD935 /* CryptoSwift.xcframework */,
+				CA4CF4F025CDAF9C005DD935 /* Fuzi.xcframework */,
+				CA4CF4F125CDAF9C005DD935 /* GCDWebServer.xcframework */,
+				CA4CF4EE25CDAF9C005DD935 /* Minizip.xcframework */,
+				CA4CF4EF25CDAF9C005DD935 /* R2Shared.xcframework */,
 				035CE41A24F7E21F0062EE28 /* CryptoSwift.framework */,
 				CA94291722BCE42500305CDB /* CoreServices.framework */,
 				03C3CC69222DBD9E00A01731 /* R2Shared.framework */,
@@ -776,7 +800,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -835,11 +859,12 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Sources/ZipArchive/minizip/**";
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
@@ -859,15 +884,15 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Carthage/Build/iOS",
-				);
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
 				INFOPLIST_FILE = "r2-streamer-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				OTHER_LDFLAGS = "-lxml2";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2Streamer;
 				PRODUCT_NAME = R2Streamer;
@@ -889,15 +914,15 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				ENABLE_TESTABILITY = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Carthage/Build/iOS",
-				);
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
 				INFOPLIST_FILE = "r2-streamer-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				OTHER_LDFLAGS = "-lxml2";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2Streamer;
 				PRODUCT_NAME = R2Streamer;
@@ -918,12 +943,16 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
-				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/Carthage/Build/iOS";
+				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				HEADER_SEARCH_PATHS = $SDKROOT/usr/include/libxml2;
 				INFOPLIST_FILE = "r2-streamer-swiftTests/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks $(PROJECT_DIR)/Carthage/Build/iOS";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2StreamerTests;
@@ -944,12 +973,16 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
-				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/Carthage/Build/iOS";
+				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				HEADER_SEARCH_PATHS = $SDKROOT/usr/include/libxml2;
 				INFOPLIST_FILE = "r2-streamer-swiftTests/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks $(PROJECT_DIR)/Carthage/Build/iOS";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2StreamerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
