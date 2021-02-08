@@ -1,6 +1,6 @@
 # Readium Mobile Test App (Swift/iOS)
 
-A test app for the Swift implementation of Readium-2. Stable builds are [published on TestFlight](https://testflight.apple.com/join/lYEMEfBr).
+A test app for the Swift implementation of Readium 2. Stable builds are [published on TestFlight](https://testflight.apple.com/join/lYEMEfBr).
 
 Follow the project on [ZenHub](https://app.zenhub.com/workspace/o/readium/r2-testapp-swift/boards).
 
@@ -45,23 +45,17 @@ github "readium/readium-opds-swift" "develop"
 
 2) Fetch the dependencies using [Carthage](https://github.com/Carthage/Carthage) :
 
-`$> carthage update --platform ios`
+`$> carthage update --platform ios --use-xcframeworks`
 
-**Warning: Carthage can't build the dependencies with Xcode 12 at the moment. [See this issue for a workaround.](https://github.com/readium/r2-testapp-swift/issues/351)**
-
-3) Generate Carthage input/output filelist using [Carting](https://github.com/artemnovichkov/Carting) :
-
-`$> carting update`
-
-4) Open the Xcode project :
+3) Open the Xcode project :
 
 `$> open r2-testapp-swift.xcodeproj`
 
-5) Build the project target named `r2-testapp-swift (carthage)`.
+4) Build the project target named `r2-testapp-swift (carthage)`.
 
 **More build and dependency information can be found in [r2-workspace-swift](https://github.com/readium/r2-workspace-swift)**
 
-## [@Contributors] Efficient workflow for testing changes on Readium-2
+## [@Contributors] Efficient workflow for testing changes on Readium 2
 
 The release target `r2-testapp-swift` uses the libraries and frameworks built by **Carthage**, while the debug `r2-testapp-swift-DEBUG` can be modified to use local versions of  **r2-shared-swift**, **r2-streamer-swift** and **r2-navigator-swift** depending of which you want to modify. Doing so will allow you to see the changes directly in the testapp, without the need for a Carthage cycle.
 
