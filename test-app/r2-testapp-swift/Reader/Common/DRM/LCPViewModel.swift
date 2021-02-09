@@ -1,21 +1,15 @@
 //
-//  LCPViewModel.swift
-//  r2-testapp-swift
-//
-//  Created by Mickaël Menu on 19.02.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 #if LCP
 
 import Foundation
-import SafariServices
+import UIKit
 import R2Shared
 import ReadiumLCP
-
 
 final class LCPViewModel: DRMViewModel {
 
@@ -68,24 +62,20 @@ final class LCPViewModel: DRMViewModel {
         return license.canRenewLoan
     }
     
-    private var renewCallbacks: [Int: () -> Void] = [:]
-    
     override func renewLoan(completion: @escaping (Error?) -> Void) {
-        func present(url: URL, dismissed: @escaping () -> Void) {
-            guard let presentingViewController = self.presentingViewController else {
-                dismissed()
-                return
-            }
-            
-            let safariVC = SFSafariViewController(url: url)
-            safariVC.delegate = self
-            safariVC.modalPresentationStyle = .formSheet
-            
-            renewCallbacks[safariVC.hash] = dismissed
-            presentingViewController.present(safariVC, animated: true)
+        guard let presentingViewController = self.presentingViewController else {
+            completion(nil)
+            return
         }
-        
-        license.renewLoan(to: nil, present: present, completion: completion)
+
+        license.renewLoan(with: LCPDefaultRenewDelegate(presentingViewController: presentingViewController)) { result in
+            switch result {
+            case .success, .cancelled:
+                completion(nil)
+            case .failure(let error):
+                completion(error)
+            }
+        }
     }
     
     override var canReturnPublication: Bool {
@@ -94,16 +84,6 @@ final class LCPViewModel: DRMViewModel {
     
     override func returnPublication(completion: @escaping (Error?) -> Void) {
         license.returnPublication(completion: completion)
-    }
-    
-}
-
-
-extension LCPViewModel: SFSafariViewControllerDelegate {
-    
-    func safariViewControllerDidFinish(_ controller: SFSafariViewController) {
-        let dismissed = renewCallbacks.removeValue(forKey: controller.hash)
-        dismissed?()
     }
     
 }
