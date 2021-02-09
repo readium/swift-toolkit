@@ -73,7 +73,7 @@ public final class FileFetcher: Fetcher, Loggable {
 
     public func close() { }
     
-    private final class FileResource: Resource, Loggable {
+    final class FileResource: Resource, Loggable {
         
         let link: Link
 

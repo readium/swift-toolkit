@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file.
 
 * CocoaPods is not supported anymore.
 
+### Fixed
+
+* Improved performances when reading consecutive ranges of a deflated ZIP entry.
+
 
 ## [2.0.0-beta.1]
 
