@@ -86,6 +86,13 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
             self.range = 0..<streamLength
         }
         super.init()
+
+        // Disable HTTP caching for publication resources, because it poses a security threat for protected
+        // publications.
+        setValue("no-cache, no-store, must-revalidate", forAdditionalHeader: "Cache-Control")
+        setValue("no-cache", forAdditionalHeader: "Pragma")
+        setValue("0", forAdditionalHeader: "Expires")
+
         // Response
         if let range = self.range {
             let lower = range.lowerBound

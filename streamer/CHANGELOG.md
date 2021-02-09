@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+* The HTTP server now requests that publication resources are not cached by browsers.
+  * Caching poses a security risk for protected publications.
 * CocoaPods is not supported anymore.
 
 
