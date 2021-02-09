@@ -46,8 +46,23 @@ final class LCPDecryptor {
         
         if link.isDeflated || !link.isCbcEncrypted {
             return FullLCPResource(resource, license: license).cached()
+
         } else {
-            return CBCLCPResource(resource, license: license)
+            // The ZIP library we currently use doesn't support random access in deflated entries, which causes really
+            // bad performances when reading a resource by chunks (e.g. reading a large PDF).
+            //
+            // A workaround is to cache the resource input stream to reuse it when being requested consecutive ranges.
+            // However this isn't enough for LCP, because when requesting a range from an LCP resource, we always read
+            // a bit more to align the data with the next AES block. This means that consecutive requests are not
+            // properly aligned and the cached input stream is discarded.
+            //
+            // To fix this issue, we use a `BufferedResource` around the ZIP resource which will keep in memory a few
+            // of the previously read bytes. They can then be used to complete the next requested range from the
+            // cached input stream's current offset.
+            //
+            // See https://github.com/readium/r2-shared-swift/issues/98
+            // and https://github.com/readium/r2-shared-swift/pull/119
+            return CBCLCPResource(resource.buffered(), license: license)
         }
     }
     

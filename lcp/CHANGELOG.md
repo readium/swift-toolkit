@@ -13,6 +13,10 @@ All notable changes to this project will be documented in this file.
     * Readium ships with a default implementation `LCPDefaultRenewDelegate` to handle web page renewal with `SFSafariViewController`.
 * CocoaPods is not supported anymore.
 
+### Fixed
+
+* Fixed really slow opening of large PDF documents.
+
 
 ## [2.0.0-beta.1]
 
