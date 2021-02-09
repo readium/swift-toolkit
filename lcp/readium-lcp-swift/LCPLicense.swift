@@ -32,11 +32,12 @@ public protocol LCPLicense: UserRights {
     /// The maximum potential date to renew to.
     /// If nil, then the renew date might not be customizable.
     var maxRenewDate: Date? { get }
-    
-    /// Renews the loan up to a certain date (if possible).
+
+    /// Renews the loan by starting a renew LSD interaction.
     ///
-    /// - Parameter presenting: Used when the renew requires to present an HTML page to the user. The caller is responsible for presenting the URL (for example with SFSafariViewController) and then calling the `dismissed` callback once the website is closed by the user.
-    func renewLoan(to end: Date?, present: @escaping URLPresenter, completion: @escaping (LCPError?) -> Void)
+    /// - Parameter prefersWebPage: Indicates whether the loan should be renewed through a web page if available,
+    ///   instead of programmatically.
+    func renewLoan(with delegate: LCPRenewDelegate, prefersWebPage: Bool, completion: @escaping (CancellableResult<Void, LCPError>) -> Void)
 
     /// Can the user return the loaned publication?
     var canReturnPublication: Bool { get }
@@ -44,4 +45,12 @@ public protocol LCPLicense: UserRights {
     /// Returns the publication to its provider.
     func returnPublication(completion: @escaping (LCPError?) -> Void)
     
+}
+
+extension LCPLicense {
+
+    public func renewLoan(with delegate: LCPRenewDelegate, completion: @escaping (CancellableResult<Void, LCPError>) -> Void) {
+        renewLoan(with: delegate, prefersWebPage: false, completion: completion)
+    }
+
 }

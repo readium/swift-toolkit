@@ -75,4 +75,12 @@ public struct Link {
         type.flatMap { MediaType.of(mediaType: $0) } ?? .binary
     }
 
+    /// List of URI template parameter keys, if the `Link` is templated.
+    var templateParameters: Set<String> {
+        guard templated else {
+            return []
+        }
+        return URITemplate(href).parameters
+    }
+
 }

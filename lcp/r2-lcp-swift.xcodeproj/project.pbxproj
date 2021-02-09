@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3ED94D142DA304C6D4E4DB81 /* LCPRenewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ED946FE6F293298E0DF8C37 /* LCPRenewDelegate.swift */; };
 		CA26EF7C2280331E0011653E /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA26EF7B2280331E0011653E /* Connection.swift */; };
 		CA2AE328221C3CFB008BD18F /* Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE327221C3CFB008BD18F /* Deprecated.swift */; };
 		CA2B6B5224C07880007AF537 /* LCPContentProtection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2B6B5124C07880007AF537 /* LCPContentProtection.swift */; };
@@ -89,6 +90,7 @@
 
 /* Begin PBXFileReference section */
 		03A5DB9F23B78AD500D5FCBD /* R2LCPClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R2LCPClient.framework; path = Carthage/Build/iOS/R2LCPClient.framework; sourceTree = "<group>"; };
+		3ED946FE6F293298E0DF8C37 /* LCPRenewDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCPRenewDelegate.swift; sourceTree = "<group>"; };
 		CA26EF7B2280331E0011653E /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		CA2AE327221C3CFB008BD18F /* Deprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deprecated.swift; sourceTree = "<group>"; };
 		CA2B6B5124C07880007AF537 /* LCPContentProtection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPContentProtection.swift; sourceTree = "<group>"; };
@@ -380,6 +382,7 @@
 				F3B2C8A51F66727C007601E4 /* LCPError.swift */,
 				CA6CF1A625286FC20025BBB2 /* LCPAcquisition.swift */,
 				CA6CF1B22528984F0025BBB2 /* LCPLicense.swift */,
+				3ED946FE6F293298E0DF8C37 /* LCPRenewDelegate.swift */,
 				CA2AE327221C3CFB008BD18F /* Deprecated.swift */,
 				CA6CF1C52528CB380025BBB2 /* Authentications */,
 				CAB13214220DB5930097DFB5 /* License */,
@@ -607,6 +610,7 @@
 				CAB57BC12204811100E4CB12 /* LicensesService.swift in Sources */,
 				CA2B6B5224C07880007AF537 /* LCPContentProtection.swift in Sources */,
 				CAE7FB7C220C4B7700D03587 /* DeviceService.swift in Sources */,
+				3ED94D142DA304C6D4E4DB81 /* LCPRenewDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

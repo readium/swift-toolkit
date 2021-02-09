@@ -100,6 +100,10 @@ public struct StatusDocument {
         links.filterWithRel(rel.rawValue, type: type)
     }
 
+    func linkWithNoType(for rel: Rel) -> Link? {
+        links.firstWithRelAndNoType(rel.rawValue)
+    }
+
     /// Gets and expands the URL for the given rel, if it exits.
     ///
     /// If a `preferredType` is given, the first link with both the `rel` and given type will be returned. If none
@@ -108,7 +112,7 @@ public struct StatusDocument {
     /// - Throws: `LCPError.invalidLink` if the URL can't be built.
     func url(for rel: Rel, preferredType: MediaType? = nil, with parameters: [String: LosslessStringConvertible] = [:]) throws -> URL {
         let link = self.link(for: rel, type: preferredType)
-            ?? links.firstWithRelAndNoType(rel.rawValue)
+            ?? linkWithNoType(for: rel)
 
         guard let url = link?.url(with: parameters) else {
             throw ParsingError.url(rel: rel.rawValue)

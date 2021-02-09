@@ -8,6 +8,9 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+* The Renew Loan API got revamped to better support renewal through a web page.
+    * You will need to implement `LCPRenewDelegate` to coordinate the UX interaction.
+    * Readium ships with a default implementation `LCPDefaultRenewDelegate` to handle web page renewal with `SFSafariViewController`.
 * CocoaPods is not supported anymore.
 
 

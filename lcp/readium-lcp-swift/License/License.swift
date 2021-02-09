@@ -158,11 +158,94 @@ extension License: LCPLicense {
     var maxRenewDate: Date? {
         return status?.potentialRights?.end
     }
-    
-    func renewLoan(to end: Date?, present: @escaping URLPresenter, completion: @escaping (LCPError?) -> Void) {
 
-        func callPUT(_ url: URL) -> Deferred<Data, Error> {
-            return self.network.fetch(url, method: .put)
+    func renewLoan(with delegate: LCPRenewDelegate, prefersWebPage: Bool, completion: @escaping (CancellableResult<(), LCPError>) -> ()) {
+
+        func renew() -> Deferred<Data, Error> {
+            deferredCatching {
+                guard let link = findRenewLink() else {
+                    throw LCPError.licenseInteractionNotAvailable
+                }
+
+                if link.mediaType.isHTML {
+                    return try renewWithWebPage(link)
+                } else {
+                    return renewProgrammatically(link)
+                }
+            }
+        }
+
+        // Finds the renew link according to `prefersWebPage`.
+        func findRenewLink() -> Link? {
+            guard let status = self.documents.status else {
+                return nil
+            }
+
+            var types = [MediaType.html, MediaType.xhtml]
+            if (prefersWebPage) {
+                types.append(.lcpStatusDocument)
+            } else {
+                types.insert(.lcpStatusDocument, at: 0)
+            }
+
+            for type in types {
+                if let link = status.link(for: .renew, type: type) {
+                    return link
+                }
+            }
+
+            // Fallback on the first renew link with no media type set and assume it's a PUT action.
+            return status.linkWithNoType(for: .renew)
+        }
+
+        // Renew the loan by presenting a web page to the user.
+        func renewWithWebPage(_ link: Link) throws -> Deferred<Data, Error> {
+            guard
+                let statusURL = try? self.license.url(for: .status, preferredType: .lcpStatusDocument),
+                let url = link.url
+            else {
+                throw LCPError.licenseInteractionNotAvailable
+            }
+
+            return delegate.presentWebPage(url: url)
+                .flatMap {
+                    // We fetch the Status Document again after the HTML interaction is done, in case it changed the
+                    // License.
+                    self.network.fetch(statusURL)
+                        .tryMap { status, data in
+                            guard 100..<400 ~= status else {
+                                throw LCPError.network(nil)
+                            }
+                            return data
+                        }
+                }
+        }
+
+        // Programmatically renew the loan with a PUT request.
+        func renewProgrammatically(_ link: Link) -> Deferred<Data, Error> {
+
+            // Asks the delegate for a renew date if there's an `end` parameter.
+            func preferredEndDate() -> Deferred<Date?, Error> {
+                (link.templateParameters.contains("end"))
+                    ? delegate.preferredEndDate(maximum: maxRenewDate)
+                    : Deferred.success(nil)
+            }
+
+            func makeRenewURL(from endDate: Date?) throws -> URL {
+                var params = device.asQueryParameters
+                if let end = endDate {
+                    params["end"] = end.iso8601
+                }
+
+                guard let url = link.url(with: params) else {
+                    throw LCPError.licenseInteractionNotAvailable
+                }
+                return url
+            }
+
+            return preferredEndDate()
+                .tryMap(makeRenewURL(from:))
+                .flatMap { self.network.fetch($0, method: .put) }
                 .tryMap { status, data -> Data in
                     switch status {
                     case 100..<400:
@@ -177,47 +260,16 @@ extension License: LCPLicense {
                     return data
                 }
         }
-        
-        func callHTML(_ url: URL) throws -> Deferred<Data, Error> {
-            guard let statusURL = try? self.license.url(for: .status, preferredType: .lcpStatusDocument) else {
-                throw LCPError.licenseInteractionNotAvailable
-            }
-            
-            return deferred { success, _, _ in present(url, { success(()) }) }
-                .flatMap { _ in
-                    // We fetch the Status Document again after the HTML interaction is done, in case it changed the License.
-                    self.network.fetch(statusURL)
-                        .tryMap { status, data in
-                            guard 100..<400 ~= status else {
-                                throw LCPError.network(nil)
-                            }
-                            return data
-                        }
-                }
-        }
 
-        deferredCatching {
-            var params = self.device.asQueryParameters
-            if let end = end {
-                params["end"] = end.iso8601
+        renew()
+            .flatMap(validateStatusDocument)
+            .mapError(LCPError.wrap)
+            .resolve { result in
+                // Trick to make sure the delegate is not deallocated before the end of the renew process.
+                _ = type(of: delegate)
+
+                completion(result)
             }
-            
-            guard let status = self.documents.status,
-                let link = status.link(for: .renew),
-                let url = link.url(with: params) else
-            {
-                throw LCPError.licenseInteractionNotAvailable
-            }
-            
-            if link.mediaType.isHTML {
-                return try callHTML(url)
-            } else {
-                return callPUT(url)
-            }
-        }
-        .flatMap(self.validateStatusDocument)
-        .mapError(LCPError.wrap)
-        .resolveWithError(completion)
     }
     
     var canReturnPublication: Bool {
@@ -255,6 +307,18 @@ extension License: LCPLicense {
     fileprivate func validateStatusDocument(data: Data) -> Deferred<Void, Error> {
         return validation.validate(.status(data))
             .map { _ in () }  // We don't want to forward the Validated Documents
+    }
+
+}
+
+extension LCPRenewDelegate {
+
+    public func preferredEndDate(maximum: Date?) -> Deferred<Date?, Error> {
+        Deferred { preferredEndDate(maximum: maximum, completion: $0) }
+    }
+
+    public func presentWebPage(url: URL) -> Deferred<Void, Error> {
+        Deferred { presentWebPage(url: url, completion: $0) }
     }
 
 }
