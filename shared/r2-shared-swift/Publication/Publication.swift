@@ -52,8 +52,16 @@ public class Publication: Loggable {
         format: Format = .unknown,
         formatVersion: String? = nil
     ) {
+        let weakPublication = Weak<Publication>()
+
         var manifest = manifest
-        let services = servicesBuilder.build(context: .init(manifest: manifest, fetcher: fetcher))
+        let services = servicesBuilder.build(
+            context: PublicationServiceContext(
+                publication: weakPublication,
+                manifest: manifest,
+                fetcher: fetcher
+            )
+        )
         manifest.links.append(contentsOf: services.flatMap { $0.links })
         
         self.manifest = manifest
@@ -61,6 +69,8 @@ public class Publication: Loggable {
         self.services = services
         self.format = format
         self.formatVersion = formatVersion
+
+        weakPublication.ref = self
     }
     
     /// Parses a Readium Web Publication Manifest.

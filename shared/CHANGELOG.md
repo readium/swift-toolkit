@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+* `PublicationServiceContext` now holds a weak reference to the parent `Publication`. This can be used to access other services from a given `PublicationService` implementation.
+* The default `LocatorService` implementation can be used to get a `Locator` from a global progression in the publication.
+    * `publication.locate(progression: 0.5)`
+
 ### Changed
 
 * CocoaPods is not supported anymore.

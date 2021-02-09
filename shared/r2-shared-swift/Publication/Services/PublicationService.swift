@@ -1,12 +1,7 @@
 //
-//  PublicationService.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 30/05/2020.
-//
 //  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -61,6 +56,16 @@ public typealias PublicationServiceFactory = (PublicationServiceContext) -> Publ
 
 /// Container for the context from which a service is created.
 public struct PublicationServiceContext {
+
+    /// Weak reference to the parent publication.
+    ///
+    /// Don't store directly the referenced publication, always access it through the `Weak` property.
+    ///
+    /// The publication won't be set when the service is created or when calling `PublicationService.links`, but you can
+    /// use it during regular service operations. If you need to initialize your service differently depending on the
+    /// publication, use `manifest`.
+    public let publication: Weak<Publication>
+
     public let manifest: Manifest
     public let fetcher: Fetcher
 }
