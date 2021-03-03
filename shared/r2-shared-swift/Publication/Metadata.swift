@@ -48,9 +48,8 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
     public let description: String?
     public let duration: Double?
     public let numberOfPages: Int?
-    public let belongsToCollections: [Collection]
-    public let belongsToSeries: [Collection]
-    
+    public let belongsTo: [String: [Collection]]
+
     /// WARNING: This contains the reading progression as declared in the manifest, so it might be
     /// `auto`. To know the effective reading progression used to lay out the content, use
     /// `effectiveReadingProgression` instead.
@@ -89,6 +88,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         description: String? = nil,
         duration: Double? = nil,
         numberOfPages: Int? = nil,
+        belongsTo: [String: [Collection]] = [:],
         belongsToCollections: [Collection] = [],
         belongsToSeries: [Collection] = [],
         otherMetadata: [String: Any] = [:]
@@ -119,8 +119,16 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         self.description = description
         self.duration = duration
         self.numberOfPages = numberOfPages
-        self.belongsToCollections = belongsToCollections
-        self.belongsToSeries = belongsToSeries
+
+        var belongsTo = belongsTo
+        if !belongsToCollections.isEmpty {
+            belongsTo["collection"] = belongsToCollections
+        }
+        if !belongsToSeries.isEmpty {
+            belongsTo["series"] = belongsToSeries
+        }
+        self.belongsTo = belongsTo
+
         self.otherMetadataJSON = JSONDictionary(otherMetadata) ?? JSONDictionary()
     }
     
@@ -157,18 +165,13 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         self.description = json.pop("description") as? String
         self.duration = parsePositiveDouble(json.pop("duration"))
         self.numberOfPages = parsePositive(json.pop("numberOfPages"))
-        let belongsTo = json.pop("belongsTo") as? [String: Any]
-        self.belongsToCollections = [Collection](json: belongsTo?["collection"], warnings: warnings, normalizeHREF: normalizeHREF)
-        self.belongsToSeries = [Collection](json: belongsTo?["series"], warnings: warnings, normalizeHREF: normalizeHREF)
+        self.belongsTo = (json.pop("belongsTo") as? [String: Any])?
+            .compactMapValues { item in [Collection](json: item, warnings: warnings, normalizeHREF: normalizeHREF) }
+            ?? [:]
         self.otherMetadataJSON = json
     }
     
     var json: [String: Any] {
-        let belongsTo = makeJSON([
-            "collection": encodeIfNotEmpty(belongsToCollections.json),
-            "series": encodeIfNotEmpty(belongsToSeries.json)
-        ])
-        
         return makeJSON([
             "identifier": encodeIfNotNil(identifier),
             "@type": encodeIfNotNil(type),
@@ -196,10 +199,18 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
             "description": encodeIfNotNil(description),
             "duration": encodeIfNotNil(duration),
             "numberOfPages": encodeIfNotNil(numberOfPages),
-            "belongsTo": encodeIfNotEmpty(belongsTo)
+            "belongsTo": encodeIfNotEmpty(belongsTo.mapValues { $0.json })
         ], additional: otherMetadata)
     }
-    
+
+    public var belongsToCollections: [Collection] {
+        belongsTo["collection"] ?? []
+    }
+
+    public var belongsToSeries: [Collection] {
+        belongsTo["series"] ?? []
+    }
+
     /// Computes a `ReadingProgression` when the value of `readingProgression` is set to `auto`,
     /// using the publication language.
     ///
@@ -255,6 +266,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         description: String?? = nil,
         duration: Double?? = nil,
         numberOfPages: Int?? = nil,
+        belongsTo: [String: [Collection]]? = nil,
         belongsToCollections: [Collection]? = nil,
         belongsToSeries: [Collection]? = nil,
         otherMetadata: [String: Any]? = nil
@@ -286,6 +298,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
             description: description ?? self.description,
             duration: duration ?? self.duration,
             numberOfPages: numberOfPages ?? self.numberOfPages,
+            belongsTo: belongsTo ?? self.belongsTo,
             belongsToCollections: belongsToCollections ?? self.belongsToCollections,
             belongsToSeries: belongsToSeries ?? self.belongsToSeries,
             otherMetadata: otherMetadata ?? self.otherMetadata

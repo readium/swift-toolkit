@@ -41,6 +41,9 @@ class MetadataTests: XCTestCase {
         description: "Description",
         duration: 4.24,
         numberOfPages: 240,
+        belongsTo: [
+            "schema:Periodical": [Contributor(name: "Periodical")]
+        ],
         belongsToCollections: [Contributor(name: "Collection")],
         belongsToSeries: [Contributor(name: "Series")],
         otherMetadata: [
@@ -98,7 +101,8 @@ class MetadataTests: XCTestCase {
                 "numberOfPages": 240,
                 "belongsTo": [
                     "collection": "Collection",
-                    "series": "Series"
+                    "series": "Series",
+                    "schema:Periodical": "Periodical"
                 ],
                 "other-metadata1": "value",
                 "other-metadata2": [42]
@@ -187,7 +191,8 @@ class MetadataTests: XCTestCase {
                 "numberOfPages": 240,
                 "belongsTo": [
                     "collection": [["name": "Collection"]],
-                    "series": [["name": "Series"]]
+                    "series": [["name": "Series"]],
+                    "schema:Periodical": [["name": "Periodical"]]
                 ],
                 "other-metadata1": "value",
                 "other-metadata2": [42]
@@ -264,6 +269,9 @@ class MetadataTests: XCTestCase {
             description: "copy-description",
             duration: 823.5,
             numberOfPages: 3298,
+            belongsTo: [
+                "schema:Periodical": [Metadata.Collection(name: "copy-periodical")]
+            ],
             belongsToCollections: [Metadata.Collection(name: "copy-collection")],
             belongsToSeries: [Metadata.Collection(name: "copy-series")],
             otherMetadata: ["copy": true]
@@ -300,7 +308,8 @@ class MetadataTests: XCTestCase {
                 "numberOfPages": 3298,
                 "belongsTo": [
                     "collection": [["name": "copy-collection"]],
-                    "series": [["name": "copy-series"]]
+                    "series": [["name": "copy-series"]],
+                    "schema:Periodical": [["name": "copy-periodical"]]
                 ],
                 "copy": true
             ]
