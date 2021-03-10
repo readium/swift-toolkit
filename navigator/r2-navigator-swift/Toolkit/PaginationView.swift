@@ -26,7 +26,7 @@ enum PageLocation {
         switch self {
         case .start:
             return true
-        case .locator(let locator) where locator.locations.progression ?? 0 > 0:
+        case .locator(let locator) where locator.locations.progression ?? 0 == 0:
             return true
         default:
             return false

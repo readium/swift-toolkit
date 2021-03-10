@@ -145,7 +145,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     }
 
     override func spreadDidLoad() {
-        // FIXME: We need to give the CSS and webview time to layout correctly. 0.2 seconds seems like a good value for it to work on an iPhone 5s. Look into solving this better
+        // FIXME: Better solution for delaying scrolling to pending location
+        // This delay is used to wait for the web view pagination to settle and give the CSS and webview time to layout correctly before attempting to scroll to the target progression, otherwise we might end up at the wrong spot. 0.2 seconds seems like a good value for it to work on an iPhone 5s.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             self.go(to: self.pendingLocation) {
                 self.showSpread()
@@ -178,6 +179,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         
         scrollView.setContentOffset(newOffset, animated: animated)
         
+        // This delay is only used when turning pages in a single resource if the page turn is animated. The delay is roughly the length of the animation.
         // FIXME: completion should be implemented using scroll view delegates
         DispatchQueue.main.asyncAfter(
             deadline: .now() + (animated ? 0.3 : 0),

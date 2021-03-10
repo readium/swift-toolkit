@@ -156,7 +156,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     private var state: State = .loading {
         didSet {
             if (config.debugState) {
-                log(.debug, "* \(state)")
+                log(.debug, "* transitioned to \(state)")
             }
             
             // Disable user interaction while transitioning, to avoid UX issues.
@@ -330,7 +330,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     
     private lazy var _updateUserSettingsStyle = execute(
         when: { [weak self] in self?.state == .idle && self?.paginationView.isEmpty == false },
-        pollingInterval: 0.1
+        pollingInterval: userSettingsStylePollingInterval
     ) { [weak self] in
         guard let self = self else { return }
 
@@ -346,6 +346,28 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
             self.go(to: location)
         }
     }
+
+    /// Polling interval to refresh user settings styles
+    ///
+    /// The polling that we perform to update the styles copes with the fact
+    /// that we cannot know when the web view has finished layout. From
+    /// empirical observations it appears that the completion speed of that
+    /// work is vastly dependent on the version of the OS, probably in
+    /// conjunction with performance-related variables such as the CPU load,
+    /// age of the device/battery, memory pressure.
+    ///
+    /// Having too small a value here may cause race conditions inside the
+    /// navigator code, causing for example failure to open the navigator to
+    /// the intended initial location.
+    private let userSettingsStylePollingInterval: TimeInterval = {
+        if #available(iOS 14, *) {
+            return 0.1
+        } else if #available(iOS 13, *) {
+            return 0.5
+        } else {
+            return 2.0
+        }
+    }()
 
     
     // MARK: - Pagination and spreads
