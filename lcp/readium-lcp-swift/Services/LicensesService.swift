@@ -20,14 +20,18 @@ final class LicensesService: Loggable {
         .readiumAudiobook: .lcpProtectedAudiobook,
         .pdf: .lcpProtectedPDF
     ]
-    
+
+    private let isProduction: Bool
+    private let client: LCPClient
     private let licenses: LicensesRepository
     private let crl: CRLService
     private let device: DeviceService
     private let network: NetworkService
     private let passphrases: PassphrasesService
 
-    init(licenses: LicensesRepository, crl: CRLService, device: DeviceService, network: NetworkService, passphrases: PassphrasesService) {
+    init(isProduction: Bool, client: LCPClient, licenses: LicensesRepository, crl: CRLService, device: DeviceService, network: NetworkService, passphrases: PassphrasesService) {
+        self.isProduction = isProduction
+        self.client = client
         self.licenses = licenses
         self.crl = crl
         self.device = device
@@ -73,7 +77,18 @@ final class LicensesService: Loggable {
                 }
             }
             
-            let validation = LicenseValidation(authentication: authentication, allowUserInteraction: allowUserInteraction, sender: sender, crl: self.crl, device: self.device, network: self.network, passphrases: self.passphrases, onLicenseValidated: onLicenseValidated)
+            let validation = LicenseValidation(
+                authentication: authentication,
+                allowUserInteraction: allowUserInteraction,
+                sender: sender,
+                isProduction: self.isProduction,
+                client: self.client,
+                crl: self.crl,
+                device: self.device,
+                network: self.network,
+                passphrases: self.passphrases,
+                onLicenseValidated: onLicenseValidated
+            )
 
             return validation.validate(.license(initialData))
                 .tryMap { documents in
@@ -82,7 +97,7 @@ final class LicensesService: Loggable {
                     // Note2: The License already gets in this state when we perform a `return` successfully. We can't decrypt anymore but we still have access to the License Documents and LSD interactions.
                     _ = try documents.getContext()
 
-                    return License(documents: documents, validation: validation, licenses: self.licenses, device: self.device, network: self.network)
+                    return License(documents: documents, client: self.client, validation: validation, licenses: self.licenses, device: self.device, network: self.network)
                 }
         }
     }

@@ -10,7 +10,6 @@
 //
 
 import Foundation
-import R2LCPClient
 
 extension LCPError {
     
@@ -27,14 +26,14 @@ extension LCPError {
             return .licenseRenew(error)
         } else if let error = error as? ReturnError {
             return .licenseReturn(error)
-        } else if let error = error as? LCPClientError {
-            return .licenseIntegrity(error)
         } else if let error = error as? ParsingError {
             return .parsing(error)
         }
         
         let nsError = error as NSError
         switch nsError.domain {
+        case "R2LCPClient.LCPClientError":
+            return .licenseIntegrity(LCPClientError(rawValue: nsError.code) ?? .unknown)
         case NSURLErrorDomain:
             return .network(nsError)
         default:

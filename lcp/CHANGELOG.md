@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+* We removed the dependency to the private `R2LCPClient.framework`, which means:
+    * Now `r2-lcp-swift` works as a Carthage dependency, no need to use a submodule anymore.
+    * You do not need to modify `r2-lcp-swift`'s `Cartfile` anymore to add the private `liblcp` dependency.
+    * However, you must provide a facade to `LCPService` (see [README](README.md) for an example implementation).
 * The Renew Loan API got revamped to better support renewal through a web page.
     * You will need to implement `LCPRenewDelegate` to coordinate the UX interaction.
     * Readium ships with a default implementation `LCPDefaultRenewDelegate` to handle web page renewal with `SFSafariViewController`.

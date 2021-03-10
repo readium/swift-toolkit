@@ -10,7 +10,6 @@
 //
 
 import Foundation
-import R2LCPClient
 import R2Shared
 
 
@@ -21,7 +20,7 @@ private let supportedProfiles = [
 ]
 
 
-typealias Context = Either<DRMContext, StatusError>
+typealias Context = Either<LCPClientContext, StatusError>
 
 
 // Holds the License/Status Documents and the DRM context, once validated.
@@ -36,7 +35,7 @@ struct ValidatedDocuments {
         self.status = status
     }
 
-    func getContext() throws -> DRMContext {
+    func getContext() throws -> LCPClientContext {
         switch context {
         case .left(let context):
             return context
@@ -55,6 +54,8 @@ struct ValidatedDocuments {
 final class LicenseValidation: Loggable {
 
     // Dependencies for the State's handlers
+    fileprivate let isProduction: Bool
+    fileprivate let client: LCPClient
     fileprivate let authentication: LCPAuthenticating?
     fileprivate let allowUserInteraction: Bool
     fileprivate let sender: Any?
@@ -80,6 +81,8 @@ final class LicenseValidation: Loggable {
         authentication: LCPAuthenticating?,
         allowUserInteraction: Bool,
         sender: Any?,
+        isProduction: Bool,
+        client: LCPClient,
         crl: CRLService,
         device: DeviceService,
         network: NetworkService,
@@ -89,6 +92,8 @@ final class LicenseValidation: Loggable {
         self.authentication = authentication
         self.allowUserInteraction = allowUserInteraction
         self.sender = sender
+        self.isProduction = isProduction
+        self.client = client
         self.crl = crl
         self.device = device
         self.network = network
@@ -115,18 +120,7 @@ final class LicenseValidation: Loggable {
         
         return observe(raising: event)
     }
-    
-    /// Returns whether the embedded liblcp.a is in production mode, by attempting to open a production license.
-    static let isProduction: Bool = {
-        guard let prodLicenseURL = Bundle(for: LicenseValidation.self).url(forResource: "prod-license", withExtension: "lcpl"),
-            let prodLicense = try? String(contentsOf: prodLicenseURL, encoding: .utf8) else
-        {
-            return false
-        }
-        let passphrase = "7B7602FEF5DEDA10F768818FFACBC60B173DB223B7E66D8B2221EBE2C635EFAD"  // "One passphrase"
-        return findOneValidPassphrase(jsonLicense: prodLicense, hashedPassphrases: [passphrase]) == passphrase
-    }()
-    
+
 }
 
 
@@ -269,7 +263,7 @@ extension LicenseValidation {
         // Raised when we retrieved the passphrase from the local database, or from prompting the user.
         case retrievedPassphrase(String)
         // Raised after validating the integrity of the License using liblcp.a.
-        case validatedIntegrity(DRMContext)
+        case validatedIntegrity(LCPClientContext)
         // Raised when the device is registered, with an optional updated Status Document.
         case registeredDevice(Data?)
         // Raised when any error occurs during the validation workflow.
@@ -299,7 +293,7 @@ extension LicenseValidation {
         
         // In test mode, only the basic profile is authorized.
         // This is done here instead of during the integrity check because the passphrase can't be validated.
-        guard LicenseValidation.isProduction || license.encryption.profile == "http://readium.org/lcp/basic-profile" else {
+        guard isProduction || license.encryption.profile == "http://readium.org/lcp/basic-profile" else {
             throw LCPError.licenseProfileNotSupported
         }
         
@@ -390,7 +384,7 @@ extension LicenseValidation {
         // 2. Creates the DRM context
         crl.retrieve()
             .tryMap { crl -> Event in
-                let context = try createContext(jsonLicense: license.json, hashedPassphrase: passphrase, pemCrl: crl)
+                let context = try self.client.createContext(jsonLicense: license.json, hashedPassphrase: passphrase, pemCrl: crl)
                 return .validatedIntegrity(context)
             }
             .resolve(raise)

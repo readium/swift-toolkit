@@ -11,7 +11,6 @@
 
 import Foundation
 import ZIPFoundation
-import R2LCPClient
 import R2Shared
 
 
@@ -21,13 +20,15 @@ final class License: Loggable {
     private var documents: ValidatedDocuments
 
     // Dependencies
+    private let client: LCPClient
     private let validation: LicenseValidation
     private let licenses: LicensesRepository
     private let device: DeviceService
     private let network: NetworkService
 
-    init(documents: ValidatedDocuments, validation: LicenseValidation, licenses: LicensesRepository, device: DeviceService, network: NetworkService) {
+    init(documents: ValidatedDocuments, client: LCPClient, validation: LicenseValidation, licenses: LicensesRepository, device: DeviceService, network: NetworkService) {
         self.documents = documents
+        self.client = client
         self.validation = validation
         self.licenses = licenses
         self.device = device
@@ -60,7 +61,7 @@ extension License: LCPLicense {
     
     public func decipher(_ data: Data) throws -> Data? {
         let context = try documents.getContext()
-        return decrypt(data: data, using: context)
+        return client.decrypt(data: data, using: context)
     }
     
     var charactersToCopyLeft: Int? {

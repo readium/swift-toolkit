@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import R2LCPClient
 
 public enum LCPError: LocalizedError {
     // The operation can't be done right now because another License operation is running.

@@ -17,7 +17,7 @@ class LCPDecryptorTests: XCTestCase {
     var clearData: Data!
 
     override func setUpWithError() throws {
-        service = LCPService()
+        service = LCPService(client: LCPTestClient())
         
         let fetcher = ArchiveFetcher(archive: try DefaultArchiveFactory().open(url: self.fixtures.url(for: "daisy.lcpdf"), password: nil))
         encryptedResource = fetcher.get(Link(

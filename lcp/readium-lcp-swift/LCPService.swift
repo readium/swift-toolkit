@@ -17,23 +17,37 @@ import R2Shared
 /// your instance of `LCPAuthenticating`. This can be useful to provide the host `UIViewController`
 /// when presenting a dialog, for example.
 public final class LCPService: Loggable {
-    
+
     private let licenses: LicensesService
     private let passphrases: PassphrasesRepository
     
-    public init() {
+    public init(client: LCPClient) {
+        // Determine whether the embedded liblcp.a is in production mode, by attempting to open a production license.
+        let isProduction: Bool = {
+            guard
+                let prodLicenseURL = Bundle(for: LCPService.self).url(forResource: "prod-license", withExtension: "lcpl"),
+                let prodLicense = try? String(contentsOf: prodLicenseURL, encoding: .utf8)
+                else {
+                return false
+            }
+            let passphrase = "7B7602FEF5DEDA10F768818FFACBC60B173DB223B7E66D8B2221EBE2C635EFAD"  // "One passphrase"
+            return client.findOneValidPassphrase(jsonLicense: prodLicense, hashedPassphrases: [passphrase]) == passphrase
+        }()
+
         let db = Database.shared
         let network = NetworkService()
         passphrases = db.transactions
         licenses = LicensesService(
+            isProduction: isProduction,
+            client: client,
             licenses: db.licenses,
             crl: CRLService(network: network),
             device: DeviceService(repository: db.licenses, network: network),
             network: network,
-            passphrases: PassphrasesService(repository: passphrases)
+            passphrases: PassphrasesService(client: client, repository: passphrases)
         )
     }
-    
+
     /// Returns whether the given `file` is protected by LCP.
     public func isLCPProtected(_ file: URL) -> Bool {
         warnIfMainThread()

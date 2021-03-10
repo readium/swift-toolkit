@@ -26,7 +26,7 @@ public extension LCPService {
 /// LCP service factory.
 @available(*, unavailable, message: "Use `LCPService()` instead", renamed: "LCPService")
 public func R2MakeLCPService() -> LCPService {
-    LCPService()
+    fatalError("Not implemented")
 }
 
 @available(*, unavailable, message: "Remove all the code in `handleLcpPublication` and use `LCPLibraryService.loadPublication` instead, in the latest version of r2-testapp-swift")

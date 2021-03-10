@@ -11,17 +11,18 @@
 
 import Foundation
 import CryptoSwift
-import R2LCPClient
 import R2Shared
 
 
 final class PassphrasesService {
 
+    private let client: LCPClient
     private let repository: PassphrasesRepository
     
     private let sha256Predicate = NSPredicate(format: "SELF MATCHES[c] %@", "^([a-f0-9]{64})$")
 
-    init(repository: PassphrasesRepository) {
+    init(client: LCPClient, repository: PassphrasesRepository) {
+        self.client = client
         self.repository = repository
     }
     
@@ -32,7 +33,7 @@ final class PassphrasesService {
     func request(for license: LicenseDocument, authentication: LCPAuthenticating?, allowUserInteraction: Bool, sender: Any?) -> Deferred<String, Error> {
         return deferredCatching {
             let candidates = self.possiblePassphrasesFromRepository(for: license)
-            if let passphrase = findOneValidPassphrase(jsonLicense: license.json, hashedPassphrases: candidates) {
+            if let passphrase = self.client.findOneValidPassphrase(jsonLicense: license.json, hashedPassphrases: candidates) {
                 return .success(passphrase)
             } else if let authentication = authentication {
                 return self.authenticate(for: license, reason: .passphraseNotFound, using: authentication, allowUserInteraction: allowUserInteraction, sender: sender)
@@ -70,7 +71,7 @@ final class PassphrasesService {
                     passphrases.append(clearPassphrase)
                 }
                 
-                guard let passphrase = findOneValidPassphrase(jsonLicense: license.json, hashedPassphrases: passphrases) else {
+                guard let passphrase = self.client.findOneValidPassphrase(jsonLicense: license.json, hashedPassphrases: passphrases) else {
                     // Tries again if the passphrase is invalid, until cancelled
                     return self.authenticate(for: license, reason: .invalidPassphrase, using: authentication, allowUserInteraction: allowUserInteraction, sender: sender)
                 }
