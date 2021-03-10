@@ -14,12 +14,13 @@
 import Foundation
 import UIKit
 import R2Shared
+import R2LCPClient
 import ReadiumLCP
 
 
 class LCPLibraryService: DRMLibraryService {
 
-    private var lcpService = LCPService()
+    private var lcpService = LCPService(client: LCPClient())
     
     lazy var contentProtection: ContentProtection? = lcpService.contentProtection()
     
@@ -42,6 +43,23 @@ class LCPLibraryService: DRMLibraryService {
                 )
             }
         }
+    }
+
+}
+
+/// Facade to the private R2LCPClient.framework.
+class LCPClient: ReadiumLCP.LCPClient {
+
+    func createContext(jsonLicense: String, hashedPassphrase: String, pemCrl: String) throws -> LCPClientContext {
+        return try R2LCPClient.createContext(jsonLicense: jsonLicense, hashedPassphrase: hashedPassphrase, pemCrl: pemCrl)
+    }
+
+    func decrypt(data: Data, using context: LCPClientContext) -> Data? {
+        return R2LCPClient.decrypt(data: data, using: context as! DRMContext)
+    }
+
+    func findOneValidPassphrase(jsonLicense: String, hashedPassphrases: [String]) -> String? {
+        return R2LCPClient.findOneValidPassphrase(jsonLicense: jsonLicense, hashedPassphrases: hashedPassphrases)
     }
 
 }
