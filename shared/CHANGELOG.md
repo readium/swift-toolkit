@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 * Improved performances when reading consecutive ranges of a deflated ZIP entry.
+* HREF normalization when a resource path contains special characters.
 
 
 ## [2.0.0-beta.1]

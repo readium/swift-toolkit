@@ -229,11 +229,32 @@ class LinkTests: XCTestCase {
         )
     }
 
+    func testURLRelativeToBaseURLWithSpecialCharacters() {
+        XCTAssertEqual(
+            Link(href: "folder/file with%spaces.html").url(relativeTo: URL(string: "http://host/")!),
+            URL(string: "http://host/folder/file%20with%25spaces.html")!
+        )
+        XCTAssertEqual(
+            Link(href: "folder/file with%spaces.html").url(relativeTo: URL(fileURLWithPath: "/")),
+            URL(fileURLWithPath: "/folder/file with%spaces.html")
+        )
+        XCTAssertNil(Link(href: "folder/file with%spaces.html").url(relativeTo: nil))
+        XCTAssertEqual(
+            Link(href: "http://example.com/folder/file%20with%25spaces.html").url(relativeTo: nil),
+            URL(string: "http://example.com/folder/file%20with%25spaces.html")
+        )
+        XCTAssertEqual(
+            Link(href: "http://example.com/folder/file%20with%25spaces.html").url(relativeTo: URL(fileURLWithPath: "/")),
+            URL(string: "http://example.com/folder/file%20with%25spaces.html")
+        )
+    }
+
     func testURLRelativeToNil() {
         XCTAssertEqual(
-            Link(href: "folder/file.html").url(relativeTo: nil),
-            URL(string: "folder/file.html")!
+            Link(href: "http://example.com/folder/file.html").url(relativeTo: nil),
+            URL(string: "http://example.com/folder/file.html")!
         )
+        XCTAssertNil(Link(href: "folder/file.html").url(relativeTo: nil))
     }
 
     func testURLWithInvalidHREF() {

@@ -1,12 +1,7 @@
 //
-//  HREF.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 15/07/2020.
-//
 //  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -20,14 +15,15 @@ public struct HREF {
     private let baseHREF: String
     
     public init(_ href: String, relativeTo baseHREF: String = "/") {
-        self.href = href
+        let baseHREF = baseHREF.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.href = href.trimmingCharacters(in: .whitespacesAndNewlines)
         self.baseHREF = baseHREF.isEmpty ? "/" : baseHREF
     }
     
     /// Returns the normalized string representation for this HREF.
     public var string: String {
         // HREF is just an anchor inside the base.
-        if href.hasPrefix("#") {
+        if href.isEmpty || href.hasPrefix("#") {
             return baseHREF + href
         }
 
@@ -35,17 +31,29 @@ public struct HREF {
         if let url = URL(string: href), url.scheme != nil {
             return href
         }
-        
+
+        let baseURL: URL = {
+            if let url = URL(string: baseHREF), url.scheme != nil {
+                return url
+            } else {
+                return URL(fileURLWithPath: baseHREF.removingPercentEncoding ?? baseHREF)
+            }
+        }()
+
         // Isolates the path from the anchor/query portion, which would be lost otherwise.
         let splitIndex = href.firstIndex(of: "?") ?? href.firstIndex(of: "#") ?? href.endIndex
         let path = String(href[..<splitIndex])
         let suffix = String(href[splitIndex...])
 
-        guard let url = URL(string: path, relativeTo: URL(string: baseHREF)) else {
-            return baseHREF
+        guard
+            let safePath = (path.removingPercentEncoding ?? path)
+                .addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+            let url = URL(string: safePath, relativeTo: baseURL)
+        else {
+            return baseHREF + "/" + href
         }
-        
-        return (url.scheme != nil ? url.absoluteString : url.path) + suffix
+
+        return (url.isHTTP ? url.absoluteString : url.path) + suffix
     }
     
     /// Returns the query parameters present in this HREF, in the order they appear.

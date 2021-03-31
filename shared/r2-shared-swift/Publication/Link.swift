@@ -125,9 +125,11 @@ public struct Link: JSONEquatable, Hashable {
     public func url(relativeTo baseURL: URL?) -> URL? {
         if let url = URL(string: href), url.scheme != nil {
             return url
-        } else {
+        } else if let baseURL = baseURL {
             let safeHREF = (href.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? href).removingPrefix("/")
             return URL(string: safeHREF, relativeTo: baseURL)?.absoluteURL
+        } else {
+            return nil
         }
     }
     

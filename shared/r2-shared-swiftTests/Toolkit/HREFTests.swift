@@ -1,12 +1,7 @@
 //
-//  HREFTests.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 15/07/2020.
-//
 //  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import XCTest
@@ -16,6 +11,7 @@ class HREFTests: XCTestCase {
     
     func testNormalization() {
         assert("", base: "/folder/", equals: "/folder/")
+        assert("   ", base: "/folder/", equals: "/folder/")
         assert("/", base: "/folder/", equals: "/")
         
         assert("foo/bar.txt", base: "", equals: "/foo/bar.txt")
@@ -72,8 +68,22 @@ class HREFTests: XCTestCase {
         assert("#anchor", base: "http://example.com/folder/file.txt", equals:"http://example.com/folder/file.txt#anchor")
         assert("#anchor", base: "http://example.com/folder", equals:"http://example.com/folder#anchor")
         assert("#anchor", base: "http://example.com/folder/", equals:"http://example.com/folder/#anchor")
+
+        // Paths containing special characters
+        assert("foo bar/baz qux.txt", base: "/", equals:"/foo bar/baz qux.txt")
+        assert("foo bar/baz qux.txt", base: "/base folder", equals:"/foo bar/baz qux.txt")
+        assert("foo bar/baz qux.txt", base: "/base folder/", equals:"/base folder/foo bar/baz qux.txt")
+        assert("foo bar/baz%qux.txt", base: "/base%folder/", equals:"/base%folder/foo bar/baz%qux.txt")
+        assert("foo%20bar/baz%25qux.txt", base: "/base%20folder/", equals:"/base folder/foo bar/baz%qux.txt")
+        assert("foo bar/baz qux.txt", base: "http://example.com/base%20folder", equals:"http://example.com/foo%20bar/baz%20qux.txt")
+        assert("foo bar/baz qux.txt", base: "http://example.com/base%20folder/", equals:"http://example.com/base%20folder/foo%20bar/baz%20qux.txt")
+        assert("foo bar/baz%qux.txt", base: "http://example.com/base%20folder/", equals:"http://example.com/base%20folder/foo%20bar/baz%25qux.txt")
+        assert("/foo bar.txt?query=param#anchor", base: "/", equals:"/foo bar.txt?query=param#anchor")
+        assert("/foo bar.txt?query=param#anchor", base: "http://example.com/", equals:"http://example.com/foo%20bar.txt?query=param#anchor")
+        assert("/foo%20bar.txt?query=param#anchor", base: "http://example.com/", equals:"http://example.com/foo%20bar.txt?query=param#anchor")
+        assert("http://absolute.com/foo%20bar.txt?query=param#Hello%20world%20%C2%A3500", base: "/", equals: "http://absolute.com/foo%20bar.txt?query=param#Hello%20world%20%C2%A3500")
     }
-    
+
     func testQueryParameters() {
         XCTAssertEqual(HREF("http://domain.com/path").queryParameters, [])
         XCTAssertEqual(HREF("http://domain.com/path?query=param#anchor").queryParameters, [
