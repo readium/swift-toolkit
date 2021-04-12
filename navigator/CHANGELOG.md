@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file.
 
 * CocoaPods is not supported anymore.
 
+### Fixed
+
+* Optimized performances of preloaded EPUB resources.
+
 
 ## [2.0.0-beta.1]
 

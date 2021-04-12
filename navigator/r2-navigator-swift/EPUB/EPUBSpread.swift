@@ -72,7 +72,20 @@ struct EPUBSpread: Loggable {
     func contains(href: String) -> Bool {
         return links.first(withHREF: href) != nil
     }
-    
+
+    /// Return the number of positions (as in `Publication.positionList`) contained in the spread.
+    func positionCount(in publication: Publication) -> Int {
+        links
+            .map {
+                if let index = publication.readingOrder.firstIndex(withHREF: $0.href) {
+                    return publication.positionsByReadingOrder[index].count
+                } else {
+                    return 0
+                }
+            }
+            .reduce(0, +)
+    }
+
     /// Returns a JSON representation of the links in the spread.
     /// The JSON is an array of link objects in reading progression order.
     /// Each link object contains:

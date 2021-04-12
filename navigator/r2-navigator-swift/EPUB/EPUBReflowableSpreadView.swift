@@ -1,12 +1,7 @@
 //
-//  EPUBReflowableSpreadView.swift
-//  r2-navigator-swift
-//
-//  Created by Mickaël Menu on 09.04.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -203,13 +198,22 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             return
         }
 
+        // The rendering is sometimes very slow. So in case we don't show the first page of the resource, we add a
+        // generous delay before showing the view again.
+        func complete() {
+            let delayed = !location.isStart
+            DispatchQueue.main.asyncAfter(deadline: .now() + (delayed ? 0.3 : 0)) {
+                completion()
+            }
+        }
+
         switch location {
         case .locator(let locator):
-            go(to: locator, completion: completion)
+            go(to: locator, completion: complete)
         case .start:
-            go(toProgression: 0, completion: completion)
+            go(toProgression: 0, completion: complete)
         case .end:
-            go(toProgression: 1, completion: completion)
+            go(toProgression: 1, completion: complete)
         }
     }
 

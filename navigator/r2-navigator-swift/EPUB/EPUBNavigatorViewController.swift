@@ -676,7 +676,10 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
             delegate?.didChangedDocumentPage(currentDocumentIndex: currentResourceIndex)
         }
     }
-    
+
+    func paginationView(_ paginationView: PaginationView, positionCountAtIndex index: Int) -> Int {
+        return spreads[index].positionCount(in: publication)
+    }
 }
 
 
