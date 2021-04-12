@@ -32,7 +32,14 @@ public final class ArchiveFetcher: Fetcher, Loggable {
         }
 
     public func get(_ link: Link) -> Resource {
-        return ArchiveResource(link: link, archive: archive)
+        guard
+            let entry = archive.entry(at: link.href),
+            let reader = archive.readEntry(at: link.href)
+        else {
+            return FailureResource(link: link, error: .notFound)
+        }
+
+        return ArchiveResource(link: link, entry: entry, reader: reader)
     }
     
     public func close() {}
@@ -41,53 +48,35 @@ public final class ArchiveFetcher: Fetcher, Loggable {
         
         lazy var link: Link = {
             var link = originalLink
-            if let compressedLength = entry?.compressedLength {
+            if let compressedLength = entry.compressedLength {
                 link = link.addingProperties(["compressedLength": Int(compressedLength)])
             }
             return link
         }()
         
-        var file: URL? { archive.file(at: href) }
+        var file: URL? { reader.file }
         
         private let originalLink: Link
-        private let href: String
-        
-        private let archive: Archive
-        private lazy var entry: ArchiveEntry? = try? archive.entry(at: href)
 
-        init(link: Link, archive: Archive) {
+        private let entry: ArchiveEntry
+        private let reader: ArchiveEntryReader
+
+        init(link: Link, entry: ArchiveEntry, reader: ArchiveEntryReader) {
             self.originalLink = link
-            self.href = link.href.removingPrefix("/")
-            self.archive = archive
+            self.entry = entry
+            self.reader = reader
         }
 
-        var length: Result<UInt64, ResourceError> {
-            guard let length = entry?.length else {
-                return .failure(.notFound)
-            }
-            return .success(length)
-        }
-        
+        var length: Result<UInt64, ResourceError> { .success(entry.length) }
+
         func read(range: Range<UInt64>?) -> Result<Data, ResourceError> {
-            guard entry != nil else {
-                return .failure(.notFound)
-            }
-            let data: Data? = {
-                if let range = range {
-                    return archive.read(at: href, range: range)
-                } else {
-                    return archive.read(at: href)
-                }
-            }()
-            
-            if let data = data {
-                return .success(data)
-            } else {
-                return .failure(.unavailable)
-            }
+            reader.read(range: range)
+                .mapError { ResourceError.unavailable($0) }
         }
         
-        func close() {}
+        func close() {
+            reader.close()
+        }
 
     }
     

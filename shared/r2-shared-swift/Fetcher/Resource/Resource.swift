@@ -95,7 +95,7 @@ public enum ResourceError: LocalizedError {
     ///
     /// Used when the source can't be reached, e.g. no Internet connection, or an issue with the
     /// file system. Usually this is a temporary error.
-    case unavailable
+    case unavailable(Error?)
     
     /// For any other error, such as HTTP 500.
     case other(Error)

@@ -1,124 +1,110 @@
 //
-//  Archive.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 13/04/2020.
-//
 //  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 
 public enum ArchiveError: Error {
     /// The provided password was incorrect.
-    case invalidPassword
+    case invalidPassword(archive: URL)
     /// Impossible to open the given archive.
-    case openFailed
-    /// Impossible to modify the archive.
-    case updateFailed
+    case openFailed(archive: URL, cause: Error?)
     /// The entry could not be found in the archive.
-    case entryNotFound
+    case entryNotFound(entry: ArchivePath, archive: URL)
+    /// Impossible to read the given entry.
+    case readFailed(entry: ArchivePath, archive: URL, cause: Error?)
 }
 
-/// Holds an archive entry's metadata.
-public struct ArchiveEntry: Equatable {
-    
-    /// Absolute path to the entry in the archive.
-    let path: String
-    
-    /// Uncompressed data length.
-    let length: UInt64?
-    
-    /// Whether the entry is compressed.
-    let isCompressed: Bool
-    
-    /// Compressed data length, or nil if the entry is not compressed.
-    let compressedLength: UInt64?
+public typealias ArchiveResult<Success> = Result<Success, ArchiveError>
 
-}
+/// Path of an entry relative to the root of the archive.
+public typealias ArchivePath = String
 
 /// Represents an immutable archive, such as a ZIP file or an exploded directory.
 public protocol Archive {
-    
-    /// Creates an archive from a local file URL.
-    /// 
-    /// - Throws: `ArchiveError.openFailed` if the given `file` can't be opened.
-    /// - Throws: `ArchiveError.invalidPassword` if the provided `password` is wrong.
-    init(url: URL, password: String?) throws
-    
-    /// List of all the archived entries.
+
+    /// List of all the archived entries metadata.
     var entries: [ArchiveEntry] { get }
-    
-    /// Gets the entry at the given `path`
-    ///
-    /// - Throws: `ArchiveError.entryNotFound` if the entry can't be located.
-    func entry(at path: String) throws -> ArchiveEntry
-    
-    /// Reads the whole content of the entry at the given `path`.
-    func read(at path: String) -> Data?
-    
-    /// Reads a range of the content of this entry.
-    func read(at path: String, range: Range<UInt64>) -> Data?
-    
-    /// Direct file to the entry at given `path`, when available.
-    /// For example when the archive is exploded on the file system.
-    ///
-    /// This is meant to be used as an optimization for consumers which can't work efficiently with
-    /// streams. However, the file is not guaranteed to be found, for example if the archive is a
-    /// ZIP. Therefore, consumers should always fallback on regular stream reading, using `read()`.
-    func file(at path: String) -> URL?
-    
+
+    /// Returns the metadata for the entry at given path.
+    func entry(at path: ArchivePath) -> ArchiveEntry?
+
+    /// Gets a reader for the entry at the given `path`, or nil if the entry doesn't exist.
+    func readEntry(at path: ArchivePath) -> ArchiveEntryReader?
+
     /// Closes the archive.
     func close()
 
 }
 
 public extension Archive {
-    
-    /// Creates an archive from a local file URL.
-    init(url: URL) throws {
-        try self.init(url: url, password: nil)
+
+    func entry(at path: ArchivePath) -> ArchiveEntry? {
+        entries.first { $0.path == path }
     }
-    
-    func file(at path: String) -> URL? {
-        return nil
-    }
-    
+
 }
 
-/// An archive which can modify its entries.
-protocol MutableArchive: Archive {
+/// Holds metadata about a single archive entry.
+public struct ArchiveEntry: Equatable {
+    /// Absolute path to the entry in the archive. It MUST starts with /.
+    let path: ArchivePath
+    /// Uncompressed data length.
+    let length: UInt64
+    /// Compressed data length, or nil if the entry is not compressed.
+    let compressedLength: UInt64?
+}
 
-    /// Replaces (or adds) a file entry in the archive.
+/// Provides access to an entry's content.
+public protocol ArchiveEntryReader {
+
+    /// Direct file to the entry, when available. For example when the archive is exploded on the file system.
     ///
-    /// - Parameters:
-    ///   - path: Entry path.
-    ///   - data: New entry data.
-    ///   - deflated: If true, the entry will be compressed in the archive.
-    func replace(at path: String, with data: Data, deflated: Bool) throws
+    /// This is meant to be used as an optimization for consumers which can't work efficiently with streams. However,
+    /// the file is not guaranteed to be found, for example if the archive is a ZIP. Therefore, consumers should always
+    /// fallback on regular stream reading, using `read()`.
+    var file: URL? { get }
+
+    /// Reads the content of this entry.
+    ///
+    /// When `range` is nil, the whole content is returned. Out-of-range indexes are clamped to the available length
+    /// automatically.
+    func read(range: Range<UInt64>?) -> ArchiveResult<Data>
+
+    /// Closes any pending resources for this entry.
+    func close()
+
+}
+
+extension ArchiveEntryReader {
+
+    public var file: URL? { nil }
+
+    /// Reads the whole content of this entry.
+    func read() -> ArchiveResult<Data> {
+        return read(range: nil)
+    }
 
 }
 
 public protocol ArchiveFactory {
     
     /// Opens an archive from a local file path.
-    func open(url: URL, password: String?) throws -> Archive
+    func open(url: URL, password: String?) -> ArchiveResult<Archive>
     
 }
 
 public class DefaultArchiveFactory: ArchiveFactory, Loggable {
     
     public init() {}
-    
-    public func open(url: URL, password: String?) throws -> Archive {
+
+    public func open(url: URL, password: String?) -> ArchiveResult<Archive> {
         warnIfMainThread()
-        do {
-            return try ExplodedArchive(url: url, password: password)
-        } catch {
-            return try MinizipArchive(url: url, password: password)
-        }
+        return ExplodedArchive.make(url: url)
+            .map { $0 as Archive}
+            .catch { _ in MinizipArchive.make(url: url).map { $0 as Archive } }
     }
     
 }

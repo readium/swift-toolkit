@@ -78,7 +78,7 @@ public final class MediaTypeSnifferContext {
     /// Content as an archive.
     /// Warning: ZIP is only supported for a local file, for now.
     lazy var contentAsArchive: Archive? = (content as? FileMediaTypeSnifferContent)
-        .flatMap { try? archiveFactory.open(url: $0.file, password: nil) }
+        .flatMap { archiveFactory.open(url: $0.file, password: nil).getOrNil() }
 
     /// Content parsed from JSON.
     public lazy var contentAsJSON: Any? = contentAsString
@@ -123,12 +123,12 @@ public final class MediaTypeSnifferContext {
     
     /// Returns whether an Archive entry exists in this file.
     func containsArchiveEntry(at path: String) -> Bool {
-        return (try? contentAsArchive?.entry(at: path)) != nil
+        return contentAsArchive?.entry(at: path) != nil
     }
     
     /// Returns the Archive entry data at the given `path` in this file.
     func readArchiveEntry(at path: String) -> Data? {
-        return contentAsArchive?.read(at: path)
+        return contentAsArchive?.readEntry(at: path)?.read().getOrNil()
     }
     
     /// Returns whether all the Archive entry paths satisfy the given `predicate`.

@@ -1,28 +1,35 @@
 //
-//  ExplodedArchive.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 10/07/2020.
-//
 //  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 
 /// An archive exploded on the file system as a directory.
 final class ExplodedArchive: Archive, Loggable {
-    
+
+    enum ExplodedArchiveError: Error {
+        case notAFileURL(URL)
+        case notADirectory(URL)
+    }
+
     private let root: URL
-    
-    init(url: URL, password: String?) throws {
-        assert(url.isFileURL, "Only file URLs are supported by ExplodedArchive")
+
+    public static func make(url: URL) -> ArchiveResult<ExplodedArchive> {
+        guard url.isFileURL else {
+            return .failure(.openFailed(archive: url, cause: ExplodedArchiveError.notAFileURL(url)))
+        }
+
         let isDirectory = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
         guard isDirectory else {
-            throw ArchiveError.openFailed
+            return .failure(.openFailed(archive: url, cause: ExplodedArchiveError.notADirectory(url)))
         }
-        
+
+        return .success(Self(url: url.standardizedFileURL))
+    }
+
+    private init(url: URL) {
         self.root = url.standardizedFileURL
     }
     
@@ -37,43 +44,17 @@ final class ExplodedArchive: Archive, Loggable {
         }
         return entries.sorted { $0.path.localizedCaseInsensitiveCompare($1.path) == .orderedAscending }
     }()
-    
-    func entry(at path: String) throws -> ArchiveEntry {
+
+    func readEntry(at path: ArchivePath) -> ArchiveEntryReader? {
         guard
             let url = entryURL(fromPath: path),
-            let entry = makeEntry(at: url) else
-        {
-            throw ArchiveError.entryNotFound
-        }
-        return entry
-    }
-    
-    func read(at path: String) -> Data? {
-        guard let url = entryURL(fromPath: path) else {
+            let entry = self.entry(at: path)
+        else {
             return nil
         }
-        return try? Data(contentsOf: url)
+        return ExplodedEntryReader(root: root, entry: entry, url: url)
     }
-    
-    func read(at path: String, range: Range<UInt64>) -> Data? {
-        guard let url = entryURL(fromPath: path) else {
-            return nil
-        }
-        
-        do {
-            let handle = try FileHandle(forReadingFrom: url)
-            handle.seek(toFileOffset: UInt64(max(0, range.lowerBound)))
-            return handle.readData(ofLength: Int(range.upperBound - range.lowerBound))
-        } catch {
-            log(.error, "Can't read ExplodedArchive entry: \(error)")
-            return nil
-        }
-    }
-    
-    func file(at path: String) -> URL? {
-        return entryURL(fromPath: path)
-    }
-    
+
     func close() {}
 
     private func makeEntry(at url: URL) -> ArchiveEntry? {
@@ -81,15 +62,15 @@ final class ExplodedArchive: Archive, Loggable {
         guard
             root.isParentOf(url),
             let values = try? url.resourceValues(forKeys: [.fileSizeKey, .isDirectoryKey]),
-            values.isDirectory != true else
-        {
+            let length = values.fileSize,
+            values.isDirectory != true
+        else {
             return nil
         }
         
         return ArchiveEntry(
-            path: url.path.removingPrefix(root.path + "/"),
-            length: values.fileSize.map(UInt64.init),
-            isCompressed: false,
+            path: url.path.removingPrefix(root.path).addingPrefix("/"),
+            length: UInt64(length),
             compressedLength: nil
         )
     }
@@ -99,4 +80,49 @@ final class ExplodedArchive: Archive, Loggable {
         return root.isParentOf(url) ? url : nil
     }
     
+}
+
+// FIXME: Add a version for iOS 13+ using non-deprecated FileHandle APIs.
+private final class ExplodedEntryReader: ArchiveEntryReader, Loggable {
+
+    private let root: URL
+    private let entry: ArchiveEntry
+    private let url: URL
+
+    init(root: URL, entry: ArchiveEntry, url: URL) {
+        self.root = root
+        self.entry = entry
+        self.url = url
+    }
+
+    var file: URL? { url }
+
+    func read(range: Range<UInt64>?) -> ArchiveResult<Data> {
+        do {
+            let range = range ?? 0..<entry.length
+            let handle = try self.handle()
+            if handle.offsetInFile != range.lowerBound {
+                handle.seek(toFileOffset: range.lowerBound)
+            }
+            return .success(handle.readData(ofLength: Int(range.upperBound - range.lowerBound)))
+        } catch {
+            return .failure(.readFailed(entry: entry.path, archive: root, cause: error))
+        }
+    }
+
+    func close() {
+        _handle?.closeFile()
+    }
+
+    private var _handle: FileHandle?
+    private func handle() throws -> FileHandle {
+        if let handle = _handle {
+            return handle
+        } else {
+            let handle = try FileHandle(forReadingFrom: url)
+            _handle = handle
+            return handle
+        }
+    }
+
 }

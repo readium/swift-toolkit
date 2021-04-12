@@ -14,7 +14,9 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-* CocoaPods is not supported anymore.
+* CocoaPods is not supported anymore (i.e. [PR #129](https://github.com/readium/r2-shared-swift/pull/129))
+* The `Archive` API now supports resource ownership at the entry level.
+    * The default ZIP implementation takes advantage of this by opening a new ZIP stream for each resource to be served. This improves performances and memory safety.
 
 ### Fixed
 

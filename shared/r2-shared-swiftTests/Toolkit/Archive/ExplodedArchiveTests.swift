@@ -17,90 +17,75 @@ fileprivate let fixtures = Fixtures(path: "Archive")
 class ExplodedArchiveTests: XCTestCase {
 
     func testOpenSuccess() {
-        XCTAssertNoThrow(try ExplodedArchive(url: fixtures.url(for: "exploded")))
+        XCTAssertNotNil(ExplodedArchive.make(url: fixtures.url(for: "exploded")).getOrNil())
     }
     
     func testOpenNotFound() {
-        XCTAssertThrowsError(try ExplodedArchive(url: fixtures.url(for: "unknown-folder"))) { error in
-            XCTAssertEqual(error as? ArchiveError, ArchiveError.openFailed)
-        }
+        XCTAssertThrowsError(try ExplodedArchive.make(url: fixtures.url(for: "unknown-folder")).get())
     }
     
     func testOpenNotADirectory() {
-        XCTAssertThrowsError(try ExplodedArchive(url: fixtures.url(for: "test.zip"))) { error in
-            XCTAssertEqual(error as? ArchiveError, ArchiveError.openFailed)
-        }
+        XCTAssertThrowsError(try ExplodedArchive.make(url: fixtures.url(for: "test.zip")).get())
     }
    
     func testGetNonExistingEntry() throws {
-        let archive = try ExplodedArchive(url: fixtures.url(for: "exploded"))
-        XCTAssertThrowsError(try archive.entry(at: "unknown")) { error in
-            XCTAssertEqual(error as? ArchiveError, ArchiveError.entryNotFound)
-        }
+        let archive = try ExplodedArchive.make(url: fixtures.url(for: "exploded")).get()
+        XCTAssertNil(archive.entry(at: "/unknown"))
     }
     
     func testGetFileEntry() throws {
-        let archive = try ExplodedArchive(url: fixtures.url(for: "exploded"))
+        let archive = try ExplodedArchive.make(url: fixtures.url(for: "exploded")).get()
         XCTAssertEqual(
-            try archive.entry(at: "A folder/wasteland-cover.jpg"),
+            archive.entry(at: "/A folder/wasteland-cover.jpg"),
             ArchiveEntry(
-                path: "A folder/wasteland-cover.jpg",
+                path: "/A folder/wasteland-cover.jpg",
                 length: 103477,
-                isCompressed: false,
                 compressedLength: nil
             )
         )
     }
 
-    func testGetDirectoryEntry() throws {
-        let archive = try ExplodedArchive(url: fixtures.url(for: "exploded"))
-        XCTAssertThrowsError(try archive.entry(at: "A folder")) { error in
-            XCTAssertEqual(error as? ArchiveError, ArchiveError.entryNotFound)
-        }
-        XCTAssertThrowsError(try archive.entry(at: "A folder/")) { error in
-            XCTAssertEqual(error as? ArchiveError, ArchiveError.entryNotFound)
-        }
+    func testGetDirectoryEntryReturnsNil() throws {
+        let archive = try ExplodedArchive.make(url: fixtures.url(for: "exploded")).get()
+        XCTAssertNil(archive.entry(at: "/A folder"))
+        XCTAssertNil(archive.entry(at: "/A folder/"))
     }
     
     func testGetEntries() throws {
-        let archive = try ExplodedArchive(url: fixtures.url(for: "exploded"))
+        let archive = try ExplodedArchive.make(url: fixtures.url(for: "exploded")).get()
         // The entries are sorted by path.
         XCTAssertEqual(archive.entries, [
-            ArchiveEntry(path: ".hidden", length: 0, isCompressed: false, compressedLength: nil),
-            ArchiveEntry(path: "A folder/Sub.folder%/file-compressed.txt", length: 29609, isCompressed: false, compressedLength: nil),
-            ArchiveEntry(path: "A folder/Sub.folder%/file.txt", length: 20, isCompressed: false, compressedLength: nil),
-            ArchiveEntry(path: "A folder/wasteland-cover.jpg", length: 103477, isCompressed: false, compressedLength: nil),
-            ArchiveEntry(path: "root.txt", length: 0, isCompressed: false, compressedLength: nil),
-            ArchiveEntry(path: "uncompressed.jpg", length: 279551, isCompressed: false, compressedLength: nil),
-            ArchiveEntry(path: "uncompressed.txt", length: 30, isCompressed: false, compressedLength: nil),
+            ArchiveEntry(path: "/.hidden", length: 0, compressedLength: nil),
+            ArchiveEntry(path: "/A folder/Sub.folder%/file-compressed.txt", length: 29609, compressedLength: nil),
+            ArchiveEntry(path: "/A folder/Sub.folder%/file.txt", length: 20, compressedLength: nil),
+            ArchiveEntry(path: "/A folder/wasteland-cover.jpg", length: 103477, compressedLength: nil),
+            ArchiveEntry(path: "/root.txt", length: 0, compressedLength: nil),
+            ArchiveEntry(path: "/uncompressed.jpg", length: 279551, compressedLength: nil),
+            ArchiveEntry(path: "/uncompressed.txt", length: 30, compressedLength: nil),
         ])
     }
     
     func testCantGetEntryOutsideRoot() throws {
-        let archive = try ExplodedArchive(url: fixtures.url(for: "exploded"))
-        XCTAssertThrowsError(try archive.entry(at: "../test.zip")) { error in
-            XCTAssertEqual(error as? ArchiveError, ArchiveError.entryNotFound)
-        }
+        let archive = try ExplodedArchive.make(url: fixtures.url(for: "exploded")).get()
+        XCTAssertNil(archive.entry(at: "../test.zip"))
     }
 
     func testReadFullEntry() throws {
-        let archive = try ExplodedArchive(url: fixtures.url(for: "exploded"))
-        let entry = try archive.entry(at: "A folder/Sub.folder%/file.txt")
-        let data = archive.read(at: entry.path)
-        XCTAssertNotNil(data)
+        let archive = try ExplodedArchive.make(url: fixtures.url(for: "exploded")).get()
+        let entry = try XCTUnwrap(archive.readEntry(at: "/A folder/Sub.folder%/file.txt"))
+        let data = try entry.read().get()
         XCTAssertEqual(
-            String(data: data!, encoding: .utf8),
+            String(data: data, encoding: .utf8),
             "I'm inside\nthe ZIP.\n"
         )
     }
     
     func testReadRange() throws {
-        let archive = try ExplodedArchive(url: fixtures.url(for: "exploded"))
-        let entry = try archive.entry(at: "A folder/Sub.folder%/file.txt")
-        let data = archive.read(at: entry.path, range: 14..<20)
-        XCTAssertNotNil(data)
+        let archive = try ExplodedArchive.make(url: fixtures.url(for: "exploded")).get()
+        let entry = try XCTUnwrap(archive.readEntry(at: "/A folder/Sub.folder%/file.txt"))
+        let data = try entry.read(range: 14..<20).get()
         XCTAssertEqual(
-            String(data: data!, encoding: .utf8),
+            String(data: data, encoding: .utf8),
             " ZIP.\n"
         )
     }

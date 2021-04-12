@@ -83,7 +83,7 @@ public final class HTTPFetcher: Fetcher {
             headResponse.flatMap {
                 let length = $0.expectedContentLength
                 if length < 0 {
-                    return .failure(.unavailable)
+                    return .failure(.unavailable(nil))
                 } else {
                     return .success(UInt64(length))
                 }
@@ -97,7 +97,7 @@ public final class HTTPFetcher: Fetcher {
         
         func read(range: Range<UInt64>?) -> ResourceResult<Data> {
             // FIXME:
-            return .failure(.unavailable)
+            return .failure(.unavailable(nil))
 //            if let range = range {
 //                return headResponse.flatMap { response in
 //                    var request = URLRequest(url: url)
@@ -150,7 +150,7 @@ private extension URLSession {
                     case 404:
                         return .notFound
                     case 503:
-                        return .unavailable
+                        return .unavailable(nil)
                     default:
                         return .other(HTTPFetcher.Error.serverFailure)
                     }

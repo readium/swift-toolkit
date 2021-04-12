@@ -17,4 +17,11 @@ extension Result {
         return try? get()
     }
 
+    func `catch`(_ recover: (Failure) -> Self) -> Self {
+        if case .failure(let error) = self {
+            return recover(error)
+        }
+        return self
+    }
+
 }

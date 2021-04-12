@@ -53,7 +53,7 @@ public final class FileAsset: PublicationAsset, Loggable {
     
             do {
                 // Attempts to open the file as a ZIP or exploded directory.
-                let archive = try dependencies.archiveFactory.open(url: self.url, password: credentials)
+                let archive = try dependencies.archiveFactory.open(url: self.url, password: credentials).get()
                 completion(.success(ArchiveFetcher(archive: archive)))
         
             } catch ArchiveError.invalidPassword {
