@@ -7,6 +7,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+* New `EPUBNavigatorDelegate` APIs to inject custom JavaScript.
+  * Override `navigator(_:setupUserScripts:)` to register additional user script to the `WKUserContentController` of each web view.
+  * Override `navigator(_:userContentController:didReceive:)` to receive callbacks from your scripts.
+
 ### Changed
 
 * CocoaPods is not supported anymore.

@@ -17,7 +17,12 @@ import SwiftSoup
 
 
 public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate {
-    
+
+    // MARK: - WebView Customization
+
+    func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController)
+    func navigator(_ navigator: EPUBNavigatorViewController, userContentController: WKUserContentController, didReceive message: WKScriptMessage)
+
     // MARK: - Deprecated
     
     // Implement `NavigatorDelegate.navigator(didTapAt:)` instead.
@@ -34,7 +39,10 @@ public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate {
 }
 
 public extension EPUBNavigatorDelegate {
-    
+
+    func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController) {}
+    func navigator(_ navigator: EPUBNavigatorViewController, userContentController: WKUserContentController, didReceive message: WKScriptMessage) {}
+
     func middleTapHandler() {}
     func willExitPublication(documentIndex: Int, progression: Double?) {}
     func didChangedDocumentPage(currentDocumentIndex: Int) {}
@@ -635,6 +643,10 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         present(viewController, animated: true)
     }
 
+    func spreadView(_ spreadView: EPUBSpreadView, userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        delegate?.navigator(self, userContentController: userContentController, didReceive: message)
+    }
+
 }
 
 extension EPUBNavigatorViewController: EditingActionsControllerDelegate {
@@ -663,6 +675,10 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
             contentInset: config.contentInset
         )
         spreadView.delegate = self
+
+        let userContentController = spreadView.webView.configuration.userContentController
+        delegate?.navigator(self, setupUserScripts: userContentController)
+
         return spreadView
     }
     
