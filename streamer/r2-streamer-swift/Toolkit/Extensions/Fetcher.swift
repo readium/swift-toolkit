@@ -68,7 +68,7 @@ func makeFetcher(for url: URL) throws -> Fetcher {
     }
     
     do {
-        return try ArchiveFetcher(archive: DefaultArchiveFactory().open(url: url, password: nil))
+        return try ArchiveFetcher(archive: DefaultArchiveFactory().open(url: url, password: nil).get())
     } catch {
         return FileFetcher(href: "/\(url.lastPathComponent)", path: url)
     }

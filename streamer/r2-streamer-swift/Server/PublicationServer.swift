@@ -226,19 +226,12 @@ public class PublicationServer: ResourcesServer {
             }
 
             let resource = publication.get(href.removingPercentEncoding ?? href)
-            switch resource.stream() {
-            case .success(let stream):
-                let range = request.hasByteRange() ? request.byteRange : nil
-                return WebServerResourceResponse(
-                    inputStream: stream,
-                    range: range,
-                    contentType: resource.link.type ?? MediaType.binary.string
-                )
-                
-            case .failure(let error):
-                print("\(href): \(error)")
-                return GCDWebServerErrorResponse(statusCode: error.httpStatusCode)
-            }
+            let range = request.hasByteRange() ? request.byteRange : nil
+            return WebServerResourceResponse(
+                resource: resource,
+                range: range,
+                contentType: resource.link.type ?? MediaType.binary.string
+            )
         }
         
         webServer.addHandler(
