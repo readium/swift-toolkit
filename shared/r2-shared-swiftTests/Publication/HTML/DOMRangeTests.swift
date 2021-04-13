@@ -94,7 +94,18 @@ class DOMRangeTests: XCTestCase {
             DOMRange.Point(cssSelector: "p", textNodeIndex: 4, charOffset: 32)
         )
     }
-    
+
+    func testParseLegacyPointJSON() {
+        XCTAssertEqual(
+            try? DOMRange.Point(json: [
+                "cssSelector": "p",
+                "textNodeIndex": 4,
+                "offset": 32
+            ]),
+            DOMRange.Point(cssSelector: "p", textNodeIndex: 4, charOffset: 32)
+        )
+    }
+
     func testParseInvalidPointJSON() {
         XCTAssertThrowsError(try DOMRange.Point(json: ""))
     }
