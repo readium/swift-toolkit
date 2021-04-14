@@ -141,10 +141,18 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     override func spreadDidLoad() {
         // FIXME: Better solution for delaying scrolling to pending location
-        // This delay is used to wait for the web view pagination to settle and give the CSS and webview time to layout correctly before attempting to scroll to the target progression, otherwise we might end up at the wrong spot. 0.2 seconds seems like a good value for it to work on an iPhone 5s.
+        // This delay is used to wait for the web view pagination to settle and give the CSS and webview time to layout
+        // correctly before attempting to scroll to the target progression, otherwise we might end up at the wrong spot.
+        // 0.2 seconds seems like a good value for it to work on an iPhone 5s.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            self.go(to: self.pendingLocation) {
-                self.showSpread()
+            let location = self.pendingLocation
+            self.go(to: location) {
+                // The rendering is sometimes very slow. So in case we don't show the first page of the resource, we add
+                // a generous delay before showing the spread again.
+                let delayed = !location.isStart
+                DispatchQueue.main.asyncAfter(deadline: .now() + (delayed ? 0.3 : 0)) {
+                    self.showSpread()
+                }
             }
         }
     }
@@ -198,22 +206,13 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             return
         }
 
-        // The rendering is sometimes very slow. So in case we don't show the first page of the resource, we add a
-        // generous delay before showing the view again.
-        func complete() {
-            let delayed = !location.isStart
-            DispatchQueue.main.asyncAfter(deadline: .now() + (delayed ? 0.3 : 0)) {
-                completion()
-            }
-        }
-
         switch location {
         case .locator(let locator):
-            go(to: locator, completion: complete)
+            go(to: locator, completion: completion)
         case .start:
-            go(toProgression: 0, completion: complete)
+            go(toProgression: 0, completion: completion)
         case .end:
-            go(toProgression: 1, completion: complete)
+            go(toProgression: 1, completion: completion)
         }
     }
 
@@ -223,18 +222,13 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             completion()
             return
         }
-        guard !locator.locations.isEmpty else {
-            completion()
-            return
-        }
-        
+
         // FIXME: find the first fragment matching a tag ID (need a regex)
         if let id = locator.locations.fragments.first, !id.isEmpty {
             go(toTagID: id, completion: completion)
-        } else if let progression = locator.locations.progression {
-            go(toProgression: progression, completion: completion)
         } else {
-            completion()
+            let progression = locator.locations.progression ?? 0
+            go(toProgression: progression, completion: completion)
         }
     }
 

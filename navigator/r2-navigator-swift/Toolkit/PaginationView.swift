@@ -211,19 +211,10 @@ final class PaginationView: UIView, Loggable {
             }
         }
 
-        var isCompleted = false
-        let complete = {
-            guard !isCompleted else { return }
-            isCompleted = true
+        loadNextPage {
             completion()
             self.delegate?.paginationViewDidUpdateViews(self)
         }
-
-        if loadedViews[index] != nil {  // Already loaded.
-            complete()
-        }
-
-        loadNextPage(completion: complete)
     }
 
     private func loadNextPage(completion: @escaping () -> Void = {}) {
