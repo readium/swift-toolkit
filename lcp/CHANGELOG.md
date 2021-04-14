@@ -4,7 +4,9 @@ All notable changes to this project will be documented in this file.
 
 **Warning:** Features marked as *experimental* may change or be removed in a future release without notice. Use with caution.
 
-## [Unreleased]
+<!--## [Unreleased]-->
+
+## [2.0.0-beta.2]
 
 ### Changed
 
@@ -15,7 +17,6 @@ All notable changes to this project will be documented in this file.
 * The Renew Loan API got revamped to better support renewal through a web page.
     * You will need to implement `LCPRenewDelegate` to coordinate the UX interaction.
     * Readium ships with a default implementation `LCPDefaultRenewDelegate` to handle web page renewal with `SFSafariViewController`.
-* CocoaPods is not supported anymore.
 
 ### Fixed
 
@@ -68,3 +69,4 @@ All notable changes to this project will be documented in this file.
 [2.0.0-alpha.1]: https://github.com/readium/r2-lcp-swift/compare/1.2.3...2.0.0-alpha.1
 [2.0.0-alpha.2]: https://github.com/readium/r2-lcp-swift/compare/2.0.0-alpha.1...2.0.0-alpha.2
 [2.0.0-beta.1]: https://github.com/readium/r2-lcp-swift/compare/2.0.0-alpha.2...2.0.0-beta.1
+[2.0.0-beta.2]: https://github.com/readium/r2-lcp-swift/compare/2.0.0-beta.1...2.0.0-beta.2
