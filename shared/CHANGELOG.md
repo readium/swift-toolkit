@@ -4,7 +4,9 @@ All notable changes to this project will be documented in this file.
 
 **Warning:** Features marked as *experimental* may change or be removed in a future release without notice. Use with caution.
 
-## [Unreleased]
+<!-- ## [Unreleased] -->
+
+## [2.0.0-beta.2]
 
 ### Added
 
@@ -14,7 +16,6 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-* CocoaPods is not supported anymore (i.e. [PR #129](https://github.com/readium/r2-shared-swift/pull/129))
 * The `Archive` API now supports resource ownership at the entry level.
     * The default ZIP implementation takes advantage of this by opening a new ZIP stream for each resource to be served. This improves performances and memory safety.
 
@@ -89,3 +90,4 @@ All notable changes to this project will be documented in this file.
 [2.0.0-alpha.1]: https://github.com/readium/r2-shared-swift/compare/1.4.3...2.0.0-alpha.1
 [2.0.0-alpha.2]: https://github.com/readium/r2-shared-swift/compare/2.0.0-alpha.1...2.0.0-alpha.2
 [2.0.0-beta.1]: https://github.com/readium/r2-shared-swift/compare/2.0.0-alpha.2...2.0.0-beta.1
+[2.0.0-beta.2]: https://github.com/readium/r2-shared-swift/compare/2.0.0-beta.1...2.0.0-beta.2

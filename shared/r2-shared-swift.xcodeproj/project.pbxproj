@@ -222,9 +222,9 @@
 		3ED945189CDA6315454B66A3 /* MediaType+Deprecated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MediaType+Deprecated.swift"; sourceTree = "<group>"; };
 		3ED945F9EAD92BCC3422D80D /* BufferedResourceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BufferedResourceTests.swift; sourceTree = "<group>"; };
 		3ED94693F7D849969088AA77 /* MediaTypeSniffer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaTypeSniffer.swift; sourceTree = "<group>"; };
-		3ED948207719872229F1F74B /* Date+ISO8601Tests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Date+ISO8601Tests.swift"; sourceTree = "<group>"; };
 		3ED946C593463CDA73661EEE /* BufferedResource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BufferedResource.swift; sourceTree = "<group>"; };
 		3ED9477F7DC86616C5ADEA73 /* Resource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Resource.swift; sourceTree = "<group>"; };
+		3ED948207719872229F1F74B /* Date+ISO8601Tests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Date+ISO8601Tests.swift"; sourceTree = "<group>"; };
 		3ED948F6DF2A5D55BC75DC05 /* FileAssetTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileAssetTests.swift; sourceTree = "<group>"; };
 		3ED949D4A4A923277AC0848F /* PublicationAsset.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationAsset.swift; sourceTree = "<group>"; };
 		3ED94D6E130466CCF1F2745C /* MediaTypeSnifferContent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaTypeSnifferContent.swift; sourceTree = "<group>"; };
@@ -1087,7 +1087,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0940;
-				LastUpgradeCheck = 1230;
+				LastUpgradeCheck = 1240;
 				ORGANIZATIONNAME = Readium;
 				TargetAttributes = {
 					CA6161E921FB257700D2CFE3 = {
