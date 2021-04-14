@@ -258,6 +258,8 @@
 		CA9A40DA221C069D00531EA1 /* LCPViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D7221C069D00531EA1 /* LCPViewModel.swift */; };
 		CA9A40DC221C06A300531EA1 /* DRMViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */; };
 		CA9A40DE221C06A500531EA1 /* DRMViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9A40D2221C054B00531EA1 /* DRMViewModel.swift */; };
+		CAB35A6D2626F4E7002CD7C5 /* ReadiumLCP.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAB35A6C2626F4E7002CD7C5 /* ReadiumLCP.xcframework */; };
+		CAB35A6E2626F4E7002CD7C5 /* ReadiumLCP.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CAB35A6C2626F4E7002CD7C5 /* ReadiumLCP.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		CABD697324CD7F7200B4AE17 /* URL.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABD697224CD7F7200B4AE17 /* URL.swift */; };
 		CABD697424CD7F7200B4AE17 /* URL.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABD697224CD7F7200B4AE17 /* URL.swift */; };
 		CABD697524CD7F7200B4AE17 /* URL.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABD697224CD7F7200B4AE17 /* URL.swift */; };
@@ -318,8 +320,6 @@
 		CAF8E86C25D2DD2300827825 /* R2Shared.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CAAAEE5B25D17C4D00939C5C /* R2Shared.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		CAF8E86F25D2DD2400827825 /* R2Streamer.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAAAEE5C25D17C4E00939C5C /* R2Streamer.xcframework */; };
 		CAF8E87025D2DD2400827825 /* R2Streamer.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CAAAEE5C25D17C4E00939C5C /* R2Streamer.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		CAF8E87125D2DD2500827825 /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA90E1925D1831E0004651A /* ReadiumLCP.framework */; };
-		CAF8E87225D2DD2500827825 /* ReadiumLCP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CAA90E1925D1831E0004651A /* ReadiumLCP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		CAF8E87325D2DD2600827825 /* ReadiumOPDS.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAAAEE5A25D17C4D00939C5C /* ReadiumOPDS.xcframework */; };
 		CAF8E87425D2DD2600827825 /* ReadiumOPDS.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CAAAEE5A25D17C4D00939C5C /* ReadiumOPDS.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		CAF8E87525D2DD2700827825 /* SQLite.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAAAEE5625D17C4D00939C5C /* SQLite.xcframework */; };
@@ -446,7 +446,7 @@
 				CAF8E87025D2DD2400827825 /* R2Streamer.xcframework in Embed Frameworks */,
 				CAF8E85E25D2DD1B00827825 /* Kingfisher.xcframework in Embed Frameworks */,
 				CAF8E87A25D2DD2800827825 /* SwiftSoup.xcframework in Embed Frameworks */,
-				CAF8E87225D2DD2500827825 /* ReadiumLCP.framework in Embed Frameworks */,
+				CAB35A6E2626F4E7002CD7C5 /* ReadiumLCP.xcframework in Embed Frameworks */,
 				CAF8E87425D2DD2600827825 /* ReadiumOPDS.xcframework in Embed Frameworks */,
 				CAF8E87625D2DD2700827825 /* SQLite.xcframework in Embed Frameworks */,
 			);
@@ -608,6 +608,7 @@
 		CAAAEE5D25D17C4E00939C5C /* CryptoSwift.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = CryptoSwift.xcframework; path = Carthage/Build/CryptoSwift.xcframework; sourceTree = "<group>"; };
 		CAAAEE5E25D17C4E00939C5C /* Fuzi.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Fuzi.xcframework; path = Carthage/Build/Fuzi.xcframework; sourceTree = "<group>"; };
 		CAAAEE5F25D17C4E00939C5C /* MBProgressHUD.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = MBProgressHUD.xcframework; path = Carthage/Build/MBProgressHUD.xcframework; sourceTree = "<group>"; };
+		CAB35A6C2626F4E7002CD7C5 /* ReadiumLCP.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = ReadiumLCP.xcframework; path = Carthage/Build/ReadiumLCP.xcframework; sourceTree = "<group>"; };
 		CABD697224CD7F7200B4AE17 /* URL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URL.swift; sourceTree = "<group>"; };
 		CACE84FC225640A500E19E8B /* Bookmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bookmark.swift; sourceTree = "<group>"; };
 		CADD69DC22C3A42600A4CADF /* Publication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Publication.swift; sourceTree = "<group>"; };
@@ -670,6 +671,7 @@
 				CAF8E85225D2DD1700827825 /* CryptoSwift.xcframework in Frameworks */,
 				CAF8E85725D2DD1800827825 /* Fuzi.xcframework in Frameworks */,
 				CAF8E85925D2DD1A00827825 /* GCDWebServer.xcframework in Frameworks */,
+				CAB35A6D2626F4E7002CD7C5 /* ReadiumLCP.xcframework in Frameworks */,
 				CAF8E85D25D2DD1B00827825 /* Kingfisher.xcframework in Frameworks */,
 				CAF8E85F25D2DD1C00827825 /* KingfisherSwiftUI.xcframework in Frameworks */,
 				CAF8E86525D2DD1F00827825 /* Minizip.xcframework in Frameworks */,
@@ -681,7 +683,6 @@
 				CAF8E87925D2DD2800827825 /* SwiftSoup.xcframework in Frameworks */,
 				CAF8E87525D2DD2700827825 /* SQLite.xcframework in Frameworks */,
 				CAF8E87B25D2DD2900827825 /* ZIPFoundation.xcframework in Frameworks */,
-				CAF8E87125D2DD2500827825 /* ReadiumLCP.framework in Frameworks */,
 				03A5DB9D23B785FC00D5FCBD /* R2LCPClient.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1008,6 +1009,7 @@
 		F3E7D4691F4EFE8700DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CAB35A6C2626F4E7002CD7C5 /* ReadiumLCP.xcframework */,
 				CAF8E91525D2DEF500827825 /* R2Navigator.framework */,
 				CAF8E91225D2DEF100827825 /* R2Streamer.framework */,
 				CAF8E90F25D2DEEC00827825 /* R2Shared.framework */,
@@ -1140,7 +1142,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0830;
-				LastUpgradeCheck = 1230;
+				LastUpgradeCheck = 1240;
 				ORGANIZATIONNAME = Readium;
 				TargetAttributes = {
 					0350FCE3211CD2CB006994C2 = {
@@ -1684,7 +1686,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1722,7 +1724,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1760,7 +1762,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1798,7 +1800,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1835,7 +1837,7 @@
 				CODE_SIGN_ENTITLEMENTS = "r2-testapp-swift/r2-testapp-swift.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1871,7 +1873,7 @@
 				CODE_SIGN_ENTITLEMENTS = "r2-testapp-swift/r2-testapp-swift.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2028,7 +2030,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2066,7 +2068,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEVELOPMENT_TEAM = 327YA3JNGT;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",

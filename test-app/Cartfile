@@ -8,7 +8,8 @@ github "cezheng/Fuzi" == 3.1.3
 github "dexman/Minizip" == 1.4.0
 github "scinfu/SwiftSoup" == 2.3.2
 
-github "readium/r2-shared-swift" "develop"
-github "readium/r2-streamer-swift" "develop"
-github "readium/r2-navigator-swift" "develop"
-github "readium/readium-opds-swift" "develop"
+github "readium/r2-shared-swift" == 2.0.0-beta.2
+github "readium/r2-streamer-swift" == 2.0.0-beta.2
+github "readium/r2-navigator-swift" == 2.0.0-beta.2
+github "readium/r2-opds-swift" == 2.0.0-beta.2
+github "readium/r2-lcp-swift" == 2.0.0-beta.2
