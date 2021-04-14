@@ -159,7 +159,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0900;
-				LastUpgradeCheck = 1230;
+				LastUpgradeCheck = 1240;
 				ORGANIZATIONNAME = Readium;
 				TargetAttributes = {
 					F34B7E4C1FA35B7900534FD3 = {
