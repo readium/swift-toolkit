@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 46;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -76,10 +76,6 @@
 		CA3386EE24056ADB00FDCBBA /* Locator+HTML.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3386ED24056ADB00FDCBBA /* Locator+HTML.swift */; };
 		CA3386F024056E7A00FDCBBA /* Locator+HTMLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3386EF24056E7A00FDCBBA /* Locator+HTMLTests.swift */; };
 		CA40C07A21FF25F80069A50E /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA40C07921FF25F80069A50E /* JSON.swift */; };
-		CA4CF46125CD9FC1005DD935 /* Minizip.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF45F25CD9FC1005DD935 /* Minizip.xcframework */; };
-		CA4CF46225CD9FC1005DD935 /* Fuzi.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF46025CD9FC1005DD935 /* Fuzi.xcframework */; };
-		CA4CF46625CDA02B005DD935 /* Fuzi.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF46025CD9FC1005DD935 /* Fuzi.xcframework */; };
-		CA4CF46725CDA02B005DD935 /* Minizip.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF45F25CD9FC1005DD935 /* Minizip.xcframework */; };
 		CA50B86E22B2A1CF003AFF24 /* R2LocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50B86D22B2A1CF003AFF24 /* R2LocalizedString.swift */; };
 		CA54A8DD252339AF00CEE5A6 /* LinkRelation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA54A8DC252339AF00CEE5A6 /* LinkRelation.swift */; };
 		CA5A99AE25470EE700C71A68 /* CGPDF.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0D3C122518E604005B47BC /* CGPDF.swift */; };
@@ -123,6 +119,8 @@
 		CA7116F12455FAF900C029FD /* UTI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7116F02455FAF900C029FD /* UTI.swift */; };
 		CA7B1AA5248A2CFF00152F73 /* URITemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7B1AA4248A2CFF00152F73 /* URITemplate.swift */; };
 		CA7B1AA7248A2D1200152F73 /* URITemplateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7B1AA6248A2D1200152F73 /* URITemplateTests.swift */; };
+		CA7B7798263AB83F00260838 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA7B7797263AB83F00260838 /* Fuzi.framework */; };
+		CA7B779C263AB84300260838 /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA7B779B263AB84300260838 /* Minizip.framework */; };
 		CA81741C24585E6700033776 /* NowPlayingInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA81741B24585E6700033776 /* NowPlayingInfo.swift */; };
 		CA86728E24485BE70035FDF4 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA86728D24485BE70035FDF4 /* CoreServices.framework */; };
 		CA8C84142468906600CE97A4 /* Fetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8C84132468906600CE97A4 /* Fetcher.swift */; };
@@ -265,7 +263,6 @@
 		CA228D1C24BD990000879E2E /* ContentProtection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentProtection.swift; sourceTree = "<group>"; };
 		CA228D1E24BDDDAF00879E2E /* CancellableResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CancellableResult.swift; sourceTree = "<group>"; };
 		CA252DD82447A3740005067C /* Minizip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Minizip.swift; sourceTree = "<group>"; };
-		CA252DDA2447A3810005067C /* Minizip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Minizip.framework; path = Carthage/Build/iOS/Minizip.framework; sourceTree = "<group>"; };
 		CA252DE02447A5C00005067C /* Archive+ZIPTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Archive+ZIPTests.swift"; sourceTree = "<group>"; };
 		CA255AB125B1A3B4000D87AF /* DefaultLocatorServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultLocatorServiceTests.swift; sourceTree = "<group>"; };
 		CA2AE31D221C1DCB008BD18F /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
@@ -283,8 +280,6 @@
 		CA3386ED24056ADB00FDCBBA /* Locator+HTML.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Locator+HTML.swift"; sourceTree = "<group>"; };
 		CA3386EF24056E7A00FDCBBA /* Locator+HTMLTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Locator+HTMLTests.swift"; sourceTree = "<group>"; };
 		CA40C07921FF25F80069A50E /* JSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSON.swift; sourceTree = "<group>"; };
-		CA4CF45F25CD9FC1005DD935 /* Minizip.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Minizip.xcframework; path = Carthage/Build/Minizip.xcframework; sourceTree = "<group>"; };
-		CA4CF46025CD9FC1005DD935 /* Fuzi.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Fuzi.xcframework; path = Carthage/Build/Fuzi.xcframework; sourceTree = "<group>"; };
 		CA50B86D22B2A1CF003AFF24 /* R2LocalizedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2LocalizedString.swift; sourceTree = "<group>"; };
 		CA54A8DC252339AF00CEE5A6 /* LinkRelation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkRelation.swift; sourceTree = "<group>"; };
 		CA5B7C362441B492003A2FE7 /* Fixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Fixtures; sourceTree = "<group>"; };
@@ -329,6 +324,8 @@
 		CA7116F02455FAF900C029FD /* UTI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UTI.swift; sourceTree = "<group>"; };
 		CA7B1AA4248A2CFF00152F73 /* URITemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URITemplate.swift; sourceTree = "<group>"; };
 		CA7B1AA6248A2D1200152F73 /* URITemplateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URITemplateTests.swift; sourceTree = "<group>"; };
+		CA7B7797263AB83F00260838 /* Fuzi.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Fuzi.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA7B779B263AB84300260838 /* Minizip.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Minizip.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA81741B24585E6700033776 /* NowPlayingInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingInfo.swift; sourceTree = "<group>"; };
 		CA86728D24485BE70035FDF4 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		CA8C84132468906600CE97A4 /* Fetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fetcher.swift; sourceTree = "<group>"; };
@@ -373,7 +370,6 @@
 		CACDE6022485169F006FEB1B /* PerResourcePositionsServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerResourcePositionsServiceTests.swift; sourceTree = "<group>"; };
 		CACDE61C24858C50006FEB1B /* HTTPFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPFetcher.swift; sourceTree = "<group>"; };
 		CAD0FEC1244310BB0053C998 /* Array.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Array.swift; sourceTree = "<group>"; };
-		CAD0FEC3244318A90053C998 /* Fuzi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Fuzi.framework; path = Carthage/Build/iOS/Fuzi.framework; sourceTree = "<group>"; };
 		CAD0FED92444FDB50053C998 /* Archive.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Archive.swift; sourceTree = "<group>"; };
 		CAD0FEDB2444FDEC0053C998 /* ZIPFoundation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZIPFoundation.swift; sourceTree = "<group>"; };
 		CAD178AE22B3A75C004E6812 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -404,8 +400,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA4CF46625CDA02B005DD935 /* Fuzi.xcframework in Frameworks */,
-				CA4CF46725CDA02B005DD935 /* Minizip.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -413,9 +407,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA7B7798263AB83F00260838 /* Fuzi.framework in Frameworks */,
 				CA86728E24485BE70035FDF4 /* CoreServices.framework in Frameworks */,
-				CA4CF46125CD9FC1005DD935 /* Minizip.xcframework in Frameworks */,
-				CA4CF46225CD9FC1005DD935 /* Fuzi.xcframework in Frameworks */,
+				CA7B779C263AB84300260838 /* Minizip.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1020,10 +1014,8 @@
 		F3E7D41F1F4ECA9800DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				CA4CF46025CD9FC1005DD935 /* Fuzi.xcframework */,
-				CA4CF45F25CD9FC1005DD935 /* Minizip.xcframework */,
-				CA252DDA2447A3810005067C /* Minizip.framework */,
-				CAD0FEC3244318A90053C998 /* Fuzi.framework */,
+				CA7B779B263AB84300260838 /* Minizip.framework */,
+				CA7B7797263AB83F00260838 /* Fuzi.framework */,
 				CA86728D24485BE70035FDF4 /* CoreServices.framework */,
 			);
 			name = Frameworks;
@@ -1363,11 +1355,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "r2-shared-swiftTests/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-shared-swiftTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -1390,11 +1378,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "r2-shared-swiftTests/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-shared-swiftTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -1514,8 +1498,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
-				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
@@ -1539,16 +1522,13 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/Carthage/Build/**",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
 				INFOPLIST_FILE = "r2-shared-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = "-lxml2";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-shared-swift";
 				PRODUCT_NAME = R2Shared;
@@ -1576,16 +1556,13 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/Carthage/Build/**",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
 				INFOPLIST_FILE = "r2-shared-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = "-lxml2";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-shared-swift";
 				PRODUCT_NAME = R2Shared;
