@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 46;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -49,22 +49,17 @@
 		CA2D155F24BEFA0F0034927C /* FetcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2D155E24BEFA0F0034927C /* FetcherTests.swift */; };
 		CA3387072406632100FDCBBA /* Asserts.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3387062406632100FDCBBA /* Asserts.swift */; };
 		CA3F3FA8248EB156005B8A0B /* Fetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3F3FA7248EB156005B8A0B /* Fetcher.swift */; };
-		CA4CF4F325CDAF9C005DD935 /* Minizip.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4EE25CDAF9C005DD935 /* Minizip.xcframework */; };
-		CA4CF4F425CDAF9C005DD935 /* R2Shared.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4EF25CDAF9C005DD935 /* R2Shared.xcframework */; };
-		CA4CF4F525CDAF9C005DD935 /* Fuzi.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4F025CDAF9C005DD935 /* Fuzi.xcframework */; };
-		CA4CF4F625CDAF9C005DD935 /* GCDWebServer.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4F125CDAF9C005DD935 /* GCDWebServer.xcframework */; };
-		CA4CF4F725CDAF9C005DD935 /* CryptoSwift.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4F225CDAF9C005DD935 /* CryptoSwift.xcframework */; };
-		CA4CF4FA25CDAFA2005DD935 /* CryptoSwift.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4F225CDAF9C005DD935 /* CryptoSwift.xcframework */; };
-		CA4CF4FB25CDAFA2005DD935 /* Fuzi.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4F025CDAF9C005DD935 /* Fuzi.xcframework */; };
-		CA4CF4FC25CDAFA2005DD935 /* GCDWebServer.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4F125CDAF9C005DD935 /* GCDWebServer.xcframework */; };
-		CA4CF4FD25CDAFA2005DD935 /* Minizip.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4EE25CDAF9C005DD935 /* Minizip.xcframework */; };
-		CA4CF4FE25CDAFA2005DD935 /* R2Shared.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4EF25CDAF9C005DD935 /* R2Shared.xcframework */; };
 		CA5A5DDC251FAA9000CF1CCE /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A5DDB251FAA9000CF1CCE /* Extensions.swift */; };
 		CA6CF2152528E5D80025BBB2 /* Parser+Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6CF2142528E5D80025BBB2 /* Parser+Deprecated.swift */; };
 		CA6F97CE22A50F39007D2049 /* EPUBContainerParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97CD22A50F39007D2049 /* EPUBContainerParser.swift */; };
 		CA6F97D222A5161A007D2049 /* EPUBContainerParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97D122A5161A007D2049 /* EPUBContainerParserTests.swift */; };
 		CA6F97D422A52810007D2049 /* OPFParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97D322A52810007D2049 /* OPFParserTests.swift */; };
 		CA6F97DA22A6A0B7007D2049 /* OPFMeta.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6F97D922A6A0B6007D2049 /* OPFMeta.swift */; };
+		CA7B77BC263AB93B00260838 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA7B77BB263AB93B00260838 /* R2Shared.framework */; };
+		CA7B77C0263AB94000260838 /* Minizip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA7B77BF263AB94000260838 /* Minizip.framework */; };
+		CA7B77C3263AB94600260838 /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA7B77C2263AB94600260838 /* Fuzi.framework */; };
+		CA7B77C6263AB94B00260838 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA7B77C5263AB94B00260838 /* CryptoSwift.framework */; };
+		CA7B77C9263AB94F00260838 /* GCDWebServer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA7B77C8263AB94F00260838 /* GCDWebServer.framework */; };
 		CA8672B2244868B50035FDF4 /* DataCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA130D20229D4245000A627C /* DataCompression.swift */; };
 		CA8F18D52483901700146D11 /* PublicationContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8F18D42483901700146D11 /* PublicationContainer.swift */; };
 		CA8F18D7248394F100146D11 /* ResourceInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8F18D6248394F100146D11 /* ResourceInputStream.swift */; };
@@ -96,8 +91,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		035CE41A24F7E21F0062EE28 /* CryptoSwift.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CryptoSwift.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		03C3CC69222DBD9E00A01731 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3ED949B2D13E096711C56F83 /* AudioLocatorServiceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioLocatorServiceTests.swift; sourceTree = "<group>"; };
 		3ED94D22A77852209E10020F /* AudioLocatorService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioLocatorService.swift; sourceTree = "<group>"; };
 		59501DCD1E2FB0D700D1B4BF /* R2Streamer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = R2Streamer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -144,17 +137,17 @@
 		CA2D155E24BEFA0F0034927C /* FetcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetcherTests.swift; sourceTree = "<group>"; };
 		CA3387062406632100FDCBBA /* Asserts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Asserts.swift; sourceTree = "<group>"; };
 		CA3F3FA7248EB156005B8A0B /* Fetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fetcher.swift; sourceTree = "<group>"; };
-		CA4CF4EE25CDAF9C005DD935 /* Minizip.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Minizip.xcframework; path = Carthage/Build/Minizip.xcframework; sourceTree = "<group>"; };
-		CA4CF4EF25CDAF9C005DD935 /* R2Shared.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = R2Shared.xcframework; path = Carthage/Build/R2Shared.xcframework; sourceTree = "<group>"; };
-		CA4CF4F025CDAF9C005DD935 /* Fuzi.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Fuzi.xcframework; path = Carthage/Build/Fuzi.xcframework; sourceTree = "<group>"; };
-		CA4CF4F125CDAF9C005DD935 /* GCDWebServer.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = GCDWebServer.xcframework; path = Carthage/Build/GCDWebServer.xcframework; sourceTree = "<group>"; };
-		CA4CF4F225CDAF9C005DD935 /* CryptoSwift.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = CryptoSwift.xcframework; path = Carthage/Build/CryptoSwift.xcframework; sourceTree = "<group>"; };
 		CA5A5DDB251FAA9000CF1CCE /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		CA6CF2142528E5D80025BBB2 /* Parser+Deprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Parser+Deprecated.swift"; sourceTree = "<group>"; };
 		CA6F97CD22A50F39007D2049 /* EPUBContainerParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBContainerParser.swift; sourceTree = "<group>"; };
 		CA6F97D122A5161A007D2049 /* EPUBContainerParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBContainerParserTests.swift; sourceTree = "<group>"; };
 		CA6F97D322A52810007D2049 /* OPFParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPFParserTests.swift; sourceTree = "<group>"; };
 		CA6F97D922A6A0B6007D2049 /* OPFMeta.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPFMeta.swift; sourceTree = "<group>"; };
+		CA7B77BB263AB93B00260838 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA7B77BF263AB94000260838 /* Minizip.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Minizip.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA7B77C2263AB94600260838 /* Fuzi.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Fuzi.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA7B77C5263AB94B00260838 /* CryptoSwift.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CryptoSwift.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA7B77C8263AB94F00260838 /* GCDWebServer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = GCDWebServer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA8F18D42483901700146D11 /* PublicationContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationContainer.swift; sourceTree = "<group>"; };
 		CA8F18D6248394F100146D11 /* ResourceInputStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceInputStream.swift; sourceTree = "<group>"; };
 		CA94291722BCE42500305CDB /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
@@ -180,12 +173,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA7B77C3263AB94600260838 /* Fuzi.framework in Frameworks */,
 				59501E201E2FB2AD00D1B4BF /* libz.tbd in Frameworks */,
-				CA4CF4F325CDAF9C005DD935 /* Minizip.xcframework in Frameworks */,
-				CA4CF4F425CDAF9C005DD935 /* R2Shared.xcframework in Frameworks */,
-				CA4CF4F525CDAF9C005DD935 /* Fuzi.xcframework in Frameworks */,
-				CA4CF4F625CDAF9C005DD935 /* GCDWebServer.xcframework in Frameworks */,
-				CA4CF4F725CDAF9C005DD935 /* CryptoSwift.xcframework in Frameworks */,
+				CA7B77BC263AB93B00260838 /* R2Shared.framework in Frameworks */,
+				CA7B77C9263AB94F00260838 /* GCDWebServer.framework in Frameworks */,
+				CA7B77C6263AB94B00260838 /* CryptoSwift.framework in Frameworks */,
+				CA7B77C0263AB94000260838 /* Minizip.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -194,11 +187,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA130DA4229E7C83000A627C /* R2Streamer.framework in Frameworks */,
-				CA4CF4FA25CDAFA2005DD935 /* CryptoSwift.xcframework in Frameworks */,
-				CA4CF4FB25CDAFA2005DD935 /* Fuzi.xcframework in Frameworks */,
-				CA4CF4FC25CDAFA2005DD935 /* GCDWebServer.xcframework in Frameworks */,
-				CA4CF4FD25CDAFA2005DD935 /* Minizip.xcframework in Frameworks */,
-				CA4CF4FE25CDAFA2005DD935 /* R2Shared.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -243,14 +231,12 @@
 		59501E171E2FB1F500D1B4BF /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				CA4CF4F225CDAF9C005DD935 /* CryptoSwift.xcframework */,
-				CA4CF4F025CDAF9C005DD935 /* Fuzi.xcframework */,
-				CA4CF4F125CDAF9C005DD935 /* GCDWebServer.xcframework */,
-				CA4CF4EE25CDAF9C005DD935 /* Minizip.xcframework */,
-				CA4CF4EF25CDAF9C005DD935 /* R2Shared.xcframework */,
-				035CE41A24F7E21F0062EE28 /* CryptoSwift.framework */,
+				CA7B77C8263AB94F00260838 /* GCDWebServer.framework */,
+				CA7B77C5263AB94B00260838 /* CryptoSwift.framework */,
+				CA7B77C2263AB94600260838 /* Fuzi.framework */,
+				CA7B77BF263AB94000260838 /* Minizip.framework */,
+				CA7B77BB263AB93B00260838 /* R2Shared.framework */,
 				CA94291722BCE42500305CDB /* CoreServices.framework */,
-				03C3CC69222DBD9E00A01731 /* R2Shared.framework */,
 				59501E1F1E2FB2AD00D1B4BF /* libz.tbd */,
 			);
 			name = Frameworks;
@@ -862,9 +848,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
-				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Sources/ZipArchive/minizip/**";
-				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
@@ -886,16 +871,13 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/Carthage/Build/**",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
 				INFOPLIST_FILE = "r2-streamer-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = "-lxml2";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2Streamer;
 				PRODUCT_NAME = R2Streamer;
@@ -919,16 +901,13 @@
 				ENABLE_TESTABILITY = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/Carthage/Build/**",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libxml2";
 				INFOPLIST_FILE = "r2-streamer-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = "-lxml2";
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2Streamer;
 				PRODUCT_NAME = R2Streamer;
@@ -954,11 +933,7 @@
 				HEADER_SEARCH_PATHS = $SDKROOT/usr/include/libxml2;
 				INFOPLIST_FILE = "r2-streamer-swiftTests/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2StreamerTests;
@@ -984,11 +959,7 @@
 				HEADER_SEARCH_PATHS = $SDKROOT/usr/include/libxml2;
 				INFOPLIST_FILE = "r2-streamer-swiftTests/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2StreamerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";

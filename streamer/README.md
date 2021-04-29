@@ -27,9 +27,12 @@ install R2Streamer with Carthage:
     ```ruby
     github "readium/r2-streamer-swift" "develop"
     ```
+    
+ 3. Run:
+    * [`mkdir -p Carthage/Build/iOS`](https://github.com/Carthage/Carthage/issues/3122#issuecomment-784865551)
+    * `carthage update --use-xcframeworks`
 
- 3. Run `carthage update --use-xcframeworks` and
-    [add the appropriate framework][Carthage Usage].
+ 4. [Add the appropriate framework][Carthage Usage].
 
 
 [Carthage]: https://github.com/Carthage/Carthage
