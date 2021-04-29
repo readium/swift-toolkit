@@ -18,9 +18,12 @@ Swift wrapper module for LCP support
 
     ```ruby
     github "readium/r2-lcp-swift" "develop"
-    ```
+ 
+ 3. Run:
+    * [`mkdir -p Carthage/Build/iOS`](https://github.com/Carthage/Carthage/issues/3122#issuecomment-784865551)
+    * `carthage update --use-xcframeworks`
 
- 3. Run `carthage update --use-xcframeworks --platform ios` and [add the appropriate frameworks to your app][Carthage Usage].
+ 4. [Add the appropriate framework][Carthage Usage].   ```
 
 ### Integration in your project
 
