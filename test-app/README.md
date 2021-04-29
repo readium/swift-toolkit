@@ -44,12 +44,10 @@ github "readium/readium-opds-swift" "develop"
 ```
 
 2) Fetch the dependencies using [Carthage](https://github.com/Carthage/Carthage) :
+    * [`mkdir -p Carthage/Build/iOS`](https://github.com/Carthage/Carthage/issues/3122#issuecomment-784865551)
+    * `carthage update --use-xcframeworks`
 
-`$> carthage update --platform ios --use-xcframeworks`
-
-3) Open the Xcode project :
-
-`$> open r2-testapp-swift.xcodeproj`
+3) Open the Xcode project: `open r2-testapp-swift.xcodeproj`
 
 4) Build the project target named `r2-testapp-swift (carthage)`.
 
