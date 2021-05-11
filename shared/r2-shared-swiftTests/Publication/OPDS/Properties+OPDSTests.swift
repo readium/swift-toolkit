@@ -97,4 +97,27 @@ class PropertiesOPDSTests: XCTestCase {
         XCTAssertEqual(sut.availability, OPDSAvailability(state: .available))
     }
 
+    func testNoAuthenticateLink() {
+        let sut = Properties()
+        XCTAssertNil(sut.authenticate)
+    }
+
+    func testAuthenticateLink() {
+        let sut = Properties(["authenticate": [
+            "href": "https://example.com/authentication.json",
+            "type": "application/opds-authentication+json",
+        ]])
+        XCTAssertEqual(sut.authenticate, Link(
+            href: "https://example.com/authentication.json",
+            type: "application/opds-authentication+json"
+        ))
+    }
+
+    func testInvalidAuthenticateLink() {
+        let sut = Properties(["authenticate": [
+            "type": "application/opds-authentication+json",
+        ]])
+        XCTAssertNil(sut.authenticate)
+    }
+
 }

@@ -11,7 +11,7 @@
 
 import Foundation
 
-/// Represents a `Result` which can be in a `canceled` state.
+/// Represents a `Result` which can be in a `cancelled` state.
 public enum CancellableResult<Success, Failure: Error> {
     case success(Success)
     case failure(Failure)
@@ -20,8 +20,18 @@ public enum CancellableResult<Success, Failure: Error> {
     public enum Error: Swift.Error {
         case cancelled
     }
-    
-    /// Creates a `CancelableResult` from a `Result` with the canceled state represented as a `nil`
+
+    /// Creates a `CancelableResult` from a `Result`.
+    public init(_ result: Result<Success, Failure>) {
+        switch result {
+        case .success(let value):
+            self = .success(value)
+        case .failure(let error):
+            self = .failure(error)
+        }
+    }
+
+    /// Creates a `CancelableResult` from a `Result` with the cancelled state represented as a `nil`
     /// success.
     public init(_ result: Result<Success?, Failure>) {
         switch result {
@@ -50,7 +60,7 @@ public enum CancellableResult<Success, Failure: Error> {
         }
     }
     
-    /// Creates a `Result` with the canceled state represented as a `Error.cancelled` failure.
+    /// Creates a `Result` with the cancelled state represented as a `Error.cancelled` failure.
     public var result: Result<Success, Swift.Error> {
         switch self {
         case .success(let success):
@@ -61,7 +71,19 @@ public enum CancellableResult<Success, Failure: Error> {
             return .failure(Error.cancelled)
         }
     }
-    
+
+    /// Creates a `Result` with a custom cancelled error.
+    public func result(withCancelledError cancelledError: @autoclosure () -> Failure) -> Result<Success, Failure> {
+        switch self {
+        case .success(let success):
+            return .success(success)
+        case .failure(let error):
+            return .failure(error)
+        case .cancelled:
+            return .failure(cancelledError())
+        }
+    }
+
     public func map<NewSuccess>(_ transform: (Success) -> NewSuccess) -> CancellableResult<NewSuccess, Failure> {
         switch self {
         case .success(let success):

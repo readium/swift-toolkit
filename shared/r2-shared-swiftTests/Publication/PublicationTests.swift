@@ -212,7 +212,7 @@ class PublicationTests: XCTestCase {
                 if link.href == $0.href {
                     return DataResource(link: $0, string: "hello")
                 } else {
-                    return FailureResource(link: $0, error: .notFound)
+                    return FailureResource(link: $0, error: .notFound(nil))
                 }
             }
         )
@@ -229,7 +229,7 @@ class PublicationTests: XCTestCase {
                 if link.href == $0.href {
                     return DataResource(link: $0, string: "hello")
                 } else {
-                    return FailureResource(link: $0, error: .notFound)
+                    return FailureResource(link: $0, error: .notFound(nil))
                 }
             },
             services: PublicationServicesBuilder(setup: {
@@ -248,7 +248,7 @@ class PublicationTests: XCTestCase {
             links: [link],
             fetcher: ProxyFetcher {
                 requestedLink = $0
-                return FailureResource(link: $0, error: .notFound)
+                return FailureResource(link: $0, error: .notFound(nil))
             }
         )
         
@@ -289,7 +289,7 @@ private struct TestService: PublicationService {
         if link.href == self.link.href {
             return DataResource(link: link, string: "world")
         } else {
-            return FailureResource(link: link, error: .notFound)
+            return FailureResource(link: link, error: .notFound(nil))
         }
     }
     

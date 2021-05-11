@@ -394,3 +394,16 @@ public func deferred<Success, Failure>(on queue: DispatchQueue? = nil, closure: 
         )
     }
 }
+
+public extension Result {
+
+    /// Converts a `Result` to a `Deferred`.
+    var deferred: Deferred<Success, Failure> {
+        switch self {
+        case .success(let value):
+            return .success(value)
+        case .failure(let error):
+            return .failure(error)
+        }
+    }
+}

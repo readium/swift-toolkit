@@ -10,6 +10,13 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+* `Resource` has a new API to perform progressive asynchronous reads. This is useful when streaming a resource.
+* `HTTPFetcher` is a new publication fetcher able to serve remote resources through HTTP.
+    * The actual HTTP requests are performed with an instance of `HTTPClient`.
+* `HTTPClient` is a new protocol exposing a high level API to perform HTTP requests.
+    * It supports simple fetches but also progressive downloads.
+    * `DefaultHTTPClient` is an implementation of `HTTPClient` using standard `URLSession` APIs. You can use its delegate to customize how requests are created and even recover from errors, e.g. to implement Authentication for OPDS.
+    * You can provide your own implementation of `HTTPClient` to Readium APIs if you prefer to use a third-party networking library.
 * `PublicationServiceContext` now holds a weak reference to the parent `Publication`. This can be used to access other services from a given `PublicationService` implementation.
 * The default `LocatorService` implementation can be used to get a `Locator` from a global progression in the publication.
     * `publication.locate(progression: 0.5)`

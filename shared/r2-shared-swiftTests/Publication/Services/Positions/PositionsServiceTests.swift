@@ -225,7 +225,7 @@ class PositionsServiceTests: XCTestCase {
         let positionsHref = "/positions"
         let fetcher = ProxyFetcher { link in
             guard link.href == "/positions" else {
-                return FailureResource(link: link, error: .notFound)
+                return FailureResource(link: link, error: .notFound(nil))
             }
             
             return DataResource(link: link, string: """

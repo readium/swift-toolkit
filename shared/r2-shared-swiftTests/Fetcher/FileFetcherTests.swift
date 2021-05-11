@@ -72,7 +72,7 @@ class FileFetcherTests: XCTestCase {
         let resource = fetcher.get(Link(href: "/unknown"))
         let result = resource.read()
         XCTAssertThrowsError(try result.get()) { error in
-            XCTAssertEqual(ResourceError.notFound, error as? ResourceError)
+            XCTAssertEqual(ResourceError.notFound(nil), error as? ResourceError)
         }
     }
     
@@ -80,7 +80,7 @@ class FileFetcherTests: XCTestCase {
         let resource = fetcher.get(Link(href: "/dir_href/../text.txt"))
         let result = resource.read()
         XCTAssertThrowsError(try result.get()) { error in
-            XCTAssertEqual(ResourceError.notFound, error as? ResourceError)
+            XCTAssertEqual(ResourceError.notFound(nil), error as? ResourceError)
         }
     }
     
@@ -88,7 +88,7 @@ class FileFetcherTests: XCTestCase {
         let resource = fetcher.get(Link(href: "/dir_href"))
         let result = resource.read()
         XCTAssertThrowsError(try result.get()) { error in
-            XCTAssertEqual(ResourceError.notFound, error as? ResourceError)
+            XCTAssertEqual(ResourceError.notFound(nil), error as? ResourceError)
         }
     }
     
@@ -101,7 +101,7 @@ class FileFetcherTests: XCTestCase {
         let resource = fetcher.get(Link(href: "/unknown"))
         let result = resource.length
         XCTAssertThrowsError(try result.get()) { error in
-            XCTAssertEqual(ResourceError.notFound, error as? ResourceError)
+            XCTAssertEqual(ResourceError.notFound(nil), error as? ResourceError)
         }
     }
     

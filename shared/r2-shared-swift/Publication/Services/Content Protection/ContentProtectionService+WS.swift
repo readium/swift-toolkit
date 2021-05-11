@@ -121,7 +121,7 @@ private final class CopyRightsRouteHandler: RouteHandler {
         
         return allowed
             ? .success([:])
-            : .failure(.forbidden)
+            : .failure(.forbidden(nil))
     }
     
 }
@@ -153,7 +153,7 @@ private final class PrintRightsRouteHandler: RouteHandler {
         
         return allowed
             ? .success([:])
-            : .failure(.forbidden)
+            : .failure(.forbidden(nil))
     }
     
 }

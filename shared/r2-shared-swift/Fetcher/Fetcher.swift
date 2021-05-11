@@ -53,7 +53,7 @@ public final class EmptyFetcher: Fetcher {
     public var links: [Link] { [] }
     
     public func get(_ link: Link) -> Resource {
-        return FailureResource(link: link, error: .notFound)
+        return FailureResource(link: link, error: .notFound(nil))
     }
 
     public func close() {}

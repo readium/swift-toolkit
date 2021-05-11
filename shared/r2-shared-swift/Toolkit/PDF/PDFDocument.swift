@@ -112,7 +112,7 @@ public class CompositePDFDocumentFactory: PDFDocumentFactory, Loggable  {
 /// example, if a PDF document was opened by a PDF Navigator, we can reuse its instance when used by
 /// a PositionsService. In this case, the PDF Navigator can overwrite the `pdfFactory` property
 /// of all the services conforming to `PDFPublicationService`.
-public protocol PDFPublicationService: class, PublicationService {
+public protocol PDFPublicationService: AnyObject, PublicationService {
     
     /// Factory used by the publication service to open PDF documents.
     var pdfFactory: PDFDocumentFactory { get set }

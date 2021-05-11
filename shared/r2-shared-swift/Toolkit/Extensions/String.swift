@@ -30,4 +30,12 @@ extension String {
         return String(dropFirst(prefix.count))
     }
 
+    /// Replaces the `prefix`, if present, by the given `replacement` prefix.
+    public func replacingPrefix(_ prefix: String, by replacement: String) -> String {
+        guard hasPrefix(prefix) else {
+            return self
+        }
+        return removingPrefix(prefix).addingPrefix(replacement)
+    }
+
 }

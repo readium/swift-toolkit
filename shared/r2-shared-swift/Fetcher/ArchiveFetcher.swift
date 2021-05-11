@@ -36,7 +36,7 @@ public final class ArchiveFetcher: Fetcher, Loggable {
             let entry = archive.entry(at: link.href),
             let reader = archive.readEntry(at: link.href)
         else {
-            return FailureResource(link: link, error: .notFound)
+            return FailureResource(link: link, error: .notFound(nil))
         }
 
         return ArchiveResource(link: link, entry: entry, reader: reader)

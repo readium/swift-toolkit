@@ -79,6 +79,11 @@ public struct MediaType: Hashable, Loggable {
         MediaType.of(mediaType: string) ?? self
     }
 
+    /// Returns the UTI (Uniform Type Identifier) matching this media type, if any.
+    public var uti: String? {
+        UTI.findFrom(mediaTypes: [self], fileExtensions: Array(ofNotNil: fileExtension))?.string
+    }
+
     public init?(_ string: String, name: String? = nil, fileExtension: String? = nil) {
         guard !string.isEmpty else {
             return nil

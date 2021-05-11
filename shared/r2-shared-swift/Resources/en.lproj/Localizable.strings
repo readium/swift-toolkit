@@ -14,14 +14,28 @@
 /* Publication.OpeningError */
 "R2Shared.Publication.OpeningError.unsupportedFormat" = "Format not supported";
 "R2Shared.Publication.OpeningError.notFound" = "File not found";
-"R2Shared.Publication.OpeningError.parsingFailed" = "The file is corrupted and can't be opened";
+"R2Shared.Publication.OpeningError.parsingFailed" = "The file is corrupted and cannot be opened";
 "R2Shared.Publication.OpeningError.forbidden" = "You are not allowed to open this publication";
 "R2Shared.Publication.OpeningError.unavailable" = "Not available, please try again later";
 "R2Shared.Publication.OpeningError.incorrectCredentials" = "Provided credentials were incorrect";
 
 /* ResourceError */
-"R2Shared.Publication.ResourceError.badRequest" = "Invalid request which can't be processed";
+"R2Shared.Publication.ResourceError.badRequest" = "Invalid request which cannot be processed";
 "R2Shared.Publication.ResourceError.notFound" = "Resource not found";
 "R2Shared.Publication.ResourceError.forbidden" = "You are not allowed to access the resource";
 "R2Shared.Publication.ResourceError.unavailable" = "The resource is currently unavailable, please try again later";
+"R2Shared.Publication.ResourceError.cancelled" = "The request was cancelled";
 "R2Shared.Publication.ResourceError.other" = "A service error occurred";
+
+/* HTTPError */
+"R2Shared.HTTPError.malformedRequest" = "The provided request was not valid";
+"R2Shared.HTTPError.malformedResponse" = "The received response could not be decoded";
+"R2Shared.HTTPError.timeout" = "Request timed out";
+"R2Shared.HTTPError.badRequest" = "The provided request was not valid";
+"R2Shared.HTTPError.unauthorized" = "Authentication required";
+"R2Shared.HTTPError.forbidden" = "You are not authorized";
+"R2Shared.HTTPError.notFound" = "Page not found";
+"R2Shared.HTTPError.clientError" = "A client error occurred";
+"R2Shared.HTTPError.serverError" = "A server error occurred, please try again later";
+"R2Shared.HTTPError.offline" = "Your Internet connection appears to be offline";
+"R2Shared.HTTPError.cancelled" = "The request was cancelled";

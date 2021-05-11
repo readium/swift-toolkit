@@ -106,6 +106,11 @@ class MediaTypeTests: XCTestCase {
         XCTAssertEqual(MediaType("application/unknown;charset=utf-8")!.canonicalized, MediaType("application/unknown;charset=utf-8"))
     }
 
+    func testUTI() {
+        XCTAssertEqual(MediaType.mp3.uti, "public.mp3")
+        XCTAssertEqual(MediaType("application/unknown")!.uti, "dyn.agq80c6durvy0g2pyrf106p5zr3z06551r2")
+    }
+
     func testEquals() {
         XCTAssertEqual(MediaType("application/atom+xml")!, MediaType("application/atom+xml")!)
         XCTAssertEqual(MediaType("application/atom+xml;profile=opds-catalog")!, MediaType("application/atom+xml;profile=opds-catalog")!)

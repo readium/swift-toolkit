@@ -1,185 +1,89 @@
 //
-//  HTTPFetcher.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 01/06/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 
 /// Fetches remote resources with HTTP.
-public final class HTTPFetcher: Fetcher {
+public final class HTTPFetcher: Fetcher, Loggable {
     
-    enum Error: Swift.Error {
-        case invalidURL(String)
-        case serverFailure
-    }
+    /// HTTP client used to perform HTTP requests.
+    private let client: HTTPClient
+    /// Base URL from which relative HREF are served.
+    private let baseURL: URL?
 
-    public init(baseURL: URL? = nil) {
+    public init(client: HTTPClient, baseURL: URL? = nil) {
+        self.client = client
         self.baseURL = baseURL
     }
     
     public let links: [Link] = []
     
     public func get(_ link: Link) -> Resource {
-        guard let url = url(for: link.href) else {
-            return FailureResource(link: link, error: .other(Error.invalidURL(link.href)))
+        guard
+            let url = link.url(relativeTo: baseURL),
+            url.isHTTP
+        else {
+            log(.error, "Not a valid HTTP URL: \(link.href)")
+            return FailureResource(link: link, error: .badRequest(HTTPError(kind: .malformedRequest(url: link.href))))
         }
-        return HTTPResource(link: link, url: url)
+        return HTTPResource(client: client, link: link, url: url)
     }
     
     public func close() { }
 
-    /// Base URL from which relative HREF are served.
-    private let baseURL: URL?
-    
-    private func url(for href: String) -> URL? {
-        // HREF relative to the baseURL.
-        if href.hasPrefix("/"), let baseURL = baseURL {
-            return baseURL.appendingPathComponent(href)
-        }
-        
-        // Absolute URL.
-        if
-            let url = URL(string: href),
-            let scheme = url.scheme?.lowercased(),
-            ["http", "https"].contains(scheme)
-        {
-            return url
-        }
-        
-        return nil
-    }
-    
-    final class HTTPResource: Resource {
+    /// HTTPResource provides access to an external URL.
+    final class HTTPResource: NSObject, Resource, Loggable, URLSessionDataDelegate {
 
         let link: Link
-        
-        let file: URL? = nil
-        
-        private let url: URL
-        
-        private var cachedHeadResponse: HTTPURLResponse?
-        
-        private var headResponse: ResourceResult<HTTPURLResponse> {
-            if let response = cachedHeadResponse {
-                return .success(response)
-            }
-            
-            var request = URLRequest(url: url)
-            request.httpMethod = "HEAD"
-            return URLSession.shared.synchronousDataTask(with: request)
-                .map { [unowned self] data, response in
-                    self.cachedHeadResponse = response
-                    return response
-                }
-        }
-        
-        var length: ResourceResult<UInt64> {
-            headResponse.flatMap {
-                let length = $0.expectedContentLength
-                if length < 0 {
-                    return .failure(.unavailable(nil))
-                } else {
-                    return .success(UInt64(length))
-                }
-            }
-        }
+        let url: URL
 
-        init(link: Link, url: URL) {
+        private let client: HTTPClient
+
+        init(client: HTTPClient, link: Link, url: URL) {
+            self.client = client
             self.link = link
             self.url = url
         }
-        
-        func read(range: Range<UInt64>?) -> ResourceResult<Data> {
-            // FIXME:
-            return .failure(.unavailable(nil))
-//            if let range = range {
-//                return headResponse.flatMap { response in
-//                    var request = URLRequest(url: url)
-//                    if response.acceptsRanges {
-//                        request.setBytesRange(range)
-//                    }
-//                    return URLSession.shared.synchronousDataTask(with: request)
-//                        .map { data, _ in data }
-//                }
-//
-//            } else {
-//                let request = URLRequest(url: url)
-//                return URLSession.shared.synchronousDataTask(with: request)
-//                    .map { data, _ in data }
-//            }
-        }
-        
-        func close() { }
-        
-    }
 
-}
-
-private extension URLSession {
-    
-    func synchronousDataTask(with request: URLRequest) -> ResourceResult<(Data, HTTPURLResponse)> {
-        var data: Data?
-        var response: URLResponse?
-        var error: Error?
-
-        let semaphore = DispatchSemaphore(value: 0)
-        let dataTask = self.dataTask(with: request) {
-            data = $0
-            response = $1
-            error = $2
-            semaphore.signal()
-        }
-        dataTask.resume()
-
-        _ = semaphore.wait(timeout: .distantFuture)
-        
-        if let response = response as? HTTPURLResponse {
-            if let data = data, response.statusCode == 200 {
-                return .success((data, response))
-            } else {
-                return .failure({
-                    switch response.statusCode {
-                    case 403:
-                        return .forbidden
-                    case 404:
-                        return .notFound
-                    case 503:
-                        return .unavailable(nil)
-                    default:
-                        return .other(HTTPFetcher.Error.serverFailure)
-                    }
-                }())
+        var length: ResourceResult<UInt64> {
+            headResponse.flatMap {
+                if let length = $0.contentLength {
+                    return .success(UInt64(length))
+                } else {
+                    return .failure(.unavailable(nil))
+                }
             }
-        } else {
-            return .failure(.other(error ?? HTTPFetcher.Error.serverFailure))
         }
-    }
-    
-}
 
-private extension HTTPURLResponse {
-    
-    func value(forHTTPHeaderField field: String) -> String? {
-        return allHeaderFields[field] as? String
-    }
-    
-    var acceptsRanges: Bool {
-        let header = value(forHTTPHeaderField: "Accept-Ranges")
-        return header != nil && header != "none"
-    }
-    
-}
+        /// Cached HEAD response to get the expected content length and other metadata.
+        private lazy var headResponse: ResourceResult<HTTPResponse> = {
+            return client.fetchSync(HTTPRequest(url: url, method: .head))
+                .mapError { ResourceError.wrap($0) }
+        }()
 
-private extension URLRequest {
-    
-    mutating func setBytesRange(_ range: Range<UInt64>) {
-        addValue("bytes=\(range.lowerBound)-\(range.upperBound)", forHTTPHeaderField: "Range")
+        /// An HTTP resource is always remote.
+        var file: URL? { nil }
+
+        func stream(range: Range<UInt64>?, consume: @escaping (Data) -> (), completion: @escaping (ResourceResult<()>) -> ()) -> Cancellable {
+            var request = HTTPRequest(url: url)
+            if let range = range {
+                request.setRange(range)
+            }
+
+            return client.stream(request,
+                receiveResponse: nil,
+                consume: { data, _ in consume(data) },
+                completion: { result in
+                    completion(result.map { _ in }.mapError { ResourceError.wrap($0) })
+                }
+            )
+        }
+
+        func close() {}
+
     }
-    
+
 }

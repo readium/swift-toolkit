@@ -51,7 +51,7 @@ final class RoutingFetcher: Fetcher {
     
     func get(_ link: Link) -> Resource {
         guard let route = routes.first(where: { $0.accepts(link) }) else {
-            return FailureResource(link: link, error: .notFound)
+            return FailureResource(link: link, error: .notFound(nil))
         }
         return route.fetcher.get(link)
     }

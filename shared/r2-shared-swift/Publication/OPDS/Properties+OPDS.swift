@@ -1,12 +1,7 @@
 //
-//  Properties+OPDS.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 14.03.19.
-//
 //  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -46,5 +41,11 @@ extension Properties {
     public var availability: OPDSAvailability? {
         try? OPDSAvailability(json: otherProperties["availability"], warnings: self)
     }
-    
+
+    /// Indicates that the linked resource supports authentication with the associated Authentication Document.
+    /// See https://drafts.opds.io/authentication-for-opds-1.0.html
+    public var authenticate: Link? {
+        otherProperties["authenticate"].flatMap { try? Link(json: $0) }
+    }
+
 }

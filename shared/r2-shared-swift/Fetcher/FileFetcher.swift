@@ -40,7 +40,7 @@ public final class FileFetcher: Fetcher, Loggable {
             }
         }
 
-        return FailureResource(link: link, error: .notFound)
+        return FailureResource(link: link, error: .notFound(nil))
     }
     
     public lazy var links: [Link] =
@@ -84,7 +84,7 @@ public final class FileFetcher: Fetcher, Loggable {
             do {
                 let values = try _file.resourceValues(forKeys:[.isReadableKey, .isDirectoryKey])
                 guard let isReadable = values.isReadable, values.isDirectory != true else {
-                    return .failure(.notFound)
+                    return .failure(.notFound(nil))
                 }
                 return .success(try FileHandle(forReadingFrom: _file))
             } catch {
@@ -102,7 +102,7 @@ public final class FileFetcher: Fetcher, Loggable {
             do {
                 let values = try _file.resourceValues(forKeys:[.fileSizeKey])
                 guard let length = values.fileSize else {
-                    return .failure(.notFound)
+                    return .failure(.notFound(nil))
                 }
                 return .success(UInt64(length))
             } catch {
