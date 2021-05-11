@@ -41,7 +41,7 @@ final class LCPDecryptor {
             return resource
         }
         guard let license = license else {
-            return FailureResource(link: link, error: .forbidden)
+            return FailureResource(link: link, error: .forbidden(nil))
         }
         
         if link.isDeflated || !link.isCbcEncrypted {
