@@ -1104,7 +1104,6 @@
 				CA822C72221C5737005800D1 /* Sources */,
 				CA822C96221C5737005800D1 /* Frameworks */,
 				CA822CA8221C5737005800D1 /* Resources */,
-				03520722222D5B550000F0A4 /* ShellScript */,
 				FD8535B01FF81716B2B34497 /* Carthage */,
 				CAF8E8F325D2DED100827825 /* Embed Frameworks */,
 			);
@@ -1272,23 +1271,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		03520722222D5B550000F0A4 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "/usr/local/bin/carthage outdated --xcode-warnings\n";
-		};
 		97CFEC0522CEBEBF26577EB2 /* Carthage */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1307,7 +1289,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "carthage copy-frameworks\n";
+			shellScript = "export PATH=\"$PATH:/opt/homebrew/bin\" # for Apple Silicon\ncarthage copy-frameworks\n";
 		};
 		FD8535B01FF81716B2B34497 /* Carthage */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1327,7 +1309,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "carthage copy-frameworks\n";
+			shellScript = "export PATH=\"$PATH:/opt/homebrew/bin\" # for Apple Silicon\ncarthage copy-frameworks\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
