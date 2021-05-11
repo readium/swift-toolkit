@@ -8,6 +8,11 @@ All notable changes to this project will be documented in this file.
 
 ## [2.0.0-beta.2]
 
+### Added
+
+* `Streamer` takes a new optional `HTTPClient` dependency to handle HTTP requests.
+
+
 ### Changed
 
 * The HTTP server now requests that publication resources are not cached by browsers.

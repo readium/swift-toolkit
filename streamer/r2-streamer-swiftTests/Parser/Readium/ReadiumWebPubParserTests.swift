@@ -28,7 +28,7 @@ class ReadiumWebPubParserTests: XCTestCase {
     var lcpdfFetcher: Fetcher!
     
     override func setUpWithError() throws {
-        parser = ReadiumWebPubParser()
+        parser = ReadiumWebPubParser(pdfFactory: DefaultPDFDocumentFactory(), httpClient: DefaultHTTPClient())
 
         manifestAsset = FileAsset(url: fixtures.url(for: "flatland.json"))
         manifestFetcher = FileFetcher(href: "/flatland.json", path: manifestAsset.url)

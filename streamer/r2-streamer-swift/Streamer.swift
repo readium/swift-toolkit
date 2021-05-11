@@ -16,11 +16,14 @@ import R2Shared
 public final class Streamer: Loggable {
     
     /// Creates the default parsers provided by Readium.
-    public static func makeDefaultParsers(pdfFactory: PDFDocumentFactory) -> [PublicationParser] {
+    public static func makeDefaultParsers(
+        pdfFactory: PDFDocumentFactory = DefaultPDFDocumentFactory(),
+        httpClient: HTTPClient = DefaultHTTPClient()
+    ) -> [PublicationParser] {
         [
             EPUBParser(),
             PDFParser(pdfFactory: pdfFactory),
-            ReadiumWebPubParser(pdfFactory: pdfFactory),
+            ReadiumWebPubParser(pdfFactory: pdfFactory, httpClient: httpClient),
             ImageParser(),
             AudioParser()
         ]
@@ -38,6 +41,7 @@ public final class Streamer: Loggable {
     ///     `ContentProtection` is tested in the given order.
     ///   - archiveFactory: Opens an archive (e.g. ZIP, RAR), optionally protected by credentials.
     ///   - pdfFactory: Parses a PDF document, optionally protected by password.
+    ///   - httpClient: Service performing HTTP requests.
     ///   - onCreatePublication: Transformation which will be applied on every parsed Publication
     ///     Builder. It can be used to modify the `Manifest`, the root `Fetcher` or the list of
     ///     service factories of a `Publication`.
@@ -47,19 +51,18 @@ public final class Streamer: Loggable {
         contentProtections: [ContentProtection] = [],
         archiveFactory: ArchiveFactory = DefaultArchiveFactory(),
         pdfFactory: PDFDocumentFactory = DefaultPDFDocumentFactory(),
+        httpClient: HTTPClient = DefaultHTTPClient(),
         onCreatePublication: Publication.Builder.Transform? = nil
     ) {
-        self.parsers = parsers + (ignoreDefaultParsers ? [] : Streamer.makeDefaultParsers(pdfFactory: pdfFactory))
+        self.parsers = parsers + (ignoreDefaultParsers ? [] : Streamer.makeDefaultParsers(pdfFactory: pdfFactory, httpClient: httpClient))
         self.contentProtections = contentProtections
         self.archiveFactory = archiveFactory
-        self.pdfFactory = pdfFactory
         self.onCreatePublication = onCreatePublication
     }
     
     private let parsers: [PublicationParser]
     private let contentProtections: [ContentProtection]
     private let archiveFactory: ArchiveFactory
-    private let pdfFactory: PDFDocumentFactory
     private let onCreatePublication: Publication.Builder.Transform?
 
     /// Parses a `Publication` from the given asset.

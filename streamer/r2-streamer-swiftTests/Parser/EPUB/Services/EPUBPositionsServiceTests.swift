@@ -416,7 +416,7 @@ private class MockFetcher: Fetcher {
 
     func get(_ requestedLink: Link) -> Resource {
         guard let (length, link) = readingOrder.first(where: { _, link in link.href == requestedLink.href }) else {
-            return FailureResource(link: requestedLink, error: .notFound)
+            return FailureResource(link: requestedLink, error: .notFound(nil))
         }
         return MockResource(link: link, length: length)
     }
