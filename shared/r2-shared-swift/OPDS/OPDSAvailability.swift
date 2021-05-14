@@ -15,13 +15,13 @@ import Foundation
 /// https://drafts.opds.io/schema/properties.schema.json
 public struct OPDSAvailability: Equatable {
     
-    let state: State
+    public let state: State
     
     /// Timestamp for the previous state change.
-    let since: Date?
+    public let since: Date?
     
     /// Timestamp for the next state change.
-    let until: Date?
+    public let until: Date?
 
     public init(state: State, since: Date? = nil, until: Date? = nil) {
         self.state = state

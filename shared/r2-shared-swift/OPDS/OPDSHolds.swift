@@ -15,8 +15,8 @@ import Foundation
 /// https://drafts.opds.io/schema/properties.schema.json
 public struct OPDSHolds: Equatable {
     
-    let total: Int?
-    let position: Int?
+    public let total: Int?
+    public let position: Int?
 
     public init(total: Int?, position: Int?) {
         self.total = total
