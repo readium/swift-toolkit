@@ -61,7 +61,7 @@ extension Fetcher {
 /// This is used as a support for backward compatibility in the old parser APIs, the `Streamer`
 /// implements its own algorithm for creating the leaf fetcher, with a recovery mechanism
 /// to handle user password.
-@available(*, deprecated)
+@available(*, unavailable)
 func makeFetcher(for url: URL) throws -> Fetcher {
     guard (try? url.checkResourceIsReachable()) == true else {
         throw Publication.OpeningError.notFound

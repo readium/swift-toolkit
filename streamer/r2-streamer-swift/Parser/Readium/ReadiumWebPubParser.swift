@@ -110,8 +110,8 @@ private extension MediaType {
 
 }
 
-@available(*, deprecated, renamed: "ReadiumWebPubParserError")
+@available(*, unavailable, renamed: "ReadiumWebPubParserError")
 public typealias WEBPUBParserError = ReadiumWebPubParserError
 
-@available(*, deprecated, renamed: "ReadiumWebPubParser")
+@available(*, unavailable, renamed: "ReadiumWebPubParser")
 public typealias WEBPUBParser = ReadiumWebPubParser

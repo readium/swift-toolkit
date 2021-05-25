@@ -34,10 +34,10 @@ public enum EPUBParserError: Error {
     case missingRootfile
 }
 
-@available(*, deprecated, renamed: "EPUBParserError")
+@available(*, unavailable, renamed: "EPUBParserError")
 public typealias EpubParserError = EPUBParserError
 
-@available(*, deprecated, renamed: "EPUBParser")
+@available(*, unavailable, renamed: "EPUBParser")
 public typealias EpubParser = EPUBParser
 
 extension EPUBParser: Loggable {}

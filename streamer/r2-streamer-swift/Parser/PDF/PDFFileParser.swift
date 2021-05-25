@@ -15,7 +15,7 @@ import R2Shared
 
 
 /// Structure holding the metadata from a standalone PDF file.
-@available(*, deprecated, message: "Use `PDFDocument` from r2-shared instead")
+@available(*, unavailable, message: "Use `PDFDocument` from r2-shared instead")
 public struct PDFFileMetadata {
     
     // Permanent identifier based on the contents of the file at the time it was originally created.
@@ -41,33 +41,25 @@ public struct PDFFileMetadata {
 }
 
 
-@available(*, deprecated, message: "Use `PDFDocument` from r2-shared instead")
+@available(*, unavailable, message: "Use `PDFDocument` from r2-shared instead")
 public struct PDFOutlineNode {
     let title: String?
     let pageNumber: Int
     let children: [PDFOutlineNode]
 }
 
-@available(*, deprecated)
+@available(*, unavailable)
 extension Array where Element == PDFOutlineNode {
     
-    func links(withHref href: String) -> [Link] {
-        return map { node in
-            return Link(
-                href: "\(href)#page=\(node.pageNumber)",
-                type: MediaType.pdf.string,
-                title: node.title,
-                children: node.children.links(withHref: href)
-            )
-        }
-    }
+    @available(*, unavailable)
+    func links(withHref href: String) -> [Link] { [] }
     
 }
 
 
 /// Protocol to implement if you want to use a different PDF engine than the one provided with Readium 2 to parse the PDF's metadata.
 /// Note: this is not used in the case of .lcpdf files, since the metadata are parsed from the manifest.json file.
-@available(*, deprecated, message: "Use `PDFDocumentFactory` from r2-shared instead")
+@available(*, unavailable, message: "Use `PDFDocumentFactory` from r2-shared instead")
 public protocol PDFFileParser: PDFDocument {
     
     /// Initializes the parser with the given PDF data stream.
@@ -85,30 +77,37 @@ public protocol PDFFileParser: PDFDocument {
 
 }
 
-@available(*, deprecated)
+@available(*, unavailable)
 public extension PDFFileParser {
     
+    @available(*, unavailable)
     var identifier: String? { try? parseMetadata().identifier }
+    @available(*, unavailable)
     var pageCount: Int { (try? parseNumberOfPages()) ?? 0 }
+    @available(*, unavailable)
     var cover: UIImage? { try? renderCover() }
+    @available(*, unavailable)
     var title: String? { try? parseMetadata().title }
+    @available(*, unavailable)
     var author: String? { try? parseMetadata().author }
+    @available(*, unavailable)
     var subject: String? { try? parseMetadata().subject }
+    @available(*, unavailable)
     var keywords: [String] { (try? parseMetadata().keywords) ?? [] }
-    var outline: [R2Shared.PDFOutlineNode] { (try? parseMetadata().outline.map { $0.asShared() }) ?? [] }
-
+    @available(*, unavailable)
+    var outline: [R2Shared.PDFOutlineNode] { [] }
+    
 }
 
-@available(*, deprecated)
+@available(*, unavailable)
 extension PDFOutlineNode {
     
-    func asShared() -> R2Shared.PDFOutlineNode {
-        R2Shared.PDFOutlineNode(title: title, pageNumber: pageNumber, children: children.map { $0.asShared() })
-    }
+    @available(*, unavailable)
+    func asShared() -> R2Shared.PDFOutlineNode { fatalError("Unavailable") }
     
 }
 
-@available(*, deprecated, message: "Use `PDFDocumentFactory` from r2-shared instead")
+@available(*, unavailable, message: "Use `PDFDocumentFactory` from r2-shared instead")
 class PDFFileParserFactory: PDFDocumentFactory {
     
     enum Error: Swift.Error {

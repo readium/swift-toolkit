@@ -73,7 +73,7 @@ public final class PDFParser: PublicationParser, Loggable {
         )
     }
     
-    @available(*, deprecated, message: "Use `init(pdfFactory:)` instead")
+    @available(*, unavailable, message: "Use `init(pdfFactory:)` instead")
     public convenience init(parserType: PDFFileParser.Type) {
         self.init(pdfFactory: PDFFileParserFactory(parserType: parserType))
     }

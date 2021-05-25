@@ -16,7 +16,7 @@ public enum CBZParserError: Error {
     case invalidCBZ(path: String)
 }
 
-@available(*, deprecated, renamed: "CBZParserError")
+@available(*, unavailable, renamed: "CBZParserError")
 public typealias CbzParserError = CBZParserError
 
 /// CBZ publication parsing class.
