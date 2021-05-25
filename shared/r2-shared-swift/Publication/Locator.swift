@@ -207,7 +207,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
             fatalError()
         }
         
-        @available(*, deprecated, message: "Use `fragments.first` instead")
+        @available(*, unavailable, message: "Use `fragments.first` instead")
         public var fragment: String? { fragments.first }
         
     }

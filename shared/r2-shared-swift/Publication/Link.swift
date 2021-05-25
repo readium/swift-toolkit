@@ -292,17 +292,17 @@ extension Array where Element == Link {
         }
     }
     
-    @available(*, deprecated, message: "This API will be removed.")
+    @available(*, unavailable, message: "This API will be removed.")
     public func firstIndex<T: Equatable>(withProperty otherProperty: String, matching: T, recursively: Bool = false) -> Int? {
         return firstIndex { ($0.properties.otherProperties[otherProperty] as? T) == matching }
     }
     
-    @available(*, deprecated, renamed: "first(withHREF:)")
+    @available(*, unavailable, renamed: "first(withHREF:)")
     public func first(withHref href: String) -> Link? {
         return first(withHREF: href)
     }
     
-    @available(*, deprecated, renamed: "firstIndex(withHREF:)")
+    @available(*, unavailable, renamed: "firstIndex(withHREF:)")
     public func firstIndex(withHref href: String) -> Int? {
         return firstIndex(withHREF: href)
     }

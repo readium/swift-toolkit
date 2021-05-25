@@ -8,6 +8,7 @@
 
 import Foundation
 
+@available(*, deprecated, message: "This API will be removed in the future, please use your own download solution in your app")
 public protocol DownloadDisplayDelegate {
     func didStartDownload(task:URLSessionDownloadTask, description:String);
     func didFinishDownload(task:URLSessionDownloadTask);
@@ -17,6 +18,7 @@ public protocol DownloadDisplayDelegate {
 
 
 /// Represents the percent-based progress of the download.
+@available(*, deprecated, message: "This API will be removed in the future, please use your own download solution in your app")
 public enum DownloadProgress {
     /// Undetermined progress, a spinner should be shown to the user.
     case infinite
@@ -24,7 +26,7 @@ public enum DownloadProgress {
     case finite(Float)
 }
 
-
+@available(*, deprecated, message: "This API will be removed in the future, please use your own download solution in your app")
 public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDelegate {
 
     public typealias CompletionHandler = (URL?, URLResponse?, Error?, URLSessionDownloadTask) -> Bool?

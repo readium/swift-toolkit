@@ -152,9 +152,9 @@ class PositionsServiceTests: XCTestCase {
         XCTAssertEqual(publication.positions, positions.flatMap { $0 })
 
         XCTAssertEqual(
-            publication.positionsByResource,
+            publication.positionsByReadingOrder,
             [
-                "res": [
+                [
                     Locator(
                         href: "res",
                         type: "application/xml",
@@ -164,7 +164,7 @@ class PositionsServiceTests: XCTestCase {
                         )
                     )
                 ],
-                "chap1": [
+                [
                     Locator(
                         href: "chap1",
                         type: "image/png",
@@ -174,7 +174,7 @@ class PositionsServiceTests: XCTestCase {
                         )
                     )
                 ],
-                "chap2": [
+                [
                     Locator(
                         href: "chap2",
                         type: "image/png",

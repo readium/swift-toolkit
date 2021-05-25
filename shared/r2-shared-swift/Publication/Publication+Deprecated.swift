@@ -11,17 +11,17 @@
 
 import Foundation
 
-@available(*, deprecated, renamed: "Publication")
+@available(*, unavailable, renamed: "Publication")
 public typealias WebPublication = Publication
 
 extension Publication {
     
-    @available(*, deprecated, renamed: "init(manifest:)")
+    @available(*, unavailable, renamed: "init(manifest:)")
     public convenience init() {
         self.init(manifest: Manifest(metadata: Metadata(title: "")))
     }
     
-    @available(*, deprecated, renamed: "init(format:formatVersion:manifest:)")
+    @available(*, unavailable, renamed: "init(format:formatVersion:manifest:)")
     public convenience init(format: Format = .unknown, formatVersion: String? = nil, positionListFactory: @escaping (Publication) -> [Locator] = { _ in [] }, context: [String] = [], metadata: Metadata, links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = [], tableOfContents: [Link] = [], otherCollections: [String: [PublicationCollection]] = [:]) {
         self.init(
             manifest: Manifest(context: context, metadata: metadata, links: links, readingOrder: readingOrder, resources: resources, tableOfContents: tableOfContents, subcollections: otherCollections),
@@ -35,7 +35,7 @@ extension Publication {
         fatalError("Not available.")
     }
     
-    @available(*, deprecated, renamed: "formatVersion")
+    @available(*, unavailable, renamed: "formatVersion")
     public var version: Double {
         guard let versionString = formatVersion,
             let version = Double(versionString) else
@@ -50,13 +50,13 @@ extension Publication {
     @available(*, unavailable, message: "Implement `PositionsService` instead")
     public var positionListFactory: (Publication) -> [Locator] { { _ in [] } }
     
-    @available(*, deprecated, renamed: "baseURL")
+    @available(*, unavailable, renamed: "baseURL")
     public var baseUrl: URL? { return baseURL }
     
     @available(*, unavailable, message: "This is not used anymore, don't set it")
     public var updatedDate: Date { Date() }
     
-    @available(*, deprecated, message: "Check the publication's type using `format` instead")
+    @available(*, unavailable, message: "Check the publication's type using `format` instead")
     public var internalData: [String: String] {
         // The code in the testapp used to check a property in `publication.internalData["type"]` to know which kind of publication this is.
         // To avoid breaking any app, we reproduce this value here:
@@ -84,26 +84,26 @@ extension Publication {
         fatalError("Not available")
     }
 
-    @available(*, deprecated, renamed: "positions")
+    @available(*, unavailable, renamed: "positions")
     public var positionList: [Locator] { positions }
     
-    @available(*, deprecated, renamed: "positionsByResource")
-    public var positionListByResource: [String: [Locator]] { positionsByResource }
+    @available(*, unavailable, renamed: "positionsByResource")
+    public var positionListByResource: [String: [Locator]] { [:] }
     
-    @available(*, deprecated, renamed: "subcollections")
+    @available(*, unavailable, renamed: "subcollections")
     public var otherCollections: [String: [PublicationCollection]] { subcollections }
     
-    @available(*, deprecated, renamed: "link(withHREF:)")
+    @available(*, unavailable, renamed: "link(withHREF:)")
     public func resource(withRelativePath path: String) -> Link? {
         return link(withHREF: path)
     }
     
-    @available(*, deprecated, renamed: "link(withHREF:)")
+    @available(*, unavailable, renamed: "link(withHREF:)")
     public func resource(withHref href: String) -> Link? {
         return link(withHREF: href)
     }
     
-    @available(*, deprecated, message: "Use `setSelfLink` instead")
+    @available(*, unavailable, message: "Use `setSelfLink` instead")
     public func addSelfLink(endpoint: String, for baseURL: URL) {
         let manifestURL = baseURL.appendingPathComponent("\(endpoint)/manifest.json")
         setSelfLink(href: manifestURL.absoluteString)
@@ -112,12 +112,12 @@ extension Publication {
     @available(*, unavailable, message: "`Publication` is now immutable")
     func setCollectionLinks(_ links: [Link], forRole role: String) {}
     
-    @available(*, deprecated, renamed: "link(withHREF:)")
+    @available(*, unavailable, renamed: "link(withHREF:)")
     public func link(withHref href: String) -> Link? {
         return link(withHREF: href)
     }
     
-    @available(*, deprecated, message: "This will be removed in a future version")
+    @available(*, unavailable, message: "This will be removed in a future version")
     public func link(where predicate: (Link) -> Bool) -> Link? {
         return (resources + readingOrder + links).first(where: predicate)
     }
@@ -127,17 +127,17 @@ extension Publication {
         return link?.url(relativeTo: baseURL)
     }
     
-    @available(*, deprecated, message: "Use `link.url(relativeTo: publication.baseURL)` instead")
+    @available(*, unavailable, message: "Use `link.url(relativeTo: publication.baseURL)` instead")
     public func url(to link: Link?) -> URL? {
         return link?.url(relativeTo: baseURL)
     }
     
-    @available(*, deprecated, message: "Use `link.url(relativeTo: publication.baseURL)` instead")
+    @available(*, unavailable, message: "Use `link.url(relativeTo: publication.baseURL)` instead")
     public func url(to href: String?) -> URL? {
         return href.flatMap { link(withHREF: $0)?.url(relativeTo: baseURL) }
     }
 
-    @available(*, deprecated, message: "Use `cover` to get the `UIImage` directly, or `link(withRel: \"cover\")` if you really want the cover link", renamed: "cover")
+    @available(*, unavailable, message: "Use `cover` to get the `UIImage` directly, or `link(withRel: \"cover\")` if you really want the cover link", renamed: "cover")
     public var coverLink: Link? { link(withRel: .cover) }
     
     @available(*, unavailable, message: "Use `metadata.effectiveReadingProgression` instead", renamed: "metadata.effectiveReadingProgression")
@@ -150,25 +150,25 @@ extension Publication {
 
 extension Publication {
     
-    @available(*, deprecated, renamed: "listOfAudioClips")
+    @available(*, unavailable, renamed: "listOfAudioClips")
     public var listOfAudioFiles: [Link] { listOfAudioClips }
     
-    @available(*, deprecated, renamed: "listOfVideoClips")
+    @available(*, unavailable, renamed: "listOfVideoClips")
     public var listOfVideos: [Link] { listOfVideoClips }
     
 }
 
-@available(*, deprecated, renamed: "LocalizedString")
+@available(*, unavailable, renamed: "LocalizedString")
 public typealias MultilangString = LocalizedString
 
 extension LocalizedString {
     
-    @available(*, deprecated, message: "Get with the property `string`")
+    @available(*, unavailable, message: "Get with the property `string`")
     public var singleString: String? {
         string.isEmpty ? nil : string
     }
     
-    @available(*, deprecated, message: "Get with `string(forLanguageCode:)`")
+    @available(*, unavailable, message: "Get with `string(forLanguageCode:)`")
     public var multiString: [String: String] {
         guard case .localized(let strings) = self else {
             return [:]
@@ -176,7 +176,7 @@ extension LocalizedString {
         return strings
     }
     
-    @available(*, deprecated, renamed: "LocalizedString.localized")
+    @available(*, unavailable, renamed: "LocalizedString.localized")
     public init() {
         self = .localized([:])
     }
@@ -185,13 +185,13 @@ extension LocalizedString {
 
 extension Metadata {
     
-    @available(*, deprecated, renamed: "type")
+    @available(*, unavailable, renamed: "type")
     public var rdfType: String? { type }
 
-    @available(*, deprecated, renamed: "localizedTitle")
+    @available(*, unavailable, renamed: "localizedTitle")
     public var multilangTitle: LocalizedString { localizedTitle }
 
-    @available(*, deprecated, renamed: "localizedSubtitle")
+    @available(*, unavailable, renamed: "localizedSubtitle")
     public var multilangSubtitle: LocalizedString? { localizedSubtitle }
 
     @available(*, unavailable, message: "Not used anymore, you can store the rights in `otherMetadata[\"rights\"]` if necessary")
@@ -200,27 +200,27 @@ extension Metadata {
     @available(*, unavailable, message: "Not used anymore, you can store the source in `otherMetadata[\"source\"]` if necessary")
     public var source: String? { nil }
     
-    @available(*, deprecated, renamed: "init(title:)")
+    @available(*, unavailable, renamed: "init(title:)")
     public init() {
         self.init(title: "")
     }
     
-    @available(*, deprecated, message: "Use `localizedTitle.string(forLanguageCode:)` instead")
+    @available(*, unavailable, message: "Use `localizedTitle.string(forLanguageCode:)` instead")
     public func titleForLang(_ lang: String) -> String? {
         return localizedTitle.string(forLanguageCode: lang)
     }
     
-    @available(*, deprecated, message: "Use `localizedSubtitle.string(forLanguageCode:)` instead")
+    @available(*, unavailable, message: "Use `localizedSubtitle.string(forLanguageCode:)` instead")
     public func subtitleForLang(_ lang: String) -> String? {
         return localizedSubtitle?.string(forLanguageCode: lang)
     }
     
-    @available(*, deprecated, renamed: "init(json:)")
+    @available(*, unavailable, renamed: "init(json:)")
     public static func parse(metadataDict: [String: Any]) throws -> Metadata {
         return try Metadata(json: metadataDict, normalizeHREF: { $0 })
     }
     
-    @available(*, deprecated, renamed: "presentation")
+    @available(*, unavailable, renamed: "presentation")
     public var rendition: EPUBRendition { presentation }
 
     @available(*, unavailable, message: "Use `effectiveReadingProgression` instead", renamed: "effectiveReadingProgression")
@@ -233,17 +233,17 @@ extension Metadata {
 
 extension PublicationCollection {
     
-    @available(*, deprecated, renamed: "subcollections")
+    @available(*, unavailable, renamed: "subcollections")
     public var otherCollections: [String: [PublicationCollection]] { subcollections }
     
 }
 
 extension Contributor {
     
-    @available(*, deprecated, renamed: "localizedName")
+    @available(*, unavailable, renamed: "localizedName")
     public var multilangName: LocalizedString { localizedName }
 
-    @available(*, deprecated, renamed: "init(name:)")
+    @available(*, unavailable, renamed: "init(name:)")
     public init() {
         self.init(name: "")
     }
@@ -262,7 +262,7 @@ extension Contributor {
 
 extension Subject {
     
-    @available(*, deprecated, renamed: "init(name:)")
+    @available(*, unavailable, renamed: "init(name:)")
     public init() {
         self.init(name: "")
     }
@@ -271,21 +271,21 @@ extension Subject {
 
 extension Link {
     
-    @available(*, deprecated, renamed: "type")
+    @available(*, unavailable, renamed: "type")
     public var typeLink: String? { type }
     
-    @available(*, deprecated, renamed: "rels")
+    @available(*, unavailable, renamed: "rels")
     public var rel: [String] { rels.map { $0.string } }
     
-    @available(*, deprecated, renamed: "href")
+    @available(*, unavailable, renamed: "href")
     public var absoluteHref: String? { href }
     
-    @available(*, deprecated, renamed: "init(href:)")
+    @available(*, unavailable, renamed: "init(href:)")
     public init() {
         self.init(href: "")
     }
     
-    @available(*, deprecated, renamed: "init(json:warnings:normalizeHREF:)")
+    @available(*, unavailable, renamed: "init(json:warnings:normalizeHREF:)")
     public init(json: Any, warnings: WarningLogger? = nil, normalizeHref: (String) -> String) throws {
         try self.init(json: json, warnings: warnings, normalizeHREF: normalizeHref)
     }
@@ -303,7 +303,7 @@ extension Link {
 
 extension Array where Element == Link {
     
-    @available(*, deprecated, renamed: "init(json:warnings:normalizeHREF:)")
+    @available(*, unavailable, renamed: "init(json:warnings:normalizeHREF:)")
     public init(json: Any?, warnings: WarningLogger? = nil, normalizeHref: (String) -> String) {
         self.init(json: json, warnings: warnings, normalizeHREF: normalizeHref)
     }
@@ -312,13 +312,13 @@ extension Array where Element == Link {
 
 extension Properties {
 
-    @available(*, deprecated, renamed: "Presentation.Orientation")
+    @available(*, unavailable, renamed: "Presentation.Orientation")
     public typealias Orientation = Presentation.Orientation
     
-    @available(*, deprecated, renamed: "Presentation.Page")
+    @available(*, unavailable, renamed: "Presentation.Page")
     public typealias Page = Presentation.Page
     
-    @available(*, deprecated, renamed: "indirectAcquisitions")
+    @available(*, unavailable, renamed: "indirectAcquisitions")
     public var indirectAcquisition: [OPDSAcquisition] {
         indirectAcquisitions
     }
@@ -336,43 +336,43 @@ extension Properties {
 
 extension Presentation {
     
-    @available(*, deprecated, renamed: "EPUBLayout")
+    @available(*, unavailable, renamed: "EPUBLayout")
     public typealias Layout = EPUBLayout
     
 }
 
-@available(*, deprecated, renamed: "OPDSPrice")
+@available(*, unavailable, renamed: "OPDSPrice")
 public typealias Price = OPDSPrice
 
-@available(*, deprecated, renamed: "OPDSAcquisition")
+@available(*, unavailable, renamed: "OPDSAcquisition")
 public typealias IndirectAcquisition = OPDSAcquisition
 
 extension OPDSAcquisition {
 
-    @available(*, deprecated, renamed: "type")
+    @available(*, unavailable, renamed: "type")
     public var typeAcquisition: String { type }
     
-    @available(*, deprecated, renamed: "children")
+    @available(*, unavailable, renamed: "children")
     public var child: [OPDSAcquisition] { children }
     
 }
 
-@available(*, deprecated, renamed: "ContentLayout")
+@available(*, unavailable, renamed: "ContentLayout")
 public typealias ContentLayoutStyle = ContentLayout
 
-@available(*, deprecated, renamed: "Presentation")
+@available(*, unavailable, renamed: "Presentation")
 public typealias EPUBRendition = Presentation
 
-@available(*, deprecated, renamed: "Encryption")
+@available(*, unavailable, renamed: "Encryption")
 public typealias EPUBEncryption = Encryption
 
-@available(*, deprecated, renamed: "Locator.Locations")
+@available(*, unavailable, renamed: "Locator.Locations")
 public typealias Locations = Locator.Locations
 
-@available(*, deprecated, renamed: "Locator.Text")
+@available(*, unavailable, renamed: "Locator.Text")
 public typealias LocatorText = Locator.Text
 
-@available(*, deprecated, message: "Use your own Bookmark model in your app, this one is not used by Readium 2 anymore")
+@available(*, unavailable, message: "Use your own Bookmark model in your app, this one is not used by Readium 2 anymore")
 public class Bookmark {
     public var id: Int64?
     public var bookID: Int = 0

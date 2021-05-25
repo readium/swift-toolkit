@@ -79,7 +79,7 @@ public typealias DrmLicense = DRMLicense
 @available(*, unavailable)
 extension DRM {
 
-    @available(*, deprecated, message: "Use `license?.encryptionProfile` instead")
+    @available(*, unavailable, message: "Use `license?.encryptionProfile` instead")
     public var profile: String? {
         return license?.encryptionProfile
     }
@@ -90,63 +90,63 @@ extension DRM {
 @available(*, unavailable)
 extension DRMLicense {
     
-    @available(*, deprecated, message: "Use `LCPLicense.renewLoan` instead")
+    @available(*, unavailable, message: "Use `LCPLicense.renewLoan` instead")
     public func renew(endDate: Date?, completion: @escaping (Error?) -> Void) {
         completion(nil)
     }
 
-    @available(*, deprecated, message: "Use `LCPLicense.returnPublication` instead")
+    @available(*, unavailable, message: "Use `LCPLicense.returnPublication` instead")
     public func `return`(completion: @escaping (Error?) -> Void) {
         completion(nil)
     }
     
-    @available(*, deprecated, message: "Checking for the rights is handled by r2-lcp-swift now")
+    @available(*, unavailable, message: "Checking for the rights is handled by r2-lcp-swift now")
     public func areRightsValid() throws {}
     
-    @available(*, deprecated, message: "Registering the device is handled by r2-lcp-swift now")
+    @available(*, unavailable, message: "Registering the device is handled by r2-lcp-swift now")
     public func register() {}
     
-    @available(*, deprecated, message: "Update DrmManagementTableViewController from r2-testapp-swift")
+    @available(*, unavailable, message: "Update DrmManagementTableViewController from r2-testapp-swift")
     public func currentStatus() -> String {
         return ""
     }
     
-    @available(*, deprecated, message: "Update DrmManagementTableViewController from r2-testapp-swift")
+    @available(*, unavailable, message: "Update DrmManagementTableViewController from r2-testapp-swift")
     public func lastUpdate() -> Date {
         return Date()
     }
     
-    @available(*, deprecated, message: "Update DrmManagementTableViewController from r2-testapp-swift")
+    @available(*, unavailable, message: "Update DrmManagementTableViewController from r2-testapp-swift")
     public func issued() -> Date {
         return Date()
     }
     
-    @available(*, deprecated, message: "Update DrmManagementTableViewController from r2-testapp-swift")
+    @available(*, unavailable, message: "Update DrmManagementTableViewController from r2-testapp-swift")
     public func provider() -> URL {
         return URL(fileURLWithPath: "/")
     }
     
-    @available(*, deprecated, message: "Update DrmManagementTableViewController from r2-testapp-swift")
+    @available(*, unavailable, message: "Update DrmManagementTableViewController from r2-testapp-swift")
     public func rightsEnd() -> Date? {
         return nil
     }
     
-    @available(*, deprecated, message: "Update DrmManagementTableViewController from r2-testapp-swift")
+    @available(*, unavailable, message: "Update DrmManagementTableViewController from r2-testapp-swift")
     public func potentialRightsEnd() -> Date? {
         return nil
     }
     
-    @available(*, deprecated, message: "Update DrmManagementTableViewController from r2-testapp-swift")
+    @available(*, unavailable, message: "Update DrmManagementTableViewController from r2-testapp-swift")
     public func rightsStart() -> Date? {
         return nil
     }
     
-    @available(*, deprecated, message: "Update DrmManagementTableViewController from r2-testapp-swift")
+    @available(*, unavailable, message: "Update DrmManagementTableViewController from r2-testapp-swift")
     public func rightsPrints() -> Int? {
         return nil
     }
     
-    @available(*, deprecated, message: "Update DrmManagementTableViewController from r2-testapp-swift")
+    @available(*, unavailable, message: "Update DrmManagementTableViewController from r2-testapp-swift")
     public func rightsCopies() -> Int? {
         return nil
     }

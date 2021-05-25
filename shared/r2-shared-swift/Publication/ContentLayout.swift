@@ -11,7 +11,7 @@
 
 import Foundation
 
-@available(*, deprecated, message: "Use `publication.metadata.effectiveReadingProgression` instead")
+@available(*, unavailable, message: "Use `publication.metadata.effectiveReadingProgression` instead")
 public enum ContentLayout: String {
     case rtl = "rtl"
     case ltr = "ltr"

@@ -87,7 +87,7 @@ public extension Publication {
     }
     
     /// List of all the positions in each resource, indexed by their `href`.
-    @available(*, deprecated, message: "Use `positionsByReadingOrder` instead", renamed: "positionsByReadingOrder")
+    @available(*, unavailable, message: "Use `positionsByReadingOrder` instead", renamed: "positionsByReadingOrder")
     var positionsByResource: [String: [Locator]] {
         Dictionary(grouping: positions, by: { $0.href })
     }

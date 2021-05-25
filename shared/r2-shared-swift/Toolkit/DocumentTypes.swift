@@ -152,7 +152,7 @@ public struct DocumentType: Equatable, Loggable {
             ?? mediaTypes.first
     }
 
-    @available(*, deprecated, renamed: "preferredMediaType")
+    @available(*, unavailable, renamed: "preferredMediaType")
     public var format: MediaType? { preferredMediaType }
 
 }
@@ -165,21 +165,19 @@ extension DocumentTypes {
     // See this commit for an example of the changes to do in your reading app:
     // https://github.com/readium/r2-testapp-swift/commit/7e98784c01f781c962aab87cd79af09dde900b00
     
-    @available(*, deprecated, message: "Use `main.utis` instead", renamed: "main.supportedUTIs")
+    @available(*, unavailable, message: "Use `main.utis` instead", renamed: "main.supportedUTIs")
     public static let utis: [String] = main.supportedUTIs
-    @available(*, deprecated, message: "Use `main.supportsMediaType()` instead", renamed: "main.supportsMediaType()")
+    @available(*, unavailable, message: "Use `main.supportsMediaType()` instead", renamed: "main.supportsMediaType()")
     public static let contentTypes: [String] = main.supportedMediaTypes.map { $0.string }
-    @available(*, deprecated, message: "Use `main.supportsFileExtension()` instead", renamed: "main.supportsFileExtension()")
+    @available(*, unavailable, message: "Use `main.supportsFileExtension()` instead", renamed: "main.supportsFileExtension()")
     public static let extensions: [String] = main.supportedFileExtensions
     
     /// Returns the content type for the given URL.
-    @available(*, deprecated, message: "Use `Format.of` to determine the format of a file from its media type or file extension")
-    public static func contentType(for url: URL?) -> String? {
-        return contentType(forExtension: url?.pathExtension)
-    }
+    @available(*, unavailable, message: "Use `Format.of` to determine the format of a file from its media type or file extension")
+    public static func contentType(for url: URL?) -> String? { nil }
     
     /// Returns the content type for the given document extension.
-    @available(*, deprecated, message: "Use `Format.of` to determine the format of a file from its media type or file extension")
+    @available(*, unavailable, message: "Use `Format.of` to determine the format of a file from its media type or file extension")
     public static func contentType(forExtension ext: String?) -> String? {
         guard let fileExtension = ext else {
             return nil
@@ -188,7 +186,7 @@ extension DocumentTypes {
     }
     
     /// Returns the document extension for given content type.
-    @available(*, deprecated, message: "Use `Format.of` to determine the format of a file from its media type or file extension")
+    @available(*, unavailable, message: "Use `Format.of` to determine the format of a file from its media type or file extension")
     public static func `extension`(forContentType contentType: String?) -> String? {
         guard let mediaType = contentType else {
             return nil

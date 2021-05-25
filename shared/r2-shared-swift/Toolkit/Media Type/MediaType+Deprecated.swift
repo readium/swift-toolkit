@@ -6,14 +6,14 @@
 
 import Foundation
 
-@available(*, deprecated, message: "Format and MediaType got merged together", renamed: "MediaType")
+@available(*, unavailable, message: "Format and MediaType got merged together", renamed: "MediaType")
 public typealias Format = MediaType
 @available(*, unavailable, renamed: "MediaTypeSnifferContext")
 public typealias FormatSnifferContext = MediaTypeSnifferContext
 
 public extension MediaType {
 
-    @available(*, deprecated,  message: "Format and MediaType got merged together")
+    @available(*, unavailable,  message: "Format and MediaType got merged together")
     var mediaType: MediaType { self }
 
     @available(*, unavailable, renamed: "readiumAudiobook")
@@ -24,11 +24,11 @@ public extension MediaType {
     static var webpub: MediaType { readiumWebPub }
     @available(*, unavailable, renamed: "readiumWebPubManifest")
     static var webpubManifest: MediaType { readiumWebPubManifest }
-    @available(*, deprecated, renamed: "lcpLicenseDocument")
+    @available(*, unavailable, renamed: "lcpLicenseDocument")
     static var lcpLicense: MediaType { lcpLicenseDocument }
-    @available(*, deprecated, renamed: "opds1")
+    @available(*, unavailable, renamed: "opds1")
     static var opds1Feed: MediaType { opds1 }
-    @available(*, deprecated, renamed: "opds2")
+    @available(*, unavailable, renamed: "opds2")
     static var opds2Feed: MediaType { opds2 }
 
 }
