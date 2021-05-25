@@ -43,7 +43,7 @@ extension PageView {
     
 }
 
-protocol PaginationViewDelegate: class {
+protocol PaginationViewDelegate: AnyObject {
     /// Creates the page view for the page at given index.
     func paginationView(_ paginationView: PaginationView, pageViewAtIndex index: Int) -> (UIView & PageView)?
     

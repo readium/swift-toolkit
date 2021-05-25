@@ -207,32 +207,32 @@ extension CBZNavigatorViewController: UIPageViewControllerDelegate {
 
 extension CBZNavigatorViewController {
     
-    @available(*, deprecated, renamed: "currentLocation.locations.position")
+    @available(*, unavailable, renamed: "currentLocation.locations.position")
     public var pageNumber: Int {
         return currentResourceIndex + 1
     }
     
-    @available(*, deprecated, message: "Use `publication.readingOrder.count` instead")
+    @available(*, unavailable, message: "Use `publication.readingOrder.count` instead")
     public var totalPageNumber: Int {
         return publication.readingOrder.count
     }
 
-    @available(*, deprecated, renamed: "goForward")
+    @available(*, unavailable, renamed: "goForward")
     @objc public func loadNext() {
         goForward(animated: true)
     }
     
-    @available(*, deprecated, renamed: "goBackward")
+    @available(*, unavailable, renamed: "goBackward")
     @objc public func loadPrevious() {
         goBackward(animated: true)
     }
     
-    @available(*, deprecated, message: "Use `go(to:)` using the `readingOrder` instead")
+    @available(*, unavailable, message: "Use `go(to:)` using the `readingOrder` instead")
     public func load(at index: Int) {
         goToResourceAtIndex(index, animated: true)
     }
     
-    @available(*, deprecated, message: "Use init(publication:initialLocation:) instead")
+    @available(*, unavailable, message: "Use init(publication:initialLocation:) instead")
     public convenience init(for publication: Publication, initialIndex: Int = 0) {
         var location: Locator? = nil
         if publication.readingOrder.indices.contains(initialIndex) {
@@ -243,5 +243,5 @@ extension CBZNavigatorViewController {
     
 }
 
-@available(*, deprecated, renamed: "CBZNavigatorViewController")
+@available(*, unavailable, renamed: "CBZNavigatorViewController")
 public typealias CbzNavigatorViewController = CBZNavigatorViewController

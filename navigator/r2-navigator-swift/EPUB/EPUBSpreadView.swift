@@ -14,7 +14,7 @@ import R2Shared
 import SwiftSoup
 
 
-protocol EPUBSpreadViewDelegate: class {
+protocol EPUBSpreadViewDelegate: AnyObject {
     
     /// Called when the user tapped on the spread contents.
     func spreadView(_ spreadView: EPUBSpreadView, didTapAt point: CGPoint)

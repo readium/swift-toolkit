@@ -701,7 +701,7 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
 
 // MARK: - Deprecated
 
-@available(*, deprecated, renamed: "EPUBNavigatorViewController")
+@available(*, unavailable, renamed: "EPUBNavigatorViewController")
 public typealias NavigatorViewController = EPUBNavigatorViewController
 
 @available(*, unavailable, message: "Use the `animated` parameter of `goTo` functions instead")
@@ -746,25 +746,13 @@ extension EPUBNavigatorViewController {
         set {}
     }
     
-    @available(*, deprecated, message: "Bookmark model is deprecated, use your own model and `currentLocation`")
-    public var currentPosition: Bookmark? {
-        guard let publicationID = publication.metadata.identifier,
-            let locator = currentLocation,
-            let currentResourceIndex = currentResourceIndex else
-        {
-            return nil
-        }
-        return Bookmark(
-            publicationID: publicationID,
-            resourceIndex: currentResourceIndex,
-            locator: locator
-        )
-    }
+    @available(*, unavailable, message: "Bookmark model is deprecated, use your own model and `currentLocation`")
+    public var currentPosition: Bookmark? { nil }
 
-    @available(*, deprecated, message: "Use `publication.readingOrder` instead")
+    @available(*, unavailable, message: "Use `publication.readingOrder` instead")
     public func getReadingOrder() -> [Link] { return publication.readingOrder }
     
-    @available(*, deprecated, message: "Use `publication.tableOfContents` instead")
+    @available(*, unavailable, message: "Use `publication.tableOfContents` instead")
     public func getTableOfContents() -> [Link] { return publication.tableOfContents }
 
     @available(*, unavailable, renamed: "go(to:)")
@@ -773,11 +761,7 @@ extension EPUBNavigatorViewController {
     @available(*, unavailable, renamed: "go(to:)")
     public func displayReadingOrderItem(at index: Int, progression: Double) {}
     
-    @available(*, deprecated, renamed: "go(to:)")
-    public func displayReadingOrderItem(with href: String) -> Int? {
-        let index = publication.readingOrder.firstIndex(withHref: href)
-        let moved = go(to: Link(href: href))
-        return moved ? index : nil
-    }
+    @available(*, unavailable, renamed: "go(to:)")
+    public func displayReadingOrderItem(with href: String) -> Int? { nil }
     
 }
