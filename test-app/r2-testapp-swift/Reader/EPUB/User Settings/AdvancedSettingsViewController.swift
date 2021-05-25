@@ -14,7 +14,7 @@ import UIKit
 import R2Navigator
 import R2Shared
 
-protocol AdvancedSettingsDelegate: class {
+protocol AdvancedSettingsDelegate: AnyObject {
     
     func publisherSettingsDidChange()
     

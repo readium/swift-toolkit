@@ -14,7 +14,7 @@ import UIKit
 import R2Navigator
 import R2Shared
 
-protocol UserSettingsNavigationControllerDelegate: class {
+protocol UserSettingsNavigationControllerDelegate: AnyObject {
     func getUserSettings() -> UserSettings
     func updateUserSettingsStyle()
     func setUIColor(for appearance: UserProperty)

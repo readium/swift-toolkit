@@ -15,7 +15,7 @@ import UIKit
 import R2Navigator
 import R2Shared
 
-protocol UserSettingsDelegate: class {
+protocol UserSettingsDelegate: AnyObject {
     func fontSizeDidChange(increase: Bool)
     func appearanceDidChange(to appearanceIndex: Int)
     func scrollModeDidChange()
