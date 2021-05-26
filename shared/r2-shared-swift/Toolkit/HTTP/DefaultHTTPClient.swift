@@ -336,9 +336,9 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
                 // It was a HEAD request? We need to query the resource again to get the error body. The body is needed
                 // for example when the response is an OPDS Authentication Document.
                 if request.method == .head {
-                    var request = request
-                    request.method = .get
-                    session.dataTask(with: request.urlRequest) { data, _, error in
+                    var modifiedRequest = request
+                    modifiedRequest.method = .get
+                    session.dataTask(with: modifiedRequest.urlRequest) { data, _, error in
                         response.body = data
                         self.state = .failure(kind: kind, cause: error, response: response)
                         completionHandler(.cancel)

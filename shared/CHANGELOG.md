@@ -4,7 +4,12 @@ All notable changes to this project will be documented in this file.
 
 **Warning:** Features marked as *experimental* may change or be removed in a future release without notice. Use with caution.
 
-<!--## [Unreleased]-->
+## [Unreleased]
+
+### Fixed
+
+* [#139](https://github.com/readium/r2-shared-swift/pull/139) Compile error with Xcode 12.4
+
 
 ## [2.0.0]
 
