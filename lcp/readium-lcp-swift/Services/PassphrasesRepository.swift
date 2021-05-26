@@ -14,9 +14,11 @@ import Foundation
 
 protocol PassphrasesRepository {
     
+    func all() -> [String]
     func passphrase(forLicenseId licenseId: String) -> String?
     func passphrases(forUserId userId: String) -> [String]
     
-    func addPassphrase(_ passphraseHash: String, forLicenseId licenseId: String, provider: String, userId: String?)
+    @discardableResult
+    func addPassphrase(_ passphraseHash: String, forLicenseId licenseId: String?, provider: String?, userId: String?) -> Bool
 
 }

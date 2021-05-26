@@ -20,6 +20,10 @@ final class LCPLLicenseContainer: LicenseContainer {
         self.lcpl = lcpl
     }
     
+    func containsLicense() -> Bool {
+        return true
+    }
+    
     func read() throws -> Data {
         guard let data = try? Data(contentsOf: lcpl) else {
             throw LCPError.licenseContainer(.readFailed(path: "."))

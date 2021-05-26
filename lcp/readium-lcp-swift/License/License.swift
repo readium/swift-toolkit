@@ -11,7 +11,6 @@
 
 import Foundation
 import ZIPFoundation
-import R2LCPClient
 import R2Shared
 
 
@@ -21,20 +20,22 @@ final class License: Loggable {
     private var documents: ValidatedDocuments
 
     // Dependencies
+    private let client: LCPClient
     private let validation: LicenseValidation
     private let licenses: LicensesRepository
     private let device: DeviceService
     private let network: NetworkService
 
-    init(documents: ValidatedDocuments, validation: LicenseValidation, licenses: LicensesRepository, device: DeviceService, network: NetworkService) {
+    init(documents: ValidatedDocuments, client: LCPClient, validation: LicenseValidation, licenses: LicensesRepository, device: DeviceService, network: NetworkService) {
         self.documents = documents
+        self.client = client
         self.validation = validation
         self.licenses = licenses
         self.device = device
         self.network = network
 
-        validation.observe { [weak self] documents, error in
-            if let documents = documents {
+        validation.observe { [weak self] result in
+            if case .success(let documents) = result {
                 self?.documents = documents
             }
         }
@@ -60,7 +61,7 @@ extension License: LCPLicense {
     
     public func decipher(_ data: Data) throws -> Data? {
         let context = try documents.getContext()
-        return decrypt(data: data, using: context)
+        return client.decrypt(data: data, using: context)
     }
     
     var charactersToCopyLeft: Int? {
@@ -75,34 +76,41 @@ extension License: LCPLicense {
     }
     
     var canCopy: Bool {
-        return (charactersToCopyLeft ?? 1) > 0
+        (charactersToCopyLeft ?? 1) > 0
     }
     
-    func copy(_ text: String, consumes: Bool) -> String? {
+    func canCopy(text: String) -> Bool {
+        guard let charactersLeft = charactersToCopyLeft else {
+            return true
+        }
+        return text.count <= charactersLeft
+    }
+    
+    func copy(text: String) -> Bool {
         guard var charactersLeft = charactersToCopyLeft else {
-            return text
+            return true
         }
-        guard charactersLeft > 0 else {
-            return nil
-        }
-        
-        var text = text
-        if text.count > charactersLeft {
-            // Truncates the text to the amount of characters left.
-            let endIndex = text.index(text.startIndex, offsetBy: charactersLeft)
-            text = String(text[..<endIndex])
+        guard text.count <= charactersLeft else {
+            return false
         }
         
+        do {
+            charactersLeft = max(0, charactersLeft - text.count)
+            try licenses.setCopiesLeft(charactersLeft, for: license.id)
+        } catch {
+            log(.error, error)
+        }
+        
+        return true
+    }
+    
+    // Deprecated
+    func copy(_ text: String, consumes: Bool) -> String? {
         if consumes {
-            do {
-                charactersLeft = max(0, charactersLeft - text.count)
-                try licenses.setCopiesLeft(charactersLeft, for: license.id)
-            } catch {
-                log(.error, error)
-            }
+            return copy(text: text) ? text : nil
+        } else {
+            return canCopy(text: text) ? text : nil
         }
-        
-        return text
     }
     
     var pagesToPrintLeft: Int? {
@@ -116,20 +124,27 @@ extension License: LCPLicense {
         return nil
     }
     
-    var canPrint: Bool {
-        return (pagesToPrintLeft ?? 1) > 0
+    func canPrint(pageCount: Int) -> Bool {
+        guard let pagesLeft = pagesToPrintLeft else {
+            return true
+        }
+        return pageCount <= pagesLeft
     }
     
-    func print(pagesCount: Int) -> Bool {
+    var canPrint: Bool {
+        (pagesToPrintLeft ?? 1) > 0
+    }
+    
+    func print(pageCount: Int) -> Bool {
         guard var pagesLeft = pagesToPrintLeft else {
             return true
         }
-        guard pagesLeft >= pagesCount else {
+        guard pagesLeft >= pageCount else {
             return false
         }
         
         do {
-            pagesLeft = max(0, pagesLeft - pagesCount)
+            pagesLeft = max(0, pagesLeft - pageCount)
             try licenses.setPrintsLeft(pagesLeft, for: license.id)
         } catch {
             log(.error, error)
@@ -144,14 +159,97 @@ extension License: LCPLicense {
     var maxRenewDate: Date? {
         return status?.potentialRights?.end
     }
-    
-    func renewLoan(to end: Date?, present: @escaping URLPresenter, completion: @escaping (LCPError?) -> Void) {
 
-        func callPUT(_ url: URL) -> Deferred<Data> {
-            return self.network.fetch(url, method: .put)
-                .map { status, data -> Data in
+    func renewLoan(with delegate: LCPRenewDelegate, prefersWebPage: Bool, completion: @escaping (CancellableResult<(), LCPError>) -> ()) {
+
+        func renew() -> Deferred<Data, Error> {
+            deferredCatching {
+                guard let link = findRenewLink() else {
+                    throw LCPError.licenseInteractionNotAvailable
+                }
+
+                if link.mediaType.isHTML {
+                    return try renewWithWebPage(link)
+                } else {
+                    return renewProgrammatically(link)
+                }
+            }
+        }
+
+        // Finds the renew link according to `prefersWebPage`.
+        func findRenewLink() -> Link? {
+            guard let status = self.documents.status else {
+                return nil
+            }
+
+            var types = [MediaType.html, MediaType.xhtml]
+            if (prefersWebPage) {
+                types.append(.lcpStatusDocument)
+            } else {
+                types.insert(.lcpStatusDocument, at: 0)
+            }
+
+            for type in types {
+                if let link = status.link(for: .renew, type: type) {
+                    return link
+                }
+            }
+
+            // Fallback on the first renew link with no media type set and assume it's a PUT action.
+            return status.linkWithNoType(for: .renew)
+        }
+
+        // Renew the loan by presenting a web page to the user.
+        func renewWithWebPage(_ link: Link) throws -> Deferred<Data, Error> {
+            guard
+                let statusURL = try? self.license.url(for: .status, preferredType: .lcpStatusDocument),
+                let url = link.url
+            else {
+                throw LCPError.licenseInteractionNotAvailable
+            }
+
+            return delegate.presentWebPage(url: url)
+                .flatMap {
+                    // We fetch the Status Document again after the HTML interaction is done, in case it changed the
+                    // License.
+                    self.network.fetch(statusURL)
+                        .tryMap { status, data in
+                            guard 100..<400 ~= status else {
+                                throw LCPError.network(nil)
+                            }
+                            return data
+                        }
+                }
+        }
+
+        // Programmatically renew the loan with a PUT request.
+        func renewProgrammatically(_ link: Link) -> Deferred<Data, Error> {
+
+            // Asks the delegate for a renew date if there's an `end` parameter.
+            func preferredEndDate() -> Deferred<Date?, Error> {
+                (link.templateParameters.contains("end"))
+                    ? delegate.preferredEndDate(maximum: maxRenewDate)
+                    : Deferred.success(nil)
+            }
+
+            func makeRenewURL(from endDate: Date?) throws -> URL {
+                var params = device.asQueryParameters
+                if let end = endDate {
+                    params["end"] = end.iso8601
+                }
+
+                guard let url = link.url(with: params) else {
+                    throw LCPError.licenseInteractionNotAvailable
+                }
+                return url
+            }
+
+            return preferredEndDate()
+                .tryMap(makeRenewURL(from:))
+                .flatMap { self.network.fetch($0, method: .put) }
+                .tryMap { status, data -> Data in
                     switch status {
-                    case 200:
+                    case 100..<400:
                         break
                     case 400:
                         throw RenewError.renewFailed
@@ -163,46 +261,16 @@ extension License: LCPLicense {
                     return data
                 }
         }
-        
-        func callHTML(_ url: URL) throws -> Deferred<Data> {
-            guard let statusURL = try? self.license.url(for: .status) else {
-                throw LCPError.licenseInteractionNotAvailable
-            }
-            
-            return Deferred<Void> { success, _ in present(url, { success(()) }) }
-                .flatMap { _ in
-                    // We fetch the Status Document again after the HTML interaction is done, in case it changed the License.
-                    self.network.fetch(statusURL)
-                        .map { status, data in
-                            guard status == 200 else {
-                                throw LCPError.network(nil)
-                            }
-                            return data
-                        }
-                }
-        }
 
-        Deferred<Data> {
-            var params = self.device.asQueryParameters
-            if let end = end {
-                params["end"] = end.iso8601
+        renew()
+            .flatMap(validateStatusDocument)
+            .mapError(LCPError.wrap)
+            .resolve { result in
+                // Trick to make sure the delegate is not deallocated before the end of the renew process.
+                _ = type(of: delegate)
+
+                completion(result)
             }
-            
-            guard let status = self.documents.status,
-                let link = status.link(for: .renew),
-                let url = link.url(with: params) else
-            {
-                throw LCPError.licenseInteractionNotAvailable
-            }
-            
-            if link.type == "text/html" {
-                return try callHTML(url)
-            } else {
-                return callPUT(url)
-            }
-        }
-        .flatMap(self.validateStatusDocument)
-        .resolve(LCPError.wrap(completion))
     }
     
     var canReturnPublication: Bool {
@@ -211,16 +279,16 @@ extension License: LCPLicense {
     
     func returnPublication(completion: @escaping (LCPError?) -> Void) {
         guard let status = self.documents.status,
-            let url = try? status.url(for: .return, with: device.asQueryParameters) else
+            let url = try? status.url(for: .return, preferredType: .lcpStatusDocument, with: device.asQueryParameters) else
         {
             completion(LCPError.licenseInteractionNotAvailable)
             return
         }
         
         network.fetch(url, method: .put)
-            .map { status, data in
+            .tryMap { status, data in
                 switch status {
-                case 200:
+                case 100..<400:
                     break
                 case 400:
                     throw ReturnError.returnFailed
@@ -232,59 +300,26 @@ extension License: LCPLicense {
                 return data
             }
             .flatMap(validateStatusDocument)
-            .resolve(LCPError.wrap(completion))
+            .mapError(LCPError.wrap)
+            .resolveWithError(completion)
     }
-    
-}
 
-
-/// Internal API
-extension License {
-
-    /// Downloads the publication and return the path to the downloaded resource.
-    func fetchPublication(completion: @escaping ((URL, URLSessionDownloadTask?)?, Error?) -> Void) -> Observable<DownloadProgress> {
-        do {
-            let license = self.documents.license
-            let link = license.link(for: .publication)
-            let url = try license.url(for: .publication)
-
-            return self.network.download(url, title: link?.title) { result, error in
-                guard let (downloadedFile, task) = result else {
-                    completion(nil, error)
-                    return
-                }
-                
-                do {
-                    var mimetypes: [String] = []
-                    if let responseMimetype = task?.response?.mimeType {
-                        mimetypes.append(responseMimetype)
-                    }
-                    if let linkType = link?.type {
-                        mimetypes.append(linkType)
-                    }
-                    
-                    // Saves the License Document into the downloaded publication
-                    let container = try makeLicenseContainer(for: downloadedFile, mimetypes: mimetypes)
-                    try container.write(license)
-                    completion((downloadedFile, task), nil)
-                    
-                } catch {
-                    completion(nil, error)
-                }
-            }
-            
-        } catch {
-            DispatchQueue.main.async {
-                completion(nil, error)
-            }
-            return Observable<DownloadProgress>(.infinite)
-        }
-    }
-    
     /// Shortcut to be used in LSD interactions (eg. renew), to validate the returned Status Document.
-    fileprivate func validateStatusDocument(data: Data) -> Deferred<Void> {
+    fileprivate func validateStatusDocument(data: Data) -> Deferred<Void, Error> {
         return validation.validate(.status(data))
             .map { _ in () }  // We don't want to forward the Validated Documents
+    }
+
+}
+
+extension LCPRenewDelegate {
+
+    public func preferredEndDate(maximum: Date?) -> Deferred<Date?, Error> {
+        Deferred { preferredEndDate(maximum: maximum, completion: $0) }
+    }
+
+    public func presentWebPage(url: URL) -> Deferred<Void, Error> {
+        Deferred { presentWebPage(url: url, completion: $0) }
     }
 
 }

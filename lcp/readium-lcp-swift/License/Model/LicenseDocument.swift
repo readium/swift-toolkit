@@ -53,7 +53,7 @@ public struct LicenseDocument {
     let json: String
     let data: Data
 
-    init(data: Data) throws {
+    public init(data: Data) throws {
         guard let jsonString = String(data: data, encoding: .utf8),
             let deserializedJSON = try? JSONSerialization.jsonObject(with: data) else
         {
@@ -90,19 +90,26 @@ public struct LicenseDocument {
     }
 
     /// Returns the first link containing the given rel.
-    public func link(for rel: Rel) -> Link? {
-        return links[rel.rawValue].first
+    public func link(for rel: Rel, type: MediaType? = nil) -> Link? {
+        links.firstWithRel(rel.rawValue, type: type)
     }
 
     /// Returns all the links containing the given rel.
-    public func links(for rel: Rel) -> [Link] {
-        return links[rel.rawValue]
+    public func links(for rel: Rel, type: MediaType? = nil) -> [Link] {
+        links.filterWithRel(rel.rawValue, type: type)
     }
 
     /// Gets and expands the URL for the given rel, if it exits.
+    ///
+    /// If a `preferredType` is given, the first link with both the `rel` and given type will be returned. If none
+    /// are found, the first link with the `rel` and an empty `type` will be returned.
+    ///
     /// - Throws: `LCPError.invalidLink` if the URL can't be built.
-    func url(for rel: Rel, with parameters: [String: CustomStringConvertible] = [:]) throws -> URL {
-        guard let url = link(for: rel)?.url(with: parameters) else {
+    func url(for rel: Rel, preferredType: MediaType? = nil, with parameters: [String: LosslessStringConvertible] = [:]) throws -> URL {
+        let link = self.link(for: rel, type: preferredType)
+            ?? links.firstWithRelAndNoType(rel.rawValue)
+
+        guard let url = link?.url(with: parameters) else {
             throw ParsingError.url(rel: rel.rawValue)
         }
         

@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import R2Shared
 
 /// A Link to a resource.
 public struct Link {
@@ -55,28 +56,31 @@ public struct Link {
     
     /// Gets the valid URL if possible, applying the given template context as query parameters if the link is templated.
     /// eg. http://url{?id,name} + [id: x, name: y] -> http://url?id=x&name=y
-    func url(with parameters: [String: CustomStringConvertible]) -> URL? {
-        if !templated {
-            return URL(string: href)
+    func url(with parameters: [String: LosslessStringConvertible]) -> URL? {
+        var href = self.href
+        
+        if templated {
+            href = URITemplate(href).expand(with: parameters.mapValues { String(describing: $0) })
         }
         
-        let urlString = href.replacingOccurrences(of: "\\{\\?.+?\\}", with: "", options: [.regularExpression])
-        
-        guard var urlBuilder = URLComponents(string: urlString) else {
-            return nil
-        }
-        
-        // Add the template context as query parameters
-        urlBuilder.queryItems = parameters.map { param in
-            URLQueryItem(name: param.key, value: param.value.description)
-        }
-        
-        return urlBuilder.url
+        return URL(string: href)
     }
     
     /// Expands the href without any template context.
     var url: URL? {
         return url(with: [:])
+    }
+    
+    var mediaType: MediaType {
+        type.flatMap { MediaType.of(mediaType: $0) } ?? .binary
+    }
+
+    /// List of URI template parameter keys, if the `Link` is templated.
+    var templateParameters: Set<String> {
+        guard templated else {
+            return []
+        }
+        return URITemplate(href).parameters
     }
 
 }
