@@ -3,6 +3,14 @@
 // WARNING: iOS 9 requires ES5
 
 var readium = (function() {
+    // Catch JS errors to log them in the app.
+    window.addEventListener("error", function(event) {
+        webkit.messageHandlers.logError.postMessage({
+            "message": event.message,
+            "filename": event.filename,
+            "line": event.lineno
+        });
+    }, false);
     
     // Notify native code that the page has loaded.
     window.addEventListener("load", function(){ // on page load
@@ -28,6 +36,12 @@ var readium = (function() {
         last_known_scrollY_position = window.scrollY / document.scrollingElement.scrollHeight;
         // Using Math.abs because for RTL books, the value will be negative.
         last_known_scrollX_position = Math.abs(window.scrollX / document.scrollingElement.scrollWidth);
+       
+        // Window is hidden
+        if (document.scrollingElement.scrollWidth === 0 || document.scrollingElement.scrollHeight === 0) {
+            return;
+        }
+                            
         if (!ticking) {
             window.requestAnimationFrame(function() {
                 update(isScrollModeEnabled() ? last_known_scrollY_position : last_known_scrollX_position);

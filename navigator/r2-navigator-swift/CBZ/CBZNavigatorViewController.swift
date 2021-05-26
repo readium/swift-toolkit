@@ -27,9 +27,11 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     private let pageViewController: UIPageViewController
 
     public init(publication: Publication, initialLocation: Locator? = nil) {
+        assert(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
+        
         self.publication = publication
         self.initialIndex = {
-            guard let initialLocation = initialLocation, let initialIndex = publication.readingOrder.firstIndex(withHref: initialLocation.href) else {
+            guard let initialLocation = initialLocation, let initialIndex = publication.readingOrder.firstIndex(withHREF: initialLocation.href) else {
                 return 0
             }
             return initialIndex
@@ -68,7 +70,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     
     private var currentResourceIndex: Int {
         guard let imageViewController = pageViewController.viewControllers?.first as? ImageViewController,
-            publication.positionList.indices.contains(imageViewController.index) else
+            publication.positions.indices.contains(imageViewController.index) else
         {
             return initialIndex
         }
@@ -76,10 +78,10 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     }
     
     public var currentPosition: Locator? {
-        guard publication.positionList.indices.contains(currentResourceIndex) else {
+        guard publication.positions.indices.contains(currentResourceIndex) else {
             return nil
         }
-        return publication.positionList[currentResourceIndex]
+        return publication.positions[currentResourceIndex]
     }
     
     @discardableResult
@@ -90,9 +92,9 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         let direction: UIPageViewController.NavigationDirection = {
             let forward: Bool = {
                 switch readingProgression {
-                case .ltr, .auto:
+                case .ltr, .ttb, .auto:
                     return (currentResourceIndex < index)
-                case .rtl:
+                case .rtl, .btt:
                     return (currentResourceIndex >= index)
                 }
             }()
@@ -115,7 +117,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     
     private func imageViewController(at index: Int) -> ImageViewController? {
         guard publication.readingOrder.indices.contains(index),
-            let url = publication.url(to: publication.readingOrder[index]) else
+            let url = publication.readingOrder[index].url(relativeTo: publication.baseURL) else
         {
             return nil
         }
@@ -127,7 +129,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     // MARK: - Navigator
     
     public var readingProgression: ReadingProgression {
-        return publication.contentLayout.readingProgression
+        publication.metadata.effectiveReadingProgression
     }
 
     public var currentLocation: Locator? {
@@ -135,14 +137,14 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     }
     
     public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
-        guard let index = publication.readingOrder.firstIndex(withHref: locator.href) else {
+        guard let index = publication.readingOrder.firstIndex(withHREF: locator.href) else {
             return false
         }
         return goToResourceAtIndex(index, animated: animated, completion: completion)
     }
     
     public func go(to link: Link, animated: Bool, completion: @escaping () -> Void) -> Bool {
-        guard let index = publication.readingOrder.firstIndex(withHref: link.href) else {
+        guard let index = publication.readingOrder.firstIndex(withHREF: link.href) else {
             return false
         }
         return goToResourceAtIndex(index, animated: animated, completion: completion)
@@ -166,9 +168,9 @@ extension CBZNavigatorViewController: UIPageViewControllerDataSource {
         }
         var index = imageVC.index
         switch readingProgression {
-        case .ltr, .auto:
+        case .ltr, .ttb, .auto:
             index -= 1
-        case .rtl:
+        case .rtl, .btt:
             index += 1
         }
         return imageViewController(at: index)
@@ -180,9 +182,9 @@ extension CBZNavigatorViewController: UIPageViewControllerDataSource {
         }
         var index = imageVC.index
         switch readingProgression {
-        case .ltr, .auto:
+        case .ltr, .ttb, .auto:
             index += 1
-        case .rtl:
+        case .rtl, .btt:
             index -= 1
         }
         return imageViewController(at: index)
@@ -205,32 +207,32 @@ extension CBZNavigatorViewController: UIPageViewControllerDelegate {
 
 extension CBZNavigatorViewController {
     
-    @available(*, deprecated, renamed: "currentLocation.locations.position")
+    @available(*, unavailable, renamed: "currentLocation.locations.position")
     public var pageNumber: Int {
         return currentResourceIndex + 1
     }
     
-    @available(*, deprecated, message: "Use `publication.readingOrder.count` instead")
+    @available(*, unavailable, message: "Use `publication.readingOrder.count` instead")
     public var totalPageNumber: Int {
         return publication.readingOrder.count
     }
 
-    @available(*, deprecated, renamed: "goForward")
+    @available(*, unavailable, renamed: "goForward")
     @objc public func loadNext() {
         goForward(animated: true)
     }
     
-    @available(*, deprecated, renamed: "goBackward")
+    @available(*, unavailable, renamed: "goBackward")
     @objc public func loadPrevious() {
         goBackward(animated: true)
     }
     
-    @available(*, deprecated, message: "Use `go(to:)` using the `readingOrder` instead")
+    @available(*, unavailable, message: "Use `go(to:)` using the `readingOrder` instead")
     public func load(at index: Int) {
         goToResourceAtIndex(index, animated: true)
     }
     
-    @available(*, deprecated, message: "Use init(publication:initialLocation:) instead")
+    @available(*, unavailable, message: "Use init(publication:initialLocation:) instead")
     public convenience init(for publication: Publication, initialIndex: Int = 0) {
         var location: Locator? = nil
         if publication.readingOrder.indices.contains(initialIndex) {
@@ -241,5 +243,5 @@ extension CBZNavigatorViewController {
     
 }
 
-@available(*, deprecated, renamed: "CBZNavigatorViewController")
+@available(*, unavailable, renamed: "CBZNavigatorViewController")
 public typealias CbzNavigatorViewController = CBZNavigatorViewController

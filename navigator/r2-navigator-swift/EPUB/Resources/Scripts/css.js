@@ -7,7 +7,7 @@
       var link = document.createElement('link');
       link.setAttribute('rel', 'stylesheet');
       link.setAttribute('type', 'text/css');
-      link.setAttribute('href', '${resourcesURL}/styles/${contentLayout}/' + name + '.css');
+      link.setAttribute('href', '${readiumCSSBaseURL}' + name + '.css');
       return link;
     }
 

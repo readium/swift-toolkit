@@ -7,20 +7,23 @@
   });
 
   function onClick(event) {
-    if (event.defaultPrevented || isInteractiveElement(event.target)) {
-      return;
-    }
 
     if (!window.getSelection().isCollapsed) {
       // There's an on-going selection, the tap will dismiss it so we don't forward it.
       return;
     }
 
+    // Send the tap data over the JS bridge even if it's been handled
+    // within the webview, so that it can be preserved and used
+    // by the WKNavigationDelegate if needed.
     webkit.messageHandlers.tap.postMessage({
+      "defaultPrevented": event.defaultPrevented,
       "screenX": event.screenX,
       "screenY": event.screenY,
       "clientX": event.clientX,
       "clientY": event.clientY,
+      "targetElement": event.target.outerHTML,
+      "interactiveElement": nearestInteractiveElement(event.target),
     });
 
     // We don't want to disable the default WebView behavior as it breaks some features without bringing any value.
@@ -29,7 +32,7 @@
   }
 
   // See. https://github.com/JayPanoz/architecture/tree/touch-handling/misc/touch-handling
-  function isInteractiveElement(element) {
+  function nearestInteractiveElement(element) {
     var interactiveTags = [
       'a',
       'audio',
@@ -45,20 +48,20 @@
       'video',
     ]
     if (interactiveTags.indexOf(element.nodeName.toLowerCase()) != -1) {
-      return true;
+      return element.outerHTML;
     }
 
     // Checks whether the element is editable by the user.
     if (element.hasAttribute('contenteditable') && element.getAttribute('contenteditable').toLowerCase() != 'false') {
-      return true;
+      return element.outerHTML;
     }
 
     // Checks parents recursively because the touch might be for example on an <em> inside a <a>.
     if (element.parentElement) {
-      return isInteractiveElement(element.parentElement);
+      return nearestInteractiveElement(element.parentElement);
     }
     
-    return false;
+    return null;
   }
 
 })();

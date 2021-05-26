@@ -1,1 +1,2 @@
-github "readium/r2-shared-swift" == 1.4.3
+github "readium/r2-shared-swift" "develop"
+github "scinfu/SwiftSoup" == 2.3.2

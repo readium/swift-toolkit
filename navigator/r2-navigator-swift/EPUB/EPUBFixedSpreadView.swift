@@ -1,12 +1,7 @@
 //
-//  EPUBFixedSpreadView.swift
-//  r2-navigator-swift
-//
-//  Created by Mickaël Menu on 09.04.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -64,6 +59,11 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         webView.evaluateJavaScript("spread.load(\(spread.jsonString(for: publication)));")
     }
 
+    override func spreadDidLoad() {
+        super.spreadDidLoad()
+        goToCompletions.complete()
+    }
+
     /// Layouts the resource to fit its content in the bounds.
     private func layoutSpread() {
         guard isWrapperLoaded else {
@@ -81,10 +81,9 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         """)
     }
     
-    override func pointFromTap(_ data: [String : Any]) -> CGPoint? {
-        guard let x = data["screenX"] as? Int, let y = data["screenY"] as? Int else {
-            return nil
-        }
+    override func pointFromTap(_ data: TapData) -> CGPoint? {
+        let x = data.screenX
+        let y = data.screenY
 
         return CGPoint(
             x: CGFloat(x) * scrollView.zoomScale - scrollView.contentOffset.x + webView.frame.minX,
@@ -101,8 +100,24 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
             loadSpread()
         }
     }
-    
-    
+
+    /// MARK: - Location and progression
+
+    private let goToCompletions = CompletionList()
+
+    override func go(to location: PageLocation, completion: (() -> ())?) {
+        // Fixed layout resources are always fully visible so we don't use the location.
+        guard let completion = completion else {
+            return
+        }
+
+        if spreadLoaded {
+            DispatchQueue.main.async(execute: completion)
+        } else {
+            goToCompletions.add(completion)
+        }
+    }
+
     /// MARK: - Scripts
     
     private static let fixedScript = loadScript(named: "fixed")
@@ -111,19 +126,6 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         var scripts = super.makeScripts()
         scripts.append(WKUserScript(source: EPUBFixedSpreadView.fixedScript, injectionTime: .atDocumentStart, forMainFrameOnly: true))
         return scripts
-    }
-    
-    override func evaluateScript(_ script: String, inResource href: String, completion: ((Any?, Error?) -> Void)? = nil) {
-        guard isWrapperLoaded else {
-            completion?(nil, nil)
-            return
-        }
-        guard href == "#" || spread.contains(href: href) else {
-            log(.warning, "Href \(href) not found in spread")
-            return
-        }
-        let script = "spread.eval('\(href)', \"\(script.replacingOccurrences(of: "\"", with: "\\\""))\");"
-        webView.evaluateJavaScript(script, completionHandler: completion)
     }
 
 }

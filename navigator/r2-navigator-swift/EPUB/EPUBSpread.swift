@@ -31,9 +31,9 @@ struct EPUBSpread: Loggable {
     let readingProgression: ReadingProgression
     
     /// Rendition layout of the links in the spread.
-    let layout: EPUBRendition.Layout
+    let layout: EPUBLayout
 
-    init(pageCount: PageCount, links: [Link], readingProgression: ReadingProgression, layout: EPUBRendition.Layout) {
+    init(pageCount: PageCount, links: [Link], readingProgression: ReadingProgression, layout: EPUBLayout) {
         precondition(!links.isEmpty, "A spread must have at least one page")
         precondition(pageCount != .one || links.count == 1, "A one-page spread must have only one page")
         precondition(pageCount != .two || 1...2 ~= links.count, "A two-pages spread must have one or two pages max")
@@ -46,10 +46,10 @@ struct EPUBSpread: Loggable {
     /// Links for the resources in the spread, from left to right.
     var linksLTR: [Link] {
         switch readingProgression {
-        case .rtl:
-            return links.reversed()
-        case .ltr, .auto:
+        case .ltr, .ttb, .auto:
             return links
+        case .rtl, .btt:
+            return links.reversed()
         }
     }
     
@@ -70,9 +70,22 @@ struct EPUBSpread: Loggable {
 
     /// Returns whether the spread contains a resource with the given href.
     func contains(href: String) -> Bool {
-        return links.first(withHref: href) != nil
+        return links.first(withHREF: href) != nil
     }
-    
+
+    /// Return the number of positions (as in `Publication.positionList`) contained in the spread.
+    func positionCount(in publication: Publication) -> Int {
+        links
+            .map {
+                if let index = publication.readingOrder.firstIndex(withHREF: $0.href) {
+                    return publication.positionsByReadingOrder[index].count
+                } else {
+                    return 0
+                }
+            }
+            .reduce(0, +)
+    }
+
     /// Returns a JSON representation of the links in the spread.
     /// The JSON is an array of link objects in reading progression order.
     /// Each link object contains:
@@ -80,8 +93,8 @@ struct EPUBSpread: Loggable {
     ///   - url: Full URL to the resource.
     ///   - page [left|center|right]: (optional) Page position of the linked resource in the spread.
     func json(for publication: Publication) -> [[String: String]] {
-        func makeLinkJSON(_ link: Link, page: Properties.Page? = nil) -> [String: String]? {
-            guard let url = publication.url(to: link) else {
+        func makeLinkJSON(_ link: Link, page: Presentation.Page? = nil) -> [String: String]? {
+            guard let url = link.url(relativeTo: publication.baseURL) else {
                 log(.error, "Can't get URL for link \(link.href)")
                 return nil
             }
@@ -118,7 +131,7 @@ struct EPUBSpread: Loggable {
     ///   - isLandscape: Whether the navigator viewport is in landscape or portrait.
     static func pageCountPerSpread(for publication: Publication, userSettings: UserSettings, isLandscape: Bool) -> PageCount {
         var setting = spreadSetting(in: userSettings)
-        if setting == .auto, let publicationSetting = publication.metadata.rendition.spread {
+        if setting == .auto, let publicationSetting = publication.metadata.presentation.spread {
             setting = publicationSetting
         }
         
@@ -134,7 +147,7 @@ struct EPUBSpread: Loggable {
     }
     
     /// Returns the EPUBRendition spread setting for the given UserSettings.
-    private static func spreadSetting(in userSettings: UserSettings) -> EPUBRendition.Spread {
+    private static func spreadSetting(in userSettings: UserSettings) -> Presentation.Spread {
         guard let columnCount = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.columnCount.rawValue) as? Enumerable else {
             return .auto
         }
@@ -171,7 +184,7 @@ struct EPUBSpread: Loggable {
                 pageCount: .one,
                 links: [$0],
                 readingProgression: readingProgression,
-                layout: publication.metadata.rendition.layout(of: $0)
+                layout: publication.metadata.presentation.layout(of: $0)
             )
         }
     }
@@ -188,11 +201,11 @@ struct EPUBSpread: Loggable {
             }
             
             let first = links.removeFirst()
-            let layout = publication.metadata.rendition.layout(of: first)
+            let layout = publication.metadata.presentation.layout(of: first)
             // To be displayed together, the two pages must have a fixed layout, and have consecutive position hints (Properties.Page).
             if let second = links.first,
                 layout == .fixed,
-                layout == publication.metadata.rendition.layout(of: second),
+                layout == publication.metadata.presentation.layout(of: second),
                 areConsecutive(first, second)
             {
                 spreads.append(EPUBSpread(
@@ -213,12 +226,12 @@ struct EPUBSpread: Loggable {
         /// Two resources are consecutive if their position hint (Properties.Page) are paired according to the reading progression.
         func areConsecutive(_ first: Link, _ second: Link) -> Bool {
             // Here we use the default publication reading progression instead of the custom one provided, otherwise the page position hints might be wrong, and we could end up with only one-page spreads.
-            switch publication.contentLayout.readingProgression {
-            case .ltr, .auto:
+            switch publication.metadata.effectiveReadingProgression {
+            case .ltr, .ttb, .auto:
                 let firstPosition = first.properties.page ?? .left
                 let secondPosition = second.properties.page ?? .right
                 return (firstPosition == .left && secondPosition == .right)
-            case .rtl:
+            case .rtl, .btt:
                 let firstPosition = first.properties.page ?? .right
                 let secondPosition = second.properties.page ?? .left
                 return (firstPosition == .right && secondPosition == .left)

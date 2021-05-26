@@ -1,5 +1,20 @@
-/* Readium CSS 
-   Default module for CJK horizontal writing
+/* Readium CSS
+   Namespaces module
+
+   Namespaces to import in all 3 dist stylesheets
+
+   Repo: https://github.com/readium/readium-css */
+
+@namespace url("http://www.w3.org/1999/xhtml");
+
+@namespace epub url("http://www.idpf.org/2007/ops");
+
+@namespace m url("http://www.w3.org/1998/Math/MathML/");
+
+@namespace svg url("http://www.w3.org/2000/svg");
+
+/* Readium CSS
+   Default module for CJK vertical writing
 
    A stylesheet for unstyled ebooks based on HTML5 Suggested Rendering
    Note: works in combination with Base module
@@ -10,8 +25,8 @@
 
 :root {
   /* Extra variables for Japanese font-stacks:
-     • --RS__serif-ja;
-     • --RS__sans-serif-ja.
+     • --RS__serif-ja-v;
+     • --RS__sans-serif-ja-v.
 
      They can be used instead of --RS__baseFontFamily and --RS__compFontFamily */
 
@@ -32,13 +47,17 @@
   --RS__secondaryColor: ;
 }
 
+:root:lang(zh) {
+  --RS__paraIndent: 2em;
+}
+
+:lang("mn-Mong") {
+  --RS__baseFontSize: 100%;
+}
+
 /* STYLES */
 
 /* Typo */
-
-:root {
-  quotes: "\201c" "\201d" "\2018" "\2019";
-}
 
 body {
   font-size: var(--RS__baseFontSize);
@@ -54,21 +73,22 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Flow content */
 
-blockquote, figure, p, pre,
-aside, footer, form, hr {
-  margin-top: var(--RS__flowSpacing);
-  margin-bottom: var(--RS__flowSpacing);
+blockquote,
+figure,
+p,
+pre,
+aside,
+footer,
+form,
+hr {
+  margin-right: var(--RS__flowSpacing);
+  margin-left: var(--RS__flowSpacing);
 }
 
 p {
-  margin-top: var(--RS__paraSpacing);
-  margin-bottom: var(--RS__paraSpacing); 
+  margin-right: var(--RS__paraSpacing);
+  margin-left: var(--RS__paraSpacing);
   text-indent: var(--RS__paraIndent);
-}
-
-h1 + p, h2 + p, h3 + p, h4 + p, h5 + p, h6 + p,
-hr + p {
-  text-indent: 0;
 }
 
 pre {
@@ -88,17 +108,17 @@ sub, sup {
 }
 
 sub {
-  bottom: -0.2ex;
+  left: -0.2ex;
 }
 
 sup {
-  bottom: 0;
+  right: 0;
 }
 
 em {
-  -webkit-text-emphasis: dot;
-  -epub-text-emphasis: dot;
-  text-emphasis: dot;
+  -webkit-text-emphasis: sesame;
+  -epub-text-emphasis: sesame;
+  text-emphasis: sesame;
 }
 
 :link {
@@ -112,61 +132,64 @@ em {
 /* Headings */
 
 h1 {
-  margin-top: calc(var(--RS__flowSpacing) * 2);
-  margin-bottom: calc(var(--RS__flowSpacing) * 2);
+  margin-right: calc(var(--RS__flowSpacing) * 2);
+  margin-left: calc(var(--RS__flowSpacing) * 2);
   /* The following is base font size * typescale power of 3 */
   font-size: calc(((1em * var(--RS__typeScale)) * var(--RS__typeScale)) * var(--RS__typeScale));
-  text-align: center;
+  text-indent: 2rem;
 }
 
 h2 {
-  margin-top: calc(var(--RS__flowSpacing) * 2);
-  margin-bottom: var(--RS__flowSpacing);
+  margin-right: calc(var(--RS__flowSpacing) * 2);
+  margin-left: var(--RS__flowSpacing);
   /* The following is base font size * typescale power of 2 */
   font-size: calc((1em * var(--RS__typeScale)) * var(--RS__typeScale));
-  text-align: center;
+  text-indent: 3rem;
 }
 
 h3 {
-  margin-top: var(--RS__flowSpacing);
-  margin-bottom: var(--RS__flowSpacing);
+  margin-right: var(--RS__flowSpacing);
+  margin-left: var(--RS__flowSpacing);
   font-size: calc(1em * var(--RS__typeScale));
-  text-align: center;
+  text-indent: 4rem;
 }
 
 h4 {
-  margin-top: var(--RS__flowSpacing);
-  margin-bottom: var(--RS__flowSpacing);
+  margin-right: var(--RS__flowSpacing);
+  margin-left: var(--RS__flowSpacing);
   font-family: var(--RS__compFontFamily);
   font-size: 1em;
+  text-indent: 4rem;
 }
 
 h5 {
-  margin-top: var(--RS__flowSpacing);
-  margin-bottom: var(--RS__flowSpacing);
+  margin-right: var(--RS__flowSpacing);
+  margin-left: var(--RS__flowSpacing);
   font-family: var(--RS__compFontFamily);
   font-size: smaller;
+  text-indent: 4rem;
 }
 
 h6 {
-  margin-top: var(--RS__flowSpacing);
-  margin-bottom: 0;
+  margin-right: var(--RS__flowSpacing);
+  margin-left: 0;
   font-family: var(--RS__compFontFamily);
   font-size: smaller;
   font-weight: normal;
+  text-indent: 4rem;
 }
 
 /* Lists */
 
 dl, ol, ul {
-  margin-top: var(--RS__flowSpacing);
-  margin-bottom: var(--RS__flowSpacing);
+  margin-right: var(--RS__flowSpacing);
+  margin-left: var(--RS__flowSpacing);
 }
 
 /* Table */
 
 table {
-  margin: var(--RS__flowSpacing) 0;
+  margin: 0 var(--RS__flowSpacing);
   border: 1px solid currentColor;
   border-collapse: collapse;
   empty-cells: show;

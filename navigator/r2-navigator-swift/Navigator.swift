@@ -86,6 +86,13 @@ public protocol NavigatorDelegate: AnyObject {
     /// Called when the user tapped an external URL. The default implementation opens the URL with the default browser.
     func navigator(_ navigator: Navigator, presentExternalURL url: URL)
     
+    /// Called when the user taps on a link referring to a note.
+    ///
+    /// Return `true` to navigate to the note, or `false` if you intend to present the
+    /// note yourself, using its `content`. `link.type` contains information about the
+    /// format of `content` and `referrer`, such as `text/html`.
+    func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: Link, content: String, referrer: String?) -> Bool
+    
 }
 
 
@@ -93,8 +100,12 @@ public extension NavigatorDelegate {
     
     func navigator(_ navigator: Navigator, presentExternalURL url: URL) {
         if UIApplication.shared.canOpenURL(url) {
-            UIApplication.shared.openURL(url)
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }
+    }
+    
+    func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: Link, content: String, referrer: String?) -> Bool {
+        return true
     }
 
 }
