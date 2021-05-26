@@ -27,7 +27,7 @@ public struct Clip {
     /// End time in seconds.
     public var end: Double!
     /// Total clip duration in seconds (end - start).
-    @available(iOS, deprecated: 9.0, message: "Don't use it when the value is negative, because some information is missing in the original SMIL file. Try to get the duration from file system or APIs in Fetcher, then minus the start value.")
+//    @available(iOS, deprecated: 9.0, message: "Don't use it when the value is negative, because some information is missing in the original SMIL file. Try to get the duration from file system or APIs in Fetcher, then minus the start value.")
     public var duration: Double!
     
     public init() {}

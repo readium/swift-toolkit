@@ -28,6 +28,6 @@ public class Feed {
     ///
     /// - Returns: The HREF value of the search link
     internal func getSearchLinkHref() -> String? {
-        return links.first(withRel: "search")?.href
+        return links.first(withRel: .search)?.href
     }
 }

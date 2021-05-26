@@ -11,49 +11,14 @@
 
 import Foundation
 
-
-public enum ReadingProgression: String {
-    case rtl
-    case ltr
-    case auto
-    
-    /// Returns the leading Page for the reading progression.
-    public var leadingPage: Properties.Page {
-        switch self {
-        case .ltr, .auto:
-            return .left
-        case .rtl:
-            return .right
-        }
-    }
-}
-
-
-public enum ContentLayoutStyle: String {
+@available(*, unavailable, message: "Use `publication.metadata.effectiveReadingProgression` instead")
+public enum ContentLayout: String {
     case rtl = "rtl"
     case ltr = "ltr"
     case cjkVertical = "cjk-vertical"
     case cjkHorizontal = "cjk-horizontal"
-
-    public init(language: String, readingProgression: ReadingProgression? = nil) {
-        let language: String = {
-            if let code = language.split(separator: "-").first {
-                return String(code)
-            }
-            return language
-        }()
-        
-        switch language.lowercased() {
-        case "ar", "fa", "he":
-            self = .rtl
-        // Any Chinese: zh-*-*
-        case "zh", "ja", "ko":
-            self = (readingProgression == .rtl) ? .cjkVertical : .cjkHorizontal
-        default:
-            self = (readingProgression == .rtl) ? .rtl : .ltr
-        }
-    }
     
+    @available(*, unavailable, message: "Use `publication.metadata.effectiveReadingProgression` instead", renamed: "metadata.effectiveReadingProgression")
     public var readingProgression: ReadingProgression {
         switch self {
         case .rtl, .cjkVertical:

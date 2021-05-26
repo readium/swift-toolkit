@@ -11,7 +11,6 @@
 
 import XCTest
 
-
 func AssertJSONEqual(_ json1: Any, _ json2: Any, file: StaticString = #file, line: UInt = #line) {
     do {
         // Wrap the objects in an array to allow JSON fragments comparisons
@@ -21,4 +20,8 @@ func AssertJSONEqual(_ json1: Any, _ json2: Any, file: StaticString = #file, lin
     } catch {
         XCTFail(error.localizedDescription)
     }
+}
+
+func AssertImageEqual(_ image1: UIImage?, _ image2: UIImage?, file: StaticString = #file, line: UInt = #line) {
+    XCTAssertEqual(image1?.pngData(), image2?.pngData(), file: file, line: line)
 }

@@ -41,7 +41,7 @@ public func serializeJSONData(_ object: Any) -> Data? {
 
 /// Protocol to automatically conforms to Equatable by comparing the JSON representation of a type.
 /// WARNING: this is only reliable on iOS 11+, because the keys order is not deterministic before. So only use JSON equality comparisons in unit tests, for example.
-public protocol JSONEquatable: Equatable {
+public protocol JSONEquatable: Equatable, CustomDebugStringConvertible {
     associatedtype JSONType
     
     var json: JSONType { get }
@@ -63,6 +63,10 @@ extension JSONEquatable {
         let l = try? JSONSerialization.data(withJSONObject: ljson, options: [.sortedKeys])
         let r = try? JSONSerialization.data(withJSONObject: rjson, options: [.sortedKeys])
         return l == r
+    }
+    
+    public var debugDescription: String {
+        serializeJSONString(json) ?? String(describing: self)
     }
     
 }

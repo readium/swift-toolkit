@@ -8,6 +8,7 @@
 
 import Foundation
 
+@available(*, deprecated, message: "This API will be removed in the future, please use your own download solution in your app")
 public protocol DownloadDisplayDelegate {
     func didStartDownload(task:URLSessionDownloadTask, description:String);
     func didFinishDownload(task:URLSessionDownloadTask);
@@ -17,6 +18,7 @@ public protocol DownloadDisplayDelegate {
 
 
 /// Represents the percent-based progress of the download.
+@available(*, deprecated, message: "This API will be removed in the future, please use your own download solution in your app")
 public enum DownloadProgress {
     /// Undetermined progress, a spinner should be shown to the user.
     case infinite
@@ -24,7 +26,7 @@ public enum DownloadProgress {
     case finite(Float)
 }
 
-
+@available(*, deprecated, message: "This API will be removed in the future, please use your own download solution in your app")
 public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDelegate {
 
     public typealias CompletionHandler = (URL?, URLResponse?, Error?, URLSessionDownloadTask) -> Bool?
@@ -59,7 +61,13 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
     /// Returns: an observable download progress value, from 0.0 to 1.0
     @discardableResult
     public func launch(request: URLRequest, description: String?, completionHandler: CompletionHandler?) -> Observable<DownloadProgress> {
-        let task = self.session.downloadTask(with: request); task.resume()
+        launchTask(request: request, description: description, completionHandler: completionHandler).progress
+    }
+    
+    @discardableResult
+    public func launchTask(request: URLRequest, description: String?, completionHandler: CompletionHandler?) -> (task: URLSessionDownloadTask, progress: Observable<DownloadProgress>) {
+        let task = self.session.downloadTask(with: request)
+        task.resume()
         let download = Download(completion: completionHandler ?? { _, _, _, _ in return true })
         self.taskMap[task] = download
 
@@ -68,9 +76,9 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
             self.displayDelegate?.didStartDownload(task: task, description: localizedDescription)
         }
         
-        return download.progress
+        return (task, download.progress)
     }
-    
+        
     public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
         let done: Bool?
         let download = taskMap[downloadTask]
@@ -85,7 +93,7 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
                 .appendingPathExtension(location.pathExtension)
             
             try FileManager.default.moveItem(at: location, to: tempURL)
-            done = download?.completion(tempURL, nil, nil, downloadTask)
+            done = download?.completion(tempURL, response, nil, downloadTask)
         } catch {
             done = download?.completion(nil, nil, error, downloadTask)
         }

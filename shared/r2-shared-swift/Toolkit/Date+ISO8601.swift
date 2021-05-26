@@ -45,6 +45,8 @@ public extension DateFormatter {
         // https://developer.apple.com/documentation/foundation/dateformatter
         // Doesn't support millisecond or uncompleted part for date, time, timezone offset.
         let formats = [
+            4: "yyyy",
+            7: "yyyy-MM",
             10: "yyyy-MM-dd",
             11: "yyyy-MM-ddZ",
             16: "yyyy-MM-ddZZZZZ",

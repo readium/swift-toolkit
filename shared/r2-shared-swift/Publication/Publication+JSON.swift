@@ -14,11 +14,14 @@ import Foundation
 
 enum JSONError: LocalizedError {
     case parsing(Any.Type)
+    case serializing(Any.Type)
 
     var errorDescription: String? {
         switch self {
         case .parsing(let type):
             return R2SharedLocalizedString("JSONError.parsing", "\(type)")
+        case .serializing(let type):
+            return R2SharedLocalizedString("JSONError.serializing", "\(type)")
         }
     }
     
@@ -74,7 +77,8 @@ extension JSONDictionary: Equatable {
     
     static func == (lhs: JSONDictionary, rhs: JSONDictionary) -> Bool {
         guard #available(iOS 11.0, *) else {
-            // The JSON comparison is not reliable before iOS 11, because the keys order is not deterministic. Since the equality is only tested during unit tests, it's not such a problem.
+            // The JSON comparison is not reliable before iOS 11, because the keys order is not
+            // deterministic.
             return false
         }
         
@@ -85,6 +89,22 @@ extension JSONDictionary: Equatable {
 
 }
 
+extension JSONDictionary: Hashable {
+    
+    func hash(into hasher: inout Hasher) {
+        guard #available(iOS 11.0, *) else {
+            // The JSON comparison is not reliable before iOS 11, because the keys order is not
+            // deterministic.
+            hasher.combine(UUID().uuidString)
+            return
+        }
+        
+        let jsonString = (try? JSONSerialization.data(withJSONObject: json, options: [.sortedKeys]))
+            .map { String(data: $0, encoding: .utf8) }
+        hasher.combine(jsonString ?? "{}")
+    }
+    
+}
 
 // MARK: - JSON Parsing
 
