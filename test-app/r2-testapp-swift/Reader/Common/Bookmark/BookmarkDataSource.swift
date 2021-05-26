@@ -15,22 +15,22 @@ import R2Shared
 
 class BookmarkDataSource: Loggable {
     
-    let publicationID :String?
+    let bookID: Int64?
     private(set) var bookmarks = [Bookmark]()
     
     init() {
-        self.publicationID = nil
+        self.bookID = nil
         self.reloadBookmarks()
     }
     
-    init(publicationID: String) {
-        self.publicationID = publicationID
+    init(bookID: Int64) {
+        self.bookID = bookID
         self.reloadBookmarks()
     }
     
     func reloadBookmarks() {
-        if let list = try? BookmarkDatabase.shared.bookmarks.bookmarkList(for: self.publicationID) {
-            self.bookmarks = list ?? [Bookmark]()
+        if let list = try? BookmarkDatabase.shared.bookmarks.bookmarkList(for: self.bookID) {
+            self.bookmarks = list 
             self.bookmarks.sort { (b1, b2) -> Bool in
                 if b1.resourceIndex == b2.resourceIndex {
                     let locations1 = b1.locator.locations

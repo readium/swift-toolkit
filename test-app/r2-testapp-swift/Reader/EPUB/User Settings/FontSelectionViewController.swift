@@ -14,7 +14,7 @@ import UIKit
 import R2Navigator
 import R2Shared
 
-protocol FontSelectionDelegate: class {
+protocol FontSelectionDelegate: AnyObject {
     func currentFontIndex() -> Int
     func fontDidChange(to fontIndex: Int)
 }

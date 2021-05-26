@@ -52,21 +52,28 @@ class OPDSPublicationInfoViewController: UIViewController, Loggable {
                 let coverURL = URL(string: images[0].href)
                 if (coverURL != nil) {
                     UIApplication.shared.isNetworkActivityIndicatorVisible = true
-                    imageView!.kf.setImage(with: coverURL,
-                                           placeholder: titleTextView,
-                                           options: [.transition(ImageTransition.fade(0.5))],
-                                           progressBlock: nil) { (image, _, _, _) in
-                                            DispatchQueue.main.async {
-                                                UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                                            }
-                                            self.fxImageView?.image = image
-                                            UIView.transition(with: self.fxImageView,
-                                                              duration: 0.3,
-                                                              options: .transitionCrossDissolve,
-                                                              animations: {
-                                                                self.fxImageView?.image = image
-                                                                
-                                            }, completion: nil)
+                    imageView.kf.setImage(
+                        with: coverURL,
+                        placeholder: titleTextView,
+                        options: [.transition(ImageTransition.fade(0.5))],
+                        progressBlock: nil
+                    ) { result in
+                        DispatchQueue.main.async {
+                            UIApplication.shared.isNetworkActivityIndicatorVisible = false
+                        }
+                        switch result {
+                        case .success(let image):
+                            self.fxImageView?.image = image.image
+                            UIView.transition(
+                                with: self.fxImageView,
+                                duration: 0.3,
+                                options: .transitionCrossDissolve,
+                                animations: { self.fxImageView?.image = image.image },
+                                completion: nil
+                            )
+                        case .failure(_):
+                            break
+                        }
                     }
                 }
             }
@@ -95,9 +102,28 @@ class OPDSPublicationInfoViewController: UIViewController, Loggable {
         
         downloadActivityIndicator.startAnimating()
         downloadButton.isEnabled = false
-        delegate.opdsDownloadPublication(publication, at: downloadLink) { [weak self] _ in
-            self?.downloadActivityIndicator.stopAnimating()
-            self?.downloadButton.isEnabled = true
+        delegate.opdsDownloadPublication(publication, at: downloadLink, sender: self) { [weak self] result in
+            guard let self = self else {
+                return
+            }
+            
+            self.downloadActivityIndicator.stopAnimating()
+            self.downloadButton.isEnabled = true
+            
+            switch result {
+            case .success(let book):
+                delegate.presentAlert(
+                    NSLocalizedString("success_title", comment: "Title of the alert when a publication is successfully downloaded"),
+                    message: String(format: NSLocalizedString("library_download_success_message", comment: "Message of the alert when a publication is successfully downloaded"), book.title),
+                    from: self
+                )
+                
+            case .failure(let error):
+                delegate.presentError(error, from: self)
+
+            case .cancelled:
+                break
+            }
         }
     }
 

@@ -30,8 +30,8 @@ final class PDFModule: ReaderFormatModule {
         return [.pdf]
     }
     
-    func makeReaderViewController(for publication: Publication, book: Book, drm: DRM?, resourcesServer: ResourcesServer) throws -> UIViewController {
-        let viewController = PDFViewController(publication: publication, book: book, drm: drm)
+    func makeReaderViewController(for publication: Publication, book: Book, resourcesServer: ResourcesServer) throws -> UIViewController {
+        let viewController = PDFViewController(publication: publication, book: book)
         viewController.moduleDelegate = delegate
         return viewController
     }

@@ -38,7 +38,7 @@
 			<key>CFBundleTypeIconFiles</key>
 			<array/>
 			<key>CFBundleTypeName</key>
-			<string>Comic Zip</string>
+			<string>Comic ZIP</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>LSHandlerRank</key>
@@ -185,6 +185,8 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>UIFileSharingEnabled</key>
+	<true/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
@@ -231,7 +233,7 @@
 					<string>CBZ</string>
 				</array>
 				<key>public.mime-type</key>
-				<string>application/x-cbr</string>
+				<string>application/vnd.comicbook+zip</string>
 			</dict>
 		</dict>
 		<dict>
@@ -256,7 +258,7 @@
 					<string>LCPL</string>
 				</array>
 				<key>public.mime-type</key>
-				<string>application/vnd.readium.lcp.license.v1.0</string>
+				<string>application/vnd.readium.lcp.license.v1.0+json</string>
 			</dict>
 		</dict>
 		<dict>

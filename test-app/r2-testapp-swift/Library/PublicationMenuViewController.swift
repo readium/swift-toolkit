@@ -13,7 +13,7 @@
 
 import UIKit
 
-protocol PublicationMenuViewControllerDelegate: class {
+protocol PublicationMenuViewControllerDelegate: AnyObject {
     func infosButtonTapped()
     func removeButtonTapped()
     func cancelButtonTapped()

@@ -14,7 +14,7 @@ import UIKit
 import R2Navigator
 import R2Shared
 
-protocol AdvancedSettingsDelegate: class {
+protocol AdvancedSettingsDelegate: AnyObject {
     
     func publisherSettingsDidChange()
     
@@ -190,13 +190,11 @@ class AdvancedSettingsViewController: UIViewController {
     @IBAction func pageMarginsPlusTapped() {
         delegate?.incrementPageMargins()
         delegate?.updatePageMarginsLabel()
-        switchOffPublisherSettingsIfNeeded()
     }
 
     @IBAction func pageMarginsMinusTapped() {
         delegate?.decrementPageMargins()
         delegate?.updatePageMarginsLabel()
-        switchOffPublisherSettingsIfNeeded()
     }
 
     public func updatePageMargins(value: String) {
@@ -225,6 +223,5 @@ class AdvancedSettingsViewController: UIViewController {
     
     @IBAction func columnCountValueChanged(_ sender: UISegmentedControl) {
         delegate?.columnCountDidChange(to: sender.selectedSegmentIndex)
-        switchOffPublisherSettingsIfNeeded()
     }
 }

@@ -101,21 +101,14 @@ class LibraryViewController: UIViewController, Loggable {
         super.viewWillTransition(to: size, with: coordinator)
         collectionView.collectionViewLayout.invalidateLayout()
     }
+
+    static let iPadLayoutNumberPerRow:[ScreenOrientation: Int] = [.portrait: 4, .landscape: 5]
+    static let iPhoneLayoutNumberPerRow:[ScreenOrientation: Int] = [.portrait: 3, .landscape: 4]
     
-    enum GeneralScreenOrientation: String {
-        case landscape
-        case portrait
-    }
-    
-    static let iPadLayoutNumberPerRow:[GeneralScreenOrientation: Int] = [.portrait: 4, .landscape: 5]
-    static let iPhoneLayoutNumberPerRow:[GeneralScreenOrientation: Int] = [.portrait: 3, .landscape: 4]
-    
-    static let layoutNumberPerRow:[UIUserInterfaceIdiom:[GeneralScreenOrientation: Int]] = [
+    static let layoutNumberPerRow:[UIUserInterfaceIdiom:[ScreenOrientation: Int]] = [
         .pad : LibraryViewController.iPadLayoutNumberPerRow,
         .phone : LibraryViewController.iPhoneLayoutNumberPerRow
     ]
-    
-    private var previousScreenOrientation: GeneralScreenOrientation?
     
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
@@ -125,28 +118,13 @@ class LibraryViewController: UIViewController, Loggable {
             return (tempIdion != .pad) ? .phone:.pad // ignnore carplay and others
         } ()
         
-        let orientation = { () -> GeneralScreenOrientation in
-            let deviceOrientation = UIDevice.current.orientation
-            
-            switch deviceOrientation {
-            case .unknown, .portrait, .portraitUpsideDown:
-                return GeneralScreenOrientation.portrait
-            case .landscapeLeft, .landscapeRight:
-                return GeneralScreenOrientation.landscape
-            case .faceUp, .faceDown:
-                return previousScreenOrientation ?? .portrait
-            }
-        } ()
-        
-        var layoutNumberPerRow:[UIUserInterfaceIdiom:[GeneralScreenOrientation: Int]] = [
+        let layoutNumberPerRow:[UIUserInterfaceIdiom:[ScreenOrientation: Int]] = [
             .pad : LibraryViewController.iPadLayoutNumberPerRow,
             .phone : LibraryViewController.iPhoneLayoutNumberPerRow
         ]
-        
-        previousScreenOrientation = orientation
-        
+
         guard let deviceLayoutNumberPerRow = layoutNumberPerRow[idiom] else {return}
-        guard let numberPerRow = deviceLayoutNumberPerRow[orientation] else {return}
+        guard let numberPerRow = deviceLayoutNumberPerRow[.current] else {return}
         
         guard let flowLayout = self.collectionView.collectionViewLayout as? UICollectionViewFlowLayout else {return}
         let contentWith = collectionView.collectionViewLayout.collectionViewContentSize.width
@@ -170,7 +148,7 @@ class LibraryViewController: UIViewController, Loggable {
     }
     
     private func addBookFromDevice() {
-        var utis = DocumentTypes.utis
+        var utis = DocumentTypes.main.supportedUTIs
         utis.append(String(kUTTypeText))
         let documentPicker = UIDocumentPickerViewController(documentTypes: utis, in: .import)
         documentPicker.delegate = self
@@ -184,8 +162,8 @@ class LibraryViewController: UIViewController, Loggable {
             preferredStyle: .alert
         )
         
-        func retry() {
-            addBookFromURL(url: alert.textFields?[0].text, message: NSLocalizedString("library_add_book_from_url_failure_message", comment: "Error message when trying to add a book from a URL"))
+        func retry(message: String? = nil) {
+            addBookFromURL(url: alert.textFields?[0].text, message: message)
         }
         
         func add(_ action: UIAlertAction) {
@@ -193,38 +171,30 @@ class LibraryViewController: UIViewController, Loggable {
             guard let urlString = optionalURLString,
                 let url = URL(string: urlString) else
             {
-                retry()
+                retry(message: NSLocalizedString("library_add_book_from_url_failure_message", comment: "Error message when trying to add a book from a URL"))
                 return
             }
             
-            func addWEBPUB() {
-                if !library.addPublication(at: url) {
-                    retry()
-                }
-            }
-            
-            func addOPDSEntry() {
-                let hideActivity = toastActivity(on: view)
-                OPDSParser.parseURL(url: url) { data, _ in
-                    DispatchQueue.main.async {
-                        hideActivity()
-                        let publication = data?.publication
-                        
-                        if let selfLink = publication?.link(withRel: "self"), selfLink.type == "application/webpub+json" {
-                            addWEBPUB()
-                            return
-                        }
-                        guard let downloadLink = publication?.downloadLinks.first else {
-                            retry()
-                            return
-                        }
-
-                        self.library.downloadPublication(publication, at: downloadLink)
+            func tryAdd(from url: URL) {
+                library.importPublication(from: url, sender: self) { result in
+                    if case .failure(let error) = result {
+                        retry(message: error.localizedDescription)
                     }
                 }
             }
-            
-            addOPDSEntry()
+
+            let hideActivity = toastActivity(on: view)
+            OPDSParser.parseURL(url: url) { data, _ in
+                DispatchQueue.main.async {
+                    hideActivity()
+
+                    if let downloadLink = data?.publication?.downloadLinks.first, let downloadURL = URL(string: downloadLink.href) {
+                        tryAdd(from: downloadURL)
+                    } else {
+                        tryAdd(from: url)
+                    }
+                }
+            }
         }
         
         alert.addTextField { textField in
@@ -260,15 +230,21 @@ extension LibraryViewController: UIDocumentPickerDelegate {
         guard controller.documentPickerMode == .import else {
             return
         }
-        
-        for url in urls {
-            library.movePublicationToLibrary(from: url)
+        library.importPublications(from: urls, sender: self) { result in
+            if case .failure(let error) = result {
+                self.libraryDelegate?.presentError(error, from: self)
+            }
         }
     }
     
     public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
-        library.movePublicationToLibrary(from: url)
+        library.importPublication(from: url, sender: self) { result in
+            if case .failure(let error) = result {
+                self.libraryDelegate?.presentError(error, from: self)
+            }
+        }
     }
+    
 }
 
 // MARK: - CollectionView Datasource.
@@ -367,15 +343,23 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
         cell.contentView.addSubview(self.loadingIndicator)
         collectionView.isUserInteractionEnabled = false
         
-        guard let (publication, container) = library.parsePublication(for: book) else {
-            return
-        }
-        
-        library.preparePresentation(of: publication, book: book, with: container)
-
-        libraryDelegate.libraryDidSelectPublication(publication, book: book) {
+        func done() {
             self.loadingIndicator.removeFromSuperview()
             collectionView.isUserInteractionEnabled = true
+        }
+        
+        library.openBook(book, forPresentation: true, sender: self) { result in
+            switch result {
+            case .success(let publication):
+                libraryDelegate.libraryDidSelectPublication(publication, book: book, completion: done)
+
+            case .cancelled:
+                done()
+                
+            case .failure(let error):
+                self.libraryDelegate?.presentError(error, from: self)
+                done()
+            }
         }
     }
     
@@ -398,19 +382,22 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
         let removeAction = UIAlertAction(title: NSLocalizedString("remove_button", comment: "Button to confirm the deletion of a publication"), style: .destructive, handler: { alert in
             // Remove the publication from publicationServer and Documents folder.
             let newOffset = self.downloadSet.count
-            guard let newIndex = self.books.index(where: { (element) -> Bool in
+            guard let newIndex = self.books.firstIndex(where: { (element) -> Bool in
                 book.id == element.id
             }) else {return}
             let newIndexPath = IndexPath(item: newOffset+newIndex, section: 0)
             
-            // Remove item from Publication server, Documents Directory and DB.
-            self.library.remove(book)
-            // remove from books array
-            self.books.remove(at: index)
-            // Remove item from UI colletionView.
-            self.collectionView.performBatchUpdates({
-                self.collectionView.deleteItems(at: [newIndexPath])
-            }, completion: nil)
+            do {
+                try self.library.remove(book)
+                self.books.remove(at: index)
+                
+                self.collectionView.performBatchUpdates({
+                    self.collectionView.deleteItems(at: [newIndexPath])
+                }, completion: nil)
+                
+            } catch {
+                self.libraryDelegate?.presentError(error, from: self)
+            }
         })
         let cancelAction = UIAlertAction(title: NSLocalizedString("cancel_button", comment: "Button to cancel the deletion of a publication"), style: .cancel, handler: { alert in
             return
@@ -423,12 +410,21 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
     
     func displayInformation(forCellAt indexPath: IndexPath) {
         let book = books[indexPath.row]
-        guard let (publication, _) = library.parsePublication(for: book) else {
-            return
+        
+        library.openBook(book, forPresentation: false, sender: self) { result in
+            switch result {
+            case .success(let publication):
+                let detailsViewController = self.factory.make(publication: publication)
+                detailsViewController.modalPresentationStyle = .popover
+                self.navigationController?.pushViewController(detailsViewController, animated: true)
+                
+            case .failure(let error):
+                self.libraryDelegate?.presentError(error, from: self)
+                
+            case .cancelled:
+                break
+            }
         }
-        let detailsViewController = factory.make(publication: publication)
-        detailsViewController.modalPresentationStyle = .popover
-        navigationController?.pushViewController(detailsViewController, animated: true)
     }
     
     // Used to reset ui of the last flipped cell, we must not have two cells
@@ -442,7 +438,6 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
 extension LibraryViewController: DownloadDisplayDelegate {
     
     func didStartDownload(task: URLSessionDownloadTask, description: String) {
-        
         let offset = downloadSet.count
         downloadSet.add(task)
         downloadTaskToRatio[task] = 0
@@ -455,26 +450,15 @@ extension LibraryViewController: DownloadDisplayDelegate {
     }
     
     func didFinishDownload(task:URLSessionDownloadTask) {
-        
-        let newList = try! BooksDatabase.shared.books.all()
-        if newList.count == books.count {return}
-        
-        books = newList
+        books = try! BooksDatabase.shared.books.all()
         
         let offset = downloadSet.index(of: task)
         downloadSet.remove(task)
         downloadTaskToRatio.removeValue(forKey: task)
-        let description = downloadTaskDescription[task] ?? ""
         downloadTaskDescription.removeValue(forKey: task)
         
         let theIndexPath = IndexPath(item: offset, section: 0)
         let newIndexPath = IndexPath(item: downloadSet.count, section: 0)
-        
-        libraryDelegate?.presentAlert(
-            NSLocalizedString("success_title", comment: "Title of the alert when a publication is successfully downloaded"),
-            message: String(format: NSLocalizedString("library_download_success_message", comment: "Message of the alert when a publication is successfully downloaded"), description),
-            from: self
-        )
         
         if newIndexPath == theIndexPath {
             self.collectionView.reloadItems(at: [newIndexPath])
@@ -523,10 +507,6 @@ extension LibraryViewController: DownloadDisplayDelegate {
         }
     }
     
-    func reloadWith(downloadTask: URLSessionDownloadTask) {
-        self.didFinishDownload(task: downloadTask)
-    }
-    
     func insertNewItemWithUpdatedDataSource() {
         books = try! BooksDatabase.shared.books.all()
         
@@ -561,20 +541,32 @@ extension LibraryViewController: DownloadDisplayDelegate {
 
 extension LibraryViewController: LibraryServiceDelegate {
     
-    func reloadLibrary(with downloadTask: URLSessionDownloadTask?, canceled:Bool = false) {
-        if let downloadTask = downloadTask {
-            if canceled {
-                didCancel(task: downloadTask)
-            } else {
-                reloadWith(downloadTask: downloadTask)
-            }
-        } else {
-            insertNewItemWithUpdatedDataSource()
-        }
+    func reloadLibrary() {
+        // FIXME: More efficient reloading
+        books = try! BooksDatabase.shared.books.all()
+        collectionView.reloadData()
     }
+
+    func confirmImportingDuplicatePublication(withTitle title: String) -> Deferred<Void, Error> {
+        return deferred(on: .main) { success, _, cancel in
+            let confirmAction = UIAlertAction(title: NSLocalizedString("add_button", comment: "Confirmation button to import a duplicated publication"), style: .default) { _ in
+                success(())
+            }
+            
+            let cancelAction = UIAlertAction(title: NSLocalizedString("cancel_button", comment: "Cancel the confirmation alert"), style: .cancel) { _ in
+                cancel()
+            }
     
-    func libraryService(_ libraryService: LibraryService, presentError error: Error) {
-        libraryDelegate?.presentError(error, from: self)
+            let alert = UIAlertController(
+                title: NSLocalizedString("library_duplicate_alert_title", comment: "Title of the import confirmation alert when the publication already exists in the library"),
+                message: NSLocalizedString("library_duplicate_alert_message", comment: "Message of the import confirmation alert when the publication already exists in the library"),
+                preferredStyle: .alert
+            )
+            alert.addAction(confirmAction)
+            alert.addAction(cancelAction)
+            
+            self.present(alert, animated: true)
+        }
     }
     
 }
@@ -593,7 +585,7 @@ class PublicationIndicator: UIView  {
         self.addConstraints([horizontalConstraint, verticalConstraint])
         
         return result
-    } ()
+    }()
     
     override func didMoveToSuperview() {
         super.didMoveToSuperview()

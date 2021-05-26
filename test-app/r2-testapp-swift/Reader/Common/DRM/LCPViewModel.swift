@@ -1,122 +1,89 @@
 //
-//  LCPViewModel.swift
-//  r2-testapp-swift
-//
-//  Created by Mickaël Menu on 19.02.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 #if LCP
 
 import Foundation
-import SafariServices
+import UIKit
 import R2Shared
 import ReadiumLCP
 
-
 final class LCPViewModel: DRMViewModel {
 
-    private var lcpLicense: LCPLicense? {
-        guard let license = license else {
-            return nil
-        }
-        return license as? LCPLicense
-    }
+    private let license: LCPLicense
     
-    override var type: String {
-        return "LCP"
+    init(publication: Publication, license: LCPLicense, presentingViewController: UIViewController) {
+        self.license = license
+        super.init(publication: publication, presentingViewController: presentingViewController)
     }
     
     override var state: String? {
-        return lcpLicense?.status?.status.rawValue
+        return license.status?.status.rawValue
     }
     
     override var provider: String? {
-        return lcpLicense?.license.provider
+        return license.license.provider
     }
     
     override var issued: Date? {
-        return lcpLicense?.license.issued
+        return license.license.issued
     }
     
     override var updated: Date? {
-        return lcpLicense?.license.updated
+        return license.license.updated
     }
     
     override var start: Date? {
-        return lcpLicense?.license.rights.start
+        return license.license.rights.start
     }
     
     override var end: Date? {
-        return lcpLicense?.license.rights.end
+        return license.license.rights.end
     }
     
     override var copiesLeft: String {
-        guard let quantity = lcpLicense?.charactersToCopyLeft else {
+        guard let quantity = license.charactersToCopyLeft else {
             return super.copiesLeft
         }
         return String(format: NSLocalizedString("lcp_characters_label", comment: "Quantity of characters left to be copied"), quantity)
     }
     
     override var printsLeft: String {
-        guard let quantity = lcpLicense?.pagesToPrintLeft else {
+        guard let quantity = license.pagesToPrintLeft else {
             return super.printsLeft
         }
         return String(format: NSLocalizedString("lcp_pages_label", comment: "Quantity of pages left to be printed"), quantity)
     }
     
     override var canRenewLoan: Bool {
-        return lcpLicense?.canRenewLoan ?? false
+        return license.canRenewLoan
     }
     
-    private var renewCallbacks: [Int: () -> Void] = [:]
-    
     override func renewLoan(completion: @escaping (Error?) -> Void) {
-        guard let lcpLicense = lcpLicense else {
+        guard let presentingViewController = self.presentingViewController else {
             completion(nil)
             return
         }
-        
-        func present(url: URL, dismissed: @escaping () -> Void) {
-            guard let presentingViewController = self.presentingViewController else {
-                dismissed()
-                return
+
+        license.renewLoan(with: LCPDefaultRenewDelegate(presentingViewController: presentingViewController)) { result in
+            switch result {
+            case .success, .cancelled:
+                completion(nil)
+            case .failure(let error):
+                completion(error)
             }
-            
-            let safariVC = SFSafariViewController(url: url)
-            safariVC.delegate = self
-            safariVC.modalPresentationStyle = .formSheet
-            
-            renewCallbacks[safariVC.hash] = dismissed
-            presentingViewController.present(safariVC, animated: true)
         }
-        
-        lcpLicense.renewLoan(to: nil, present: present, completion: completion)
     }
     
     override var canReturnPublication: Bool {
-        return lcpLicense?.canReturnPublication ?? false
+        return license.canReturnPublication
     }
     
     override func returnPublication(completion: @escaping (Error?) -> Void) {
-        guard let lcpLicense = lcpLicense else {
-            completion(nil)
-            return
-        }
-        lcpLicense.returnPublication(completion: completion)
-    }
-    
-}
-
-
-extension LCPViewModel: SFSafariViewControllerDelegate {
-    
-    func safariViewControllerDidFinish(_ controller: SFSafariViewController) {
-        let dismissed = renewCallbacks.removeValue(forKey: controller.hash)
-        dismissed?()
+        license.returnPublication(completion: completion)
     }
     
 }

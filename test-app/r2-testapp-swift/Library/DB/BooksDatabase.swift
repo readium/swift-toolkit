@@ -47,25 +47,47 @@ class Book: Loggable {
     let href: String
     let title: String
     let author: String?
-    let identifier: String
+    let identifier: String?
     let cover: Data?
     var progression: String?
     
-    var fileName: String? {
-        let url = URL(string: href)
-        guard url?.scheme == nil || (url?.isFileURL ?? false) else {
-            return nil
-        }
-        return href
+    enum Error: Swift.Error {
+        case notFound(Swift.Error?)
     }
     
-    var url: URL? {
-        guard let url = URL(string: href),
-            url.scheme != nil else
-        {
-            return nil
+    func url() throws -> URL {
+        // Absolute URL.
+        if let url = URL(string: href), url.scheme != nil {
+            return url
         }
-        return url
+        
+        // Absolute file path.
+        if href.hasPrefix("/") {
+            return URL(fileURLWithPath: href)
+        }
+        
+        do {
+            // Path relative to Documents/.
+            let files = FileManager.default
+            let documents = try files.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+
+            let documentURL = documents.appendingPathComponent(href)
+            if (try? documentURL.checkResourceIsReachable()) == true {
+                return documentURL
+            }
+    
+            // Path relative to the Samples/ directory in the App bundle.
+            if
+                let sampleURL = Bundle.main.url(forResource: href, withExtension: nil, subdirectory: "Samples"),
+                (try? sampleURL.checkResourceIsReachable()) == true
+            {
+                return sampleURL
+            }
+        } catch {
+            throw Error.notFound(error)
+        }
+        
+        throw Error.notFound(nil)
     }
     
     init(
@@ -74,7 +96,7 @@ class Book: Loggable {
         href: String,
         title: String,
         author: String?,
-        identifier: String,
+        identifier: String?,
         cover: Data?,
         progression: String? = nil
     ) {
@@ -105,7 +127,7 @@ class BooksTable {
     let books = Table("BOOKS")
     
     let ID = Expression<Int64>("id")
-    let IDENTIFIER = Expression<String>("identifier")
+    let IDENTIFIER = Expression<String?>("identifier")
     let HREF = Expression<String>("href")
     let TITLE = Expression<String>("title")
     let AUTHOR = Expression<String?>("author")
@@ -151,8 +173,11 @@ class BooksTable {
     }
     
     private func exists(_ book: Book) -> Bool {
+        guard let identifier = book.identifier else {
+            return false
+        }
         let db = BooksDatabase.shared.connection
-        let filter = books.filter(self.IDENTIFIER == book.identifier)
+        let filter = books.filter(self.IDENTIFIER == identifier)
         return ((try? db.count(filter)) ?? 0) != 0
     }
     

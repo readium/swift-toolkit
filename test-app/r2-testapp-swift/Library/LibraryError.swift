@@ -16,8 +16,8 @@ import R2Shared
 enum LibraryError: LocalizedError {
     
     case publicationIsNotValid
-    case drmNotSupported(DRM.Brand)
     case importFailed(Error)
+    case openFailed(Error)
     case downloadFailed(String)
 
     var errorDescription: String? {
@@ -26,8 +26,8 @@ enum LibraryError: LocalizedError {
             return NSLocalizedString("library_error_publicationIsNotValid", comment: "Error message used when trying to import a publication that is not valid")
         case .importFailed(let error):
             return String(format: NSLocalizedString("library_error_importFailed", comment: "Error message used when a low-level error occured while importing a publication"), error.localizedDescription)
-        case .drmNotSupported(let brand):
-            return String(format: NSLocalizedString("library_error_drmNotSupported", comment: "Error message used when trying to import a book protected with an unsupported DRM"), brand.rawValue)
+        case .openFailed(let error):
+            return String(format: NSLocalizedString("library_error_openFailed", comment: "Error message used when a low-level error occured while opening a publication"), error.localizedDescription)
         case .downloadFailed(let description):
             return String(format: NSLocalizedString("library_error_downloadFailed", comment: "Error message when the download of a publication failed"), description)
         }

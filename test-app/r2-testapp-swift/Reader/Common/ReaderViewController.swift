@@ -14,6 +14,8 @@ import SafariServices
 import UIKit
 import R2Navigator
 import R2Shared
+import SwiftSoup
+import WebKit
 
 
 /// This class is meant to be subclassed by each publication format view controller. It contains the shared behavior, eg. navigation bar toggling.
@@ -24,19 +26,24 @@ class ReaderViewController: UIViewController, Loggable {
     let navigator: UIViewController & Navigator
     let publication: Publication
     let book: Book
-    let drm: DRM?
 
-    lazy var bookmarksDataSource: BookmarkDataSource? = BookmarkDataSource(publicationID: publication.metadata.identifier ?? "")
+    lazy var bookmarksDataSource: BookmarkDataSource? = BookmarkDataSource(bookID: book.id)
     
     private(set) var stackView: UIStackView!
     private lazy var positionLabel = UILabel()
     
-    init(navigator: UIViewController & Navigator, publication: Publication, book: Book, drm: DRM?) {
+    /// This regex matches any string with at least 2 consecutive letters (not limited to ASCII).
+    /// It's used when evaluating whether to display the body of a noteref referrer as the note's title.
+    /// I.e. a `*` or `1` would not be used as a title, but `on` or `好書` would.
+    private static var noterefTitleRegex: NSRegularExpression = {
+        return try! NSRegularExpression(pattern: "[\\p{Ll}\\p{Lu}\\p{Lt}\\p{Lo}]{2}")
+    }()
+    
+    init(navigator: UIViewController & Navigator, publication: Publication, book: Book) {
         self.navigator = navigator
         self.publication = publication
         self.book = book
-        self.drm = drm
-        
+
         super.init(nibName: nil, bundle: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: Notification.Name(UIAccessibilityVoiceOverStatusChanged), object: nil)
@@ -110,7 +117,7 @@ class ReaderViewController: UIViewController, Loggable {
         // Table of Contents
         buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self, action: #selector(presentOutline)))
         // DRM management
-        if drm != nil {
+        if publication.isProtected {
             buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "drm"), style: .plain, target: self, action: #selector(presentDRMManagement)))
         }
         // Bookmarks
@@ -170,10 +177,10 @@ class ReaderViewController: UIViewController, Loggable {
     // MARK: - DRM
     
     @objc func presentDRMManagement() {
-        guard let drm = drm else {
+        guard publication.isProtected else {
             return
         }
-        moduleDelegate?.presentDRM(drm, from: self)
+        moduleDelegate?.presentDRM(for: publication, from: self)
     }
     
 
@@ -192,7 +199,7 @@ class ReaderViewController: UIViewController, Loggable {
     }()
     
     private lazy var accessibilityToolbar: UIToolbar = {
-        func makeItem(_ item: UIBarButtonItem.SystemItem, label: String? = nil, action: Selector? = nil) -> UIBarButtonItem {
+        func makeItem(_ item: UIBarButtonItem.SystemItem, label: String? = nil, action: UIKit.Selector? = nil) -> UIBarButtonItem {
             let button = UIBarButtonItem(barButtonSystemItem: item, target: (action != nil) ? self : nil, action: action)
             button.accessibilityLabel = label
             return button
@@ -246,7 +253,7 @@ extension ReaderViewController: NavigatorDelegate {
 
         positionLabel.text = {
             if let position = locator.locations.position {
-                return "\(position) / \(publication.positionList.count)"
+                return "\(position) / \(publication.positions.count)"
             } else if let progression = locator.locations.totalProgression {
                 return "\(progression)%"
             } else {
@@ -265,6 +272,54 @@ extension ReaderViewController: NavigatorDelegate {
     
     func navigator(_ navigator: Navigator, presentError error: NavigatorError) {
         moduleDelegate?.presentError(error, from: self)
+    }
+    
+    func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: Link, content: String, referrer: String?) -> Bool {
+        
+        var title = referrer
+        if let t = title {
+            title = try? clean(t, .none())
+        }
+        if !suitableTitle(title) {
+            title = nil
+        }
+        
+        let content = (try? clean(content, .none())) ?? ""
+        let page =
+        """
+        <html>
+            <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body>
+                \(content)
+            </body>
+        </html>
+        """
+        
+        let wk = WKWebView()
+        wk.loadHTMLString(page, baseURL: nil)
+        
+        let vc = UIViewController()
+        vc.view = wk
+        vc.navigationItem.title = title
+        vc.navigationItem.leftBarButtonItem = BarButtonItem(barButtonSystemItem: .done, actionHandler: { (item) in
+            vc.dismiss(animated: true, completion: nil)
+        })
+        
+        let nav = UINavigationController(rootViewController: vc)
+        nav.modalPresentationStyle = .formSheet
+        self.present(nav, animated: true, completion: nil)
+        
+        return false
+    }
+    
+    /// Checks to ensure the title is non-nil and contains at least 2 letters.
+    func suitableTitle(_ title: String?) -> Bool {
+        guard let title = title else { return false }
+        let range = NSRange(location: 0, length: title.utf16.count)
+        let match = ReaderViewController.noterefTitleRegex.firstMatch(in: title, range: range)
+        return match != nil
     }
     
 }

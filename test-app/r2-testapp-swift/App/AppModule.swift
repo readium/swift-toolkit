@@ -46,6 +46,8 @@ final class AppModule {
         
         // Set Readium 2's logging minimum level.
         R2EnableLog(withMinimumSeverityLevel: .debug)
+        
+        try library.preloadSamples()
     }
     
     private(set) lazy var aboutViewController: UIViewController = {
@@ -88,18 +90,20 @@ extension AppModule: LibraryModuleDelegate {
 
 
 extension AppModule: ReaderModuleDelegate {
-    
-    func readerLoadDRM(for book: Book, completion: @escaping (CancellableResult<DRM?>) -> Void) {
-        library.loadDRM(for: book, completion: completion)
-    }
-    
 }
 
 
 extension AppModule: OPDSModuleDelegate {
     
-    func opdsDownloadPublication(_ publication: Publication?, at link: Link, completion: @escaping (Bool) -> Void) {
-        library.downloadPublication(publication, at: link, completion: completion)
+    func opdsDownloadPublication(_ publication: Publication?, at link: Link, sender: UIViewController, completion: @escaping (CancellableResult<Book, Error>) -> ()) {
+        guard let url = link.url(relativeTo: publication?.baseURL) else {
+            completion(.cancelled)
+            return
+        }
+        
+        library.importPublication(from: url, title: publication?.metadata.title, sender: sender) {
+            completion($0.eraseToAnyError())
+        }
     }
 
 }

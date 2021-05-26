@@ -24,7 +24,7 @@ protocol ReaderFormatModule {
     var publicationFormats: [Publication.Format] { get }
     
     /// Creates the view controller to present the publication.
-    func makeReaderViewController(for publication: Publication, book: Book, drm: DRM?, resourcesServer: ResourcesServer) throws -> UIViewController
+    func makeReaderViewController(for publication: Publication, book: Book, resourcesServer: ResourcesServer) throws -> UIViewController
     
 }
 
@@ -34,7 +34,7 @@ protocol ReaderFormatModuleDelegate: AnyObject {
     func presentOutline(of publication: Publication, delegate: OutlineTableViewControllerDelegate?, from viewController: UIViewController)
     
     /// Shows the DRM management screen for the given DRM.
-    func presentDRM(_ drm: DRM, from viewController: UIViewController)
+    func presentDRM(for publication: Publication, from viewController: UIViewController)
     
     func presentAlert(_ title: String, message: String, from viewController: UIViewController)
     func presentError(_ error: Error?, from viewController: UIViewController)

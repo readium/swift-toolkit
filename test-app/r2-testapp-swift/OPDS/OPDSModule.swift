@@ -29,7 +29,7 @@ protocol OPDSModuleAPI {
 protocol OPDSModuleDelegate: ModuleDelegate {
     
     /// Called when an OPDS publication needs to be downloaded.
-    func opdsDownloadPublication(_ publication: Publication?, at link: Link, completion: @escaping (Bool) -> Void)
+    func opdsDownloadPublication(_ publication: Publication?, at link: Link, sender: UIViewController, completion: @escaping (CancellableResult<Book, Error>) -> Void)
 
 }
 

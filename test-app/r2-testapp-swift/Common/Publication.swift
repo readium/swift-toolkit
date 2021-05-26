@@ -18,11 +18,9 @@ extension Publication {
     
     /// Finds all the downloadable links for this publication.
     var downloadLinks: [Link] {
-        return links.filter {
-            let contentType = $0.type ?? "-"
-            let ext = url(to: $0)?.pathExtension ?? "-"
-            return DocumentTypes.contentTypes.contains(contentType)
-                || DocumentTypes.extensions.contains(ext)
+        links.filter {
+            return DocumentTypes.main.supportsMediaType($0.type)
+                || DocumentTypes.main.supportsFileExtension($0.url(relativeTo: nil)?.pathExtension)
         }
     }
 
