@@ -28,28 +28,25 @@ public enum WebServerResponseError: Error {
 /// If the ressource to be served is too big, multiple responses will be created.
 open class WebServerResourceResponse: GCDWebServerFileResponse {
 
-    // The range of data served on this response (?)
-    var range: Range<UInt64>?
-    var inputStream: SeekableInputStream
-    lazy var totalNumberOfBytesRead = UInt64(0)
-    let bufferSize = 32 * 1024
-    var buffer: Array<UInt8>
+    private let bufferSize = 32 * 1024
+
+    private var resource: Resource
+    private var range: Range<UInt64>?
+    private let length: UInt64
+    private var offset: UInt64 = 0
+    private lazy var totalNumberOfBytesRead = UInt64(0)
 
     /// Initialise the WebServerRessourceResponse object, defining what will be
     /// served.
     ///
     /// - Parameters:
-    ///   - inputStream: The data stream containing the ressource's data to
-    ///                  serve in the response.
-    ///   - range: The range of ressource's data served previously, if any.
+    ///   - resource: The publication resource to be served.
+    ///   - range: The range of resource's data served previously, if any.
     ///   - contentType: The content-type of the response's ressource.
-    public init(inputStream: SeekableInputStream, range: NSRange?, contentType: String) {
-        let streamLength = inputStream.length
+    public init(resource: Resource, range: NSRange?, contentType: String) {
+        self.resource = resource
+        self.length = (try? resource.length.get()) ?? 0
 
-        // Initialize buffer
-        buffer = Array<UInt8>(repeating: 0, count: bufferSize)
-        // Set inputStream
-        self.inputStream = inputStream
         // If range is non nil - means it's not the first part (?)
         if let range = range {
             WebServerResourceResponse.log(.debug, "Request range at \(range.location) remaining: \(range.length).")
@@ -81,16 +78,23 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
                 return newRange
             }
             self.range = getNextRange(after: range,
-                                      forStreamOfLength: streamLength)
+                forStreamOfLength: length)
         } else /* nil */ {
-            self.range = 0..<streamLength
+            self.range = 0..<length
         }
         super.init()
+
+        // Disable HTTP caching for publication resources, because it poses a security threat for protected
+        // publications.
+        setValue("no-cache, no-store, must-revalidate", forAdditionalHeader: "Cache-Control")
+        setValue("no-cache", forAdditionalHeader: "Pragma")
+        setValue("0", forAdditionalHeader: "Expires")
+
         // Response
         if let range = self.range {
             let lower = range.lowerBound
             let upper = (range.upperBound != 0) ? range.upperBound - 1 : range.upperBound
-            let contentRange = "bytes \(lower)-\(upper)/\(streamLength)"
+            let contentRange = "bytes \(lower)-\(upper)/\(length)"
             let acceptRange = "bytes"
 
             statusCode = 206
@@ -106,47 +110,29 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
         // TODO: setValue("", forAdditionalHeader: "Cache-Control")
     }
 
-    /// Open the inputStream and set position to the beggining of the stream.
-    ///
-    /// - Throws: `WebServerResponseError.streamOpenFailed`,
-    ///           `WebServerResponseError.invalidRange`.
     override open func open() throws {
-        inputStream.open()
-        guard inputStream.streamStatus == .open else {
-            inputStream.close()
-            throw WebServerResponseError.streamOpenFailed
-        }
-        guard let range = range else {
-            throw WebServerResponseError.invalidRange
-        }
-        try inputStream.seek(offset: Int64(range.lowerBound), whence: .startOfFile)
+        offset = range?.lowerBound ?? 0
     }
 
-    /// Read data on the inputStream, up to bufferSize bytes.
-    ///
-    /// - Returns: The data that have been read.
-    /// - Throws: `WebServerResponseError.invalidRange`.
+    /// Read a new chunk of data.
     override open func readData() throws -> Data {
         guard let range = range else {
             throw WebServerResponseError.invalidRange
         }
         let len = min(bufferSize, range.count - Int(totalNumberOfBytesRead))
         // If nothing to read, return
-        guard len > 0 else {
+        guard len > 0 && offset < length else {
             return Data()
         }
         // Read
-        let numberOfBytesRead = inputStream.read(&buffer, maxLength: len)
-        guard numberOfBytesRead > 0 else {
-            return Data()
-        }
-        totalNumberOfBytesRead += UInt64(numberOfBytesRead)
-        return Data(bytes: buffer, count: numberOfBytesRead)
+        let data = try resource.read(range: offset..<(offset + UInt64(len))).get()
+        totalNumberOfBytesRead += UInt64(data.count)
+        offset += UInt64(data.count)
+        return data
     }
 
-    /// Closes the inputStream.
     override open func close() {
-        inputStream.close()
+        resource.close()
     }
 }
 

@@ -36,6 +36,7 @@ public enum ContainerError: Error {
 }
 
 /// Provide methods for accessing raw data from container's files.
+@available(*, unavailable, message: "Use `Publication.get()` to access a publication's resources")
 public protocol Container: AnyObject {
 
     /// See `RootFile`.
@@ -72,6 +73,7 @@ public protocol Container: AnyObject {
     func dataInputStream(relativePath: String) throws -> SeekableInputStream
 }
 
+@available(*, unavailable, message: "Use `Publication.get()` to access a publication's resources")
 public extension Container {
     
     /// The default implementation reads the modification date from the root file.

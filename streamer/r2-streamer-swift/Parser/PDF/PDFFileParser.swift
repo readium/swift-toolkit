@@ -15,6 +15,7 @@ import R2Shared
 
 
 /// Structure holding the metadata from a standalone PDF file.
+@available(*, unavailable, message: "Use `PDFDocument` from r2-shared instead")
 public struct PDFFileMetadata {
     
     // Permanent identifier based on the contents of the file at the time it was originally created.
@@ -40,38 +41,30 @@ public struct PDFFileMetadata {
 }
 
 
+@available(*, unavailable, message: "Use `PDFDocument` from r2-shared instead")
 public struct PDFOutlineNode {
     let title: String?
     let pageNumber: Int
     let children: [PDFOutlineNode]
 }
 
+@available(*, unavailable)
 extension Array where Element == PDFOutlineNode {
     
-    func links(withHref href: String) -> [Link] {
-        return map { node in
-            return Link(
-                href: "\(href)#page=\(node.pageNumber)",
-                type: PDFConstant.pdfMimetype,
-                title: node.title,
-                children: node.children.links(withHref: href)
-            )
-        }
-    }
+    @available(*, unavailable)
+    func links(withHref href: String) -> [Link] { [] }
     
 }
 
 
 /// Protocol to implement if you want to use a different PDF engine than the one provided with Readium 2 to parse the PDF's metadata.
 /// Note: this is not used in the case of .lcpdf files, since the metadata are parsed from the manifest.json file.
-public protocol PDFFileParser {
+@available(*, unavailable, message: "Use `PDFDocumentFactory` from r2-shared instead")
+public protocol PDFFileParser: PDFDocument {
     
     /// Initializes the parser with the given PDF data stream.
     /// You must `open` and `close` the stream when needed.
     init(stream: SeekableInputStream) throws
-    
-    /// An optional object that will be stored in `PDFContainer.context` after parsing the `Publication`. You can reuse this object later to render the PDF with a custom navigator, for example. This is a way to avoid opening and parsing the PDF several time with a custom PDF engine.
-    var context: Any? { get }
     
     /// Renders the PDF's first page.
     func renderCover() throws -> UIImage?
@@ -84,8 +77,58 @@ public protocol PDFFileParser {
 
 }
 
-extension PDFFileParser {
+@available(*, unavailable)
+public extension PDFFileParser {
     
-    var context: Any? { return nil }
+    @available(*, unavailable)
+    var identifier: String? { try? parseMetadata().identifier }
+    @available(*, unavailable)
+    var pageCount: Int { (try? parseNumberOfPages()) ?? 0 }
+    @available(*, unavailable)
+    var cover: UIImage? { try? renderCover() }
+    @available(*, unavailable)
+    var title: String? { try? parseMetadata().title }
+    @available(*, unavailable)
+    var author: String? { try? parseMetadata().author }
+    @available(*, unavailable)
+    var subject: String? { try? parseMetadata().subject }
+    @available(*, unavailable)
+    var keywords: [String] { (try? parseMetadata().keywords) ?? [] }
+    @available(*, unavailable)
+    var outline: [R2Shared.PDFOutlineNode] { [] }
+    
+}
+
+@available(*, unavailable)
+extension PDFOutlineNode {
+    
+    @available(*, unavailable)
+    func asShared() -> R2Shared.PDFOutlineNode { fatalError("Unavailable") }
+    
+}
+
+@available(*, unavailable, message: "Use `PDFDocumentFactory` from r2-shared instead")
+class PDFFileParserFactory: PDFDocumentFactory {
+    
+    enum Error: Swift.Error {
+        case invalidFile(URL)
+    }
+    
+    private let parserType: PDFFileParser.Type
+    
+    init(parserType: PDFFileParser.Type) {
+        self.parserType = parserType
+    }
+    
+    func open(resource: Resource, password: String?) throws -> PDFDocument {
+        return try parserType.init(stream: ResourceInputStream(resource: resource, length: resource.length.get()))
+    }
+    
+    func open(url: URL, password: String?) throws -> PDFDocument {
+        guard let stream = FileInputStream(fileAtPath: url.path) else {
+            throw Error.invalidFile(url)
+        }
+        return try parserType.init(stream: stream)
+    }
     
 }

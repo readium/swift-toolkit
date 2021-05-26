@@ -24,7 +24,7 @@ final class SMILParser {
     ///   - parent: The parent MediaOverlayNode of the "to be creatred" nodes.
     ///   - readingOrder:
     ///   - base: The base location of the file for path normalization.
-    static internal func parseSequences(in element: XMLElement, withParent parent: MediaOverlayNode, publicationReadingOrder readingOrder: inout [Link], base: String) {
+    static internal func parseSequences(in element: Fuzi.XMLElement, withParent parent: MediaOverlayNode, publicationReadingOrder readingOrder: inout [Link], base: String) {
         // TODO: 2 lines differ from the version used in the parseMediaOverlay for loop. Refactor?
         for sequence in element.xpath("smil:seq") {
             guard let href = sequence.attr("textref") else {
@@ -33,8 +33,8 @@ final class SMILParser {
             
             let newNode = MediaOverlayNode()
             newNode.role.append("section")
-            newNode.text = normalize(base: base, href: href)
-            
+            newNode.text = HREF(href, relativeTo: base).string
+
             parseParameters(in: sequence, withParent: newNode, base: base)
             parseSequences(in: sequence, withParent: newNode, publicationReadingOrder: &readingOrder, base: base)
             
@@ -46,11 +46,12 @@ final class SMILParser {
                 parent.children.append(newNode)
                 continue
             }
-            guard let link = readingOrder.first(where: { $0.href.contains(baseHref) || baseHref.contains($0.href) }) else {
-                continue
-            }
-            link.mediaOverlays.append(newNode)
-            link.properties.mediaOverlay = EPUBConstant.mediaOverlayURL + link.href
+            // FIXME: For now we don't fill the media-overlays anymore, since it was only half implemented and the API will change
+//            guard let link = readingOrder.first(where: { $0.href.contains(baseHref) || baseHref.contains($0.href) }) else {
+//                continue
+//            }
+//            link.mediaOverlays.append(newNode)
+//            link.properties.mediaOverlay = EPUBConstant.mediaOverlayURL + link.href
         }
     }
     
@@ -59,7 +60,7 @@ final class SMILParser {
     /// - Parameters:
     ///   - element: The XML element which should contain <par>.
     ///   - parent: The parent MediaOverlayNode of the "to be creatred" nodes.
-    static internal func parseParameters(in element: XMLElement, withParent parent: MediaOverlayNode, base: String) {
+    static internal func parseParameters(in element: Fuzi.XMLElement, withParent parent: MediaOverlayNode, base: String) {
         // For each <par> in the current scope.
         for parameterElement in element.xpath("smil:par") {
             guard let href = parameterElement.firstChild(xpath: "smil:text")?.attr("src"),
@@ -69,7 +70,7 @@ final class SMILParser {
                 continue
             }
             
-            let nodeText = normalize(base: base, href: href)
+            let nodeText = HREF(href, relativeTo: base).string
             let newNode = MediaOverlayNode(nodeText, clip: audioClip)
             parent.children.append(newNode)
         }
@@ -103,7 +104,7 @@ final class SMILParser {
     ///
     /// - Parameter audioElement: The audio XML element.
     /// - Returns: The formated string representing the data.
-    static fileprivate func parse(base: String, audioElement: XMLElement) -> Clip? {
+    static fileprivate func parse(base: String, audioElement: Fuzi.XMLElement) -> Clip? {
         guard let audioSrc = audioElement.attr("src") else {
             return nil
         }
@@ -118,7 +119,7 @@ final class SMILParser {
         let timeBegin = Double(parsedBegin) ?? 0.0
         let timeEnd = Double(parsedEnd) ?? -1.0
         
-        let audioString = normalize(base: base, href: audioSrc)
+        let audioString = HREF(audioSrc, relativeTo: base).string
         guard let audioURL = URL(string: audioString) else {return nil}
         
         var newClip = Clip()

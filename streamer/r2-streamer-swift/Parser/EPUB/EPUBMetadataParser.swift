@@ -16,12 +16,14 @@ import Fuzi
 /// Reference: https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md
 final class EPUBMetadataParser: Loggable {
     
-    private let document: XMLDocument
-    private let displayOptions: XMLDocument?
+    private let document: Fuzi.XMLDocument
+    private let fallbackTitle: String
+    private let displayOptions: Fuzi.XMLDocument?
     private let metas: OPFMetaList
 
-    init(document: XMLDocument, displayOptions: XMLDocument?, metas: OPFMetaList) {
+    init(document: Fuzi.XMLDocument, fallbackTitle: String, displayOptions: Fuzi.XMLDocument?, metas: OPFMetaList) {
         self.document = document
+        self.fallbackTitle = fallbackTitle
         self.displayOptions = displayOptions
         self.metas = metas
         
@@ -31,39 +33,47 @@ final class EPUBMetadataParser: Loggable {
         document.definePrefix("rendition", forNamespace: "http://www.idpf.org/2013/rendition")
     }
     
-    private lazy var metadataElement: XMLElement? = {
+    private lazy var metadataElement: Fuzi.XMLElement? = {
         return document.firstChild(xpath: "/opf:package/opf:metadata")
     }()
 
     /// Parses the Metadata in the XML <metadata> element.
     func parse() throws -> Metadata {
-        guard let title = mainTitle else {
-            throw OPFParserError.missingPublicationTitle
+        var otherMetadata = metas.otherMetadata
+        if !presentation.json.isEmpty {
+            otherMetadata["presentation"] = presentation.json
         }
         
-        var metadata = Metadata(
+        let contributors = parseContributors()
+        
+        return Metadata(
             identifier: uniqueIdentifier,
-            title: title,
+            title: mainTitle ?? fallbackTitle,
             subtitle: subtitle,
             modified: modifiedDate,
             published: publishedDate,
             languages: languages,
             sortAs: sortAs,
             subjects: subjects,
+            authors: contributors.authors,
+            translators: contributors.translators,
+            editors: contributors.editors,
+            artists: contributors.artists,
+            illustrators: contributors.illustrators,
+            colorists: contributors.colorists,
+            narrators: contributors.narrators,
+            contributors: contributors.contributors,
+            publishers: contributors.publishers,
             readingProgression: readingProgression,
             description: description,
             numberOfPages: numberOfPages,
             belongsToCollections: belongsToCollections,
             belongsToSeries: belongsToSeries,
-            otherMetadata: metas.otherMetadata
+            otherMetadata: otherMetadata
         )
-        parseContributors(to: &metadata)
-        metadata.rendition = rendition
-
-        return metadata
     }
     
-    private lazy var languages: [String] = metas["language", in: .dc].map { $0.content }
+    private lazy var languages: [String] = metas["language", in: .dcterms].map { $0.content }
 
     private lazy var packageLanguage: String? = document.firstChild(xpath: "/opf:package")?.attr("lang")
 
@@ -71,7 +81,7 @@ final class EPUBMetadataParser: Loggable {
     ///   1. its xml:lang attribute
     ///   2. the package's xml:lang attribute
     ///   3. the primary language for the publication
-    private func language(for element: XMLElement) -> String? {
+    private func language(for element: Fuzi.XMLElement) -> String? {
         return element.attr("lang") ?? packageLanguage ?? languages.first
     }
     
@@ -86,15 +96,15 @@ final class EPUBMetadataParser: Loggable {
         }
     }()
     
-    private lazy var description: String? = metas["description", in: .dc]
+    private lazy var description: String? = metas["description", in: .dcterms]
         .first?.content
 
     private lazy var numberOfPages: Int? = metas["numberOfPages", in: .schema]
         .first.flatMap { Int($0.content) }
     
-    /// Extracts the Rendition properties from the XML element metadata and fill
-    /// then into the Metadata object instance.
-    private lazy var rendition: EPUBRendition = {
+    /// Extracts the Presentation properties from the XML element metadata and fill
+    /// them into the Metadata object instance.
+    private lazy var presentation: Presentation = {
         func renditionMetadata(_ property: String) -> String {
             return metas[property, in: .rendition].last?.content ?? ""
         }
@@ -111,11 +121,8 @@ final class EPUBMetadataParser: Loggable {
             return platform.firstChild(xpath: "option[@name='\(name)']")?.stringValue
         }
 
-        return EPUBRendition(
-            layout: .init(
-                epub: renditionMetadata("layout"),
-                fallback: (displayOption("fixed-layout") == "true") ? .fixed : nil
-            ),
+        return Presentation(
+            continuous: (renditionMetadata("flow") == "scrolled-continuous"),
             orientation: .init(
                 epub: renditionMetadata("orientation"),
                 fallback: {
@@ -133,13 +140,17 @@ final class EPUBMetadataParser: Loggable {
                 }()
             ),
             overflow: .init(epub: renditionMetadata("flow")),
-            spread: .init(epub: renditionMetadata("spread"))
+            spread: .init(epub: renditionMetadata("spread")),
+            layout: .init(
+                epub: renditionMetadata("layout"),
+                fallback: (displayOption("fixed-layout") == "true") ? .fixed : nil
+            )
         )
     }()
 
     /// Finds all the `<dc:title> element matching the given `title-type`.
     /// The elements are then sorted by the `display-seq` refines, when available.
-    private func titleElements(ofType titleType: EPUBTitleType) -> [XMLElement] {
+    private func titleElements(ofType titleType: EPUBTitleType) -> [Fuzi.XMLElement] {
         // Finds the XML element corresponding to the specific title type
         // `<meta refines="#.." property="title-type" id="title-type">titleType</meta>`
         return metas["title-type"]
@@ -147,7 +158,7 @@ final class EPUBMetadataParser: Loggable {
                 guard meta.content == titleType.rawValue, let id = meta.refines else {
                     return nil
                 }
-                return metas["title", in: .dc].first { $0.id == id }?.element
+                return metas["title", in: .dcterms].first { $0.id == id }?.element
             }
             // Sort using `display-seq` refines
             .sorted { title1, title2 in
@@ -170,8 +181,8 @@ final class EPUBMetadataParser: Loggable {
             }
     }()
     
-    private lazy var mainTitleElement: XMLElement? = titleElements(ofType: .main).first
-        ?? metas["title", in: .dc].first?.element
+    private lazy var mainTitleElement: Fuzi.XMLElement? = titleElements(ofType: .main).first
+        ?? metas["title", in: .dcterms].first?.element
     
     private lazy var mainTitle: LocalizedString? = localizedString(for: mainTitleElement)
 
@@ -179,14 +190,14 @@ final class EPUBMetadataParser: Loggable {
 
     /// Parse and return the Epub unique identifier.
     /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#identifier
-    private lazy var uniqueIdentifier: String? = metadataElement?
-        .firstChild(xpath:"dc:identifier[@id=/opf:package/@unique-identifier]")?
-        .stringValue
+    private lazy var uniqueIdentifier: String? =
+        dcElement(tag: "identifier[@id=/opf:package/@unique-identifier]")?
+            .stringValue
 
     /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#publication-date
-    private lazy var publishedDate = metadataElement?
-        .firstChild(xpath: "dc:date[not(@opf:event) or @opf:event='publication']")?
-        .stringValue.dateFromISO8601
+    private lazy var publishedDate =
+        dcElement(tag: "date[not(@opf:event) or @opf:event='publication']")?
+            .stringValue.dateFromISO8601
 
     /// Parse the modifiedDate (date of last modification of the EPUB).
     /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#modification-date
@@ -197,7 +208,7 @@ final class EPUBMetadataParser: Loggable {
                 .first
         }
         let epub2Date = {
-            self.metadataElement?.firstChild(xpath: "dc:date[@opf:event='modification']")?
+            self.dcElement(tag: "date[@opf:event='modification']")?
                 .stringValue.dateFromISO8601
         }
         return epub3Date() ?? epub2Date()
@@ -210,7 +221,7 @@ final class EPUBMetadataParser: Loggable {
             return []
         }
         
-        let subjects = metas["subject", in: .dc]
+        let subjects = metas["subject", in: .dcterms]
         if subjects.count == 1 {
             let subject = subjects[0]
             let names = subject.content.components(separatedBy: CharacterSet(charactersIn: ",;"))
@@ -247,93 +258,97 @@ final class EPUBMetadataParser: Loggable {
     ///
     /// - Parameters:
     ///   - metadata: The Metadata object to fill (inout).
-    private func parseContributors(to metadata: inout Metadata) {
-        // Parse XML elements and fill the metadata object.
-        let contributors = findContributorMetaElements() + findContributorElements()
-        for contributor in contributors {
-            parseContributor(from: contributor, to: &metadata)
+    private func parseContributors() -> (
+        authors: [Contributor],
+        translators: [Contributor],
+        editors: [Contributor],
+        artists: [Contributor],
+        illustrators: [Contributor],
+        colorists: [Contributor],
+        narrators: [Contributor],
+        contributors: [Contributor],
+        publishers: [Contributor]
+    ) {
+        var authors: [Contributor] = []
+        var translators: [Contributor] = []
+        var editors: [Contributor] = []
+        var artists: [Contributor] = []
+        var illustrators: [Contributor] = []
+        var colorists: [Contributor] = []
+        var narrators: [Contributor] = []
+        var contributors: [Contributor] = []
+        var publishers: [Contributor] = []
+        
+        for element in findContributorElements() {
+            // Look up for possible meta refines for contributor's role.
+            let roles = element.attr("id")
+                .map { id in metas["role", refining: id].map { $0.content } }
+                ?? []
+            
+            guard let contributor = createContributor(from: element, roles: roles) else {
+                continue
+            }
+            // Add the contributor to the proper property according to its `roles`
+            if !contributor.roles.isEmpty {
+                for role in contributor.roles {
+                    switch role {
+                    case "aut":
+                        authors.append(contributor)
+                    case "trl":
+                        translators.append(contributor)
+                    case "art":
+                        artists.append(contributor)
+                    case "edt":
+                        editors.append(contributor)
+                    case "ill":
+                        illustrators.append(contributor)
+                    case "clr":
+                        colorists.append(contributor)
+                    case "nrt":
+                        narrators.append(contributor)
+                    case "pbl":
+                        publishers.append(contributor)
+                    default:
+                        contributors.append(contributor)
+                    }
+                }
+            } else {
+                // No role, so do the branching using the element.name.
+                // The remaining ones go to to the contributors.
+                if element.tag == "creator" || element.attr("property") == "dcterms:creator" {
+                    authors.append(contributor)
+                } else if element.tag == "publisher" || element.attr("property") == "dcterms:publisher" {
+                    publishers.append(contributor)
+                } else {
+                    contributors.append(contributor)
+                }
+            }
         }
+        
+        return (
+            authors: authors,
+            translators: translators,
+            editors: editors,
+            artists: artists,
+            illustrators: illustrators,
+            colorists: colorists,
+            narrators: narrators,
+            contributors: contributors,
+            publishers: publishers
+        )
     }
 
-    /// [EPUB 2.0 & 3.1+]
-    /// Return the XML elements about the contributors.
-    /// E.g.: `<dc:publisher "property"=".." >value<\>`.
+    /// Returns the XML elements about the contributors.
+    /// e.g. `<dc:publisher "property"=".." >value<\>`,
+    /// or `<meta property="dcterms:publisher/creator/contributor"`
     ///
     /// - Parameter metadata: The XML metadata element.
     /// - Returns: The array of XML element representing the contributors.
-    private func findContributorElements() -> [XMLElement] {
-        let contributors = metas["creator", in: .dc]
-            + metas["publisher", in: .dc]
-            + metas["contributor", in: .dc]
-        return contributors.map { $0.element }
-    }
-
-    /// [EPUB 3.0]
-    /// Return the XML elements about the contributors.
-    /// E.g.: `<meta property="dcterms:publisher/creator/contributor"`.
-    ///
-    /// - Returns: The array of XML element representing the <meta> contributors.
-    private func findContributorMetaElements() -> [XMLElement] {
+    private func findContributorElements() -> [Fuzi.XMLElement] {
         let contributors = metas["creator", in: .dcterms]
             + metas["publisher", in: .dcterms]
             + metas["contributor", in: .dcterms]
         return contributors.map { $0.element }
-    }
-
-    /// Parse a `creator`, `contributor`, `publisher` element from the OPF XML
-    /// document, then builds and adds a Contributor to the metadata, to an
-    /// array according to its role (authors, translators, etc.).
-    ///
-    /// - Parameters:
-    ///   - element: The XML element to parse.
-    ///   - metadata: The Metadata object.
-    private func parseContributor(from element: XMLElement, to metadata: inout Metadata) {
-        guard var contributor = createContributor(from: element) else {
-            return
-        }
-
-        // Look up for possible meta refines for contributor's role.
-        if let eid = element.attr("id") {
-            contributor.roles.append(
-                contentsOf: metas["role", refining: eid].map { $0.content }
-            )
-        }
-        
-        // Add the contributor to the proper property according to its `roles`
-        if !contributor.roles.isEmpty {
-            for role in contributor.roles {
-                switch role {
-                case "aut":
-                    metadata.authors.append(contributor)
-                case "trl":
-                    metadata.translators.append(contributor)
-                case "art":
-                    metadata.artists.append(contributor)
-                case "edt":
-                    metadata.editors.append(contributor)
-                case "ill":
-                    metadata.illustrators.append(contributor)
-                case "clr":
-                    metadata.colorists.append(contributor)
-                case "nrt":
-                    metadata.narrators.append(contributor)
-                case "pbl":
-                    metadata.publishers.append(contributor)
-                default:
-                    metadata.contributors.append(contributor)
-                }
-            }
-        } else {
-            // No role, so do the branching using the element.name.
-            // The remaining ones go to to the contributors.
-            if element.tag == "creator" || element.attr("property") == "dcterms:creator" {
-                metadata.authors.append(contributor)
-            } else if element.tag == "publisher" || element.attr("property") == "dcterms:publisher" {
-                metadata.publishers.append(contributor)
-            } else {
-                metadata.contributors.append(contributor)
-            }
-        }
     }
 
     /// Builds a `Contributor` instance from a `<dc:creator>`, `<dc:contributor>`
@@ -343,15 +358,20 @@ final class EPUBMetadataParser: Loggable {
     /// - Parameters:
     ///   - element: The XML element reprensenting the contributor.
     /// - Returns: The newly created Contributor instance.
-    private func createContributor(from element: XMLElement) -> Contributor? {
+    private func createContributor(from element: Fuzi.XMLElement, roles: [String] = []) -> Contributor? {
         guard let name = localizedString(for: element) else {
             return nil
+        }
+        
+        var roles = roles
+        if let role = element.attr("role") {
+            roles.insert(role, at: 0)
         }
         
         return Contributor(
             name: name,
             sortAs: element.attr("file-as"),
-            role: element.attr("role")
+            roles: roles
         )
     }
 
@@ -423,7 +443,7 @@ final class EPUBMetadataParser: Loggable {
     ///
     /// - Parameters:
     ///   - element: The element to parse (can be a title or a contributor).
-    private func localizedString(for element: XMLElement?) -> LocalizedString? {
+    private func localizedString(for element: Fuzi.XMLElement?) -> LocalizedString? {
         guard let element = element else {
             return nil
         }
@@ -455,6 +475,14 @@ final class EPUBMetadataParser: Loggable {
         } else {
             return strings.first?.value.localizedString
         }
+    }
+    
+    /// Returns the given `dc:` tag in the `metadata` element.
+    ///
+    /// This looks under `metadata/dc-metadata` as well, to be compatible with old EPUB 2 files.
+    private func dcElement(tag: String) -> XMLElement? {
+        return metadataElement?
+            .firstChild(xpath:"(.|opf:dc-metadata)/dc:\(tag)")
     }
     
 }

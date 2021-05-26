@@ -1,12 +1,7 @@
 //
-//  EPUBContainerParserTests.swift
-//  r2-streamer-swift
-//
-//  Created by Mickaël Menu on 03.06.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import XCTest
@@ -16,13 +11,14 @@ import R2Shared
 
 
 class EPUBContainerParserTests: XCTestCase {
+    
+    let fixtures = Fixtures(path: "Container")
 
     func testParseRootFilePath() throws {
-        let url = SampleGenerator().getSamplesFileURL(named: "Container/container", ofType: "xml")!
-        let data = try Data(contentsOf: url)
+        let data = fixtures.data(at: "container.xml")
         let parser = try EPUBContainerParser(data: data)
         
-        XCTAssertEqual(try parser.parseRootFilePath(), "EPUB/content.opf")
+        XCTAssertEqual(try parser.parseOPFHREF(), "/EPUB/content.opf")
     }
 
 }

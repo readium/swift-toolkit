@@ -16,18 +16,20 @@ import R2Shared
 
 class EPUBEncryptionParserTests: XCTestCase {
     
+    let fixtures = Fixtures(path: "Encryption")
+    
     func testParseLCPEncryption() {
-        let sut = parseEncryptions("encryption-lcp", drm: DRM(brand: .lcp))
+        let sut = parseEncryptions("encryption-lcp")
 
         XCTAssertEqual(sut, [
-            "/chapter01.xhtml": EPUBEncryption(
+            "/chapter01.xhtml": Encryption(
                 algorithm: "http://www.w3.org/2001/04/xmlenc#aes256-cbc",
                 compression: "deflate",
                 originalLength: 13291,
                 profile: nil,
                 scheme: "http://readium.org/2014/01/lcp"
             ),
-            "/dir/chapter02.xhtml": EPUBEncryption(
+            "/dir/chapter02.xhtml": Encryption(
                 algorithm: "http://www.w3.org/2001/04/xmlenc#aes256-cbc",
                 compression: "none",
                 originalLength: 12914,
@@ -38,17 +40,17 @@ class EPUBEncryptionParserTests: XCTestCase {
     }
     
     func testParseEncryptionWithNamespaces() {
-        let sut = parseEncryptions("encryption-lcp-namespaces", drm: DRM(brand: .lcp))
+        let sut = parseEncryptions("encryption-lcp-namespaces")
 
         XCTAssertEqual(sut, [
-            "/chapter01.xhtml": EPUBEncryption(
+            "/chapter01.xhtml": Encryption(
                 algorithm: "http://www.w3.org/2001/04/xmlenc#aes256-cbc",
                 compression: "deflate",
                 originalLength: 13291,
                 profile: nil,
                 scheme: "http://readium.org/2014/01/lcp"
             ),
-            "/dir/chapter02.xhtml": EPUBEncryption(
+            "/dir/chapter02.xhtml": Encryption(
                 algorithm: "http://www.w3.org/2001/04/xmlenc#aes256-cbc",
                 compression: "none",
                 originalLength: 12914,
@@ -62,14 +64,14 @@ class EPUBEncryptionParserTests: XCTestCase {
         let sut = parseEncryptions("encryption-unknown-drm")
 
         XCTAssertEqual(sut, [
-            "/html/chapter.html": EPUBEncryption(
+            "/html/chapter.html": Encryption(
                 algorithm: "http://www.w3.org/2001/04/xmlenc#kw-aes128",
                 compression: "deflate",
                 originalLength: 12914,
                 profile: nil,
                 scheme: nil
             ),
-            "/images/image.jpeg": EPUBEncryption(
+            "/images/image.jpeg": Encryption(
                 algorithm: "http://www.w3.org/2001/04/xmlenc#kw-aes128",
                 compression: nil,
                 originalLength: nil,
@@ -82,10 +84,9 @@ class EPUBEncryptionParserTests: XCTestCase {
 
     // MARK: - Toolkit
     
-    func parseEncryptions(_ name: String, drm: DRM? = nil) -> [String: EPUBEncryption] {
-        let url = SampleGenerator().getSamplesFileURL(named: "Encryption/\(name)", ofType: "xml")!
-        let data = try! Data(contentsOf: url)
-        return EPUBEncryptionParser(data: data, drm: drm).parseEncryptions()
+    func parseEncryptions(_ name: String) -> [String: Encryption] {
+        let data = fixtures.data(at: "\(name).xml")
+        return EPUBEncryptionParser(fetcher: EmptyFetcher(), data: data).parseEncryptions()
     }
     
 }

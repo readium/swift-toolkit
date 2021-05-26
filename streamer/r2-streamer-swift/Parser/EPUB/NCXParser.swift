@@ -34,7 +34,7 @@ final class NCXParser {
         self.path = path
     }
     
-    private lazy var document: XMLDocument? = {
+    private lazy var document: Fuzi.XMLDocument? = {
         let document = try? XMLDocument(data: data)
         document?.definePrefix("ncx", forNamespace: "http://www.daisy.org/z3986/2005/ncx/")
         return document
@@ -60,13 +60,13 @@ final class NCXParser {
     }
     
     /// Parses recursively a list of nodes as a list of `Link`.
-    private func links(in element: XMLElement, nodeTagName: String) -> [Link] {
+    private func links(in element: Fuzi.XMLElement, nodeTagName: String) -> [Link] {
         return element.xpath("ncx:\(nodeTagName)")
             .compactMap { self.link(for: $0, nodeTagName: nodeTagName) }
     }
     
     /// Parses a node element as a `Link`.
-    private func link(for element: XMLElement, nodeTagName: String) -> Link? {
+    private func link(for element: Fuzi.XMLElement, nodeTagName: String) -> Link? {
         return NavigationDocumentParser.makeLink(
             title: element.firstChild(xpath: "ncx:navLabel/ncx:text")?.stringValue,
             href: element.firstChild(xpath: "ncx:content")?.attr("src"),

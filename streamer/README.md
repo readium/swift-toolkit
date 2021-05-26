@@ -3,10 +3,10 @@
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
 [![JazzyDocumentation](https://img.shields.io/badge/Jazzy--Documentation-63%25-lightgrey.svg)](https://readium.github.io/r2-streamer-swift/)
 
-R2-streamer-swift aims at simplifying the usage of numeric publication by parsing and serving them.
+Readium Streamer aims at simplifying the usage of numeric publication by parsing and serving them.
 It takes the publication as input, and generates an accessible [WebPubManifest](https://github.com/readium/webpub-manifest)/object as output.
 
-The project documentation is available [here](https://readium.github.io/r2-streamer-swift/)
+[Changes and releases are documented in the Changelog](CHANGELOG.md)
 
 # Get started
 
@@ -25,46 +25,19 @@ install R2Streamer with Carthage:
  2. Update your Cartfile to include the following:
 
     ```ruby
-    github "readium/r2-streamer-swift" ~> 1.0.7
+    github "readium/r2-streamer-swift" "develop"
     ```
+    
+ 3. Run:
+    * [`mkdir -p Carthage/Build/iOS`](https://github.com/Carthage/Carthage/issues/3122#issuecomment-784865551)
+    * `carthage update --use-xcframeworks`
 
- 3. Run `carthage update` and
-    [add the appropriate framework][Carthage Usage].
+ 4. [Add the appropriate framework][Carthage Usage].
 
 
 [Carthage]: https://github.com/Carthage/Carthage
 [Carthage Installation]: https://github.com/Carthage/Carthage#installing-carthage
 [Carthage Usage]: https://github.com/Carthage/Carthage#adding-frameworks-to-an-application
-
-
-### CocoaPods
-
-[CocoaPods][] is a dependency manager for Cocoa projects. To install
-R2Streamer with CocoaPods:
-
- 1. Make sure CocoaPods is [installed][CocoaPods Installation]. (R2Streamer
-    requires version 1.0.0 or greater.)
-
-    ```sh
-    # Using the default Ruby install will require you to use sudo when
-    # installing and updating gems.
-    [sudo] gem install cocoapods
-    ```
-
- 2. Update your Podfile to include the following:
-
-    ```ruby
-    use_frameworks!
-
-    target 'YourAppTargetName' do
-        pod 'R2Streamer', :git => 'https://github.com/readium/r2-streamer-swift.git', '~> 1.0.7'
-    end
-    ```
-
- 3. Run `pod install --repo-update`.
-
-[CocoaPods]: https://cocoapods.org
-[CocoaPods Installation]: https://guides.cocoapods.org/using/getting-started.html#getting-started
 
 
 ##### Import

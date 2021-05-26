@@ -16,6 +16,8 @@ import R2Shared
 
 class NavigationDocumentParserTests: XCTestCase {
     
+    let fixtures = Fixtures(path: "Navigation Documents")
+    
     func testParseTOC() {
         let document = parseNavDocument("nav")
         let sut = document.links(for: .tableOfContents)
@@ -73,9 +75,8 @@ class NavigationDocumentParserTests: XCTestCase {
     
     // MARK: - Toolkit
 
-    func parseNavDocument(_ name: String, type: String = "xhtml") -> NavigationDocumentParser {
-        let url = SampleGenerator().getSamplesFileURL(named: "Navigation Documents/\(name)", ofType: type)!
-        let data = try! Data(contentsOf: url)
+    func parseNavDocument(_ name: String) -> NavigationDocumentParser {
+        let data = fixtures.data(at: "\(name).xhtml")
         return NavigationDocumentParser(data: data, at: "/base/nav.xhtml")
     }
     
