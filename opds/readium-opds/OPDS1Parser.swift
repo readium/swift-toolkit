@@ -91,7 +91,7 @@ public class OPDS1Parser: Loggable {
     /// Feed can only be v1 (XML).
     /// - parameter document: The XMLDocument data
     /// - Returns: The resulting Feed
-    public static func parse(document: XMLDocument) throws -> Feed {
+    public static func parse(document: Fuzi.XMLDocument) throws -> Feed {
         document.definePrefix("thr", forNamespace: "http://purl.org/syndication/thread/1.0")
         document.definePrefix("dcterms", forNamespace: "http://purl.org/dc/terms/")
         document.definePrefix("opds", forNamespace: "http://opds-spec.org/2010/catalog")
@@ -135,7 +135,7 @@ public class OPDS1Parser: Loggable {
                         collectionLink = Link(
                             href: absoluteHref,
                             title: link.attributes["title"],
-                            rel: "collection"
+                            rel: .collection
                         )
                     }
                 }
@@ -155,18 +155,19 @@ public class OPDS1Parser: Loggable {
                 let href = link.attr("href"),
                 let absoluteHref = URLHelper.getAbsolute(href: href, base: feedURL)
             {
+                var properties: [String: Any] = [:]
+                if let facetElementCount = link.attr("count").map(Int.init) {
+                    properties["numberOfItems"] = facetElementCount
+                }
+                
                 let newLink = Link(
                     href: absoluteHref,
                     type: link.attr("type"),
                     title: entry.firstChild(tag: "title")?.stringValue,
-                    rel: link.attr("rel")
+                    rel: link.attr("rel").map { LinkRelation($0) },
+                    properties: .init(properties)
                 )
 
-                if let facetElementCountStr = link.attr("count"),
-                    let facetElementCount = Int(facetElementCountStr) {
-                    newLink.properties.numberOfItems = facetElementCount
-                }
-                
                 // Check collection link
                 if let collectionLink = collectionLink {
                     addNavigationInGroup(feed, newLink, collectionLink)
@@ -181,27 +182,36 @@ public class OPDS1Parser: Loggable {
                 continue
             }
             
+            var rels: [LinkRelation] = []
+            if let rel = link.attributes["rel"], !rel.isEmpty {
+                rels.append(.init(rel))
+            }
+            var properties: [String: Any] = [:]
+            
+            let isFacet = rels.contains(.opdsFacet)
+            if isFacet {
+                // Active Facet Check
+                if link.attr("activeFacet")?.lowercased() == "true" {
+                    rels.append(.self)
+                }
+                
+                if let facetElementCount = link.attr("count").map(Int.init) {
+                    properties["numberOfItems"] = facetElementCount
+                }
+            }
+            
             let newLink = Link(
                 href: absoluteHref,
                 type: link.attributes["type"],
                 title: link.attributes["title"],
-                rel: link.attributes["rel"]
+                rels: rels,
+                properties: .init(properties)
             )
 
-            if let facetGroupName = link.attributes["facetGroup"],
-                newLink.rels.contains("http://opds-spec.org/facet")
-            {
-                if let facetElementCountStr = link.attributes["count"],
-                    let facetElementCount = Int(facetElementCountStr) {
-                    newLink.properties.numberOfItems = facetElementCount
+            if isFacet {
+                if let facetGroupName = link.attributes["facetGroup"] {
+                    addFacet(feed: feed, to: newLink, named: facetGroupName)
                 }
-                
-                // Active Facet Check
-                if link.attributes["activeFacet"] == "true" {
-                    newLink.rels.append("self")
-                }
-                
-                addFacet(feed: feed, to: newLink, named: facetGroupName)
             } else {
                 feed.links.append(newLink)
             }
@@ -214,7 +224,7 @@ public class OPDS1Parser: Loggable {
     /// Publication can only be v1 (XML).
     /// - parameter document: The XMLDocument data
     /// - Returns: The resulting Publication
-    public static func parseEntry(document: XMLDocument) throws -> Publication? {
+    public static func parseEntry(document: Fuzi.XMLDocument) throws -> Publication? {
         guard let root = document.root else {
             throw OPDS1ParserError.rootNotFound
         }
@@ -224,7 +234,7 @@ public class OPDS1Parser: Loggable {
     /// Fetch an Open Search template from an OPDS feed.
     /// - parameter feed: The OPDS feed
     public static func fetchOpenSearchTemplate(feed: Feed, completion: @escaping (String?, Error?) -> Void) {
-        guard let openSearchHref = feed.links.first(withRel: "search")?.href,
+        guard let openSearchHref = feed.links.first(withRel: .search)?.href,
             let openSearchURL = URL(string: openSearchHref) else
         {
             completion(nil, OPDSParserOpenSearchHelperError.searchLinkNotFound)
@@ -250,9 +260,9 @@ public class OPDS1Parser: Loggable {
             }
             // The OpenSearch document may contain multiple Urls, and we need to find the closest matching one.
             // We match by mimetype and profile; if that fails, by mimetype; and if that fails, the first url is returned
-            var typeAndProfileMatch: XMLElement? = nil
-            var typeMatch: XMLElement? = nil
-            if let selfMimeType = feed.links.first(withRel: "self")?.type {
+            var typeAndProfileMatch: Fuzi.XMLElement? = nil
+            var typeMatch: Fuzi.XMLElement? = nil
+            if let selfMimeType = feed.links.first(withRel: .self)?.type {
                 let selfMimeParams = parseMimeType(mimeTypeString: selfMimeType)
                 for url in urls {
                     guard let urlMimeType = url.attributes["type"] else {
@@ -293,7 +303,7 @@ public class OPDS1Parser: Loggable {
         return MimeTypeParameters(type: type, parameters: params)
     }
 
-    static func parseEntry(entry: XMLElement) -> Publication? {
+    static func parseEntry(entry: Fuzi.XMLElement) -> Publication? {
         
         // Shortcuts to get tag(s)' string value.
         func tag(_ name: String) -> String? {
@@ -351,15 +361,22 @@ public class OPDS1Parser: Loggable {
                 continue
             }
             
+            var properties: [String: Any] = [:]
+            if let price = parsePrice(link: linkElement)?.json, !price.isEmpty {
+                properties["price"] = price
+            }
+            let indirectAcquisition = parseIndirectAcquisition(children: linkElement.children(tag: "indirectAcquisition")).json
+            if !indirectAcquisition.isEmpty {
+                properties["indirectAcquisition"] = indirectAcquisition
+            }
+            
             let link = Link(
                 href: absoluteHref,
                 type: linkElement.attributes["type"],
                 title: linkElement.attributes["title"],
-                rel: linkElement.attributes["rel"]
+                rel: linkElement.attributes["rel"].map { LinkRelation($0) },
+                properties: .init(properties)
             )
-            
-            link.properties.price = parsePrice(link: linkElement)
-            link.properties.indirectAcquisition = parseIndirectAcquisition(children: linkElement.children(tag: "indirectAcquisition"))
 
             let rels = link.rels
 
@@ -373,11 +390,13 @@ public class OPDS1Parser: Loggable {
         }
 
         return Publication(
-            metadata: metadata,
-            links: links,
-            otherCollections: [
-                PublicationCollection(role: "images", links: images)
-            ]
+            manifest: Manifest(
+                metadata: metadata,
+                links: links,
+                subcollections: [
+                    "images": [PublicationCollection(links: images)]
+                ]
+            )
         )
     }
 
@@ -411,7 +430,7 @@ public class OPDS1Parser: Loggable {
             let selfLink = Link(
                 href: collectionLink.href,
                 title: collectionLink.title,
-                rel: "self"
+                rel: .self
             )
             newGroup.links.append(selfLink)
             newGroup.publications.append(publication)
@@ -436,7 +455,7 @@ public class OPDS1Parser: Loggable {
             let selfLink = Link(
                 href: collectionLink.href,
                 title: collectionLink.title,
-                rel: "self"
+                rel: .self
             )
             newGroup.links.append(selfLink)
             newGroup.navigation.append(link)
@@ -444,7 +463,7 @@ public class OPDS1Parser: Loggable {
         }
     }
     
-    static func parseIndirectAcquisition(children: [XMLElement]) -> [OPDSAcquisition] {
+    static func parseIndirectAcquisition(children: [Fuzi.XMLElement]) -> [OPDSAcquisition] {
         return children.compactMap { child in
             guard let type = child.attributes["type"] else {
                 return nil
@@ -458,7 +477,7 @@ public class OPDS1Parser: Loggable {
         }
     }
     
-    static func parsePrice(link: XMLElement) -> OPDSPrice? {
+    static func parsePrice(link: Fuzi.XMLElement) -> OPDSPrice? {
         guard let price = link.firstChild(tag: "price")?.stringValue,
             let value = Double(price),
             let currency = link.firstChild(tag: "price")?.attr("currencycode") else

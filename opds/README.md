@@ -1,8 +1,11 @@
 # OPDS Parser (Swift)
+
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](/LICENSE)
 
 A parser for OPDS 1.x and 2.0 written in Swift using the [Readium-2 shared model](https://github.com/readium/r2-shared-swift) 
 and [Readium Web Publication Manifest](https://github.com/readium/webpub-manifest).
+
+[Changes and releases are documented in the Changelog](CHANGELOG.md)
 
 ## Features
 
@@ -32,46 +35,19 @@ install ReadiumOPDS with Carthage:
  2. Update your Cartfile to include the following:
 
     ```ruby
-    github "readium/r2-opds-swift" ~> 1.0.4
+    github "readium/r2-opds-swift" "develop"
     ```
+    
+ 3. Run:
+    * [`mkdir -p Carthage/Build/iOS`](https://github.com/Carthage/Carthage/issues/3122#issuecomment-784865551)
+    * `carthage update --use-xcframeworks`
 
- 3. Run `carthage update` and
-    [add the appropriate framework][Carthage Usage].
+ 4. [Add the appropriate framework][Carthage Usage].
 
 
 [Carthage]: https://github.com/Carthage/Carthage
 [Carthage Installation]: https://github.com/Carthage/Carthage#installing-carthage
 [Carthage Usage]: https://github.com/Carthage/Carthage#adding-frameworks-to-an-application
-
-
-### CocoaPods
-
-[CocoaPods][] is a dependency manager for Cocoa projects. To install
-ReadiumOPDS with CocoaPods:
-
- 1. Make sure CocoaPods is [installed][CocoaPods Installation]. (ReadiumOPDS
-    requires version 1.0.0 or greater.)
-
-    ```sh
-    # Using the default Ruby install will require you to use sudo when
-    # installing and updating gems.
-    [sudo] gem install cocoapods
-    ```
-
- 2. Update your Podfile to include the following:
-
-    ```ruby
-    use_frameworks!
-
-    target 'YourAppTargetName' do
-        pod 'ReadiumOPDS', :git => 'https://github.com/readium/r2-opds-swift.git'
-    end
-    ```
-
- 3. Run `pod install --repo-update`.
-
-[CocoaPods]: https://cocoapods.org
-[CocoaPods Installation]: https://guides.cocoapods.org/using/getting-started.html#getting-started
 
 
 #### Import

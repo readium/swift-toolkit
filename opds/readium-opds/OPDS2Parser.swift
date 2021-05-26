@@ -195,8 +195,9 @@ public class OPDS2Parser: Loggable {
                         throw OPDS2ParserError.invalidFacet
                     }
                     for linkDict in links {
-                        let link = try Link(json: linkDict)
-                        link.href = URLHelper.getAbsolute(href: link.href, base: feedURL) ?? link.href
+                        let link = try Link(json: linkDict, normalizeHREF: {
+                            URLHelper.getAbsolute(href: $0, base: feedURL) ?? $0
+                        })
                         facet.links.append(link)
                     }
                 }
@@ -207,8 +208,7 @@ public class OPDS2Parser: Loggable {
 
     static func parseLinks(feed: Feed, links: [[String: Any]]) throws {
         for linkDict in links {
-            let link = try Link(json: linkDict)
-            link.href = URLHelper.getAbsolute(href: link.href, base: feedURL) ?? link.href
+            let link = try Link(json: linkDict, normalizeHREF: hrefNormalizer(feedURL))
             feed.links.append(link)
         }
     }
@@ -222,8 +222,7 @@ public class OPDS2Parser: Loggable {
 
     static func parseNavigation(feed: Feed, navLinks: [[String: Any]]) throws {
         for navDict in navLinks {
-            let link = try Link(json: navDict)
-            link.href = URLHelper.getAbsolute(href: link.href, base: feedURL) ?? link.href
+            let link = try Link(json: navDict, normalizeHREF: hrefNormalizer(feedURL))
             feed.navigation.append(link)
         }
     }
@@ -248,8 +247,7 @@ public class OPDS2Parser: Loggable {
                         throw OPDS2ParserError.invalidGroup
                     }
                     for linkDict in links {
-                        let link = try Link(json: linkDict)
-                        link.href = URLHelper.getAbsolute(href: link.href, base: feedURL) ?? link.href
+                        let link = try Link(json: linkDict, normalizeHREF: hrefNormalizer(feedURL))
                         group.links.append(link)
                     }
                 case "navigation":
@@ -257,8 +255,7 @@ public class OPDS2Parser: Loggable {
                         throw OPDS2ParserError.invalidGroup
                     }
                     for linkDict in links {
-                        let link = try Link(json: linkDict)
-                        link.href = URLHelper.getAbsolute(href: link.href, base: feedURL) ?? link.href
+                        let link = try Link(json: linkDict, normalizeHREF: hrefNormalizer(feedURL))
                         group.navigation.append(link)
                     }
                 case "publications":
@@ -277,4 +274,8 @@ public class OPDS2Parser: Loggable {
         }
     }
 
+}
+
+private func hrefNormalizer(_ baseURL: URL?) -> (String) -> (String) {
+    return { href in URLHelper.getAbsolute(href: href, base: baseURL) ?? href }
 }
