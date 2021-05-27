@@ -5,7 +5,20 @@ All notable changes to this project will be documented in this file.
 **Warning:** Features marked as *experimental* may change or be removed in a future release without notice. Use with
 *caution.
 
-<!--## [Unreleased]-->
+## [Unreleased]
+
+### Added
+
+* New `EPUBNavigatorViewController.evaluateJavaScript()` API to run a JavaScript on the currently visible HTML resource.
+
+### Deprecated
+
+* Removed `navigator(_:userContentController:didReceive:)` which is actually not needed since you can provide your own `WKScriptMessageHandler` to `WKUserContentController`.
+
+### Fixed
+
+* Fixed receiving `EPUBNavigatorDelegate.navigator(_:setupUserScripts:)` for the first web view.
+
 
 ## [2.0.0]
 

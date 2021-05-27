@@ -21,7 +21,6 @@ public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate {
     // MARK: - WebView Customization
 
     func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController)
-    func navigator(_ navigator: EPUBNavigatorViewController, userContentController: WKUserContentController, didReceive message: WKScriptMessage)
 
     // MARK: - Deprecated
     
@@ -41,7 +40,6 @@ public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate {
 public extension EPUBNavigatorDelegate {
 
     func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController) {}
-    func navigator(_ navigator: EPUBNavigatorViewController, userContentController: WKUserContentController, didReceive message: WKScriptMessage) {}
 
     func middleTapHandler() {}
     func willExitPublication(documentIndex: Int, progression: Double?) {}
@@ -78,6 +76,11 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         public var debugState = false
         
         public init() {}
+    }
+
+    public enum EPUBError: Error {
+        /// Returned when calling evaluateJavaScript() before a resource is loaded.
+        case spreadNotLoaded
     }
     
     public weak var delegate: EPUBNavigatorDelegate? {
@@ -179,6 +182,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
 
     private let config: Configuration
     private let publication: Publication
+    private let initialLocation: Locator?
     private let editingActions: EditingActionsController
 
     /// Base URL on the resources server to the files in Static/
@@ -189,6 +193,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         assert(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
         
         self.publication = publication
+        self.initialLocation = initialLocation
         self.editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
         self.userSettings = UserSettings()
         publication.userProperties.properties = self.userSettings.userProperties.properties
@@ -215,7 +220,6 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         
         self.editingActions.delegate = self
         self.paginationView.delegate = self
-        reloadSpreads(at: initialLocation)
     }
 
     @available(*, unavailable)
@@ -232,6 +236,8 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         view.addSubview(paginationView)
         
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapBackground)))
+
+        reloadSpreads(at: initialLocation)
     }
     
     /// Intercepts tap gesture when the web views are not loaded.
@@ -525,6 +531,30 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         }()
         return go(to: direction, animated: animated, completion: completion)
     }
+
+    // MARK: – EPUB-specific extensions
+
+    /// Evaluates the given JavaScript on the currently visible HTML resource.
+    public func evaluateJavaScript(_ script: String, completion: ((Result<Any, Error>) -> Void)? = nil) {
+        guard let webView = (paginationView.currentView as? EPUBSpreadView)?.webView else {
+            DispatchQueue.main.async {
+                completion?(.failure(EPUBError.spreadNotLoaded))
+            }
+            return
+        }
+
+        webView.evaluateJavaScript(script) { result, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    completion?(.failure(error))
+                } else if let result = result {
+                    completion?(.success(result))
+                } else {
+                    self.log(.error, "Did not get any result or error from WKWebView.evaluateJavaScript()")
+                }
+            }
+        }
+    }
     
 }
 
@@ -641,10 +671,6 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     
     func spreadView(_ spreadView: EPUBSpreadView, present viewController: UIViewController) {
         present(viewController, animated: true)
-    }
-
-    func spreadView(_ spreadView: EPUBSpreadView, userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        delegate?.navigator(self, userContentController: userContentController, didReceive: message)
     }
 
 }
