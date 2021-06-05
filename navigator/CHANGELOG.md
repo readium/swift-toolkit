@@ -2,13 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-**Warning:** Features marked as *experimental* may change or be removed in a future release without notice. Use with
+**Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with
 *caution.
 
 ## [Unreleased]
 
 ### Added
 
+* The EPUB navigator is now able to navigate to a `Locator` using its `text` context. This is useful for search results or highlights missing precise locations.
 * New `EPUBNavigatorViewController.evaluateJavaScript()` API to run a JavaScript on the currently visible HTML resource.
 
 ### Deprecated

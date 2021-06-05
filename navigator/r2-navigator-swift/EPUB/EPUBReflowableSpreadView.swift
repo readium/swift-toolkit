@@ -208,23 +208,25 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
         switch location {
         case .locator(let locator):
-            go(to: locator, completion: completion)
+            go(to: locator) { _ in completion() }
         case .start:
-            go(toProgression: 0, completion: completion)
+            go(toProgression: 0) { _ in completion() }
         case .end:
-            go(toProgression: 1, completion: completion)
+            go(toProgression: 1) { _ in completion() }
         }
     }
 
-    private func go(to locator: Locator, completion: @escaping () -> Void) {
+    private func go(to locator: Locator, completion: @escaping (Bool) -> Void) {
         guard ["", "#"].contains(locator.href) || spread.contains(href: locator.href) else {
             log(.warning, "The locator's href is not in the spread")
-            completion()
+            completion(false)
             return
         }
 
+        if locator.text.highlight != nil {
+            go(toText: locator.text, completion: completion)
         // FIXME: find the first fragment matching a tag ID (need a regex)
-        if let id = locator.locations.fragments.first, !id.isEmpty {
+        } else if let id = locator.locations.fragments.first, !id.isEmpty {
             go(toTagID: id, completion: completion)
         } else {
             let progression = locator.locations.progression ?? 0
@@ -233,10 +235,10 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     }
 
     /// Scrolls at given progression (from 0.0 to 1.0)
-    private func go(toProgression progression: Double, completion: @escaping () -> Void) {
+    private func go(toProgression progression: Double, completion: @escaping (Bool) -> Void) {
         guard progression >= 0 && progression <= 1 else {
             log(.warning, "Scrolling to invalid progression \(progression)")
-            completion()
+            completion(false)
             return
         }
         
@@ -247,19 +249,32 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
                 ? -scrollView.contentInset.top
                 : (scrollView.contentSize.height - scrollView.bounds.height + scrollView.contentInset.bottom)
             scrollView.contentOffset = contentOffset
-            completion()
+            completion(true)
         } else {
             let dir = readingProgression.rawValue
-            evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\')") { _, _ in completion () }
+            evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\')") { _, _ in completion (true) }
         }
     }
     
     /// Scrolls at the tag with ID `tagID`.
-    private func go(toTagID tagID: String, completion: @escaping () -> Void) {
-        evaluateScript("readium.scrollToId(\'\(tagID)\');") { _, _ in completion() }
+    private func go(toTagID tagID: String, completion: @escaping (Bool) -> Void) {
+        evaluateScript("readium.scrollToId(\'\(tagID)\');") { res, _ in
+            completion((res as? Bool) ?? false)
+        }
     }
-    
-    
+
+    /// Scrolls at the snippet matching the given text context.
+    private func go(toText text: Locator.Text, completion: @escaping (Bool) -> Void) {
+        guard let json = text.jsonString else {
+            completion(false)
+            return
+        }
+        evaluateScript("readium.scrollToText(\(json));") { res, _ in
+            completion((res as? Bool) ?? false)
+        }
+    }
+
+
     // MARK: - Progression
     
     // Current progression in the page.
