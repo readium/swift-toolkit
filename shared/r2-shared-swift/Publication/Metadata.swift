@@ -132,7 +132,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         self.otherMetadataJSON = JSONDictionary(otherMetadata) ?? JSONDictionary()
     }
     
-    init(json: Any?, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) throws {
+    public init(json: Any?, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) throws {
         guard var json = JSONDictionary(json),
             let title = try? LocalizedString(json: json.pop("title"), warnings: warnings) else
         {
@@ -171,7 +171,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         self.otherMetadataJSON = json
     }
     
-    var json: [String: Any] {
+    public var json: [String: Any] {
         return makeJSON([
             "identifier": encodeIfNotNil(identifier),
             "@type": encodeIfNotNil(type),

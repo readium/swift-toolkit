@@ -8,10 +8,8 @@ import Foundation
 
 /// A protocol indicating that an activity or action supports cancellation.
 public protocol Cancellable {
-
     /// Cancel the on-going activity.
     func cancel()
-
 }
 
 /// A `Cancellable` object saving its cancelled state.
@@ -20,6 +18,17 @@ public final class CancellableObject: Cancellable {
 
     public func cancel() {
         isCancelled = true
+    }
+}
+
+extension DispatchQueue {
+    func async(unlessCancelled cancellable: CancellableObject, execute work: @escaping () -> Void) {
+        async {
+            guard !cancellable.isCancelled else {
+                return
+            }
+            work()
+        }
     }
 }
 

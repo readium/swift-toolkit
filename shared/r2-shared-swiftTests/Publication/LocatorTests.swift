@@ -355,3 +355,227 @@ class LocatorTextTests: XCTestCase {
     }
     
 }
+
+class LocatorCollectionTests: XCTestCase {
+
+    func testParseMinimalJSON() {
+        XCTAssertEqual(
+            _LocatorCollection(json: [:]),
+            _LocatorCollection()
+        )
+    }
+
+    func testParseFullJSON() {
+        XCTAssertEqual(
+            _LocatorCollection(json: [
+                "metadata": [
+                    "title": [
+                        "en": "Searching <riddle> in Alice in Wonderlands - Page 1",
+                        "fr": "Recherche <riddle> dans Alice in Wonderlands – Page 1"
+                    ],
+                    "numberOfItems": 3,
+                    "extraMetadata": "value"
+                ],
+                "links": [
+                    ["rel": "self", "href": "/978-1503222687/search?query=apple", "type": "application/vnd.readium.locators+json"],
+                    ["rel": "next", "href": "/978-1503222687/search?query=apple&page=2", "type": "application/vnd.readium.locators+json"]
+                ],
+                "locators": [
+                    [
+                        "href": "/978-1503222687/chap7.html",
+                        "type": "application/xhtml+xml",
+                        "locations": [
+                            "fragments": [
+                                ":~:text=riddle,-yet%3F'"
+                            ],
+                            "progression": 0.43
+                        ],
+                        "text": [
+                            "before": "'Have you guessed the ",
+                            "highlight": "riddle",
+                            "after": " yet?' the Hatter said, turning to Alice again."
+                        ]
+                    ],
+                    [
+                        "href": "/978-1503222687/chap7.html",
+                        "type": "application/xhtml+xml",
+                        "locations": [
+                            "fragments": [
+                                ":~:text=in%20asking-,riddles"
+                            ],
+                            "progression": 0.47
+                        ],
+                        "text": [
+                            "before": "I'm glad they've begun asking ",
+                            "highlight": "riddles",
+                            "after": ".--I believe I can guess that,"
+                        ]
+                    ]
+                ]
+            ]),
+            _LocatorCollection(
+                metadata: _LocatorCollection.Metadata(
+                    title: LocalizedString.localized([
+                        "en": "Searching <riddle> in Alice in Wonderlands - Page 1",
+                        "fr": "Recherche <riddle> dans Alice in Wonderlands – Page 1"
+                    ]),
+                    numberOfItems: 3,
+                    otherMetadata: [
+                        "extraMetadata": "value"
+                    ]
+                ),
+                links: [
+                    Link(href: "/978-1503222687/search?query=apple", type: "application/vnd.readium.locators+json", rel: "self"),
+                    Link(href: "/978-1503222687/search?query=apple&page=2", type: "application/vnd.readium.locators+json", rel: "next")
+                ],
+                locators: [
+                    Locator(
+                        href: "/978-1503222687/chap7.html",
+                        type: "application/xhtml+xml",
+                        locations: Locator.Locations(
+                            fragments: [":~:text=riddle,-yet%3F'"],
+                            progression: 0.43
+                        ),
+                        text: Locator.Text(
+                            after: " yet?' the Hatter said, turning to Alice again.",
+                            before: "'Have you guessed the ",
+                            highlight: "riddle"
+                        )
+                    ),
+                    Locator(
+                        href: "/978-1503222687/chap7.html",
+                        type: "application/xhtml+xml",
+                        locations: Locator.Locations(
+                            fragments: [":~:text=in%20asking-,riddles"],
+                            progression: 0.47
+                        ),
+                        text: Locator.Text(
+                            after: ".--I believe I can guess that,",
+                            before: "I'm glad they've begun asking ",
+                            highlight: "riddles"
+                        )
+                    )
+                ]
+            )
+        )
+    }
+
+    func testParseEmptyJSON() {
+        XCTAssertEqual(
+            _LocatorCollection(json: [:]),
+            _LocatorCollection()
+        )
+    }
+
+    func testParseNilJSON() {
+        XCTAssertNil(_LocatorCollection(json: nil))
+    }
+
+    func testParseInvalidJSON() {
+        XCTAssertNil(_LocatorCollection(json: []))
+    }
+
+    func testGetMinimalJSON() {
+        AssertJSONEqual(
+            _LocatorCollection().json as Any,
+            [
+                "locators": []
+            ]
+        )
+    }
+
+    func testGetFullJSON() {
+        AssertJSONEqual(
+            _LocatorCollection(
+                metadata: _LocatorCollection.Metadata(
+                    title: LocalizedString.localized([
+                        "en": "Searching <riddle> in Alice in Wonderlands - Page 1",
+                        "fr": "Recherche <riddle> dans Alice in Wonderlands – Page 1"
+                    ]),
+                    numberOfItems: 3,
+                    otherMetadata: [
+                        "extraMetadata": "value"
+                    ]
+                ),
+                links: [
+                    Link(href: "/978-1503222687/search?query=apple", type: "application/vnd.readium.locators+json", rel: "self"),
+                    Link(href: "/978-1503222687/search?query=apple&page=2", type: "application/vnd.readium.locators+json", rel: "next")
+                ],
+                locators: [
+                    Locator(
+                        href: "/978-1503222687/chap7.html",
+                        type: "application/xhtml+xml",
+                        locations: Locator.Locations(
+                            fragments: [":~:text=riddle,-yet%3F'"],
+                            progression: 0.43
+                        ),
+                        text: Locator.Text(
+                            after: " yet?' the Hatter said, turning to Alice again.",
+                            before: "'Have you guessed the ",
+                            highlight: "riddle"
+                        )
+                    ),
+                    Locator(
+                        href: "/978-1503222687/chap7.html",
+                        type: "application/xhtml+xml",
+                        locations: Locator.Locations(
+                            fragments: [":~:text=in%20asking-,riddles"],
+                            progression: 0.47
+                        ),
+                        text: Locator.Text(
+                            after: ".--I believe I can guess that,",
+                            before: "I'm glad they've begun asking ",
+                            highlight: "riddles"
+                        )
+                    )
+                ]
+            ).json as Any,
+            [
+                "metadata": [
+                    "title": [
+                        "en": "Searching <riddle> in Alice in Wonderlands - Page 1",
+                        "fr": "Recherche <riddle> dans Alice in Wonderlands – Page 1"
+                    ],
+                    "numberOfItems": 3,
+                    "extraMetadata": "value"
+                ],
+                "links": [
+                    ["rel": ["self"], "href": "/978-1503222687/search?query=apple", "type": "application/vnd.readium.locators+json", "templated": false],
+                    ["rel": ["next"], "href": "/978-1503222687/search?query=apple&page=2", "type": "application/vnd.readium.locators+json", "templated": false]
+                ],
+                "locators": [
+                    [
+                        "href": "/978-1503222687/chap7.html",
+                        "type": "application/xhtml+xml",
+                        "locations": [
+                            "fragments": [
+                                ":~:text=riddle,-yet%3F'"
+                            ],
+                            "progression": 0.43
+                        ],
+                        "text": [
+                            "before": "'Have you guessed the ",
+                            "highlight": "riddle",
+                            "after": " yet?' the Hatter said, turning to Alice again."
+                        ]
+                    ],
+                    [
+                        "href": "/978-1503222687/chap7.html",
+                        "type": "application/xhtml+xml",
+                        "locations": [
+                            "fragments": [
+                                ":~:text=in%20asking-,riddles"
+                            ],
+                            "progression": 0.47
+                        ],
+                        "text": [
+                            "before": "I'm glad they've begun asking ",
+                            "highlight": "riddles",
+                            "after": ".--I believe I can guess that,"
+                        ]
+                    ]
+                ]
+            ]
+        )
+    }
+}

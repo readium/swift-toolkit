@@ -291,3 +291,91 @@ extension Array where Element == Locator {
     }
     
 }
+
+/// Represents a sequential list of `Locator` objects.
+///
+/// For example, a search result or a list of positions.
+///
+/// **WARNING:** This API is experimental and may change or be removed in a future release without
+/// notice. Use with caution.
+public struct _LocatorCollection: Hashable {
+
+    public let metadata: Metadata
+    public let links: [Link]
+    public let locators: [Locator]
+
+    public init(metadata: Metadata = Metadata(), links: [Link] = [], locators: [Locator] = []) {
+        self.metadata = metadata
+        self.links = links
+        self.locators = locators
+    }
+
+    public init?(json: Any?, warnings: WarningLogger? = nil) {
+        if json == nil {
+            return nil
+        }
+        guard let jsonObject = json as? [String: Any] else {
+            warnings?.log("Not a JSON object", model: Self.self, source: json)
+            return nil
+        }
+        self.init(
+            metadata: Metadata(json: jsonObject["metadata"], warnings: warnings),
+            links: [Link](json: jsonObject["links"]),
+            locators: [Locator](json: jsonObject["locators"])
+        )
+    }
+
+    public var json: [String: Any] {
+        return makeJSON([
+            "metadata": encodeIfNotEmpty(metadata.json),
+            "links": encodeIfNotEmpty(links.json),
+            "locators": locators.json,
+        ])
+    }
+
+    /// Holds the metadata of a `LocatorCollection`.
+    public struct Metadata: Hashable {
+
+        public let localizedTitle: LocalizedString?
+        public var title: String? { localizedTitle?.string }
+
+        /// Indicates the total number of locators in the collection.
+        public let numberOfItems: Int?
+
+        /// Additional properties for extensions.
+        public var otherMetadata: [String: Any] { otherMetadataJSON.json }
+
+        // Trick to keep the struct equatable despite [String: Any]
+        private let otherMetadataJSON: JSONDictionary
+
+        public init(
+            title: LocalizedStringConvertible? = nil,
+            numberOfItems: Int? = nil,
+            otherMetadata: [String: Any] = [:]
+        ) {
+            self.localizedTitle = title?.localizedString
+            self.numberOfItems = numberOfItems
+            self.otherMetadataJSON = JSONDictionary(otherMetadata) ?? JSONDictionary()
+        }
+
+        public init(json: Any?, warnings: WarningLogger? = nil) {
+            if var json = JSONDictionary(json) {
+                self.localizedTitle = try? LocalizedString(json: json.pop("title"), warnings: warnings)
+                self.numberOfItems = parsePositive(json.pop("numberOfItems"))
+                self.otherMetadataJSON = json
+            } else {
+                warnings?.log("Not a JSON object", model: Self.self, source: json)
+                self.localizedTitle = nil
+                self.numberOfItems = nil
+                self.otherMetadataJSON = JSONDictionary()
+            }
+        }
+
+        public var json: [String: Any] {
+            return makeJSON([
+                "title": encodeIfNotNil(localizedTitle?.json),
+                "numberOfItems": encodeIfNotNil(numberOfItems),
+            ], additional: otherMetadata)
+        }
+    }
+}

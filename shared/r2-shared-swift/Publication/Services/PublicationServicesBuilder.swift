@@ -23,12 +23,14 @@ public struct PublicationServicesBuilder {
         cover: CoverServiceFactory? = nil,
         locator: LocatorServiceFactory? = { DefaultLocatorService(readingOrder: $0.manifest.readingOrder, publication: $0.publication) },
         positions: PositionsServiceFactory? = nil,
+        search: SearchServiceFactory? = nil,
         setup: (inout PublicationServicesBuilder) -> Void = { _ in }
     ) {
         setContentProtectionServiceFactory(contentProtection)
         setCoverServiceFactory(cover)
         setLocatorServiceFactory(locator)
         setPositionsServiceFactory(positions)
+        setSearchServiceFactory(search)
         setup(&self)
     }
 

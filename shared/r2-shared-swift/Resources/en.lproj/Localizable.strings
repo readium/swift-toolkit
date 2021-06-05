@@ -10,7 +10,6 @@
 /* 404 Not found error during a network request made with DownloadSession */
 "R2Shared.DownloadSession.RequestError.notFound" = "Request failed: not found";
 
-
 /* Publication.OpeningError */
 "R2Shared.Publication.OpeningError.unsupportedFormat" = "Format not supported";
 "R2Shared.Publication.OpeningError.notFound" = "File not found";
@@ -39,3 +38,8 @@
 "R2Shared.HTTPError.serverError" = "A server error occurred, please try again later";
 "R2Shared.HTTPError.offline" = "Your Internet connection appears to be offline";
 "R2Shared.HTTPError.cancelled" = "The request was cancelled";
+
+/* SearchError */
+"R2Shared.Publication.SearchError.publicationNotSearchable" = "This publication is not searchable";
+"R2Shared.Publication.SearchError.cancelled" = "The search was cancelled";
+"R2Shared.Publication.SearchError.other" = "An error occurred while searching";

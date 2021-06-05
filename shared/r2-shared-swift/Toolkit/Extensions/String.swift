@@ -38,4 +38,13 @@ extension String {
         return removingPrefix(prefix).addingPrefix(replacement)
     }
 
+    /// Returns a substring before the last occurrence of `delimiter`.
+    /// If the string does not contain the delimiter, returns the original string itself.
+    func substringBeforeLast(_ delimiter: String) -> String? {
+        guard let range = range(of: delimiter, options: [.backwards, .literal]) else {
+            return self
+        }
+        return String(self[...range.lowerBound])
+    }
+
 }
