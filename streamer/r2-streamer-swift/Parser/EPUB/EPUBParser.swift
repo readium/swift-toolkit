@@ -79,7 +79,8 @@ final public class EPUBParser: PublicationParser {
                 EPUBHTMLInjector(metadata: components.metadata, userProperties: userProperties).inject(resource:)
             ].compactMap { $0 }),
             servicesBuilder: .init(
-                positions: EPUBPositionsService.makeFactory()
+                positions: EPUBPositionsService.makeFactory(),
+                search: _StringSearchService.makeFactory()
             ),
             setupPublication: { publication in
                 publication.userProperties = userProperties
