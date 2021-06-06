@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+* Support for Swift Package Manager (contributed by [@stevenzeck](https://github.com/readium/r2-shared-swift/pull/145)).
 * (*alpha*) A new Publication `SearchService` to search through the resources' content with a default implementation `StringSearchService`.
 
 
