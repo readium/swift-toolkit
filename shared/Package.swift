@@ -8,7 +8,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "R2Shared",
+    name: "r2-shared-swift",
     defaultLocalization: "en",
     platforms: [.iOS(.v10)],
     products: [
