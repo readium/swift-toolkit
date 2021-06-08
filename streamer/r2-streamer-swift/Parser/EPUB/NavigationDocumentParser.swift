@@ -11,6 +11,7 @@
 
 import R2Shared
 import Fuzi
+import Foundation
 
 /// The navigation document if documented here at Navigation
 /// https://idpf.github.io/a11y-guidelines/

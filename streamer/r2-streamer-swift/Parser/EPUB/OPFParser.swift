@@ -11,6 +11,7 @@
 
 import Fuzi
 import R2Shared
+import Foundation
 
 
 // http://www.idpf.org/epub/30/spec/epub30-publications.html#title-type

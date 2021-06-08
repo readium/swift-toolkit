@@ -11,6 +11,7 @@
 
 import R2Shared
 import Fuzi
+import Foundation
 
 /// The object containing the methods used to parse SMIL files.
 final class SMILParser {

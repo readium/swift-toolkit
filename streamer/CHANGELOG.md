@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+* Support for Swift Package Manager (contributed by [@stevenzeck](https://github.com/readium/r2-streamer-swift/pull/210)).
 * EPUB publications implement a `SearchService` to search through the content.
 
 

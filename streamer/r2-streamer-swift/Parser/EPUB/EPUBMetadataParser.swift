@@ -11,6 +11,7 @@
 
 import R2Shared
 import Fuzi
+import Foundation
 
 
 /// Reference: https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md
