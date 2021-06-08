@@ -159,7 +159,7 @@ public class PublicationServer: ResourcesServer {
 
     // Add handlers for the static resources.
     public func addStaticResourcesHandlers() {
-        guard let resourceURL = Bundle(for: PublicationServer.self).resourceURL else {
+        guard let resourceURL = Bundle.module.resourceURL?.appendingPathComponent("Assets") else {
             return
         }
         

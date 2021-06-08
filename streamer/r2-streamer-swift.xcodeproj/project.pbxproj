@@ -77,7 +77,8 @@
 		CAD0CD2324BF17A300680131 /* AudioParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0CD2224BF17A300680131 /* AudioParserTests.swift */; };
 		CAD0CD2624BF32F500680131 /* ReadiumWebPubParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0CD2524BF32F500680131 /* ReadiumWebPubParserTests.swift */; };
 		CAF58199229EC8B3009A04E8 /* EPUBMetadataParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF58198229EC8B3009A04E8 /* EPUBMetadataParserTests.swift */; };
-		CAF6488A266F61550067D2C3 /* fonts in Resources */ = {isa = PBXBuildFile; fileRef = CAF64889266F61550067D2C3 /* fonts */; };
+		CAF64893266F6BDF0067D2C3 /* Bundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF64892266F6BDF0067D2C3 /* Bundle.swift */; };
+		CAF648D9266F6DBF0067D2C3 /* Assets in Resources */ = {isa = PBXBuildFile; fileRef = CAF648D8266F6DBF0067D2C3 /* Assets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -165,7 +166,8 @@
 		CAD0CD2224BF17A300680131 /* AudioParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioParserTests.swift; sourceTree = "<group>"; };
 		CAD0CD2524BF32F500680131 /* ReadiumWebPubParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadiumWebPubParserTests.swift; sourceTree = "<group>"; };
 		CAF58198229EC8B3009A04E8 /* EPUBMetadataParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBMetadataParserTests.swift; sourceTree = "<group>"; };
-		CAF64889266F61550067D2C3 /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = fonts; sourceTree = "<group>"; };
+		CAF64892266F6BDF0067D2C3 /* Bundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bundle.swift; sourceTree = "<group>"; };
+		CAF648D8266F6DBF0067D2C3 /* Assets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Assets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -246,7 +248,7 @@
 			isa = PBXGroup;
 			children = (
 				CA228D1A24BD975500879E2E /* Streamer.swift */,
-				CAF64885266F614B0067D2C3 /* Assets */,
+				CAF648D8266F6DBF0067D2C3 /* Assets */,
 				CA130D25229D4245000A627C /* Parser */,
 				CA130D21229D4245000A627C /* Server */,
 				CA130D3A229D4245000A627C /* Model */,
@@ -442,6 +444,7 @@
 			isa = PBXGroup;
 			children = (
 				CA3F3FA7248EB156005B8A0B /* Fetcher.swift */,
+				CAF64892266F6BDF0067D2C3 /* Bundle.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -528,14 +531,6 @@
 				CAD0CD2524BF32F500680131 /* ReadiumWebPubParserTests.swift */,
 			);
 			path = Readium;
-			sourceTree = "<group>";
-		};
-		CAF64885266F614B0067D2C3 /* Assets */ = {
-			isa = PBXGroup;
-			children = (
-				CAF64889266F61550067D2C3 /* fonts */,
-			);
-			path = Assets;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -636,7 +631,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CAF6488A266F61550067D2C3 /* fonts in Resources */,
+				CAF648D9266F6DBF0067D2C3 /* Assets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -656,6 +651,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA130D5C229D4245000A627C /* PublicationServer.swift in Sources */,
+				CAF64893266F6BDF0067D2C3 /* Bundle.swift in Sources */,
 				CA8672B2244868B50035FDF4 /* DataCompression.swift in Sources */,
 				CA130D45229D4245000A627C /* FileInputStream.swift in Sources */,
 				CA130D66229D4245000A627C /* EPUBParser.swift in Sources */,
@@ -879,7 +875,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = "-lxml2";
-				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2Streamer;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-streamer-swift";
 				PRODUCT_NAME = R2Streamer;
 				SKIP_INSTALL = YES;
 				SUPPORTS_MACCATALYST = NO;
@@ -909,7 +905,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = "-lxml2";
-				PRODUCT_BUNDLE_IDENTIFIER = org.readium.R2Streamer;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-streamer-swift";
 				PRODUCT_NAME = R2Streamer;
 				SKIP_INSTALL = YES;
 				SUPPORTS_MACCATALYST = NO;

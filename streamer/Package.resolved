@@ -33,13 +33,13 @@
         "repositoryURL": "https://github.com/readium/r2-shared-swift.git",
         "state": {
           "branch": "develop",
-          "revision": "fbfc5ec647566d8f74d9fbe4db4ae29fa72dcdd1",
+          "revision": "1fb450a166b1e7e8b4b58b79712924ef624a2ffb",
           "version": null
         }
       },
       {
         "package": "SwiftSoup",
-        "repositoryURL": "https://github.com/scinfu/SwiftSoup",
+        "repositoryURL": "https://github.com/scinfu/SwiftSoup.git",
         "state": {
           "branch": null,
           "revision": "774dc9c7213085db8aa59595e27c1cd22e428904",
