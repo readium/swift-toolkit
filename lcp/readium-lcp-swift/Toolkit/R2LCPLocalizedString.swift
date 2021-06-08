@@ -13,5 +13,5 @@ import Foundation
 import R2Shared
 
 func R2LCPLocalizedString(_ key: String, _ values: CVarArg...) -> String {
-    return R2LocalizedString("ReadiumLCP.\(key)", values)
+    return R2LocalizedString("ReadiumLCP.\(key)", in: Bundle.module, values)
 }
