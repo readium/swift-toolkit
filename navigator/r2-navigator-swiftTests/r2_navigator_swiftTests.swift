@@ -7,7 +7,7 @@
 //
 
 import XCTest
-@testable import r2_navigator_swift
+@testable import R2Navigator
 
 class r2_navigator_swiftTests: XCTestCase {
     
