@@ -12,6 +12,12 @@
 import Foundation
 import XCTest
 
+#if !SWIFT_PACKAGE
+extension Bundle {
+    static let module = Bundle(for: Fixtures.self)
+}
+#endif
+
 class Fixtures {
     
     let path: String?
@@ -20,10 +26,8 @@ class Fixtures {
         self.path = path
     }
     
-    private lazy var bundle = Bundle(for: type(of: self))
-    
     func url(for filepath: String) -> URL {
-        return try! XCTUnwrap(bundle.resourceURL?.appendingPathComponent("Fixtures/\(path ?? "")/\(filepath)"))
+        return try! XCTUnwrap(Bundle.module.resourceURL?.appendingPathComponent("Fixtures/\(path ?? "")/\(filepath)"))
     }
     
     func data(at filepath: String) -> Data {

@@ -8,8 +8,14 @@
 //
 
 import Foundation
+import XCTest
 
 func toJSON<T: Encodable>(_ object: T) -> String? {
+    guard #available(iOS 11.0, *) else {
+        XCTFail("iOS 11 is required to run JSON tests")
+        return nil
+    }
+    
     let jsonEncoder = JSONEncoder()
     jsonEncoder.outputFormatting.insert(.sortedKeys)
     guard let jsonData = try? jsonEncoder.encode(object),

@@ -12,6 +12,11 @@
 import XCTest
 
 func AssertJSONEqual(_ json1: Any, _ json2: Any, file: StaticString = #file, line: UInt = #line) {
+    guard #available(iOS 11.0, *) else {
+        XCTFail("iOS 11 is required to run JSON tests")
+        return
+    }
+    
     do {
         // Wrap the objects in an array to allow JSON fragments comparisons
         let d1 = String(data: try JSONSerialization.data(withJSONObject: [json1], options: .sortedKeys), encoding: .utf8)

@@ -17,7 +17,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/cezheng/Fuzi.git", from: "3.1.3"),
         .package(url: "https://github.com/marmelroy/Zip.git", from: "2.1.1"),
-        .package(url: "https://github.com/scinfu/SwiftSoup", from: "2.3.2"),
+        .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.3.2"),
     ],
     targets: [
         .target(
@@ -27,7 +27,14 @@ let package = Package(
             exclude: [
                 "Info.plist",
                 // Support for ZIPFoundation is not yet achieved.
-                "Toolkit/Archive/ZIPFoundation.swift"
+                "Toolkit/Archive/ZIPFoundation.swift",
+            ],
+            resources: [
+                .process("Resources"),
+            ],
+            linkerSettings: [
+                .linkedFramework("CoreServices"),
+                .linkedFramework("UIKit"),
             ]
         ),
         .testTarget(
@@ -36,8 +43,8 @@ let package = Package(
             path: "./r2-shared-swiftTests/",
             exclude: ["Info.plist"],
             resources: [
-                .copy("Fixtures")
+                .copy("Fixtures"),
             ]
-        )
+        ),
     ]
 )
