@@ -33,7 +33,7 @@ final class LCPDialogViewController: UIViewController {
                 return (link, url)
             }
 
-        super.init(nibName: nil, bundle: Bundle(for: type(of: self)))
+        super.init(nibName: nil, bundle: Bundle.module)
 
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillChangeFrame(_:)), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillChangeFrame(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)

@@ -25,7 +25,7 @@ public final class LCPService: Loggable {
         // Determine whether the embedded liblcp.a is in production mode, by attempting to open a production license.
         let isProduction: Bool = {
             guard
-                let prodLicenseURL = Bundle(for: LCPService.self).url(forResource: "prod-license", withExtension: "lcpl"),
+                let prodLicenseURL = Bundle.module.url(forResource: "prod-license", withExtension: "lcpl"),
                 let prodLicense = try? String(contentsOf: prodLicenseURL, encoding: .utf8)
                 else {
                 return false

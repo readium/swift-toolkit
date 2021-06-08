@@ -51,6 +51,7 @@
 		CAE7FB7C220C4B7700D03587 /* DeviceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE7FB7B220C4B7700D03587 /* DeviceService.swift */; };
 		CAE7FB7E220C4C5C00D03587 /* DeviceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE7FB7D220C4C5C00D03587 /* DeviceRepository.swift */; };
 		CAE7FB82220C64D100D03587 /* CRLService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE7FB81220C64D100D03587 /* CRLService.swift */; };
+		CAF6488F266F68B90067D2C3 /* Bundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF6488E266F68B90067D2C3 /* Bundle.swift */; };
 		F331FBF81F8228F8007F16DF /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = F331FBF71F8228F8007F16DF /* Database.swift */; };
 		F35AFA011F6AD54400D3F670 /* License.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35AFA001F6AD54400D3F670 /* License.swift */; };
 		F36F9E261F826C17001D0DB4 /* Licenses.swift in Sources */ = {isa = PBXBuildFile; fileRef = F36F9E251F826C17001D0DB4 /* Licenses.swift */; };
@@ -127,6 +128,7 @@
 		CAE7FB7B220C4B7700D03587 /* DeviceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceService.swift; sourceTree = "<group>"; };
 		CAE7FB7D220C4C5C00D03587 /* DeviceRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRepository.swift; sourceTree = "<group>"; };
 		CAE7FB81220C64D100D03587 /* CRLService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRLService.swift; sourceTree = "<group>"; };
+		CAF6488E266F68B90067D2C3 /* Bundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bundle.swift; sourceTree = "<group>"; };
 		F331FBF71F8228F8007F16DF /* Database.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
 		F35AFA001F6AD54400D3F670 /* License.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = License.swift; sourceTree = "<group>"; };
 		F36F9E251F826C17001D0DB4 /* Licenses.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Licenses.swift; sourceTree = "<group>"; };
@@ -186,6 +188,7 @@
 				CA50B87F22B2A777003AFF24 /* R2LCPLocalizedString.swift */,
 				CA2B6B5524C07B8C007AF537 /* DataCompression.swift */,
 				CABD697C24CDDC6100B4AE17 /* Deferred.swift */,
+				CAF6488E266F68B90067D2C3 /* Bundle.swift */,
 			);
 			path = Toolkit;
 			sourceTree = "<group>";
@@ -531,6 +534,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CAE7FB7A220C2E6F00D03587 /* LicenseValidation.swift in Sources */,
+				CAF6488F266F68B90067D2C3 /* Bundle.swift in Sources */,
 				CA2B6B5424C07B12007AF537 /* LCPDecryptor.swift in Sources */,
 				CA4A38742208647400599297 /* PassphrasesRepository.swift in Sources */,
 				CA4A3892220994E300599297 /* EPUBLicenseContainer.swift in Sources */,
