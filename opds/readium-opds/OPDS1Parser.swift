@@ -11,6 +11,7 @@
 
 import Fuzi
 import R2Shared
+import Foundation
 
 public enum OPDS1ParserError: Error {
     // The title is missing from the feed.

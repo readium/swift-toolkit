@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file.
 
 **Warning:** Features marked as *experimental* may change or be removed in a future release without notice. Use with caution.
 
-<!--## [Unreleased]-->
+## [Unreleased]
+
+### Added
+
+* Support for Swift Package Manager (contributed by [@stevenzeck](https://github.com/readium/r2-opds-swift/pull/88)).
 
 ## [2.0.0]
 

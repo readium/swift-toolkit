@@ -19,15 +19,14 @@ class readium_opds2_0_test: XCTestCase {
         super.setUp()
         continueAfterFailure = false
 
-        let testBundle = Bundle(for: type(of: self))
-        guard let fileURL = testBundle.url(forResource: "opds_2_0", withExtension: "json") else {
+        guard let fileURL = Bundle.module.url(forResource: "Samples/opds_2_0", withExtension: "json") else {
             XCTFail("Unable to locate test file")
             return
         }
 
         do {
             let opdsData = try Data(contentsOf: fileURL)
-            feed = try OPDS2Parser.parse(jsonData: opdsData)
+            feed = try OPDS2Parser.parse(jsonData: opdsData, url: URL(string: "http://test.com")!, response: HTTPURLResponse()).feed
             XCTAssert(feed != nil)
         } catch {
             XCTFail(error.localizedDescription)

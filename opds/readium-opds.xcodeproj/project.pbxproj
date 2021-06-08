@@ -19,10 +19,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		111E54CC201BBD9700A7FE9A /* wiki_1_1.opds */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = wiki_1_1.opds; path = "readium-opdsTests/Samples/wiki_1_1.opds"; sourceTree = SOURCE_ROOT; };
-		111E54D9201FC91600A7FE9A /* feedbooks_catalog.atom */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = feedbooks_catalog.atom; path = "readium-opdsTests/Samples/feedbooks_catalog.atom"; sourceTree = SOURCE_ROOT; };
 		111E54DB2021022700A7FE9A /* OPDS2Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDS2Parser.swift; sourceTree = "<group>"; };
-		111E54DE2022812B00A7FE9A /* opds_2_0.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = opds_2_0.json; path = "readium-opdsTests/Samples/opds_2_0.json"; sourceTree = SOURCE_ROOT; };
 		111E54E02022816000A7FE9A /* readium_opds2_0_test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = readium_opds2_0_test.swift; sourceTree = "<group>"; };
 		AE49834620D902710013B912 /* ParseData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ParseData.swift; sourceTree = "<group>"; };
 		AE6B98DF20CAB93200117197 /* OPDSParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSParser.swift; sourceTree = "<group>"; };
@@ -30,6 +27,7 @@
 		CA415EC9221D5182003A0F7F /* Deprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deprecated.swift; sourceTree = "<group>"; };
 		CA7B77CB263AB97E00260838 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA7B77CF263AB98800260838 /* Fuzi.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Fuzi.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CAF6487D266F5CC70067D2C3 /* Samples */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Samples; sourceTree = "<group>"; };
 		F34B7E4D1FA35B7900534FD3 /* ReadiumOPDS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ReadiumOPDS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F34B7E501FA35B7900534FD3 /* readium_opds.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = readium_opds.h; sourceTree = "<group>"; };
 		F34B7E511FA35B7900534FD3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -51,16 +49,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		111E54CB201BBD7A00A7FE9A /* Samples */ = {
-			isa = PBXGroup;
-			children = (
-				111E54DE2022812B00A7FE9A /* opds_2_0.json */,
-				111E54D9201FC91600A7FE9A /* feedbooks_catalog.atom */,
-				111E54CC201BBD9700A7FE9A /* wiki_1_1.opds */,
-			);
-			path = Samples;
-			sourceTree = "<group>";
-		};
 		F34B7E431FA35B7900534FD3 = {
 			isa = PBXGroup;
 			children = (
@@ -99,7 +87,7 @@
 			children = (
 				111E54E02022816000A7FE9A /* readium_opds2_0_test.swift */,
 				F34B7E5B1FA35B7900534FD3 /* readium_opds1_1_test.swift */,
-				111E54CB201BBD7A00A7FE9A /* Samples */,
+				CAF6487D266F5CC70067D2C3 /* Samples */,
 				F34B7E5D1FA35B7900534FD3 /* Info.plist */,
 			);
 			path = "readium-opdsTests";

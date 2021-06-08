@@ -12,23 +12,28 @@ import R2Shared
 
 @testable import ReadiumOPDS
 
+#if !SWIFT_PACKAGE
+extension Bundle {
+    static let module = Bundle(for: readium_opds1_1_test.self)
+}
+#endif
+
 class readium_opds1_1_test: XCTestCase {
-    var feed: Feed?
+    var feed: Feed!
 
     override func setUp() {
         super.setUp()
 
         continueAfterFailure = false
 
-        let testBundle = Bundle(for: type(of: self))
-        guard let fileURL = testBundle.url(forResource: "wiki_1_1", withExtension: "opds") else {
+        guard let fileURL = Bundle.module.url(forResource: "Samples/wiki_1_1", withExtension: "opds") else {
             XCTFail("Unable to locate test file")
             return
         }
 
         do {
             let opdsData = try Data(contentsOf: fileURL)
-            feed = try OPDS1Parser.parse(xmlData: opdsData)
+            feed = try OPDS1Parser.parse(xmlData: opdsData, url: URL(string: "http://test.com")!, response: HTTPURLResponse()).feed
             XCTAssert(feed != nil)
         } catch {
             XCTFail(error.localizedDescription)
@@ -48,16 +53,16 @@ class readium_opds1_1_test: XCTestCase {
     }
 
     func testLinks() {
-        XCTAssert(feed!.links.count == 4)
-        XCTAssert(feed!.links[0].rel.count == 1 && feed!.links[0].rel[0] == "related")
-        XCTAssert(feed!.links[1].typeLink == "application/atom+xml;profile=opds-catalog;kind=acquisition")
-        XCTAssert(feed!.links[2].href == "/opds-catalogs/root.xml")
+        XCTAssertEqual(feed.links.count, 4)
+        XCTAssertEqual(feed.links[0].rels, ["related"])
+        XCTAssertEqual(feed.links[1].type, "application/atom+xml;profile=opds-catalog;kind=acquisition")
+        XCTAssertEqual(feed.links[2].href, "http://test.com/opds-catalogs/root.xml")
         // TODO: add more tests...
     }
 
     func testPublications() {
-        XCTAssert(feed!.publications.count == 2)
-        XCTAssert(feed!.publications[0].metadata.multilangTitle?.singleString == "Bob, Son of Bob")
+        XCTAssertEqual(feed.publications.count, 2)
+        XCTAssertEqual(feed.publications[0].metadata.title, "Bob, Son of Bob")
         // TODO: add more tests...
     }
 }
