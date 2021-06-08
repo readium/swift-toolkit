@@ -203,11 +203,11 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
 
         self.resourcesURL = {
             do {
-                guard let baseURL = Bundle(for: EPUBNavigatorViewController.self).resourceURL else {
+                guard let baseURL = Bundle.module.resourceURL else {
                     return nil
                 }
                 return try resourcesServer.serve(
-                   baseURL.appendingPathComponent("Static"),
+                   baseURL.appendingPathComponent("Assets/Static"),
                     at: "/r2-navigator/epub"
                 )
             } catch {
