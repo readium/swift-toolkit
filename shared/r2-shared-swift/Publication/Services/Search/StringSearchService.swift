@@ -158,13 +158,13 @@ public class _StringSearchService: _SearchService {
                 return []
             }
 
-            let locale = options.language.map { Locale(identifier: $0) } ?? locale
+            let currentLocale = options.language.map { Locale(identifier: $0) } ?? locale
             let title = publication.tableOfContents.titleMatchingHREF(link.href) ?? link.title
             let resourceLocator = Locator(link: link).copy(title: title)
 
             var locators: [Locator] = []
 
-            for range in searchAlgorithm.findRanges(of: query, options: options, in: text, locale: locale, cancellable: cancellable) {
+            for range in searchAlgorithm.findRanges(of: query, options: options, in: text, locale: currentLocale, cancellable: cancellable) {
                 guard !cancellable.isCancelled else {
                     return locators
                 }
