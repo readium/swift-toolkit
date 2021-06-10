@@ -8,6 +8,7 @@ import Foundation
 
 #if !SWIFT_PACKAGE
 extension Bundle {
-    static let module = Bundle(identifier: "org.readium.r2-streamer-swift")!
+    /// Returns R2Streamer's bundle by querying an arbitrary type.
+    static let module = Bundle(for: Streamer.self)
 }
 #endif

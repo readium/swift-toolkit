@@ -1,5 +1,5 @@
+github "cezheng/Fuzi" ~> 3.1.3
+github "dexman/Minizip" ~> 1.4.0
+github "krzyzanowskim/CryptoSwift" ~> 1.3.8
+github "readium/GCDWebServer" ~> 3.6.3
 github "readium/r2-shared-swift" "develop"
-github "dexman/Minizip" == 1.4.0
-github "cezheng/Fuzi" == 3.1.3
-github "krzyzanowskim/CryptoSwift" == 1.3.8
-github "edrlab/GCDWebServer" == 3.6.3

@@ -1,0 +1,31 @@
+name: R2Streamer
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: macos-latest
+    env:
+      scheme: ${{ 'r2-streamer-swift' }}
+      platform: ${{ 'iOS Simulator' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Prepare build
+        run: |
+          # r2-streamer-swift.xcodeproj is only relevant for Carthage. We remove it otherwise xcodebuild will use it.
+          rm -rf r2-streamer-swift.xcodeproj
+      - name: Build
+        run: |
+          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
+          xcodebuild build-for-testing -scheme "$scheme" -destination "platform=$platform,name=$device"
+      - name: Test
+        run: |
+          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
+          xcodebuild test-without-building -scheme "$scheme" -destination "platform=$platform,name=$device"
