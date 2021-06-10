@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/readium/r2-navigator-swift.git", :branch => "develop" }
   s.exclude_files = ["**/Info*.plist"]
   s.requires_arc = true
-  s.resources    = ['r2-navigator-swift/Resources/**', 'r2-navigator-swift/EPUB/Resources/**']
+  s.resources    = ['r2-navigator-swift/Resources/**', 'r2-navigator-swift/EPUB/Assets']
   s.source_files  = "r2-navigator-swift/**/*.{m,h,swift}"
   s.platform     = :ios
   s.ios.deployment_target = "10.0"

@@ -7,6 +7,7 @@ import Foundation
 
 #if !SWIFT_PACKAGE
 extension Bundle {
-    static let module = Bundle(identifier: "org.readium.r2-navigator-swift")!
+    /// Returns R2Navigator's bundle by querying an arbitrary type.
+    static let module = Bundle(for: EPUBNavigatorViewController.self)
 }
 #endif
