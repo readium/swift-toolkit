@@ -8,6 +8,7 @@ import Foundation
 
 #if !SWIFT_PACKAGE
 extension Bundle {
-    static let module = Bundle(identifier: "org.readium.r2-shared-swift")!
+    /// Returns R2Shared's bundle by querying an arbitrary type.
+    static let module = Bundle(for: Publication.self)
 }
 #endif
