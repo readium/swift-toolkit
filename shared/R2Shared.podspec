@@ -19,5 +19,6 @@ Pod::Spec.new do |s|
   
   s.dependency 'Fuzi'
   s.dependency 'Minizip'
+  s.dependency 'SwiftSoup', '~> 2.3'
 
 end
