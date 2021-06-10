@@ -8,6 +8,7 @@ import Foundation
 
 #if !SWIFT_PACKAGE
 extension Bundle {
-    static let module = Bundle(identifier: "org.readium.readium-lcp-swift")!
+    /// Returns ReadiumLCP's bundle by querying an arbitrary type.
+    static let module = Bundle(for: LCPService.self)
 }
 #endif

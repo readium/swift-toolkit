@@ -17,8 +17,7 @@ Pod::Spec.new do |s|
   
   s.dependency 'R2Shared' 
 
-  s.dependency 'ZIPFoundation'
-  s.dependency 'SQLite.swift'
-  s.dependency 'CryptoSwift'
-
+  s.dependency 'ZIPFoundation', '<= 0.9.11' # 0.9.12 requires iOS 12+
+  s.dependency 'SQLite.swift', '~> 0.12.2'
+  s.dependency 'CryptoSwift', '~> 1.3.8'
 end
