@@ -49,7 +49,7 @@ public extension Archive {
 
 /// Holds metadata about a single archive entry.
 public struct ArchiveEntry: Equatable {
-    /// Absolute path to the entry in the archive. It MUST starts with /.
+    /// Absolute path to the entry in the archive. It MUST start with /.
     let path: ArchivePath
     /// Uncompressed data length.
     let length: UInt64

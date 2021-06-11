@@ -25,9 +25,7 @@ public final class ArchiveFetcher: Fetcher, Loggable {
             Link(
                 href: entry.path.addingPrefix("/"),
                 type: MediaType.of(fileExtension: URL(fileURLWithPath: entry.path).pathExtension)?.string,
-                properties: .init([
-                    "compressedLength": entry.compressedLength as Any
-                ])
+                properties: Properties(entry.linkProperties)
             )
         }
 
@@ -47,11 +45,7 @@ public final class ArchiveFetcher: Fetcher, Loggable {
     private final class ArchiveResource: Resource {
         
         lazy var link: Link = {
-            var link = originalLink
-            if let compressedLength = entry.compressedLength {
-                link = link.addingProperties(["compressedLength": Int(compressedLength)])
-            }
-            return link
+            originalLink.addingProperties(entry.linkProperties)
         }()
         
         var file: URL? { reader.file }
@@ -79,5 +73,21 @@ public final class ArchiveFetcher: Fetcher, Loggable {
         }
 
     }
-    
+
+}
+
+private extension ArchiveEntry {
+
+    var linkProperties: [String: Any] {
+        [
+            // FIXME: Legacy property, should be removed in 3.0.0
+            "compressedLength": compressedLength as Any,
+
+            "archive": [
+                "entryLength": compressedLength ?? length,
+                "isEntryCompressed": compressedLength != nil
+            ]
+        ]
+    }
+
 }

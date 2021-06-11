@@ -26,19 +26,23 @@ class ArchiveFetcherTests: XCTestCase {
         XCTAssertEqual(
             fetcher.links,
             [
-                ("/mimetype", nil, nil),
-                ("/EPUB/cover.xhtml", "text/html", 259),
-                ("/EPUB/css/epub.css", "text/css", 595),
-                ("/EPUB/css/nav.css", "text/css", 306),
-                ("/EPUB/images/cover.png", "image/png", 35809),
-                ("/EPUB/nav.xhtml", "text/html", 2293),
-                ("/EPUB/package.opf", nil, 773),
-                ("/EPUB/s04.xhtml", "text/html", 118269),
-                ("/EPUB/toc.ncx", nil, 1697),
-                ("/META-INF/container.xml", "application/xml", 176)
-            ].map { href, type, compressedLength in
+                ("/mimetype", nil, 20, false),
+                ("/EPUB/cover.xhtml", "text/html", 259, true),
+                ("/EPUB/css/epub.css", "text/css", 595, true),
+                ("/EPUB/css/nav.css", "text/css", 306, true),
+                ("/EPUB/images/cover.png", "image/png", 35809, true),
+                ("/EPUB/nav.xhtml", "text/html", 2293, true),
+                ("/EPUB/package.opf", nil, 773, true),
+                ("/EPUB/s04.xhtml", "text/html", 118269, true),
+                ("/EPUB/toc.ncx", nil, 1697, true),
+                ("/META-INF/container.xml", "application/xml", 176, true)
+            ].map { href, type, entryLength, isCompressed in
                 Link(href: href, type: type, properties: .init([
-                    "compressedLength": compressedLength as Any
+                    "compressedLength": (isCompressed ? entryLength : nil) as Any, // legacy
+                    "archive": [
+                        "entryLength": entryLength,
+                        "isEntryCompressed": isCompressed,
+                    ] as Any
                 ]))
             }
         )
@@ -88,7 +92,16 @@ class ArchiveFetcherTests: XCTestCase {
     
     func testAddsCompressedLengthToLink() {
         let resource = fetcher.get(Link(href: "/EPUB/css/epub.css"))
-        XCTAssertEqual(resource.link.properties["compressedLength"] as? Int, 595)
+        AssertJSONEqual(
+            resource.link.properties.json,
+            [
+                "archive": [
+                    "entryLength": 595,
+                    "isEntryCompressed": true
+                ],
+                "compressedLength": 595
+            ]
+        )
     }
     
 }

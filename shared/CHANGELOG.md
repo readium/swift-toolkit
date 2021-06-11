@@ -10,6 +10,15 @@ All notable changes to this project will be documented in this file.
 
 * Support for Swift Package Manager (contributed by [@stevenzeck](https://github.com/readium/r2-shared-swift/pull/145)).
 * (*alpha*) A new Publication `SearchService` to search through the resources' content with a default implementation `StringSearchService`.
+* `Link` objects from archive-based publication assets (e.g. an EPUB/ZIP) have additional properties for entry metadata.
+    ```json
+    "properties" {
+        "archive": {
+            "entryLength": 8273,
+            "isEntryCompressed": true
+        }
+    }
+    ```
 
 
 ## [2.0.1]
