@@ -53,12 +53,12 @@ class ImageParserTests: XCTestCase {
     func testReadingOrderIsSortedAlphabetically() throws {
         let publication = try XCTUnwrap(parser.parse(asset: cbzAsset, fetcher: cbzFetcher, warnings: nil)?.build())
         
-        XCTAssertEqual(publication.readingOrder, [
-            Link(href: "/Cory Doctorow's Futuristic Tales of the Here and Now/a-fc.jpg", type: "image/jpeg", rels: [.cover], properties: Properties(["compressedLength": 145844])),
-            Link(href: "/Cory Doctorow's Futuristic Tales of the Here and Now/x-002.jpg", type: "image/jpeg", properties: Properties(["compressedLength": 178836])),
-            Link(href: "/Cory Doctorow's Futuristic Tales of the Here and Now/x-003.jpg", type: "image/jpeg", properties: Properties(["compressedLength": 135129])),
-            Link(href: "/Cory Doctorow's Futuristic Tales of the Here and Now/x-153.jpg", type: "image/jpeg", properties: Properties(["compressedLength": 203443])),
-            Link(href: "/Cory Doctorow's Futuristic Tales of the Here and Now/z-bc.jpg", type: "image/jpeg", properties: Properties(["compressedLength": 130033]))
+        XCTAssertEqual(publication.readingOrder.map { $0.href }, [
+            "/Cory Doctorow's Futuristic Tales of the Here and Now/a-fc.jpg",
+            "/Cory Doctorow's Futuristic Tales of the Here and Now/x-002.jpg",
+            "/Cory Doctorow's Futuristic Tales of the Here and Now/x-003.jpg",
+            "/Cory Doctorow's Futuristic Tales of the Here and Now/x-153.jpg",
+            "/Cory Doctorow's Futuristic Tales of the Here and Now/z-bc.jpg",
         ])
     }
     

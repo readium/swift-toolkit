@@ -53,10 +53,10 @@ class AudioParserTests: XCTestCase {
     func testReadingOrderIsSortedAlphabetically() throws {
         let publication = try XCTUnwrap(parser.parse(asset: zabAsset, fetcher: zabFetcher, warnings: nil)?.build())
         
-        XCTAssertEqual(publication.readingOrder, [
-            Link(href: "/Test Audiobook/gtr-jazz.mp3", type: "audio/mpeg", properties: Properties(["compressedLength": 150237])),
-            Link(href: "/Test Audiobook/Latin.mp3", type: "audio/mpeg", properties: Properties(["compressedLength": 188322])),
-            Link(href: "/Test Audiobook/vln-lin-cs.mp3", type: "audio/mpeg", properties: Properties(["compressedLength": 203903]))
+        XCTAssertEqual(publication.readingOrder.map { $0.href }, [
+            "/Test Audiobook/gtr-jazz.mp3",
+            "/Test Audiobook/Latin.mp3",
+            "/Test Audiobook/vln-lin-cs.mp3"
         ])
     }
     
