@@ -447,8 +447,6 @@ extension EPUBSpreadView: UIScrollViewDelegate {
 
 extension EPUBSpreadView: WKUIDelegate {
     
-    // The property allowsLinkPreview is default false in iOS9, so it should be safe to use @available(iOS 10.0, *)
-    @available(iOS 10.0, *)
     func webView(_ webView: WKWebView, shouldPreviewElement elementInfo: WKPreviewElementInfo) -> Bool {
         // Preview allowed only if the link is not internal
         return (elementInfo.linkURL?.host != publication.baseURL?.host)

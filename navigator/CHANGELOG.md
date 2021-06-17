@@ -9,6 +9,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+* (*alpha*) A new navigator for audiobooks.
+  * The navigator is chromeless, so you will need to provide your own user interface.
 * The EPUB navigator is now able to navigate to a `Locator` using its `text` context. This is useful for search results or highlights missing precise locations.
 * New `EPUBNavigatorViewController.evaluateJavaScript()` API to run a JavaScript on the currently visible HTML resource.
 * Support for Swift Package Manager (contributed by [@stevenzeck](https://github.com/readium/r2-navigator-swift/pull/176)).

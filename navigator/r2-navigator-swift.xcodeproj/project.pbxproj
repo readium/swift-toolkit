@@ -14,6 +14,9 @@
 		CA26EF7E22803FE90011653E /* VisualNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA26EF7D22803FE90011653E /* VisualNavigator.swift */; };
 		CA479DC3226493570053445E /* UIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA479DC2226493570053445E /* UIView.swift */; };
 		CA479DC52264AEA20053445E /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA479DC42264AEA20053445E /* UIColor.swift */; };
+		CA62EFC825EFE8590016828A /* MediaNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA62EFC725EFE8590016828A /* MediaNavigator.swift */; };
+		CA62EFD025EFE9F30016828A /* PublicationMediaLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA62EFCE25EFE9F30016828A /* PublicationMediaLoader.swift */; };
+		CA62EFD125EFE9F30016828A /* AudioNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA62EFCF25EFE9F30016828A /* AudioNavigator.swift */; };
 		CA7B7791263AB7F600260838 /* SwiftSoup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA7B7790263AB7F600260838 /* SwiftSoup.framework */; };
 		CA7B7795263AB7FD00260838 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA7B7794263AB7FD00260838 /* R2Shared.framework */; };
 		CAAABA9B24D695E5004A4466 /* TargetAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAABA9A24D695E5004A4466 /* TargetAction.swift */; };
@@ -46,6 +49,9 @@
 		CA26EF7D22803FE90011653E /* VisualNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualNavigator.swift; sourceTree = "<group>"; };
 		CA479DC2226493570053445E /* UIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIView.swift; sourceTree = "<group>"; };
 		CA479DC42264AEA20053445E /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColor.swift; sourceTree = "<group>"; };
+		CA62EFC725EFE8590016828A /* MediaNavigator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaNavigator.swift; sourceTree = "<group>"; };
+		CA62EFCE25EFE9F30016828A /* PublicationMediaLoader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationMediaLoader.swift; sourceTree = "<group>"; };
+		CA62EFCF25EFE9F30016828A /* AudioNavigator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioNavigator.swift; sourceTree = "<group>"; };
 		CA7B7790263AB7F600260838 /* SwiftSoup.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SwiftSoup.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA7B7794263AB7FD00260838 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAAABA9A24D695E5004A4466 /* TargetAction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TargetAction.swift; sourceTree = "<group>"; };
@@ -122,6 +128,15 @@
 			path = Toolkit;
 			sourceTree = "<group>";
 		};
+		CA62EFCD25EFE9F30016828A /* Audiobook */ = {
+			isa = PBXGroup;
+			children = (
+				CA62EFCF25EFE9F30016828A /* AudioNavigator.swift */,
+				CA62EFCE25EFE9F30016828A /* PublicationMediaLoader.swift */,
+			);
+			path = Audiobook;
+			sourceTree = "<group>";
+		};
 		CAA9A38A226F406300BE1D6A /* EPUB */ = {
 			isa = PBXGroup;
 			children = (
@@ -178,7 +193,9 @@
 				F3E7D3C71F4D83B000DF166D /* Info.plist */,
 				CAB9086A22492D4C00711C3F /* Navigator.swift */,
 				CA26EF7D22803FE90011653E /* VisualNavigator.swift */,
+				CA62EFC725EFE8590016828A /* MediaNavigator.swift */,
 				CACE84FA2254BFEE00E19E8B /* EditingAction.swift */,
+				CA62EFCD25EFE9F30016828A /* Audiobook */,
 				CAFC2F672278957A007DBB02 /* CBZ */,
 				CAA9A38A226F406300BE1D6A /* EPUB */,
 				CA0B3AC1222EE530006D9363 /* PDF */,
@@ -302,11 +319,14 @@
 				F3E7D42E1F4EE0FE00DF166D /* CBZNavigatorViewController.swift in Sources */,
 				CA479DC52264AEA20053445E /* UIColor.swift in Sources */,
 				CAD178B622B3B553004E6812 /* R2NavigatorLocalizedString.swift in Sources */,
+				CA62EFD125EFE9F30016828A /* AudioNavigator.swift in Sources */,
+				CA62EFC825EFE8590016828A /* MediaNavigator.swift in Sources */,
 				CA038E4A2521F34E00489729 /* WKWebView.swift in Sources */,
 				CAEACA222272EFBD00476340 /* ImageViewController.swift in Sources */,
 				CACE84FB2254BFEE00E19E8B /* EditingAction.swift in Sources */,
 				CAFB017724D48FC2006B074C /* PDFTapGestureController.swift in Sources */,
 				F341C2711F506ED5005E6758 /* UserSettings.swift in Sources */,
+				CA62EFD025EFE9F30016828A /* PublicationMediaLoader.swift in Sources */,
 				CACE851F225CDE3400E19E8B /* EPUBFixedSpreadView.swift in Sources */,
 				CA479DC3226493570053445E /* UIView.swift in Sources */,
 				CA038E322520DAF300489729 /* PDFDocumentHolder.swift in Sources */,
