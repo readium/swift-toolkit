@@ -97,8 +97,12 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
             )
         ]
         
-        if let locator = initialLocation ?? publication.positions.first {
+        if let locator = initialLocation {
             go(to: locator)
+        } else if let link = publication.readingOrder.first {
+            go(to: link)
+        } else {
+            log(.error, "No initial location and empty reading order")
         }
     }
     
