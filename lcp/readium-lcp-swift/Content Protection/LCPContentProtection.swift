@@ -31,8 +31,8 @@ final class LCPContentProtection: ContentProtection, Loggable {
         completion: @escaping (CancellableResult<ProtectedAsset?, Publication.OpeningError>) -> Void
     ) {
         guard let file = asset as? FileAsset else {
-            log(.error, "Only `FileAsset` is supported with the `LCPContentProtection`. Make sure you are trying to open a package from the file system.")
-            completion(.failure(.unsupportedFormat))
+            log(.warning, "Only `FileAsset` is supported with the `LCPContentProtection`. Make sure you are trying to open a package from the file system.")
+            completion(.success(nil))
             return
         }
         
