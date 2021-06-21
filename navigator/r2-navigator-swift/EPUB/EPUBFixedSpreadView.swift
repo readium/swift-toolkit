@@ -35,7 +35,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         
         // Loads the wrapper page into the web view.
         let spreadFile = "fxl-spread-\(spread.pageCount.rawValue)"
-        if let wrapperPageURL = Bundle.module.url(forResource: spreadFile, withExtension: "html"), let wrapperPage = try? String(contentsOf: wrapperPageURL, encoding: .utf8) {
+        if let wrapperPageURL = Bundle.module.url(forResource: spreadFile, withExtension: "html", subdirectory: "Assets"), let wrapperPage = try? String(contentsOf: wrapperPageURL, encoding: .utf8) {
             // The publication's base URL is used to make sure we can access the resources through the iframe with JavaScript.
             webView.loadHTMLString(wrapperPage, baseURL: publication.baseURL)
         }
