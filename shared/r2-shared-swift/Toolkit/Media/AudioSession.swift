@@ -73,7 +73,11 @@ public final class _AudioSession: Loggable {
         let audioSession = AVAudioSession.sharedInstance()
         do {
             let config = user.audioConfiguration
-            try audioSession.setCategory(config.category, mode: config.mode, options: config.options)
+            if #available(iOS 11.0, *) {
+                try audioSession.setCategory(config.category, mode: config.mode, policy: .longForm, options: config.options)
+            } else {
+                try audioSession.setCategory(config.category, mode: config.mode, options: config.options)
+            }
             try audioSession.setActive(true)
         } catch {
             log(.error, "Failed to start the audio session: \(error)")
