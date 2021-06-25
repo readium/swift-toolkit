@@ -22,6 +22,8 @@ public enum EditingAction: String {
     public static var defaultActions: [EditingAction] {
         return [copy, share, lookup]
     }
+
+    var selector: Selector { Selector(rawValue) }
 }
 
 
@@ -60,19 +62,6 @@ final class EditingActionsController {
     /// Current user selection contents and frame in the publication view.
     private var selection: (text: String, frame: CGRect)?
     
-    /// Peeks into the available selection contents authorized for copy.
-    /// To be used only when required to have the contents before actually using it (eg. Share dialog). To consume the actual copy, use `copy()`.
-    var selectionAuthorizedForCopy: (text: String, frame: CGRect)? {
-        guard
-            let selection = selection,
-            rights.canCopy(text: selection.text) else
-        {
-            return nil
-        }
-        
-        return selection
-    }
-    
     /// To be called when the user selection changed.
     func selectionDidChange(_ selection: (text: String, frame: CGRect)?) {
         self.selection = selection
@@ -104,13 +93,15 @@ final class EditingActionsController {
     
     /// Builds a UIActivityViewController to share the authorized contents of the user selection.
     func makeShareViewController(from contentsView: UIView) -> UIActivityViewController? {
-        guard canCopy else {
+        // Peeks into the available selection contents authorized for copy.
+        guard let selection = selection else {
+            return nil
+        }
+        guard canCopy, rights.canCopy(text: selection.text) else {
             delegate?.editingActionsDidPreventCopy(self)
             return nil
         }
-        guard let selection = selectionAuthorizedForCopy else {
-            return nil
-        }
+
         let viewController = UIActivityViewController(activityItems: [selection.text], applicationActivities: nil)
         viewController.completionWithItemsHandler = { _, completed, _, _ in
             if (completed) {

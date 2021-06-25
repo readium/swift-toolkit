@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 * Fixed receiving `EPUBNavigatorDelegate.navigator(_:setupUserScripts:)` for the first web view.
+* [r2-testapp-swift#343](https://github.com/readium/r2-testapp-swift/issues/343) Fixed hiding "Share" editing action (contributed by [@rocxteady](https://github.com/readium/r2-navigator-swift/pull/149)).
 
 
 ## [2.0.0]
