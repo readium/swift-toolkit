@@ -15,7 +15,11 @@ All notable changes to this project will be documented in this file.
 
 * The default EPUB positions service now uses the archive entry length when available. [This is similar to how Adobe RMSDK generates page numbers](https://github.com/readium/architecture/issues/123).
     * To use the former strategy, create the `Streamer` with: `Streamer(parsers: [EPUBParser(reflowablePositionsStrategy: .originalLength(pageLength: 1024))])`
-    
+
+### Fixed
+
+* [#208](https://github.com/readium/r2-streamer-swift/issues/208) Crash when reading obfuscated EPUB resources with an empty publication identifier.
+
 
 ## [2.0.0]
 

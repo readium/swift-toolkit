@@ -35,9 +35,10 @@ final class EPUBDeobfuscator {
     func deobfuscate(resource: Resource) -> Resource {
         // Checks if the resource is obfuscated with a known algorithm.
         guard
+            !publicationId.isEmpty && publicationId != "urn:uuid:",
             let algorithmId = resource.link.properties.encryption?.algorithm,
-            let algorithm = algorithms.first(withIdentifier: algorithmId) else
-        {
+            let algorithm = algorithms.first(withIdentifier: algorithmId)
+        else {
             return resource
         }
 
@@ -51,6 +52,7 @@ final class EPUBDeobfuscator {
         private let key: [UInt8]
         
         init(resource: Resource, algorithm: ObfuscationAlgorithm, key: [UInt8]) {
+            assert(key.count > 0)
             self.algorithm = algorithm
             self.key = key
             super.init(resource)

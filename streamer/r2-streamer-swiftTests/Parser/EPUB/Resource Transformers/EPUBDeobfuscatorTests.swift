@@ -39,6 +39,20 @@ class EPUBDeobfuscatorTests: XCTestCase {
         XCTAssertEqual(result, font)
     }
 
+    // Fix for https://github.com/readium/r2-streamer-swift/issues/208
+    func testEmptyPublicationID() throws {
+        let file = fixtures.data(at: "nav.xhtml")
+        let resource = makeResource(at: "nav.xhtml", algorithm: "http://www.idpf.org/2008/embedding")
+
+        var deobfuscator = EPUBDeobfuscator(publicationId: "urn:uuid:")
+        var result = try deobfuscator.deobfuscate(resource: resource).read().get()
+        XCTAssertEqual(result, file)
+
+        deobfuscator = EPUBDeobfuscator(publicationId: "")
+        result = try deobfuscator.deobfuscate(resource: resource).read().get()
+        XCTAssertEqual(result, file)
+    }
+
     func makeResource(at path: String, algorithm: String) -> DataResource {
         let link = Link(
             href: path,
