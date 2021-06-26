@@ -1,12 +1,16 @@
 # Readium Mobile Test App (Swift/iOS)
 
-A test app for the Swift implementation of Readium 2. Stable builds are [published on TestFlight](https://testflight.apple.com/join/lYEMEfBr).
-
-Follow the project on [ZenHub](https://app.zenhub.com/workspace/o/readium/r2-testapp-swift/boards).
-
 [![BSD-3](https://img.shields.io/badge/License-BSD--3-brightgreen.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
-All migration steps necessary in reading apps to upgrade to major versions of the Readium toolkit will be documented in the [Migration Guide](https://readium.org/mobile/swift/migration-guide).
+This sample application demonstrates how to integrate the Readium 2 Swift toolkit in your own reading app. Stable versions are [published on TestFlight](https://testflight.apple.com/join/lYEMEfBr).
+
+---
+
+<div align="center">
+<img src="https://media.giphy.com/media/hAttjic8neYp2/giphy.gif"/>
+<img src="https://media.giphy.com/media/13ivNbjbbUT41a/giphy.gif"/>
+<img src="https://media.giphy.com/media/l378cRkMNuKx2AOAw/giphy.gif"/>
+</div>
 
 ## Features
 
@@ -18,44 +22,63 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 - [x] Pagination and scrolling
 - [x] Table of contents
 - [x] OPDS 1.x and 2.0 support
-- [x] FXL support
-- [ ] RTL support
+- [x] EPUB fixed layout support
+- [x] Right-to-left support
 
-## Demo
+## Building the Test App
 
-![](https://media.giphy.com/media/hAttjic8neYp2/giphy.gif) ![](https://media.giphy.com/media/13ivNbjbbUT41a/giphy.gif) ![](https://media.giphy.com/media/l378cRkMNuKx2AOAw/giphy.gif)
+This project shows how to use Readium 2 with several dependency managers: Swift Package Manager, Carthage and CocoaPods. To simplify the setup, we use [XcodeGen](https://github.com/yonaskolb/XcodeGen) to automatically generate the Xcode project files for a given dependency manager.
 
-## Dependencies
+1. Choose a type of project to generate:
+    * `spm` for Swift Package Manager (recommended)
+    * `carthage` for Carthage
+    * `cocoapods` for CocoaPods
+    * `dev` for Git submodules with Swift Package Manager
+2. Install [XcodeGen](https://github.com/yonaskolb/XcodeGen) and the dependency manager you need.
+3. Clone the project.
+    ```sh
+    git clone https://github.com/readium/r2-testapp-swift.git
+    cd r2-testapp-swift
+    ```
+4. Generate the Xcode project using our `Makefile` and your target of choice. This will download all dependencies automatically.
+    ```sh
+    make spm
+    ```
+**Warning:** Since the Xcode project is not committed to this repository, you need to run the `make <target>` command again after pulling any change from `r2-testapp-swift`.
 
-- [Shared Models](https://github.com/readium/r2-shared-swift) (Model, shared for both streamer and navigator)
-- [Streamer](https://github.com/readium/r2-streamer-swift) (The parser/server)
-- [Navigator](https://github.com/readium/r2-navigator-swift) (The bare ViewControllers for displaying parsed resources)
-- [Readium CSS](https://github.com/readium/readium-css) (Handles styles, layout and user settings)
+### Building with Readium LCP
 
-## Install and run the testapp
+Building with Readium LCP requires additional dependencies, including the binary `R2LCPClient.framework` provided by EDRLab.
 
-1) If you're building the `develop` branch, change the Cartfile to use `develop` for all Readium-related dependencies :
+1. [Contact EDRLab](mailto:contact@edrlab.org) to request your private `R2LCPClient.framework`.
+2. If you integrate Readium 2 with Swift Package Manager or Git submodules, install [Carthage](https://github.com/Carthage/Carthage). `R2LCPClient.framework` is only available for Carthage or CocoaPods.
+3. Generate the Xcode project with `make`, providing the URL given by EDRLab as the `url` parameter (`.json` for Carthage or SPM and `.podspec` for CocoaPods).
+    ```sh
+    make spm lcp=https://...json
+    ```
 
+## Integrating Readium 2 in your app
+
+All migration steps necessary in reading apps to upgrade to major versions of the Readium toolkit are documented in the [migration guide](https://readium.org/mobile/swift/migration-guide).
+
+The Readium 2 toolkit is split in several independent modules, following the [Readium Architecture](https://github.com/readium/architecture):
+
+* [`r2-shared-swift`](https://github.com/readium/r2-shared-swift) – Shared `Publication` models and utilities
+* [`r2-streamer-swift`](https://github.com/readium/r2-streamer-swift) – Publication parsers and local HTTP server
+* [`r2-navigator-swift`](https://github.com/readium/r2-navigator-swift) – Plain view controllers rendering publications
+* [`r2-opds-swift`](https://github.com/readium/r2-opds-swift) – Parsers for OPDS catalog feeds
+* [`r2-lcp-swift`](https://github.com/readium/r2-lcp-swift) – Service and models for Readium LCP
+* [`readium-css`](https://github.com/readium/readium-css) – CSS styles for EPUB publications
+
+To understand how to integrate these dependencies in your project, take a look at the Xcode project created by `XcodeGen`. Or even better, check out the generated `project.yml` file which describes the structure of the Xcode project in a human-friendly way.
+
+## Contributing
+
+Follow the project on [ZenHub](https://app.zenhub.com/workspace/o/readium/r2-testapp-swift/boards).
+
+The easiest way to contribute to the Readium 2 modules is to use the Git submodules integration.
+
+```sh
+make dev
 ```
-github "readium/r2-shared-swift" "develop"
-github "readium/r2-streamer-swift" "develop"
-github "readium/r2-navigator-swift" "develop"
-github "readium/readium-opds-swift" "develop"
-```
 
-2) Fetch the dependencies using [Carthage](https://github.com/Carthage/Carthage) :
-    * [`mkdir -p Carthage/Build/iOS`](https://github.com/Carthage/Carthage/issues/3122#issuecomment-784865551)
-    * `carthage update --use-xcframeworks`
-
-3) Open the Xcode project: `open r2-testapp-swift.xcodeproj`
-
-4) Build the project target named `r2-testapp-swift (carthage)`.
-
-**More build and dependency information can be found in [r2-workspace-swift](https://github.com/readium/r2-workspace-swift)**
-
-## [@Contributors] Efficient workflow for testing changes on Readium 2
-
-The release target `r2-testapp-swift` uses the libraries and frameworks built by **Carthage**, while the debug `r2-testapp-swift-DEBUG` can be modified to use local versions of  **r2-shared-swift**, **r2-streamer-swift** and **r2-navigator-swift** depending of which you want to modify. Doing so will allow you to see the changes directly in the testapp, without the need for a Carthage cycle.
-
-If you want to contribute to the development, I recommend creating a Workspace which contain the 4 projects (shared, streamer, navigator and testapp), and to use local Products as dependencies of the others to shorten development time.
-e.g: in your local clone of **r2-navigator-swift**, create a debug target which uses the Product of your local clone of **r2-shared-swift**. That way, when you modify and compile **r2-shared-swift**, the modifications are directly taken in your next **r2-navigator-swift** build.

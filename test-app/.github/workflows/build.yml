@@ -1,0 +1,121 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+env:
+  platform: ${{ 'iOS Simulator' }}
+
+jobs:
+  spm:
+    name: SPM integration
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: brew install xcodegen
+      - name: Generate project
+        run: make spm
+      - name: Build
+        run: |
+          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
+          xcodebuild build -scheme R2TestApp -destination "platform=$platform,name=$device"
+
+  spm_lcp:
+    name: SPM integration (LCP)
+    runs-on: macos-latest
+    environment: LCP
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: brew install xcodegen
+      - name: Generate project
+        run: make spm lcp=${{ secrets.LCP_URL_CARTHAGE }}
+      - name: Build
+        run: |
+          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
+          xcodebuild build -scheme R2TestApp -destination "platform=$platform,name=$device"
+
+  # Carthage is failing before Big Sur.
+  # carthage:
+  #   name: Carthage integration
+  #   runs-on: macos-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v2
+  #     - name: Install dependencies
+  #       run: brew install xcodegen
+  #     - name: Generate project
+  #       run: make carthage
+  #     - name: Build
+  #       run: |
+  #         device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
+  #         xcodebuild build -scheme R2TestApp -destination "platform=$platform,name=$device"
+
+  cocoapods:
+    name: CocoaPods integration
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: brew install xcodegen
+      - name: Generate project
+        run: make cocoapods
+      - name: Build
+        run: |
+          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
+          xcodebuild build -workspace R2TestApp.xcworkspace -scheme R2TestApp -destination "platform=$platform,name=$device"
+
+  cocoapods_lcp:
+    name: CocoaPods integration (LCP)
+    runs-on: macos-latest
+    environment: LCP
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: brew install xcodegen
+      - name: Generate project
+        run: make cocoapods lcp=${{ secrets.LCP_URL_COCOAPODS }}
+      - name: Build
+        run: |
+          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
+          xcodebuild build -workspace R2TestApp.xcworkspace -scheme R2TestApp -destination "platform=$platform,name=$device"
+
+  dev:
+    name: Submodules integration
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: brew install xcodegen
+      - name: Generate project
+        run: make dev
+      - name: Build
+        run: |
+          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
+          xcodebuild build -scheme R2TestApp -destination "platform=$platform,name=$device"
+
+  dev_lcp:
+    name: Submodules integration (LCP)
+    runs-on: macos-latest
+    environment: LCP
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: brew install xcodegen
+      - name: Generate project
+        run: make dev lcp=${{ secrets.LCP_URL_CARTHAGE }}
+      - name: Build
+        run: |
+          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
+          xcodebuild build -scheme R2TestApp -destination "platform=$platform,name=$device"

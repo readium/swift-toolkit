@@ -1,0 +1,16 @@
+name: R2TestApp
+options:
+  bundleIdPrefix: org.readium
+targets:
+  R2TestApp:
+    type: application
+    platform: iOS
+    deploymentTarget: "10.0"
+    sources: 
+      - path: Sources
+        excludes:
+          - Resources/Samples
+      - path: Sources/Resources/Samples
+        type: folder
+    settings:
+      OTHER_SWIFT_FLAGS: $(inherited) -DLCP

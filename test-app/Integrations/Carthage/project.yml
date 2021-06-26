@@ -1,0 +1,29 @@
+name: R2TestApp
+options:
+  bundleIdPrefix: org.readium
+targets:
+  R2TestApp:
+    type: application
+    platform: iOS
+    deploymentTarget: "10.0"
+    sources: 
+      - path: Sources
+        excludes:
+          - Resources/Samples
+      - path: Sources/Resources/Samples
+        type: folder
+    dependencies:
+      - framework: Carthage/Build/CryptoSwift.xcframework
+      - framework: Carthage/Build/Fuzi.xcframework
+      - framework: Carthage/Build/GCDWebServer.xcframework
+      - framework: Carthage/Build/Kingfisher.xcframework
+      - framework: Carthage/Build/MBProgressHUD.xcframework
+      - framework: Carthage/Build/Minizip.xcframework
+      - framework: Carthage/Build/R2Navigator.xcframework
+      - framework: Carthage/Build/R2Shared.xcframework
+      - framework: Carthage/Build/R2Streamer.xcframework
+      - framework: Carthage/Build/ReadiumOPDS.xcframework
+      - framework: Carthage/Build/SQLite.xcframework
+      - framework: Carthage/Build/SwiftSoup.xcframework
+    settings:
+      LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)/Carthage

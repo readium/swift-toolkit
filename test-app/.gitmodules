@@ -1,0 +1,15 @@
+[submodule "Packages/r2-shared-swift"]
+	path = Integrations/Submodules/r2-shared-swift
+	url = https://github.com/readium/r2-shared-swift.git
+[submodule "Packages/r2-streamer-swift"]
+	path = Integrations/Submodules/r2-streamer-swift
+	url = https://github.com/readium/r2-streamer-swift.git
+[submodule "Packages/r2-navigator-swift"]
+	path = Integrations/Submodules/r2-navigator-swift
+	url = https://github.com/readium/r2-navigator-swift.git
+[submodule "Packages/r2-lcp-swift"]
+	path = Integrations/Submodules/r2-lcp-swift
+	url = https://github.com/readium/r2-lcp-swift.git
+[submodule "Packages/r2-opds-swift"]
+	path = Integrations/Submodules/r2-opds-swift
+	url = https://github.com/readium/r2-opds-swift.git

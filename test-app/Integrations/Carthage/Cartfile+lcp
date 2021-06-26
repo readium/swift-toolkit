@@ -1,0 +1,12 @@
+# Third-party dependencies used in the Test App itself.
+github "onevcat/Kingfisher" ~> 5.15.8
+github "jdg/MBProgressHUD" ~> 1.2.0
+github "stephencelis/SQLite.swift" ~> 0.12.2
+github "scinfu/SwiftSoup" ~> 2.3.2
+
+# Readium 2 dependencies
+github "readium/r2-shared-swift" ~> 2.0.0
+github "readium/r2-streamer-swift" ~> 2.0.0
+github "readium/r2-navigator-swift" ~> 2.0.0
+github "readium/r2-opds-swift" ~> 2.0.0
+github "readium/r2-lcp-swift" ~> 2.0.0
