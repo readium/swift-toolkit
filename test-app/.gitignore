@@ -51,3 +51,6 @@ playground.xcworkspace
 /project.yml
 /Cartfile.resolved
 /Podfile.lock
+
+# IntelliJ's AppCode
+.idea
