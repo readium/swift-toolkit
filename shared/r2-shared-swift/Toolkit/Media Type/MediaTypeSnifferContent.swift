@@ -34,8 +34,8 @@ final class FileMediaTypeSnifferContent: MediaTypeSnifferContent, Loggable {
     }
     
     func read() -> Data? {
-        // We only read files smaller than 100KB to avoid going out of memory.
-        guard let length = length, length < 100000 else {
+        // We only read files smaller than 5MB to avoid going out of memory.
+        guard let length = length, length < 5 * 1000 * 1000 else {
             return nil
         }
         return try? Data(contentsOf: file)
