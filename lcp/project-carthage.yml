@@ -1,0 +1,25 @@
+name: r2-lcp-swift
+options:
+  bundleIdPrefix: org.readium
+targets:
+  ReadiumLCP:
+    type: framework
+    platform: iOS
+    deploymentTarget: "10.0"
+    sources: 
+      - path: readium-lcp-swift
+    dependencies:
+      - framework: Carthage/Build/CryptoSwift.xcframework
+      - framework: Carthage/Build/Fuzi.xcframework
+      - framework: Carthage/Build/Minizip.xcframework
+      - framework: Carthage/Build/R2Shared.xcframework
+      - framework: Carthage/Build/SQLite.xcframework
+      - framework: Carthage/Build/ZIPFoundation.xcframework
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.readium-lcp-swift
+      LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)/Carthage
+schemes:
+  r2-lcp-swift:
+    build:
+      targets:
+        ReadiumLCP: all

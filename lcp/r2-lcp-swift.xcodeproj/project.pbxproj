@@ -3,694 +3,501 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 51;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3ED94B8AA015ACF0A3976C89 /* LCPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ED94B8D1A7FFE4673AE7B29 /* LCPClient.swift */; };
-		3ED94D142DA304C6D4E4DB81 /* LCPRenewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ED946FE6F293298E0DF8C37 /* LCPRenewDelegate.swift */; };
-		3ED94EE43308394A43E51641 /* LCPTestClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ED94983A0E532A984A04672 /* LCPTestClient.swift */; };
-		CA26EF7C2280331E0011653E /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA26EF7B2280331E0011653E /* Connection.swift */; };
-		CA2AE328221C3CFB008BD18F /* Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AE327221C3CFB008BD18F /* Deprecated.swift */; };
-		CA2B6B5224C07880007AF537 /* LCPContentProtection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2B6B5124C07880007AF537 /* LCPContentProtection.swift */; };
-		CA2B6B5424C07B12007AF537 /* LCPDecryptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2B6B5324C07B12007AF537 /* LCPDecryptor.swift */; };
-		CA2B6B5624C07B8C007AF537 /* DataCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2B6B5524C07B8C007AF537 /* DataCompression.swift */; };
-		CA4A38742208647400599297 /* PassphrasesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A38732208647400599297 /* PassphrasesRepository.swift */; };
-		CA4A388722086F7500599297 /* PassphrasesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388622086F7500599297 /* PassphrasesService.swift */; };
-		CA4A388C2209873B00599297 /* LicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388B2209873B00599297 /* LicenseContainer.swift */; };
-		CA4A388E220988C800599297 /* LCPLLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388D220988C800599297 /* LCPLLicenseContainer.swift */; };
-		CA4A389022098A9400599297 /* ZIPLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A388F22098A9400599297 /* ZIPLicenseContainer.swift */; };
-		CA4A3892220994E300599297 /* EPUBLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4A3891220994E300599297 /* EPUBLicenseContainer.swift */; };
-		CA50B88022B2A777003AFF24 /* R2LCPLocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50B87F22B2A777003AFF24 /* R2LCPLocalizedString.swift */; };
-		CA50B88422B2A822003AFF24 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CA50B88622B2A822003AFF24 /* Localizable.strings */; };
-		CA5A5E0A25208F1B00CF1CCE /* ReadiumLCP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3B2C8871F667222007601E4 /* ReadiumLCP.framework */; platformFilter = ios; };
-		CA5A5E152520908900CF1CCE /* Fixtures in Resources */ = {isa = PBXBuildFile; fileRef = CA5A5E142520908900CF1CCE /* Fixtures */; };
-		CA5A5E1B252090C100CF1CCE /* LCPDecryptorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A5E1A252090C100CF1CCE /* LCPDecryptorTests.swift */; };
-		CA5A5E21252091E000CF1CCE /* Fixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A5E20252091DF00CF1CCE /* Fixtures.swift */; };
-		CA6CF1A725286FC20025BBB2 /* LCPAcquisition.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6CF1A625286FC20025BBB2 /* LCPAcquisition.swift */; };
-		CA6CF1B32528984F0025BBB2 /* LCPLicense.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6CF1B22528984F0025BBB2 /* LCPLicense.swift */; };
-		CA6CF1C72528CB690025BBB2 /* LCPDialogAuthentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6CF1C62528CB690025BBB2 /* LCPDialogAuthentication.swift */; };
-		CA6CF1CD2528CB830025BBB2 /* LCPPassphraseAuthentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6CF1CC2528CB830025BBB2 /* LCPPassphraseAuthentication.swift */; };
-		CA6CF1E52528CC8E0025BBB2 /* LCPDialogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6CF1E12528CC8E0025BBB2 /* LCPDialogViewController.swift */; };
-		CA6CF1ED2528CC9A0025BBB2 /* LCPDialogViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = CA6CF1EB2528CC9A0025BBB2 /* LCPDialogViewController.xib */; };
-		CA7B77AF263AB90800260838 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA7B77AE263AB90800260838 /* R2Shared.framework */; };
-		CA7B77B3263AB91400260838 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA7B77B2263AB91400260838 /* SQLite.framework */; };
-		CA7B77B6263AB91700260838 /* CryptoSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA7B77B5263AB91700260838 /* CryptoSwift.framework */; };
-		CA7B77B9263AB91D00260838 /* ZIPFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA7B77B8263AB91D00260838 /* ZIPFoundation.framework */; };
-		CA9428FD22B9442300305CDB /* ReadiumLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9428FC22B9442300305CDB /* ReadiumLicenseContainer.swift */; };
-		CAB131F6220D81E60097DFB5 /* LicensesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB131F5220D81E60097DFB5 /* LicensesRepository.swift */; };
-		CAB1320B220D9B200097DFB5 /* LCPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB1320A220D9B200097DFB5 /* LCPService.swift */; };
-		CAB13211220DB2B10097DFB5 /* LCPAuthenticating.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */; };
-		CAB1321F220DBA470097DFB5 /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB1321E220DBA470097DFB5 /* NetworkService.swift */; };
-		CAB214E12269C241007E989D /* prod-license.lcpl in Resources */ = {isa = PBXBuildFile; fileRef = CAB214E02269C241007E989D /* prod-license.lcpl */; };
-		CAB57BC12204811100E4CB12 /* LicensesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB57BC02204811100E4CB12 /* LicensesService.swift */; };
-		CABD697D24CDDC6100B4AE17 /* Deferred.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABD697C24CDDC6100B4AE17 /* Deferred.swift */; };
-		CABEB3E32215756D00090B6C /* Links.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABEB3E22215756D00090B6C /* Links.swift */; };
-		CABEB3F62215C86C00090B6C /* LCPError+wrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABEB3F52215C86C00090B6C /* LCPError+wrap.swift */; };
-		CAE7FB7A220C2E6F00D03587 /* LicenseValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE7FB79220C2E6F00D03587 /* LicenseValidation.swift */; };
-		CAE7FB7C220C4B7700D03587 /* DeviceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE7FB7B220C4B7700D03587 /* DeviceService.swift */; };
-		CAE7FB7E220C4C5C00D03587 /* DeviceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE7FB7D220C4C5C00D03587 /* DeviceRepository.swift */; };
-		CAE7FB82220C64D100D03587 /* CRLService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE7FB81220C64D100D03587 /* CRLService.swift */; };
-		CAF6488F266F68B90067D2C3 /* Bundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF6488E266F68B90067D2C3 /* Bundle.swift */; };
-		F331FBF81F8228F8007F16DF /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = F331FBF71F8228F8007F16DF /* Database.swift */; };
-		F35AFA011F6AD54400D3F670 /* License.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35AFA001F6AD54400D3F670 /* License.swift */; };
-		F36F9E261F826C17001D0DB4 /* Licenses.swift in Sources */ = {isa = PBXBuildFile; fileRef = F36F9E251F826C17001D0DB4 /* Licenses.swift */; };
-		F36F9E281F8270FC001D0DB4 /* Transactions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F36F9E271F8270FC001D0DB4 /* Transactions.swift */; };
-		F38CDB221F697D3A004156CB /* PotentialRights.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38CDB211F697D3A004156CB /* PotentialRights.swift */; };
-		F38FB0361F66837800F9D602 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB0351F66837800F9D602 /* User.swift */; };
-		F38FB0381F66839600F9D602 /* Rights.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB0371F66839600F9D602 /* Rights.swift */; };
-		F38FB03A1F6683D800F9D602 /* Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB0391F6683D800F9D602 /* Encryption.swift */; };
-		F38FB03C1F6683F300F9D602 /* UserKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB03B1F6683F300F9D602 /* UserKey.swift */; };
-		F38FB03E1F66840900F9D602 /* ContentKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB03D1F66840900F9D602 /* ContentKey.swift */; };
-		F38FB0421F66847E00F9D602 /* Signature.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38FB0411F66847E00F9D602 /* Signature.swift */; };
-		F3B2C8981F667223007601E4 /* readium-lcp-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = F3B2C88A1F667223007601E4 /* readium-lcp-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		F3B2C8A71F66727C007601E4 /* LicenseDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B2C8A11F66727C007601E4 /* LicenseDocument.swift */; };
-		F3B2C8A81F66727C007601E4 /* StatusDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B2C8A21F66727C007601E4 /* StatusDocument.swift */; };
-		F3B2C8AA1F66727C007601E4 /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B2C8A41F66727C007601E4 /* Event.swift */; };
-		F3B2C8AB1F66727C007601E4 /* LCPError.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B2C8A51F66727C007601E4 /* LCPError.swift */; };
-		F3B2C8AC1F66727C007601E4 /* Link.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B2C8A61F66727C007601E4 /* Link.swift */; };
+		05FA55FCEC219601E456EA4A /* LicenseValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB829CC7EB86611120E8D9A /* LicenseValidation.swift */; };
+		085C35A5CB321B6F69B21524 /* LCPDialogViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 61590B0D09C16B68A2FC1D42 /* LCPDialogViewController.xib */; };
+		0ADB3D4A096C6662CD4C4C46 /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B087328B00F8167F6F193A90 /* Connection.swift */; };
+		0C8060C51D242A8E92D89ACD /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7725B4D853F5A2924D6F9C02 /* Event.swift */; };
+		0F03CE38F977D34E38187E68 /* CryptoSwift.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F4C94FCC03B8B51448B4A8F6 /* CryptoSwift.xcframework */; };
+		13BA2CF35B912FFFE3CFD953 /* readium-lcp-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C683A7DB0F93542078D5AE6 /* readium-lcp-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		151B95FD5C458C7180117D91 /* StatusDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B0BD63D45220CE1C3D22B05 /* StatusDocument.swift */; };
+		1649C221A5C23598621C5EC3 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 7968BD883477BD2B905248A0 /* Localizable.strings */; };
+		1A3C80ECA8F9B78B757604E4 /* R2Shared.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 13BDC26AB08CB2FCDD0BCFEE /* R2Shared.xcframework */; };
+		1A6297F6F9DF912FD9B8E8D9 /* LCPRenewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2210C7A6DD5CB9EBBB4EE3B4 /* LCPRenewDelegate.swift */; };
+		1A863CADADBCEE577BABF85F /* Links.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74A62B2CEC0630D12039B995 /* Links.swift */; };
+		1AE72F0CA51970F3FC1EAA34 /* LCPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84E19B9719C71CA92FFCB13E /* LCPClient.swift */; };
+		252B3D9814E12E9E8B38B148 /* PassphrasesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABBEAD9D2B4FEFE8D5237275 /* PassphrasesService.swift */; };
+		26F8AF04E1841AE34B9A93E8 /* SQLite.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = A33441CBD145898CEFCA6750 /* SQLite.xcframework */; };
+		28A0550445EBADB8190BB5D7 /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAD6D05E0F32B03FB57281EA /* NetworkService.swift */; };
+		2AC14BC874CC592D8D92BF89 /* License.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFE4E63F92C06FE7A25D2C81 /* License.swift */; };
+		3623188C2BDFD87BF515B729 /* LCPAcquisition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58E2369984EB23F476430BBA /* LCPAcquisition.swift */; };
+		39040D444E1A44F5BCA940BE /* Bundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = F296077D9305374CBB4B5AC9 /* Bundle.swift */; };
+		39CED74B223E2D0A883E59D9 /* DeviceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04120FFFFAF164542316475D /* DeviceRepository.swift */; };
+		3DBA5925F024304BE53EB26D /* LCPError+wrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = A120A39FD1C76930D06B056B /* LCPError+wrap.swift */; };
+		45008B2446090AFE9C3FA55D /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B6D6AFA47B7C0868369417F /* Database.swift */; };
+		55E6E3701A238FF2848C8490 /* Fuzi.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = EAF65726D62DEFF649810B68 /* Fuzi.xcframework */; };
+		5B962DBB805F861175B5E555 /* LCPAuthenticating.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6AB6B6CBAE4CA28C09D483C /* LCPAuthenticating.swift */; };
+		5C37B0F263D436FF2FF4F33E /* prod-license.lcpl in Resources */ = {isa = PBXBuildFile; fileRef = C24060A5648CC40ADC649E07 /* prod-license.lcpl */; };
+		5E75B1AAEF9294E085E4CD5E /* LCPDecryptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0368C24C1ED7FE98D82EE2BD /* LCPDecryptor.swift */; };
+		5F3D8961A04968F9CA44B5BD /* PassphrasesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0AF5659A7508939C86DAA5B /* PassphrasesRepository.swift */; };
+		63F5CA48133AD53B4AC2855E /* ContentKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = E11618E6412C7867B4C5A4E3 /* ContentKey.swift */; };
+		6726130AC2A334A7D1022E83 /* LCPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 687DF71672EFF63AB4C9EE35 /* LCPService.swift */; };
+		6F77350307B90B199B5A2585 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0551C935A1950FCDFA79EED /* User.swift */; };
+		73500A6507C7AB79A68D7AAD /* DataCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D8C1E486ACF32D0600A70E /* DataCompression.swift */; };
+		74043476CF48D2C36C88A6FF /* LicensesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84A80D6110F236FD869BE112 /* LicensesService.swift */; };
+		775BC536DC54E961BF5F794A /* CRLService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93BB00BB4D2C4FCD3465CDDD /* CRLService.swift */; };
+		7DC08FA59239C9CBCEE0A29B /* LCPDialogAuthentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9776A2E7ECDCC0F013C6C75 /* LCPDialogAuthentication.swift */; };
+		7FB6EC346C7259BADB167DFC /* Deferred.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94F1D1ACB346B49C2F522125 /* Deferred.swift */; };
+		85574E5298595B6A500C0473 /* ZIPLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C98ECB7482C242FDBFBBD34F /* ZIPLicenseContainer.swift */; };
+		880DC3B91CA524571148C8FE /* DeviceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01DE3CC81DE6667D509B47D9 /* DeviceService.swift */; };
+		8819F94A818C59AD15D479F4 /* R2LCPLocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06650F664FF28F4059FA68A9 /* R2LCPLocalizedString.swift */; };
+		903BBE43FF8D08A2EECE07EE /* Transactions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52405983418B95B5C5826EAC /* Transactions.swift */; };
+		90B86D7D77981667B3867DBD /* Minizip.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = E8A52C8FCF6987DD62851BAA /* Minizip.xcframework */; };
+		95DCB733882FCC49F79F2A8C /* UserKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BEAD66191F5A54F9E84D97F /* UserKey.swift */; };
+		9767D1935F10236447D2F7A8 /* Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9565D02C29CC10BE3E977FF /* Deprecated.swift */; };
+		97CF7BC1D5B1B4BE824A1E95 /* LCPLLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE6C8ED46B655A1E9B897720 /* LCPLLicenseContainer.swift */; };
+		A5004FC6E25A987B1C5655BB /* LicenseDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF07CD83DE0E83235C4AF9D6 /* LicenseDocument.swift */; };
+		A5CF7D8D97165A8AD9AFB24D /* LCPError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01EE6D1C1678B975D68E7706 /* LCPError.swift */; };
+		A625952CDDB310468E2AF914 /* LCPContentProtection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 179A1DB640457B4E56FDD7A0 /* LCPContentProtection.swift */; };
+		B275FD0A9E641AB7D2D9E10E /* Signature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D90E1904A1689CC074E395A /* Signature.swift */; };
+		B6CF5D2A3DA6A905C6F7F76B /* Link.swift in Sources */ = {isa = PBXBuildFile; fileRef = CED063E98EF6AA9EAA524503 /* Link.swift */; };
+		B80B749D0059DFE1078D53B0 /* Licenses.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171D747FDD7B683A4500300E /* Licenses.swift */; };
+		BD081793DF4D526A0FF6114B /* EPUBLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C9F247AD70538E735D01D61 /* EPUBLicenseContainer.swift */; };
+		CEB68EAB7993190E3EF056CE /* LicensesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B79D7738B46E1652CD55197 /* LicensesRepository.swift */; };
+		D813664B7BD8AF248D4860C8 /* Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31A7957A35EB45AF44FA4E05 /* Encryption.swift */; };
+		E0051EBFEE73EC7E0D9699FB /* Rights.swift in Sources */ = {isa = PBXBuildFile; fileRef = 972B690B92EF2EA901F3F286 /* Rights.swift */; };
+		E337826A1AAFFDA15A028B72 /* LCPPassphraseAuthentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A91D75BF13198F6B51CD6D2 /* LCPPassphraseAuthentication.swift */; };
+		F0787D28E40757218A5A4C8E /* ReadiumLicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 706FBB89B0B1CECA0C8578EE /* ReadiumLicenseContainer.swift */; };
+		F1C301B534181424892D9B76 /* LCPLicense.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE606714D0CBCB08F07855D9 /* LCPLicense.swift */; };
+		F21201CB24C5D9C5D5A976AF /* PotentialRights.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0178D516BC2AE7902B148AA /* PotentialRights.swift */; };
+		F26E4D5367E89AACFEDFE4FE /* LCPDialogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82D9D9F61AC0BD7E93033444 /* LCPDialogViewController.swift */; };
+		F64E15B771E8D627E95CD35E /* ZIPFoundation.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4609524C2CBBB2DA932FC06C /* ZIPFoundation.xcframework */; };
+		F67EF475722DCDD6282A8815 /* LicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 358620797A0E2277874EA2E7 /* LicenseContainer.swift */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		CA5A5E0B25208F1B00CF1CCE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = F3B2C87E1F667222007601E4 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = F3B2C8861F667222007601E4;
-			remoteInfo = "r2-lcp-swift";
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXFileReference section */
-		3ED946FE6F293298E0DF8C37 /* LCPRenewDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCPRenewDelegate.swift; sourceTree = "<group>"; };
-		3ED94983A0E532A984A04672 /* LCPTestClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCPTestClient.swift; sourceTree = "<group>"; };
-		3ED94B8D1A7FFE4673AE7B29 /* LCPClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCPClient.swift; sourceTree = "<group>"; };
-		CA26EF7B2280331E0011653E /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
-		CA2AE327221C3CFB008BD18F /* Deprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deprecated.swift; sourceTree = "<group>"; };
-		CA2B6B5124C07880007AF537 /* LCPContentProtection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPContentProtection.swift; sourceTree = "<group>"; };
-		CA2B6B5324C07B12007AF537 /* LCPDecryptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDecryptor.swift; sourceTree = "<group>"; };
-		CA2B6B5524C07B8C007AF537 /* DataCompression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataCompression.swift; sourceTree = "<group>"; };
-		CA4A38732208647400599297 /* PassphrasesRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassphrasesRepository.swift; sourceTree = "<group>"; };
-		CA4A388622086F7500599297 /* PassphrasesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassphrasesService.swift; sourceTree = "<group>"; };
-		CA4A388B2209873B00599297 /* LicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseContainer.swift; sourceTree = "<group>"; };
-		CA4A388D220988C800599297 /* LCPLLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPLLicenseContainer.swift; sourceTree = "<group>"; };
-		CA4A388F22098A9400599297 /* ZIPLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZIPLicenseContainer.swift; sourceTree = "<group>"; };
-		CA4A3891220994E300599297 /* EPUBLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBLicenseContainer.swift; sourceTree = "<group>"; };
-		CA50B87F22B2A777003AFF24 /* R2LCPLocalizedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2LCPLocalizedString.swift; sourceTree = "<group>"; };
-		CA50B88522B2A822003AFF24 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
-		CA5A5E0525208F1B00CF1CCE /* readium-lcp-swiftTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "readium-lcp-swiftTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		CA5A5E0925208F1B00CF1CCE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		CA5A5E142520908900CF1CCE /* Fixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Fixtures; sourceTree = "<group>"; };
-		CA5A5E19252090C100CF1CCE /* readium-lcp-swiftTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "readium-lcp-swiftTests-Bridging-Header.h"; sourceTree = "<group>"; };
-		CA5A5E1A252090C100CF1CCE /* LCPDecryptorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDecryptorTests.swift; sourceTree = "<group>"; };
-		CA5A5E20252091DF00CF1CCE /* Fixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fixtures.swift; sourceTree = "<group>"; };
-		CA6CF1A625286FC20025BBB2 /* LCPAcquisition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPAcquisition.swift; sourceTree = "<group>"; };
-		CA6CF1B22528984F0025BBB2 /* LCPLicense.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPLicense.swift; sourceTree = "<group>"; };
-		CA6CF1C62528CB690025BBB2 /* LCPDialogAuthentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDialogAuthentication.swift; sourceTree = "<group>"; };
-		CA6CF1CC2528CB830025BBB2 /* LCPPassphraseAuthentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPPassphraseAuthentication.swift; sourceTree = "<group>"; };
-		CA6CF1E12528CC8E0025BBB2 /* LCPDialogViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCPDialogViewController.swift; sourceTree = "<group>"; };
-		CA6CF1EC2528CC9A0025BBB2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LCPDialogViewController.xib; sourceTree = "<group>"; };
-		CA7B77AE263AB90800260838 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		CA7B77B2263AB91400260838 /* SQLite.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SQLite.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		CA7B77B5263AB91700260838 /* CryptoSwift.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CryptoSwift.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		CA7B77B8263AB91D00260838 /* ZIPFoundation.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ZIPFoundation.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		CA9428FC22B9442300305CDB /* ReadiumLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadiumLicenseContainer.swift; sourceTree = "<group>"; };
-		CAB131F5220D81E60097DFB5 /* LicensesRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensesRepository.swift; sourceTree = "<group>"; };
-		CAB1320A220D9B200097DFB5 /* LCPService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPService.swift; sourceTree = "<group>"; };
-		CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPAuthenticating.swift; sourceTree = "<group>"; };
-		CAB1321E220DBA470097DFB5 /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
-		CAB214E02269C241007E989D /* prod-license.lcpl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "prod-license.lcpl"; sourceTree = "<group>"; };
-		CAB57BC02204811100E4CB12 /* LicensesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensesService.swift; sourceTree = "<group>"; };
-		CABD697C24CDDC6100B4AE17 /* Deferred.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deferred.swift; sourceTree = "<group>"; };
-		CABEB3E22215756D00090B6C /* Links.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Links.swift; sourceTree = "<group>"; };
-		CABEB3F52215C86C00090B6C /* LCPError+wrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LCPError+wrap.swift"; sourceTree = "<group>"; };
-		CAE7FB79220C2E6F00D03587 /* LicenseValidation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseValidation.swift; sourceTree = "<group>"; };
-		CAE7FB7B220C4B7700D03587 /* DeviceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceService.swift; sourceTree = "<group>"; };
-		CAE7FB7D220C4C5C00D03587 /* DeviceRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRepository.swift; sourceTree = "<group>"; };
-		CAE7FB81220C64D100D03587 /* CRLService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRLService.swift; sourceTree = "<group>"; };
-		CAF6488E266F68B90067D2C3 /* Bundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bundle.swift; sourceTree = "<group>"; };
-		F331FBF71F8228F8007F16DF /* Database.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
-		F35AFA001F6AD54400D3F670 /* License.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = License.swift; sourceTree = "<group>"; };
-		F36F9E251F826C17001D0DB4 /* Licenses.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Licenses.swift; sourceTree = "<group>"; };
-		F36F9E271F8270FC001D0DB4 /* Transactions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transactions.swift; sourceTree = "<group>"; };
-		F38CDB211F697D3A004156CB /* PotentialRights.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PotentialRights.swift; sourceTree = "<group>"; };
-		F38FB0351F66837800F9D602 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
-		F38FB0371F66839600F9D602 /* Rights.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Rights.swift; sourceTree = "<group>"; };
-		F38FB0391F6683D800F9D602 /* Encryption.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Encryption.swift; sourceTree = "<group>"; };
-		F38FB03B1F6683F300F9D602 /* UserKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserKey.swift; sourceTree = "<group>"; };
-		F38FB03D1F66840900F9D602 /* ContentKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentKey.swift; sourceTree = "<group>"; };
-		F38FB0411F66847E00F9D602 /* Signature.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Signature.swift; sourceTree = "<group>"; };
-		F3B2C8871F667222007601E4 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		F3B2C88A1F667223007601E4 /* readium-lcp-swift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "readium-lcp-swift.h"; sourceTree = "<group>"; };
-		F3B2C88B1F667223007601E4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		F3B2C8A11F66727C007601E4 /* LicenseDocument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LicenseDocument.swift; sourceTree = "<group>"; };
-		F3B2C8A21F66727C007601E4 /* StatusDocument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatusDocument.swift; sourceTree = "<group>"; };
-		F3B2C8A41F66727C007601E4 /* Event.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
-		F3B2C8A51F66727C007601E4 /* LCPError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCPError.swift; sourceTree = "<group>"; };
-		F3B2C8A61F66727C007601E4 /* Link.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Link.swift; sourceTree = "<group>"; };
+		01DE3CC81DE6667D509B47D9 /* DeviceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceService.swift; sourceTree = "<group>"; };
+		01EE6D1C1678B975D68E7706 /* LCPError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPError.swift; sourceTree = "<group>"; };
+		0368C24C1ED7FE98D82EE2BD /* LCPDecryptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDecryptor.swift; sourceTree = "<group>"; };
+		04120FFFFAF164542316475D /* DeviceRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRepository.swift; sourceTree = "<group>"; };
+		06650F664FF28F4059FA68A9 /* R2LCPLocalizedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2LCPLocalizedString.swift; sourceTree = "<group>"; };
+		09D8C1E486ACF32D0600A70E /* DataCompression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataCompression.swift; sourceTree = "<group>"; };
+		13BDC26AB08CB2FCDD0BCFEE /* R2Shared.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = R2Shared.xcframework; path = Carthage/Build/R2Shared.xcframework; sourceTree = "<group>"; };
+		171D747FDD7B683A4500300E /* Licenses.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Licenses.swift; sourceTree = "<group>"; };
+		179A1DB640457B4E56FDD7A0 /* LCPContentProtection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPContentProtection.swift; sourceTree = "<group>"; };
+		1B79D7738B46E1652CD55197 /* LicensesRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensesRepository.swift; sourceTree = "<group>"; };
+		1BEAD66191F5A54F9E84D97F /* UserKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserKey.swift; sourceTree = "<group>"; };
+		1C683A7DB0F93542078D5AE6 /* readium-lcp-swift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "readium-lcp-swift.h"; sourceTree = "<group>"; };
+		2210C7A6DD5CB9EBBB4EE3B4 /* LCPRenewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPRenewDelegate.swift; sourceTree = "<group>"; };
+		2C9F247AD70538E735D01D61 /* EPUBLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBLicenseContainer.swift; sourceTree = "<group>"; };
+		31A7957A35EB45AF44FA4E05 /* Encryption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Encryption.swift; sourceTree = "<group>"; };
+		358620797A0E2277874EA2E7 /* LicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseContainer.swift; sourceTree = "<group>"; };
+		3A91D75BF13198F6B51CD6D2 /* LCPPassphraseAuthentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPPassphraseAuthentication.swift; sourceTree = "<group>"; };
+		4609524C2CBBB2DA932FC06C /* ZIPFoundation.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = ZIPFoundation.xcframework; path = Carthage/Build/ZIPFoundation.xcframework; sourceTree = "<group>"; };
+		4B6D6AFA47B7C0868369417F /* Database.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
+		4D90E1904A1689CC074E395A /* Signature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Signature.swift; sourceTree = "<group>"; };
+		4E06DF430EB12EBC99631FD7 /* ReadiumLCP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ReadiumLCP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		52405983418B95B5C5826EAC /* Transactions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transactions.swift; sourceTree = "<group>"; };
+		58E2369984EB23F476430BBA /* LCPAcquisition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPAcquisition.swift; sourceTree = "<group>"; };
+		687DF71672EFF63AB4C9EE35 /* LCPService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPService.swift; sourceTree = "<group>"; };
+		6EB829CC7EB86611120E8D9A /* LicenseValidation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseValidation.swift; sourceTree = "<group>"; };
+		706FBB89B0B1CECA0C8578EE /* ReadiumLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadiumLicenseContainer.swift; sourceTree = "<group>"; };
+		74A62B2CEC0630D12039B995 /* Links.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Links.swift; sourceTree = "<group>"; };
+		7725B4D853F5A2924D6F9C02 /* Event.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
+		7B0BD63D45220CE1C3D22B05 /* StatusDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusDocument.swift; sourceTree = "<group>"; };
+		82D9D9F61AC0BD7E93033444 /* LCPDialogViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDialogViewController.swift; sourceTree = "<group>"; };
+		84A80D6110F236FD869BE112 /* LicensesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensesService.swift; sourceTree = "<group>"; };
+		84E19B9719C71CA92FFCB13E /* LCPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPClient.swift; sourceTree = "<group>"; };
+		93BB00BB4D2C4FCD3465CDDD /* CRLService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRLService.swift; sourceTree = "<group>"; };
+		94F1D1ACB346B49C2F522125 /* Deferred.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deferred.swift; sourceTree = "<group>"; };
+		972B690B92EF2EA901F3F286 /* Rights.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rights.swift; sourceTree = "<group>"; };
+		A0551C935A1950FCDFA79EED /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		A120A39FD1C76930D06B056B /* LCPError+wrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LCPError+wrap.swift"; sourceTree = "<group>"; };
+		A33441CBD145898CEFCA6750 /* SQLite.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SQLite.xcframework; path = Carthage/Build/SQLite.xcframework; sourceTree = "<group>"; };
+		A6AB6B6CBAE4CA28C09D483C /* LCPAuthenticating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPAuthenticating.swift; sourceTree = "<group>"; };
+		ABBEAD9D2B4FEFE8D5237275 /* PassphrasesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassphrasesService.swift; sourceTree = "<group>"; };
+		AC9985DB9A750E8863CB0655 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		AE6C8ED46B655A1E9B897720 /* LCPLLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPLLicenseContainer.swift; sourceTree = "<group>"; };
+		B087328B00F8167F6F193A90 /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
+		B0AF5659A7508939C86DAA5B /* PassphrasesRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassphrasesRepository.swift; sourceTree = "<group>"; };
+		C24060A5648CC40ADC649E07 /* prod-license.lcpl */ = {isa = PBXFileReference; path = "prod-license.lcpl"; sourceTree = "<group>"; };
+		C98ECB7482C242FDBFBBD34F /* ZIPLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZIPLicenseContainer.swift; sourceTree = "<group>"; };
+		CED063E98EF6AA9EAA524503 /* Link.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Link.swift; sourceTree = "<group>"; };
+		D9565D02C29CC10BE3E977FF /* Deprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deprecated.swift; sourceTree = "<group>"; };
+		D9776A2E7ECDCC0F013C6C75 /* LCPDialogAuthentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDialogAuthentication.swift; sourceTree = "<group>"; };
+		DAD6D05E0F32B03FB57281EA /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
+		DFE4E63F92C06FE7A25D2C81 /* License.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = License.swift; sourceTree = "<group>"; };
+		E11618E6412C7867B4C5A4E3 /* ContentKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentKey.swift; sourceTree = "<group>"; };
+		E1CC1B2B1A7F396C6A166AD3 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LCPDialogViewController.xib; sourceTree = "<group>"; };
+		E8A52C8FCF6987DD62851BAA /* Minizip.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Minizip.xcframework; path = Carthage/Build/Minizip.xcframework; sourceTree = "<group>"; };
+		EAF65726D62DEFF649810B68 /* Fuzi.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Fuzi.xcframework; path = Carthage/Build/Fuzi.xcframework; sourceTree = "<group>"; };
+		EE606714D0CBCB08F07855D9 /* LCPLicense.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPLicense.swift; sourceTree = "<group>"; };
+		F0178D516BC2AE7902B148AA /* PotentialRights.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PotentialRights.swift; sourceTree = "<group>"; };
+		F032FA77A5CF565A06800A4D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		F296077D9305374CBB4B5AC9 /* Bundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bundle.swift; sourceTree = "<group>"; };
+		F4C94FCC03B8B51448B4A8F6 /* CryptoSwift.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = CryptoSwift.xcframework; path = Carthage/Build/CryptoSwift.xcframework; sourceTree = "<group>"; };
+		FF07CD83DE0E83235C4AF9D6 /* LicenseDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseDocument.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		CA5A5E0225208F1B00CF1CCE /* Frameworks */ = {
+		8B12042C89A35BDD55029637 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA5A5E0A25208F1B00CF1CCE /* ReadiumLCP.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F3B2C8831F667222007601E4 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CA7B77B6263AB91700260838 /* CryptoSwift.framework in Frameworks */,
-				CA7B77B9263AB91D00260838 /* ZIPFoundation.framework in Frameworks */,
-				CA7B77B3263AB91400260838 /* SQLite.framework in Frameworks */,
-				CA7B77AF263AB90800260838 /* R2Shared.framework in Frameworks */,
+				0F03CE38F977D34E38187E68 /* CryptoSwift.xcframework in Frameworks */,
+				55E6E3701A238FF2848C8490 /* Fuzi.xcframework in Frameworks */,
+				90B86D7D77981667B3867DBD /* Minizip.xcframework in Frameworks */,
+				1A3C80ECA8F9B78B757604E4 /* R2Shared.xcframework in Frameworks */,
+				26F8AF04E1841AE34B9A93E8 /* SQLite.xcframework in Frameworks */,
+				F64E15B771E8D627E95CD35E /* ZIPFoundation.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		CA2B6B5024C07869007AF537 /* Content Protection */ = {
+		0BB2FA2F8D667DD6FFAA4893 /* Toolkit */ = {
 			isa = PBXGroup;
 			children = (
-				CA2B6B5124C07880007AF537 /* LCPContentProtection.swift */,
-				CA2B6B5324C07B12007AF537 /* LCPDecryptor.swift */,
-			);
-			path = "Content Protection";
-			sourceTree = "<group>";
-		};
-		CA50B87E22B2A768003AFF24 /* Toolkit */ = {
-			isa = PBXGroup;
-			children = (
-				CA50B87F22B2A777003AFF24 /* R2LCPLocalizedString.swift */,
-				CA2B6B5524C07B8C007AF537 /* DataCompression.swift */,
-				CABD697C24CDDC6100B4AE17 /* Deferred.swift */,
-				CAF6488E266F68B90067D2C3 /* Bundle.swift */,
+				F296077D9305374CBB4B5AC9 /* Bundle.swift */,
+				09D8C1E486ACF32D0600A70E /* DataCompression.swift */,
+				94F1D1ACB346B49C2F522125 /* Deferred.swift */,
+				06650F664FF28F4059FA68A9 /* R2LCPLocalizedString.swift */,
 			);
 			path = Toolkit;
 			sourceTree = "<group>";
 		};
-		CA50B88122B2A7F2003AFF24 /* Resources */ = {
+		0BE2DF0B02273CD4489D55D8 /* LCP */ = {
 			isa = PBXGroup;
 			children = (
-				CAB214E02269C241007E989D /* prod-license.lcpl */,
-				CA50B88622B2A822003AFF24 /* Localizable.strings */,
-			);
-			path = Resources;
-			sourceTree = "<group>";
-		};
-		CA5A5E0625208F1B00CF1CCE /* readium-lcp-swiftTests */ = {
-			isa = PBXGroup;
-			children = (
-				CA5A5E18252090A600CF1CCE /* Content Protection */,
-				CA5A5E20252091DF00CF1CCE /* Fixtures.swift */,
-				CA5A5E142520908900CF1CCE /* Fixtures */,
-				CA5A5E0925208F1B00CF1CCE /* Info.plist */,
-				CA5A5E19252090C100CF1CCE /* readium-lcp-swiftTests-Bridging-Header.h */,
-				3ED94983A0E532A984A04672 /* LCPTestClient.swift */,
-			);
-			path = "readium-lcp-swiftTests";
-			sourceTree = "<group>";
-		};
-		CA5A5E18252090A600CF1CCE /* Content Protection */ = {
-			isa = PBXGroup;
-			children = (
-				CA5A5E1A252090C100CF1CCE /* LCPDecryptorTests.swift */,
-			);
-			path = "Content Protection";
-			sourceTree = "<group>";
-		};
-		CA6CF1C52528CB380025BBB2 /* Authentications */ = {
-			isa = PBXGroup;
-			children = (
-				CAB13210220DB2B10097DFB5 /* LCPAuthenticating.swift */,
-				CA6CF1CC2528CB830025BBB2 /* LCPPassphraseAuthentication.swift */,
-				CA6CF1C62528CB690025BBB2 /* LCPDialogAuthentication.swift */,
-				CA6CF1E12528CC8E0025BBB2 /* LCPDialogViewController.swift */,
-				CA6CF1EB2528CC9A0025BBB2 /* LCPDialogViewController.xib */,
-			);
-			path = Authentications;
-			sourceTree = "<group>";
-		};
-		CAB13214220DB5930097DFB5 /* License */ = {
-			isa = PBXGroup;
-			children = (
-				F35AFA001F6AD54400D3F670 /* License.swift */,
-				CAE7FB79220C2E6F00D03587 /* LicenseValidation.swift */,
-				CABEB3F52215C86C00090B6C /* LCPError+wrap.swift */,
-				CAB13216220DB5C70097DFB5 /* Model */,
-				CAB13215220DB5BA0097DFB5 /* Container */,
-			);
-			path = License;
-			sourceTree = "<group>";
-		};
-		CAB13215220DB5BA0097DFB5 /* Container */ = {
-			isa = PBXGroup;
-			children = (
-				CA4A388B2209873B00599297 /* LicenseContainer.swift */,
-				CA4A388D220988C800599297 /* LCPLLicenseContainer.swift */,
-				CA4A388F22098A9400599297 /* ZIPLicenseContainer.swift */,
-				CA4A3891220994E300599297 /* EPUBLicenseContainer.swift */,
-				CA9428FC22B9442300305CDB /* ReadiumLicenseContainer.swift */,
-			);
-			path = Container;
-			sourceTree = "<group>";
-		};
-		CAB13216220DB5C70097DFB5 /* Model */ = {
-			isa = PBXGroup;
-			children = (
-				F3B2C8A11F66727C007601E4 /* LicenseDocument.swift */,
-				F3B2C8A21F66727C007601E4 /* StatusDocument.swift */,
-				CAB13217220DB5DB0097DFB5 /* Components */,
-			);
-			path = Model;
-			sourceTree = "<group>";
-		};
-		CAB13217220DB5DB0097DFB5 /* Components */ = {
-			isa = PBXGroup;
-			children = (
-				CABEB3E22215756D00090B6C /* Links.swift */,
-				F3B2C8A61F66727C007601E4 /* Link.swift */,
-				CAB13218220DB60C0097DFB5 /* LCP */,
-				CAB13219220DB6110097DFB5 /* LSD */,
-			);
-			path = Components;
-			sourceTree = "<group>";
-		};
-		CAB13218220DB60C0097DFB5 /* LCP */ = {
-			isa = PBXGroup;
-			children = (
-				F38FB0391F6683D800F9D602 /* Encryption.swift */,
-				F38FB03D1F66840900F9D602 /* ContentKey.swift */,
-				F38FB03B1F6683F300F9D602 /* UserKey.swift */,
-				F38FB0351F66837800F9D602 /* User.swift */,
-				F38FB0371F66839600F9D602 /* Rights.swift */,
-				F38FB0411F66847E00F9D602 /* Signature.swift */,
+				E11618E6412C7867B4C5A4E3 /* ContentKey.swift */,
+				31A7957A35EB45AF44FA4E05 /* Encryption.swift */,
+				972B690B92EF2EA901F3F286 /* Rights.swift */,
+				4D90E1904A1689CC074E395A /* Signature.swift */,
+				A0551C935A1950FCDFA79EED /* User.swift */,
+				1BEAD66191F5A54F9E84D97F /* UserKey.swift */,
 			);
 			path = LCP;
 			sourceTree = "<group>";
 		};
-		CAB13219220DB6110097DFB5 /* LSD */ = {
+		0FF0E71F1BB683615D9E4832 /* Container */ = {
 			isa = PBXGroup;
 			children = (
-				F3B2C8A41F66727C007601E4 /* Event.swift */,
-				F38CDB211F697D3A004156CB /* PotentialRights.swift */,
+				2C9F247AD70538E735D01D61 /* EPUBLicenseContainer.swift */,
+				AE6C8ED46B655A1E9B897720 /* LCPLLicenseContainer.swift */,
+				358620797A0E2277874EA2E7 /* LicenseContainer.swift */,
+				706FBB89B0B1CECA0C8578EE /* ReadiumLicenseContainer.swift */,
+				C98ECB7482C242FDBFBBD34F /* ZIPLicenseContainer.swift */,
 			);
-			path = LSD;
+			path = Container;
 			sourceTree = "<group>";
 		};
-		CAB1321B220DB6430097DFB5 /* Services */ = {
+		285D980D2E0F79A116CC30F5 /* Authentications */ = {
 			isa = PBXGroup;
 			children = (
-				CAB57BC02204811100E4CB12 /* LicensesService.swift */,
-				CAB131F5220D81E60097DFB5 /* LicensesRepository.swift */,
-				CA4A388622086F7500599297 /* PassphrasesService.swift */,
-				CA4A38732208647400599297 /* PassphrasesRepository.swift */,
-				CAE7FB7B220C4B7700D03587 /* DeviceService.swift */,
-				CAE7FB7D220C4C5C00D03587 /* DeviceRepository.swift */,
-				CAB1321E220DBA470097DFB5 /* NetworkService.swift */,
-				CAE7FB81220C64D100D03587 /* CRLService.swift */,
+				A6AB6B6CBAE4CA28C09D483C /* LCPAuthenticating.swift */,
+				D9776A2E7ECDCC0F013C6C75 /* LCPDialogAuthentication.swift */,
+				82D9D9F61AC0BD7E93033444 /* LCPDialogViewController.swift */,
+				61590B0D09C16B68A2FC1D42 /* LCPDialogViewController.xib */,
+				3A91D75BF13198F6B51CD6D2 /* LCPPassphraseAuthentication.swift */,
+			);
+			path = Authentications;
+			sourceTree = "<group>";
+		};
+		2F6F9CE0D523A5222E427E14 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				93BB00BB4D2C4FCD3465CDDD /* CRLService.swift */,
+				04120FFFFAF164542316475D /* DeviceRepository.swift */,
+				01DE3CC81DE6667D509B47D9 /* DeviceService.swift */,
+				1B79D7738B46E1652CD55197 /* LicensesRepository.swift */,
+				84A80D6110F236FD869BE112 /* LicensesService.swift */,
+				DAD6D05E0F32B03FB57281EA /* NetworkService.swift */,
+				B0AF5659A7508939C86DAA5B /* PassphrasesRepository.swift */,
+				ABBEAD9D2B4FEFE8D5237275 /* PassphrasesService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
 		};
-		CAB1321C220DB6570097DFB5 /* Persistence */ = {
+		50BF55EB48F6D9FF9E22E95C /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				F331FBF71F8228F8007F16DF /* Database.swift */,
-				F36F9E251F826C17001D0DB4 /* Licenses.swift */,
-				F36F9E271F8270FC001D0DB4 /* Transactions.swift */,
-				CA26EF7B2280331E0011653E /* Connection.swift */,
+				CED063E98EF6AA9EAA524503 /* Link.swift */,
+				74A62B2CEC0630D12039B995 /* Links.swift */,
+				0BE2DF0B02273CD4489D55D8 /* LCP */,
+				D7A89BB956BE5541857AADE0 /* LSD */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		9A3B4D15A4769130C70EF505 /* Persistence */ = {
+			isa = PBXGroup;
+			children = (
+				B087328B00F8167F6F193A90 /* Connection.swift */,
+				4B6D6AFA47B7C0868369417F /* Database.swift */,
+				171D747FDD7B683A4500300E /* Licenses.swift */,
+				52405983418B95B5C5826EAC /* Transactions.swift */,
 			);
 			path = Persistence;
 			sourceTree = "<group>";
 		};
-		F3B2C87D1F667222007601E4 = {
+		9C412C975BDD8C68EB359B37 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				F3B2C8891F667222007601E4 /* readium-lcp-swift */,
-				CA5A5E0625208F1B00CF1CCE /* readium-lcp-swiftTests */,
-				F3B2C8881F667222007601E4 /* Products */,
-				F3B2C8AD1F6672E1007601E4 /* Frameworks */,
+				FF07CD83DE0E83235C4AF9D6 /* LicenseDocument.swift */,
+				7B0BD63D45220CE1C3D22B05 /* StatusDocument.swift */,
+				50BF55EB48F6D9FF9E22E95C /* Components */,
 			);
+			path = Model;
 			sourceTree = "<group>";
 		};
-		F3B2C8881F667222007601E4 /* Products */ = {
+		A02008A1D7B0FBEDB990BEF3 /* readium-lcp-swift */ = {
 			isa = PBXGroup;
 			children = (
-				F3B2C8871F667222007601E4 /* ReadiumLCP.framework */,
-				CA5A5E0525208F1B00CF1CCE /* readium-lcp-swiftTests.xctest */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		F3B2C8891F667222007601E4 /* readium-lcp-swift */ = {
-			isa = PBXGroup;
-			children = (
-				3ED94B8D1A7FFE4673AE7B29 /* LCPClient.swift */,
-				CAB1320A220D9B200097DFB5 /* LCPService.swift */,
-				F3B2C8A51F66727C007601E4 /* LCPError.swift */,
-				CA6CF1A625286FC20025BBB2 /* LCPAcquisition.swift */,
-				CA6CF1B22528984F0025BBB2 /* LCPLicense.swift */,
-				3ED946FE6F293298E0DF8C37 /* LCPRenewDelegate.swift */,
-				CA2AE327221C3CFB008BD18F /* Deprecated.swift */,
-				CA6CF1C52528CB380025BBB2 /* Authentications */,
-				CAB13214220DB5930097DFB5 /* License */,
-				CA2B6B5024C07869007AF537 /* Content Protection */,
-				CAB1321B220DB6430097DFB5 /* Services */,
-				CAB1321C220DB6570097DFB5 /* Persistence */,
-				CA50B87E22B2A768003AFF24 /* Toolkit */,
-				CA50B88122B2A7F2003AFF24 /* Resources */,
-				F3B2C88B1F667223007601E4 /* Info.plist */,
-				F3B2C88A1F667223007601E4 /* readium-lcp-swift.h */,
+				D9565D02C29CC10BE3E977FF /* Deprecated.swift */,
+				F032FA77A5CF565A06800A4D /* Info.plist */,
+				58E2369984EB23F476430BBA /* LCPAcquisition.swift */,
+				84E19B9719C71CA92FFCB13E /* LCPClient.swift */,
+				01EE6D1C1678B975D68E7706 /* LCPError.swift */,
+				EE606714D0CBCB08F07855D9 /* LCPLicense.swift */,
+				2210C7A6DD5CB9EBBB4EE3B4 /* LCPRenewDelegate.swift */,
+				687DF71672EFF63AB4C9EE35 /* LCPService.swift */,
+				1C683A7DB0F93542078D5AE6 /* readium-lcp-swift.h */,
+				285D980D2E0F79A116CC30F5 /* Authentications */,
+				D5EBA179416C091C128DA8D8 /* Content Protection */,
+				F32CEF2B37E547457C5CB4AA /* License */,
+				9A3B4D15A4769130C70EF505 /* Persistence */,
+				C7B4DFDEC8D409C5B36BBFDF /* Resources */,
+				2F6F9CE0D523A5222E427E14 /* Services */,
+				0BB2FA2F8D667DD6FFAA4893 /* Toolkit */,
 			);
 			path = "readium-lcp-swift";
 			sourceTree = "<group>";
 		};
-		F3B2C8AD1F6672E1007601E4 /* Frameworks */ = {
+		ACF8CF5142801518A1C3C5EE = {
 			isa = PBXGroup;
 			children = (
-				CA7B77B8263AB91D00260838 /* ZIPFoundation.framework */,
-				CA7B77B5263AB91700260838 /* CryptoSwift.framework */,
-				CA7B77B2263AB91400260838 /* SQLite.framework */,
-				CA7B77AE263AB90800260838 /* R2Shared.framework */,
+				A02008A1D7B0FBEDB990BEF3 /* readium-lcp-swift */,
+				CBF14ACBB2C846315D788A87 /* Frameworks */,
+				C28408F48E0C51BC7D0DF34C /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C28408F48E0C51BC7D0DF34C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4E06DF430EB12EBC99631FD7 /* ReadiumLCP.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C7B4DFDEC8D409C5B36BBFDF /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				7968BD883477BD2B905248A0 /* Localizable.strings */,
+				C24060A5648CC40ADC649E07 /* prod-license.lcpl */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		CBF14ACBB2C846315D788A87 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F4C94FCC03B8B51448B4A8F6 /* CryptoSwift.xcframework */,
+				EAF65726D62DEFF649810B68 /* Fuzi.xcframework */,
+				E8A52C8FCF6987DD62851BAA /* Minizip.xcframework */,
+				13BDC26AB08CB2FCDD0BCFEE /* R2Shared.xcframework */,
+				A33441CBD145898CEFCA6750 /* SQLite.xcframework */,
+				4609524C2CBBB2DA932FC06C /* ZIPFoundation.xcframework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		D5EBA179416C091C128DA8D8 /* Content Protection */ = {
+			isa = PBXGroup;
+			children = (
+				179A1DB640457B4E56FDD7A0 /* LCPContentProtection.swift */,
+				0368C24C1ED7FE98D82EE2BD /* LCPDecryptor.swift */,
+			);
+			path = "Content Protection";
+			sourceTree = "<group>";
+		};
+		D7A89BB956BE5541857AADE0 /* LSD */ = {
+			isa = PBXGroup;
+			children = (
+				7725B4D853F5A2924D6F9C02 /* Event.swift */,
+				F0178D516BC2AE7902B148AA /* PotentialRights.swift */,
+			);
+			path = LSD;
+			sourceTree = "<group>";
+		};
+		F32CEF2B37E547457C5CB4AA /* License */ = {
+			isa = PBXGroup;
+			children = (
+				A120A39FD1C76930D06B056B /* LCPError+wrap.swift */,
+				DFE4E63F92C06FE7A25D2C81 /* License.swift */,
+				6EB829CC7EB86611120E8D9A /* LicenseValidation.swift */,
+				0FF0E71F1BB683615D9E4832 /* Container */,
+				9C412C975BDD8C68EB359B37 /* Model */,
+			);
+			path = License;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
-		F3B2C8841F667222007601E4 /* Headers */ = {
+		0773765589E4A7C18D6CCBCE /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F3B2C8981F667223007601E4 /* readium-lcp-swift.h in Headers */,
+				13BA2CF35B912FFFE3CFD953 /* readium-lcp-swift.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		CA5A5E0425208F1B00CF1CCE /* readium-lcp-swiftTests */ = {
+		44C72C37DDD9DB57FC4AA612 /* ReadiumLCP */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CA5A5E0D25208F1B00CF1CCE /* Build configuration list for PBXNativeTarget "readium-lcp-swiftTests" */;
+			buildConfigurationList = B4A3794191CB1917BEF102B9 /* Build configuration list for PBXNativeTarget "ReadiumLCP" */;
 			buildPhases = (
-				CA5A5E0125208F1B00CF1CCE /* Sources */,
-				CA5A5E0225208F1B00CF1CCE /* Frameworks */,
-				CA5A5E0325208F1B00CF1CCE /* Resources */,
-				CA4CF4CE25CDA91C005DD935 /* Carthage */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				CA5A5E0C25208F1B00CF1CCE /* PBXTargetDependency */,
-			);
-			name = "readium-lcp-swiftTests";
-			productName = "readium-lcp-swiftTests";
-			productReference = CA5A5E0525208F1B00CF1CCE /* readium-lcp-swiftTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		F3B2C8861F667222007601E4 /* r2-lcp-swift */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = F3B2C89B1F667223007601E4 /* Build configuration list for PBXNativeTarget "r2-lcp-swift" */;
-			buildPhases = (
-				F3B2C8821F667222007601E4 /* Sources */,
-				F3B2C8831F667222007601E4 /* Frameworks */,
-				F3B2C8841F667222007601E4 /* Headers */,
-				F3B2C8851F667222007601E4 /* Resources */,
+				0773765589E4A7C18D6CCBCE /* Headers */,
+				B9C86C68422982A92588A519 /* Sources */,
+				25D78AA4E3E8C8428EBE6D41 /* Resources */,
+				8B12042C89A35BDD55029637 /* Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = "r2-lcp-swift";
-			productName = "readium-lcp-swift";
-			productReference = F3B2C8871F667222007601E4 /* ReadiumLCP.framework */;
+			name = ReadiumLCP;
+			productName = ReadiumLCP;
+			productReference = 4E06DF430EB12EBC99631FD7 /* ReadiumLCP.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		F3B2C87E1F667222007601E4 /* Project object */ = {
+		48C44539670A2C3578614505 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1200;
-				LastUpgradeCheck = 1250;
-				ORGANIZATIONNAME = Readium;
+				LastUpgradeCheck = 1200;
 				TargetAttributes = {
-					CA5A5E0425208F1B00CF1CCE = {
-						CreatedOnToolsVersion = 12.0;
-						DevelopmentTeam = 327YA3JNGT;
-						LastSwiftMigration = 1200;
-						ProvisioningStyle = Automatic;
-					};
-					F3B2C8861F667222007601E4 = {
-						CreatedOnToolsVersion = 8.3.3;
-						LastSwiftMigration = 1010;
-						ProvisioningStyle = Manual;
-					};
 				};
 			};
-			buildConfigurationList = F3B2C8811F667222007601E4 /* Build configuration list for PBXProject "r2-lcp-swift" */;
-			compatibilityVersion = "Xcode 3.2";
+			buildConfigurationList = AB8FD9A74741AEF60CF726D7 /* Build configuration list for PBXProject "r2-lcp-swift" */;
+			compatibilityVersion = "Xcode 10.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
 				Base,
+				en,
 			);
-			mainGroup = F3B2C87D1F667222007601E4;
-			productRefGroup = F3B2C8881F667222007601E4 /* Products */;
+			mainGroup = ACF8CF5142801518A1C3C5EE;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				F3B2C8861F667222007601E4 /* r2-lcp-swift */,
-				CA5A5E0425208F1B00CF1CCE /* readium-lcp-swiftTests */,
+				44C72C37DDD9DB57FC4AA612 /* ReadiumLCP */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		CA5A5E0325208F1B00CF1CCE /* Resources */ = {
+		25D78AA4E3E8C8428EBE6D41 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA5A5E152520908900CF1CCE /* Fixtures in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F3B2C8851F667222007601E4 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CAB214E12269C241007E989D /* prod-license.lcpl in Resources */,
-				CA50B88422B2A822003AFF24 /* Localizable.strings in Resources */,
-				CA6CF1ED2528CC9A0025BBB2 /* LCPDialogViewController.xib in Resources */,
+				085C35A5CB321B6F69B21524 /* LCPDialogViewController.xib in Resources */,
+				1649C221A5C23598621C5EC3 /* Localizable.strings in Resources */,
+				5C37B0F263D436FF2FF4F33E /* prod-license.lcpl in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		CA4CF4CE25CDA91C005DD935 /* Carthage */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/Carthage/Build/iOS/R2LCPClient.framework",
-			);
-			name = Carthage;
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/R2LCPClient.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "/usr/local/bin/carthage copy-frameworks\n";
-		};
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
-		CA5A5E0125208F1B00CF1CCE /* Sources */ = {
+		B9C86C68422982A92588A519 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA5A5E1B252090C100CF1CCE /* LCPDecryptorTests.swift in Sources */,
-				CA5A5E21252091E000CF1CCE /* Fixtures.swift in Sources */,
-				3ED94EE43308394A43E51641 /* LCPTestClient.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F3B2C8821F667222007601E4 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CAE7FB7A220C2E6F00D03587 /* LicenseValidation.swift in Sources */,
-				CAF6488F266F68B90067D2C3 /* Bundle.swift in Sources */,
-				CA2B6B5424C07B12007AF537 /* LCPDecryptor.swift in Sources */,
-				CA4A38742208647400599297 /* PassphrasesRepository.swift in Sources */,
-				CA4A3892220994E300599297 /* EPUBLicenseContainer.swift in Sources */,
-				CA2B6B5624C07B8C007AF537 /* DataCompression.swift in Sources */,
-				CAB1321F220DBA470097DFB5 /* NetworkService.swift in Sources */,
-				CA4A388E220988C800599297 /* LCPLLicenseContainer.swift in Sources */,
-				CA6CF1B32528984F0025BBB2 /* LCPLicense.swift in Sources */,
-				CA6CF1A725286FC20025BBB2 /* LCPAcquisition.swift in Sources */,
-				CAB131F6220D81E60097DFB5 /* LicensesRepository.swift in Sources */,
-				F38CDB221F697D3A004156CB /* PotentialRights.swift in Sources */,
-				CABEB3F62215C86C00090B6C /* LCPError+wrap.swift in Sources */,
-				CA4A388722086F7500599297 /* PassphrasesService.swift in Sources */,
-				CAE7FB82220C64D100D03587 /* CRLService.swift in Sources */,
-				CA9428FD22B9442300305CDB /* ReadiumLicenseContainer.swift in Sources */,
-				CA6CF1CD2528CB830025BBB2 /* LCPPassphraseAuthentication.swift in Sources */,
-				F36F9E261F826C17001D0DB4 /* Licenses.swift in Sources */,
-				F35AFA011F6AD54400D3F670 /* License.swift in Sources */,
-				F38FB03C1F6683F300F9D602 /* UserKey.swift in Sources */,
-				CA4A388C2209873B00599297 /* LicenseContainer.swift in Sources */,
-				F3B2C8AB1F66727C007601E4 /* LCPError.swift in Sources */,
-				CABD697D24CDDC6100B4AE17 /* Deferred.swift in Sources */,
-				CAB1320B220D9B200097DFB5 /* LCPService.swift in Sources */,
-				F3B2C8AA1F66727C007601E4 /* Event.swift in Sources */,
-				CAB13211220DB2B10097DFB5 /* LCPAuthenticating.swift in Sources */,
-				CA4A389022098A9400599297 /* ZIPLicenseContainer.swift in Sources */,
-				F38FB0381F66839600F9D602 /* Rights.swift in Sources */,
-				F36F9E281F8270FC001D0DB4 /* Transactions.swift in Sources */,
-				F3B2C8A81F66727C007601E4 /* StatusDocument.swift in Sources */,
-				CA50B88022B2A777003AFF24 /* R2LCPLocalizedString.swift in Sources */,
-				CA2AE328221C3CFB008BD18F /* Deprecated.swift in Sources */,
-				F38FB0361F66837800F9D602 /* User.swift in Sources */,
-				F38FB0421F66847E00F9D602 /* Signature.swift in Sources */,
-				CABEB3E32215756D00090B6C /* Links.swift in Sources */,
-				F3B2C8A71F66727C007601E4 /* LicenseDocument.swift in Sources */,
-				CA26EF7C2280331E0011653E /* Connection.swift in Sources */,
-				CAE7FB7E220C4C5C00D03587 /* DeviceRepository.swift in Sources */,
-				F38FB03A1F6683D800F9D602 /* Encryption.swift in Sources */,
-				CA6CF1E52528CC8E0025BBB2 /* LCPDialogViewController.swift in Sources */,
-				F3B2C8AC1F66727C007601E4 /* Link.swift in Sources */,
-				F38FB03E1F66840900F9D602 /* ContentKey.swift in Sources */,
-				CA6CF1C72528CB690025BBB2 /* LCPDialogAuthentication.swift in Sources */,
-				F331FBF81F8228F8007F16DF /* Database.swift in Sources */,
-				CAB57BC12204811100E4CB12 /* LicensesService.swift in Sources */,
-				CA2B6B5224C07880007AF537 /* LCPContentProtection.swift in Sources */,
-				CAE7FB7C220C4B7700D03587 /* DeviceService.swift in Sources */,
-				3ED94D142DA304C6D4E4DB81 /* LCPRenewDelegate.swift in Sources */,
-				3ED94B8AA015ACF0A3976C89 /* LCPClient.swift in Sources */,
+				39040D444E1A44F5BCA940BE /* Bundle.swift in Sources */,
+				775BC536DC54E961BF5F794A /* CRLService.swift in Sources */,
+				0ADB3D4A096C6662CD4C4C46 /* Connection.swift in Sources */,
+				63F5CA48133AD53B4AC2855E /* ContentKey.swift in Sources */,
+				73500A6507C7AB79A68D7AAD /* DataCompression.swift in Sources */,
+				45008B2446090AFE9C3FA55D /* Database.swift in Sources */,
+				7FB6EC346C7259BADB167DFC /* Deferred.swift in Sources */,
+				9767D1935F10236447D2F7A8 /* Deprecated.swift in Sources */,
+				39CED74B223E2D0A883E59D9 /* DeviceRepository.swift in Sources */,
+				880DC3B91CA524571148C8FE /* DeviceService.swift in Sources */,
+				BD081793DF4D526A0FF6114B /* EPUBLicenseContainer.swift in Sources */,
+				D813664B7BD8AF248D4860C8 /* Encryption.swift in Sources */,
+				0C8060C51D242A8E92D89ACD /* Event.swift in Sources */,
+				3623188C2BDFD87BF515B729 /* LCPAcquisition.swift in Sources */,
+				5B962DBB805F861175B5E555 /* LCPAuthenticating.swift in Sources */,
+				1AE72F0CA51970F3FC1EAA34 /* LCPClient.swift in Sources */,
+				A625952CDDB310468E2AF914 /* LCPContentProtection.swift in Sources */,
+				5E75B1AAEF9294E085E4CD5E /* LCPDecryptor.swift in Sources */,
+				7DC08FA59239C9CBCEE0A29B /* LCPDialogAuthentication.swift in Sources */,
+				F26E4D5367E89AACFEDFE4FE /* LCPDialogViewController.swift in Sources */,
+				3DBA5925F024304BE53EB26D /* LCPError+wrap.swift in Sources */,
+				A5CF7D8D97165A8AD9AFB24D /* LCPError.swift in Sources */,
+				97CF7BC1D5B1B4BE824A1E95 /* LCPLLicenseContainer.swift in Sources */,
+				F1C301B534181424892D9B76 /* LCPLicense.swift in Sources */,
+				E337826A1AAFFDA15A028B72 /* LCPPassphraseAuthentication.swift in Sources */,
+				1A6297F6F9DF912FD9B8E8D9 /* LCPRenewDelegate.swift in Sources */,
+				6726130AC2A334A7D1022E83 /* LCPService.swift in Sources */,
+				2AC14BC874CC592D8D92BF89 /* License.swift in Sources */,
+				F67EF475722DCDD6282A8815 /* LicenseContainer.swift in Sources */,
+				A5004FC6E25A987B1C5655BB /* LicenseDocument.swift in Sources */,
+				05FA55FCEC219601E456EA4A /* LicenseValidation.swift in Sources */,
+				B80B749D0059DFE1078D53B0 /* Licenses.swift in Sources */,
+				CEB68EAB7993190E3EF056CE /* LicensesRepository.swift in Sources */,
+				74043476CF48D2C36C88A6FF /* LicensesService.swift in Sources */,
+				B6CF5D2A3DA6A905C6F7F76B /* Link.swift in Sources */,
+				1A863CADADBCEE577BABF85F /* Links.swift in Sources */,
+				28A0550445EBADB8190BB5D7 /* NetworkService.swift in Sources */,
+				5F3D8961A04968F9CA44B5BD /* PassphrasesRepository.swift in Sources */,
+				252B3D9814E12E9E8B38B148 /* PassphrasesService.swift in Sources */,
+				F21201CB24C5D9C5D5A976AF /* PotentialRights.swift in Sources */,
+				8819F94A818C59AD15D479F4 /* R2LCPLocalizedString.swift in Sources */,
+				F0787D28E40757218A5A4C8E /* ReadiumLicenseContainer.swift in Sources */,
+				E0051EBFEE73EC7E0D9699FB /* Rights.swift in Sources */,
+				B275FD0A9E641AB7D2D9E10E /* Signature.swift in Sources */,
+				151B95FD5C458C7180117D91 /* StatusDocument.swift in Sources */,
+				903BBE43FF8D08A2EECE07EE /* Transactions.swift in Sources */,
+				6F77350307B90B199B5A2585 /* User.swift in Sources */,
+				95DCB733882FCC49F79F2A8C /* UserKey.swift in Sources */,
+				85574E5298595B6A500C0473 /* ZIPLicenseContainer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXTargetDependency section */
-		CA5A5E0C25208F1B00CF1CCE /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			platformFilter = ios;
-			target = F3B2C8861F667222007601E4 /* r2-lcp-swift */;
-			targetProxy = CA5A5E0B25208F1B00CF1CCE /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
-
 /* Begin PBXVariantGroup section */
-		CA50B88622B2A822003AFF24 /* Localizable.strings */ = {
+		61590B0D09C16B68A2FC1D42 /* LCPDialogViewController.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
-				CA50B88522B2A822003AFF24 /* en */,
-			);
-			name = Localizable.strings;
-			sourceTree = "<group>";
-		};
-		CA6CF1EB2528CC9A0025BBB2 /* LCPDialogViewController.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				CA6CF1EC2528CC9A0025BBB2 /* Base */,
+				E1CC1B2B1A7F396C6A166AD3 /* Base */,
 			);
 			name = LCPDialogViewController.xib;
+			sourceTree = "<group>";
+		};
+		7968BD883477BD2B905248A0 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				AC9985DB9A750E8863CB0655 /* en */,
+			);
+			name = Localizable.strings;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		CA5A5E0E25208F1B00CF1CCE /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 327YA3JNGT;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(SRCROOT)/Carthage/Build/**",
-				);
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				INFOPLIST_FILE = "readium-lcp-swiftTests/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.readium-lcp-swift.readium-lcp-swiftTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "readium-lcp-swiftTests/readium-lcp-swiftTests-Bridging-Header.h";
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		CA5A5E0F25208F1B00CF1CCE /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 327YA3JNGT;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(SRCROOT)/Carthage/Build/**",
-				);
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				INFOPLIST_FILE = "readium-lcp-swiftTests/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.readium-lcp-swift.readium-lcp-swiftTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "readium-lcp-swiftTests/readium-lcp-swiftTests-Bridging-Header.h";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
-		F3B2C8991F667223007601E4 /* Debug */ = {
+		4137F36CE932ACC1444160C1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
@@ -710,21 +517,20 @@
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
 					"$(inherited)",
+					"DEBUG=1",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
@@ -732,30 +538,28 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				MTL_ENABLE_DEBUG_INFO = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VERSIONING_SYSTEM = "apple-generic";
-				VERSION_INFO_PREFIX = "";
 			};
 			name = Debug;
 		};
-		F3B2C89A1F667223007601E4 /* Release */ = {
+		8109AB71C527965BEBF146BF /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
@@ -775,15 +579,14 @@
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
@@ -791,34 +594,28 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
-				VERSIONING_SYSTEM = "apple-generic";
-				VERSION_INFO_PREFIX = "";
 			};
 			name = Release;
 		};
-		F3B2C89C1F667223007601E4 /* Debug */ = {
+		8FA303A1B0BB4EE7D29CB361 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_ENABLE_CODE_COVERAGE = NO;
 				CODE_SIGN_IDENTITY = "";
-				CODE_SIGN_STYLE = Manual;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/Carthage/Build/iOS",
+					"\"Carthage/Build\"",
 				);
 				INFOPLIST_FILE = "readium-lcp-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -826,35 +623,28 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)",
-				);
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/Carthage";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.readium-lcp-swift";
-				PRODUCT_NAME = ReadiumLCP;
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
 		};
-		F3B2C89D1F667223007601E4 /* Release */ = {
+		9047233C9B47DF112244DAC2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_ENABLE_CODE_COVERAGE = NO;
 				CODE_SIGN_IDENTITY = "";
-				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/Carthage/Build/iOS",
+					"\"Carthage/Build\"",
 				);
 				INFOPLIST_FILE = "readium-lcp-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -862,52 +652,38 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)",
-				);
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/Carthage";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.readium-lcp-swift";
-				PRODUCT_NAME = ReadiumLCP;
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		CA5A5E0D25208F1B00CF1CCE /* Build configuration list for PBXNativeTarget "readium-lcp-swiftTests" */ = {
+		AB8FD9A74741AEF60CF726D7 /* Build configuration list for PBXProject "r2-lcp-swift" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				CA5A5E0E25208F1B00CF1CCE /* Debug */,
-				CA5A5E0F25208F1B00CF1CCE /* Release */,
+				4137F36CE932ACC1444160C1 /* Debug */,
+				8109AB71C527965BEBF146BF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
-		F3B2C8811F667222007601E4 /* Build configuration list for PBXProject "r2-lcp-swift" */ = {
+		B4A3794191CB1917BEF102B9 /* Build configuration list for PBXNativeTarget "ReadiumLCP" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				F3B2C8991F667223007601E4 /* Debug */,
-				F3B2C89A1F667223007601E4 /* Release */,
+				8FA303A1B0BB4EE7D29CB361 /* Debug */,
+				9047233C9B47DF112244DAC2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		F3B2C89B1F667223007601E4 /* Build configuration list for PBXNativeTarget "r2-lcp-swift" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				F3B2C89C1F667223007601E4 /* Debug */,
-				F3B2C89D1F667223007601E4 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = F3B2C87E1F667222007601E4 /* Project object */;
+	rootObject = 48C44539670A2C3578614505 /* Project object */;
 }
