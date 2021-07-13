@@ -1,0 +1,140 @@
+# XCODEGEN VERSION
+2.24.0
+
+# SPEC
+{
+  "name" : "r2-navigator-swift",
+  "options" : {
+    "bundleIdPrefix" : "org.readium"
+  },
+  "schemes" : {
+    "r2-navigator-swift" : {
+      "build" : {
+        "targets" : {
+          "R2Navigator" : "all"
+        }
+      }
+    }
+  },
+  "targets" : {
+    "R2Navigator" : {
+      "dependencies" : [
+        {
+          "framework" : "Carthage\/Build\/Fuzi.xcframework"
+        },
+        {
+          "framework" : "Carthage\/Build\/Minizip.xcframework"
+        },
+        {
+          "framework" : "Carthage\/Build\/R2Shared.xcframework"
+        },
+        {
+          "framework" : "Carthage\/Build\/SwiftSoup.xcframework"
+        }
+      ],
+      "deploymentTarget" : "10.0",
+      "platform" : "iOS",
+      "settings" : {
+        "LIBRARY_SEARCH_PATHS" : "$(PROJECT_DIR)\/Carthage",
+        "PRODUCT_BUNDLE_IDENTIFIER" : "org.readium.r2-navigator-swift"
+      },
+      "sources" : [
+        {
+          "excludes" : [
+            "EPUB\/Assets"
+          ],
+          "path" : "r2-navigator-swift"
+        },
+        {
+          "path" : "r2-navigator-swift\/EPUB\/Assets",
+          "type" : "folder"
+        }
+      ],
+      "type" : "framework"
+    }
+  }
+}
+
+# FILES
+r2-navigator-swift
+r2-navigator-swift/.DS_Store
+r2-navigator-swift/Audiobook
+r2-navigator-swift/Audiobook/AudioNavigator.swift
+r2-navigator-swift/Audiobook/PublicationMediaLoader.swift
+r2-navigator-swift/CBZ
+r2-navigator-swift/CBZ/CBZNavigatorViewController.swift
+r2-navigator-swift/CBZ/ImageViewController.swift
+r2-navigator-swift/EditingAction.swift
+r2-navigator-swift/EPUB
+r2-navigator-swift/EPUB/.DS_Store
+r2-navigator-swift/EPUB/Assets
+r2-navigator-swift/EPUB/Assets/fxl-spread-one.html
+r2-navigator-swift/EPUB/Assets/fxl-spread-two.html
+r2-navigator-swift/EPUB/Assets/Scripts
+r2-navigator-swift/EPUB/Assets/Scripts/css-inline.js
+r2-navigator-swift/EPUB/Assets/Scripts/css.js
+r2-navigator-swift/EPUB/Assets/Scripts/fixed.js
+r2-navigator-swift/EPUB/Assets/Scripts/gestures.js
+r2-navigator-swift/EPUB/Assets/Scripts/reflowable.js
+r2-navigator-swift/EPUB/Assets/Scripts/utils.js
+r2-navigator-swift/EPUB/Assets/Static
+r2-navigator-swift/EPUB/Assets/Static/readium-css
+r2-navigator-swift/EPUB/Assets/Static/readium-css/cjk-horizontal
+r2-navigator-swift/EPUB/Assets/Static/readium-css/cjk-horizontal/ReadiumCSS-after.css
+r2-navigator-swift/EPUB/Assets/Static/readium-css/cjk-horizontal/ReadiumCSS-before.css
+r2-navigator-swift/EPUB/Assets/Static/readium-css/cjk-horizontal/ReadiumCSS-default.css
+r2-navigator-swift/EPUB/Assets/Static/readium-css/cjk-vertical
+r2-navigator-swift/EPUB/Assets/Static/readium-css/cjk-vertical/ReadiumCSS-after.css
+r2-navigator-swift/EPUB/Assets/Static/readium-css/cjk-vertical/ReadiumCSS-before.css
+r2-navigator-swift/EPUB/Assets/Static/readium-css/cjk-vertical/ReadiumCSS-default.css
+r2-navigator-swift/EPUB/Assets/Static/readium-css/fonts
+r2-navigator-swift/EPUB/Assets/Static/readium-css/fonts/AccessibleDfA.otf
+r2-navigator-swift/EPUB/Assets/Static/readium-css/fonts/iAWriterDuospace-Regular.ttf
+r2-navigator-swift/EPUB/Assets/Static/readium-css/fonts/LICENSE-AccessibleDfa
+r2-navigator-swift/EPUB/Assets/Static/readium-css/fonts/LICENSE-IaWriterDuospace.md
+r2-navigator-swift/EPUB/Assets/Static/readium-css/ReadiumCSS-after.css
+r2-navigator-swift/EPUB/Assets/Static/readium-css/ReadiumCSS-before.css
+r2-navigator-swift/EPUB/Assets/Static/readium-css/ReadiumCSS-default.css
+r2-navigator-swift/EPUB/Assets/Static/readium-css/ReadiumCSS-ebpaj_fonts_patch.css
+r2-navigator-swift/EPUB/Assets/Static/readium-css/ReadMe.md
+r2-navigator-swift/EPUB/Assets/Static/readium-css/rtl
+r2-navigator-swift/EPUB/Assets/Static/readium-css/rtl/ReadiumCSS-after.css
+r2-navigator-swift/EPUB/Assets/Static/readium-css/rtl/ReadiumCSS-before.css
+r2-navigator-swift/EPUB/Assets/Static/readium-css/rtl/ReadiumCSS-default.css
+r2-navigator-swift/EPUB/EPUBFixedSpreadView.swift
+r2-navigator-swift/EPUB/EPUBNavigatorViewController.swift
+r2-navigator-swift/EPUB/EPUBReflowableSpreadView.swift
+r2-navigator-swift/EPUB/EPUBSpread.swift
+r2-navigator-swift/EPUB/EPUBSpreadView.swift
+r2-navigator-swift/EPUB/Resources
+r2-navigator-swift/EPUB/Resources/.DS_Store
+r2-navigator-swift/EPUB/Resources/Static
+r2-navigator-swift/EPUB/Resources/Static/.DS_Store
+r2-navigator-swift/EPUB/Resources/Static/readium-css
+r2-navigator-swift/EPUB/Resources/Static/readium-css/.DS_Store
+r2-navigator-swift/EPUB/UserSettings.swift
+r2-navigator-swift/Info.plist
+r2-navigator-swift/MediaNavigator.swift
+r2-navigator-swift/Navigator.swift
+r2-navigator-swift/PDF
+r2-navigator-swift/PDF/PDFDocumentHolder.swift
+r2-navigator-swift/PDF/PDFDocumentView.swift
+r2-navigator-swift/PDF/PDFNavigatorViewController.swift
+r2-navigator-swift/PDF/PDFTapGestureController.swift
+r2-navigator-swift/r2-navigator-swift.h
+r2-navigator-swift/Resources
+r2-navigator-swift/Resources/.DS_Store
+r2-navigator-swift/Resources/en.lproj
+r2-navigator-swift/Resources/en.lproj/Localizable.strings
+r2-navigator-swift/Toolkit
+r2-navigator-swift/Toolkit/CompletionList.swift
+r2-navigator-swift/Toolkit/Extensions
+r2-navigator-swift/Toolkit/Extensions/Bundle.swift
+r2-navigator-swift/Toolkit/Extensions/WKWebView.swift
+r2-navigator-swift/Toolkit/PaginationView.swift
+r2-navigator-swift/Toolkit/R2NavigatorLocalizedString.swift
+r2-navigator-swift/Toolkit/TargetAction.swift
+r2-navigator-swift/Toolkit/UIColor.swift
+r2-navigator-swift/Toolkit/UIView.swift
+r2-navigator-swift/Toolkit/WebView.swift
+r2-navigator-swift/VisualNavigator.swift"
