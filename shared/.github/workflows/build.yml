@@ -17,6 +17,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Install dependencies
+        run: brew install xcodegen
+      - name: Check Carthage project
+        run: |
+          # Check that the Carthage project is up to date.
+          make carthage
+          git diff --exit-code --name-only r2-shared-swift.xcodeproj
       - name: Prepare build
         run: |
           # r2-shared-swift.xcodeproj is only relevant for Carthage. We remove it otherwise xcodebuild will use it.

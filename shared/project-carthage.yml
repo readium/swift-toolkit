@@ -1,0 +1,25 @@
+name: r2-shared-swift
+options:
+  bundleIdPrefix: org.readium
+targets:
+  R2Shared:
+    type: framework
+    platform: iOS
+    deploymentTarget: "10.0"
+    sources: 
+      - path: r2-shared-swift
+        excludes:
+          - Toolkit/Archive/ZIPFoundation.swift
+    dependencies:
+      - framework: Carthage/Build/Fuzi.xcframework
+      - framework: Carthage/Build/Minizip.xcframework
+      - framework: Carthage/Build/SwiftSoup.xcframework
+      - sdk: CoreServices.framework
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-shared-swift
+      LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)/Carthage
+schemes:
+  r2-shared-swift:
+    build:
+      targets:
+        R2Shared: all

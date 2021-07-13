@@ -1,0 +1,26 @@
+# Use this XcodeGen project spec when using R2Shared with Carthage as a submodule on Xcode 12.5+.
+# See https://github.com/readium/r2-testapp-swift/issues/351#issuecomment-829250100
+name: r2-shared-swift
+options:
+  bundleIdPrefix: org.readium
+targets:
+  R2Shared:
+    type: framework
+    platform: iOS
+    deploymentTarget: "10.0"
+    sources: 
+      - path: r2-shared-swift
+        excludes:
+          - Toolkit/Archive/ZIPFoundation.swift
+    dependencies:
+      - framework: Fuzi.framework
+      - framework: Minizip.framework
+      - framework: SwiftSoup.framework
+      - sdk: CoreServices.framework
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-shared-swift
+schemes:
+  r2-shared-swift:
+    build:
+      targets:
+        R2Shared: all
