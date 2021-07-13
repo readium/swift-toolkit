@@ -42,21 +42,36 @@ jobs:
           device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
           xcodebuild build -scheme R2TestApp -destination "platform=$platform,name=$device"
 
-  # Carthage is failing before Big Sur.
-  # carthage:
-  #   name: Carthage integration
-  #   runs-on: macos-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v2
-  #     - name: Install dependencies
-  #       run: brew install xcodegen
-  #     - name: Generate project
-  #       run: make carthage
-  #     - name: Build
-  #       run: |
-  #         device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
-  #         xcodebuild build -scheme R2TestApp -destination "platform=$platform,name=$device"
+  carthage:
+    name: Carthage integration
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: brew install xcodegen
+      - name: Generate project
+        run: make carthage
+      - name: Build
+        run: |
+          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
+          xcodebuild build -scheme R2TestApp -destination "platform=$platform,name=$device"
+
+  carthage_lcp:
+    name: Carthage integration (LCP)
+    runs-on: macos-latest
+    environment: LCP
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: brew install xcodegen
+      - name: Generate project
+        run: make carthage lcp=${{ secrets.LCP_URL_CARTHAGE }}
+      - name: Build
+        run: |
+          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
+          xcodebuild build -scheme R2TestApp -destination "platform=$platform,name=$device"
 
   cocoapods:
     name: CocoaPods integration
