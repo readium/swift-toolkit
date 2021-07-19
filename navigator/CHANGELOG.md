@@ -10,22 +10,24 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 * Support for Swift Package Manager (contributed by [@stevenzeck](https://github.com/readium/r2-navigator-swift/pull/176)).
-* The EPUB navigator is now able to navigate to a `Locator` using its `text` context. This is useful for search results or highlights missing precise locations.
-* New `EPUBNavigatorViewController.evaluateJavaScript()` API to run a JavaScript on the currently visible HTML resource.
-* You can provide custom editing actions for the text selection menu (contributed by [@cbaltzer](https://github.com/readium/r2-navigator-swift/pull/181)).
-    1. Create a custom action with, for example: `EditingAction(title: "Highlight", action: #selector(highlight:))`
-    2. Then, implement the selector in one of your classes in the responder chain. Typically, in the `UIViewController` wrapping the navigator view controller.
-    ```swift
-    class EPUBViewController: UIViewController {
-        init(publication: Publication) {
-            var config = EPUBNavigatorViewController.Configuration()
-            config.editingActions.append(EditingAction(title: "Highlight", action: #selector(highlight)))
-            let navigator = EPUBNavigatorViewController(publication: publication, config: config)
-        }
+* EPUB navigator:
+    * The EPUB navigator is now able to navigate to a `Locator` using its `text` context. This is useful for search results or highlights missing precise locations.
+    * New `EPUBNavigatorViewController.evaluateJavaScript()` API to run a JavaScript on the currently visible HTML resource.
+    * New `userSettings` property for `EPUBNavigatorViewController.Configuration` to set the default user settings values (contributed by [@ettore](https://github.com/readium/r2-navigator-swift/pull/191)).
+    * You can provide custom editing actions for the text selection menu (contributed by [@cbaltzer](https://github.com/readium/r2-navigator-swift/pull/181)).
+        1. Create a custom action with, for example: `EditingAction(title: "Highlight", action: #selector(highlight:))`
+        2. Then, implement the selector in one of your classes in the responder chain. Typically, in the `UIViewController` wrapping the navigator view controller.
+        ```swift
+        class EPUBViewController: UIViewController {
+            init(publication: Publication) {
+                var config = EPUBNavigatorViewController.Configuration()
+                config.editingActions.append(EditingAction(title: "Highlight", action: #selector(highlight)))
+                let navigator = EPUBNavigatorViewController(publication: publication, config: config)
+            }
 
-        @objc func highlight(_ sender: Any) {}
-    }
-    ```
+            @objc func highlight(_ sender: Any) {}
+        }
+        ```
 * (*alpha*) A new navigator for audiobooks.
   * The navigator is chromeless, so you will need to provide your own user interface.
 
