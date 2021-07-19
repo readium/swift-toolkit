@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
         }
     }
     ```
+* New `UserProperties.removeProperty(forReference:)` API to remove unwanted Readium CSS properties (contributed by [@ettore](https://github.com/readium/r2-shared-swift/pull/157)).
 
 
 ## [2.0.1]

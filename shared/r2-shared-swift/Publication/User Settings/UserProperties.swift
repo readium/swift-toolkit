@@ -123,4 +123,13 @@ public class UserProperties {
     public func getProperty(reference: String) -> UserProperty? {
         return properties.filter { $0.reference == reference }.first
     }
+
+    /// Removes a property matching a ReadiumCSS reference.
+    /// - Parameter ref: The CSS reference of the property to be removed.
+    public func removeProperty(forReference ref: ReadiumCSSReference) {
+        properties.removeAll {
+            $0.reference == ref.rawValue
+        }
+    }
+
 }
