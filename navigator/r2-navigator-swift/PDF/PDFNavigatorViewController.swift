@@ -238,14 +238,16 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
             let text = selection.string,
             let page = selection.pages.first else
         {
-            editingActions.selectionDidChange(nil)
+            editingActions.selection = nil
             return
         }
         
-        let frame = pdfView.convert(selection.bounds(for: page), from: page)
-            // Makes it slightly bigger to have more room when displaying a popover.
-            .insetBy(dx: -8, dy: -8)
-        editingActions.selectionDidChange((text: text, frame: frame))
+        editingActions.selection = Selection(
+            locator: Locator(href: "", type: "", text: Locator.Text(highlight: text)),
+            frame: pdfView.convert(selection.bounds(for: page), from: page)
+                // Makes it slightly bigger to have more room when displaying a popover.
+                .insetBy(dx: -8, dy: -8)
+        )
     }
 
     @objc private func shareSelection(_ sender: Any?) {
@@ -342,7 +344,14 @@ extension PDFNavigatorViewController: EditingActionsControllerDelegate {
     func editingActionsDidPreventCopy(_ editingActions: EditingActionsController) {
         delegate?.navigator(self, presentError: .copyForbidden)
     }
-    
+
+    func editingActions(_ editingActions: EditingActionsController, shouldShowMenuForSelection selection: Selection) -> Bool {
+        true
+    }
+
+    func editingActions(_ editingActions: EditingActionsController, canPerformAction action: EditingAction, for selection: Selection) -> Bool {
+        true
+    }
 }
 
 @available(iOS 11.0, *)

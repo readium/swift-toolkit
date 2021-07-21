@@ -710,7 +710,14 @@ extension EPUBNavigatorViewController: EditingActionsControllerDelegate {
         // FIXME: Deprecated, to be removed at some point.
         delegate?.presentError(.copyForbidden)
     }
-    
+
+    func editingActions(_ editingActions: EditingActionsController, shouldShowMenuForSelection selection: Selection) -> Bool {
+        true
+    }
+
+    func editingActions(_ editingActions: EditingActionsController, canPerformAction action: EditingAction, for selection: Selection) -> Bool {
+        true
+    }
 }
 
 extension EPUBNavigatorViewController: PaginationViewDelegate {

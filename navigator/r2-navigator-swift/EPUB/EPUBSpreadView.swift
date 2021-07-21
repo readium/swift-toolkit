@@ -1,18 +1,12 @@
 //
-//  EPUBSpreadView.swift
-//  r2-navigator-swift
-//
-//  Created by Winnie Quinn, Alexandre Camilleri, Mickaël Menu on 8/23/17.
-//
 //  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import WebKit
 import R2Shared
 import SwiftSoup
-
 
 protocol EPUBSpreadViewDelegate: AnyObject {
     
@@ -24,7 +18,7 @@ protocol EPUBSpreadViewDelegate: AnyObject {
     
     /// Called when the user tapped on an internal link.
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, tapData: TapData?)
-    
+
     /// Called when the pages visible in the spread changed.
     func spreadViewPagesDidChange(_ spreadView: EPUBSpreadView)
     
@@ -234,18 +228,21 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             let text = selection["text"] as? String,
             let frame = selection["frame"] as? [String: Any] else
         {
+            editingActions.selection = nil
             log(.warning, "Invalid body for selectionDidChange: \(body)")
             return
         }
-        editingActions.selectionDidChange((
-            text: text,
+        editingActions.selection = Selection(
+            locator: Locator(
+                href: "", type: "", text: Locator.Text(highlight: text)
+            ),
             frame: CGRect(
                 x: frame["x"] as? CGFloat ?? 0,
                 y: frame["y"] as? CGFloat ?? 0,
                 width: frame["width"] as? CGFloat ?? 0,
                 height: frame["height"] as? CGFloat ?? 0
             )
-        ))
+        )
     }
     
     /// Called when the user hit the Share item in the selection context menu.

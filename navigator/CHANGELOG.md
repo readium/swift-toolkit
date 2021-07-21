@@ -28,6 +28,10 @@ All notable changes to this project will be documented in this file.
             @objc func highlight(_ sender: Any) {}
         }
         ```
+* New `SelectableNavigator` protocol for navigators supporting user selection.
+    * Get or clear the current selection.
+    * Implement `navigator(_:canPerformAction:for:)` to validate each editing action for the current selection. For example, to make sure the selected text is not too large for a definition look up.
+    * Implement `navigator(_:shouldShowMenuForSelection:)` to override the default edit menu (`UIMenuController`) with a custom selection pop-up.
 * (*alpha*) A new navigator for audiobooks.
   * The navigator is chromeless, so you will need to provide your own user interface.
 
