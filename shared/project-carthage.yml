@@ -1,4 +1,6 @@
 name: r2-shared-swift
+attributes:
+  LastUpgradeCheck: "1250"
 options:
   bundleIdPrefix: org.readium
 targets:
