@@ -3,6 +3,9 @@
 
 # SPEC
 {
+  "attributes" : {
+    "LastUpgradeCheck" : "1250"
+  },
   "name" : "r2-navigator-swift",
   "options" : {
     "bundleIdPrefix" : "org.readium"

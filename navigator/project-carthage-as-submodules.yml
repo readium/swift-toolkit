@@ -1,6 +1,8 @@
 # Use this XcodeGen project spec when using R2Navigator with Carthage as a submodule on Xcode 12.5+.
 # See https://github.com/readium/r2-testapp-swift/issues/351#issuecomment-829250100
 name: r2-navigator-swift
+attributes:
+  LastUpgradeCheck: "1250"
 options:
   bundleIdPrefix: org.readium
 targets:
