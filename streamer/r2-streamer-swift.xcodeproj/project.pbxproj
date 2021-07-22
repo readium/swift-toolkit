@@ -391,7 +391,7 @@
 		BDD94E8927241F36D8620F2B /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1200;
+				LastUpgradeCheck = 1250;
 				TargetAttributes = {
 				};
 			};
