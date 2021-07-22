@@ -1,4 +1,6 @@
 name: r2-lcp-swift
+attributes:
+  LastUpgradeCheck: "1250"
 options:
   bundleIdPrefix: org.readium
 targets:
