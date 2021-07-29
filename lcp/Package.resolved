@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/krzyzanowskim/CryptoSwift.git",
         "state": {
           "branch": null,
-          "revision": "5669f222e46c8134fb1f399c745fa6882b43532e",
-          "version": "1.3.8"
+          "revision": "8d4f6384e0a8cc41f2005247241dd553963a492a",
+          "version": "1.4.1"
         }
       },
       {
@@ -23,9 +23,9 @@
         "package": "r2-shared-swift",
         "repositoryURL": "https://github.com/readium/r2-shared-swift.git",
         "state": {
-          "branch": "develop",
-          "revision": "2b2d0d936f776801161e256ec807ddbc66b5bf4d",
-          "version": null
+          "branch": null,
+          "revision": "f631efdb51ad6cb55fb173b4e80bbb1d1215fa76",
+          "version": "2.1.0"
         }
       },
       {

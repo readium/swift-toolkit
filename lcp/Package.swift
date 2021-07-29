@@ -18,7 +18,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.3.8"),
-        .package(url: "https://github.com/readium/r2-shared-swift.git", .branch("develop")),
+        .package(url: "https://github.com/readium/r2-shared-swift.git", from: "2.1.0"),
         .package(url: "https://github.com/stephencelis/SQLite.swift.git", from: "0.12.2"),
         // 0.9.12 requires iOS 12+
         .package(url: "https://github.com/weichsel/ZIPFoundation.git", "0.9.0"..<"0.9.12"),

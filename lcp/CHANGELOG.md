@@ -4,11 +4,14 @@ All notable changes to this project will be documented in this file.
 
 **Warning:** Features marked as *experimental* may change or be removed in a future release without notice. Use with caution.
 
-## [Unreleased]
+<!--## [Unreleased]-->
+
+## [2.1.0]
 
 ### Added
 
 * Support for Swift Package Manager (contributed by [@stevenzeck](https://github.com/readium/r2-lcp-swift/pull/121)).
+
 
 ## [2.0.0]
 
@@ -82,3 +85,4 @@ All notable changes to this project will be documented in this file.
 [2.0.0-beta.1]: https://github.com/readium/r2-lcp-swift/compare/2.0.0-alpha.2...2.0.0-beta.1
 [2.0.0-beta.2]: https://github.com/readium/r2-lcp-swift/compare/2.0.0-beta.1...2.0.0-beta.2
 [2.0.0]: https://github.com/readium/r2-lcp-swift/compare/2.0.0-beta.2...2.0.0
+[2.1.0]: https://github.com/readium/r2-lcp-swift/compare/2.0.0...2.1.0
