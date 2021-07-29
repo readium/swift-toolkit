@@ -4,19 +4,19 @@ options:
 packages:
   R2Shared:
     url: https://github.com/readium/r2-shared-swift.git
-    from: 2.1.0
+    branch: develop
   R2Streamer:
     url: https://github.com/readium/r2-streamer-swift.git
-    from: 2.1.0
+    branch: develop
   R2Navigator:
     url: https://github.com/readium/r2-navigator-swift.git
-    from: 2.1.0
+    branch: develop
   ReadiumOPDS:
     url: https://github.com/readium/r2-opds-swift.git
-    from: 2.1.0
+    branch: develop
   ReadiumLCP:
     url: https://github.com/readium/r2-lcp-swift.git
-    from: 2.1.0
+    branch: develop
   Kingfisher:
     url: https://github.com/onevcat/Kingfisher.git
     from: 5.15.8
