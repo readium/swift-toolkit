@@ -6,7 +6,7 @@ Pod::Spec.new do |s|
   s.summary       = "Readium LCP"
   s.homepage      = "http://readium.github.io"
   s.author        = { "Readium" => "contact@readium.org" }
-  s.source        = { :git => 'https://github.com/readium/r2-lcp-swift.git', :tag => '2.1.0' }
+  s.source        = { :git => "https://github.com/readium/r2-lcp-swift.git", :branch => "develop" }
   s.exclude_files = ["**/Info*.plist"]
   s.requires_arc  = true
   s.resources     = ['readium-lcp-swift/Resources/**']

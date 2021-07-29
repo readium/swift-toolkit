@@ -23,9 +23,9 @@
         "package": "r2-shared-swift",
         "repositoryURL": "https://github.com/readium/r2-shared-swift.git",
         "state": {
-          "branch": null,
-          "revision": "f631efdb51ad6cb55fb173b4e80bbb1d1215fa76",
-          "version": "2.1.0"
+          "branch": "develop",
+          "revision": "ce8792022235cbc731e6d6731968f3ceb04b7674",
+          "version": null
         }
       },
       {
