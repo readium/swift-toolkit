@@ -6,7 +6,7 @@ Pod::Spec.new do |s|
   s.summary       = "R2 Streamer"
   s.homepage      = "http://readium.github.io"
   s.author        = { "Readium" => "contact@readium.org" }
-  s.source        = { :git => 'https://github.com/readium/r2-streamer-swift.git', :tag => '2.1.0' }
+  s.source        = { :git => "https://github.com/readium/r2-streamer-swift.git", :branch => "develop" }
   s.exclude_files = ["**/Info*.plist"]
   s.requires_arc  = true
   s.resources     = ['r2-streamer-swift/Resources/**', 'r2-streamer-swift/Assets']
