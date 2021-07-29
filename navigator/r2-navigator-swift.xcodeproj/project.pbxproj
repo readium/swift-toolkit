@@ -1,0 +1,545 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 51;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1BD9D1D8EA882809ECBB4FCE /* ImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331D470DE1F56F5CE5564AF6 /* ImageViewController.swift */; };
+		21440458DCB28066BEDBFD43 /* PDFTapGestureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A5FB445C75AA31FB25BD2ED /* PDFTapGestureController.swift */; };
+		2D510D51E82E5C7063649249 /* SelectableNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BAAF48CB489F2A4DA3DBA59 /* SelectableNavigator.swift */; };
+		2D5851F84FBD14E2F515C70A /* Assets in Resources */ = {isa = PBXBuildFile; fileRef = 5D972CC66FB680A102534176 /* Assets */; };
+		3B833E85FECC7DB90E836A80 /* R2Shared.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BD382BFACB85B2683A207C5 /* R2Shared.xcframework */; };
+		46E4FA75F40DD760E3552654 /* UIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F5B0D2496801B636236BA1B /* UIView.swift */; };
+		4BF7B3982C1C18ABCB9EC0CB /* VisualNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03C26E7D8836F3A550D8B4F /* VisualNavigator.swift */; };
+		4C04BD0CAEAADBBFA28E748B /* r2-navigator-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = B10897217680341853FF818A /* r2-navigator-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		53BF85FF4332776BD964F5E9 /* EditingAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = E01A8B5993458A3D3782BF60 /* EditingAction.swift */; };
+		5803DDCD04EB4BF899902CA9 /* SwiftSoup.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B21569803AE9C0E2203616F /* SwiftSoup.xcframework */; };
+		5FB02E95F9F310EE9AFD80EF /* PDFDocumentHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3038E23CF2927A8CA8AFD040 /* PDFDocumentHolder.swift */; };
+		6B5A5527147E712F22954666 /* PaginationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 445ECE8AECD921ADA1E4E637 /* PaginationView.swift */; };
+		73756BC83CDBF1632BB417ED /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D45E6BB56FDE61204428297D /* Localizable.strings */; };
+		7A068CC955A1FB991F4AFD66 /* PublicationMediaLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6BC4E4D2F58268FA1789A79 /* PublicationMediaLoader.swift */; };
+		7FAAD94BA099F25FB7AE5128 /* Minizip.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF86506BF19520C343F42B23 /* Minizip.xcframework */; };
+		8965878360F5E0135520436F /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C7DAFEE6D2F4E023F49E78A /* UserSettings.swift */; };
+		8B96D07BFEF014F52D9AA6A1 /* CompletionList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44C2E42084CF2C3B5E71E497 /* CompletionList.swift */; };
+		8E91BDDA84C871018EB9F7D6 /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 130C5618291A5028F0BEBE35 /* UIColor.swift */; };
+		8F98C3BF7B22392BB35F7421 /* TargetAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3A519315FB0DA8CEC5AF0E1 /* TargetAction.swift */; };
+		901A347F8EB5A187AB393B1D /* R2NavigatorLocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE4B7CA499653CBD2AE3612B /* R2NavigatorLocalizedString.swift */; };
+		9BC299D4AD09F1198A52C563 /* EPUBSpread.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB63357E84882918E348DD5 /* EPUBSpread.swift */; };
+		B1ADE4021DB62F1B2DC85FCA /* WKWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BB825199ABD0E5F79723533 /* WKWebView.swift */; };
+		B9F74E90F07C6571AC5D9FB4 /* EPUBFixedSpreadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B4946C4CDB6A43CA976023 /* EPUBFixedSpreadView.swift */; };
+		BA06C2FE3010EF57E0337FC0 /* EPUBReflowableSpreadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 407D67BA1D37A0369A0A3945 /* EPUBReflowableSpreadView.swift */; };
+		BAE2564937D0C55ACE9F784F /* PDFDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31A8B5B74F18492D2567024A /* PDFDocumentView.swift */; };
+		BB8F3062B6E4784FBEFB890D /* MediaNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EA1EFC5ACA6F1A7481DC9ED /* MediaNavigator.swift */; };
+		C02C0380EFC7AB159FA52348 /* Bundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21B077F63CC0F9E659C11B8 /* Bundle.swift */; };
+		C29A981148FC629D3CBDE096 /* AudioNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D440D156DE35152103F6165C /* AudioNavigator.swift */; };
+		C591CAEF8CAC1C3D09BBF4A8 /* PDFNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA656E49C24446310A6D5BA /* PDFNavigatorViewController.swift */; };
+		CBF3115D2DACA814BD4FD073 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99B11DE979D0EBA1AB8A26C /* WebView.swift */; };
+		CE30E6EEF1AB2B822E6AD19C /* EPUBNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 662713F3327F9EF154B39BE7 /* EPUBNavigatorViewController.swift */; };
+		DD394C36C34129A768F62387 /* CBZNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79DED54B3FEC3FE52F449F6D /* CBZNavigatorViewController.swift */; };
+		DE31E08D68058F200C698A48 /* Navigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E035BBE1F1E48CA773831C /* Navigator.swift */; };
+		E0124DDBE706AF8F189B8308 /* Fuzi.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4437EAB7C7D94EE22F119810 /* Fuzi.xcframework */; };
+		E33DEE7342054E8DA5A754AA /* EPUBSpreadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 840C8801C7EEA171C33DD983 /* EPUBSpreadView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0BAAF48CB489F2A4DA3DBA59 /* SelectableNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectableNavigator.swift; sourceTree = "<group>"; };
+		130C5618291A5028F0BEBE35 /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColor.swift; sourceTree = "<group>"; };
+		2BB825199ABD0E5F79723533 /* WKWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WKWebView.swift; sourceTree = "<group>"; };
+		2C7DAFEE6D2F4E023F49E78A /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
+		3038E23CF2927A8CA8AFD040 /* PDFDocumentHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDocumentHolder.swift; sourceTree = "<group>"; };
+		31A8B5B74F18492D2567024A /* PDFDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDocumentView.swift; sourceTree = "<group>"; };
+		331D470DE1F56F5CE5564AF6 /* ImageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewController.swift; sourceTree = "<group>"; };
+		3B21569803AE9C0E2203616F /* SwiftSoup.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SwiftSoup.xcframework; path = Carthage/Build/SwiftSoup.xcframework; sourceTree = "<group>"; };
+		407D67BA1D37A0369A0A3945 /* EPUBReflowableSpreadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBReflowableSpreadView.swift; sourceTree = "<group>"; };
+		4437EAB7C7D94EE22F119810 /* Fuzi.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Fuzi.xcframework; path = Carthage/Build/Fuzi.xcframework; sourceTree = "<group>"; };
+		445ECE8AECD921ADA1E4E637 /* PaginationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaginationView.swift; sourceTree = "<group>"; };
+		44C2E42084CF2C3B5E71E497 /* CompletionList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletionList.swift; sourceTree = "<group>"; };
+		4EA1EFC5ACA6F1A7481DC9ED /* MediaNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaNavigator.swift; sourceTree = "<group>"; };
+		5D972CC66FB680A102534176 /* Assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Assets; path = "r2-navigator-swift/EPUB/Assets"; sourceTree = SOURCE_ROOT; };
+		5DA656E49C24446310A6D5BA /* PDFNavigatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFNavigatorViewController.swift; sourceTree = "<group>"; };
+		662713F3327F9EF154B39BE7 /* EPUBNavigatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBNavigatorViewController.swift; sourceTree = "<group>"; };
+		66B4946C4CDB6A43CA976023 /* EPUBFixedSpreadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBFixedSpreadView.swift; sourceTree = "<group>"; };
+		67D56D24CC91E8236C076D4D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		79DED54B3FEC3FE52F449F6D /* CBZNavigatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBZNavigatorViewController.swift; sourceTree = "<group>"; };
+		7BD382BFACB85B2683A207C5 /* R2Shared.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = R2Shared.xcframework; path = Carthage/Build/R2Shared.xcframework; sourceTree = "<group>"; };
+		7C3312A52B3896B6C5841EF4 /* R2Navigator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = R2Navigator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		7F5B0D2496801B636236BA1B /* UIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIView.swift; sourceTree = "<group>"; };
+		840C8801C7EEA171C33DD983 /* EPUBSpreadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBSpreadView.swift; sourceTree = "<group>"; };
+		86E035BBE1F1E48CA773831C /* Navigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Navigator.swift; sourceTree = "<group>"; };
+		9A5FB445C75AA31FB25BD2ED /* PDFTapGestureController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFTapGestureController.swift; sourceTree = "<group>"; };
+		B10897217680341853FF818A /* r2-navigator-swift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "r2-navigator-swift.h"; sourceTree = "<group>"; };
+		B21B077F63CC0F9E659C11B8 /* Bundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bundle.swift; sourceTree = "<group>"; };
+		B6BC4E4D2F58268FA1789A79 /* PublicationMediaLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationMediaLoader.swift; sourceTree = "<group>"; };
+		BA664E4C0C21D045CD00BBA7 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		BBB63357E84882918E348DD5 /* EPUBSpread.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBSpread.swift; sourceTree = "<group>"; };
+		BF86506BF19520C343F42B23 /* Minizip.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Minizip.xcframework; path = Carthage/Build/Minizip.xcframework; sourceTree = "<group>"; };
+		C03C26E7D8836F3A550D8B4F /* VisualNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualNavigator.swift; sourceTree = "<group>"; };
+		C3A519315FB0DA8CEC5AF0E1 /* TargetAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetAction.swift; sourceTree = "<group>"; };
+		D440D156DE35152103F6165C /* AudioNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioNavigator.swift; sourceTree = "<group>"; };
+		D99B11DE979D0EBA1AB8A26C /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
+		E01A8B5993458A3D3782BF60 /* EditingAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditingAction.swift; sourceTree = "<group>"; };
+		FE4B7CA499653CBD2AE3612B /* R2NavigatorLocalizedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2NavigatorLocalizedString.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		4D6A394861FB9EDE41037990 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E0124DDBE706AF8F189B8308 /* Fuzi.xcframework in Frameworks */,
+				7FAAD94BA099F25FB7AE5128 /* Minizip.xcframework in Frameworks */,
+				3B833E85FECC7DB90E836A80 /* R2Shared.xcframework in Frameworks */,
+				5803DDCD04EB4BF899902CA9 /* SwiftSoup.xcframework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		416DDDEEC4F6C08093768BE5 = {
+			isa = PBXGroup;
+			children = (
+				5D972CC66FB680A102534176 /* Assets */,
+				E2830D7CB56ECF76F017CD52 /* r2-navigator-swift */,
+				7876D2E3FAA4CE9468FFBE53 /* Frameworks */,
+				7A5C7ADC174BE3204FA1E3A8 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		55841A4F18967A0C8379C188 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				D45E6BB56FDE61204428297D /* Localizable.strings */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		5CF51DCA9275C5DA6E16F2AD /* Audiobook */ = {
+			isa = PBXGroup;
+			children = (
+				D440D156DE35152103F6165C /* AudioNavigator.swift */,
+				B6BC4E4D2F58268FA1789A79 /* PublicationMediaLoader.swift */,
+			);
+			path = Audiobook;
+			sourceTree = "<group>";
+		};
+		7876D2E3FAA4CE9468FFBE53 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				4437EAB7C7D94EE22F119810 /* Fuzi.xcframework */,
+				BF86506BF19520C343F42B23 /* Minizip.xcframework */,
+				7BD382BFACB85B2683A207C5 /* R2Shared.xcframework */,
+				3B21569803AE9C0E2203616F /* SwiftSoup.xcframework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		7A5C7ADC174BE3204FA1E3A8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7C3312A52B3896B6C5841EF4 /* R2Navigator.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		916867F2F657A5104EEBC1D3 /* Toolkit */ = {
+			isa = PBXGroup;
+			children = (
+				44C2E42084CF2C3B5E71E497 /* CompletionList.swift */,
+				445ECE8AECD921ADA1E4E637 /* PaginationView.swift */,
+				FE4B7CA499653CBD2AE3612B /* R2NavigatorLocalizedString.swift */,
+				C3A519315FB0DA8CEC5AF0E1 /* TargetAction.swift */,
+				130C5618291A5028F0BEBE35 /* UIColor.swift */,
+				7F5B0D2496801B636236BA1B /* UIView.swift */,
+				D99B11DE979D0EBA1AB8A26C /* WebView.swift */,
+				9C62D86EAA090DC2FDBE3128 /* Extensions */,
+			);
+			path = Toolkit;
+			sourceTree = "<group>";
+		};
+		9C62D86EAA090DC2FDBE3128 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				B21B077F63CC0F9E659C11B8 /* Bundle.swift */,
+				2BB825199ABD0E5F79723533 /* WKWebView.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		9EFFC36EBD2A0B7189A97679 /* PDF */ = {
+			isa = PBXGroup;
+			children = (
+				3038E23CF2927A8CA8AFD040 /* PDFDocumentHolder.swift */,
+				31A8B5B74F18492D2567024A /* PDFDocumentView.swift */,
+				5DA656E49C24446310A6D5BA /* PDFNavigatorViewController.swift */,
+				9A5FB445C75AA31FB25BD2ED /* PDFTapGestureController.swift */,
+			);
+			path = PDF;
+			sourceTree = "<group>";
+		};
+		D801DACCE9A33BBCD48C2077 /* EPUB */ = {
+			isa = PBXGroup;
+			children = (
+				66B4946C4CDB6A43CA976023 /* EPUBFixedSpreadView.swift */,
+				662713F3327F9EF154B39BE7 /* EPUBNavigatorViewController.swift */,
+				407D67BA1D37A0369A0A3945 /* EPUBReflowableSpreadView.swift */,
+				BBB63357E84882918E348DD5 /* EPUBSpread.swift */,
+				840C8801C7EEA171C33DD983 /* EPUBSpreadView.swift */,
+				2C7DAFEE6D2F4E023F49E78A /* UserSettings.swift */,
+			);
+			path = EPUB;
+			sourceTree = "<group>";
+		};
+		E2830D7CB56ECF76F017CD52 /* r2-navigator-swift */ = {
+			isa = PBXGroup;
+			children = (
+				E01A8B5993458A3D3782BF60 /* EditingAction.swift */,
+				67D56D24CC91E8236C076D4D /* Info.plist */,
+				4EA1EFC5ACA6F1A7481DC9ED /* MediaNavigator.swift */,
+				86E035BBE1F1E48CA773831C /* Navigator.swift */,
+				B10897217680341853FF818A /* r2-navigator-swift.h */,
+				0BAAF48CB489F2A4DA3DBA59 /* SelectableNavigator.swift */,
+				C03C26E7D8836F3A550D8B4F /* VisualNavigator.swift */,
+				5CF51DCA9275C5DA6E16F2AD /* Audiobook */,
+				EB870D2839BFC50DBFE4C090 /* CBZ */,
+				D801DACCE9A33BBCD48C2077 /* EPUB */,
+				9EFFC36EBD2A0B7189A97679 /* PDF */,
+				55841A4F18967A0C8379C188 /* Resources */,
+				916867F2F657A5104EEBC1D3 /* Toolkit */,
+			);
+			path = "r2-navigator-swift";
+			sourceTree = "<group>";
+		};
+		EB870D2839BFC50DBFE4C090 /* CBZ */ = {
+			isa = PBXGroup;
+			children = (
+				79DED54B3FEC3FE52F449F6D /* CBZNavigatorViewController.swift */,
+				331D470DE1F56F5CE5564AF6 /* ImageViewController.swift */,
+			);
+			path = CBZ;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		0227EABEAB8993A4787A0EDB /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4C04BD0CAEAADBBFA28E748B /* r2-navigator-swift.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		DD4C673AEE60EF6FF230AC83 /* R2Navigator */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 461438C00D30CC799A0DB364 /* Build configuration list for PBXNativeTarget "R2Navigator" */;
+			buildPhases = (
+				0227EABEAB8993A4787A0EDB /* Headers */,
+				33AC2408E507EC694D204368 /* Sources */,
+				7DC38D90F1D498D228DAE6B2 /* Resources */,
+				4D6A394861FB9EDE41037990 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = R2Navigator;
+			productName = R2Navigator;
+			productReference = 7C3312A52B3896B6C5841EF4 /* R2Navigator.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B54A9C4F3D5EA69ACDC65796 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1250;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 09BEC443704EC55361A34134 /* Build configuration list for PBXProject "r2-navigator-swift" */;
+			compatibilityVersion = "Xcode 10.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 416DDDEEC4F6C08093768BE5;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				DD4C673AEE60EF6FF230AC83 /* R2Navigator */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7DC38D90F1D498D228DAE6B2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2D5851F84FBD14E2F515C70A /* Assets in Resources */,
+				73756BC83CDBF1632BB417ED /* Localizable.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		33AC2408E507EC694D204368 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C29A981148FC629D3CBDE096 /* AudioNavigator.swift in Sources */,
+				C02C0380EFC7AB159FA52348 /* Bundle.swift in Sources */,
+				DD394C36C34129A768F62387 /* CBZNavigatorViewController.swift in Sources */,
+				8B96D07BFEF014F52D9AA6A1 /* CompletionList.swift in Sources */,
+				B9F74E90F07C6571AC5D9FB4 /* EPUBFixedSpreadView.swift in Sources */,
+				CE30E6EEF1AB2B822E6AD19C /* EPUBNavigatorViewController.swift in Sources */,
+				BA06C2FE3010EF57E0337FC0 /* EPUBReflowableSpreadView.swift in Sources */,
+				9BC299D4AD09F1198A52C563 /* EPUBSpread.swift in Sources */,
+				E33DEE7342054E8DA5A754AA /* EPUBSpreadView.swift in Sources */,
+				53BF85FF4332776BD964F5E9 /* EditingAction.swift in Sources */,
+				1BD9D1D8EA882809ECBB4FCE /* ImageViewController.swift in Sources */,
+				BB8F3062B6E4784FBEFB890D /* MediaNavigator.swift in Sources */,
+				DE31E08D68058F200C698A48 /* Navigator.swift in Sources */,
+				5FB02E95F9F310EE9AFD80EF /* PDFDocumentHolder.swift in Sources */,
+				BAE2564937D0C55ACE9F784F /* PDFDocumentView.swift in Sources */,
+				C591CAEF8CAC1C3D09BBF4A8 /* PDFNavigatorViewController.swift in Sources */,
+				21440458DCB28066BEDBFD43 /* PDFTapGestureController.swift in Sources */,
+				6B5A5527147E712F22954666 /* PaginationView.swift in Sources */,
+				7A068CC955A1FB991F4AFD66 /* PublicationMediaLoader.swift in Sources */,
+				901A347F8EB5A187AB393B1D /* R2NavigatorLocalizedString.swift in Sources */,
+				2D510D51E82E5C7063649249 /* SelectableNavigator.swift in Sources */,
+				8F98C3BF7B22392BB35F7421 /* TargetAction.swift in Sources */,
+				8E91BDDA84C871018EB9F7D6 /* UIColor.swift in Sources */,
+				46E4FA75F40DD760E3552654 /* UIView.swift in Sources */,
+				8965878360F5E0135520436F /* UserSettings.swift in Sources */,
+				4BF7B3982C1C18ABCB9EC0CB /* VisualNavigator.swift in Sources */,
+				B1ADE4021DB62F1B2DC85FCA /* WKWebView.swift in Sources */,
+				CBF3115D2DACA814BD4FD073 /* WebView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		D45E6BB56FDE61204428297D /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				BA664E4C0C21D045CD00BBA7 /* en */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		5B3E49252F828F166CAF03E5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		7C64042FB79DC00B8668BB35 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"Carthage/Build\"",
+				);
+				INFOPLIST_FILE = "r2-navigator-swift/Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/Carthage";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-navigator-swift";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Debug;
+		};
+		850872F1E922D39B1FC7EF02 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"Carthage/Build\"",
+				);
+				INFOPLIST_FILE = "r2-navigator-swift/Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/Carthage";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-navigator-swift";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Release;
+		};
+		AF0C7B3E639A60F3DD8159FE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		09BEC443704EC55361A34134 /* Build configuration list for PBXProject "r2-navigator-swift" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5B3E49252F828F166CAF03E5 /* Debug */,
+				AF0C7B3E639A60F3DD8159FE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		461438C00D30CC799A0DB364 /* Build configuration list for PBXNativeTarget "R2Navigator" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7C64042FB79DC00B8668BB35 /* Debug */,
+				850872F1E922D39B1FC7EF02 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B54A9C4F3D5EA69ACDC65796 /* Project object */;
+}
