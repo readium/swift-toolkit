@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file.
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-<!--## [Unreleased]-->
+## [Unreleased]
+
+### Added
+
+* Support for Paragraph Margins user setting.
 
 ## [2.1.0]
 
