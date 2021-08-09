@@ -36,6 +36,7 @@ public class UserSettings {
     private var letterSpacing: Float
     private var pageMargins: Float
     private var lineHeight: Float
+    private var paragraphMargins: Float?
     
     public let userProperties = UserProperties()
     
@@ -45,6 +46,12 @@ public class UserSettings {
     ///
     /// - Important: For each parameter, if a corresponding value is found in
     /// `UserDefaults`, that value will be used instead of the passed-in value.
+    ///
+    /// - Note: When VoiceOver is enabled, depending on how the EPUB is
+    /// formatted, moving to the next paragraph (swipe right) may bring
+    /// the reading point to the end of the chapter instead of the next
+    /// paragraph. This is a bug in WKWebView that can be worked around
+    /// by setting the `paragraphMargins` parameter to 0.5 or more.
     ///
     /// - Parameters:
     ///   - hyphens: Whether words should be hyphenated by default.
@@ -68,6 +75,11 @@ public class UserSettings {
     ///   - letterSpacing: The default letter spacing as a `rem` value.
     ///   - pageMargins: The default page margin value.
     ///   - lineHeight: The default line height.
+    ///   - paragraphMargins: The default margin top and bottom `em` value to
+    ///   separate paragraphs. Passing `nil` will prevent Readium to forcibly
+    ///   modify paragraph spacing, ignoring what was previously set in
+    ///   UserDefaults. For most EPUBs, in order for this setting to work
+    ///   it may be required that `publisherDefaults` is set to `false`.
     public init(
         hyphens: Bool = false,
         fontSize: Float = 100,
@@ -80,7 +92,8 @@ public class UserSettings {
         wordSpacing: Float = 0,
         letterSpacing: Float = 0,
         pageMargins: Float = 1,
-        lineHeight: Float = 1.5
+        lineHeight: Float = 1.5,
+        paragraphMargins: Float? = nil
     ) {
 
         /// Check if a given key is set in the UserDefaults.
@@ -181,6 +194,20 @@ public class UserSettings {
             self.lineHeight = lineHeight
         }
         
+        // Paragraph Margins
+        // A nil `paragraphMargins` input parameter provides a way for client
+        // apps to opt out of setting a value for paragraph spacing, which is
+        // something that may not always be desirable. A use case is using
+        // this parameter to work around WKWebView bugs with VoiceOver
+        // (e.g. https://github.com/readium/r2-navigator-swift/issues/197 )
+        // but when VoiceOver is not active it may be desirable to not change
+        // paragraph spacing at all.
+        if paragraphMargins != nil, isKeyPresentInUserDefaults(key: ReadiumCSSName.paragraphMargins) {
+            self.paragraphMargins = userDefaults.float(forKey: ReadiumCSSName.paragraphMargins.rawValue)
+        } else {
+            self.paragraphMargins = paragraphMargins
+        }
+
         buildCssProperties()
         
     }
@@ -285,6 +312,16 @@ public class UserSettings {
                                         reference: ReadiumCSSReference.lineHeight.rawValue,
                                         name: ReadiumCSSName.lineHeight.rawValue)
         
+        // Paragraph margins
+        if let paragraphMargins = paragraphMargins {
+            userProperties.addIncrementable(nValue: paragraphMargins,
+                                            min: 0,
+                                            max: 2,
+                                            step: 0.1,
+                                            suffix: "em",
+                                            reference: ReadiumCSSReference.paragraphMargins.rawValue,
+                                            name: ReadiumCSSName.paragraphMargins.rawValue)
+        }
     }
     
     // Save settings to UserDefaults
@@ -338,6 +375,10 @@ public class UserSettings {
         
         if let currentLineHeight = userProperties.getProperty(reference: ReadiumCSSReference.lineHeight.rawValue) as? Incrementable {
             userDefaults.set(currentLineHeight.value, forKey: ReadiumCSSName.lineHeight.rawValue)
+        }
+
+        if let currentParagraphMargins = userProperties.getProperty(reference: ReadiumCSSReference.paragraphMargins.rawValue) as? Incrementable {
+            userDefaults.set(currentParagraphMargins.value, forKey: ReadiumCSSName.paragraphMargins.rawValue)
         }
         
     }
