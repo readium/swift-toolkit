@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/readium/GCDWebServer.git",
         "state": {
           "branch": null,
-          "revision": "fa49907a784263e7fcc88739d3937d1a2022d50a",
-          "version": "3.7.0"
+          "revision": "003f878bdfa00139c0fd29f71727daf483455bc3",
+          "version": "3.7.1"
         }
       },
       {
@@ -33,7 +33,7 @@
         "repositoryURL": "https://github.com/readium/r2-shared-swift.git",
         "state": {
           "branch": "develop",
-          "revision": "ce8792022235cbc731e6d6731968f3ceb04b7674",
+          "revision": "7c66c3b7eb8711946b4fca4a1cce8f5ae0bc6bfe",
           "version": null
         }
       },
