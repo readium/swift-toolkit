@@ -25,50 +25,56 @@ final class EPUBHTMLInjector {
     }
     
     func inject(resource: Resource) -> Resource {
-        // We only transform reflowable HTML resources.
-        guard
-            resource.link.mediaType.isHTML,
-            metadata.presentation.layout(of: resource.link) == .reflowable else
-        {
+        // We only transform HTML resources.
+        guard resource.link.mediaType.isHTML else {
             return resource
         }
+
+        let isReflowable = (metadata.presentation.layout(of: resource.link) == .reflowable)
 
         return resource.mapAsString { [metadata] content in
             var content = content
 
-            // User properties injection
-            if let htmlStart = content.endIndex(of: "<html") {
-                let style = #" style="\(userProperties.css)""#
-                content = content.insert(string: style, at: htmlStart)
-            }
-    
-            // RTL dir attributes injection
-            if case .rtl = metadata.effectiveReadingProgression {
-                // We need to add the dir="rtl" attribute on <html> and <body> if not already present.
-                // https://readium.org/readium-css/docs/CSS03-injection_and_pagination.html#right-to-left-progression
-                func addRTLDir(to tagName: String, in html: String) -> String {
-                    guard let tagRange = html.range(of: "<\(tagName).*>", options: [.regularExpression, .caseInsensitive]),
-                        // Checks if the dir= attribute already exists, in which case we don't add it again otherwise the WebView reports an error.
-                        String(html[tagRange]).range(of: "dir=", options: [.regularExpression, .caseInsensitive]) == nil,
-                        let tagStart = html.endIndex(of: "<\(tagName)") else
-                    {
-                        return html
-                    }
-                    return html.insert(string: #" dir="rtl""#, at: tagStart)
+            if isReflowable {
+                // User properties injection
+                if let htmlStart = content.endIndex(of: "<html") {
+                    let style = #" style="\(userProperties.css)""#
+                    content = content.insert(string: style, at: htmlStart)
                 }
-    
-                content = addRTLDir(to: "html", in: content)
-                content = addRTLDir(to: "body", in: content)
+
+                // RTL dir attributes injection
+                if case .rtl = metadata.effectiveReadingProgression {
+                    // We need to add the dir="rtl" attribute on <html> and <body> if not already present.
+                    // https://readium.org/readium-css/docs/CSS03-injection_and_pagination.html#right-to-left-progression
+                    func addRTLDir(to tagName: String, in html: String) -> String {
+                        guard let tagRange = html.range(of: "<\(tagName).*>", options: [.regularExpression, .caseInsensitive]),
+                              // Checks if the dir= attribute already exists, in which case we don't add it again otherwise the WebView reports an error.
+                              String(html[tagRange]).range(of: "dir=", options: [.regularExpression, .caseInsensitive]) == nil,
+                              let tagStart = html.endIndex(of: "<\(tagName)") else {
+                            return html
+                        }
+                        return html.insert(string: #" dir="rtl""#, at: tagStart)
+                    }
+
+                    content = addRTLDir(to: "html", in: content)
+                    content = addRTLDir(to: "body", in: content)
+                }
             }
 
             if let headStart = content.endIndex(of: "<head>") {
-                let viewport = #"<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0;"/>"#
-                content = content.insert(string: viewport, at: headStart)
-
-                if let headEnd = content.startIndex(of: "</head>") {
-                    let openDyslexicStyle = #"<style type="text/css">@font-face{font-family: "OpenDyslexic"; src:url("/fonts/OpenDyslexic-Regular.otf") format("opentype");}</style>"#
-                    content = content.insert(string: openDyslexicStyle, at: headEnd)
+                let headInjection: String
+                if isReflowable {
+                    headInjection = """
+                        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0;"/>
+                        <style type="text/css">@font-face{font-family: "OpenDyslexic"; src:url("/fonts/OpenDyslexic-Regular.otf") format("opentype");}</style>
+                        <script type="text/javascript" src="/r2-navigator/epub/scripts/readium-reflowable.js"></script>
+                    """
+                } else {
+                    headInjection = """
+                        <script type="text/javascript" src="/r2-navigator/epub/scripts/readium-fixed.js"></script>
+                    """
                 }
+                content = content.insert(string: headInjection, at: headStart)
             }
             
             return content
