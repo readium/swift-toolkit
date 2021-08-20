@@ -113,7 +113,10 @@ public extension MediaType {
         if context.hasFileExtension("htm", "html", "xht", "xhtml") || context.hasMediaType("text/html", "application/xhtml+xml") {
             return .html
         }
-        if context.contentAsXML?.documentElement?.localName.lowercased() == "html" {
+        if
+            context.contentAsXML?.documentElement?.localName.lowercased() == "html" ||
+            context.contentAsString?.trimmingCharacters(in: .whitespacesAndNewlines).prefix(15).lowercased() == "<!doctype html>"
+        {
             return .html
         }
         return nil

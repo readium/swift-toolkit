@@ -113,6 +113,7 @@ class MediaTypeSnifferTests: XCTestCase {
         XCTAssertEqual(MediaType.of(mediaType: "text/html"), .html)
         XCTAssertEqual(MediaType.of(mediaType: "application/xhtml+xml"), .html)
         XCTAssertEqual(MediaType.of(fixtures.url(for: "html.unknown")), .html)
+        XCTAssertEqual(MediaType.of(fixtures.url(for: "html-doctype-case.unknown")), .html)
         XCTAssertEqual(MediaType.of(fixtures.url(for: "xhtml.unknown")), .html)
     }
     
