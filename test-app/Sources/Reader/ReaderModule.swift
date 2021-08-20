@@ -34,6 +34,8 @@ protocol ReaderModuleDelegate: ModuleDelegate {
 final class ReaderModule: ReaderModuleAPI {
     
     weak var delegate: ReaderModuleDelegate?
+    private let books: BookRepository
+    private let bookmarks: BookmarkRepository
     private let resourcesServer: ResourcesServer
     
     /// Sub-modules to handle different publication formats (eg. EPUB, CBZ)
@@ -41,8 +43,10 @@ final class ReaderModule: ReaderModuleAPI {
     
     private let factory = ReaderFactory()
     
-    init(delegate: ReaderModuleDelegate?, resourcesServer: ResourcesServer) {
+    init(delegate: ReaderModuleDelegate?, books: BookRepository, bookmarks: BookmarkRepository, resourcesServer: ResourcesServer) {
         self.delegate = delegate
+        self.books = books
+        self.bookmarks = bookmarks
         self.resourcesServer = resourcesServer
         
         formatModules = [
@@ -56,7 +60,7 @@ final class ReaderModule: ReaderModuleAPI {
     }
     
     func presentPublication(publication: Publication, book: Book, in navigationController: UINavigationController, completion: @escaping () -> Void) {
-        guard let delegate = delegate else {
+        guard let delegate = delegate, let bookId = book.id else {
             fatalError("Reader delegate not set")
         }
         
@@ -75,7 +79,7 @@ final class ReaderModule: ReaderModuleAPI {
         }
 
         do {
-            let readerViewController = try module.makeReaderViewController(for: publication, book: book, resourcesServer: resourcesServer)
+            let readerViewController = try module.makeReaderViewController(for: publication, locator: book.locator, bookId: bookId, books: books, bookmarks: bookmarks, resourcesServer: resourcesServer)
             present(readerViewController)
         } catch {
             delegate.presentError(error, from: navigationController)
@@ -97,8 +101,8 @@ extension ReaderModule: ReaderFormatModuleDelegate {
         viewController.navigationController?.pushViewController(drmViewController, animated: true)
     }
     
-    func presentOutline(of publication: Publication, delegate: OutlineTableViewControllerDelegate?, from viewController: UIViewController) {
-        let outlineTableVC: OutlineTableViewController = factory.make(publication: publication)
+    func presentOutline(of publication: Publication, bookId: Book.Id, delegate: OutlineTableViewControllerDelegate?, from viewController: UIViewController) {
+        let outlineTableVC: OutlineTableViewController = factory.make(publication: publication, bookId: bookId, bookmarks: bookmarks)
         outlineTableVC.delegate = delegate
         viewController.present(UINavigationController(rootViewController: outlineTableVC), animated: true)
     }

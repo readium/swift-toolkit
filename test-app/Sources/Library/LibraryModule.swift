@@ -10,6 +10,7 @@
 //  LICENSE file present in the project repository where this source code is maintained.
 //
 
+import Combine
 import Foundation
 import R2Shared
 import R2Streamer
@@ -26,25 +27,13 @@ protocol LibraryModuleAPI {
     var rootViewController: UINavigationController { get }
     
     /// Loads the sample publications if needed.
-    func preloadSamples() throws
+    func preloadSamples()
     
     /// Imports a new publication to the library, either from:
     /// - a local file URL
     /// - a remote URL which will be downloaded
-    ///
-    /// - Parameters:
-    ///   - url: Source URL to import.
-    ///   - title: Title of the publication when known, to provide context.
-    func importPublication(from url: URL, title: String?, sender: UIViewController, completion: @escaping (CancellableResult<Book, LibraryError>) -> Void)
+    func importPublication(from url: URL, sender: UIViewController) -> AnyPublisher<Book, LibraryError>
 
-}
-
-extension LibraryModuleAPI {
-    
-    func importPublication(from url: URL, title: String? = nil, sender: UIViewController) {
-        importPublication(from: url, title: title, sender: sender, completion: { _ in })
-    }
-    
 }
 
 protocol LibraryModuleDelegate: ModuleDelegate {
@@ -61,9 +50,10 @@ final class LibraryModule: LibraryModuleAPI {
     
     private let library: LibraryService
     private let factory: LibraryFactory
+    private var subscriptions = Set<AnyCancellable>()
 
-    init(delegate: LibraryModuleDelegate?, server: PublicationServer) {
-        self.library = LibraryService(publicationServer: server)
+    init(delegate: LibraryModuleDelegate?, books: BookRepository, server: PublicationServer, httpClient: HTTPClient) {
+        self.library = LibraryService(books: books, publicationServer: server, httpClient: httpClient)
         self.factory = LibraryFactory(libraryService: library)
         self.delegate = delegate
     }
@@ -78,12 +68,18 @@ final class LibraryModule: LibraryModuleAPI {
         return library
     }()
     
-    func preloadSamples() throws {
-        try library.preloadSamples()
+    func preloadSamples() {
+        library.preloadSamples()
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { completion in
+                if case let .failure(error) = completion {
+                    self.delegate?.presentError(error, from: self.libraryViewController)
+                }
+            }) {}
+            .store(in: &subscriptions)
     }
     
-    func importPublication(from url: URL, title: String?, sender: UIViewController, completion: @escaping (CancellableResult<Book, LibraryError>) -> ()) {
-        library.importPublication(from: url, title: title, sender: sender, completion: completion)
+    func importPublication(from url: URL, sender: UIViewController) -> AnyPublisher<Book, LibraryError> {
+        library.importPublication(from: url, sender: sender)
     }
-
 }

@@ -10,17 +10,17 @@
 //  LICENSE file present in the project repository where this source code is maintained.
 //
 
+import Combine
 import R2Shared
 import R2Navigator
 import UIKit
 
 protocol OutlineTableViewControllerFactory {
-    func make(publication: Publication) -> OutlineTableViewController
+    func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository) -> OutlineTableViewController
 }
 
 protocol OutlineTableViewControllerDelegate: AnyObject {
     
-    var bookmarksDataSource: BookmarkDataSource? { get }
     func outline(_ outlineTableViewController: OutlineTableViewController, goTo location: Locator)
 
 }
@@ -33,13 +33,14 @@ final class OutlineTableViewController: UITableViewController {
     let kContentCell = "kContentCell"
     
     var publication: Publication!
+    var bookId: Book.Id!
+    var bookmarkRepository: BookmarkRepository!
   
     // Outlines (list of links) to display for each section.
     private var outlines: [Section: [(level: Int, link: Link)]] = [:]
-
-    var bookmarksDataSource: BookmarkDataSource? {
-        return delegate?.bookmarksDataSource
-    }
+    private var bookmarks: [Bookmark] = []
+    
+    private var subscriptions = Set<AnyCancellable>()
 
     @IBOutlet weak var segments: UISegmentedControl!
     @IBAction func segmentChanged(_ sender: Any) {
@@ -75,15 +76,21 @@ final class OutlineTableViewController: UITableViewController {
             .landmarks: flatten(publication.landmarks),
             .pageList: flatten(publication.pageList)
         ]
+        
+        bookmarkRepository.all(for: bookId)
+            .assertNoFailure()
+            .sink { bookmarks in
+                self.bookmarks = bookmarks
+                self.tableView.reloadData()
+            }
+            .store(in: &subscriptions)
+
     }
     
     func locator(at indexPath: IndexPath) -> Locator? {
         switch section {
         case .bookmarks:
-            guard let bookmark = bookmarksDataSource?.bookmark(at: indexPath.row) else {
-                return nil
-            }
-            return bookmark.locator
+            return bookmarks[indexPath.row].locator
 
         default:
             guard let outline = outlines[section],
@@ -117,7 +124,6 @@ final class OutlineTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         switch section {
-            
         case .bookmarks:
             let cell: BookmarkCell = {
                 if let cell = tableView.dequeueReusableCell(withIdentifier: kBookmarkCell) as? BookmarkCell {
@@ -126,19 +132,18 @@ final class OutlineTableViewController: UITableViewController {
                 return BookmarkCell(style: UITableViewCell.CellStyle.subtitle, reuseIdentifier: kBookmarkCell)
             } ()
             
-            if let bookmark = bookmarksDataSource?.bookmark(at: indexPath.item) {
-                cell.textLabel?.text = bookmark.locator.title
-                cell.formattedDate = bookmark.creationDate
-                cell.detailTextLabel?.text = {
-                    if let position = bookmark.locator.locations.position {
-                        return String(format: NSLocalizedString("reader_outline_position_label", comment: "Outline bookmark label when the position is available"), position)
-                    } else if let progression = bookmark.locator.locations.progression {
-                        return String(format: NSLocalizedString("reader_outline_progression_label", comment: "Outline bookmark label when the progression is available"), progression * 100)
-                    } else {
-                        return nil
-                    }
-                }()
-            }
+            let bookmark = bookmarks[indexPath.row]
+            cell.textLabel?.text = bookmark.locator.title
+            cell.formattedDate = bookmark.created
+            cell.detailTextLabel?.text = {
+                if let position = bookmark.locator.locations.position {
+                    return String(format: NSLocalizedString("reader_outline_position_label", comment: "Outline bookmark label when the position is available"), position)
+                } else if let progression = bookmark.locator.locations.progression {
+                    return String(format: NSLocalizedString("reader_outline_progression_label", comment: "Outline bookmark label when the progression is available"), progression * 100)
+                } else {
+                    return nil
+                }
+            }()
             return cell
             
         default:
@@ -156,7 +161,7 @@ final class OutlineTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection tableSection: Int) -> Int {
         switch section {
         case .bookmarks:
-            return bookmarksDataSource?.count ?? 0
+            return bookmarks.count
         default:
             return outlines[section]?.count ?? 0
         }
@@ -181,9 +186,11 @@ final class OutlineTableViewController: UITableViewController {
         switch section {
         case .bookmarks:
             if editingStyle == .delete {
-                if (self.bookmarksDataSource?.removeBookmark(index: indexPath.item) ?? false) {
-                    tableView.deleteRows(at: [indexPath], with: .fade)
-                }
+                let bookmark = bookmarks[indexPath.row]
+                bookmarkRepository.remove(bookmark.id!)
+                    .assertNoFailure()
+                    .sink {}
+                    .store(in: &subscriptions)
             }
             
         default:

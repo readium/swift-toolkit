@@ -79,16 +79,11 @@ extension OPDSPublicationTableViewCell: UICollectionViewDataSource {
                 ?? publication.images.first.flatMap { URL(string: $0.href) }
 
             if let coverURL = coverURL {
-                UIApplication.shared.isNetworkActivityIndicatorVisible = true
                 cell.coverImageView.kf.setImage(
                     with: coverURL,
                     placeholder: titleTextView,
                     options: [.transition(ImageTransition.fade(0.5))],
-                    progressBlock: nil) { _ in
-                        DispatchQueue.main.async {
-                            UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                        }
-                    }
+                    progressBlock: nil) { _ in }
             } else {
                 cell.coverImageView.addSubview(titleTextView)
             }
@@ -99,11 +94,9 @@ extension OPDSPublicationTableViewCell: UICollectionViewDataSource {
                 .joined(separator: ", ")
             
             if indexPath.row == publications.count - 3 {
-                UIApplication.shared.isNetworkActivityIndicatorVisible = true
                 opdsRootTableViewController?.loadNextPage(completionHandler: { (feed) in
                     self.feed = feed
                     collectionView.reloadData()
-                    UIApplication.shared.isNetworkActivityIndicatorVisible = false
                 })
             }
             

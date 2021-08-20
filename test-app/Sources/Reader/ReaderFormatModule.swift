@@ -24,14 +24,14 @@ protocol ReaderFormatModule {
     var publicationFormats: [Publication.Format] { get }
     
     /// Creates the view controller to present the publication.
-    func makeReaderViewController(for publication: Publication, book: Book, resourcesServer: ResourcesServer) throws -> UIViewController
+    func makeReaderViewController(for publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, resourcesServer: ResourcesServer) throws -> UIViewController
     
 }
 
 protocol ReaderFormatModuleDelegate: AnyObject {
     
     /// Shows the reader's outline from the given links.
-    func presentOutline(of publication: Publication, delegate: OutlineTableViewControllerDelegate?, from viewController: UIViewController)
+    func presentOutline(of publication: Publication, bookId: Book.Id, delegate: OutlineTableViewControllerDelegate?, from viewController: UIViewController)
     
     /// Shows the DRM management screen for the given DRM.
     func presentDRM(for publication: Publication, from viewController: UIViewController)

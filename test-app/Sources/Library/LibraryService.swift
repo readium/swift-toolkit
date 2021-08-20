@@ -10,6 +10,7 @@
 //  LICENSE file present in the project repository where this source code is maintained.
 //
 
+import Combine
 import Foundation
 import UIKit
 import R2Shared
@@ -17,10 +18,7 @@ import R2Streamer
 
 
 protocol LibraryServiceDelegate: AnyObject {
-    
-    func reloadLibrary()
-    func confirmImportingDuplicatePublication(withTitle title: String) -> Deferred<Void, Error>
-    
+    func confirmImportingDuplicatePublication(withTitle title: String) -> AnyPublisher<Bool, Never>
 }
 
 /// The Library service is used to:
@@ -33,13 +31,15 @@ final class LibraryService: Loggable {
     weak var delegate: LibraryServiceDelegate?
     
     private let streamer: Streamer
+    private let books: BookRepository
     private let publicationServer: PublicationServer
+    private let httpClient: HTTPClient
     private var drmLibraryServices = [DRMLibraryService]()
     
-    private lazy var documentDirectory = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-
-    init(publicationServer: PublicationServer) {
+    init(books: BookRepository, publicationServer: PublicationServer, httpClient: HTTPClient) {
+        self.books = books
         self.publicationServer = publicationServer
+        self.httpClient = httpClient
         
         #if LCP
         drmLibraryServices.append(LCPLibraryService())
@@ -50,37 +50,56 @@ final class LibraryService: Loggable {
         )
     }
     
+    func allBooks() -> AnyPublisher<[Book], Error> {
+        books.all()
+    }
+    
     
     // MARK: Opening
 
     /// Opens the Readium 2 Publication for the given `book`.
     ///
     /// If the `Publication` is intended to be presented in a navigator, set `forPresentation`.
-    func openBook(_ book: Book, forPresentation prepareForPresentation: Bool, sender: UIViewController, completion: @escaping (CancellableResult<Publication, LibraryError>) -> Void) {
-        deferredCatching { .success(try book.url()) }
+    func openBook(_ book: Book, forPresentation prepareForPresentation: Bool, sender: UIViewController) -> AnyPublisher<Publication, LibraryError> {
+        book.url()
             .flatMap { self.openPublication(at: $0, allowUserInteraction: true, sender: sender) }
-            .flatMap { publication in
-                guard !publication.isRestricted else {
-                    if let error = publication.protectionError {
-                        return .failure(error)
-                    } else {
-                        return .cancelled
-                    }
-                }
-
-                self.preparePresentation(of: publication, book: book)
-                return .success(publication)
-            }
-            .mapError { LibraryError.openFailed($0) }
-            .resolve(completion)
+            .flatMap { (pub, _) in self.checkIsReadable(publication: pub) }
+            .handleEvents(receiveOutput: { self.preparePresentation(of: $0, book: book) })
+            .eraseToAnyPublisher()
     }
     
     /// Opens the Readium 2 Publication at the given `url`.
-    private func openPublication(at url: URL, allowUserInteraction: Bool, sender: UIViewController?) -> Deferred<Publication, Error> {
-        return deferred {
-                self.streamer.open(asset: FileAsset(url: url), allowUserInteraction: allowUserInteraction, sender: sender, completion: $0)
+    private func openPublication(at url: URL, allowUserInteraction: Bool, sender: UIViewController?) -> AnyPublisher<(Publication, MediaType), LibraryError> {
+        Future(on: .global()) { promise in
+            let asset = FileAsset(url: url)
+            guard let mediaType = asset.mediaType() else {
+                promise(.failure(.openFailed(Publication.OpeningError.unsupportedFormat)))
+                return
             }
-            .eraseToAnyError()
+            
+            self.streamer.open(asset: asset, allowUserInteraction: allowUserInteraction, sender: sender) { result in
+                switch result {
+                case .success(let publication):
+                    promise(.success((publication, mediaType)))
+                case .failure(let error):
+                    promise(.failure(.openFailed(error)))
+                case .cancelled:
+                    promise(.failure(.cancelled))
+                }
+            }
+        }.eraseToAnyPublisher()
+    }
+    
+    /// Checks if the publication is not still locked by a DRM.
+    private func checkIsReadable(publication: Publication) -> AnyPublisher<Publication, LibraryError> {
+        guard !publication.isRestricted else {
+            if let error = publication.protectionError {
+                return .fail(.openFailed(error))
+            } else {
+                return .fail(.cancelled)
+            }
+        }
+        return .just(publication)
     }
 
     private func preparePresentation(of publication: Publication, book: Book) {
@@ -101,21 +120,14 @@ final class LibraryService: Loggable {
     // MARK: Importation
     
     /// Imports a bunch of publications.
-    func importPublications(from sourceURLs: [URL], sender: UIViewController, completion: @escaping (CancellableResult<(), LibraryError>) -> Void) {
-        var sourceURLs = sourceURLs
-        guard let url = sourceURLs.popFirst() else {
-            completion(.success(()))
-            return
-        }
-        
-        importPublication(from: url, sender: sender) { result in
-            switch result {
-            case .success, .cancelled:
-                self.importPublications(from: sourceURLs, sender: sender, completion: completion)
-            case .failure(let error):
-                completion(.failure(error))
+    func importPublications(from sourceURLs: [URL], sender: UIViewController) -> AnyPublisher<Void, LibraryError> {
+        sourceURLs.publisher
+            .setFailureType(to: LibraryError.self)
+            .flatMap {
+                self.importPublication(from: $0, sender: sender)
+                    .map { _ in }
             }
-        }
+            .eraseToAnyPublisher()
     }
     
     /// Imports the publication at the given `url` to the bookshelf.
@@ -125,120 +137,167 @@ final class LibraryService: Loggable {
     ///
     /// DRM services are used to fulfill the publication, in case the URL locates a licensing
     /// document.
-    func importPublication(from sourceURL: URL, title: String? = nil, sender: UIViewController, completion: @escaping (CancellableResult<Book, LibraryError>) -> Void = { _ in }) {
-        downloadIfNeeded(sourceURL, title: title)
-            .flatMap { self.moveToDocuments($0) }
+    func importPublication(from sourceURL: URL, sender: UIViewController, progress: @escaping (Double) -> Void = { _ in }) -> AnyPublisher<Book, LibraryError> {
+        downloadIfNeeded(sourceURL, progress: progress)
             .flatMap { self.fulfillIfNeeded($0) }
             .flatMap { url in
-                self.openPublication(at: url, allowUserInteraction: false, sender: sender)
-                    // Map on background because we will read the publication cover to create the
-                    // `Book`, which might take some CPU time.
-                    .map(on: .global(qos: .background)) { Book(publication: $0, url: url) }
-            }
-            .flatMap { self.insertBook($0) }
-            .mapError { LibraryError.importFailed($0) }
-            // FIXME: The Library should automatically observe the database instead.
-            .also { _ in
-                DispatchQueue.main.async {
-                    self.delegate?.reloadLibrary()
+                self.openPublication(at: url, allowUserInteraction: false, sender: sender).flatMap { pub, mediaType in
+                    self.moveToDocuments(from: url, title: pub.metadata.title, mediaType: mediaType).flatMap { url in
+                        self.importCover(of: pub).flatMap { coverPath in
+                            self.insertBook(at: url, publication: pub, mediaType: mediaType, coverPath: coverPath)
+                        }
+                    }
                 }
             }
-            .resolve(completion)
+            .eraseToAnyPublisher()
     }
     
     /// Downloads `sourceURL` if it locates a remote file.
-    private func downloadIfNeeded(_ sourceURL: URL, title: String?) -> Deferred<URL, Error> {
-        guard !sourceURL.isFileURL, sourceURL.scheme != nil else {
-            return .success(sourceURL)
+    private func downloadIfNeeded(_ url: URL, progress: @escaping (Double) -> Void) -> AnyPublisher<URL, LibraryError> {
+        guard !url.isFileURL, url.scheme != nil else {
+            return .just(url)
         }
         
-        return sourceURL.download(description: title)
+        return httpClient.download(url, progress: progress)
+            .map { $0.file }
+            .mapError { .downloadFailed($0) }
+            .eraseToAnyPublisher()
     }
     
     /// Fulfills the given `url` if it's a DRM license file.
-    private func fulfillIfNeeded(_ url: URL) -> Deferred<URL, Error> {
+    private func fulfillIfNeeded(_ url: URL) -> AnyPublisher<URL, LibraryError> {
         guard let drmService = drmLibraryServices.first(where: { $0.canFulfill(url) }) else {
-            return .success(url)
+            return .just(url)
         }
         
         return drmService.fulfill(url)
-            .flatMap { download in
-                // Removes the license file if it's in the App directory (e.g. Inbox/)
-                if url.isAppFile {
-                    try? FileManager.default.removeItem(at: url)
+            .mapError { LibraryError.downloadFailed($0) }
+            .flatMap { pub -> AnyPublisher<URL, LibraryError> in
+                guard let url = pub?.localURL else {
+                    return .fail(.cancelled)
                 }
-                
-                return self.moveToDocuments(download.localURL, suggestedFilename: download.suggestedFilename)
+                return .just(url)
             }
+            .eraseToAnyPublisher()
     }
     
     /// Moves the given `sourceURL` to the user Documents/ directory.
-    private func moveToDocuments(_ sourceURL: URL, suggestedFilename: String? = nil) -> Deferred<URL, Error> {
-        return deferredCatching(on: .global(qos: .background)) {
-            // Necessary to read URL exported from the Files app, for example.
-            let shouldRelinquishAccess = sourceURL.startAccessingSecurityScopedResource()
-            defer {
-                if shouldRelinquishAccess {
-                    sourceURL.stopAccessingSecurityScopedResource()
+    private func moveToDocuments(from source: URL, title: String, mediaType: MediaType) -> AnyPublisher<URL, LibraryError> {
+        Paths.makeDocumentURL(title: title, mediaType: mediaType)
+            .setFailureType(to: LibraryError.self)
+            .flatMap { destination in
+                Future(on: .global()) { promise in
+                    // Necessary to read URL exported from the Files app, for example.
+                    let shouldRelinquishAccess = source.startAccessingSecurityScopedResource()
+                    defer {
+                        if shouldRelinquishAccess {
+                            source.stopAccessingSecurityScopedResource()
+                        }
+                    }
+                    
+                    do {
+                        // If the source file is part of the app folder, we can move it. Otherwise we make a
+                        // copy, to avoid deleting files from iCloud, for example.
+                        if Paths.isAppFile(at: source) {
+                            try FileManager.default.moveItem(at: source, to: destination)
+                        } else {
+                            try FileManager.default.copyItem(at: source, to: destination)
+                        }
+                        promise(.success(destination))
+                    } catch {
+                        promise(.failure(LibraryError.importFailed(error)))
+                    }
                 }
             }
+            .eraseToAnyPublisher()
+    }
+    
+    /// Imports the publication cover and return its path relative to the Covers/ folder.
+    private func importCover(of publication: Publication) -> AnyPublisher<String?, LibraryError> {
+        Future(on: .global()) { promise in
+            guard let cover = publication.cover?.pngData() else {
+                promise(.success(nil))
+                return
+            }
+            let coverURL = Paths.covers.appendingUniquePathComponent()
             
-            let destinationURL = self.documentDirectory.appendingUniquePathComponent(suggestedFilename ?? sourceURL.lastPathComponent)
-            
-            // If the source file is part of the app folder, we can move it. Otherwise we make a
-            // copy, to avoid deleting files from iCloud, for example.
-            if sourceURL.isAppFile {
-                try FileManager.default.moveItem(at: sourceURL, to: destinationURL)
-            } else {
-                try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
+            do {
+                try cover.write(to: coverURL)
+                promise(.success(coverURL.lastPathComponent))
+            } catch {
+                print(coverURL)
+                print(error)
+                promise(.failure(.importFailed(error)))
             }
             
-            return .success(destinationURL)
-        }
+        }.eraseToAnyPublisher()
     }
     
     /// Inserts the given `book` in the bookshelf.
-    ///
-    /// Use `allowDuplicate` to authorize or forbid duplicate books. When nil, the user will be
-    /// prompted to confirm the insertion.
-    private func insertBook(_ book: Book, allowDuplicate: Bool? = nil) -> Deferred<Book, Error> {
-        return deferredCatching(on: .global(qos: .background)) {
-            guard try BooksDatabase.shared.books.insert(book: book, allowDuplicate: allowDuplicate ?? false) != nil else {
-                if allowDuplicate == false {
-                    return .cancelled
-                } else {
-                    // The book already exists, try again after confirming the import.
-                    return self.confirmImportingDuplicate(book: book)
-                        .flatMap { self.insertBook(book, allowDuplicate: true) }
-                }
-            }
-            
-            return .success(book)
-        }
+    private func insertBook(at url: URL, publication: Publication, mediaType: MediaType, coverPath: String?) -> AnyPublisher<Book, LibraryError> {
+        let book = Book(
+            identifier: publication.metadata.identifier,
+            title: publication.metadata.title,
+            authors: publication.metadata.authors
+                .map { $0.name }
+                .joined(separator: ", "),
+            type: mediaType.string,
+            path: (url.isFileURL || url.scheme == nil) ? url.lastPathComponent : url.absoluteString,
+            coverPath: coverPath
+        )
+        
+        return books.add(book)
+            .map { _ in book }
+            .mapError { LibraryError.importFailed($0) }
+            .eraseToAnyPublisher()
     }
     
-    private func confirmImportingDuplicate(book: Book) -> Deferred<Void, Error> {
+    private func confirmImportingDuplicate(book: Book) -> AnyPublisher<Void, LibraryError> {
         guard let delegate = delegate else {
-            return .success(())
+            return .just(())
         }
         
         return delegate.confirmImportingDuplicatePublication(withTitle: book.title)
+            .setFailureType(to: LibraryError.self)
+            .flatMap { confirmed -> AnyPublisher<Void, LibraryError> in
+                if confirmed {
+                    return .just(())
+                } else {
+                    return .fail(.cancelled)
+                }
+            }
+            .eraseToAnyPublisher()
     }
     
     
     // MARK: Removing
 
-    func remove(_ book: Book) throws {
-        // Removes item from the database.
-        _ = try BooksDatabase.shared.books.delete(book)
-        
-        // Removes the file from Documents/
-        if let url = try? book.url(), documentDirectory.isParentOf(url) {
-            try FileManager.default.removeItem(at: url)
+    func remove(_ book: Book) -> AnyPublisher<Void, LibraryError> {
+        guard let id = book.id else {
+            return .fail(.bookDeletionFailed(nil))
         }
         
         // FIXME: ?
-        publicationServer.remove(at: book.href)
+        publicationServer.remove(at: book.path)
+        
+        return books.remove(id)
+            .mapError { LibraryError.bookDeletionFailed($0) }
+            .flatMap { book.url() }
+            .flatMap { self.removeBookFile(at: $0) }
+            .eraseToAnyPublisher()
+    }
+        
+    private func removeBookFile(at url: URL) -> AnyPublisher<Void, LibraryError> {
+        Future(on: .global()) { promise in
+            if Paths.documents.isParentOf(url) {
+                do {
+                    try FileManager.default.removeItem(at: url)
+                } catch {
+                    promise(.failure(.bookDeletionFailed(error)))
+                }
+            }
+            promise(.success(()))
+        }.eraseToAnyPublisher()
     }
     
     
@@ -246,56 +305,77 @@ final class LibraryService: Loggable {
     
     /// Preloads the sample publications from the bundled Samples/ directory in the database, if
     /// needed.
-    func preloadSamples() throws {
+    func preloadSamples() -> AnyPublisher<Void, LibraryError> {
         let version = 1
         let key = "LIBRARY_VERSION"
         let currentVersion = UserDefaults.standard.integer(forKey: key)
         guard currentVersion < version else {
-            return
+            return .just(())
         }
         
         UserDefaults.standard.set(version, forKey: key)
         
-        let samplesPath = Bundle.main.resourceURL!.appendingPathComponent("Samples")
-        let sampleURLs = try FileManager.default.contentsOfDirectory(at: samplesPath, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
-        loadSamples(from: sampleURLs)
-    }
-    
-    fileprivate func loadSamples(from urls: [URL]) {
-        var urls = urls
-        guard let url = urls.popFirst() else {
-            delegate?.reloadLibrary()
-            return
-        }
-        
-        openPublication(at: url, allowUserInteraction: false, sender: nil)
-            .map(on: .global(qos: .background)) { Book(publication: $0, url: url) }
-            .flatMap { self.insertBook($0, allowDuplicate: false) }
-            .resolve { result in
-                if case .failure(let error) = result {
-                    self.log(.error, "Failed to import sample \(url.lastPathComponent): \(error)")
+        return samples().flatMap { url in
+            self.openPublication(at: url, allowUserInteraction: false, sender: nil).flatMap { pub, mediaType in
+                self.importCover(of: pub).flatMap { coverPath in
+                    self.insertBook(at: url, publication: pub, mediaType: mediaType, coverPath: coverPath)
                 }
-                
-                self.loadSamples(from: urls)
             }
+            .map { _ in }
+        }.eraseToAnyPublisher()
     }
     
+    private func samples() -> AnyPublisher<URL, LibraryError> {
+        do {
+            return try FileManager.default
+                .contentsOfDirectory(at: Paths.samples, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
+                .publisher
+                .setFailureType(to: LibraryError.self)
+                .eraseToAnyPublisher()
+        } catch {
+            return .fail(.importFailed(error))
+        }
+    }
 }
 
 
 private extension Book {
     
-    /// Creates a new `Book` from a Readium `Publication` and its URL.
-    convenience init(publication: Publication, url: URL) {
-        self.init(
-            href: (url.isFileURL || url.scheme == nil) ? url.lastPathComponent : url.absoluteString,
-            title: publication.metadata.title,
-            author: publication.metadata.authors
-                .map { $0.name }
-                .joined(separator: ", "),
-            identifier: publication.metadata.identifier ?? url.lastPathComponent,
-            cover: publication.cover?.pngData()
-        )
+    func url() -> AnyPublisher<URL, LibraryError> {
+        // Absolute URL.
+        if let url = URL(string: path), url.scheme != nil {
+            return .just(url)
+        }
+        
+        // Absolute file path.
+        if path.hasPrefix("/") {
+            return .just(URL(fileURLWithPath: path))
+        }
+        
+        return Future(on: .global()) { promise in
+            do {
+                // Path relative to Documents/.
+                let files = FileManager.default
+                let documents = try files.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+
+                let documentURL = documents.appendingPathComponent(path)
+                if (try? documentURL.checkResourceIsReachable()) == true {
+                    return promise(.success(documentURL))
+                }
+        
+                // Path relative to the Samples/ directory in the App bundle.
+                if
+                    let sampleURL = Bundle.main.url(forResource: path, withExtension: nil, subdirectory: "Samples"),
+                    (try? sampleURL.checkResourceIsReachable()) == true
+                {
+                    return promise(.success(sampleURL))
+                }
+                
+                promise(.failure(LibraryError.bookNotFound))
+
+            } catch {
+                promise(.failure(LibraryError.bookNotFound))
+            }
+        }.eraseToAnyPublisher()
     }
-    
 }

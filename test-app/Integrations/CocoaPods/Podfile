@@ -11,9 +11,9 @@ target 'R2TestApp' do
   pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/r2-lcp-swift/develop/ReadiumLCP.podspec'
 
   pod 'GCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/3.6.3/GCDWebServer.podspec'
+  pod 'GRDB.swift'
   pod 'Kingfisher'
   pod 'MBProgressHUD'
-  pod 'SQLite.swift'
   pod 'SwiftSoup'
 end
 

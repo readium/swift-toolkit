@@ -9,6 +9,7 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
+import Combine
 import Foundation
 import R2Shared
 
@@ -17,7 +18,6 @@ struct DRMFulfilledPublication {
     let localURL: URL
     let suggestedFilename: String
 }
-
 
 protocol DRMLibraryService {
     
@@ -29,6 +29,6 @@ protocol DRMLibraryService {
     func canFulfill(_ file: URL) -> Bool
     
     /// Fulfills the given file to the fully protected publication.
-    func fulfill(_ file: URL) -> Deferred<DRMFulfilledPublication, Error>
+    func fulfill(_ file: URL) -> AnyPublisher<DRMFulfilledPublication?, Error>
     
 }

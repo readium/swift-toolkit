@@ -10,6 +10,7 @@
 //  LICENSE file present in the project repository where this source code is maintained.
 //
 
+import Combine
 import UIKit
 import R2Shared
 import Kingfisher
@@ -33,6 +34,7 @@ class OPDSPublicationInfoViewController: UIViewController, Loggable {
     @IBOutlet weak var downloadActivityIndicator: UIActivityIndicatorView!
     
     private lazy var downloadLink: Link? = publication?.downloadLinks.first
+    private var subscriptions = Set<AnyCancellable>()
 
     override func viewDidLoad() {
         fxImageView.clipsToBounds = true
@@ -51,16 +53,12 @@ class OPDSPublicationInfoViewController: UIViewController, Loggable {
             if images.count > 0 {
                 let coverURL = URL(string: images[0].href)
                 if (coverURL != nil) {
-                    UIApplication.shared.isNetworkActivityIndicatorVisible = true
                     imageView.kf.setImage(
                         with: coverURL,
                         placeholder: titleTextView,
                         options: [.transition(ImageTransition.fade(0.5))],
                         progressBlock: nil
                     ) { result in
-                        DispatchQueue.main.async {
-                            UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                        }
                         switch result {
                         case .success(let image):
                             self.fxImageView?.image = image.image
@@ -102,29 +100,23 @@ class OPDSPublicationInfoViewController: UIViewController, Loggable {
         
         downloadActivityIndicator.startAnimating()
         downloadButton.isEnabled = false
-        delegate.opdsDownloadPublication(publication, at: downloadLink, sender: self) { [weak self] result in
-            guard let self = self else {
-                return
-            }
-            
-            self.downloadActivityIndicator.stopAnimating()
-            self.downloadButton.isEnabled = true
-            
-            switch result {
-            case .success(let book):
+        delegate.opdsDownloadPublication(publication, at: downloadLink, sender: self)
+            .receive(on: DispatchQueue.main)
+            .sink { completion in
+                self.downloadActivityIndicator.stopAnimating()
+                self.downloadButton.isEnabled = true
+                
+                if case .failure(let error) = completion {
+                    delegate.presentError(error, from: self)
+                }
+            } receiveValue: { book in
                 delegate.presentAlert(
                     NSLocalizedString("success_title", comment: "Title of the alert when a publication is successfully downloaded"),
                     message: String(format: NSLocalizedString("library_download_success_message", comment: "Message of the alert when a publication is successfully downloaded"), book.title),
                     from: self
                 )
-                
-            case .failure(let error):
-                delegate.presentError(error, from: self)
-
-            case .cancelled:
-                break
             }
-        }
+            .store(in: &subscriptions)
     }
 
 }

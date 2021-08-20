@@ -18,10 +18,10 @@ import R2Streamer
 
 class CBZViewController: ReaderViewController {
 
-    init(publication: Publication, book: Book) {
-        let navigator = CBZNavigatorViewController(publication: publication, initialLocation: book.progressionLocator)
+    init(publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository) {
+        let navigator = CBZNavigatorViewController(publication: publication, initialLocation: locator)
         
-        super.init(navigator: navigator, publication: publication, book: book)
+        super.init(navigator: navigator, publication: publication, bookId: bookId, books: books, bookmarks: bookmarks)
         
         navigator.delegate = self
     }
@@ -33,18 +33,11 @@ class CBZViewController: ReaderViewController {
     }
     
     override var currentBookmark: Bookmark? {
-        guard
-            let locator = navigator.currentLocation,
-            let resourceIndex = publication.readingOrder.firstIndex(withHREF: locator.href) else
-        {
+        guard let locator = navigator.currentLocation else {
             return nil
         }
         
-        return Bookmark(
-            bookID: book.id,
-            resourceIndex: resourceIndex,
-            locator: locator
-        )
+        return Bookmark(bookId: bookId, locator: locator)
     }
 
 }

@@ -104,16 +104,12 @@ extension OPDSGroupTableViewCell: UICollectionViewDataSource {
                     ?? publication.images.first.flatMap { URL(string: $0.href) }
 
                 if let coverURL = coverURL {
-                    UIApplication.shared.isNetworkActivityIndicatorVisible = true
                     cell.coverImageView.kf.setImage(
                         with: coverURL,
                         placeholder: titleTextView,
                         options: [.transition(ImageTransition.fade(0.5))],
-                        progressBlock: nil) { _ in
-                            DispatchQueue.main.async {
-                                UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                            }
-                        }
+                        progressBlock: nil
+                    ) { _ in }
                 }
                 
                 cell.titleLabel.text = publication.metadata.title

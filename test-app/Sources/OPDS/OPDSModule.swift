@@ -10,6 +10,7 @@
 //  LICENSE file present in the project repository where this source code is maintained.
 //
 
+import Combine
 import Foundation
 import UIKit
 import R2Shared
@@ -29,7 +30,7 @@ protocol OPDSModuleAPI {
 protocol OPDSModuleDelegate: ModuleDelegate {
     
     /// Called when an OPDS publication needs to be downloaded.
-    func opdsDownloadPublication(_ publication: Publication?, at link: Link, sender: UIViewController, completion: @escaping (CancellableResult<Book, Error>) -> Void)
+    func opdsDownloadPublication(_ publication: Publication?, at link: Link, sender: UIViewController) -> AnyPublisher<Book, LibraryError>
 
 }
 

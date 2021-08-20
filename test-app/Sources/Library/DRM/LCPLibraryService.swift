@@ -11,6 +11,7 @@
 
 #if LCP
 
+import Combine
 import Foundation
 import UIKit
 import R2Shared
@@ -28,22 +29,29 @@ class LCPLibraryService: DRMLibraryService {
         return file.pathExtension.lowercased() == "lcpl"
     }
     
-    func fulfill(_ file: URL) -> Deferred<DRMFulfilledPublication, Error> {
-        return deferred { completion in
+    func fulfill(_ file: URL) -> AnyPublisher<DRMFulfilledPublication?, Error> {
+        Future { promise in
             self.lcpService.acquirePublication(from: file) { result in
-                completion(result
-                    .map {
-                        DRMFulfilledPublication(
-                            localURL: $0.localURL,
-                            suggestedFilename: $0.suggestedFilename
-                        )
-                    }
-                    .eraseToAnyError()
-                )
+                // Removes the license file, but only if it's in the App directory (e.g. Inbox/).
+                // Otherwise we might delete something from a shared location (e.g. iCloud).
+                if Paths.isAppFile(at: file) {
+                    try? FileManager.default.removeItem(at: file)
+                }
+                
+                switch result {
+                case .success(let pub):
+                    promise(.success(DRMFulfilledPublication(
+                        localURL: pub.localURL,
+                        suggestedFilename: pub.suggestedFilename
+                    )))
+                case .failure(let error):
+                    promise(.failure(error))
+                case .cancelled:
+                    promise(.success(nil))
+                }
             }
-        }
+        }.eraseToAnyPublisher()
     }
-
 }
 
 /// Facade to the private R2LCPClient.framework.

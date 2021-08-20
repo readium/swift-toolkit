@@ -10,6 +10,7 @@
 //  LICENSE file present in the project repository where this source code is maintained.
 //
 
+import Combine
 import UIKit
 
 @UIApplicationMain
@@ -18,6 +19,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     
     private var app: AppModule!
+    private var subscriptions = Set<AnyCancellable>()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         app = try! AppModule()
@@ -60,6 +62,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
         app.library.importPublication(from: url, sender: window!.rootViewController!)
+            .assertNoFailure()
+            .sink { _ in }
+            .store(in: &subscriptions)
         return true
     }
 

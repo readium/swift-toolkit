@@ -19,8 +19,8 @@ class EPUBViewController: ReaderViewController {
     var popoverUserconfigurationAnchor: UIBarButtonItem?
     var userSettingNavigationController: UserSettingsNavigationController
 
-    init(publication: Publication, book: Book, resourcesServer: ResourcesServer) {
-        let navigator = EPUBNavigatorViewController(publication: publication, initialLocation: book.progressionLocator, resourcesServer: resourcesServer)
+    init(publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, resourcesServer: ResourcesServer) {
+        let navigator = EPUBNavigatorViewController(publication: publication, initialLocation: locator, resourcesServer: resourcesServer)
 
         let settingsStoryboard = UIStoryboard(name: "UserSettings", bundle: nil)
         userSettingNavigationController = settingsStoryboard.instantiateViewController(withIdentifier: "UserSettingsNavigationController") as! UserSettingsNavigationController
@@ -29,7 +29,7 @@ class EPUBViewController: ReaderViewController {
         userSettingNavigationController.advancedSettingsViewController =
             (settingsStoryboard.instantiateViewController(withIdentifier: "AdvancedSettingsViewController") as! AdvancedSettingsViewController)
         
-        super.init(navigator: navigator, publication: publication, book: book)
+        super.init(navigator: navigator, publication: publication, bookId: bookId, books: books, bookmarks: bookmarks)
         
         navigator.delegate = self
     }
@@ -88,13 +88,11 @@ class EPUBViewController: ReaderViewController {
     }
     
     override var currentBookmark: Bookmark? {
-        guard
-            let locator = navigator.currentLocation,
-            let resourceIndex = publication.readingOrder.firstIndex(withHREF: locator.href) else
-        {
+        guard let locator = navigator.currentLocation else {
             return nil
         }
-        return Bookmark(bookID: book.id, resourceIndex: resourceIndex, locator: locator)
+        
+        return Bookmark(bookId: bookId, locator: locator)
     }
     
     @objc func presentUserSettings() {

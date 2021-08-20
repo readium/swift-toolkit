@@ -27,12 +27,12 @@ final class EPUBModule: ReaderFormatModule {
         return [.epub, .webpub]
     }
     
-    func makeReaderViewController(for publication: Publication, book: Book, resourcesServer: ResourcesServer) throws -> UIViewController {
+    func makeReaderViewController(for publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, resourcesServer: ResourcesServer) throws -> UIViewController {
         guard publication.metadata.identifier != nil else {
             throw ReaderError.epubNotValid
         }
         
-        let epubViewController = EPUBViewController(publication: publication, book: book, resourcesServer: resourcesServer)
+        let epubViewController = EPUBViewController(publication: publication, locator: locator, bookId: bookId, books: books, bookmarks: bookmarks, resourcesServer: resourcesServer)
         epubViewController.moduleDelegate = delegate
         return epubViewController
     }

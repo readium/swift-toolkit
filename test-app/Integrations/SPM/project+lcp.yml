@@ -17,6 +17,9 @@ packages:
   ReadiumLCP:
     url: https://github.com/readium/r2-lcp-swift.git
     branch: develop
+  GRDB:
+    url: https://github.com/groue/GRDB.swift.git
+    from: 5.8.0
   Kingfisher:
     url: https://github.com/onevcat/Kingfisher.git
     from: 5.15.8
@@ -26,14 +29,11 @@ packages:
   SwiftSoup:
     url: https://github.com/scinfu/SwiftSoup.git
     from: 2.3.2
-  SQLite:
-    url: https://github.com/stephencelis/SQLite.swift.git
-    from: 0.12.2
 targets:
   R2TestApp:
     type: application
     platform: iOS
-    deploymentTarget: "10.0"
+    deploymentTarget: "13.6"
     sources: 
       - path: Sources
         excludes:
@@ -47,10 +47,10 @@ targets:
       - package: R2Navigator
       - package: ReadiumOPDS
       - package: ReadiumLCP
+      - package: GRDB
       - package: Kingfisher
       - package: MBProgressHUD
       - package: SwiftSoup
-      - package: SQLite
     settings:
       OTHER_SWIFT_FLAGS: -DLCP
 
