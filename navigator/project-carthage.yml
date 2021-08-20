@@ -12,6 +12,7 @@ targets:
       - path: r2-navigator-swift
         excludes:
           - EPUB/Assets
+          - EPUB/Scripts
       - path: r2-navigator-swift/EPUB/Assets
         type: folder
     dependencies:

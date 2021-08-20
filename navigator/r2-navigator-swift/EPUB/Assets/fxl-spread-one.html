@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <script type="text/javascript" src="/r2-navigator/epub/scripts/readium-fixed.js"></script>
+  <script type="text/javascript" src="/r2-navigator/epub/scripts/readium-fixed-wrapper.js"></script>
   <style>
   body, html {
     height: 100%;
@@ -36,18 +38,18 @@
       // Public API called from Swift.
       return {
         // Loads resources in the spread.
-        'load': function(links) {
-          if (links.length == 0) {
+        'load': function(resources) {
+          if (resources.length === 0) {
             return;
           }
-          _page.load(links[0], function loaded() {
+          _page.load(resources[0], function loaded() {
             webkit.messageHandlers.spreadLoaded.postMessage({});
           });
         },
 
         // Evaluates a JavaScript in the context of a resource.
         'eval': function(href, script) {
-          if (href == '#' || href == '' || _page.href == href) {
+          if (href === '#' || href === '' || _page.link?.href === href) {
             return _page.eval(script);
           }
         },

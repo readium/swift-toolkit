@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <script type="text/javascript" src="/r2-navigator/epub/scripts/readium-fixed.js"></script>
+  <script type="text/javascript" src="/r2-navigator/epub/scripts/readium-fixed-wrapper.js"></script>
   <style>
   body, html {
     height: 100%;
@@ -92,7 +94,7 @@
       function getPageWithHref(href) {
         for (position in _pages) {
           var page = _pages[position];
-          if (page.href == href) {
+          if (page.link?.href === href) {
             return page;
           }
         }
@@ -102,7 +104,7 @@
       // Public API called from Swift.
       return {
         // Loads resources in the spread.
-        'load': function(links) {
+        'load': function(resources) {
           forEachPage(function(page) {
             page.reset();
             page.hide();
@@ -115,12 +117,12 @@
             webkit.messageHandlers.spreadLoaded.postMessage({});
           }
 
-          for (var i in links) {
-            var link = links[i];
-            var page = _pages[link.page];
+          for (const i in resources) {
+            const resource = resources[i];
+            const page = _pages[resource.page];
             if (page) {
               page.show();
-              page.load(link, loaded);
+              page.load(resource, loaded);
             }
           }
         },
@@ -128,7 +130,7 @@
         // Evaluates a JavaScript in the context of a resource.
         // If the href is '#' or empty, then the script is executed on all the pages.
         'eval': function(href, script) {
-          if (href == '#' || href == '') {
+          if (href === '#' || href === '') {
             forEachPage(function(page) {
               page.eval(script);
             });

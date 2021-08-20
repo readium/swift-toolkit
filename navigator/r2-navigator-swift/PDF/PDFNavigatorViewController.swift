@@ -234,16 +234,18 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
     // MARK: - User Selection
 
     @objc func selectionDidChange(_ note: Notification) {
-        guard let selection = pdfView.currentSelection,
+        guard
+            let locator = currentLocation,
+            let selection = pdfView.currentSelection,
             let text = selection.string,
-            let page = selection.pages.first else
-        {
+            let page = selection.pages.first
+        else {
             editingActions.selection = nil
             return
         }
         
         editingActions.selection = Selection(
-            locator: Locator(href: "", type: "", text: Locator.Text(highlight: text)),
+            locator: locator.copy(text: { $0.highlight = text }),
             frame: pdfView.convert(selection.bounds(for: page), from: page)
                 // Makes it slightly bigger to have more room when displaying a popover.
                 .insetBy(dx: -8, dy: -8)

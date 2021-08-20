@@ -34,6 +34,9 @@ All notable changes to this project will be documented in this file.
     * Get or clear the current selection.
     * Implement `navigator(_:canPerformAction:for:)` to validate each editing action for the current selection. For example, to make sure the selected text is not too large for a definition look up.
     * Implement `navigator(_:shouldShowMenuForSelection:)` to override the default edit menu (`UIMenuController`) with a custom selection pop-up.
+* (*alpha*) Support for the [Decorator API](https://github.com/readium/architecture/pull/160) to draw user interface elements over a publication's content.
+    * This can be used to render highlights over a text selection, for example.
+    * For now, only the EPUB navigator implements `DecorableNavigator`. You can implement custom decoration styles with `HTMLDecorationTemplate`.
 * (*alpha*) A new navigator for audiobooks.
   * The navigator is chromeless, so you will need to provide your own user interface.
 

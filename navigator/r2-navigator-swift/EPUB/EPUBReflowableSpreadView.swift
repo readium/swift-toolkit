@@ -16,7 +16,16 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     private var topConstraint: NSLayoutConstraint!
     private var bottomConstraint: NSLayoutConstraint!
     
-    private lazy var layout = ReadiumCSSLayout(languages: publication.metadata.languages, readingProgression: readingProgression)
+    required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL, readingProgression: ReadingProgression, userSettings: UserSettings, scripts: [WKUserScript], animatedLoad: Bool, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+        var scripts = scripts
+        let layout = ReadiumCSSLayout(languages: publication.metadata.languages, readingProgression: readingProgression)
+        scripts.append(WKUserScript(
+            source: "window.readiumCSSBaseURL = '\(resourcesURL.appendingPathComponent(layout.readiumCSSBasePath))'",
+            injectionTime: .atDocumentStart,
+            forMainFrameOnly: false
+        ))
+        super.init(publication: publication, spread: spread, resourcesURL: resourcesURL, readingProgression: readingProgression, userSettings: userSettings, scripts: scripts, animatedLoad: animatedLoad, editingActions: editingActions, contentInset: contentInset)
+    }
 
     override func setupWebView() {
         super.setupWebView()
@@ -75,7 +84,11 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             }()
             return script + "readium.setProperty(\"\(property.name)\", \"\(value)\");\n"
         }
-        evaluateScript(propertiesScript)
+        evaluateScript(propertiesScript) { res in
+            if case .failure(let error) = res {
+                self.log(.error, error)
+            }
+        }
 
         // Disables paginated mode if scroll is on.
         scrollView.isPagingEnabled = !isScrollEnabled
@@ -105,11 +118,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         }
     }
     
-    override func pointFromTap(_ data: TapData) -> CGPoint? {
-        let x = data.clientX
-        let y = data.clientY
-        
-        var point = CGPoint(x: x, y: y)
+    override func convertPointToNavigatorSpace(_ point: CGPoint) -> CGPoint {
+        var point = point
         if isScrollEnabled {
             // Starting from iOS 12, the contentInset are not taken into account in the JS touch event.
             if #available(iOS 12.0, *) {
@@ -128,8 +138,13 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         point.y += webView.frame.minY
         return point
     }
-    
-    
+
+    override func convertRectToNavigatorSpace(_ rect: CGRect) -> CGRect {
+        var rect = rect
+        rect.origin = convertPointToNavigatorSpace(rect.origin)
+        return rect
+    }
+
     /// MARK: - Location and progression
     
     override func progression(in href: String) -> Double {
@@ -140,6 +155,10 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     }
 
     override func spreadDidLoad() {
+        if let linkJSON = serializeJSONString(spread.leading.json) {
+            evaluateScript("readium.link = \(linkJSON);")
+        }
+
         // FIXME: Better solution for delaying scrolling to pending location
         // This delay is used to wait for the web view pagination to settle and give the CSS and webview time to layout
         // correctly before attempting to scroll to the target progression, otherwise we might end up at the wrong spot.
@@ -252,14 +271,20 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             completion(true)
         } else {
             let dir = readingProgression.rawValue
-            evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\')") { _, _ in completion (true) }
+            evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\')") { _ in completion(true) }
         }
     }
     
     /// Scrolls at the tag with ID `tagID`.
     private func go(toTagID tagID: String, completion: @escaping (Bool) -> Void) {
-        evaluateScript("readium.scrollToId(\'\(tagID)\');") { res, _ in
-            completion((res as? Bool) ?? false)
+        evaluateScript("readium.scrollToId(\'\(tagID)\');") { result in
+            switch result {
+            case .success(let value):
+                completion((value as? Bool) ?? false)
+            case .failure(let error):
+                self.log(.error, error)
+                completion(false)
+            }
         }
     }
 
@@ -269,8 +294,14 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             completion(false)
             return
         }
-        evaluateScript("readium.scrollToText(\(json));") { res, _ in
-            completion((res as? Bool) ?? false)
+        evaluateScript("readium.scrollToText(\(json));") { result in
+            switch result {
+            case .success(let value):
+                completion((value as? Bool) ?? false)
+            case .failure(let error):
+                self.log(.error, error)
+                completion(false)
+            }
         }
     }
 
@@ -308,50 +339,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         super.registerJSMessages()
         registerJSMessage(named: "progressionChanged") { [weak self] in self?.progressionDidChange($0) }
     }
-    
-    private static let reflowableScript = loadScript(named: "reflowable")
-    private static let cssScript = loadScript(named: "css")
-    private static let cssInlineScript = loadScript(named: "css-inline")
-    
-    override func makeScripts() -> [WKUserScript] {
-        var scripts = super.makeScripts()
-        
-        scripts.append(WKUserScript(source: EPUBReflowableSpreadView.reflowableScript, injectionTime: .atDocumentStart, forMainFrameOnly: true))
 
-        // Injects Readium CSS's stylesheets.
-        if let resourcesURL = resourcesURL {
-            // When a publication is served from an HTTPS server, then WKWebView forbids accessing the stylesheets from the local, unsecured GCDWebServer instance. In this case we will inject directly the full content of the CSS in the JavaScript.
-            if publication.baseURL?.scheme?.lowercased() == "https" {
-                func loadCSS(_ name: String) -> String {
-                    return loadResource(at: layout.readiumCSSPath(for: name))
-                        .replacingOccurrences(of: "\\", with: "\\\\")
-                        .replacingOccurrences(of: "`", with: "\\`")
-                }
-                
-                let beforeCSS = loadCSS("before")
-                let afterCSS = loadCSS("after")
-                scripts.append(WKUserScript(
-                    source: EPUBReflowableSpreadView.cssInlineScript
-                        .replacingOccurrences(of: "${css-before}", with: beforeCSS)
-                        .replacingOccurrences(of: "${css-after}", with: afterCSS),
-                    injectionTime: .atDocumentStart,
-                    forMainFrameOnly: false
-                ))
-
-            } else {
-                scripts.append(WKUserScript(
-                    source: EPUBReflowableSpreadView.cssScript
-                        .replacingOccurrences(of: "${readiumCSSBaseURL}", with: resourcesURL.appendingPathComponent(layout.readiumCSSBasePath).absoluteString),
-                    injectionTime: .atDocumentStart,
-                    forMainFrameOnly: false
-                ))
-            }
-        }
-        
-        return scripts
-    }
-    
-    
     // MARK: - WKNavigationDelegate
     
     override func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {

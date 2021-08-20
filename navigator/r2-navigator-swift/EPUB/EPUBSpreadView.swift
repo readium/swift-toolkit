@@ -9,7 +9,9 @@ import R2Shared
 import SwiftSoup
 
 protocol EPUBSpreadViewDelegate: AnyObject {
-    
+    /// Called when the spread view finished loading.
+    func spreadViewDidLoad(_ spreadView: EPUBSpreadView)
+
     /// Called when the user tapped on the spread contents.
     func spreadView(_ spreadView: EPUBSpreadView, didTapAt point: CGPoint)
     
@@ -17,14 +19,19 @@ protocol EPUBSpreadViewDelegate: AnyObject {
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnExternalURL url: URL)
     
     /// Called when the user tapped on an internal link.
-    func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, tapData: TapData?)
+    func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, clickEvent: ClickEvent?)
+
+    /// Called when the user tapped on a decoration.
+    func spreadView(_ spreadView: EPUBSpreadView, didActivateDecoration id: Decoration.Id, inGroup group: String, frame: CGRect?, point: CGPoint?)
+
+    /// Called when the text selection changes.
+    func spreadView(_ spreadView: EPUBSpreadView, selectionDidChange text: Locator.Text?, frame: CGRect)
 
     /// Called when the pages visible in the spread changed.
     func spreadViewPagesDidChange(_ spreadView: EPUBSpreadView)
     
     /// Called when the spread view needs to present a view controller.
     func spreadView(_ spreadView: EPUBSpreadView, present viewController: UIViewController)
-
 }
 
 class EPUBSpreadView: UIView, Loggable, PageView {
@@ -32,15 +39,17 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     weak var delegate: EPUBSpreadViewDelegate?
     let publication: Publication
     let spread: EPUBSpread
+    private(set) var focusedResource: Link?
     
-    let resourcesURL: URL?
+    let resourcesURL: URL
     let webView: WebView
 
     let readingProgression: ReadingProgression
     let userSettings: UserSettings
+    let scripts: [WKUserScript]
     let editingActions: EditingActionsController
-    
-    private var lastTap: TapData? = nil
+
+    private var lastClick: ClickEvent? = nil
 
     /// If YES, the content will be faded in once loaded.
     let animatedLoad: Bool
@@ -58,12 +67,13 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     private(set) var spreadLoaded = false
 
-    required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL?, readingProgression: ReadingProgression, userSettings: UserSettings, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+    required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL, readingProgression: ReadingProgression, userSettings: UserSettings, scripts: [WKUserScript], animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
         self.publication = publication
         self.spread = spread
         self.resourcesURL = resourcesURL
         self.readingProgression = readingProgression
         self.userSettings = userSettings
+        self.scripts = scripts
         self.editingActions = editingActions
         self.animatedLoad = animatedLoad
         self.webView = WebView(editingActions: editingActions)
@@ -81,7 +91,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
         addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapBackground)))
         
-        for script in makeScripts() {
+        for script in scripts {
             webView.configuration.userContentController.addUserScript(script)
         }
         registerJSMessages()
@@ -91,7 +101,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         updateActivityIndicator()
         loadSpread()
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
         disableJSMessages()
@@ -145,10 +155,18 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     }
 
     /// Evaluates the given JavaScript into the resource's HTML page.
-    func evaluateScript(_ script: String, completion: ((Any?, Error?) -> Void)? = nil) {
-        webView.evaluateJavaScript(script, completionHandler: completion)
+    func evaluateScript(_ script: String, inHREF href: String? = nil, completion: ((Result<Any, Error>) -> Void)? = nil) {
+        log(.debug, "Evaluate script: \(script)")
+        webView.evaluateJavaScript(script) { res, error in
+            if let error = error {
+                self.log(.error, error)
+                completion?(.failure(error))
+            } else {
+                completion?(.success(res ?? ()))
+            }
+        }
     }
-    
+
     /// Called from the JS code when logging a message.
     private func didLog(_ body: Any) {
         guard let body = body as? String else {
@@ -156,7 +174,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
         log(.debug, "JavaScript: \(body)")
     }
-    
+
     /// Called from the JS code when logging an error.
     private func didLogError(_ body: Any) {
         guard let error = body as? [String: Any],
@@ -165,7 +183,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             return
         }
         message = "JavaScript: \(message)"
-        
+
         if let file = error["filename"] as? String, file != "/",
             let line = error["line"] as? Int, line != 0
         {
@@ -174,28 +192,35 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             self.log(.error, message)
         }
     }
-  
+
     /// Called from the JS code when a tap is detected.
     /// If the JS indicates the tap is being handled within the webview, don't take action,
     /// just save the tap data for use by webView(_ webView:decidePolicyFor:decisionHandler:)
     private func didTap(_ data: Any) {
-        let tapData = TapData(data: data)
-        lastTap = tapData
+        guard let clickEvent = ClickEvent(json: data) else {
+            return
+        }
+        lastClick = clickEvent
         
         // Ignores taps on interactive elements, or if the script prevents the default behavior.
-        if !tapData.defaultPrevented && tapData.interactiveElement == nil,
-            let point = pointFromTap(tapData)
-        {
+        if !clickEvent.defaultPrevented && clickEvent.interactiveElement == nil {
+            let point = convertPointToNavigatorSpace(clickEvent.point)
             delegate?.spreadView(self, didTapAt: point)
         }
     }
-    
-    /// Converts the touch data returned by the JavaScript `tap` event into a point in the webview's coordinate space.
-    func pointFromTap(_ data: TapData) -> CGPoint? {
+
+    /// Converts the given JavaScript point into a point in the webview's coordinate space.
+    func convertPointToNavigatorSpace(_ point: CGPoint) -> CGPoint {
         // To override in subclasses.
-        return nil
+        return point
     }
-    
+
+    /// Converts the given JavaScript rect into a rect in the webview's coordinate space.
+    func convertRectToNavigatorSpace(_ rect: CGRect) -> CGRect {
+        // To override in subclasses.
+        return rect
+    }
+
     /// Called by the UITapGestureRecognizer as a fallback tap when tapping around the webview.
     @objc private func didTapBackground(_ gesture: UITapGestureRecognizer) {
         let point = gesture.location(in: self)
@@ -208,6 +233,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         spreadLoaded = true
         applyUserSettingsStyle()
         spreadDidLoad()
+        delegate?.spreadViewDidLoad(self)
     }
     
     /// To be overriden to customize the behavior after the spread is loaded.
@@ -224,25 +250,27 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     /// Called by the JavaScript layer when the user selection changed.
     private func selectionDidChange(_ body: Any) {
-        guard let selection = body as? [String: Any],
-            let text = selection["text"] as? String,
-            let frame = selection["frame"] as? [String: Any] else
-        {
-            editingActions.selection = nil
+        if body is NSNull {
+            focusedResource = nil
+            delegate?.spreadView(self, selectionDidChange: nil, frame: .zero)
+            return
+        }
+
+        guard
+            let selection = body as? [String: Any],
+            let href = selection["href"] as? String,
+            let text = try? Locator.Text(json: selection["text"]),
+            var frame = CGRect(json: selection["rect"])
+        else {
+            focusedResource = nil
+            delegate?.spreadView(self, selectionDidChange: nil, frame: .zero)
             log(.warning, "Invalid body for selectionDidChange: \(body)")
             return
         }
-        editingActions.selection = Selection(
-            locator: Locator(
-                href: "", type: "", text: Locator.Text(highlight: text)
-            ),
-            frame: CGRect(
-                x: frame["x"] as? CGFloat ?? 0,
-                y: frame["y"] as? CGFloat ?? 0,
-                width: frame["width"] as? CGFloat ?? 0,
-                height: frame["height"] as? CGFloat ?? 0
-            )
-        )
+
+        focusedResource = spread.links.first(withHREF: href)
+        frame.origin = convertPointToNavigatorSpace(frame.origin)
+        delegate?.spreadView(self, selectionDidChange: text, frame: frame)
     }
     
     /// Called when the user hit the Share item in the selection context menu.
@@ -290,29 +318,6 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     }
 
     
-    // MARK: - Scripts
-    
-    private static let gesturesScript = loadScript(named: "gestures")
-    private static let utilsScript = loadScript(named: "utils")
-
-    class func loadScript(named name: String) -> String {
-        return Bundle.module.url(forResource: "\(name)", withExtension: "js", subdirectory: "Assets/Scripts")
-            .flatMap { try? String(contentsOf: $0) }!
-    }
-    
-    func loadResource(at path: String) -> String {
-        return (resourcesURL?.appendingPathComponent(path))
-            .flatMap { try? String(contentsOf: $0) }!
-    }
-    
-    func makeScripts() -> [WKUserScript] {
-        return [
-            WKUserScript(source: EPUBSpreadView.gesturesScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
-            WKUserScript(source: EPUBSpreadView.utilsScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
-        ]
-    }
-    
-    
     // MARK: - JS Messages
     
     private var JSMessages: [String: (Any) -> Void] = [:]
@@ -338,6 +343,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         registerJSMessage(named: "tap") { [weak self] in self?.didTap($0) }
         registerJSMessage(named: "spreadLoaded") { [weak self] in self?.spreadDidLoad($0) }
         registerJSMessage(named: "selectionChanged") { [weak self] in self?.selectionDidChange($0) }
+        registerJSMessage(named: "decorationActivated") { [weak self] in self?.decorationDidActivate($0) }
     }
     
     /// Add the message handlers for incoming javascript events.
@@ -361,7 +367,28 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             webView.configuration.userContentController.removeScriptMessageHandler(forName: name)
         }
     }
-    
+
+
+    // MARK: – Decorator
+
+    /// Called by the JavaScript layer when the user activates a decoration.
+    private func decorationDidActivate(_ body: Any) {
+        guard
+            let decoration = body as? [String: Any],
+            let decorationId = decoration["id"] as? Decoration.Id,
+            let groupName = decoration["group"] as? String,
+            var frame = CGRect(json: decoration["rect"])
+        else {
+            log(.warning, "Invalid body for decorationDidActivate: \(body)")
+            return
+        }
+
+        frame = convertRectToNavigatorSpace(frame)
+        let point = ClickEvent(json: decoration["click"])
+            .map { convertPointToNavigatorSpace($0.point) }
+        delegate?.spreadView(self, didActivateDecoration: decorationId, inGroup: groupName, frame: frame, point: point)
+    }
+
     
     // MARK: - Accessibility
     
@@ -406,7 +433,7 @@ extension EPUBSpreadView: WKNavigationDelegate {
                 // Check if url is internal or external
                 if let baseURL = publication.baseURL, url.host == baseURL.host {
                     let href = url.absoluteString.replacingOccurrences(of: baseURL.absoluteString, with: "/")
-                    delegate?.spreadView(self, didTapOnInternalLink: href, tapData: self.lastTap)
+                    delegate?.spreadView(self, didTapOnInternalLink: href, clickEvent: self.lastClick)
                 } else {
                     delegate?.spreadView(self, didTapOnExternalURL: url)
                 }
@@ -426,7 +453,7 @@ extension EPUBSpreadView: UIScrollViewDelegate {
     }
     
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        webView.dismissUserSelection()
+        webView.clearSelection()
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -478,26 +505,23 @@ private extension EPUBSpreadView {
 }
 
 /// Produced by gestures.js
-struct TapData {
+struct ClickEvent {
     let defaultPrevented: Bool
-    let screenX: Int
-    let screenY: Int
-    let clientX: Int
-    let clientY: Int
+    let point: CGPoint
     let targetElement: String
     let interactiveElement: String?
     
     init(dict: [String: Any]) {
         self.defaultPrevented = dict["defaultPrevented"] as? Bool ?? false
-        self.screenX = dict["screenX"] as? Int ?? 0
-        self.screenY = dict["screenY"] as? Int ?? 0
-        self.clientX = dict["clientX"] as? Int ?? 0
-        self.clientY = dict["clientY"] as? Int ?? 0
+        self.point = CGPoint(x: dict["x"] as? Double ?? 0, y: dict["y"] as? Double ?? 0)
         self.targetElement = dict["targetElement"] as? String ?? ""
         self.interactiveElement = dict["interactiveElement"] as? String
     }
     
-    init(data: Any) {
-        self.init(dict: data as? [String: Any] ?? [String: Any]())
+    init?(json: Any?) {
+        guard let dict = json as? [String: Any] else {
+            return nil
+        }
+        self.init(dict: dict)
     }
 }

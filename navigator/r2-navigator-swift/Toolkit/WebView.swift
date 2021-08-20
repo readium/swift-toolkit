@@ -27,7 +27,7 @@ final class WebView: WKWebView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func dismissUserSelection() {
+    func clearSelection() {
         evaluateJavaScript("window.getSelection().removeAllRanges()")
         // Before iOS 12, we also need to disable user interaction to get rid of the selection overlays.
         isUserInteractionEnabled = false

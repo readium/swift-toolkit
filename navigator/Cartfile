@@ -1,2 +1,3 @@
+github "ra1028/DifferenceKit" ~> 1.2.0
 github "readium/r2-shared-swift" "develop"
 github "scinfu/SwiftSoup" ~> 2.3.2

@@ -51,18 +51,6 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         super.safeAreaInsetsDidChange()
         layoutSpread()
     }
-    
-    override func loadSpread() {
-        guard isWrapperLoaded else {
-            return
-        }
-        webView.evaluateJavaScript("spread.load(\(spread.jsonString(for: publication)));")
-    }
-
-    override func spreadDidLoad() {
-        super.spreadDidLoad()
-        goToCompletions.complete()
-    }
 
     /// Layouts the resource to fit its content in the bounds.
     private func layoutSpread() {
@@ -72,25 +60,50 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         // Insets the bounds by the notch area (eg. iPhone X) to make sure that the content is not overlapped by the screen notch.
         let insets = notchAreaInsets
         let viewportSize = bounds.inset(by: insets).size
-        
+
         webView.evaluateJavaScript("""
             spread.setViewport(
-              {'width': \(Int(viewportSize.width)), 'height': \(Int(viewportSize.height))},
-              {'top': \(Int(insets.top)), 'left': \(Int(insets.left)), 'bottom': \(Int(insets.bottom)), 'right': \(Int(insets.right))}
+                {'width': \(Int(viewportSize.width)), 'height': \(Int(viewportSize.height))},
+                {'top': \(Int(insets.top)), 'left': \(Int(insets.left)), 'bottom': \(Int(insets.bottom)), 'right': \(Int(insets.right))}
             );
         """)
     }
-    
-    override func pointFromTap(_ data: TapData) -> CGPoint? {
-        let x = data.screenX
-        let y = data.screenY
 
-        return CGPoint(
-            x: CGFloat(x) * scrollView.zoomScale - scrollView.contentOffset.x + webView.frame.minX,
-            y: CGFloat(y) * scrollView.zoomScale - scrollView.contentOffset.y + webView.frame.minY
+    override func loadSpread() {
+        guard isWrapperLoaded else {
+            return
+        }
+        super.evaluateScript("spread.load(\(spread.jsonString(for: publication)));")
+    }
+
+    override func spreadDidLoad() {
+        super.spreadDidLoad()
+        goToCompletions.complete()
+    }
+
+    override func evaluateScript(_ script: String, inHREF href: String?, completion: ((Result<Any, Error>) -> ())?) {
+        let href = href ?? ""
+        let script = "spread.eval('\(href)', `\(script.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "`", with: "\\`"))`);"
+        super.evaluateScript(script, completion: completion)
+    }
+
+    override func convertPointToNavigatorSpace(_ point: CGPoint) -> CGPoint {
+        CGPoint(
+            x: point.x * scrollView.zoomScale - scrollView.contentOffset.x + webView.frame.minX,
+            y: point.y * scrollView.zoomScale - scrollView.contentOffset.y + webView.frame.minY
         )
     }
-    
+
+    override func convertRectToNavigatorSpace(_ rect: CGRect) -> CGRect {
+        var rect = rect
+        rect.origin = convertPointToNavigatorSpace(rect.origin)
+        rect.size = CGSize(
+            width: rect.width * scrollView.zoomScale,
+            height: rect.height * scrollView.zoomScale
+        )
+        return rect
+    }
+
     override func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         super.webView(webView, didFinish: navigation)
         
@@ -116,16 +129,6 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         } else {
             goToCompletions.add(completion)
         }
-    }
-
-    /// MARK: - Scripts
-    
-    private static let fixedScript = loadScript(named: "fixed")
-    
-    override func makeScripts() -> [WKUserScript] {
-        var scripts = super.makeScripts()
-        scripts.append(WKUserScript(source: EPUBFixedSpreadView.fixedScript, injectionTime: .atDocumentStart, forMainFrameOnly: true))
-        return scripts
     }
 
 }

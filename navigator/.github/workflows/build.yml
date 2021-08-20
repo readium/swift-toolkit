@@ -1,4 +1,4 @@
-name: R2Navigator
+name: Build
 
 on:
   push:

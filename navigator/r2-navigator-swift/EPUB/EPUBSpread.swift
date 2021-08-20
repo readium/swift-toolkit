@@ -89,24 +89,24 @@ struct EPUBSpread: Loggable {
     /// Returns a JSON representation of the links in the spread.
     /// The JSON is an array of link objects in reading progression order.
     /// Each link object contains:
-    ///   - href: Href of the linked resource in the Publication
+    ///   - link: Link object of the resource in the Publication
     ///   - url: Full URL to the resource.
     ///   - page [left|center|right]: (optional) Page position of the linked resource in the spread.
-    func json(for publication: Publication) -> [[String: String]] {
-        func makeLinkJSON(_ link: Link, page: Presentation.Page? = nil) -> [String: String]? {
+    func json(for publication: Publication) -> [[String: Any]] {
+        func makeLinkJSON(_ link: Link, page: Presentation.Page? = nil) -> [String: Any]? {
             guard let url = link.url(relativeTo: publication.baseURL) else {
                 log(.error, "Can't get URL for link \(link.href)")
                 return nil
             }
             let page = page ?? link.properties.page ?? readingProgression.leadingPage
             return [
-                "href": link.href,
+                "link": link.json,
                 "url": url.absoluteString,
                 "page": page.rawValue
             ]
         }
         
-        var json: [[String: String]?] = []
+        var json: [[String: Any]?] = []
         
         if links.count == 1 {
             json.append(makeLinkJSON(leading))

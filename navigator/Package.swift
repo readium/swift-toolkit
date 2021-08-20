@@ -18,6 +18,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(url: "https://github.com/ra1028/DifferenceKit.git", from: "1.2.0"),
         .package(url: "https://github.com/readium/r2-shared-swift.git", .branch("develop")),
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.3.2"),
     ],
@@ -25,6 +26,7 @@ let package = Package(
         .target(
             name: "R2Navigator",
             dependencies: [
+                "DifferenceKit",
                 "SwiftSoup",
                 .product(name: "R2Shared", package: "r2-shared-swift"),
             ],
