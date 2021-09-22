@@ -21,6 +21,7 @@
 		53BF85FF4332776BD964F5E9 /* EditingAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = E01A8B5993458A3D3782BF60 /* EditingAction.swift */; };
 		5803DDCD04EB4BF899902CA9 /* SwiftSoup.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B21569803AE9C0E2203616F /* SwiftSoup.xcframework */; };
 		5FB02E95F9F310EE9AFD80EF /* PDFDocumentHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3038E23CF2927A8CA8AFD040 /* PDFDocumentHolder.swift */; };
+		661DE1227561A23010C4D3E1 /* DifferenceKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F096CCE381E8110AC85AC750 /* DifferenceKit.xcframework */; };
 		6B5A5527147E712F22954666 /* PaginationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 445ECE8AECD921ADA1E4E637 /* PaginationView.swift */; };
 		73756BC83CDBF1632BB417ED /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D45E6BB56FDE61204428297D /* Localizable.strings */; };
 		7A068CC955A1FB991F4AFD66 /* PublicationMediaLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6BC4E4D2F58268FA1789A79 /* PublicationMediaLoader.swift */; };
@@ -91,6 +92,7 @@
 		D99B11DE979D0EBA1AB8A26C /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
 		E01A8B5993458A3D3782BF60 /* EditingAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditingAction.swift; sourceTree = "<group>"; };
 		E251A7B91B19F0C98C0C6ABE /* CGRect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGRect.swift; sourceTree = "<group>"; };
+		F096CCE381E8110AC85AC750 /* DifferenceKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = DifferenceKit.xcframework; path = Carthage/Build/DifferenceKit.xcframework; sourceTree = "<group>"; };
 		FE4B7CA499653CBD2AE3612B /* R2NavigatorLocalizedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2NavigatorLocalizedString.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -99,6 +101,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				661DE1227561A23010C4D3E1 /* DifferenceKit.xcframework in Frameworks */,
 				E0124DDBE706AF8F189B8308 /* Fuzi.xcframework in Frameworks */,
 				7FAAD94BA099F25FB7AE5128 /* Minizip.xcframework in Frameworks */,
 				3B833E85FECC7DB90E836A80 /* R2Shared.xcframework in Frameworks */,
@@ -148,6 +151,7 @@
 		7876D2E3FAA4CE9468FFBE53 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				F096CCE381E8110AC85AC750 /* DifferenceKit.xcframework */,
 				4437EAB7C7D94EE22F119810 /* Fuzi.xcframework */,
 				BF86506BF19520C343F42B23 /* Minizip.xcframework */,
 				7BD382BFACB85B2683A207C5 /* R2Shared.xcframework */,

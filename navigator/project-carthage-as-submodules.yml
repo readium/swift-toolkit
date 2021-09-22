@@ -18,6 +18,7 @@ targets:
       - path: r2-navigator-swift/EPUB/Assets
         type: folder
     dependencies:
+      - framework: DifferenceKit.framework
       - framework: Fuzi.framework
       - framework: Minizip.framework
       - framework: R2Shared.framework

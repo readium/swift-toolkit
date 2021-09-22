@@ -16,6 +16,7 @@ targets:
       - path: r2-navigator-swift/EPUB/Assets
         type: folder
     dependencies:
+      - framework: Carthage/Build/DifferenceKit.xcframework
       - framework: Carthage/Build/Fuzi.xcframework
       - framework: Carthage/Build/Minizip.xcframework
       - framework: Carthage/Build/R2Shared.xcframework
