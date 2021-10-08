@@ -61,20 +61,11 @@ final class EPUBHTMLInjector {
                 }
             }
 
-            if let headStart = content.endIndex(of: "<head>") {
-                let headInjection: String
-                if isReflowable {
-                    headInjection = """
-                        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0;"/>
-                        <style type="text/css">@font-face{font-family: "OpenDyslexic"; src:url("/fonts/OpenDyslexic-Regular.otf") format("opentype");}</style>
-                        <script type="text/javascript" src="/r2-navigator/epub/scripts/readium-reflowable.js"></script>
-                    """
-                } else {
-                    headInjection = """
-                        <script type="text/javascript" src="/r2-navigator/epub/scripts/readium-fixed.js"></script>
-                    """
-                }
-                content = content.insert(string: headInjection, at: headStart)
+            if isReflowable, let headStart = content.endIndex(of: "<head>") {
+                content = content.insert(string: """
+                    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0;"/>
+                    <style type="text/css">@font-face{font-family: "OpenDyslexic"; src:url("/fonts/OpenDyslexic-Regular.otf") format("opentype");}</style>
+                """, at: headStart)
             }
             
             return content
