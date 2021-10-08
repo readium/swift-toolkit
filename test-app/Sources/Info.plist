@@ -94,6 +94,25 @@
 			</array>
 		</dict>
 		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>webpub</string>
+				<string>WEBPUB</string>
+			</array>
+			<key>CFBundleTypeIconFiles</key>
+			<array/>
+			<key>CFBundleTypeName</key>
+			<string>Readium Web Publication</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>org.readium.webpub</string>
+			</array>
+		</dict>
+		<dict>
 			<key>CFBundleTypeIconFiles</key>
 			<array/>
 			<key>CFBundleTypeName</key>
@@ -285,6 +304,32 @@
 				</array>
 				<key>public.mime-type</key>
 				<string>application/pdf+lcp</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+				<string>public.archive</string>
+				<string>public.zip-archive</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Readium Web Publication</string>
+			<key>UTTypeIconFiles</key>
+			<array/>
+			<key>UTTypeIdentifier</key>
+			<string>org.readium.webpub</string>
+			<key>UTTypeReferenceURL</key>
+			<string>https://readium.org/webpub-manifest/packaging.html</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>webpub</string>
+					<string>WEBPUB</string>
+				</array>
+				<key>public.mime-type</key>
+				<string>application/webpub+zip</string>
 			</dict>
 		</dict>
 	</array>

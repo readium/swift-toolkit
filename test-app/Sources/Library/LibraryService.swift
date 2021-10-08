@@ -103,8 +103,9 @@ final class LibraryService: Loggable {
     }
 
     private func preparePresentation(of publication: Publication, book: Book) {
-        // If the book is a webpub, it means it is loaded remotely from a URL, and it doesn't need to be added to the publication server.
-        guard publication.format != .webpub else {
+        // If the book is a web pub manifest, it means it is loaded remotely from a URL, and it
+        // doesn't need to be added to the publication server.
+        guard !book.mediaType.isRWPM else {
             return
         }
         

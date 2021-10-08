@@ -34,6 +34,8 @@ struct Book: Codable {
     /// Date of creation.
     var created: Date
     
+    var mediaType: MediaType { MediaType.of(mediaType: type) ?? .binary }
+    
     init(id: Id? = nil, identifier: String? = nil, title: String, authors: String? = nil, type: String, path: String, coverPath: String? = nil, locator: Locator? = nil, created: Date = Date()) {
         self.id = id
         self.identifier = identifier
