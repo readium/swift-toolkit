@@ -83,14 +83,14 @@ final public class EPUBParser: PublicationParser {
             fetcher: TransformingFetcher(fetcher: fetcher, transformers: [
                 EPUBDeobfuscator(publicationId: metadata.identifier ?? "").deobfuscate(resource:),
                 EPUBHTMLInjector(metadata: components.metadata, userProperties: userProperties).inject(resource:)
-            ].compactMap { $0 }),
+            ]),
             servicesBuilder: .init(
                 positions: EPUBPositionsService.makeFactory(reflowableStrategy: reflowablePositionsStrategy),
                 search: _StringSearchService.makeFactory()
             ),
             setupPublication: { publication in
                 publication.userProperties = userProperties
-                publication.userSettingsUIPreset = self.userSettingsPreset(for: publication.metadata)
+                publication.userSettingsUIPreset = Self.userSettingsPreset(for: publication.metadata)
             }
         )
     }
@@ -169,7 +169,7 @@ final public class EPUBParser: PublicationParser {
         return collections
     }
     
-    private func userSettingsPreset(for metadata: Metadata) ->  [ReadiumCSSName: Bool] {
+    static func userSettingsPreset(for metadata: Metadata) ->  [ReadiumCSSName: Bool] {
         let isCJK: Bool = {
             guard
                 metadata.languages.count == 1,

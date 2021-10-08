@@ -52,13 +52,20 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         
         let manifest = try Manifest(json: JSONSerialization.jsonObject(with: manifestData), isPackaged: isPackage)
         var fetcher = fetcher
-
+        
         // For a manifest, we discard the `fetcher` provided by the Streamer, because it was only
         // used to read the manifest file. We use an `HTTPFetcher` instead to serve the remote
         // resources.
         if !isPackage {
             let baseURL = manifest.link(withRel: .`self`)?.url(relativeTo: nil)?.deletingLastPathComponent()
             fetcher = HTTPFetcher(client: httpClient, baseURL: baseURL)
+        }
+        
+        let userProperties = UserProperties()
+        if mediaType.matches(.readiumWebPub) {
+            fetcher = TransformingFetcher(fetcher: fetcher, transformers: [
+                EPUBHTMLInjector(metadata: manifest.metadata, userProperties: userProperties).inject(resource:)
+            ])
         }
 
         if mediaType.matches(.lcpProtectedPDF) {
@@ -76,7 +83,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
             format: (mediaType.matches(.lcpProtectedPDF) ? .pdf : .webpub),
             manifest: manifest,
             fetcher: fetcher,
-            servicesBuilder: PublicationServicesBuilder(setup:  {
+            servicesBuilder: PublicationServicesBuilder(setup: {
                 switch mediaType {
                 case .lcpProtectedPDF:
                     $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory(pdfFactory: self.pdfFactory))
@@ -84,10 +91,18 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
                     $0.setPositionsServiceFactory(PerResourcePositionsService.makeFactory(fallbackMediaType: "image/*"))
                 case .readiumAudiobook, .readiumAudiobookManifest, .lcpProtectedAudiobook:
                     $0.setLocatorServiceFactory(AudioLocatorService.makeFactory())
+                case .readiumWebPub:
+                    $0.setSearchServiceFactory(_StringSearchService.makeFactory())
                 default:
                     break
                 }
-            })
+            }),
+            setupPublication: { publication in
+                if mediaType.matches(.readiumWebPub) {
+                    publication.userProperties = userProperties
+                    publication.userSettingsUIPreset = EPUBParser.userSettingsPreset(for: publication.metadata)
+                }
+            }
         )
     }
 
