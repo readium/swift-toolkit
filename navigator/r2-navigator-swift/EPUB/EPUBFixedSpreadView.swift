@@ -7,6 +7,7 @@
 import Foundation
 import UIKit
 import WebKit
+import R2Shared
 
 
 /// A view rendering a spread of resources with a fixed layout.
@@ -16,6 +17,15 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
     private var isWrapperLoaded = false
     /// URL to load in the iframe once the wrapper page is loaded.
     private var urlToLoad: URL?
+    
+    private static let fixedScript = loadScript(named: "readium-fixed")
+    
+    required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL, readingProgression: ReadingProgression, userSettings: UserSettings, scripts: [WKUserScript], animatedLoad: Bool, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+        var scripts = scripts
+        scripts.append(WKUserScript(source: Self.fixedScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
+        
+        super.init(publication: publication, spread: spread, resourcesURL: resourcesURL, readingProgression: readingProgression, userSettings: userSettings, scripts: scripts, animatedLoad: animatedLoad, editingActions: editingActions, contentInset: contentInset)
+    }
     
     override func setupWebView() {
         super.setupWebView()

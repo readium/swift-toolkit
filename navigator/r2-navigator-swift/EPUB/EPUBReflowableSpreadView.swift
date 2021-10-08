@@ -16,14 +16,20 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     private var topConstraint: NSLayoutConstraint!
     private var bottomConstraint: NSLayoutConstraint!
     
+    private static let reflowableScript = loadScript(named: "readium-reflowable")
+    
     required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL, readingProgression: ReadingProgression, userSettings: UserSettings, scripts: [WKUserScript], animatedLoad: Bool, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
         var scripts = scripts
+        
         let layout = ReadiumCSSLayout(languages: publication.metadata.languages, readingProgression: readingProgression)
         scripts.append(WKUserScript(
             source: "window.readiumCSSBaseURL = '\(resourcesURL.appendingPathComponent(layout.readiumCSSBasePath))'",
             injectionTime: .atDocumentStart,
             forMainFrameOnly: false
         ))
+        
+        scripts.append(WKUserScript(source: Self.reflowableScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
+        
         super.init(publication: publication, spread: spread, resourcesURL: resourcesURL, readingProgression: readingProgression, userSettings: userSettings, scripts: scripts, animatedLoad: animatedLoad, editingActions: editingActions, contentInset: contentInset)
     }
 

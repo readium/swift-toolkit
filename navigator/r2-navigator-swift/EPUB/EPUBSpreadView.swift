@@ -46,7 +46,6 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     let readingProgression: ReadingProgression
     let userSettings: UserSettings
-    let scripts: [WKUserScript]
     let editingActions: EditingActionsController
 
     private var lastClick: ClickEvent? = nil
@@ -73,7 +72,6 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         self.resourcesURL = resourcesURL
         self.readingProgression = readingProgression
         self.userSettings = userSettings
-        self.scripts = scripts
         self.editingActions = editingActions
         self.animatedLoad = animatedLoad
         self.webView = WebView(editingActions: editingActions)
@@ -404,6 +402,13 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         applyUserSettingsStyle()
     }
 
+    
+    // MARK: - Scripts
+    
+    class func loadScript(named name: String) -> String {
+        return Bundle.module.url(forResource: "\(name)", withExtension: "js", subdirectory: "Assets/Static/scripts")
+            .flatMap { try? String(contentsOf: $0) }!
+    }
 }
 
 // MARK: - WKScriptMessageHandler for handling incoming message from the javascript layer.
